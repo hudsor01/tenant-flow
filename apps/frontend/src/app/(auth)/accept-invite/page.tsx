@@ -2,7 +2,11 @@
 
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import { Skeleton } from '#components/ui/skeleton'
 import { getFieldErrorMessage } from '#lib/utils/form'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -29,14 +33,16 @@ import { Suspense, useEffect, useState } from 'react'
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
 // Validation schema for tenant signup
-const signupSchema = z.object({
-	email: z.string().email('Invalid email format'),
-	password: z.string().min(8, 'Password must be at least 8 characters'),
-	confirmPassword: z.string()
-}).refine((data) => data.password === data.confirmPassword, {
-	message: 'Passwords do not match',
-	path: ['confirmPassword']
-})
+const signupSchema = z
+	.object({
+		email: z.string().email('Invalid email format'),
+		password: z.string().min(8, 'Password must be at least 8 characters'),
+		confirmPassword: z.string()
+	})
+	.refine(data => data.password === data.confirmPassword, {
+		message: 'Passwords do not match',
+		path: ['confirmPassword']
+	})
 
 interface InvitationData {
 	valid: boolean
@@ -47,7 +53,13 @@ interface InvitationData {
 	unit_number?: string
 }
 
-type PageState = 'loading' | 'valid' | 'invalid' | 'expired' | 'accepted' | 'error'
+type PageState =
+	| 'loading'
+	| 'valid'
+	| 'invalid'
+	| 'expired'
+	| 'accepted'
+	| 'error'
 
 function AcceptInviteContent() {
 	const [showPassword, setShowPassword] = useState(false)
@@ -72,19 +84,26 @@ function AcceptInviteContent() {
 
 			try {
 				const apiUrl = getApiBaseUrl()
-				const response = await fetch(`${apiUrl}/api/v1/tenants/invitation/${code}`, {
-					method: 'GET',
-					headers: { 'Content-Type': 'application/json' }
-				})
+				const response = await fetch(
+					`${apiUrl}/api/v1/tenants/invitation/${code}`,
+					{
+						method: 'GET',
+						headers: { 'Content-Type': 'application/json' }
+					}
+				)
 
 				if (!response.ok) {
 					const error = await response.json().catch(() => ({}))
 					if (response.status === 404) {
 						setPageState('invalid')
-						setErrorMessage('This invitation link is invalid or has already been used')
+						setErrorMessage(
+							'This invitation link is invalid or has already been used'
+						)
 					} else if (response.status === 410) {
 						setPageState('expired')
-						setErrorMessage('This invitation has expired. Please contact your property manager for a new invitation.')
+						setErrorMessage(
+							'This invitation has expired. Please contact your property manager for a new invitation.'
+						)
 					} else {
 						setPageState('error')
 						setErrorMessage(error.message || 'Failed to validate invitation')
@@ -122,27 +141,31 @@ function AcceptInviteContent() {
 				const supabase = createClient()
 
 				// Step 1: Create Supabase auth account
-				const { data: authData, error: signUpError } = await supabase.auth.signUp({
-					email: value.email,
-					password: value.password,
-					options: {
-						data: {
-							user_type: 'TENANT'
+				const { data: authData, error: signUpError } =
+					await supabase.auth.signUp({
+						email: value.email,
+						password: value.password,
+						options: {
+							data: {
+								user_type: 'TENANT'
+							}
 						}
-					}
-				})
+					})
 
 				if (signUpError) {
 					// Check if user already exists
 					if (signUpError.message.includes('already registered')) {
 						// Try to sign in instead
-						const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-							email: value.email,
-							password: value.password
-						})
+						const { data: signInData, error: signInError } =
+							await supabase.auth.signInWithPassword({
+								email: value.email,
+								password: value.password
+							})
 
 						if (signInError) {
-							throw new Error('Account exists. Please use the correct password or reset it.')
+							throw new Error(
+								'Account exists. Please use the correct password or reset it.'
+							)
 						}
 
 						if (!signInData.user) {
@@ -163,9 +186,9 @@ function AcceptInviteContent() {
 
 				// Step 2: Accept the invitation
 				await acceptInvitation(authData.user.id)
-
 			} catch (error) {
-				const message = error instanceof Error ? error.message : 'Failed to accept invitation'
+				const message =
+					error instanceof Error ? error.message : 'Failed to accept invitation'
 				setErrorMessage(message)
 				logger.error('Accept invitation failed', { error: message })
 			} finally {
@@ -176,11 +199,14 @@ function AcceptInviteContent() {
 
 	async function acceptInvitation(authUserId: string) {
 		const apiUrl = getApiBaseUrl()
-		const response = await fetch(`${apiUrl}/api/v1/tenants/invitation/${code}/accept`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ authuser_id: authUserId })
-		})
+		const response = await fetch(
+			`${apiUrl}/api/v1/tenants/invitation/${code}/accept`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ authuser_id: authUserId })
+			}
+		)
 
 		if (!response.ok) {
 			const error = await response.json().catch(() => ({}))
@@ -208,7 +234,11 @@ function AcceptInviteContent() {
 		return <LoadingState />
 	}
 
-	if (pageState === 'invalid' || pageState === 'expired' || pageState === 'error') {
+	if (
+		pageState === 'invalid' ||
+		pageState === 'expired' ||
+		pageState === 'error'
+	) {
 		return <ErrorState state={pageState} message={errorMessage} />
 	}
 
@@ -257,14 +287,16 @@ function AcceptInviteContent() {
 									{ icon: CheckCircle2, label: 'Pay Rent\nOnline' },
 									{ icon: Home, label: 'Submit\nRequests' },
 									{ icon: Lock, label: 'Secure\nPortal' }
-								].map((item) => (
+								].map(item => (
 									<div key={item.label} className="text-center">
 										<div className="size-10 mx-auto mb-2 bg-primary/10 rounded-lg flex-center">
 											<item.icon className="size-5 text-primary" />
 										</div>
 										<div
 											className="text-muted-foreground text-xs font-medium"
-											dangerouslySetInnerHTML={{ __html: item.label.replace('\n', '<br />') }}
+											dangerouslySetInnerHTML={{
+												__html: item.label.replace('\n', '<br />')
+											}}
 										/>
 									</div>
 								))}
@@ -308,7 +340,8 @@ function AcceptInviteContent() {
 								<p className="text-muted-foreground">
 									<strong className="text-foreground">Property:</strong>{' '}
 									{invitation.property_name}
-									{invitation.unit_number && ` - Unit ${invitation.unit_number}`}
+									{invitation.unit_number &&
+										` - Unit ${invitation.unit_number}`}
 								</p>
 							)}
 							<p className="text-muted-foreground">
@@ -320,7 +353,7 @@ function AcceptInviteContent() {
 
 					{/* Signup Form */}
 					<form
-						onSubmit={(e) => {
+						onSubmit={e => {
 							e.preventDefault()
 							form.handleSubmit()
 						}}
@@ -334,7 +367,7 @@ function AcceptInviteContent() {
 
 						{/* Email Field */}
 						<form.Field name="email">
-							{(field) => (
+							{field => (
 								<Field>
 									<FieldLabel htmlFor="email">Email address</FieldLabel>
 									<InputGroup>
@@ -347,7 +380,7 @@ function AcceptInviteContent() {
 											placeholder="Enter your email"
 											autoComplete="email"
 											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
+											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 											disabled={isAccepting || !!invitation?.email}
 											aria-invalid={field.state.meta.errors.length > 0}
@@ -364,7 +397,7 @@ function AcceptInviteContent() {
 
 						{/* Password Field */}
 						<form.Field name="password">
-							{(field) => (
+							{field => (
 								<Field>
 									<FieldLabel htmlFor="password">Create password</FieldLabel>
 									<InputGroup>
@@ -377,7 +410,7 @@ function AcceptInviteContent() {
 											placeholder="Create a secure password"
 											autoComplete="new-password"
 											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
+											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 											disabled={isAccepting}
 											aria-invalid={field.state.meta.errors.length > 0}
@@ -407,9 +440,11 @@ function AcceptInviteContent() {
 
 						{/* Confirm Password Field */}
 						<form.Field name="confirmPassword">
-							{(field) => (
+							{field => (
 								<Field>
-									<FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
+									<FieldLabel htmlFor="confirmPassword">
+										Confirm password
+									</FieldLabel>
 									<InputGroup>
 										<InputGroupAddon align="inline-start">
 											<Lock />
@@ -420,7 +455,7 @@ function AcceptInviteContent() {
 											placeholder="Confirm your password"
 											autoComplete="new-password"
 											value={field.state.value}
-											onChange={(e) => field.handleChange(e.target.value)}
+											onChange={e => field.handleChange(e.target.value)}
 											onBlur={field.handleBlur}
 											disabled={isAccepting}
 											aria-invalid={field.state.meta.errors.length > 0}
@@ -428,7 +463,9 @@ function AcceptInviteContent() {
 										<InputGroupAddon align="inline-end">
 											<button
 												type="button"
-												onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+												onClick={() =>
+													setShowConfirmPassword(!showConfirmPassword)
+												}
 												className="text-muted-foreground hover:text-foreground transition-colors"
 												tabIndex={-1}
 											>
@@ -454,13 +491,18 @@ function AcceptInviteContent() {
 							className="w-full h-11 text-sm font-medium"
 							disabled={isAccepting}
 						>
-							{isAccepting ? 'Creating Account...' : 'Accept Invitation & Create Account'}
+							{isAccepting
+								? 'Creating Account...'
+								: 'Accept Invitation & Create Account'}
 						</Button>
 
 						{/* Already have account */}
 						<p className="text-center text-muted">
 							Already have an account?{' '}
-							<Link href="/login" className="text-primary hover:underline font-medium">
+							<Link
+								href="/login"
+								className="text-primary hover:underline font-medium"
+							>
 								Sign in
 							</Link>
 						</p>
@@ -469,9 +511,13 @@ function AcceptInviteContent() {
 					{/* Footer */}
 					<div className="text-center text-caption/70">
 						By creating an account, you agree to our{' '}
-						<Link href="/terms" className="hover:underline">Terms of Service</Link>
-						{' '}and{' '}
-						<Link href="/privacy" className="hover:underline">Privacy Policy</Link>
+						<Link href="/terms" className="hover:underline">
+							Terms of Service
+						</Link>{' '}
+						and{' '}
+						<Link href="/privacy" className="hover:underline">
+							Privacy Policy
+						</Link>
 					</div>
 				</div>
 			</div>
@@ -509,17 +555,19 @@ function ErrorState({ state, message }: { state: PageState; message: string }) {
 	return (
 		<div className="min-h-screen flex-center bg-background p-6">
 			<div className="w-full max-w-md text-center space-y-6">
-				<div className={`size-20 mx-auto rounded-full flex-center ${isExpired ? 'bg-warning/10' : 'bg-destructive/10'}`}>
-					<Icon className={`size-10 ${isExpired ? 'text-warning' : 'text-destructive'}`} />
+				<div
+					className={`size-20 mx-auto rounded-full flex-center ${isExpired ? 'bg-warning/10' : 'bg-destructive/10'}`}
+				>
+					<Icon
+						className={`size-10 ${isExpired ? 'text-warning' : 'text-destructive'}`}
+					/>
 				</div>
 
 				<div className="space-y-2">
 					<h1 className="text-2xl font-bold text-foreground">
 						{isExpired ? 'Invitation Expired' : 'Invalid Invitation'}
 					</h1>
-					<p className="text-muted-foreground">
-						{message}
-					</p>
+					<p className="text-muted-foreground">{message}</p>
 				</div>
 
 				<div className="pt-4 space-y-3">
@@ -551,7 +599,8 @@ function SuccessState() {
 						Welcome to TenantFlow!
 					</h1>
 					<p className="text-muted-foreground">
-						Your account has been created successfully. Redirecting you to your tenant portal...
+						Your account has been created and verified. Redirecting you to your
+						tenant portal...
 					</p>
 				</div>
 

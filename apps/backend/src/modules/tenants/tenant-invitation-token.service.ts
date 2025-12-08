@@ -1,11 +1,15 @@
 /**
  * Tenant Invitation Token Service
- * 
+ *
  * Handles invitation token validation and acceptance
  * Manages: Token validation, Token expiration, Tenant activation
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { Tenant } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -42,7 +46,8 @@ export class TenantInvitationTokenService {
 			// Fetch invitation with related property owner, property, and unit data
 			const { data, error } = await client
 				.from('tenant_invitations')
-				.select(`
+				.select(
+					`
 					unit_id,
 					email,
 					expires_at,
@@ -62,7 +67,8 @@ export class TenantInvitationTokenService {
 					units!tenant_invitations_unit_id_fkey (
 						unit_number
 					)
-				`)
+				`
+				)
 				.eq('invitation_code', token)
 				.single()
 
@@ -82,7 +88,10 @@ export class TenantInvitationTokenService {
 			}
 
 			// Build response with optional fields
-			const propertyOwner = data.property_owners as { business_name?: string; users?: { email?: string } } | null
+			const propertyOwner = data.property_owners as {
+				business_name?: string
+				users?: { email?: string }
+			} | null
 			const property = data.properties as { name?: string } | null
 			const unit = data.units as { unit_number?: string } | null
 
@@ -102,7 +111,8 @@ export class TenantInvitationTokenService {
 			}
 
 			if (data.unit_id) result.unit_id = data.unit_id
-			if (propertyOwner?.business_name) result.property_owner_name = propertyOwner.business_name
+			if (propertyOwner?.business_name)
+				result.property_owner_name = propertyOwner.business_name
 			if (property?.name) result.property_name = property.name
 			if (unit?.unit_number) result.unit_number = unit.unit_number
 
@@ -118,8 +128,15 @@ export class TenantInvitationTokenService {
 	/**
 	 * Accept invitation token and mark as used
 	 * Handles both platform-only and unit-assigned invitations
+	 * Also verifies the user's email to eliminate redundant confirmation emails
 	 */
-	async acceptToken(token: string, user_id: string): Promise<Tenant | { success: true; message: string }> {
+	async acceptToken(
+		token: string,
+		user_id: string
+	): Promise<
+		| (Tenant & { emailVerified: boolean })
+		| { success: true; message: string; emailVerified: boolean }
+	> {
 		try {
 			// Validate token first
 			const validation = await this.validateToken(token)
@@ -156,18 +173,35 @@ export class TenantInvitationTokenService {
 					user_id
 				})
 			} else {
-				this.logger.log('User type updated to TENANT on invitation acceptance', { user_id })
+				this.logger.log(
+					'User type updated to TENANT on invitation acceptance',
+					{ user_id }
+				)
 			}
 
-			// Also set app_metadata.user_type directly on auth user for immediate effect
+			// Set app_metadata.user_type AND verify email in a single call
+			// This eliminates the need for a separate email confirmation flow
+			// since accepting a valid invitation proves email ownership
 			const { error: authUpdateError } = await client.auth.admin.updateUserById(
 				user_id,
-				{ app_metadata: { user_type: 'TENANT' } }
+				{
+					app_metadata: { user_type: 'TENANT' },
+					email_confirm: true
+				}
 			)
 
+			let emailVerified = true
 			if (authUpdateError) {
-				this.logger.warn('Failed to update auth user app_metadata', {
-					error: authUpdateError.message,
+				emailVerified = false
+				this.logger.warn(
+					'Failed to verify email during invitation acceptance',
+					{
+						error: authUpdateError.message,
+						user_id
+					}
+				)
+			} else {
+				this.logger.log('Email verified during invitation acceptance', {
 					user_id
 				})
 			}
@@ -182,8 +216,11 @@ export class TenantInvitationTokenService {
 					.maybeSingle()
 
 				if (existingTenant) {
-					this.logger.log('Platform invitation accepted, tenant already exists', { user_id })
-					return existingTenant as Tenant
+					this.logger.log(
+						'Platform invitation accepted, tenant already exists',
+						{ user_id }
+					)
+					return { ...(existingTenant as Tenant), emailVerified }
 				}
 
 				// Create new tenant record for platform-only invitation
@@ -194,13 +231,23 @@ export class TenantInvitationTokenService {
 					.single()
 
 				if (createError || !newTenant) {
-					this.logger.error('Failed to create tenant record', { error: createError?.message })
+					this.logger.error('Failed to create tenant record', {
+						error: createError?.message
+					})
 					// Don't fail - invitation is accepted, tenant creation is secondary
-					return { success: true, message: 'Invitation accepted. Please contact your property manager to complete setup.' }
+					return {
+						success: true,
+						message:
+							'Invitation accepted. Please contact your property manager to complete setup.',
+						emailVerified
+					}
 				}
 
-				this.logger.log('Platform invitation accepted, tenant created', { user_id, tenant_id: newTenant.id })
-				return newTenant as Tenant
+				this.logger.log('Platform invitation accepted, tenant created', {
+					user_id,
+					tenant_id: newTenant.id
+				})
+				return { ...(newTenant as Tenant), emailVerified }
 			}
 
 			// Unit-assigned invitation: link tenant to existing lease
@@ -211,7 +258,10 @@ export class TenantInvitationTokenService {
 				.single()
 
 			if (leaseError || !leaseData?.primary_tenant_id) {
-				this.logger.warn('No lease found for unit, creating standalone tenant', { unit_id: validation.unit_id })
+				this.logger.warn(
+					'No lease found for unit, creating standalone tenant',
+					{ unit_id: validation.unit_id }
+				)
 				// Create tenant without lease link
 				const { data: newTenant } = await client
 					.from('tenants')
@@ -219,7 +269,13 @@ export class TenantInvitationTokenService {
 					.select()
 					.single()
 
-				return newTenant as Tenant || { success: true, message: 'Invitation accepted' }
+				return newTenant
+					? { ...(newTenant as Tenant), emailVerified }
+					: {
+							success: true as const,
+							message: 'Invitation accepted',
+							emailVerified
+						}
 			}
 
 			// Link user to existing tenant record
@@ -240,7 +296,7 @@ export class TenantInvitationTokenService {
 				lease_id: leaseData.id
 			})
 
-			return tenantData as Tenant
+			return { ...(tenantData as Tenant), emailVerified }
 		} catch (error) {
 			if (error instanceof BadRequestException) throw error
 			this.logger.error('Error accepting token', {
@@ -264,13 +320,13 @@ export class TenantInvitationTokenService {
 				.eq('user_id', user_id)
 				.single()
 			if (tenantError || !tenant) {
-			throw new NotFoundException('Tenant not found for this user')
-		}
+				throw new NotFoundException('Tenant not found for this user')
+			}
 
 			const client = this.supabase.getAdminClient()
 			const { data: tenantData, error } = await client
 				.from('tenants')
-				.update({})  // Tenant is already complete, no status update needed
+				.update({}) // Tenant is already complete, no status update needed
 				.eq('id', tenant.id)
 				.select()
 				.single()
@@ -288,16 +344,21 @@ export class TenantInvitationTokenService {
 				.from('users')
 				.update({ user_type: 'TENANT' })
 				.eq('id', user_id)
-				.is('user_type', null)  // Only update if user_type is NULL (new users)
+				.is('user_type', null) // Only update if user_type is NULL (new users)
 
 			if (userError) {
-				this.logger.warn('Failed to update user type to TENANT on webhook activation', {
-					error: userError.message,
-					user_id
-				})
+				this.logger.warn(
+					'Failed to update user type to TENANT on webhook activation',
+					{
+						error: userError.message,
+						user_id
+					}
+				)
 				// Don't throw - tenant activation is more important than user_type update
 			} else {
-				this.logger.log('User type updated to TENANT on webhook activation', { user_id })
+				this.logger.log('User type updated to TENANT on webhook activation', {
+					user_id
+				})
 			}
 
 			// Also set app_metadata.user_type directly on auth user for immediate effect
@@ -307,16 +368,21 @@ export class TenantInvitationTokenService {
 			)
 
 			if (authUpdateError) {
-				this.logger.warn('Failed to update auth user app_metadata on webhook activation', {
-					error: authUpdateError.message,
-					user_id
-				})
+				this.logger.warn(
+					'Failed to update auth user app_metadata on webhook activation',
+					{
+						error: authUpdateError.message,
+						user_id
+					}
+				)
 			}
 
 			return tenantData as Tenant
 		} catch (error) {
-			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException
+			) {
 				throw error
 			}
 			this.logger.error('Error activating tenant', {

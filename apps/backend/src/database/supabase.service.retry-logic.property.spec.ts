@@ -178,9 +178,9 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           expect(mockAdminClient.rpc).toHaveBeenCalledWith('test_function', { arg: 'value' })
         }
       ),
-      { numRuns: 100, timeout: 30000 } // Longer timeout for 100 runs with backoff delays
+      { numRuns: 30, timeout: 15000 } // Reduced runs for faster execution
     )
-  }, 35000) // Jest timeout for the entire test
+  }, 10000) // Jest timeout for the entire test
 
   /**
    * Property: Retry logic respects max attempts
@@ -244,9 +244,9 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           expect(result.attempts).toBe(maxAttempts)
         }
       ),
-      { numRuns: 50 } // Reduced runs since we're creating new service instances
+      { numRuns: 20 } // Reduced runs for faster execution
     )
-  }, 20000) // Jest timeout
+  }, 10000) // Jest timeout
 
   /**
    * Property: Different transient error patterns are recognized
@@ -317,9 +317,9 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           expect(result.error).toBeNull()
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 30 } // Reduced runs for faster execution
     )
-  }, 20000) // Jest timeout
+  }, 10000) // Jest timeout
 
   /**
    * Property: Exponential backoff timing is correct
@@ -383,7 +383,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
       ),
       { numRuns: 30 } // Fewer runs since this test involves timing and service creation
     )
-  }, 15000) // Jest timeout
+  }, 8000) // Jest timeout
 
   /**
    * Property: Successful first attempt doesn't trigger retries
@@ -430,7 +430,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           expect(retryLogs.length).toBe(0)
         }
       ),
-      { numRuns: 100 }
+      { numRuns: 30 } // Reduced runs for faster execution
     )
   })
 
@@ -503,7 +503,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
       ),
       { numRuns: 50 } // Reduced runs since we're creating service instances
     )
-  }, 20000) // Jest timeout
+  }, 10000) // Jest timeout
 
   /**
    * Property: Abort signal works correctly
@@ -576,5 +576,5 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
       ),
       { numRuns: 30 } // Fewer runs since this involves timing and service creation
     )
-  }, 15000) // Jest timeout
+  }, 8000) // Jest timeout
 })

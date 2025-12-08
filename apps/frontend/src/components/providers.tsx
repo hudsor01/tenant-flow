@@ -9,6 +9,7 @@ import { QueryProvider } from '#providers/query-provider'
 import { ThemeProvider } from '#providers/theme-provider'
 import type { PreferencesState } from '#stores/preferences-store'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
+import { GlobalLoadingIndicator } from '#components/ui/global-loading-indicator'
 
 interface ProvidersProps {
 	children: ReactNode
@@ -30,7 +31,10 @@ export function Providers({
 			<PreferencesStoreProvider themeMode={initialThemeMode}>
 				<QueryProvider>
 					<NuqsAdapter>
-						<AuthStoreProvider>{children}</AuthStoreProvider>
+						<AuthStoreProvider>
+							{children}
+							<GlobalLoadingIndicator />
+						</AuthStoreProvider>
 					</NuqsAdapter>
 				</QueryProvider>
 			</PreferencesStoreProvider>

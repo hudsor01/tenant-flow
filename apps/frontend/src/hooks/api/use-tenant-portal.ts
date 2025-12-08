@@ -78,7 +78,7 @@ export function useCreateMaintenanceRequest() {
 
 	return useMutation({
 		mutationFn: (request: CreateMaintenanceRequestInput) =>
-			apiRequest<TenantMaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
+			apiRequest<TenantMaintenanceRequest>('/api/v1/tenants/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			}),

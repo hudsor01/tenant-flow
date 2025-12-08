@@ -57,7 +57,7 @@
 	"dependencies": {
 		"@supabase/ssr": "catalog:default",
 		"@supabase/supabase-js": "catalog:default",
-		"@tanstack/react-query": "5.90.10",
+		"@tanstack/react-query": "5.90.12",
 		"zod": "catalog:default"
 	},
 	"devDependencies": {

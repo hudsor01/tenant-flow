@@ -43,6 +43,8 @@ const statIndicatorVariants = cva(
       },
       color: {
         default: "bg-muted text-muted-foreground",
+        primary:
+          "border-primary/20 bg-primary/10 text-primary",
         success:
           "border-green-500/20 bg-green-500/10 text-green-600 dark:text-green-400",
         info: "border-blue-500/20 bg-blue-500/10 text-blue-600 dark:text-blue-400",

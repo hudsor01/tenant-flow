@@ -98,7 +98,7 @@ export const maintenanceQueries = {
 						inProgress: number
 						completed: number
 					}
-				}>('/api/v1/tenant-portal/maintenance')
+				}>('/api/v1/tenants/maintenance')
 				return {
 					requests: response.requests,
 					total: response.summary.total,

@@ -262,16 +262,19 @@ export const tenantPortalQueries = {
 		}),
 
 	/**
-	 * Lease documents (signed agreement, receipts)
-	 */
-	documents: () =>
-		queryOptions({
-			queryKey: [...tenantPortalQueries.all(), 'documents'],
-			queryFn: () => apiRequest<{ documents: TenantDocument[] }>('/api/v1/tenant-portal/documents'),
-			...QUERY_CACHE_TIMES.DETAIL,
-			refetchOnWindowFocus: false,
-			retry: DEFAULT_RETRY_ATTEMPTS
-		}),
+ * Lease documents (signed agreement, receipts)
+ */
+documents: () =>
+	queryOptions({
+		queryKey: [...tenantPortalQueries.all(), 'documents'],
+		queryFn: () =>
+			apiRequest<{ documents: TenantDocument[] }>(
+				'/api/v1/tenants/leases/documents'
+			),
+		...QUERY_CACHE_TIMES.DETAIL,
+		refetchOnWindowFocus: false,
+		retry: DEFAULT_RETRY_ATTEMPTS
+	}),
 
 	/**
 	 * Tenant profile and settings
@@ -279,7 +282,7 @@ export const tenantPortalQueries = {
 	settings: () =>
 		queryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'settings'],
-			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenant-portal/settings'),
+			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenants/settings'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS

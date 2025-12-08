@@ -80,7 +80,7 @@ export const leaseQueries = {
 	tenantPortalActive: () =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'tenant-portal', 'active'],
-			queryFn: () => apiRequest<TenantPortalLease | null>('/api/v1/tenant-portal/lease'),
+			queryFn: () => apiRequest<TenantPortalLease | null>('/api/v1/tenants/leases'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			retry: 2,
 		}),

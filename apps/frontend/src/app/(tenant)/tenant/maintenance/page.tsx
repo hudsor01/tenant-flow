@@ -9,20 +9,22 @@
 
 'use client'
 
-import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
+import { TenantMaintenanceCard } from '#components/maintenance/tenant-maintenance-card'
 import { useQuery } from '@tanstack/react-query'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { useMediaQuery } from '#hooks/use-media-query'
 import { formatDate } from '#lib/formatters/date'
-import { Calendar, Plus, Wrench } from 'lucide-react'
+import { Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantMaintenancePage() {
 	const { data: maintenanceData, isLoading, error } = useQuery(maintenanceQueries.tenantPortal())
+	const isMobile = useMediaQuery('(max-width: 768px)')
 
-	const getStatusBadge = (status: string) => {
+	const getStatusBadgeClass = (status: string) => {
 		switch (status) {
 			case 'OPEN':
 				return 'badge badge-secondary'
@@ -33,27 +35,8 @@ export default function TenantMaintenancePage() {
 			case 'CANCELED':
 				return 'badge badge-outline'
 			default:
-				return ''
+				return 'badge badge-outline'
 		}
-	}
-
-	const getPriorityColor = (priority: string) => {
-		switch (priority) {
-			case 'URGENT':
-				return 'text-destructive'
-			case 'HIGH':
-				return 'text-warning'
-			case 'MEDIUM':
-				return 'text-warning'
-			case 'LOW':
-				return 'text-info'
-			default:
-				return 'text-muted-foreground'
-		}
-	}
-
-	const formatStatus = (status: string) => {
-		return status.replace('_', ' ')
 	}
 
 	const activeRequests =
@@ -117,43 +100,57 @@ export default function TenantMaintenancePage() {
 						</div>
 					)}
 
-					{!isLoading &&
-						!error &&
-						activeRequests.map(request => (
-							<div
-								key={request.id}
-								className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
-							>
-								<div className="flex items-center gap-4 flex-1">
-									<Wrench className="size-5 text-primary" />
-									<div className="flex-1">
-										<div className="flex items-center gap-3">
-											<p className="font-medium">{request.description.length > 50 ? `${request.description.substring(0, 50)}...` : request.description}</p>
-											<span
-												className={`text-xs font-semibold ${getPriorityColor(request.priority)}`}
-											>
-												{request.priority}
-											</span>
-										</div>
-										<p className="text-muted mt-1">
-											{request.description.length > 100
-												? `${request.description.substring(0, 100)}...`
-												: request.description}
-										</p>
-										<div className="flex items-center gap-2 text-caption mt-2">
-											<Calendar className="size-3" />
-							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
-										</div>
+			{!isLoading &&
+				!error &&
+				(isMobile ? (
+					activeRequests.map(request => (
+						<TenantMaintenanceCard
+							key={request.id}
+							request={request}
+							layout="stacked"
+						/>
+					))
+				) : (
+					<div
+						data-testid="maintenance-active-table"
+						className="overflow-x-auto"
+					>
+						<div className="min-w-[720px] space-y-1">
+							<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+								<div>Description</div>
+								<div>Priority</div>
+								<div>Status</div>
+								<div>Submitted</div>
+								<div className="text-right">Unit</div>
+							</div>
+							{activeRequests.map(request => (
+								<div
+									key={request.id}
+									data-testid="maintenance-row"
+									className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
+								>
+									<div className="space-y-1">
+										<p className="font-medium break-words">{request.description}</p>
+									</div>
+									<div className="text-sm font-semibold uppercase text-muted-foreground">
+										{request.priority}
+									</div>
+									<div>
+										<span className={getStatusBadgeClass(request.status)}>
+											{request.status.replace('_', ' ')}
+										</span>
+									</div>
+									<div className="text-sm text-muted-foreground">
+										{formatDate(request.created_at || new Date().toISOString(), { relative: true })}
+									</div>
+									<div className="text-right text-sm text-muted-foreground">
+										{request.unit_id || '—'}
 									</div>
 								</div>
-								<Badge
-									variant="outline"
-									className={getStatusBadge(request.status)}
-								>
-									{formatStatus(request.status)}
-								</Badge>
-							</div>
-						))}
+							))}
+						</div>
+					</div>
+				))}
 				</div>
 			</CardLayout>
 
@@ -178,41 +175,60 @@ export default function TenantMaintenancePage() {
 						</div>
 					)}
 
-					{!isLoading &&
-						!error &&
-						completedRequests.map(request => (
-							<div
-								key={request.id}
-								className="flex-between p-4 border rounded-lg"
-							>
-								<div className="flex items-center gap-4 flex-1">
-									<Wrench className="size-5 text-muted-foreground" />
-									<div className="flex-1">
-										<div className="flex items-center gap-3">
-											<p className="font-medium">{request.description.length > 50 ? `${request.description.substring(0, 50)}...` : request.description}</p>
-										</div>
-										<div className="flex items-center gap-2 text-caption mt-1">
-											<Calendar className="size-3" />
-							<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
-											{request.completed_at && (
-												<>
-													<span>•</span>
-													<span>
-									Completed {formatDate(request.completed_at, { relative: true })}
-													</span>
-												</>
-											)}
-										</div>
+			{!isLoading &&
+				!error &&
+				(isMobile ? (
+					completedRequests.map(request => (
+						<TenantMaintenanceCard
+							key={request.id}
+							request={request}
+							layout="stacked"
+						/>
+					))
+				) : (
+					<div
+						data-testid="maintenance-history-table"
+						className="overflow-x-auto"
+					>
+						<div className="min-w-[720px] space-y-1">
+							<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+								<div>Description</div>
+								<div>Priority</div>
+								<div>Status</div>
+								<div>Submitted</div>
+								<div className="text-right">Completed</div>
+							</div>
+
+							{completedRequests.map(request => (
+								<div
+									key={request.id}
+									data-testid="maintenance-row"
+									className="grid grid-cols-5 gap-4 p-4 items-center border-b"
+								>
+									<div className="space-y-1">
+										<p className="font-medium break-words">{request.description}</p>
+									</div>
+									<div className="text-sm font-semibold uppercase text-muted-foreground">
+										{request.priority}
+									</div>
+									<div>
+										<span className={getStatusBadgeClass(request.status)}>
+											{request.status.replace('_', ' ')}
+										</span>
+									</div>
+									<div className="text-sm text-muted-foreground">
+										{formatDate(request.created_at || new Date().toISOString(), { relative: true })}
+									</div>
+									<div className="text-right text-sm text-muted-foreground">
+										{request.completed_at
+											? formatDate(request.completed_at, { relative: true })
+											: '—'}
 									</div>
 								</div>
-								<Badge
-									variant="outline"
-									className={getStatusBadge(request.status)}
-								>
-									{formatStatus(request.status)}
-								</Badge>
-							</div>
-						))}
+							))}
+						</div>
+					</div>
+				))}
 				</div>
 			</CardLayout>
 		</div>

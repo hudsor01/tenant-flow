@@ -14,7 +14,8 @@ import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLoadingStore } from '#stores/loading-store'
 
 const logger = createLogger({ component: 'QueryProvider' })
 
@@ -40,6 +41,7 @@ export function QueryProvider({
 }: QueryProviderProps) {
 	const [persister, setPersister] = useState<Persister | null>(null)
 	const [isPersistenceReady, setIsPersistenceReady] = useState(false)
+	const loadingMapRef = useRef<Map<string, string>>(new Map())
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({
@@ -66,7 +68,7 @@ export function QueryProvider({
 							// Retry up to 3 times for other errors
 							return failureCount < 3
 						},
-						retryDelay: (attemptIndex) => {
+						retryDelay: attemptIndex => {
 							// Jittered exponential backoff: base delay with random jitter
 							const baseDelay = Math.min(1000 * 2 ** attemptIndex, 30000)
 							const jitter = Math.random() * 0.3 * baseDelay // ±30% jitter
@@ -99,7 +101,10 @@ export function QueryProvider({
 							logger.debug('Mutation succeeded', {
 								action: 'mutation_success',
 								metadata: {
-									variables: typeof variables === 'object' ? Object.keys(variables || {}) : String(variables),
+									variables:
+										typeof variables === 'object'
+											? Object.keys(variables || {})
+											: String(variables),
 									hasRollbackData: !!context
 								}
 							})
@@ -109,7 +114,10 @@ export function QueryProvider({
 								action: 'mutation_error',
 								metadata: {
 									error: error instanceof Error ? error.message : String(error),
-									variables: typeof variables === 'object' ? Object.keys(variables || {}) : String(variables),
+									variables:
+										typeof variables === 'object'
+											? Object.keys(variables || {})
+											: String(variables),
 									hasRollbackData: !!context
 								}
 							})
@@ -121,37 +129,89 @@ export function QueryProvider({
 
 	// Configure global query events for monitoring
 	useEffect(() => {
-		const unsubscribeQueryCache = queryClient.getQueryCache().subscribe(event => {
-			if (event.type === 'added') {
-				logger.debug('Query added', {
-					action: 'query_added',
-					metadata: { queryKey: event.query.queryKey }
-				})
-			} else if (event.type === 'removed') {
-				logger.debug('Query removed', {
-					action: 'query_removed',
-					metadata: { queryKey: event.query.queryKey }
-				})
-			}
-		})
+		const loadingStore = useLoadingStore.getState()
+		const unsubscribeQueryCache = queryClient
+			.getQueryCache()
+			.subscribe(event => {
+				const query = 'query' in event ? event.query : undefined
+				if (!query) return
 
-		const unsubscribeMutationCache = queryClient.getMutationCache().subscribe(event => {
-			if (event.type === 'added') {
-				logger.debug('Mutation added', {
-					action: 'mutation_added',
-					metadata: { mutationId: event.mutation.mutationId }
-				})
-			} else if (event.type === 'removed') {
-				logger.debug('Mutation removed', {
-					action: 'mutation_removed',
-					metadata: { mutationId: event.mutation.mutationId }
-				})
-			}
-		})
+				if (event.type === 'added') {
+					logger.debug('Query added', {
+						action: 'query_added',
+						metadata: { queryKey: query.queryKey }
+					})
+				} else if (event.type === 'removed') {
+					logger.debug('Query removed', {
+						action: 'query_removed',
+						metadata: { queryKey: query.queryKey }
+					})
+				}
 
+				const queryHash = query.queryHash
+				const currentFetchStatus = query.state.fetchStatus
+
+				// Start a loading operation when a query begins fetching
+				if (
+					currentFetchStatus === 'fetching' &&
+					!loadingMapRef.current.has(queryHash)
+				) {
+					const opId = `query_${queryHash}`
+					loadingStore.startLoading(opId, 'Updating data', 'query')
+					loadingMapRef.current.set(queryHash, opId)
+				}
+
+				// Stop the loading operation when fetch completes or is paused or errors
+				if (
+					(currentFetchStatus === 'idle' || currentFetchStatus === 'paused') &&
+					loadingMapRef.current.has(queryHash)
+				) {
+					const opId = loadingMapRef.current.get(queryHash)
+					if (opId) {
+						loadingStore.stopLoading(opId)
+					}
+					loadingMapRef.current.delete(queryHash)
+				}
+			})
+
+		// Handle any in-flight queries that existed before subscription
+		queryClient
+			.getQueryCache()
+			.getAll()
+			.forEach(query => {
+				const status = query.state.fetchStatus
+				if (
+					status === 'fetching' &&
+					!loadingMapRef.current.has(query.queryHash)
+				) {
+					const opId = `query_${query.queryHash}`
+					loadingStore.startLoading(opId, 'Updating data', 'query')
+					loadingMapRef.current.set(query.queryHash, opId)
+				}
+			})
+
+		const unsubscribeMutationCache = queryClient
+			.getMutationCache()
+			.subscribe(event => {
+				if (event.type === 'added') {
+					logger.debug('Mutation added', {
+						action: 'mutation_added',
+						metadata: { mutationId: event.mutation.mutationId }
+					})
+				} else if (event.type === 'removed') {
+					logger.debug('Mutation removed', {
+						action: 'mutation_removed',
+						metadata: { mutationId: event.mutation.mutationId }
+					})
+				}
+			})
+
+		const loadingMap = loadingMapRef.current
 		return () => {
 			unsubscribeQueryCache()
 			unsubscribeMutationCache()
+			loadingMap.forEach(opId => loadingStore.stopLoading(opId))
+			loadingMap.clear()
 		}
 	}, [queryClient])
 
@@ -232,15 +292,19 @@ export function QueryProvider({
 							return cached
 						} catch (error) {
 							// FAIL-FAST LOGGING: Distinguish error from cache miss
-							logger.error('IndexedDB restore failed - treating as cache miss', {
-								action: 'restore_client_error',
-								metadata: {
-									error: error instanceof Error ? error.message : String(error),
-									errorType: error instanceof Error ? error.name : 'Unknown',
-									// This is an ERROR, not a normal cache miss
-									isError: true
+							logger.error(
+								'IndexedDB restore failed - treating as cache miss',
+								{
+									action: 'restore_client_error',
+									metadata: {
+										error:
+											error instanceof Error ? error.message : String(error),
+										errorType: error instanceof Error ? error.name : 'Unknown',
+										// This is an ERROR, not a normal cache miss
+										isError: true
+									}
 								}
-							})
+							)
 							return undefined
 						}
 					},
@@ -307,9 +371,7 @@ export function QueryProvider({
 
 	const hydrateContent = useMemo(
 		() => (
-			<HydrationBoundary state={dehydratedState}>
-				{children}
-			</HydrationBoundary>
+			<HydrationBoundary state={dehydratedState}>{children}</HydrationBoundary>
 		),
 		[children, dehydratedState]
 	)

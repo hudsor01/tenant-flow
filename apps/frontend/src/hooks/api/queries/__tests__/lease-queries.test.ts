@@ -215,7 +215,7 @@ describe('leaseQueries', () => {
 			await options.queryFn!({} as never)
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenant-portal/lease',
+				'http://localhost:4600/api/v1/tenants/leases',
 				expect.anything()
 			)
 		})
