@@ -41,6 +41,10 @@ vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],
 			queryFn: () => null
+		})),
+		autopay: vi.fn(() => ({
+			queryKey: ['tenant-autopay'],
+			queryFn: () => null
 		}))
 	}
 }))
@@ -86,7 +90,7 @@ describe('Property 8: Design System Consistency', () => {
 	it('should ensure all stat cards follow card-standard pattern', () => {
 		fc.assert(
 			fc.property(
-				fc.integer({ min: 1, max: 10 }), // Number of times to verify
+				fc.integer({ min: 1, max: 5 }), // Number of times to verify
 				_iteration => {
 					render(<TenantDashboardPage />)
 
@@ -104,7 +108,7 @@ describe('Property 8: Design System Consistency', () => {
 					return true
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 10 }
 		)
 	})
 

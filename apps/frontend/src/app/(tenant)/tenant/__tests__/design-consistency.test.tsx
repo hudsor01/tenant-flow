@@ -38,6 +38,10 @@ vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],
 			queryFn: () => null
+		})),
+		autopay: vi.fn(() => ({
+			queryKey: ['tenant-autopay'],
+			queryFn: () => null
 		}))
 	}
 }))

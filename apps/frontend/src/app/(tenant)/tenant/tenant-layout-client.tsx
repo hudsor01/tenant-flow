@@ -39,7 +39,7 @@ export function TenantMobileNavWrapper() {
 	const pathname = usePathname()
 
 	return (
-		<div className="md:hidden">
+		<div className="md:hidden" data-testid="tenant-mobile-nav-wrapper">
 			<TenantMobileNav currentPath={pathname} isSubPage={isSubPage(pathname)} />
 		</div>
 	)
