@@ -87,15 +87,15 @@
 		"husky": "9.1.7",
 		"prettier": "catalog:default",
 		"tsx": "^4.21.0",
-		"typescript": "catalog:default"
+		"typescript": "^5.9.3"
 	},
 	"devDependencies": {
-		"@next/eslint-plugin-next": "~16.0.3",
+		"@next/eslint-plugin-next": "~16.0.8",
 		"@playwright/test": "1.57.0",
 		"eslint": "catalog:default",
 		"globals": "16.5.0",
 		"playwright": "1.57.0",
-		"turbo": "2.6.1",
+		"turbo": "2.6.3",
 		"vercel": "49.1.2"
 	}
 }
