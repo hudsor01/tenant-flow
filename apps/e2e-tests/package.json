@@ -33,7 +33,7 @@
 		"fast-check": "^4.3.0",
 		"lighthouse": "13.0.1",
 		"tsx": "^4.21.0",
-		"typescript": "catalog:default"
+		"typescript": "^5.9.3"
 	},
 	"dependencies": {
 		"@repo/shared": "workspace:*",
