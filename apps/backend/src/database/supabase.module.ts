@@ -48,6 +48,15 @@ export class SupabaseModule {
                 persistSession: false,
                 autoRefreshToken: false,
                 detectSessionInUrl: false
+              },
+              // Server-side optimizations for long-running processes
+              global: {
+                headers: {
+                  'x-client-info': 'tenantflow-backend'
+                }
+              },
+              db: {
+                schema: 'public'
               }
             })
           },
