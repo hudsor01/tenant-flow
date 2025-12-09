@@ -10,7 +10,7 @@ import { createClient } from '#utils/supabase/client'
 import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import type { CreatePropertyInput, UpdatePropertyInput } from '@repo/shared/types/api-contracts'
+import type { PropertyCreate, PropertyUpdate } from '@repo/shared/validation/properties'
 import type { Property } from '@repo/shared/types/core'
 import { propertyQueries } from '../queries/property-queries'
 import { unitQueries } from '../queries/unit-queries'
@@ -18,7 +18,7 @@ import { createCrudMutations } from '../crud-mutations'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const { useCreateMutation: useCreatePropertyMutationBase } =
-	createCrudMutations<CreatePropertyInput, UpdatePropertyInput, Property>({
+	createCrudMutations<PropertyCreate, PropertyUpdate, Property>({
 		entityName: 'Property',
 		createEndpoint: '/api/v1/properties',
 		updateEndpoint: (id) => `/api/v1/properties/${id}`,
@@ -46,7 +46,7 @@ export function useUpdatePropertyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data, version }: { id: string; data: UpdatePropertyInput; version?: number }) =>
+		mutationFn: async ({ id, data, version }: { id: string; data: PropertyUpdate; version?: number }) =>
 			apiRequest<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)

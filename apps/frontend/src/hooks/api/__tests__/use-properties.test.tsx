@@ -389,6 +389,9 @@ describe('Mutation Hooks', () => {
 				city: 'New City',
 				state: 'NY',
 				postal_code: '54321',
+				country: 'US',
+				property_type: 'SINGLE_FAMILY',
+				status: 'active',
 				property_owner_id: 'owner-123'
 			})
 
@@ -412,6 +415,9 @@ describe('Mutation Hooks', () => {
 				city: 'Test City',
 				state: 'CA',
 				postal_code: '12345',
+				country: 'US',
+				property_type: 'SINGLE_FAMILY',
+				status: 'active',
 				property_owner_id: 'owner-123'
 			})
 
@@ -439,6 +445,9 @@ describe('Mutation Hooks', () => {
 					city: 'Test City',
 					state: 'CA',
 					postal_code: '12345',
+					country: 'US',
+					property_type: 'SINGLE_FAMILY',
+					status: 'active',
 					property_owner_id: 'owner-123'
 				})
 			).rejects.toThrow()

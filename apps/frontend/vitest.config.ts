@@ -26,10 +26,6 @@ const loadEnvFile = (fileName: string) => {
 
 loadEnvFile('.env.test')
 
-// Skip T3 Env validation in test environment
-// Must be set before any modules import env
-process.env.SKIP_ENV_VALIDATION = 'true'
-
 export default defineConfig({
   plugins: [
     tsconfigPaths({

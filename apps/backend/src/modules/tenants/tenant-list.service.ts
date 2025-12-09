@@ -7,7 +7,8 @@
 import {
 	BadRequestException,
 	Injectable,
-	InternalServerErrorException
+	InternalServerErrorException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type {
 	Tenant,
@@ -44,6 +45,20 @@ export class TenantListService {
 	) {}
 
 	/**
+	 * Get a user-scoped Supabase client that respects RLS policies.
+	 * Throws UnauthorizedException if no token is provided.
+	 * 
+	 * @param token - JWT token from authenticated request
+	 * @returns User-scoped Supabase client with RLS enforced
+	 */
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
+	/**
 	 * Get all tenants for user with optional filtering
 	 */
 	async findAll(userId: string, filters: ListFilters = {}): Promise<Tenant[]> {
@@ -76,8 +91,9 @@ export class TenantListService {
 		userId: string,
 		filters: ListFilters
 	): Promise<Tenant[]> {
-		let query = this.supabase
-			.getAdminClient()
+		// Use user client with RLS - tenants_select_own policy will enforce auth.uid() match
+		const client = this.requireUserClient(filters.token)
+		let query = client
 			.from('tenants')
 			.select(
 				'id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at'
@@ -119,9 +135,8 @@ export class TenantListService {
 		userId: string,
 		filters: ListFilters
 	): Promise<Tenant[]> {
-		const client = filters.token
-			? this.supabase.getUserClient(filters.token)
-			: this.supabase.getAdminClient()
+		// Use user client with RLS - get_tenants_by_owner RPC validates p_user_id = auth.uid()
+		const client = this.requireUserClient(filters.token)
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
@@ -188,9 +203,10 @@ export class TenantListService {
 		const offset = filters.offset ?? 0
 
 		try {
+			// Use user client with RLS - property_owners_select_own policy will enforce auth.uid() match
+			const client = this.requireUserClient(filters.token)
 			// First check if user is a property owner
-			const { data: ownerRecord } = await this.supabase
-				.getAdminClient()
+			const { data: ownerRecord } = await client
 				.from('property_owners')
 				.select('id')
 				.eq('user_id', userId)
@@ -236,8 +252,9 @@ export class TenantListService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		let query = this.supabase
-			.getAdminClient()
+		// Use user client with RLS - tenants_select_own policy will enforce auth.uid() match
+		const client = this.requireUserClient(filters.token)
+		let query = client
 			.from('tenants')
 			.select(
 				`
@@ -320,9 +337,8 @@ export class TenantListService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		const client = filters.token
-			? this.supabase.getUserClient(filters.token)
-			: this.supabase.getAdminClient()
+		// Use user client with RLS - get_tenants_with_lease_by_owner RPC validates p_user_id = auth.uid()
+		const client = this.requireUserClient(filters.token)
 
 		// Get property owner's user_id for the RPC call
 		const { data: ownerRecord } = await client
@@ -484,9 +500,15 @@ export class TenantListService {
 
 		return results.map(row => {
 			const tenant = row.tenant!
+			// Combine first_name and last_name into name field
+			const firstName = tenant.user?.first_name ?? ''
+			const lastName = tenant.user?.last_name ?? ''
+			const name = [firstName, lastName].filter(Boolean).join(' ') || null
+
 			return {
 				id: tenant.id,
 				user_id: tenant.user_id,
+				name,
 				first_name: tenant.user?.first_name ?? null,
 				last_name: tenant.user?.last_name ?? null,
 				email: tenant.user?.email ?? null,
@@ -553,9 +575,15 @@ export class TenantListService {
 				row.lease_tenants?.find(lt => lt.lease?.lease_status === 'active')
 					?.lease ?? null
 
+			// Combine first_name and last_name into name field
+			const firstName = row.user?.first_name ?? ''
+			const lastName = row.user?.last_name ?? ''
+			const name = [firstName, lastName].filter(Boolean).join(' ') || null
+
 			return {
 				id: row.id,
 				user_id: row.user_id,
+				name,
 				first_name: row.user?.first_name ?? null,
 				last_name: row.user?.last_name ?? null,
 				email: row.user?.email ?? null,

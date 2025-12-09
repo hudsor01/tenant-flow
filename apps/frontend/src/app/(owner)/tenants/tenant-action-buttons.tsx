@@ -21,7 +21,6 @@ import {
 import { Field, FieldLabel } from '#components/ui/field'
 import { useModalStore } from '#stores/modal-store'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { UpdateTenantInput } from '@repo/shared/types/api-contracts'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
 	tenantUpdateSchema,
@@ -98,7 +97,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 	const updateMutation = useMutation({
 		mutationFn: async (data: TenantUpdate) => {
-			const payload: UpdateTenantInput = {}
+			const payload: TenantUpdate = {}
 
 			// Only include tenant-specific fields - user fields are updated separately
 			if (data.emergency_contact_name !== undefined) {

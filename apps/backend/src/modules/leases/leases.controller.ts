@@ -297,11 +297,7 @@ export class LeasesController {
 		@JwtToken() token: string
 	) {
 		//Pass version for optimistic locking
-		const lease = await this.leasesService.update(
-			token,
-			id,
-			dto
-		)
+		const lease = await this.leasesService.update(token, id, dto)
 		if (!lease) {
 			throw new NotFoundException('Lease not found')
 		}
@@ -420,7 +416,10 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const signingUrl = await this.signatureService.getSigningUrl(id, req.user.id)
+		const signingUrl = await this.signatureService.getSigningUrl(
+			id,
+			req.user.id
+		)
 		return { signing_url: signingUrl }
 	}
 
@@ -436,5 +435,38 @@ export class LeasesController {
 	) {
 		await this.signatureService.cancelSignatureRequest(req.user.id, id)
 		return { success: true }
+	}
+
+	@Post(':id/resend-signature')
+	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 resends per hour
+	async resendSignatureRequest(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest,
+		@Body() body?: { message?: string }
+	) {
+		// Build options object only with defined values for exactOptionalPropertyTypes
+		const options: { message?: string } = {}
+		if (body?.message !== undefined) {
+			options.message = body.message
+		}
+		await this.signatureService.resendSignatureRequest(req.user.id, id, options)
+		return { success: true }
+	}
+
+	/**
+	 * Get signed document URL for download
+	 * Only available for active leases with completed signatures
+	 */
+	@Get(':id/signed-document')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+	async getSignedDocument(
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		const documentUrl = await this.signatureService.getSignedDocumentUrl(
+			id,
+			req.user.id
+		)
+		return { document_url: documentUrl }
 	}
 }
