@@ -1,5 +1,16 @@
 'use client'
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger
+} from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -169,17 +180,38 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 				<DropdownMenuSeparator />
 
-					<DropdownMenuItem
-						onClick={() => {
-							if (confirm('Are you sure you want to delete this lease?')) {
-								// handleDelete(lease.id)
-							}
-						}}
-						className="gap-2 text-destructive focus:text-destructive"
-					>
-						<Trash2 className="size-4" />
-						Delete
-					</DropdownMenuItem>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<DropdownMenuItem
+								onSelect={e => e.preventDefault()}
+								className="gap-2 text-destructive focus:text-destructive"
+							>
+								<Trash2 className="size-4" />
+								Delete
+							</DropdownMenuItem>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Delete Lease</AlertDialogTitle>
+								<AlertDialogDescription>
+									Are you sure you want to delete this lease? This action cannot be undone
+									and will remove all associated payment records.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => {
+										// TODO: Implement lease deletion mutation
+										toast.info('Lease deletion not yet implemented')
+									}}
+									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									Delete
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				</DropdownMenuContent>
 			</DropdownMenu>
 

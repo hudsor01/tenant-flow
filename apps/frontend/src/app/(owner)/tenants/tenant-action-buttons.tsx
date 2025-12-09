@@ -1,5 +1,16 @@
 'use client'
 
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger
+} from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -192,17 +203,35 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 					<DropdownMenuSeparator />
 
-					<DropdownMenuItem
-						onClick={() => {
-							if (confirm('Are you sure you want to delete this tenant?')) {
-								deleteMutation.mutate()
-							}
-						}}
-						className="gap-2 text-destructive focus:text-destructive"
-					>
-						<Trash2 className="size-4" />
-						Delete
-					</DropdownMenuItem>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<DropdownMenuItem
+								onSelect={e => e.preventDefault()}
+								className="gap-2 text-destructive focus:text-destructive"
+							>
+								<Trash2 className="size-4" />
+								Delete
+							</DropdownMenuItem>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
+								<AlertDialogDescription>
+									Are you sure you want to delete {tenant.first_name} {tenant.last_name}?
+									This action cannot be undone and will remove all associated data.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Cancel</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={() => deleteMutation.mutate()}
+									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+								>
+									{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
 				</DropdownMenuContent>
 			</DropdownMenu>
 
