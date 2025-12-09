@@ -5,6 +5,9 @@
  * between frontend and backend services.
  */
 
+// Import Zod-inferred types (Single Source of Truth)
+import type { TenantCreate, TenantUpdate } from '../validation/tenants.js'
+
 /**
  * Tenant status values (normalized to lowercase for consistency)
  * Maps to application-level status, not a database enum
@@ -58,6 +61,18 @@ export interface SignatureStatus {
 	tenant_signed_at: string | null
 	owner_signature_ip: string | null
 	tenant_signature_ip: string | null
+}
+
+export interface SignatureStatusResponse {
+	lease_id: string
+	status: 'draft' | 'pending_signature' | 'active' | 'ended' | 'terminated'
+	owner_signed: boolean
+	owner_signed_at: string | null
+	tenant_signed: boolean
+	tenant_signed_at: string | null
+	sent_for_signature_at: string | null
+	both_signed: boolean
+	docuseal_submission_id: string | null
 }
 
 export interface PropertyFilters {
@@ -366,9 +381,12 @@ export interface TenantPaymentRecord {
 }
 
 export interface CreateLeaseInput {
+	// Selection (Step 1)
 	unit_id: string
 	primary_tenant_id: string
 	property_owner_id?: string
+
+	// Terms (Step 2)
 	start_date: string
 	end_date: string
 	rent_amount: number
@@ -378,17 +396,26 @@ export interface CreateLeaseInput {
 	grace_period_days?: number | null
 	late_fee_amount?: number | null
 	late_fee_days?: number | null
+
+	// Lease Details (Step 3)
+	max_occupants?: number | null
+	pets_allowed?: boolean
+	pet_deposit?: number | null
+	pet_rent?: number | null
+	utilities_included?: string[]
+	tenant_responsible_utilities?: string[]
+	property_rules?: string | null
+	property_built_before_1978?: boolean
+	lead_paint_disclosure_acknowledged?: boolean | null
+	governing_state?: string
+
+	// Status and billing
 	lease_status?:
 		| 'draft'
 		| 'pending_signature'
 		| 'active'
 		| 'ended'
 		| 'terminated'
-		| 'active'
-		| 'pending'
-		| 'expired'
-		| 'terminated'
-		| 'draft'
 	auto_pay_enabled?: boolean
 	stripe_subscription_id?: string
 }
@@ -405,17 +432,25 @@ export interface UpdateLeaseInput {
 	grace_period_days?: number | null
 	late_fee_amount?: number | null
 	late_fee_days?: number | null
+
+	// Lease Details
+	max_occupants?: number | null
+	pets_allowed?: boolean
+	pet_deposit?: number | null
+	pet_rent?: number | null
+	utilities_included?: string[]
+	tenant_responsible_utilities?: string[]
+	property_rules?: string | null
+	property_built_before_1978?: boolean
+	lead_paint_disclosure_acknowledged?: boolean | null
+	governing_state?: string
+
 	lease_status?:
 		| 'draft'
 		| 'pending_signature'
 		| 'active'
 		| 'ended'
 		| 'terminated'
-		| 'active'
-		| 'pending'
-		| 'expired'
-		| 'terminated'
-		| 'draft'
 	auto_pay_enabled?: boolean
 }
 
@@ -444,33 +479,7 @@ export interface UpdatePropertyInput {
 	units_count?: number
 }
 
-export interface CreateTenantInput {
-	email: string
-	first_name: string
-	last_name: string
-	phone?: string
-	unit_id?: string
-	stripe_customer_id?: string
-	date_of_birth?: string
-	ssn_last_four?: string
-	emergency_contact_name?: string
-	emergency_contact_phone?: string
-	emergency_contact_relationship?: string
-}
 
-export interface UpdateTenantInput {
-	first_name?: string
-	last_name?: string
-	phone?: string
-	email?: string
-	unit_id?: string
-	stripe_customer_id?: string
-	date_of_birth?: string
-	ssn_last_four?: string
-	emergency_contact_name?: string
-	emergency_contact_phone?: string
-	emergency_contact_relationship?: string
-}
 
 export interface CreateUnitInput {
 	property_id: string
@@ -581,8 +590,8 @@ export interface SendPaymentReminderResponse {
 
 // Request/Response aliases for consistency
 export type CreateSubscriptionRequest = CreateRentSubscriptionRequest
-export type CreateTenantRequest = CreateTenantInput
-export type UpdateTenantRequest = UpdateTenantInput
+export type CreateTenantRequest = TenantCreate
+export type UpdateTenantRequest = TenantUpdate
 export type CreateUnitRequest = CreateUnitInput
 export type UpdateUnitRequest = UpdateUnitInput
 export type CreatePropertyRequest = CreatePropertyInput

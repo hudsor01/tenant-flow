@@ -23,9 +23,9 @@ import {
 } from '@repo/shared/utils/optimistic-locking'
 import { useMemo } from 'react'
 import type {
-	CreateUnitInput,
-	UpdateUnitInput
-} from '@repo/shared/types/api-contracts'
+	UnitInput,
+	UnitUpdate
+} from '@repo/shared/validation/units'
 import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { unitQueries } from './queries/unit-queries'
@@ -98,12 +98,12 @@ export function useCreateUnit() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (unitData: CreateUnitInput) =>
+		mutationFn: (unitData: UnitInput) =>
 			apiRequest<Unit>('/api/v1/units', {
 				method: 'POST',
 				body: JSON.stringify(unitData)
 			}),
-		onMutate: async (newUnit: CreateUnitInput) => {
+		onMutate: async (newUnit: UnitInput) => {
 			// Cancel outgoing refetches to prevent overwriting optimistic update
 			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
@@ -186,7 +186,7 @@ export function useUpdateUnit() {
 			version
 		}: {
 			id: string
-			data: UpdateUnitInput
+			data: UnitUpdate
 			version?: number
 		}): Promise<Unit> => {
 			return apiRequest<Unit>(`/api/v1/units/${id}`, {

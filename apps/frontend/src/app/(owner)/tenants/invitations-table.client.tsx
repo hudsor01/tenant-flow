@@ -1,7 +1,13 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import {
@@ -21,10 +27,19 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
-import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import {
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
-import { tenantQueries, type TenantInvitation } from '#hooks/api/queries/tenant-queries'
+import {
+	tenantQueries,
+	type TenantInvitation
+} from '#hooks/api/queries/tenant-queries'
 import { formatDistanceToNow } from 'date-fns'
 
 const logger = createLogger({ component: 'InvitationsTableClient' })
@@ -47,7 +62,7 @@ export function InvitationsTableClient() {
 			toast.success('Invitation cancelled')
 			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
 		},
-		onError: (error) => {
+		onError: error => {
 			logger.error('Failed to cancel invitation', { error })
 			toast.error('Failed to cancel invitation')
 		}
@@ -63,7 +78,7 @@ export function InvitationsTableClient() {
 			toast.success('Invitation resent')
 			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
 		},
-		onError: (error) => {
+		onError: error => {
 			logger.error('Failed to resend invitation', { error })
 			toast.error('Failed to resend invitation')
 		}
@@ -82,25 +97,36 @@ export function InvitationsTableClient() {
 		switch (status) {
 			case 'sent':
 				return (
-					<Badge variant="outline" className="border-warning text-warning bg-warning/10">
+					<Badge
+						variant="outline"
+						className="border-warning text-warning bg-warning/10"
+					>
 						<Clock className="size-3 mr-1" />
 						Pending
 					</Badge>
 				)
 			case 'accepted':
 				return (
-					<Badge variant="outline" className="border-success text-success bg-success/10">
+					<Badge
+						variant="outline"
+						className="border-success text-success bg-success/10"
+					>
 						<CheckCircle2 className="size-3 mr-1" />
 						Accepted
 					</Badge>
 				)
 			case 'expired':
 				return (
-					<Badge variant="outline" className="border-muted/500 text-muted/600 bg-muted/50">
+					<Badge
+						variant="outline"
+						className="border-muted/500 text-muted/600 bg-muted/50"
+					>
 						<AlertCircle className="size-3 mr-1" />
 						Expired
 					</Badge>
 				)
+			default:
+				return null
 		}
 	}
 
@@ -111,18 +137,19 @@ export function InvitationsTableClient() {
 			meta: {
 				label: 'Email',
 				variant: 'text',
-				placeholder: 'Search email...',
+				placeholder: 'Search email...'
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const invitation = row.original
-				const name = invitation.first_name && invitation.last_name
-					? `${invitation.first_name} ${invitation.last_name}`
-					: null
+				const name =
+					invitation.first_name && invitation.last_name
+						? `${invitation.first_name} ${invitation.last_name}`
+						: null
 				return (
 					<div className="flex flex-col">
 						{name && <span className="font-medium">{name}</span>}
-						<span className="text-muted-foreground">{invitation.email}</span>
+						<span>{invitation.email}</span>
 					</div>
 				)
 			}
@@ -136,7 +163,7 @@ export function InvitationsTableClient() {
 					<div className="flex flex-col">
 						<span>{invitation.property_name}</span>
 						{invitation.unit_number && (
-							<span className="text-muted">
+							<span className="text-muted-foreground">
 								Unit {invitation.unit_number}
 							</span>
 						)}
@@ -153,8 +180,8 @@ export function InvitationsTableClient() {
 				options: [
 					{ label: 'Pending', value: 'sent' },
 					{ label: 'Accepted', value: 'accepted' },
-					{ label: 'Expired', value: 'expired' },
-				],
+					{ label: 'Expired', value: 'expired' }
+				]
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => getStatusBadge(row.original.status)
@@ -164,7 +191,9 @@ export function InvitationsTableClient() {
 			header: 'Sent',
 			cell: ({ row }) => (
 				<span className="text-muted-foreground">
-					{formatDistanceToNow(new Date(row.original.created_at), { addSuffix: true })}
+					{formatDistanceToNow(new Date(row.original.created_at), {
+						addSuffix: true
+					})}
 				</span>
 			)
 		},
@@ -174,8 +203,12 @@ export function InvitationsTableClient() {
 			cell: ({ row }) => {
 				const isExpired = new Date(row.original.expires_at) < new Date()
 				return (
-					<span className={isExpired ? 'text-destructive' : 'text-muted-foreground'}>
-						{formatDistanceToNow(new Date(row.original.expires_at), { addSuffix: true })}
+					<span
+						className={isExpired ? 'text-destructive' : 'text-muted-foreground'}
+					>
+						{formatDistanceToNow(new Date(row.original.expires_at), {
+							addSuffix: true
+						})}
 					</span>
 				)
 			}
@@ -215,14 +248,17 @@ export function InvitationsTableClient() {
 								<AlertDialogHeader>
 									<AlertDialogTitle>Cancel invitation</AlertDialogTitle>
 									<AlertDialogDescription>
-										Cancel the invitation sent to <strong>{invitation.email}</strong>?
-										They will no longer be able to accept this invitation.
+										Cancel the invitation sent to{' '}
+										<strong>{invitation.email}</strong>? They will no longer be
+										able to accept this invitation.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
 									<AlertDialogCancel>Keep Invitation</AlertDialogCancel>
 									<AlertDialogAction
-										disabled={cancelMutation.isPending && cancellingId === invitation.id}
+										disabled={
+											cancelMutation.isPending && cancellingId === invitation.id
+										}
 										onClick={() => handleCancel(invitation.id)}
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
@@ -247,7 +283,7 @@ export function InvitationsTableClient() {
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
 		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
+		getSortedRowModel: getSortedRowModel()
 	})
 
 	if (isLoading) {
@@ -259,7 +295,9 @@ export function InvitationsTableClient() {
 				</CardHeader>
 				<CardContent>
 					<div className="flex-center h-32">
-						<span className="text-muted-foreground">Loading invitations...</span>
+						<span className="text-muted-foreground">
+							Loading invitations...
+						</span>
 					</div>
 				</CardContent>
 			</Card>

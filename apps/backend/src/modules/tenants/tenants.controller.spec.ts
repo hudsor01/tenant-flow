@@ -147,25 +147,33 @@ describe('TenantsController', () => {
 
 		describe('findOne', () => {
 			it('should return a single tenant', async () => {
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const mockTenant = { id: 'tenant-1', user_id: 'user-1' }
 				mockQueryService.findOne.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOne('tenant-1')
+				const result = await controller.findOne('tenant-1', mockReq as any)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1')
+				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1', 'test-token')
 			})
 		})
 
 		describe('findOneWithLease', () => {
 			it('should return tenant with lease info', async () => {
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const mockTenant = { id: 'tenant-1', lease: { id: 'lease-1' } }
 				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOneWithLease('tenant-1')
+				const result = await controller.findOneWithLease('tenant-1', mockReq as any)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1')
+				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1', 'test-token')
 			})
 		})
 	})
@@ -173,21 +181,27 @@ describe('TenantsController', () => {
 	describe('CRUD Endpoints', () => {
 		describe('create', () => {
 			it('should create a new tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
-				const createDto = { email: 'tenant@example.com' }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
+				const createDto = { user_id: 'user-1', stripe_customer_id: 'cus_test123' }
 				const mockTenant = { id: 'tenant-1', ...createDto }
 				mockCrudService.create.mockResolvedValue(mockTenant)
 
 				const result = await controller.create(createDto as any, mockReq as any)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto)
+				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto, 'test-token')
 			})
 		})
 
 		describe('update', () => {
 			it('should update a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const updateDto = { emergency_contact_name: 'John Doe' }
 				const mockTenant = { id: 'tenant-1', ...updateDto }
 				mockCrudService.update.mockResolvedValue(mockTenant)
@@ -195,35 +209,44 @@ describe('TenantsController', () => {
 				const result = await controller.update('tenant-1', updateDto as any, mockReq as any)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto)
+				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto, 'test-token')
 			})
 		})
 
 		describe('remove', () => {
 			it('should soft delete a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				mockCrudService.softDelete.mockResolvedValue(undefined)
 
 				await controller.remove('tenant-1', mockReq as any)
 
-				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1')
+				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
 			})
 		})
 
 		describe('hardDelete', () => {
 			it('should permanently delete a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				mockCrudService.hardDelete.mockResolvedValue(undefined)
 
 				await controller.hardDelete('tenant-1', mockReq as any)
 
-				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1')
+				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
 			})
 		})
 
 		describe('markAsMovedOut', () => {
 			it('should mark tenant as moved out', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = {
+					user: { id: 'user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const moveOutBody = { moveOutDate: '2025-12-31', moveOutReason: 'End of lease' }
 				const mockTenant = { id: 'tenant-1', status: 'moved_out' }
 				mockCrudService.markAsMovedOut.mockResolvedValue(mockTenant)
@@ -231,7 +254,7 @@ describe('TenantsController', () => {
 				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease')
+				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease', 'test-token')
 			})
 		})
 	})
@@ -451,7 +474,10 @@ describe('TenantsController', () => {
 
 		describe('getMyPayments', () => {
 			it('should get tenant portal payments', async () => {
-				const mockReq = { user: { id: 'auth-user-1' } }
+				const mockReq = {
+					user: { id: 'auth-user-1' },
+					headers: { authorization: 'Bearer test-token' }
+				}
 				const mockTenant = { id: 'tenant-1' }
 				const mockPayments = [{ id: 'payment-1', amount: 100000, status: 'succeeded' }]
 				mockQueryService.getTenantByAuthUserId.mockResolvedValue(mockTenant)
@@ -460,7 +486,7 @@ describe('TenantsController', () => {
 				const result = await controller.getMyPayments(mockReq as any)
 
 				expect(result).toEqual({ payments: mockPayments })
-				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1')
+				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1', 'test-token')
 				expect(mockQueryService.getTenantPaymentHistory).toHaveBeenCalledWith('tenant-1', 20)
 			})
 		})

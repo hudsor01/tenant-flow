@@ -2,9 +2,9 @@ import { NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type {
-	CreatePropertyInput,
-	UpdatePropertyInput
-} from '@repo/shared/types/api-contracts'
+	PropertyCreate,
+	PropertyUpdate
+} from '@repo/shared/validation/properties'
 import type { Property } from '@repo/shared/types/core'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
@@ -64,7 +64,7 @@ describe('PropertiesController', () => {
 		...overrides
 	})
 
-	const validCreatePropertyInput: CreatePropertyInput = {
+	const validPropertyCreate: PropertyCreate = {
 		name: 'Test Property',
 		address_line1: '123 Main St',
 		city: 'New York',
@@ -73,7 +73,7 @@ describe('PropertiesController', () => {
 		property_type: 'SINGLE_FAMILY'
 	}
 
-	const validUpdatePropertyInput: UpdatePropertyInput = {
+	const validPropertyUpdate: PropertyUpdate = {
 		name: 'Updated Property'
 	}
 
@@ -195,18 +195,18 @@ describe('PropertiesController', () => {
 
 	describe('create', () => {
 		it('should create a new property', async () => {
-			const mockProperty = createMockProperty(validCreatePropertyInput)
+			const mockProperty = createMockProperty(validPropertyCreate)
 
 			mockPropertiesServiceInstance.create.mockResolvedValue(mockProperty)
 
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
-				validCreatePropertyInput as unknown as CreatePropertyDto,
+				validPropertyCreate as unknown as CreatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(
 				mockRequest,
-				validCreatePropertyInput
+				validPropertyCreate
 			)
 			expect(result).toEqual(mockProperty)
 		})
@@ -224,13 +224,13 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.update(
 				'property-1',
-				validUpdatePropertyInput as unknown as UpdatePropertyDto,
+				validPropertyUpdate as unknown as UpdatePropertyDto,
 				mockRequest as any
 			)
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
 				mockRequest,
 				'property-1',
-				validUpdatePropertyInput,
+				validPropertyUpdate,
 				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockProperty)

@@ -10,7 +10,7 @@ import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
 import { AppLogger } from '../../../logger/app-logger.service'
 
-const CreateMaintenanceRequestSchema = z.object({
+const MaintenanceRequestCreateSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
@@ -21,8 +21,8 @@ const CreateMaintenanceRequestSchema = z.object({
 	photos: z.array(z.string().url()).max(6).optional()
 })
 
-class CreateMaintenanceRequestDto extends createZodDto(
-	CreateMaintenanceRequestSchema
+class MaintenanceRequestCreateDto extends createZodDto(
+	MaintenanceRequestCreateSchema
 ) {}
 
 type MaintenanceRequestRow =
@@ -65,7 +65,7 @@ export class TenantMaintenanceController {
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
 	async createMaintenanceRequest(
-		@Body() body: CreateMaintenanceRequestDto,
+		@Body() body: MaintenanceRequestCreateDto,
 		@JwtToken() token: string,
 		@User() user: AuthUser
 	) {

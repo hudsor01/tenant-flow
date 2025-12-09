@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import type { UnitStatus } from '../constants/status-types.js'
 import { UNIT_STATUS } from '../constants/status-types.js'
 import {
   nonEmptyStringSchema,
@@ -37,31 +36,32 @@ export const unitInputSchema = z.object({
 		.max(VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET, 'Square feet seems unrealistic')
 		.optional(),
 
-	rent: nonNegativeNumberSchema.max(VALIDATION_LIMITS.UNIT_RENT_MAXIMUM, 'Rent amount seems unrealistic'),
+	rent_amount: nonNegativeNumberSchema.max(VALIDATION_LIMITS.UNIT_RENT_MAXIMUM, 'Rent amount seems unrealistic'),
 
-	lastInspectionDate: z.string().optional()
+	rent_currency: z.string().default('USD'),
+
+	rent_period: z.string().default('monthly'),
+
+	status: z.string().default('VACANT')
 })
 
 // Full unit schema (includes server-generated fields)
 export const unitSchema = unitInputSchema.extend({
 	id: uuidSchema,
-	status: unitStatusSchema.default('VACANT' as const),
 	created_at: z.string(),
 	updated_at: z.string()
 })
 
 // Unit update schema (partial input)
-export const unitUpdateSchema = unitInputSchema.partial().extend({
-	status: unitStatusSchema.optional()
-})
+export const unitUpdateSchema = unitInputSchema.partial()
 
 // Unit query schema (for search/filtering)
 export const unitQuerySchema = z.object({
 	search: z.string().optional(),
 	property_id: uuidSchema.optional(),
 	status: unitStatusSchema.optional(),
-	minRent: nonNegativeNumberSchema.optional(),
-	maxRent: nonNegativeNumberSchema.optional(),
+	min_rent_amount: nonNegativeNumberSchema.optional(),
+	max_rent_amount: nonNegativeNumberSchema.optional(),
 	bedrooms: positiveNumberSchema.int().optional(),
 	bathrooms: positiveNumberSchema.optional(),
 	minsquare_feet: positiveNumberSchema.int().optional(),
@@ -69,7 +69,7 @@ export const unitQuerySchema = z.object({
 	sortBy: z
 		.enum([
 			'unit_number',
-			'rent',
+			'rent_amount',
 			'bedrooms',
 			'bathrooms',
 			'square_feet',
@@ -89,8 +89,8 @@ export const unitStatsSchema = z.object({
 	maintenance: z.number().nonnegative(),
 	unavailable: z.number().nonnegative(),
 	occupancyRate: z.number().min(0).max(100),
-	averageRent: z.number().nonnegative(),
-	totalRent: z.number().nonnegative()
+	average_rent_amount: z.number().nonnegative(),
+	total_rent_amount: z.number().nonnegative()
 })
 
 // Export types
@@ -107,9 +107,8 @@ export const unitFormSchema = z.object({
 	bedrooms: z.string().optional(),
 	bathrooms: z.string().optional(),
 	square_feet: z.string().optional(),
-	rent: z.string().optional(),
-	lastInspectionDate: z.string().optional(),
-	status: unitStatusSchema.optional()
+	rent_amount: z.string().optional(),
+	status: z.string().optional()
 })
 
 // Transform function for converting form data to API format - matches database exactly
@@ -119,12 +118,8 @@ export const transformUnitFormData = (data: UnitFormData) => ({
 	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : 1,
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : 1,
 	square_feet: data.square_feet ? parseInt(data.square_feet, 10) : undefined,
-	rent: data.rent ? parseFloat(data.rent) : 0,
-	lastInspectionDate:
-		data.lastInspectionDate && data.lastInspectionDate !== ''
-			? data.lastInspectionDate
-			: undefined,
-	status: data.status as UnitStatus
+	rent_amount: data.rent_amount ? parseFloat(data.rent_amount) : 0,
+	status: data.status || 'VACANT'
 })
 
 export type UnitFormData = z.infer<typeof unitFormSchema>

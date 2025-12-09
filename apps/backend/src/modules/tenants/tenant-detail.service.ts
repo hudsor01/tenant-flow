@@ -4,7 +4,7 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -15,14 +15,25 @@ export class TenantDetailService {
 	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
 
 	/**
+	 * Get user-scoped Supabase client with RLS enforcement
+	 * Throws UnauthorizedException if no token provided
+	 */
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
+	/**
 	 * Get single tenant by ID
 	 */
-	async findOne(tenantId: string): Promise<Tenant> {
+	async findOne(tenantId: string, token: string): Promise<Tenant> {
 		if (!tenantId) throw new Error('Tenant ID required')
 
 		try {
-			const { data, error } = await this.supabase
-				.getAdminClient()
+			const client = this.requireUserClient(token)
+			const { data, error } = await client
 				.from('tenants')
 				.select(
 					'id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at'
@@ -36,7 +47,7 @@ export class TenantDetailService {
 
 			return data as Tenant
 		} catch (error) {
-			if (error instanceof NotFoundException) throw error
+			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
 			this.logger.error('Error finding tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantId
@@ -48,16 +59,17 @@ export class TenantDetailService {
 	/**
 	 * Get tenant with all lease details
 	 */
-	async findOneWithLease(tenantId: string): Promise<TenantWithLeaseInfo> {
+	async findOneWithLease(tenantId: string, token: string): Promise<TenantWithLeaseInfo> {
 		if (!tenantId) throw new Error('Tenant ID required')
 
 		try {
+			const client = this.requireUserClient(token)
+			
 			// Get tenant base data
-			const tenant = await this.findOne(tenantId)
+			const tenant = await this.findOne(tenantId, token)
 
 			// Get leases via lease_tenants junction table
-			const { data: leaseData, error: leaseError } = await this.supabase
-				.getAdminClient()
+			const { data: leaseData, error: leaseError } = await client
 				.from('lease_tenants')
 				.select(
 					`
@@ -112,7 +124,7 @@ export class TenantDetailService {
 				lease: leaseInfo
 			} as unknown as TenantWithLeaseInfo
 		} catch (error) {
-			if (error instanceof NotFoundException) throw error
+			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
 			this.logger.error('Error finding tenant with leases', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantId
@@ -124,12 +136,12 @@ export class TenantDetailService {
 	/**
 	 * Get tenant by auth user ID
 	 */
-	async getTenantByAuthUserId(authUserId: string): Promise<Tenant> {
+	async getTenantByAuthUserId(authUserId: string, token: string): Promise<Tenant> {
 		if (!authUserId) throw new Error('Auth user ID required')
 
 		try {
-			const { data, error } = await this.supabase
-				.getAdminClient()
+			const client = this.requireUserClient(token)
+			const { data, error } = await client
 				.from('tenants')
 				.select(
 					'id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at'
@@ -143,7 +155,7 @@ export class TenantDetailService {
 
 			return data as Tenant
 		} catch (error) {
-			if (error instanceof NotFoundException) throw error
+			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
 			this.logger.error('Error finding tenant by auth user', {
 				error: error instanceof Error ? error.message : String(error),
 				authUserId

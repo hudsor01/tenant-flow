@@ -20,7 +20,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Property } from '@repo/shared/types/core'
-import type { CreatePropertyInput } from '@repo/shared/types/api-contracts'
+import type { PropertyCreate } from '@repo/shared/validation/properties'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	createSupabaseTestClient,
@@ -230,7 +230,7 @@ describe.skip('RLS Boundary Tests', () => {
 				body: JSON.stringify({
 					name: 'RLS Test Property A',
 					property_type: 'APARTMENT'
-				} as CreatePropertyInput)
+				} as PropertyCreate)
 			}
 		)
 		ownerAproperty_id = propertyA.id
@@ -243,7 +243,7 @@ describe.skip('RLS Boundary Tests', () => {
 				body: JSON.stringify({
 					name: 'RLS Test Property B',
 					property_type: 'APARTMENT'
-				} as CreatePropertyInput)
+				} as PropertyCreate)
 			}
 		)
 		ownerBproperty_id = propertyB.id
