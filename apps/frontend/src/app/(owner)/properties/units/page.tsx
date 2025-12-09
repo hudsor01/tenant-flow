@@ -25,7 +25,7 @@ import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { CreateUnitInput } from '@repo/shared/types/api-contracts'
+import type { UnitInput } from '@repo/shared/validation/units'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
 import { DoorOpen, Plus } from 'lucide-react'
@@ -195,8 +195,10 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 				bathrooms: Number(fd.get('bathrooms') || 0),
 				rent_amount: Number(fd.get('rent') || 0),
 				property_id: String(fd.get('property_id') || ''),
+				rent_currency: 'USD',
+				rent_period: 'monthly',
 				status: 'VACANT'
-			} satisfies CreateUnitInput)
+			} satisfies UnitInput)
 			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Unit created successfully')
 			closeButtonRef.current?.click()

@@ -7,7 +7,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-import type { CreateUnitInput, UpdateUnitInput } from '@repo/shared/types/api-contracts'
+import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import type { Unit } from '@repo/shared/types/core'
 import { unitQueries } from '../queries/unit-queries'
 import { propertyQueries } from '../queries/property-queries'
@@ -23,7 +23,7 @@ export function useCreateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateUnitInput) =>
+		mutationFn: (data: UnitInput) =>
 			apiRequest<Unit>('/api/v1/units', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -46,7 +46,7 @@ export function useUpdateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: UpdateUnitInput; version?: number }) =>
+		mutationFn: ({ id, data, version }: { id: string; data: UnitUpdate; version?: number }) =>
 			apiRequest<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)

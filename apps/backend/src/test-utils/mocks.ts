@@ -222,7 +222,8 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		stripe_subscription_status: overrides?.stripe_subscription_status || 'none',
 		subscription_failure_reason: overrides?.subscription_failure_reason || null,
 		subscription_retry_count: overrides?.subscription_retry_count || 0,
-		subscription_last_attempt_at: overrides?.subscription_last_attempt_at || null,
+		subscription_last_attempt_at:
+			overrides?.subscription_last_attempt_at || null,
 		property_owner_id: overrides?.property_owner_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
@@ -235,6 +236,20 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		tenant_signature_ip: overrides?.tenant_signature_ip || null,
 		tenant_signature_method: overrides?.tenant_signature_method || null,
 		sent_for_signature_at: overrides?.sent_for_signature_at || null,
+
+		// Lease detail fields
+		max_occupants: overrides?.max_occupants ?? null,
+		pets_allowed: overrides?.pets_allowed ?? null,
+		pet_deposit: overrides?.pet_deposit ?? null,
+		pet_rent: overrides?.pet_rent ?? null,
+		utilities_included: overrides?.utilities_included ?? null,
+		tenant_responsible_utilities:
+			overrides?.tenant_responsible_utilities ?? null,
+		property_rules: overrides?.property_rules ?? null,
+		property_built_before_1978: overrides?.property_built_before_1978 ?? null,
+		lead_paint_disclosure_acknowledged:
+			overrides?.lead_paint_disclosure_acknowledged ?? null,
+		governing_state: overrides?.governing_state ?? null,
 
 		...overrides
 	}
@@ -303,7 +318,9 @@ export function createMockAppConfigService(): jest.Mocked<AppConfigService> {
 		getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3050'),
 
 		// Database
-		getDatabaseUrl: jest.fn().mockReturnValue('postgresql://localhost:5432/test'),
+		getDatabaseUrl: jest
+			.fn()
+			.mockReturnValue('postgresql://localhost:5432/test'),
 		getDirectUrl: jest.fn().mockReturnValue(undefined),
 
 		// Authentication

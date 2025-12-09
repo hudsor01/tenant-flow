@@ -3,9 +3,9 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Unit } from '@repo/shared/types/core'
 import type {
-	CreateUnitRequest,
-	UpdateUnitRequest
-} from '@repo/shared/types/api-contracts'
+	UnitInput,
+	UnitUpdate
+} from '@repo/shared/validation/units'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
@@ -62,7 +62,7 @@ describe('UnitsController', () => {
 		...overrides
 	})
 
-	const validCreateUnitRequest: CreateUnitRequest = {
+	const validUnitInput: UnitInput = {
 		property_id: 'property-123',
 		unit_number: '101',
 		rent: 150000,
@@ -70,7 +70,7 @@ describe('UnitsController', () => {
 		bathrooms: 1
 	}
 
-	const validUpdateUnitRequest: UpdateUnitRequest = {
+	const validUnitUpdate: UnitUpdate = {
 		unit_number: '102'
 	}
 
@@ -218,17 +218,17 @@ describe('UnitsController', () => {
 
 	describe('create', () => {
 		it('should create a new unit', async () => {
-			const mockUnit = createMockUnit(validCreateUnitRequest)
+			const mockUnit = createMockUnit(validUnitInput)
 
 			mockUnitsServiceInstance.create.mockResolvedValue(mockUnit)
 
 			const result = await controller.create(
 				'mock-jwt-token',
-				validCreateUnitRequest
+				validUnitInput
 			)
 			expect(mockUnitsServiceInstance.create).toHaveBeenCalledWith(
 				'mock-jwt-token',
-				validCreateUnitRequest
+				validUnitInput
 			)
 			expect(result).toEqual(mockUnit)
 		})
@@ -246,12 +246,12 @@ describe('UnitsController', () => {
 			const result = await controller.update(
 				'mock-jwt-token',
 				'unit-1',
-				validUpdateUnitRequest
+				validUnitUpdate
 			)
 			expect(mockUnitsServiceInstance.update).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				'unit-1',
-				validUpdateUnitRequest,
+				validUnitUpdate,
 				undefined // expectedVersion for optimistic locking
 			)
 			expect(result).toEqual(mockUnit)

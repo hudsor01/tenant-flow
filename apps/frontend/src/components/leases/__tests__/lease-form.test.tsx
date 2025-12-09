@@ -75,37 +75,48 @@ vi.mock('#hooks/api/use-unit', () => ({
 }))
 
 const mockLease: Lease = {
-  id: 'lease-1',
-  unit_id: 'unit-1',
-  primary_tenant_id: 'tenant-1',
-  property_owner_id: 'user-1',
-  start_date: '2024-01-01',
-  end_date: '2024-12-31',
-  rent_amount: 1500,
-  security_deposit: 1500,
-  lease_status: 'active',
-  grace_period_days: null,
-  late_fee_amount: null,
-  late_fee_days: null,
-  stripe_subscription_id: null,
-  stripe_subscription_status: 'none',
-  subscription_failure_reason: null,
-  subscription_retry_count: 0,
-  subscription_last_attempt_at: null,
-  auto_pay_enabled: null,
-  payment_day: 1,
-  rent_currency: 'USD',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
-  // Signature tracking fields
-  docuseal_submission_id: null,
-  owner_signed_at: null,
-  owner_signature_ip: null,
-  owner_signature_method: null,
-  tenant_signed_at: null,
-  tenant_signature_ip: null,
-  tenant_signature_method: null,
-  sent_for_signature_at: null
+	id: 'lease-1',
+	unit_id: 'unit-1',
+	primary_tenant_id: 'tenant-1',
+	property_owner_id: 'user-1',
+	start_date: '2024-01-01',
+	end_date: '2024-12-31',
+	rent_amount: 1500,
+	security_deposit: 1500,
+	lease_status: 'active',
+	grace_period_days: null,
+	late_fee_amount: null,
+	late_fee_days: null,
+	stripe_subscription_id: null,
+	stripe_subscription_status: 'none',
+	subscription_failure_reason: null,
+	subscription_retry_count: 0,
+	subscription_last_attempt_at: null,
+	auto_pay_enabled: null,
+	payment_day: 1,
+	rent_currency: 'USD',
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z',
+	// Signature tracking fields
+	docuseal_submission_id: null,
+	owner_signed_at: null,
+	owner_signature_ip: null,
+	owner_signature_method: null,
+	tenant_signed_at: null,
+	tenant_signature_ip: null,
+	tenant_signature_method: null,
+	sent_for_signature_at: null,
+	// Lease detail fields
+	max_occupants: null,
+	pets_allowed: null,
+	pet_deposit: null,
+	pet_rent: null,
+	utilities_included: null,
+	tenant_responsible_utilities: null,
+	property_rules: null,
+	property_built_before_1978: null,
+	lead_paint_disclosure_acknowledged: null,
+	governing_state: null
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {
@@ -172,7 +183,6 @@ describe('LeaseForm', () => {
 			expect(screen.getByText(/end date \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/monthly rent \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/security deposit \*/i)).toBeInTheDocument()
-
 		})
 	})
 
@@ -386,9 +396,9 @@ describe('LeaseForm', () => {
 		})
 
 		test('textarea has appropriate rows attribute', () => {
-		renderWithQueryClient(<LeaseForm mode="create" />)
-		// Note: No textarea field in current component
-	})
+			renderWithQueryClient(<LeaseForm mode="create" />)
+			// Note: No textarea field in current component
+		})
 	})
 
 	describe('Mode-Specific Behavior', () => {
@@ -430,7 +440,7 @@ describe('LeaseForm', () => {
 
 			// Form uses same placeholder in both modes
 			// Note: Terms field not present in current component
-		expect(screen.getByText(/select property/i)).toBeInTheDocument()
+			expect(screen.getByText(/select property/i)).toBeInTheDocument()
 		})
 
 		test('shows CheckCircle icon in submit button', () => {

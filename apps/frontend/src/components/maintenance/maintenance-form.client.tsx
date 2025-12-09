@@ -24,13 +24,12 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import {
-	useCreateMaintenanceRequestMutation,
-	useUpdateMaintenanceRequestMutation
+	useMaintenanceRequestCreateMutation,
+	useMaintenanceRequestUpdateMutation
 } from '#hooks/api/mutations/maintenance-mutations'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
-import { MAINTENANCE_CATEGORY_OPTIONS } from '#lib/constants/status-values'
 import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
 	MaintenanceRequestWithExtras,
@@ -46,8 +45,8 @@ interface MaintenanceFormProps {
 
 export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const router = useRouter()
-	const createRequest = useCreateMaintenanceRequestMutation()
-	const updateRequest = useUpdateMaintenanceRequestMutation()
+	const createRequest = useMaintenanceRequestCreateMutation()
+	const updateRequest = useMaintenanceRequestUpdateMutation()
 
 	// Use query hooks for eager loading of properties and units
 	const { data: propertiesData, isLoading: propertiesLoading } = usePropertyList()
@@ -62,20 +61,10 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 			title: extendedRequest?.title ?? '',
 			description: extendedRequest?.description ?? '',
 			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'LOW',
-			category:
-				(extendedRequest?.category as
-					| 'GENERAL'
-					| 'PLUMBING'
-					| 'ELECTRICAL'
-					| 'HVAC'
-					| 'APPLIANCES'
-					| 'SAFETY'
-					| 'OTHER'
-					| undefined) ?? undefined,
 			unit_id: extendedRequest?.unit_id ?? '',
-			property_id: extendedRequest?.property_id ?? '',
+			tenant_id: extendedRequest?.tenant_id ?? '',
 			estimated_cost: extendedRequest?.estimated_cost?.toString() ?? '',
-			preferredDate: extendedRequest?.preferredDate ?? ''
+			scheduled_date: extendedRequest?.scheduled_date ?? ''
 		},
 		createMutation: createRequest,
 		updateMutation: updateRequest,
@@ -86,17 +75,20 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 		}
 	})
 
-	// Get available units based on selected property
-	const availableUnits = useMemo(() => {
-		const propertyId = form.state.values.property_id
-		if (!propertyId || !unitsData) return []
-		return unitsData.filter((u: Unit) => u.property_id === propertyId)
-	}, [form.state.values.property_id, unitsData])
+	// Group units by property for better UX
+	const unitsByProperty = useMemo(() => {
+		if (!unitsData || !propertiesData) return new Map<string, Unit[]>()
+		const grouped = new Map<string, Unit[]>()
+		for (const unit of unitsData) {
+			const existing = grouped.get(unit.property_id) ?? []
+			grouped.set(unit.property_id, [...existing, unit])
+		}
+		return grouped
+	}, [unitsData, propertiesData])
 
 	// Add loading state for form initialization
 	const isLoading = propertiesLoading || unitsLoading
 
-	const propertyLabelId = 'maintenance-property-label'
 	const unitLabelId = 'maintenance-unit-label'
 
 	return (
@@ -139,81 +131,75 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 							</div>
 						</CardHeader>
 						<CardContent className="grid gap-6">
-							<div className="grid gap-4 md:grid-cols-2">
-								{/* Property Selection */}
-								<form.Field name="property_id">
-									{field => (
-										<Field>
-											<FieldLabel id={propertyLabelId} htmlFor="property_id">
-												Property *
-											</FieldLabel>
-											<Select
-												value={field.state.value || ''}
-												onValueChange={value => {
-													field.handleChange(value)
-													form.setFieldValue('unit_id', '')
-												}}
+							{/* Unit Selection */}
+							<form.Field name="unit_id">
+								{field => (
+									<Field>
+										<FieldLabel id={unitLabelId} htmlFor="unit_id">
+											Unit *
+										</FieldLabel>
+										<Select
+											value={field.state.value || ''}
+											onValueChange={field.handleChange}
+										>
+											<SelectTrigger
+												id="unit_id"
+												aria-labelledby={unitLabelId}
+												className="w-full justify-between"
 											>
-												<SelectTrigger
-													id="property_id"
-													aria-labelledby={propertyLabelId}
-													className="w-full justify-between"
-												>
-													<SelectValue placeholder="Select property" />
-												</SelectTrigger>
-												<SelectContent>
-													{propertiesData?.map((property: Property) => (
-														<SelectItem key={property.id} value={property.id}>
-															{property.name}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											{(field.state.meta.errors?.length ?? 0) > 0 && (
-												<FieldError>
-													{String(field.state.meta.errors[0])}
-												</FieldError>
-											)}
-										</Field>
-									)}
-								</form.Field>
+												<SelectValue placeholder="Select unit" />
+											</SelectTrigger>
+											<SelectContent>
+												{propertiesData?.map((property: Property) => {
+													const propertyUnits = unitsByProperty.get(property.id) ?? []
+													if (propertyUnits.length === 0) return null
+													return (
+														<div key={property.id}>
+															<div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+																{property.name}
+															</div>
+															{propertyUnits.map((unit: Unit) => (
+																<SelectItem key={unit.id} value={unit.id}>
+																	Unit {unit.unit_number}
+																</SelectItem>
+															))}
+														</div>
+													)
+												})}
+											</SelectContent>
+										</Select>
+										{(field.state.meta.errors?.length ?? 0) > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
 
-								{/* Unit Selection */}
-								<form.Field name="unit_id">
-									{field => (
-										<Field>
-											<FieldLabel id={unitLabelId} htmlFor="unit_id">
-												Unit (optional)
-											</FieldLabel>
-											<Select
-												value={field.state.value || ''}
-												onValueChange={field.handleChange}
-												disabled={!form.state.values.property_id}
-											>
-												<SelectTrigger
-													id="unit_id"
-													aria-labelledby={unitLabelId}
-													className="w-full justify-between"
-												>
-													<SelectValue placeholder="Select unit" />
-												</SelectTrigger>
-												<SelectContent>
-													{availableUnits.map((unit: Unit) => (
-														<SelectItem key={unit.id} value={unit.id}>
-															Unit {unit.unit_number}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-											{(field.state.meta.errors?.length ?? 0) > 0 && (
-												<FieldError>
-													{String(field.state.meta.errors[0])}
-												</FieldError>
-											)}
-										</Field>
-									)}
-								</form.Field>
-							</div>
+							{/* Tenant ID - Hidden for now, will be set from context or unit */}
+							<form.Field name="tenant_id">
+								{field => (
+									<Field>
+										<FieldLabel htmlFor="tenant_id">Tenant ID *</FieldLabel>
+										<Input
+											id="tenant_id"
+											name="tenant_id"
+											placeholder="Tenant ID"
+											value={field.state.value || ''}
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
+											}
+											onBlur={field.handleBlur}
+										/>
+										{(field.state.meta.errors?.length ?? 0) > 0 && (
+											<FieldError>
+												{String(field.state.meta.errors[0])}
+											</FieldError>
+										)}
+									</Field>
+								)}
+							</form.Field>
 
 							{/* Title Field */}
 							<form.Field name="title">
@@ -293,30 +279,26 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								)}
 							</form.Field>
 
-							{/* Category Field */}
-							<form.Field name="category">
+							{/* Estimated Cost Field */}
+							<form.Field name="estimated_cost">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="category">Category</FieldLabel>
-										<Select
+										<FieldLabel htmlFor="estimated_cost">
+											Estimated Cost (optional)
+										</FieldLabel>
+										<Input
+											id="estimated_cost"
+											name="estimated_cost"
+											type="number"
+											min="0"
+											step="0.01"
+											placeholder="0.00"
 											value={field.state.value || ''}
-											onValueChange={value =>
-												field.handleChange(
-													value as keyof typeof import('#lib/constants/status-values').MAINTENANCE_CATEGORY
-												)
+											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+												field.handleChange(e.target.value)
 											}
-										>
-											<SelectTrigger id="category">
-												<SelectValue placeholder="Select maintenance category" />
-											</SelectTrigger>
-											<SelectContent>
-												{MAINTENANCE_CATEGORY_OPTIONS.map(option => (
-													<SelectItem key={option.value} value={option.value}>
-														{option.label}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
+											onBlur={field.handleBlur}
+										/>
 										{(field.state.meta.errors?.length ?? 0) > 0 && (
 											<FieldError>
 												{String(field.state.meta.errors[0])}
@@ -326,43 +308,16 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 								)}
 							</form.Field>
 
-						{/* Estimated Cost Field */}
-						<form.Field name="estimated_cost">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="estimated_cost">
-										Estimated Cost (optional)
-									</FieldLabel>
-									<Input
-										id="estimated_cost"
-										name="estimated_cost"
-										type="number"
-										min="0"
-										step="0.01"
-										placeholder="0.00"
-										value={field.state.value || ''}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-									/>
-									{(field.state.meta.errors?.length ?? 0) > 0 && (
-										<FieldError>
-											{String(field.state.meta.errors[0])}
-										</FieldError>
-									)}
-								</Field>
-							)}
-						</form.Field>							{/* Preferred Date Field */}
-							<form.Field name="preferredDate">
+							{/* Scheduled Date Field */}
+							<form.Field name="scheduled_date">
 								{field => (
 									<Field>
-										<FieldLabel htmlFor="preferredDate">
-											Preferred Date (optional)
+										<FieldLabel htmlFor="scheduled_date">
+											Scheduled Date (optional)
 										</FieldLabel>
 										<Input
-											id="preferredDate"
-											name="preferredDate"
+											id="scheduled_date"
+											name="scheduled_date"
 											type="date"
 											value={field.state.value || ''}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>

@@ -65,27 +65,28 @@ export class TenantQueryService {
 
 	// ============================================================================
 	// DETAIL QUERIES - Delegated to TenantDetailService
+	// All methods require token for RLS enforcement
 	// ============================================================================
 
 	/**
 	 * Get single tenant by ID
 	 */
-	async findOne(tenantId: string): Promise<Tenant> {
-		return this.detailService.findOne(tenantId)
+	async findOne(tenantId: string, token: string): Promise<Tenant> {
+		return this.detailService.findOne(tenantId, token)
 	}
 
 	/**
 	 * Get tenant with all lease details
 	 */
-	async findOneWithLease(tenantId: string): Promise<TenantWithLeaseInfo> {
-		return this.detailService.findOneWithLease(tenantId)
+	async findOneWithLease(tenantId: string, token: string): Promise<TenantWithLeaseInfo> {
+		return this.detailService.findOneWithLease(tenantId, token)
 	}
 
 	/**
 	 * Get tenant by auth user ID
 	 */
-	async getTenantByAuthUserId(authUserId: string): Promise<Tenant> {
-		return this.detailService.getTenantByAuthUserId(authUserId)
+	async getTenantByAuthUserId(authUserId: string, token: string): Promise<Tenant> {
+		return this.detailService.getTenantByAuthUserId(authUserId, token)
 	}
 
 	// ============================================================================

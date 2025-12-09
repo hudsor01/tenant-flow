@@ -30,11 +30,11 @@ import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { useState } from 'react'
 
-import type { CreateLeaseInput } from '@repo/shared/types/api-contracts'
+import type { LeaseCreate } from '@repo/shared/validation/leases'
 
 const ITEMS_PER_PAGE = 25
 
-type LeaseStatus = NonNullable<CreateLeaseInput['lease_status']>
+type LeaseStatus = NonNullable<LeaseCreate['lease_status']>
 
 // Inline create dialog using base component
 function LeaseCreateDialog() {
@@ -78,16 +78,20 @@ function LeaseCreateDialog() {
 					return
 				}
 
-				const leaseData: CreateLeaseInput = {
+				const leaseData: LeaseCreate = {
 					primary_tenant_id: value.primary_tenant_id,
 					unit_id: value.unit_id,
 					start_date: value.start_date,
 					end_date: value.end_date,
 					rent_amount: Math.round(Number.parseFloat(value.rent_amount) * 100), // Convert dollars to cents
+					rent_currency: 'USD',
 					security_deposit: value.security_deposit ? Math.round(Number.parseFloat(value.security_deposit) * 100) : 0, // Convert dollars to cents
-					grace_period_days: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : null,
-					late_fee_amount: value.late_fee_amount ? Math.round(Number.parseFloat(value.late_fee_amount) * 100) : null, // Convert dollars to cents
-				late_fee_days: value.lateFeePercentage ? parseInt(value.lateFeePercentage, 10) : null,
+					payment_day: 1,
+					auto_pay_enabled: false,
+					tenant_ids: [value.primary_tenant_id],
+					grace_period_days: value.gracePeriodDays ? parseInt(value.gracePeriodDays, 10) : undefined,
+					late_fee_amount: value.late_fee_amount ? Math.round(Number.parseFloat(value.late_fee_amount) * 100) : undefined, // Convert dollars to cents
+				late_fee_days: value.lateFeePercentage ? parseInt(value.lateFeePercentage, 10) : undefined,
 				lease_status: value.status
 				}
 				await createLeaseMutation.mutateAsync(leaseData)

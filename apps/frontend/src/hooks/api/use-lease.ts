@@ -14,9 +14,9 @@ import { apiRequest } from '#lib/api-request'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { useMemo } from 'react'
 import type {
-	CreateLeaseInput,
-	UpdateLeaseInput
-} from '@repo/shared/types/api-contracts'
+	LeaseCreate,
+	LeaseUpdate
+} from '@repo/shared/validation/leases'
 import type { Lease, LeaseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -109,17 +109,22 @@ export function useCreateLease() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (leaseData: CreateLeaseInput) =>
+		mutationFn: (leaseData: LeaseCreate) =>
 			apiRequest<Lease>('/api/v1/leases', {
 				method: 'POST',
 				body: JSON.stringify(leaseData)
 			}),
-		onMutate: async (newLease) => {
+		onMutate: async newLease => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
-			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>({
+			const previousLists = queryClient.getQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({
 				queryKey: leaseQueries.lists()
 			})
 
@@ -129,7 +134,7 @@ export function useCreateLease() {
 				id: tempId,
 				primary_tenant_id: newLease.primary_tenant_id ?? null,
 				unit_id: newLease.unit_id ?? null,
-				property_owner_id: newLease.property_owner_id ?? null,
+				property_owner_id: null, // Set server-side from auth
 				start_date: newLease.start_date,
 				end_date: newLease.end_date,
 				rent_amount: newLease.rent_amount,
@@ -156,21 +161,34 @@ export function useCreateLease() {
 				tenant_signed_at: null,
 				tenant_signature_ip: null,
 				tenant_signature_method: null,
-				sent_for_signature_at: null
+				sent_for_signature_at: null,
+				// Lease detail fields
+				max_occupants: null,
+				pets_allowed: null,
+				pet_deposit: null,
+				pet_rent: null,
+				utilities_included: null,
+				tenant_responsible_utilities: null,
+				property_rules: null,
+				property_built_before_1978: null,
+				lead_paint_disclosure_acknowledged: null,
+				governing_state: null
 			}
 
 			// Optimistically update all caches
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old => {
-					const data = old?.data ?? []
-					return {
-						...old,
-						data: [optimisticLease, ...data],
-						total: (old?.total ?? data.length) + 1
-					}
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
+				const data = old?.data ?? []
+				return {
+					...old,
+					data: [optimisticLease, ...data],
+					total: (old?.total ?? data.length) + 1
 				}
-			)
+			})
 
 			return { previousLists, tempId }
 		},
@@ -188,18 +206,20 @@ export function useCreateLease() {
 		},
 		onSuccess: (data, _variables, context) => {
 			// Replace optimistic entry with real data
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old => {
-					if (!old) return { data: [data], total: 1 }
-					return {
-						...old,
-						data: old.data.map(lease =>
-							lease.id === context?.tempId ? data : lease
-						)
-					}
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
+				if (!old) return { data: [data], total: 1 }
+				return {
+					...old,
+					data: old.data.map(lease =>
+						lease.id === context?.tempId ? data : lease
+					)
 				}
-			)
+			})
 
 			// Cache individual lease details
 			queryClient.setQueryData(leaseQueries.detail(data.id).queryKey, data)
@@ -227,7 +247,7 @@ export function useUpdateLease() {
 			version
 		}: {
 			id: string
-			data: UpdateLeaseInput
+			data: LeaseUpdate
 			version?: number
 		}): Promise<Lease> => {
 			return apiRequest<Lease>(`/api/v1/leases/${id}`, {
@@ -242,35 +262,43 @@ export function useUpdateLease() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
 			const previousDetail = queryClient.getQueryData<Lease>(
 				leaseQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() }
-			)
+			const previousLists = queryClient.getQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() })
 
 			// Optimistically update detail cache (use incrementVersion helper)
-		queryClient.setQueryData<LeaseWithVersion>(leaseQueries.detail(id).queryKey, old =>
-			old ? (incrementVersion(old, data)) : undefined
-		)
+			queryClient.setQueryData<LeaseWithVersion>(
+				leaseQueries.detail(id).queryKey,
+				old => (old ? incrementVersion(old, data as Partial<LeaseWithVersion>) : undefined)
+			)
 
 			// Optimistically update list caches
-		queryClient.setQueriesData<{ data: LeaseWithVersion[]; total?: number; limit?: number; offset?: number }>(
-			{ queryKey: leaseQueries.lists() },
-			old => {
+			queryClient.setQueriesData<{
+				data: LeaseWithVersion[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
 				if (!old) return old
 				return {
 					...old,
 					data: old.data.map(lease =>
-						lease.id === id ? (incrementVersion(lease, data)) : lease
+						lease.id === id ? incrementVersion(lease, data as Partial<LeaseWithVersion>) : lease
 					)
 				}
-			}
-		)
+			})
 
 			return { previousDetail, previousLists }
 		},
@@ -302,22 +330,26 @@ export function useUpdateLease() {
 			// Replace optimistic update with real data (including correct version)
 			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(lease => (lease.id === id ? data : lease))
-					}
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
+				if (!old) return old
+				return {
+					...old,
+					data: old.data.map(lease => (lease.id === id ? data : lease))
 				}
-			)
+			})
 
 			logger.info('Lease updated successfully', { lease_id: id })
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
 		}
@@ -342,34 +374,42 @@ export function useDeleteLease(options?: {
 		},
 		onMutate: async (id: string) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: leaseQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: leaseQueries.lists() })
 
 			// Snapshot previous state
 			const previousDetail = queryClient.getQueryData<Lease>(
 				leaseQueries.detail(id).queryKey
 			)
-			const previousLists = queryClient.getQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() }
-			)
+			const previousLists = queryClient.getQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() })
 
 			// Optimistically remove from all caches
 			queryClient.removeQueries({ queryKey: leaseQueries.detail(id).queryKey })
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old =>
-					old
-						? {
-								...old,
-								data: old.data.filter(lease => lease.id !== id),
-								total: (old.total ?? old.data.length) - 1
-							}
-						: old
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old =>
+				old
+					? {
+							...old,
+							data: old.data.filter(lease => lease.id !== id),
+							total: (old.total ?? old.data.length) - 1
+						}
+					: old
 			)
 
 			return { previousDetail, previousLists }
 		},
-			onError: (err, id, context) => {
+		onError: (err, id, context) => {
 			// Rollback on error
 			if (context?.previousDetail) {
 				queryClient.setQueryData(
@@ -394,7 +434,7 @@ export function useDeleteLease(options?: {
 			logger.info('Lease deleted successfully', { lease_id: id })
 			options?.onSuccess?.()
 		},
-			onSettled: () => {
+		onSettled: () => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
@@ -418,23 +458,27 @@ export function useRenewLease() {
 			// Update caches with renewed lease
 			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(lease => (lease.id === id ? data : lease))
-					}
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
+				if (!old) return old
+				return {
+					...old,
+					data: old.data.map(lease => (lease.id === id ? data : lease))
 				}
-			)
+			})
 
 			logger.info('Lease renewed successfully', { lease_id: id })
 		},
 		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.expiring().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.expiring().queryKey
+			})
 		}
 	})
 }
@@ -467,16 +511,18 @@ export function useTerminateLease() {
 			// Update caches with terminated lease
 			queryClient.setQueryData(leaseQueries.detail(id).queryKey, data)
 
-			queryClient.setQueriesData<{ data: Lease[]; total?: number; limit?: number; offset?: number }>(
-				{ queryKey: leaseQueries.lists() },
-				old => {
-					if (!old) return old
-					return {
-						...old,
-						data: old.data.map(lease => (lease.id === id ? data : lease))
-					}
+			queryClient.setQueriesData<{
+				data: Lease[]
+				total?: number
+				limit?: number
+				offset?: number
+			}>({ queryKey: leaseQueries.lists() }, old => {
+				if (!old) return old
+				return {
+					...old,
+					data: old.data.map(lease => (lease.id === id ? data : lease))
 				}
-			)
+			})
 
 			logger.info('Lease terminated successfully', { lease_id: id })
 		},
@@ -497,7 +543,7 @@ export function usePrefetchLease() {
 		queryClient.prefetchQuery({
 			queryKey: leaseQueries.detail(id).queryKey,
 			queryFn: () => apiRequest<Lease>(`/api/v1/leases/${id}`),
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }
@@ -550,18 +596,25 @@ export function useSendLeaseForSignature() {
 
 	return useMutation({
 		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
-			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/send-for-signature`, {
-				method: 'POST',
-				body: JSON.stringify({ message })
-			}),
+			apiRequest<{ success: boolean }>(
+				`/api/v1/leases/${leaseId}/send-for-signature`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ message })
+				}
+			),
 		onSuccess: (_result, { leaseId }) => {
 			// Invalidate lease detail and signature status
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			logger.info('Lease sent for signature', { leaseId })
 		},
-		onError: (err) => {
+		onError: err => {
 			handleMutationError(err, 'Send lease for signature')
 		}
 	})
@@ -580,12 +633,16 @@ export function useSignLeaseAsOwner() {
 			}),
 		onSuccess: (_result, leaseId) => {
 			// Invalidate lease detail and signature status
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			logger.info('Lease signed by owner', { leaseId })
 		},
-		onError: (err) => {
+		onError: err => {
 			handleMutationError(err, 'Sign lease')
 		}
 	})
@@ -599,19 +656,92 @@ export function useSignLeaseAsTenant() {
 
 	return useMutation({
 		mutationFn: (leaseId: string) =>
-			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/tenant`, {
-				method: 'POST'
-			}),
+			apiRequest<{ success: boolean }>(
+				`/api/v1/leases/${leaseId}/sign/tenant`,
+				{
+					method: 'POST'
+				}
+			),
 		onSuccess: (_result, leaseId) => {
 			// Invalidate lease detail, signature status, and tenant portal data
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(leaseId).queryKey })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.signatureStatus(leaseId).queryKey })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.tenantPortalActive().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.tenantPortalActive().queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			logger.info('Lease signed by tenant', { leaseId })
 		},
-		onError: (err) => {
+		onError: err => {
 			handleMutationError(err, 'Sign lease')
+		}
+	})
+}
+
+
+/**
+ * Cancel a pending signature request - reverts lease to draft status
+ */
+export function useCancelSignatureRequest() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: (leaseId: string) =>
+			apiRequest<{ success: boolean }>(
+				`/api/v1/leases/${leaseId}/cancel-signature`,
+				{
+					method: 'POST'
+				}
+			),
+		onSuccess: (_result, leaseId) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			logger.info('Signature request cancelled', { leaseId })
+		},
+		onError: err => {
+			handleMutationError(err, 'Cancel signature request')
+		}
+	})
+}
+
+/**
+ * Resend signature request - cancels existing and creates fresh submission
+ */
+export function useResendSignatureRequest() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
+			apiRequest<{ success: boolean }>(
+				`/api/v1/leases/${leaseId}/resend-signature`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ message })
+				}
+			),
+		onSuccess: (_result, { leaseId }) => {
+			// Invalidate lease detail and signature status
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.signatureStatus(leaseId).queryKey
+			})
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			logger.info('Signature request resent', { leaseId })
+		},
+		onError: err => {
+			handleMutationError(err, 'Resend signature request')
 		}
 	})
 }
@@ -639,4 +769,19 @@ export function useLeaseSignatureOperations(leaseId: string) {
 		}),
 		[signatureStatus, sendForSignature, signAsOwner, signAsTenant]
 	)
+}
+
+/**
+ * Hook to get signed document URL for download
+ */
+export function useSignedDocumentUrl(leaseId: string, enabled = true) {
+	return useQuery({
+		queryKey: ['lease', leaseId, 'signed-document'],
+		queryFn: () =>
+			apiRequest<{ document_url: string | null }>(
+				`/api/v1/leases/${leaseId}/signed-document`
+			),
+		enabled: enabled && !!leaseId,
+		staleTime: 5 * 60 * 1000 // 5 minutes
+	})
 }

@@ -5,7 +5,12 @@
  * Simplified: Removed duplicate methods, consolidated analytics
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
 import type { Lease } from '@repo/shared/types/core'
@@ -19,8 +24,10 @@ import {
 
 @Injectable()
 export class LeasesService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get user-scoped Supabase client for direct database access
@@ -69,11 +76,8 @@ export class LeasesService {
 				countQuery = countQuery.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
-			countQuery = countQuery.eq(
-				'lease_status',
-				query.status as string
-			)
-		}
+				countQuery = countQuery.eq('lease_status', query.status as string)
+			}
 			if (query.start_date) {
 				countQuery = countQuery.gte(
 					'start_date',
@@ -114,14 +118,14 @@ export class LeasesService {
 				queryBuilder = queryBuilder.eq('property_id', String(query.property_id))
 			}
 			if (query.tenant_id) {
-				queryBuilder = queryBuilder.eq('primary_tenant_id', String(query.tenant_id))
+				queryBuilder = queryBuilder.eq(
+					'primary_tenant_id',
+					String(query.tenant_id)
+				)
 			}
 			if (query.status) {
-			queryBuilder = queryBuilder.eq(
-				'lease_status',
-				query.status as string
-			)
-		}
+				queryBuilder = queryBuilder.eq('lease_status', query.status as string)
+			}
 			if (query.start_date) {
 				queryBuilder = queryBuilder.gte(
 					'start_date',
@@ -237,8 +241,8 @@ export class LeasesService {
 					dto
 				})
 				throw new BadRequestException(
-				'Authentication token, unit ID, and primary tenant ID are required'
-			)
+					'Authentication token, unit ID, and primary tenant ID are required'
+				)
 			}
 
 			this.logger.log('Creating lease via RLS-protected query', {
@@ -270,22 +274,77 @@ export class LeasesService {
 				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			// Insert lease directly from DTO (matches database schema)
-		const { data, error } = await client
-			.from('leases')
-			.insert({
+			// Build insert data with all fields from DTO
+			const insertData: Database['public']['Tables']['leases']['Insert'] = {
 				primary_tenant_id: dto.primary_tenant_id,
 				unit_id: dto.unit_id,
 				start_date: dto.start_date,
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
 				security_deposit: dto.security_deposit || 0,
-				lease_status: dto.lease_status || 'pending',
-				payment_day: 1,
-				rent_currency: 'USD'
-			})
-			.select()
-			.single()
+				lease_status: dto.lease_status || 'draft',
+				payment_day: dto.payment_day ?? 1,
+				rent_currency: dto.rent_currency || 'USD',
+				grace_period_days: dto.grace_period_days ?? null,
+				late_fee_amount: dto.late_fee_amount ?? null,
+				late_fee_days: dto.late_fee_days ?? null,
+				auto_pay_enabled: dto.auto_pay_enabled ?? false
+			}
+
+			// Add lease detail fields if provided (wizard flow)
+			const dtoWithDetails = dto as CreateLeaseDto & {
+				max_occupants?: number | null
+				pets_allowed?: boolean
+				pet_deposit?: number | null
+				pet_rent?: number | null
+				utilities_included?: string[]
+				tenant_responsible_utilities?: string[]
+				property_rules?: string | null
+				property_built_before_1978?: boolean
+				lead_paint_disclosure_acknowledged?: boolean | null
+				governing_state?: string
+			}
+
+			if (dtoWithDetails.max_occupants !== undefined) {
+				insertData.max_occupants = dtoWithDetails.max_occupants
+			}
+			if (dtoWithDetails.pets_allowed !== undefined) {
+				insertData.pets_allowed = dtoWithDetails.pets_allowed
+			}
+			if (dtoWithDetails.pet_deposit !== undefined) {
+				insertData.pet_deposit = dtoWithDetails.pet_deposit
+			}
+			if (dtoWithDetails.pet_rent !== undefined) {
+				insertData.pet_rent = dtoWithDetails.pet_rent
+			}
+			if (dtoWithDetails.utilities_included !== undefined) {
+				insertData.utilities_included = dtoWithDetails.utilities_included
+			}
+			if (dtoWithDetails.tenant_responsible_utilities !== undefined) {
+				insertData.tenant_responsible_utilities =
+					dtoWithDetails.tenant_responsible_utilities
+			}
+			if (dtoWithDetails.property_rules !== undefined) {
+				insertData.property_rules = dtoWithDetails.property_rules
+			}
+			if (dtoWithDetails.property_built_before_1978 !== undefined) {
+				insertData.property_built_before_1978 =
+					dtoWithDetails.property_built_before_1978
+			}
+			if (dtoWithDetails.lead_paint_disclosure_acknowledged !== undefined) {
+				insertData.lead_paint_disclosure_acknowledged =
+					dtoWithDetails.lead_paint_disclosure_acknowledged
+			}
+			if (dtoWithDetails.governing_state !== undefined) {
+				insertData.governing_state = dtoWithDetails.governing_state
+			}
+
+			// Insert lease with all fields
+			const { data, error } = await client
+				.from('leases')
+				.insert(insertData)
+				.select()
+				.single()
 
 			if (error) {
 				this.logger.error('Failed to create lease in Supabase', {
@@ -370,9 +429,7 @@ export class LeasesService {
 				this.logger.warn('Lease not found or no changes made', {
 					lease_id
 				})
-				throw new ConflictException(
-					'Lease not found or already modified'
-				)
+				throw new ConflictException('Lease not found or already modified')
 			}
 
 			// Other database errors

@@ -141,7 +141,18 @@ export const DEFAULT_LEASE: Lease = {
 	tenant_signed_at: null,
 	tenant_signature_ip: null,
 	tenant_signature_method: null,
-	sent_for_signature_at: null
+	sent_for_signature_at: null,
+	// Lease detail fields
+	max_occupants: null,
+	pets_allowed: null,
+	pet_deposit: null,
+	pet_rent: null,
+	utilities_included: null,
+	tenant_responsible_utilities: null,
+	property_rules: null,
+	property_built_before_1978: null,
+	lead_paint_disclosure_acknowledged: null,
+	governing_state: null
 }
 
 /**

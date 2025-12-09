@@ -19,7 +19,8 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import type { UpdatePropertyInput, CreatePropertyInput, PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type { PropertyCreate, PropertyUpdate } from '@repo/shared/validation/properties'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
 
@@ -118,14 +119,14 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (
-			propertyData: CreatePropertyInput
+			propertyData: PropertyCreate
 		): Promise<Property> => {
 			return apiRequest<Property>('/api/v1/properties', {
 				method: 'POST',
 				body: JSON.stringify(propertyData)
 			})
 		},
-		onMutate: async (newProperty: CreatePropertyInput) => {
+		onMutate: async (newProperty: PropertyCreate) => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
@@ -223,7 +224,7 @@ export function useUpdateProperty() {
 			version
 		}: {
 			id: string
-			data: UpdatePropertyInput
+			data: PropertyUpdate
 			version?: number
 		}): Promise<Property> => {
 			return apiRequest<Property>(`/api/v1/properties/${id}`, {
@@ -251,7 +252,7 @@ export function useUpdateProperty() {
 
 			// Optimistically update detail cache
 		queryClient.setQueryData<PropertyWithVersion>(propertyQueries.detail(id).queryKey, old =>
-			old ? incrementVersion(old, data) : undefined
+			old ? incrementVersion(old, data as Partial<PropertyWithVersion>) : undefined
 		)
 
 			// Optimistically update list caches
@@ -260,7 +261,7 @@ export function useUpdateProperty() {
 			old => {
 				if (!old) return old
 				return old.map(property =>
-					property.id === id ? incrementVersion(property, data) : property
+					property.id === id ? incrementVersion(property, data as Partial<PropertyWithVersion>) : property
 				)
 			}
 		)

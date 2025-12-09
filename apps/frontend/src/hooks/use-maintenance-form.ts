@@ -2,13 +2,10 @@ import { useForm } from '@tanstack/react-form'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { UseMutationResult } from '@tanstack/react-query'
 import type {
-	CreateMaintenanceRequestInput,
-	UpdateMaintenanceRequestInput
-} from '@repo/shared/types/api-contracts'
-import type {
-	MaintenanceRequest,
-	MaintenanceCategory
-} from '@repo/shared/types/core'
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })
 
@@ -16,28 +13,19 @@ export interface MaintenanceFormData {
 	title: string
 	description: string
 	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-	category: MaintenanceCategory | undefined
-	property_id: string
 	unit_id: string
+	tenant_id: string
 	estimated_cost?: string
-	preferredDate?: string
+	scheduled_date?: string
 }
 
 export interface UseMaintenanceFormOptions {
 	mode: 'create' | 'edit'
 	defaultValues?: Partial<MaintenanceFormData>
-	createMutation?: UseMutationResult<
-		MaintenanceRequest,
-		Error,
-		CreateMaintenanceRequestInput,
-		unknown
-	>
-	updateMutation?: UseMutationResult<
-		MaintenanceRequest,
-		Error,
-		{ id: string; data: UpdateMaintenanceRequestInput; version?: number },
-		unknown
-	>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	createMutation?: UseMutationResult<MaintenanceRequest, Error, any, unknown>
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	updateMutation?: UseMutationResult<MaintenanceRequest, Error, any, unknown>
 	requestId?: string
 	version?: number
 	onSuccess?: (data: MaintenanceRequest) => void
@@ -57,11 +45,10 @@ export function useMaintenanceForm({
 			title: '',
 			description: '',
 			priority: 'LOW',
-			category: undefined,
-			property_id: '',
 			unit_id: '',
+			tenant_id: '',
 			estimated_cost: '',
-			preferredDate: '',
+			scheduled_date: '',
 			...defaultValues
 		},
 		onSubmit: async ({ value }) => {
@@ -74,27 +61,24 @@ export function useMaintenanceForm({
 						throw new Error('Create mutation is required for create mode')
 					}
 
-			const payload: CreateMaintenanceRequestInput = {
+					const payload: MaintenanceRequestCreate = {
 						title: value.title,
 						description: value.description,
 						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
 						unit_id: value.unit_id,
-						property_id: value.property_id,
-						category: value.category ?? ''
+						tenant_id: value.tenant_id,
+						status: 'pending'
 					}
 
 					// Add optional fields only if they have values
-					if (value.category) {
-						payload.category = value.category
-					}
 					if (value.estimated_cost) {
 						const parsed = parseFloat(value.estimated_cost)
 						if (Number.isFinite(parsed)) {
 							payload.estimated_cost = parsed
 						}
 					}
-					if (value.preferredDate) {
-						payload.scheduledDate = value.preferredDate
+					if (value.scheduled_date) {
+						payload.scheduled_date = value.scheduled_date
 					}
 
 					const result = await createMutation.mutateAsync(payload)
@@ -114,29 +98,26 @@ export function useMaintenanceForm({
 						throw new Error('Request ID is required for edit mode')
 					}
 
-			const payload: UpdateMaintenanceRequestInput = {
-							title: value.title,
-							description: value.description,
-							priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
-						}
+					const payload: MaintenanceRequestUpdate = {
+						title: value.title,
+						description: value.description,
+						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+					}
 
 					// Add optional fields only if they have values
-					if (value.category) {
-						payload.category = value.category
-					}
 					if (value.estimated_cost) {
 						const parsed = parseFloat(value.estimated_cost)
 						if (Number.isFinite(parsed)) {
 							payload.estimated_cost = parsed
 						}
 					}
-					if (value.preferredDate) {
-						payload.scheduledDate = value.preferredDate
+					if (value.scheduled_date) {
+						payload.scheduled_date = value.scheduled_date
 					}
 
 					const mutationPayload: {
 						id: string
-						data: UpdateMaintenanceRequestInput
+						data: MaintenanceRequestUpdate
 						version?: number
 					} = {
 						id: requestId,

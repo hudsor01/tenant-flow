@@ -18,10 +18,7 @@ import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { server } from '../../tests/integration/mocks/server'
 
-// Skip T3 Env validation in test environment
-process.env.SKIP_ENV_VALIDATION = 'true'
-
-// Set up required environment variables for tests BEFORE importing env
+// Set up required environment variables for tests
 process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'

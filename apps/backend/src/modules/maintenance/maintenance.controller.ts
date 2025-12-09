@@ -20,7 +20,7 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import type { CreateMaintenanceRequest, UpdateMaintenanceRequest } from '@repo/shared/types/api-contracts'
+import type { MaintenanceRequestCreate, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
@@ -182,7 +182,7 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@user_id() user_id: string
 	) {
-		return this.maintenanceService.create(token, user_id, dto as unknown as CreateMaintenanceRequest)
+		return this.maintenanceService.create(token, user_id, dto as unknown as MaintenanceRequestCreate)
 	}
 
 	/**
@@ -200,7 +200,7 @@ export class MaintenanceController {
 		const maintenance = await this.maintenanceService.update(
 			token,
 			id,
-			dto as unknown as UpdateMaintenanceRequest,
+			dto as unknown as MaintenanceRequestUpdate,
 			expectedVersion
 		)
 		if (!maintenance) {

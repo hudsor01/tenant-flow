@@ -52,7 +52,8 @@
 		"typecheck": "tsc --noEmit",
 		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\"",
 		"lint:fix": "pnpm lint --fix",
-		"clean": "rimraf dist .turbo && find src -name '*.js' -delete && find src -name '*.js.map' -delete"
+		"clean": "rimraf dist .turbo && find src -name '*.js' -delete && find src -name '*.js.map' -delete",
+		"generate:schemas": "supazod -i src/types/supabase.ts -o src/validation/generated-schemas.ts -s public"
 	},
 	"dependencies": {
 		"@supabase/ssr": "catalog:default",
@@ -67,6 +68,7 @@
 		"@types/react-dom": "catalog:default",
 		"eslint": "catalog:default",
 		"rimraf": "^6.1.0",
+		"supazod": "4.1.0",
 		"tslib": "2.8.1",
 		"typescript": "catalog:default"
 	}

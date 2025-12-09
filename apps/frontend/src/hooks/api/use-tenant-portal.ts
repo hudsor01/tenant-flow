@@ -27,7 +27,7 @@ import {
 	tenantPortalQueries,
 	tenantPortalKeys,
 	type TenantMaintenanceRequest,
-	type CreateMaintenanceRequestInput
+	type MaintenanceRequestCreate
 } from './queries/tenant-portal-queries'
 
 // ============================================================================
@@ -73,11 +73,11 @@ export function useTenantMaintenance() {
 /**
  * Create a maintenance request
  */
-export function useCreateMaintenanceRequest() {
+export function useMaintenanceRequestCreate() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (request: CreateMaintenanceRequestInput) =>
+		mutationFn: (request: MaintenanceRequestCreate) =>
 			apiRequest<TenantMaintenanceRequest>('/api/v1/tenants/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(request)

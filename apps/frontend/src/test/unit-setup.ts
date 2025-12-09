@@ -5,13 +5,18 @@
  * Used for component tests, store tests, and pure utility tests.
  */
 
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
 import '@testing-library/jest-dom/vitest'
+import { cleanup } from '@testing-library/react'
+import { configure } from '@testing-library/react'
 
-// Skip T3 Env validation in test environment
-process.env.SKIP_ENV_VALIDATION = 'true'
+// Configure React Testing Library for better async handling
+configure({
+	// Increase default async timeout for property-based tests
+	asyncUtilTimeout: 5000
+})
 
-// Set up required environment variables for tests BEFORE importing env
+// Set up required environment variables for tests
 process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
@@ -89,3 +94,12 @@ export function createMockResponse<T>(data: T, ok = true, status = 200): Respons
 		url: ''
 	} as Response
 }
+
+/**
+ * Global cleanup after each test.
+ * Ensures React Testing Library cleans up properly.
+ * Individual tests can call cleanup() manually if needed for iteration.
+ */
+afterEach(() => {
+	cleanup()
+})

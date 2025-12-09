@@ -280,6 +280,71 @@ describe('DocuSealService', () => {
     })
   })
 
+  describe('resendToSubmitter', () => {
+    it('should resend signature request to a submitter using native PUT endpoint', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 1, email: 'tenant@example.com' })
+      })
+
+      await service.resendToSubmitter(1)
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${mockApiUrl}/submitters/1`,
+        expect.objectContaining({
+          method: 'PUT',
+          headers: {
+            'X-Auth-Token': mockApiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ send_email: true })
+        })
+      )
+    })
+
+    it('should include custom message when provided', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 1 })
+      })
+
+      await service.resendToSubmitter(1, { message: 'Please sign ASAP' })
+
+      const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(requestBody.send_email).toBe(true)
+      expect(requestBody.message).toBe('Please sign ASAP')
+    })
+
+    it('should include SMS flag when sendSms is true', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 1 })
+      })
+
+      await service.resendToSubmitter(1, { sendSms: true })
+
+      const requestBody = JSON.parse(mockFetch.mock.calls[0][1].body)
+      expect(requestBody.send_email).toBe(true)
+      expect(requestBody.send_sms).toBe(true)
+    })
+
+    it('should throw error when DocuSeal is not enabled', async () => {
+      configService.isDocuSealEnabled.mockReturnValue(false)
+
+      await expect(service.resendToSubmitter(1)).rejects.toThrow('DocuSeal is not configured')
+    })
+
+    it('should throw error on API failure', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found'
+      })
+
+      await expect(service.resendToSubmitter(999)).rejects.toThrow('DocuSeal API error')
+    })
+  })
+
   describe('createLeaseSubmission', () => {
     it('should create a lease submission with owner and tenant', async () => {
       const mockResponse = {

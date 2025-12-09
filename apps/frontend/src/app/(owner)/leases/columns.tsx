@@ -1,16 +1,21 @@
 'use client'
 
 import { Badge } from '#components/ui/badge'
+import { CheckCircle2, Clock } from 'lucide-react'
 import type { Lease, Unit } from '@repo/shared/types/core'
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
+import { LEASE_STATUS } from '#lib/constants/status-values'
 
 interface ColumnOptions {
 	tenantMap: Map<string, string>
 	unitMap: Map<string, Unit>
 }
 
-export function createLeaseColumns({ tenantMap, unitMap }: ColumnOptions): ColumnDef<Lease>[] {
+export function createLeaseColumns({
+	tenantMap,
+	unitMap
+}: ColumnOptions): ColumnDef<Lease>[] {
 	return [
 		{
 			accessorKey: 'id',
@@ -35,15 +40,53 @@ export function createLeaseColumns({ tenantMap, unitMap }: ColumnOptions): Colum
 				variant: 'select',
 				options: [
 					{ label: 'Draft', value: 'draft' },
-					{ label: 'Pending', value: 'pending' },
+					{ label: 'Pending Signature', value: 'pending_signature' },
 					{ label: 'Active', value: 'active' },
-					{ label: 'Expired', value: 'expired' },
-					{ label: 'Terminated', value: 'terminated' },
-				],
+					{ label: 'Ended', value: 'ended' },
+					{ label: 'Terminated', value: 'terminated' }
+				]
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => {
-				const status = row.getValue('lease_status') as string
+				const lease = row.original
+				const status = lease.lease_status
+
+				// Show signature status badges for pending_signature leases
+				if (status === LEASE_STATUS.PENDING_SIGNATURE) {
+					const ownerSigned = !!lease.owner_signed_at
+					const tenantSigned = !!lease.tenant_signed_at
+
+					return (
+						<div className="flex flex-col gap-1">
+							<Badge variant="secondary">Pending Signature</Badge>
+							<div className="flex gap-1">
+								<Badge
+									variant={ownerSigned ? 'default' : 'outline'}
+									className={`text-xs gap-1 ${ownerSigned ? 'bg-success hover:bg-success' : ''}`}
+								>
+									{ownerSigned ? (
+										<CheckCircle2 className="h-3 w-3" />
+									) : (
+										<Clock className="h-3 w-3" />
+									)}
+									Owner
+								</Badge>
+								<Badge
+									variant={tenantSigned ? 'default' : 'outline'}
+									className={`text-xs gap-1 ${tenantSigned ? 'bg-success hover:bg-success' : ''}`}
+								>
+									{tenantSigned ? (
+										<CheckCircle2 className="h-3 w-3" />
+									) : (
+										<Clock className="h-3 w-3" />
+									)}
+									Tenant
+								</Badge>
+							</div>
+						</div>
+					)
+				}
+
 				return <Badge variant="outline">{status}</Badge>
 			}
 		},
@@ -53,13 +96,13 @@ export function createLeaseColumns({ tenantMap, unitMap }: ColumnOptions): Colum
 			meta: {
 				label: 'Tenant',
 				variant: 'text',
-				placeholder: 'Search tenant...',
+				placeholder: 'Search tenant...'
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const lease = row.original
 				const tenantName = lease.primary_tenant_id
-					? tenantMap.get(lease.primary_tenant_id) ?? 'Unknown'
+					? (tenantMap.get(lease.primary_tenant_id) ?? 'Unknown')
 					: 'Unassigned'
 				return <span>{tenantName}</span>
 			}
@@ -87,7 +130,7 @@ export function createLeaseColumns({ tenantMap, unitMap }: ColumnOptions): Colum
 			header: 'Term',
 			meta: {
 				label: 'Start Date',
-				variant: 'dateRange',
+				variant: 'dateRange'
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => {
@@ -113,13 +156,16 @@ export function createLeaseColumns({ tenantMap, unitMap }: ColumnOptions): Colum
 				label: 'Rent',
 				variant: 'range',
 				range: [0, 10000],
-				unit: '$',
+				unit: '$'
 			},
 			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const rent = row.getValue('rent_amount') as number | null
 				return rent
-					? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rent)
+					? new Intl.NumberFormat('en-US', {
+							style: 'currency',
+							currency: 'USD'
+						}).format(rent)
 					: '-'
 			}
 		}

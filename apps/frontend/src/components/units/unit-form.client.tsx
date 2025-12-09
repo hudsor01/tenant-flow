@@ -127,8 +127,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					unit_number: value.unit_number,
 					bedrooms,
 					bathrooms,
-					square_feet,
+					square_feet: square_feet ?? undefined,
 					rent_amount,
+					rent_currency: 'USD',
+					rent_period: 'monthly',
 					status: value.status
 				}
 

@@ -5,9 +5,9 @@ import {
 	Injectable
 } from '@nestjs/common'
 import type {
-	CreatePropertyInput,
-	UpdatePropertyInput
-} from '@repo/shared/types/api-contracts'
+	PropertyCreate,
+	PropertyUpdate
+} from '@repo/shared/validation/properties'
 import type { Property, PropertyType } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
@@ -108,7 +108,7 @@ export class PropertiesService {
 
 	async create(
 		req: AuthenticatedRequest,
-		request: CreatePropertyInput
+		request: PropertyCreate
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
@@ -188,7 +188,7 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 	async update(
 		req: AuthenticatedRequest,
 		property_id: string,
-		request: UpdatePropertyInput,
+		request: PropertyUpdate,
 		expectedVersion?: number
 	): Promise<Property | null> {
 		const token = getTokenFromRequest(req)

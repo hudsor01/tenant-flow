@@ -118,7 +118,7 @@ export interface TenantSettings {
 	}
 }
 
-export interface CreateMaintenanceRequestInput {
+export interface MaintenanceRequestCreate {
 	title: string
 	description: string
 	priority: Priority

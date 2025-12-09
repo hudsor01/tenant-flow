@@ -59,11 +59,13 @@ export type UnitStatus = (typeof UNIT_STATUS)[keyof typeof UNIT_STATUS]
 
 /**
  * LEASE STATUS ENUMERATION
+ * Workflow: draft -> pending_signature -> active -> ended/terminated
  */
 export const LEASE_STATUS = {
 	DRAFT: 'draft',
+	PENDING_SIGNATURE: 'pending_signature',
 	ACTIVE: 'active',
-	EXPIRED: 'expired',
+	ENDED: 'ended',
 	TERMINATED: 'terminated'
 } as const
 

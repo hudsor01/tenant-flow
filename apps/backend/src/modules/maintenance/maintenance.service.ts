@@ -7,9 +7,9 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
-	CreateMaintenanceRequest,
-	UpdateMaintenanceRequest
-} from '@repo/shared/types/api-contracts'
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
@@ -91,9 +91,6 @@ export class MaintenanceService {
 				if (allowedPriorities.includes(normalizedPriority)) {
 					queryBuilder = queryBuilder.eq('priority', normalizedPriority)
 				}
-			}
-			if (query.category) {
-				queryBuilder = queryBuilder.eq('category', query.category as string)
 			}
 			if (query.assigned_to) {
 				queryBuilder = queryBuilder.eq('assigned_to', query.assigned_to as string)
@@ -223,7 +220,7 @@ export class MaintenanceService {
 	async create(
 		token: string,
 		user_id: string,
-		createRequest: CreateMaintenanceRequest
+		createRequest: MaintenanceRequestCreate
 	): Promise<MaintenanceRequest> {
 		try {
 			if (!token || !user_id || !createRequest.description) {
@@ -264,8 +261,7 @@ export class MaintenanceService {
 					priority: priorityMap[createRequest.priority || 'MEDIUM'] ||
 						'normal',
 					unit_id: createRequest.unit_id,
-					...(createRequest.category ? { category: createRequest.category } : {}),
-					...(createRequest.scheduledDate ? { scheduled_date: new Date(createRequest.scheduledDate).toISOString() } : {}),
+										...(createRequest.scheduled_date ? { scheduled_date: new Date(createRequest.scheduled_date).toISOString() } : {}),
 					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
 				}
 
@@ -318,7 +314,7 @@ export class MaintenanceService {
 	async update(
 		token: string,
 		maintenanceId: string,
-		updateRequest: UpdateMaintenanceRequest,
+		updateRequest: MaintenanceRequestUpdate,
 		expectedVersion?: number // Optimistic locking
 	): Promise<MaintenanceRequest | null> {
 		try {
@@ -380,9 +376,9 @@ export class MaintenanceService {
 					'open'
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completedDate !== undefined)
-				updated_data.completed_at = updateRequest.completedDate
-					? new Date(updateRequest.completedDate).toISOString()
+			if (updateRequest.completed_at !== undefined)
+				updated_data.completed_at = updateRequest.completed_at
+					? new Date(updateRequest.completed_at).toISOString()
 					: null
 
 			// Optimistic locking: Add version check

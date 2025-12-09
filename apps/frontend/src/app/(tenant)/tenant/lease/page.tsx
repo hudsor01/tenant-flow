@@ -24,6 +24,7 @@ import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
 import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
 import { SignLeaseButton } from '#components/leases/sign-lease-button'
+import { DownloadSignedLeaseButton } from '#components/leases/download-signed-lease-button'
 import { LEASE_STATUS } from '#lib/constants/status-values'
 
 export default function TenantLeasePage() {
@@ -35,9 +36,11 @@ export default function TenantLeasePage() {
 		state?: string | null
 	}) => {
 		if (!property) return 'Address not available'
-		const addressParts = [property.address, property.city, property.state].filter(
-			Boolean
-		)
+		const addressParts = [
+			property.address,
+			property.city,
+			property.state
+		].filter(Boolean)
 		return addressParts.length > 0
 			? addressParts.join(', ')
 			: 'Address not available'
@@ -61,17 +64,18 @@ export default function TenantLeasePage() {
 						/>
 					)}
 					{lease?.lease_status === 'active' && (
-						<Badge
-							variant="outline"
-							className="bg-success/10 text-success border-success/20"
-						>
-							Active
-						</Badge>
+						<>
+							<DownloadSignedLeaseButton leaseId={lease.id} size="sm" />
+							<Badge
+								variant="outline"
+								className="bg-success/10 text-success border-success/20"
+							>
+								Active
+							</Badge>
+						</>
 					)}
 					{lease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
-						<Badge variant="secondary">
-							Pending Signature
-						</Badge>
+						<Badge variant="secondary">Pending Signature</Badge>
 					)}
 				</div>
 			</div>
@@ -96,12 +100,12 @@ export default function TenantLeasePage() {
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
 								<span>
-					{isLoading || !lease ? (
-						<Skeleton className="h-4 w-48" />
-					) : (
-						formatPropertyAddress(lease.unit?.property)
-					)}
-				</span>
+									{isLoading || !lease ? (
+										<Skeleton className="h-4 w-48" />
+									) : (
+										formatPropertyAddress(lease.unit?.property)
+									)}
+								</span>
 							</div>
 						</div>
 					</div>
@@ -118,7 +122,9 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{formatDate(lease.start_date, { style: 'long' })}</p>
+									<p className="font-semibold">
+										{formatDate(lease.start_date, { style: 'long' })}
+									</p>
 								)}
 							</div>
 						</div>
@@ -129,7 +135,11 @@ export default function TenantLeasePage() {
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-28" />
 								) : (
-									<p className="font-semibold">{lease.end_date ? formatDate(lease.end_date, { style: 'long' }) : 'Month-to-Month'}</p>
+									<p className="font-semibold">
+										{lease.end_date
+											? formatDate(lease.end_date, { style: 'long' })
+											: 'Month-to-Month'}
+									</p>
 								)}
 							</div>
 						</div>
@@ -157,9 +167,7 @@ export default function TenantLeasePage() {
 						<div className="flex items-center gap-3">
 							<DollarSign className="size-5 text-accent-main" />
 							<div>
-								<p className="text-muted">
-									Security Deposit
-								</p>
+								<p className="text-muted">Security Deposit</p>
 								{isLoading || !lease ? (
 									<Skeleton className="h-5 w-24" />
 								) : (
@@ -183,9 +191,7 @@ export default function TenantLeasePage() {
 							<FileText className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Lease Agreement</p>
-								<p className="text-muted">
-									Signed on loading...
-								</p>
+								<p className="text-muted">Signed on loading...</p>
 							</div>
 						</div>
 						<Button variant="outline" size="sm">

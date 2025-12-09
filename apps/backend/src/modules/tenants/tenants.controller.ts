@@ -29,10 +29,8 @@ import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.g
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
 import type {
-	CreateTenantRequest,
 	OwnerPaymentSummaryResponse,
-	TenantPaymentHistoryResponse,
-	UpdateTenantRequest
+	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
 import type { ListFilters } from './tenant-query.service'
 import { TenantQueryService } from './tenant-query.service'
@@ -148,10 +146,13 @@ export class TenantsController {
 	 */
 	@Get(':id/with-lease')
 	async findOneWithLease(
-		@Param('id', ParseUUIDPipe) id: string
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenantWithLease = await this.queryService.findOneWithLease(
-			id
+			id,
+			token
 		)
 		if (!tenantWithLease) {
 			throw new NotFoundException('Tenant not found')
@@ -161,9 +162,11 @@ export class TenantsController {
 
 	@Get(':id')
 	async findOne(
-		@Param('id', ParseUUIDPipe) id: string
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
 	) {
-		const tenant = await this.queryService.findOne(id)
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
+		const tenant = await this.queryService.findOne(id, token)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -184,9 +187,11 @@ export class TenantsController {
 	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenant = await this.crudService.create(
 			user_id,
-			dto as unknown as CreateTenantRequest
+			dto,
+			token
 		)
 
 		// NOTE: Auto-invitation removed - requires full lease data (property_id, unit_id)
@@ -203,11 +208,13 @@ export class TenantsController {
 	) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 
 		const tenant = await this.crudService.update(
 			user_id,
 			id,
-			dto as unknown as UpdateTenantRequest
+			dto,
+			token
 		)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
@@ -270,11 +277,13 @@ export class TenantsController {
 			)
 		}
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenant = await this.crudService.markAsMovedOut(
 			user_id,
 			id,
 			body.moveOutDate,
-			body.moveOutReason
+			body.moveOutReason,
+			token
 		)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
@@ -288,7 +297,8 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		await this.crudService.hardDelete(user_id, id)
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
+		await this.crudService.hardDelete(user_id, id, token)
 		return { message: 'Tenant permanently deleted' }
 	}
 
@@ -299,7 +309,8 @@ export class TenantsController {
 	) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		await this.crudService.softDelete(user_id, id)
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
+		await this.crudService.softDelete(user_id, id, token)
 	}
 
 	/**
@@ -502,10 +513,11 @@ export class TenantsController {
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 
 		// Get the tenant for this user first
-		const tenant = await this.queryService.getTenantByAuthUserId(user_id)
+		const tenant = await this.queryService.getTenantByAuthUserId(user_id, token)
 		const payments = await this.queryService.getTenantPaymentHistory(tenant.id, normalizedLimit)
 		return { payments } as unknown as TenantPaymentHistoryResponse
 	}

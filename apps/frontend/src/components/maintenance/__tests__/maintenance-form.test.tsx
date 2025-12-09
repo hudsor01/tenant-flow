@@ -15,11 +15,11 @@ import { vi } from 'vitest'
 
 // Mock hooks
 vi.mock('#hooks/api/use-maintenance', () => ({
-	useCreateMaintenanceRequest: () => ({
+	useMaintenanceRequestCreate: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-request-id' }),
 		isPending: false
 	}),
-	useUpdateMaintenanceRequest: () => ({
+	useMaintenanceRequestUpdate: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'request-1' }),
 		isPending: false
 	}),
@@ -147,10 +147,10 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
+				expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
 			})
 
-		expect(screen.getByLabelText(/description/i)).toHaveValue('')
+			expect(screen.getByLabelText(/description/i)).toHaveValue('')
 			expect(
 				screen.getByRole('button', { name: /create request/i })
 			).toBeInTheDocument()
@@ -162,10 +162,10 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByText(/property \*/i)).toBeInTheDocument()
+				expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
 			})
 
-			expect(screen.getByText(/description \*/i)).toBeInTheDocument()
+			expect(screen.getByText(/title \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/description \*/i)).toBeInTheDocument()
 			expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 		})
@@ -184,25 +184,14 @@ describe('MaintenanceForm', () => {
 			})
 		})
 
-		test('shows property and unit selects', async () => {
+		test('shows unit select', async () => {
 			await act(async () => {
 				renderWithQueryClient(<MaintenanceForm mode="create" />)
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/unit \(optional\)/i)).toBeInTheDocument()
-			})
-		})
-
-		test('unit select is disabled when no property selected', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				const unitSelect = screen.getByLabelText(/unit \(optional\)/i)
-				expect(unitSelect).toBeDisabled()
+				expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
+				expect(screen.getByText(/select unit/i)).toBeInTheDocument()
 			})
 		})
 
@@ -212,35 +201,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
+				expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 			})
 			// Note: Priority options (Low, Medium, High, Urgent) are in the SelectContent dropdown
-		})
-
-		test('shows all category options', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/category/i)).toBeInTheDocument()
-			})
-			// Note: Category options (Plumbing, Electrical, HVAC, etc.) are in the SelectContent dropdown
-		})
-
-		test('shows optional fields', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(
-					screen.getByText(/estimated cost \(optional\)/i)
-				).toBeInTheDocument()
-				expect(
-					screen.getByText(/preferred date \(optional\)/i)
-				).toBeInTheDocument()
-			})
 		})
 	})
 
@@ -288,32 +251,12 @@ describe('MaintenanceForm', () => {
 
 			await waitFor(() => {
 				// Query by the SelectTrigger which shows the selected value
-				const priorityTrigger = screen.getByLabelText(/priority/i)
-				expect(priorityTrigger).toBeInTheDocument()
+				expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 			})
 
 			// The selected value "Medium" should be visible in the SelectTrigger
 			expect(
 				screen.getByRole('combobox', { name: /priority/i })
-			).toBeInTheDocument()
-		})
-
-		test('populates category select with correct value', async () => {
-			await act(async () => {
-				renderWithQueryClient(
-					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
-				)
-			})
-
-			await waitFor(() => {
-				// Query by the SelectTrigger which shows the selected value
-				const categoryTrigger = screen.getByLabelText(/category/i)
-				expect(categoryTrigger).toBeInTheDocument()
-			})
-
-			// The selected value "Plumbing" should be visible in the SelectTrigger
-			expect(
-				screen.getByRole('combobox', { name: /category/i })
 			).toBeInTheDocument()
 		})
 
@@ -329,32 +272,19 @@ describe('MaintenanceForm', () => {
 				expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(150)
 			})
 		})
+
+		test('populates title field', async () => {
+			await act(async () => {
+				renderWithQueryClient(
+					<MaintenanceForm mode="edit" request={mockMaintenanceRequest} />
+				)
+			})
+
+			await waitFor(() => {
+				expect(screen.getByLabelText(/title/i)).toHaveValue('Kitchen Faucet Issue')
+			})
+		})
 	})
-
-	describe('Property/Unit Cascade', () => {
-		test('loads properties on mount', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
-			})
-			// Note: Properties are loaded via usePropertyList hook and rendered in SelectContent
-		})
-
-		test('loads units on mount', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
-			})
-			// Note: Units are loaded via useUnitsByProperty hook
-		})
-
-		})
 
 	describe('Form Validation', () => {
 		test('validates description is required', async () => {
@@ -391,22 +321,6 @@ describe('MaintenanceForm', () => {
 			// Number input returns number type (150.50 becomes 150.5)
 			expect(costInput).toHaveValue(150.5)
 		})
-
-		test('accepts valid date format', async () => {
-			const user = userEvent.setup()
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/preferred date/i)).toBeInTheDocument()
-			})
-
-			const dateInput = screen.getByLabelText(/preferred date/i)
-			await user.type(dateInput, '2024-12-31')
-
-			expect(dateInput).toHaveValue('2024-12-31')
-		})
 	})
 
 	describe('User Interactions', () => {
@@ -420,19 +334,19 @@ describe('MaintenanceForm', () => {
 				expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
 			})
 
+			await user.type(screen.getByLabelText(/title/i), 'Broken window')
 			await user.type(
 				screen.getByLabelText(/description/i),
 				'Window in bedroom is cracked'
 			)
 			await user.type(screen.getByLabelText(/estimated cost/i), '250')
-			await user.type(screen.getByLabelText(/preferred date/i), '2024-12-15')
 
+			expect(screen.getByLabelText(/title/i)).toHaveValue('Broken window')
 			expect(screen.getByLabelText(/description/i)).toHaveValue(
 				'Window in bedroom is cracked'
 			)
 			// Number input stores value as number
 			expect(screen.getByLabelText(/estimated cost/i)).toHaveValue(250)
-			expect(screen.getByLabelText(/preferred date/i)).toHaveValue('2024-12-15')
 		})
 
 		test('cancel button navigates back', async () => {
@@ -454,37 +368,13 @@ describe('MaintenanceForm', () => {
 			// This test verifies the button exists and is clickable
 		})
 
-		test('handles property selection', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				const propertySelect = screen.getByLabelText(/property/i)
-				expect(propertySelect).toBeInTheDocument()
-				expect(screen.getByText(/select property/i)).toBeInTheDocument()
-			})
-		})
-
 		test('handles priority selection', async () => {
 			await act(async () => {
 				renderWithQueryClient(<MaintenanceForm mode="create" />)
 			})
 
 			await waitFor(() => {
-				const prioritySelect = screen.getByLabelText(/priority/i)
-				expect(prioritySelect).toBeInTheDocument()
-			})
-		})
-
-		test('handles category selection', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				const categorySelect = screen.getByLabelText(/category/i)
-				expect(categorySelect).toBeInTheDocument()
+				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
 			})
 		})
 	})
@@ -496,13 +386,11 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/property/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/unit/i)).toBeInTheDocument()
+				expect(screen.getByText(/unit \*/i)).toBeInTheDocument()
+				expect(screen.getByLabelText(/title/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/description/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/category/i)).toBeInTheDocument()
+				expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 				expect(screen.getByLabelText(/estimated cost/i)).toBeInTheDocument()
-				expect(screen.getByLabelText(/preferred date/i)).toBeInTheDocument()
 			})
 		})
 
@@ -516,19 +404,6 @@ describe('MaintenanceForm', () => {
 				expect(costInput).toHaveAttribute('type', 'number')
 				expect(costInput).toHaveAttribute('min', '0')
 				expect(costInput).toHaveAttribute('step', '0.01')
-			})
-		})
-
-		test('date input has appropriate type', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/preferred date/i)).toHaveAttribute(
-					'type',
-					'date'
-				)
 			})
 		})
 
@@ -590,9 +465,9 @@ describe('MaintenanceForm', () => {
 		})
 
 		test('shows correct card title based on mode', async () => {
-			const { rerender } = await act(async () => renderWithQueryClient(
-				<MaintenanceForm mode="create" />
-			))
+			const { rerender } = await act(async () =>
+				renderWithQueryClient(<MaintenanceForm mode="create" />)
+			)
 
 			await waitFor(() => {
 				expect(screen.getByText(/new maintenance request/i)).toBeInTheDocument()
@@ -621,9 +496,9 @@ describe('MaintenanceForm', () => {
 		})
 
 		test('shows correct card description based on mode', async () => {
-			const { rerender } = await act(async () => renderWithQueryClient(
-				<MaintenanceForm mode="create" />
-			))
+			const { rerender } = await act(async () =>
+				renderWithQueryClient(<MaintenanceForm mode="create" />)
+			)
 
 			await waitFor(() => {
 				expect(
@@ -668,53 +543,27 @@ describe('MaintenanceForm', () => {
 	})
 
 	describe('Priority Options', () => {
-		test('initializes with MEDIUM priority by default', async () => {
+		test('initializes with LOW priority by default', async () => {
 			await act(async () => {
 				renderWithQueryClient(<MaintenanceForm mode="create" />)
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
+				expect(screen.getByText(/priority \*/i)).toBeInTheDocument()
 			})
 			// Note: Default value is set in form defaultValues
 		})
 
-		test('shows all priority levels', async () => {
+		test('shows priority select', async () => {
 			await act(async () => {
 				renderWithQueryClient(<MaintenanceForm mode="create" />)
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/priority/i)).toBeInTheDocument()
+				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
 			})
 			// Note: Priority options defined in NOTIFICATION_PRIORITY_OPTIONS from @repo/shared:
 			// Low, Medium, High, Urgent
-		})
-	})
-
-	describe('Category Options', () => {
-		test('shows all category types', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				expect(screen.getByLabelText(/category/i)).toBeInTheDocument()
-			})
-			// Note: Category options defined in CATEGORY_OPTIONS constant:
-			// Plumbing, Electrical, HVAC, Appliances, Safety, General, Other
-		})
-
-		test('category is optional in create mode', async () => {
-			await act(async () => {
-				renderWithQueryClient(<MaintenanceForm mode="create" />)
-			})
-
-			await waitFor(() => {
-				const categoryLabel = screen.getByText(/^category$/i)
-				expect(categoryLabel).toBeInTheDocument()
-				// Note: No asterisk for required field
-			})
 		})
 	})
 })

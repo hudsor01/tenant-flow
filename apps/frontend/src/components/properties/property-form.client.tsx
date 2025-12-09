@@ -122,6 +122,7 @@ export function PropertyForm({
 						country: value.country,
 						property_type: value.property_type,
 						property_owner_id: user.id,
+						status: 'active' as const,
 						...(value.address_line2 ? { address_line2: value.address_line2 } : {})
 					}
 					logger.info('Creating property', {

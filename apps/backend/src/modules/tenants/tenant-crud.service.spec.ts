@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing'
-import { BadRequestException, Logger, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { TenantCrudService } from './tenant-crud.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -15,10 +15,11 @@ describe('TenantCrudService', () => {
   let mockSupabaseService: jest.Mocked<SupabaseService>
   let mockEventEmitter: jest.Mocked<EventEmitter2>
   let mockTenantQueryService: jest.Mocked<TenantQueryService>
-  let mockAdminClient: any
+  let mockUserClient: any
 
   const mockUserId = 'user-123'
   const mockTenantId = 'tenant-456'
+  const mockToken = 'valid-jwt-token'
 
   const createMockTenant = (overrides: Partial<Tenant> = {}): Tenant => ({
     id: mockTenantId,
@@ -36,7 +37,7 @@ describe('TenantCrudService', () => {
   })
 
   beforeEach(async () => {
-    mockAdminClient = {
+    mockUserClient = {
       from: jest.fn().mockReturnThis(),
       insert: jest.fn().mockReturnThis(),
       update: jest.fn().mockReturnThis(),
@@ -47,7 +48,8 @@ describe('TenantCrudService', () => {
     }
 
     mockSupabaseService = {
-      getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+      getUserClient: jest.fn().mockReturnValue(mockUserClient),
+      getAdminClient: jest.fn() // Should NOT be called - we'll verify this
     } as unknown as jest.Mocked<SupabaseService>
 
     mockEventEmitter = {
@@ -75,6 +77,31 @@ describe('TenantCrudService', () => {
     service = module.get<TenantCrudService>(TenantCrudService)
   })
 
+  describe('RLS enforcement', () => {
+    it('should use getUserClient with token, not getAdminClient', async () => {
+      const mockCreatedTenant = createMockTenant()
+      mockUserClient.single.mockResolvedValue({
+        data: mockCreatedTenant,
+        error: null
+      })
+
+      await service.create(mockUserId, { stripe_customer_id: 'cus_test' }, mockToken)
+
+      expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
+      expect(mockSupabaseService.getAdminClient).not.toHaveBeenCalled()
+    })
+
+    it('should throw UnauthorizedException when token is missing', async () => {
+      await expect(
+        service.create(mockUserId, { stripe_customer_id: 'cus_test' }, '')
+      ).rejects.toThrow(UnauthorizedException)
+
+      await expect(
+        service.create(mockUserId, { stripe_customer_id: 'cus_test' }, '')
+      ).rejects.toThrow('Authentication token required')
+    })
+  })
+
   describe('create', () => {
     const validCreateRequest: CreateTenantRequest = {
       stripe_customer_id: 'cus_new123',
@@ -90,16 +117,16 @@ describe('TenantCrudService', () => {
         stripe_customer_id: 'cus_new123'
       })
 
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: mockCreatedTenant,
         error: null
       })
 
-      const result = await service.create(mockUserId, validCreateRequest)
+      const result = await service.create(mockUserId, validCreateRequest, mockToken)
 
       expect(result).toEqual(mockCreatedTenant)
-      expect(mockAdminClient.from).toHaveBeenCalledWith('tenants')
-      expect(mockAdminClient.insert).toHaveBeenCalledWith(
+      expect(mockUserClient.from).toHaveBeenCalledWith('tenants')
+      expect(mockUserClient.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           user_id: mockUserId,
           stripe_customer_id: 'cus_new123',
@@ -114,10 +141,10 @@ describe('TenantCrudService', () => {
     })
 
     it('should throw BadRequestException when user_id is missing', async () => {
-      await expect(service.create('', validCreateRequest)).rejects.toThrow(
+      await expect(service.create('', validCreateRequest, mockToken)).rejects.toThrow(
         BadRequestException
       )
-      await expect(service.create('', validCreateRequest)).rejects.toThrow(
+      await expect(service.create('', validCreateRequest, mockToken)).rejects.toThrow(
         'Authentication required - user ID missing from session'
       )
     })
@@ -125,10 +152,10 @@ describe('TenantCrudService', () => {
     it('should throw BadRequestException when stripe_customer_id is missing', async () => {
       const invalidRequest = { ...validCreateRequest, stripe_customer_id: '' }
 
-      await expect(service.create(mockUserId, invalidRequest)).rejects.toThrow(
+      await expect(service.create(mockUserId, invalidRequest, mockToken)).rejects.toThrow(
         BadRequestException
       )
-      await expect(service.create(mockUserId, invalidRequest)).rejects.toThrow(
+      await expect(service.create(mockUserId, invalidRequest, mockToken)).rejects.toThrow(
         'Stripe customer ID is required'
       )
     })
@@ -136,18 +163,18 @@ describe('TenantCrudService', () => {
     it('should throw BadRequestException when stripe_customer_id is whitespace only', async () => {
       const invalidRequest = { ...validCreateRequest, stripe_customer_id: '   ' }
 
-      await expect(service.create(mockUserId, invalidRequest)).rejects.toThrow(
+      await expect(service.create(mockUserId, invalidRequest, mockToken)).rejects.toThrow(
         BadRequestException
       )
     })
 
     it('should throw BadRequestException on database error', async () => {
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: null,
         error: { message: 'Database error' }
       })
 
-      await expect(service.create(mockUserId, validCreateRequest)).rejects.toThrow(
+      await expect(service.create(mockUserId, validCreateRequest, mockToken)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -163,15 +190,15 @@ describe('TenantCrudService', () => {
         ssn_last_four: null
       })
 
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: mockCreatedTenant,
         error: null
       })
 
-      const result = await service.create(mockUserId, minimalRequest)
+      const result = await service.create(mockUserId, minimalRequest, mockToken)
 
       expect(result).toEqual(mockCreatedTenant)
-      expect(mockAdminClient.insert).toHaveBeenCalledWith(
+      expect(mockUserClient.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           date_of_birth: null,
           ssn_last_four: null,
@@ -185,14 +212,14 @@ describe('TenantCrudService', () => {
         stripe_customer_id: '  cus_trimmed  '
       }
 
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: createMockTenant(),
         error: null
       })
 
-      await service.create(mockUserId, requestWithWhitespace)
+      await service.create(mockUserId, requestWithWhitespace, mockToken)
 
-      expect(mockAdminClient.insert).toHaveBeenCalledWith(
+      expect(mockUserClient.insert).toHaveBeenCalledWith(
         expect.objectContaining({
           stripe_customer_id: 'cus_trimmed'
         })
@@ -214,16 +241,16 @@ describe('TenantCrudService', () => {
       })
 
       mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: updatedTenant,
         error: null
       })
 
-      const result = await service.update(mockUserId, mockTenantId, validUpdateRequest)
+      const result = await service.update(mockUserId, mockTenantId, validUpdateRequest, mockToken)
 
       expect(result).toEqual(updatedTenant)
-      expect(mockTenantQueryService.findOne).toHaveBeenCalledWith(mockTenantId)
-      expect(mockAdminClient.update).toHaveBeenCalledWith(
+      expect(mockTenantQueryService.findOne).toHaveBeenCalledWith(mockTenantId, mockToken)
+      expect(mockUserClient.update).toHaveBeenCalledWith(
         expect.objectContaining({
           emergency_contact_name: 'Updated Contact',
           emergency_contact_phone: '555-9999'
@@ -233,13 +260,13 @@ describe('TenantCrudService', () => {
 
     it('should throw BadRequestException when user_id is missing', async () => {
       await expect(
-        service.update('', mockTenantId, validUpdateRequest)
+        service.update('', mockTenantId, validUpdateRequest, mockToken)
       ).rejects.toThrow(BadRequestException)
     })
 
     it('should throw BadRequestException when tenant_id is missing', async () => {
       await expect(
-        service.update(mockUserId, '', validUpdateRequest)
+        service.update(mockUserId, '', validUpdateRequest, mockToken)
       ).rejects.toThrow(BadRequestException)
     })
 
@@ -247,7 +274,7 @@ describe('TenantCrudService', () => {
       mockTenantQueryService.findOne.mockResolvedValue(null)
 
       await expect(
-        service.update(mockUserId, mockTenantId, validUpdateRequest)
+        service.update(mockUserId, mockTenantId, validUpdateRequest, mockToken)
       ).rejects.toThrow(NotFoundException)
     })
 
@@ -256,29 +283,29 @@ describe('TenantCrudService', () => {
       mockTenantQueryService.findOne.mockResolvedValue(tenantOwnedByAnotherUser)
 
       await expect(
-        service.update(mockUserId, mockTenantId, validUpdateRequest)
+        service.update(mockUserId, mockTenantId, validUpdateRequest, mockToken)
       ).rejects.toThrow(BadRequestException)
       await expect(
-        service.update(mockUserId, mockTenantId, validUpdateRequest)
+        service.update(mockUserId, mockTenantId, validUpdateRequest, mockToken)
       ).rejects.toThrow('Tenant does not belong to user')
     })
 
     it('should throw BadRequestException on database error', async () => {
       mockTenantQueryService.findOne.mockResolvedValue(createMockTenant())
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: null,
         error: { message: 'Update failed' }
       })
 
       await expect(
-        service.update(mockUserId, mockTenantId, validUpdateRequest)
+        service.update(mockUserId, mockTenantId, validUpdateRequest, mockToken)
       ).rejects.toThrow(BadRequestException)
     })
 
     it('should only update provided fields', async () => {
       const existingTenant = createMockTenant()
       mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: existingTenant,
         error: null
       })
@@ -287,10 +314,10 @@ describe('TenantCrudService', () => {
         date_of_birth: '1995-01-01'
       }
 
-      await service.update(mockUserId, mockTenantId, partialUpdate)
+      await service.update(mockUserId, mockTenantId, partialUpdate, mockToken)
 
       // Should only have date_of_birth in the update call
-      expect(mockAdminClient.update).toHaveBeenCalledWith({
+      expect(mockUserClient.update).toHaveBeenCalledWith({
         date_of_birth: '1995-01-01'
       })
     })
@@ -298,7 +325,7 @@ describe('TenantCrudService', () => {
     it('should allow setting fields to null via empty string', async () => {
       const existingTenant = createMockTenant()
       mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: existingTenant,
         error: null
       })
@@ -308,9 +335,9 @@ describe('TenantCrudService', () => {
         emergency_contact_phone: ''
       }
 
-      await service.update(mockUserId, mockTenantId, clearFieldsUpdate)
+      await service.update(mockUserId, mockTenantId, clearFieldsUpdate, mockToken)
 
-      expect(mockAdminClient.update).toHaveBeenCalledWith({
+      expect(mockUserClient.update).toHaveBeenCalledWith({
         emergency_contact_name: null,
         emergency_contact_phone: null
       })
@@ -322,16 +349,16 @@ describe('TenantCrudService', () => {
       const existingTenant = createMockTenant()
       mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
 
-      const result = await service.softDelete(mockUserId, mockTenantId)
+      const result = await service.softDelete(mockUserId, mockTenantId, mockToken)
 
       expect(result).toEqual(existingTenant)
-      expect(mockTenantQueryService.findOne).toHaveBeenCalledWith(mockTenantId)
+      expect(mockTenantQueryService.findOne).toHaveBeenCalledWith(mockTenantId, mockToken)
     })
 
     it('should throw NotFoundException when tenant does not exist', async () => {
       mockTenantQueryService.findOne.mockResolvedValue(null)
 
-      await expect(service.softDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.softDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         NotFoundException
       )
     })
@@ -340,7 +367,7 @@ describe('TenantCrudService', () => {
       const tenantOwnedByAnotherUser = createMockTenant({ user_id: 'other-user' })
       mockTenantQueryService.findOne.mockResolvedValue(tenantOwnedByAnotherUser)
 
-      await expect(service.softDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.softDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -355,7 +382,7 @@ describe('TenantCrudService', () => {
       const movedOutTenant = createMockTenant()
 
       mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: movedOutTenant,
         error: null
       })
@@ -364,19 +391,20 @@ describe('TenantCrudService', () => {
         mockUserId,
         mockTenantId,
         mockMoveOutDate,
-        mockMoveOutReason
+        mockMoveOutReason,
+        mockToken
       )
 
       expect(result).toEqual(movedOutTenant)
-      expect(mockAdminClient.from).toHaveBeenCalledWith('tenants')
-      expect(mockAdminClient.update).toHaveBeenCalled()
+      expect(mockUserClient.from).toHaveBeenCalledWith('tenants')
+      expect(mockUserClient.update).toHaveBeenCalled()
     })
 
     it('should throw NotFoundException when tenant does not exist', async () => {
       mockTenantQueryService.findOne.mockResolvedValue(null)
 
       await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason)
+        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
       ).rejects.toThrow(NotFoundException)
     })
 
@@ -385,19 +413,19 @@ describe('TenantCrudService', () => {
       mockTenantQueryService.findOne.mockResolvedValue(tenantOwnedByAnotherUser)
 
       await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason)
+        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
       ).rejects.toThrow(BadRequestException)
     })
 
     it('should throw BadRequestException on database error', async () => {
       mockTenantQueryService.findOne.mockResolvedValue(createMockTenant())
-      mockAdminClient.single.mockResolvedValue({
+      mockUserClient.single.mockResolvedValue({
         data: null,
         error: { message: 'Update failed' }
       })
 
       await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason)
+        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
       ).rejects.toThrow(BadRequestException)
     })
   })
@@ -413,15 +441,15 @@ describe('TenantCrudService', () => {
       })
 
       mockTenantQueryService.findOne.mockResolvedValue(oldTenant)
-      mockAdminClient.eq.mockResolvedValue({ error: null })
+      mockUserClient.eq.mockResolvedValue({ error: null })
 
-      const result = await service.hardDelete(mockUserId, mockTenantId)
+      const result = await service.hardDelete(mockUserId, mockTenantId, mockToken)
 
       expect(result).toEqual({
         success: true,
         message: `Tenant ${mockTenantId} permanently deleted`
       })
-      expect(mockAdminClient.delete).toHaveBeenCalled()
+      expect(mockUserClient.delete).toHaveBeenCalled()
     })
 
     it('should throw BadRequestException for tenant younger than 7 years', async () => {
@@ -435,10 +463,10 @@ describe('TenantCrudService', () => {
 
       mockTenantQueryService.findOne.mockResolvedValue(youngTenant)
 
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         BadRequestException
       )
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         /Tenant must be at least 7 years old/
       )
     })
@@ -446,7 +474,7 @@ describe('TenantCrudService', () => {
     it('should throw NotFoundException when tenant does not exist', async () => {
       mockTenantQueryService.findOne.mockResolvedValue(null)
 
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         NotFoundException
       )
     })
@@ -461,7 +489,7 @@ describe('TenantCrudService', () => {
       })
       mockTenantQueryService.findOne.mockResolvedValue(tenantOwnedByAnotherUser)
 
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -475,11 +503,11 @@ describe('TenantCrudService', () => {
       })
 
       mockTenantQueryService.findOne.mockResolvedValue(oldTenant)
-      mockAdminClient.eq.mockResolvedValue({
+      mockUserClient.eq.mockResolvedValue({
         error: { message: 'Delete failed' }
       })
 
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -492,7 +520,7 @@ describe('TenantCrudService', () => {
       mockTenantQueryService.findOne.mockResolvedValue(tenantWithNullCreatedAt)
 
       // Should fail because null created_at defaults to current date (0 years old)
-      await expect(service.hardDelete(mockUserId, mockTenantId)).rejects.toThrow(
+      await expect(service.hardDelete(mockUserId, mockTenantId, mockToken)).rejects.toThrow(
         /Tenant must be at least 7 years old/
       )
     })

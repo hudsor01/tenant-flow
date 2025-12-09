@@ -1,4 +1,4 @@
-import { BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -35,14 +35,18 @@ describe('TenantListService', () => {
 		updated_at: '2024-02-01T00:00:00Z'
 	}
 
+	// Mock token for all tests - service now REQUIRES authentication
+	const mockToken = 'mock-jwt-token'
+
 	beforeEach(async () => {
-		const mockAdminClient = {
+		const mockClient = {
 			from: jest.fn(),
 			rpc: jest.fn()
 		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+			getAdminClient: jest.fn().mockReturnValue(mockClient),
+			getUserClient: jest.fn().mockReturnValue(mockClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module = await Test.createTestingModule({
@@ -63,7 +67,7 @@ describe('TenantListService', () => {
 
 	describe('findAll', () => {
 		it('returns tenants for a user', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			// Setup tenant query chain
 			const tenantBuilder = {
@@ -91,14 +95,14 @@ describe('TenantListService', () => {
 				.mockReturnValueOnce(tenantBuilder) // fetchTenantsByUser
 				.mockReturnValueOnce(ownerTenantBuilder) // fetchTenantsByOwner
 
-			const result = await service.findAll(mockUserId)
+			const result = await service.findAll(mockUserId, { token: mockToken })
 
 			expect(result).toHaveLength(2)
 			expect(result).toEqual(expect.arrayContaining([mockTenant, mockTenant2]))
 		})
 
 		it('deduplicates tenants when user appears in both queries', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const tenantBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -123,19 +127,23 @@ describe('TenantListService', () => {
 				.mockReturnValueOnce(tenantBuilder)
 				.mockReturnValueOnce(ownerTenantBuilder)
 
-			const result = await service.findAll(mockUserId)
+			const result = await service.findAll(mockUserId, { token: mockToken })
 
 			// Should deduplicate
 			expect(result).toHaveLength(1)
 			expect(result[0]?.id).toBe(mockTenant.id)
 		})
 
+		it('throws UnauthorizedException when token is missing', async () => {
+			await expect(service.findAll(mockUserId)).rejects.toThrow('Authentication token required')
+		})
+
 		it('throws BadRequestException when user ID is missing', async () => {
-			await expect(service.findAll('')).rejects.toThrow(BadRequestException)
+			await expect(service.findAll('', { token: mockToken })).rejects.toThrow(BadRequestException)
 		})
 
 		it('applies search filter correctly', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const tenantBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -151,7 +159,7 @@ describe('TenantListService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(tenantBuilder)
 
-			const filters: ListFilters = { search: 'John' }
+			const filters: ListFilters = { search: 'John', token: mockToken }
 			await service.findAll(mockUserId, filters)
 
 			// Verify or() was called for search
@@ -159,7 +167,7 @@ describe('TenantListService', () => {
 		})
 
 		it('handles RPC error gracefully', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const tenantBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -176,13 +184,13 @@ describe('TenantListService', () => {
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(tenantBuilder)
 
 			// RPC error throws InternalServerErrorException
-			await expect(service.findAll(mockUserId)).rejects.toThrow(
+			await expect(service.findAll(mockUserId, { token: mockToken })).rejects.toThrow(
 				InternalServerErrorException
 			)
 		})
 
 		it('applies pagination correctly', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const tenantBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -198,7 +206,7 @@ describe('TenantListService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(tenantBuilder)
 
-			const filters: ListFilters = { limit: 10, offset: 5 }
+			const filters: ListFilters = { limit: 10, offset: 5, token: mockToken }
 			await service.findAll(mockUserId, filters)
 
 			expect(tenantBuilder.range).toHaveBeenCalledWith(5, 14)
@@ -207,7 +215,7 @@ describe('TenantListService', () => {
 
 	describe('findAllWithLeaseInfo', () => {
 		it('returns tenants with lease information (user is not owner)', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			// Mock property_owners query - user is NOT an owner
 			const ownerBuilder = {
@@ -268,7 +276,7 @@ describe('TenantListService', () => {
 				.mockReturnValueOnce(ownerBuilder) // property_owners check
 				.mockReturnValueOnce(tenantByUserBuilder) // tenants by user
 
-			const result = await service.findAllWithLeaseInfo(mockUserId)
+			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
 
 			expect(result).toHaveLength(1)
 			expect(result[0]?.id).toBe(mockTenant.id)
@@ -276,14 +284,18 @@ describe('TenantListService', () => {
 			expect((result[0] as any)?.lease?.id).toBe('lease-1')
 		})
 
+		it('throws UnauthorizedException when token is missing', async () => {
+			await expect(service.findAllWithLeaseInfo(mockUserId)).rejects.toThrow('Authentication token required')
+		})
+
 		it('throws BadRequestException when user ID is missing', async () => {
-			await expect(service.findAllWithLeaseInfo('')).rejects.toThrow(
+			await expect(service.findAllWithLeaseInfo('', { token: mockToken })).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
 		it('returns empty array when no tenants found', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const ownerBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -302,13 +314,13 @@ describe('TenantListService', () => {
 				.mockReturnValueOnce(ownerBuilder)
 				.mockReturnValueOnce(tenantByUserBuilder)
 
-			const result = await service.findAllWithLeaseInfo(mockUserId)
+			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
 
 			expect(result).toEqual([])
 		})
 
 		it('deduplicates tenants from both user and owner queries', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const ownerBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -382,7 +394,7 @@ describe('TenantListService', () => {
 				.mockReturnValueOnce(ownerUserIdBuilder) // property_owners.user_id
 				.mockReturnValueOnce(leaseTenantsBuilder) // lease_tenants
 
-			const result = await service.findAllWithLeaseInfo(mockUserId)
+			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
 
 			// Should deduplicate
 			expect(result).toHaveLength(1)

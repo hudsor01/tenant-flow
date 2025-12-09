@@ -15,7 +15,10 @@ import {
 } from '#components/ui/dialog'
 import { Textarea } from '#components/ui/textarea'
 import { Label } from '#components/ui/label'
-import { useSendLeaseForSignature } from '#hooks/api/use-lease'
+import {
+	useSendLeaseForSignature,
+	useResendSignatureRequest
+} from '#hooks/api/use-lease'
 import { cn } from '#lib/utils'
 
 interface SendForSignatureButtonProps {
@@ -25,6 +28,8 @@ interface SendForSignatureButtonProps {
 	className?: string
 	variant?: 'default' | 'outline' | 'secondary' | 'ghost'
 	size?: 'default' | 'sm' | 'lg' | 'icon'
+	/** Action type: 'send' for initial send, 'resend' to cancel and create fresh request */
+	action?: 'send' | 'resend'
 }
 
 /**
@@ -37,11 +42,16 @@ export function SendForSignatureButton({
 	disabled = false,
 	className,
 	variant = 'default',
-	size = 'default'
+	size = 'default',
+	action = 'send'
 }: SendForSignatureButtonProps) {
 	const [open, setOpen] = useState(false)
 	const [message, setMessage] = useState('')
 	const sendForSignature = useSendLeaseForSignature()
+	const resendSignature = useResendSignatureRequest()
+
+	const isResend = action === 'resend'
+	const mutation = isResend ? resendSignature : sendForSignature
 
 	const handleSend = async () => {
 		try {
@@ -50,19 +60,27 @@ export function SendForSignatureButton({
 			if (trimmedMessage) {
 				payload.message = trimmedMessage
 			}
-			await sendForSignature.mutateAsync(payload)
-			toast.success('Lease sent for signature', {
-				description: tenantName
-					? `${tenantName} will receive a notification to sign the lease.`
-					: 'The tenant will receive a notification to sign the lease.'
-			})
+			await mutation.mutateAsync(payload)
+			toast.success(
+				isResend ? 'Signature request resent' : 'Lease sent for signature',
+				{
+					description: tenantName
+						? `${tenantName} will receive a notification to sign the lease.`
+						: 'The tenant will receive a notification to sign the lease.'
+				}
+			)
 			setOpen(false)
 			setMessage('')
 		} catch (error) {
-			toast.error('Failed to send lease for signature', {
-				description:
-					error instanceof Error ? error.message : 'Please try again.'
-			})
+			toast.error(
+				isResend
+					? 'Failed to resend signature request'
+					: 'Failed to send lease for signature',
+				{
+					description:
+						error instanceof Error ? error.message : 'Please try again.'
+				}
+			)
 		}
 	}
 
@@ -74,19 +92,25 @@ export function SendForSignatureButton({
 					size={size}
 					disabled={disabled}
 					className={cn('gap-2', className)}
-					data-testid="send-for-signature-button"
+					data-testid={isResend ? 'resend-signature-button' : 'send-for-signature-button'}
 				>
 					<Send className="h-4 w-4" />
-					Send for Signature
+					{isResend ? 'Resend' : 'Send for Signature'}
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Send Lease for Signature</DialogTitle>
+					<DialogTitle>
+						{isResend ? 'Resend Signature Request' : 'Send Lease for Signature'}
+					</DialogTitle>
 					<DialogDescription>
-						{tenantName
-							? `Send this lease to ${tenantName} for review and signature.`
-							: 'Send this lease to the tenant for review and signature.'}
+						{isResend
+							? tenantName
+								? `Resend the signature request to ${tenantName}. This will create a fresh signing request.`
+								: 'Resend the signature request. This will create a fresh signing request.'
+							: tenantName
+								? `Send this lease to ${tenantName} for review and signature.`
+								: 'Send this lease to the tenant for review and signature.'}
 						{' '}You can include an optional message.
 					</DialogDescription>
 				</DialogHeader>
@@ -109,21 +133,21 @@ export function SendForSignatureButton({
 					<Button
 						variant="outline"
 						onClick={() => setOpen(false)}
-						disabled={sendForSignature.isPending}
+						disabled={mutation.isPending}
 					>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleSend}
-						disabled={sendForSignature.isPending}
+						disabled={mutation.isPending}
 						className="gap-2"
 					>
-						{sendForSignature.isPending ? (
-							<>Sending...</>
+						{mutation.isPending ? (
+							<>{isResend ? 'Resending...' : 'Sending...'}</>
 						) : (
 							<>
 								<Send className="h-4 w-4" />
-								Send for Signature
+								{isResend ? 'Resend' : 'Send for Signature'}
 							</>
 						)}
 					</Button>
