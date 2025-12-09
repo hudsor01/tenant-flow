@@ -9,7 +9,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import type { CreateTenantInput, UpdateTenantInput } from '@repo/shared/types/api-contracts'
+import type { TenantCreate, TenantUpdate } from '@repo/shared/validation/tenants'
 import type { Tenant } from '@repo/shared/types/core'
 import { tenantQueries } from '../queries/tenant-queries'
 import { leaseQueries } from '../queries/lease-queries'
@@ -18,7 +18,7 @@ import { createCrudMutations } from '../crud-mutations'
 const {
 	useCreateMutation: useCreateTenantMutationBase,
 	useUpdateMutation: useUpdateTenantMutationBase
-} = createCrudMutations<CreateTenantInput, UpdateTenantInput, Tenant>({
+} = createCrudMutations<TenantCreate, TenantUpdate, Tenant>({
 	entityName: 'Tenant',
 	createEndpoint: '/api/v1/tenants',
 	updateEndpoint: (id) => `/api/v1/tenants/${id}`,
@@ -40,7 +40,7 @@ export function useUpdateTenantMutation() {
 
 	return {
 		...mutation,
-		mutate: ({ id, data }: { id: string; data: UpdateTenantInput }) =>
+		mutate: ({ id, data }: { id: string; data: TenantUpdate }) =>
 			mutation.mutate({
 				id,
 				data

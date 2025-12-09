@@ -24,6 +24,7 @@ describe('TenantQueryService', () => {
 
 	const mockUserId = 'user-123'
 	const mockTenantId = 'tenant-456'
+	const mockToken = 'valid-jwt-token'
 
 	const mockTenant = {
 		id: mockTenantId,
@@ -127,38 +128,40 @@ describe('TenantQueryService', () => {
 	})
 
 	describe('Detail queries delegation', () => {
-		it('findOne delegates to TenantDetailService', async () => {
+		it('findOne delegates to TenantDetailService with token', async () => {
 			mockDetailService.findOne.mockResolvedValue(mockTenant as any)
 
-			const result = await service.findOne(mockTenantId)
+			const result = await service.findOne(mockTenantId, mockToken)
 
-			expect(mockDetailService.findOne).toHaveBeenCalledWith(mockTenantId)
+			expect(mockDetailService.findOne).toHaveBeenCalledWith(mockTenantId, mockToken)
 			expect(result).toEqual(mockTenant)
 		})
 
-		it('findOneWithLease delegates to TenantDetailService', async () => {
+		it('findOneWithLease delegates to TenantDetailService with token', async () => {
 			const mockTenantWithLease = { ...mockTenant, lease: null }
 			mockDetailService.findOneWithLease.mockResolvedValue(
 				mockTenantWithLease as any
 			)
 
-			const result = await service.findOneWithLease(mockTenantId)
+			const result = await service.findOneWithLease(mockTenantId, mockToken)
 
 			expect(mockDetailService.findOneWithLease).toHaveBeenCalledWith(
-				mockTenantId
+				mockTenantId,
+				mockToken
 			)
 			expect(result).toEqual(mockTenantWithLease)
 		})
 
-		it('getTenantByAuthUserId delegates to TenantDetailService', async () => {
+		it('getTenantByAuthUserId delegates to TenantDetailService with token', async () => {
 			mockDetailService.getTenantByAuthUserId.mockResolvedValue(
 				mockTenant as any
 			)
 
-			const result = await service.getTenantByAuthUserId(mockUserId)
+			const result = await service.getTenantByAuthUserId(mockUserId, mockToken)
 
 			expect(mockDetailService.getTenantByAuthUserId).toHaveBeenCalledWith(
-				mockUserId
+				mockUserId,
+				mockToken
 			)
 			expect(result).toEqual(mockTenant)
 		})

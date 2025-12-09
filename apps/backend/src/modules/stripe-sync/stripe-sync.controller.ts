@@ -311,12 +311,14 @@ export class StripeSyncController {
     }
 
     // Record payment using atomic upsert RPC (idempotent - safe for webhook retries)
+    // Note: upsert_rent_payment is service_role-only, not in public types
     const now = new Date()
     const today = now.toISOString().split('T')[0] as string
 
-    const { data, error } = await this.supabaseService
-      .getAdminClient()
-      .rpc('upsert_rent_payment', {
+    const client = this.supabaseService.getAdminClient()
+    const { data, error } = await (client.rpc as CallableFunction)(
+      'upsert_rent_payment',
+      {
         p_lease_id: safelease_id,
         p_tenant_id: safetenant_id,
         p_amount: Math.round(amountInDollars * 100), // Convert to cents
@@ -329,7 +331,8 @@ export class StripeSyncController {
         p_payment_method_type: paymentType,
         p_stripe_payment_intent_id: session.payment_intent as string,
         p_application_fee_amount: 0
-      })
+      }
+    ) as { data: { id: string; was_inserted: boolean }[] | null; error: Error | null }
 
     if (error) {
       this.logger.error('Failed to record checkout payment', {

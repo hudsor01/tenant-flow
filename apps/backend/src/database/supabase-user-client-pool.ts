@@ -70,6 +70,10 @@ export class SupabaseUserClientPool {
 		}
 
 		this.metrics.misses++
+		
+		// Use accessToken callback pattern (recommended by Supabase docs)
+		// The deprecated global.headers.Authorization pattern doesn't properly
+		// integrate with Supabase's internal token handling for RLS
 		const client = createClient<Database>(
 			this.options.supabaseUrl,
 			this.options.supabasePublishableKey,
@@ -78,11 +82,7 @@ export class SupabaseUserClientPool {
 					persistSession: false,
 					autoRefreshToken: false
 				},
-				global: {
-					headers: {
-						Authorization: `Bearer ${userToken}`
-					}
-				}
+				accessToken: async () => userToken
 			}
 		)
 

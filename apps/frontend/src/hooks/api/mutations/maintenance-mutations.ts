@@ -7,10 +7,10 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-import type { CreateMaintenanceRequestInput } from '@repo/shared/types/api-contracts'
+import type { MaintenanceRequestCreate } from '@repo/shared/validation/maintenance'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 
-type UpdateMaintenanceRequest = Partial<CreateMaintenanceRequestInput>
+type MaintenanceRequestUpdate = Partial<MaintenanceRequestCreate>
 import { maintenanceQueries } from '../queries/maintenance-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
@@ -19,11 +19,11 @@ import { toast } from 'sonner'
 /**
  * Create maintenance request mutation
  */
-export function useCreateMaintenanceRequestMutation() {
+export function useMaintenanceRequestCreateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateMaintenanceRequestInput) =>
+		mutationFn: (data: MaintenanceRequestCreate) =>
 			apiRequest<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -42,11 +42,11 @@ export function useCreateMaintenanceRequestMutation() {
 /**
  * Update maintenance request mutation
  */
-export function useUpdateMaintenanceRequestMutation() {
+export function useMaintenanceRequestUpdateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: UpdateMaintenanceRequest }) =>
+		mutationFn: ({ id, data }: { id: string; data: MaintenanceRequestUpdate }) =>
 			apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(data)

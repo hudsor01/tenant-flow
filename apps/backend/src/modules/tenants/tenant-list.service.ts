@@ -4,8 +4,17 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
-import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+	UnauthorizedException
+} from '@nestjs/common'
+import type {
+	Tenant,
+	TenantWithLeaseInfo,
+	Lease
+} from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import {
@@ -30,8 +39,24 @@ export interface ListFilters {
 
 @Injectable()
 export class TenantListService {
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	/**
+	 * Get a user-scoped Supabase client that respects RLS policies.
+	 * Throws UnauthorizedException if no token is provided.
+	 * 
+	 * @param token - JWT token from authenticated request
+	 * @returns User-scoped Supabase client with RLS enforced
+	 */
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
 
 	/**
 	 * Get all tenants for user with optional filtering
@@ -66,8 +91,9 @@ export class TenantListService {
 		userId: string,
 		filters: ListFilters
 	): Promise<Tenant[]> {
-		let query = this.supabase
-			.getAdminClient()
+		// Use user client with RLS - tenants_select_own policy will enforce auth.uid() match
+		const client = this.requireUserClient(filters.token)
+		let query = client
 			.from('tenants')
 			.select(
 				'id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at'
@@ -109,9 +135,8 @@ export class TenantListService {
 		userId: string,
 		filters: ListFilters
 	): Promise<Tenant[]> {
-		const client = filters.token
-			? this.supabase.getUserClient(filters.token)
-			: this.supabase.getAdminClient()
+		// Use user client with RLS - get_tenants_by_owner RPC validates p_user_id = auth.uid()
+		const client = this.requireUserClient(filters.token)
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
 		const offset = filters.offset ?? 0
 
@@ -178,9 +203,10 @@ export class TenantListService {
 		const offset = filters.offset ?? 0
 
 		try {
+			// Use user client with RLS - property_owners_select_own policy will enforce auth.uid() match
+			const client = this.requireUserClient(filters.token)
 			// First check if user is a property owner
-			const { data: ownerRecord } = await this.supabase
-				.getAdminClient()
+			const { data: ownerRecord } = await client
 				.from('property_owners')
 				.select('id')
 				.eq('user_id', userId)
@@ -226,8 +252,9 @@ export class TenantListService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		let query = this.supabase
-			.getAdminClient()
+		// Use user client with RLS - tenants_select_own policy will enforce auth.uid() match
+		const client = this.requireUserClient(filters.token)
+		let query = client
 			.from('tenants')
 			.select(
 				`
@@ -239,6 +266,12 @@ export class TenantListService {
 				identity_verified,
 				created_at,
 				updated_at,
+				user:users!tenants_user_id_fkey(
+					first_name,
+					last_name,
+					email,
+					phone
+				),
 				lease_tenants(
 					tenant_id,
 					lease_id,
@@ -304,9 +337,8 @@ export class TenantListService {
 		limit: number,
 		offset: number
 	): Promise<TenantWithLeaseInfo[]> {
-		const client = filters.token
-			? this.supabase.getUserClient(filters.token)
-			: this.supabase.getAdminClient()
+		// Use user client with RLS - get_tenants_with_lease_by_owner RPC validates p_user_id = auth.uid()
+		const client = this.requireUserClient(filters.token)
 
 		// Get property owner's user_id for the RPC call
 		const { data: ownerRecord } = await client
@@ -363,10 +395,27 @@ export class TenantListService {
 			} | null
 		}
 
+		interface TenantWithUser {
+			id: string
+			user_id: string
+			emergency_contact_name: string | null
+			emergency_contact_phone: string | null
+			emergency_contact_relationship: string | null
+			identity_verified: boolean | null
+			created_at: string | null
+			updated_at: string | null
+			user: {
+				first_name: string | null
+				last_name: string | null
+				email: string | null
+				phone: string | null
+			} | null
+		}
+
 		interface QueryResult {
 			tenant_id: string
 			lease_id: string
-			tenant: Tenant | null
+			tenant: TenantWithUser | null
 			lease: LeaseWithUnit | null
 		}
 
@@ -384,7 +433,13 @@ export class TenantListService {
 					emergency_contact_relationship,
 					identity_verified,
 					created_at,
-					updated_at
+					updated_at,
+					user:users!tenants_user_id_fkey(
+						first_name,
+						last_name,
+						email,
+						phone
+					)
 				),
 				lease:leases(
 					id,
@@ -439,14 +494,37 @@ export class TenantListService {
 		}
 
 		// Filter and transform results
-		const results = (((data ?? []) as QueryResult[]).filter(
-			(row) => row.tenant && row.lease?.unit?.property
-		))
+		const results = ((data ?? []) as unknown as QueryResult[]).filter(
+			row => row.tenant && row.lease?.unit?.property
+		)
 
-		return results.map((row) => ({
-			...row.tenant!,
-			lease: row.lease as unknown as Lease
-		})) as TenantWithLeaseInfo[]
+		return results.map(row => {
+			const tenant = row.tenant!
+			// Combine first_name and last_name into name field
+			const firstName = tenant.user?.first_name ?? ''
+			const lastName = tenant.user?.last_name ?? ''
+			const name = [firstName, lastName].filter(Boolean).join(' ') || null
+
+			return {
+				id: tenant.id,
+				user_id: tenant.user_id,
+				name,
+				first_name: tenant.user?.first_name ?? null,
+				last_name: tenant.user?.last_name ?? null,
+				email: tenant.user?.email ?? null,
+				phone: tenant.user?.phone ?? null,
+				emergency_contact_name: tenant.emergency_contact_name,
+				emergency_contact_phone: tenant.emergency_contact_phone,
+				emergency_contact_relationship: tenant.emergency_contact_relationship,
+				identity_verified: tenant.identity_verified,
+				created_at: tenant.created_at,
+				updated_at: tenant.updated_at,
+				date_of_birth: null,
+				ssn_last_four: null,
+				stripe_customer_id: null,
+				lease: row.lease as unknown as Lease
+			} as TenantWithLeaseInfo
+		})
 	}
 
 	/**
@@ -467,6 +545,13 @@ export class TenantListService {
 			unit: unknown
 		}
 
+		interface RawUser {
+			first_name: string | null
+			last_name: string | null
+			email: string | null
+			phone: string | null
+		}
+
 		interface RawTenantWithLeaseTenants {
 			id: string
 			user_id: string
@@ -476,6 +561,7 @@ export class TenantListService {
 			identity_verified: boolean
 			created_at: string
 			updated_at: string
+			user: RawUser | null
 			lease_tenants: Array<{
 				tenant_id: string
 				lease_id: string
@@ -483,23 +569,36 @@ export class TenantListService {
 			}> | null
 		}
 
-		return (data as RawTenantWithLeaseTenants[]).map((row) => {
+		return (data as RawTenantWithLeaseTenants[]).map(row => {
 			// Extract the first active lease from lease_tenants
 			const activeLease =
-				row.lease_tenants?.find((lt) => lt.lease?.lease_status === 'active')
+				row.lease_tenants?.find(lt => lt.lease?.lease_status === 'active')
 					?.lease ?? null
+
+			// Combine first_name and last_name into name field
+			const firstName = row.user?.first_name ?? ''
+			const lastName = row.user?.last_name ?? ''
+			const name = [firstName, lastName].filter(Boolean).join(' ') || null
 
 			return {
 				id: row.id,
 				user_id: row.user_id,
+				name,
+				first_name: row.user?.first_name ?? null,
+				last_name: row.user?.last_name ?? null,
+				email: row.user?.email ?? null,
+				phone: row.user?.phone ?? null,
 				emergency_contact_name: row.emergency_contact_name,
 				emergency_contact_phone: row.emergency_contact_phone,
 				emergency_contact_relationship: row.emergency_contact_relationship,
 				identity_verified: row.identity_verified,
 				created_at: row.created_at,
 				updated_at: row.updated_at,
+				date_of_birth: null,
+				ssn_last_four: null,
+				stripe_customer_id: null,
 				lease: activeLease as Lease | null
-			} as unknown as TenantWithLeaseInfo
+			} as TenantWithLeaseInfo
 		})
 	}
 }

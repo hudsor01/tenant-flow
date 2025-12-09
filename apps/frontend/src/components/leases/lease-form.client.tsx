@@ -91,7 +91,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		onSubmit: async ({ value }) => {
 			try {
 				if (mode === 'create') {
-					await createLeaseMutation.mutateAsync(value)
+					await createLeaseMutation.mutateAsync({
+						...value,
+						auto_pay_enabled: false,
+						tenant_ids: [value.primary_tenant_id]
+					})
 					await Promise.all([
 						queryClient.invalidateQueries({ queryKey: ['leases'] }),
 						queryClient.invalidateQueries({ queryKey: ['units'] }),

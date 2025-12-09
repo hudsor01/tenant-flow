@@ -5,7 +5,7 @@
  * Manages: Create, Update, MarkAsMovedOut (soft delete), HardDelete (7+ years only)
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
@@ -28,13 +28,25 @@ export class TenantCrudService {
 	) {}
 
 	/**
+	 * Get user-scoped Supabase client with RLS enforcement
+	 * Throws UnauthorizedException if no token provided
+	 */
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
+	/**
 	 * Create a new tenant
 	 * Validates required fields and inserts into tenants table
 	 * Emits tenant.created event for notification service
 	 */
 	async create(
 		user_id: string,
-		createRequest: CreateTenantRequest
+		createRequest: CreateTenantRequest,
+		token: string
 	): Promise<Tenant> {
 		// Validate inputs
 		if (!user_id) {
@@ -55,7 +67,7 @@ export class TenantCrudService {
 				stripe_customer_id: createRequest.stripe_customer_id
 			})
 
-			const client = this.supabase.getAdminClient()
+			const client = this.requireUserClient(token)
 
 			// Build tenant data with only fields that exist in the tenants table
 			const tenantData: Database['public']['Tables']['tenants']['Insert'] = {
@@ -100,7 +112,7 @@ export class TenantCrudService {
 
 			return tenant
 		} catch (error) {
-			if (error instanceof BadRequestException) throw error
+			if (error instanceof BadRequestException || error instanceof UnauthorizedException) throw error
 			this.logger.error('Error creating tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				user_id
@@ -116,7 +128,8 @@ export class TenantCrudService {
 	async update(
 		user_id: string,
 		tenant_id: string,
-		updateRequest: UpdateTenantRequest
+		updateRequest: UpdateTenantRequest,
+		token: string
 	): Promise<Tenant> {
 		// Validate inputs
 		if (!user_id || !tenant_id) {
@@ -133,8 +146,10 @@ export class TenantCrudService {
 				tenant_id
 			})
 
+			const client = this.requireUserClient(token)
+
 			// Verify tenant exists and belongs to user
-			const existingTenant = await this.tenantQueryService.findOne(tenant_id)
+			const existingTenant = await this.tenantQueryService.findOne(tenant_id, token)
 			if (!existingTenant) {
 				throw new NotFoundException(`Tenant ${tenant_id} not found`)
 			}
@@ -142,8 +157,6 @@ export class TenantCrudService {
 			if (existingTenant.user_id !== user_id) {
 				throw new BadRequestException('Tenant does not belong to user')
 			}
-
-			const client = this.supabase.getAdminClient()
 
 			// Build update data - only update fields that exist in tenants table
 			const updateData: Partial<Database['public']['Tables']['tenants']['Update']> = {}
@@ -185,7 +198,8 @@ export class TenantCrudService {
 			return data as Tenant
 		} catch (error) {
 			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException) {
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException) {
 				throw error
 			}
 			this.logger.error('Error updating tenant', {
@@ -201,13 +215,14 @@ export class TenantCrudService {
 	 */
 	async softDelete(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<Tenant> {
 		try {
 			this.logger.log('Soft deleting tenant', { tenant_id, user_id })
 
-			// Verify tenant exists and belongs to user
-			const tenant = await this.tenantQueryService.findOne(tenant_id)
+			// Verify tenant exists and belongs to user (uses RLS via token)
+			const tenant = await this.tenantQueryService.findOne(tenant_id, token)
 			if (!tenant) {
 				throw new NotFoundException('Tenant not found')
 			}
@@ -225,7 +240,8 @@ export class TenantCrudService {
 			return tenant
 		} catch (error) {
 			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException) {
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException) {
 				throw error
 			}
 			this.logger.error('Error soft deleting tenant', {
@@ -243,13 +259,16 @@ export class TenantCrudService {
 		user_id: string,
 		tenant_id: string,
 		moveOutDate: string,
-		moveOutReason: string
+		moveOutReason: string,
+		token: string
 	): Promise<Tenant> {
 		try {
 			this.logger.log('Marking tenant as moved out', { tenant_id, user_id, moveOutDate, moveOutReason })
 
+			const client = this.requireUserClient(token)
+
 			// Verify tenant exists and belongs to user
-			const tenant = await this.tenantQueryService.findOne(tenant_id)
+			const tenant = await this.tenantQueryService.findOne(tenant_id, token)
 			if (!tenant) {
 				throw new NotFoundException('Tenant not found')
 			}
@@ -259,10 +278,11 @@ export class TenantCrudService {
 			}
 
 			// Update tenant with move out information
-			const { data, error } = await this.supabase.getAdminClient()
+			const { data, error } = await client
 				.from('tenants')
 				.update({
-
+					// Note: tenants table currently has no move_out fields
+					// This should be updated when schema supports it
 				})
 				.eq('id', tenant_id)
 				.select()
@@ -277,7 +297,8 @@ export class TenantCrudService {
 			return data
 		} catch (error) {
 			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException) {
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException) {
 				throw error
 			}
 			this.logger.error('Error marking tenant as moved out', {
@@ -295,13 +316,16 @@ export class TenantCrudService {
 	 */
 	async hardDelete(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<{ success: boolean; message: string }> {
 		try {
 			this.logger.log('Hard deleting tenant', { tenant_id, user_id })
 
-			// Get tenant
-			const tenant = await this.tenantQueryService.findOne(tenant_id)
+			const client = this.requireUserClient(token)
+
+			// Get tenant (uses RLS via token)
+			const tenant = await this.tenantQueryService.findOne(tenant_id, token)
 			if (!tenant) {
 				throw new NotFoundException('Tenant not found')
 			}
@@ -323,7 +347,6 @@ export class TenantCrudService {
 			}
 
 			// Delete tenant record
-			const client = this.supabase.getAdminClient()
 			const { error } = await client
 				.from('tenants')
 				.delete()
@@ -344,7 +367,8 @@ export class TenantCrudService {
 			}
 		} catch (error) {
 			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException) {
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException) {
 				throw error
 			}
 			this.logger.error('Error hard deleting tenant', {

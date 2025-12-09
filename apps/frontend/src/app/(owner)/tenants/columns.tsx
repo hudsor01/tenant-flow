@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { InviteTenantDialog } from '#components/tenants/invite-tenant-dialog'
 import { Badge } from '#components/ui/badge'
@@ -14,16 +14,22 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 		meta: {
 			label: 'Tenant',
 			variant: 'text',
-			placeholder: 'Search tenants...',
+			placeholder: 'Search tenants...'
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const tenant = row.original
+			// Combine first_name and last_name if name is not set
+			const displayName =
+				tenant.name ||
+				(tenant.first_name && tenant.last_name
+					? `${tenant.first_name} ${tenant.last_name}`.trim()
+					: tenant.first_name || tenant.last_name || 'Unknown')
 			return (
 				<Link href={`/tenants/${tenant.id}`} className="hover:underline">
 					<div className="flex flex-col">
-						<span className="font-medium">{tenant.name}</span>
-						<span className="text-muted">{tenant.email}</span>
+						<span className="font-medium">{displayName}</span>
+						<span className="text-muted-foreground">{tenant.email}</span>
 					</div>
 				</Link>
 			)
@@ -55,8 +61,8 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 			options: [
 				{ label: 'Current', value: 'Current' },
 				{ label: 'Overdue', value: 'Overdue' },
-				{ label: 'No Lease', value: 'No Lease' },
-			],
+				{ label: 'No Lease', value: 'No Lease' }
+			]
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
@@ -91,8 +97,13 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 				<div className="flex flex-col">
 					<span className="text-sm">#{tenant.currentLease.id.slice(0, 8)}</span>
 					<span className="text-muted">
-						{tenant.leaseStart ? new Date(tenant.leaseStart).toLocaleDateString() : 'Start TBD'} -{' '}
-						{tenant.leaseEnd ? new Date(tenant.leaseEnd).toLocaleDateString() : 'End TBD'}
+						{tenant.leaseStart
+							? new Date(tenant.leaseStart).toLocaleDateString()
+							: 'Start TBD'}{' '}
+						-{' '}
+						{tenant.leaseEnd
+							? new Date(tenant.leaseEnd).toLocaleDateString()
+							: 'End TBD'}
 					</span>
 				</div>
 			) : (
@@ -107,12 +118,17 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 			label: 'Rent',
 			variant: 'range',
 			range: [0, 10000],
-			unit: '$',
+			unit: '$'
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
 			const rent = row.getValue('rent_amount') as number | null
-			return rent ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(rent) : '-'
+			return rent
+				? new Intl.NumberFormat('en-US', {
+						style: 'currency',
+						currency: 'USD'
+					}).format(rent)
+				: '-'
 		}
 	},
 	{
@@ -144,7 +160,12 @@ export const columns: ColumnDef<TenantWithLeaseInfo>[] = [
 		header: 'Payments',
 		cell: ({ row }) => {
 			const tenant = row.original
-			return <TenantPaymentsDialog tenant_id={tenant.id} tenantName={tenant.name ?? ''} />
+			return (
+				<TenantPaymentsDialog
+					tenant_id={tenant.id}
+					tenantName={tenant.name ?? ''}
+				/>
+			)
 		}
 	}
 ]

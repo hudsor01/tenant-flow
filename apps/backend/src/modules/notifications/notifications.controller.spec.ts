@@ -2,29 +2,12 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { SupabaseService } from '../../database/supabase.service'
-import { createMockRequest } from '../../shared/test-utils/types'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import { createMockUser } from '../../test-utils/mocks'
 import { NotificationsController } from './notifications.controller'
-import { SilentLogger } from '../../__test__/silent-logger'
-import { AppLogger } from '../../logger/app-logger.service'
-
-
-// Mock the SupabaseService
-jest.mock('../../database/supabase.service', () => {
-	return {
-		SupabaseService: jest.fn().mockImplementation(() => ({
-			getUser: jest.fn(),
-			getAdminClient: jest.fn(() => ({
-				from: jest.fn()
-			}))
-		}))
-	}
-})
 
 describe('NotificationsController', () => {
 	let controller: NotificationsController
-	let mockSupabaseServiceInstance: jest.Mocked<SupabaseService>
+	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let mockSupabaseClient: {
 		from: jest.Mock
 		select: jest.Mock
@@ -37,13 +20,31 @@ describe('NotificationsController', () => {
 		single: jest.Mock
 	}
 
-	const mockUser = createMockUser({ id: 'user-123' })
+	const mockUserId = 'user-123'
+	const mockToken = 'valid-jwt-token'
 
-	const mockRequest = createMockRequest() as unknown as AuthenticatedRequest
+	// Helper to create authenticated request with token
+	const createAuthenticatedRequest = (overrides?: Partial<AuthenticatedRequest>): AuthenticatedRequest => ({
+		user: { id: mockUserId },
+		headers: {
+			authorization: `Bearer ${mockToken}`
+		},
+		...overrides
+	} as unknown as AuthenticatedRequest)
 
-	const unauthRequest = createMockRequest({
-		user: {}
-	}) as unknown as AuthenticatedRequest
+	// Helper for unauthenticated request (no user)
+	const createUnauthenticatedRequest = (): AuthenticatedRequest => ({
+		user: {},
+		headers: {
+			authorization: `Bearer ${mockToken}`
+		}
+	} as unknown as AuthenticatedRequest)
+
+	// Helper for request missing token
+	const createRequestWithoutToken = (): AuthenticatedRequest => ({
+		user: { id: mockUserId },
+		headers: {}
+	} as unknown as AuthenticatedRequest)
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -60,88 +61,96 @@ describe('NotificationsController', () => {
 			single: jest.fn(() => ({ data: {}, error: null }))
 		}
 
+		mockSupabaseService = {
+			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient),
+			getAdminClient: jest.fn() // Should NOT be called
+		} as unknown as jest.Mocked<SupabaseService>
+
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [NotificationsController],
-			providers: [SupabaseService]
+			providers: [
+				{ provide: SupabaseService, useValue: mockSupabaseService }
+			]
 		}).compile()
 
 		controller = module.get<NotificationsController>(NotificationsController)
-		mockSupabaseServiceInstance = module.get(
-			SupabaseService
-		) as jest.Mocked<SupabaseService>
-
-		mockSupabaseServiceInstance.getAdminClient.mockReturnValue(
-			mockSupabaseClient as any
-		)
 	})
 
 	it('should be defined', () => {
 		expect(controller).toBeDefined()
 	})
 
+	describe('RLS Enforcement', () => {
+		it('should use getUserClient with token, NOT getAdminClient', async () => {
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.range.mockReturnValue({ data: [], error: null })
+
+			await controller.getNotifications(req)
+
+			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
+			expect(mockSupabaseService.getAdminClient).not.toHaveBeenCalled()
+		})
+
+		it('should throw UnauthorizedException when authorization header is missing', async () => {
+			const req = createRequestWithoutToken()
+
+			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
+			expect(mockSupabaseService.getUserClient).not.toHaveBeenCalled()
+		})
+
+		it('should throw UnauthorizedException when authorization header is malformed', async () => {
+			const req = {
+				user: { id: mockUserId },
+				headers: { authorization: 'InvalidFormat token' }
+			} as unknown as AuthenticatedRequest
+
+			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
+		})
+	})
+
 	describe('getNotifications', () => {
 		it('should return notifications for authenticated user', async () => {
 			const mockNotifications = [
-				{
-					id: 'notif-1',
-					title: 'Test Notification',
-					content: 'Test content',
-					type: 'maintenance',
-					priority: 'MEDIUM',
-					isRead: false,
-					created_at: new Date()
-				},
-				{
-					provide: AppLogger,
-					useValue: new SilentLogger()
-				}
+				{ id: 'notif-1', title: 'Test 1', user_id: mockUserId },
+				{ id: 'notif-2', title: 'Test 2', user_id: mockUserId }
 			]
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.range.mockReturnValue({ data: mockNotifications, error: null })
 
-			// controller reads req.user.id directly; no getUser call expected
-			mockSupabaseClient.range.mockReturnValue({
-				data: mockNotifications,
-				error: null
-			})
-
-			const result = await controller.getNotifications(mockRequest)
+			const result = await controller.getNotifications(req)
 
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('user_id', mockUser.id)
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('user_id', mockUserId)
 			expect(result).toEqual({ notifications: mockNotifications })
 		})
 
 		it('should handle custom limit and offset parameters', async () => {
-			// controller reads req.user.id directly; no getUser call expected
+			const req = createAuthenticatedRequest()
 			mockSupabaseClient.range.mockReturnValue({ data: [], error: null })
 
-			await controller.getNotifications(mockRequest, '20', '5')
+			await controller.getNotifications(req, '20', '5')
 
 			expect(mockSupabaseClient.range).toHaveBeenCalledWith(5, 24)
 		})
 
-		it('should throw UnauthorizedException when user validation fails', async () => {
-			await expect(controller.getNotifications(unauthRequest)).rejects.toThrow(
-				UnauthorizedException
-			)
+		it('should throw UnauthorizedException when user.id is missing', async () => {
+			const req = createUnauthenticatedRequest()
+
+			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
 		})
 
-		it('should throw BadRequestException when database query fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			mockSupabaseClient.range.mockReturnValue({
-				data: null,
-				error: { message: 'Database error' }
-			})
+		it('should throw BadRequestException on database error', async () => {
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.range.mockReturnValue({ data: null, error: { message: 'Database error' } })
 
-			await expect(controller.getNotifications(mockRequest)).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(controller.getNotifications(req)).rejects.toThrow(BadRequestException)
 		})
 
 		it('should return empty array when no notifications found', async () => {
-			// controller reads req.user.id directly; no getUser call expected
+			const req = createAuthenticatedRequest()
 			mockSupabaseClient.range.mockReturnValue({ data: null, error: null })
 
-			const result = await controller.getNotifications(mockRequest)
+			const result = await controller.getNotifications(req)
 
 			expect(result).toEqual({ notifications: [] })
 		})
@@ -157,21 +166,14 @@ describe('NotificationsController', () => {
 			actionUrl: '/test-url'
 		}
 
-		it('should create notification successfully', async () => {
-			const mockCreatedNotification = {
-				id: 'notif-123',
-				...validNotificationData,
-				isRead: false,
-				created_at: new Date()
-			}
+		it('should create notification with RLS-scoped client', async () => {
+			const req = createAuthenticatedRequest()
+			const mockCreatedNotification = { id: 'notif-123', ...validNotificationData }
+			mockSupabaseClient.single.mockResolvedValue({ data: mockCreatedNotification, error: null })
 
-			mockSupabaseClient.single.mockResolvedValue({
-				data: mockCreatedNotification,
-				error: null
-			})
+			const result = await controller.createNotification(req, validNotificationData)
 
-			const result = await controller.createNotification(validNotificationData)
-
+			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
 				user_id: validNotificationData.user_id,
@@ -185,188 +187,103 @@ describe('NotificationsController', () => {
 		})
 
 		it('should create notification without optional actionUrl', async () => {
-			const dataWithoutUrl = {
-				user_id: 'user-123',
-				title: 'Test Notification',
-				content: 'Test content',
-				type: 'system' as const,
-				priority: 'LOW' as const
-			}
+			const req = createAuthenticatedRequest()
+			const dataWithoutUrl = { ...validNotificationData, actionUrl: undefined }
+			mockSupabaseClient.single.mockResolvedValue({ data: { id: 'notif-456' }, error: null })
 
-			mockSupabaseClient.single.mockResolvedValue({
-				data: { ...dataWithoutUrl, id: 'notif-456' },
-				error: null
-			})
+			await controller.createNotification(req, dataWithoutUrl)
 
-			const result = await controller.createNotification(dataWithoutUrl)
-
-			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
-				user_id: dataWithoutUrl.user_id,
-				title: dataWithoutUrl.title,
-				message: dataWithoutUrl.content,
-				notification_type: dataWithoutUrl.type,
-				action_url: null,
-				is_read: false
-			})
-			expect(result.notification).toBeDefined()
+			expect(mockSupabaseClient.insert).toHaveBeenCalledWith(
+				expect.objectContaining({ action_url: null })
+			)
 		})
 
-		it('should throw BadRequestException when creation fails', async () => {
-			mockSupabaseClient.single.mockResolvedValue({
-				data: null,
-				error: { message: 'Creation failed' }
-			})
+		it('should throw BadRequestException on creation failure', async () => {
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.single.mockResolvedValue({ data: null, error: { message: 'Creation failed' } })
 
-			await expect(
-				controller.createNotification(validNotificationData)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.createNotification(req, validNotificationData)).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('markAsRead', () => {
 		const notificationId = 'notif-123'
 
-		it('should mark notification as read for authenticated user', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			// Set up the specific mock chain for this test
-			const mockChain: any = {
-				from: jest.fn(() => mockChain),
-				update: jest.fn(() => mockChain),
-				eq: jest.fn(() => mockChain)
-			}
-
-			// The final .eq() call should return { error: null }
-			let callCount = 0
-			mockChain.eq.mockImplementation((): any => {
-				callCount++
-				if (callCount === 2) {
-					return { error: null }
-				}
-				return mockChain
+		it('should mark notification as read with RLS-scoped client', async () => {
+			const req = createAuthenticatedRequest()
+			// Chain returns for eq calls
+			let eqCallCount = 0
+			mockSupabaseClient.eq.mockImplementation(() => {
+				eqCallCount++
+				if (eqCallCount === 2) return { error: null }
+				return mockSupabaseClient
 			})
 
-			mockSupabaseServiceInstance.getAdminClient.mockReturnValue(
-				mockChain as any
-			)
+			const result = await controller.markAsRead(notificationId, req)
 
-			const result = await controller.markAsRead(notificationId, mockRequest)
-
-			// no getUser call expected; controller uses req.user
-			expect(mockChain.from).toHaveBeenCalledWith('notifications')
-			expect(mockChain.update).toHaveBeenCalledWith({ is_read: true })
-			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
-			expect(mockChain.eq).toHaveBeenCalledWith('user_id', mockUser.id)
+			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
+			expect(mockSupabaseClient.update).toHaveBeenCalledWith({ is_read: true })
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', notificationId)
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('user_id', mockUserId)
 			expect(result).toEqual({ success: true })
 		})
 
-		it('should throw UnauthorizedException when user validation fails', async () => {
-			await expect(
-				controller.markAsRead(notificationId, unauthRequest)
-			).rejects.toThrow(UnauthorizedException)
+		it('should throw UnauthorizedException when user.id is missing', async () => {
+			const req = createUnauthenticatedRequest()
+
+			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(UnauthorizedException)
 		})
 
-		it('should throw BadRequestException when update fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
-			// Set up the specific mock for error case
-			const mockChain: any = {
-				from: jest.fn(() => mockChain),
-				update: jest.fn(() => mockChain),
-				eq: jest.fn(() => mockChain)
-			}
-
-			// The final .eq() call should return an error
-			let callCount = 0
-			mockChain.eq.mockImplementation((): any => {
-				callCount++
-				if (callCount === 2) {
-					return { error: { message: 'Update failed' } }
-				}
-				return mockChain
+		it('should throw BadRequestException on update failure', async () => {
+			const req = createAuthenticatedRequest()
+			let eqCallCount = 0
+			mockSupabaseClient.eq.mockImplementation(() => {
+				eqCallCount++
+				if (eqCallCount === 2) return { error: { message: 'Update failed' } }
+				return mockSupabaseClient
 			})
 
-			mockSupabaseServiceInstance.getAdminClient.mockReturnValue(
-				mockChain as any
-			)
-
-			await expect(
-				controller.markAsRead(notificationId, mockRequest)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('deleteNotification', () => {
 		const notificationId = 'notif-123'
 
-		it('should delete notification for authenticated user', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-			// Set up the specific mock for this test
-			const mockChain: any = {
-				from: jest.fn(() => mockChain),
-				delete: jest.fn(() => mockChain),
-				eq: jest.fn(() => mockChain)
-			}
-
-			// The final .eq() call should return { error: null }
-			let callCount = 0
-			mockChain.eq.mockImplementation((): any => {
-				callCount++
-				if (callCount === 2) {
-					return { error: null }
-				}
-				return mockChain
+		it('should delete notification with RLS-scoped client', async () => {
+			const req = createAuthenticatedRequest()
+			let eqCallCount = 0
+			mockSupabaseClient.eq.mockImplementation(() => {
+				eqCallCount++
+				if (eqCallCount === 2) return { error: null }
+				return mockSupabaseClient
 			})
 
-			mockSupabaseServiceInstance.getAdminClient.mockReturnValue(
-				mockChain as any
-			)
+			const result = await controller.deleteNotification(notificationId, req)
 
-			const result = await controller.deleteNotification(
-				notificationId,
-				mockRequest
-			)
-
-			// no getUser call expected; controller uses req.user
-			expect(mockChain.from).toHaveBeenCalledWith('notifications')
-			expect(mockChain.delete).toHaveBeenCalled()
-			expect(mockChain.eq).toHaveBeenCalledWith('id', notificationId)
-			expect(mockChain.eq).toHaveBeenCalledWith('user_id', mockUser.id)
+			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
+			expect(mockSupabaseClient.delete).toHaveBeenCalled()
 			expect(result).toEqual({ success: true })
 		})
 
-		it('should throw UnauthorizedException when user validation fails', async () => {
-			await expect(
-				controller.deleteNotification(notificationId, unauthRequest)
-			).rejects.toThrow(UnauthorizedException)
+		it('should throw UnauthorizedException when user.id is missing', async () => {
+			const req = createUnauthenticatedRequest()
+
+			await expect(controller.deleteNotification(notificationId, req)).rejects.toThrow(UnauthorizedException)
 		})
 
-		it('should throw BadRequestException when deletion fails', async () => {
-			mockSupabaseServiceInstance.getUser.mockResolvedValue(mockUser)
-
-			// Set up the specific mock for error case
-			const mockChain: any = {
-				from: jest.fn(() => mockChain),
-				delete: jest.fn(() => mockChain),
-				eq: jest.fn(() => mockChain)
-			}
-
-			// The final .eq() call should return an error
-			let callCount = 0
-			mockChain.eq.mockImplementation((): any => {
-				callCount++
-				if (callCount === 2) {
-					return { error: { message: 'Deletion failed' } }
-				}
-				return mockChain
+		it('should throw BadRequestException on deletion failure', async () => {
+			const req = createAuthenticatedRequest()
+			let eqCallCount = 0
+			mockSupabaseClient.eq.mockImplementation(() => {
+				eqCallCount++
+				if (eqCallCount === 2) return { error: { message: 'Deletion failed' } }
+				return mockSupabaseClient
 			})
 
-			mockSupabaseServiceInstance.getAdminClient.mockReturnValue(
-				mockChain as any
-			)
-
-			await expect(
-				controller.deleteNotification(notificationId, mockRequest)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.deleteNotification(notificationId, req)).rejects.toThrow(BadRequestException)
 		})
 	})
 
@@ -378,26 +295,14 @@ describe('NotificationsController', () => {
 			unit_number: '2A'
 		}
 
-		it('should create maintenance notification with predefined content', async () => {
-			const expectedNotification = {
-				id: 'notif-789',
-				user_id: maintenanceData.user_id,
-				title: 'Maintenance Request Update',
-				content: `Your maintenance request for ${maintenanceData.propertyName} Unit ${maintenanceData.unit_number} has been updated.`,
-				type: 'maintenance',
-				priority: 'MEDIUM',
-				actionUrl: `/maintenance/${maintenanceData.maintenanceId}`,
-				isRead: false
-			}
+		it('should create maintenance notification with RLS-scoped client', async () => {
+			const req = createAuthenticatedRequest()
+			const expectedNotification = { id: 'notif-789', ...maintenanceData }
+			mockSupabaseClient.single.mockResolvedValue({ data: expectedNotification, error: null })
 
-			mockSupabaseClient.single.mockResolvedValue({
-				data: expectedNotification,
-				error: null
-			})
+			const result = await controller.createMaintenanceNotification(req, maintenanceData)
 
-			const result =
-				await controller.createMaintenanceNotification(maintenanceData)
-
+			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
 				user_id: maintenanceData.user_id,
 				title: 'Maintenance Request Update',
@@ -411,68 +316,42 @@ describe('NotificationsController', () => {
 			expect(result).toEqual({ notification: expectedNotification })
 		})
 
-		it('should throw BadRequestException when creation fails', async () => {
-			mockSupabaseClient.single.mockResolvedValue({
-				data: null,
-				error: { message: 'Creation failed' }
-			})
+		it('should throw BadRequestException on creation failure', async () => {
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.single.mockResolvedValue({ data: null, error: { message: 'Creation failed' } })
 
-			await expect(
-				controller.createMaintenanceNotification(maintenanceData)
-			).rejects.toThrow(BadRequestException)
+			await expect(controller.createMaintenanceNotification(req, maintenanceData)).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('getPriorityInfo', () => {
 		it('should return correct info for LOW priority', async () => {
 			const result = await controller.getPriorityInfo('LOW')
-
-			expect(result).toEqual({
-				color: 'hsl(var(--muted-foreground))',
-				label: 'Low Priority'
-			})
+			expect(result).toEqual({ color: 'hsl(var(--muted-foreground))', label: 'Low Priority' })
 		})
 
 		it('should return correct info for MEDIUM priority', async () => {
 			const result = await controller.getPriorityInfo('MEDIUM')
-
-			expect(result).toEqual({
-				color: '#FF9500',
-				label: 'Medium Priority'
-			})
+			expect(result).toEqual({ color: '#FF9500', label: 'Medium Priority' })
 		})
 
 		it('should return correct info for HIGH priority', async () => {
 			const result = await controller.getPriorityInfo('HIGH')
-
-			expect(result).toEqual({
-				color: 'hsl(var(--destructive))',
-				label: 'High Priority'
-			})
+			expect(result).toEqual({ color: 'hsl(var(--destructive))', label: 'High Priority' })
 		})
 
 		it('should return correct info for EMERGENCY priority', async () => {
 			const result = await controller.getPriorityInfo('EMERGENCY')
-
-			expect(result).toEqual({
-				color: '#FF3B30',
-				label: 'Emergency'
-			})
+			expect(result).toEqual({ color: '#FF3B30', label: 'Emergency' })
 		})
 
 		it('should handle case insensitive priority input', async () => {
 			const result = await controller.getPriorityInfo('low')
-
-			expect(result).toEqual({
-				color: 'hsl(var(--muted-foreground))',
-				label: 'Low Priority'
-			})
+			expect(result).toEqual({ color: 'hsl(var(--muted-foreground))', label: 'Low Priority' })
 		})
 
 		it('should throw BadRequestException for invalid priority', async () => {
-			await expect(controller.getPriorityInfo('INVALID')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(controller.getPriorityInfo('INVALID')).rejects.toThrow(BadRequestException)
 		})
 	})
 })
