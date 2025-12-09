@@ -233,7 +233,6 @@ describe('PropertyImageGallery Component', () => {
 
 		it('shows confirmation dialog before deleting', async () => {
 			const user = userEvent.setup()
-			const mockConfirm = vi.spyOn(window, 'confirm').mockReturnValue(true)
 
 			render(
 				<PropertyImageGallery propertyId="prop-123" editable={true} />,
@@ -248,33 +247,44 @@ describe('PropertyImageGallery Component', () => {
 				}
 				await user.click(firstDeleteButton)
 
-				expect(mockConfirm).toHaveBeenCalled()
+				// AlertDialog should now be visible with title and description
+				await waitFor(() => {
+					expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+				})
+				expect(screen.getByText(/delete image/i)).toBeInTheDocument()
+				expect(screen.getByText(/this action cannot be undone/i)).toBeInTheDocument()
 			}
-
-			mockConfirm.mockRestore()
 		})
 
-		it('does not delete if user cancels confirmation', async () => {
-		const user = userEvent.setup()
-		const mockConfirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+		it('closes dialog when cancel is clicked', async () => {
+			const user = userEvent.setup()
 
-		render(
-			<PropertyImageGallery propertyId="prop-123" editable={true} />,
-			{ wrapper: createWrapper() }
-		)
+			render(
+				<PropertyImageGallery propertyId="prop-123" editable={true} />,
+				{ wrapper: createWrapper() }
+			)
 
-	const deleteButtons = screen.getAllByRole('button', { name: /delete image/i })
-	if (deleteButtons.length > 0) {
-		const firstDeleteButton = deleteButtons[0]
-		if (!firstDeleteButton) return
-		await user.click(firstDeleteButton)
+			const deleteButtons = screen.getAllByRole('button', { name: /delete image/i })
+			if (deleteButtons.length > 0) {
+				const firstDeleteButton = deleteButtons[0]
+				if (!firstDeleteButton) return
+				await user.click(firstDeleteButton)
 
-			// When confirm returns false, delete should not happen
-			// This is verified by the component not actually calling the delete API
-		}
+				// Wait for dialog to appear
+				await waitFor(() => {
+					expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+				})
 
-		mockConfirm.mockRestore()
-	})
+				// Click cancel button
+				const cancelButton = screen.getByRole('button', { name: /cancel/i })
+				await user.click(cancelButton)
+
+				// Dialog should be closed
+				await waitFor(() => {
+					expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument()
+				})
+			}
+		})
 	})
 
 	describe('Lightbox Integration', () => {
