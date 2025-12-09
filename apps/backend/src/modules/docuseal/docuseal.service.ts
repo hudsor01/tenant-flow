@@ -162,6 +162,37 @@ export class DocuSealService {
 		})
 	}
 
+
+	/**
+	 * Resend signature request email to a submitter (native DocuSeal approach)
+	 * This is the recommended way to remind submitters without creating new submissions
+	 */
+	async resendToSubmitter(
+		submitterId: number,
+		options?: { message?: string; sendSms?: boolean }
+	): Promise<void> {
+		this.ensureEnabled()
+
+		const body: Record<string, unknown> = {
+			send_email: true
+		}
+
+		if (options?.message) {
+			body.message = options.message
+		}
+
+		if (options?.sendSms) {
+			body.send_sms = true
+		}
+
+		await this.fetch(`/submitters/${submitterId}`, {
+			method: 'PUT',
+			body: JSON.stringify(body)
+		})
+
+		this.logger.log('Resent signature request to submitter', { submitterId })
+	}
+
 	/**
 	 * Create a lease-specific submission with owner and tenant
 	 * This is the main method for creating e-signature requests for leases

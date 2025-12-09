@@ -7,7 +7,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-import type { CreateLeaseInput, UpdateLeaseInput } from '@repo/shared/types/api-contracts'
+import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
 import type { Lease } from '@repo/shared/types/core'
 import { leaseQueries } from '../queries/lease-queries'
 import { tenantQueries } from '../queries/tenant-queries'
@@ -23,7 +23,7 @@ export function useCreateLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateLeaseInput) =>
+		mutationFn: (data: LeaseCreate) =>
 			apiRequest<Lease>('/api/v1/leases', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -48,7 +48,7 @@ export function useUpdateLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: UpdateLeaseInput; version?: number }) =>
+		mutationFn: ({ id, data, version }: { id: string; data: LeaseUpdate; version?: number }) =>
 			apiRequest<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)

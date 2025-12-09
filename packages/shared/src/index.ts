@@ -25,7 +25,7 @@
  *   import type { Pagination, DashboardMetricsResponse, PropertyPerformanceResponse } from '@repo/shared/types/core'
  *
  * API Contract Types (Domain-specific):
- *   import type { CreatePropertyRequest, PropertyResponse } from '@repo/shared/types/api-contracts'
+ *   import type { PropertyCreate } from '@repo/shared/validation/properties' from '@repo/shared/types/api-contracts'
  *   import type { CreateSubscriptionRequest, SubscriptionResponse } from '@repo/shared/types/api-contracts'
  *
  * Form State Types:

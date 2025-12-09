@@ -14,9 +14,9 @@ import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type {
-	CreatePropertyInput,
-	UpdatePropertyInput
-} from '@repo/shared/types/api-contracts'
+	PropertyCreate,
+	PropertyUpdate
+} from '@repo/shared/validation/properties'
 import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
@@ -135,7 +135,7 @@ export class PropertiesController {
 	) {
 		return this.propertiesService.create(
 			req,
-			dto as unknown as CreatePropertyInput
+			dto as unknown as PropertyCreate
 		)
 	}
 
@@ -217,7 +217,7 @@ export class PropertiesController {
 		const property = await this.propertiesService.update(
 			req,
 			id,
-			dto as unknown as UpdatePropertyInput,
+			dto as unknown as PropertyUpdate,
 			expectedVersion
 		)
 		if (!property) {

@@ -25,6 +25,19 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
 export class NotificationsController {
 	constructor(private readonly supabase: SupabaseService) {}
 
+	/**
+	 * Get user-scoped Supabase client with RLS enforcement
+	 * Extracts token from request authorization header
+	 */
+	private getUserClientFromRequest(req: AuthenticatedRequest) {
+		const authHeader = req.headers.authorization
+		if (!authHeader?.startsWith('Bearer ')) {
+			throw new UnauthorizedException('Missing or invalid authorization header')
+		}
+		const token = authHeader.slice(7)
+		return this.supabase.getUserClient(token)
+	}
+
 	@Get()
 	async getNotifications(
 		@Req() req: AuthenticatedRequest,
@@ -33,8 +46,9 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		const { data, error } = await this.supabase
-			.getAdminClient()
+		
+		const client = this.getUserClientFromRequest(req)
+		const { data, error } = await client
 			.from('notifications')
 			.select('*')
 			.eq('user_id', user_id)
@@ -50,6 +64,7 @@ export class NotificationsController {
 
 	@Post()
 	async createNotification(
+		@Req() req: AuthenticatedRequest,
 		@Body()
 		body: {
 			user_id: string
@@ -60,8 +75,8 @@ export class NotificationsController {
 			actionUrl?: string
 		}
 	) {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+		const client = this.getUserClientFromRequest(req)
+		const { data, error } = await client
 			.from('notifications')
 			.insert({
 				user_id: body.user_id,
@@ -85,8 +100,9 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		const { error } = await this.supabase
-			.getAdminClient()
+		
+		const client = this.getUserClientFromRequest(req)
+		const { error } = await client
 			.from('notifications')
 			.update({ is_read: true })
 			.eq('id', id)
@@ -103,8 +119,9 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		const { error } = await this.supabase
-			.getAdminClient()
+		
+		const client = this.getUserClientFromRequest(req)
+		const { error } = await client
 			.from('notifications')
 			.delete()
 			.eq('id', id)
@@ -116,6 +133,7 @@ export class NotificationsController {
 
 	@Post('maintenance')
 	async createMaintenanceNotification(
+		@Req() req: AuthenticatedRequest,
 		@Body()
 		body: {
 			user_id: string
@@ -124,8 +142,8 @@ export class NotificationsController {
 			unit_number: string
 		}
 	) {
-		const { data, error } = await this.supabase
-			.getAdminClient()
+		const client = this.getUserClientFromRequest(req)
+		const { data, error } = await client
 			.from('notifications')
 			.insert({
 				user_id: body.user_id,

@@ -13,7 +13,7 @@
 
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { BadRequestException, ForbiddenException } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { LeaseSignatureService } from './lease-signature.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -62,7 +62,9 @@ describe('LeaseSignatureService', () => {
 			isEnabled: jest.fn().mockReturnValue(false),
 			createLeaseSubmission: jest.fn(),
 			getSubmitterSigningUrl: jest.fn(),
-			archiveSubmission: jest.fn()
+			archiveSubmission: jest.fn(),
+			getSubmission: jest.fn(),
+			resendToSubmitter: jest.fn()
 		}
 
 		mockLeaseSubscriptionService = {
@@ -1062,6 +1064,230 @@ describe('LeaseSignatureService', () => {
 			expect(status.both_signed).toBe(true)
 			expect(status.owner_signed).toBe(true)
 			expect(status.tenant_signed).toBe(true)
+		})
+	})
+
+	describe('resendSignatureRequest', () => {
+		const leaseId = 'lease-123'
+		const ownerId = 'owner-user-123'
+		const propertyOwnerId = 'property-owner-456'
+
+		it('should resend signature request to pending submitters', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			mockDocuSealService.getSubmission = jest.fn().mockResolvedValue({
+				id: 12345,
+				submitters: [
+					{ id: 1, role: 'Landlord', status: 'completed' },
+					{ id: 2, role: 'Tenant', status: 'pending' }
+				]
+			})
+			mockDocuSealService.resendToSubmitter = jest.fn().mockResolvedValue(undefined)
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await service.resendSignatureRequest(ownerId, leaseId)
+
+			expect(mockDocuSealService.getSubmission).toHaveBeenCalledWith(12345)
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenCalledTimes(1)
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenCalledWith(2, {})
+		})
+
+		it('should pass message option when provided', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			mockDocuSealService.getSubmission = jest.fn().mockResolvedValue({
+				id: 12345,
+				submitters: [
+					{ id: 1, role: 'Landlord', status: 'pending' }
+				]
+			})
+			mockDocuSealService.resendToSubmitter = jest.fn().mockResolvedValue(undefined)
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await service.resendSignatureRequest(ownerId, leaseId, { message: 'Please sign urgently' })
+
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenCalledWith(1, { message: 'Please sign urgently' })
+		})
+
+		it('should resend to multiple pending submitters', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			mockDocuSealService.getSubmission = jest.fn().mockResolvedValue({
+				id: 12345,
+				submitters: [
+					{ id: 1, role: 'Landlord', status: 'pending' },
+					{ id: 2, role: 'Tenant', status: 'opened' }
+				]
+			})
+			mockDocuSealService.resendToSubmitter = jest.fn().mockResolvedValue(undefined)
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await service.resendSignatureRequest(ownerId, leaseId)
+
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenCalledTimes(2)
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenNthCalledWith(1, 1, {})
+			expect(mockDocuSealService.resendToSubmitter).toHaveBeenNthCalledWith(2, 2, {})
+		})
+
+		it('should throw NotFoundException when lease not found', async () => {
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn(() => createMockChain(null, { code: 'PGRST116', message: 'not found' }))
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, 'nonexistent-lease'))
+				.rejects.toThrow('Lease not found')
+		})
+
+		it('should throw ForbiddenException when user does not own the lease', async () => {
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: 'different-owner-id' }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, leaseId))
+				.rejects.toThrow(ForbiddenException)
+		})
+
+		it('should throw BadRequestException when lease is not in pending_signature status', async () => {
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'draft',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, leaseId))
+				.rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw BadRequestException when no DocuSeal submission exists', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: null, // No submission
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, leaseId))
+				.rejects.toThrow('No DocuSeal submission found for this lease')
+		})
+
+		it('should throw BadRequestException when DocuSeal is disabled', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(false)
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, leaseId))
+				.rejects.toThrow('No DocuSeal submission found for this lease')
+		})
+
+		it('should throw BadRequestException when all parties have already signed', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			mockDocuSealService.getSubmission = jest.fn().mockResolvedValue({
+				id: 12345,
+				submitters: [
+					{ id: 1, role: 'Landlord', status: 'completed' },
+					{ id: 2, role: 'Tenant', status: 'completed' }
+				]
+			})
+
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'pending_signature',
+							property_owner_id: propertyOwnerId,
+							docuseal_submission_id: '12345',
+							property_owner: { user_id: ownerId }
+						})
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+			await expect(service.resendSignatureRequest(ownerId, leaseId))
+				.rejects.toThrow('All parties have already signed')
 		})
 	})
 })

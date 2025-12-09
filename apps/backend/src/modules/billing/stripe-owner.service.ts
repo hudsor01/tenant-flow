@@ -310,20 +310,24 @@ export class StripeOwnerService {
 		})
 
 		// Record rent payment in database using idempotent RPC
-		const { data: upsertResult, error: upsertError } = await client.rpc('upsert_rent_payment', {
-			p_lease_id: leaseId,
-			p_tenant_id: lease.primary_tenant_id,
-			p_amount: lease.rent_amount,
-			p_currency: lease.rent_currency || 'usd',
-			p_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
-			p_due_date: dueDateStr,
-			p_paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
-			p_period_start: periodStartStr,
-			p_period_end: periodEndStr,
-			p_payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
-			p_stripe_payment_intent_id: paymentIntent.id,
-			p_application_fee_amount: applicationFeeAmount
-		})
+		// Note: upsert_rent_payment is service_role-only, not in public types
+		const { data: upsertResult, error: upsertError } = await (client.rpc as CallableFunction)(
+			'upsert_rent_payment',
+			{
+				p_lease_id: leaseId,
+				p_tenant_id: lease.primary_tenant_id,
+				p_amount: lease.rent_amount,
+				p_currency: lease.rent_currency || 'usd',
+				p_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+				p_due_date: dueDateStr,
+				p_paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
+				p_period_start: periodStartStr,
+				p_period_end: periodEndStr,
+				p_payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
+				p_stripe_payment_intent_id: paymentIntent.id,
+				p_application_fee_amount: applicationFeeAmount
+			}
+		) as { data: { id: string; was_inserted: boolean }[] | null; error: Error | null }
 
 		if (upsertError) {
 			this.logger.error('Failed to record rent payment in database', {

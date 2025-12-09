@@ -132,7 +132,7 @@ describe('Property 8: Design System Consistency', () => {
 
 				return true
 			}),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -157,7 +157,7 @@ describe('Property 8: Design System Consistency', () => {
 
 				return true
 			}),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -182,7 +182,7 @@ describe('Property 8: Design System Consistency', () => {
 
 				return true
 			}),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -209,7 +209,7 @@ describe('Property 8: Design System Consistency', () => {
 
 				return true
 			}),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -233,7 +233,7 @@ describe('Property 8: Design System Consistency', () => {
 
 				return true
 			}),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 })

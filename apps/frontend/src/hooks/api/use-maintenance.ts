@@ -7,9 +7,9 @@
 import { apiRequest } from '#lib/api-request'
 
 import type {
-	CreateMaintenanceRequestInput,
-	UpdateMaintenanceRequestInput
-} from '@repo/shared/types/api-contracts'
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 import type { MaintenanceRequest, MaintenanceRequestWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -59,11 +59,11 @@ export function useMaintenanceRequest(id: string) {
 export function useMaintenanceStats() {
 	return useQuery(maintenanceQueries.stats())
 }
-export function useCreateMaintenanceRequestInput() {
+export function useMaintenanceRequestCreate() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (data: CreateMaintenanceRequestInput) =>
+		mutationFn: (data: MaintenanceRequestCreate) =>
 			apiRequest<MaintenanceRequest>('/api/v1/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(data)
@@ -92,10 +92,10 @@ export function useCreateMaintenanceRequestInput() {
 				actual_cost: null,
 				assigned_to: null,
 				completed_at: null,
-				inspection_date: newRequest.scheduledDate || null,
+				inspection_date: newRequest.scheduled_date || null,
 				inspection_findings: null,
 				inspector_id: null,
-				scheduled_date: newRequest.scheduledDate || null,
+				scheduled_date: newRequest.scheduled_date || null,
 				estimated_cost: newRequest.estimated_cost ?? null,
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
@@ -130,7 +130,7 @@ export function useCreateMaintenanceRequestInput() {
 /**
  * Hook to update maintenance request with optimistic update
  */
-export function useUpdateMaintenanceRequestInput() {
+export function useMaintenanceRequestUpdate() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
@@ -140,7 +140,7 @@ export function useUpdateMaintenanceRequestInput() {
 			version
 		}: {
 			id: string
-			data: UpdateMaintenanceRequestInput
+			data: MaintenanceRequestUpdate
 			version?: number
 		}): Promise<MaintenanceRequest> => {
 			return apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
@@ -164,7 +164,7 @@ export function useUpdateMaintenanceRequestInput() {
 					maintenanceQueries.detail(id).queryKey,
 					(old) =>
 						old
-							? incrementVersion(old, data)
+							? incrementVersion(old, data as Partial<MaintenanceRequestWithVersion>)
 							: undefined
 				)
 
@@ -175,7 +175,7 @@ export function useUpdateMaintenanceRequestInput() {
 						if (!old) return old
 						return old.map(m =>
 							m.id === id
-								? incrementVersion(m, data)
+								? incrementVersion(m, data as Partial<MaintenanceRequestWithVersion>)
 								: m
 						)
 					}
@@ -423,8 +423,8 @@ export function useCancelMaintenance() {
  * Note: DELETE operations now use React 19 useOptimistic with Server Actions
  */
 export function useMaintenanceOperations() {
-	const createRequest = useCreateMaintenanceRequestInput()
-	const updateRequest = useUpdateMaintenanceRequestInput()
+	const createRequest = useMaintenanceRequestCreate()
+	const updateRequest = useMaintenanceRequestUpdate()
 	const completeRequest = useCompleteMaintenance()
 	const cancelRequest = useCancelMaintenance()
 

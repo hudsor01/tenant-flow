@@ -7,30 +7,10 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
@@ -194,19 +174,27 @@ export type Database = {
           created_at: string | null
           docuseal_submission_id: string | null
           end_date: string
+          governing_state: string | null
           grace_period_days: number | null
           id: string
           late_fee_amount: number | null
           late_fee_days: number | null
+          lead_paint_disclosure_acknowledged: boolean | null
           lease_status: string
+          max_occupants: number | null
           owner_signature_ip: string | null
           owner_signature_method:
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at: string | null
           payment_day: number
+          pet_deposit: number | null
+          pet_rent: number | null
+          pets_allowed: boolean | null
           primary_tenant_id: string
+          property_built_before_1978: boolean | null
           property_owner_id: string | null
+          property_rules: string | null
           rent_amount: number
           rent_currency: string
           security_deposit: number
@@ -217,6 +205,7 @@ export type Database = {
           subscription_failure_reason: string | null
           subscription_last_attempt_at: string | null
           subscription_retry_count: number | null
+          tenant_responsible_utilities: string[] | null
           tenant_signature_ip: string | null
           tenant_signature_method:
             | Database["public"]["Enums"]["signature_method"]
@@ -224,25 +213,34 @@ export type Database = {
           tenant_signed_at: string | null
           unit_id: string
           updated_at: string | null
+          utilities_included: string[] | null
         }
         Insert: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date: string
+          governing_state?: string | null
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
+          lead_paint_disclosure_acknowledged?: boolean | null
           lease_status?: string
+          max_occupants?: number | null
           owner_signature_ip?: string | null
           owner_signature_method?:
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at?: string | null
           payment_day?: number
+          pet_deposit?: number | null
+          pet_rent?: number | null
+          pets_allowed?: boolean | null
           primary_tenant_id: string
+          property_built_before_1978?: boolean | null
           property_owner_id?: string | null
+          property_rules?: string | null
           rent_amount: number
           rent_currency?: string
           security_deposit: number
@@ -253,6 +251,7 @@ export type Database = {
           subscription_failure_reason?: string | null
           subscription_last_attempt_at?: string | null
           subscription_retry_count?: number | null
+          tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
           tenant_signature_method?:
             | Database["public"]["Enums"]["signature_method"]
@@ -260,25 +259,34 @@ export type Database = {
           tenant_signed_at?: string | null
           unit_id: string
           updated_at?: string | null
+          utilities_included?: string[] | null
         }
         Update: {
           auto_pay_enabled?: boolean | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
+          governing_state?: string | null
           grace_period_days?: number | null
           id?: string
           late_fee_amount?: number | null
           late_fee_days?: number | null
+          lead_paint_disclosure_acknowledged?: boolean | null
           lease_status?: string
+          max_occupants?: number | null
           owner_signature_ip?: string | null
           owner_signature_method?:
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at?: string | null
           payment_day?: number
+          pet_deposit?: number | null
+          pet_rent?: number | null
+          pets_allowed?: boolean | null
           primary_tenant_id?: string
+          property_built_before_1978?: boolean | null
           property_owner_id?: string | null
+          property_rules?: string | null
           rent_amount?: number
           rent_currency?: string
           security_deposit?: number
@@ -289,6 +297,7 @@ export type Database = {
           subscription_failure_reason?: string | null
           subscription_last_attempt_at?: string | null
           subscription_retry_count?: number | null
+          tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
           tenant_signature_method?:
             | Database["public"]["Enums"]["signature_method"]
@@ -296,6 +305,7 @@ export type Database = {
           tenant_signed_at?: string | null
           unit_id?: string
           updated_at?: string | null
+          utilities_included?: string[] | null
         }
         Relationships: [
           {
@@ -1644,7 +1654,82 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      pg_stat_monitor: {
+        Row: {
+          application_name: string | null
+          bucket: number | null
+          bucket_done: boolean | null
+          bucket_start_time: string | null
+          calls: number | null
+          client_ip: unknown
+          cmd_type: number | null
+          cmd_type_text: string | null
+          comments: string | null
+          cpu_sys_time: number | null
+          cpu_user_time: number | null
+          datname: string | null
+          dbid: unknown
+          elevel: number | null
+          jit_deform_count: number | null
+          jit_deform_time: number | null
+          jit_emission_count: number | null
+          jit_emission_time: number | null
+          jit_functions: number | null
+          jit_generation_time: number | null
+          jit_inlining_count: number | null
+          jit_inlining_time: number | null
+          jit_optimization_count: number | null
+          jit_optimization_time: number | null
+          local_blk_read_time: number | null
+          local_blk_write_time: number | null
+          local_blks_dirtied: number | null
+          local_blks_hit: number | null
+          local_blks_read: number | null
+          local_blks_written: number | null
+          max_exec_time: number | null
+          max_plan_time: number | null
+          mean_exec_time: number | null
+          mean_plan_time: number | null
+          message: string | null
+          min_exec_time: number | null
+          min_plan_time: number | null
+          minmax_stats_since: string | null
+          pgsm_query_id: number | null
+          planid: number | null
+          plans: number | null
+          query: string | null
+          query_plan: string | null
+          queryid: number | null
+          relations: string[] | null
+          resp_calls: string[] | null
+          rows: number | null
+          shared_blk_read_time: number | null
+          shared_blk_write_time: number | null
+          shared_blks_dirtied: number | null
+          shared_blks_hit: number | null
+          shared_blks_read: number | null
+          shared_blks_written: number | null
+          sqlcode: string | null
+          stats_since: string | null
+          stddev_exec_time: number | null
+          stddev_plan_time: number | null
+          temp_blk_read_time: number | null
+          temp_blk_write_time: number | null
+          temp_blks_read: number | null
+          temp_blks_written: number | null
+          top_query: string | null
+          top_queryid: number | null
+          toplevel: boolean | null
+          total_exec_time: number | null
+          total_plan_time: number | null
+          userid: unknown
+          username: string | null
+          wal_bytes: number | null
+          wal_fpi: number | null
+          wal_records: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       acquire_internal_event_lock: {
@@ -1655,6 +1740,18 @@ export type Database = {
         }
         Returns: {
           lock_acquired: boolean
+        }[]
+      }
+      acquire_webhook_event_lock_with_id: {
+        Args: {
+          p_event_type: string
+          p_external_id: string
+          p_raw_payload?: Json
+          p_webhook_source: string
+        }
+        Returns: {
+          lock_acquired: boolean
+          webhook_event_id: string
         }[]
       }
       activate_lease_with_pending_subscription: {
@@ -1673,6 +1770,7 @@ export type Database = {
         Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      decode_error_level: { Args: { elevel: number }; Returns: string }
       get_billing_insights: {
         Args: {
           end_date_param?: string
@@ -1681,6 +1779,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_cmd_type: { Args: { cmd_type: number }; Returns: string }
       get_current_property_owner_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
@@ -1689,6 +1788,7 @@ export type Database = {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
         Returns: Json
       }
+      get_histogram_timings: { Args: never; Returns: string }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
       get_metric_trend: {
         Args: { p_metric_name: string; p_period?: string; p_user_id: string }
@@ -1745,24 +1845,30 @@ export type Database = {
         }[]
       }
       health_check: { Args: never; Returns: Json }
-      record_processed_stripe_event_lock:
-        | {
-            Args: { p_stripe_event_id: string }
-            Returns: {
-              success: boolean
-            }[]
-          }
-        | {
-            Args: {
-              p_event_type: string
-              p_processed_at: string
-              p_status?: string
-              p_stripe_event_id: string
-            }
-            Returns: {
-              lock_acquired: boolean
-            }[]
-          }
+      histogram: {
+        Args: { _bucket: number; _quryid: number }
+        Returns: Record<string, unknown>[]
+      }
+      parse_address: { Args: { "": string }; Returns: Record<string, unknown> }
+      pg_stat_monitor_internal: {
+        Args: { showtext: boolean }
+        Returns: Record<string, unknown>[]
+      }
+      pg_stat_monitor_reset: { Args: never; Returns: undefined }
+      pg_stat_monitor_version: { Args: never; Returns: string }
+      pgsm_create_11_view: { Args: never; Returns: number }
+      pgsm_create_13_view: { Args: never; Returns: number }
+      pgsm_create_14_view: { Args: never; Returns: number }
+      pgsm_create_15_view: { Args: never; Returns: number }
+      pgsm_create_17_view: { Args: never; Returns: number }
+      pgsm_create_view: { Args: never; Returns: number }
+      range: { Args: never; Returns: string[] }
+      record_processed_stripe_event_lock: {
+        Args: { p_stripe_event_id: string }
+        Returns: {
+          success: boolean
+        }[]
+      }
       sign_lease_and_check_activation: {
         Args: {
           p_lease_id: string
@@ -1777,39 +1883,39 @@ export type Database = {
           success: boolean
         }[]
       }
+      standardize_address:
+        | {
+            Args: {
+              address: string
+              gaztab: string
+              lextab: string
+              rultab: string
+            }
+            Returns: Database["public"]["CompositeTypes"]["stdaddr"]
+            SetofOptions: {
+              from: "*"
+              to: "stdaddr"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              gaztab: string
+              lextab: string
+              macro: string
+              micro: string
+              rultab: string
+            }
+            Returns: Database["public"]["CompositeTypes"]["stdaddr"]
+            SetofOptions: {
+              from: "*"
+              to: "stdaddr"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       user_is_tenant: { Args: never; Returns: boolean }
-      acquire_webhook_event_lock_with_id: {
-        Args: {
-          p_webhook_source: string
-          p_external_id: string
-          p_event_type: string
-          p_raw_payload?: Json
-        }
-        Returns: {
-          lock_acquired: boolean
-          webhook_event_id: string
-        }[]
-      }
-      upsert_rent_payment: {
-        Args: {
-          p_lease_id: string
-          p_tenant_id: string
-          p_amount: number
-          p_currency: string
-          p_status: string
-          p_due_date: string
-          p_paid_date: string | null
-          p_period_start: string
-          p_period_end: string
-          p_payment_method_type: string
-          p_stripe_payment_intent_id: string
-          p_application_fee_amount?: number
-        }
-        Returns: {
-          id: string
-          was_inserted: boolean
-        }[]
-      }
     }
     Enums: {
       invitation_type: "platform_access" | "lease_signing"
@@ -1817,7 +1923,24 @@ export type Database = {
       stripe_subscription_status: "none" | "pending" | "active" | "failed"
     }
     CompositeTypes: {
-      [_ in never]: never
+      stdaddr: {
+        building: string | null
+        house_num: string | null
+        predir: string | null
+        qual: string | null
+        pretype: string | null
+        name: string | null
+        suftype: string | null
+        sufdir: string | null
+        ruralroute: string | null
+        extra: string | null
+        city: string | null
+        state: string | null
+        country: string | null
+        postcode: string | null
+        box: string | null
+        unit: string | null
+      }
     }
   }
 }
@@ -1940,9 +2063,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       invitation_type: ["platform_access", "lease_signing"],
