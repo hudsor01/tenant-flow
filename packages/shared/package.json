@@ -64,12 +64,12 @@
 	"devDependencies": {
 		"@types/express": "^5.0.5",
 		"@types/node": "catalog:default",
-		"@types/react": "catalog:default",
-		"@types/react-dom": "catalog:default",
+		"@types/react": "19.2.7",
+		"@types/react-dom": "19.2.3",
 		"eslint": "catalog:default",
 		"rimraf": "^6.1.0",
 		"supazod": "4.1.0",
 		"tslib": "2.8.1",
-		"typescript": "catalog:default"
+		"typescript": "^5.9.3"
 	}
 }
