@@ -16,14 +16,14 @@ import '../../(owner)/dashboard.css'
  * - Mobile (<md): Hides sidebar, shows bottom navigation bar
  */
 export default function TenantLayout({
-children,
-modal
+	children,
+	modal
 }: {
-children: ReactNode
-modal?: ReactNode
+	children: ReactNode
+	modal?: ReactNode
 }) {
 	return (
-<ServerSidebarProvider
+		<ServerSidebarProvider
 			style={{
 				'--sidebar-width': 'calc(var(--spacing) * 72)',
 				'--header-height': 'calc(var(--spacing) * 12)'
