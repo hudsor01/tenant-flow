@@ -1,11 +1,21 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import Image from 'next/image'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { usePropertyImages, useDeletePropertyImageMutation } from '#hooks/api/mutations/property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
@@ -22,15 +32,14 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 	const { data: images, isLoading } = usePropertyImages(propertyId)
 	const deleteMutation = useDeletePropertyImageMutation()
 
+	// State for delete confirmation dialog
+	const [deleteTarget, setDeleteTarget] = useState<{ imageId: string; imageUrl: string } | null>(null)
+
 	// Use nuqs hook for URL state management
 	const { isOpen: lightboxOpen, currentIndex: lightboxIndex, open: _openLightbox, close: closeLightbox, goToImage } = useLightboxState(0)
 
-	const handleDelete = useCallback(
+	const executeDelete = useCallback(
 		async (imageId: string, imageUrl: string) => {
-			if (!confirm('Delete this image? This action cannot be undone.')) {
-				return
-			}
-
 			// Extract storage path from URL (e.g., "property_id/filename.webp")
 			let imagePath: string | undefined
 			try {
@@ -61,6 +70,17 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 		},
 		[deleteMutation, propertyId]
 	)
+
+	const handleDeleteClick = (imageId: string, imageUrl: string) => {
+		setDeleteTarget({ imageId, imageUrl })
+	}
+
+	const handleDeleteConfirm = async () => {
+		if (deleteTarget) {
+			await executeDelete(deleteTarget.imageId, deleteTarget.imageUrl)
+			setDeleteTarget(null)
+		}
+	}
 
 	// Loading state
 	if (isLoading) {
@@ -124,7 +144,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 									className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
 									onClick={(e) => {
 										e.stopPropagation()
-										handleDelete(image.id, image.image_url)
+										handleDeleteClick(image.id, image.image_url)
 									}}
 									disabled={deleteMutation.isPending}
 									aria-label="Delete image"
@@ -163,6 +183,27 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 				onClose={closeLightbox}
 				onIndexChange={(idx) => goToImage(idx)}
 			/>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Image</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete this image? This action cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={handleDeleteConfirm}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</>
 	)
 }
