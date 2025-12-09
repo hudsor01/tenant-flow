@@ -97,7 +97,7 @@ WORKDIR /app
 ENV PNPM_HOME=/root/.local/share/pnpm \
     NODE_ENV=production \
     DOCKER_CONTAINER=true \
-    NODE_OPTIONS="--enable-source-maps --max-old-space-size=512" \
+    NODE_OPTIONS="--enable-source-maps --max-old-space-size=1024" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
     PATH=/root/.local/share/pnpm:$PATH \
