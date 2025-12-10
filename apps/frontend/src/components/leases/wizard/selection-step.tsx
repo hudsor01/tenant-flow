@@ -5,6 +5,7 @@
  * Property, Unit, and Tenant selection with cascading filters
  */
 import { useQuery } from '@tanstack/react-query'
+import { getApiBaseUrl } from '#lib/api-config'
 import { Label } from '#components/ui/label'
 import {
 	Select,
@@ -46,10 +47,10 @@ interface Tenant {
 
 export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	// Fetch properties
-	const { data: properties, isLoading: propertiesLoading } = useQuery({
+	const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
 		queryKey: ['properties', 'list', token],
 		queryFn: async () => {
-			const res = await fetch('/api/v1/properties', {
+			const res = await fetch(`${getApiBaseUrl()}/api/v1/properties`, {
 				headers: { Authorization: `Bearer ${token}` }
 			})
 			if (!res.ok) throw new Error('Failed to fetch properties')
@@ -60,10 +61,10 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	})
 
 	// Fetch units filtered by selected property
-	const { data: units, isLoading: unitsLoading } = useQuery({
+	const { data: units, isLoading: unitsLoading, error: unitsError } = useQuery({
 		queryKey: ['units', 'list', data.property_id, token],
 		queryFn: async () => {
-			const res = await fetch(`/api/v1/units?property_id=${data.property_id}`, {
+			const res = await fetch(`${getApiBaseUrl()}/api/v1/units?property_id=${data.property_id}`, {
 				headers: { Authorization: `Bearer ${token}` }
 			})
 			if (!res.ok) throw new Error('Failed to fetch units')
@@ -74,10 +75,10 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	})
 
 	// Fetch tenants (all tenants for now, filtering by availability can be added)
-	const { data: tenants, isLoading: tenantsLoading } = useQuery({
+	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
 		queryKey: ['tenants', 'list', token],
 		queryFn: async () => {
-			const res = await fetch('/api/v1/tenants', {
+			const res = await fetch(`${getApiBaseUrl()}/api/v1/tenants`, {
 				headers: { Authorization: `Bearer ${token}` }
 			})
 			if (!res.ok) throw new Error('Failed to fetch tenants')
@@ -128,6 +129,11 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 					<Label htmlFor="property">Property *</Label>
 					{propertiesLoading ? (
 						<Skeleton className="h-10 w-full" />
+					) : propertiesError ? (
+						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+							<AlertCircle className="h-4 w-4" />
+							Failed to load properties: {propertiesError.message}
+						</div>
 					) : (
 						<Select
 							value={data.property_id || ''}
@@ -157,6 +163,11 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 						</div>
 					) : unitsLoading ? (
 						<Skeleton className="h-10 w-full" />
+					) : unitsError ? (
+						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+							<AlertCircle className="h-4 w-4" />
+							Failed to load units: {unitsError.message}
+						</div>
 					) : units?.length === 0 ? (
 						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
 							<AlertCircle className="h-4 w-4" />
@@ -183,6 +194,11 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 					<Label htmlFor="tenant">Primary Tenant *</Label>
 					{tenantsLoading ? (
 						<Skeleton className="h-10 w-full" />
+					) : tenantsError ? (
+						<div className="flex items-center gap-2 text-destructive text-sm p-3 bg-destructive/10 rounded-md">
+							<AlertCircle className="h-4 w-4" />
+							Failed to load tenants: {tenantsError.message}
+						</div>
 					) : tenants?.length === 0 ? (
 						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
 							<AlertCircle className="h-4 w-4" />
