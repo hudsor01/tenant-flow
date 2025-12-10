@@ -1,6 +1,5 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Frontend - Next.js 16 + React 19.2",
 	"extends": "../../packages/typescript-config/next.json",
 	"compilerOptions": {
 		"baseUrl": ".",
@@ -9,7 +8,6 @@
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
 			"#contexts/*": ["./src/contexts/*"],
-			"#design-system/*": ["./src/design-system/*"],
 			"#lib/*": ["./src/lib/*"],
 			"#hooks/*": ["./src/hooks/*"],
 			"#stores/*": ["./src/stores/*"],
@@ -34,7 +32,6 @@
 		".next/dev/types/**/*.ts",
 		"playwright.config.ts",
 		"next.config.ts",
-		"middleware.ts",
 		"proxy.ts"
 	],
 	"exclude": [

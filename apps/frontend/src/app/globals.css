@@ -1046,17 +1046,23 @@
 
 
 @utility touch-card {
-	@apply touch-card;
+	min-height: 44px;
+	touch-action: manipulation;
 }
 
 
 @utility touch-button {
-	@apply touch-card min-w-[44px];
+	min-height: 44px;
+	min-width: 44px;
+	touch-action: manipulation;
 }
 
 
 @utility touch-interactive {
-	@apply touch-card py-3 px-4;
+	min-height: 44px;
+	touch-action: manipulation;
+	padding-block: 0.75rem;
+	padding-inline: 1rem;
 }
 
 

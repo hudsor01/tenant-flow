@@ -15,6 +15,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { getApiBaseUrl } from '#lib/api-config'
 
 const logger = createLogger({ component: 'UseSubscriptionStatus' })
 
@@ -40,7 +41,7 @@ export function useSubscriptionStatus(
     queryKey: ['subscription-status'],
     queryFn: async () => {
       try {
-        const response = await fetch('/api/v1/stripe/subscription-status', {
+        const response = await fetch(`${getApiBaseUrl()}/api/v1/stripe/subscription-status`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'

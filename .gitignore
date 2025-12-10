@@ -27,6 +27,7 @@ doppler.env
 **/lease-documents/**/*.pdf
 apps/backend/assets/generated-*.pdf
 *.pdf
+!.github/copilot-instructions.md
 *.md
 
 # Local environment files

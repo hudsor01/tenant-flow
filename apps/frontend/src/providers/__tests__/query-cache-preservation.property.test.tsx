@@ -118,28 +118,27 @@ describe('Property 4: Data Cache Preservation', () => {
 	it('should allow cache invalidation without affecting other queries', () => {
 		fc.assert(
 			fc.property(
-				// Generate multiple query keys
-				fc.array(
-					fc.array(fc.string({ minLength: 1, maxLength: 20 }), {
-						minLength: 1,
-						maxLength: 2
-					}),
-					{ minLength: 2, maxLength: 5 }
-				),
+				// Generate multiple unique query keys using alphanumeric strings and unique index
+				fc.array(fc.integer({ min: 0, max: 1000 }), {
+					minLength: 2,
+					maxLength: 5
+				}),
 				// Generate data for each key
 				fc.array(fc.record({ value: fc.integer() }), {
 					minLength: 2,
 					maxLength: 5
 				}),
-				(queryKeys, dataArray) => {
-					// Ensure we have at least 2 keys
-					if (queryKeys.length < 2 || dataArray.length < 2) return
+				(keyIndices, dataArray) => {
+					// Clear cache for clean state
+					queryClient.clear()
 
-					// Ensure we have matching arrays
-					const keys = queryKeys.slice(
-						0,
-						Math.min(queryKeys.length, dataArray.length)
-					)
+					// Ensure we have at least 2 keys
+					if (keyIndices.length < 2 || dataArray.length < 2) return
+
+					// Create unique query keys by using index as part of key
+					const keys = keyIndices
+						.slice(0, Math.min(keyIndices.length, dataArray.length))
+						.map((idx, i) => [`query-${i}-${idx}`])
 
 					// Set data for all keys
 					keys.forEach((key, index) => {

@@ -158,11 +158,12 @@ export class LeaseSignatureService {
 		}
 
 		// Step 4: Get owner and tenant details for DocuSeal (parallel queries for performance)
+		// Note: lease.property_owner_id is the property_owners table ID, not auth.users.id
 		const [{ data: owner }, { data: tenant }] = await Promise.all([
 			client
 				.from('property_owners')
 				.select('id, user_id')
-				.eq('id', ownerId)
+				.eq('id', lease.property_owner_id)
 				.single(),
 			client
 				.from('tenants')
@@ -298,8 +299,10 @@ export class LeaseSignatureService {
 			.eq('id', leaseId)
 
 		if (updateError) {
-			this.logger.error('Failed to update lease status', {
-				error: updateError.message
+			this.logger.error('Failed to update lease status to pending_signature', {
+				error: updateError.message,
+				leaseId,
+				ownerId
 			})
 			throw new BadRequestException(
 				LEASE_SIGNATURE_ERROR_MESSAGES[

@@ -64,6 +64,26 @@ describe('LeaseLifecycleService', () => {
 			).rejects.toThrow(BadRequestException)
 		})
 
+		it('throws BadRequestException when lease is not active', async () => {
+			const draftLease = { ...mockLease, lease_status: 'draft' }
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(draftLease))
+
+			await expect(
+				service.renew(mockToken, 'lease-id', '2025-12-31')
+			).rejects.toThrow("Cannot renew lease in 'draft' status. Only active leases can be renewed.")
+		})
+
+		it('throws BadRequestException when lease is pending_signature', async () => {
+			const pendingLease = { ...mockLease, lease_status: 'pending_signature' }
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(pendingLease))
+
+			await expect(
+				service.renew(mockToken, 'lease-id', '2025-12-31')
+			).rejects.toThrow("Cannot renew lease in 'pending_signature' status. Only active leases can be renewed.")
+		})
+
 		it('throws BadRequestException for month-to-month lease (no end_date)', async () => {
 			const monthToMonthLease = { ...mockLease, end_date: null }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
@@ -147,6 +167,17 @@ describe('LeaseLifecycleService', () => {
 			).rejects.toThrow('Termination date cannot be in the past')
 		})
 
+		it('throws BadRequestException when lease is draft', async () => {
+			const draftLease = { ...mockLease, lease_status: 'draft' }
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(draftLease))
+
+			const futureDate = new Date(Date.now() + 86400000).toISOString()
+			await expect(
+				service.terminate(mockToken, 'lease-id', futureDate)
+			).rejects.toThrow('Draft leases cannot be terminated. Delete the lease instead.')
+		})
+
 		it('throws BadRequestException when lease is already terminated', async () => {
 			const terminatedLease = { ...mockLease, lease_status: 'terminated' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
@@ -155,7 +186,7 @@ describe('LeaseLifecycleService', () => {
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
 				service.terminate(mockToken, 'lease-id', futureDate)
-			).rejects.toThrow('Lease is already terminated or expired')
+			).rejects.toThrow('Lease is already terminated and cannot be terminated')
 		})
 
 		it('throws BadRequestException when lease is already ended', async () => {
@@ -166,7 +197,7 @@ describe('LeaseLifecycleService', () => {
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
 				service.terminate(mockToken, 'lease-id', futureDate)
-			).rejects.toThrow('Lease is already terminated or expired')
+			).rejects.toThrow('Lease is already ended and cannot be terminated')
 		})
 
 		it('terminates lease successfully', async () => {

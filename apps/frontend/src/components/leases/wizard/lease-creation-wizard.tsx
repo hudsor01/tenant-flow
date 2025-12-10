@@ -22,6 +22,7 @@ import {
 } from '#components/ui/stepper'
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react'
 import { cn } from '#lib/utils'
+import { getApiBaseUrl } from '#lib/api-config'
 
 import { SelectionStep } from './selection-step'
 import { TermsStep } from './terms-step'
@@ -87,7 +88,7 @@ export function LeaseCreationWizard({
 		queryKey: ['property', selectionData.property_id, token],
 		queryFn: async () => {
 			const res = await fetch(
-				`/api/v1/properties/${selectionData.property_id}`,
+				`${getApiBaseUrl()}/api/v1/properties/${selectionData.property_id}`,
 				{
 					headers: { Authorization: `Bearer ${token}` }
 				}
@@ -101,7 +102,7 @@ export function LeaseCreationWizard({
 	const { data: unitData } = useQuery({
 		queryKey: ['unit', selectionData.unit_id, token],
 		queryFn: async () => {
-			const res = await fetch(`/api/v1/units/${selectionData.unit_id}`, {
+			const res = await fetch(`${getApiBaseUrl()}/api/v1/units/${selectionData.unit_id}`, {
 				headers: { Authorization: `Bearer ${token}` }
 			})
 			if (!res.ok) return null
@@ -114,7 +115,7 @@ export function LeaseCreationWizard({
 		queryKey: ['tenant', selectionData.primary_tenant_id, token],
 		queryFn: async () => {
 			const res = await fetch(
-				`/api/v1/tenants/${selectionData.primary_tenant_id}`,
+				`${getApiBaseUrl()}/api/v1/tenants/${selectionData.primary_tenant_id}`,
 				{
 					headers: { Authorization: `Bearer ${token}` }
 				}
@@ -136,7 +137,7 @@ export function LeaseCreationWizard({
 				rent_currency: 'USD'
 			}
 
-			const res = await fetch('/api/v1/leases', {
+			const res = await fetch(`${getApiBaseUrl()}/api/v1/leases`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
