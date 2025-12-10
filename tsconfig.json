@@ -28,7 +28,8 @@
       "#types/*": ["./apps/frontend/src/types/*"],
       "#providers/*": ["./apps/frontend/src/providers/*"],
       "#test/*": ["./apps/frontend/src/test/*"],
-      "#config/*": ["./apps/frontend/src/config/*"]
+      "#config/*": ["./apps/frontend/src/config/*"],
+      "#utils/*": ["./apps/frontend/src/utils/*"]
     }
   },
   "include": [
