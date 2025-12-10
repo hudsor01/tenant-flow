@@ -28,11 +28,25 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 	const dollarsToCents = (dollars: string) => {
 		// Allow empty string
 		if (!dollars || dollars.trim() === '') return 0
-		// Remove any non-numeric characters except decimal point
+		// Remove any non-numeric characters except decimal point, then handle multiple decimals
 		const cleaned = dollars.replace(/[^\d.]/g, '')
-		const num = parseFloat(cleaned)
-		if (isNaN(num)) return 0
-		return Math.round(num * 100)
+		// Only keep first decimal point
+		const parts = cleaned.split('.')
+		const normalized = parts.length > 1 ? `${parts[0]}.${parts.slice(1).join('')}` : cleaned
+		const num = parseFloat(normalized)
+		if (isNaN(num) || num < 0) return 0
+		// Cap at reasonable maximum ($1,000,000)
+		const capped = Math.min(num, 1000000)
+		return Math.round(capped * 100)
+	}
+
+	// Parse integer with min/max bounds
+	const parseIntBounded = (value: string, min: number, max: number, fallback: number) => {
+		if (!value || value.trim() === '') return fallback
+		const cleaned = value.replace(/[^\d]/g, '')
+		const num = parseInt(cleaned, 10)
+		if (isNaN(num)) return fallback
+		return Math.max(min, Math.min(max, num))
 	}
 
 	return (
@@ -109,13 +123,12 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Label htmlFor="payment_day">Rent Due Day *</Label>
 						<Input
 							id="payment_day"
-							type="number"
-							min="1"
-							max="31"
+							type="text"
+							inputMode="numeric"
 							placeholder="1"
 							value={data.payment_day || ''}
 							onChange={e =>
-								handleChange('payment_day', parseInt(e.target.value, 10) || 1)
+								handleChange('payment_day', parseIntBounded(e.target.value, 1, 31, 1))
 							}
 						/>
 						<p className="text-xs text-muted-foreground">Day of month (1-31)</p>
@@ -124,15 +137,14 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Label htmlFor="grace_period_days">Grace Period (days)</Label>
 						<Input
 							id="grace_period_days"
-							type="number"
-							min="0"
-							max="30"
+							type="text"
+							inputMode="numeric"
 							placeholder="3"
 							value={data.grace_period_days ?? ''}
 							onChange={e =>
 								handleChange(
 									'grace_period_days',
-									parseInt(e.target.value, 10) || 0
+									parseIntBounded(e.target.value, 0, 30, 0)
 								)
 							}
 						/>
