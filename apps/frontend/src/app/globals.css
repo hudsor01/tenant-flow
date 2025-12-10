@@ -1,19 +1,16 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
-@source "../../../apps/**/*.{ts,tsx}";
-@source "../../../components/**/*.{ts,tsx}";
-@source "../**/*.{ts,tsx}";
+@source "../../../apps*.{ts,tsx}";
+@source "../../../components*.{ts,tsx}";
+@source "..*.{ts,tsx}";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-	/* === FONTS (--font-*) === */
 	--font-sans: var(--font-spline), system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 	--font-display: var(--font-spline);
 	--font-mono: var(--font-mono), ui-monospace, monospace;
-
-	/* === TEXT SIZES (--text-*) === */
 	--text-display-2xl: 4.5rem;
 	--text-display-xl: 3.75rem;
 	--text-display-lg: 3rem;
@@ -28,8 +25,6 @@
 	--text-3xl: 1.875rem;
 	--text-4xl: 2.25rem;
 	--text-5xl: 3rem;
-
-	/* Responsive typography */
 	--text-responsive-display-2xl: clamp(2.5rem, 6vw, 4.5rem);
 	--text-responsive-display-xl: clamp(2.25rem, 5vw, 3.75rem);
 	--text-responsive-display-lg: clamp(1.875rem, 4vw, 3rem);
@@ -41,8 +36,6 @@
 	--text-responsive-h4: clamp(0.8125rem, 1.5vw, 0.9375rem);
 	--text-responsive-body: clamp(0.8125rem, 1.5vw, 0.8125rem);
 	--text-responsive-caption: clamp(0.5625rem, 0.8vw, 0.625rem);
-
-	/* === LINE HEIGHTS (--leading-*) === */
 	--leading-display-2xl: 1.1;
 	--leading-display-xl: 1.15;
 	--leading-display-lg: 1.2;
@@ -56,17 +49,12 @@
 	--leading-normal: 1.5;
 	--leading-relaxed: 1.625;
 	--leading-loose: 2;
-
-	/* === LETTER SPACING (--tracking-*) === */
 	--tracking-display-2xl: -0.025em;
 	--tracking-display-xl: -0.02em;
 	--tracking-display-lg: -0.015em;
 	--tracking-display-md: -0.01em;
 	--tracking-display-sm: -0.005em;
 	--tracking-caption: 0.01em;
-
-	/* === COLORS (--color-*) === */
-	/* Slate palette */
 	--color-slate-50: oklch(0.984 0.003 247.858);
 	--color-slate-100: oklch(0.968 0.007 247.896);
 	--color-slate-200: oklch(0.929 0.013 255.508);
@@ -78,25 +66,18 @@
 	--color-slate-800: oklch(0.279 0.041 260.031);
 	--color-slate-900: oklch(0.208 0.042 265.755);
 	--color-slate-950: oklch(0.129 0.042 264.695);
-
-
-	/* Label colors */
 	--color-label-primary: oklch(0 0 0 / 85%);
 	--color-label-secondary: oklch(0 0 0 / 50%);
 	--color-label-tertiary: oklch(0 0 0 / 35%);
 	--color-label-quaternary: oklch(0 0 0 / 20%);
 	--color-label-on-dark: oklch(1 0 0 / 90%);
 	--color-label-on-dark-secondary: oklch(1 0 0 / 60%);
-
-	/* Fill colors */
 	--color-fill-primary: oklch(0 0 0 / 6%);
 	--color-fill-secondary: oklch(0 0 0 / 10%);
 	--color-fill-tertiary: oklch(0 0 0 / 14%);
 	--color-fill-quaternary: oklch(0 0 0 / 18%);
 	--color-fill-muted: oklch(0 0 0 / 4%);
 	--color-separator: oklch(0.31 0 0 / 29%);
-
-	/* Semantic colors - Light mode */
 	--color-background: oklch(0.985 0.002 240);
 	--color-foreground: oklch(0.2 0.02 245);
 	--color-muted: oklch(0.94 0.01 240);
@@ -125,8 +106,6 @@
 	--color-warning-foreground: oklch(0.25 0.03 85);
 	--color-info: oklch(0.62 0.19 240);
 	--color-info-foreground: oklch(0.18 0.02 240);
-
-	/* Sidebar colors - inherit from main tokens */
 	--color-sidebar: var(--color-background);
 	--color-sidebar-foreground: var(--color-foreground);
 	--color-sidebar-primary: var(--color-primary);
@@ -135,15 +114,11 @@
 	--color-sidebar-accent-foreground: var(--color-accent-foreground);
 	--color-sidebar-border: var(--color-border);
 	--color-sidebar-ring: var(--color-ring);
-
-	/* Chart colors */
 	--color-chart-1: oklch(0.63 0.22 259);
 	--color-chart-2: oklch(0.7 0.18 180);
 	--color-chart-3: oklch(0.72 0.16 85);
 	--color-chart-4: oklch(0.65 0.18 20);
 	--color-chart-5: oklch(0.58 0.2 320);
-
-	/* === SPACING (--spacing-*) === */
 	--spacing: 0.25rem;
 	--spacing-0: 0rem;
 	--spacing-px: 1px;
@@ -182,15 +157,11 @@
 	--spacing-80: 20rem;
 	--spacing-96: 24rem;
 	--spacing-container-inline: clamp(1.5rem, 4vw, 3rem);
-
-	/* Responsive spacing */
 	--spacing-responsive-xs: clamp(0.25rem, 1vw, 0.5rem);
 	--spacing-responsive-sm: clamp(0.375rem, 1.5vw, 0.75rem);
 	--spacing-responsive-md: clamp(0.5rem, 2vw, 1rem);
 	--spacing-responsive-lg: clamp(0.75rem, 3vw, 1.5rem);
 	--spacing-responsive-xl: clamp(1rem, 4vw, 2rem);
-
-	/* === RADIUS (--radius-*) === */
 	--radius: 0.5rem;
 	--radius-sm: 4px;
 	--radius-md: 8px;
@@ -198,15 +169,11 @@
 	--radius-xl: 16px;
 	--radius-2xl: 24px;
 	--radius-full: 9999px;
-
-	/* === SHADOWS (--shadow-*) === */
 	--shadow-sm: 0 1px 2px 0 oklch(0.15 0.02 250 / 0.05);
 	--shadow-md: 0 4px 6px -1px oklch(0.15 0.02 250 / 0.1), 0 2px 4px -2px oklch(0.15 0.02 250 / 0.1);
 	--shadow-lg: 0 10px 15px -3px oklch(0.15 0.02 250 / 0.1), 0 4px 6px -4px oklch(0.15 0.02 250 / 0.1);
 	--shadow-xl: 0 20px 25px -5px oklch(0.15 0.02 250 / 0.1), 0 8px 10px -6px oklch(0.15 0.02 250 / 0.1);
 	--shadow-2xl: 0 25px 50px -12px oklch(0.15 0.02 250 / 0.25);
-
-	/* === ANIMATION (--duration-*, --ease-*) === */
 	--duration-75: 75ms;
 	--duration-100: 100ms;
 	--duration-150: 150ms;
@@ -225,13 +192,9 @@
 	--ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 	--ease-in-smooth: cubic-bezier(0.7, 0, 0.84, 0);
 	--ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-
-	/* === LAYOUT (--width-*, --max-width-*) === */
 	--width-full: 100%;
 	--max-width-2xl: 42rem;
 	--max-width-3xl: 48rem;
-
-	/* === Z-INDEX (--z-index-*) === */
 	--z-index-toast: 9999;
 	--z-index-modal: 1300;
 	--z-index-modal-backdrop: 1200;
@@ -239,7 +202,6 @@
 
 @layer base {
 	:root {
-		/* Component tokens (non-utility CSS variables) */
 		--font-family: var(--font-sans);
 		--font-weight-thin: 100;
 		--font-weight-extralight: 200;
@@ -250,74 +212,44 @@
 		--font-weight-bold: 700;
 		--font-weight-extrabold: 800;
 		--font-weight-black: 900;
-
-		/* Icon sizes */
 		--icon-xs: 0.75rem;
 		--icon-sm: 0.875rem;
 		--icon-md: 1rem;
 		--icon-lg: 1.25rem;
 		--icon-xl: 1.5rem;
 		--icon-2xl: 2rem;
-
-		/* Touch targets */
 		--touch-target-min: 2.75rem;
 		--touch-target-padding: clamp(0.75rem, 2vw, 1rem);
 		--touch-target-gap: clamp(0.5rem, 1.5vw, 0.75rem);
-
-		/* Container spacing */
 		--section-spacing-responsive: clamp(2rem, 8vh, 6rem);
-
-		/* Glass effects */
 		--glass-material: oklch(1 0 0 / 0.8);
 		--glass-border: oklch(0.9 0.005 240 / 0.5);
 		--glass-shadow: 0 20px 60px oklch(0.15 0.02 250 / 0.25);
 		--glass-blur: 10px;
-
-		/* Focus ring */
 		--focus-ring-color: var(--color-ring);
-
-		/* Hover/interaction tokens */
 		--scale-hover: 1.05;
 		--scale-tap: 0.95;
 		--translate-hover-x: 4px;
 		--translate-hover-y: -1px;
 		--translate-slide-y: 20px;
-
-		/* Transition presets */
 		--transition-card: all 500ms var(--ease-out);
 		--transition-hover: all 200ms var(--ease-out);
 		--transition-quick: all 150ms var(--ease-out);
 		--transition-color: color 180ms var(--ease-out), background 200ms var(--ease-out);
 		--transform-lift: translateY(-2px);
 		--transform-scale-hover: scale(1.02);
-
-		/* Hover effects */
 		--hover-border-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
-
-		/* Sidebar */
 		--sidebar-transition: width 200ms ease-linear;
 		--sidebar-width-icon: 3rem;
 		--sidebar-width: 16rem;
-
-		/* Feature card effects */
 		--feature-card-hover-bg: color-mix(in oklch, var(--color-card) 95%, transparent);
 		--feature-card-icon-hover: scale(1.05);
-
-		/* Navbar button effects */
 		--navbar-btn-hover-bg: color-mix(in oklch, var(--color-primary) 5%, transparent);
 		--navbar-btn-hover-text: var(--color-primary);
-
-		/* Lightbox navigation */
 		--lightbox-nav-bg: oklch(0 0 0 / 0.5);
 		--lightbox-nav-hover-bg: oklch(0 0 0 / 0.7);
-
-		/* Pricing card effects */
-
-		/* Portal feature grid */
 		--portal-feature-hover: scale(1.05) rotate(1deg);
 		--portal-feature-transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
-
-		/* Layout tokens */
 		--layout-section-padding-y: var(--spacing-20);
 		--layout-section-padding-y-compact: var(--spacing-12);
 		--layout-section-padding-y-spacious: var(--spacing-24);
@@ -343,8 +275,6 @@
 		--layout-navbar-height: var(--spacing-16);
 		--layout-navbar-spacing: var(--spacing-32);
 	}
-
-	/* box-sizing and border resets provided by Tailwind preflight */
 
 	html {
 		tab-size: 4;
@@ -511,7 +441,7 @@
 		opacity: 1;
 	}
 
-	/* img/video max-width and height:auto provided by Tailwind preflight */
+
 
 	table {
 		border-collapse: collapse;
@@ -588,7 +518,7 @@
 }
 
 
-/* === UTILITIES (using @utility directive for v4 variant support) === */
+
 
 @utility hero-highlight {
 	position: relative;
@@ -597,7 +527,7 @@
 	font-weight: var(--font-weight-semibold);
 }
 
-/* Hero highlight underline effect */
+
 .hero-highlight::after {
 	content: '';
 	position: absolute;
@@ -610,7 +540,7 @@
 	opacity: 0.65;
 }
 
-/*/* Status Color Classes (semantic utilities for global consistency) */
+
 @utility status-active {
 	color: var(--color-success);
 	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
@@ -645,7 +575,7 @@
 	background-color: color-mix(in oklch, var(--color-destructive) 10%, transparent);
 }
 
-/* Activity Type Classes (semantic utilities for global consistency) */
+
 @utility activity-payment {
 	color: var(--color-success);
 	background-color: color-mix(in oklch, var(--color-success) 10%, transparent);
@@ -671,7 +601,7 @@
 	background-color: color-mix(in oklch, var(--color-warning) 10%, transparent);
 }
 
-/* Animation Utilities */
+
 @utility animate-fade-in {
 	animation: fade-in 300ms ease-in-out;
 }
@@ -688,7 +618,7 @@
 	animation: scale-in 200ms ease-out;
 }
 
-/* Dashboard Widget Card */
+
 @utility dashboard-widget-card {
 	position: relative;
 	overflow: hidden;
@@ -705,7 +635,7 @@
 	border-color: var(--color-ring);
 }
 
-/* Professional Stat Card */
+
 @utility stat-card-professional {
 	background: var(--color-card);
 	border: 1px solid var(--color-border);
@@ -720,7 +650,7 @@
 	border-color: var(--color-ring);
 }
 
-/* Status Badge Classes (semantic utilities for consistent badge styling) */
+
 @utility status-badge {
 	display: inline-flex;
 	align-items: center;
@@ -752,7 +682,7 @@
 	border: 1px solid color-mix(in oklch, var(--color-destructive) 20%, transparent);
 }
 
-/* Icon Background Classes (semantic utilities for consistent icon containers) */
+
 @utility icon-bg-success {
 	background: color-mix(in oklch, var(--color-success) 10%, transparent);
 	color: var(--color-success);
@@ -773,7 +703,6 @@
 	color: var(--color-primary);
 }
 
-/* Responsive Typography Utilities */
 @utility text-responsive-display-2xl {
 	font-size: var(--text-responsive-display-2xl);
 	line-height: var(--leading-display-2xl);
@@ -804,7 +733,7 @@
 	line-height: var(--leading-normal);
 }
 
-/* Touch-Friendly Utilities */
+
 @utility touch-target {
 	min-height: var(--touch-target-min);
 	min-width: var(--touch-target-min);
@@ -815,7 +744,7 @@
 	gap: var(--touch-target-gap);
 }
 
-/* Section Spacing Utilities (semantic - change once, update everywhere) */
+
 @utility section-spacing {
 	padding-block: var(--layout-section-padding-y);
 }
@@ -828,7 +757,7 @@
 	padding-block: var(--layout-section-padding-y-spacious);
 }
 
-/* Page Layout Utilities - Fixed Navbar Offset */
+
 @utility page-offset-navbar {
 	padding-top: var(--layout-navbar-spacing);
 }
@@ -843,7 +772,7 @@
 	gap: var(--layout-gap-section);
 }
 
-/* Mobile-First Layout Utilities */
+
 @utility mobile-stack {
 	display: flex;
 	flex-direction: column;
@@ -860,14 +789,14 @@
 	padding: var(--section-spacing-responsive) 0;
 }
 
-/* Responsive Grid Utilities */
+
 @utility grid-responsive-auto-fit {
 	display: grid;
 	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 	gap: var(--spacing-responsive-md);
 }
 
-/* Progressive Enhancement - Hover Effects */
+
 @media (hover: hover) and (pointer: fine) {
 	.hover-lift:hover {
 		transform: translateY(-2px);
@@ -879,7 +808,7 @@
 	}
 }
 
-/* Reduced Motion Support */
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
@@ -891,17 +820,13 @@
 	}
 }
 
-/* High Contrast Mode Support */
+
 @media (prefers-contrast: high) {
 	.high-contrast {
 		filter: contrast(1.25);
 	}
 }
 
-/* === SEMANTIC LAYOUT UTILITIES === */
-/* These classes consolidate common patterns for global styling updates */
-
-/* Text & Typography Patterns */
 @utility text-muted {
 	@apply text-sm text-muted-foreground;
 }
@@ -910,7 +835,7 @@
 	@apply text-xs text-muted-foreground;
 }
 
-/* Flexbox Patterns */
+
 @utility flex-center {
 	@apply flex items-center justify-center;
 }
@@ -927,7 +852,7 @@
 	@apply flex flex-col items-center justify-center;
 }
 
-/* Card Patterns */
+
 @utility card-standard {
 	@apply rounded-lg border border-border bg-card shadow-sm;
 }
@@ -944,7 +869,7 @@
 	@apply rounded-2xl border border-border/20 bg-background/60 backdrop-blur-lg shadow-2xl;
 }
 
-/* Icon Container Patterns */
+
 @utility icon-container-sm {
 	@apply size-8 rounded-lg flex-center;
 }
@@ -961,7 +886,7 @@
 	@apply bg-primary/10 text-primary border border-primary/20;
 }
 
-/* Content Container Patterns */
+
 @utility content-section {
 	@apply space-y-4 p-6;
 }
@@ -974,7 +899,7 @@
 	@apply space-y-2 p-4;
 }
 
-/* Spacing Patterns */
+
 @utility gap-standard {
 	@apply gap-2;
 }
@@ -983,7 +908,7 @@
 	@apply gap-4;
 }
 
-/* Interactive Patterns */
+
 @utility interactive-item {
 	@apply transition-colors hover:bg-accent/50 rounded-lg p-2 cursor-pointer;
 }
@@ -992,7 +917,7 @@
 	@apply transition-all hover:border-primary/50 hover:shadow-md cursor-pointer;
 }
 
-/* Mobile-Specific Enhancements */
+
 @media (max-width: 768px) {
 	.mobile-full-width {
 		width: 100vw;
@@ -1011,7 +936,7 @@
 		margin: var(--section-spacing-mobile) 0;
 	}
 
-	/* Touch-friendly button sizing */
+
 	.btn,
 	button,
 	[role="button"] {
@@ -1020,7 +945,7 @@
 		padding: var(--touch-target-padding);
 	}
 
-	/* Larger touch targets for form elements */
+
 	.form-input,
 	input,
 	select,
@@ -1029,12 +954,12 @@
 		padding: var(--touch-target-padding);
 	}
 
-	/* Mobile-optimized spacing */
+
 	.mobile-stack > * + * {
 		margin-block-start: var(--spacing-responsive-sm);
 	}
 
-	/* Mobile navigation enhancements */
+
 	.mobile-nav-item {
 		padding: var(--touch-target-padding);
 		min-height: var(--touch-target-min);
@@ -1053,118 +978,93 @@
 	}
 }
 
-/* === MIGRATED FROM design-system.ts === */
-/* Static class patterns consolidated as @utility for single source of truth */
-
-/* Testimonial Card - Marketing pages */
 @utility testimonial-card {
 	@apply relative bg-card border border-border rounded-2xl p-8 h-full hover:border-primary/40 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5;
 }
 
-/* Showcase Card - Stats sections */
+
 @utility showcase-card {
 	@apply relative bg-card/50 border border-border/40 rounded p-6 text-center backdrop-blur-sm hover:bg-card/90 hover:border-primary/40 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 overflow-hidden hover:-translate-y-1 hover:scale-[1.02];
 }
 
-/* Stat Card - styles inlined in components (group class can't be used in @apply) */
 
-/* Trust Indicator Badge */
+
+
 @utility trust-indicator-badge {
 	@apply inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-sm font-medium text-primary backdrop-blur-sm;
 }
 
-/* Accordion Item - FAQ sections */
 @utility accordion-item {
 	@apply rounded-2xl border border-border/50 bg-background/60 px-5 transition-colors hover:border-primary/30;
 }
 
-/* Section Feature Card - styles inlined in features-section.tsx (group/feature can't be used in @apply) */
-
-/* Feature Card Icon - styles inlined in features-section.tsx (group-hover/feature can't be used in @apply) */
-
-/* Portal Feature Grid */
 @utility portal-feature-grid {
 	@apply grid gap-6 grid-cols-2 lg:grid-cols-5;
 }
 
-/* Billing Info Card */
 @utility billing-info-card {
 	@apply bg-background/70 rounded-lg p-4 border border-primary/20;
 }
 
-/* Trust Signal Item */
 @utility trust-signal-item {
 	@apply flex items-center gap-3;
 }
 
-/* Sidebar Rail */
-/* sidebar-rail classes moved to inline in sidebar.tsx due to @apply limitations with group-data variants */
-
-/* Bento Card Components - styles inlined in bento-grid.tsx (group/group-hover can't be used in @apply) */
-
-/* Glowing Effect Blur */
 @utility glowing-effect-blur {
 	@apply absolute inset-0 rounded-[inherit] blur-xl;
 }
 
-/* Mobile Dropdown Link */
+
 @utility mobile-dropdown-link {
 	@apply block px-4 py-2 text-sm text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-200;
 }
 
-
-/* === RESPONSIVE PROPERTY GRID UTILITIES === */
-/* Mobile-first responsive grid for property cards */
 @utility property-grid {
 	@apply grid gap-4 sm:gap-6;
 	grid-template-columns: 1fr;
 }
 
-/* Tablet: 2 columns */
+
 @media (min-width: 640px) {
 	.property-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
-/* Desktop: 3 columns */
 @media (min-width: 1024px) {
 	.property-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 	}
 }
 
-/* Large desktop: 4 columns */
+
 @media (min-width: 1536px) {
 	.property-grid {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 }
 
-/* Touch-friendly card utility - ensures 44px minimum touch targets */
+
 @utility touch-card {
-	@apply min-h-[44px];
+	@apply touch-card;
 }
 
-/* Touch-friendly button utility */
+
 @utility touch-button {
-	@apply min-h-[44px] min-w-[44px];
+	@apply touch-card min-w-[44px];
 }
 
-/* Touch-friendly interactive element */
+
 @utility touch-interactive {
-	@apply min-h-[44px] py-3 px-4;
+	@apply touch-card py-3 px-4;
 }
 
 
-/* === ANIMATION UTILITIES FOR LOADING STATES === */
-
-/* Staggered card animation - use with animationDelay style prop */
 @utility animate-card-in {
 	@apply animate-in fade-in slide-in-from-bottom-4 duration-500;
 }
 
-/* Chart bar animation - animates height from 0 */
+
 @utility animate-chart-bar {
 	animation: chart-bar-grow 500ms ease-out forwards;
 }
@@ -1180,7 +1080,7 @@
 	}
 }
 
-/* Trend indicator animations */
+
 @utility animate-trend-up {
 	@apply animate-in slide-in-from-bottom-1 duration-300;
 }
@@ -1189,7 +1089,7 @@
 	@apply animate-in slide-in-from-top-1 duration-300;
 }
 
-/* Number counter animation */
+
 @utility animate-number {
 	animation: number-fade 400ms ease-out;
 }
@@ -1205,32 +1105,32 @@
 	}
 }
 
-/* Smooth hover transitions for cards and interactive elements */
+
 @utility hover-smooth {
 	@apply transition-all duration-300 ease-out;
 }
 
-/* Hover lift effect with shadow */
+
 @utility hover-lift-shadow {
 	@apply transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5;
 }
 
-/* Icon container hover scale */
+
 @utility icon-hover-scale {
 	@apply transition-transform duration-200 hover:scale-105;
 }
 
-/* Skeleton pulse with custom timing */
+
 @utility skeleton-pulse {
 	@apply animate-pulse bg-muted;
 }
 
-/* Staggered skeleton animation */
+
 @utility skeleton-stagger {
 	@apply animate-in fade-in duration-300;
 }
 
-/* Progress bar animation */
+
 @utility animate-progress {
 	animation: progress-fill 1000ms ease-out forwards;
 }
@@ -1244,30 +1144,30 @@
 	}
 }
 
-/* Metric value animation */
+
 @utility animate-metric {
 	@apply animate-in fade-in slide-in-from-bottom-2 duration-500;
 }
 
-/* Card content fade in */
+
 @utility animate-content {
 	@apply animate-in fade-in duration-300;
 }
 
-/* === FOCUS UTILITIES FOR ACCESSIBILITY === */
 
-/* Card focus state - visible focus indicator for keyboard navigation */
+
+
 @utility focus-card {
 	@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
 	@apply focus-visible:border-primary/30 focus-visible:shadow-lg;
 }
 
-/* Interactive element focus - for buttons and links within cards */
+
 @utility focus-interactive {
 	@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1;
 }
 
-/* Skip link for keyboard users - hidden until focused */
+
 @utility skip-link {
 	@apply sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50;
 	@apply focus:bg-background focus:text-foreground focus:px-4 focus:py-2 focus:rounded-md;
