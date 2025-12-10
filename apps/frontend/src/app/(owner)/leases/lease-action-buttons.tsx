@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -8,8 +9,7 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger
+	AlertDialogTitle
 } from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -43,7 +43,7 @@ import {
 	X
 } from 'lucide-react'
 import { LEASE_STATUS } from '#lib/constants/status-values'
-import { useSendLeaseForSignature, useSignLeaseAsOwner } from '#hooks/api/use-lease'
+import { useDeleteLease, useSendLeaseForSignature, useSignLeaseAsOwner } from '#hooks/api/use-lease'
 import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
@@ -54,6 +54,17 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const { openModal } = useModalStore()
 	const sendForSignature = useSendLeaseForSignature()
 	const signAsOwner = useSignLeaseAsOwner()
+	// State for delete confirmation dialog (must be outside DropdownMenu to work properly)
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+	const deleteLease = useDeleteLease({
+		onSuccess: () => {
+			toast.success('Lease deleted successfully')
+			setShowDeleteDialog(false)
+		},
+		onError: () => {
+			toast.error('Failed to delete lease')
+		}
+	})
 
 	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
 	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
@@ -180,40 +191,38 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 				<DropdownMenuSeparator />
 
-					<AlertDialog>
-						<AlertDialogTrigger asChild>
-							<DropdownMenuItem
-								onSelect={e => e.preventDefault()}
-								className="gap-2 text-destructive focus:text-destructive"
-							>
-								<Trash2 className="size-4" />
-								Delete
-							</DropdownMenuItem>
-						</AlertDialogTrigger>
-						<AlertDialogContent>
-							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Lease</AlertDialogTitle>
-								<AlertDialogDescription>
-									Are you sure you want to delete this lease? This action cannot be undone
-									and will remove all associated payment records.
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
-								<AlertDialogAction
-									onClick={() => {
-										// TODO: Implement lease deletion mutation
-										toast.info('Lease deletion not yet implemented')
-									}}
-									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-								>
-									Delete
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
+					<DropdownMenuItem
+						onClick={() => setShowDeleteDialog(true)}
+						className="gap-2 text-destructive focus:text-destructive"
+					>
+						<Trash2 className="size-4" />
+						Delete
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			{/* Delete Confirmation Dialog - rendered outside DropdownMenu for proper focus management */}
+			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Lease</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete this lease? This action cannot be undone
+							and will remove all associated payment records.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => deleteLease.mutate(lease.id)}
+							disabled={deleteLease.isPending}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{deleteLease.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			{/* Status Badge */}
 			{getStatusBadge(lease.lease_status)}

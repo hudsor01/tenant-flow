@@ -8,8 +8,7 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger
+	AlertDialogTitle
 } from '#components/ui/alert-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -67,6 +66,8 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	const [formData, setFormData] = useState({
 		emergency_contact_name: tenant.emergency_contact_name || ''
 	})
+	// State for delete confirmation dialog (must be outside DropdownMenu to work properly)
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
 	const modalId = `edit-tenant-${tenant.id}`
 
@@ -203,37 +204,38 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 					<DropdownMenuSeparator />
 
-					<AlertDialog>
-						<AlertDialogTrigger asChild>
-							<DropdownMenuItem
-								onSelect={e => e.preventDefault()}
-								className="gap-2 text-destructive focus:text-destructive"
-							>
-								<Trash2 className="size-4" />
-								Delete
-							</DropdownMenuItem>
-						</AlertDialogTrigger>
-						<AlertDialogContent>
-							<AlertDialogHeader>
-								<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
-								<AlertDialogDescription>
-									Are you sure you want to delete {tenant.first_name} {tenant.last_name}?
-									This action cannot be undone and will remove all associated data.
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
-								<AlertDialogAction
-									onClick={() => deleteMutation.mutate()}
-									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-								>
-									{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
+					<DropdownMenuItem
+						onClick={() => setShowDeleteDialog(true)}
+						className="gap-2 text-destructive focus:text-destructive"
+					>
+						<Trash2 className="size-4" />
+						Delete
+					</DropdownMenuItem>
 				</DropdownMenuContent>
 			</DropdownMenu>
+
+			{/* Delete Confirmation Dialog - rendered outside DropdownMenu for proper focus management */}
+			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to delete {tenant.first_name} {tenant.last_name}?
+							This action cannot be undone and will remove all associated data.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => deleteMutation.mutate()}
+							disabled={deleteMutation.isPending}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							{deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 
 			{/* Modal Components */}
 			<CrudDialog mode="read" modalId={`view-tenant-${tenant.id}`}>
