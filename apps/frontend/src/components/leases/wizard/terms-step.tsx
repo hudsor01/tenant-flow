@@ -18,16 +18,20 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 		onChange({ ...data, [field]: value })
 	}
 
-	// Format cents to dollars for display
+	// Format cents to dollars for display (only format when not actively editing)
 	const centsToDisplay = (cents: number | undefined) => {
-		if (cents === undefined) return ''
-		return (cents / 100).toFixed(2)
+		if (cents === undefined || cents === 0) return ''
+		return String(cents / 100)
 	}
 
 	// Parse dollars to cents for storage
 	const dollarsToCents = (dollars: string) => {
-		const num = parseFloat(dollars)
-		if (isNaN(num)) return undefined
+		// Allow empty string
+		if (!dollars || dollars.trim() === '') return 0
+		// Remove any non-numeric characters except decimal point
+		const cleaned = dollars.replace(/[^\d.]/g, '')
+		const num = parseFloat(cleaned)
+		if (isNaN(num)) return 0
 		return Math.round(num * 100)
 	}
 
@@ -73,13 +77,12 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Label htmlFor="rent_amount">Monthly Rent ($) *</Label>
 						<Input
 							id="rent_amount"
-							type="number"
-							step="0.01"
-							min="0"
+							type="text"
+							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.rent_amount)}
 							onChange={e =>
-								handleChange('rent_amount', dollarsToCents(e.target.value) ?? 0)
+								handleChange('rent_amount', dollarsToCents(e.target.value))
 							}
 						/>
 					</div>
@@ -87,15 +90,14 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Label htmlFor="security_deposit">Security Deposit ($) *</Label>
 						<Input
 							id="security_deposit"
-							type="number"
-							step="0.01"
-							min="0"
+							type="text"
+							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.security_deposit)}
 							onChange={e =>
 								handleChange(
 									'security_deposit',
-									dollarsToCents(e.target.value) ?? 0
+									dollarsToCents(e.target.value)
 								)
 							}
 						/>
@@ -142,15 +144,14 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Label htmlFor="late_fee_amount">Late Fee ($)</Label>
 						<Input
 							id="late_fee_amount"
-							type="number"
-							step="0.01"
-							min="0"
+							type="text"
+							inputMode="decimal"
 							placeholder="50.00"
 							value={centsToDisplay(data.late_fee_amount)}
 							onChange={e =>
 								handleChange(
 									'late_fee_amount',
-									dollarsToCents(e.target.value) ?? 0
+									dollarsToCents(e.target.value)
 								)
 							}
 						/>
