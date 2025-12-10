@@ -54,7 +54,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const { openModal } = useModalStore()
 	const sendForSignature = useSendLeaseForSignature()
 	const signAsOwner = useSignLeaseAsOwner()
-	// State for delete confirmation dialog (must be outside DropdownMenu to work properly)
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 	const deleteLease = useDeleteLease({
 		onSuccess: () => {
@@ -89,10 +88,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	}
 
 	const getStatusBadge = (status: string) => {
-		const variants: Record<
-			string,
-			'default' | 'secondary' | 'destructive' | 'outline'
-		> = {
+		const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
 			active: 'default',
 			EXPIRED: 'destructive',
 			TERMINATED: 'secondary',
@@ -109,7 +105,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 	return (
 		<div className="flex items-center gap-2">
-			{/* Primary Action: View Details */}
 			<Button
 				variant="outline"
 				size="sm"
@@ -120,7 +115,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				View
 			</Button>
 
-			{/* Secondary Actions Dropdown */}
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
 					<Button variant="outline" size="sm">
@@ -128,68 +122,65 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-				{/* Draft lease actions */}
-				{isDraft && (
-					<>
-						<DropdownMenuItem
-							onClick={handleSendForSignature}
-							disabled={sendForSignature.isPending}
-							className="gap-2"
-						>
-							<Send className="size-4" />
-							{sendForSignature.isPending ? 'Sending...' : 'Send for Signature'}
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-					</>
-				)}
+					{isDraft && (
+						<>
+							<DropdownMenuItem
+								onClick={handleSendForSignature}
+								disabled={sendForSignature.isPending}
+								className="gap-2"
+							>
+								<Send className="size-4" />
+								{sendForSignature.isPending ? 'Sending...' : 'Send for Signature'}
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+						</>
+					)}
 
-				{/* Pending signature actions */}
-				{isPendingSignature && !ownerHasSigned && (
-					<>
-						<DropdownMenuItem
-							onClick={handleSignAsOwner}
-							disabled={signAsOwner.isPending}
-							className="gap-2"
-						>
-							<PenLine className="size-4" />
-							{signAsOwner.isPending ? 'Signing...' : 'Sign as Owner'}
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-					</>
-				)}
+					{isPendingSignature && !ownerHasSigned && (
+						<>
+							<DropdownMenuItem
+								onClick={handleSignAsOwner}
+								disabled={signAsOwner.isPending}
+								className="gap-2"
+							>
+								<PenLine className="size-4" />
+								{signAsOwner.isPending ? 'Signing...' : 'Sign as Owner'}
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+						</>
+					)}
 
-				{/* Active lease actions */}
-				{lease.lease_status === 'active' && (
-					<>
-						<DropdownMenuItem
-							onClick={() => openModal(`pay-rent-${lease.id}`)}
-							className="gap-2"
-						>
-							<CreditCard className="size-4" />
-							Pay Rent
-						</DropdownMenuItem>
+					{lease.lease_status === 'active' && (
+						<>
+							<DropdownMenuItem
+								onClick={() => openModal(`pay-rent-${lease.id}`)}
+								className="gap-2"
+							>
+								<CreditCard className="size-4" />
+								Pay Rent
+							</DropdownMenuItem>
 
-						<DropdownMenuSeparator />
+							<DropdownMenuSeparator />
 
-						<DropdownMenuItem
-							onClick={() => openModal(`renew-lease-${lease.id}`)}
-							className="gap-2"
-						>
-							<RotateCcw className="size-4" />
-							Renew Lease
-						</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => openModal(`renew-lease-${lease.id}`)}
+								className="gap-2"
+							>
+								<RotateCcw className="size-4" />
+								Renew Lease
+							</DropdownMenuItem>
 
-						<DropdownMenuItem
-							onClick={() => openModal(`terminate-lease-${lease.id}`)}
-							className="gap-2 text-destructive focus:text-destructive"
-						>
-							<X className="size-4" />
-							Terminate Lease
-						</DropdownMenuItem>
-					</>
-				)}
+							<DropdownMenuItem
+								onClick={() => openModal(`terminate-lease-${lease.id}`)}
+								className="gap-2 text-destructive focus:text-destructive"
+							>
+								<X className="size-4" />
+								Terminate Lease
+							</DropdownMenuItem>
+						</>
+					)}
 
-				<DropdownMenuSeparator />
+					<DropdownMenuSeparator />
 
 					<DropdownMenuItem
 						onClick={() => setShowDeleteDialog(true)}
@@ -201,7 +192,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				</DropdownMenuContent>
 			</DropdownMenu>
 
-			{/* Delete Confirmation Dialog - rendered outside DropdownMenu for proper focus management */}
 			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
@@ -224,10 +214,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				</AlertDialogContent>
 			</AlertDialog>
 
-			{/* Status Badge */}
 			{getStatusBadge(lease.lease_status)}
 
-			{/* Modal Components */}
 			<CrudDialog mode="read" modalId={`edit-lease-${lease.id}`}>
 				<CrudDialogContent>
 					<CrudDialogHeader>
@@ -236,25 +224,25 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					</CrudDialogHeader>
 					<CrudDialogBody>
 						<div>
-					<Label>Start Date</Label>
-					<Input type="date" value={lease.start_date} disabled />
-				</div>
-				<div>
-					<Label>End Date</Label>
-					<Input type="date" value={lease.end_date || ''} disabled />
-				</div>
-				<div>
-					<Label>Rent Amount</Label>
-					<Input type="number" value={lease.rent_amount} disabled />
-				</div>
-				<div>
-					<Label>Security Deposit</Label>
-					<Input type="number" value={lease.security_deposit} disabled />
-				</div>
-				<div>
-					<Label>Status</Label>
-					{getStatusBadge(lease.lease_status)}
-				</div>
+							<Label>Start Date</Label>
+							<Input type="date" value={lease.start_date} disabled />
+						</div>
+						<div>
+							<Label>End Date</Label>
+							<Input type="date" value={lease.end_date || ''} disabled />
+						</div>
+						<div>
+							<Label>Rent Amount</Label>
+							<Input type="number" value={lease.rent_amount} disabled />
+						</div>
+						<div>
+							<Label>Security Deposit</Label>
+							<Input type="number" value={lease.security_deposit} disabled />
+						</div>
+						<div>
+							<Label>Status</Label>
+							{getStatusBadge(lease.lease_status)}
+						</div>
 					</CrudDialogBody>
 				</CrudDialogContent>
 			</CrudDialog>

@@ -10127,8 +10127,8 @@ packages:
   third-party-web@0.27.0:
     resolution: {integrity: sha512-h0JYX+dO2Zr3abCQpS6/uFjujaOjA1DyDzGQ41+oFn9VW/ARiq9g5ln7qEP9+BTzDpOMyIfsfj4OvfgXAsMUSA==}
 
-  third-party-web@0.28.0:
-    resolution: {integrity: sha512-4P798O67JmIKRJfJ1HSOkIsZrx2+FuaN2jTQX+imHXFPbGp17KSMDabYxrRT011B3gBzaoHFhUkBlEkNZN8vuQ==}
+  third-party-web@0.29.0:
+    resolution: {integrity: sha512-nBDSJw5B7Sl1YfsATG2XkW5qgUPODbJhXw++BKygi9w6O/NKS98/uY/nR/DxDq2axEjL6halHW1v+jhm/j1DBQ==}
 
   threads@1.7.0:
     resolution: {integrity: sha512-Mx5NBSHX3sQYR6iI9VYbgHKBLisyB+xROCBGjjWm1O9wb9vfLxdaGtmT/KCjUqMsSNW6nERzCW3T6H43LqjDZQ==}
@@ -12912,12 +12912,12 @@ snapshots:
   '@paulirish/trace_engine@0.0.53':
     dependencies:
       legacy-javascript: 0.0.1
-      third-party-web: 0.28.0
+      third-party-web: 0.29.0
 
   '@paulirish/trace_engine@0.0.61':
     dependencies:
       legacy-javascript: 0.0.1
-      third-party-web: 0.28.0
+      third-party-web: 0.29.0
 
   '@pdf-lib/standard-fonts@1.0.0':
     dependencies:
@@ -21840,7 +21840,7 @@ snapshots:
 
   third-party-web@0.27.0: {}
 
-  third-party-web@0.28.0: {}
+  third-party-web@0.29.0: {}
 
   threads@1.7.0:
     dependencies:

@@ -62,6 +62,13 @@ export class LeaseLifecycleService {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
+			// Only active leases can be renewed
+			if (existingLease.lease_status !== 'active') {
+				throw new BadRequestException(
+					`Cannot renew lease in '${existingLease.lease_status}' status. Only active leases can be renewed.`
+				)
+			}
+
 			// Month-to-month leases cannot be renewed (no fixed end date)
 			if (!existingLease.end_date) {
 				throw new BadRequestException(
@@ -148,19 +155,25 @@ export class LeaseLifecycleService {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 
+			// Validate lease status - only active or pending_signature leases can be terminated
+			// Draft leases should be deleted instead
+			const terminableStatuses = ['active', 'pending_signature']
+			if (!terminableStatuses.includes(existingLease.lease_status)) {
+				if (existingLease.lease_status === 'draft') {
+					throw new BadRequestException(
+						'Draft leases cannot be terminated. Delete the lease instead.'
+					)
+				}
+				throw new BadRequestException(
+					`Lease is already ${existingLease.lease_status} and cannot be terminated`
+				)
+			}
+
 			// Validate termination date
 			const termDate = new Date(terminationDate)
 			const currentDate = new Date()
 			if (termDate < currentDate) {
 				throw new BadRequestException('Termination date cannot be in the past')
-			}
-
-			// Check if lease is already terminated
-			if (
-				existingLease.lease_status === 'terminated' ||
-				existingLease.lease_status === 'ended'
-			) {
-				throw new BadRequestException('Lease is already terminated or expired')
 			}
 
 			const client = this.supabase.getUserClient(token)

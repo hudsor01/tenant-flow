@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
@@ -29,6 +30,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+type PageState = 'loading' | 'valid' | 'invalid' | 'expired' | 'error' | 'accepted'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
@@ -53,13 +55,7 @@ interface InvitationData {
 	unit_number?: string
 }
 
-type PageState =
-	| 'loading'
-	| 'valid'
-	| 'invalid'
-	| 'expired'
-	| 'accepted'
-	| 'error'
+
 
 function AcceptInviteContent() {
 	const [showPassword, setShowPassword] = useState(false)
