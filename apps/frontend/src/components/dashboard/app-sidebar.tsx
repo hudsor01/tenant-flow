@@ -110,7 +110,7 @@ const data = {
 	documents: [
 		{
 			name: 'Generate Lease',
-			url: '/leases/generate',
+			url: '/leases/new',
 			icon: FileText
 		},
 		{
