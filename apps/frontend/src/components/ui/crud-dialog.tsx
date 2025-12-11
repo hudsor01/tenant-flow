@@ -176,8 +176,15 @@ export {
 	CrudDialogCancel
 }
 
+// Re-export AlertDialog components with CrudDialog prefix
+export {
+	AlertDialogAction as CrudDialogAction,
+	AlertDialogCancel as CrudDialogCancel
+}
+
 // Also re-export base Dialog components for mixed usage
 export {
+	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
@@ -186,7 +193,16 @@ export {
 	DialogClose,
 	DialogOverlay,
 	DialogPortal,
-	DialogTrigger
+	DialogTrigger,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger
 }
 
 // CrudDialogBody alias
