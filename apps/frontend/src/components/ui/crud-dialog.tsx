@@ -1,15 +1,24 @@
 'use client'
 
+/**
+ * CrudDialog - Dialog with modal store integration
+ *
+ * This is a thin wrapper around ShadCN Dialog that adds:
+ * - Modal store integration for URL-synced modal state
+ * - Auto-navigation on close (router.back())
+ *
+ * For simple dialogs without modal store, use Dialog directly from './dialog'
+ */
+
 import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef } from 'react'
-import type { ReactNode } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { cn } from '#lib/utils'
 import { useModalStore } from '#stores/modal-store'
 import {
-	Dialog as BaseDialog,
+	Dialog,
 	DialogContent,
 	DialogHeader,
 	DialogTitle,
@@ -18,231 +27,28 @@ import {
 	DialogClose,
 	DialogOverlay,
 	DialogPortal,
-	DialogTrigger,
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger
+	DialogTrigger
 } from '#components/ui/dialog'
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerDescription,
-	DrawerFooter,
-	DrawerHeader,
-	DrawerOverlay,
-	DrawerPortal,
-	DrawerTitle,
-	DrawerTrigger
-} from '#components/ui/drawer'
-import {
-	Sheet,
-	SheetClose,
-	SheetContent,
-	SheetDescription,
-	SheetFooter,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger
-} from '#components/ui/sheet'
 
 export type CrudMode = 'create' | 'read' | 'edit' | 'delete'
-export type CrudDialogVariant = 'dialog' | 'alert' | 'confirm' | 'drawer' | 'sheet'
 
 export interface CrudDialogProps
-	extends Omit<React.ComponentProps<typeof DialogPrimitive.Root>, 'children'> {
-	/**
-	 * CRUD operation mode
-	 */
+	extends React.ComponentProps<typeof DialogPrimitive.Root> {
+	/** CRUD operation mode (for semantic purposes) */
 	mode: CrudMode
-	/**
-	 * Unique modal ID for the modal store (required for read/edit/delete modes)
-	 */
+	/** Unique modal ID for the modal store (enables URL-synced state) */
 	modalId?: string
-	/**
-	 * Dialog content children
-	 */
-	children: ReactNode
-	/**
-	 * Custom close handler
-	 */
+	/** Custom close handler */
 	onClose?: () => void
-	/**
-	 * Whether to persist the modal through navigation
-	 */
+	/** Whether to persist the modal through navigation (default: false = router.back() on close) */
 	persistThroughNavigation?: boolean
-	/**
-	 * Modal variant (dialog, alert, confirm, drawer, sheet)
-	 */
-	variant?: CrudDialogVariant
 }
 
 /**
- * Generic component type for variant components.
- * Uses any for props since each variant (Dialog, Drawer, Sheet, AlertDialog)
- * has different prop interfaces that share common patterns (open, children, className, etc.)
- * but TypeScript cannot correctly infer the polymorphic union.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for polymorphic variant components
-type VariantComponent = React.ComponentType<any>
-
-type VariantComponents = {
-	Root: VariantComponent
-	Content?: VariantComponent
-	Header?: VariantComponent
-	Title?: VariantComponent
-	Description?: VariantComponent
-	Footer?: VariantComponent
-	Close?: VariantComponent
-	Overlay?: VariantComponent
-	Portal?: VariantComponent
-	Trigger?: VariantComponent
-	Action?: VariantComponent
-	Cancel?: VariantComponent
-}
-
-const variantComponentMap: Record<CrudDialogVariant, VariantComponents> = {
-	dialog: {
-		Root: DialogPrimitive.Root,
-		Content: DialogContent,
-		Header: DialogHeader,
-		Title: DialogTitle,
-		Description: DialogDescription,
-		Footer: DialogFooter,
-		Close: DialogClose,
-		Overlay: DialogOverlay,
-		Portal: DialogPortal,
-		Trigger: DialogTrigger
-	},
-	alert: {
-		Root: AlertDialog,
-		Content: AlertDialogContent,
-		Header: AlertDialogHeader,
-		Title: AlertDialogTitle,
-		Description: AlertDialogDescription,
-		Footer: AlertDialogFooter,
-		Close: AlertDialogCancel,
-		Trigger: AlertDialogTrigger,
-		Action: AlertDialogAction,
-		Cancel: AlertDialogCancel
-	},
-	confirm: {
-		Root: AlertDialog,
-		Content: AlertDialogContent,
-		Header: AlertDialogHeader,
-		Title: AlertDialogTitle,
-		Description: AlertDialogDescription,
-		Footer: AlertDialogFooter,
-		Close: AlertDialogCancel,
-		Trigger: AlertDialogTrigger,
-		Action: AlertDialogAction,
-		Cancel: AlertDialogCancel
-	},
-	drawer: {
-		Root: Drawer,
-		Content: DrawerContent,
-		Header: DrawerHeader,
-		Title: DrawerTitle,
-		Description: DrawerDescription,
-		Footer: DrawerFooter,
-		Close: DrawerClose,
-		Overlay: DrawerOverlay,
-		Portal: DrawerPortal,
-		Trigger: DrawerTrigger
-	},
-	sheet: {
-		Root: Sheet,
-		Content: SheetContent,
-		Header: SheetHeader,
-		Title: SheetTitle,
-		Description: SheetDescription,
-		Footer: SheetFooter,
-		Close: SheetClose,
-		Trigger: SheetTrigger
-	}
-}
-
-const VariantContext = React.createContext<VariantComponents>(variantComponentMap.dialog)
-const ControlContext = React.createContext<{ requestClose: () => void }>({ requestClose: () => {} })
-
-/**
- * CrudDialogBody - Container for dialog form content
- */
-function CrudDialogBody({ className, ...props }: React.ComponentProps<'div'>) {
-	return <div className={cn('space-y-4', className)} {...props} />
-}
-CrudDialogBody.displayName = 'CrudDialogBody'
-
-/**
- * CrudDialogForm - Lightweight form helper that auto-closes on successful submit
- */
-function CrudDialogForm({
-	onSubmit,
-	closeOnSubmit = true,
-	...props
-}: React.ComponentProps<'form'> & { closeOnSubmit?: boolean }) {
-	const { requestClose } = React.useContext(ControlContext)
-
-	const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
-		event.preventDefault()
-		if (onSubmit) {
-			await Promise.resolve(onSubmit(event))
-		}
-		if (closeOnSubmit) {
-			requestClose()
-		}
-	}
-
-	return <form onSubmit={handleSubmit} {...props} />
-}
-CrudDialogForm.displayName = 'CrudDialogForm'
-
-const useVariantComponents = () => React.useContext(VariantContext)
-
-/**
- * Factory function to create variant-aware wrapper components.
- * These components delegate to the appropriate underlying component based on the current variant context.
+ * CrudDialog - Dialog with modal store integration
  *
- * Note: Uses React.ComponentPropsWithRef for proper ref forwarding with polymorphic components.
- * The explicit any cast is required because each variant component (Dialog, Drawer, Sheet, AlertDialog)
- * has different prop types, and TypeScript cannot infer the union correctly.
- */
-const createVariantComponent = <K extends keyof VariantComponents>(
-	key: K,
-	label: string
-) => {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for polymorphic component factory
-	const Component = React.forwardRef<HTMLElement, any>((props, ref) => {
-		const components = useVariantComponents()
-		const ComponentForVariant = components[key] ?? variantComponentMap.dialog[key]
-		if (!ComponentForVariant) return null
-		// @ts-expect-error TypeScript cannot infer polymorphic component props correctly
-		return <ComponentForVariant ref={ref} {...props} />
-	})
-	Component.displayName = label
-	return Component
-}
-
-const CrudDialogContent = createVariantComponent('Content', 'CrudDialogContent')
-const CrudDialogHeader = createVariantComponent('Header', 'CrudDialogHeader')
-const CrudDialogTitle = createVariantComponent('Title', 'CrudDialogTitle')
-const CrudDialogDescription = createVariantComponent('Description', 'CrudDialogDescription')
-const CrudDialogFooter = createVariantComponent('Footer', 'CrudDialogFooter')
-const CrudDialogClose = createVariantComponent('Close', 'CrudDialogClose')
-const CrudDialogOverlay = createVariantComponent('Overlay', 'CrudDialogOverlay')
-const CrudDialogPortal = createVariantComponent('Portal', 'CrudDialogPortal')
-const CrudDialogTrigger = createVariantComponent('Trigger', 'CrudDialogTrigger')
-const CrudDialogAction = createVariantComponent('Action', 'CrudDialogAction')
-const CrudDialogCancel = createVariantComponent('Cancel', 'CrudDialogCancel')
-
-/**
- * CrudDialog - Dialog with modal store integration and multi-variant support
+ * When modalId is provided, the dialog state is managed by the modal store.
+ * When closed, it automatically calls router.back() unless persistThroughNavigation is true.
  */
 function CrudDialog({
 	mode: _mode,
@@ -250,8 +56,10 @@ function CrudDialog({
 	children,
 	onClose,
 	persistThroughNavigation = false,
-	variant = 'dialog',
-	...rest
+	open: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+	defaultOpen,
+	...props
 }: CrudDialogProps) {
 	const router = useRouter()
 	const { isModalOpen, closeModal } = useModalStore()
@@ -260,13 +68,7 @@ function CrudDialog({
 	const modalOpen = isModalMode ? isModalOpen(modalId) : undefined
 	const wasEverOpenRef = useRef(false)
 
-	const {
-		onOpenChange: controlledOnOpenChange,
-		open: controlledOpen,
-		defaultOpen,
-		...rootProps
-	} = rest as DialogPrimitive.DialogProps
-
+	// Handle modal close with navigation
 	useEffect(() => {
 		if (!isModalMode) return
 		if (modalOpen) {
@@ -293,63 +95,50 @@ function CrudDialog({
 		}
 	}
 
-	const requestClose = () => {
-		if (isModalMode && modalId) {
-			closeModal(modalId)
-		} else {
-			controlledOnOpenChange?.(false)
-			onClose?.()
-		}
-	}
-
-	const components = useMemo(
-		() => variantComponentMap[variant] ?? variantComponentMap.dialog,
-		[variant]
-	)
-	const RootComponent = components.Root ?? BaseDialog
-
-	const openProp = isModalMode ? modalOpen : controlledOpen
-	const defaultOpenProp = isModalMode ? undefined : defaultOpen
+	// Determine open state - modal store takes precedence, then controlled prop
+	const resolvedOpen = isModalMode ? modalOpen : controlledOpen
 
 	return (
-		<VariantContext.Provider value={components}>
-			<ControlContext.Provider value={{ requestClose }}>
-				<RootComponent
-					open={openProp}
-					defaultOpen={defaultOpenProp}
-					onOpenChange={handleOpenChange}
-					{...rootProps}
-				>
-					{children}
-				</RootComponent>
-			</ControlContext.Provider>
-		</VariantContext.Provider>
+		<Dialog
+			{...(resolvedOpen !== undefined && { open: resolvedOpen })}
+			{...(!isModalMode && defaultOpen !== undefined && { defaultOpen })}
+			onOpenChange={handleOpenChange}
+			{...props}
+		>
+			{children}
+		</Dialog>
 	)
 }
 CrudDialog.displayName = 'CrudDialog'
 
-// Export CrudDialog (the unique component with modal store integration)
+/**
+ * CrudDialogBody - Container for dialog form content
+ */
+function CrudDialogBody({ className, ...props }: React.ComponentProps<'div'>) {
+	return <div className={cn('space-y-4', className)} {...props} />
+}
+CrudDialogBody.displayName = 'CrudDialogBody'
+
+// Export the modal-aware wrapper
 export { CrudDialog }
 
-// Export helpers
-export { CrudDialogBody, CrudDialogForm }
+// Export body helper
+export { CrudDialogBody }
 
-// Variant-aware component exports
+// Re-export Dialog components with CrudDialog prefix for backwards compatibility
 export {
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogClose,
-	CrudDialogOverlay,
-	CrudDialogPortal,
-	CrudDialogTrigger,
-	CrudDialogAction,
-	CrudDialogCancel
+	DialogContent as CrudDialogContent,
+	DialogHeader as CrudDialogHeader,
+	DialogTitle as CrudDialogTitle,
+	DialogDescription as CrudDialogDescription,
+	DialogFooter as CrudDialogFooter,
+	DialogClose as CrudDialogClose,
+	DialogOverlay as CrudDialogOverlay,
+	DialogPortal as CrudDialogPortal,
+	DialogTrigger as CrudDialogTrigger
 }
 
-// Also re-export with Dialog prefix for compatibility with existing imports
+// Also re-export base Dialog components for mixed usage
 export {
 	DialogContent,
 	DialogHeader,
@@ -362,7 +151,5 @@ export {
 	DialogTrigger
 }
 
-// Re-export CrudDialog as Dialog for consumers expecting that name
-export { CrudDialog as Dialog }
-// Re-export CrudDialogBody as DialogBody
+// CrudDialogBody alias
 export { CrudDialogBody as DialogBody }

@@ -9,8 +9,7 @@ import {
 	CrudDialogFooter,
 	CrudDialogHeader,
 	CrudDialogTitle,
-	CrudDialogClose,
-	CrudDialogForm
+	CrudDialogClose
 } from '../crud-dialog'
 import { useModalStore } from '#stores/modal-store'
 
@@ -47,35 +46,41 @@ describe('CrudDialog', () => {
 		expect(useModalStore.getState().isModalOpen(modalId)).toBe(false)
 	})
 
-	it('renders alternative variant (drawer) content', () => {
+	it('renders controlled dialog without modal store', () => {
 		render(
-			<CrudDialog mode="create" variant="drawer" open>
+			<CrudDialog mode="create" open>
 				<CrudDialogContent>
 					<CrudDialogHeader>
-						<CrudDialogTitle>Drawer Title</CrudDialogTitle>
+						<CrudDialogTitle>Dialog Title</CrudDialogTitle>
 					</CrudDialogHeader>
-					<CrudDialogBody>Drawer Body</CrudDialogBody>
+					<CrudDialogBody>Dialog Body</CrudDialogBody>
 				</CrudDialogContent>
 			</CrudDialog>
 		)
 
-		expect(screen.getByText('Drawer Body')).toBeInTheDocument()
+		expect(screen.getByText('Dialog Body')).toBeInTheDocument()
 	})
 
-	it('closes when CrudDialogForm submits with closeOnSubmit', async () => {
+	it('calls onOpenChange when dialog closes', async () => {
 		const onOpenChange = vi.fn()
 
 		render(
 			<CrudDialog mode="create" open onOpenChange={onOpenChange}>
 				<CrudDialogContent>
-					<CrudDialogForm data-testid="crud-form">
-						<button type="submit">Submit</button>
-					</CrudDialogForm>
+					<CrudDialogHeader>
+						<CrudDialogTitle>Test Title</CrudDialogTitle>
+					</CrudDialogHeader>
+					<CrudDialogFooter>
+						<CrudDialogClose asChild>
+							<button>Cancel</button>
+						</CrudDialogClose>
+					</CrudDialogFooter>
 				</CrudDialogContent>
 			</CrudDialog>
 		)
 
-		await userEvent.click(screen.getByText('Submit'))
+		const closeButtons = screen.getAllByRole('button', { name: 'Cancel' })
+		await userEvent.click(closeButtons[0]!)
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 })
