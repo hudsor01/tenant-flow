@@ -13,7 +13,7 @@ const UpdateUnitSchema = z.object({
 	square_feet: z.number().int().positive().optional(),
 	rent: z.number().nonnegative().optional(),
 	status: z
-		.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'])
+		.enum(['available', 'occupied', 'maintenance', 'reserved'])
 		.optional()
 })
 

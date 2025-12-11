@@ -66,8 +66,8 @@ const mockMaintenanceRequests: MaintenanceRequest[] = [
 	{
 		id: 'req_1',
 		description: 'Leaking sink in kitchen',
-		status: 'OPEN',
-		priority: 'HIGH',
+		status: 'open',
+		priority: 'high',
 		created_at: '2024-02-01T00:00:00Z',
 		updated_at: '2024-02-02T00:00:00Z',
 		completed_at: null,
@@ -78,8 +78,8 @@ const mockMaintenanceRequests: MaintenanceRequest[] = [
 	{
 		id: 'req_2',
 		description: 'Replace hallway light',
-		status: 'COMPLETED',
-		priority: 'LOW',
+		status: 'completed',
+		priority: 'low',
 		created_at: '2024-01-15T00:00:00Z',
 		updated_at: '2024-01-20T00:00:00Z',
 		completed_at: '2024-01-20T00:00:00Z',
@@ -186,8 +186,8 @@ describe('Responsive Data Display (mobile-first)', () => {
 		cards.forEach(card => expect(card).toHaveAttribute('data-layout', 'stacked'))
 
 		// Status badges remain visible in the mobile layout
-		expect(screen.getByText(/OPEN/i)).toBeInTheDocument()
-		expect(screen.getAllByText(/COMPLETED/i).length).toBeGreaterThan(0)
+		expect(screen.getByText(/open/i)).toBeInTheDocument()
+		expect(screen.getAllByText(/completed/i).length).toBeGreaterThan(0)
 	})
 
 	it('shows maintenance requests in a desktop table while retaining cards on mobile (Requirement 2.5)', () => {

@@ -160,7 +160,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 						<div className="size-16 rounded-full bg-primary/10 flex-center mx-auto mb-4">
 							<Check className="size-8 text-primary" />
 						</div>
-						<h2 className="text-2xl font-bold text-foreground text-center mb-4">
+						<h2 className="typography-h3 text-foreground text-center mb-4">
 							Thank You!
 						</h2>
 						<p className="text-muted-foreground text-center mb-6">
@@ -200,7 +200,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 
 				{/* Glassmorphism Container */}
 				<div className="relative z-10 p-8 rounded-2xl backdrop-blur-lg bg-background/60 dark:bg-card/60 border border-border/20 shadow-2xl">
-					<h1 className="text-3xl font-bold text-foreground lg:text-4xl">
+					<h1 className="typography-h2 text-foreground lg:text-4xl">
 						Let&apos;s Talk About Your Properties
 					</h1>
 
@@ -256,7 +256,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			{/* Right side - Contact Form */}
 			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-background border-l border-border">
 				<div className="max-w-xl mx-auto w-full">
-					<h2 className="text-2xl font-bold text-foreground mb-2">
+					<h2 className="typography-h3 text-foreground mb-2">
 						Get in Touch
 					</h2>
 					<p className="text-muted-foreground mb-8">

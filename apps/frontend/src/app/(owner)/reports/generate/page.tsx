@@ -172,7 +172,7 @@ export default function GenerateReportsPage() {
 	return (
 		<div className="@container/main flex min-h-screen w-full flex-col gap-6">
 			<div className="flex flex-col gap-2">
-				<h1 className="text-3xl font-bold tracking-tight">Generate Reports</h1>
+				<h1 className="typography-h2 tracking-tight">Generate Reports</h1>
 				<p className="text-muted-foreground">
 					Create comprehensive reports for your property portfolio
 				</p>
@@ -210,7 +210,7 @@ export default function GenerateReportsPage() {
 			{/* Executive Reports */}
 			<div className="flex flex-col gap-4">
 				<div>
-					<h2 className="text-xl font-semibold">Executive Reports</h2>
+					<h2 className="typography-h4">Executive Reports</h2>
 					<p className="text-muted">
 						High-level summaries for leadership and stakeholders
 					</p>
@@ -264,7 +264,7 @@ export default function GenerateReportsPage() {
 			{/* Financial Reports */}
 			<div className="flex flex-col gap-4">
 				<div>
-					<h2 className="text-xl font-semibold">Financial Reports</h2>
+					<h2 className="typography-h4">Financial Reports</h2>
 					<p className="text-muted">
 						Detailed financial analysis and performance metrics
 					</p>
@@ -318,7 +318,7 @@ export default function GenerateReportsPage() {
 			{/* Operations Reports */}
 			<div className="flex flex-col gap-4">
 				<div>
-					<h2 className="text-xl font-semibold">Operations Reports</h2>
+					<h2 className="typography-h4">Operations Reports</h2>
 					<p className="text-muted">
 						Property and maintenance operations insights
 					</p>

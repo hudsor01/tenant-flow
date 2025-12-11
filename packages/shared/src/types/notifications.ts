@@ -1,11 +1,11 @@
-import type { MaintenancePriority } from '../constants/status-types.js'
+import type { MaintenancePriority } from './core.js'
 // Notification types for TenantFlow application
 
 type Priority = MaintenancePriority
 
 // UI-only notification type constants (not stored in database)
 export const NotificationType = {
-	MAINTENANCE: 'MAINTENANCE',
+	MAINTENANCE: 'maintenance',
 	LEASE: 'LEASE',
 	PAYMENT: 'PAYMENT',
 	GENERAL: 'GENERAL',

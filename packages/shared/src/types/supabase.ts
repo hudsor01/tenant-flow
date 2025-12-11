@@ -55,6 +55,63 @@ export type Database = {
           },
         ]
       }
+      blogs: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: string
+          meta_description: string | null
+          published_at: string | null
+          quality_score: number | null
+          reading_time: number | null
+          slug: string
+          status: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          word_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          published_at?: string | null
+          quality_score?: number | null
+          reading_time?: number | null
+          slug: string
+          status?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          word_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: string
+          meta_description?: string | null
+          published_at?: string | null
+          quality_score?: number | null
+          reading_time?: number | null
+          slug?: string
+          status?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          word_count?: number | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           created_at: string | null
@@ -180,7 +237,7 @@ export type Database = {
           late_fee_amount: number | null
           late_fee_days: number | null
           lead_paint_disclosure_acknowledged: boolean | null
-          lease_status: string
+          lease_status: Database["public"]["Enums"]["lease_status"]
           max_occupants: number | null
           owner_signature_ip: string | null
           owner_signature_method:
@@ -226,7 +283,7 @@ export type Database = {
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lead_paint_disclosure_acknowledged?: boolean | null
-          lease_status?: string
+          lease_status?: Database["public"]["Enums"]["lease_status"]
           max_occupants?: number | null
           owner_signature_ip?: string | null
           owner_signature_method?:
@@ -272,7 +329,7 @@ export type Database = {
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lead_paint_disclosure_acknowledged?: boolean | null
-          lease_status?: string
+          lease_status?: Database["public"]["Enums"]["lease_status"]
           max_occupants?: number | null
           owner_signature_ip?: string | null
           owner_signature_method?:
@@ -343,11 +400,11 @@ export type Database = {
           inspection_date: string | null
           inspection_findings: string | null
           inspector_id: string | null
-          priority: string
+          priority: Database["public"]["Enums"]["maintenance_priority"]
           property_owner_id: string | null
           requested_by: string | null
           scheduled_date: string | null
-          status: string
+          status: Database["public"]["Enums"]["maintenance_status"]
           tenant_id: string
           title: string
           unit_id: string
@@ -364,11 +421,11 @@ export type Database = {
           inspection_date?: string | null
           inspection_findings?: string | null
           inspector_id?: string | null
-          priority?: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
           property_owner_id?: string | null
           requested_by?: string | null
           scheduled_date?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["maintenance_status"]
           tenant_id: string
           title?: string
           unit_id: string
@@ -385,11 +442,11 @@ export type Database = {
           inspection_date?: string | null
           inspection_findings?: string | null
           inspector_id?: string | null
-          priority?: string
+          priority?: Database["public"]["Enums"]["maintenance_priority"]
           property_owner_id?: string | null
           requested_by?: string | null
           scheduled_date?: string | null
-          status?: string
+          status?: Database["public"]["Enums"]["maintenance_status"]
           tenant_id?: string
           title?: string
           unit_id?: string
@@ -486,7 +543,7 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string | null
-          notification_type: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
           read_at: string | null
           title: string
           user_id: string
@@ -499,7 +556,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
-          notification_type: string
+          notification_type: Database["public"]["Enums"]["notification_type"]
           read_at?: string | null
           title: string
           user_id: string
@@ -512,7 +569,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
-          notification_type?: string
+          notification_type?: Database["public"]["Enums"]["notification_type"]
           read_at?: string | null
           title?: string
           user_id?: string
@@ -629,7 +686,7 @@ export type Database = {
           payment_method_id: string | null
           rent_payment_id: string
           retry_count: number | null
-          status: string
+          status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string
           updated_at: string | null
         }
@@ -643,7 +700,7 @@ export type Database = {
           payment_method_id?: string | null
           rent_payment_id: string
           retry_count?: number | null
-          status: string
+          status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string
           updated_at?: string | null
         }
@@ -657,7 +714,7 @@ export type Database = {
           payment_method_id?: string | null
           rent_payment_id?: string
           retry_count?: number | null
-          status?: string
+          status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string
           updated_at?: string | null
         }
@@ -723,7 +780,7 @@ export type Database = {
           property_type: string
           sale_price: number | null
           state: string
-          status: string
+          status: Database["public"]["Enums"]["property_status"]
           updated_at: string | null
         }
         Insert: {
@@ -740,7 +797,7 @@ export type Database = {
           property_type: string
           sale_price?: number | null
           state: string
-          status?: string
+          status?: Database["public"]["Enums"]["property_status"]
           updated_at?: string | null
         }
         Update: {
@@ -757,7 +814,7 @@ export type Database = {
           property_type?: string
           sale_price?: number | null
           state?: string
-          status?: string
+          status?: Database["public"]["Enums"]["property_status"]
           updated_at?: string | null
         }
         Relationships: [
@@ -925,7 +982,7 @@ export type Database = {
           payment_method_type: string
           period_end: string
           period_start: string
-          status: string
+          status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string
           tenant_id: string
           updated_at: string | null
@@ -943,7 +1000,7 @@ export type Database = {
           payment_method_type: string
           period_end: string
           period_start: string
-          status: string
+          status: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id: string
           tenant_id: string
           updated_at?: string | null
@@ -961,7 +1018,7 @@ export type Database = {
           payment_method_type?: string
           period_end?: string
           period_start?: string
-          status?: string
+          status?: Database["public"]["Enums"]["payment_status"]
           stripe_payment_intent_id?: string
           tenant_id?: string
           updated_at?: string | null
@@ -1314,7 +1371,7 @@ export type Database = {
           rent_currency: string
           rent_period: string
           square_feet: number | null
-          status: string
+          status: Database["public"]["Enums"]["unit_status"]
           unit_number: string | null
           updated_at: string | null
         }
@@ -1329,7 +1386,7 @@ export type Database = {
           rent_currency?: string
           rent_period?: string
           square_feet?: number | null
-          status?: string
+          status?: Database["public"]["Enums"]["unit_status"]
           unit_number?: string | null
           updated_at?: string | null
         }
@@ -1344,7 +1401,7 @@ export type Database = {
           rent_currency?: string
           rent_period?: string
           square_feet?: number | null
-          status?: string
+          status?: Database["public"]["Enums"]["unit_status"]
           unit_number?: string | null
           updated_at?: string | null
         }
@@ -1919,8 +1976,32 @@ export type Database = {
     }
     Enums: {
       invitation_type: "platform_access" | "lease_signing"
+      lease_status:
+        | "draft"
+        | "pending_signature"
+        | "active"
+        | "ended"
+        | "terminated"
+      maintenance_priority: "low" | "normal" | "medium" | "high" | "urgent"
+      maintenance_status:
+        | "open"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "on_hold"
+      notification_type: "maintenance" | "lease" | "payment" | "system"
+      payment_status:
+        | "pending"
+        | "processing"
+        | "succeeded"
+        | "failed"
+        | "canceled"
+        | "cancelled"
+        | "requires_action"
+      property_status: "active" | "inactive" | "sold"
       signature_method: "in_app" | "docuseal"
       stripe_subscription_status: "none" | "pending" | "active" | "failed"
+      unit_status: "available" | "occupied" | "maintenance" | "reserved"
     }
     CompositeTypes: {
       stdaddr: {
@@ -2066,8 +2147,35 @@ export const Constants = {
   public: {
     Enums: {
       invitation_type: ["platform_access", "lease_signing"],
+      lease_status: [
+        "draft",
+        "pending_signature",
+        "active",
+        "ended",
+        "terminated",
+      ],
+      maintenance_priority: ["low", "normal", "medium", "high", "urgent"],
+      maintenance_status: [
+        "open",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "on_hold",
+      ],
+      notification_type: ["maintenance", "lease", "payment", "system"],
+      payment_status: [
+        "pending",
+        "processing",
+        "succeeded",
+        "failed",
+        "canceled",
+        "cancelled",
+        "requires_action",
+      ],
+      property_status: ["active", "inactive", "sold"],
       signature_method: ["in_app", "docuseal"],
       stripe_subscription_status: ["none", "pending", "active", "failed"],
+      unit_status: ["available", "occupied", "maintenance", "reserved"],
     },
   },
 } as const

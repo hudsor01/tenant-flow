@@ -68,7 +68,7 @@ function OverduePaymentCard({
 						) : (
 							<AlertCircle className="size-4 text-error-main shrink-0" />
 						)}
-						<span className="text-sm font-medium text-label-primary">
+						<span className="typography-small text-label-primary">
 							{formatCurrency(payment.amount)} Rent Payment
 						</span>
 					</div>
@@ -202,7 +202,7 @@ export function LateFeesSection({
 							<div className="flex items-start gap-2">
 								<AlertCircle className="size-5 text-error-main shrink-0" />
 								<div>
-									<p className="text-sm font-medium text-error-main">
+									<p className="typography-small text-error-main">
 										Failed to load overdue payments
 									</p>
 									<p className="text-xs text-label-secondary mt-1">

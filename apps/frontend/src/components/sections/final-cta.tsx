@@ -55,7 +55,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center mb-12">
 							<Button
 								size="lg"
-								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-xl font-semibold px-12 py-6"
+								className="group relative overflow-hidden bg-linear-to-r from-primary via-primary/90 to-primary/80 hover:from-primary/90 hover:via-primary/80 hover:to-primary/70 shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-h4 px-12 py-6"
 								asChild
 							>
 								<Link href="/pricing" aria-label="Start free trial">
@@ -69,7 +69,7 @@ export function FinalCta({ className }: FinalCtaProps) {
 							<Button
 								variant="outline"
 								size="lg"
-								className="group border-2 border-border hover:border-primary/50 hover:bg-primary/5 text-xl font-semibold px-12 py-6 transition-all duration-300 backdrop-blur-sm"
+								className="group border-2 border-border hover:border-primary/50 hover:bg-primary/5 typography-h4 px-12 py-6 transition-all duration-300 backdrop-blur-sm"
 								asChild
 							>
 								<Link href="/contact" aria-label="Schedule demo">
@@ -84,19 +84,19 @@ export function FinalCta({ className }: FinalCtaProps) {
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center max-w-3xl mx-auto">
 							<div className="flex flex-col items-center">
 								<Check className="size-6 text-accent mb-2" />
-								<span className="text-sm font-medium text-muted-foreground">
+								<span className="typography-small text-muted-foreground">
 									No setup fees or hidden costs
 								</span>
 							</div>
 							<div className="flex flex-col items-center">
 								<Check className="size-6 text-accent mb-2" />
-								<span className="text-sm font-medium text-muted-foreground">
+								<span className="typography-small text-muted-foreground">
 									Cancel anytime, no questions asked
 								</span>
 							</div>
 							<div className="flex flex-col items-center">
 								<Check className="size-6 text-accent mb-2" />
-								<span className="text-sm font-medium text-muted-foreground">
+								<span className="typography-small text-muted-foreground">
 									ROI guaranteed in 90 days
 								</span>
 							</div>

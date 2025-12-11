@@ -180,7 +180,7 @@ export default function ConfirmEmailPage() {
 									/>
 								</svg>
 							</div>
-							<span className="text-2xl font-bold text-foreground tracking-tight">
+							<span className="typography-h3 text-foreground tracking-tight">
 								TenantFlow
 							</span>
 						</div>
@@ -194,7 +194,7 @@ export default function ConfirmEmailPage() {
 						</div>
 
 						<div className="text-center space-y-2">
-							<h1 className="text-4xl font-bold text-foreground tracking-tight">
+							<h1 className="typography-h1 text-foreground tracking-tight">
 								Check Your Email
 							</h1>
 							<p className="text-lg text-muted-foreground leading-relaxed">

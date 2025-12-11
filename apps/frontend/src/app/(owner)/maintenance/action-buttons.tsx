@@ -107,13 +107,13 @@ export function MaintenanceActionButtons({
 						{/* Status and Priority */}
 						<div className="flex items-center gap-4">
 							<div className="flex items-center gap-2">
-								<span className="text-sm font-medium">Status:</span>
+								<span className="typography-small">Status:</span>
 								<Badge className={getStatusColor(maintenance.status)}>
 									{maintenance.status}
 								</Badge>
 							</div>
 							<div className="flex items-center gap-2">
-								<span className="text-sm font-medium">Priority:</span>
+								<span className="typography-small">Priority:</span>
 								<Badge className={getPriorityColor(maintenance.priority)}>
 									{maintenance.priority}
 								</Badge>
@@ -136,7 +136,7 @@ export function MaintenanceActionButtons({
 								<div className="flex items-center gap-2">
 									<MapPin className="size-4 text-muted-foreground" />
 									<div>
-										<p className="text-sm font-medium">Property</p>
+										<p className="typography-small">Property</p>
 										<p className="text-muted">
 											{maintenance.property?.name || 'No Property'}
 										</p>
@@ -150,7 +150,7 @@ export function MaintenanceActionButtons({
 										<span className="text-xs font-bold">#</span>
 									</div>
 									<div>
-										<p className="text-sm font-medium">Unit</p>
+										<p className="typography-small">Unit</p>
 										<p className="text-muted">
 											Unit {maintenance.unit_id}
 										</p>
@@ -164,7 +164,7 @@ export function MaintenanceActionButtons({
 							<div className="flex items-center gap-2">
 								<DollarSign className="size-4 text-muted-foreground" />
 								<div>
-									<p className="text-sm font-medium">Estimated Cost</p>
+									<p className="typography-small">Estimated Cost</p>
 									<p className="text-muted">
 										${maintenance.estimated_cost.toLocaleString()}
 									</p>
@@ -177,7 +177,7 @@ export function MaintenanceActionButtons({
 						<div className="flex items-center gap-2">
 							<Calendar className="size-4 text-muted-foreground" />
 							<div>
-								<p className="text-sm font-medium">Created</p>
+								<p className="typography-small">Created</p>
 								<p className="text-muted">
 									{maintenance.created_at
 										? new Date(maintenance.created_at).toLocaleDateString()

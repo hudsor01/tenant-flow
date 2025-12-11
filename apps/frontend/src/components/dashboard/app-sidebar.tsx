@@ -83,6 +83,7 @@ const data = {
 			url: '/financials',
 			icon: Receipt,
 			items: [
+				{ title: 'Rent Collection', url: '/rent-collection' },
 				{ title: 'Income Statement', url: '/financials/income-statement' },
 				{ title: 'Cash Flow', url: '/financials/cash-flow' },
 				{ title: 'Balance Sheet', url: '/financials/balance-sheet' },

@@ -21,7 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { toast } from 'sonner'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenanceStatus } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 
@@ -33,30 +33,21 @@ type MaintenanceRequestWithRelations = MaintenanceRequest & {
 	unit?: { name: string } | null
 	assignedTo?: { name: string } | null
 }
-// Define the exact status types that match the database enum
-type Status =
-	| 'OPEN'
-	| 'IN_PROGRESS'
-	| 'COMPLETED'
-	| 'CANCELED'
-	| 'ON_HOLD'
-	| 'CLOSED'
 
 const COLUMNS: {
-	id: Status
+	id: MaintenanceStatus
 	title: string
 	variant: 'default' | 'secondary' | 'outline'
 }[] = [
-	{ id: 'OPEN', title: 'Open', variant: 'default' },
+	{ id: 'open', title: 'Open', variant: 'default' },
 	{
-		id: 'IN_PROGRESS',
+		id: 'in_progress',
 		title: 'In Progress',
 		variant: 'secondary'
 	},
-	{ id: 'COMPLETED', title: 'Completed', variant: 'default' },
-	{ id: 'CANCELED', title: 'Canceled', variant: 'outline' },
-	{ id: 'ON_HOLD', title: 'On Hold', variant: 'outline' },
-	{ id: 'CLOSED', title: 'Closed', variant: 'outline' }
+	{ id: 'completed', title: 'Completed', variant: 'default' },
+	{ id: 'cancelled', title: 'Cancelled', variant: 'outline' },
+	{ id: 'on_hold', title: 'On Hold', variant: 'outline' }
 ]
 
 interface MaintenanceKanbanProps {
@@ -85,12 +76,12 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	// Group requests by status
 	const requestsByStatus = (requests || []).reduce(
 		(acc, request) => {
-			const status = request.status as Status
-			if (!acc[status]) acc[status] = []
-			acc[status].push(request)
+			const status = request.status
+			if (status && !acc[status]) acc[status] = []
+			if (status) acc[status].push(request)
 			return acc
 		},
-		{} as Record<Status, MaintenanceRequestWithRelations[]>
+		{} as Record<MaintenanceStatus, MaintenanceRequestWithRelations[]>
 	)
 
 	const handleDragStart = (event: DragStartEvent) => {
@@ -108,7 +99,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		if (!over) return
 
 		const requestId = active.id as string
-		const newStatus = over.id as Status
+		const newStatus = over.id as MaintenanceStatus
 
 		const request = requests.find(r => r.id === requestId)
 		if (!request || request.status === newStatus) return
@@ -126,7 +117,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					method: 'PUT',
 					body: JSON.stringify({
 						status: newStatus,
-						completed_at: newStatus === 'COMPLETED' ? new Date().toISOString() : undefined
+						completed_at: newStatus === 'completed' ? new Date().toISOString() : undefined
 					})
 				})
 

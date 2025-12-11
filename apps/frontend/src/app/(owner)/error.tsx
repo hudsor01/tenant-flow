@@ -31,7 +31,7 @@ export default function DashboardError({
 			<div className="flex max-w-md flex-col items-center gap-4 text-center">
 				<AlertCircle className="size-12 text-destructive" />
 				<div className="space-y-2">
-					<h2 className="text-xl font-semibold">Something went wrong</h2>
+					<h2 className="typography-h4">Something went wrong</h2>
 					<p className="text-muted">
 						{error.message || 'An unexpected error occurred. Please try again.'}
 					</p>

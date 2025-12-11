@@ -1,5 +1,6 @@
 'use client'
 
+import * as React from 'react'
 import type {
 	BillingInsightsTimeline,
 	MonthlyFinancialMetric,
@@ -11,10 +12,8 @@ import {
 	Bar,
 	BarChart,
 	CartesianGrid,
-	Legend,
 	Line,
 	LineChart,
-	Tooltip,
 	XAxis,
 	YAxis
 } from 'recharts'
@@ -23,9 +22,19 @@ import { Badge } from '#components/ui/badge'
 import { CardDescription } from '#components/ui/card'
 import {
 	ChartContainer,
+	ChartLegend,
+	ChartLegendContent,
+	ChartTooltip,
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 
 const revenueExpenseConfig = {
 	revenue: {
@@ -90,52 +99,134 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
+	const [timeRange, setTimeRange] = React.useState('all')
+
+	// Move all hooks before early return to comply with Rules of Hooks
+	const chartData = React.useMemo(() => {
+		if (!data || data.length === 0) return []
+		return data.map(item => ({
+			month: item.month,
+			revenue: item.revenue,
+			expenses: item.expenses,
+			netIncome: item.netIncome
+		}))
+	}, [data])
+
+	// Filter data based on time range
+	const filteredData = React.useMemo(() => {
+		if (timeRange === 'all' || chartData.length <= 3) {
+			return chartData
+		}
+
+		const months = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
+		return chartData.slice(-months)
+	}, [chartData, timeRange])
+
+	// No data - show empty state (check after hooks)
 	if (!data || data.length === 0) {
 		return (
 			<EmptyState message="We couldn't find monthly financial data for this period." />
 		)
 	}
 
-	const chartData = data.map(item => ({
-		month: item.month,
-		revenue: item.revenue,
-		expenses: item.expenses,
-		netIncome: item.netIncome
-	}))
-
 	return (
-		<ChartContainer className="h-80" config={revenueExpenseConfig}>
-			<AreaChart data={chartData}>
-				<CartesianGrid strokeDasharray="3 3" />
-				<XAxis dataKey="month" tickLine={false} axisLine={false} />
-				<YAxis tickLine={false} axisLine={false} />
-				<Tooltip content={<ChartTooltipContent />} />
-				<Legend />
-				<Area
-					type="monotone"
-					dataKey="revenue"
-					stackId="1"
-					stroke="var(--color-revenue)"
-					fill="var(--color-revenue)"
-					fillOpacity={0.25}
-				/>
-				<Area
-					type="monotone"
-					dataKey="expenses"
-					stackId="2"
-					stroke="var(--color-expenses)"
-					fill="var(--color-expenses)"
-					fillOpacity={0.2}
-				/>
-				<Area
-					type="monotone"
-					dataKey="netIncome"
-					stroke="var(--color-netIncome)"
-					fill="var(--color-netIncome)"
-					fillOpacity={0.3}
-				/>
-			</AreaChart>
-		</ChartContainer>
+		<div className="space-y-4">
+			{chartData.length > 3 && (
+				<div className="flex justify-end">
+					<Select value={timeRange} onValueChange={setTimeRange}>
+						<SelectTrigger className="w-[160px]" aria-label="Select time range">
+							<SelectValue placeholder="All time" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All time</SelectItem>
+							<SelectItem value="6m">Last 6 months</SelectItem>
+							<SelectItem value="3m">Last 3 months</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+			)}
+			<ChartContainer className="aspect-auto h-80 w-full" config={revenueExpenseConfig}>
+				<AreaChart data={filteredData}>
+					<defs>
+						<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
+							<stop
+								offset="5%"
+								stopColor="var(--color-revenue)"
+								stopOpacity={0.8}
+							/>
+							<stop
+								offset="95%"
+								stopColor="var(--color-revenue)"
+								stopOpacity={0.1}
+							/>
+						</linearGradient>
+						<linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
+							<stop
+								offset="5%"
+								stopColor="var(--color-expenses)"
+								stopOpacity={0.8}
+							/>
+							<stop
+								offset="95%"
+								stopColor="var(--color-expenses)"
+								stopOpacity={0.1}
+							/>
+						</linearGradient>
+						<linearGradient id="fillNetIncome" x1="0" y1="0" x2="0" y2="1">
+							<stop
+								offset="5%"
+								stopColor="var(--color-netIncome)"
+								stopOpacity={0.8}
+							/>
+							<stop
+								offset="95%"
+								stopColor="var(--color-netIncome)"
+								stopOpacity={0.1}
+							/>
+						</linearGradient>
+					</defs>
+					<CartesianGrid vertical={false} />
+					<XAxis
+						dataKey="month"
+						tickLine={false}
+						axisLine={false}
+						tickMargin={8}
+						minTickGap={32}
+					/>
+					<YAxis tickLine={false} axisLine={false} />
+					<ChartTooltip
+						cursor={false}
+						content={
+							<ChartTooltipContent
+								labelFormatter={(value) => value}
+								indicator="dot"
+							/>
+						}
+					/>
+					<Area
+						type="natural"
+						dataKey="revenue"
+						fill="url(#fillRevenue)"
+						stroke="var(--color-revenue)"
+						stackId="a"
+					/>
+					<Area
+						type="natural"
+						dataKey="expenses"
+						fill="url(#fillExpenses)"
+						stroke="var(--color-expenses)"
+						stackId="b"
+					/>
+					<Area
+						type="natural"
+						dataKey="netIncome"
+						fill="url(#fillNetIncome)"
+						stroke="var(--color-netIncome)"
+					/>
+					<ChartLegend content={<ChartLegendContent />} />
+				</AreaChart>
+			</ChartContainer>
+		</div>
 	)
 }
 
@@ -154,9 +245,9 @@ export function NetOperatingIncomeChart({
 	}))
 
 	return (
-		<ChartContainer className="h-80" config={noiConfig}>
+		<ChartContainer className="aspect-auto h-80 w-full" config={noiConfig}>
 			<BarChart data={chartData}>
-				<CartesianGrid strokeDasharray="3 3" vertical={false} />
+				<CartesianGrid vertical={false} />
 				<XAxis
 					dataKey="property"
 					tickLine={false}
@@ -165,9 +256,13 @@ export function NetOperatingIncomeChart({
 					angle={-30}
 					textAnchor="end"
 					height={80}
+					tickMargin={8}
 				/>
 				<YAxis tickLine={false} axisLine={false} />
-				<Tooltip content={<ChartTooltipContent />} />
+				<ChartTooltip
+					cursor={false}
+					content={<ChartTooltipContent hideLabel />}
+				/>
 				<Bar dataKey="noi" fill="var(--color-noi)" radius={[6, 6, 0, 0]} />
 			</BarChart>
 		</ChartContainer>
@@ -175,6 +270,31 @@ export function NetOperatingIncomeChart({
 }
 
 export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
+	const [timeRange, setTimeRange] = React.useState('all')
+
+	// Move all hooks before early return to comply with Rules of Hooks
+	const chartData = React.useMemo(() => {
+		const timeline = data?.points ?? []
+		if (!timeline.length) return []
+		return timeline.map(point => ({
+			period: point.period,
+			invoiced: point.invoiced,
+			paid: point.paid,
+			overdue: point.overdue
+		}))
+	}, [data?.points])
+
+	// Filter data based on time range
+	const filteredData = React.useMemo(() => {
+		if (timeRange === 'all' || chartData.length <= 3) {
+			return chartData
+		}
+
+		const periods = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
+		return chartData.slice(-periods)
+	}, [chartData, timeRange])
+
+	// No data - show empty state (check after hooks)
 	const timeline = data?.points ?? []
 	if (!timeline.length) {
 		return (
@@ -182,43 +302,66 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 		)
 	}
 
-	const chartData = timeline.map(point => ({
-		period: point.period,
-		invoiced: point.invoiced,
-		paid: point.paid,
-		overdue: point.overdue
-	}))
-
 	return (
-		<ChartContainer className="h-80" config={billingTimelineConfig}>
-			<LineChart data={chartData}>
-				<CartesianGrid strokeDasharray="3 3" />
-				<XAxis dataKey="period" tickLine={false} axisLine={false} />
-				<YAxis tickLine={false} axisLine={false} />
-				<Legend />
-				<Tooltip content={<ChartTooltipContent indicator="line" />} />
-				<Line
-					type="monotone"
-					dataKey="invoiced"
-					stroke="var(--color-invoiced)"
-					strokeWidth={2}
-					dot={false}
-				/>
-				<Line
-					type="monotone"
-					dataKey="paid"
-					stroke="var(--color-paid)"
-					strokeWidth={2}
-					dot={false}
-				/>
-				<Line
-					type="monotone"
-					dataKey="overdue"
-					stroke="var(--color-overdue)"
-					strokeWidth={2}
-					dot={false}
-				/>
-			</LineChart>
-		</ChartContainer>
+		<div className="space-y-4">
+			{chartData.length > 3 && (
+				<div className="flex justify-end">
+					<Select value={timeRange} onValueChange={setTimeRange}>
+						<SelectTrigger className="w-[160px]" aria-label="Select time range">
+							<SelectValue placeholder="All time" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All time</SelectItem>
+							<SelectItem value="6m">Last 6 months</SelectItem>
+							<SelectItem value="3m">Last 3 months</SelectItem>
+						</SelectContent>
+					</Select>
+				</div>
+			)}
+			<ChartContainer className="aspect-auto h-80 w-full" config={billingTimelineConfig}>
+				<LineChart data={filteredData}>
+					<CartesianGrid vertical={false} />
+					<XAxis
+						dataKey="period"
+						tickLine={false}
+						axisLine={false}
+						tickMargin={8}
+						minTickGap={32}
+					/>
+					<YAxis tickLine={false} axisLine={false} />
+					<ChartTooltip
+						cursor={false}
+						content={
+							<ChartTooltipContent
+								labelFormatter={(value) => value}
+								indicator="line"
+							/>
+						}
+					/>
+					<Line
+						type="natural"
+						dataKey="invoiced"
+						stroke="var(--color-invoiced)"
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type="natural"
+						dataKey="paid"
+						stroke="var(--color-paid)"
+						strokeWidth={2}
+						dot={false}
+					/>
+					<Line
+						type="natural"
+						dataKey="overdue"
+						stroke="var(--color-overdue)"
+						strokeWidth={2}
+						dot={false}
+					/>
+					<ChartLegend content={<ChartLegendContent />} />
+				</LineChart>
+			</ChartContainer>
+		</div>
 	)
 }

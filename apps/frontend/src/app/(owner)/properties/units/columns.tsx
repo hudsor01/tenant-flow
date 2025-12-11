@@ -68,6 +68,7 @@ import { toast } from 'sonner'
 export type { UnitRow }
 
 // Enhanced status configuration with icons and semantic meaning
+// Keys match DB enum values (lowercase)
 const statusConfig: Record<
 	UnitStatus,
 	{
@@ -78,7 +79,7 @@ const statusConfig: Record<
 		priority: number
 	}
 > = {
-	OCCUPIED: {
+	occupied: {
 		variant: 'default',
 		label: 'Occupied',
 		icon: Users,
@@ -86,7 +87,7 @@ const statusConfig: Record<
 			'bg-accent/10 text-accent-foreground border-accent/20 dark:bg-accent/20 dark:text-accent dark:border-accent/80',
 		priority: 1
 	},
-	VACANT: {
+	available: {
 		variant: 'secondary',
 		label: 'Available',
 		icon: Home,
@@ -94,7 +95,7 @@ const statusConfig: Record<
 			'bg-primary/10 text-primary-foreground border-primary/20 dark:bg-primary/20 dark:text-primary dark:border-primary/80',
 		priority: 2
 	},
-	MAINTENANCE: {
+	maintenance: {
 		variant: 'destructive',
 		label: 'Maintenance',
 		icon: AlertTriangle,
@@ -102,7 +103,7 @@ const statusConfig: Record<
 			'bg-destructive/10 text-destructive-foreground border-destructive/20 dark:bg-destructive/20 dark:text-destructive dark:border-destructive/80',
 		priority: 4
 	},
-	RESERVED: {
+	reserved: {
 		variant: 'outline',
 		label: 'Reserved',
 		icon: Calendar,
@@ -200,7 +201,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 	}
 
 	// Don't allow deletion of occupied units
-	const canDelete = unit.status !== 'OCCUPIED'
+	const canDelete = unit.status !== 'occupied'
 	const config = statusConfig[unit.status as UnitStatus]
 
 	return (
@@ -343,7 +344,7 @@ function UnitActions({ unit }: UnitActionsProps) {
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="OCCUPIED">Occupied</SelectItem>
-									<SelectItem value="VACANT">Vacant</SelectItem>
+									<SelectItem value="available">Vacant</SelectItem>
 									<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
 									<SelectItem value="RESERVED">Reserved</SelectItem>
 								</SelectContent>
@@ -364,13 +365,13 @@ function UnitActions({ unit }: UnitActionsProps) {
 						<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
 							<TrashIcon className="size-6 text-destructive" />
 						</div>
-						<AlertDialogTitle className="text-center text-lg font-semibold">
+						<AlertDialogTitle className="text-center typography-large">
 							Delete Unit {unit.unit_number}?
 						</AlertDialogTitle>
 						<AlertDialogDescription className="text-center text-muted-foreground">
 							This action cannot be undone. The unit will be permanently removed
 							from your property management system.
-							{unit.status === 'OCCUPIED' && (
+							{unit.status === 'occupied' && (
 								<div
 									className={cn(
 										cardVariants({ variant: 'default' }),
@@ -556,10 +557,10 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 			label: 'Status',
 			variant: 'select',
 			options: [
-				{ label: 'Occupied', value: 'OCCUPIED' },
-				{ label: 'Vacant', value: 'VACANT' },
-				{ label: 'Maintenance', value: 'MAINTENANCE' },
-				{ label: 'Reserved', value: 'RESERVED' },
+				{ label: 'Occupied', value: 'occupied' },
+				{ label: 'Vacant', value: 'available' },
+				{ label: 'Maintenance', value: 'maintenance' },
+				{ label: 'Reserved', value: 'reserved' },
 			],
 		},
 		enableColumnFilter: true,
@@ -570,7 +571,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 			return (
 				<div className="space-y-2 py-2">
 					<UnitStatusBadge status={status} />
-					{unit.tenant && status === 'OCCUPIED' && (
+					{unit.tenant && status === 'occupied' && (
 						<div className="space-y-1">
 							<div className="font-medium text-foreground text-sm">
 								{unit.tenant.name}

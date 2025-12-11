@@ -90,7 +90,7 @@ export const MobileNav = memo(() => {
 											key={item.href}
 											href={item.href}
 											className={cn(
-																	'flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-colors',
+																	'flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors',
 																	isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
 																)}
 											aria-label={`${item.label} navigation`}

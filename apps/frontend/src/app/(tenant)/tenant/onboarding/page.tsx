@@ -153,7 +153,7 @@ export default function TenantOnboardingPage() {
 				aria-live="polite"
 			>
 				<div className="text-center">
-					<h1 className="text-2xl font-semibold tracking-tight">
+					<h1 className="typography-h3 tracking-tight">
 						Setting Up Your Account
 					</h1>
 					<p className="mt-2 text-muted">

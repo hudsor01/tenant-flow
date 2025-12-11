@@ -314,7 +314,7 @@ function AcceptInviteContent() {
 						</div>
 
 						<div className="space-y-2">
-							<h1 className="text-2xl font-bold text-foreground">
+							<h1 className="typography-h3 text-foreground">
 								Accept Your Invitation
 							</h1>
 							<p className="text-muted-foreground text-sm">
@@ -484,7 +484,7 @@ function AcceptInviteContent() {
 						{/* Submit Button */}
 						<Button
 							type="submit"
-							className="w-full h-11 text-sm font-medium"
+							className="w-full h-11 typography-small"
 							disabled={isAccepting}
 						>
 							{isAccepting
@@ -560,7 +560,7 @@ function ErrorState({ state, message }: { state: PageState; message: string }) {
 				</div>
 
 				<div className="space-y-2">
-					<h1 className="text-2xl font-bold text-foreground">
+					<h1 className="typography-h3 text-foreground">
 						{isExpired ? 'Invitation Expired' : 'Invalid Invitation'}
 					</h1>
 					<p className="text-muted-foreground">{message}</p>
@@ -591,7 +591,7 @@ function SuccessState() {
 				</div>
 
 				<div className="space-y-2">
-					<h1 className="text-2xl font-bold text-foreground">
+					<h1 className="typography-h3 text-foreground">
 						Welcome to TenantFlow!
 					</h1>
 					<p className="text-muted-foreground">
