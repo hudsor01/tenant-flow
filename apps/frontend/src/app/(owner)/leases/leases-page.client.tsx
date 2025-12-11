@@ -178,7 +178,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	// Fetch leases with filters and pagination (uses initialData from Server Component)
 	const params: {
 		search?: string
-		status?: 'active' | 'expired' | 'terminated'
+		status?: 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -187,7 +187,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'active' | 'expired' | 'terminated'
+		params.status = status as 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useQuery(leaseQueries.list(params))
 
@@ -250,9 +250,11 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="pending_signature">Pending Signature</SelectItem>
 						<SelectItem value="active">Active</SelectItem>
-						<SelectItem value="EXPIRED">Expired</SelectItem>
-						<SelectItem value="TERMINATED">Terminated</SelectItem>
+						<SelectItem value="expired">Expired</SelectItem>
+						<SelectItem value="terminated">Terminated</SelectItem>
 					</SelectContent>
 				</Select>
 

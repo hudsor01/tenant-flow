@@ -78,10 +78,10 @@ export default function LeasesPage() {
 	const { openModal } = useModalStore()
 
 	// Fetch leases with filters and pagination
-	// NOTE: Database uses lowercase status values: 'active', 'expired', 'terminated'
+	// NOTE: Database uses lowercase status values
 	const params: {
 		search?: string
-		status?: 'active' | 'expired' | 'terminated'
+		status?: 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -90,7 +90,7 @@ export default function LeasesPage() {
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'active' | 'expired' | 'terminated'
+		params.status = status as 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useLeaseList(params)
 
@@ -184,6 +184,8 @@ export default function LeasesPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="pending_signature">Pending Signature</SelectItem>
 						<SelectItem value="active">Active</SelectItem>
 						<SelectItem value="expired">Expired</SelectItem>
 						<SelectItem value="terminated">Terminated</SelectItem>
