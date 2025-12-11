@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef } from 'react'
-import type { ReactNode, FormEvent } from 'react'
+import type { ReactNode } from 'react'
 
 import { cn } from '#lib/utils'
 import { useModalStore } from '#stores/modal-store'
@@ -83,7 +83,13 @@ export interface CrudDialogProps
 	variant?: CrudDialogVariant
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Component types vary by variant, strict typing not feasible
+/**
+ * Generic component type for variant components.
+ * Uses any for props since each variant (Dialog, Drawer, Sheet, AlertDialog)
+ * has different prop interfaces that share common patterns (open, children, className, etc.)
+ * but TypeScript cannot correctly infer the polymorphic union.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for polymorphic variant components
 type VariantComponent = React.ComponentType<any>
 
 type VariantComponents = {
@@ -183,11 +189,10 @@ function CrudDialogForm({
 }: React.ComponentProps<'form'> & { closeOnSubmit?: boolean }) {
 	const { requestClose } = React.useContext(ControlContext)
 
-	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+	const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
 		event.preventDefault()
 		if (onSubmit) {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any -- FormEvent typing issue with generic form submit handler
-			await onSubmit(event as any)
+			await Promise.resolve(onSubmit(event))
 		}
 		if (closeOnSubmit) {
 			requestClose()
@@ -200,17 +205,25 @@ CrudDialogForm.displayName = 'CrudDialogForm'
 
 const useVariantComponents = () => React.useContext(VariantContext)
 
+/**
+ * Factory function to create variant-aware wrapper components.
+ * These components delegate to the appropriate underlying component based on the current variant context.
+ *
+ * Note: Uses React.ComponentPropsWithRef for proper ref forwarding with polymorphic components.
+ * The explicit any cast is required because each variant component (Dialog, Drawer, Sheet, AlertDialog)
+ * has different prop types, and TypeScript cannot infer the union correctly.
+ */
 const createVariantComponent = <K extends keyof VariantComponents>(
 	key: K,
 	label: string
 ) => {
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic component factory requires flexible typing
-	const Component = React.forwardRef<any, any>((props, ref) => {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for polymorphic component factory
+	const Component = React.forwardRef<HTMLElement, any>((props, ref) => {
 		const components = useVariantComponents()
 		const ComponentForVariant = components[key] ?? variantComponentMap.dialog[key]
 		if (!ComponentForVariant) return null
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Variant components have heterogeneous prop types
-		return <ComponentForVariant ref={ref} {...(props as any)} />
+		// @ts-expect-error TypeScript cannot infer polymorphic component props correctly
+		return <ComponentForVariant ref={ref} {...props} />
 	})
 	Component.displayName = label
 	return Component

@@ -187,11 +187,11 @@ describe('UnitsController', () => {
 		})
 	})
 
-	describe('findOne', () => {
-		it('should return a unit by ID', async () => {
-			const mockUnit = createMockUnit({ id: 'unit-1' })
+		describe('findOne', () => {
+			it('should return a unit by ID', async () => {
+				const mockUnit = createMockUnit({ id: 'unit-1' })
 
-			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
+				mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
 
 			const result = await controller.findOne(
 				'mock-jwt-token',
@@ -204,13 +204,13 @@ describe('UnitsController', () => {
 			expect(result).toEqual(mockUnit)
 		})
 
-		it('should throw NotFoundException when unit not found', async () => {
-			mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.resolve(null))
+			it('should throw NotFoundException when unit not found', async () => {
+				mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.reject(new NotFoundException()))
 
-			await expect(
-				controller.findOne(
-					'mock-jwt-token',
-					'non-existent'
+				await expect(
+					controller.findOne(
+						'mock-jwt-token',
+						'non-existent'
 				)
 			).rejects.toThrow(NotFoundException)
 		})

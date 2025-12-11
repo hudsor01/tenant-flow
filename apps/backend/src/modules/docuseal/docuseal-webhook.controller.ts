@@ -19,6 +19,7 @@ import {
 import { AppConfigService } from '../../config/app-config.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
+import type { Json } from '@repo/shared/types/supabase'
 
 export interface DocuSealWebhookPayload {
 	event_type?: string
@@ -36,12 +37,11 @@ export class DocuSealWebhookController {
 	private async acquireWebhookLock(externalId: string, eventType: string, rawPayload: unknown): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			.rpc('acquire_webhook_event_lock_with_id' as any, {
+			.rpc('acquire_webhook_event_lock_with_id', {
 				p_webhook_source: 'custom',
 				p_external_id: externalId,
 				p_event_type: eventType,
-				p_raw_payload: rawPayload
+				p_raw_payload: rawPayload as Json
 			})
 
 		if (error) {
@@ -54,7 +54,7 @@ export class DocuSealWebhookController {
 		}
 
 		const rows = Array.isArray(data) ? data : [data]
-		return rows.some(row => row && typeof row === 'object' && 'lock_acquired' in row && (row as { lock_acquired?: boolean }).lock_acquired === true)
+		return rows.some(row => row?.lock_acquired === true)
 	}
 
 	@Post()

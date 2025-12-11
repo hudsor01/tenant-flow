@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -82,7 +82,11 @@ export class TenantAutopayController {
 				tenant_id,
 				error: error.message
 			})
-			return null
+			throw new NotFoundException('Active lease not found')
+		}
+
+		if (!data) {
+			throw new NotFoundException('Active lease not found')
 		}
 
 		return data
@@ -100,7 +104,7 @@ export class TenantAutopayController {
 			.maybeSingle()
 
 		if (error || !data) {
-			return null
+			throw new NotFoundException('Next payment not found')
 		}
 
 		return data.due_date

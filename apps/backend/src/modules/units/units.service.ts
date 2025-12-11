@@ -7,7 +7,7 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import type { Unit, UnitStats, UnitStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { ZeroCacheService } from '../../cache/cache.service'
@@ -231,13 +231,13 @@ export class UnitsService {
 	 * Find one unit by ID via direct Supabase query
 	 * Uses getUserClient(token) - RLS automatically filters to user's units
 	 */
-	async findOne(token: string, unit_id: string): Promise<Unit | null> {
+	async findOne(token: string, unit_id: string): Promise<Unit> {
 		try {
 			if (!token || !unit_id) {
 				this.logger.warn('Find one unit called with missing parameters', {
 					unit_id
 				})
-				return null
+				throw new BadRequestException('Authentication token and unit ID are required')
 			}
 
 			this.logger.log('Finding one unit via RLS-protected query', { unit_id })
@@ -257,7 +257,7 @@ export class UnitsService {
 					error: error.message,
 					unit_id
 				})
-				return null
+				throw new NotFoundException('Unit not found')
 			}
 
 			return data as Unit
@@ -266,7 +266,12 @@ export class UnitsService {
 				error: error instanceof Error ? error.message : String(error),
 				unit_id
 			})
-			return null
+			if (error instanceof BadRequestException || error instanceof NotFoundException) {
+				throw error
+			}
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to fetch unit'
+			)
 		}
 	}
 
@@ -344,13 +349,13 @@ export class UnitsService {
 		unit_id: string,
 		updateRequest: UpdateUnitDto,
 		expectedVersion?: number //Optimistic locking
-	): Promise<Unit | null> {
+	): Promise<Unit> {
 		try {
 			if (!token || !unit_id) {
 				this.logger.warn('Update unit called with missing parameters', {
 					unit_id
 				})
-				return null
+				throw new BadRequestException('Authentication token and unit ID are required')
 			}
 
 			this.logger.log('Updating unit via RLS-protected query', {
@@ -414,7 +419,7 @@ export class UnitsService {
 					unit_id,
 					updateRequest
 				})
-				return null
+				throw new NotFoundException('Unit not found')
 			}
 
 			const updatedUnit = data as Unit
@@ -432,7 +437,16 @@ export class UnitsService {
 				unit_id,
 				updateRequest
 			})
-			return null
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException ||
+				error instanceof ConflictException
+			) {
+				throw error
+			}
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to update unit'
+			)
 		}
 	}
 
