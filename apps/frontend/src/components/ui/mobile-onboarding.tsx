@@ -74,7 +74,7 @@ export function MobileOnboarding() {
 					<div className={cn('mx-auto rounded-full bg-primary/10 p-4', currentStep.color)}>
 						<Icon className="size-8" aria-hidden />
 					</div>
-					<CardTitle className="text-xl font-semibold">{currentStep.title}</CardTitle>
+					<CardTitle className="typography-h4">{currentStep.title}</CardTitle>
 					<p className="text-muted">{currentStep.description}</p>
 				</CardHeader>
 				<CardContent className="space-y-4">

@@ -356,7 +356,7 @@ export function StripeConnectStatus() {
 
 					<div className="grid grid-cols-2 gap-4 rounded-lg border p-4">
 						<div className="space-y-1">
-							<p className="text-sm font-medium">Charges</p>
+							<p className="typography-small">Charges</p>
 							<p className="text-muted">
 								{account.charges_enabled ? (
 									<span className="text-success">Enabled</span>
@@ -366,7 +366,7 @@ export function StripeConnectStatus() {
 							</p>
 						</div>
 						<div className="space-y-1">
-							<p className="text-sm font-medium">Payouts</p>
+							<p className="typography-small">Payouts</p>
 							<p className="text-muted">
 								{account.payouts_enabled ? (
 									<span className="text-success">Enabled</span>

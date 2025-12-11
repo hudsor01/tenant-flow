@@ -5,7 +5,7 @@ export default async function LeaseDetailPage({ params }: PageProps<'/leases/[id
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold tracking-tight">
+				<h1 className="typography-h3 tracking-tight">
 					Lease overview
 				</h1>
 				<p className="text-muted-foreground">

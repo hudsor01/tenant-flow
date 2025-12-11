@@ -93,7 +93,7 @@ function ErrorBoundaryWithStore({
 				<div className="flex flex-col items-center space-y-4 text-center">
 					<AlertTriangle className="size-12 text-destructive" />
 					<div className="space-y-2">
-						<h2 className="text-xl font-semibold">Something went wrong</h2>
+						<h2 className="typography-h4">Something went wrong</h2>
 						<p className="text-muted-foreground">
 							An unexpected error occurred. Our team has been notified.
 						</p>

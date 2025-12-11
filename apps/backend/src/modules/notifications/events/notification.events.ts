@@ -9,7 +9,7 @@ export class MaintenanceUpdatedEvent {
 		public readonly maintenanceId: string,
 		public readonly title: string,
 		public readonly status: string,
-		public readonly priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+		public readonly priority: 'low' | 'medium' | 'high' | 'urgent',
 		public readonly propertyName: string,
 		public readonly unit_number: string,
 		public readonly description: string

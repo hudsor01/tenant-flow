@@ -202,7 +202,7 @@ export default function PropertyPerformancePage() {
 								<CardDescription>Tracked in this workspace</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.totalProperties)}
 								</p>
 							</CardContent>
@@ -213,7 +213,7 @@ export default function PropertyPerformancePage() {
 								<CardDescription>Portfolio-wide</CardDescription>
 							</CardHeader>
 							<CardContent className="flex items-end justify-between pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatPercentage(metrics.averageOccupancy)}
 								</p>
 								<Badge variant="outline" className="text-xs">
@@ -228,7 +228,7 @@ export default function PropertyPerformancePage() {
 								<CardDescription>Highest occupancy rate</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{metrics.bestPerformer ?? '—'}
 								</p>
 							</CardContent>
@@ -239,7 +239,7 @@ export default function PropertyPerformancePage() {
 								<CardDescription>Combined across properties</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatCurrency(metrics.totalRevenue)}
 								</p>
 							</CardContent>

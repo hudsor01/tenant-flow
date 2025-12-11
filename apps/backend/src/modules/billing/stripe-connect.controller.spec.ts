@@ -6,6 +6,24 @@ import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+// Note: validateLimit tests moved to shared/utils/pagination.utils.spec.ts
+
+/** Mock Supabase single query result */
+interface MockQueryResult {
+	data: { stripe_account_id: string | null } | null
+	error: { message: string; code: string } | null
+}
+
+/** Mock Supabase query builder chain */
+interface MockSupabaseQueryChain {
+	from: jest.Mock<{
+		select: jest.Mock<{
+			eq: jest.Mock<{
+				single: jest.Mock<Promise<MockQueryResult>>
+			}>
+		}>
+	}>
+}
 
 describe('StripeConnectController', () => {
 	let controller: StripeConnectController
@@ -15,7 +33,7 @@ describe('StripeConnectController', () => {
 		propertyOwner?: { stripe_account_id: string | null } | null
 		error?: { message: string; code: string } | null
 	}) => {
-		const supabaseClient: any = {
+		const supabaseClient: MockSupabaseQueryChain = {
 			from: jest.fn(() => ({
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
@@ -47,72 +65,6 @@ describe('StripeConnectController', () => {
 		moduleRef.useLogger(false)
 		controller = moduleRef.get(StripeConnectController)
 	}
-
-	describe('validateLimit', () => {
-		beforeEach(async () => {
-			await buildModule({ propertyOwner: { stripe_account_id: 'acct_test' } })
-		})
-
-		it('returns default when limit is undefined', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit(undefined)).toBe(10)
-		})
-
-		it('returns default when limit is empty string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('')).toBe(10)
-		})
-
-		it('parses valid numeric string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('50')).toBe(50)
-		})
-
-		it('clamps limit to MAX_PAGINATION_LIMIT (100)', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('500')).toBe(100)
-		})
-
-		it('returns default for non-numeric string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('abc')).toBe(10)
-		})
-
-		it('returns default for negative number string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('-5')).toBe(10)
-		})
-
-		it('returns default for decimal string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('10.5')).toBe(10)
-		})
-
-		it('trims whitespace and parses valid number', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit(' 50 ')).toBe(50)
-		})
-
-		it('returns default for whitespace-only string', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('   ')).toBe(10)
-		})
-
-		it('returns 1 for zero', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('0')).toBe(1)
-		})
-
-		it('handles boundary value of 1', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('1')).toBe(1)
-		})
-
-		it('handles boundary value of 100', () => {
-			// @ts-expect-error accessing private for targeted test
-			expect(controller.validateLimit('100')).toBe(100)
-		})
-	})
 
 	describe('getStripeAccountId', () => {
 		it('returns stripe_account_id when found', async () => {

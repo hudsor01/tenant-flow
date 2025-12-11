@@ -59,19 +59,19 @@ vi.mock('#hooks/api/use-unit', () => ({
 				id: 'unit-1',
 				unit_number: '101',
 				property_id: 'property-1',
-				status: 'OCCUPIED'
+				status: 'occupied'
 			},
 			{
 				id: 'unit-2',
 				unit_number: '102',
 				property_id: 'property-1',
-				status: 'VACANT'
+				status: 'available'
 			},
 			{
 				id: 'unit-3',
 				unit_number: '201',
 				property_id: 'property-2',
-				status: 'OCCUPIED'
+				status: 'occupied'
 			}
 		],
 		isLoading: false
@@ -82,19 +82,19 @@ vi.mock('#hooks/api/use-unit', () => ({
 				id: 'unit-1',
 				unit_number: '101',
 				property_id: 'property-1',
-				status: 'OCCUPIED'
+				status: 'occupied'
 			},
 			{
 				id: 'unit-2',
 				unit_number: '102',
 				property_id: 'property-1',
-				status: 'VACANT'
+				status: 'available'
 			},
 			{
 				id: 'unit-3',
 				unit_number: '201',
 				property_id: 'property-2',
-				status: 'OCCUPIED'
+				status: 'occupied'
 			}
 		],
 		isLoading: false
@@ -108,8 +108,8 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	requested_by: 'tenant-1',
 	property_owner_id: 'user-1',
 	description: 'The kitchen faucet is dripping continuously',
-	priority: 'MEDIUM',
-	status: 'OPEN',
+	priority: 'medium',
+	status: 'open',
 	estimated_cost: 150,
 	actual_cost: null,
 	assigned_to: null,

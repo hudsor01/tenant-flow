@@ -195,7 +195,7 @@ function LoginPageContent() {
 							</div>
 
 							<div className="space-y-2">
-								<h1 className="text-2xl font-bold text-foreground">
+								<h1 className="typography-h3 text-foreground">
 									Welcome Back to Your $30,000 Annual Savings
 								</h1>
 								<p className="text-muted-foreground text-sm">
@@ -310,7 +310,7 @@ function LoginPageContent() {
 							<Button
 								type="submit"
 								data-testid="login-button"
-								className="w-full h-11 text-sm font-medium"
+								className="w-full h-11 typography-small"
 								disabled={form.state.isSubmitting}
 							>
 								{form.state.isSubmitting ? 'Signing in...' : 'Sign In'}

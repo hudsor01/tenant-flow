@@ -75,7 +75,7 @@ describe('NotificationEventHandlerService', () => {
 				'maintenance-456',
 				'Broken pipe in bathroom',
 				'in_progress',
-				'HIGH',
+				'high',
 				'Sunset Apartments',
 				'101',
 				'Water leak needs immediate attention'
@@ -96,7 +96,7 @@ describe('NotificationEventHandlerService', () => {
 				'maintenance-456',
 				'Broken pipe',
 				'open',
-				'URGENT',
+				'urgent',
 				'Main Building',
 				'202',
 				'Emergency repair needed'

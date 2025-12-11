@@ -18,6 +18,8 @@ import {
 } from '@repo/shared/validation/docuseal-webhooks'
 import { AppConfigService } from '../../config/app-config.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SupabaseService } from '../../database/supabase.service'
+import type { Json } from '@repo/shared/types/supabase'
 
 export interface DocuSealWebhookPayload {
 	event_type?: string
@@ -29,7 +31,31 @@ export interface DocuSealWebhookPayload {
 export class DocuSealWebhookController {
 
 	constructor(private readonly webhookService: DocuSealWebhookService,
-		private readonly config: AppConfigService, private readonly logger: AppLogger) {}
+		private readonly config: AppConfigService, private readonly logger: AppLogger,
+		private readonly supabaseService: SupabaseService) {}
+
+	private async acquireWebhookLock(externalId: string, eventType: string, rawPayload: unknown): Promise<boolean> {
+		const { data, error } = await this.supabaseService
+			.getAdminClient()
+			.rpc('acquire_webhook_event_lock_with_id', {
+				p_webhook_source: 'custom',
+				p_external_id: externalId,
+				p_event_type: eventType,
+				p_raw_payload: rawPayload as Json
+			})
+
+		if (error) {
+			this.logger.error('DocuSeal webhook lock failed, processing anyway', {
+				error: error.message,
+				externalId,
+				eventType
+			})
+			return true
+		}
+
+		const rows = Array.isArray(data) ? data : [data]
+		return rows.some(row => row?.lock_acquired === true)
+	}
 
 	@Post()
 	async handleWebhook(
@@ -78,6 +104,26 @@ export class DocuSealWebhookController {
 		})
 
 		try {
+			// Step 3: Idempotency guard (per webhook_events unique constraint)
+			const externalId =
+				payload.data && typeof payload.data === 'object' && 'id' in payload.data
+					? String((payload.data as { id: unknown }).id)
+					: `${payload.event_type}:${payload.timestamp ?? 'unknown'}`
+
+			const lockAcquired = await this.acquireWebhookLock(
+				externalId,
+				payload.event_type,
+				payload
+			)
+
+			if (!lockAcquired) {
+				this.logger.log('DocuSeal webhook duplicate detected, skipping processing', {
+					eventType: payload.event_type,
+					externalId
+				})
+				return { received: true }
+			}
+
 			// Step 3: Route event to appropriate handler with validated payload
 			switch (payload.event_type) {
 				case 'form.completed': {

@@ -21,10 +21,8 @@ import {
 } from '#components/ui/select'
 import { Search, SearchX, X } from 'lucide-react'
 import { Button } from '#components/ui/button'
-import {
-	PROPERTY_STATUS,
-	PROPERTY_TYPES
-} from '@repo/shared/constants/status-types'
+import { PROPERTY_TYPES } from '@repo/shared/constants/status-types'
+import { PROPERTY_STATUS } from '#lib/constants/status-values'
 import { useDebounce } from '#hooks/use-debounce'
 import {
 	Empty,
@@ -120,7 +118,7 @@ export function PropertiesViewClient({
 		return (
 			<div className="space-y-4">
 				<div className="flex-between">
-					<h2 className="text-xl font-semibold">Portfolio</h2>
+					<h2 className="typography-h4">Portfolio</h2>
 				</div>
 				<PullToRefresh onRefresh={handleRefresh}>
 					<MobilePropertiesTable initialProperties={filteredProperties} />
@@ -132,7 +130,7 @@ export function PropertiesViewClient({
 	return (
 		<div className="space-y-4">
 			<div className="flex-between">
-				<h2 className="text-xl font-semibold">Portfolio</h2>
+				<h2 className="typography-h4">Portfolio</h2>
 				<ViewSwitcher
 					currentView={currentView}
 					availableViews={['grid', 'table']}
@@ -181,9 +179,6 @@ export function PropertiesViewClient({
 							<SelectItem value="all">All Statuses</SelectItem>
 							<SelectItem value={PROPERTY_STATUS.ACTIVE}>Active</SelectItem>
 							<SelectItem value={PROPERTY_STATUS.INACTIVE}>Inactive</SelectItem>
-							<SelectItem value={PROPERTY_STATUS.UNDER_CONTRACT}>
-								Under Contract
-							</SelectItem>
 							<SelectItem value={PROPERTY_STATUS.SOLD}>Sold</SelectItem>
 						</SelectContent>
 					</Select>

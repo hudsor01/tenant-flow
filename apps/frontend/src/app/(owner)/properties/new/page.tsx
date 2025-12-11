@@ -14,7 +14,7 @@ export default async function NewPropertyPage() {
 	return (
 		<div className="space-y-6">
 			<div className="space-y-2">
-				<h2 className="text-2xl font-bold">Add New Property</h2>
+				<h2 className="typography-h3">Add New Property</h2>
 				<p className="text-muted-foreground">
 					Enter property details to add it to your portfolio
 				</p>

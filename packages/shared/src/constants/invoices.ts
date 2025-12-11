@@ -32,7 +32,7 @@ export const CUSTOMER_INVOICE_STATUS = {
 	DRAFT: 'draft',
 	SENT: 'SENT',
 	VIEWED: 'VIEWED',
-	PAID: 'PAID',
+	PAID: 'paid',
 	OVERDUE: 'OVERDUE',
 	CANCELLED: 'CANCELLED'
 } as const

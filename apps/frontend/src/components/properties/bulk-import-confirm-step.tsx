@@ -41,7 +41,7 @@ export function BulkImportConfirmStep({
 								Please wait while we process your file
 							</p>
 						</div>
-						<span className="text-2xl font-bold text-primary tabular-nums">
+						<span className="typography-h3 text-primary tabular-nums">
 							{uploadProgress}%
 						</span>
 					</div>
@@ -88,7 +88,7 @@ export function BulkImportConfirmStep({
 					<div className="icon-container-lg bg-primary/10 text-primary border border-primary/20 mx-auto mb-4">
 						<Building2 className="size-7" />
 					</div>
-					<p className="text-lg font-semibold">Ready to import</p>
+					<p className="typography-large">Ready to import</p>
 					<p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto">
 						Click the button below to add your properties to your portfolio
 					</p>

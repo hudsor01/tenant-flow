@@ -79,7 +79,7 @@ export class RentPaymentQueryService {
 		const { data, error } = await client
 			.from('rent_payments')
 			.select('*')
-			.eq('status', 'FAILED')
+			.eq('status', 'failed')
 			.order('created_at', { ascending: false })
 
 		if (error) {
@@ -106,7 +106,7 @@ export class RentPaymentQueryService {
 			.from('rent_payments')
 			.select('*')
 			.eq('lease_id', lease.id)
-			.eq('status', 'FAILED')
+			.eq('status', 'failed')
 			.order('created_at', { ascending: false })
 
 		if (error) {

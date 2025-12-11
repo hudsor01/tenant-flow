@@ -71,7 +71,7 @@ export class RentPaymentsController {
 				formattedDate: payment.created_at
 					? new Date(payment.created_at).toLocaleDateString()
 					: null,
-				isSuccessful: payment.status === 'PAID',
+				isSuccessful: payment.status === 'succeeded',
 				failureReason: null
 			}))
 		}
@@ -113,7 +113,7 @@ export class RentPaymentsController {
 				formattedDate: payment.created_at
 					? new Date(payment.created_at).toLocaleDateString()
 					: null,
-				isSuccessful: payment.status === 'PAID',
+				isSuccessful: payment.status === 'succeeded',
 				failureReason: null
 			}))
 		}

@@ -94,7 +94,7 @@ export default function SettingsPage() {
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold text-foreground">
+					<h1 className="typography-h2 text-foreground">
 						Settings & Preferences
 					</h1>
 					<p className="text-muted-foreground mt-1">
@@ -500,7 +500,7 @@ export default function SettingsPage() {
 								<p className="text-muted-foreground">Manage up to 500 units</p>
 							</div>
 							<div className="text-right">
-								<p className="text-2xl font-bold">$99</p>
+								<p className="typography-h3">$99</p>
 								<p className="text-muted">per month</p>
 							</div>
 						</div>

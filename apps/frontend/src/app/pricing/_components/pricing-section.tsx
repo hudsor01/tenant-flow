@@ -14,7 +14,7 @@ export function PricingSection() {
 			<div className="flex-center gap-4 mb-8">
 				<Label
 					htmlFor="billing-toggle"
-					className={`text-sm font-medium transition-colors ${
+					className={`typography-small transition-colors ${
 						billingCycle === 'monthly'
 							? 'text-foreground'
 							: 'text-muted-foreground'
@@ -31,7 +31,7 @@ export function PricingSection() {
 				/>
 				<Label
 					htmlFor="billing-toggle"
-					className={`text-sm font-medium transition-colors ${
+					className={`typography-small transition-colors ${
 						billingCycle === 'yearly'
 							? 'text-foreground'
 							: 'text-muted-foreground'

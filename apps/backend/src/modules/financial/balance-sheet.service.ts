@@ -178,17 +178,17 @@ export class BalanceSheetService {
 		)
 		const deposits = this.sumSecurityDeposits(ledger.leases)
 		const paidRent = relevantPayments
-			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 		const outstandingRent = relevantPayments
-			.filter(payment => payment.status !== 'PAID')
+			.filter(payment => payment.status !== 'succeeded')
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 		const totalExpenses = expenses.reduce(
 			(sum, expense) => sum + (expense.amount ?? 0),
 			0
 		)
 		const openMaintenance = ledger.maintenanceRequests
-			.filter(request => request.status !== 'COMPLETED')
+			.filter(request => request.status !== 'completed')
 			.reduce((sum, request) => sum + (request.estimated_cost ?? 0), 0)
 		const cash_balance = Math.max(paidRent - totalExpenses, 0)
 		const current_period_income = this.calculateCurrentPeriodIncomeFromLedger(
@@ -243,7 +243,7 @@ export class BalanceSheetService {
 		const { start, end } = this.getMonthBounds(asOf)
 		const revenue = payments
 			.filter(payment => this.isWithin(payment.due_date, start, end))
-			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 		const periodExpenses = expenses
 			.filter(expense =>

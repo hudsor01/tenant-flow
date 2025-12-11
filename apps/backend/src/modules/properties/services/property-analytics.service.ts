@@ -15,6 +15,45 @@ import { AppLogger } from '../../../logger/app-logger.service'
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
 
 /**
+ * RPC parameters for get_property_performance_analytics
+ * Note: This function may not be in generated types yet - run `supabase gen types typescript` to update
+ */
+interface PropertyPerformanceRpcParams {
+	p_user_id: string
+	p_property_id: string | null
+	p_timeframe: string
+	p_limit: number | null
+}
+
+/**
+ * Raw response from get_property_performance_analytics RPC
+ */
+interface PropertyPerformanceRpcResult {
+	property_id?: string
+	property_name?: string
+	propertyName?: string
+	name?: string
+	occupancy_rate?: unknown
+	occupancyRate?: unknown
+	total_revenue?: unknown
+	totalRevenue?: unknown
+	total_expenses?: unknown
+	totalExpenses?: unknown
+	net_income?: unknown
+	netIncome?: unknown
+	timeframe?: string
+}
+
+/**
+ * Type for RPC function that may not be in generated types
+ * Used for service_role-only functions not exposed in public schema
+ */
+type AnalyticsRpcFn = (
+	fn: string,
+	params: PropertyPerformanceRpcParams
+) => Promise<{ data: PropertyPerformanceRpcResult[] | null; error: Error | null }>
+
+/**
  * Property Analytics Service
  *
  * Orchestrates property analytics across performance, occupancy, financial, and maintenance.
@@ -116,14 +155,16 @@ export class PropertyAnalyticsService {
 		}
 		const client = this.supabase.getUserClient(token)
 
-		const { data, error } = await (client as any).rpc( // eslint-disable-line @typescript-eslint/no-explicit-any
+		// Use type assertion for RPC function not in generated types
+		const rpcParams: PropertyPerformanceRpcParams = {
+			p_user_id: user_id,
+			p_property_id: query.property_id ?? null,
+			p_timeframe: query.timeframe,
+			p_limit: query.limit ?? null
+		}
+		const { data, error } = await (client.rpc as unknown as AnalyticsRpcFn)(
 			'get_property_performance_analytics',
-			{
-				p_user_id: user_id,
-				p_property_id: query.property_id ?? null,
-				p_timeframe: query.timeframe,
-				p_limit: query.limit ?? null
-			}
+			rpcParams
 		)
 
 		if (error) {
@@ -139,44 +180,28 @@ export class PropertyAnalyticsService {
 				? value
 				: Number(value ?? 0) || 0
 
-		const result: PropertyPerformanceData[] = (Array.isArray(data) ? data : [])
-			.filter((item) => Boolean((item as { property_id?: string }).property_id))
-			.map((item) => {
-				const castItem = item as {
-					property_id?: string
-					property_name?: string
-					propertyName?: string
-					name?: string
-					occupancy_rate?: unknown
-					occupancyRate?: unknown
-					total_revenue?: unknown
-					totalRevenue?: unknown
-					total_expenses?: unknown
-					totalExpenses?: unknown
-					net_income?: unknown
-					netIncome?: unknown
-					timeframe?: string
-				}
-				return {
-					property_id: castItem.property_id as string,
-					property_name:
-						castItem.property_name ??
-						castItem.propertyName ??
-						castItem.name ??
-						'Unknown property',
-					occupancy_rate: toNumber(
-						castItem.occupancy_rate ?? castItem.occupancyRate
-					),
-					total_revenue: toNumber(
-						castItem.total_revenue ?? castItem.totalRevenue
-					),
-					total_expenses: toNumber(
-						castItem.total_expenses ?? castItem.totalExpenses
-					),
-					net_income: toNumber(castItem.net_income ?? castItem.netIncome),
-					timeframe: castItem.timeframe ?? query.timeframe
-				}
-			})
+		const rawResults: PropertyPerformanceRpcResult[] = data ?? []
+		const result: PropertyPerformanceData[] = rawResults
+			.filter((item) => Boolean(item.property_id))
+			.map((item) => ({
+				property_id: item.property_id as string,
+				property_name:
+					item.property_name ??
+					item.propertyName ??
+					item.name ??
+					'Unknown property',
+				occupancy_rate: toNumber(
+					item.occupancy_rate ?? item.occupancyRate
+				),
+				total_revenue: toNumber(
+					item.total_revenue ?? item.totalRevenue
+				),
+				total_expenses: toNumber(
+					item.total_expenses ?? item.totalExpenses
+				),
+				net_income: toNumber(item.net_income ?? item.netIncome),
+				timeframe: item.timeframe ?? query.timeframe
+			}))
 
 		this.logger.log(
 			'[ANALYTICS:PERFORMANCE:COMPLETE] Performance analytics completed',
