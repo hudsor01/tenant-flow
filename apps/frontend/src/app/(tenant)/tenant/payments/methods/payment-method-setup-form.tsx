@@ -226,7 +226,7 @@ function SetupForm({
 
 			{/* Email with Link authentication */}
 			<div className="space-y-2">
-				<label className="text-sm font-medium text-foreground">
+				<label className="typography-small text-foreground">
 					Email address
 				</label>
 				<LinkAuthenticationElement
@@ -240,7 +240,7 @@ function SetupForm({
 
 			{/* Billing Address */}
 			<div className="space-y-2">
-				<label className="text-sm font-medium text-foreground">
+				<label className="typography-small text-foreground">
 					Billing address
 				</label>
 				<AddressElement

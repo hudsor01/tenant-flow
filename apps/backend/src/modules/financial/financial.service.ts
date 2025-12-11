@@ -119,7 +119,7 @@ export class FinancialService {
 			const occupancyRate =
 				unitRows.length > 0
 					? Math.round(
-							(unitRows.filter(u => u.status === 'OCCUPIED').length /
+							(unitRows.filter(u => u.status === 'occupied').length /
 								unitRows.length) *
 								100
 						)
@@ -146,8 +146,8 @@ export class FinancialService {
 				},
 				units: {
 					total: unitRows.length,
-					occupied: unitRows.filter(u => u.status === 'OCCUPIED').length,
-					vacant: unitRows.filter(u => u.status === 'VACANT').length,
+					occupied: unitRows.filter(u => u.status === 'occupied').length,
+					vacant: unitRows.filter(u => u.status === 'available').length,
 					occupancyRate
 				},
 				leases: {

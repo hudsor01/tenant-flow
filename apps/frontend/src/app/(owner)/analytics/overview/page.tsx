@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
 						<Card className="@container/card">
 							<CardHeader>
 								<CardDescription>Total Revenue</CardDescription>
-								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+								<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 									{stats?.revenue?.yearly
 										? formatCurrency(stats.revenue.yearly)
 										: '$0'}
@@ -157,7 +157,7 @@ export default function AnalyticsPage() {
 						<Card className="@container/card">
 							<CardHeader>
 								<CardDescription>Avg Occupancy</CardDescription>
-								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+								<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 									{stats?.units?.occupancyRate
 										? `${stats.units.occupancyRate.toFixed(1)}%`
 										: '0.0%'}
@@ -191,7 +191,7 @@ export default function AnalyticsPage() {
 						<Card className="@container/card">
 							<CardHeader>
 								<CardDescription>Net Operating Income</CardDescription>
-								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+								<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 									{formatCurrency(financialMetrics?.netIncome ?? 0)}
 								</CardTitle>
 								<CardAction>
@@ -223,7 +223,7 @@ export default function AnalyticsPage() {
 						<Card className="@container/card">
 							<CardHeader>
 								<CardDescription>Portfolio Growth</CardDescription>
-								<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+								<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 									{stats?.properties?.total ?? 0}
 								</CardTitle>
 								<CardAction>

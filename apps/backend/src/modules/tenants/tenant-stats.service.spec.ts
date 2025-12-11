@@ -139,7 +139,7 @@ describe('TenantStatsService', () => {
 				{
 					id: 'payment-1',
 					tenant_id: 'tenant-1',
-					status: 'paid',
+					status: 'succeeded',
 					amount: 1500,
 					currency: 'usd',
 					created_at: '2024-01-01T00:00:00Z'
@@ -178,7 +178,7 @@ describe('TenantStatsService', () => {
 				{
 					id: 'payment-1',
 					tenant_id: 'tenant-1',
-					status: 'paid',
+					status: 'succeeded',
 					amount: 1500,
 					currency: 'usd',
 					created_at: '2024-02-01T00:00:00Z' // More recent

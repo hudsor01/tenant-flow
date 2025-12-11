@@ -106,7 +106,7 @@ function PageLoader({
 			<div className="text-center space-y-4">
 				<LoadingSpinner size="xl" variant="primary" />
 				<div className="space-y-2">
-					<p className="text-lg font-semibold text-foreground">{text}</p>
+					<p className="typography-large text-foreground">{text}</p>
 					<p className="text-sm text-(--color-label-tertiary)">
 						This should only take a moment
 					</p>

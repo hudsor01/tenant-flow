@@ -86,7 +86,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 
 									<div className="relative z-10">
 										{/* Animated number with enhanced styling */}
-										<div className="text-3xl lg:text-4xl font-bold text-primary mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
+										<div className="text-3xl lg:typography-h1 text-primary mb-2 tracking-tight group-hover:scale-105 transition-transform duration-300">
 											{stat.prefix}
 											<NumberTicker
 												value={stat.value}
@@ -97,7 +97,7 @@ export function StatsShowcase({ className }: StatsShowcaseProps) {
 										</div>
 
 										{/* Enhanced label with hover effect */}
-										<div className="text-lg font-semibold text-foreground mb-1 group-hover:text-primary transition-colors duration-300">
+										<div className="typography-large text-foreground mb-1 group-hover:text-primary transition-colors duration-300">
 											{stat.label}
 										</div>
 

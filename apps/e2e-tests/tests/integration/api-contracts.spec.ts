@@ -86,7 +86,7 @@ test.describe('Properties Endpoints Contract', () => {
 
 				// Validate enum values
 				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.property_type)
-				expect(['active', 'inactive', 'MAINTENANCE']).toContain(property.status)
+				expect(['active', 'inactive', 'maintenance']).toContain(property.status)
 			}
 		}
 	})
@@ -315,7 +315,7 @@ test.describe('Units Endpoints Contract', () => {
 				})
 
 				// Validate unit status enum
-				expect(['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'UNAVAILABLE']).toContain(unit.status)
+				expect(['AVAILABLE', 'occupied', 'maintenance', 'UNAVAILABLE']).toContain(unit.status)
 
 				// Validate numeric values are reasonable
 				expect(unit.bedrooms).toBeGreaterThanOrEqual(0)

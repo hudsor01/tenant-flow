@@ -10,13 +10,13 @@ import { dateTimeSchema, uuidSchema } from './shared.schema'
 
 const prioritySchema: JSONSchema = {
 	type: 'string',
-	enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'],
-	default: 'MEDIUM'
+	enum: ['low', 'medium', 'high', 'urgent'],
+	default: 'medium'
 }
 
 const statusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['pending', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'],
+	enum: ['pending', 'in_progress', 'completed', 'cancelled'],
 	default: 'pending'
 }
 

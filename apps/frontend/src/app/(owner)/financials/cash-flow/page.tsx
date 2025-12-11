@@ -84,7 +84,7 @@ const CashFlowPage = () => {
 
 	const renderSection = (title: string, items: FinancialLineItem[]) => (
 		<div className="space-y-4">
-			<h3 className="text-lg font-semibold text-foreground">{title}</h3>
+			<h3 className="typography-large text-foreground">{title}</h3>
 			<div className="space-y-2">
 				{items.map((item) => {
 					const isPositive = item.amount >= 0
@@ -115,7 +115,7 @@ const CashFlowPage = () => {
 			<div className="p-6 space-y-6">
 				<div className="flex-between">
 					<div>
-						<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
+						<h1 className="typography-h2">Cash Flow Statement</h1>
 						<p className="text-muted-foreground">
 							Cash inflows and outflows over a period
 						</p>
@@ -167,7 +167,7 @@ const CashFlowPage = () => {
 			<div className="p-6 space-y-6">
 				<div className="flex-between">
 					<div>
-						<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
+						<h1 className="typography-h2">Cash Flow Statement</h1>
 						<p className="text-muted-foreground">
 							Cash inflows and outflows over a period
 						</p>
@@ -198,7 +198,7 @@ const CashFlowPage = () => {
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold">Cash Flow Statement</h1>
+					<h1 className="typography-h2">Cash Flow Statement</h1>
 					<p className="text-muted-foreground">
 						Cash inflows and outflows over a period
 					</p>
@@ -259,13 +259,13 @@ const CashFlowPage = () => {
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Operating Cash Flow
 						</CardTitle>
 						<ArrowUp className="h-4 w-4 text-success" />
 				</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-success">
+						<div className="typography-h3 text-success">
 						${operatingTotal.toLocaleString()}
 					</div>
 						<p className="text-caption">Current period</p>
@@ -273,13 +273,13 @@ const CashFlowPage = () => {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Investing Cash Flow
 						</CardTitle>
 						<ArrowDown className="h-4 w-4 text-destructive" />
 				</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-destructive">
+						<div className="typography-h3 text-destructive">
 							${investingTotal.toLocaleString()}
 						</div>
 						<p className="text-caption">Current period</p>
@@ -287,13 +287,13 @@ const CashFlowPage = () => {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Financing Cash Flow
 						</CardTitle>
 						<DollarSign className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="typography-h3">
 							${financingTotal.toLocaleString()}
 						</div>
 						<p className="text-caption">Current period</p>
@@ -301,12 +301,12 @@ const CashFlowPage = () => {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Net Cash Flow</CardTitle>
+						<CardTitle className="typography-small">Net Cash Flow</CardTitle>
 						<DollarSign className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netCashFlow >= 0 ? 'text-success' : 'text-destructive'}`}
+							className={`typography-h3 ${netCashFlow >= 0 ? 'text-success' : 'text-destructive'}`}
 						>
 							{netCashFlow >= 0 ? '+' : ''}${netCashFlow.toLocaleString()}
 						</div>
@@ -386,7 +386,7 @@ const CashFlowPage = () => {
 				<CardContent>
 					<div className="space-y-4">
 						<div className="flex-between p-4 bg-muted/50 rounded-lg">
-							<div className="text-lg font-semibold">Net Cash Flow</div>
+							<div className="typography-large">Net Cash Flow</div>
 							<div
 								className={`text-xl font-bold ${netCashFlow >= 0 ? 'text-success' : 'text-destructive'}`}
 							>
@@ -395,19 +395,19 @@ const CashFlowPage = () => {
 						</div>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
 							<div className="text-center p-4 bg-success/10 rounded-lg">
-								<div className="text-2xl font-bold text-success">
+								<div className="typography-h3 text-success">
 									+${operatingTotal.toLocaleString()}
 								</div>
 								<div className="text-muted">Operating</div>
 							</div>
 							<div className="text-center p-4 bg-destructive/10 rounded-lg">
-								<div className="text-2xl font-bold text-destructive">
+								<div className="typography-h3 text-destructive">
 									${investingTotal.toLocaleString()}
 								</div>
 								<div className="text-muted">Investing</div>
 							</div>
 							<div className="text-center p-4 bg-blue-50 rounded-lg">
-								<div className="text-2xl font-bold">
+								<div className="typography-h3">
 									${financingTotal.toLocaleString()}
 								</div>
 								<div className="text-muted">Financing</div>

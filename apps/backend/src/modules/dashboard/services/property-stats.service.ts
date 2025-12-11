@@ -41,7 +41,7 @@ export class PropertyStatsService {
 		const properties = data ?? []
 		const total = properties.length
 		const occupied = properties.filter(
-			p => p.status?.toUpperCase() === 'OCCUPIED'
+			p => p.status?.toUpperCase() === 'occupied'
 		).length
 		const vacant = Math.max(total - occupied, 0)
 

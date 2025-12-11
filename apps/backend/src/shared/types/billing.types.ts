@@ -16,7 +16,7 @@ export interface Subscription {
 export interface Invoice {
 	id: string
 	user_id: string
-	status: 'draft' | 'sent' | 'paid'
+	status: 'draft' | 'sent' | 'succeeded'
 	amount: number
 	currency: string
 	due_date: string

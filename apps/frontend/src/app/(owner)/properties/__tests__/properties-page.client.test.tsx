@@ -105,9 +105,9 @@ const mockProperties = [
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z',
 		units: [
-			{ id: 'unit-1', status: 'OCCUPIED', rent_amount: 1500 },
-			{ id: 'unit-2', status: 'OCCUPIED', rent_amount: 1500 },
-			{ id: 'unit-3', status: 'VACANT', rent_amount: 1500 }
+			{ id: 'unit-1', status: 'occupied', rent_amount: 1500 },
+			{ id: 'unit-2', status: 'occupied', rent_amount: 1500 },
+			{ id: 'unit-3', status: 'available', rent_amount: 1500 }
 		]
 	},
 	{
@@ -123,11 +123,11 @@ const mockProperties = [
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z',
 		units: [
-			{ id: 'unit-4', status: 'OCCUPIED', rent_amount: 2000 },
-			{ id: 'unit-5', status: 'OCCUPIED', rent_amount: 2000 },
-			{ id: 'unit-6', status: 'OCCUPIED', rent_amount: 2000 },
-			{ id: 'unit-7', status: 'VACANT', rent_amount: 2000 },
-			{ id: 'unit-8', status: 'VACANT', rent_amount: 2000 }
+			{ id: 'unit-4', status: 'occupied', rent_amount: 2000 },
+			{ id: 'unit-5', status: 'occupied', rent_amount: 2000 },
+			{ id: 'unit-6', status: 'occupied', rent_amount: 2000 },
+			{ id: 'unit-7', status: 'available', rent_amount: 2000 },
+			{ id: 'unit-8', status: 'available', rent_amount: 2000 }
 		]
 	}
 ]
@@ -186,9 +186,9 @@ describe('PropertiesPageClient - Header Section', () => {
 					text: () =>
 						Promise.resolve(
 							JSON.stringify([
-								{ id: 'unit-1', status: 'OCCUPIED', rent_amount: 1500 },
-								{ id: 'unit-2', status: 'OCCUPIED', rent_amount: 1500 },
-								{ id: 'unit-3', status: 'VACANT', rent_amount: 1500 }
+								{ id: 'unit-1', status: 'occupied', rent_amount: 1500 },
+								{ id: 'unit-2', status: 'occupied', rent_amount: 1500 },
+								{ id: 'unit-3', status: 'available', rent_amount: 1500 }
 							])
 						)
 				})
@@ -199,11 +199,11 @@ describe('PropertiesPageClient - Header Section', () => {
 					text: () =>
 						Promise.resolve(
 							JSON.stringify([
-								{ id: 'unit-4', status: 'OCCUPIED', rent_amount: 2000 },
-								{ id: 'unit-5', status: 'OCCUPIED', rent_amount: 2000 },
-								{ id: 'unit-6', status: 'OCCUPIED', rent_amount: 2000 },
-								{ id: 'unit-7', status: 'VACANT', rent_amount: 2000 },
-								{ id: 'unit-8', status: 'VACANT', rent_amount: 2000 }
+								{ id: 'unit-4', status: 'occupied', rent_amount: 2000 },
+								{ id: 'unit-5', status: 'occupied', rent_amount: 2000 },
+								{ id: 'unit-6', status: 'occupied', rent_amount: 2000 },
+								{ id: 'unit-7', status: 'available', rent_amount: 2000 },
+								{ id: 'unit-8', status: 'available', rent_amount: 2000 }
 							])
 						)
 				})
@@ -339,25 +339,25 @@ describe('PropertiesPageClient - Header Section', () => {
 	})
 
 	describe('Typography', () => {
-		it('should render page title with text-3xl', async () => {
+		it('should render page title with typography-h2', async () => {
 			render(<PropertiesPageClient />, {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
 				const title = screen.getByText('Properties')
-				expect(title).toHaveClass('text-3xl')
+				expect(title).toHaveClass('typography-h2')
 			})
 		})
 
-		it('should render page title with font-semibold', async () => {
+		it('should render page title with leading-none', async () => {
 			render(<PropertiesPageClient />, {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
 				const title = screen.getByText('Properties')
-				expect(title).toHaveClass('font-semibold')
+				expect(title).toHaveClass('leading-none')
 			})
 		})
 
@@ -481,13 +481,13 @@ describe('PropertiesPageClient - Header Section', () => {
 			})
 		})
 
-		it('should have text-2xl font-semibold for stat values', async () => {
+		it('should have typography-h3 for stat values', async () => {
 			const { container } = render(<PropertiesPageClient />, {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
-				const statValue = container.querySelector('.text-2xl.font-semibold')
+				const statValue = container.querySelector('.typography-h3')
 				expect(statValue).toBeInTheDocument()
 			})
 		})

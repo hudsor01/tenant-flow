@@ -141,7 +141,7 @@ function RentCollectionContent() {
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold text-foreground">
+					<h1 className="typography-h2 text-foreground">
 						Rent Collection
 					</h1>
 					<p className="text-muted-foreground mt-1">
@@ -154,13 +154,13 @@ function RentCollectionContent() {
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Monthly Revenue
 						</CardTitle>
 						<DollarSign className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="typography-h3">
 							${(totalMonthlyRevenue / 100).toFixed(2)}
 						</div>
 						<p className="text-caption">
@@ -171,13 +171,13 @@ function RentCollectionContent() {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Active Subscriptions
 						</CardTitle>
 						<CheckCircle className="size-4 text-success" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="typography-h3">
 							{activeSubscriptions.length}
 						</div>
 						<p className="text-caption">
@@ -188,13 +188,13 @@ function RentCollectionContent() {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Paused Subscriptions
 						</CardTitle>
 						<Pause className="size-4 text-warning" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="typography-h3">
 							{pausedSubscriptions.length}
 						</div>
 						<p className="text-caption">Temporarily on hold</p>
@@ -203,13 +203,13 @@ function RentCollectionContent() {
 
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Failed Payments
 						</CardTitle>
 						<AlertTriangle className="size-4 text-destructive" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
+						<div className="typography-h3">
 							{failedAttempts?.length || 0}
 						</div>
 						<p className="text-caption">Need attention</p>

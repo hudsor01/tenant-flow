@@ -366,7 +366,7 @@ export default function FeaturesPage() {
 							<div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
 								<Button
 									size="lg"
-									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-8 py-4"
+									className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-8 py-4"
 									asChild
 								>
 									<Link href="/pricing" aria-label="Start free trial">
@@ -379,7 +379,7 @@ export default function FeaturesPage() {
 								<Button
 									size="lg"
 									variant="outline"
-									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-8 py-4 transition-all duration-300"
+									className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4 transition-all duration-300"
 									asChild
 								>
 									<Link href="/contact" aria-label="See TenantFlow in action">
@@ -389,7 +389,7 @@ export default function FeaturesPage() {
 								</Button>
 							</div>
 
-							<p className="text-muted-foreground/80 text-sm font-medium">
+							<p className="text-muted-foreground/80 typography-small">
 								<Check className="size-4 inline text-primary mr-2" />
 								Join 10,000+ managers already growing NOI • No credit card required
 							</p>
@@ -593,7 +593,7 @@ export default function FeaturesPage() {
 									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<TrendingUp className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">40%</div>
+									<div className="typography-h1 text-foreground mb-2">40%</div>
 									<div className="text-muted-foreground">Average NOI increase</div>
 								</div>
 
@@ -601,7 +601,7 @@ export default function FeaturesPage() {
 									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Clock className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">25+</div>
+									<div className="typography-h1 text-foreground mb-2">25+</div>
 									<div className="text-muted-foreground">Hours saved weekly</div>
 								</div>
 
@@ -609,7 +609,7 @@ export default function FeaturesPage() {
 									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<Users className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">10K+</div>
+									<div className="typography-h1 text-foreground mb-2">10K+</div>
 									<div className="text-muted-foreground">Happy customers</div>
 								</div>
 
@@ -617,7 +617,7 @@ export default function FeaturesPage() {
 									<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
 										<BarChart3 className="size-8" />
 									</div>
-									<div className="text-4xl font-bold text-foreground mb-2">90</div>
+									<div className="typography-h1 text-foreground mb-2">90</div>
 									<div className="text-muted-foreground">Days to ROI</div>
 								</div>
 							</div>
@@ -661,7 +661,7 @@ export default function FeaturesPage() {
 								<div className="flex flex-col sm:flex-row gap-6 justify-center">
 									<Button
 										size="lg"
-										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 text-lg font-semibold px-10 py-5"
+										className="group relative overflow-hidden shadow-2xl shadow-primary/25 hover:shadow-3xl hover:shadow-primary/40 transform hover:scale-[1.02] transition-all duration-300 typography-large px-10 py-5"
 										asChild
 									>
 										<Link href="/pricing" aria-label="Start free trial">
@@ -674,7 +674,7 @@ export default function FeaturesPage() {
 									<Button
 										variant="outline"
 										size="lg"
-										className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-10 py-5 transition-all duration-300"
+										className="group border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-10 py-5 transition-all duration-300"
 										asChild
 									>
 										<Link href="/contact" aria-label="Schedule demo">
@@ -684,7 +684,7 @@ export default function FeaturesPage() {
 									</Button>
 								</div>
 
-								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 text-sm font-medium">
+								<div className="flex flex-wrap items-center justify-center gap-8 text-muted-foreground/80 typography-small">
 									<div className="flex-start">
 										<Check className="size-4 text-primary mr-2" />
 										No setup fees

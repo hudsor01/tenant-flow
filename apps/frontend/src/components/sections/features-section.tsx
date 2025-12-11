@@ -126,7 +126,7 @@ const Feature = ({ title, description, icon }: FeatureProps) => {
 			</div>
 
 			{/* Title with enhanced hover */}
-			<h3 className="text-lg font-semibold tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary transition-colors duration-300">
+			<h3 className="typography-large tracking-tight text-foreground mb-3 leading-tight group-hover/feature:text-primary transition-colors duration-300">
 				{title}
 			</h3>
 

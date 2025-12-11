@@ -105,7 +105,7 @@ export default function AboutPage() {
 							</div>
 							<div className="bg-card rounded-2xl p-8 text-center border border-border/50 shadow-md">
 								<Target className="size-20 mx-auto mb-6 text-primary" />
-								<h3 className="text-2xl font-semibold text-foreground">
+								<h3 className="typography-h3 text-foreground">
 									Mission-Driven Development
 								</h3>
 								<p className="text-muted-foreground mt-3">
@@ -244,7 +244,7 @@ export default function AboutPage() {
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>
-										<div className="text-3xl font-bold text-primary mb-2">
+										<div className="typography-h2 text-primary mb-2">
 											{stat.number}
 										</div>
 										<div className="text-muted">{stat.label}</div>
@@ -294,7 +294,7 @@ export default function AboutPage() {
 										<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
 											<User className="size-12 text-primary" />
 										</div>
-										<h3 className="text-lg font-semibold text-foreground mb-2">
+										<h3 className="typography-large text-foreground mb-2">
 											{member.name}
 										</h3>
 										<p className="text-primary font-medium mb-4">

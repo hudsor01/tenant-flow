@@ -105,7 +105,7 @@ export function TestimonialsSection({
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16 max-w-3xl mx-auto">
 						<BlurFade delay={0.1} inView>
-							<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-4">
+							<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
 								What Our Customers Say
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed">
@@ -131,7 +131,7 @@ export function TestimonialsSection({
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
-						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-4">
+						<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
 							Trusted by property managers{' '}
 							<span className="hero-highlight">everywhere</span>
 						</h2>
@@ -187,7 +187,7 @@ export function TestimonialsSection({
 								{/* Metric highlight */}
 								{currentTestimonial?.metric && (
 									<div className="text-center md:text-right p-4 rounded-xl bg-primary/5 border border-primary/10">
-										<div className="text-3xl font-bold text-primary">
+										<div className="typography-h2 text-primary">
 											{currentTestimonial.metric}
 										</div>
 										<div className="text-sm text-muted-foreground">

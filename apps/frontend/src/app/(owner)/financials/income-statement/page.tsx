@@ -89,7 +89,7 @@ const IncomeStatementPage = () => {
 								<TrendingDown className="w-12 h-12" />
 							</div>
 							<div>
-								<h3 className="text-lg font-semibold">Failed to Load Income Statement</h3>
+								<h3 className="typography-large">Failed to Load Income Statement</h3>
 								<p className="text-muted mt-2">
 									{error instanceof Error ? error.message : 'An error occurred'}
 								</p>
@@ -107,7 +107,7 @@ const IncomeStatementPage = () => {
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold">Income Statement</h1>
+					<h1 className="typography-h2">Income Statement</h1>
 					<p className="text-muted-foreground">
 						Revenue, expenses, and net income over a period
 					</p>
@@ -173,11 +173,11 @@ const IncomeStatementPage = () => {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+						<CardTitle className="typography-small">Total Revenue</CardTitle>
 						<DollarSign className="h-4 w-4 text-success" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-success">
+						<div className="typography-h3 text-success">
 							${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
 						<p className="text-caption">
@@ -187,13 +187,13 @@ const IncomeStatementPage = () => {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
+						<CardTitle className="typography-small">
 							Total Expenses
 						</CardTitle>
 						<DollarSign className="h-4 w-4 text-destructive" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-destructive">
+						<div className="typography-h3 text-destructive">
 							${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
 						<p className="text-caption">
@@ -203,12 +203,12 @@ const IncomeStatementPage = () => {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Net Income</CardTitle>
+						<CardTitle className="typography-small">Net Income</CardTitle>
 						<TrendingUp className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
 						<div
-							className={`text-2xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}
+							className={`typography-h3 ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 						>
 							{netIncome >= 0 ? '+' : ''}${netIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 						</div>
@@ -359,7 +359,7 @@ const IncomeStatementPage = () => {
 						</div>
 						<Separator />
 						<div className="flex-between p-4 bg-corporate-blue-50 rounded-lg">
-							<div className="text-lg font-semibold">Net Income</div>
+							<div className="typography-large">Net Income</div>
 							<div
 								className={`text-xl font-bold ${netIncome >= 0 ? 'text-success' : 'text-destructive'}`}
 							>

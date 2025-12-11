@@ -11,14 +11,14 @@ export default function TermsPage() {
 	return (
 		<PageLayout>
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
-			<h1 className="mb-8 text-4xl font-bold">Terms of Service</h1>
+			<h1 className="mb-8 typography-h1">Terms of Service</h1>
 			<p className="mb-6 text-muted">
 				Last Updated: October 5, 2025
 			</p>
 
 			<div className="prose prose-gray dark:prose-invert max-w-none">
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">1. Agreement to Terms</h2>
+					<h2 className="mb-4 typography-h3">1. Agreement to Terms</h2>
 					<p>
 						These Terms of Service (&quot;Terms&quot;) constitute a legally binding
 						agreement between you (&quot;User,&quot; &quot;you,&quot; or &quot;your&quot;) and TenantFlow
@@ -34,7 +34,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">2. Eligibility</h2>
+					<h2 className="mb-4 typography-h3">2. Eligibility</h2>
 					<p>To use TenantFlow, you must:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Be at least 18 years of age</li>
@@ -55,9 +55,9 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">3. Account Registration and Security</h2>
+					<h2 className="mb-4 typography-h3">3. Account Registration and Security</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">3.1 Account Creation</h3>
+					<h3 className="mb-3 typography-h4">3.1 Account Creation</h3>
 					<p>
 						To access certain features of the Platform, you must register for
 						an account. You may create an account using:
@@ -67,7 +67,7 @@ export default function TermsPage() {
 						<li>Google OAuth authentication</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">3.2 Account Security</h3>
+					<h3 className="mb-3 typography-h4">3.2 Account Security</h3>
 					<p>You are responsible for:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -85,7 +85,7 @@ export default function TermsPage() {
 						to comply with these security obligations.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">
+					<h3 className="mb-3 typography-h4">
 						3.3 Account Termination
 					</h3>
 					<p>
@@ -96,11 +96,11 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						4. Subscription and Payment
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">4.1 Subscription Plans</h3>
+					<h3 className="mb-3 typography-h4">4.1 Subscription Plans</h3>
 					<p>
 						TenantFlow offers various subscription plans with different features
 						and pricing. Current plans and pricing are available at{' '}
@@ -113,7 +113,7 @@ export default function TermsPage() {
 						.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">4.2 Billing</h3>
+					<h3 className="mb-3 typography-h4">4.2 Billing</h3>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
 							<strong>Recurring Charges:</strong> Subscriptions are billed on a
@@ -134,7 +134,7 @@ export default function TermsPage() {
 						</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">4.3 Cancellation and Refunds</h3>
+					<h3 className="mb-3 typography-h4">4.3 Cancellation and Refunds</h3>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
 							You may cancel your subscription at any time through account
@@ -153,7 +153,7 @@ export default function TermsPage() {
 						</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">4.4 Price Changes</h3>
+					<h3 className="mb-3 typography-h4">4.4 Price Changes</h3>
 					<p>
 						We reserve the right to modify subscription pricing with 30 days&apos;
 						notice. Price changes will not affect existing subscriptions until
@@ -162,9 +162,9 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">5. Acceptable Use</h2>
+					<h2 className="mb-4 typography-h3">5. Acceptable Use</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">5.1 Permitted Use</h3>
+					<h3 className="mb-3 typography-h4">5.1 Permitted Use</h3>
 					<p>You may use TenantFlow only for:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Managing your property portfolio</li>
@@ -174,7 +174,7 @@ export default function TermsPage() {
 						<li>Other lawful property management purposes</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">5.2 Prohibited Activities</h3>
+					<h3 className="mb-3 typography-h4">5.2 Prohibited Activities</h3>
 					<p>You agree not to:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -217,9 +217,9 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">6. User Content</h2>
+					<h2 className="mb-4 typography-h3">6. User Content</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">6.1 Your Content</h3>
+					<h3 className="mb-3 typography-h4">6.1 Your Content</h3>
 					<p>
 						You retain all ownership rights to the data and content you upload,
 						submit, or store in the Service (&quot;User Content&quot;), including:
@@ -232,7 +232,7 @@ export default function TermsPage() {
 						<li>Photos, files, and communications</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">6.2 License to Us</h3>
+					<h3 className="mb-3 typography-h4">6.2 License to Us</h3>
 					<p>
 						By uploading User Content, you grant TenantFlow a worldwide,
 						non-exclusive, royalty-free license to use, store, reproduce, and
@@ -250,7 +250,7 @@ export default function TermsPage() {
 						except for data retained in backups for up to 90 days.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">6.3 Content Responsibility</h3>
+					<h3 className="mb-3 typography-h4">6.3 Content Responsibility</h3>
 					<p>You are solely responsible for:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>The accuracy and legality of your User Content</li>
@@ -266,24 +266,24 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						7. Intellectual Property
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">7.1 Our Property</h3>
+					<h3 className="mb-3 typography-h4">7.1 Our Property</h3>
 					<p>
 						The Service and its original content (excluding User Content),
 						features, and functionality are owned by TenantFlow and protected by
 						copyright, trademark, and other intellectual property laws.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.2 Trademarks</h3>
+					<h3 className="mb-3 typography-h4">7.2 Trademarks</h3>
 					<p>
 						&quot;TenantFlow&quot; and related logos are trademarks of TenantFlow. You may
 						not use our trademarks without prior written permission.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.3 Feedback</h3>
+					<h3 className="mb-3 typography-h4">7.3 Feedback</h3>
 					<p>
 						If you provide feedback, suggestions, or ideas about the Service, you
 						grant us the right to use and implement them without compensation or
@@ -292,7 +292,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">8. Third-Party Services</h2>
+					<h2 className="mb-4 typography-h3">8. Third-Party Services</h2>
 					<p>The Service integrates with third-party services including:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -313,11 +313,11 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						9. Disclaimers and Limitations of Liability
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">9.1 Service &quot;As Is&quot;</h3>
+					<h3 className="mb-3 typography-h4">9.1 Service &quot;As Is&quot;</h3>
 					<p>
 						THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES
 						OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:
@@ -328,14 +328,14 @@ export default function TermsPage() {
 						<li>Warranties regarding the accuracy or reliability of data</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">9.2 No Legal Advice</h3>
+					<h3 className="mb-3 typography-h4">9.2 No Legal Advice</h3>
 					<p>
 						TenantFlow does not provide legal, financial, or tax advice. The
 						Service is a software tool only. Consult qualified professionals for
 						legal, financial, or tax matters.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">9.3 Limitation of Liability</h3>
+					<h3 className="mb-3 typography-h4">9.3 Limitation of Liability</h3>
 					<p>
 						TO THE MAXIMUM EXTENT PERMITTED BY LAW, TENANTFLOW SHALL NOT BE LIABLE FOR:
 					</p>
@@ -359,7 +359,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">10. Indemnification</h2>
+					<h2 className="mb-4 typography-h3">10. Indemnification</h2>
 					<p>
 						You agree to indemnify, defend, and hold harmless TenantFlow, its
 						officers, directors, employees, and agents from any claims, damages,
@@ -375,11 +375,11 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						11. Dispute Resolution
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">11.1 Informal Resolution</h3>
+					<h3 className="mb-3 typography-h4">11.1 Informal Resolution</h3>
 					<p>
 						If you have a dispute with TenantFlow, please contact us at{' '}
 						<a
@@ -391,7 +391,7 @@ export default function TermsPage() {
 						to resolve the matter informally.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">11.2 Arbitration Agreement</h3>
+					<h3 className="mb-3 typography-h4">11.2 Arbitration Agreement</h3>
 					<p>
 						If informal resolution is unsuccessful, any dispute shall be resolved
 						through binding arbitration in accordance with the rules of the
@@ -399,7 +399,7 @@ export default function TermsPage() {
 						[Your State/Location].
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">11.3 Class Action Waiver</h3>
+					<h3 className="mb-3 typography-h4">11.3 Class Action Waiver</h3>
 					<p>
 						You agree to resolve disputes on an individual basis only. You waive
 						any right to participate in a class action lawsuit or class-wide
@@ -408,7 +408,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">12. Modifications to the Service</h2>
+					<h2 className="mb-4 typography-h3">12. Modifications to the Service</h2>
 					<p>We reserve the right to:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Modify, suspend, or discontinue the Service at any time</li>
@@ -423,7 +423,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">13. Modifications to Terms</h2>
+					<h2 className="mb-4 typography-h3">13. Modifications to Terms</h2>
 					<p>
 						We may revise these Terms at any time. Material changes will be
 						communicated by:
@@ -440,7 +440,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">14. Governing Law</h2>
+					<h2 className="mb-4 typography-h3">14. Governing Law</h2>
 					<p>
 						These Terms are governed by and construed in accordance with the laws
 						of [Your State], without regard to conflict of law principles.
@@ -448,7 +448,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">15. Severability</h2>
+					<h2 className="mb-4 typography-h3">15. Severability</h2>
 					<p>
 						If any provision of these Terms is found to be unenforceable or
 						invalid, that provision will be limited or eliminated to the minimum
@@ -458,7 +458,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">16. Entire Agreement</h2>
+					<h2 className="mb-4 typography-h3">16. Entire Agreement</h2>
 					<p>
 						These Terms, together with our Privacy Policy, constitute the entire
 						agreement between you and TenantFlow regarding the Service and
@@ -467,7 +467,7 @@ export default function TermsPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">17. Contact Information</h2>
+					<h2 className="mb-4 typography-h3">17. Contact Information</h2>
 					<p>For questions about these Terms, contact us:</p>
 					<div className="mt-4 rounded-lg bg-muted p-6">
 						<p className="mb-2">

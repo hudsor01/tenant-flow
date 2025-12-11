@@ -9,7 +9,7 @@ import type {
 	PropertyOccupancyData,
 	QueryProperty
 } from '@repo/shared/src/types/financial-statements.js'
-import { LEASE_STATUS } from '@repo/shared/constants/status-types'
+
 import { AppLogger } from '../../../logger/app-logger.service'
 
 const VALID_PERIODS = ['current', 'monthly', 'quarterly', 'yearly'] as const
@@ -142,7 +142,7 @@ export class PropertyOccupancyAnalyticsService {
 		const occupiedUnits = units.filter((unit) => {
 			const activeLease = unit.leases?.find(
 				(lease) =>
-					lease.lease_status === LEASE_STATUS.ACTIVE &&
+					lease.lease_status === 'active' &&
 					new Date(lease.start_date) <= new Date() &&
 					new Date(lease.end_date) >= new Date()
 			)

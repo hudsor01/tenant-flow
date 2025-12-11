@@ -103,7 +103,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
-						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-4">
+						<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
 							Why Property Managers Choose{' '}
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
@@ -118,7 +118,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 						<table className="w-full min-w-[640px]">
 							<thead>
 								<tr>
-									<th className="text-left py-4 px-4 text-sm font-medium text-muted-foreground">
+									<th className="text-left py-4 px-4 typography-small text-muted-foreground">
 										Feature
 									</th>
 									<th className="py-4 px-4 text-center">
@@ -132,13 +132,13 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 									</th>
 									<th className="py-4 px-4 text-center">
 										<div className="flex flex-col items-center">
-											<span className="text-lg font-semibold text-foreground">Spreadsheets</span>
+											<span className="typography-large text-foreground">Spreadsheets</span>
 											<span className="text-xs text-muted-foreground">DIY</span>
 										</div>
 									</th>
 									<th className="py-4 px-4 text-center">
 										<div className="flex flex-col items-center">
-											<span className="text-lg font-semibold text-foreground">Enterprise</span>
+											<span className="typography-large text-foreground">Enterprise</span>
 											<span className="text-xs text-muted-foreground">Overpriced</span>
 										</div>
 									</th>
@@ -207,7 +207,7 @@ function FeatureCell({ value, highlight }: { value: FeatureValue; highlight?: bo
 	if (typeof value === 'string' && value !== 'partial') {
 		return (
 			<span className={cn(
-				'text-sm font-medium',
+				'typography-small',
 				highlight ? 'text-primary' : 'text-foreground'
 			)}>
 				{value}

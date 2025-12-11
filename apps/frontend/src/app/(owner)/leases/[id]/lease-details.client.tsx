@@ -176,7 +176,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				>
 					<div className="space-y-8">
 						<section className="space-y-3">
-							<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+							<h2 className="typography-small uppercase tracking-wide text-muted-foreground">
 								Key details
 							</h2>
 							<div className="grid gap-4 md:grid-cols-2">
@@ -185,7 +185,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										<Calendar className="size-4" />
 										Lease period
 									</div>
-									<p className="mt-1 text-sm font-medium">
+									<p className="mt-1 typography-small">
 										{lease.start_date
 											? new Date(lease.start_date).toLocaleDateString()
 											: 'Start TBD'}{' '}
@@ -200,7 +200,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										<Home className="size-4" />
 										Monthly rent
 									</div>
-									<p className="mt-1 text-sm font-medium">
+									<p className="mt-1 typography-small">
 										{new Intl.NumberFormat('en-US', {
 											style: 'currency',
 											currency: 'USD'
@@ -211,7 +211,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 						</section>
 
 						<section className="space-y-3">
-							<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+							<h2 className="typography-small uppercase tracking-wide text-muted-foreground">
 								Tenant
 							</h2>
 							{tenant ? (
@@ -220,7 +220,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										<User className="size-4" />
 										Assigned tenant
 									</div>
-									<p className="mt-1 text-sm font-medium">
+									<p className="mt-1 typography-small">
 										{tenant.first_name || tenant.last_name
 											? `${tenant.first_name ?? ''} ${tenant.last_name ?? ''}`.trim()
 											: tenant.name || 'Unknown'}
@@ -233,12 +233,12 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 						</section>
 
 						<section className="space-y-3">
-							<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+							<h2 className="typography-small uppercase tracking-wide text-muted-foreground">
 								Unit
 							</h2>
 							{unit ? (
 								<div className="rounded-xl border bg-muted/20 p-4">
-									<p className="text-sm font-medium">Unit {unit.unit_number}</p>
+									<p className="typography-small">Unit {unit.unit_number}</p>
 									<p className="text-muted">
 										{unit.bedrooms} bd · {unit.bathrooms} ba
 									</p>

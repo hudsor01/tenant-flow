@@ -149,13 +149,13 @@ export function ChartAreaInteractive({
 			<div className="grid grid-cols-2 gap-4 p-6 pb-0 lg:grid-cols-4">
 				<div className="space-y-1">
 					<p className="text-muted">Total Revenue</p>
-					<p className="text-lg font-semibold text-success">
+					<p className="typography-large text-success">
 						${totalRevenue.toLocaleString()}
 					</p>
 				</div>
 				<div className="space-y-1">
 					<p className="text-muted">Total Expenses</p>
-					<p className="text-lg font-semibold text-warning">
+					<p className="typography-large text-warning">
 						${totalExpenses.toLocaleString()}
 					</p>
 				</div>
@@ -163,7 +163,7 @@ export function ChartAreaInteractive({
 					<p className="text-muted">Net Profit</p>
 					<p
 						className={cn(
-							'flex items-center gap-1 text-lg font-semibold',
+							'flex items-center gap-1 typography-large',
 							netProfit >= 0 ? 'text-success' : 'text-warning'
 						)}
 					>
@@ -179,7 +179,7 @@ export function ChartAreaInteractive({
 					<p className="text-muted">Profit Margin</p>
 					<p
 						className={cn(
-							'text-lg font-semibold',
+							'typography-large',
 							profitMargin >= 0 ? 'text-success' : 'text-warning'
 						)}
 					>
@@ -195,7 +195,7 @@ export function ChartAreaInteractive({
 					</div>
 				) : error ? (
 					<div className="flex flex-col items-center justify-center h-75 gap-2">
-						<p className="text-sm font-medium text-muted-foreground">
+						<p className="typography-small text-muted-foreground">
 							Failed to load chart data
 						</p>
 						<p className="text-caption">

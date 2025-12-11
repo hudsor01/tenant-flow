@@ -17,7 +17,7 @@ const uuidSchema: JSONSchema = {
 
 const unitStatusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED']
+	enum: ['available', 'occupied', 'maintenance', 'reserved']
 }
 
 /**

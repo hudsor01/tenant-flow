@@ -114,14 +114,7 @@ export class PropertiesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		const property = await this.propertiesService.findOne(req, id)
-		if (!property) {
-			throw new NotFoundException({
-				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,
-				message: 'Property not found'
-			})
-		}
-		return property
+		return this.propertiesService.findOne(req, id)
 	}
 
 	/**

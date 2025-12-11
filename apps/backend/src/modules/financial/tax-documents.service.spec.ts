@@ -46,9 +46,9 @@ describe('TaxDocumentsService', () => {
         switch (table) {
           case 'rent_payments':
             data = [
-              { id: 'rp1', amount: 20000, status: 'PAID', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' },
-              { id: 'rp2', amount: 20000, status: 'PAID', due_date: '2024-07-01', paid_date: '2024-07-01', lease_id: 'lease-1' },
-              { id: 'rp3', amount: 20000, status: 'PAID', due_date: '2024-08-01', paid_date: '2024-08-01', lease_id: 'lease-1' }
+              { id: 'rp1', amount: 20000, status: 'succeeded', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' },
+              { id: 'rp2', amount: 20000, status: 'succeeded', due_date: '2024-07-01', paid_date: '2024-07-01', lease_id: 'lease-1' },
+              { id: 'rp3', amount: 20000, status: 'succeeded', due_date: '2024-08-01', paid_date: '2024-08-01', lease_id: 'lease-1' }
             ]
             break
           case 'expenses':
@@ -207,7 +207,7 @@ describe('TaxDocumentsService', () => {
         switch (table) {
           case 'rent_payments':
             data = [
-              { id: 'rp1', amount: 20000, status: 'PAID', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' }
+              { id: 'rp1', amount: 20000, status: 'succeeded', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' }
             ]
             break
           case 'expenses':

@@ -132,10 +132,10 @@ function TrendMetricCard(props: TrendVariantProps) {
       aria-label={`${title} trend`}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="typography-small">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">--</div>
+        <div className="typography-h3">--</div>
         <p className="text-caption">Error loading data</p>
       </CardContent>
     </Card>
@@ -151,7 +151,7 @@ function TrendMetricCard(props: TrendVariantProps) {
           aria-label={`${title} trend`}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <CardTitle className="typography-small">{title}</CardTitle>
             {Icon && (
               <div className="icon-bg-primary rounded-full p-2">
                 <Icon className="h-4 w-4" />
@@ -171,7 +171,7 @@ function TrendMetricCard(props: TrendVariantProps) {
           aria-label={`${title} trend`}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{title}</CardTitle>
+            <CardTitle className="typography-small">{title}</CardTitle>
             {Icon && (
               <div className="icon-bg-primary rounded-full p-2">
                 <Icon className="h-4 w-4" />
@@ -179,7 +179,7 @@ function TrendMetricCard(props: TrendVariantProps) {
             )}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">--</div>
+            <div className="typography-h3">--</div>
             <p className="text-caption">{emptyLabel}</p>
           </CardContent>
         </Card>
@@ -192,7 +192,7 @@ function TrendMetricCard(props: TrendVariantProps) {
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-sm font-medium">{title}</CardTitle>
+              <CardTitle className="typography-small">{title}</CardTitle>
               {badge}
               {Icon && (
                 <div className="icon-bg-primary rounded-full p-2">
@@ -203,7 +203,7 @@ function TrendMetricCard(props: TrendVariantProps) {
             {renderTrendIndicator(metric)}
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="typography-h3">
               {valueFormatter(metric.current ?? 0)}
             </div>
             <div className="flex items-center gap-1 mt-1">

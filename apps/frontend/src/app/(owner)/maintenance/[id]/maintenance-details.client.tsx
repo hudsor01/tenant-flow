@@ -60,7 +60,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			<Card className="lg:col-span-2">
 				<CardHeader className="flex-row items-start justify-between gap-4">
 					<div className="space-y-2">
-						<CardTitle className="flex items-center gap-2 text-2xl font-semibold">
+						<CardTitle className="flex items-center gap-2 typography-h3">
 							<Wrench className="size-5 text-primary" />
 							{request.description ?? 'Maintenance Request'}
 						</CardTitle>
@@ -77,7 +77,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<section className="space-y-2">
-						<h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+						<h2 className="typography-small uppercase tracking-wide text-muted-foreground">
 							Description
 						</h2>
 						<p className="text-sm leading-relaxed text-muted-foreground">
@@ -91,7 +91,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								<MapPin className="size-4" />
 								Property
 							</div>
-							<p className="mt-1 text-sm font-medium">
+							<p className="mt-1 typography-small">
 								{property?.name ?? 'Unassigned property'}
 							</p>
 							{unit ? (
@@ -106,7 +106,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								<Calendar className="size-4" />
 								Scheduled date
 							</div>
-							<p className="mt-1 text-sm font-medium">
+							<p className="mt-1 typography-small">
 								{request.scheduled_date ? new Date(request.scheduled_date).toLocaleDateString() : 'No scheduled date'}
 							</p>
 						</div>

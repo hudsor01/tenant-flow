@@ -156,7 +156,7 @@ export default function ResourcesPage() {
 			<section className="section-spacing-compact">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-12">
-						<h2 className="text-3xl font-bold text-foreground mb-3">
+						<h2 className="typography-h2 text-foreground mb-3">
 							Quick Start
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -198,7 +198,7 @@ export default function ResourcesPage() {
 			<section className="section-spacing bg-muted/30">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-12">
-						<h2 className="text-3xl font-bold text-foreground mb-3">
+						<h2 className="typography-h2 text-foreground mb-3">
 							Resource Center
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -250,7 +250,7 @@ export default function ResourcesPage() {
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-12">
-						<h2 className="text-3xl font-bold text-foreground mb-3">
+						<h2 className="typography-h2 text-foreground mb-3">
 							Popular Topics
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -293,7 +293,7 @@ export default function ResourcesPage() {
 						<div className="flex flex-col sm:flex-row gap-6 justify-center">
 							<Button
 								size="lg"
-								className="gradient-background hover:opacity-90 shadow-2xl shadow-primary/25 text-lg font-semibold px-8 py-4"
+								className="gradient-background hover:opacity-90 shadow-2xl shadow-primary/25 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/contact">
@@ -304,7 +304,7 @@ export default function ResourcesPage() {
 							<Button
 								variant="outline"
 								size="lg"
-								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 text-lg font-semibold px-8 py-4"
+								className="border-2 border-muted-foreground/30 hover:border-primary/50 hover:bg-primary/5 typography-large px-8 py-4"
 								asChild
 							>
 								<Link href="/help">Browse Help Center</Link>

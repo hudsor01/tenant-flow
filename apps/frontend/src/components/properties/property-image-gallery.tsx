@@ -98,7 +98,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 		return (
 			<div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-lg bg-muted/30">
 				<ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-				<p className="text-sm font-medium text-muted-foreground">No images yet</p>
+				<p className="typography-small text-muted-foreground">No images yet</p>
 				{editable && (
 					<p className="text-caption mt-1">Upload images below to showcase this property</p>
 				)}
@@ -156,7 +156,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 							{/* "+N more" overlay on 4th image if > 4 total */}
 							{hasMore && (
 								<div className="absolute inset-0 bg-black/60 flex-center group-hover:bg-black/70 transition-colors">
-									<span className="text-white text-3xl font-bold">
+									<span className="text-white typography-h2">
 										+{images.length - 4}
 									</span>
 								</div>

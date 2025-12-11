@@ -50,7 +50,7 @@ export default function TenantLeasePage() {
 		<div className="space-y-8">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">My Lease</h1>
+					<h1 className="typography-h2 tracking-tight">My Lease</h1>
 					<p className="text-muted-foreground">
 						View your current lease details and agreement
 					</p>

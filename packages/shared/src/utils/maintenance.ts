@@ -1,27 +1,28 @@
-import type { MaintenancePriority, RequestStatus } from '../constants/status-types.js'
+import type { MaintenancePriority } from '../types/core.js'
+import type { RequestStatus } from '../constants/status-types.js'
 /**
  * Maintenance utilities
  * Helper functions for maintenance priority and status display
  */
 
-type Priority = MaintenancePriority
-
-export const getPriorityLabel = (priority: Priority): string => {
-	const labels: Record<Priority, string> = {
-		LOW: 'Low Priority',
-		MEDIUM: 'Medium Priority',
-		HIGH: 'High Priority',
-		URGENT: 'Urgent'
+export const getPriorityLabel = (priority: MaintenancePriority): string => {
+	const labels: Record<MaintenancePriority, string> = {
+		low: 'Low Priority',
+		normal: 'Normal Priority',
+		medium: 'Medium Priority',
+		high: 'High Priority',
+		urgent: 'Urgent'
 	}
 	return labels[priority] || priority
 }
 
-export const getPriorityColor = (priority: Priority): string => {
-	const colors: Record<Priority, string> = {
-		LOW: 'bg-success/10 text-success-foreground border-success/20',
-		MEDIUM: 'bg-warning/10 text-warning-foreground border-warning/20',
-		HIGH: 'bg-warning/10 text-warning-foreground border-warning/20',
-		URGENT: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
+export const getPriorityColor = (priority: MaintenancePriority): string => {
+	const colors: Record<MaintenancePriority, string> = {
+		low: 'bg-success/10 text-success-foreground border-success/20',
+		normal: 'bg-muted text-muted-foreground border-border',
+		medium: 'bg-warning/10 text-warning-foreground border-warning/20',
+		high: 'bg-warning/10 text-warning-foreground border-warning/20',
+		urgent: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 	}
 	return colors[priority] || 'bg-muted text-muted-foreground border-border'
 }

@@ -6,7 +6,7 @@
 
 import { Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenanceStatus } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
@@ -16,11 +16,11 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class MaintenanceWorkflowService {
 
 	// Reverse map for converting database priority values to enum values for events
-	private readonly reversePriorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
-		low: 'LOW',
-		normal: 'MEDIUM',
-		high: 'HIGH',
-		urgent: 'URGENT'
+	private readonly reversePriorityMap: Record<string, 'low' | 'medium' | 'high' | 'urgent'> = {
+		low: 'low',
+		normal: 'medium',
+		high: 'high',
+		urgent: 'urgent'
 	}
 
 	constructor(private readonly supabase: SupabaseService,
@@ -33,7 +33,7 @@ export class MaintenanceWorkflowService {
 	async updateStatus(
 		token: string,
 		maintenanceId: string,
-		status: string,
+		status: MaintenanceStatus,
 		notes?: string
 	): Promise<MaintenanceRequest | null> {
 		try {
@@ -149,7 +149,7 @@ export class MaintenanceWorkflowService {
 						updated.id,
 						updated.description ?? '',
 						updated.status ?? 'completed',
-						this.reversePriorityMap[updated.priority || 'normal'] || 'MEDIUM',
+						this.reversePriorityMap[updated.priority || 'normal'] || 'medium',
 						propertyLabel,
 						unit_numberLabel,
 						updated.description ?? ''

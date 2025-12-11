@@ -59,7 +59,7 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 											{payment.status}
 										</Badge>
 									</div>
-									<div className="text-lg font-semibold">
+									<div className="typography-large">
 										{formatCents(payment.amount)}
 									</div>
 									{payment.description && (

@@ -41,7 +41,7 @@ export default function BlogPage() {
 						<div className="bg-card rounded-2xl p-8 md:p-12 border border-border/50 shadow-lg">
 							<div className="grid md:grid-cols-2 gap-8 items-center">
 								<div>
-									<h2 className="text-4xl font-bold mb-4">
+									<h2 className="typography-h1 mb-4">
 										The $30,000 Property Management Savings Playbook
 									</h2>
 									<p className="text-muted-foreground mb-6 text-lg">
@@ -70,7 +70,7 @@ export default function BlogPage() {
 								</div>
 								<div className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
 									<div className="text-center">
-										<div className="text-4xl font-bold text-primary mb-2">
+										<div className="typography-h1 text-primary mb-2">
 											40%
 										</div>
 										<p className="text-muted mb-4">
@@ -79,7 +79,7 @@ export default function BlogPage() {
 
 										<div className="grid grid-cols-2 gap-4 text-sm">
 											<div>
-												<div className="text-2xl font-bold text-accent mb-1">
+												<div className="typography-h3 text-accent mb-1">
 													65%
 												</div>
 												<p className="text-muted-foreground">
@@ -87,7 +87,7 @@ export default function BlogPage() {
 												</p>
 											</div>
 											<div>
-												<div className="text-2xl font-bold text-primary mb-1">
+												<div className="typography-h3 text-primary mb-1">
 													32%
 												</div>
 												<p className="text-muted-foreground">Cost Reduction</p>
@@ -104,7 +104,7 @@ export default function BlogPage() {
 			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
-							<h2 className="text-4xl font-bold mb-4">Learn what works</h2>
+							<h2 className="typography-h1 mb-4">Learn what works</h2>
 							<p className="text-xl text-muted-foreground">
 								Browse strategies proven to deliver results for property
 								managers
@@ -154,7 +154,7 @@ export default function BlogPage() {
 											className={`size-8 ${category.color.split(' ')[1]}`}
 										/>
 									</div>
-									<h3 className="text-xl font-semibold mb-2 group-hover:text-primary transition-colors">
+									<h3 className="typography-h4 mb-2 group-hover:text-primary transition-colors">
 										{category.name}
 									</h3>
 									<p className="text-muted-foreground text-sm mb-4">
@@ -170,7 +170,7 @@ export default function BlogPage() {
 			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
-							<h2 className="text-4xl font-bold mb-4">
+							<h2 className="typography-h1 mb-4">
 								Latest strategies that work
 							</h2>
 							<p className="text-xl text-muted-foreground">
@@ -224,7 +224,7 @@ export default function BlogPage() {
 			{/* Newsletter with Strong Value Prop */}
 			<section className="section-spacing bg-primary">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-						<h2 className="text-4xl font-bold text-primary-foreground mb-4">
+						<h2 className="typography-h1 text-primary-foreground mb-4">
 							Get the strategies that increase NOI by 40%
 						</h2>
 						<p className="text-xl text-primary-foreground/90 mb-8">

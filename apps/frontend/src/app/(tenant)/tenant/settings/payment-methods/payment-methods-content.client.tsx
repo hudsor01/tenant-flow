@@ -126,7 +126,7 @@ export function PaymentMethodsContent() {
 		<>
 			<div className="container mx-auto py-8">
 				<div className="mb-8">
-					<h1 className="text-3xl font-bold tracking-tight">Payment Methods</h1>
+					<h1 className="typography-h2 tracking-tight">Payment Methods</h1>
 					<p className="text-muted-foreground mt-2">
 						Manage your payment methods for rent and fees
 					</p>

@@ -249,7 +249,7 @@ export default function TenantProfilePage() {
 	return (
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
+				<h1 className="typography-h2 tracking-tight">My Profile</h1>
 				<p className="text-muted-foreground">
 					Manage your contact information and account settings
 				</p>

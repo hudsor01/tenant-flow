@@ -123,7 +123,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 	const header = (
 		<div className="flex-between">
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">{tenant.name}</h1>
+				<h1 className="typography-h2 tracking-tight">{tenant.name}</h1>
 				<p className="text-muted-foreground mt-1">{tenant.email}</p>
 			</div>
 

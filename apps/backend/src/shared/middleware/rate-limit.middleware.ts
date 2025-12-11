@@ -274,7 +274,7 @@ export class RateLimitMiddleware implements NestMiddleware, OnModuleDestroy {
 				userAgent: req.headers['user-agent'],
 				endpointType: this.getEndpointType(req.url),
 				timestamp: new Date().toISOString(),
-				severity: 'HIGH'
+				severity: 'high'
 			})
 
 			// Auto-block after multiple violations

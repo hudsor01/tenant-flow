@@ -10,7 +10,7 @@ export default function BillingPage() {
 	return (
 		<div className="space-y-8">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold tracking-tight">
+				<h1 className="typography-h3 tracking-tight">
 					Billing & Payments
 				</h1>
 				<p className="text-muted-foreground">

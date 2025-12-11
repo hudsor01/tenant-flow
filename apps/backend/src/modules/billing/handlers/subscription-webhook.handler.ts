@@ -9,8 +9,8 @@
 
 import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
-import type { LeaseStatus } from '@repo/shared/constants/status-types'
-import { LEASE_STATUS } from '@repo/shared/constants/status-types'
+import type { LeaseStatus } from '@repo/shared/types/core'
+
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 
@@ -124,12 +124,12 @@ export class SubscriptionWebhookHandler {
 				return
 			}
 
-			let lease_status: LeaseStatus = LEASE_STATUS.DRAFT
+			let lease_status: LeaseStatus = 'draft'
 
 			if (subscription.status === 'active') {
-				lease_status = LEASE_STATUS.ACTIVE
+				lease_status = 'active'
 			} else if (subscription.status === 'canceled') {
-				lease_status = LEASE_STATUS.TERMINATED
+				lease_status = 'terminated'
 			}
 
 			await client
@@ -176,7 +176,7 @@ export class SubscriptionWebhookHandler {
 			await client
 				.from('leases')
 				.update({
-					lease_status: LEASE_STATUS.TERMINATED,
+					lease_status: 'terminated',
 					updated_at: new Date().toISOString()
 				})
 				.eq('id', lease.id)

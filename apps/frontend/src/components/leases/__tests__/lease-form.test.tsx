@@ -60,13 +60,13 @@ vi.mock('#hooks/api/use-unit', () => ({
 					id: 'unit-1',
 					unit_number: '101',
 					property_id: 'property-1',
-					status: 'VACANT'
+					status: 'available'
 				},
 				{
 					id: 'unit-2',
 					unit_number: '102',
 					property_id: 'property-1',
-					status: 'VACANT'
+					status: 'available'
 				}
 			]
 		},

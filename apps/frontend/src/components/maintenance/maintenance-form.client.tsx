@@ -30,13 +30,13 @@ import {
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
-import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
+	MaintenancePriority,
 	MaintenanceRequestWithExtras,
 	Property,
 	Unit
 } from '@repo/shared/types/core'
-import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
+import { MAINTENANCE_PRIORITY_OPTIONS } from '@repo/shared/constants/status-types'
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
@@ -60,7 +60,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 		defaultValues: {
 			title: extendedRequest?.title ?? '',
 			description: extendedRequest?.description ?? '',
-			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'LOW',
+			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'low',
 			unit_id: extendedRequest?.unit_id ?? '',
 			tenant_id: extendedRequest?.tenant_id ?? '',
 			estimated_cost: extendedRequest?.estimated_cost?.toString() ?? '',
@@ -257,13 +257,15 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 										<FieldLabel htmlFor="priority">Priority *</FieldLabel>
 										<Select
 											value={field.state.value || ''}
-											onValueChange={field.handleChange}
+											onValueChange={(value: string) =>
+												field.handleChange(value as MaintenancePriority)
+											}
 										>
 											<SelectTrigger id="priority">
 												<SelectValue placeholder="Select priority level" />
 											</SelectTrigger>
 											<SelectContent>
-												{NOTIFICATION_PRIORITY_OPTIONS.map(option => (
+												{MAINTENANCE_PRIORITY_OPTIONS.map(option => (
 													<SelectItem key={option.value} value={option.value}>
 														{option.label}
 													</SelectItem>

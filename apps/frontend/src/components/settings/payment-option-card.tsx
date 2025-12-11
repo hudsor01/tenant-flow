@@ -44,7 +44,7 @@ export function PaymentOptionCard({
 			{/* Header */}
 			<div className="space-y-2">
 				<div className="flex items-start justify-between gap-4">
-					<h3 className="text-lg font-semibold">{title}</h3>
+					<h3 className="typography-large">{title}</h3>
 					{recommended && (
 						<Badge variant="default" className="shrink-0" role="status">
 							Recommended
@@ -67,7 +67,7 @@ export function PaymentOptionCard({
 						className="w-full justify-between"
 						aria-label={isExpanded ? 'Hide details' : 'Show details'}
 					>
-						<span className="text-sm font-medium">
+						<span className="typography-small">
 							{isExpanded ? 'Hide Details' : 'Show Details'}
 						</span>
 						{isExpanded ? (

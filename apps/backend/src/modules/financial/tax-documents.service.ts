@@ -65,7 +65,7 @@ export class TaxDocumentsService {
 				isWithinRange(payment.due_date, range)
 			)
 			const grossRentalIncome = rentPayments
-				.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+				.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
 				.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 			const totalExpenses = ledger.expenses
@@ -128,7 +128,7 @@ export class TaxDocumentsService {
 		const maintenanceCosts = ledger.maintenanceRequests
 			.filter(
 				request =>
-					request.status === 'COMPLETED' &&
+					request.status === 'completed' &&
 					isWithinRange(request.completed_at ?? request.created_at, range)
 			)
 			.reduce(

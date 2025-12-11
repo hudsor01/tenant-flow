@@ -92,15 +92,15 @@ export default function NewMaintenanceRequestPage() {
 			return
 		}
 
-		// Map priority to match backend enum
-		const priorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
-			low: 'LOW',
-			medium: 'MEDIUM',
-			high: 'HIGH',
-			urgent: 'URGENT'
+		// Priority values match DB enum (lowercase): 'low' | 'normal' | 'high' | 'urgent'
+		const priorityMap: Record<string, 'low' | 'normal' | 'high' | 'urgent'> = {
+			low: 'low',
+			medium: 'normal', // Form uses 'medium', DB uses 'normal'
+			high: 'high',
+			urgent: 'urgent'
 		}
 
-		// Map category to match backend enum
+		// Category values are app-level constants (not DB enum)
 		const categoryMap: Record<
 			string,
 			| 'PLUMBING'
@@ -130,7 +130,7 @@ export default function NewMaintenanceRequestPage() {
 		const requestData = {
 			title: formData.title,
 			description: formData.description,
-			priority: priorityMap[formData.priority] || 'MEDIUM',
+			priority: priorityMap[formData.priority] || 'normal',
 			category: categoryMap[formData.category] || 'GENERAL',
 			allowEntry: formData.allowEntry,
 			photos: photoUrls
@@ -161,7 +161,7 @@ export default function NewMaintenanceRequestPage() {
 						Back to Requests
 					</Button>
 				</Link>
-				<h1 className="text-3xl font-bold tracking-tight">
+				<h1 className="typography-h2 tracking-tight">
 					Submit Maintenance Request
 				</h1>
 				<p className="text-muted-foreground mt-2">

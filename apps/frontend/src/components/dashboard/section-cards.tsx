@@ -71,8 +71,8 @@ function SectionCardsContent() {
 						<DollarSign className="size-5 text-muted-foreground" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<p className="text-sm font-medium text-muted-foreground">Monthly Revenue</p>
-						<p className="text-2xl font-semibold tracking-tight mt-1">
+						<p className="typography-small text-muted-foreground">Monthly Revenue</p>
+						<p className="typography-h3 tracking-tight mt-1">
 							$<NumberTicker value={totalRevenue / 100} decimalPlaces={2} />
 						</p>
 						<p className="text-xs text-muted-foreground mt-2">Revenue for this month</p>
@@ -87,8 +87,8 @@ function SectionCardsContent() {
 						<Users className="size-5 text-muted-foreground" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<p className="text-sm font-medium text-muted-foreground">Active Tenants</p>
-						<p className="text-2xl font-semibold tracking-tight mt-1">
+						<p className="typography-small text-muted-foreground">Active Tenants</p>
+						<p className="typography-h3 tracking-tight mt-1">
 							<NumberTicker value={activeTenants} />
 						</p>
 						<p className="text-xs text-muted-foreground mt-2">{totalTenants} total tenants registered</p>
@@ -103,8 +103,8 @@ function SectionCardsContent() {
 						<Building2 className="size-5 text-muted-foreground" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<p className="text-sm font-medium text-muted-foreground">Total Properties</p>
-						<p className="text-2xl font-semibold tracking-tight mt-1">
+						<p className="typography-small text-muted-foreground">Total Properties</p>
+						<p className="typography-h3 tracking-tight mt-1">
 							<NumberTicker value={totalProperties} />
 						</p>
 						<p className="text-xs text-muted-foreground mt-2">{stats.properties?.occupied || 0} properties occupied</p>
@@ -119,8 +119,8 @@ function SectionCardsContent() {
 						<Percent className="size-5 text-muted-foreground" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<p className="text-sm font-medium text-muted-foreground">Occupancy Rate</p>
-						<p className="text-2xl font-semibold tracking-tight mt-1">
+						<p className="typography-small text-muted-foreground">Occupancy Rate</p>
+						<p className="typography-h3 tracking-tight mt-1">
 							<NumberTicker value={occupancyRate} />%
 						</p>
 						<p className="text-xs text-muted-foreground mt-2">Current property utilization</p>

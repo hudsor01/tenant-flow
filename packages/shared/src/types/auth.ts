@@ -22,9 +22,9 @@ export type { SupabaseAuthUser as authUser }
 // User role type derived from constants
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
 
-// Use Supabase SubStatus instead of custom SubscriptionStatus
-import type { SubStatus } from '../constants/status-types.js'
-export type SubscriptionStatus = SubStatus
+// SubscriptionStatus for Stripe subscription states
+import type { SubscriptionStatus } from '../constants/status-types.js'
+export type { SubscriptionStatus }
 
 export function hasOrganizationId(
 	user: SupabaseAuthUser

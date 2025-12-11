@@ -179,7 +179,7 @@ export interface StripeCheckoutSession {
   payment_method_configuration_details: Record<string, unknown> | null
   payment_method_options: Record<string, unknown> | null
   payment_method_types: unknown[] | null
-  payment_status: string | null // 'paid' | 'unpaid' | 'no_payment_required'
+  payment_status: string | null // 'succeeded' | 'unpaid' | 'no_payment_required'
   permissions: Record<string, unknown> | null
   phone_number_collection: Record<string, unknown> | null
   presentment_details: Record<string, unknown> | null
@@ -221,7 +221,7 @@ export interface StripeInvoice {
   metadata: Record<string, unknown> | null
   period_end: number | null
   period_start: number | null
-  status: string | null // 'draft' | 'open' | 'paid' | 'uncollectible' | 'void'
+  status: string | null // 'draft' | 'open' | 'succeeded' | 'uncollectible' | 'void'
   total: number | null
   amount_due: number | null
   amount_paid: number | null

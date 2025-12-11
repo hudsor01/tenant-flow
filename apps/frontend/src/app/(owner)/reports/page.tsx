@@ -18,7 +18,7 @@ export default function ReportsPage() {
 				<div className="mx-auto max-w-400 py-4">
 					<div className="flex-between mb-4">
 						<div>
-							<h1 className="text-3xl font-bold">Reports & Analytics</h1>
+							<h1 className="typography-h2">Reports & Analytics</h1>
 							<p className="text-muted-foreground mt-1">
 								Generate and manage comprehensive business reports
 							</p>

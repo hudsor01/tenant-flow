@@ -299,7 +299,7 @@ export interface PropertySearchResult extends PropertyWithUnits {
  */
 export interface PropertyFilters {
 	property_type?: PropertyType
-	status?: 'active' | 'inactive' | 'MAINTENANCE'
+	status?: 'active' | 'inactive' | 'maintenance'
 	minUnits?: number
 	maxUnits?: number
 	minRent?: number

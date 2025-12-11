@@ -169,7 +169,7 @@ export default async function PricingPage() {
 								Trusted by 35,000+ property professionals
 							</Badge>
 
-							<h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+							<h1 className="text-balance typography-h1 tracking-tight text-foreground sm:text-5xl lg:text-6xl">
 								Simple, transparent pricing for{' '}
 								<span className="hero-highlight">every portfolio</span>
 							</h1>
@@ -232,13 +232,13 @@ export default async function PricingPage() {
 									style={{ animationDelay: `${index * 150}ms` }}
 								>
 									<div className="relative">
-										<div className="mb-4 text-3xl font-bold text-primary">
+										<div className="mb-4 typography-h2 text-primary">
 											<stat.icon className="h-8 w-8" />
 										</div>
 										<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
 											{stat.label}
 										</p>
-										<p className="mb-3 text-4xl font-bold tracking-tight text-foreground">
+										<p className="mb-3 typography-h1 tracking-tight text-foreground">
 											{stat.value}
 										</p>
 										<p className="text-sm leading-relaxed text-muted-foreground">

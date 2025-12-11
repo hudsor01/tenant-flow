@@ -79,7 +79,7 @@ export default function AnalyticsPage() {
 				<div className="mx-auto max-w-400 py-4">
 					<div className="flex-between mb-4">
 						<div>
-							<h1 className="text-3xl font-bold">Analytics Dashboard</h1>
+							<h1 className="typography-h2">Analytics Dashboard</h1>
 							<p className="text-muted-foreground mt-1">
 								Real-time insights into revenue, payments, and occupancy metrics
 							</p>
@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
 								<Card className="@container/card">
 									<CardHeader>
 										<CardDescription>Total Revenue</CardDescription>
-										<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+										<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 											{formatCurrency(paymentAnalytics?.totalRevenue || 0)}
 										</CardTitle>
 										<CardAction>
@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
 								<Card className="@container/card">
 									<CardHeader>
 										<CardDescription>Payment Success</CardDescription>
-										<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+										<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 											{formatPercent(
 												paymentAnalytics?.totalPayments
 													? (paymentAnalytics.successfulPayments /
@@ -166,7 +166,7 @@ export default function AnalyticsPage() {
 								<Card className="@container/card">
 									<CardHeader>
 										<CardDescription>Occupancy Rate</CardDescription>
-										<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+										<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 											{formatPercent(occupancyMetrics?.occupancyRate || 0)}
 										</CardTitle>
 										<CardAction>
@@ -190,7 +190,7 @@ export default function AnalyticsPage() {
 								<Card className="@container/card">
 									<CardHeader>
 										<CardDescription>ACH Adoption</CardDescription>
-										<CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+										<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
 											{formatPercent(
 												paymentAnalytics?.totalPayments
 													? (paymentAnalytics.paymentsByMethod.ach /
@@ -226,7 +226,7 @@ export default function AnalyticsPage() {
 					{/* Revenue Chart */}
 					<Card className="@container/card">
 						<div className="p-6 border-b">
-							<h2 className="text-xl font-semibold">Monthly Revenue Trend</h2>
+							<h2 className="typography-h4">Monthly Revenue Trend</h2>
 							<p className="text-muted-foreground text-sm">
 								Revenue, expenses, and profit over time
 							</p>
@@ -328,7 +328,7 @@ export default function AnalyticsPage() {
 						{/* Payment Methods Breakdown */}
 						<Card className="@container/card">
 							<div className="p-6 border-b">
-								<h2 className="text-xl font-semibold">Payment Methods</h2>
+								<h2 className="typography-h4">Payment Methods</h2>
 								<p className="text-muted-foreground text-sm">
 									Distribution by payment type
 								</p>
@@ -384,7 +384,7 @@ export default function AnalyticsPage() {
 						{/* Occupancy by Property */}
 						<Card className="@container/card">
 							<div className="p-6 border-b">
-								<h2 className="text-xl font-semibold">Occupancy by Property</h2>
+								<h2 className="typography-h4">Occupancy by Property</h2>
 								<p className="text-muted-foreground text-sm">
 									Unit occupancy rates across portfolio
 								</p>
@@ -444,7 +444,7 @@ export default function AnalyticsPage() {
 					{occupancyMetrics && occupancyMetrics.byProperty.length > 0 && (
 						<Card className="@container/card">
 							<div className="p-6 border-b">
-								<h2 className="text-xl font-semibold">Property Details</h2>
+								<h2 className="typography-h4">Property Details</h2>
 								<p className="text-muted-foreground text-sm">
 									Individual property performance metrics
 								</p>
@@ -493,7 +493,7 @@ export default function AnalyticsPage() {
 																	}}
 																/>
 															</div>
-															<span className="text-sm font-medium w-12 text-right">
+															<span className="typography-small w-12 text-right">
 																{formatPercent(property.occupancyRate)}
 															</span>
 														</div>

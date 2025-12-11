@@ -26,7 +26,7 @@ const TaxDocumentsSkeleton = () => {
 		<div className="p-6 space-y-6">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold">Tax Documents</h1>
+					<h1 className="typography-h2">Tax Documents</h1>
 					<p className="text-muted/600">
 						Tax preparation and filing documents
 					</p>

@@ -117,7 +117,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">Select Property & Tenant</h3>
+				<h3 className="typography-large mb-4">Select Property & Tenant</h3>
 				<p className="text-muted-foreground text-sm mb-6">
 					Choose the property, unit, and tenant for this lease agreement.
 				</p>

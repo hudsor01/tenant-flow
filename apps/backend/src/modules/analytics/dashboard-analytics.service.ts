@@ -145,7 +145,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				monthlyRevenue: item.monthly_revenue,
 				potentialRevenue: item.potential_revenue,
 				property_type: item.property_type,
-				status: item.status as 'PARTIAL' | 'VACANT' | 'NO_UNITS' | 'FULL',
+				status: item.status as 'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL',
 				trend: trendData?.trend ?? ('stable' as const),
 				trendPercentage: trendData?.trend_percentage ?? 0
 			}

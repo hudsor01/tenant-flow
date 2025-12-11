@@ -164,7 +164,7 @@ export function BulkImportUploadStep({
 							<FileSpreadsheet className="size-4" />
 						</div>
 						<div>
-							<p className="text-sm font-medium">Need a template?</p>
+							<p className="typography-small">Need a template?</p>
 							<p className="text-xs text-muted-foreground">
 								Download our CSV template to get started
 							</p>

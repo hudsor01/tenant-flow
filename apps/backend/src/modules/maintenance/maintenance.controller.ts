@@ -73,7 +73,7 @@ export class MaintenanceController {
 		}
 
 		// Validate enum values
-		if (priority && !['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(priority)) {
+		if (priority && !['low', 'medium', 'high', 'urgent'].includes(priority)) {
 			throw new BadRequestException('Invalid priority')
 		}
 		if (
@@ -92,7 +92,7 @@ export class MaintenanceController {
 		}
 		if (
 			status &&
-			!['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELED', 'ON_HOLD'].includes(
+			!['open', 'in_progress', 'completed', 'CANCELED', 'on_hold'].includes(
 				status
 			)
 		) {

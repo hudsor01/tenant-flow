@@ -132,7 +132,7 @@ export function useCreateRentPayment() {
  * Task 2.4: Payment Status Tracking
  */
 export interface PaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
+	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
 	rent_amount: number
 	nextDueDate: string | null
 	lastPaymentDate: string | null

@@ -99,7 +99,7 @@ export function BulkImportValidateStep({
 				<div className="flex items-start gap-3 p-3 rounded-lg bg-warning/10 border border-warning/30">
 					<AlertCircle className="size-4 text-warning shrink-0 mt-0.5" />
 					<div>
-						<p className="text-sm font-medium text-warning-foreground">
+						<p className="typography-small text-warning-foreground">
 							{errorCount} row{errorCount > 1 ? 's' : ''} need attention
 						</p>
 						<p className="text-xs text-muted-foreground mt-0.5">
@@ -230,7 +230,7 @@ export function BulkImportValidateStep({
 					<div className="icon-container-lg bg-muted text-muted-foreground mx-auto mb-3">
 						<FileText className="size-6" />
 					</div>
-					<p className="text-sm font-medium text-muted-foreground">
+					<p className="typography-small text-muted-foreground">
 						No data to preview
 					</p>
 					<p className="text-xs text-muted-foreground mt-1">

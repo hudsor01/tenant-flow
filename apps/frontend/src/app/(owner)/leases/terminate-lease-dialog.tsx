@@ -53,7 +53,7 @@ export function TerminateLeaseDialog({
 								<div className="flex gap-3">
 									<AlertTriangle className="size-5 text-destructive shrink-0" />
 									<div className="space-y-1">
-										<p className="text-sm font-medium text-destructive">
+										<p className="typography-small text-destructive">
 											Early Termination Warning
 										</p>
 										<p className="text-muted">

@@ -20,6 +20,7 @@ import type {
 import { AppConfigService } from '../../config/app-config.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SupabaseService } from '../../database/supabase.service'
 
 
 describe('DocuSealWebhookController', () => {
@@ -30,6 +31,8 @@ describe('DocuSealWebhookController', () => {
   }
   let mockConfigService: jest.Mocked<Partial<AppConfigService>>
   let mockLogger: jest.Mocked<Partial<Logger>>
+  let mockSupabaseClient: { rpc: jest.Mock }
+  let mockSupabaseService: { getAdminClient: jest.Mock }
 
   beforeEach(async () => {
     mockLogger = {
@@ -48,12 +51,21 @@ describe('DocuSealWebhookController', () => {
       getDocuSealWebhookSecret: jest.fn().mockReturnValue('test-webhook-secret')
     }
 
+    mockSupabaseClient = {
+      rpc: jest.fn().mockResolvedValue({ data: [{ lock_acquired: true }], error: null })
+    }
+
+    mockSupabaseService = {
+      getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
+    }
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [DocuSealWebhookController],
       providers: [
         { provide: Logger, useValue: mockLogger },
         { provide: DocuSealWebhookService, useValue: mockWebhookService },
         { provide: AppConfigService, useValue: mockConfigService },
+        { provide: SupabaseService, useValue: mockSupabaseService },
         {
           provide: AppLogger,
           useValue: new SilentLogger()
@@ -106,6 +118,7 @@ describe('DocuSealWebhookController', () => {
 
         const result = await controller.handleWebhook(validHeaders, payload)
         expect(result).toEqual({ received: true })
+        expect(mockSupabaseClient.rpc).toHaveBeenCalled()
       })
     })
 
@@ -133,6 +146,30 @@ describe('DocuSealWebhookController', () => {
 
         expect(mockWebhookService.handleFormCompleted).toHaveBeenCalledWith(payload.data)
         expect(result).toEqual({ received: true })
+      })
+
+      it('short-circuits duplicate form.completed events via idempotency lock', async () => {
+        mockSupabaseClient.rpc.mockResolvedValueOnce({
+          data: [{ lock_acquired: false }],
+          error: null
+        })
+
+        const payload = {
+          event_type: 'form.completed',
+          timestamp: '2025-01-15T10:00:00Z',
+          data: {
+            id: 123,
+            submission_id: 456,
+            email: 'tenant@example.com',
+            role: 'Tenant',
+            completed_at: '2025-01-15T10:00:00Z'
+          }
+        }
+
+        const result = await controller.handleWebhook(validHeaders, payload)
+
+        expect(result).toEqual({ received: true })
+        expect(mockWebhookService.handleFormCompleted).not.toHaveBeenCalled()
       })
     })
 

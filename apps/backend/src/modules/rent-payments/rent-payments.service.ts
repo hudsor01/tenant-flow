@@ -24,6 +24,7 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { getCanonicalPaymentDate } from '@repo/shared/utils/payment-dates'
 import type { RentPayment, TenantPaymentMethod } from './types'
+import type { PaymentStatus } from '@repo/shared/types/core'
 import type { CreatePaymentInput } from './dto/create-payment.dto'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
@@ -33,7 +34,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 type PaymentMethodType = 'card' | 'ach'
 
 export interface CurrentPaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
+	status: 'succeeded' | 'pending' | 'OVERDUE' | 'pending'
 	rentAmount: number
 	nextDueDate: string | null
 	lastPaymentDate: string | null
@@ -222,7 +223,7 @@ export class RentPaymentsService {
 			lease_id: lease.id,
 			amount: amountInCents,
 			payment_method_type: paymentType.toUpperCase(),
-			status: paymentIntent.status === 'succeeded' ? 'PAID' : 'pending',
+			status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
 			stripe_payment_intent_id: paymentIntent.id,
 			due_date: new Date().toISOString()
 		})
@@ -266,7 +267,7 @@ export class RentPaymentsService {
 			.limit(1)
 			.maybeSingle()
 
-		let status: CurrentPaymentStatus['status'] = 'DUE'
+		let status: CurrentPaymentStatus['status'] = 'pending'
 		let outstandingBalance = rentAmount
 		let nextDueDate: string | null = null
 		let lastPaymentDate: string | null = null
@@ -278,13 +279,13 @@ export class RentPaymentsService {
 				lastPayment.status!
 			)
 			nextDueDate = lastPayment.due_date ?? lease.end_date ?? null
-			if (lastPayment.status === 'PAID') {
-				status = 'PAID'
+			if (lastPayment.status === 'succeeded') {
+				status = 'succeeded'
 				outstandingBalance = 0
 			} else if (lastPayment.status === 'pending') {
 				status = 'pending'
 				outstandingBalance = rentAmount
-			} else if (lastPayment.status === 'FAILED') {
+			} else if (lastPayment.status === 'failed') {
 				status = 'OVERDUE'
 			}
 		} else {
@@ -293,7 +294,7 @@ export class RentPaymentsService {
 
 		const isOverdue =
 			nextDueDate !== null && new Date(nextDueDate).getTime() < Date.now()
-		if (isOverdue && status === 'DUE') {
+		if (isOverdue && status === 'pending') {
 			status = 'OVERDUE'
 		}
 
@@ -311,7 +312,7 @@ export class RentPaymentsService {
 		tenant_id: string
 		lease_id: string
 		amount: number
-		status: string
+		status: PaymentStatus
 		payment_method_type: string
 		stripe_payment_intent_id: string
 		due_date: string
@@ -326,7 +327,7 @@ export class RentPaymentsService {
 			due_date: payload.due_date,
 			late_fee_amount: null,
 			paid_date:
-				payload.status === 'PAID' ? new Date().toISOString() : null,
+				payload.status === 'succeeded' ? new Date().toISOString() : null,
 			payment_method_type: payload.payment_method_type,
 			period_start: payload.due_date,
 			period_end: payload.due_date,

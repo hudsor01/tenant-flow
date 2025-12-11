@@ -1,37 +1,28 @@
 /**
- * CENTRALIZED STATUS TYPES - Single source of truth for all status enumerations
+ * APP-ONLY STATUS TYPES - Constants that are NOT database enums
  *
- * Consolidates all duplicate status types, enums, and string literals from across the codebase
- * using TypeScript 5.9.2 performance patterns with const assertions and type inference.
+ * Database enum types (LeaseStatus, UnitStatus, PaymentStatus, MaintenanceStatus,
+ * MaintenancePriority, PropertyStatus, NotificationType) are now defined in
+ * PostgreSQL and exported from core.ts via supabase.ts.
+ *
+ * This file only contains app-level constants for business logic that don't
+ * correspond to database enum columns.
  */
 
 /**
- * USER user_type ENUMERATION - Consolidated from multiple duplicate user_type definitions
+ * USER ROLES - App-level user type classification
  */
-export const USER_user_typeS = {
+export const USER_ROLES = {
 	OWNER: 'OWNER',
 	MANAGER: 'MANAGER',
 	TENANT: 'TENANT',
 	ADMIN: 'ADMIN'
 } as const
 
-export type User = (typeof USER_user_typeS)[keyof typeof USER_user_typeS]
+export type UserRole = (typeof USER_ROLES)[keyof typeof USER_ROLES]
 
 /**
- * PROPERTY STATUS ENUMERATION
- */
-export const PROPERTY_STATUS = {
-	ACTIVE: 'active',
-	INACTIVE: 'inactive',
-	UNDER_CONTRACT: 'UNDER_CONTRACT',
-	SOLD: 'SOLD'
-} as const
-
-export type PropertyStatus =
-	(typeof PROPERTY_STATUS)[keyof typeof PROPERTY_STATUS]
-
-/**
- * PROPERTY TYPE ENUMERATION
+ * PROPERTY TYPE ENUMERATION - App-level property classification
  */
 export const PROPERTY_TYPES = {
 	SINGLE_FAMILY: 'SINGLE_FAMILY',
@@ -46,60 +37,7 @@ export const PROPERTY_TYPES = {
 export type PropertyType = (typeof PROPERTY_TYPES)[keyof typeof PROPERTY_TYPES]
 
 /**
- * UNIT STATUS ENUMERATION
- */
-export const UNIT_STATUS = {
-	VACANT: 'VACANT',
-	OCCUPIED: 'OCCUPIED',
-	MAINTENANCE: 'MAINTENANCE',
-	RESERVED: 'RESERVED'
-} as const
-
-export type UnitStatus = (typeof UNIT_STATUS)[keyof typeof UNIT_STATUS]
-
-/**
- * LEASE STATUS ENUMERATION
- * Workflow: draft -> pending_signature -> active -> ended/terminated
- */
-export const LEASE_STATUS = {
-	DRAFT: 'draft',
-	PENDING_SIGNATURE: 'pending_signature',
-	ACTIVE: 'active',
-	ENDED: 'ended',
-	TERMINATED: 'terminated'
-} as const
-
-export type LeaseStatus = (typeof LEASE_STATUS)[keyof typeof LEASE_STATUS]
-
-/**
- * MAINTENANCE PRIORITY ENUMERATION
- */
-export const MAINTENANCE_PRIORITY = {
-	LOW: 'LOW',
-	MEDIUM: 'MEDIUM',
-	HIGH: 'HIGH',
-	URGENT: 'URGENT'
-} as const
-
-export type MaintenancePriority =
-	(typeof MAINTENANCE_PRIORITY)[keyof typeof MAINTENANCE_PRIORITY]
-
-/**
- * MAINTENANCE STATUS ENUMERATION
- */
-export const MAINTENANCE_STATUS = {
-	OPEN: 'OPEN',
-	IN_PROGRESS: 'IN_PROGRESS',
-	COMPLETED: 'COMPLETED',
-	CANCELED: 'CANCELED',
-	ON_HOLD: 'ON_HOLD'
-} as const
-
-export type MaintenanceStatus =
-	(typeof MAINTENANCE_STATUS)[keyof typeof MAINTENANCE_STATUS]
-
-/**
- * MAINTENANCE CATEGORY ENUMERATION
+ * MAINTENANCE CATEGORY ENUMERATION - App-level categorization
  */
 export const MAINTENANCE_CATEGORIES = {
 	GENERAL: 'GENERAL',
@@ -115,23 +53,7 @@ export type MaintenanceCategory =
 	(typeof MAINTENANCE_CATEGORIES)[keyof typeof MAINTENANCE_CATEGORIES]
 
 /**
- * PAYMENT STATUS ENUMERATION
- */
-export const PAYMENT_STATUS = {
-	PENDING: 'pending',
-	SUCCEEDED: 'SUCCEEDED',
-	FAILED: 'FAILED',
-	CANCELLED: 'CANCELLED',
-	REQUIRES_ACTION: 'REQUIRES_ACTION',
-	DUE: 'DUE',
-	PAID: 'PAID',
-	VOID: 'VOID'
-} as const
-
-export type PaymentStatus = (typeof PAYMENT_STATUS)[keyof typeof PAYMENT_STATUS]
-
-/**
- * SUBSCRIPTION STATUS ENUMERATION
+ * SUBSCRIPTION STATUS ENUMERATION - Stripe subscription states
  */
 export const SUBSCRIPTION_STATUS = {
 	INCOMPLETE: 'incomplete',
@@ -148,7 +70,7 @@ export type SubscriptionStatus =
 	(typeof SUBSCRIPTION_STATUS)[keyof typeof SUBSCRIPTION_STATUS]
 
 /**
- * TENANT STATUS ENUMERATION
+ * TENANT STATUS ENUMERATION - App-level tenant state
  */
 export const TENANT_STATUS = {
 	ACTIVE: 'active',
@@ -162,7 +84,7 @@ export const TENANT_STATUS = {
 export type TenantStatus = (typeof TENANT_STATUS)[keyof typeof TENANT_STATUS]
 
 /**
- * INVITATION STATUS ENUMERATION
+ * INVITATION STATUS ENUMERATION - App-level invitation state
  */
 export const INVITATION_STATUS = {
 	PENDING: 'pending',
@@ -176,7 +98,7 @@ export type InvitationStatus =
 	(typeof INVITATION_STATUS)[keyof typeof INVITATION_STATUS]
 
 /**
- * DOCUMENT TYPE ENUMERATION
+ * DOCUMENT TYPE ENUMERATION - App-level document classification
  */
 export const DOCUMENT_TYPES = {
 	LEASE: 'LEASE',
@@ -184,26 +106,14 @@ export const DOCUMENT_TYPES = {
 	RECEIPT: 'RECEIPT',
 	PROPERTY_PHOTO: 'PROPERTY_PHOTO',
 	INSPECTION: 'INSPECTION',
-	MAINTENANCE: 'MAINTENANCE',
+	MAINTENANCE: 'maintenance',
 	OTHER: 'OTHER'
 } as const
 
 export type DocumentType = (typeof DOCUMENT_TYPES)[keyof typeof DOCUMENT_TYPES]
 
 /**
- * BLOG STATUS ENUMERATION
- */
-export const BLOG_STATUS = {
-	DRAFT: 'draft',
-	PUBLISHED: 'PUBLISHED',
-	ARCHIVED: 'ARCHIVED',
-	SCHEDULED: 'SCHEDULED'
-} as const
-
-export type BlogStatus = (typeof BLOG_STATUS)[keyof typeof BLOG_STATUS]
-
-/**
- * BLOG CATEGORY ENUMERATION
+ * BLOG CATEGORY ENUMERATION - App-level blog categorization
  */
 export const BLOG_CATEGORIES = {
 	PROPERTY_MANAGEMENT: 'PROPERTY_MANAGEMENT',
@@ -222,7 +132,7 @@ export type BlogCategory =
 	(typeof BLOG_CATEGORIES)[keyof typeof BLOG_CATEGORIES]
 
 /**
- * REQUEST/ACTION STATUS ENUMERATION
+ * REQUEST/ACTION STATUS ENUMERATION - App-level request states
  */
 export const REQUEST_STATUS = {
 	OPEN: 'OPEN',
@@ -236,7 +146,7 @@ export const REQUEST_STATUS = {
 export type RequestStatus = (typeof REQUEST_STATUS)[keyof typeof REQUEST_STATUS]
 
 /**
- * LEASE TYPE ENUMERATION
+ * LEASE TYPE ENUMERATION - App-level lease classification
  */
 export const LEASE_TYPES = {
 	FIXED_TERM: 'FIXED_TERM',
@@ -289,7 +199,7 @@ export const CUSTOMER_INVOICE_STATUS = {
 	DRAFT: 'draft',
 	SENT: 'SENT',
 	VIEWED: 'VIEWED',
-	PAID: 'PAID',
+	PAID: 'paid',
 	OVERDUE: 'OVERDUE',
 	CANCELLED: 'CANCELLED'
 } as const
@@ -302,7 +212,7 @@ export type CustomerInvoiceStatus =
  */
 export const RENT_CHARGE_STATUS = {
 	PENDING: 'pending',
-	PAID: 'PAID',
+	PAID: 'paid',
 	PARTIAL: 'PARTIAL',
 	OVERDUE: 'OVERDUE',
 	CANCELLED: 'CANCELLED'
@@ -324,27 +234,12 @@ export const PLAN_TYPES = {
 export type PlanType = (typeof PLAN_TYPES)[keyof typeof PLAN_TYPES]
 
 /**
- * SUBSCRIPTION STATUS ENUMERATION (Alternative naming)
- */
-export const SUB_STATUS = {
-	ACTIVE: 'active',
-	TRIALING: 'trialing',
-	PAST_DUE: 'past_due',
-	CANCELED: 'canceled',
-	UNPAID: 'unpaid',
-	INCOMPLETE: 'incomplete',
-	INCOMPLETE_EXPIRED: 'incomplete_expired'
-} as const
-
-export type SubStatus = (typeof SUB_STATUS)[keyof typeof SUB_STATUS]
-
-/**
  * ACTIVITY ENTITY TYPE ENUMERATION
  */
 export const ACTIVITY_ENTITY_TYPES = {
 	PROPERTY: 'PROPERTY',
 	TENANT: 'TENANT',
-	MAINTENANCE: 'MAINTENANCE',
+	MAINTENANCE: 'maintenance',
 	PAYMENT: 'PAYMENT',
 	LEASE: 'LEASE',
 	UNIT: 'UNIT'
@@ -352,19 +247,6 @@ export const ACTIVITY_ENTITY_TYPES = {
 
 export type ActivityEntityType =
 	(typeof ACTIVITY_ENTITY_TYPES)[keyof typeof ACTIVITY_ENTITY_TYPES]
-
-/**
- * NOTIFICATION TYPES ENUMERATION
- */
-export const NOTIFICATION_TYPES = {
-	MAINTENANCE: 'MAINTENANCE',
-	LEASE: 'LEASE',
-	PAYMENT: 'PAYMENT',
-	SYSTEM: 'SYSTEM'
-} as const
-
-export type NotificationType =
-	(typeof NOTIFICATION_TYPES)[keyof typeof NOTIFICATION_TYPES]
 
 /**
  * PERMISSION TYPES ENUMERATION
@@ -505,6 +387,17 @@ export const ERROR_SEVERITIES = {
 
 export type ErrorSeverity =
 	(typeof ERROR_SEVERITIES)[keyof typeof ERROR_SEVERITIES]
+
+/**
+ * MAINTENANCE PRIORITY OPTIONS - UI options matching DB enum
+ * DB enum values: 'low' | 'normal' | 'medium' | 'high' | 'urgent'
+ */
+export const MAINTENANCE_PRIORITY_OPTIONS = [
+	{ value: 'low', label: 'Low' },
+	{ value: 'normal', label: 'Normal' },
+	{ value: 'high', label: 'High' },
+	{ value: 'urgent', label: 'Urgent' }
+] as const
 
 /**
  * SECURITY EVENT TYPES ENUMERATION

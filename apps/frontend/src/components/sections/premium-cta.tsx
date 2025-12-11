@@ -76,7 +76,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<Button
 								variant="outline"
 								size="lg"
-								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 text-lg font-semibold px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
+								className="group border-2 border-border/50 hover:border-primary/40 hover:bg-primary/5 typography-large px-10 py-6 rounded transition-all duration-500 backdrop-blur-sm hover:shadow-lg"
 								asChild
 							>
 								<Link href="/contact" aria-label="Calculate Your Savings">
@@ -93,7 +93,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
 								<Check className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
-									<div className="text-lg font-semibold text-foreground mb-1">
+									<div className="typography-large text-foreground mb-1">
 										No Setup Fees
 									</div>
 									<div className="text-muted">
@@ -105,7 +105,7 @@ export function PremiumCta({ className }: PremiumCtaProps) {
 							<div className="group flex flex-col items-center p-6 rounded bg-card/20 backdrop-blur-sm border border-border/30 hover:border-primary/30 hover:bg-card/40 transition-all duration-500">
 								<Clock className="size-8 text-accent mb-4 group-hover:scale-110 transition-transform duration-500" />
 								<div className="text-center">
-									<div className="text-lg font-semibold text-foreground mb-1">
+									<div className="typography-large text-foreground mb-1">
 										ROI in 30 Days
 									</div>
 									<div className="text-muted">

@@ -44,7 +44,7 @@ export function HomeFaq({ className }: HomeFaqProps) {
 			<div className="max-w-4xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-12">
-						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-4">
+						<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
 							Frequently Asked Questions
 						</h2>
 						<p className="text-muted-foreground text-lg">
@@ -63,7 +63,7 @@ export function HomeFaq({ className }: HomeFaqProps) {
 						<div className="icon-container-lg bg-primary/10 text-primary mx-auto mb-4">
 							<MessageCircle className="size-6" />
 						</div>
-						<h3 className="text-xl font-semibold text-foreground mb-2">
+						<h3 className="typography-h4 text-foreground mb-2">
 							Still have questions?
 						</h3>
 						<p className="text-muted-foreground mb-6">

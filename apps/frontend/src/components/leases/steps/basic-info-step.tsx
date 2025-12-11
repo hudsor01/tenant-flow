@@ -29,7 +29,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Agreement Information
 				</h3>
 				<div className="space-y-4">
@@ -89,7 +89,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 			</div>
 
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Tenant & Property
 				</h3>
 				<div className="space-y-4">

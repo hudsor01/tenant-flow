@@ -13,7 +13,7 @@ export default async function EditUnitPage({ params }: PageProps<'/units/[id]/ed
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
 			<div className="space-y-2">
-				<h1 className="text-3xl font-bold">Edit Unit</h1>
+				<h1 className="typography-h2">Edit Unit</h1>
 				<p className="text-muted-foreground">
 					Update unit details
 				</p>

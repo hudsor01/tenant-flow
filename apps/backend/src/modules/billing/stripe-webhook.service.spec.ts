@@ -147,15 +147,16 @@ describe('StripeWebhookService', () => {
 				error: null
 			})
 
-			const result = await service.recordEventProcessing(eventId, eventType)
+			const result = await service.recordEventProcessing(eventId, eventType, { sample: true })
 
 			expect(result).toBe(true)
 			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
-				'record_processed_stripe_event_lock',
+				'acquire_webhook_event_lock_with_id',
 				expect.objectContaining({
-					p_stripe_event_id: eventId,
+					p_external_id: eventId,
 					p_event_type: eventType,
-					p_status: 'processing'
+					p_webhook_source: 'stripe',
+					p_raw_payload: { sample: true }
 				})
 			)
 		})
@@ -189,20 +190,28 @@ describe('StripeWebhookService', () => {
 			).rejects.toBe(rpcError)
 		})
 
-		it('should send ISO timestamps to RPC payload', async () => {
-			const eventId = 'evt_record_timestamp'
+		it('should send correct parameters to RPC', async () => {
+			const eventId = 'evt_record_params'
 			const eventType = 'payment_intent.succeeded'
+			const rawPayload = { test: 'data' }
 
 			mockSupabaseClient.rpc.mockResolvedValue({
 				data: [{ lock_acquired: true }],
 				error: null
 			})
 
-			await service.recordEventProcessing(eventId, eventType)
+			await service.recordEventProcessing(eventId, eventType, rawPayload)
 
-			const rpcArgs = (mockSupabaseClient.rpc as jest.Mock).mock.calls[0][1]
-			expect(rpcArgs.p_processed_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)
-			expect(new Date(rpcArgs.p_processed_at).toISOString()).toBe(rpcArgs.p_processed_at)
+			// Verify RPC function name and parameters
+			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
+				'acquire_webhook_event_lock_with_id',
+				{
+					p_webhook_source: 'stripe',
+					p_external_id: eventId,
+					p_event_type: eventType,
+					p_raw_payload: rawPayload
+				}
+			)
 		})
 
 		it('should treat missing RPC rows as lock failures', async () => {
@@ -222,7 +231,11 @@ describe('StripeWebhookService', () => {
 		it('should update event status to processed', async () => {
 			const eventId = 'evt_test_mark_processed'
 
-			mockSupabaseClient.eq.mockResolvedValue({ error: null })
+			// Service calls: .from().update().eq('webhook_source', ...).eq('external_id', ...)
+			// First .eq() returns mock to continue chain, second .eq() returns result
+			mockSupabaseClient.eq
+				.mockReturnValueOnce(mockSupabaseClient) // First .eq() - continue chain
+				.mockResolvedValueOnce({ error: null }) // Second .eq() - return success
 
 			await service.markEventProcessed(eventId)
 
@@ -230,7 +243,13 @@ describe('StripeWebhookService', () => {
 				processed_at: expect.any(String),
 				status: 'processed'
 			})
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
+			expect(mockSupabaseClient.eq).toHaveBeenNthCalledWith(
+				1,
+				'webhook_source',
+				'stripe'
+			)
+			expect(mockSupabaseClient.eq).toHaveBeenNthCalledWith(
+				2,
 				'external_id',
 				eventId
 			)
@@ -239,7 +258,11 @@ describe('StripeWebhookService', () => {
 		it('should update processed_at timestamp', async () => {
 			const eventId = 'evt_test_timestamp_update'
 
-			mockSupabaseClient.eq.mockResolvedValue({ error: null })
+			// Service calls: .from().update().eq('webhook_source', ...).eq('external_id', ...)
+			// First .eq() returns mock to continue chain, second .eq() returns result
+			mockSupabaseClient.eq
+				.mockReturnValueOnce(mockSupabaseClient) // First .eq() - continue chain
+				.mockResolvedValueOnce({ error: null }) // Second .eq() - return success
 
 			const beforeTime = Date.now()
 			await service.markEventProcessed(eventId)
@@ -258,12 +281,16 @@ describe('StripeWebhookService', () => {
 		it('should throw error if database update fails', async () => {
 			const eventId = 'evt_test_update_fail'
 
-			mockSupabaseClient.eq.mockResolvedValue({
-				error: {
-					code: 'PGRST500',
-					message: 'Update failed'
-				}
-			})
+			// Service calls: .from().update().eq('webhook_source', ...).eq('external_id', ...)
+			// First .eq() returns mock to continue chain, second .eq() returns error result
+			mockSupabaseClient.eq
+				.mockReturnValueOnce(mockSupabaseClient) // First .eq() - continue chain
+				.mockResolvedValueOnce({ // Second .eq() - return error
+					error: {
+						code: 'PGRST500',
+						message: 'Update failed'
+					}
+				})
 
 			await expect(service.markEventProcessed(eventId)).rejects.toMatchObject({
 				code: 'PGRST500'
@@ -273,7 +300,11 @@ describe('StripeWebhookService', () => {
 		it('should handle exceptions gracefully', async () => {
 			const eventId = 'evt_test_exception'
 
-			mockSupabaseClient.eq.mockRejectedValue(new Error('Network error'))
+			// Service calls: .from().update().eq('webhook_source', ...).eq('external_id', ...)
+			// First .eq() should return the mock (to continue chain), second should reject
+			mockSupabaseClient.eq
+				.mockReturnValueOnce(mockSupabaseClient) // First .eq() - continue chain
+				.mockRejectedValueOnce(new Error('Network error')) // Second .eq() - reject
 
 			await expect(service.markEventProcessed(eventId)).rejects.toThrow(
 				'Network error'
@@ -426,15 +457,37 @@ describe('StripeWebhookService', () => {
 
 	describe('getEventStatistics', () => {
 	it('should return comprehensive event statistics', async () => {
-		// Service reuses same client for all 4 queries, calling from() each time
-		// Pattern: client.from().select() OR client.from().select().gte()
+		// Service makes 4 queries:
+		// Query 1 (totalEvents): .from('webhook_events').select().eq() - terminal is .eq()
+		// Query 2 (todayEvents): .from('webhook_events').select().eq().gte() - terminal is .gte()
+		// Query 3 (lastHourEvents): .from('webhook_events').select().eq().gte() - terminal is .gte()
+		// Query 4 (breakdown): .from('webhook_metrics').select() - terminal is .select() (no eq)
 
-		// Setup: Mock the terminal methods (select for queries 1&4, gte for queries 2&3)
+		// All .select() calls return the mock for chaining
+		mockSupabaseClient.select.mockReturnValue(mockSupabaseClient)
+
+		// .eq() calls: 
+		// - Query 1: return result directly (terminal)
+		// - Query 2: return mock (chains to .gte())
+		// - Query 3: return mock (chains to .gte())
+		mockSupabaseClient.eq
+			.mockResolvedValueOnce({ count: 1000, error: null }) // Query 1: total (terminal)
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to gte
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to gte
+
+		// .gte() calls for queries 2 and 3
+		mockSupabaseClient.gte
+			.mockResolvedValueOnce({ count: 50, error: null }) // Query 2: today
+			.mockResolvedValueOnce({ count: 5, error: null }) // Query 3: last hour
+
+		// Query 4 uses the default .select() mock which returns mockSupabaseClient
+		// We need to override it for the 4th call to return data
+		// Reset and setup select mock properly
 		mockSupabaseClient.select
-			.mockResolvedValueOnce({ count: 1000, error: null }) // Query 1: total
-			.mockReturnValueOnce(mockSupabaseClient) // Query 2: today (chains to gte)
-			.mockReturnValueOnce(mockSupabaseClient) // Query 3: last hour (chains to gte)
-			.mockResolvedValueOnce({ // Query 4: breakdown
+			.mockReturnValueOnce(mockSupabaseClient) // Query 1: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .eq()
+			.mockResolvedValueOnce({ // Query 4: breakdown (terminal)
 				data: [
 					{ event_type: 'payment_intent.succeeded', total_received: 1 },
 					{ event_type: 'payment_intent.succeeded', total_received: 1 },
@@ -443,10 +496,6 @@ describe('StripeWebhookService', () => {
 				],
 				error: null
 			})
-
-		mockSupabaseClient.gte
-			.mockResolvedValueOnce({ count: 50, error: null }) // Query 2: today
-			.mockResolvedValueOnce({ count: 5, error: null }) // Query 3: last hour
 
 		const stats = await service.getEventStatistics()
 
@@ -462,15 +511,21 @@ describe('StripeWebhookService', () => {
 	})
 
 	it('should handle null counts gracefully', async () => {
+		// Query chains: .select().eq() or .select().eq().gte() or .select() (for metrics)
 		mockSupabaseClient.select
-			.mockResolvedValueOnce({ count: null, error: null })
-			.mockReturnValueOnce(mockSupabaseClient)
-			.mockReturnValueOnce(mockSupabaseClient)
-			.mockResolvedValueOnce({ data: null, error: null })
+			.mockReturnValueOnce(mockSupabaseClient) // Query 1: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .eq()
+			.mockResolvedValueOnce({ data: null, error: null }) // Query 4: breakdown (terminal)
+
+		mockSupabaseClient.eq
+			.mockResolvedValueOnce({ count: null, error: null }) // Query 1: total (terminal)
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .gte()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .gte()
 
 		mockSupabaseClient.gte
-			.mockResolvedValueOnce({ count: null, error: null })
-			.mockResolvedValueOnce({ count: null, error: null })
+			.mockResolvedValueOnce({ count: null, error: null }) // Query 2: today
+			.mockResolvedValueOnce({ count: null, error: null }) // Query 3: last hour
 
 		const stats = await service.getEventStatistics()
 
@@ -483,15 +538,21 @@ describe('StripeWebhookService', () => {
 	})
 
 	it('should handle null event data', async () => {
+		// Query chains: .select().eq() or .select().eq().gte() or .select() (for metrics)
 		mockSupabaseClient.select
-			.mockResolvedValueOnce({ count: 0, error: null })
-			.mockReturnValueOnce(mockSupabaseClient)
-			.mockReturnValueOnce(mockSupabaseClient)
-			.mockResolvedValueOnce({ data: null, error: null })
+			.mockReturnValueOnce(mockSupabaseClient) // Query 1: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .eq()
+			.mockResolvedValueOnce({ data: null, error: null }) // Query 4: breakdown (terminal)
+
+		mockSupabaseClient.eq
+			.mockResolvedValueOnce({ count: 0, error: null }) // Query 1: total (terminal)
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .gte()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .gte()
 
 		mockSupabaseClient.gte
-			.mockResolvedValueOnce({ count: 0, error: null })
-			.mockResolvedValueOnce({ count: 0, error: null })
+			.mockResolvedValueOnce({ count: 0, error: null }) // Query 2: today
+			.mockResolvedValueOnce({ count: 0, error: null }) // Query 3: last hour
 
 		const stats = await service.getEventStatistics()
 
@@ -499,7 +560,9 @@ describe('StripeWebhookService', () => {
 	})
 
 	it('should throw error if database query fails', async () => {
-		mockSupabaseClient.select.mockRejectedValueOnce(new Error('Database error'))
+		// Mock the final method in the chain (.eq()) to reject
+		// The query chain is: from().select().eq() - .eq() is the terminal method
+		mockSupabaseClient.eq.mockRejectedValueOnce(new Error('Database error'))
 
 		await expect(service.getEventStatistics()).rejects.toThrow(
 			'Database error'
@@ -518,11 +581,17 @@ describe('StripeWebhookService', () => {
 		let todayBoundary: string
 		let hourBoundary: string
 
+		// Query chains: .select().eq() or .select().eq().gte() or .select() (for metrics)
 		mockSupabaseClient.select
-			.mockResolvedValueOnce({ count: 0, error: null }) // Total count
-			.mockReturnValueOnce(mockSupabaseClient) // Today (chains to gte)
-			.mockReturnValueOnce(mockSupabaseClient) // Hour (chains to gte)
-			.mockResolvedValueOnce({ data: [], error: null }) // Breakdown
+			.mockReturnValueOnce(mockSupabaseClient) // Query 1: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .eq()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .eq()
+			.mockResolvedValueOnce({ data: [], error: null }) // Query 4: breakdown (terminal)
+
+		mockSupabaseClient.eq
+			.mockResolvedValueOnce({ count: 0, error: null }) // Query 1: total (terminal)
+			.mockReturnValueOnce(mockSupabaseClient) // Query 2: chains to .gte()
+			.mockReturnValueOnce(mockSupabaseClient) // Query 3: chains to .gte()
 
 		mockSupabaseClient.gte
 			.mockImplementationOnce((_field: string, value: string) => {
@@ -619,9 +688,11 @@ describe('StripeWebhookService', () => {
 		const eventIds = ['evt_1', 'evt_2']
 
 		// Create a fresh mock chain that throws
+		// Service calls: .from().select().eq().in()
 		const mockErrorChain = {
 			from: jest.fn().mockReturnThis(),
 			select: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
 			in: jest.fn().mockResolvedValue({
 				data: null,
 				error: {
@@ -695,10 +766,12 @@ describe('StripeWebhookService', () => {
 		expect(lockAcquired).toBe(true)
 
 		// Step 3: Mark as processed - fresh chain
+		// Service calls .eq() twice: .eq('webhook_source', ...).eq('external_id', ...)
 		const updateChain = {
 			from: jest.fn().mockReturnThis(),
 			update: jest.fn().mockReturnThis(),
-			eq: jest.fn().mockResolvedValue({ error: null })
+			eq: jest.fn()
+				.mockReturnValueOnce({ eq: jest.fn().mockResolvedValue({ error: null }) }) // First .eq() returns chainable, second .eq() returns result
 		}
 
 		supabase.getAdminClient = jest.fn().mockReturnValue(updateChain)
@@ -755,10 +828,12 @@ describe('StripeWebhookService', () => {
 		expect(retryLock).toBe(false)
 
 		// After manual investigation, mark as processed - fresh chain
+		// Service calls .eq() twice: .eq('webhook_source', ...).eq('external_id', ...)
 		const updateChain = {
 			from: jest.fn().mockReturnThis(),
 			update: jest.fn().mockReturnThis(),
-			eq: jest.fn().mockResolvedValue({ error: null })
+			eq: jest.fn()
+				.mockReturnValueOnce({ eq: jest.fn().mockResolvedValue({ error: null }) }) // First .eq() returns chainable, second .eq() returns result
 		}
 
 		supabase.getAdminClient = jest.fn().mockReturnValue(updateChain)

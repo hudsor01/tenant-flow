@@ -8,7 +8,7 @@ export default function StripeConnectPage() {
 	       <div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 		       <div className="flex-between">
 			       <div>
-				       <h1 className="text-3xl font-bold text-foreground">
+				       <h1 className="typography-h2 text-foreground">
 					       Stripe Connect
 				       </h1>
 				       <p className="text-muted-foreground mt-1">

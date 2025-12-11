@@ -62,10 +62,10 @@ export const PropertyCard = memo(function PropertyCard({
 
 	// Calculate property metrics from units
 	const totalUnits = units.length
-	const occupiedUnits = units.filter(unit => unit.status === 'OCCUPIED').length
+	const occupiedUnits = units.filter(unit => unit.status === 'occupied').length
 	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
 	const monthlyRevenue = units
-		.filter(unit => unit.status === 'OCCUPIED')
+		.filter(unit => unit.status === 'occupied')
 		.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
 
 	// Mock revenue change for now (would come from analytics in production)

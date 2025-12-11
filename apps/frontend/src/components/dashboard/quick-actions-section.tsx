@@ -1,24 +1,23 @@
 'use client'
 
 import { QuickActions } from '#components/dashboard/quick-actions'
+import { DashboardSection } from '#components/dashboard/dashboard-section'
 
 /**
- * QuickActionsSection - Single Responsibility: Display quick action shortcuts
+ * QuickActionsSection - Display quick action shortcuts
  *
- * Handles quick actions section layout - QuickActions component manages its own logic
+ * Uses DashboardSection for consistent layout - QuickActions component manages its own logic
  */
 export function QuickActionsSection() {
 	return (
-		<section className="dashboard-panel" data-density="compact" data-tour="quick-actions">
-			<div className="dashboard-panel-header" data-variant="actions">
-				<h3 className="dashboard-panel-title">Quick Actions</h3>
-				<p className="dashboard-panel-description">
-					Common tasks and shortcuts
-				</p>
-			</div>
-			<div className="dashboard-panel-body">
-				<QuickActions />
-			</div>
-		</section>
+		<DashboardSection
+			title="Quick Actions"
+			description="Common tasks and shortcuts"
+			variant="actions"
+			density="compact"
+			tourId="quick-actions"
+		>
+			<QuickActions />
+		</DashboardSection>
 	)
 }

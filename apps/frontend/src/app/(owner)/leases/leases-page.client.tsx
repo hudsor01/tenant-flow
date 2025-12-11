@@ -43,7 +43,7 @@ function LeaseCreateDialog() {
 
 	// Prefetch data for create dialog
 	queryClient.prefetchQuery(tenantQueries.list({ limit: 100 }))
-	queryClient.prefetchQuery(unitQueries.list({ status: 'VACANT', limit: 100 }))
+	queryClient.prefetchQuery(unitQueries.list({ status: 'available', limit: 100 }))
 
 	const createLeaseMutation = useCreateLeaseMutation()
 
@@ -198,7 +198,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 		return (
 			<div className="container py-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="text-lg font-semibold text-destructive">
+					<h2 className="typography-large text-destructive">
 						Error Loading Leases
 					</h2>
 					<p className="text-muted">
@@ -214,7 +214,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+					<h1 className="typography-h2 tracking-tight flex items-center gap-2">
 						<FileText className="size-8" />
 						Leases
 					</h1>
@@ -272,7 +272,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			) : leases.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
-					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
+					<h3 className="mt-4 typography-large">No leases found</h3>
 					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'

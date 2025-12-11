@@ -79,7 +79,7 @@ export function useUnitStats() {
  * Convenience hook for lease/maintenance forms
  */
 export function useVacantUnits() {
-	return useUnitList({ status: 'VACANT' })
+	return useUnitList({ status: 'available' })
 }
 
 /**
@@ -125,7 +125,7 @@ export function useCreateUnit() {
 			rent_amount: newUnit.rent_amount ?? 0,
 			rent_currency: 'USD',
 			rent_period: 'month',
-			status: (newUnit.status as Unit['status']) || 'VACANT',
+			status: (newUnit.status as Unit['status']) || 'available',
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString()
 		}

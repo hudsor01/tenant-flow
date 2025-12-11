@@ -76,7 +76,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			bathrooms: unit?.bathrooms?.toString() ?? '1',
 			square_feet: unit?.square_feet?.toString() ?? '',
 			rent_amount: unit?.rent_amount?.toString() ?? '',
-			status: (unit?.status ?? 'VACANT') as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+			status: (unit?.status ?? 'available') as 'available' | 'occupied' | 'maintenance' | 'reserved'
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -177,7 +177,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				bathrooms: unit.bathrooms?.toString() ?? '1',
 				square_feet: unit.square_feet?.toString() ?? '',
 				rent_amount: unit.rent_amount?.toString() ?? '',
-				status: (unit.status ?? 'VACANT') as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+				status: (unit.status ?? 'available') as 'available' | 'occupied' | 'maintenance' | 'reserved'
 			})
 		}
 	}, [unit, form])
@@ -318,7 +318,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 								value={field.state.value}
 								onValueChange={value => {
 									field.handleChange(
-										value as 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+										value as 'available' | 'occupied' | 'maintenance' | 'reserved'
 									)
 								}}
 							>
@@ -326,7 +326,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value={UNIT_STATUS.VACANT}>{UNIT_STATUS_LABELS.VACANT}</SelectItem>
+									<SelectItem value={UNIT_STATUS.AVAILABLE}>{UNIT_STATUS_LABELS.AVAILABLE}</SelectItem>
 									<SelectItem value={UNIT_STATUS.OCCUPIED}>{UNIT_STATUS_LABELS.OCCUPIED}</SelectItem>
 									<SelectItem value={UNIT_STATUS.MAINTENANCE}>{UNIT_STATUS_LABELS.MAINTENANCE}</SelectItem>
 									<SelectItem value={UNIT_STATUS.RESERVED}>{UNIT_STATUS_LABELS.RESERVED}</SelectItem>

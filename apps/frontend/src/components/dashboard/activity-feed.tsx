@@ -116,7 +116,7 @@ export const ActivityFeed = React.memo(function ActivityFeed() {
 	if (!activities || activities.length === 0) {
 		return (
 			<div className="dashboard-activity-empty">
-				<p className="text-sm font-medium text-muted-foreground">
+				<p className="typography-small text-muted-foreground">
 					No recent activities
 				</p>
 				<p className="text-caption">

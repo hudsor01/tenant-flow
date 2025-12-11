@@ -64,7 +64,7 @@ const sampleUnit = {
 	rent_amount: 2500,
 	rent_currency: 'USD',
 	rent_period: 'MONTHLY',
-	status: 'VACANT',
+	status: 'vacant',
 	version: 1,
 	created_at: new Date().toISOString(),
 	updated_at: new Date().toISOString()
@@ -78,7 +78,7 @@ const sampleUnit2 = {
 	bathrooms: 1,
 	square_feet: 650,
 	rent_amount: 1800,
-	status: 'OCCUPIED'
+	status: 'occupied'
 }
 
 // Sample tenant data

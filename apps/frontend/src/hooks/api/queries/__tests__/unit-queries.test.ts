@@ -70,7 +70,7 @@ describe('unitQueries', () => {
 		})
 
 		it('should generate list key with filters', () => {
-			const filters: UnitFilters = { status: 'VACANT', limit: 10 }
+			const filters: UnitFilters = { status: 'available', limit: 10 }
 			const options = unitQueries.list(filters)
 			expect(options.queryKey).toEqual(['units', 'list', filters])
 		})
@@ -114,7 +114,7 @@ describe('unitQueries', () => {
 		it('should call fetch with search params for filters', async () => {
 			const filters: UnitFilters = {
 				property_id: 'prop-123',
-				status: 'VACANT',
+				status: 'available',
 				search: 'unit',
 				limit: 10,
 				offset: 20
@@ -123,18 +123,18 @@ describe('unitQueries', () => {
 			await options.queryFn!({} as never)
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/units?property_id=prop-123&status=VACANT&search=unit&limit=10&offset=20',
+				'http://localhost:4600/api/v1/units?property_id=prop-123&status=available&search=unit&limit=10&offset=20',
 				expect.anything()
 			)
 		})
 
 		it('should only include provided filters in query string', async () => {
-			const filters: UnitFilters = { status: 'OCCUPIED' }
+			const filters: UnitFilters = { status: 'occupied' }
 			const options = unitQueries.list(filters)
 			await options.queryFn!({} as never)
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/units?status=OCCUPIED',
+				'http://localhost:4600/api/v1/units?status=occupied',
 				expect.anything()
 			)
 		})

@@ -52,7 +52,7 @@ export default function EditPropertyPage({
 					</Link>
 				</Button>
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Edit Property</h1>
+					<h1 className="typography-h2 tracking-tight">Edit Property</h1>
 					<p className="text-muted-foreground">Update property information</p>
 				</div>
 			</div>

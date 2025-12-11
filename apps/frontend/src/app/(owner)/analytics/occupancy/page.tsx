@@ -142,7 +142,7 @@ export default function OccupancyAnalyticsPage() {
 								<CardDescription>Portfolio-wide average</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatPercentage(metrics.currentOccupancy)}
 								</p>
 							</CardContent>
@@ -154,7 +154,7 @@ export default function OccupancyAnalyticsPage() {
 								<CardDescription>Days units remain vacant</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.averageVacancyDays)} days
 								</p>
 							</CardContent>
@@ -166,7 +166,7 @@ export default function OccupancyAnalyticsPage() {
 								<CardDescription>Highest occupancy observed</CardDescription>
 							</CardHeader>
 							<CardContent className="flex items-end justify-between pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatPercentage(metrics.seasonalPeakOccupancy)}
 								</p>
 								<Badge
@@ -185,7 +185,7 @@ export default function OccupancyAnalyticsPage() {
 								<CardDescription>Properties needing attention</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(vacancyAnalysis.length)} flagged
 								</p>
 							</CardContent>

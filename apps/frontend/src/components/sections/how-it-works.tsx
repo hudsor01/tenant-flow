@@ -65,10 +65,10 @@ export function HowItWorks({ className }: HowItWorksProps) {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-16">
-						<p className="text-sm font-medium text-primary uppercase tracking-wider mb-3">
+						<p className="typography-small text-primary uppercase tracking-wider mb-3">
 							Get Started in Minutes
 						</p>
-						<h2 className="text-3xl lg:text-4xl font-bold tracking-tight text-foreground mb-4">
+						<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
@@ -157,7 +157,7 @@ function StepCard({ step, index }: StepCardProps) {
 						<step.icon className="size-8" />
 					</div>
 					<span className={cn(
-						'text-4xl font-bold opacity-20 group-hover:opacity-40 transition-opacity',
+						'typography-h1 opacity-20 group-hover:opacity-40 transition-opacity',
 						colors.text
 					)}>
 						{step.number}

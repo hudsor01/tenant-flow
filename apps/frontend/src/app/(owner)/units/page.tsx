@@ -52,7 +52,7 @@ export default function UnitsPage() {
 	// Fetch units with filters
 	const unitListParams: {
 		search?: string
-		status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+		status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
 		limit: number
 	} = {
 		limit: 100
@@ -61,10 +61,10 @@ export default function UnitsPage() {
 	if (search) unitListParams.search = search
 	if (statusFilter !== 'all') {
 		unitListParams.status = statusFilter as
-			| 'VACANT'
-			| 'OCCUPIED'
-			| 'MAINTENANCE'
-			| 'RESERVED'
+			| 'available'
+			| 'occupied'
+			| 'maintenance'
+			| 'reserved'
 	}
 
 	const { data: unitsResponse, isLoading, error } = useQuery(unitQueries.list(unitListParams))
@@ -95,20 +95,28 @@ export default function UnitsPage() {
 			Unit['status'],
 			'default' | 'secondary' | 'destructive' | 'outline'
 		> = {
-			VACANT: 'secondary',
-			OCCUPIED: 'default',
-			MAINTENANCE: 'destructive',
-			RESERVED: 'outline'
+			available: 'secondary',
+			occupied: 'default',
+			maintenance: 'destructive',
+			reserved: 'outline'
 		}
 
-		return <Badge variant={variants[status]}>{status}</Badge>
+		// Display label with title case, DB values are lowercase
+		const labels: Record<Unit['status'], string> = {
+			available: 'Available',
+			occupied: 'Occupied',
+			maintenance: 'Maintenance',
+			reserved: 'Reserved'
+		}
+
+		return <Badge variant={variants[status]}>{labels[status]}</Badge>
 	}
 
 	if (error) {
 		return (
 			<div className="container py-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="text-lg font-semibold text-destructive">
+					<h2 className="typography-large text-destructive">
 						Error Loading Units
 					</h2>
 					<p className="text-muted">
@@ -124,7 +132,7 @@ export default function UnitsPage() {
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Units</h1>
+					<h1 className="typography-h2 tracking-tight">Units</h1>
 					<p className="text-muted-foreground">
 						Manage your rental units across all properties
 					</p>
@@ -152,7 +160,7 @@ export default function UnitsPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
-						<SelectItem value="VACANT">Vacant</SelectItem>
+						<SelectItem value="available">Vacant</SelectItem>
 						<SelectItem value="OCCUPIED">Occupied</SelectItem>
 						<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
 						<SelectItem value="RESERVED">Reserved</SelectItem>
@@ -173,7 +181,7 @@ export default function UnitsPage() {
 			) : units?.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<Home className="mx-auto size-12 text-muted-foreground/50" />
-					<h3 className="mt-4 text-lg font-semibold">No units found</h3>
+					<h3 className="mt-4 typography-large">No units found</h3>
 					<p className="mt-2 text-muted">
 						{search || statusFilter !== 'all'
 							? 'Try adjusting your filters'

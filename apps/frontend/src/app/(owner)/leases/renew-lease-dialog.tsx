@@ -259,7 +259,7 @@ export function RenewLeaseDialog({
 											<div className="rounded-lg bg-fill-tertiary p-3">
 												<div className="flex items-center gap-2 mb-2">
 													<TrendingUp className="size-4 text-accent-main" />
-													<span className="text-sm font-medium text-label-primary">
+													<span className="typography-small text-label-primary">
 														Rent Change
 													</span>
 												</div>

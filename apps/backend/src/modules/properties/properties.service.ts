@@ -1,8 +1,9 @@
-import type { PropertyStatus } from '@repo/shared/constants/status-types'
+import type { PropertyStatus } from '@repo/shared/types/core'
 import {
 	BadRequestException,
 	ConflictException,
-	Injectable
+	Injectable,
+	NotFoundException
 } from '@nestjs/common'
 import type {
 	PropertyCreate,
@@ -78,13 +79,13 @@ export class PropertiesService {
 	async findOne(
 		req: AuthenticatedRequest,
 		property_id: string
-	): Promise<Property | null> {
+	): Promise<Property> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.warn('Property lookup requested without auth token', {
 				property_id
 			})
-			return null
+			throw new BadRequestException('Authentication required')
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -100,7 +101,7 @@ export class PropertiesService {
 				property_id,
 				error
 			})
-			return null
+			throw new NotFoundException(`Property ${property_id} not found`)
 		}
 
 		return data as Property
@@ -190,7 +191,7 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 		property_id: string,
 		request: PropertyUpdate,
 		expectedVersion?: number
-	): Promise<Property | null> {
+	): Promise<Property> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')
@@ -199,9 +200,8 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 
 		const client = this.supabase.getUserClient(token)
 
-		const existing = await this.findOne(req, property_id)
-		if (!existing)
-			throw new BadRequestException('Property not found or access denied')
+		// Verify property exists and user has access (throws if not found)
+		await this.findOne(req, property_id)
 
 		if (request.name && !request.name.trim()) {
 			throw new BadRequestException('Property name cannot be empty')
@@ -305,7 +305,7 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 					this.logger.log('Marked property as INACTIVE', { property_id })
 					return { previousStatus: existing.status, data }
 				},
-				compensate: async (result: { previousStatus: string }) => {
+				compensate: async (result: { previousStatus: PropertyStatus }) => {
 					const { error } = await client
 						.from('properties')
 						.update({

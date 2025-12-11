@@ -71,7 +71,7 @@ function BalanceCard() {
 			>
 				<div className="flex items-center gap-2">
 					<DollarSign className="size-8 text-success" />
-					<span className="text-3xl font-bold">
+					<span className="typography-h2">
 						{formatCurrency(availableUSD / 100)}
 					</span>
 				</div>
@@ -82,7 +82,7 @@ function BalanceCard() {
 			>
 				<div className="flex items-center gap-2">
 					<Clock className="size-8 text-warning" />
-					<span className="text-3xl font-bold">
+					<span className="typography-h2">
 						{formatCurrency(pendingUSD / 100)}
 					</span>
 				</div>

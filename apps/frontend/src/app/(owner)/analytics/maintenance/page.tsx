@@ -168,7 +168,7 @@ export default function MaintenanceInsightsPage() {
 								<CardDescription>Awaiting assignment</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.openRequests)}
 								</p>
 							</CardContent>
@@ -179,7 +179,7 @@ export default function MaintenanceInsightsPage() {
 								<CardDescription>Currently being serviced</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.inProgressRequests)}
 								</p>
 							</CardContent>
@@ -190,7 +190,7 @@ export default function MaintenanceInsightsPage() {
 								<CardDescription>Resolved work orders</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.completedRequests)}
 								</p>
 							</CardContent>
@@ -201,7 +201,7 @@ export default function MaintenanceInsightsPage() {
 								<CardDescription>Year-to-date</CardDescription>
 							</CardHeader>
 							<CardContent className="flex items-end justify-between pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatCurrency(metrics.totalCost)}
 								</p>
 								<Badge variant="outline" className="text-xs">

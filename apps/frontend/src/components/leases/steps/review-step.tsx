@@ -30,7 +30,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Legal Requirements
 				</h3>
 				<div className="space-y-4">
@@ -92,7 +92,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 			</div>
 
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Lead Paint Disclosure
 				</h3>
 				<div className="space-y-4">
@@ -140,7 +140,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 
 			{/* Review Summary */}
 			<div className="rounded-lg border bg-muted/50 p-6">
-				<h3 className="text-lg font-semibold mb-4">Lease Summary</h3>
+				<h3 className="typography-large mb-4">Lease Summary</h3>
 				<form.Subscribe
 					selector={state => ({
 						ownerName: state.values.ownerName,

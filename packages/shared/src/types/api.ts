@@ -271,7 +271,7 @@ export interface MaintenanceRequestApiResponse {
 	unitBedrooms?: number
 	unitBathrooms?: number
 	unitRent?: number
-	unitStatus?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+	unitStatus?: 'vacant' | 'occupied' | 'maintenance' | 'RESERVED'
 
 	// Flattened Property fields (joined from Property table via Unit)
 	property_id?: string

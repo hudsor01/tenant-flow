@@ -27,14 +27,14 @@ describe('RentPaymentQueryService', () => {
 		lease_id: mockLeaseId,
 		tenant_id: mockTenantId,
 		amount: 150000,
-		status: 'PAID',
+		status: 'succeeded',
 		created_at: '2025-01-01T00:00:00Z'
 	}
 
 	const mockFailedPayment: Partial<RentPayment> = {
 		...mockRentPayment,
 		id: 'payment-failed-001',
-		status: 'FAILED'
+		status: 'failed'
 	}
 
 	const mockLease: Partial<Lease> = {
@@ -173,7 +173,7 @@ describe('RentPaymentQueryService', () => {
 			const result = await service.getFailedPaymentAttempts(mockToken)
 
 			expect(result).toHaveLength(1)
-			expect(result[0]!.status).toBe('FAILED')
+			expect(result[0]!.status).toBe('failed')
 		})
 
 		it('should throw BadRequestException when token is missing', async () => {
@@ -196,7 +196,7 @@ describe('RentPaymentQueryService', () => {
 			)
 
 			expect(result).toHaveLength(1)
-			expect(result[0]!.status).toBe('FAILED')
+			expect(result[0]!.status).toBe('failed')
 		})
 	})
 

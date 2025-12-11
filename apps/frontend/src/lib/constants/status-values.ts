@@ -5,7 +5,8 @@
 
 export const PROPERTY_STATUS = {
 	ACTIVE: 'active',
-	INACTIVE: 'inactive'
+	INACTIVE: 'inactive',
+	SOLD: 'sold'
 } as const
 
 export const LEASE_STATUS = {
@@ -17,10 +18,10 @@ export const LEASE_STATUS = {
 } as const
 
 export const UNIT_STATUS = {
-	VACANT: 'VACANT',
-	OCCUPIED: 'OCCUPIED',
-	MAINTENANCE: 'MAINTENANCE',
-	RESERVED: 'RESERVED'
+	AVAILABLE: 'available',
+	OCCUPIED: 'occupied',
+	MAINTENANCE: 'maintenance',
+	RESERVED: 'reserved'
 } as const
 
 export const MAINTENANCE_STATUS = {
@@ -44,7 +45,8 @@ export const PROPERTY_STATUS_LABELS: Record<
 	string
 > = {
 	ACTIVE: 'Active',
-	INACTIVE: 'Inactive'
+	INACTIVE: 'Inactive',
+	SOLD: 'Sold'
 }
 
 export const LEASE_STATUS_LABELS: Record<keyof typeof LEASE_STATUS, string> = {
@@ -56,7 +58,7 @@ export const LEASE_STATUS_LABELS: Record<keyof typeof LEASE_STATUS, string> = {
 }
 
 export const UNIT_STATUS_LABELS: Record<keyof typeof UNIT_STATUS, string> = {
-	VACANT: 'Vacant',
+	AVAILABLE: 'Vacant',
 	OCCUPIED: 'Occupied',
 	MAINTENANCE: 'Maintenance',
 	RESERVED: 'Reserved'

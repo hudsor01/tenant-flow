@@ -58,7 +58,7 @@ export class UnitsController {
 		if (status) {
 			const upperStatus = status.toUpperCase()
 			if (
-				!['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'].includes(upperStatus)
+				!['available', 'occupied', 'maintenance', 'reserved'].includes(upperStatus)
 			) {
 				throw new BadRequestException('Invalid status value')
 			}

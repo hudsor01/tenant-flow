@@ -161,7 +161,7 @@ export function InviteTenantForm({
 		<div className="space-y-6">
 			{/* Tenant Information */}
 			<div className="space-y-4">
-				<div className="flex items-center gap-2 text-lg font-semibold">
+				<div className="flex items-center gap-2 typography-large">
 					<User className="size-5" />
 					Tenant Information
 				</div>
@@ -283,7 +283,7 @@ export function InviteTenantForm({
 
 			{/* Property Assignment */}
 			<div className="space-y-4">
-				<div className="flex items-center gap-2 text-lg font-semibold">
+				<div className="flex items-center gap-2 typography-large">
 					<Building2 className="size-5" />
 					Property Assignment
 				</div>

@@ -70,8 +70,8 @@ export class NotificationsController {
 			user_id: string
 			title: string
 			content: string
-			type: 'maintenance' | 'leases' | 'payment' | 'system'
-			priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+			type: 'maintenance' | 'lease' | 'payment' | 'system'
+			priority: 'low' | 'medium' | 'high' | 'urgent'
 			actionUrl?: string
 		}
 	) {

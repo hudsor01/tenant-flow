@@ -18,7 +18,7 @@ export default function SearchPage() {
 				{/* Search Header */}
 				<div className="flex flex-col gap-4">
 					<div className="flex flex-col gap-2">
-						<h1 className="text-3xl font-bold">Search TenantFlow</h1>
+						<h1 className="typography-h2">Search TenantFlow</h1>
 						<p className="text-muted-foreground">
 							Find properties, tenants, leases, and documents across your
 							portfolio
@@ -89,7 +89,7 @@ export default function SearchPage() {
 
 				{/* Recent Searches */}
 				<div className="flex flex-col gap-4">
-					<h2 className="text-xl font-semibold">Recent Searches</h2>
+					<h2 className="typography-h4">Recent Searches</h2>
 					<div className="flex flex-wrap gap-2">
 						<Badge
 							variant="secondary"

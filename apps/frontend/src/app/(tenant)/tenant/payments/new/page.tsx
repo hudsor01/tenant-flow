@@ -194,7 +194,7 @@ export default function PayRentPage() {
 
 					{/* Payment Method Selection */}
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Payment Method</label>
+						<label className="typography-small">Payment Method</label>
 						{isLoadingMethods ? (
 							<Skeleton className="h-10 w-full" />
 						) : paymentMethods.length === 0 ? (

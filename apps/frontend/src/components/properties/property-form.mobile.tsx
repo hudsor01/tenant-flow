@@ -46,7 +46,7 @@ export function MobilePropertyForm({
 						<span className="rounded-2xl bg-primary/10 p-3">
 							<Building2 className="size-5 text-primary" aria-hidden />
 						</span>
-						<CardTitle className="text-lg font-semibold">
+						<CardTitle className="typography-large">
 							{formProps.mode === 'create' ? 'Add Property' : 'Edit Property'}
 						</CardTitle>
 					</div>

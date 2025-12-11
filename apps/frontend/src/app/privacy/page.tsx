@@ -10,14 +10,14 @@ export default function PrivacyPage() {
 	return (
 		<PageLayout>
 			<div className="mx-auto min-h-screen max-w-4xl px-6 section-spacing page-offset-navbar">
-			<h1 className="mb-8 text-4xl font-bold">Privacy Policy</h1>
+			<h1 className="mb-8 typography-h1">Privacy Policy</h1>
 			<p className="mb-6 text-muted">
 				Last Updated: October 5, 2025
 			</p>
 
 			<div className="prose prose-gray dark:prose-invert max-w-none">
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">1. Introduction</h2>
+					<h2 className="mb-4 typography-h3">1. Introduction</h2>
 					<p>
 						Welcome to TenantFlow (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to
 						protecting your privacy and ensuring the security of your personal
@@ -33,11 +33,11 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						2. Information We Collect
 					</h2>
 
-					<h3 className="mb-3 text-xl font-semibold">
+					<h3 className="mb-3 typography-h4">
 						2.1 Information You Provide
 					</h3>
 					<p>We collect information that you voluntarily provide to us:</p>
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
 						</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">
+					<h3 className="mb-3 typography-h4">
 						2.2 Information Collected Automatically
 					</h3>
 					<p>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
 						</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">
+					<h3 className="mb-3 typography-h4">
 						2.3 Third-Party Authentication
 					</h3>
 					<p>
@@ -117,7 +117,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						3. How We Use Your Information
 					</h2>
 					<p>We use the collected information for the following purposes:</p>
@@ -154,12 +154,12 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">
+					<h2 className="mb-4 typography-h3">
 						4. How We Share Your Information
 					</h2>
 					<p>We do not sell your personal information. We may share your information in the following circumstances:</p>
 
-					<h3 className="mb-3 text-xl font-semibold">4.1 Service Providers</h3>
+					<h3 className="mb-3 typography-h4">4.1 Service Providers</h3>
 					<p>We share data with trusted third-party service providers:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -184,7 +184,7 @@ export default function PrivacyPage() {
 						use it only for the services they provide to us.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">4.2 Legal Requirements</h3>
+					<h3 className="mb-3 typography-h4">4.2 Legal Requirements</h3>
 					<p>We may disclose your information if required by law or to:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>Comply with legal processes or government requests</li>
@@ -192,7 +192,7 @@ export default function PrivacyPage() {
 						<li>Protect the rights, property, or safety of TenantFlow, our users, or the public</li>
 					</ul>
 
-					<h3 className="mb-3 text-xl font-semibold">4.3 Business Transfers</h3>
+					<h3 className="mb-3 typography-h4">4.3 Business Transfers</h3>
 					<p>
 						If TenantFlow is involved in a merger, acquisition, or sale of
 						assets, your information may be transferred. We will notify you of
@@ -201,7 +201,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">5. Data Security</h2>
+					<h2 className="mb-4 typography-h3">5. Data Security</h2>
 					<p>We implement industry-standard security measures to protect your data:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -233,7 +233,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">6. Data Retention</h2>
+					<h2 className="mb-4 typography-h3">6. Data Retention</h2>
 					<p>
 						We retain your personal information for as long as necessary to
 						provide our services and comply with legal obligations:
@@ -259,10 +259,10 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">7. Your Rights and Choices</h2>
+					<h2 className="mb-4 typography-h3">7. Your Rights and Choices</h2>
 					<p>You have the following rights regarding your personal information:</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.1 Access and Portability</h3>
+					<h3 className="mb-3 typography-h4">7.1 Access and Portability</h3>
 					<p>
 						You can access and export your data at any time through your account
 						settings or by contacting us at{' '}
@@ -271,27 +271,27 @@ export default function PrivacyPage() {
 						</a>
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.2 Correction and Updates</h3>
+					<h3 className="mb-3 typography-h4">7.2 Correction and Updates</h3>
 					<p>
 						You can update your account information, property data, and tenant
 						records directly through the platform.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.3 Deletion</h3>
+					<h3 className="mb-3 typography-h4">7.3 Deletion</h3>
 					<p>
 						You can delete your account and associated data at any time through
 						account settings. Some information may be retained as required by
 						law or for legitimate business purposes.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.4 Marketing Communications</h3>
+					<h3 className="mb-3 typography-h4">7.4 Marketing Communications</h3>
 					<p>
 						You can opt out of marketing emails by clicking &quot;unsubscribe&quot; in any
 						marketing email or updating your communication preferences in
 						account settings.
 					</p>
 
-					<h3 className="mb-3 text-xl font-semibold">7.5 Do Not Track</h3>
+					<h3 className="mb-3 typography-h4">7.5 Do Not Track</h3>
 					<p>
 						Some browsers support a &quot;Do Not Track&quot; feature. TenantFlow does not
 						currently respond to Do Not Track signals.
@@ -299,7 +299,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">8. Cookies and Tracking Technologies</h2>
+					<h2 className="mb-4 typography-h3">8. Cookies and Tracking Technologies</h2>
 					<p>We use the following types of cookies:</p>
 					<ul className="mb-4 ml-6 list-disc space-y-2">
 						<li>
@@ -322,7 +322,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">9. Children&apos;s Privacy</h2>
+					<h2 className="mb-4 typography-h3">9. Children&apos;s Privacy</h2>
 					<p>
 						TenantFlow is not intended for use by individuals under the age of
 						18. We do not knowingly collect personal information from children.
@@ -332,7 +332,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">10. International Users</h2>
+					<h2 className="mb-4 typography-h3">10. International Users</h2>
 					<p>
 						TenantFlow is operated in the United States. If you are accessing
 						our services from outside the U.S., your information will be
@@ -346,7 +346,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">11. Third-Party Links</h2>
+					<h2 className="mb-4 typography-h3">11. Third-Party Links</h2>
 					<p>
 						Our platform may contain links to third-party websites or services.
 						We are not responsible for the privacy practices of these external
@@ -356,7 +356,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">12. Changes to This Privacy Policy</h2>
+					<h2 className="mb-4 typography-h3">12. Changes to This Privacy Policy</h2>
 					<p>
 						We may update this Privacy Policy from time to time to reflect
 						changes in our practices or for legal, operational, or regulatory
@@ -374,7 +374,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">13. Contact Us</h2>
+					<h2 className="mb-4 typography-h3">13. Contact Us</h2>
 					<p>
 						If you have questions, concerns, or requests regarding this Privacy
 						Policy or our data practices, please contact us:
@@ -400,7 +400,7 @@ export default function PrivacyPage() {
 				</section>
 
 				<section className="mb-8">
-					<h2 className="mb-4 text-2xl font-semibold">14. California Privacy Rights (CCPA)</h2>
+					<h2 className="mb-4 typography-h3">14. California Privacy Rights (CCPA)</h2>
 					<p>
 						If you are a California resident, you have additional rights under
 						the California Consumer Privacy Act (CCPA):

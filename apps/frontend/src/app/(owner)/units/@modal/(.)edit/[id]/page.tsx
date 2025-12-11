@@ -15,7 +15,7 @@ export default async function EditUnitModal({ params }: EditUnitModalProps) {
 		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			<div className="space-y-6">
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold">Edit Unit</h2>
+					<h2 className="typography-h3">Edit Unit</h2>
 					<p className="text-muted-foreground">
 						Update unit details
 					</p>

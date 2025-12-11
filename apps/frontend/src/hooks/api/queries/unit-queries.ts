@@ -15,7 +15,7 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
  */
 export interface UnitFilters {
 	property_id?: string
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED'
+	status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
 	search?: string
 	limit?: number
 	offset?: number

@@ -32,7 +32,7 @@ export function MiniTrendChart({
         )}
       >
         <CardHeader>
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <CardTitle className="typography-small">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[80px] flex items-end gap-1 animate-pulse">
@@ -55,7 +55,7 @@ export function MiniTrendChart({
         className={cn('dashboard-card-surface dashboard-mini-chart', className)}
       >
         <CardHeader>
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <CardTitle className="typography-small">{title}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="h-[80px] flex-center border border-dashed border-border rounded-lg bg-muted/30">
@@ -74,7 +74,7 @@ export function MiniTrendChart({
       className={cn('dashboard-card-surface dashboard-mini-chart', className)}
     >
       <CardHeader>
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <CardTitle className="typography-small">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={80}>
