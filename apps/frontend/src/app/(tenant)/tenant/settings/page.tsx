@@ -23,7 +23,7 @@ export default function SettingsPage() {
 	return (
 		<div className="container mx-auto py-8">
 			<div className="mb-8">
-				<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+				<h1 className="typography-h2 tracking-tight flex items-center gap-2">
 					<span className="size-8" />
 					Settings
 				</h1>
@@ -35,7 +35,7 @@ export default function SettingsPage() {
 			{/* Payment Options Comparison */}
 			<div className="space-y-6">
 				<div>
-					<h2 className="text-2xl font-semibold mb-2">Payment Options</h2>
+					<h2 className="typography-h3 mb-2">Payment Options</h2>
 					<p className="text-muted-foreground">
 						Choose how you want to pay rent. Both options are secure and easy to
 						use.
@@ -96,13 +96,13 @@ export default function SettingsPage() {
 
 				{/* Existing Payment Methods Section */}
 				<div className="mt-12">
-					<h2 className="text-2xl font-semibold mb-6">Your Payment Methods</h2>
+					<h2 className="typography-h3 mb-6">Your Payment Methods</h2>
 					<PaymentMethodsTab />
 				</div>
 
 				{/* Stripe Connect Status Section */}
 				<div className="mt-12">
-					<h2 className="text-2xl font-semibold mb-6">
+					<h2 className="typography-h3 mb-6">
 						Bank Connection Status
 					</h2>
 					<StripeConnectTab />

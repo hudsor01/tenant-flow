@@ -4,7 +4,7 @@ import type {
 	TenantPaymentRecord
 } from '@repo/shared/types/api-contracts'
 import type { Database } from '@repo/shared/types/supabase'
-import type { RentPayment } from '@repo/shared/types/core'
+import type { RentPayment, PaymentStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { asStripeSchemaClient, type SupabaseError, type StripePaymentIntent } from '../../types/stripe-schema'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -154,7 +154,7 @@ export class TenantPaymentService {
 			.from('rent_payments')
 			.select('amount, due_date')
 			.eq('tenant_id', tenant_id)
-			.in('status', ['DUE', 'pending'])
+			.in('status', ['pending', 'pending'])
 			.order('due_date', { ascending: true })
 			.limit(1)
 			.maybeSingle<RentPaymentRow>()
@@ -535,7 +535,7 @@ export class TenantPaymentService {
 	async queryTenantPayments(
 		tenant_id: string,
 		filters?: {
-			status?: string
+			status?: PaymentStatus
 			startDate?: string
 			endDate?: string
 			limit?: number
@@ -644,7 +644,7 @@ export class TenantPaymentService {
 		id?: string
 		amount?: number
 		currency?: string | null
-		status?: string
+		status?: PaymentStatus
 		succeeded_at?: string
 		tenant_id?: string
 		metadata?: { tenant_id?: string } | null

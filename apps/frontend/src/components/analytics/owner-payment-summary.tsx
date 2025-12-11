@@ -19,7 +19,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Late fees cumulative</CardDescription>
-					<CardTitle className="text-2xl font-semibold text-destructive">
+					<CardTitle className="typography-h3 text-destructive">
 						{formatCents(values.lateFeeTotal)}
 					</CardTitle>
 				</CardHeader>
@@ -27,7 +27,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Unpaid invoice total</CardDescription>
-					<CardTitle className="text-2xl font-semibold">
+					<CardTitle className="typography-h3">
 						{formatCents(values.unpaidTotal)}
 					</CardTitle>
 				</CardHeader>
@@ -35,7 +35,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Outstanding invoices</CardDescription>
-					<CardTitle className="text-2xl font-semibold">
+					<CardTitle className="typography-h3">
 						{values.unpaidCount}
 					</CardTitle>
 				</CardHeader>
@@ -43,7 +43,7 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Tenants monitored</CardDescription>
-					<CardTitle className="text-2xl font-semibold">
+					<CardTitle className="typography-h3">
 						{values.tenantCount}
 					</CardTitle>
 				</CardHeader>

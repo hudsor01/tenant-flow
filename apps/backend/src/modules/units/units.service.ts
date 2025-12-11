@@ -55,10 +55,10 @@ export class UnitsService {
 			if (query.status) {
 				const statusInput = String(query.status).toUpperCase()
 				const allowedStatuses: UnitStatus[] = [
-					'VACANT',
-					'OCCUPIED',
-					'MAINTENANCE',
-					'RESERVED'
+					'available',
+					'occupied',
+					'maintenance',
+					'reserved'
 				]
 				const isValidStatus = allowedStatuses.includes(
 					statusInput as UnitStatus
@@ -147,9 +147,9 @@ export class UnitsService {
 			const units = allUnitsData || []
 			const totalCount = units.length
 
-			const occupiedCount = units.filter(u => u.status === 'OCCUPIED').length
-			const vacantCount = units.filter(u => u.status === 'VACANT').length
-			const maintenanceCount = units.filter(u => u.status === 'MAINTENANCE').length
+			const occupiedCount = units.filter(u => u.status === 'occupied').length
+			const vacantCount = units.filter(u => u.status === 'available').length
+			const maintenanceCount = units.filter(u => u.status === 'maintenance').length
 
 			const totalRent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
 			const averageRent = totalCount > 0 ? totalRent / totalCount : 0
@@ -300,7 +300,7 @@ export class UnitsService {
 				bathrooms: createRequest.bathrooms || 1,
 				square_feet: createRequest.square_feet || null,
 				rent_amount: createRequest.rent ?? 0,
-				status: createRequest.status ?? 'VACANT'
+				status: createRequest.status ?? 'available'
 			}
 
 			const { data, error } = await client
@@ -568,7 +568,7 @@ export class UnitsService {
 				.from('units')
 				.select('*')
 				.eq('property_id', property_id)
-				.eq('status', 'VACANT')
+				.eq('status', 'available')
 
 			if (error) {
 				this.logger.error('Failed to get available units from Supabase', {
@@ -649,13 +649,13 @@ export class UnitsService {
 			// Calculate additional statistics from analytics data
 			const totalUnits = analytics.length
 			const occupiedUnits = analytics.filter(
-				(unit: Unit) => unit.status === 'OCCUPIED'
+				(unit: Unit) => unit.status === 'occupied'
 			).length
 			const vacantUnits = analytics.filter(
-				(unit: Unit) => unit.status === 'VACANT'
+				(unit: Unit) => unit.status === 'available'
 			).length
 			const maintenanceUnits = analytics.filter(
-				(unit: Unit) => unit.status === 'MAINTENANCE'
+				(unit: Unit) => unit.status === 'maintenance'
 			).length
 
 			// Calculate average rent

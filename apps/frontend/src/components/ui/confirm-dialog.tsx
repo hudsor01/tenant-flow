@@ -6,7 +6,7 @@ import {
 	CrudDialogHeader,
 	CrudDialogTitle,
 	CrudDialogDescription,
-	CrudDialogContent as CrudDialogBody,
+	CrudDialogBody,
 	CrudDialogFooter
 } from '#components/ui/crud-dialog'
 import { Button } from '#components/ui/button'
@@ -50,7 +50,7 @@ interface ConfirmDialogProps {
 }
 
 /**
- * ConfirmDialog - Reusable confirmation dialog using CrudModal (safe for nesting)
+ * ConfirmDialog - Reusable confirmation dialog using CrudDialog (safe for nesting)
  */
 export function ConfirmDialog({
 	modalId,

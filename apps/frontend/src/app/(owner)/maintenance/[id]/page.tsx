@@ -14,7 +14,7 @@ export default async function MaintenanceDetailPage({
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold tracking-tight">
+				<h1 className="typography-h3 tracking-tight">
 					Maintenance request
 				</h1>
 				<p className="text-muted-foreground">

@@ -29,7 +29,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Rent & Deposits
 				</h3>
 				<div className="grid grid-cols-2 gap-4">
@@ -102,7 +102,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 			</div>
 
 			<div>
-				<h3 className="text-lg font-semibold mb-4">Fees & Penalties</h3>
+				<h3 className="typography-large mb-4">Fees & Penalties</h3>
 				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="late_fee_amount">
 						{field => (

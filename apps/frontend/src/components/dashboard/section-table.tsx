@@ -42,13 +42,12 @@ const formatPropertyType = (type: PropertyType): string => {
 }
 
 // Format property status for display
-// Note: PROPERTY_STATUS values are mixed case - 'active'/'inactive' lowercase, others uppercase
+// DB enum values are lowercase: 'active' | 'inactive' | 'sold'
 const formatPropertyStatus = (status: PropertyStatus): string => {
 	const statusMap: Record<PropertyStatus, string> = {
 		active: 'Active',
 		inactive: 'Inactive',
-		UNDER_CONTRACT: 'Under Contract',
-		SOLD: 'Sold'
+		sold: 'Sold'
 	}
 	return statusMap[status] || status
 }
@@ -187,11 +186,9 @@ export function SectionTable() {
 												'rounded-full border border-transparent px-3 py-1 font-medium',
 												property.status === 'active'
 													? 'bg-system-green-10 text-system-green hover:bg-system-green-15'
-													: property.status === 'UNDER_CONTRACT'
-														? 'bg-system-blue-10 text-system-blue hover:bg-system-blue-15'
-														: property.status === 'SOLD'
-															? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
-															: 'bg-system-muted/10 text-label-tertiary hover:bg-system-muted/15'
+													: property.status === 'sold'
+														? 'bg-system-teal-10 text-system-teal hover:bg-system-teal-15'
+														: 'bg-system-muted/10 text-label-tertiary hover:bg-system-muted/15'
 											)}
 										>
 											{formatPropertyStatus(property.status as PropertyStatus)}

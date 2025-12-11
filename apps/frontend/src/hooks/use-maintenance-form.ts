@@ -5,14 +5,15 @@ import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenancePriority } from '@repo/shared/types/core'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })
 
+// Use DB enum values (lowercase): 'low' | 'normal' | 'high' | 'urgent'
 export interface MaintenanceFormData {
 	title: string
 	description: string
-	priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+	priority: MaintenancePriority
 	unit_id: string
 	tenant_id: string
 	estimated_cost?: string
@@ -44,7 +45,7 @@ export function useMaintenanceForm({
 		defaultValues: {
 			title: '',
 			description: '',
-			priority: 'LOW',
+			priority: 'low' as MaintenancePriority,
 			unit_id: '',
 			tenant_id: '',
 			estimated_cost: '',
@@ -64,10 +65,10 @@ export function useMaintenanceForm({
 					const payload: MaintenanceRequestCreate = {
 						title: value.title,
 						description: value.description,
-						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+						priority: value.priority,
 						unit_id: value.unit_id,
 						tenant_id: value.tenant_id,
-						status: 'pending'
+						status: 'open'
 					}
 
 					// Add optional fields only if they have values
@@ -101,7 +102,7 @@ export function useMaintenanceForm({
 					const payload: MaintenanceRequestUpdate = {
 						title: value.title,
 						description: value.description,
-						priority: value.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+						priority: value.priority
 					}
 
 					// Add optional fields only if they have values

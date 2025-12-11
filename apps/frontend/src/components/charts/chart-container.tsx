@@ -29,7 +29,7 @@ export function ChartContainer({
 	return (
 		<Card className={cn('w-full', className)} {...props}>
 			<CardHeader>
-				<CardTitle className="text-lg font-semibold text-foreground">
+				<CardTitle className="typography-large text-foreground">
 					{title}
 				</CardTitle>
 				{description && (

@@ -17,7 +17,7 @@ export default function DocumentsClient() {
 			<div className="flex items-center gap-3">
 				<FileText className="size-8 text-primary" />
 				<div>
-					<h1 className="text-3xl font-bold">Documents</h1>
+					<h1 className="typography-h2">Documents</h1>
 					<p className="text-muted-foreground">
 						Professional property management document templates
 					</p>

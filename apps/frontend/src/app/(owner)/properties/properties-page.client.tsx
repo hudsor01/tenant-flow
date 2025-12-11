@@ -264,7 +264,7 @@ export function PropertiesPageClient() {
 									<Building2 className="size-5" />
 								</div>
 								<div>
-									<h1 className="text-3xl font-semibold tracking-tight leading-none">
+									<h1 className="typography-h2 tracking-tight leading-none">
 										{' '}
 										Properties{' '}
 									</h1>
@@ -278,7 +278,7 @@ export function PropertiesPageClient() {
 						{/* Quick Stats - Enhanced visual hierarchy */}
 						<div className="flex flex-wrap gap-3 lg:gap-4">
 							<div className="flex-col-center rounded-xl border border-border bg-card/50 px-5 py-3.5 min-w-[110px] transition-all duration-200 hover:border-primary/30 hover:bg-card">
-								<div className="text-2xl font-semibold text-foreground">
+								<div className="typography-h3 text-foreground">
 									{stats.total ?? properties.length}
 								</div>
 								<div className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -287,7 +287,7 @@ export function PropertiesPageClient() {
 								</div>
 							</div>
 							<div className="flex-col-center rounded-xl border border-border bg-card/50 px-5 py-3.5 min-w-[110px] transition-all duration-200 hover:border-primary/30 hover:bg-card">
-								<div className="text-2xl font-semibold text-foreground">
+								<div className="typography-h3 text-foreground">
 									{stats.occupied ?? 0}
 								</div>
 								<div className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -296,7 +296,7 @@ export function PropertiesPageClient() {
 								</div>
 							</div>
 							<div className="flex-col-center rounded-xl border border-border bg-card/50 px-5 py-3.5 min-w-[110px] transition-all duration-200 hover:border-primary/30 hover:bg-card">
-								<div className="text-2xl font-semibold text-foreground">
+								<div className="typography-h3 text-foreground">
 									{stats.vacant ?? 0}
 								</div>
 								<div className="text-xs text-muted-foreground font-medium mt-0.5">
@@ -373,7 +373,7 @@ export function PropertiesPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Properties </CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{stats.total ?? properties.length}
 						</CardTitle>
 					</CardHeader>
@@ -390,7 +390,7 @@ export function PropertiesPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Occupancy Rate </CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{stats.occupancyRate?.toFixed(1) ?? 0} %
 						</CardTitle>
 					</CardHeader>
@@ -414,7 +414,7 @@ export function PropertiesPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Vacant Units </CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{stats.vacant ?? 0}
 						</CardTitle>
 					</CardHeader>
@@ -432,7 +432,7 @@ export function PropertiesPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Monthly Rent </CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							${(stats.totalMonthlyRent ?? 0).toLocaleString()}
 						</CardTitle>
 					</CardHeader>

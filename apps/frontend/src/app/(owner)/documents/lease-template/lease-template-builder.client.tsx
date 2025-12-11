@@ -489,7 +489,7 @@ function ConfigurationPanel(props: {
 				<div className="flex flex-col gap-2 pt-4">
 					<label
 						htmlFor="include-state-disclosures"
-						className="flex items-center gap-2 text-sm font-medium"
+						className="flex items-center gap-2 typography-small"
 					>
 						<Checkbox
 							id="include-state-disclosures"
@@ -500,7 +500,7 @@ function ConfigurationPanel(props: {
 					</label>
 					<label
 						htmlFor="include-federal-disclosures"
-						className="flex items-center gap-2 text-sm font-medium"
+						className="flex items-center gap-2 typography-small"
 					>
 						<Checkbox
 							id="include-federal-disclosures"

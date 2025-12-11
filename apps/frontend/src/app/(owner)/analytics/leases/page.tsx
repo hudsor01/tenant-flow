@@ -163,7 +163,7 @@ export default function LeaseAnalyticsPage() {
 								<CardDescription>Tracked agreements</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.totalLeases)}
 								</p>
 							</CardContent>
@@ -174,7 +174,7 @@ export default function LeaseAnalyticsPage() {
 								<CardDescription>Currently generating rent</CardDescription>
 							</CardHeader>
 							<CardContent className="flex items-end justify-between pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatNumber(metrics.activeLeases)}
 								</p>
 								<Badge variant="outline" className="text-xs">
@@ -188,7 +188,7 @@ export default function LeaseAnalyticsPage() {
 								<CardDescription>Total recurring rent</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatCurrency(metrics.totalrent_amount)}
 								</p>
 							</CardContent>
@@ -199,7 +199,7 @@ export default function LeaseAnalyticsPage() {
 								<CardDescription>Monthly rent per lease</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-0">
-								<p className="text-3xl font-semibold tabular-nums">
+								<p className="typography-h2 tabular-nums">
 									{formatCurrency(metrics.averageLeaseValue)}
 								</p>
 							</CardContent>

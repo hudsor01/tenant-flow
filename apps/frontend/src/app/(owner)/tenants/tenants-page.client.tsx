@@ -79,7 +79,7 @@ export function TenantsPageClient() {
 		>
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Tenants</h1>
+					<h1 className="typography-h2 tracking-tight">Tenants</h1>
 					<p className="text-muted-foreground">
 						Invite tenants to access their portal for payments, maintenance requests, and lease management.
 					</p>
@@ -99,7 +99,7 @@ export function TenantsPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Total Tenants</CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{stats.total ?? tenants.length}
 						</CardTitle>
 					</CardHeader>
@@ -107,7 +107,7 @@ export function TenantsPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Active Tenants</CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{stats.active ?? 0}
 						</CardTitle>
 					</CardHeader>
@@ -115,7 +115,7 @@ export function TenantsPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Overdue Balance</CardDescription>
-						<CardTitle className="text-2xl font-semibold text-destructive">
+						<CardTitle className="typography-h3 text-destructive">
 							{formatCents(0)}
 						</CardTitle>
 					</CardHeader>
@@ -123,7 +123,7 @@ export function TenantsPageClient() {
 				<Card>
 					<CardHeader>
 						<CardDescription>Upcoming Due (30d)</CardDescription>
-						<CardTitle className="text-2xl font-semibold">
+						<CardTitle className="typography-h3">
 							{formatCents(0)}
 						</CardTitle>
 					</CardHeader>
@@ -134,13 +134,13 @@ export function TenantsPageClient() {
 
 			{/* Invitation Tracking - Client Component */}
 			<section className="flex flex-col gap-4">
-				<h2 className="text-xl font-semibold">Invitations</h2>
+				<h2 className="typography-h4">Invitations</h2>
 				<InvitationsTableClient />
 			</section>
 
 			{/* Client Component for Delete Functionality */}
 			<section className="flex flex-col gap-4">
-				<h2 className="text-xl font-semibold">Tenant Directory</h2>
+				<h2 className="typography-h4">Tenant Directory</h2>
 				<TenantsTableClient columns={columns} initialTenants={tenants} />
 			</section>
 		</div>

@@ -55,7 +55,7 @@ export function PropertyPerformanceTable() {
 		<ErrorBoundary
 			fallback={
 				<div className="dashboard-empty-state">
-					<p className="text-sm font-medium text-muted-foreground">
+					<p className="typography-small text-muted-foreground">
 						Unable to load property performance
 					</p>
 					<p className="text-caption">
@@ -77,7 +77,7 @@ function PropertyPerformanceTableContent() {
 		return (
 			<div className="dashboard-empty-state">
 				<Spinner className="w-[var(--spacing-5)] h-[var(--spacing-5)] animate-spin" />
-				<p className="text-sm font-medium text-muted-foreground">
+				<p className="typography-small text-muted-foreground">
 					Loading property performance...
 				</p>
 			</div>
@@ -87,7 +87,7 @@ function PropertyPerformanceTableContent() {
 	if (error) {
 		return (
 			<div className="dashboard-empty-state">
-				<p className="text-sm font-medium text-muted-foreground">
+				<p className="typography-small text-muted-foreground">
 					Failed to load property performance data
 				</p>
 				<p className="text-caption">
@@ -100,7 +100,7 @@ function PropertyPerformanceTableContent() {
 	if (!properties || !Array.isArray(properties) || properties.length === 0) {
 		return (
 			<div className="dashboard-empty-state">
-				<p className="text-sm font-medium text-muted-foreground">
+				<p className="typography-small text-muted-foreground">
 					No property data available
 				</p>
 				<p className="text-caption">
@@ -177,7 +177,7 @@ function PropertyPerformanceTableContent() {
 									</TableCell>
 									<TableCell>
 										<div
-											className={`flex items-center gap-[var(--spacing-1)] text-sm font-medium ${getTrendColorClass(property.trend || 'stable')}`}
+											className={`flex items-center gap-[var(--spacing-1)] typography-small ${getTrendColorClass(property.trend || 'stable')}`}
 										>
 											{getTrendIcon(property.trend || 'stable')}
 											{property.trendPercentage?.toFixed(1) ?? '0.0'}%

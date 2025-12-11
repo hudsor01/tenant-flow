@@ -15,6 +15,7 @@ import {
 import type { ChartConfig } from '#components/ui/chart'
 import {
 	ChartContainer,
+	ChartStyle,
 	ChartTooltip,
 	ChartTooltipContent
 } from '#components/ui/chart'
@@ -25,10 +26,17 @@ import {
 	EmptyMedia,
 	EmptyTitle
 } from '#components/ui/empty'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
 import type { ModernExplodedPieChartProps } from '@repo/shared/types/frontend'
 
 export const description =
-	'A donut chart with an active sector - TenantFlow Style'
+	'An interactive donut chart with active sector - TenantFlow Style'
 
 export function ModernExplodedPieChart({
 	data,
@@ -38,7 +46,8 @@ export function ModernExplodedPieChart({
 	description = 'Current property status breakdown',
 	showFooter = true
 }: ModernExplodedPieChartProps) {
-	const [activeIndex, setActiveIndex] = React.useState(0)
+	const id = React.useId()
+	const chartId = `pie-${id.replace(/:/g, '')}`
 
 	// Move all hooks before early return to comply with Rules of Hooks
 	const chartData = React.useMemo(() => data || [], [data])
@@ -65,10 +74,39 @@ export function ModernExplodedPieChart({
 		}
 	} satisfies ChartConfig
 
+	// Get list of segment names for selector
+	const segmentNames = React.useMemo(
+		() => chartData.map(item => item.name),
+		[chartData]
+	)
+
+	const [activeSegment, setActiveSegment] = React.useState<string>(
+		segmentNames[0] || ''
+	)
+
+	// Update activeSegment when data changes
+	React.useEffect(() => {
+		if (segmentNames.length > 0 && !segmentNames.includes(activeSegment)) {
+			const firstSegment = segmentNames[0]
+			if (firstSegment) {
+				setActiveSegment(firstSegment)
+			}
+		}
+	}, [segmentNames, activeSegment])
+
+	const activeIndex = React.useMemo(
+		() => chartData.findIndex(item => item.name === activeSegment),
+		[chartData, activeSegment]
+	)
+
 	// Calculate totals for display
 	const totalUnits = React.useMemo(() => {
 		return chartData.reduce((acc, curr) => acc + curr.value, 0)
 	}, [chartData])
+
+	const activeValue = React.useMemo(() => {
+		return chartData[activeIndex]?.value ?? 0
+	}, [chartData, activeIndex])
 
 	const occupancyRate = React.useMemo(() => {
 		const occupied =
@@ -103,15 +141,49 @@ export function ModernExplodedPieChart({
 	}
 
 	return (
-		<Card className={`flex flex-col ${className}`}>
-			<CardHeader className="items-center pb-0">
-				<CardTitle>{title}</CardTitle>
-				<CardDescription>{description}</CardDescription>
+		<Card data-chart={chartId} className={`flex flex-col ${className}`}>
+			<ChartStyle id={chartId} config={chartConfig} />
+			<CardHeader className="flex-row items-start space-y-0 pb-0">
+				<div className="grid gap-1">
+					<CardTitle>{title}</CardTitle>
+					<CardDescription>{description}</CardDescription>
+				</div>
+				{segmentNames.length > 1 && (
+					<Select value={activeSegment} onValueChange={setActiveSegment}>
+						<SelectTrigger
+							className="ml-auto h-7 w-[130px] rounded-lg pl-2.5"
+							aria-label="Select segment"
+						>
+							<SelectValue placeholder="Select segment" />
+						</SelectTrigger>
+						<SelectContent align="end" className="rounded-xl">
+							{segmentNames.map(name => {
+								const config = chartConfig[name as keyof typeof chartConfig]
+								if (!config) return null
+
+								return (
+									<SelectItem key={name} value={name} className="rounded-lg [&_span]:flex">
+										<div className="flex items-center gap-2 text-xs">
+											<span
+												className="flex h-3 w-3 shrink-0 rounded-xs"
+												style={{
+													backgroundColor: `var(--color-${name})`
+												}}
+											/>
+											{config?.label || name}
+										</div>
+									</SelectItem>
+								)
+							})}
+						</SelectContent>
+					</Select>
+				)}
 			</CardHeader>
-			<CardContent className="flex-1 pb-0">
+			<CardContent className="flex flex-1 justify-center pb-0">
 				<ChartContainer
+					id={chartId}
 					config={chartConfig}
-					className="mx-auto aspect-square"
+					className="mx-auto aspect-square w-full"
 					style={{ maxHeight: `${height}px` }}
 				>
 					<PieChart>
@@ -125,27 +197,18 @@ export function ModernExplodedPieChart({
 							nameKey="name"
 							innerRadius={60}
 							strokeWidth={5}
-							onMouseEnter={(_, index) => setActiveIndex(index)}
 						>
 							{chartData.map((entry, index) => (
 								<Cell
 									key={`cell-${index}`}
 									fill={entry.fill}
-									stroke={
-										index === activeIndex
-											? 'var(--color-muted/tertiary)'
-											: 'none'
-									}
+									stroke={index === activeIndex ? 'var(--color-border)' : 'none'}
 									strokeWidth={index === activeIndex ? 2 : 0}
 									style={{
-										filter:
-											index === activeIndex
-												? 'drop-shadow(0 4px 8px var(--color-fill-primary))'
-												: 'none',
-										transform:
-											index === activeIndex ? 'scale(var(--scale-hover))' : 'scale(1)',
+										filter: index === activeIndex ? 'brightness(1.1)' : 'none',
+										transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
 										transformOrigin: 'center',
-										transition: `all var(--duration-200) var(--ease-in-out)`
+										transition: 'all 200ms ease-in-out'
 									}}
 								/>
 							))}
@@ -164,14 +227,14 @@ export function ModernExplodedPieChart({
 													y={viewBox.cy}
 													className="fill-foreground text-3xl font-bold"
 												>
-													{totalUnits.toLocaleString()}
+													{activeValue.toLocaleString()}
 												</tspan>
 												<tspan
 													x={viewBox.cx}
 													y={(viewBox.cy || 0) + 24}
 													className="fill-muted-foreground"
 												>
-													Total Units
+													{chartConfig[activeSegment as keyof typeof chartConfig]?.label || activeSegment}
 												</tspan>
 											</text>
 										)
@@ -189,7 +252,7 @@ export function ModernExplodedPieChart({
 						{occupancyRate}% occupancy rate <TrendingUp className="size-4" />
 					</div>
 					<div className="text-muted-foreground leading-none">
-						Showing current property status across portfolio
+						{totalUnits.toLocaleString()} total units across portfolio
 					</div>
 				</CardFooter>
 			)}

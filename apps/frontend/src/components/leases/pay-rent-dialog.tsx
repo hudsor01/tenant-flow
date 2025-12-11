@@ -114,7 +114,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 						<p className="text-muted mb-[var(--spacing-1)]">
 							Rent Amount
 						</p>
-						<p className="text-2xl font-semibold">
+						<p className="typography-h3">
 							{formatCurrency(lease.rent_amount)}
 						</p>
 					</div>

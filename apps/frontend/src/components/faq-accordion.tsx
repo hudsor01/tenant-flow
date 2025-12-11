@@ -36,12 +36,12 @@ export function FaqsAccordion({
 			{(title || description || category) && (
 				<div className="text-center mb-12">
 					{category && (
-						<h2 className="text-3xl font-bold mb-8 text-foreground">
+						<h2 className="typography-h2 mb-8 text-foreground">
 							{category}
 						</h2>
 					)}
 					{title && !category && (
-						<h2 className="text-foreground mb-4 text-3xl font-bold lg:text-4xl">
+						<h2 className="text-foreground mb-4 typography-h2 lg:text-4xl">
 							{title}
 						</h2>
 					)}
@@ -99,7 +99,7 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				onClick={onToggle}
 				className="flex w-full items-center justify-between p-6 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:bg-muted/50"
 			>
-				<h3 className="text-foreground text-lg font-semibold pr-4">
+				<h3 className="text-foreground typography-large pr-4">
 					{faq.question}
 				</h3>
 				<animated.div style={chevronAnimation} className="shrink-0">

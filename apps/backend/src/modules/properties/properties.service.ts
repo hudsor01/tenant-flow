@@ -1,4 +1,4 @@
-import type { PropertyStatus } from '@repo/shared/constants/status-types'
+import type { PropertyStatus } from '@repo/shared/types/core'
 import {
 	BadRequestException,
 	ConflictException,
@@ -305,7 +305,7 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 					this.logger.log('Marked property as INACTIVE', { property_id })
 					return { previousStatus: existing.status, data }
 				},
-				compensate: async (result: { previousStatus: string }) => {
+				compensate: async (result: { previousStatus: PropertyStatus }) => {
 					const { error } = await client
 						.from('properties')
 						.update({

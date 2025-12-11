@@ -162,7 +162,7 @@ export const DEFAULT_LEASE: Lease = {
  * const unit: Unit = {
  *   ...DEFAULT_UNIT,
  *   name: 'Apt 2B',
- *   status: 'OCCUPIED'
+ *   status: 'occupied'
  * }
  */
 export const DEFAULT_UNIT = {
@@ -172,7 +172,7 @@ export const DEFAULT_UNIT = {
 	bedrooms: 2,
 	bathrooms: 1,
 	square_feet: 850,
-	status: 'AVAILABLE' as const,
+	status: 'available' as const,
 	rent_amount: 1500,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
@@ -192,9 +192,9 @@ export const DEFAULT_MAINTENANCE_REQUEST = {
 	id: 'maintenance-1',
 	title: 'Plumbing Issue',
 	description: 'Kitchen faucet has been dripping for the past week',
-	status: 'OPEN' as const,
-	priority: 'MEDIUM' as const,
-	category: 'PLUMBING' as const,
+	status: 'open' as const,
+	priority: 'medium' as const,
+	category: 'plumbing' as const,
 	unit_id: 'unit-1',
 	tenant_id: 'tenant-1',
 	property_owner_id: 'user-1',

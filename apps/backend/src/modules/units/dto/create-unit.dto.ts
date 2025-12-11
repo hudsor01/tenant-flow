@@ -19,7 +19,7 @@ const CreateUnitSchema = z.object({
 		.nonnegative('Rent must be non-negative')
 		.optional(),
 	status: z
-		.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE', 'RESERVED'])
+		.enum(['available', 'occupied', 'maintenance', 'reserved'])
 		.optional()
 })
 

@@ -94,7 +94,7 @@ export default function UnitsPage() {
 						</h3>
 						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
-					<div className="text-2xl font-bold">{totalUnits}</div>
+					<div className="typography-h3">{totalUnits}</div>
 					<p className="text-caption mt-1">
 						Across all properties
 					</p>
@@ -107,7 +107,7 @@ export default function UnitsPage() {
 						</h3>
 						<div className="size-2 rounded-full bg-chart-1" />
 					</div>
-					<div className="text-2xl font-bold">{occupiedCount}</div>
+					<div className="typography-h3">{occupiedCount}</div>
 					<div className="text-xs mt-1 text-chart-1">
 						{occupancyRate.toFixed(1)}% occupancy
 					</div>
@@ -120,7 +120,7 @@ export default function UnitsPage() {
 						</h3>
 						<div className="size-2 rounded-full bg-chart-7" />
 					</div>
-					<div className="text-2xl font-bold">{vacantCount}</div>
+					<div className="typography-h3">{vacantCount}</div>
 					<div className="text-xs mt-1 text-chart-7">Available now</div>
 				</div>
 
@@ -131,7 +131,7 @@ export default function UnitsPage() {
 						</h3>
 						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
-					<div className="text-2xl font-bold">{maintenanceCount}</div>
+					<div className="typography-h3">{maintenanceCount}</div>
 					<div className="text-xs mt-1 text-chart-5">Needs attention</div>
 				</div>
 			</div>
@@ -139,7 +139,7 @@ export default function UnitsPage() {
 			{/* Units Content */}
 			<div className="px-4 lg:px-6">
 				<div className="mb-6">
-					<h1 className="text-3xl font-bold text-foreground mb-2">
+					<h1 className="typography-h2 text-foreground mb-2">
 						Unit Management
 					</h1>
 					<p className="text-muted-foreground">
@@ -197,7 +197,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 				property_id: String(fd.get('property_id') || ''),
 				rent_currency: 'USD',
 				rent_period: 'monthly',
-				status: 'VACANT'
+				status: 'available'
 			} satisfies UnitInput)
 			qc.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Unit created successfully')

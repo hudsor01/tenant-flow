@@ -98,7 +98,8 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 					autopayEnabled: fc.boolean(),
 					subscriptionId: fc.option(fc.string(), { nil: null }),
 					nextPaymentDate: fc.option(
-						fc.date().map(d => d.toISOString()),
+						// Constrain dates to valid range to avoid Invalid Date errors
+						fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString()),
 						{ nil: null }
 					),
 					lease_id: fc.option(fc.uuid(), { nil: null }),

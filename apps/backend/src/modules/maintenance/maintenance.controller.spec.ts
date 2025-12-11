@@ -108,7 +108,7 @@ describe('MaintenanceController', () => {
 			tenant_id: randomUUID(),
 			title: 'Repair Request',
 			description: 'Fix',
-			priority: 'MEDIUM' as const,
+			priority: 'medium' as const,
 			category: 'GENERAL' as const,
 			status: 'pending' as const
 		}

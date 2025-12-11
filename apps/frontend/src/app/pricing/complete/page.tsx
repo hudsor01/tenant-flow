@@ -172,7 +172,7 @@ export default function CompletePage() {
 							{/* Status Text */}
 							<h2
 								id="status-text"
-								className="text-2xl font-bold text-(--color-text-primary) mb-8"
+								className="typography-h3 text-(--color-text-primary) mb-8"
 							>
 								{text}
 							</h2>

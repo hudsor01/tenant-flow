@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { UNIT_STATUS } from '../constants/status-types.js'
 import {
   nonEmptyStringSchema,
   nonNegativeNumberSchema,
@@ -9,10 +8,9 @@ import {
 } from './common'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
-// Unit status enum - uses auto-generated Supabase enums
-export const unitStatusSchema = z.enum(
-	Object.values(UNIT_STATUS) as unknown as readonly [string, ...string[]]
-)
+// Unit status enum - matches PostgreSQL enum values exactly
+// Values: 'available', 'occupied', 'maintenance', 'reserved'
+export const unitStatusSchema = z.enum(['available', 'occupied', 'maintenance', 'reserved'])
 
 // Base unit input schema (for forms and API creation) - matches database exactly
 export const unitInputSchema = z.object({
@@ -42,7 +40,7 @@ export const unitInputSchema = z.object({
 
 	rent_period: z.string().default('monthly'),
 
-	status: z.string().default('VACANT')
+	status: z.string().default('available')
 })
 
 // Full unit schema (includes server-generated fields)
@@ -119,7 +117,7 @@ export const transformUnitFormData = (data: UnitFormData) => ({
 	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : 1,
 	square_feet: data.square_feet ? parseInt(data.square_feet, 10) : undefined,
 	rent_amount: data.rent_amount ? parseFloat(data.rent_amount) : 0,
-	status: data.status || 'VACANT'
+	status: data.status || 'available'
 })
 
 export type UnitFormData = z.infer<typeof unitFormSchema>

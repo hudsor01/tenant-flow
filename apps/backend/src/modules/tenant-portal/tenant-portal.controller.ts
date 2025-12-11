@@ -101,7 +101,7 @@ export class TenantPortalController {
 
 		const upcomingPayment = payments.find(
 			payment =>
-				(payment.status === 'DUE' || payment.status === 'pending') &&
+				(payment.status === 'pending') &&
 				payment.due_date
 		)
 
@@ -120,7 +120,7 @@ export class TenantPortalController {
 				totalPaidUsd: payments
 					.filter(
 						payment =>
-							payment.status === 'PAID' || payment.status === 'SUCCEEDED'
+							payment.status === 'succeeded'
 					)
 					.reduce((acc, payment) => acc + payment.amount / 100, 0)
 			}
@@ -242,9 +242,9 @@ export class TenantPortalController {
 
 		const requests = data ?? []
 		const total = requests.length
-		const open = requests.filter(r => r.status === 'OPEN').length
-		const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
-		const completed = requests.filter(r => r.status === 'COMPLETED').length
+		const open = requests.filter(r => r.status === 'open').length
+		const inProgress = requests.filter(r => r.status === 'in_progress').length
+		const completed = requests.filter(r => r.status === 'completed').length
 
 		return { total, open, inProgress, completed }
 	}

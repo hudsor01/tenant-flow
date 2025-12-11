@@ -196,7 +196,7 @@ export function TenantEditViewButtons({
 							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<MapPin className="size-4 text-muted-foreground" />
-									<span className="text-sm font-medium">Property</span>
+									<span className="typography-small">Property</span>
 								</div>
 								<span className="text-muted">
 									{tenant.property?.name || 'No Property Assigned'}
@@ -207,7 +207,7 @@ export function TenantEditViewButtons({
 								<div className="flex-between">
 									<div className="flex items-center gap-2">
 										<CreditCard className="size-4 text-muted-foreground" />
-										<span className="text-sm font-medium">Monthly Rent</span>
+										<span className="typography-small">Monthly Rent</span>
 									</div>
 									<span className="text-muted">
 										$
@@ -219,7 +219,7 @@ export function TenantEditViewButtons({
 							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<Calendar className="size-4 text-muted-foreground" />
-									<span className="text-sm font-medium">Tenant Since</span>
+									<span className="typography-small">Tenant Since</span>
 								</div>
 								<span className="text-muted">
 									{tenant.created_at
@@ -231,7 +231,7 @@ export function TenantEditViewButtons({
 							<div className="flex-between">
 								<div className="flex items-center gap-2">
 									<User className="size-4 text-muted-foreground" />
-									<span className="text-sm font-medium">Status</span>
+									<span className="typography-small">Status</span>
 								</div>
 								<Badge
 								className="bg-(--chart-1) text-[var(--color-primary-foreground)]"

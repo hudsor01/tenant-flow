@@ -413,6 +413,9 @@ importers:
       '@floating-ui/react-dom':
         specifier: 2.1.6
         version: 2.1.6(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
+      '@hookform/resolvers':
+        specifier: 5.2.2
+        version: 5.2.2(react-hook-form@7.68.0(react@19.2.1))
       '@number-flow/react':
         specifier: 0.5.10
         version: 0.5.10(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -599,6 +602,9 @@ importers:
       react-dropzone:
         specifier: 14.3.8
         version: 14.3.8(react@19.2.1)
+      react-hook-form:
+        specifier: 7.68.0
+        version: 7.68.0(react@19.2.1)
       react-intersection-observer:
         specifier: 10.0.0
         version: 10.0.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1)
@@ -1520,6 +1526,11 @@ packages:
 
   '@golevelup/ts-jest@0.7.0':
     resolution: {integrity: sha512-b5Kf+NiEfWuMGUD5bl/Gm/RqojS4Sr/4Q0ySXN4xn3xlkhgPYG6nGLBeNjk3MiM2I3ztVVFfI7SB8ajqDy6Idw==}
+
+  '@hookform/resolvers@5.2.2':
+    resolution: {integrity: sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -9269,6 +9280,12 @@ packages:
     peerDependencies:
       react: '>= 16.8 || 18.0.0'
 
+  react-hook-form@7.68.0:
+    resolution: {integrity: sha512-oNN3fjrZ/Xo40SWlHf1yCjlMK417JxoSJVUXQjGdvdRCU07NTFei1i1f8ApUAts+IVh14e4EdakeLEA+BEAs/Q==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
+
   react-intersection-observer@10.0.0:
     resolution: {integrity: sha512-JJRgcnFQoVXmbE5+GXr1OS1NDD1gHk0HyfpLcRf0575IbJz+io8yzs4mWVlfaqOQq1FiVjLvuYAdEEcrrCfveg==}
     peerDependencies:
@@ -11755,6 +11772,11 @@ snapshots:
       tslib: 2.8.1
 
   '@golevelup/ts-jest@0.7.0': {}
+
+  '@hookform/resolvers@5.2.2(react-hook-form@7.68.0(react@19.2.1))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.68.0(react@19.2.1)
 
   '@humanfs/core@0.19.1': {}
 
@@ -20762,6 +20784,10 @@ snapshots:
       attr-accept: 2.2.5
       file-selector: 2.1.2
       prop-types: 15.8.1
+      react: 19.2.1
+
+  react-hook-form@7.68.0(react@19.2.1):
+    dependencies:
       react: 19.2.1
 
   react-intersection-observer@10.0.0(react-dom@19.2.1(react@19.2.1))(react@19.2.1):

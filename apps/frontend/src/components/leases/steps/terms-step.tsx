@@ -31,7 +31,7 @@ export function TermsStep({ form }: TermsStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Occupancy & Usage
 				</h3>
 				<div className="space-y-4">
@@ -83,7 +83,7 @@ export function TermsStep({ form }: TermsStepProps) {
 			</div>
 
 			<div>
-				<h3 className="text-lg font-semibold mb-4">
+				<h3 className="typography-large mb-4">
 					Alterations & Modifications
 				</h3>
 				<div className="space-y-4">
@@ -114,7 +114,7 @@ export function TermsStep({ form }: TermsStepProps) {
 			</div>
 
 			<div>
-				<h3 className="text-lg font-semibold mb-4">Pets</h3>
+				<h3 className="typography-large mb-4">Pets</h3>
 				<div className="space-y-4">
 					<form.Field name="petsAllowed">
 						{field => (

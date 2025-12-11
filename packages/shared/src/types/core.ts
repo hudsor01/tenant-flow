@@ -11,15 +11,34 @@ import type { Tables, TablesInsert, Database } from './supabase.js'
 
 // Re-export ActivityItem for use across the app
 export type { ActivityItem }
+
+// ============================================================================
+// DB ENUM TYPE EXPORTS - Single source of truth from PostgreSQL
+// ============================================================================
+// These types are generated from the database schema and should be used
+// throughout the codebase instead of manually defined types.
+
+type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
+
+// Status Enums (from database)
+export type LeaseStatus = Enums<'lease_status'>
+export type UnitStatus = Enums<'unit_status'>
+export type PaymentStatus = Enums<'payment_status'>
+export type MaintenanceStatus = Enums<'maintenance_status'>
+export type MaintenancePriority = Enums<'maintenance_priority'>
+export type PropertyStatus = Enums<'property_status'>
+export type NotificationType = Enums<'notification_type'>
+
+// Other DB Enums (existing)
+export type InvitationType = Enums<'invitation_type'>
+export type SignatureMethod = Enums<'signature_method'>
+export type StripeSubscriptionStatus = Enums<'stripe_subscription_status'>
+
+// Import app-only types that are NOT DB enums
 import type {
   ActivityEntityType as ActivityEntityTypeFromConstants,
-  LeaseStatus as LeaseStatusFromConstants,
   MaintenanceCategory as MaintenanceCategoryFromConstants,
-  MaintenancePriority,
-  PropertyStatus as PropertyStatusFromConstants,
-  PropertyType as PropertyTypeFromConstants,
-  PaymentStatus as PaymentStatusFromConstants,
-  UnitStatus as UnitStatusFromConstants
+  PropertyType as PropertyTypeFromConstants
 } from '../constants/status-types.js'
 
 export type DeepReadonly<T> = {
@@ -155,18 +174,43 @@ export type UnitInsert = TablesInsert<'units'>
 export type TenantInput = TablesInsert<'tenants'>
 export type TenantUpdate = Partial<TenantInput>
 
-// Database table type aliases for backend services
-export type UserRow = Database['public']['Tables']['users']['Row']
-export type PropertyRow = Database['public']['Tables']['properties']['Row']
-export type UnitRow = Database['public']['Tables']['units']['Row']
-export type TenantRow = Database['public']['Tables']['tenants']['Row']
+// ============================================================================
+// DB ROW TYPE EXPORTS - All database table Row types
+// ============================================================================
+// These are the canonical Row types from the generated supabase.ts schema.
+// Use these instead of defining inline types in services.
+
+export type ActivityRow = Database['public']['Tables']['activity']['Row']
+export type BlogRow = Database['public']['Tables']['blogs']['Row']
+export type DocumentRow = Database['public']['Tables']['documents']['Row']
+export type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+export type LeaseTenantRow = Database['public']['Tables']['lease_tenants']['Row']
 export type LeaseRow = Database['public']['Tables']['leases']['Row']
 export type MaintenanceRequestRow = Database['public']['Tables']['maintenance_requests']['Row']
-export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+export type NotificationLogRow = Database['public']['Tables']['notification_logs']['Row']
+export type NotificationRow = Database['public']['Tables']['notifications']['Row']
 export type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+export type PaymentScheduleRow = Database['public']['Tables']['payment_schedules']['Row']
+export type PaymentTransactionRow = Database['public']['Tables']['payment_transactions']['Row']
+export type PropertyRow = Database['public']['Tables']['properties']['Row']
+export type PropertyImageRow = Database['public']['Tables']['property_images']['Row']
 export type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+export type RentDueRow = Database['public']['Tables']['rent_due']['Row']
+export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+export type ReportRunRow = Database['public']['Tables']['report_runs']['Row']
+export type ReportRow = Database['public']['Tables']['reports']['Row']
+export type SecurityAuditLogRow = Database['public']['Tables']['security_audit_log']['Row']
 export type SubscriptionRow = Database['public']['Tables']['subscriptions']['Row']
+export type TenantInvitationRow = Database['public']['Tables']['tenant_invitations']['Row']
+export type TenantRow = Database['public']['Tables']['tenants']['Row']
+export type UnitRow = Database['public']['Tables']['units']['Row']
+export type UserAccessLogRow = Database['public']['Tables']['user_access_log']['Row']
+export type UserFeatureAccessRow = Database['public']['Tables']['user_feature_access']['Row']
+export type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row']
+export type UserRow = Database['public']['Tables']['users']['Row']
+export type WebhookAttemptRow = Database['public']['Tables']['webhook_attempts']['Row']
 export type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
+export type WebhookMetricRow = Database['public']['Tables']['webhook_metrics']['Row']
 
 // Database table insert/update types for backend services
 export type UserInsert = Database['public']['Tables']['users']['Insert']
@@ -227,14 +271,9 @@ export type TenantWithExtras = Tenant & {
 	move_out_date?: string | null
 }
 
-// Re-export status types from constants
+// Re-export app-only types from constants (NOT DB enums)
 export type MaintenanceCategory = MaintenanceCategoryFromConstants
 export type PropertyType = PropertyTypeFromConstants
-export type PropertyStatus = PropertyStatusFromConstants
-export type UnitStatus = UnitStatusFromConstants
-export type LeaseStatus = LeaseStatusFromConstants
-export type PaymentStatus = PaymentStatusFromConstants
-export type Priority = MaintenancePriority
 export type ActivityEntityType = ActivityEntityTypeFromConstants
 
 // Enhanced Unit Row type with relations for UI display
@@ -476,7 +515,7 @@ export interface PropertyPerformance {
 	potentialRevenue: number
 	address_line1: string
 	property_type: string
-	status: 'NO_UNITS' | 'VACANT' | 'FULL' | 'PARTIAL'
+	status: 'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL'
 	trend: 'up' | 'down' | 'stable'
 	trendPercentage: number
 }
