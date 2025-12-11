@@ -27,10 +27,42 @@ import {
 	DialogClose,
 	DialogOverlay,
 	DialogPortal,
-	DialogTrigger
+	DialogTrigger,
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger
 } from '#components/ui/dialog'
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerOverlay,
+	DrawerPortal,
+	DrawerTitle,
+	DrawerTrigger
+} from '#components/ui/drawer'
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger
+} from '#components/ui/sheet'
 
 export type CrudMode = 'create' | 'read' | 'edit' | 'delete'
+export type CrudDialogVariant = 'dialog' | 'alert' | 'confirm' | 'drawer' | 'sheet'
 
 export interface CrudDialogProps
 	extends React.ComponentProps<typeof DialogPrimitive.Root> {
@@ -42,6 +74,10 @@ export interface CrudDialogProps
 	onClose?: () => void
 	/** Whether to persist the modal through navigation (default: false = router.back() on close) */
 	persistThroughNavigation?: boolean
+	/**
+	 * Modal variant (dialog, alert, confirm, drawer, sheet)
+	 */
+	variant?: CrudDialogVariant
 }
 
 /**
@@ -127,15 +163,17 @@ export { CrudDialogBody }
 
 // Re-export Dialog components with CrudDialog prefix for backwards compatibility
 export {
-	DialogContent as CrudDialogContent,
-	DialogHeader as CrudDialogHeader,
-	DialogTitle as CrudDialogTitle,
-	DialogDescription as CrudDialogDescription,
-	DialogFooter as CrudDialogFooter,
-	DialogClose as CrudDialogClose,
-	DialogOverlay as CrudDialogOverlay,
-	DialogPortal as CrudDialogPortal,
-	DialogTrigger as CrudDialogTrigger
+	CrudDialogContent,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogClose,
+	CrudDialogOverlay,
+	CrudDialogPortal,
+	CrudDialogTrigger,
+	CrudDialogAction,
+	CrudDialogCancel
 }
 
 // Also re-export base Dialog components for mixed usage
