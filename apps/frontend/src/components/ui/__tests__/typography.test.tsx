@@ -19,22 +19,22 @@ function TypographyTestComponent({
 	const classes = {
 		'display-2xl': 'text-5xl font-black leading-tight tracking-tight',
 		'display-xl': 'text-4xl font-black leading-tight tracking-tight',
-		'display-lg': 'text-3xl font-bold leading-tight tracking-tight',
-		'heading-xl': 'text-2xl font-bold leading-snug tracking-tight',
+		'display-lg': 'typography-h2 leading-tight tracking-tight',
+		'heading-xl': 'typography-h3 leading-snug tracking-tight',
 		'heading-lg': 'text-xl font-bold leading-snug tracking-tight',
-		'heading-md': 'text-lg font-semibold leading-snug',
+		'heading-md': 'typography-large leading-snug',
 		'heading-sm': 'text-base font-semibold leading-snug',
 		'body-lg': 'text-lg leading-relaxed',
 		'body-md': 'text-base leading-relaxed',
 		'body-sm': 'text-sm leading-relaxed',
 		'body-xs': 'text-xs leading-relaxed',
 		'ui-title': 'text-sm font-semibold leading-none tracking-wide uppercase',
-		'ui-label': 'text-sm font-medium leading-none',
+		'ui-label': 'typography-small leading-none',
 		'ui-caption': 'text-xs font-medium leading-none text-muted-foreground',
 		'hero-primary': 'text-6xl font-black leading-none tracking-tight',
-		'hero-secondary': 'text-4xl font-bold leading-tight tracking-tight',
-		'feature-title': 'text-2xl font-bold leading-tight',
-		'cta-text': 'text-lg font-semibold leading-snug'
+		'hero-secondary': 'typography-h1 leading-tight tracking-tight',
+		'feature-title': 'typography-h3 leading-tight',
+		'cta-text': 'typography-large leading-snug'
 	}
 
 	return (
@@ -55,7 +55,8 @@ describe('Typography System', () => {
 		it('should render heading variants with semantic hierarchy', () => {
 			render(<TypographyTestComponent variant="heading-xl">Heading XL</TypographyTestComponent>)
 			const element = screen.getByTestId('typography-heading-xl')
-			expect(element).toHaveClass('text-2xl', 'font-bold', 'leading-snug', 'tracking-tight')
+			// Uses typography-h3 utility class for semantic hierarchy
+			expect(element).toHaveClass('typography-h3', 'leading-snug', 'tracking-tight')
 		})
 
 		it('should render body variants with readable line heights', () => {
@@ -69,7 +70,8 @@ describe('Typography System', () => {
 		it('should render UI labels with proper styling', () => {
 			render(<TypographyTestComponent variant="ui-label">UI Label</TypographyTestComponent>)
 			const element = screen.getByTestId('typography-ui-label')
-			expect(element).toHaveClass('text-sm', 'font-medium', 'leading-none')
+			// Uses typography-small utility class
+			expect(element).toHaveClass('typography-small', 'leading-none')
 		})
 
 		it('should render captions with muted foreground', () => {
@@ -89,7 +91,8 @@ describe('Typography System', () => {
 		it('should render feature titles with clear hierarchy', () => {
 			render(<TypographyTestComponent variant="feature-title">Feature Title</TypographyTestComponent>)
 			const element = screen.getByTestId('typography-feature-title')
-			expect(element).toHaveClass('text-2xl', 'font-bold', 'leading-tight')
+			// Uses typography-h3 utility class for semantic hierarchy
+			expect(element).toHaveClass('typography-h3', 'leading-tight')
 		})
 	})
 

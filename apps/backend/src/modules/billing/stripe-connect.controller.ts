@@ -4,6 +4,7 @@ import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { validateLimit } from '../../shared/utils/pagination.utils'
 
 
 /**
@@ -61,12 +62,6 @@ function isValidStripeCountry(country: string | undefined): boolean {
 	return STRIPE_SUPPORTED_COUNTRIES.has(normalized)
 }
 
-/** Default pagination limit */
-const DEFAULT_PAGINATION_LIMIT = 10
-
-/** Maximum allowed pagination limit */
-const MAX_PAGINATION_LIMIT = 100
-
 /**
  * Stripe Connect Controller
  *
@@ -77,29 +72,6 @@ export class StripeConnectController {
 
 	constructor(private readonly stripeConnectService: StripeConnectService,
 		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
-
-	/**
-	 * Validates and normalizes pagination limit parameter
-	 * @param limit - Optional string limit from query params
-	 * @returns Normalized limit between 1 and MAX_PAGINATION_LIMIT
-	 * @example
-	 * validateLimit(undefined) // returns DEFAULT_PAGINATION_LIMIT (10)
-	 * validateLimit('50')      // returns 50
-	 * validateLimit('500')     // returns MAX_PAGINATION_LIMIT (100)
-	 * validateLimit('abc')     // returns DEFAULT_PAGINATION_LIMIT (10)
-	 * validateLimit('-5')      // returns DEFAULT_PAGINATION_LIMIT (10)
-	 */
-	private validateLimit(limit?: string): number {
-		if (!limit) return DEFAULT_PAGINATION_LIMIT
-		// Trim whitespace before validation
-		const trimmed = limit.trim()
-		if (!trimmed) return DEFAULT_PAGINATION_LIMIT
-		// Validate format: only digits allowed (no negative signs, decimals, etc.)
-		if (!/^\d+$/.test(trimmed)) return DEFAULT_PAGINATION_LIMIT
-		const parsed = parseInt(trimmed, 10)
-		// Clamp to valid range: at least 1, at most MAX_PAGINATION_LIMIT
-		return Math.min(Math.max(parsed, 1), MAX_PAGINATION_LIMIT)
-	}
 
 	/**
 	 * Retrieves the Stripe Connect account ID for the authenticated user
@@ -426,7 +398,7 @@ export class StripeConnectController {
 	) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const parsedLimit = this.validateLimit(limit)
+		const parsedLimit = validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
 			limit: parsedLimit
 		}
@@ -500,7 +472,7 @@ export class StripeConnectController {
 	) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const parsedLimit = this.validateLimit(limit)
+		const parsedLimit = validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
 			limit: parsedLimit
 		}

@@ -14,7 +14,7 @@ export default function MaintenancePage() {
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
-				<h1 className="text-2xl font-semibold tracking-tight">Maintenance</h1>
+				<h1 className="typography-h3 tracking-tight">Maintenance</h1>
 				<p className="text-muted-foreground">Stay on top of maintenance requests and keep residents updated on progress.</p>
 			</div>
 

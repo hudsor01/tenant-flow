@@ -140,13 +140,13 @@ export class IncomeStatementService {
 			isWithinRange(expense.expense_date ?? expense.created_at, range)
 		)
 		const maintenance = ledger.maintenanceRequests.filter(request =>
-			request.status === 'COMPLETED' &&
+			request.status === 'completed' &&
 			isWithinRange(request.completed_at ?? request.created_at, range)
 		)
 
 		const totalRevenue = payments
 			.filter(
-				payment => payment.status === 'PAID' || Boolean(payment.paid_date)
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
 			)
 			.reduce(
 				(sum, payment) =>

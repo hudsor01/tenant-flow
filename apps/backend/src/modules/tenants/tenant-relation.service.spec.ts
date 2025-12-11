@@ -205,7 +205,7 @@ describe('TenantRelationService', () => {
 					stripe_payment_intent_id: 'pi_123',
 					amount: 1500,
 					currency: 'usd',
-					status: 'paid',
+					status: 'succeeded',
 					payment_method_type: 'card',
 					period_start: '2024-01-01',
 					period_end: '2024-01-31',
@@ -285,7 +285,7 @@ describe('TenantRelationService', () => {
 				{
 					id: 'payment-1',
 					tenant_id: 'tenant-1',
-					status: 'paid',
+					status: 'succeeded',
 					created_at: '2024-01-01T00:00:00Z'
 				},
 				{
@@ -320,7 +320,7 @@ describe('TenantRelationService', () => {
 				{
 					id: 'payment-1',
 					tenant_id: 'tenant-1',
-					status: 'paid',
+					status: 'succeeded',
 					created_at: '2024-02-01T00:00:00Z'
 				},
 				{

@@ -1,16 +1,25 @@
 import { Injectable } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type { DatabaseNotificationEventType } from '@repo/shared/types/notifications'
+import type { NotificationType } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
-type NotificationType = DatabaseNotificationEventType
-
 type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
+
+/**
+ * Maps detailed notification event types to database enum categories
+ */
+function mapEventTypeToCategory(eventType: DatabaseNotificationEventType): NotificationType {
+	if (eventType.startsWith('lease_')) return 'lease'
+	if (eventType.startsWith('subscription_') || eventType.startsWith('payment_') || eventType === 'trial_ending') return 'payment'
+	if (eventType.startsWith('maintenance_')) return 'maintenance'
+	return 'system'
+}
 
 export interface CreateNotificationParams {
 	user_id: string
-	type: NotificationType
+	type: DatabaseNotificationEventType
 	title: string
 	message: string
 	priority?: NotificationPriority
@@ -38,7 +47,8 @@ export class NotificationService {
 			const now = new Date().toISOString()
 			const record: Database['public']['Tables']['notifications']['Insert'] = {
 				user_id: params.user_id,
-				notification_type: params.type,
+				notification_type: mapEventTypeToCategory(params.type),
+				entity_type: params.type, // Store detailed event type for idempotency
 				title: params.title,
 				message: params.message,
 				action_url: params.actionUrl ?? null,
@@ -86,7 +96,8 @@ export class NotificationService {
 			const records: Database['public']['Tables']['notifications']['Insert'][] =
 				notifications.map(params => ({
 					user_id: params.user_id,
-					notification_type: params.type,
+					notification_type: mapEventTypeToCategory(params.type),
+					entity_type: params.type, // Store detailed event type for idempotency
 					title: params.title,
 					message: params.message,
 					action_url: params.actionUrl ?? null,
@@ -211,10 +222,11 @@ export class NotificationService {
 	/**
 	 * Check if a notification already exists (idempotency)
 	 * Prevents duplicate lease expiry notifications
+	 * Checks by detailed event_type stored in entity_type column
 	 */
 	async existsLeaseNotification(
 		user_id: string,
-		notification_type: NotificationType
+		event_type: DatabaseNotificationEventType
 	): Promise<boolean> {
 		try {
 			const { count, error } = await this.supabaseService
@@ -222,13 +234,13 @@ export class NotificationService {
 				.from('notifications')
 				.select('id', { count: 'exact', head: true })
 				.eq('user_id', user_id)
-				.eq('notification_type', notification_type)
+				.eq('entity_type', event_type) // Query by detailed event type
 
 			if (error) {
 				this.logger.warn('Failed to check for existing notification', {
 					error: error.message,
 					user_id,
-					notification_type
+					event_type
 				})
 				return false
 			}
@@ -238,7 +250,7 @@ export class NotificationService {
 			this.logger.error('Error checking for existing notification', {
 				error: error instanceof Error ? error.message : String(error),
 				user_id,
-				notification_type
+				event_type
 			})
 			return false
 		}

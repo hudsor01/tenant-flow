@@ -91,7 +91,7 @@ export default async function BlogArticlePage({
 
 					{/* CTA Section */}
 					<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
-						<h3 className="text-2xl font-bold text-foreground mb-4">
+						<h3 className="typography-h3 text-foreground mb-4">
 							Ready to transform your property management?
 						</h3>
 						<p className="text-muted-foreground mb-6">

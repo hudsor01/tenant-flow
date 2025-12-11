@@ -80,7 +80,7 @@ function BreakdownList({
 						className="flex-between"
 					>
 						<div className="flex items-center gap-2">
-							<span className="text-sm font-medium">{item.label}</span>
+							<span className="typography-small">{item.label}</span>
 							{item.change !== null && <TrendPill value={item.change} />}
 						</div>
 						<div className="text-muted">
@@ -267,7 +267,7 @@ export default function FinancialAnalyticsPage() {
 									<CardDescription>Last 30 days</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<p className="text-3xl font-semibold tabular-nums">
+									<p className="typography-h2 tabular-nums">
 										{formatCurrency(metrics.totalRevenue)}
 									</p>
 									<TrendPill value={metrics.revenueTrend ?? null} />
@@ -279,7 +279,7 @@ export default function FinancialAnalyticsPage() {
 									<CardDescription>After expenses</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<p className="text-3xl font-semibold tabular-nums">
+									<p className="typography-h2 tabular-nums">
 										{formatCurrency(metrics.netIncome)}
 									</p>
 									<TrendPill value={metrics.profitMargin ?? null} />
@@ -291,7 +291,7 @@ export default function FinancialAnalyticsPage() {
 									<CardDescription>Trailing twelve months</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<p className="text-3xl font-semibold tabular-nums">
+									<p className="typography-h2 tabular-nums">
 										{metrics.profitMargin !== null &&
 										metrics.profitMargin !== undefined
 											? formatPercentage(metrics.profitMargin)
@@ -306,7 +306,7 @@ export default function FinancialAnalyticsPage() {
 									<CardDescription>Operating cash</CardDescription>
 								</CardHeader>
 								<CardContent className="space-y-3">
-									<p className="text-3xl font-semibold tabular-nums">
+									<p className="typography-h2 tabular-nums">
 										{formatCurrency(metrics.cashFlow)}
 									</p>
 									<TrendPill value={metrics.revenueTrend ?? null} />
@@ -406,7 +406,7 @@ export default function FinancialAnalyticsPage() {
 											className="flex-between"
 										>
 											<div className="flex items-center gap-2">
-												<span className="text-sm font-medium">
+												<span className="typography-small">
 													{status.status}
 												</span>
 												<Badge variant="outline">{status.count}</Badge>

@@ -219,7 +219,7 @@ export function PropertyForm({
 		return (
 			<div className="flex flex-col items-center justify-center space-y-4 text-center">
 				<CheckCircle className="size-16 text-success" />
-				<h2 className="text-2xl font-bold">Property Created!</h2>
+				<h2 className="typography-h3">Property Created!</h2>
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.
 				</p>
@@ -436,7 +436,7 @@ export function PropertyForm({
 				{/* Property Images - only in edit mode, after property is created */}
 				{mode === 'edit' && property?.id && (
 					<div className="space-y-4 border rounded-lg p-6">
-						<h3 className="text-lg font-semibold">Property Images</h3>
+						<h3 className="typography-large">Property Images</h3>
 						<p className="text-muted">
 							Manage your property photos. First uploaded image appears on property card.
 						</p>
@@ -446,7 +446,7 @@ export function PropertyForm({
 
 						{/* Upload form - add new images */}
 						<div className="border-t pt-4 mt-4">
-							<h4 className="text-sm font-medium mb-4">Add New Images</h4>
+							<h4 className="typography-small mb-4">Add New Images</h4>
 							<PropertyImageDropzone propertyId={property.id} />
 						</div>
 					</div>

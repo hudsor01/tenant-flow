@@ -5,11 +5,10 @@
  * Uses native fetch for NestJS calls.
  */
 
-import { queryOptions } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
-import type { MaintenanceCategory, Priority } from '@repo/shared/types/core'
+import type { MaintenanceCategory, MaintenancePriority } from '@repo/shared/types/core'
+import { createQueryOptions } from './create-query-options'
 
 /**
  * Tenant portal types
@@ -42,7 +41,7 @@ export interface TenantMaintenanceRequest {
 	id: string
 	title: string
 	description: string | null
-	priority: Priority
+	priority: MaintenancePriority
 	status: string
 	category: MaintenanceCategory | null
 	created_at: string
@@ -121,7 +120,7 @@ export interface TenantSettings {
 export interface MaintenanceRequestCreate {
 	title: string
 	description: string
-	priority: Priority
+	priority: MaintenancePriority
 	category?: MaintenanceCategory
 	allowEntry: boolean
 	photos?: string[]
@@ -182,81 +181,81 @@ export const tenantPortalQueries = {
 	all: () => ['tenant-portal'] as const,
 
 	/**
-	 * Dashboard data
-	 */
+ * Dashboard data
+ */
 	dashboard: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'dashboard'],
 			queryFn: () => apiRequest('/api/v1/tenant-portal/dashboard'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			cache: 'DETAIL',
 			refetchOnWindowFocus: false,
 		}),
 
 	/**
 	 * Amount due for current period
-	 * Critical data - uses interval for real-time updates
-	 */
+ * Critical data - uses interval for real-time updates
+ */
 	amountDue: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'amount-due'],
 			queryFn: () => apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
-			...QUERY_CACHE_TIMES.STATS,
+			cache: 'STATS',
 			refetchInterval: 60000, // 1 min - critical payment data
 			refetchIntervalInBackground: false,
 			refetchOnWindowFocus: false,
 		}),
 
 	/**
-	 * Payment history and upcoming payments
-	 */
+ * Payment history and upcoming payments
+ */
 	payments: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'payments'],
 			queryFn: () => apiRequest<{
 				payments: TenantPayment[]
 				methodsEndpoint: string
 			}>('/api/v1/tenants/payments'),
-			...QUERY_CACHE_TIMES.LIST,
+			cache: 'LIST',
 			// No interval - list data refreshes on navigation
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
 	/**
-	 * Autopay/subscription status for active lease
-	 */
+ * Autopay/subscription status for active lease
+ */
 	autopay: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'autopay'],
 			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenants/autopay'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			cache: 'DETAIL',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
 	/**
-	 * Maintenance request history with summary stats
-	 */
+ * Maintenance request history with summary stats
+ */
 	maintenance: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'maintenance'],
 			queryFn: () => apiRequest<{
 				requests: TenantMaintenanceRequest[]
 				summary: TenantMaintenanceStats
 			}>('/api/v1/tenants/maintenance'),
-			...QUERY_CACHE_TIMES.LIST,
+			cache: 'LIST',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
 	/**
-	 * Active lease with unit/property metadata
-	 */
+ * Active lease with unit/property metadata
+ */
 	lease: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'lease'],
 			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenants/leases'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			cache: 'DETAIL',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
@@ -265,25 +264,25 @@ export const tenantPortalQueries = {
  * Lease documents (signed agreement, receipts)
  */
 documents: () =>
-	queryOptions({
+	createQueryOptions({
 		queryKey: [...tenantPortalQueries.all(), 'documents'],
 		queryFn: () =>
 			apiRequest<{ documents: TenantDocument[] }>(
 				'/api/v1/tenants/leases/documents'
 			),
-		...QUERY_CACHE_TIMES.DETAIL,
+		cache: 'DETAIL',
 		refetchOnWindowFocus: false,
 		retry: DEFAULT_RETRY_ATTEMPTS
 	}),
 
 	/**
-	 * Tenant profile and settings
-	 */
+ * Tenant profile and settings
+ */
 	settings: () =>
-		queryOptions({
+		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'settings'],
 			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenants/settings'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			cache: 'DETAIL',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),

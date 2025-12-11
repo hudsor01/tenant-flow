@@ -71,7 +71,7 @@ export const MetricsCard = React.forwardRef<HTMLDivElement, MetricsCardProps>(
 						)}
 					</div>
 					<CardTitle
-						className="tabular-nums @[250px]/card:text-3xl font-semibold text-2xl leading-tight"
+						className="tabular-nums @[250px]/card:typography-h2 text-2xl leading-tight"
 						style={{
 							color: `var(--color-${colorToken})`
 						}}

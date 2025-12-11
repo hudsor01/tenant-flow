@@ -143,7 +143,7 @@ export class CashFlowService {
 		)
 
 		const rentalPaymentsReceived = payments
-			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const operatingExpensesPaid = expenses.reduce(
@@ -152,7 +152,7 @@ export class CashFlowService {
 		)
 
 		const maintenancePaid = maintenance
-			.filter(request => request.status === 'COMPLETED')
+			.filter(request => request.status === 'completed')
 			.reduce(
 				(sum, request) =>
 					sum + (request.actual_cost ?? request.estimated_cost ?? 0),
@@ -210,7 +210,7 @@ export class CashFlowService {
 				const dueDate = parseDate(payment.due_date)
 				return dueDate ? dueDate < start : false
 			})
-			.filter(payment => payment.status === 'PAID' || Boolean(payment.paid_date))
+			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const expensesBefore = ledger.expenses

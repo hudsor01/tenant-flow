@@ -7,10 +7,19 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-import type { MaintenanceRequestCreate } from '@repo/shared/validation/maintenance'
+import type {
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 
-type MaintenanceRequestUpdate = Partial<MaintenanceRequestCreate>
+/** Variables for update mutation including optional optimistic locking version */
+export interface MaintenanceUpdateMutationVariables {
+	id: string
+	data: MaintenanceRequestUpdate
+	version?: number
+}
+
 import { maintenanceQueries } from '../queries/maintenance-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
@@ -46,10 +55,10 @@ export function useMaintenanceRequestUpdateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: MaintenanceRequestUpdate }) =>
+		mutationFn: ({ id, data, version }: MaintenanceUpdateMutationVariables) =>
 			apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
-				body: JSON.stringify(data)
+				body: JSON.stringify(version !== undefined ? { ...data, version } : data)
 			}),
 		onSuccess: (updatedRequest) => {
 			// Update the specific maintenance request in cache

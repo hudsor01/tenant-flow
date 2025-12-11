@@ -129,7 +129,7 @@ export default function TenantDocumentsPage() {
 	return (
 		<div className="space-y-8">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">My Documents</h1>
+					<h1 className="typography-h2 tracking-tight">My Documents</h1>
 					<p className="text-muted-foreground">
 						View and download your lease documents and important notices
 					</p>

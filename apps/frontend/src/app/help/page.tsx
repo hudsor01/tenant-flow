@@ -49,7 +49,7 @@ export default function HelpPage() {
 			<section className="section-spacing">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
-							<h2 className="text-4xl font-bold mb-4">
+							<h2 className="typography-h1 mb-4">
 								Your success team is standing by
 							</h2>
 							<p className="text-xl text-muted-foreground">
@@ -159,7 +159,7 @@ export default function HelpPage() {
 			<section className="section-spacing bg-muted/20">
 					<div className="max-w-6xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
-							<h2 className="text-4xl font-bold mb-4">
+							<h2 className="typography-h1 mb-4">
 								Success stories from our clients
 							</h2>
 							<p className="text-xl text-muted-foreground">
@@ -248,7 +248,7 @@ export default function HelpPage() {
 			<section className="section-spacing">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8">
 						<div className="text-center mb-16">
-							<h2 className="text-4xl font-bold mb-4">Popular resources</h2>
+							<h2 className="typography-h1 mb-4">Popular resources</h2>
 							<p className="text-xl text-muted-foreground">
 								Quick access to the most requested help topics
 							</p>
@@ -312,7 +312,7 @@ export default function HelpPage() {
 			{/* CTA Section */}
 			<section className="section-spacing bg-primary">
 					<div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
-						<h2 className="text-4xl font-bold text-primary-foreground mb-4">
+						<h2 className="typography-h1 text-primary-foreground mb-4">
 							Ready to stop losing money?
 						</h2>
 						<p className="text-xl text-primary-foreground/90 mb-8">

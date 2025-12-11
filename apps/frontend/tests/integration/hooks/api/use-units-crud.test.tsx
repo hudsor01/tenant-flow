@@ -88,7 +88,7 @@ describeIfReady('Units CRUD Integration Tests', () => {
 
 			it('supports status filtering', async () => {
 				const { result } = renderHook(
-					() => useUnitList({ status: 'VACANT' }),
+					() => useUnitList({ status: 'vacant' }),
 					{ wrapper: createWrapper() }
 				)
 

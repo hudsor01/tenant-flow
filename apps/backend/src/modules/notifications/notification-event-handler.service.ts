@@ -69,7 +69,7 @@ export class NotificationEventHandlerService {
 					user_id: event.user_id,
 					title: `${priorityLabel} Maintenance Request`,
 					message: `Maintenance request for ${event.propertyName} - Unit ${event.unit_number}: ${event.title}`,
-					notification_type: `maintenance_${event.priority.toLowerCase()}`,
+					notification_type: 'maintenance',
 					action_url: '/maintenance',
 					entity_id: event.maintenanceId,
 					entity_type: 'maintenance'
@@ -345,7 +345,7 @@ export class NotificationEventHandlerService {
 		user_id: string
 		title: string
 		message: string
-		notification_type: string
+		notification_type: 'maintenance' | 'payment' | 'lease' | 'system'
 		action_url: string
 		entity_id?: string
 		entity_type?: string
@@ -354,7 +354,7 @@ export class NotificationEventHandlerService {
 			user_id: string
 			title: string
 			message: string
-			notification_type: string
+			notification_type: 'maintenance' | 'payment' | 'lease' | 'system'
 			action_url: string
 			is_read: boolean
 			entity_id?: string

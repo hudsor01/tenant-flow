@@ -147,7 +147,7 @@ export function InviteTenantDialog({
 
 					<CrudDialogBody>
 						<div className="bg-muted p-4 rounded-lg space-y-2">
-							<p className="text-sm font-medium">What happens next?</p>
+							<p className="typography-small">What happens next?</p>
 							<ol className="text-muted space-y-1 list-decimal list-inside">
 								<li>Secure email sent to {tenantEmail} (via Supabase Auth)</li>
 								<li>Tenant clicks invitation link (valid 24 hours)</li>

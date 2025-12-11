@@ -142,7 +142,7 @@ export function calculatePropertyFinancials(
 	const revenue = new Map<string, number>()
 	for (const payment of ledger.rentPayments) {
 		if (
-			(payment.status !== 'PAID' && !payment.paid_date) ||
+			(payment.status !== 'succeeded' && !payment.paid_date) ||
 			(range && !isWithinRange(payment.due_date, range))
 		) {
 			continue

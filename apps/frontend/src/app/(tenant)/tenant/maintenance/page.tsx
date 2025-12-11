@@ -24,15 +24,16 @@ export default function TenantMaintenancePage() {
 	const { data: maintenanceData, isLoading, error } = useQuery(maintenanceQueries.tenantPortal())
 	const isMobile = useMediaQuery('(max-width: 768px)')
 
+	// DB enum values are lowercase: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold'
 	const getStatusBadgeClass = (status: string) => {
 		switch (status) {
-			case 'OPEN':
+			case 'open':
 				return 'badge badge-secondary'
-			case 'IN_PROGRESS':
+			case 'in_progress':
 				return 'badge badge-warning'
-			case 'COMPLETED':
+			case 'completed':
 				return 'badge badge-success'
-			case 'CANCELED':
+			case 'cancelled':
 				return 'badge badge-outline'
 			default:
 				return 'badge badge-outline'
@@ -41,18 +42,18 @@ export default function TenantMaintenancePage() {
 
 	const activeRequests =
 		maintenanceData?.requests?.filter(
-			r => r.status === 'OPEN' || r.status === 'IN_PROGRESS'
+			r => r.status === 'open' || r.status === 'in_progress'
 		) || []
 	const completedRequests =
 		maintenanceData?.requests?.filter(
-			r => r.status === 'COMPLETED' || r.status === 'CANCELED'
+			r => r.status === 'completed' || r.status === 'cancelled'
 		) || []
 
 	return (
 		<div className="space-y-8">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">
+					<h1 className="typography-h2 tracking-tight">
 						Maintenance Requests
 					</h1>
 					<p className="text-muted-foreground">

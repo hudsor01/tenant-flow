@@ -58,7 +58,7 @@ export class TenantEmergencyContactService {
 	async getEmergencyContact(
 		user_id: string,
 		tenant_id: string
-	): Promise<EmergencyContactResponse | null> {
+	): Promise<EmergencyContactResponse> {
 		try {
 			// Verify user owns this tenant
 			await this._verifyTenantOwnership(user_id, tenant_id)
@@ -71,15 +71,14 @@ export class TenantEmergencyContactService {
 				.single()
 
 			if (error) {
-				// No tenant found is not an error
 				if (error.code === 'PGRST116') {
-					return null
+					throw new NotFoundException('Tenant not found')
 				}
 				this.logger.error('Failed to fetch tenant emergency contact', {
 					error: error.message,
 					tenant_id
 				})
-				return null
+				throw new NotFoundException('Tenant not found')
 			}
 
 			return mapEmergencyContactToResponse(data)

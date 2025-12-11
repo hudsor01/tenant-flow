@@ -78,54 +78,54 @@ describe('MaintenanceCard', () => {
 	})
 
 	describe('Priority Badges', () => {
-		test('displays URGENT priority with destructive variant', () => {
+		test('displays urgent priority with destructive variant', () => {
 			// Arrange
 			const emergencyRequest = {
 				...defaultRequest,
-				priority: 'URGENT' as const
+				priority: 'urgent' as const
 			}
 
 			// Act
 			render(<MaintenanceCard request={emergencyRequest} />)
 
 			// Assert
-			expect(screen.getByText('URGENT')).toBeInTheDocument()
+			expect(screen.getByText('urgent')).toBeInTheDocument()
 		})
 
-		test('displays HIGH priority with destructive variant', () => {
+		test('displays high priority with destructive variant', () => {
 			// Arrange
 			const highPriorityRequest = {
 				...defaultRequest,
-				priority: 'HIGH' as const
+				priority: 'high' as const
 			}
 
 			// Act
 			render(<MaintenanceCard request={highPriorityRequest} />)
 
 			// Assert
-			expect(screen.getByText('HIGH')).toBeInTheDocument()
+			expect(screen.getByText('high')).toBeInTheDocument()
 		})
 
-		test('displays MEDIUM priority with secondary variant', () => {
+		test('displays medium priority with secondary variant', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
 			// Assert
-			expect(screen.getByText('MEDIUM')).toBeInTheDocument()
+			expect(screen.getByText('medium')).toBeInTheDocument()
 		})
 
-		test('displays LOW priority with outline variant', () => {
+		test('displays low priority with outline variant', () => {
 			// Arrange
 			const lowPriorityRequest = {
 				...defaultRequest,
-				priority: 'LOW' as const
+				priority: 'low' as const
 			}
 
 			// Act
 			render(<MaintenanceCard request={lowPriorityRequest} />)
 
 			// Assert
-			expect(screen.getByText('LOW')).toBeInTheDocument()
+			expect(screen.getByText('low')).toBeInTheDocument()
 		})
 	})
 

@@ -53,7 +53,7 @@ export default function TenantPaymentHistoryPage() {
 		<div className="space-y-8">
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Payment History</h1>
+					<h1 className="typography-h2 tracking-tight">Payment History</h1>
 					<p className="text-muted-foreground">
 						View all your rent payments and download receipts
 					</p>
@@ -75,7 +75,7 @@ export default function TenantPaymentHistoryPage() {
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-32" />
 							) : (
-								<p className="text-2xl font-bold">
+								<p className="typography-h3">
 									{formatCurrency(totalPaid)}
 								</p>
 							)}
@@ -91,7 +91,7 @@ export default function TenantPaymentHistoryPage() {
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-24" />
 							) : lastPayment ? (
-								<p className="text-2xl font-bold">
+								<p className="typography-h3">
 									{lastPayment.formattedDate}
 								</p>
 							) : (

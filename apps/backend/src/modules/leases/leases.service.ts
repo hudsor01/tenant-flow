@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease, LeaseStatus } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -76,7 +76,7 @@ export class LeasesService {
 				countQuery = countQuery.eq('primary_tenant_id', String(query.tenant_id))
 			}
 			if (query.status) {
-				countQuery = countQuery.eq('lease_status', query.status as string)
+				countQuery = countQuery.eq('lease_status', query.status as LeaseStatus)
 			}
 			if (query.start_date) {
 				countQuery = countQuery.gte(
@@ -124,7 +124,7 @@ export class LeasesService {
 				)
 			}
 			if (query.status) {
-				queryBuilder = queryBuilder.eq('lease_status', query.status as string)
+				queryBuilder = queryBuilder.eq('lease_status', query.status as LeaseStatus)
 			}
 			if (query.start_date) {
 				queryBuilder = queryBuilder.gte(

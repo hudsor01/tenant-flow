@@ -9,21 +9,23 @@ import {
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Maintenance priority enum validation
+// DB enum values: 'low' | 'normal' | 'medium' | 'high' | 'urgent'
 export const maintenancePrioritySchema = z.enum([
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'URGENT'
+  'low',
+  'normal',
+  'medium',
+  'high',
+  'urgent'
 ])
 
 // Maintenance status enum validation
+// DB enum values: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold'
 export const maintenanceStatusSchema = z.enum([
-  'pending',
-  'IN_PROGRESS',
-  'SCHEDULED',
-  'COMPLETED',
-  'CANCELLED',
-  'ON_HOLD'
+  'open',
+  'in_progress',
+  'completed',
+  'cancelled',
+  'on_hold'
 ])
 
 // Base maintenance request input schema (matches database exactly)
@@ -42,7 +44,7 @@ export const maintenanceRequestInputSchema = z.object({
 
   priority: maintenancePrioritySchema,
 
-  status: maintenanceStatusSchema.default('pending'),
+  status: maintenanceStatusSchema.default('open'),
 
   requested_by: uuidSchema.optional(),
 
@@ -119,7 +121,7 @@ export const maintenanceRequestCreateSchema = maintenanceRequestInputSchema.omit
   completed_at: true,
   actual_cost: true
 }).extend({
-  status: maintenanceStatusSchema.default('pending')
+  status: maintenanceStatusSchema.default('open')
 })
 
 // Maintenance cost update schema
@@ -177,7 +179,7 @@ export const maintenanceRequestFormSchema = z.object({
     .min(3, 'Title must be at least 3 characters')
     .max(100, 'Title cannot exceed 100 characters'),
   description: requiredString,
-  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+  priority: maintenancePrioritySchema,
   requested_by: z.string().optional(),
   estimated_cost: z.string().optional(),
   scheduled_date: z.string().optional()
@@ -194,7 +196,7 @@ export const transformMaintenanceRequestFormData = (data: MaintenanceRequestForm
   tenant_id: data.tenant_id,
   title: data.title,
   description: data.description,
-  priority: data.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+  priority: data.priority,
   requested_by: data.requested_by || undefined,
   estimated_cost: data.estimated_cost ? parseFloat(data.estimated_cost) : undefined,
   scheduled_date: data.scheduled_date || undefined

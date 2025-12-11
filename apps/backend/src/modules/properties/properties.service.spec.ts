@@ -8,6 +8,7 @@ import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { NotFoundException } from '@nestjs/common'
 // Define createMockProperty locally since it doesn't exist in mocks
 function createMockProperty(overrides?: Partial<any>): any {
   return {
@@ -269,7 +270,7 @@ describe('PropertiesService', () => {
       // RLS enforces ownership, so no manual .eq('owner_id') filter needed
     })
 
-    it('should return null when property not found', async () => {
+    it('should throw NotFoundException when property not found', async () => {
       const mockQueryBuilder = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
@@ -280,12 +281,9 @@ describe('PropertiesService', () => {
 
       mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-      const result = await service.findOne(
-        createMockRequest('user-123'),
-        'nonexistent'
-      )
-
-      expect(result).toBeNull()
+      await expect(
+        service.findOne(createMockRequest('user-123'), 'nonexistent')
+      ).rejects.toThrow(NotFoundException)
     })
   })
 
