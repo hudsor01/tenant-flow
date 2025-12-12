@@ -23,14 +23,13 @@ import {
 } from 'lucide-react'
 import { useState, useCallback, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useModalStore } from '#stores/modal-store'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { apiRequestFormData } from '#lib/api-request'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
-	BulkImportStepperProps,
 	BulkImportResult,
-	ParsedRow
+	ParsedRow,
+	ImportStep
 } from '@repo/shared/types/bulk-import'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
@@ -40,10 +39,16 @@ import { cn } from '#lib/utils'
 
 const logger = createLogger({ component: 'BulkImportStepper' })
 
+interface BulkImportStepperProps {
+	currentStep: ImportStep
+	onStepChange: (step: ImportStep) => void
+	onComplete: () => void
+}
+
 export function BulkImportStepper({
 	currentStep,
 	onStepChange,
-	modalId
+	onComplete
 }: BulkImportStepperProps) {
 	const [file, setFile] = useState<File | null>(null)
 	const [parsedData, setParsedData] = useState<ParsedRow[]>([])
@@ -51,7 +56,6 @@ export function BulkImportStepper({
 	const [result, setResult] = useState<BulkImportResult | null>(null)
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const queryClient = useQueryClient()
-	const { trackMutation, closeOnMutationSuccess } = useModalStore()
 
 	const bulkImportMutation = useMutation({
 		mutationFn: async (uploadFile: File) => {
@@ -83,7 +87,7 @@ export function BulkImportStepper({
 			if (data.success && data.imported > 0) {
 				setResult(data)
 				setTimeout(() => {
-					closeOnMutationSuccess(modalId)
+					onComplete()
 					resetDialog()
 				}, 2000)
 			} else {
@@ -132,7 +136,6 @@ export function BulkImportStepper({
 
 		try {
 			logger.info('Starting bulk import', { fileName: file.name })
-			trackMutation(modalId, 'bulk-import-properties', queryClient)
 			await bulkImportMutation.mutateAsync(file)
 			logger.info('Bulk import initiated successfully')
 		} catch (error) {

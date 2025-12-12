@@ -19,19 +19,6 @@ import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { TenantActionButtons } from '../tenant-action-buttons'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 
-// Mock dependencies
-const mockOpenModal = vi.fn()
-const mockCloseModal = vi.fn()
-const mockIsModalOpen = vi.fn().mockReturnValue(false)
-
-vi.mock('#stores/modal-store', () => ({
-	useModalStore: () => ({
-		openModal: mockOpenModal,
-		closeModal: mockCloseModal,
-		isModalOpen: mockIsModalOpen
-	})
-}))
-
 vi.mock('sonner', () => ({
 	toast: {
 		success: vi.fn(),
@@ -137,7 +124,7 @@ describe('TenantActionButtons', () => {
 			})
 		})
 
-		test('Edit Tenant menu item triggers modal open', async () => {
+		test('Edit Tenant menu item opens edit dialog', async () => {
 			const user = userEvent.setup()
 			render(<TenantActionButtons tenant={MOCK_TENANT} />)
 
@@ -151,7 +138,10 @@ describe('TenantActionButtons', () => {
 			})
 			await user.click(screen.getByRole('menuitem', { name: /edit tenant/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`edit-tenant-${MOCK_TENANT.id}`)
+			// Dialog should open
+			await waitFor(() => {
+				expect(screen.getByRole('dialog')).toBeInTheDocument()
+			})
 		})
 	})
 
@@ -260,13 +250,16 @@ describe('TenantActionButtons', () => {
 	})
 
 	describe('View Button', () => {
-		test('View button opens view modal', async () => {
+		test('View button opens view dialog', async () => {
 			const user = userEvent.setup()
 			render(<TenantActionButtons tenant={MOCK_TENANT} />)
 
 			await user.click(screen.getByRole('button', { name: /view/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`view-tenant-${MOCK_TENANT.id}`)
+			// Dialog should open with tenant info
+			await waitFor(() => {
+				expect(screen.getByRole('dialog')).toBeInTheDocument()
+			})
 		})
 	})
 
