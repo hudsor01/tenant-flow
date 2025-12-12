@@ -51,9 +51,10 @@ export class PropertiesService {
 	): Promise<Property[]> {
 		const userClient = this.supabase.getUserClient(userToken)
 
+		// Select only columns needed for list view (performance optimization)
 		let queryBuilder = userClient
 			.from('properties')
-			.select('*')
+			.select('id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, property_owner_id, created_at, updated_at')
 			.order('created_at', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 
@@ -473,9 +474,10 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 		if (!property)
 			throw new BadRequestException('Property not found or access denied')
 
+		// Select only columns needed for unit list (performance optimization)
 		const { data, error } = await client
 			.from('units')
-			.select('*')
+			.select('id, unit_number, property_id, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 			.eq('property_id', property_id)
 			.order('unit_number', { ascending: true })
 

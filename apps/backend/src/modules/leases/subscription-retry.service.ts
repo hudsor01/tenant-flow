@@ -89,11 +89,15 @@ export class SubscriptionRetryService {
 
     this.logger.log(`Retrying ${leases.length} failed subscription(s)`)
 
-    for (const lease of leases) {
-      await this.retrySubscriptionCreation(client, lease)
-    }
+    // Process all retries in parallel for better performance
+    const results = await Promise.allSettled(
+      leases.map(lease => this.retrySubscriptionCreation(client, lease))
+    )
 
-    this.logger.log('Subscription retry job completed')
+    const succeeded = results.filter(r => r.status === 'fulfilled').length
+    const failed = results.filter(r => r.status === 'rejected').length
+
+    this.logger.log('Subscription retry job completed', { succeeded, failed })
   }
 
   /**

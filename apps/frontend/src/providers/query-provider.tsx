@@ -75,8 +75,8 @@ export function QueryProvider({
 							return baseDelay + jitter
 						},
 
-						// Smart refetch behavior
-						refetchOnWindowFocus: 'always',
+						// Smart refetch behavior - true means "refetch if stale" (default TanStack v5 behavior)
+						refetchOnWindowFocus: true,
 						refetchOnReconnect: 'always',
 						refetchOnMount: true,
 

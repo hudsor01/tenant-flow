@@ -169,7 +169,7 @@ export class PropertyPerformanceService {
 		})
 	}
 
-	async getPropertyUnits(user_id: string): Promise<PropertyUnitDetail[]> {
+	async getPropertyUnits(user_id: string, limit = 100): Promise<PropertyUnitDetail[]> {
 		const client = this.getQueryClient()
 		const { data, error } = await client
 			.from('units')
@@ -187,6 +187,8 @@ export class PropertyPerformanceService {
 				)
 			`)
 			.eq('properties.property_owner_id', user_id)
+			.order('created_at', { ascending: false })
+			.limit(limit)
 
 		if (error) {
 			this.logger.error(`Failed to fetch property units: ${error.message}`)

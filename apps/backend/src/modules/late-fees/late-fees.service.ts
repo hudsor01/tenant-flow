@@ -333,22 +333,18 @@ export class LateFeesService {
 			}
 
 			// Process each overdue payment
-			const results: Array<{
-				paymentId: string
-				late_fee_amount: number
-				daysOverdue: number
-			}> = []
+			const settledResults = await Promise.all(
+				overduePayments.map(async payment => {
+					const calculation = this.calculateLateFee(
+						payment.amount,
+						payment.daysOverdue,
+						config
+					)
 
-			for (const payment of overduePayments) {
-				const calculation = this.calculateLateFee(
-					payment.amount,
-					payment.daysOverdue,
-					config
-				)
+					if (!calculation.shouldApplyFee) return null
 
-				if (calculation.shouldApplyFee) {
 					await this.applyLateFeeToInvoice(
-						userData.stripe_customer_id,
+						userData.stripe_customer_id!,
 						lease_id,
 						payment.id,
 						calculation.late_fee_amount,
@@ -356,13 +352,18 @@ export class LateFeesService {
 						token
 					)
 
-					results.push({
+					return {
 						paymentId: payment.id,
 						late_fee_amount: calculation.late_fee_amount,
 						daysOverdue: payment.daysOverdue
-					})
-				}
-			}
+					}
+				})
+			)
+
+			const results = settledResults.filter(
+				(result): result is { paymentId: string; late_fee_amount: number; daysOverdue: number } =>
+					Boolean(result)
+			)
 
 			const totalLateFees = results.reduce((sum, r) => sum + r.late_fee_amount, 0)
 

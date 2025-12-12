@@ -2,14 +2,13 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogBody,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Label } from '#components/ui/label'
 import {
 	Select,
@@ -97,16 +96,16 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 
 	return (
 		<CrudDialog mode="create" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-md">
-				<CrudDialogHeader>
-					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
 						<CreditCard className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
 						Pay Rent
-					</CrudDialogTitle>
-					<CrudDialogDescription>
+					</DialogTitle>
+					<DialogDescription>
 						Make a one-time rent payment for this lease
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 
 				<CrudDialogBody>
 					{/* Rent Amount Display */}
@@ -148,7 +147,7 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 					</div>
 				</CrudDialogBody>
 
-				<CrudDialogFooter>
+				<DialogFooter>
 					<Button type="button" variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -162,8 +161,8 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 					>
 						{createPayment.isPending ? 'Processing...' : 'Pay Now'}
 					</Button>
-				</CrudDialogFooter>
-			</CrudDialogContent>
+				</DialogFooter>
+			</DialogContent>
 		</CrudDialog>
 	)
 }

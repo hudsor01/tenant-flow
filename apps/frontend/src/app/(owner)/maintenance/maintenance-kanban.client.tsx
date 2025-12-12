@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import {
 	DndContext,
 	DragEndEvent,
@@ -73,15 +73,19 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	// Grid snapping for professional alignment (16px grid)
 	const snapToGrid = createSnapModifier(16)
 
-	// Group requests by status
-	const requestsByStatus = (requests || []).reduce(
-		(acc, request) => {
-			const status = request.status
-			if (status && !acc[status]) acc[status] = []
-			if (status) acc[status].push(request)
-			return acc
-		},
-		{} as Record<MaintenanceStatus, MaintenanceRequestWithRelations[]>
+	// Memoize grouping to avoid recalculating on every render
+	const requestsByStatus = useMemo(
+		() =>
+			(requests || []).reduce(
+				(acc, request) => {
+					const status = request.status
+					if (status && !acc[status]) acc[status] = []
+					if (status) acc[status].push(request)
+					return acc
+				},
+				{} as Record<MaintenanceStatus, MaintenanceRequestWithRelations[]>
+			),
+		[requests]
 	)
 
 	const handleDragStart = (event: DragStartEvent) => {

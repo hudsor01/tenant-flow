@@ -5,13 +5,12 @@ import { useRouter } from 'next/navigation'
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody
-} from '#components/ui/crud-dialog'
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription
+} from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { useModalStore } from '#stores/modal-store'
 
 const QUICK_CREATE_OPTIONS = [
@@ -54,13 +53,13 @@ export function QuickCreateDialog() {
 
 	return (
 		<CrudDialog mode="create" modalId={modalId}>
-			<CrudDialogContent>
-				<CrudDialogHeader>
-					<CrudDialogTitle>Quick Create</CrudDialogTitle>
-					<CrudDialogDescription>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Quick Create</DialogTitle>
+					<DialogDescription>
 						Choose what you'd like to create
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<CrudDialogBody>
 					<div className="grid gap-3">
 						{QUICK_CREATE_OPTIONS.map(option => (
@@ -81,7 +80,7 @@ export function QuickCreateDialog() {
 						))}
 					</div>
 				</CrudDialogBody>
-			</CrudDialogContent>
+			</DialogContent>
 		</CrudDialog>
 	)
 }

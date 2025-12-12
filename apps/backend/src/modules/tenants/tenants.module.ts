@@ -17,6 +17,8 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
+import { PaymentHistoryService } from './payment-history.service'
+import { PaymentStatusService } from './payment-status.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 
@@ -62,6 +64,8 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
+		PaymentHistoryService,
+		PaymentStatusService,
 		TenantPaymentService,
 		TenantPlatformInvitationService,
 		TenantInvitationTokenService
@@ -79,6 +83,8 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 		TenantCrudService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
+		PaymentHistoryService,
+		PaymentStatusService,
 		TenantPaymentService,
 		TenantPlatformInvitationService,
 		TenantInvitationTokenService

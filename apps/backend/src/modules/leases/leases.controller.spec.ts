@@ -14,6 +14,7 @@ import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
+import { LeaseDocumentService } from './lease-document.service'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
@@ -21,6 +22,7 @@ describe('LeasesController', () => {
 	let mockFinancialService: jest.Mocked<LeaseFinancialService>
 	let mockLifecycleService: jest.Mocked<LeaseLifecycleService>
 	let mockSignatureService: jest.Mocked<LeaseSignatureService>
+	let mockLeaseDocumentService: jest.Mocked<LeaseDocumentService>
 
 	const generateUUID = () => randomUUID()
 
@@ -80,6 +82,13 @@ describe('LeasesController', () => {
 			terminate: jest.fn()
 		} as unknown as jest.Mocked<LeaseLifecycleService>
 
+		mockLeaseDocumentService = {
+			getSigningUrl: jest.fn(),
+			cancelSignatureRequest: jest.fn(),
+			resendSignatureRequest: jest.fn(),
+			getSignedDocumentUrl: jest.fn()
+		} as unknown as jest.Mocked<LeaseDocumentService>
+
 		mockSignatureService = {
 			sendForSignature: jest.fn(),
 			signLeaseAsOwner: jest.fn(),
@@ -107,6 +116,10 @@ describe('LeasesController', () => {
 				{
 					provide: LeaseSignatureService,
 					useValue: mockSignatureService
+				},
+				{
+					provide: LeaseDocumentService,
+					useValue: mockLeaseDocumentService
 				},
 				{
 					provide: SupabaseService,

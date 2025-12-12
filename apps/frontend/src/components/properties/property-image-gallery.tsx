@@ -120,13 +120,17 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 							className="relative aspect-video group cursor-pointer overflow-hidden rounded-lg bg-muted"
 							onClick={() => goToImage(idx)}
 						>
-							{/* Image */}
+							{/* Image - Primary loads eagerly, others lazy with blur placeholder */}
 							<Image
 								src={image.image_url}
 								alt={`Property image ${idx + 1}`}
 								fill
 								className="object-cover transition-transform group-hover:scale-105"
 								sizes="(max-width: 640px) 100vw, 50vw"
+								priority={isPrimary}
+								loading={isPrimary ? 'eager' : 'lazy'}
+								placeholder="blur"
+								blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZTVlN2ViIi8+PC9zdmc+"
 							/>
 
 							{/* Primary badge */}

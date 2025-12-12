@@ -28,6 +28,15 @@ export interface LedgerData {
 	properties: PropertyPartial[]
 }
 
+type LedgerAggregationRow = {
+	rent_payments: RentPaymentPartial[]
+	expenses: ExpensePartial[]
+	leases: LeasePartial[]
+	maintenance_requests: MaintenanceRequestPartial[]
+	units: UnitPartial[]
+	properties: PropertyPartial[]
+}
+
 export interface DateRange {
 	start?: Date
 	end?: Date
@@ -40,45 +49,29 @@ export interface PropertyFinancials {
 	unitPropertyMap: Map<string, string>
 }
 
+/**
+ * Load all ledger data in a single nested query (was 6 parallel queries).
+ * This reduces database round-trips from 6 to 1, improving latency significantly.
+ */
 export async function loadLedgerData(
 	client: SupabaseClient<Database>
 ): Promise<LedgerData> {
-	const [
-		rentPaymentsResult,
-		expensesResult,
-		leasesResult,
-		maintenanceResult,
-		unitsResult,
-		propertiesResult
-	] = await Promise.all([
-		client.from('rent_payments').select('status, paid_date, due_date, amount, lease_id, application_fee_amount, late_fee_amount'),
-		client.from('expenses').select('expense_date, created_at, amount, maintenance_request_id'),
-		client.from('leases').select('id, unit_id, security_deposit'),
-		client.from('maintenance_requests').select('id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'),
-		client.from('units').select('id, property_id'),
-		client.from('properties').select('id, name, created_at')
-	])
+	const { data, error } = await client.rpc('ledger_aggregation')
 
-	const errors = [
-		rentPaymentsResult.error && `rent_payments: ${rentPaymentsResult.error.message}`,
-		expensesResult.error && `expenses: ${expensesResult.error.message}`,
-		leasesResult.error && `leases: ${leasesResult.error.message}`,
-		maintenanceResult.error && `maintenance_requests: ${maintenanceResult.error.message}`,
-		unitsResult.error && `units: ${unitsResult.error.message}`,
-		propertiesResult.error && `properties: ${propertiesResult.error.message}`
-	].filter(Boolean)
-
-	if (errors.length) {
-		throw new Error(`Failed to load ledger data - ${errors.join('; ')}`)
+	if (error) {
+		throw new Error(`Failed to load ledger data: ${error.message}`)
 	}
 
+	// RPC returns JSON object with all aggregated data
+	const row = data as LedgerAggregationRow | null
+
 	return {
-		rentPayments: rentPaymentsResult.data ?? [],
-		expenses: expensesResult.data ?? [],
-		leases: leasesResult.data ?? [],
-		maintenanceRequests: maintenanceResult.data ?? [],
-		units: unitsResult.data ?? [],
-		properties: propertiesResult.data ?? []
+		rentPayments: row?.rent_payments ?? [],
+		expenses: row?.expenses ?? [],
+		leases: row?.leases ?? [],
+		maintenanceRequests: row?.maintenance_requests ?? [],
+		units: row?.units ?? [],
+		properties: row?.properties ?? []
 	}
 }
 

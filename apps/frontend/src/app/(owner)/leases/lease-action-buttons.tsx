@@ -9,8 +9,13 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
+	AlertDialogTitle,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription
 } from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -20,14 +25,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody
-} from '#components/ui/crud-dialog'
 import { useModalStore } from '#stores/modal-store'
 import type { Lease } from '@repo/shared/types/core'
 import { Input } from '#components/ui/input'
@@ -217,11 +214,11 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			{getStatusBadge(lease.lease_status)}
 
 			<CrudDialog mode="read" modalId={`edit-lease-${lease.id}`}>
-				<CrudDialogContent>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Lease Details</CrudDialogTitle>
-						<CrudDialogDescription>View lease information</CrudDialogDescription>
-					</CrudDialogHeader>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Lease Details</DialogTitle>
+						<DialogDescription>View lease information</DialogDescription>
+					</DialogHeader>
 					<CrudDialogBody>
 						<div>
 							<Label>Start Date</Label>
@@ -244,7 +241,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 							{getStatusBadge(lease.lease_status)}
 						</div>
 					</CrudDialogBody>
-				</CrudDialogContent>
+				</DialogContent>
 			</CrudDialog>
 		</div>
 	)

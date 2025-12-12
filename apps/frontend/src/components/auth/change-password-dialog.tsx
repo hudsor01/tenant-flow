@@ -2,14 +2,13 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogBody,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useChangePassword } from '#hooks/api/use-auth'
 import { useModalStore } from '#stores/modal-store'
@@ -139,16 +138,16 @@ export function ChangePasswordDialog() {
 
 	return (
 		<CrudDialog mode="edit" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-[500px]">
-				<CrudDialogHeader>
-					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+			<DialogContent className="sm:max-w-[500px]">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
 						<Lock className="size-[var(--spacing-5)]" />
 						Change Password
-					</CrudDialogTitle>
-					<CrudDialogDescription>
+					</DialogTitle>
+					<DialogDescription>
 						Enter your current password and choose a new secure password
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)]">
 					<CrudDialogBody>
 						{/* Current Password */}
@@ -273,7 +272,7 @@ export function ChangePasswordDialog() {
 						)}
 					</CrudDialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -288,9 +287,9 @@ export function ChangePasswordDialog() {
 						>
 							{changePassword.isPending ? 'Changing...' : 'Change Password'}
 						</Button>
-					</CrudDialogFooter>
+					</DialogFooter>
 				</form>
-			</CrudDialogContent>
+			</DialogContent>
 		</CrudDialog>
 	)
 }

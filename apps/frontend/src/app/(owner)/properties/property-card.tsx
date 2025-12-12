@@ -13,7 +13,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import type { Property } from '@repo/shared/types/core'
+import type { Property, Unit } from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
 import {
 	ArrowDownRight,
 	ArrowUpRight,
@@ -30,8 +31,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { usePropertyImages } from '#hooks/api/use-properties'
-import { useUnitsByProperty } from '#hooks/api/use-unit'
+import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { useQuery } from '@tanstack/react-query'
 
 interface PropertyCardProps {
 	property: Property
@@ -42,31 +44,53 @@ interface PropertyCardProps {
 	className?: string
 	/** Tab index for keyboard navigation */
 	tabIndex?: number
+	/** Pre-loaded units from parent (avoids N+1 query). When undefined, fetches data. */
+	units?: Unit[] | undefined
+	/** Pre-loaded primary image from parent (avoids N+1 query). When undefined, fetches data. */
+	primaryImage?: Tables<'property_images'> | null | undefined
 }
 
 import { cn } from '#lib/utils'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 
 export const PropertyCard = memo(function PropertyCard({
 	property,
 	onDelete,
 	animationDelay = 0,
 	className,
-	tabIndex = 0
+	tabIndex = 0,
+	units: propUnits,
+	primaryImage: propPrimaryImage
 }: PropertyCardProps) {
 	const router = useRouter()
-	const { data: images } = usePropertyImages(property.id)
-	const { data: unitsResponse } = useUnitsByProperty(property.id)
-	const primaryImage = images?.[0]
-	const units = unitsResponse ?? []
 
-	// Calculate property metrics from units
-	const totalUnits = units.length
-	const occupiedUnits = units.filter(unit => unit.status === 'occupied').length
-	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-	const monthlyRevenue = units
-		.filter(unit => unit.status === 'occupied')
-		.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
+	// Only fetch if props not provided (avoids N+1 in list views)
+	// When parent provides data, these queries are disabled
+	const { data: fetchedImages } = useQuery({
+		...propertyQueries.images(property.id),
+		enabled: propPrimaryImage === undefined
+	})
+	const { data: fetchedUnits } = useQuery({
+		...unitQueries.byProperty(property.id),
+		enabled: propUnits === undefined
+	})
+
+	// Use props if provided, otherwise fall back to fetched data
+	const primaryImage = propPrimaryImage !== undefined ? propPrimaryImage : fetchedImages?.[0]
+
+	// Memoize units to maintain stable reference for dependent calculations
+	const units = useMemo(() => propUnits ?? fetchedUnits ?? [], [propUnits, fetchedUnits])
+
+	// Memoize property metrics calculations to avoid recalculating on every render
+	const { totalUnits, occupiedUnits, occupancyRate, monthlyRevenue } = useMemo(() => {
+		const total = units.length
+		const occupied = units.filter(unit => unit.status === 'occupied').length
+		const rate = total > 0 ? (occupied / total) * 100 : 0
+		const revenue = units
+			.filter(unit => unit.status === 'occupied')
+			.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
+		return { totalUnits: total, occupiedUnits: occupied, occupancyRate: rate, monthlyRevenue: revenue }
+	}, [units])
 
 	// Mock revenue change for now (would come from analytics in production)
 	const revenueChange = 5.2 as number

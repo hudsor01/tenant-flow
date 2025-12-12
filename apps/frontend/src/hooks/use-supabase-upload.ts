@@ -20,7 +20,9 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
     allowedMimeTypes = [],
     maxFileSize = Number.POSITIVE_INFINITY,
     maxFiles = 1,
-    cacheControl = 3600,
+    // Default to 1 year cache for immutable assets (images, documents)
+    // Property images don't change once uploaded - they're replaced with new uploads
+    cacheControl = 31536000,
     upsert = false,
     autoUpload = false,
   } = options

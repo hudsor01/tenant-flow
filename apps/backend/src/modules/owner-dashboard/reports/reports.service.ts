@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import type { MetricTypeValue, PeriodTypeValue } from './dto/reports-query.dto'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { ZeroCacheService } from '../../../cache/cache.service'
 
 export interface MetricTrend {
 	current: number
@@ -24,7 +25,11 @@ export interface TimeSeriesDataPoint {
 @Injectable()
 export class ReportsService {
 
-	constructor(private readonly dashboardAnalytics: DashboardAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardAnalytics: DashboardAnalyticsService,
+		private readonly logger: AppLogger,
+		private readonly cache: ZeroCacheService
+	) {}
 
 	/**
 	 * Get metric trend comparing current period to previous period
@@ -34,23 +39,42 @@ export class ReportsService {
 		metric: MetricTypeValue,
 		period: PeriodTypeValue = 'month'
 	): Promise<MetricTrend> {
+		// Check cache first (5min TTL for trend data)
+		const cacheKey = ZeroCacheService.getUserKey(user_id, 'reports:metric-trend', { metric, period })
+		const cached = this.cache.get<MetricTrend>(cacheKey)
+		if (cached) {
+			this.logger.debug('Metric trend cache hit', { user_id, metric })
+			return cached
+		}
+
 		this.logger.log('Calculating metric trend', { user_id, metric, period })
 
 		try {
+			let result: MetricTrend
+
 			switch (metric) {
 				case 'occupancy_rate':
-					return this.getOccupancyTrend(user_id, period)
+					result = await this.getOccupancyTrend(user_id, period)
+					break
 				case 'active_tenants':
-					return this.getActiveTenantsTrend(user_id, period)
+					result = await this.getActiveTenantsTrend(user_id, period)
+					break
 				case 'monthly_revenue':
-					return this.getRevenueTrend(user_id, period)
+					result = await this.getRevenueTrend(user_id, period)
+					break
 				case 'open_maintenance':
 				case 'total_maintenance':
-					return this.getMaintenanceTrend(user_id, period)
+					result = await this.getMaintenanceTrend(user_id, period)
+					break
 				default:
 					this.logger.warn('Unknown metric requested', { metric })
 					return this.emptyTrend()
 			}
+
+			// Cache result for 5 minutes
+			this.cache.set(cacheKey, result, 300000, [`user:${user_id}`, 'reports'])
+
+			return result
 		} catch (error) {
 			this.logger.error('Failed to calculate metric trend', {
 				error: error instanceof Error ? error.message : String(error),
@@ -70,25 +94,43 @@ export class ReportsService {
 		metric: MetricTypeValue,
 		days: number = 30
 	): Promise<TimeSeriesDataPoint[]> {
+		// Check cache first (5min TTL for time series data)
+		const cacheKey = ZeroCacheService.getUserKey(user_id, 'reports:time-series', { metric, days })
+		const cached = this.cache.get<TimeSeriesDataPoint[]>(cacheKey)
+		if (cached) {
+			this.logger.debug('Time series cache hit', { user_id, metric })
+			return cached
+		}
+
 		this.logger.log('Fetching time series', { user_id, metric, days })
 
 		try {
 			const months = Math.max(1, Math.ceil(days / 30))
+			let result: TimeSeriesDataPoint[]
 
 			switch (metric) {
 				case 'occupancy_rate':
-					return this.getOccupancyTimeSeries(user_id, months)
+					result = await this.getOccupancyTimeSeries(user_id, months)
+					break
 				case 'monthly_revenue':
-					return this.getRevenueTimeSeries(user_id, months)
+					result = await this.getRevenueTimeSeries(user_id, months)
+					break
 				case 'active_tenants':
-					return this.getTenantTimeSeries(user_id, months)
+					result = await this.getTenantTimeSeries(user_id, months)
+					break
 				case 'open_maintenance':
 				case 'total_maintenance':
-					return this.getMaintenanceTimeSeries(user_id, months)
+					result = await this.getMaintenanceTimeSeries(user_id, months)
+					break
 				default:
 					this.logger.warn('Unknown metric for time series', { metric })
 					return []
 			}
+
+			// Cache result for 5 minutes
+			this.cache.set(cacheKey, result, 300000, [`user:${user_id}`, 'reports'])
+
+			return result
 		} catch (error) {
 			this.logger.error('Failed to fetch time series', {
 				error: error instanceof Error ? error.message : String(error),

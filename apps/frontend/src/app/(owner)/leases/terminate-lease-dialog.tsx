@@ -1,6 +1,13 @@
 'use client'
 
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
+import {
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter
+} from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Button } from '#components/ui/button'
 import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -38,14 +45,14 @@ export function TerminateLeaseDialog({
 
 	return (
 		<CrudDialog mode="edit" open={open} onOpenChange={onOpenChange}>
-			<CrudDialogContent className="sm:max-w-125">
+			<DialogContent className="sm:max-w-125">
 				<form onSubmit={handleSubmit}>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Terminate Lease</CrudDialogTitle>
-						<CrudDialogDescription>
+					<DialogHeader>
+						<DialogTitle>Terminate Lease</DialogTitle>
+						<DialogDescription>
 							This action will terminate the lease early and mark it as TERMINATED. This action cannot be undone.
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<CrudDialogBody>
 						<div className="space-y-6">
 							{/* Warning Banner with Icon */}
@@ -66,7 +73,7 @@ export function TerminateLeaseDialog({
 
 				</div>
 					</CrudDialogBody>
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -78,9 +85,9 @@ export function TerminateLeaseDialog({
 						<Button type="submit" disabled={terminateLease.isPending}>
 							{terminateLease.isPending ? 'Terminating...' : 'Terminate Lease'}
 						</Button>
-					</CrudDialogFooter>
+					</DialogFooter>
 				</form>
-			</CrudDialogContent>
+			</DialogContent>
 		</CrudDialog>
 	)
 }

@@ -136,27 +136,15 @@ describe('TenantRelationService', () => {
 				})
 			}
 
-			// Mock properties query with nested units and leases (optimized query)
-			const propertiesBuilder = {
+			// Mock leases query (service now queries leases directly by property_owner_id)
+			const leasesBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({
+				eq: jest.fn().mockReturnThis(),
+				not: jest.fn().mockResolvedValue({
 					data: [
-						{
-							id: 'prop-1',
-							units: [
-								{
-									id: 'unit-1',
-									leases: [
-										{ primary_tenant_id: 'tenant-1' },
-										{ primary_tenant_id: 'tenant-1' } // Duplicate
-									]
-								},
-								{
-									id: 'unit-2',
-									leases: [{ primary_tenant_id: 'tenant-2' }]
-								}
-							]
-						}
+						{ primary_tenant_id: 'tenant-1' },
+						{ primary_tenant_id: 'tenant-1' }, // Duplicate
+						{ primary_tenant_id: 'tenant-2' }
 					],
 					error: null
 				})
@@ -164,7 +152,7 @@ describe('TenantRelationService', () => {
 
 			;(mockClient.from as jest.Mock)
 				.mockReturnValueOnce(ownerBuilder)
-				.mockReturnValueOnce(propertiesBuilder)
+				.mockReturnValueOnce(leasesBuilder)
 
 			const result = await service.getTenantIdsForOwner(mockAuthUserId)
 

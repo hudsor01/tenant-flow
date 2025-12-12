@@ -7,7 +7,14 @@
 
 'use client'
 
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
+import {
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogFooter
+} from '#components/ui/dialog'
+import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -121,14 +128,14 @@ export function RenewLeaseDialog({
 
 	return (
 		<CrudDialog mode="edit" open={open} onOpenChange={handleDialogChange}>
-			<CrudDialogContent className="sm:max-w-125">
+			<DialogContent className="sm:max-w-125">
 				<form onSubmit={handleSubmit}>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Renew Lease</CrudDialogTitle>
-						<CrudDialogDescription>
+					<DialogHeader>
+						<DialogTitle>Renew Lease</DialogTitle>
+						<DialogDescription>
 							Create a new lease term with optional rent adjustment
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 					<CrudDialogBody>
 						<div className="space-y-6 mt-4">
 							{/* Current Lease Info */}
@@ -308,7 +315,7 @@ export function RenewLeaseDialog({
 							</div>
 						</div>
 					</CrudDialogBody>
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -320,9 +327,9 @@ export function RenewLeaseDialog({
 						<Button type="submit" disabled={renewLease.isPending}>
 							{renewLease.isPending ? 'Renewing...' : 'Renew Lease'}
 						</Button>
-					</CrudDialogFooter>
+					</DialogFooter>
 				</form>
-			</CrudDialogContent>
+			</DialogContent>
 		</CrudDialog>
 	)
 }
