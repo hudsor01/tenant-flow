@@ -26,7 +26,6 @@ import { Building2, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useModalStore } from '#stores/modal-store'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { apiRequest } from '#lib/api-request'
 
@@ -35,7 +34,7 @@ const logger = createLogger({ component: 'InviteTenantForm' })
 interface InviteTenantFormProps {
 	properties: Property[]
 	units: Unit[]
-	modalId?: string
+	onSuccess?: () => void
 }
 
 interface InviteTenantResponse {
@@ -60,12 +59,11 @@ interface InviteTenantResponse {
 export function InviteTenantForm({
 	properties,
 	units,
-	modalId
+	onSuccess
 }: InviteTenantFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
-	const { closeModal } = useModalStore()
 
 	const inviteTenantMutation = useMutation({
 		mutationFn: async (payload: InviteTenantRequest) =>
@@ -112,10 +110,8 @@ export function InviteTenantForm({
 					description: `${value.first_name} ${value.last_name} will receive an email to access their tenant portal.`
 				})
 
-				// Close modal if in modal context
-				if (modalId) {
-					closeModal(modalId)
-				}
+				// Call onSuccess callback if provided
+				onSuccess?.()
 
 				router.push('/tenants')
 				router.refresh()
@@ -151,9 +147,6 @@ export function InviteTenantForm({
 	}, [availableUnits, form])
 
 	const handleCancel = () => {
-		if (modalId) {
-			closeModal(modalId)
-		}
 		router.back()
 	}
 

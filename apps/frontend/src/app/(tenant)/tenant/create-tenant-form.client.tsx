@@ -33,7 +33,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { useModalStore } from '#stores/modal-store'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { apiRequest } from '#lib/api-request'
 
@@ -72,7 +71,7 @@ const inviteTenantSchema = {
 interface CreateTenantFormProps {
 	properties: Property[]
 	units: Unit[]
-	modalId?: string
+	onSuccess?: () => void
 }
 
 interface InviteTenantRequest {
@@ -103,12 +102,11 @@ interface InviteTenantResponse {
 export function CreateTenantForm({
 	properties,
 	units,
-	modalId
+	onSuccess
 }: CreateTenantFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const [selectedproperty_id, setSelectedproperty_id] = useState('')
-	const { trackMutation, closeOnMutationSuccess } = useModalStore()
 
 	const inviteTenantMutation = useMutation({
 		mutationFn: async (payload: InviteTenantRequest) =>
@@ -137,11 +135,6 @@ export function CreateTenantForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				// Track mutation for auto-close if in modal
-				if (modalId) {
-					trackMutation(modalId, 'create-tenant', queryClient)
-				}
-
 				// Validate numeric conversions
 				const rent_amount = Number.parseFloat(value.rent_amount)
 				const security_deposit = Number.parseFloat(value.security_deposit)
@@ -179,10 +172,8 @@ export function CreateTenantForm({
 					description: response.message
 				})
 
-				// Close modal on success if tracked
-				if (modalId) {
-					closeOnMutationSuccess('create-tenant')
-				}
+				// Call onSuccess callback if provided
+				onSuccess?.()
 
 				router.push(`/tenants/${response.tenant_id}`)
 			} catch (error) {

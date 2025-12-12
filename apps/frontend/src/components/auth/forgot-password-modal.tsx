@@ -13,25 +13,28 @@ import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/loading-spinner'
 import { useSupabasePasswordReset } from '#hooks/api/use-auth'
-import { useModalStore } from '#stores/modal-store'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
 import { useState } from 'react'
 
-export function ForgotPasswordModal() {
-	const { closeModal, isModalOpen } = useModalStore()
+interface ForgotPasswordModalProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}
+
+export function ForgotPasswordModal({ open, onOpenChange }: ForgotPasswordModalProps) {
 	const [email, setEmail] = useState('')
 	const [isSubmitted, setIsSubmitted] = useState(false)
 
 	const resetPasswordMutation = useSupabasePasswordReset()
 
-	const modalId = 'forgot-password'
-
 	// Reset state when modal closes
-	const handleOpenChange = () => {
-		setEmail('')
-		setIsSubmitted(false)
-		resetPasswordMutation.reset()
-		closeModal(modalId)
+	const handleOpenChange = (open: boolean) => {
+		if (!open) {
+			setEmail('')
+			setIsSubmitted(false)
+			resetPasswordMutation.reset()
+		}
+		onOpenChange(open)
 	}
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -48,10 +51,8 @@ export function ForgotPasswordModal() {
 	}
 
 	return (
-		<>
-			{isModalOpen(modalId) && (
-				<Dialog open={true} onOpenChange={handleOpenChange}>
-					<DialogContent className="sm:max-w-md">
+		<Dialog open={open} onOpenChange={handleOpenChange}>
+			<DialogContent className="sm:max-w-md">
 						{!isSubmitted ? (
 							<>
 								<DialogHeader>
@@ -96,7 +97,7 @@ export function ForgotPasswordModal() {
 										<Button
 											type="button"
 											variant="outline"
-											onClick={handleOpenChange}
+											onClick={() => handleOpenChange(false)}
 											disabled={resetPasswordMutation.isPending}
 											className="flex-1"
 										>
@@ -164,16 +165,14 @@ export function ForgotPasswordModal() {
 										>
 											Send Again
 										</Button>
-										<Button onClick={handleOpenChange} className="flex-1">
+										<Button onClick={() => handleOpenChange(false)} className="flex-1">
 											Done
 										</Button>
 									</div>
 								</div>
 							</>
 						)}
-					</DialogContent>
-				</Dialog>
-			)}
-		</>
+			</DialogContent>
+		</Dialog>
 	)
 }
