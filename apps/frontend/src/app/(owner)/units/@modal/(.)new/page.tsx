@@ -6,7 +6,7 @@ import { RouteModal } from '#components/ui/route-modal'
  */
 export default function NewUnitModal() {
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal intent="create" className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			<div className="space-y-6">
 				<div className="space-y-2">
 					<h2 className="typography-h3">Add New Unit</h2>

@@ -1,16 +1,14 @@
 /**
  * Navigation Store - Global Navigation State Management
  *
- * Follows Zustand best practices and CLAUDE.md guidelines:
- * - Manages navigation state globally (mobile menu, breadcrumbs, active routes)
- * - Provides consistent navigation behavior across the app
- * - Supports navigation history and deep linking
- * - Integrates with Next.js routing
+ * Manages navigation state globally (mobile menu, breadcrumbs, active routes)
+ * Provides consistent navigation behavior across the app
+ * Supports navigation history and deep linking
+ * Integrates with Next.js routing
  */
 
 import { create } from 'zustand'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useModalStore } from '#stores/modal-store'
 
 const logger = createLogger({ component: 'NavigationStore' })
 
@@ -53,10 +51,6 @@ export interface NavigationState {
 	// Navigation helpers
 	goBack: () => string | null
 	canGoBack: boolean
-
-	// Modal-aware navigation
-	canNavigate: (route: string) => boolean
-	navigateWithModalCheck: (route: string) => boolean
 }
 
 const initialState = {
@@ -184,50 +178,5 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
 			}
 		}
 		return null
-	},
-
-	// Modal-aware navigation
-	canNavigate: route => {
-		const { activeRoute } = get()
-		const isSameRoute = activeRoute === route
-
-		// If the route is the same, we can navigate
-		if (isSameRoute) {
-			return true
-		}
-
-		// Check if any modals are open and prevent navigation if they are
-		const hasOpenModals = useModalStore.getState().hasOpenModals
-		if (hasOpenModals) {
-			logger.info('Navigation blocked by open modal', {
-				action: 'navigation_blocked',
-				metadata: { route }
-			})
-			return false
-		}
-
-		return true
-	},
-
-	navigateWithModalCheck: route => {
-		if (get().canNavigate(route)) {
-			set(state => ({
-				activeRoute: route,
-				navigationHistory: [
-					...state.navigationHistory.filter(r => r !== route),
-					route
-				],
-				canGoBack: computeCanGoBack([
-					...state.navigationHistory.filter(r => r !== route),
-					route
-				])
-			}))
-			logger.info('Navigated', {
-				action: 'navigated',
-				metadata: { route }
-			})
-			return true
-		}
-		return false
 	}
 }))

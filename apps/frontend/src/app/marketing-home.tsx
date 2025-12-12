@@ -15,7 +15,7 @@ import { PremiumCta } from '#components/sections/premium-cta'
 
 export default function MarketingHomePage() {
 	return (
-		<PageLayout showGridPattern={false} containerClass="flex flex-col section-gap">
+		<PageLayout showGridPattern={true} containerClass="flex flex-col section-gap">
 				{/* Hero Section with Dashboard Mockup */}
 				<section className="relative flex-1 flex flex-col">
 					<div className="flex-1 w-full">
