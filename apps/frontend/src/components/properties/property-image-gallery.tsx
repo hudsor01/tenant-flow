@@ -15,7 +15,7 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'

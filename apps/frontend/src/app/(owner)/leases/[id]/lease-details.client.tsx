@@ -14,7 +14,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 	AlertDialogTrigger
-} from '#components/ui/alert-dialog'
+} from '#components/ui/dialog'
 import { useQuery } from '@tanstack/react-query'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'

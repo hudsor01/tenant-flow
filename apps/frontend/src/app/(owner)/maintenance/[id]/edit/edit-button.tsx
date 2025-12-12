@@ -2,14 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody,
-	CrudDialogFooter
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogBody,
+	DialogFooter
+} from '#components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	Select,
@@ -23,7 +23,7 @@ import { useMaintenanceRequestUpdate } from '#hooks/api/use-maintenance'
 import { maintenanceRequestUpdateSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Edit } from 'lucide-react'
-import { useModalStore } from '#stores/modal-store'
+import { useState } from 'react'
 import { z } from 'zod'
 
 interface EditMaintenanceButtonProps {
@@ -37,10 +37,8 @@ interface EditMaintenanceButtonProps {
 export function EditMaintenanceButton({
 	maintenance
 }: EditMaintenanceButtonProps) {
-	const { openModal } = useModalStore()
+	const [open, setOpen] = useState(false)
 	const updateMaintenanceRequest = useMaintenanceRequestUpdate()
-
-	const modalId = `edit-maintenance-${maintenance.id}`
 
 	const form = useForm({
 		defaultValues: {
@@ -57,7 +55,7 @@ export function EditMaintenanceButton({
 				{ id: maintenance.id, data: updated_data },
 				{
 					onSuccess: () => {
-						// Close modal will be handled by CrudDialog
+						setOpen(false)
 						form.reset()
 					}
 				}
@@ -80,23 +78,23 @@ export function EditMaintenanceButton({
 				variant="outline"
 				size="sm"
 				className="flex items-center gap-2"
-				onClick={() => openModal(modalId)}
+				onClick={() => setOpen(true)}
 			>
 				<Edit className="size-4" />
 				Edit
 			</Button>
 
-			<CrudDialog mode="edit" modalId={modalId}>
-				<CrudDialogContent className="sm:max-w-lg">
-					<CrudDialogHeader>
-						<CrudDialogTitle>Edit Maintenance Request</CrudDialogTitle>
-						<CrudDialogDescription>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent intent="edit" className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>Edit Maintenance Request</DialogTitle>
+						<DialogDescription>
 							Update maintenance request details including priority, status, and
 							cost estimates.
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 
-					<CrudDialogBody>
+					<DialogBody>
 						<form
 							onSubmit={e => {
 								e.preventDefault()
@@ -156,9 +154,9 @@ export function EditMaintenanceButton({
 								)}
 							</form.Field>
 						</form>
-					</CrudDialogBody>
+					</DialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="submit"
 							disabled={updateMaintenanceRequest.isPending}
@@ -168,9 +166,9 @@ export function EditMaintenanceButton({
 								? 'Updating...'
 								: 'Update Request'}
 						</Button>
-					</CrudDialogFooter>
-				</CrudDialogContent>
-			</CrudDialog>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

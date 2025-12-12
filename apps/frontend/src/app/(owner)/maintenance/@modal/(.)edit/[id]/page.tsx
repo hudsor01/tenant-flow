@@ -24,7 +24,7 @@ export default function EditMaintenanceModal({
 	}
 
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal intent="edit" className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			{isLoading ? (
 				<Skeleton className="h-96 w-full rounded-xl" />
 			) : request ? (

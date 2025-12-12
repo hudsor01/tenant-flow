@@ -6,7 +6,6 @@ import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
-import { useModalStore } from '#stores/modal-store'
 import { authQueryKeys } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createClient } from '#utils/supabase/client'
@@ -25,8 +24,8 @@ function LoginPageContent() {
 	const [showPassword, setShowPassword] = useState(false)
 	const [authError, setAuthError] = useState<string | null>(null)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
 
-	const { openModal } = useModalStore()
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const queryClient = useQueryClient()
@@ -340,7 +339,7 @@ function LoginPageContent() {
 							<div className="flex-between text-muted">
 								<button
 									type="button"
-									onClick={() => openModal('forgot-password')}
+									onClick={() => setForgotPasswordOpen(true)}
 									className="hover:text-foreground transition-colors"
 									data-testid="forgot-password-link"
 								>
@@ -383,7 +382,10 @@ function LoginPageContent() {
 				</div>
 			</div>
 
-			<ForgotPasswordModal />
+			<ForgotPasswordModal
+				open={forgotPasswordOpen}
+				onOpenChange={setForgotPasswordOpen}
+			/>
 		</>
 	)
 }

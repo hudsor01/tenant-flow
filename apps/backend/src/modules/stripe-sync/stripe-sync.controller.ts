@@ -488,7 +488,15 @@ export class StripeSyncController {
       // - Event processing
       // - Database synchronization to stripe.* schema
       // - Idempotency
-      await this.stripeSyncService.processWebhook(rawBody, signature)
+      try {
+        await this.stripeSyncService.processWebhook(rawBody, signature)
+      } catch (syncError) {
+        // Stripe Sync Engine throws on unsupported event types (file.*, etc.)
+        // Log and continue - business logic may still need to process the event
+        this.logger.warn('Stripe Sync Engine could not process event', {
+          error: syncError instanceof Error ? syncError.message : 'Unknown error'
+        })
+      }
 
       // Process business logic AFTER sync to ensure stripe.* data exists
       // This includes:

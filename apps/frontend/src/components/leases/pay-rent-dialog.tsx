@@ -2,14 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogBody,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 import { Label } from '#components/ui/label'
 import {
 	Select,
@@ -19,7 +19,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
-import { useModalStore } from '#stores/modal-store'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '#lib/formatters/currency'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
@@ -28,18 +27,18 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface PayRentDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
 	lease: LeaseWithExtras
+	onSuccess?: () => void
 }
 
-export function PayRentDialog({ lease }: PayRentDialogProps) {
-	const { closeModal } = useModalStore()
+export function PayRentDialog({ open, onOpenChange, lease, onSuccess }: PayRentDialogProps) {
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')
 
 	const { data: paymentMethods } = usePaymentMethods()
 	const createPayment = useCreateRentPayment()
-
-	const modalId = `pay-rent-${lease.id}`
 
 	const handlePayRent = async () => {
 		if (!selectedPaymentMethodId) {
@@ -80,7 +79,8 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 						</a>
 					</div>
 				)
-				closeModal(modalId)
+				onSuccess?.()
+				onOpenChange(false)
 				setSelectedPaymentMethodId('')
 			} else {
 				toast.error('Payment completed but receipt unavailable')
@@ -91,24 +91,24 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 	}
 
 	const handleCancel = () => {
-		closeModal(modalId)
+		onOpenChange(false)
 		setSelectedPaymentMethodId('')
 	}
 
 	return (
-		<CrudDialog mode="create" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-md">
-				<CrudDialogHeader>
-					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent intent="create" className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
 						<CreditCard className="w-[var(--spacing-5)] h-[var(--spacing-5)]" />
 						Pay Rent
-					</CrudDialogTitle>
-					<CrudDialogDescription>
+					</DialogTitle>
+					<DialogDescription>
 						Make a one-time rent payment for this lease
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 
-				<CrudDialogBody>
+				<DialogBody>
 					{/* Rent Amount Display */}
 					<div className="p-4 bg-muted rounded-lg">
 						<p className="text-muted mb-[var(--spacing-1)]">
@@ -146,9 +146,9 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 							</p>
 						)}
 					</div>
-				</CrudDialogBody>
+				</DialogBody>
 
-				<CrudDialogFooter>
+				<DialogFooter>
 					<Button type="button" variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -162,8 +162,8 @@ export function PayRentDialog({ lease }: PayRentDialogProps) {
 					>
 						{createPayment.isPending ? 'Processing...' : 'Pay Now'}
 					</Button>
-				</CrudDialogFooter>
-			</CrudDialogContent>
-		</CrudDialog>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	)
 }

@@ -2,17 +2,16 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody,
-	CrudDialogFooter
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogBody,
+	DialogFooter
+} from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
-import { useModalStore } from '#stores/modal-store'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
 import { useState } from 'react'
@@ -20,13 +19,12 @@ import { toast } from 'sonner'
 
 interface EditTenantDialogProps {
 	tenant: TenantWithLeaseInfo
+	open: boolean
+	onOpenChange: (open: boolean) => void
 }
 
-export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
-	const { closeModal } = useModalStore()
+export function EditTenantDialog({ tenant, open, onOpenChange }: EditTenantDialogProps) {
 	const updateMutation = useUpdateTenantMutation()
-
-	const modalId = `edit-tenant-${tenant.id}`
 
 	// Form state for edit dialog - only tenant-specific fields
 	const [formData, setFormData] = useState({
@@ -59,20 +57,20 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 	}
 
 	const handleCancel = () => {
-		closeModal(modalId)
+		onOpenChange(false)
 	}
 
 	return (
-		<CrudDialog mode="edit" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-md">
-				<CrudDialogHeader>
-					<CrudDialogTitle>Edit Tenant</CrudDialogTitle>
-					<CrudDialogDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent intent="edit" className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Edit Tenant</DialogTitle>
+					<DialogDescription>
 						Update tenant information including emergency contact details.
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 
-				<CrudDialogBody>
+				<DialogBody>
 					<form onSubmit={handleFormSubmit} className="space-y-4">
 						<Field>
 							<FieldLabel>Emergency Contact Name</FieldLabel>
@@ -87,9 +85,9 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 							/>
 						</Field>
 					</form>
-				</CrudDialogBody>
+				</DialogBody>
 
-				<CrudDialogFooter>
+				<DialogFooter>
 					<Button type="button" variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -100,8 +98,8 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 					>
 						{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
 					</Button>
-				</CrudDialogFooter>
-			</CrudDialogContent>
-		</CrudDialog>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	)
 }

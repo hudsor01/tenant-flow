@@ -3,6 +3,7 @@
 import { ChevronRight, CirclePlus, Mail, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 import { QuickCreateDialog } from '#components/dashboard/quick-create-dialog'
 import { Button } from '#components/ui/button'
@@ -21,7 +22,6 @@ import {
 	SidebarMenuSubButton,
 	SidebarMenuSubItem
 } from '#components/ui/sidebar'
-import { useModalStore } from '#stores/modal-store'
 
 interface NavItem {
 	title: string
@@ -44,7 +44,7 @@ export function NavMain({
 	collapsibleItems?: CollapsibleNavItem[]
 }) {
 	const pathname = usePathname()
-	const { openModal } = useModalStore()
+	const [quickCreateOpen, setQuickCreateOpen] = useState(false)
 
 	return (
 		<SidebarGroup>
@@ -54,7 +54,7 @@ export function NavMain({
 					<SidebarMenuItem className="flex items-center gap-2">
 						<SidebarMenuButton
 							tooltip="Quick Create"
-							onClick={() => openModal('quick-create')}
+							onClick={() => setQuickCreateOpen(true)}
 							className="min-w-8 cursor-pointer bg-primary text-primary-foreground transition-colors duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
 						>
 							<CirclePlus />
@@ -132,7 +132,10 @@ export function NavMain({
 					</SidebarMenu>
 				)}
 			</SidebarGroupContent>
-			<QuickCreateDialog />
+			<QuickCreateDialog
+				open={quickCreateOpen}
+				onOpenChange={setQuickCreateOpen}
+			/>
 		</SidebarGroup>
 	)
 }

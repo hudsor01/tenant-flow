@@ -21,19 +21,6 @@ import type { Lease } from '@repo/shared/types/core'
 import { LEASE_STATUS } from '#lib/constants/status-values'
 import { toast } from 'sonner'
 
-// Mock dependencies
-const mockOpenModal = vi.fn()
-const mockCloseModal = vi.fn()
-const mockIsModalOpen = vi.fn().mockReturnValue(false)
-
-vi.mock('#stores/modal-store', () => ({
-	useModalStore: () => ({
-		openModal: mockOpenModal,
-		closeModal: mockCloseModal,
-		isModalOpen: mockIsModalOpen
-	})
-}))
-
 vi.mock('sonner', () => ({
 	toast: {
 		success: vi.fn(),
@@ -339,19 +326,22 @@ describe('LeaseActionButtons', () => {
 	})
 
 	describe('View Button', () => {
-		test('View button opens view modal', async () => {
+		test('View button opens view dialog', async () => {
 			const user = userEvent.setup()
 			const lease = createMockLease()
 			render(<LeaseActionButtons lease={lease} />)
 
 			await user.click(screen.getByRole('button', { name: /view/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`view-lease-${lease.id}`)
+			// Dialog should open with lease info
+			await waitFor(() => {
+				expect(screen.getByRole('dialog')).toBeInTheDocument()
+			})
 		})
 	})
 
 	describe('Active Lease Actions', () => {
-		test('Pay Rent opens modal', async () => {
+		test('Pay Rent opens dialog', async () => {
 			const user = userEvent.setup()
 			const lease = createMockLease({ lease_status: 'active' })
 			render(<LeaseActionButtons lease={lease} />)
@@ -363,10 +353,13 @@ describe('LeaseActionButtons', () => {
 			})
 			await user.click(screen.getByRole('menuitem', { name: /pay rent/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`pay-rent-${lease.id}`)
+			// Pay rent dialog should open
+			await waitFor(() => {
+				expect(screen.getByRole('dialog')).toBeInTheDocument()
+			})
 		})
 
-		test('Renew Lease opens modal', async () => {
+		test('Renew Lease opens dialog', async () => {
 			const user = userEvent.setup()
 			const lease = createMockLease({ lease_status: 'active' })
 			render(<LeaseActionButtons lease={lease} />)
@@ -378,10 +371,13 @@ describe('LeaseActionButtons', () => {
 			})
 			await user.click(screen.getByRole('menuitem', { name: /renew lease/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`renew-lease-${lease.id}`)
+			// Renew dialog should open
+			await waitFor(() => {
+				expect(screen.getByRole('dialog')).toBeInTheDocument()
+			})
 		})
 
-		test('Terminate Lease opens modal', async () => {
+		test('Terminate Lease opens dialog', async () => {
 			const user = userEvent.setup()
 			const lease = createMockLease({ lease_status: 'active' })
 			render(<LeaseActionButtons lease={lease} />)
@@ -393,7 +389,10 @@ describe('LeaseActionButtons', () => {
 			})
 			await user.click(screen.getByRole('menuitem', { name: /terminate lease/i }))
 
-			expect(mockOpenModal).toHaveBeenCalledWith(`terminate-lease-${lease.id}`)
+			// Terminate dialog should open (AlertDialog has role="alertdialog")
+			await waitFor(() => {
+				expect(screen.getByRole('alertdialog')).toBeInTheDocument()
+			})
 		})
 	})
 

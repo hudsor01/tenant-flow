@@ -1,13 +1,13 @@
 'use client'
 
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
@@ -21,9 +21,10 @@ import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useModalStore } from '#stores/modal-store'
 
 interface OwnerSubscribeDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
 	onComplete: (payload: {
 		email: string
 		tenant_id?: string
@@ -34,14 +35,13 @@ interface OwnerSubscribeDialogProps {
 }
 
 export function OwnerSubscribeDialog({
+	open,
+	onOpenChange,
 	onComplete,
 	planName,
 	planCta
 }: OwnerSubscribeDialogProps) {
-	const { closeModal } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
-
-	const modalId = 'owner-subscribe'
 
 	const supabase = useMemo(() => createClient(), [])
 
@@ -121,7 +121,7 @@ export function OwnerSubscribeDialog({
 				})
 
 				form.reset()
-				closeModal(modalId)
+				onOpenChange(false)
 			} catch (err) {
 				const message =
 					err instanceof Error ? err.message : 'Unable to complete sign up'
@@ -140,22 +140,22 @@ export function OwnerSubscribeDialog({
 	const handleCancel = () => {
 		if (!isSubmitting) {
 			form.reset()
-			closeModal(modalId)
+			onOpenChange(false)
 		}
 	}
 
 	return (
-		<CrudDialog mode="create" modalId={modalId}>
-			<CrudDialogContent className="max-w-lg">
-				<CrudDialogHeader>
-					<CrudDialogTitle>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-lg" intent="create">
+				<DialogHeader>
+					<DialogTitle>
 						Join TenantFlow {planName ? `· ${planName}` : ''}
-					</CrudDialogTitle>
-					<CrudDialogDescription>
+					</DialogTitle>
+					<DialogDescription>
 						Create your account to kick off checkout. You&apos;ll be
 						redirected to Stripe to securely complete your subscription.
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<form
 							onSubmit={event => {
 								event.preventDefault()
@@ -328,7 +328,7 @@ export function OwnerSubscribeDialog({
 								</form.Field>
 							</div>
 
-							<CrudDialogFooter>
+							<DialogFooter>
 							<Button
 								type="button"
 								variant="ghost"
@@ -343,10 +343,10 @@ export function OwnerSubscribeDialog({
 							>
 								{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
 							</Button>
-						</CrudDialogFooter>
+						</DialogFooter>
 					</form>
-				</CrudDialogContent>
-		</CrudDialog>
+				</DialogContent>
+		</Dialog>
 	)
 }
 

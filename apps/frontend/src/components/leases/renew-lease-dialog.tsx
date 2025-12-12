@@ -2,33 +2,33 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogBody,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
 import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
-import { useModalStore } from '#stores/modal-store'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import type { Lease } from '@repo/shared/types/core'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
 interface RenewLeaseDialogProps {
-	lease_id: string
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	lease: Lease
+	onSuccess?: () => void
 }
 
-export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
-	const { closeModal } = useModalStore()
+export function RenewLeaseDialog({ open, onOpenChange, lease, onSuccess }: RenewLeaseDialogProps) {
 	const [newEndDate, setNewEndDate] = useState('')
 
 	const renewLeaseMutation = useRenewLeaseMutation()
-
-	const modalId = `renew-lease-${lease_id}`
 
 	const handleSubmit = async () => {
 		if (!newEndDate) {
@@ -38,11 +38,12 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 
 		try {
 			await renewLeaseMutation.mutateAsync({
-				id: lease_id,
+				id: lease.id,
 				data: { end_date: newEndDate }
 			})
 			toast.success('Lease renewed successfully')
-			closeModal(modalId)
+			onSuccess?.()
+			onOpenChange(false)
 			setNewEndDate('')
 		} catch (error) {
 			handleMutationError(error, 'Renew lease')
@@ -50,20 +51,20 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 	}
 
 	const handleCancel = () => {
-		closeModal(modalId)
+		onOpenChange(false)
 		setNewEndDate('')
 	}
 
 	return (
-		<CrudDialog mode="edit" modalId={modalId}>
-			<CrudDialogContent>
-				<CrudDialogHeader>
-					<CrudDialogTitle>Renew Lease</CrudDialogTitle>
-					<CrudDialogDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent intent="edit">
+				<DialogHeader>
+					<DialogTitle>Renew Lease</DialogTitle>
+					<DialogDescription>
 						Extend the lease by setting a new end date
-					</CrudDialogDescription>
-				</CrudDialogHeader>
-				<CrudDialogBody>
+					</DialogDescription>
+				</DialogHeader>
+				<DialogBody>
 					<Field>
 						<FieldLabel htmlFor="newEndDate">New End Date</FieldLabel>
 						<Input
@@ -73,8 +74,8 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 							onChange={e => setNewEndDate(e.target.value)}
 						/>
 					</Field>
-				</CrudDialogBody>
-				<CrudDialogFooter>
+				</DialogBody>
+				<DialogFooter>
 					<Button variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -84,8 +85,8 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 					>
 						{renewLeaseMutation.isPending ? 'Renewing...' : 'Renew Lease'}
 					</Button>
-				</CrudDialogFooter>
-			</CrudDialogContent>
-		</CrudDialog>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	)
 }

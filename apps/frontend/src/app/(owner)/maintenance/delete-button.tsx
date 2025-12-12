@@ -3,10 +3,9 @@
 import { Button } from '#components/ui/button'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'
 import { Trash2 } from 'lucide-react'
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { useModalStore } from '#stores/modal-store'
 
 interface DeleteMaintenanceButtonProps {
 	maintenance: {
@@ -20,16 +19,15 @@ export function DeleteMaintenanceButton({
 	maintenance,
 	deleteAction
 }: DeleteMaintenanceButtonProps) {
-	const { openModal } = useModalStore()
+	const [open, setOpen] = useState(false)
 	const [isPending, startTransition] = useTransition()
-
-	const modalId = `delete-maintenance-${maintenance.id}`
 
 	const handleDelete = () => {
 		startTransition(async () => {
 			try {
 				await deleteAction(maintenance.id)
 				toast.success('Maintenance request deleted successfully')
+				setOpen(false)
 			} catch (error) {
 				handleMutationError(error, 'Delete maintenance request')
 			}
@@ -42,14 +40,15 @@ export function DeleteMaintenanceButton({
 				variant="outline"
 				size="sm"
 				className="flex items-center gap-2 text-(--color-destructive) hover:text-(--color-destructive-85)"
-				onClick={() => openModal(modalId)}
+				onClick={() => setOpen(true)}
 			>
 				<Trash2 className="size-4" />
 				Delete
 			</Button>
 
 			<ConfirmDialog
-				modalId={modalId}
+				open={open}
+				onOpenChange={setOpen}
 				title="Delete Maintenance Request"
 				description={`Are you sure you want to delete "${maintenance.description}"? This action cannot be undone.`}
 				confirmText="Delete Request"

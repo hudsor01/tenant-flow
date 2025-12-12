@@ -21,7 +21,6 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getAllPricingPlans, PLAN_FEATURES } from '@repo/shared/config/pricing'
-import { useModalStore } from '#stores/modal-store'
 
 const logger = createLogger({ component: 'KiboStylePricing' })
 
@@ -47,7 +46,7 @@ interface PricingPlan {
 export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingProps) {
 	const frequency = billingCycle
 	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
-	const { openModal, closeModal } = useModalStore()
+	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async ({
@@ -184,7 +183,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		const authenticated = await isUserAuthenticated()
 		if (!authenticated) {
 			setPendingPlan(plan)
-			openModal('owner-subscribe')
+			setSubscribeDialogOpen(true)
 			return
 		}
 
@@ -281,6 +280,8 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 				</div>
 			</div>
 			<OwnerSubscribeDialog
+				open={subscribeDialogOpen}
+				onOpenChange={setSubscribeDialogOpen}
 				{...(pendingPlan?.name && { planName: pendingPlan.name })}
 				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
 				onComplete={async ({ email, tenant_id, requiresEmailConfirmation }) => {
@@ -290,7 +291,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 							customerEmail: email,
 							...(tenant_id && { tenant_id })
 						})
-						closeModal('owner-subscribe')
+						setSubscribeDialogOpen(false)
 						setPendingPlan(null)
 						if (requiresEmailConfirmation) {
 							logger.info(

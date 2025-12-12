@@ -13,7 +13,7 @@ import NewMaintenanceRequestPage from '../../../maintenance/new/page'
 
 export default function MaintenanceRequestModal() {
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal intent="create" className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			<NewMaintenanceRequestPage />
 		</RouteModal>
 	)

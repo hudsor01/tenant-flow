@@ -1,96 +1,48 @@
 'use client'
 
-import { Dialog, DialogContent } from '#components/ui/dialog'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
-import { useModalStore } from '#stores/modal-store'
-import type { ReactNode } from 'react'
+import { Dialog, DialogContent, type DialogIntent } from '#components/ui/dialog'
+import { cn } from '#lib/utils'
 
 interface RouteModalProps {
-	children: ReactNode
+	children: React.ReactNode
 	className?: string
-	modalId?: string
-	persistThroughNavigation?: boolean
+	intent?: DialogIntent
 }
 
 /**
- * RouteModal - Wrapper for intercepting routes that display as modals
+ * RouteModal - Modal wrapper for Next.js intercepting routes
  *
- * This component wraps Dialog to provide consistent modal behavior for
- * intercepting routes. When the dialog closes, it navigates back using
- * the router, which provides natural back-button UX.
- *
- * Enhanced with modal store integration for:
- * - Global modal state management
- * - React Spring animations
- * - Auto-close behaviors
- * - Navigation persistence
- *
- * Usage:
- * - In intercepting routes: @modal/(.)new/page.tsx
- * - Wraps form components for modal display
- * - Automatically handles close = router.back()
+ * Used in @modal parallel route segments to display content as a modal overlay.
+ * Always renders open and closes by navigating back (router.back()).
  *
  * @example
- * ```tsx
- * // apps/frontend/src/app/(protected)/properties/@modal/(.)new/page.tsx
- * import { RouteModal } from '#components/ui/route-modal'
- * import { PropertyForm } from '#components/properties/property-form.client'
- *
- * export default function NewPropertyModal() {
+ * // In @modal/(.)new/page.tsx
+ * export default function NewItemModal() {
  *   return (
- *     <RouteModal
- *       modalId="new-property"
- *       className="max-w-3xl max-h-[90vh] overflow-y-auto"
- *       persistThroughNavigation={false}
- *     >
- *       <PropertyForm mode="create" />
+ *     <RouteModal intent="create">
+ *       <ItemForm mode="create" />
  *     </RouteModal>
  *   )
  * }
- * ```
  */
-export function RouteModal({
-	children,
-	className,
-	modalId = 'route-modal',
-	persistThroughNavigation = false
-}: RouteModalProps) {
+export function RouteModal({ children, className, intent }: RouteModalProps) {
 	const router = useRouter()
-	const { openModal, closeModal, handleNavigation } = useModalStore()
-
-	useEffect(() => {
-		// Register modal with store on mount
-		openModal(
-			modalId,
-			{},
-			{
-				type: 'dialog',
-				size: 'xl',
-				animationVariant: 'fade',
-				closeOnOutsideClick: true,
-				closeOnEscape: true,
-				persistThroughNavigation
-			}
-		)
-
-		// Cleanup on unmount
-		return () => {
-			closeModal(modalId)
-		}
-	}, [modalId, openModal, closeModal, persistThroughNavigation])
 
 	const handleOpenChange = (open: boolean) => {
 		if (!open) {
-			// Handle navigation-based modal closing
-			handleNavigation(window.location.pathname)
 			router.back()
 		}
 	}
 
 	return (
-		<Dialog defaultOpen onOpenChange={handleOpenChange}>
-			<DialogContent className={className}>{children}</DialogContent>
+		<Dialog open onOpenChange={handleOpenChange}>
+			<DialogContent
+				intent={intent}
+				className={cn('max-h-[90vh] overflow-y-auto', className)}
+			>
+				{children}
+			</DialogContent>
 		</Dialog>
 	)
 }

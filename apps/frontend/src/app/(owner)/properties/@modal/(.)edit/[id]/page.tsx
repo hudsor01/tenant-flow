@@ -33,19 +33,11 @@ export default function EditPropertyModal({
 	}
 
 	return (
-		<RouteModal
-			modalId={`edit-property-${id}`}
-			className="max-w-3xl max-h-[90vh] overflow-y-auto"
-		>
+		<RouteModal intent="edit" className="max-w-3xl">
 			{isLoading ? (
 				<Skeleton className="h-96 w-full rounded-xl" />
 			) : property ? (
-				<PropertyForm
-					mode="edit"
-					property={property}
-					modalId={`edit-property-${id}`}
-					showSuccessState={false}
-				/>
+				<PropertyForm mode="edit" property={property} showSuccessState={false} />
 			) : null}
 		</RouteModal>
 	)

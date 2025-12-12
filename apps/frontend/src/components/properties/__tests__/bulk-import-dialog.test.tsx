@@ -4,7 +4,7 @@
  * Tests the main bulk import dialog:
  * - Opens and closes dialog
  * - Renders trigger button
- * - Integrates with modal store
+ * - Uses useState for dialog state (no modal-store)
  *
  * @vitest-environment jsdom
  */
@@ -15,32 +15,17 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 
-// Mock the modal store
-const mockOpenModal = vi.fn()
-const mockCloseModal = vi.fn()
-const mockIsModalOpen = vi.fn()
-
-vi.mock('#stores/modal-store', () => ({
-	useModalStore: () => ({
-		openModal: mockOpenModal,
-		closeModal: mockCloseModal,
-		isModalOpen: mockIsModalOpen
-	})
-}))
-
 // Mock the BulkImportStepper to isolate dialog tests
 vi.mock('../bulk-import-stepper', () => ({
 	BulkImportStepper: ({
-		currentStep,
-		modalId
+		currentStep
 	}: {
 		currentStep: string
 		onStepChange: (step: string) => void
-		modalId: string
+		onComplete: () => void
 	}) => (
 		<div data-testid="bulk-import-stepper">
 			<span>Step: {currentStep}</span>
-			<span>Modal: {modalId}</span>
 		</div>
 	)
 }))
@@ -48,7 +33,6 @@ vi.mock('../bulk-import-stepper', () => ({
 describe('PropertyBulkImportDialog Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockIsModalOpen.mockReturnValue(false)
 	})
 
 	describe('Trigger Button', () => {
@@ -68,85 +52,89 @@ describe('PropertyBulkImportDialog Component', () => {
 			expect(icon).toBeInTheDocument()
 		})
 
-		it('opens modal when button is clicked', async () => {
+		it('opens dialog when button is clicked', async () => {
 			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
 
 			const button = screen.getByRole('button', { name: /bulk import/i })
 			await user.click(button)
 
-			expect(mockOpenModal).toHaveBeenCalledWith(
-				'bulk-import-properties',
-				{},
-				expect.objectContaining({
-					type: 'dialog',
-					size: 'lg',
-					animationVariant: 'fade',
-					closeOnOutsideClick: true,
-					closeOnEscape: true
-				})
-			)
+			// Dialog should now be visible
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
 		})
 	})
 
 	describe('Dialog State', () => {
 		it('does not render dialog content when closed', () => {
-			mockIsModalOpen.mockReturnValue(false)
 			render(<PropertyBulkImportDialog />)
 
 			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 		})
 
-		it('renders dialog when open', () => {
-			mockIsModalOpen.mockReturnValue(true)
+		it('renders dialog when open', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
+
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
 
 			expect(screen.getByRole('dialog')).toBeInTheDocument()
 		})
 
-		it('renders dialog title when open', () => {
-			mockIsModalOpen.mockReturnValue(true)
+		it('renders dialog title when open', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
+
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
 
 			const dialog = screen.getByRole('dialog')
 			expect(within(dialog).getByText('Import Properties')).toBeInTheDocument()
 		})
 
-		it('renders dialog description when open', () => {
-			mockIsModalOpen.mockReturnValue(true)
+		it('renders dialog description when open', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
+
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
 
 			expect(
 				screen.getByText(/upload a csv file to add multiple properties/i)
 			).toBeInTheDocument()
 		})
 
-		it('renders stepper component when dialog is open', () => {
-			mockIsModalOpen.mockReturnValue(true)
+		it('renders stepper component when dialog is open', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
+
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
 
 			expect(screen.getByTestId('bulk-import-stepper')).toBeInTheDocument()
 		})
 	})
 
 	describe('Stepper Integration', () => {
-		it('passes current step and modal ID to stepper', () => {
-			mockIsModalOpen.mockReturnValue(true)
+		it('passes current step to stepper', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
+
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
 
 			const stepper = screen.getByTestId('bulk-import-stepper')
 			expect(within(stepper).getByText(/step: upload/i)).toBeInTheDocument()
-			expect(
-				within(stepper).getByText(/modal: bulk-import-properties/i)
-			).toBeInTheDocument()
 		})
 	})
 
-	describe('Modal ID', () => {
-		it('uses correct modal ID for open check', () => {
+	describe('Dialog Close', () => {
+		it('closes dialog when clicking outside', async () => {
+			const user = userEvent.setup()
 			render(<PropertyBulkImportDialog />)
 
-			expect(mockIsModalOpen).toHaveBeenCalledWith('bulk-import-properties')
+			await user.click(screen.getByRole('button', { name: /bulk import/i }))
+			expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+			// Press Escape to close (standard Radix Dialog behavior)
+			await user.keyboard('{Escape}')
+
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 		})
 	})
 })

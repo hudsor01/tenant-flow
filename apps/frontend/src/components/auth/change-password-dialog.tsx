@@ -2,26 +2,27 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogBody,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogBody,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useChangePassword } from '#hooks/api/use-auth'
-import { useModalStore } from '#stores/modal-store'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
 
-export function ChangePasswordDialog() {
-	const { closeModal } = useModalStore()
-	const changePassword = useChangePassword()
+interface ChangePasswordDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}
 
-	const modalId = 'change-password'
+export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+	const changePassword = useChangePassword()
 
 	const [formData, setFormData] = useState({
 		currentPassword: '',
@@ -111,7 +112,7 @@ export function ChangePasswordDialog() {
 				confirmPassword: ''
 			})
 			setValidationErrors([])
-			closeModal(modalId)
+			onOpenChange(false)
 		} catch (error) {
 			logger.error('Failed to change password', {
 				action: 'change_password',
@@ -134,23 +135,23 @@ export function ChangePasswordDialog() {
 			confirmPassword: ''
 		})
 		setValidationErrors([])
-		closeModal(modalId)
+		onOpenChange(false)
 	}
 
 	return (
-		<CrudDialog mode="edit" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-[500px]">
-				<CrudDialogHeader>
-					<CrudDialogTitle className="flex items-center gap-[var(--spacing-2)]">
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-[500px]" intent="edit">
+				<DialogHeader>
+					<DialogTitle className="flex items-center gap-[var(--spacing-2)]">
 						<Lock className="size-[var(--spacing-5)]" />
 						Change Password
-					</CrudDialogTitle>
-					<CrudDialogDescription>
+					</DialogTitle>
+					<DialogDescription>
 						Enter your current password and choose a new secure password
-					</CrudDialogDescription>
-				</CrudDialogHeader>
+					</DialogDescription>
+				</DialogHeader>
 				<form onSubmit={handleSubmit} className="space-y-[var(--spacing-6)]">
-					<CrudDialogBody>
+					<DialogBody>
 						{/* Current Password */}
 						<Field>
 							<FieldLabel>Current Password *</FieldLabel>
@@ -271,9 +272,9 @@ export function ChangePasswordDialog() {
 								</ul>
 							</div>
 						)}
-					</CrudDialogBody>
+					</DialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -288,9 +289,9 @@ export function ChangePasswordDialog() {
 						>
 							{changePassword.isPending ? 'Changing...' : 'Change Password'}
 						</Button>
-					</CrudDialogFooter>
+					</DialogFooter>
 				</form>
-			</CrudDialogContent>
-		</CrudDialog>
+			</DialogContent>
+		</Dialog>
 	)
 }

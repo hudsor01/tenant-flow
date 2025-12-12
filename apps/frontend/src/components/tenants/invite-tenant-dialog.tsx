@@ -2,21 +2,20 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogFooter,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogBody
+} from '#components/ui/dialog'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 import { Mail } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useModalStore } from '#stores/modal-store'
 import { useMutation } from '@tanstack/react-query'
 
 const logger = createLogger({ component: 'InviteTenantDialog' })
@@ -47,10 +46,8 @@ export function InviteTenantDialog({
 	lease_id,
 	onSuccess
 }: InviteTenantDialogProps) {
-	const { openModal, closeModal } = useModalStore()
 	const [isSubmitting, setIsSubmitting] = useState(false)
-
-	const modalId = `invite-tenant-${tenant_id}`
+	const [open, setOpen] = useState(false)
 
 	const { mutateAsync: sendInvitation } = useMutation({
 		mutationFn: async () => {
@@ -90,7 +87,7 @@ export function InviteTenantDialog({
 			toast.success(`Invitation sent to ${tenantName}`, {
 				description: `${tenantEmail} will receive a secure invitation link to access their tenant portal (valid for 24 hours).`
 			})
-			closeModal(modalId)
+			setOpen(false)
 			onSuccess?.()
 		},
 		onError: error => {
@@ -103,8 +100,7 @@ export function InviteTenantDialog({
 
 			logger.error('Failed to invite tenant', errorContext)
 			handleMutationError(error, 'Send tenant invitation')
-		},
-		meta: { modalId }
+		}
 	})
 
 	const handleInvite = async () => {
@@ -116,24 +112,20 @@ export function InviteTenantDialog({
 		}
 	}
 
-	const handleOpenModal = () => {
-		openModal(modalId)
-	}
-
 	return (
 		<>
-			<Button variant="ghost" size="sm" onClick={handleOpenModal}>
+			<Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
 				<Mail className="size-4" />
 				Invite to Portal
 			</Button>
 
-			<CrudDialog mode="create" modalId={modalId}>
-				<CrudDialogContent className="sm:max-w-lg">
-					<CrudDialogHeader>
-						<CrudDialogTitle>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent intent="create" className="sm:max-w-lg">
+					<DialogHeader>
+						<DialogTitle>
 							Invite {tenantName} to Tenant Portal
-						</CrudDialogTitle>
-						<CrudDialogDescription>
+						</DialogTitle>
+						<DialogDescription>
 							Send an email invitation to {tenantEmail}. They'll receive a link
 							to:
 							<ul className="list-disc list-inside mt-2 space-y-1">
@@ -142,10 +134,10 @@ export function InviteTenantDialog({
 								<li>View lease documents</li>
 								<li>Track payment history</li>
 							</ul>
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 
-					<CrudDialogBody>
+					<DialogBody>
 						<div className="bg-muted p-4 rounded-lg space-y-2">
 							<p className="typography-small">What happens next?</p>
 							<ol className="text-muted space-y-1 list-decimal list-inside">
@@ -159,13 +151,13 @@ export function InviteTenantDialog({
 								resend if it expires.
 							</p>
 						</div>
-					</CrudDialogBody>
+					</DialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => closeModal(modalId)}
+							onClick={() => setOpen(false)}
 							disabled={isSubmitting}
 						>
 							Cancel
@@ -173,9 +165,9 @@ export function InviteTenantDialog({
 						<Button onClick={handleInvite} disabled={isSubmitting}>
 							{isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
 						</Button>
-					</CrudDialogFooter>
-				</CrudDialogContent>
-			</CrudDialog>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

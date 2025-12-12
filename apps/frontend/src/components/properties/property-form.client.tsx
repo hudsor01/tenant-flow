@@ -15,7 +15,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 
-import { useModalStore } from '#stores/modal-store'
 import { PropertyImageGallery } from './property-image-gallery'
 import { PropertyImageDropzone } from './property-image-dropzone'
 
@@ -39,7 +38,6 @@ interface PropertyFormProps {
 	mode: 'create' | 'edit'
 	property?: Property
 	onSuccess?: () => void
-	modalId?: string // For modal store integration
 	showSuccessState?: boolean
 	className?: string
 }
@@ -58,7 +56,6 @@ export function PropertyForm({
 	mode,
 	property,
 	onSuccess,
-	modalId,
 	showSuccessState = mode === 'create',
 	className
 }: PropertyFormProps) {
@@ -92,8 +89,6 @@ export function PropertyForm({
 	}, [mode, property, queryClient])
 
 	// Initialize form
-	const { trackMutation, closeOnMutationSuccess } = useModalStore()
-
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
@@ -130,11 +125,6 @@ export function PropertyForm({
 						data: createData
 					})
 
-					// Track mutation for auto-close if in modal
-					if (modalId) {
-						trackMutation(modalId, 'create-property', queryClient)
-					}
-
 					await createPropertyMutation.mutateAsync(createData)
 					toast.success('Property created successfully')
 
@@ -142,11 +132,6 @@ export function PropertyForm({
 						setIsSubmitted(true)
 					}
 					form.reset()
-
-					// Close modal on success if tracked
-					if (modalId) {
-						closeOnMutationSuccess('create-property')
-					}
 				} else {
 					// Edit mode
 					if (!property?.id) {
@@ -169,21 +154,11 @@ export function PropertyForm({
 						data: updateData
 					})
 
-					// Track mutation for auto-close if in modal
-					if (modalId) {
-						trackMutation(modalId, 'update-property', queryClient)
-					}
-
 					await updatePropertyMutation.mutateAsync({
 						id: property.id,
 						data: updateData
 					})
 					toast.success('Property updated successfully')
-
-					// Close modal on success if tracked
-					if (modalId) {
-						closeOnMutationSuccess('update-property')
-					}
 
 					// Navigate back if no custom onSuccess handler
 					if (!onSuccess) {

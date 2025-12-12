@@ -6,7 +6,7 @@ import { RouteModal } from '#components/ui/route-modal'
  */
 export default function NewMaintenanceModal() {
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal intent="create" className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			<MaintenanceForm mode="create" />
 		</RouteModal>
 	)

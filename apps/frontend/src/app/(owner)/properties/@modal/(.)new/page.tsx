@@ -15,15 +15,8 @@ import { RouteModal } from '#components/ui/route-modal'
  */
 export default function NewPropertyModal() {
 	return (
-		<RouteModal
-			modalId="new-property"
-			className="max-w-3xl max-h-[90vh] overflow-y-auto"
-		>
-			<PropertyForm
-				mode="create"
-				modalId="new-property"
-				showSuccessState={false}
-			/>
+		<RouteModal intent="create" className="max-w-3xl">
+			<PropertyForm mode="create" showSuccessState={false} />
 		</RouteModal>
 	)
 }
