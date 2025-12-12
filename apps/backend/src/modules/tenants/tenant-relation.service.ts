@@ -80,23 +80,32 @@ export class TenantRelationService {
 				return []
 			}
 
-			// Optimized: Single query directly to leases table
-			// Leases have property_owner_id, so no need for nested joins
-			const { data: leaseData, error: leaseError } = await client
-				.from('leases')
-				.select('primary_tenant_id')
+			// Optimized: Single query with nested joins to get all tenant IDs
+			// properties -> units -> leases (with primary_tenant_id)
+			const { data: propertyData, error: propertyError } = await client
+				.from('properties')
+				.select('id, units(id, leases(primary_tenant_id))')
 				.eq('property_owner_id', ownerRecord.id)
-				.not('primary_tenant_id', 'is', null)
 
-			if (leaseError || !leaseData) {
+			if (propertyError || !propertyData) {
 				return []
 			}
 
-			// Extract unique tenant IDs (Set handles deduplication)
+			// Extract unique tenant IDs from nested structure
 			const tenantIds = new Set<string>()
-			for (const lease of leaseData) {
-				if (lease.primary_tenant_id) {
-					tenantIds.add(lease.primary_tenant_id)
+			for (const property of propertyData as Array<{
+				id: string
+				units: Array<{
+					id: string
+					leases: Array<{ primary_tenant_id: string | null }>
+				}>
+			}>) {
+				for (const unit of property.units || []) {
+					for (const lease of unit.leases || []) {
+						if (lease.primary_tenant_id) {
+							tenantIds.add(lease.primary_tenant_id)
+						}
+					}
 				}
 			}
 

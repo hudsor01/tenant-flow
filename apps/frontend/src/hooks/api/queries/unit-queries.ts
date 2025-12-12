@@ -77,39 +77,4 @@ export const unitQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000,
 		}),
-
-	/**
-	 * Batch fetch units for multiple properties
-	 * Used in property list to avoid N+1 queries (one query per card)
-	 * Returns a map of property_id -> units array
-	 *
-	 * @example
-	 * const { data: unitsMap } = useQuery(unitQueries.batchByProperties(propertyIds))
-	 */
-	batchByProperties: (propertyIds: string[]) =>
-		queryOptions({
-			queryKey: [...unitQueries.all(), 'batch-by-properties', propertyIds],
-			queryFn: async () => {
-				if (propertyIds.length === 0) return {}
-
-				// Fetch all units (will be filtered by RLS to owner's units)
-				// Then filter to only the requested property IDs
-				const response = await apiRequest<PaginatedResponse<Unit>>('/api/v1/units?limit=500')
-
-				// Group units by property_id
-				const unitsMap: Record<string, Unit[]> = {}
-				for (const unit of response.data) {
-					if (propertyIds.includes(unit.property_id)) {
-						if (!unitsMap[unit.property_id]) {
-							unitsMap[unit.property_id] = []
-						}
-						unitsMap[unit.property_id]!.push(unit)
-					}
-				}
-
-				return unitsMap
-			},
-			...QUERY_CACHE_TIMES.LIST,
-			enabled: propertyIds.length > 0,
-		}),
 }

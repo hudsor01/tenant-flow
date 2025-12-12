@@ -1,13 +1,13 @@
 'use client'
 
 import {
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { CrudDialog } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	InputGroup,
@@ -146,16 +146,16 @@ export function OwnerSubscribeDialog({
 
 	return (
 		<CrudDialog mode="create" modalId={modalId}>
-			<DialogContent className="max-w-lg">
-				<DialogHeader>
-					<DialogTitle>
+			<CrudDialogContent className="max-w-lg">
+				<CrudDialogHeader>
+					<CrudDialogTitle>
 						Join TenantFlow {planName ? `· ${planName}` : ''}
-					</DialogTitle>
-					<DialogDescription>
+					</CrudDialogTitle>
+					<CrudDialogDescription>
 						Create your account to kick off checkout. You&apos;ll be
 						redirected to Stripe to securely complete your subscription.
-					</DialogDescription>
-				</DialogHeader>
+					</CrudDialogDescription>
+				</CrudDialogHeader>
 				<form
 							onSubmit={event => {
 								event.preventDefault()
@@ -328,7 +328,7 @@ export function OwnerSubscribeDialog({
 								</form.Field>
 							</div>
 
-							<DialogFooter>
+							<CrudDialogFooter>
 							<Button
 								type="button"
 								variant="ghost"
@@ -343,9 +343,9 @@ export function OwnerSubscribeDialog({
 							>
 								{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
 							</Button>
-						</DialogFooter>
+						</CrudDialogFooter>
 					</form>
-				</DialogContent>
+				</CrudDialogContent>
 		</CrudDialog>
 	)
 }

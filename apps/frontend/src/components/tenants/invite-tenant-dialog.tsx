@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody
+} from '#components/ui/crud-dialog'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
@@ -127,12 +128,12 @@ export function InviteTenantDialog({
 			</Button>
 
 			<CrudDialog mode="create" modalId={modalId}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>
+				<CrudDialogContent className="sm:max-w-lg">
+					<CrudDialogHeader>
+						<CrudDialogTitle>
 							Invite {tenantName} to Tenant Portal
-						</DialogTitle>
-						<DialogDescription>
+						</CrudDialogTitle>
+						<CrudDialogDescription>
 							Send an email invitation to {tenantEmail}. They'll receive a link
 							to:
 							<ul className="list-disc list-inside mt-2 space-y-1">
@@ -141,8 +142,8 @@ export function InviteTenantDialog({
 								<li>View lease documents</li>
 								<li>Track payment history</li>
 							</ul>
-						</DialogDescription>
-					</DialogHeader>
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
 					<CrudDialogBody>
 						<div className="bg-muted p-4 rounded-lg space-y-2">
@@ -160,7 +161,7 @@ export function InviteTenantDialog({
 						</div>
 					</CrudDialogBody>
 
-					<DialogFooter>
+					<CrudDialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -172,8 +173,8 @@ export function InviteTenantDialog({
 						<Button onClick={handleInvite} disabled={isSubmitting}>
 							{isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
 						</Button>
-					</DialogFooter>
-				</DialogContent>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		</>
 	)

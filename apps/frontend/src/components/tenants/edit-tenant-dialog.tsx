@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogFooter
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
 import { useModalStore } from '#stores/modal-store'
@@ -63,13 +64,13 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 
 	return (
 		<CrudDialog mode="edit" modalId={modalId}>
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>Edit Tenant</DialogTitle>
-					<DialogDescription>
+			<CrudDialogContent className="sm:max-w-md">
+				<CrudDialogHeader>
+					<CrudDialogTitle>Edit Tenant</CrudDialogTitle>
+					<CrudDialogDescription>
 						Update tenant information including emergency contact details.
-					</DialogDescription>
-				</DialogHeader>
+					</CrudDialogDescription>
+				</CrudDialogHeader>
 
 				<CrudDialogBody>
 					<form onSubmit={handleFormSubmit} className="space-y-4">
@@ -88,7 +89,7 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 					</form>
 				</CrudDialogBody>
 
-				<DialogFooter>
+				<CrudDialogFooter>
 					<Button type="button" variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -99,8 +100,8 @@ export function EditTenantDialog({ tenant }: EditTenantDialogProps) {
 					>
 						{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
 					</Button>
-				</DialogFooter>
-			</DialogContent>
+				</CrudDialogFooter>
+			</CrudDialogContent>
 		</CrudDialog>
 	)
 }

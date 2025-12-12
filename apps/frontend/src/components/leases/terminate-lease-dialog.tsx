@@ -2,13 +2,13 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { CrudDialog } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { useModalStore } from '#stores/modal-store'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -41,14 +41,14 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 
 	return (
 		<CrudDialog mode="delete" modalId={modalId}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Terminate Lease</DialogTitle>
-					<DialogDescription>
+			<CrudDialogContent>
+				<CrudDialogHeader>
+					<CrudDialogTitle>Terminate Lease</CrudDialogTitle>
+					<CrudDialogDescription>
 						End this lease early. This action cannot be undone.
-					</DialogDescription>
-				</DialogHeader>
-				<DialogFooter>
+					</CrudDialogDescription>
+				</CrudDialogHeader>
+				<CrudDialogFooter>
 					<Button variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -61,8 +61,8 @@ export function TerminateLeaseDialog({ lease_id }: TerminateLeaseDialogProps) {
 							? 'Terminating...'
 							: 'Terminate Lease'}
 					</Button>
-				</DialogFooter>
-			</DialogContent>
+				</CrudDialogFooter>
+			</CrudDialogContent>
 		</CrudDialog>
 	)
 }

@@ -1,8 +1,7 @@
 'use client'
 
 import { PropertyCard } from './property-card'
-import type { Property, Unit } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Property } from '@repo/shared/types/core'
 import { Building2, Plus, WifiOff } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -32,17 +31,9 @@ import { useDeletePropertyMutation } from '#hooks/api/mutations/property-mutatio
 
 interface PropertiesGridClientProps {
 	data: Property[]
-	/** Batch-loaded images map from parent (property_id -> images[]) */
-	imagesMap: Record<string, Tables<'property_images'>[]> | undefined
-	/** Batch-loaded units map from parent (property_id -> units[]) */
-	unitsMap: Record<string, Unit[]> | undefined
 }
 
-export function PropertiesGridClient({
-	data,
-	imagesMap,
-	unitsMap
-}: PropertiesGridClientProps) {
+export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 	const router = useRouter()
 	const [isPending, startTransition] = useTransition()
 	const [optimisticProperties, removeOptimisticProperty] = useOptimistic(
@@ -152,8 +143,6 @@ export function PropertiesGridClient({
 						onDelete={handleDeleteClick}
 						animationDelay={index * 50}
 						tabIndex={0}
-						units={unitsMap?.[property.id]}
-						primaryImage={imagesMap?.[property.id]?.[0] ?? null}
 					/>
 				))}
 			</div>

@@ -5,7 +5,10 @@ import {
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
-import type { PropertyMaintenanceData } from '@repo/shared/src/types/financial-statements.js'
+import type {
+	PropertyMaintenanceData,
+	MaintenanceQueryProperty
+} from '@repo/shared/src/types/financial-statements.js'
 import { AppLogger } from '../../../logger/app-logger.service'
 
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
@@ -94,143 +97,52 @@ export class PropertyMaintenanceAnalyticsService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const startIso = start.toISOString()
-		const endIso = end.toISOString()
 
-		// Step 1: Get properties with units (lightweight)
+		// Build query - fetch properties with units and maintenance requests
 		let propertiesQuery = client.from('properties').select(`
 			id,
 			name,
 			units (
-				id
+				id,
+				maintenance_requests (
+					id,
+					status,
+					created_at,
+					estimated_cost,
+					actual_cost,
+					completed_at,
+					expenses (
+						amount,
+						expense_date
+					)
+				)
 			)
 		`)
 
+		// Filter by property_id if provided
 		if (query.property_id) {
 			propertiesQuery = propertiesQuery.eq('id', query.property_id)
 		}
 
-		const { data: properties, error: propError } = await propertiesQuery
+		const { data: properties, error } = await propertiesQuery
 
-		if (propError) {
-			this.logger.error('[ANALYTICS:MAINTENANCE] Properties query failed', {
+		if (error) {
+			this.logger.error('[ANALYTICS:MAINTENANCE] Query failed', {
 				user_id,
-				error: propError.message
+				error: error.message
 			})
 			return []
 		}
 
-		if (!properties || properties.length === 0) {
-			return []
-		}
-
-		// Extract unit IDs for filtered queries
-		const unitIds = properties.flatMap(p => (p.units || []).map(u => u.id))
-
-		if (unitIds.length === 0) {
-			return properties.map(p => ({
-				property_id: p.id,
-				property_name: p.name,
-				timeframe: query.timeframe,
-				total_requests: 0,
-				completed_requests: 0,
-				total_cost: 0,
-				average_cost_per_request: 0
-			}))
-		}
-
-		// Step 2: Get maintenance requests with server-side date filtering
-		const { data: maintenanceRequests } = await client
-			.from('maintenance_requests')
-			.select(`
-				id,
-				unit_id,
-				status,
-				estimated_cost,
-				actual_cost,
-				created_at,
-				completed_at
-			`)
-			.in('unit_id', unitIds)
-			.gte('created_at', startIso)
-			.lte('created_at', endIso)
-
-		// Step 3: Get expenses with server-side date filtering
-		const { data: expenses } = await client
-			.from('expenses')
-			.select(`
-				amount,
-				expense_date,
-				maintenance_request_id,
-				maintenance_request:maintenance_requests!inner (
-					unit_id
-				)
-			`)
-			.in('maintenance_request.unit_id', unitIds)
-			.gte('expense_date', startIso)
-			.lte('expense_date', endIso)
-
-		// Build lookup maps
-		const unitToPropertyMap = new Map<string, string>()
-		for (const prop of properties) {
-			for (const unit of prop.units || []) {
-				unitToPropertyMap.set(unit.id, prop.id)
-			}
-		}
-
-		// Aggregate data by property
-		const propertyData = new Map<string, {
-			totalRequests: number
-			completedRequests: number
-			totalCost: number
-		}>()
-		for (const prop of properties) {
-			propertyData.set(prop.id, { totalRequests: 0, completedRequests: 0, totalCost: 0 })
-		}
-
-		// Process maintenance requests (already filtered by date)
-		for (const req of maintenanceRequests || []) {
-			const propId = unitToPropertyMap.get(req.unit_id)
-			if (propId) {
-				const data = propertyData.get(propId)!
-				data.totalRequests++
-				if (req.status === 'completed') {
-					data.completedRequests++
-				}
-				// Add costs for completed requests within timeframe
-				if (req.completed_at &&
-					new Date(req.completed_at) >= start &&
-					new Date(req.completed_at) <= end) {
-					data.totalCost += req.actual_cost || req.estimated_cost || 0
-				}
-			}
-		}
-
-		// Add expenses (already filtered by date)
-		for (const exp of expenses || []) {
-			const unitId = (exp.maintenance_request as { unit_id: string })?.unit_id
-			const propId = unitToPropertyMap.get(unitId)
-			if (propId) {
-				const data = propertyData.get(propId)!
-				data.totalCost += exp.amount || 0
-			}
-		}
-
-		// Build result
-		const result = properties.map((property) => {
-			const data = propertyData.get(property.id)!
-			const avgCost = data.totalRequests > 0 ? data.totalCost / data.totalRequests : 0
-
-			return {
-				property_id: property.id,
-				property_name: property.name,
-				timeframe: query.timeframe,
-				total_requests: data.totalRequests,
-				completed_requests: data.completedRequests,
-				total_cost: data.totalCost / 100,
-				average_cost_per_request: avgCost / 100
-			}
-		})
+		// Process each property's maintenance data
+		const result = (properties ?? []).map((property) =>
+			this.processMaintenanceData(
+				property as MaintenanceQueryProperty,
+				start,
+				end,
+				query.timeframe
+			)
+		)
 
 		this.logger.log(
 			'[ANALYTICS:MAINTENANCE:COMPLETE] Maintenance analytics completed',
@@ -245,4 +157,64 @@ export class PropertyMaintenanceAnalyticsService {
 		return result
 	}
 
+	/**
+	 * Process property data to calculate maintenance metrics
+	 */
+	processMaintenanceData(
+		property: MaintenanceQueryProperty,
+		start: Date,
+		end: Date,
+		timeframe: string
+	): PropertyMaintenanceData {
+		let totalRequests = 0
+		let completedRequests = 0
+		let totalCost = 0
+
+		const units = property.units || []
+		units.forEach((unit) => {
+			unit.maintenance_requests?.forEach((req) => {
+				// Count requests in timeframe
+				if (
+					req.created_at &&
+					new Date(req.created_at) >= start &&
+					new Date(req.created_at) <= end
+				) {
+					totalRequests++
+					if (req.status === 'completed') {
+						completedRequests++
+					}
+					// Add costs
+					if (
+						req.completed_at &&
+						new Date(req.completed_at) >= start &&
+						new Date(req.completed_at) <= end
+					) {
+						totalCost += req.actual_cost || req.estimated_cost || 0
+					}
+				}
+				// Add expenses
+				req.expenses?.forEach((exp) => {
+					if (
+						exp.expense_date &&
+						new Date(exp.expense_date) >= start &&
+						new Date(exp.expense_date) <= end
+					) {
+						totalCost += exp.amount || 0
+					}
+				})
+			})
+		})
+
+		const averageCostPerRequest = totalRequests > 0 ? totalCost / totalRequests : 0
+
+		return {
+			property_id: property.id,
+			property_name: property.name,
+			timeframe,
+			total_requests: totalRequests,
+			completed_requests: completedRequests,
+			total_cost: totalCost / 100,
+			average_cost_per_request: averageCostPerRequest / 100
+		}
+	}
 }

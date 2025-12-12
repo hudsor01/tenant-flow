@@ -9,11 +9,6 @@ import { QueryClient, dehydrate } from '@tanstack/react-query'
 /**
  * Creates a QueryClient optimized for server-side rendering
  * Uses shorter stale/gc times since server renders are ephemeral
- *
- * NOTE: These settings intentionally differ from the client QueryProvider:
- * - Server has no window/network events, so refetch options are disabled
- * - Client (query-provider.tsx) uses 'stale'/'always'/true for proper UX
- * - This is NOT an inconsistency - it's intentional server vs client config
  */
 export function createServerQueryClient(): QueryClient {
 	return new QueryClient({
@@ -22,8 +17,7 @@ export function createServerQueryClient(): QueryClient {
 				// Server-side defaults - shorter times since queries are one-shot
 				staleTime: 60 * 1000, // 1 minute
 				gcTime: 5 * 60 * 1000, // 5 minutes
-				retry: false, // Don't retry on server - fail fast for SSR
-				// Server has no window/network events - disable refetch triggers
+				retry: false, // Don't retry on server
 				refetchOnWindowFocus: false,
 				refetchOnReconnect: false,
 				refetchOnMount: false

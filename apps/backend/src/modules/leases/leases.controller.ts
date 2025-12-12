@@ -28,7 +28,6 @@ import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
-import { LeaseDocumentService } from './lease-document.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 
@@ -38,8 +37,7 @@ export class LeasesController {
 		private readonly leasesService: LeasesService,
 		private readonly financialService: LeaseFinancialService,
 		private readonly lifecycleService: LeaseLifecycleService,
-		private readonly signatureService: LeaseSignatureService,
-		private readonly leaseDocumentService: LeaseDocumentService
+		private readonly signatureService: LeaseSignatureService
 	) {}
 
 	@Get()
@@ -418,7 +416,7 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const signingUrl = await this.leaseDocumentService.getSigningUrl(
+		const signingUrl = await this.signatureService.getSigningUrl(
 			id,
 			req.user.id
 		)
@@ -435,7 +433,7 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		await this.leaseDocumentService.cancelSignatureRequest(req.user.id, id)
+		await this.signatureService.cancelSignatureRequest(req.user.id, id)
 		return { success: true }
 	}
 
@@ -451,11 +449,7 @@ export class LeasesController {
 		if (body?.message !== undefined) {
 			options.message = body.message
 		}
-		await this.leaseDocumentService.resendSignatureRequest(
-			req.user.id,
-			id,
-			options
-		)
+		await this.signatureService.resendSignatureRequest(req.user.id, id, options)
 		return { success: true }
 	}
 
@@ -469,7 +463,7 @@ export class LeasesController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest
 	) {
-		const documentUrl = await this.leaseDocumentService.getSignedDocumentUrl(
+		const documentUrl = await this.signatureService.getSignedDocumentUrl(
 			id,
 			req.user.id
 		)

@@ -5,7 +5,10 @@ import {
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
-import type { PropertyOccupancyData } from '@repo/shared/src/types/financial-statements.js'
+import type {
+	PropertyOccupancyData,
+	QueryProperty
+} from '@repo/shared/src/types/financial-statements.js'
 
 import { AppLogger } from '../../../logger/app-logger.service'
 
@@ -80,90 +83,42 @@ export class PropertyOccupancyAnalyticsService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const now = new Date()
-		const nowIso = now.toISOString()
 
-		// Step 1: Get properties with units (lightweight)
+		// Build query - fetch properties with units and leases
 		let propertiesQuery = client.from('properties').select(`
 			id,
 			name,
 			units (
 				id,
-				status
+				status,
+				leases (
+					id,
+					lease_status,
+					start_date,
+					end_date
+				)
 			)
 		`)
 
+		// Filter by property_id if provided
 		if (query.property_id) {
 			propertiesQuery = propertiesQuery.eq('id', query.property_id)
 		}
 
-		const { data: properties, error: propError } = await propertiesQuery
+		const { data: properties, error } = await propertiesQuery
 
-		if (propError) {
-			this.logger.error('[ANALYTICS:OCCUPANCY] Properties query failed', {
+		if (error) {
+			this.logger.error('[ANALYTICS:OCCUPANCY] Query failed', {
 				user_id,
-				error: propError.message
+				error: error.message
 			})
 			return []
 		}
 
-		if (!properties || properties.length === 0) {
-			return []
-		}
-
-		// Extract unit IDs for filtered lease query
-		const unitIds = properties.flatMap(p => (p.units || []).map(u => u.id))
-
-		// Step 2: Get active leases with server-side filtering
-		// Only fetch leases that could be currently active (end_date >= now, status = active)
-		const { data: leases } = unitIds.length > 0
-			? await client
-				.from('leases')
-				.select('id, unit_id, lease_status, start_date, end_date')
-				.in('unit_id', unitIds)
-				.eq('lease_status', 'active')
-				.gte('end_date', nowIso)
-				.lte('start_date', nowIso)
-			: { data: [] }
-
-		// Build unit to property map
-		const unitToPropertyMap = new Map<string, string>()
-		for (const prop of properties) {
-			for (const unit of prop.units || []) {
-				unitToPropertyMap.set(unit.id, prop.id)
-			}
-		}
-
-		// Count active leases by property
-		const occupiedUnitsByProperty = new Map<string, Set<string>>()
-		for (const prop of properties) {
-			occupiedUnitsByProperty.set(prop.id, new Set())
-		}
-
-		for (const lease of leases || []) {
-			const propId = unitToPropertyMap.get(lease.unit_id)
-			if (propId) {
-				occupiedUnitsByProperty.get(propId)!.add(lease.unit_id)
-			}
-		}
-
-		// Build result
-		const result = properties.map((property) => {
-			const units = property.units || []
-			const totalUnits = units.length
-			const occupiedUnits = occupiedUnitsByProperty.get(property.id)?.size || 0
-			const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-
-			return {
-				property_id: property.id,
-				property_name: property.name,
-				period,
-				occupancy_rate: occupancyRate,
-				total_units: totalUnits,
-				occupied_units: occupiedUnits,
-				vacant_units: totalUnits - occupiedUnits
-			}
-		})
+		// Process each property's occupancy data
+		const result = (properties ?? []).map((property) =>
+			this.processOccupancyData(property as QueryProperty, period)
+		)
 
 		this.logger.log(
 			'[ANALYTICS:OCCUPANCY:COMPLETE] Occupancy analytics completed',
@@ -178,4 +133,32 @@ export class PropertyOccupancyAnalyticsService {
 		return result
 	}
 
+	/**
+	 * Process property data to calculate occupancy metrics
+	 */
+	processOccupancyData(property: QueryProperty, period: string): PropertyOccupancyData {
+		const units = property.units || []
+		const totalUnits = units.length
+		const occupiedUnits = units.filter((unit) => {
+			const activeLease = unit.leases?.find(
+				(lease) =>
+					lease.lease_status === 'active' &&
+					new Date(lease.start_date) <= new Date() &&
+					new Date(lease.end_date) >= new Date()
+			)
+			return activeLease
+		}).length
+		const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
+		const vacantUnits = totalUnits - occupiedUnits
+
+		return {
+			property_id: property.id,
+			property_name: property.name,
+			period,
+			occupancy_rate: occupancyRate,
+			total_units: totalUnits,
+			occupied_units: occupiedUnits,
+			vacant_units: vacantUnits
+		}
+	}
 }

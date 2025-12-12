@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogFooter
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import {
@@ -105,13 +106,13 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 			</Button>
 
 			<CrudDialog mode="edit" modalId={modalId}>
-				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
-						<DialogTitle>Update Status</DialogTitle>
-						<DialogDescription>
+				<CrudDialogContent className="sm:max-w-md">
+					<CrudDialogHeader>
+						<CrudDialogTitle>Update Status</CrudDialogTitle>
+						<CrudDialogDescription>
 							Update the status of this maintenance request.
-						</DialogDescription>
-					</DialogHeader>
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
 					<CrudDialogBody>
 						<form
@@ -194,7 +195,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 						</form>
 					</CrudDialogBody>
 
-					<DialogFooter>
+					<CrudDialogFooter>
 						<Button
 							type="submit"
 							disabled={isPending}
@@ -202,8 +203,8 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 						>
 							{isPending ? 'Updating...' : 'Update Status'}
 						</Button>
-					</DialogFooter>
-				</DialogContent>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		</>
 	)

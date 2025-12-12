@@ -10,8 +10,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { PropertiesGridClient } from './properties-grid.client'
 import { PropertiesTableClient } from './properties-table.client'
 import { MobilePropertiesTable } from './properties-table.mobile'
-import type { Property, Unit } from '@repo/shared/types/core'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Property } from '@repo/shared/types/core'
 import { Input } from '#components/ui/input'
 import {
 	Select,
@@ -34,10 +33,6 @@ import {
 
 interface PropertiesViewClientProps {
 	properties: Property[]
-	/** Batch-loaded images map from parent (property_id -> images[]) */
-	imagesMap: Record<string, Tables<'property_images'>[]> | undefined
-	/** Batch-loaded units map from parent (property_id -> units[]) */
-	unitsMap: Record<string, Unit[]> | undefined
 }
 
 /**
@@ -45,9 +40,7 @@ interface PropertiesViewClientProps {
  * Receives data from parent to avoid duplicate fetching
  */
 export function PropertiesViewClient({
-	properties,
-	imagesMap,
-	unitsMap
+	properties
 }: PropertiesViewClientProps) {
 	const isMobile = useIsMobile()
 	const queryClient = useQueryClient()
@@ -272,11 +265,7 @@ export function PropertiesViewClient({
 					</div>
 				</Empty>
 			) : currentView === 'grid' ? (
-				<PropertiesGridClient
-					data={filteredProperties}
-					imagesMap={imagesMap}
-					unitsMap={unitsMap}
-				/>
+				<PropertiesGridClient data={filteredProperties} />
 			) : (
 				<PropertiesTableClient initialProperties={filteredProperties} />
 			)}

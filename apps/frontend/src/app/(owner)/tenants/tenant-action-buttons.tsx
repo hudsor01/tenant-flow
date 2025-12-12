@@ -8,16 +8,19 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogFooter
+	AlertDialogTitle
 } from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
+import {
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -236,11 +239,11 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 			{/* Modal Components */}
 			<CrudDialog mode="read" modalId={`view-tenant-${tenant.id}`}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Tenant Details</DialogTitle>
-						<DialogDescription>View tenant information</DialogDescription>
-					</DialogHeader>
+				<CrudDialogContent>
+					<CrudDialogHeader>
+						<CrudDialogTitle>Tenant Details</CrudDialogTitle>
+						<CrudDialogDescription>View tenant information</CrudDialogDescription>
+					</CrudDialogHeader>
 					<CrudDialogBody>
 						<div className="space-y-2">
 					<div className="flex items-center gap-2 text-sm">
@@ -297,18 +300,18 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 					)}
 				</div>
 					</CrudDialogBody>
-				</DialogContent>
+				</CrudDialogContent>
 			</CrudDialog>
 
 			<CrudDialog mode="edit" modalId={modalId}>
-				<DialogContent className="sm:max-w-md">
-					<DialogHeader>
-						<DialogTitle>Edit Tenant</DialogTitle>
-						<DialogDescription>
+				<CrudDialogContent className="sm:max-w-md">
+					<CrudDialogHeader>
+						<CrudDialogTitle>Edit Tenant</CrudDialogTitle>
+						<CrudDialogDescription>
 							Update tenant information including contact details and emergency
 							contacts.
-						</DialogDescription>
-					</DialogHeader>
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
 					<CrudDialogBody>
 						<form onSubmit={handleFormSubmit} className="space-y-4">
@@ -327,7 +330,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 						</form>
 					</CrudDialogBody>
 
-					<DialogFooter>
+					<CrudDialogFooter>
 						<Button type="button" variant="outline" onClick={handleCancel}>
 							Cancel
 						</Button>
@@ -338,8 +341,8 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 						>
 							{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
 						</Button>
-					</DialogFooter>
-				</DialogContent>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		</div>
 	)

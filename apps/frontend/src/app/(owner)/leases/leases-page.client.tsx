@@ -16,14 +16,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Button } from '#components/ui/button'
-import {
-	DialogContent,
-	DialogHeader,
-	DialogTitle,
-	DialogDescription,
-	DialogFooter
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
 
 import { useCreateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import type { Lease } from '@repo/shared/types/core'
@@ -123,14 +116,14 @@ function LeaseCreateDialog() {
 				Add Lease
 			</Button>
 			<CrudDialog mode="create" open={open} onOpenChange={setOpen}>
-				<DialogContent className="sm:max-w-125">
+				<CrudDialogContent className="sm:max-w-125">
 					<form onSubmit={handleSubmit}>
-						<DialogHeader>
-							<DialogTitle>Add New Lease</DialogTitle>
-							<DialogDescription>
+						<CrudDialogHeader>
+							<CrudDialogTitle>Add New Lease</CrudDialogTitle>
+							<CrudDialogDescription>
 								Create a new lease agreement with tenant, unit, and terms
-							</DialogDescription>
-						</DialogHeader>
+							</CrudDialogDescription>
+						</CrudDialogHeader>
 						<CrudDialogBody>
 							<div className="space-y-4">
 								<p className="text-muted">
@@ -138,7 +131,7 @@ function LeaseCreateDialog() {
 								</p>
 							</div>
 						</CrudDialogBody>
-						<DialogFooter>
+						<CrudDialogFooter>
 							<Button
 								type="button"
 								variant="outline"
@@ -150,9 +143,9 @@ function LeaseCreateDialog() {
 							<Button type="submit" disabled={createLeaseMutation.isPending}>
 								{createLeaseMutation.isPending ? 'Creating...' : 'Create Lease'}
 							</Button>
-						</DialogFooter>
+						</CrudDialogFooter>
 					</form>
-				</DialogContent>
+				</CrudDialogContent>
 			</CrudDialog>
 		</>
 	)

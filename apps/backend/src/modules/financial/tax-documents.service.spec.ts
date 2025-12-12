@@ -122,35 +122,6 @@ describe('TaxDocumentsService', () => {
 
     jest.spyOn(Logger.prototype, 'log').mockImplementation()
     jest.spyOn(Logger.prototype, 'error').mockImplementation()
-
-    // Mock loadLedgerData to return default test data
-    // This replaces the individual table mocks since loadLedgerData now uses a single nested query
-    //
-    // Test values calculation:
-    // - Gross revenue = 4 payments × 20000 = 80000
-    // - Total expenses = 4 expenses × 5000 = 20000
-    // - NOI = 80000 - 20000 = 60000
-    // - Property value (derived) = NOI / 0.06 = 1000000
-    // - Depreciation = 1000000 / 27.5 ≈ 36363.64
-    const defaultLedger: LedgerData = {
-      rentPayments: [
-        { status: 'succeeded', paid_date: '2024-05-01', due_date: '2024-05-01', amount: 20000, lease_id: 'lease-1', application_fee_amount: null, late_fee_amount: null },
-        { status: 'succeeded', paid_date: '2024-06-01', due_date: '2024-06-01', amount: 20000, lease_id: 'lease-1', application_fee_amount: null, late_fee_amount: null },
-        { status: 'succeeded', paid_date: '2024-07-01', due_date: '2024-07-01', amount: 20000, lease_id: 'lease-1', application_fee_amount: null, late_fee_amount: null },
-        { status: 'succeeded', paid_date: '2024-08-01', due_date: '2024-08-01', amount: 20000, lease_id: 'lease-1', application_fee_amount: null, late_fee_amount: null }
-      ],
-      expenses: [
-        { expense_date: '2024-03-01', created_at: '2024-03-01', amount: 5000, maintenance_request_id: 'mr-1' },
-        { expense_date: '2024-04-01', created_at: '2024-04-01', amount: 5000, maintenance_request_id: 'mr-1' },
-        { expense_date: '2024-05-01', created_at: '2024-05-01', amount: 5000, maintenance_request_id: 'mr-1' },
-        { expense_date: '2024-06-01', created_at: '2024-06-01', amount: 5000, maintenance_request_id: 'mr-1' }
-      ],
-      leases: [{ id: 'lease-1', unit_id: 'unit-1', security_deposit: 3000 }],
-      maintenanceRequests: [{ id: 'mr-1', unit_id: 'unit-1', status: 'completed', completed_at: '2024-03-01', created_at: '2024-03-01', actual_cost: null, estimated_cost: null }],
-      units: [{ id: 'unit-1', property_id: 'prop-1' }],
-      properties: [{ id: 'prop-1', name: 'Property', created_at: '2020-01-01T00:00:00Z' }]
-    }
-    jest.spyOn(FinancialLedgerHelpers, 'loadLedgerData').mockResolvedValue(defaultLedger)
   })
 
   describe('generateTaxDocuments', () => {
@@ -159,7 +130,7 @@ describe('TaxDocumentsService', () => {
 
       expect(result).toBeDefined()
       expect(result.taxYear).toBe(2024)
-      expect(result.incomeBreakdown.grossRentalIncome).toBe(80000)
+      expect(result.incomeBreakdown.grossRentalIncome).toBe(60000)
       expect(result.incomeBreakdown.totalExpenses).toBe(20000)
       expect(result.expenseCategories.length).toBe(3)
       expect(result.propertyDepreciation.length).toBe(1)
@@ -202,19 +173,72 @@ describe('TaxDocumentsService', () => {
     })
 
     it('should handle missing property values with default estimate', async () => {
-      // Override loadLedgerData to return custom data with only 1 rent payment and no expenses
-      // This simulates a property where propertyValue is derived from NOI
-      const customLedger: LedgerData = {
-        rentPayments: [
-          { status: 'succeeded', paid_date: '2024-06-01', due_date: '2024-06-01', amount: 20000, lease_id: 'lease-1', application_fee_amount: null, late_fee_amount: null }
-        ],
-        expenses: [],
-        leases: [{ id: 'lease-1', unit_id: 'unit-1', security_deposit: null }],
-        maintenanceRequests: [],
-        units: [{ id: 'unit-1', property_id: 'prop-1' }],
-        properties: [{ id: 'prop-1', name: 'Property Without Value', created_at: '2024-01-01' }]
-      }
-      jest.spyOn(FinancialLedgerHelpers, 'loadLedgerData').mockResolvedValue(customLedger)
+      // Override the properties mock to simulate missing property_value
+      mockClient.from.mockImplementation((table: string) => {
+        if (table === 'properties') {
+          return {
+            select: jest.fn().mockResolvedValue({
+              data: [
+                {
+                  id: 'prop-1',
+                  name: 'Property Without Value',
+                  // property_value is missing
+                  acquisition_year: 2024
+                }
+              ],
+              error: null
+            })
+          }
+        }
+        // Use default mock for other tables
+        const mockQuery = {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          gte: jest.fn().mockReturnThis(),
+          lte: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          range: jest.fn().mockReturnThis(),
+          then: jest.fn()
+        }
+
+        // Default data for other tables
+        let data: any[] = []
+        switch (table) {
+          case 'rent_payments':
+            data = [
+              { id: 'rp1', amount: 20000, status: 'succeeded', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' }
+            ]
+            break
+          case 'expenses':
+            data = []
+            break
+          case 'leases':
+            data = [
+              {
+                id: 'lease-1',
+                tenant_id: 'tenant-1',
+                unit_id: 'unit-1',
+                rent_amount: 1500
+              }
+            ]
+            break
+          case 'maintenance_requests':
+            data = []
+            break
+          case 'units':
+            data = [
+              {
+                id: 'unit-1',
+                property_id: 'prop-1',
+                unit_number: '101'
+              }
+            ]
+            break
+        }
+        mockQuery.then.mockImplementation((resolve) => resolve({ data, error: null }))
+        return mockQuery
+      })
 
       const result = await service.generateTaxDocuments('user-123', 2024)
 
@@ -253,16 +277,16 @@ describe('TaxDocumentsService', () => {
       const result = await service.generateTaxDocuments('user-123', 2024)
 
       // Calculations based on default table data:
-      // Gross Income = 80000 (rent payments)
+      // Gross Income = 60000 (rent payments)
       // Expenses = 20000
-      // NOI = 80000 - 20000 = 60000
+      // NOI = 60000 - 20000 = 40000
       // Depreciation = 1000000 / 27.5 ≈ 36363.64
       // Mortgage Interest = 20000 * 0.3 = 6000
-      // Taxable Income = 60000 - 36363.64 - 6000 ≈ 17636.36
+      // Taxable Income = 40000 - 36363.64 - 6000 ≈ -2363.64
 
-      const expectedNOI = 60000
+      const expectedNOI = 40000
       const expectedDepreciation = 1000000 / 27.5
-      const expectedMortgageInterest = 20000 * 0.3 // 6000
+      const expectedMortgageInterest = 6000
       const expectedTaxable =
         expectedNOI - expectedDepreciation - expectedMortgageInterest
 
@@ -331,14 +355,14 @@ describe('TaxDocumentsService', () => {
       const result = await service.generateTaxDocuments('user-123', 2024)
 
       // Total income = gross rental income
-      expect(result.totals.totalIncome).toBe(80000)
+      expect(result.totals.totalIncome).toBe(60000)
 
       // Total deductions = expenses + depreciation
       const expectedDeductions = 20000 + 1000000 / 27.5
       expect(result.totals.totalDeductions).toBeCloseTo(expectedDeductions, 2)
 
       // Net taxable income = NOI - depreciation - mortgage interest
-      const noi = 80000 - 20000
+      const noi = 60000 - 20000
       const depreciation = 1000000 / 27.5
       const mortgageInterest = 20000 * 0.3
       const expectedNetTaxable = noi - depreciation - mortgageInterest
@@ -349,12 +373,12 @@ describe('TaxDocumentsService', () => {
       const result = await service.generateTaxDocuments('user-123', 2024)
 
       const scheduleE = result.schedule.scheduleE
-      expect(scheduleE.grossRentalIncome).toBe(80000)
+      expect(scheduleE.grossRentalIncome).toBe(60000)
       expect(scheduleE.totalExpenses).toBe(20000)
       expect(scheduleE.depreciation).toBeCloseTo(1000000 / 27.5, 2)
 
       // Net income = NOI - depreciation - mortgage interest
-      const noi = 80000 - 20000
+      const noi = 60000 - 20000
       const depreciation = 1000000 / 27.5
       const mortgageInterest = 20000 * 0.3
       const expectedNetIncome = noi - depreciation - mortgageInterest

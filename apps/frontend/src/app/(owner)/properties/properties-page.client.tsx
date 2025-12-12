@@ -17,7 +17,6 @@ import {
 } from '#components/ui/empty'
 import { Skeleton } from '#components/ui/skeleton'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { PropertyStats } from '@repo/shared/types/core'
 import {
@@ -201,25 +200,11 @@ export function PropertiesPageClient() {
 		refetch: refetchProperties
 	} = useQuery(propertyQueries.list())
 	const properties = propertiesResponse?.data ?? []
-
 	const {
 		data: stats = defaultStats,
 		isLoading: statsLoading,
 		refetch: refetchStats
 	} = useQuery(propertyQueries.stats())
-
-	// Extract property IDs for batch queries
-	const propertyIds = properties.map(p => p.id)
-
-	// Batch fetch images and units to avoid N+1 queries in PropertyCard
-	const { data: imagesMap = {} } = useQuery({
-		...propertyQueries.batchImages(propertyIds),
-		enabled: propertyIds.length > 0
-	})
-	const { data: unitsMap = {} } = useQuery({
-		...unitQueries.batchByProperties(propertyIds),
-		enabled: propertyIds.length > 0
-	})
 
 	const isLoading = propertiesLoading || statsLoading
 	const hasError = !!propertiesError
@@ -500,11 +485,7 @@ export function PropertiesPageClient() {
 					</Empty>
 				}
 			>
-				<PropertiesViewClient
-					properties={properties}
-					imagesMap={imagesMap}
-					unitsMap={unitsMap}
-				/>
+				<PropertiesViewClient properties={properties} />
 			</ErrorBoundary>
 		</div>
 	)

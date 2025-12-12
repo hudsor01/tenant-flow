@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogFooter
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogBody,
+	CrudDialogFooter
+} from '#components/ui/crud-dialog'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import {
 	Select,
@@ -86,14 +87,14 @@ export function EditMaintenanceButton({
 			</Button>
 
 			<CrudDialog mode="edit" modalId={modalId}>
-				<DialogContent className="sm:max-w-lg">
-					<DialogHeader>
-						<DialogTitle>Edit Maintenance Request</DialogTitle>
-						<DialogDescription>
+				<CrudDialogContent className="sm:max-w-lg">
+					<CrudDialogHeader>
+						<CrudDialogTitle>Edit Maintenance Request</CrudDialogTitle>
+						<CrudDialogDescription>
 							Update maintenance request details including priority, status, and
 							cost estimates.
-						</DialogDescription>
-					</DialogHeader>
+						</CrudDialogDescription>
+					</CrudDialogHeader>
 
 					<CrudDialogBody>
 						<form
@@ -157,7 +158,7 @@ export function EditMaintenanceButton({
 						</form>
 					</CrudDialogBody>
 
-					<DialogFooter>
+					<CrudDialogFooter>
 						<Button
 							type="submit"
 							disabled={updateMaintenanceRequest.isPending}
@@ -167,8 +168,8 @@ export function EditMaintenanceButton({
 								? 'Updating...'
 								: 'Update Request'}
 						</Button>
-					</DialogFooter>
-				</DialogContent>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		</>
 	)

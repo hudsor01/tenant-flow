@@ -19,7 +19,6 @@ import { LeaseSignatureService } from '../../src/modules/leases/lease-signature.
 import { SupabaseService } from '../../src/database/supabase.service'
 import { DocuSealService } from '../../src/modules/docuseal/docuseal.service'
 import { LeaseSubscriptionService } from '../../src/modules/leases/lease-subscription.service'
-import { LeaseDocumentService } from '../../src/modules/leases/lease-document.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
 
@@ -31,7 +30,6 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 	let mockLeaseSubscriptionService: jest.Mocked<
 		Partial<LeaseSubscriptionService>
 	>
-	let mockLeaseDocumentService: jest.Mocked<Partial<LeaseDocumentService>>
 
 	// Track what data was updated in the lease
 	let capturedLeaseUpdate: Record<string, unknown> | null = null
@@ -90,16 +88,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 			isEnabled: jest.fn().mockReturnValue(true), // DocuSeal is enabled for this property test
 			createLeaseSubmission: jest.fn(),
 			getSubmitterSigningUrl: jest.fn(),
-			archiveSubmission: jest.fn(),
-			getSubmission: jest.fn(),
-			resendToSubmitter: jest.fn()
-		}
-
-		mockLeaseDocumentService = {
-			getSigningUrl: jest.fn(),
-			cancelSignatureRequest: jest.fn(),
-			resendSignatureRequest: jest.fn(),
-			getSignedDocumentUrl: jest.fn()
+			archiveSubmission: jest.fn()
 		}
 
 		mockLeaseSubscriptionService = {
@@ -120,7 +109,6 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 				{ provide: EventEmitter2, useValue: mockEventEmitter },
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: DocuSealService, useValue: mockDocuSealService },
-				{ provide: LeaseDocumentService, useValue: mockLeaseDocumentService },
 				{
 					provide: LeaseSubscriptionService,
 					useValue: mockLeaseSubscriptionService

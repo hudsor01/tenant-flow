@@ -2,14 +2,15 @@
 
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen, userEvent } from '#test/utils/test-render'
-import { CrudDialog, CrudDialogBody } from '../crud-dialog'
 import {
-	DialogContent,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-	DialogClose
-} from '../dialog'
+	CrudDialog,
+	CrudDialogBody,
+	CrudDialogContent,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle,
+	CrudDialogClose
+} from '../crud-dialog'
 import { useModalStore } from '#stores/modal-store'
 
 vi.mock('next/navigation', () => ({
@@ -23,17 +24,17 @@ describe('CrudDialog', () => {
 
 		render(
 			<CrudDialog mode="read" modalId={modalId}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Store Title</DialogTitle>
-					</DialogHeader>
+				<CrudDialogContent>
+					<CrudDialogHeader>
+						<CrudDialogTitle>Store Title</CrudDialogTitle>
+					</CrudDialogHeader>
 					<CrudDialogBody>Store Body</CrudDialogBody>
-					<DialogFooter>
-						<DialogClose asChild>
+					<CrudDialogFooter>
+						<CrudDialogClose asChild>
 							<button>Close</button>
-						</DialogClose>
-					</DialogFooter>
-				</DialogContent>
+						</CrudDialogClose>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		)
 
@@ -48,12 +49,12 @@ describe('CrudDialog', () => {
 	it('renders controlled dialog without modal store', () => {
 		render(
 			<CrudDialog mode="create" open>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Dialog Title</DialogTitle>
-					</DialogHeader>
+				<CrudDialogContent>
+					<CrudDialogHeader>
+						<CrudDialogTitle>Dialog Title</CrudDialogTitle>
+					</CrudDialogHeader>
 					<CrudDialogBody>Dialog Body</CrudDialogBody>
-				</DialogContent>
+				</CrudDialogContent>
 			</CrudDialog>
 		)
 
@@ -65,16 +66,16 @@ describe('CrudDialog', () => {
 
 		render(
 			<CrudDialog mode="create" open onOpenChange={onOpenChange}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>Test Title</DialogTitle>
-					</DialogHeader>
-					<DialogFooter>
-						<DialogClose asChild>
+				<CrudDialogContent>
+					<CrudDialogHeader>
+						<CrudDialogTitle>Test Title</CrudDialogTitle>
+					</CrudDialogHeader>
+					<CrudDialogFooter>
+						<CrudDialogClose asChild>
 							<button>Cancel</button>
-						</DialogClose>
-					</DialogFooter>
-				</DialogContent>
+						</CrudDialogClose>
+					</CrudDialogFooter>
+				</CrudDialogContent>
 			</CrudDialog>
 		)
 

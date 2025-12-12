@@ -10,11 +10,8 @@ import { AppLogger } from '../../logger/app-logger.service'
 /**
  * N+1 Query Prevention Tests
  *
- * These tests verify that TenantRelationService uses optimized queries
+ * These tests verify that TenantRelationService uses optimized Supabase joins
  * instead of sequential queries when fetching tenant relationships.
- *
- * The service queries leases directly (since leases have property_owner_id)
- * instead of using nested joins through properties -> units -> leases.
  */
 describe('TenantRelationService - N+1 Query Prevention', () => {
   let service: TenantRelationService
@@ -82,19 +79,34 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
   })
 
   describe('getTenantIdsForOwner - N+1 Prevention', () => {
-    it('should use only 2 queries: owner lookup + direct leases query', async () => {
-      // Setup: Mock owner record and direct leases query
+    it('should use single query with joins instead of 3 sequential queries', async () => {
+      // Setup: Mock owner with properties → units → leases chain
       const mockOwnerRecord = { id: 'owner-1' }
-      const mockLeases = [
-        { primary_tenant_id: 'tenant-1' },
-        { primary_tenant_id: 'tenant-1' }, // Duplicate
-        { primary_tenant_id: 'tenant-2' }
+      const mockProperties = [
+        {
+          id: 'prop-1',
+          units: [
+            {
+              id: 'unit-1',
+              leases: [{ primary_tenant_id: 'tenant-1' }]
+            }
+          ]
+        },
+        {
+          id: 'prop-2',
+          units: [
+            {
+              id: 'unit-2',
+              leases: [{ primary_tenant_id: 'tenant-2' }]
+            }
+          ]
+        }
       ]
 
       const mockClient = mockSupabaseService.getAdminClient()
 
       let callIndex = 0
-      mockClient.select = jest.fn().mockImplementation(() => {
+      mockClient.select = jest.fn().mockImplementation((columns: string) => {
         callIndex++
 
         // First call: get owner record
@@ -104,12 +116,12 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
             error: null
           })
         }
-        // Second call: direct leases query
+        // Second call: should be SINGLE query with nested joins
         else if (callIndex === 2) {
-          mockClient.not = jest.fn().mockResolvedValue({
-            data: mockLeases,
-            error: null
-          })
+          ; (mockClient as any).then = (cb: (result: any) => void) => {
+            cb({ data: mockProperties, error: null })
+            return Promise.resolve({ data: mockProperties, error: null })
+          }
         }
 
         return mockClient
@@ -121,20 +133,20 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
       // Execute
       const result = await service.getTenantIdsForOwner('auth-user-123')
 
-      // Assert: Should use exactly 2 queries (not 4 with nested joins)
-      // 1 query: Get owner record from property_owners
-      // 1 query: Get leases directly by property_owner_id
-      // TOTAL: 2 queries (optimized from previous 4: properties + units + leases joins)
+      // Assert: Should use ≤2 queries (not 4)
+      // 1 query: Get owner record
+      // 1 query: Get properties with nested units.leases in single join
+      // TOTAL: 2 queries (not 1 + properties + units + leases = 4)
       expect(queryCount).toBeLessThanOrEqual(2)
       expect(result).toEqual(['tenant-1', 'tenant-2'])
     })
 
-    it('should query leases table directly instead of nested joins', async () => {
+    it('should use nested joins instead of sequential queries', async () => {
       const mockOwnerRecord = { id: 'owner-1' }
       const mockClient = mockSupabaseService.getAdminClient()
 
       let callIndex = 0
-      mockClient.select = jest.fn().mockImplementation(() => {
+      mockClient.select = jest.fn().mockImplementation((columns: string) => {
         callIndex++
 
         if (callIndex === 1) {
@@ -143,10 +155,11 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
             error: null
           })
         } else if (callIndex === 2) {
-          mockClient.not = jest.fn().mockResolvedValue({
-            data: [],
-            error: null
-          })
+          // Nested join query
+          ; (mockClient as any).then = (cb: (result: any) => void) => {
+            cb({ data: [], error: null })
+            return Promise.resolve({ data: [], error: null })
+          }
         }
 
         return mockClient
@@ -156,11 +169,17 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
       await service.getTenantIdsForOwner('auth-user-123')
 
-      // Verify the from() calls - should query leases directly
-      const fromCalls = mockClient.from.mock.calls
-      expect(fromCalls).toHaveLength(2)
-      expect(fromCalls[0][0]).toBe('property_owners')
-      expect(fromCalls[1][0]).toBe('leases')
+      // Should use nested joins in the select statement
+      const selectCalls = mockClient.select.mock.calls
+      const hasNestedJoin = selectCalls.some((call: any[]) => {
+        const columns = call[0]
+        return (
+          typeof columns === 'string' &&
+          columns.includes('units(') &&
+          columns.includes('leases(')
+        )
+      })
+      expect(hasNestedJoin).toBe(true)
     })
 
     it('should handle empty results at any step', async () => {

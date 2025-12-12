@@ -2,13 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
-import { CrudDialog, CrudDialogBody } from '#components/ui/crud-dialog'
+	CrudDialog,
+	CrudDialogBody,
+	CrudDialogContent,
+	CrudDialogDescription,
+	CrudDialogFooter,
+	CrudDialogHeader,
+	CrudDialogTitle
+} from '#components/ui/crud-dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
 import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
@@ -55,13 +56,13 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 
 	return (
 		<CrudDialog mode="edit" modalId={modalId}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>Renew Lease</DialogTitle>
-					<DialogDescription>
+			<CrudDialogContent>
+				<CrudDialogHeader>
+					<CrudDialogTitle>Renew Lease</CrudDialogTitle>
+					<CrudDialogDescription>
 						Extend the lease by setting a new end date
-					</DialogDescription>
-				</DialogHeader>
+					</CrudDialogDescription>
+				</CrudDialogHeader>
 				<CrudDialogBody>
 					<Field>
 						<FieldLabel htmlFor="newEndDate">New End Date</FieldLabel>
@@ -73,7 +74,7 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 						/>
 					</Field>
 				</CrudDialogBody>
-				<DialogFooter>
+				<CrudDialogFooter>
 					<Button variant="outline" onClick={handleCancel}>
 						Cancel
 					</Button>
@@ -83,8 +84,8 @@ export function RenewLeaseDialog({ lease_id }: RenewLeaseDialogProps) {
 					>
 						{renewLeaseMutation.isPending ? 'Renewing...' : 'Renew Lease'}
 					</Button>
-				</DialogFooter>
-			</DialogContent>
+				</CrudDialogFooter>
+			</CrudDialogContent>
 		</CrudDialog>
 	)
 }

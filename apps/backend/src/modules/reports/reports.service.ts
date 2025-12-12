@@ -8,7 +8,6 @@
 import { Injectable, Optional } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
-import { ZeroCacheService } from '../../cache/cache.service'
 
 // Use inferred query result types instead of strict Database types
 // This allows flexibility with Supabase's actual return types which include nullability
@@ -57,11 +56,7 @@ export interface OccupancyMetrics {
 @Injectable()
 export class ReportsService {
 
-	constructor(
-		@Optional() private readonly logger: AppLogger,
-		private readonly supabase?: SupabaseService,
-		private readonly cache?: ZeroCacheService
-	) {}
+	constructor(@Optional() private readonly logger: AppLogger, private readonly supabase?: SupabaseService) {}
 
 	/**
 	 * Get monthly revenue data for charts
@@ -73,16 +68,6 @@ export class ReportsService {
 		if (!this.supabase) {
 			this.logger.warn('Supabase service not available')
 			return []
-		}
-
-		// Check cache first (5min TTL for reports data)
-		const cacheKey = ZeroCacheService.getUserKey(user_id, 'reports:monthly-revenue', { months })
-		if (this.cache) {
-			const cached = this.cache.get<RevenueData[]>(cacheKey)
-			if (cached) {
-				this.logger.debug('Monthly revenue cache hit', { user_id })
-				return cached
-			}
 		}
 
 		try {
@@ -177,14 +162,9 @@ export class ReportsService {
 				data.occupiedUnits = occupiedUnits
 			})
 
-			const result = Array.from(monthlyData.values())
+			return Array.from(monthlyData.values())
 				.sort((a, b) => a.month.localeCompare(b.month))
 				.reverse()
-
-			// Cache result for 5 minutes
-			this.cache?.set(cacheKey, result, 300000, [`user:${user_id}`, 'reports'])
-
-			return result
 		} catch (error) {
 			this.logger.error('Failed to get monthly revenue', { error })
 			throw error
@@ -202,16 +182,6 @@ export class ReportsService {
 		if (!this.supabase) {
 			this.logger.warn('Supabase service not available')
 			return this.getEmptyPaymentAnalytics()
-		}
-
-		// Check cache first (5min TTL for reports data)
-		const cacheKey = ZeroCacheService.getUserKey(user_id, 'reports:payment-analytics', { start_date, end_date })
-		if (this.cache) {
-			const cached = this.cache.get<PaymentAnalytics>(cacheKey)
-			if (cached) {
-				this.logger.debug('Payment analytics cache hit', { user_id })
-				return cached
-			}
 		}
 
 		try {
@@ -297,9 +267,6 @@ export class ReportsService {
 				}
 			}
 
-			// Cache result for 5 minutes
-			this.cache?.set(cacheKey, analytics, 300000, [`user:${user_id}`, 'reports'])
-
 			return analytics
 		} catch (error) {
 			this.logger.error('Failed to get payment analytics', { error })
@@ -314,16 +281,6 @@ export class ReportsService {
 		if (!this.supabase) {
 			this.logger.warn('Supabase service not available')
 			return this.getEmptyOccupancyMetrics()
-		}
-
-		// Check cache first (5min TTL for reports data)
-		const cacheKey = ZeroCacheService.getUserKey(user_id, 'reports:occupancy-metrics')
-		if (this.cache) {
-			const cached = this.cache.get<OccupancyMetrics>(cacheKey)
-			if (cached) {
-				this.logger.debug('Occupancy metrics cache hit', { user_id })
-				return cached
-			}
 		}
 
 		try {
@@ -390,18 +347,13 @@ export class ReportsService {
 				})
 			})
 
-			const result = {
+			return {
 				totalUnits,
 				occupiedUnits,
 				vacantUnits: totalUnits - occupiedUnits,
 				occupancyRate: totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0,
 				byProperty
 			}
-
-			// Cache result for 5 minutes
-			this.cache?.set(cacheKey, result, 300000, [`user:${user_id}`, 'reports'])
-
-			return result
 		} catch (error) {
 			this.logger.error('Failed to get occupancy metrics', { error })
 			throw error

@@ -111,8 +111,7 @@ export class LeasesService {
 			}
 
 			// Build data query with filters (NO manual user_id/unit_id filtering needed)
-			// Select only columns needed for list view (performance optimization)
-			let queryBuilder = client.from('leases').select('id, lease_status, start_date, end_date, rent_amount, rent_currency, security_deposit, primary_tenant_id, property_owner_id, unit_id, payment_day, created_at, updated_at, stripe_subscription_status')
+			let queryBuilder = client.from('leases').select('*')
 
 			// Apply filters
 			if (query.property_id) {

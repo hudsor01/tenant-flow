@@ -61,8 +61,7 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual user_id filtering needed)
-			// Select only columns needed for list view (performance optimization)
-			let queryBuilder = client.from('maintenance_requests').select('id, title, description, status, priority, unit_id, tenant_id, assigned_to, scheduled_date, completed_at, created_at, updated_at, property_owner_id')
+			let queryBuilder = client.from('maintenance_requests').select('*')
 
 			// Apply filters
 			if (query.property_id) {

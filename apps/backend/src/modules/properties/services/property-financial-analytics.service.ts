@@ -5,7 +5,12 @@ import {
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
-import type { PropertyFinancialData } from '@repo/shared/src/types/financial-statements.js'
+import type {
+	PropertyFinancialData,
+	DetailedQueryProperty,
+	DetailedQueryUnit,
+	DetailedQueryLease
+} from '@repo/shared/src/types/financial-statements.js'
 import { AppLogger } from '../../../logger/app-logger.service'
 
 const VALID_TIMEFRAMES = ['7d', '30d', '90d', '180d', '365d'] as const
@@ -94,154 +99,59 @@ export class PropertyFinancialAnalyticsService {
 		}
 
 		const client = this.supabase.getUserClient(token)
-		const startIso = start.toISOString()
-		const endIso = end.toISOString()
 
-		// Step 1: Get properties with units (lightweight)
+		// Build query - fetch properties with units, leases, payments, and maintenance
 		let propertiesQuery = client.from('properties').select(`
 			id,
 			name,
 			units (
-				id
+				id,
+				leases (
+					id,
+					rent_payments (
+						amount,
+						status,
+						paid_date
+					)
+				),
+				maintenance_requests (
+					id,
+					status,
+					estimated_cost,
+					actual_cost,
+					completed_at,
+					expenses (
+						amount,
+						expense_date
+					)
+				)
 			)
 		`)
 
+		// Filter by property_id if provided
 		if (query.property_id) {
 			propertiesQuery = propertiesQuery.eq('id', query.property_id)
 		}
 
-		const { data: properties, error: propError } = await propertiesQuery
+		const { data: properties, error } = await propertiesQuery
 
-		if (propError) {
-			this.logger.error('[ANALYTICS:FINANCIAL] Properties query failed', {
+		if (error) {
+			this.logger.error('[ANALYTICS:FINANCIAL] Query failed', {
 				user_id,
-				error: propError.message
+				error: error.message
 			})
 			return []
 		}
 
-		if (!properties || properties.length === 0) {
-			return []
-		}
-
-		// Extract unit IDs for filtered queries
-		const unitIds = properties.flatMap(p => (p.units || []).map(u => u.id))
-
-		if (unitIds.length === 0) {
-			return properties.map(p => ({
-				property_id: p.id,
-				property_name: p.name,
-				timeframe: query.timeframe,
-				total_revenue: 0,
-				total_expenses: 0,
-				net_income: 0,
-				profit_margin: 0
-			}))
-		}
-
-		// Step 2: Get rent payments with server-side date filtering
-		const { data: payments } = await client
-			.from('rent_payments')
-			.select(`
-				amount,
-				status,
-				paid_date,
-				lease:leases!inner (
-					unit_id
-				)
-			`)
-			.in('lease.unit_id', unitIds)
-			.eq('status', 'succeeded')
-			.gte('paid_date', startIso)
-			.lte('paid_date', endIso)
-
-		// Step 3: Get maintenance costs with server-side date filtering
-		const { data: maintenanceRequests } = await client
-			.from('maintenance_requests')
-			.select(`
-				id,
-				unit_id,
-				estimated_cost,
-				actual_cost,
-				completed_at
-			`)
-			.in('unit_id', unitIds)
-			.gte('completed_at', startIso)
-			.lte('completed_at', endIso)
-
-		// Step 4: Get expenses with server-side date filtering
-		const { data: expenses } = await client
-			.from('expenses')
-			.select(`
-				amount,
-				expense_date,
-				maintenance_request:maintenance_requests!inner (
-					unit_id
-				)
-			`)
-			.in('maintenance_request.unit_id', unitIds)
-			.gte('expense_date', startIso)
-			.lte('expense_date', endIso)
-
-		// Build lookup maps for efficient processing
-		const unitToPropertyMap = new Map<string, string>()
-		for (const prop of properties) {
-			for (const unit of prop.units || []) {
-				unitToPropertyMap.set(unit.id, prop.id)
-			}
-		}
-
-		// Aggregate data by property
-		const propertyData = new Map<string, { revenue: number; expenses: number }>()
-		for (const prop of properties) {
-			propertyData.set(prop.id, { revenue: 0, expenses: 0 })
-		}
-
-		// Sum payments (already filtered by date and status)
-		for (const payment of payments || []) {
-			const unitId = (payment.lease as { unit_id: string })?.unit_id
-			const propId = unitToPropertyMap.get(unitId)
-			if (propId) {
-				const data = propertyData.get(propId)!
-				data.revenue += payment.amount || 0
-			}
-		}
-
-		// Sum maintenance costs (already filtered by date)
-		for (const req of maintenanceRequests || []) {
-			const propId = unitToPropertyMap.get(req.unit_id)
-			if (propId) {
-				const data = propertyData.get(propId)!
-				data.expenses += req.actual_cost || req.estimated_cost || 0
-			}
-		}
-
-		// Sum expenses (already filtered by date)
-		for (const exp of expenses || []) {
-			const unitId = (exp.maintenance_request as { unit_id: string })?.unit_id
-			const propId = unitToPropertyMap.get(unitId)
-			if (propId) {
-				const data = propertyData.get(propId)!
-				data.expenses += exp.amount || 0
-			}
-		}
-
-		// Build result
-		const result = properties.map((property) => {
-			const data = propertyData.get(property.id)!
-			const netIncome = data.revenue - data.expenses
-			const profitMargin = data.revenue > 0 ? (netIncome / data.revenue) * 100 : 0
-
-			return {
-				property_id: property.id,
-				property_name: property.name,
-				timeframe: query.timeframe,
-				total_revenue: data.revenue / 100,
-				total_expenses: data.expenses / 100,
-				net_income: netIncome / 100,
-				profit_margin: profitMargin
-			}
-		})
+		// Process each property's financial data
+		const result = (properties ?? []).map((property) =>
+			this.processFinancialData(
+				property as DetailedQueryProperty,
+				start,
+				end,
+				query.timeframe
+			)
+		)
 
 		this.logger.log(
 			'[ANALYTICS:FINANCIAL:COMPLETE] Financial analytics completed',
@@ -256,4 +166,66 @@ export class PropertyFinancialAnalyticsService {
 		return result
 	}
 
+	/**
+	 * Process property data to calculate financial metrics
+	 */
+	processFinancialData(
+		property: DetailedQueryProperty,
+		start: Date,
+		end: Date,
+		timeframe: string
+	): PropertyFinancialData {
+		let totalRevenue = 0
+		let totalExpenses = 0
+
+		const units = property.units || []
+		units.forEach((unit: DetailedQueryUnit) => {
+			// Revenue from payments
+			unit.leases?.forEach((lease: DetailedQueryLease) => {
+				lease.rent_payments?.forEach((payment) => {
+					if (
+						payment.status === 'succeeded' &&
+						payment.paid_date &&
+						new Date(payment.paid_date) >= start &&
+						new Date(payment.paid_date) <= end
+					) {
+						totalRevenue += payment.amount || 0
+					}
+				})
+			})
+
+			// Expenses from maintenance
+			unit.maintenance_requests?.forEach((req) => {
+				if (
+					req.completed_at &&
+					new Date(req.completed_at) >= start &&
+					new Date(req.completed_at) <= end
+				) {
+					totalExpenses += req.actual_cost || req.estimated_cost || 0
+				}
+				req.expenses?.forEach((exp) => {
+					if (
+						exp.expense_date &&
+						new Date(exp.expense_date) >= start &&
+						new Date(exp.expense_date) <= end
+					) {
+						totalExpenses += exp.amount || 0
+					}
+				})
+			})
+		})
+
+		const netIncome = totalRevenue - totalExpenses
+		const profitMargin = totalRevenue > 0 ? (netIncome / totalRevenue) * 100 : 0
+
+		return {
+			property_id: property.id,
+			property_name: property.name,
+			timeframe,
+			total_revenue: totalRevenue / 100,
+			total_expenses: totalExpenses / 100,
+			net_income: netIncome / 100,
+			profit_margin: profitMargin
+		}
+	}
 }
