@@ -8,19 +8,17 @@ import {
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
-	AlertDialogTitle
+	AlertDialogTitle,
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogBody,
+	DialogFooter
 } from '#components/ui/dialog'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody,
-	CrudDialogFooter
-} from '#components/ui/crud-dialog'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -29,7 +27,6 @@ import {
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useModalStore } from '#stores/modal-store'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/relations'
 import {
@@ -59,17 +56,16 @@ interface TenantActionButtonsProps {
 }
 
 export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
-	const { openModal, closeModal } = useModalStore()
 	const queryClient = useQueryClient()
 
 	// Form state for edit dialog - only tenant-specific fields
 	const [formData, setFormData] = useState({
 		emergency_contact_name: tenant.emergency_contact_name || ''
 	})
-	// State for delete confirmation dialog (must be outside DropdownMenu to work properly)
+	// State for dialogs
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-
-	const modalId = `edit-tenant-${tenant.id}`
+	const [showViewDialog, setShowViewDialog] = useState(false)
+	const [showEditDialog, setShowEditDialog] = useState(false)
 
 	const deleteMutation = useMutation({
 		mutationFn: async () =>
@@ -132,7 +128,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				}
 			)
 			toast.success('Tenant updated successfully')
-			closeModal(modalId)
+			setShowEditDialog(false)
 		},
 		onError: error => {
 			toast.error(`Failed to update tenant: ${error.message}`)
@@ -160,7 +156,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 	}
 
 	const handleCancel = () => {
-		closeModal(modalId)
+		setShowEditDialog(false)
 	}
 
 	return (
@@ -169,7 +165,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 			<Button
 				variant="outline"
 				size="sm"
-				onClick={() => openModal(`view-tenant-${tenant.id}`)}
+				onClick={() => setShowViewDialog(true)}
 				className="gap-2"
 			>
 				<Eye className="size-4" />
@@ -185,7 +181,7 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
 					<DropdownMenuItem
-						onClick={() => openModal(`edit-tenant-${tenant.id}`)}
+						onClick={() => setShowEditDialog(true)}
 						className="gap-2"
 					>
 						<Edit className="size-4" />
@@ -237,100 +233,101 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				</AlertDialogContent>
 			</AlertDialog>
 
-			{/* Modal Components */}
-			<CrudDialog mode="read" modalId={`view-tenant-${tenant.id}`}>
-				<CrudDialogContent>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Tenant Details</CrudDialogTitle>
-						<CrudDialogDescription>View tenant information</CrudDialogDescription>
-					</CrudDialogHeader>
-					<CrudDialogBody>
+			{/* View Tenant Dialog */}
+			<Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+				<DialogContent intent="read">
+					<DialogHeader>
+						<DialogTitle>Tenant Details</DialogTitle>
+						<DialogDescription>View tenant information</DialogDescription>
+					</DialogHeader>
+					<DialogBody>
 						<div className="space-y-2">
-					<div className="flex items-center gap-2 text-sm">
-						<Mail className="size-4 text-muted-foreground" />
-						<span className="font-medium">Email:</span>
-						<span>{tenant.email || 'N/A'}</span>
-				</div>
-				<div className="flex items-center gap-2 text-sm">
-					<Phone className="size-4 text-muted-foreground" />
-					<span className="font-medium">Phone:</span>
-					<span>{tenant.phone || 'N/A'}</span>
-					</div>
-					{tenant.emergency_contact_name && (
-						<div className="flex items-center gap-2 text-sm">
-							<Phone className="size-4 text-muted-foreground" />
-							<span className="font-medium">Emergency Contact:</span>
-							<span>{tenant.emergency_contact_name}</span>
-						</div>
-					)}
-					{tenant.unit && (
-						<div className="flex items-center gap-2 text-sm">
-							<MapPin className="size-4 text-muted-foreground" />
-							<span className="font-medium">Unit:</span>
-							<span>{tenant.unit.unit_number}</span>
-						</div>
-					)}
-					{tenant.currentLease && (
-						<>
 							<div className="flex items-center gap-2 text-sm">
-								<Calendar className="size-4 text-muted-foreground" />
-								<span className="font-medium">Lease:</span>
-								<span>
-									{tenant.currentLease.start_date} -{' '}
-									{tenant.currentLease.end_date}
-								</span>
+								<Mail className="size-4 text-muted-foreground" />
+								<span className="font-medium">Email:</span>
+								<span>{tenant.email || 'N/A'}</span>
 							</div>
 							<div className="flex items-center gap-2 text-sm">
-								<DollarSign className="size-4 text-muted-foreground" />
-								<span className="font-medium">Rent:</span>
-								<span>${tenant.currentLease.rent_amount}</span>
+								<Phone className="size-4 text-muted-foreground" />
+								<span className="font-medium">Phone:</span>
+								<span>{tenant.phone || 'N/A'}</span>
 							</div>
-							<div>
-								<Badge
-									variant={
-										tenant.currentLease.status === 'active'
-											? 'default'
-											: 'secondary'
-									}
-								>
-									{tenant.currentLease.status}
-								</Badge>
-							</div>
-						</>
-					)}
-				</div>
-					</CrudDialogBody>
-				</CrudDialogContent>
-			</CrudDialog>
+							{tenant.emergency_contact_name && (
+								<div className="flex items-center gap-2 text-sm">
+									<Phone className="size-4 text-muted-foreground" />
+									<span className="font-medium">Emergency Contact:</span>
+									<span>{tenant.emergency_contact_name}</span>
+								</div>
+							)}
+							{tenant.unit && (
+								<div className="flex items-center gap-2 text-sm">
+									<MapPin className="size-4 text-muted-foreground" />
+									<span className="font-medium">Unit:</span>
+									<span>{tenant.unit.unit_number}</span>
+								</div>
+							)}
+							{tenant.currentLease && (
+								<>
+									<div className="flex items-center gap-2 text-sm">
+										<Calendar className="size-4 text-muted-foreground" />
+										<span className="font-medium">Lease:</span>
+										<span>
+											{tenant.currentLease.start_date} -{' '}
+											{tenant.currentLease.end_date}
+										</span>
+									</div>
+									<div className="flex items-center gap-2 text-sm">
+										<DollarSign className="size-4 text-muted-foreground" />
+										<span className="font-medium">Rent:</span>
+										<span>${tenant.currentLease.rent_amount}</span>
+									</div>
+									<div>
+										<Badge
+											variant={
+												tenant.currentLease.status === 'active'
+													? 'default'
+													: 'secondary'
+											}
+										>
+											{tenant.currentLease.status}
+										</Badge>
+									</div>
+								</>
+							)}
+						</div>
+					</DialogBody>
+				</DialogContent>
+			</Dialog>
 
-			<CrudDialog mode="edit" modalId={modalId}>
-				<CrudDialogContent className="sm:max-w-md">
-					<CrudDialogHeader>
-						<CrudDialogTitle>Edit Tenant</CrudDialogTitle>
-						<CrudDialogDescription>
+			{/* Edit Tenant Dialog */}
+			<Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+				<DialogContent intent="edit" className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Edit Tenant</DialogTitle>
+						<DialogDescription>
 							Update tenant information including contact details and emergency
 							contacts.
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 
-					<CrudDialogBody>
+					<DialogBody>
 						<form onSubmit={handleFormSubmit} className="space-y-4">
 							<Field>
-					<FieldLabel>Emergency Contact Name</FieldLabel>
-					<input
-						value={formData.emergency_contact_name}
-						onChange={e =>
-							handleInputChange('emergency_contact_name', e.target.value)
-						}
-						type="text"
-						placeholder="Enter emergency contact name"
-						className="input"
-					/>
-				</Field>
+								<FieldLabel>Emergency Contact Name</FieldLabel>
+								<input
+									value={formData.emergency_contact_name}
+									onChange={e =>
+										handleInputChange('emergency_contact_name', e.target.value)
+									}
+									type="text"
+									placeholder="Enter emergency contact name"
+									className="input"
+								/>
+							</Field>
 						</form>
-					</CrudDialogBody>
+					</DialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button type="button" variant="outline" onClick={handleCancel}>
 							Cancel
 						</Button>
@@ -341,9 +338,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 						>
 							{updateMutation.isPending ? 'Saving...' : 'Save Changes'}
 						</Button>
-					</CrudDialogFooter>
-				</CrudDialogContent>
-			</CrudDialog>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	)
 }

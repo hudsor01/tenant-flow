@@ -1,6 +1,6 @@
 'use client'
 
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -79,16 +79,16 @@ export function LateFeeConfigDialog({
 	}
 
 	return (
-		<CrudDialog mode="edit" open={open} onOpenChange={onOpenChange}>
-			<CrudDialogContent className="sm:max-w-125">
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent intent="edit" className="sm:max-w-125">
 				<form onSubmit={handleSubmit}>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Configure Late Fees</CrudDialogTitle>
-						<CrudDialogDescription>
+					<DialogHeader>
+						<DialogTitle>Configure Late Fees</DialogTitle>
+						<DialogDescription>
 							Set the grace period and flat fee amount for late rent payments
-						</CrudDialogDescription>
-					</CrudDialogHeader>
-					<CrudDialogBody>
+						</DialogDescription>
+					</DialogHeader>
+					<DialogBody>
 						{isLoading ? (
 							<div className="flex-center section-spacing-compact">
 								<Spinner className="size-6 animate-spin text-accent-main" />
@@ -176,8 +176,8 @@ export function LateFeeConfigDialog({
 								</div>
 							</div>
 						)}
-					</CrudDialogBody>
-					<CrudDialogFooter>
+					</DialogBody>
+					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
@@ -189,9 +189,9 @@ export function LateFeeConfigDialog({
 						<Button type="submit" disabled={updateConfig.isPending}>
 							{updateConfig.isPending ? 'Saving...' : 'Save Configuration'}
 						</Button>
-					</CrudDialogFooter>
+					</DialogFooter>
 				</form>
-			</CrudDialogContent>
-		</CrudDialog>
+			</DialogContent>
+		</Dialog>
 	)
 }

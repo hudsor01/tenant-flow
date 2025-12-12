@@ -1,59 +1,30 @@
 'use client'
 
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody,
-	CrudDialogFooter
-} from '#components/ui/crud-dialog'
-import { Button } from '#components/ui/button'
-import { useModalStore } from '#stores/modal-store'
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/dialog'
 
 interface ConfirmDialogProps {
-	/**
-	 * Unique modal ID for the modal store
-	 */
-	modalId: string
-	/**
-	 * Title of the confirmation dialog
-	 */
+	open: boolean
+	onOpenChange: (open: boolean) => void
 	title: string
-	/**
-	 * Description of the action
-	 */
 	description: string
-	/**
-	 * Text for the confirm button
-	 */
 	confirmText?: string
-	/**
-	 * Variant for the confirm button
-	 */
-	confirmVariant?:
-		| 'default'
-		| 'destructive'
-		| 'outline'
-		| 'secondary'
-		| 'ghost'
-		| 'link'
-	/**
-	 * Callback when confirmed
-	 */
+	confirmVariant?: 'default' | 'destructive'
 	onConfirm: () => void
-	/**
-	 * Whether the action is loading
-	 */
 	loading?: boolean
 }
 
-/**
- * ConfirmDialog - Reusable confirmation dialog using CrudDialog (safe for nesting)
- */
 export function ConfirmDialog({
-	modalId,
+	open,
+	onOpenChange,
 	title,
 	description,
 	confirmText = 'Confirm',
@@ -61,42 +32,24 @@ export function ConfirmDialog({
 	onConfirm,
 	loading = false
 }: ConfirmDialogProps) {
-	const { closeModal } = useModalStore()
-
-	const handleConfirm = () => {
-		onConfirm()
-		closeModal(modalId)
-	}
-
-	const handleCancel = () => {
-		closeModal(modalId)
-	}
-
 	return (
-		<CrudDialog mode="delete" modalId={modalId}>
-			<CrudDialogContent className="sm:max-w-md">
-				<CrudDialogHeader>
-					<CrudDialogTitle>{title}</CrudDialogTitle>
-					<CrudDialogDescription>{description}</CrudDialogDescription>
-				</CrudDialogHeader>
-				<CrudDialogBody>
-					<p className="text-muted">
-						This action cannot be undone.
-					</p>
-				</CrudDialogBody>
-				<CrudDialogFooter>
-					<Button variant="outline" onClick={handleCancel} disabled={loading}>
-						Cancel
-					</Button>
-					<Button
-						variant={confirmVariant}
-						onClick={handleConfirm}
+		<AlertDialog open={open} onOpenChange={onOpenChange}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>{title}</AlertDialogTitle>
+					<AlertDialogDescription>{description}</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={onConfirm}
 						disabled={loading}
+						className={confirmVariant === 'destructive' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
 					>
 						{loading ? 'Processing...' : confirmText}
-					</Button>
-				</CrudDialogFooter>
-			</CrudDialogContent>
-		</CrudDialog>
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	)
 }

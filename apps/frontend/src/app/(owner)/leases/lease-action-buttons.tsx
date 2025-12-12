@@ -20,18 +20,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody
-} from '#components/ui/crud-dialog'
-import { useModalStore } from '#stores/modal-store'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody } from '#components/ui/dialog'
 import type { Lease } from '@repo/shared/types/core'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
+import { RenewLeaseDialog } from '#app/(owner)/leases/renew-lease-dialog'
+import { TerminateLeaseDialog } from '#app/(owner)/leases/terminate-lease-dialog'
+import { PayRentDialog } from '#components/leases/pay-rent-dialog'
+import type { LeaseWithExtras } from '@repo/shared/types/core'
 import {
 	CreditCard,
 	Eye,
@@ -51,10 +47,13 @@ interface LeaseActionButtonsProps {
 }
 
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
-	const { openModal } = useModalStore()
 	const sendForSignature = useSendLeaseForSignature()
 	const signAsOwner = useSignLeaseAsOwner()
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+	const [showViewDialog, setShowViewDialog] = useState(false)
+	const [showPayRentDialog, setShowPayRentDialog] = useState(false)
+	const [showRenewDialog, setShowRenewDialog] = useState(false)
+	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
 	const deleteLease = useDeleteLease({
 		onSuccess: () => {
 			toast.success('Lease deleted successfully')
@@ -108,7 +107,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			<Button
 				variant="outline"
 				size="sm"
-				onClick={() => openModal(`view-lease-${lease.id}`)}
+				onClick={() => setShowViewDialog(true)}
 				className="gap-2"
 			>
 				<Eye className="size-4" />
@@ -153,7 +152,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					{lease.lease_status === 'active' && (
 						<>
 							<DropdownMenuItem
-								onClick={() => openModal(`pay-rent-${lease.id}`)}
+								onClick={() => setShowPayRentDialog(true)}
 								className="gap-2"
 							>
 								<CreditCard className="size-4" />
@@ -163,7 +162,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 							<DropdownMenuSeparator />
 
 							<DropdownMenuItem
-								onClick={() => openModal(`renew-lease-${lease.id}`)}
+								onClick={() => setShowRenewDialog(true)}
 								className="gap-2"
 							>
 								<RotateCcw className="size-4" />
@@ -171,7 +170,7 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 							</DropdownMenuItem>
 
 							<DropdownMenuItem
-								onClick={() => openModal(`terminate-lease-${lease.id}`)}
+								onClick={() => setShowTerminateDialog(true)}
 								className="gap-2 text-destructive focus:text-destructive"
 							>
 								<X className="size-4" />
@@ -216,13 +215,13 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 
 			{getStatusBadge(lease.lease_status)}
 
-			<CrudDialog mode="read" modalId={`edit-lease-${lease.id}`}>
-				<CrudDialogContent>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Lease Details</CrudDialogTitle>
-						<CrudDialogDescription>View lease information</CrudDialogDescription>
-					</CrudDialogHeader>
-					<CrudDialogBody>
+			<Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+				<DialogContent intent="read">
+					<DialogHeader>
+						<DialogTitle>Lease Details</DialogTitle>
+						<DialogDescription>View lease information</DialogDescription>
+					</DialogHeader>
+					<DialogBody>
 						<div>
 							<Label>Start Date</Label>
 							<Input type="date" value={lease.start_date} disabled />
@@ -243,9 +242,39 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 							<Label>Status</Label>
 							{getStatusBadge(lease.lease_status)}
 						</div>
-					</CrudDialogBody>
-				</CrudDialogContent>
-			</CrudDialog>
+					</DialogBody>
+				</DialogContent>
+			</Dialog>
+
+			{/* Pay Rent Dialog */}
+			{showPayRentDialog && lease.lease_status === 'active' && (
+				<PayRentDialog
+					open={showPayRentDialog}
+					onOpenChange={setShowPayRentDialog}
+					lease={lease as LeaseWithExtras}
+					onSuccess={() => setShowPayRentDialog(false)}
+				/>
+			)}
+
+			{/* Renew Lease Dialog */}
+			{showRenewDialog && lease.lease_status === 'active' && (
+				<RenewLeaseDialog
+					open={showRenewDialog}
+					onOpenChange={setShowRenewDialog}
+					lease={lease}
+					onSuccess={() => setShowRenewDialog(false)}
+				/>
+			)}
+
+			{/* Terminate Lease Dialog */}
+			{showTerminateDialog && lease.lease_status === 'active' && (
+				<TerminateLeaseDialog
+					open={showTerminateDialog}
+					onOpenChange={setShowTerminateDialog}
+					lease={lease}
+					onSuccess={() => setShowTerminateDialog(false)}
+				/>
+			)}
 		</div>
 	)
 }

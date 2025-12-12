@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation'
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogDescription,
-	CrudDialogBody
-} from '#components/ui/crud-dialog'
-import { useModalStore } from '#stores/modal-store'
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogBody
+} from '#components/ui/dialog'
 
 const QUICK_CREATE_OPTIONS = [
 	{
@@ -41,27 +40,32 @@ const QUICK_CREATE_OPTIONS = [
 	}
 ] as const
 
-export function QuickCreateDialog() {
-	const router = useRouter()
-	const { closeModal } = useModalStore()
+interface QuickCreateDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+}
 
-	const modalId = 'quick-create'
+export function QuickCreateDialog({
+	open,
+	onOpenChange
+}: QuickCreateDialogProps) {
+	const router = useRouter()
 
 	const handleOptionClick = (href: string) => {
-		closeModal(modalId)
+		onOpenChange(false)
 		router.push(href)
 	}
 
 	return (
-		<CrudDialog mode="create" modalId={modalId}>
-			<CrudDialogContent>
-				<CrudDialogHeader>
-					<CrudDialogTitle>Quick Create</CrudDialogTitle>
-					<CrudDialogDescription>
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Quick Create</DialogTitle>
+					<DialogDescription>
 						Choose what you'd like to create
-					</CrudDialogDescription>
-				</CrudDialogHeader>
-				<CrudDialogBody>
+					</DialogDescription>
+				</DialogHeader>
+				<DialogBody>
 					<div className="grid gap-3">
 						{QUICK_CREATE_OPTIONS.map(option => (
 							<Button
@@ -80,8 +84,8 @@ export function QuickCreateDialog() {
 							</Button>
 						))}
 					</div>
-				</CrudDialogBody>
-			</CrudDialogContent>
-		</CrudDialog>
+				</DialogBody>
+			</DialogContent>
+		</Dialog>
 	)
 }
