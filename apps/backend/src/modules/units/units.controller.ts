@@ -28,6 +28,7 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
+import { VALID_UNIT_STATUSES } from '../../schemas/units.schema'
 
 @Controller('units')
 export class UnitsController {
@@ -54,12 +55,10 @@ export class UnitsController {
 		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
-		// Validate enum values using native JavaScript
+		// Validate enum values using shared constant (DRY principle)
 		if (status) {
 			const lowerStatus = status.toLowerCase()
-			if (
-				!['available', 'occupied', 'maintenance', 'reserved'].includes(lowerStatus)
-			) {
+			if (!VALID_UNIT_STATUSES.includes(lowerStatus as (typeof VALID_UNIT_STATUSES)[number])) {
 				throw new BadRequestException('Invalid status value')
 			}
 			// Normalize to lowercase for database enum

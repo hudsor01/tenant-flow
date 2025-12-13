@@ -18,6 +18,7 @@ import {
 import type { CreateUnitDto } from './dto/create-unit.dto'
 import type { UpdateUnitDto } from './dto/update-unit.dto'
 import { AppLogger } from '../../logger/app-logger.service'
+import { VALID_UNIT_STATUSES } from '../../schemas/units.schema'
 
 @Injectable()
 export class UnitsService {
@@ -54,13 +55,7 @@ export class UnitsService {
 
 			if (query.status) {
 				const statusInput = String(query.status).toLowerCase()
-				const allowedStatuses: UnitStatus[] = [
-					'available',
-					'occupied',
-					'maintenance',
-					'reserved'
-				]
-				const isValidStatus = allowedStatuses.includes(
+				const isValidStatus = VALID_UNIT_STATUSES.includes(
 					statusInput as UnitStatus
 				)
 				if (isValidStatus) {

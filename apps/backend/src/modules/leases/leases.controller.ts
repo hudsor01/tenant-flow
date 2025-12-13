@@ -30,6 +30,7 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
+import { VALID_LEASE_STATUSES } from '../../schemas/leases.schema'
 
 @Controller('leases')
 export class LeasesController {
@@ -78,11 +79,8 @@ export class LeasesController {
 			throw new BadRequestException('Invalid property ID')
 		}
 
-		// Validate status enum
-		if (
-			status &&
-			!['draft', 'pending_signature', 'active', 'ended', 'terminated'].includes(status)
-		) {
+		// Validate status enum using shared constant (DRY principle)
+		if (status && !VALID_LEASE_STATUSES.includes(status as (typeof VALID_LEASE_STATUSES)[number])) {
 			throw new BadRequestException('Invalid lease status')
 		}
 

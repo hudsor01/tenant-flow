@@ -14,6 +14,10 @@ const lease_statusSchema: JSONSchema = {
 	default: 'draft'
 }
 
+// Export for runtime validation (DRY principle)
+export const VALID_LEASE_STATUSES = ['draft', 'pending_signature', 'active', 'ended', 'terminated'] as const
+export type LeaseStatus = typeof VALID_LEASE_STATUSES[number]
+
 const paymentFrequencySchema: JSONSchema = {
 	type: 'string',
 	enum: ['MONTHLY', 'WEEKLY', 'BIWEEKLY', 'YEARLY'],
