@@ -185,7 +185,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 			/>
 
 			{/* Delete Confirmation Dialog */}
-			<AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+			<AlertDialog open={!!deleteTarget} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Image</AlertDialogTitle>

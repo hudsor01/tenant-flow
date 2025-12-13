@@ -31,8 +31,8 @@ export function ReviewStep({
 	unitNumber,
 	tenantName
 }: ReviewStepProps) {
-	const formatCurrency = (cents: number | undefined) => {
-		if (cents === undefined) return '-'
+	const formatCurrency = (cents?: number | null) => {
+		if (typeof cents !== 'number') return '-'
 		return new Intl.NumberFormat('en-US', {
 			style: 'currency',
 			currency: 'USD'
