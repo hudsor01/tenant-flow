@@ -827,11 +827,6 @@
 	}
 }
 
-/* =============================================================================
-   TYPOGRAPHY UTILITIES (ShadCN/UI Pattern)
-   Based on: https://ui.shadcn.com/docs/components/typography
-   ============================================================================= */
-
 @utility text-muted {
 	@apply text-sm text-muted-foreground;
 }
@@ -893,7 +888,6 @@
 @utility typography-table-wrapper {
 	@apply my-6 w-full overflow-y-auto;
 }
-
 
 @utility flex-center {
 	@apply flex items-center justify-center;
