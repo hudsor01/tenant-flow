@@ -20,6 +20,10 @@ const unitStatusSchema: JSONSchema = {
 	enum: ['available', 'occupied', 'maintenance', 'reserved']
 }
 
+// Export for runtime validation (DRY principle)
+export const VALID_UNIT_STATUSES = ['available', 'occupied', 'maintenance', 'reserved'] as const
+export type UnitStatus = typeof VALID_UNIT_STATUSES[number]
+
 /**
  * Create unit request schema
  */

@@ -136,7 +136,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 						</div>
 					) : (
 						<Select
-							value={data.property_id || ''}
+							value={data.property_id ?? ''}
 							onValueChange={handlePropertyChange}
 						>
 							<SelectTrigger id="property">
@@ -174,7 +174,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 							No units found for this property
 						</div>
 					) : (
-						<Select value={data.unit_id || ''} onValueChange={handleUnitChange}>
+						<Select value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
 							<SelectTrigger id="unit">
 								<SelectValue placeholder="Select a unit" />
 							</SelectTrigger>
@@ -206,7 +206,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 						</div>
 					) : (
 						<Select
-							value={data.primary_tenant_id || ''}
+							value={data.primary_tenant_id ?? ''}
 							onValueChange={handleTenantChange}
 						>
 							<SelectTrigger id="tenant">

@@ -275,47 +275,24 @@ describe('LeasesService', () => {
     it('should return paginated leases', async () => {
       const mockLeases = [createMockLease(), createMockLease({ id: 'lease-456' })]
 
-      // Mock both count query and data query
-      // First call is count query (awaited directly), second is data query (awaited after order)
-      let callCount = 0
+      // Mock single query with count: 'exact'
+      // The implementation uses .select('*', { count: 'exact' }) which returns both data and count
       mockUserClient.from.mockImplementation(() => {
-        callCount++
-        const isCountQuery = callCount === 1
-
-        // Count query is awaited directly (no order), data query is awaited after order
         const builder: Record<string, jest.Mock> = {
+          select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
           gte: jest.fn().mockReturnThis(),
           lte: jest.fn().mockReturnThis(),
           or: jest.fn().mockReturnThis(),
           range: jest.fn().mockReturnThis(),
-          order: jest.fn()
+          order: jest.fn().mockResolvedValue({
+            data: mockLeases,
+            count: 2,
+            error: null
+          })
         }
 
-        // Make builder thenable for count query
-        if (isCountQuery) {
-          ; (builder as any).then = (cb: (result: any) => void) => {
-            const result = { count: 2, error: null }
-            cb(result)
-            return Promise.resolve(result)
-          }
-        }
-
-        // Order returns thenable for data query
-        builder.order.mockImplementation(() => {
-          const orderResult = {
-            then: (cb: (result: any) => void) => {
-              const result = { data: mockLeases, error: null }
-              cb(result)
-              return Promise.resolve(result)
-            }
-          }
-          return orderResult
-        })
-
-        return {
-          select: jest.fn().mockReturnValue(builder)
-        }
+        return builder
       })
 
       const result = await service.findAll(mockToken, { limit: 10, offset: 0 })
@@ -617,6 +594,35 @@ describe('LeasesService', () => {
       await expect(service.remove(mockToken, 'lease-123')).rejects.toThrow(
         BadRequestException
       )
+    })
+  })
+
+  describe('query optimization', () => {
+    it('should use single query with count: exact', async () => {
+      const mockLeases = [createMockLease(), createMockLease({ id: 'lease-456' })]
+
+      // Mock the Supabase client to track query calls
+      const mockFrom = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
+        range: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({
+          data: mockLeases,
+          count: 2,
+          error: null
+        })
+      })
+
+      mockUserClient.from = mockFrom
+
+      const result = await service.findAll(mockToken, { limit: 10, offset: 0 })
+
+      expect(result.data).toHaveLength(2)
+      expect(result.total).toBe(2)
+      expect(mockFrom).toHaveBeenCalledTimes(1)
     })
   })
 })

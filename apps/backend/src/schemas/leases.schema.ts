@@ -10,9 +10,13 @@ import { dateSchema, moneySchema, uuidSchema } from './shared.schema'
 
 const lease_statusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['draft', 'active', 'expired', 'terminated'],
+	enum: ['draft', 'pending_signature', 'active', 'ended', 'terminated'],
 	default: 'draft'
 }
+
+// Export for runtime validation (DRY principle)
+export const VALID_LEASE_STATUSES = ['draft', 'pending_signature', 'active', 'ended', 'terminated'] as const
+export type LeaseStatus = typeof VALID_LEASE_STATUSES[number]
 
 const paymentFrequencySchema: JSONSchema = {
 	type: 'string',

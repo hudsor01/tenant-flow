@@ -28,6 +28,14 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
+import { VALID_UNIT_STATUSES, type UnitStatus } from '../../schemas/units.schema'
+
+/**
+ * Type guard to check if a string is a valid UnitStatus
+ */
+function isValidUnitStatus(status: string): status is UnitStatus {
+	return (VALID_UNIT_STATUSES as readonly string[]).includes(status)
+}
 
 @Controller('units')
 export class UnitsController {
@@ -54,16 +62,14 @@ export class UnitsController {
 		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
-		// Validate enum values using native JavaScript (accept both cases)
+		// Validate enum values using shared constant (DRY principle)
 		if (status) {
-			const upperStatus = status.toUpperCase()
-			if (
-				!['available', 'occupied', 'maintenance', 'reserved'].includes(upperStatus)
-			) {
+			const lowerStatus = status.toLowerCase()
+			if (!isValidUnitStatus(lowerStatus)) {
 				throw new BadRequestException('Invalid status value')
 			}
-			// Normalize to uppercase for database query
-			status = upperStatus
+			// Normalize to lowercase for database enum
+			status = lowerStatus
 		}
 		if (
 			!['created_at', 'unit_number', 'bedrooms', 'rent', 'status'].includes(
