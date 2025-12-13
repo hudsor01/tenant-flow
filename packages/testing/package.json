@@ -46,7 +46,7 @@
 		"@types/node": "catalog:default",
 		"eslint": "catalog:default",
 		"jest": "catalog:default",
-		"rimraf": "6.1.0",
+		"rimraf": "6.1.2",
 		"typescript": "^5.9.3"
 	}
 }
