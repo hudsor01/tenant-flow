@@ -87,7 +87,9 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 
 					// Use within to scope queries to Financial Terms section
 					// This avoids "multiple elements found" errors when same values appear elsewhere
-					const financialSection = screen.getByText('Financial Terms').closest('div')!.parentElement!
+					// Use getAllByText and take the last element to handle any DOM cleanup timing issues
+					const financialHeadings = screen.getAllByText('Financial Terms')
+					const financialSection = financialHeadings[financialHeadings.length - 1]!.closest('div')!.parentElement!
 					const financialQueries = within(financialSection)
 
 					// PROPERTY ASSERTION: Rent amount should be displayed correctly in Financial Terms
