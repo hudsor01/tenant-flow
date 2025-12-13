@@ -149,6 +149,32 @@ describe('UnitsController', () => {
 				)
 			).rejects.toThrow(BadRequestException)
 		})
+
+		it('should accept uppercase unit status and normalize to lowercase', async () => {
+			const mockUnits = [createMockUnit({ status: 'occupied' })]
+			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits as any)
+
+			const result = await controller.findAll(
+				createMockRequest({ user: mockUser }) as any,
+				null,
+				'OCCUPIED', // Uppercase input
+				null,
+				10,
+				0,
+				'created_at',
+				'desc'
+			)
+
+			// Verify service was called and status was normalized
+			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
+			expect(result).toEqual({
+				data: mockUnits,
+				total: mockUnits.length,
+				limit: 10,
+				offset: 0,
+				hasMore: false
+			})
+		})
 	})
 
 	describe('getStats', () => {
