@@ -53,7 +53,7 @@ export class UnitsService {
 			}
 
 			if (query.status) {
-				const statusInput = String(query.status).toUpperCase()
+				const statusInput = String(query.status).toLowerCase()
 				const allowedStatuses: UnitStatus[] = [
 					'available',
 					'occupied',
