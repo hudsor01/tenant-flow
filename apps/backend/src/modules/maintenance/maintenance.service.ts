@@ -10,7 +10,7 @@ import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
@@ -24,11 +24,11 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class MaintenanceService {
 
 	// Reverse map for converting database priority values to enum values for events
-	private readonly reversePriorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'> = {
-		low: 'LOW',
-		normal: 'MEDIUM',
-		high: 'HIGH',
-		urgent: 'URGENT'
+	private readonly reversePriorityMap: Record<string, 'low' | 'medium' | 'high' | 'urgent'> = {
+		low: 'low',
+		normal: 'medium',
+		high: 'high',
+		urgent: 'urgent'
 	}
 
 	constructor(private readonly supabase: SupabaseService,
@@ -80,14 +80,14 @@ export class MaintenanceService {
 					'completed',
 					'cancelled'
 				]
-				const normalizedStatus = String(query.status).toLowerCase()
+				const normalizedStatus = String(query.status).toLowerCase() as MaintenanceStatus
 				if (allowedStatuses.includes(normalizedStatus)) {
 					queryBuilder = queryBuilder.eq('status', normalizedStatus)
 				}
 			}
 			if (query.priority) {
-				const allowedPriorities = ['low', 'normal', 'high', 'urgent']
-				const normalizedPriority = String(query.priority).toLowerCase()
+				const allowedPriorities: MaintenancePriority[] = ['low', 'normal', 'high', 'urgent']
+				const normalizedPriority = String(query.priority).toLowerCase() as MaintenancePriority
 				if (allowedPriorities.includes(normalizedPriority)) {
 					queryBuilder = queryBuilder.eq('priority', normalizedPriority)
 				}
@@ -241,7 +241,7 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Map priority to lowercase
-			const priorityMap: Record<string, string> = {
+			const priorityMap: Record<string, MaintenancePriority> = {
 				LOW: 'low',
 				MEDIUM: 'normal',
 				HIGH: 'high',
@@ -258,8 +258,7 @@ export class MaintenanceService {
 					tenant_id: createRequest.tenant_id || user_id,
 					title: createRequest.title || 'New Maintenance Request',
 					description: createRequest.description,
-					priority: priorityMap[createRequest.priority || 'MEDIUM'] ||
-						'normal',
+					priority: priorityMap[createRequest.priority || 'medium'] ?? 'normal',
 					unit_id: createRequest.unit_id,
 										...(createRequest.scheduled_date ? { scheduled_date: new Date(createRequest.scheduled_date).toISOString() } : {}),
 					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
@@ -344,14 +343,14 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Map status and priority to lowercase
-			const priorityMap: Record<string, string> = {
+			const priorityMap: Record<string, MaintenancePriority> = {
 				LOW: 'low',
 				MEDIUM: 'normal',
 				HIGH: 'high',
 				URGENT: 'urgent'
 			}
 
-			const statusMap: Record<string, string> = {
+			const statusMap: Record<string, MaintenanceStatus> = {
 				PENDING: 'open',
 				IN_PROGRESS: 'in_progress',
 				COMPLETED: 'completed',
@@ -369,11 +368,9 @@ export class MaintenanceService {
 			if (updateRequest.description !== undefined)
 				updated_data.description = updateRequest.description
 			if (updateRequest.priority !== undefined)
-				updated_data.priority = priorityMap[updateRequest.priority] ||
-					'normal'
+				updated_data.priority = priorityMap[updateRequest.priority] ?? 'normal'
 			if (updateRequest.status !== undefined)
-				updated_data.status = statusMap[updateRequest.status] ||
-					'open'
+				updated_data.status = statusMap[updateRequest.status] ?? 'open'
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
 			if (updateRequest.completed_at !== undefined)
@@ -441,7 +438,7 @@ export class MaintenanceService {
 						updated.id,
 						updated.description ?? '',
 						updated.status,
-						this.reversePriorityMap[updated.priority] || 'MEDIUM',
+						this.reversePriorityMap[updated.priority] || 'medium',
 						propertyName,
 						unitName,
 						updated.description ?? ''

@@ -4,7 +4,7 @@
 # 1. Faster node_modules cleanup using find
 # 2. Better comments and organization
 
-ARG NODE_VERSION=22.16.0-alpine3.21
+ARG NODE_VERSION=24-alpine3.21
 
 # ============================================
 # BASE STAGE - Build tools

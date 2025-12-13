@@ -19,7 +19,6 @@ import {
 	LifeBuoy,
 	Lightbulb,
 	Lock,
-	Mail,
 	Rocket,
 	Sprout,
 	Target,
@@ -30,7 +29,7 @@ import {
 import Link from 'next/link'
 
 const stats = [
-	{ number: '10,000+', label: 'Properties Managed', Icon: Building2 },
+	{ number: '8,000+', label: 'Properties Managed', Icon: Building2 },
 	{ number: '500+', label: 'Property Managers', Icon: Users },
 	{ number: '99.9%', label: 'Platform Uptime', Icon: Bolt },
 	{ number: '24/7', label: 'Customer Support', Icon: LifeBuoy }
@@ -39,7 +38,7 @@ const stats = [
 export default function AboutPage() {
 	const baseUrl =
 		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
+		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3050')
 
 	const breadcrumbSchema = {
 		'@context': 'https://schema.org',
@@ -85,7 +84,7 @@ export default function AboutPage() {
 			<section className="section-spacing">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<BlurFade delay={0.2} inView>
-						<div className="grid lg:grid-cols-2 gap-16 items-center">
+						<div className="grid xl:grid-cols-2 gap-16 items-center">
 							<div className="space-y-6">
 								<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 									Our Mission
@@ -105,7 +104,7 @@ export default function AboutPage() {
 							</div>
 							<div className="bg-card rounded-2xl p-8 text-center border border-border/50 shadow-md">
 								<Target className="size-20 mx-auto mb-6 text-primary" />
-								<h3 className="text-2xl font-semibold text-foreground">
+								<h3 className="typography-h3 text-foreground">
 									Mission-Driven Development
 								</h3>
 								<p className="text-muted-foreground mt-3">
@@ -244,7 +243,7 @@ export default function AboutPage() {
 										<div className="mb-4 flex justify-center">
 											<stat.Icon className="size-8 text-primary" aria-hidden />
 										</div>
-										<div className="text-3xl font-bold text-primary mb-2">
+										<div className="typography-h2 text-primary mb-2">
 											{stat.number}
 										</div>
 										<div className="text-muted">{stat.label}</div>
@@ -258,20 +257,18 @@ export default function AboutPage() {
 
 			{/* Team Section */}
 			<section className="section-spacing bg-muted/20">
-				<div className="max-w-7xl mx-auto px-6 lg:px-8">
+				<div className="max-w-7xl mx-auto px-6 lg:px-18">
 					<BlurFade delay={0.7} inView>
-						<div className="text-center mb-16 space-y-4">
+						<div className="text-center mb-16 space-y-8">
 							<h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-foreground">
 								Meet the Team
 							</h2>
-							<p className="text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-								We&apos;re a diverse team of engineers, designers, and
-								property management experts working together to build
-								something great.
+							<p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto">
+								We&apos;re a diverse team of engineers, designers, and property management experts working together to build something great.
 							</p>
 						</div>
 
-						<div className="grid md:grid-cols-3 gap-8 mb-16">
+						<div className="grid md:grid-cols-3 gap-2 mb-8">
 							{[
 								{
 									name: 'Alex Chen',
@@ -294,7 +291,7 @@ export default function AboutPage() {
 										<div className="size-24 mx-auto mb-6 bg-primary/10 rounded-full flex-center">
 											<User className="size-12 text-primary" />
 										</div>
-										<h3 className="text-lg font-semibold text-foreground mb-2">
+										<h3 className="typography-large text-foreground mb-2">
 											{member.name}
 										</h3>
 										<p className="text-primary font-medium mb-4">
@@ -304,22 +301,6 @@ export default function AboutPage() {
 									</div>
 								</BlurFade>
 							))}
-						</div>
-
-						<div className="text-center">
-							<BlurFade delay={1.1} inView>
-								<div className="bg-card rounded-2xl p-8 border border-border/50 max-w-md mx-auto">
-									<p className="text-base text-muted-foreground mb-6">
-										We&apos;re hiring! Join our growing team.
-									</p>
-									<Button asChild size="lg" className="w-full">
-										<Link href="/careers">
-											<Mail className="size-4 mr-2" />
-											View Open Positions
-										</Link>
-									</Button>
-								</div>
-							</BlurFade>
 						</div>
 					</BlurFade>
 				</div>

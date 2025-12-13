@@ -15,7 +15,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 
-import { useModalStore } from '#stores/modal-store'
 import { PropertyImageGallery } from './property-image-gallery'
 import { PropertyImageDropzone } from './property-image-dropzone'
 
@@ -39,7 +38,6 @@ interface PropertyFormProps {
 	mode: 'create' | 'edit'
 	property?: Property
 	onSuccess?: () => void
-	modalId?: string // For modal store integration
 	showSuccessState?: boolean
 	className?: string
 }
@@ -58,7 +56,6 @@ export function PropertyForm({
 	mode,
 	property,
 	onSuccess,
-	modalId,
 	showSuccessState = mode === 'create',
 	className
 }: PropertyFormProps) {
@@ -92,8 +89,6 @@ export function PropertyForm({
 	}, [mode, property, queryClient])
 
 	// Initialize form
-	const { trackMutation, closeOnMutationSuccess } = useModalStore()
-
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
@@ -130,11 +125,6 @@ export function PropertyForm({
 						data: createData
 					})
 
-					// Track mutation for auto-close if in modal
-					if (modalId) {
-						trackMutation(modalId, 'create-property', queryClient)
-					}
-
 					await createPropertyMutation.mutateAsync(createData)
 					toast.success('Property created successfully')
 
@@ -142,11 +132,6 @@ export function PropertyForm({
 						setIsSubmitted(true)
 					}
 					form.reset()
-
-					// Close modal on success if tracked
-					if (modalId) {
-						closeOnMutationSuccess('create-property')
-					}
 				} else {
 					// Edit mode
 					if (!property?.id) {
@@ -169,21 +154,11 @@ export function PropertyForm({
 						data: updateData
 					})
 
-					// Track mutation for auto-close if in modal
-					if (modalId) {
-						trackMutation(modalId, 'update-property', queryClient)
-					}
-
 					await updatePropertyMutation.mutateAsync({
 						id: property.id,
 						data: updateData
 					})
 					toast.success('Property updated successfully')
-
-					// Close modal on success if tracked
-					if (modalId) {
-						closeOnMutationSuccess('update-property')
-					}
 
 					// Navigate back if no custom onSuccess handler
 					if (!onSuccess) {
@@ -219,7 +194,7 @@ export function PropertyForm({
 		return (
 			<div className="flex flex-col items-center justify-center space-y-4 text-center">
 				<CheckCircle className="size-16 text-success" />
-				<h2 className="text-2xl font-bold">Property Created!</h2>
+				<h2 className="typography-h3">Property Created!</h2>
 				<p className="text-muted-foreground">
 					Your property has been successfully added to your portfolio.
 				</p>
@@ -436,7 +411,7 @@ export function PropertyForm({
 				{/* Property Images - only in edit mode, after property is created */}
 				{mode === 'edit' && property?.id && (
 					<div className="space-y-4 border rounded-lg p-6">
-						<h3 className="text-lg font-semibold">Property Images</h3>
+						<h3 className="typography-large">Property Images</h3>
 						<p className="text-muted">
 							Manage your property photos. First uploaded image appears on property card.
 						</p>
@@ -446,7 +421,7 @@ export function PropertyForm({
 
 						{/* Upload form - add new images */}
 						<div className="border-t pt-4 mt-4">
-							<h4 className="text-sm font-medium mb-4">Add New Images</h4>
+							<h4 className="typography-small mb-4">Add New Images</h4>
 							<PropertyImageDropzone propertyId={property.id} />
 						</div>
 					</div>

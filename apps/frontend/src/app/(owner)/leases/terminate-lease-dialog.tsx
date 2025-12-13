@@ -1,7 +1,6 @@
 'use client'
 
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
-import { Button } from '#components/ui/button'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '#components/ui/dialog'
 import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
@@ -23,9 +22,7 @@ export function TerminateLeaseDialog({
 }: TerminateLeaseDialogProps) {
 	const terminateLease = useTerminateLeaseMutation()
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-
+	const handleConfirm = async () => {
 		try {
 			await terminateLease.mutateAsync(lease.id)
 			toast.success('Lease terminated successfully')
@@ -37,50 +34,44 @@ export function TerminateLeaseDialog({
 	}
 
 	return (
-		<CrudDialog mode="edit" open={open} onOpenChange={onOpenChange}>
-			<CrudDialogContent className="sm:max-w-125">
-				<form onSubmit={handleSubmit}>
-					<CrudDialogHeader>
-						<CrudDialogTitle>Terminate Lease</CrudDialogTitle>
-						<CrudDialogDescription>
-							This action will terminate the lease early and mark it as TERMINATED. This action cannot be undone.
-						</CrudDialogDescription>
-					</CrudDialogHeader>
-					<CrudDialogBody>
-						<div className="space-y-6">
-							{/* Warning Banner with Icon */}
-							<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-								<div className="flex gap-3">
-									<AlertTriangle className="size-5 text-destructive shrink-0" />
-									<div className="space-y-1">
-										<p className="text-sm font-medium text-destructive">
-											Early Termination Warning
-										</p>
-										<p className="text-muted">
-											This lease will be marked as terminated immediately. Ensure
-											all financial settlements are complete before proceeding.
-										</p>
-									</div>
-								</div>
+		<AlertDialog open={open} onOpenChange={onOpenChange}>
+			<AlertDialogContent className="sm:max-w-125">
+				<AlertDialogHeader>
+					<AlertDialogTitle>Terminate Lease</AlertDialogTitle>
+					<AlertDialogDescription>
+						This action will terminate the lease early and mark it as TERMINATED. This action cannot be undone.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<div className="space-y-6">
+					{/* Warning Banner with Icon */}
+					<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
+						<div className="flex gap-3">
+							<AlertTriangle className="size-5 text-destructive shrink-0" />
+							<div className="space-y-1">
+								<p className="typography-small text-destructive">
+									Early Termination Warning
+								</p>
+								<p className="text-muted">
+									This lease will be marked as terminated immediately. Ensure
+									all financial settlements are complete before proceeding.
+								</p>
 							</div>
-
+						</div>
+					</div>
 				</div>
-					</CrudDialogBody>
-					<CrudDialogFooter>
-						<Button
-							type="button"
-							variant="outline"
-							onClick={() => onOpenChange(false)}
-							disabled={terminateLease.isPending}
-						>
-							Cancel
-						</Button>
-						<Button type="submit" disabled={terminateLease.isPending}>
-							{terminateLease.isPending ? 'Terminating...' : 'Terminate Lease'}
-						</Button>
-					</CrudDialogFooter>
-				</form>
-			</CrudDialogContent>
-		</CrudDialog>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={terminateLease.isPending}>
+						Cancel
+					</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={handleConfirm}
+						disabled={terminateLease.isPending}
+						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+					>
+						{terminateLease.isPending ? 'Terminating...' : 'Terminate Lease'}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	)
 }

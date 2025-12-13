@@ -24,10 +24,10 @@ export default function EditLeaseModal({
 	}
 
 	return (
-		<RouteModal className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal intent="edit" className="max-w-3xl max-h-[90vh] overflow-y-auto">
 			<div className="space-y-6">
 				<div className="space-y-2">
-					<h2 className="text-2xl font-bold">Edit Lease</h2>
+					<h2 className="typography-h3">Edit Lease</h2>
 					<p className="text-muted-foreground">Update lease details</p>
 				</div>
 				{isLoading ? (

@@ -117,7 +117,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="text-lg font-semibold mb-4">Select Property & Tenant</h3>
+				<h3 className="typography-large mb-4">Select Property & Tenant</h3>
 				<p className="text-muted-foreground text-sm mb-6">
 					Choose the property, unit, and tenant for this lease agreement.
 				</p>
@@ -136,7 +136,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 						</div>
 					) : (
 						<Select
-							value={data.property_id || ''}
+							value={data.property_id ?? ''}
 							onValueChange={handlePropertyChange}
 						>
 							<SelectTrigger id="property">
@@ -174,7 +174,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 							No units found for this property
 						</div>
 					) : (
-						<Select value={data.unit_id || ''} onValueChange={handleUnitChange}>
+						<Select value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
 							<SelectTrigger id="unit">
 								<SelectValue placeholder="Select a unit" />
 							</SelectTrigger>
@@ -206,7 +206,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 						</div>
 					) : (
 						<Select
-							value={data.primary_tenant_id || ''}
+							value={data.primary_tenant_id ?? ''}
 							onValueChange={handleTenantChange}
 						>
 							<SelectTrigger id="tenant">

@@ -21,7 +21,6 @@ import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { getAllPricingPlans, PLAN_FEATURES } from '@repo/shared/config/pricing'
-import { useModalStore } from '#stores/modal-store'
 
 const logger = createLogger({ component: 'KiboStylePricing' })
 
@@ -47,7 +46,7 @@ interface PricingPlan {
 export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingProps) {
 	const frequency = billingCycle
 	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
-	const { openModal, closeModal } = useModalStore()
+	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
 
 	const subscriptionMutation = useMutation({
 		mutationFn: async ({
@@ -184,7 +183,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 		const authenticated = await isUserAuthenticated()
 		if (!authenticated) {
 			setPendingPlan(plan)
-			openModal('owner-subscribe')
+			setSubscribeDialogOpen(true)
 			return
 		}
 
@@ -211,7 +210,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 							key={plan.id}
 						>
 							<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
-								<CardTitle className="text-2xl font-semibold tracking-tight">
+								<CardTitle className="typography-h3 tracking-tight">
 									{plan.name}
 								</CardTitle>
 								<CardDescription className="space-y-[var(--spacing-2)] text-left text-base text-muted-foreground">
@@ -220,7 +219,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 										<div className="space-y-1 text-left">
 											<div className="flex items-baseline gap-[var(--spacing-2)] text-left">
 												<NumberFlow
-													className="text-4xl font-bold text-foreground"
+													className="typography-h1 text-foreground"
 													format={{
 														style: 'currency',
 														currency: 'USD',
@@ -228,7 +227,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 													}}
 													value={plan.price[frequency] as number}
 												/>
-												<span className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+												<span className="typography-small uppercase tracking-wide text-muted-foreground">
 													/ {frequency}
 												</span>
 											</div>
@@ -239,7 +238,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 											</span>
 										</div>
 									) : (
-										<span className="text-2xl font-bold text-foreground">
+										<span className="typography-h3 text-foreground">
 											{plan.price[frequency]}
 										</span>
 									)}
@@ -281,6 +280,8 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 				</div>
 			</div>
 			<OwnerSubscribeDialog
+				open={subscribeDialogOpen}
+				onOpenChange={setSubscribeDialogOpen}
 				{...(pendingPlan?.name && { planName: pendingPlan.name })}
 				{...(pendingPlan?.cta && { planCta: pendingPlan.cta })}
 				onComplete={async ({ email, tenant_id, requiresEmailConfirmation }) => {
@@ -290,7 +291,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 							customerEmail: email,
 							...(tenant_id && { tenant_id })
 						})
-						closeModal('owner-subscribe')
+						setSubscribeDialogOpen(false)
 						setPendingPlan(null)
 						if (requiresEmailConfirmation) {
 							logger.info(

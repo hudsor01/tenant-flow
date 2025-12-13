@@ -13,7 +13,6 @@ import type { Cache } from 'cache-manager'
 import type { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import type Stripe from 'stripe'
-import type { Json } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 
@@ -21,6 +20,34 @@ import { StripeSyncService } from '../billing/stripe-sync.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { Json } from '@repo/shared/types/supabase'
+
+/**
+ * RPC parameters for upsert_rent_payment
+ * Note: This function is service_role-only and may not be in generated public types
+ */
+interface UpsertRentPaymentParams {
+  p_lease_id: string
+  p_tenant_id: string
+  p_amount: number
+  p_currency: string
+  p_status: string
+  p_due_date: string
+  p_paid_date: string
+  p_period_start: string
+  p_period_end: string
+  p_payment_method_type: string
+  p_stripe_payment_intent_id: string
+  p_application_fee_amount: number
+}
+
+/**
+ * Response from upsert_rent_payment RPC
+ */
+interface UpsertRentPaymentResult {
+  id: string
+  was_inserted: boolean
+}
 
 const STRIPE_SYNC_THROTTLE = createThrottleDefaults({
   envTtlKey: 'STRIPE_SYNC_THROTTLE_TTL',
@@ -58,8 +85,7 @@ export class StripeSyncController {
   ): Promise<boolean> {
     const { data, error } = await this.supabaseService
       .getAdminClient()
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .rpc('acquire_webhook_event_lock' as any, {
+      .rpc('acquire_webhook_event_lock_with_id', {
         p_webhook_source: 'stripe',
         p_external_id: eventId,
         p_event_type: eventType,
@@ -77,7 +103,9 @@ export class StripeSyncController {
       return true
     }
 
-    return data === true
+    // RPC returns array of { lock_acquired: boolean, webhook_event_id: string }
+    const rows = Array.isArray(data) ? data : [data]
+    return rows.some(row => row?.lock_acquired === true)
   }
 
   /**
@@ -316,23 +344,24 @@ export class StripeSyncController {
     const today = now.toISOString().split('T')[0] as string
 
     const client = this.supabaseService.getAdminClient()
-    const { data, error } = await (client.rpc as CallableFunction)(
-      'upsert_rent_payment',
-      {
-        p_lease_id: safelease_id,
-        p_tenant_id: safetenant_id,
-        p_amount: Math.round(amountInDollars * 100), // Convert to cents
-        p_currency: 'usd',
-        p_status: 'succeeded',
-        p_due_date: today,
-        p_paid_date: now.toISOString(),
-        p_period_start: today,
-        p_period_end: today,
-        p_payment_method_type: paymentType,
-        p_stripe_payment_intent_id: session.payment_intent as string,
-        p_application_fee_amount: 0
-      }
-    ) as { data: { id: string; was_inserted: boolean }[] | null; error: Error | null }
+    const rpcParams: UpsertRentPaymentParams = {
+      p_lease_id: safelease_id,
+      p_tenant_id: safetenant_id,
+      p_amount: Math.round(amountInDollars * 100), // Convert to cents
+      p_currency: 'usd',
+      p_status: 'succeeded',
+      p_due_date: today,
+      p_paid_date: now.toISOString(),
+      p_period_start: today,
+      p_period_end: today,
+      p_payment_method_type: paymentType,
+      p_stripe_payment_intent_id: session.payment_intent as string,
+      p_application_fee_amount: 0
+    }
+    // Note: upsert_rent_payment is service_role-only RPC, not in generated public types
+    // Use type assertion since function isn't in Database['public']['Functions']
+    type RpcFn = (fn: string, params: UpsertRentPaymentParams) => Promise<{ data: UpsertRentPaymentResult[] | null; error: Error | null }>
+    const { data, error } = await (client.rpc as unknown as RpcFn)('upsert_rent_payment', rpcParams)
 
     if (error) {
       this.logger.error('Failed to record checkout payment', {
@@ -343,7 +372,7 @@ export class StripeSyncController {
         stripePaymentIntentId: session.payment_intent
       })
     } else {
-      const result = Array.isArray(data) ? data[0] : data
+      const result: UpsertRentPaymentResult | undefined = Array.isArray(data) ? data[0] : undefined
       const wasInserted = result?.was_inserted ?? true
 
       if (wasInserted) {
@@ -459,7 +488,15 @@ export class StripeSyncController {
       // - Event processing
       // - Database synchronization to stripe.* schema
       // - Idempotency
-      await this.stripeSyncService.processWebhook(rawBody, signature)
+      try {
+        await this.stripeSyncService.processWebhook(rawBody, signature)
+      } catch (syncError) {
+        // Stripe Sync Engine throws on unsupported event types (file.*, etc.)
+        // Log and continue - business logic may still need to process the event
+        this.logger.warn('Stripe Sync Engine could not process event', {
+          error: syncError instanceof Error ? syncError.message : 'Unknown error'
+        })
+      }
 
       // Process business logic AFTER sync to ensure stripe.* data exists
       // This includes:

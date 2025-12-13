@@ -15,7 +15,7 @@ import { PremiumCta } from '#components/sections/premium-cta'
 
 export default function MarketingHomePage() {
 	return (
-		<PageLayout showGridPattern={false} containerClass="flex flex-col section-gap">
+		<PageLayout showGridPattern={true} containerClass="flex flex-col section-gap">
 				{/* Hero Section with Dashboard Mockup */}
 				<section className="relative flex-1 flex flex-col">
 					<div className="flex-1 w-full">
@@ -38,7 +38,7 @@ export default function MarketingHomePage() {
 									<div className="flex flex-row gap-4">
 										<a
 											href="/pricing"
-											className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
+											className="inline-flex items-center justify-center rounded-md typography-small ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8"
 										>
 											Start Managing Properties
 											<svg
@@ -59,7 +59,7 @@ export default function MarketingHomePage() {
 										</a>
 										<a
 											href="/pricing"
-											className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
+											className="inline-flex items-center justify-center rounded-md typography-small ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 px-8"
 										>
 											View Pricing
 										</a>

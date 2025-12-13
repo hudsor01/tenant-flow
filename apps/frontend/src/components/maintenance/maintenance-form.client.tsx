@@ -30,13 +30,13 @@ import {
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
-import type { MaintenancePriority } from '@repo/shared/constants/status-types'
 import type {
+	MaintenancePriority,
 	MaintenanceRequestWithExtras,
 	Property,
 	Unit
 } from '@repo/shared/types/core'
-import { NOTIFICATION_PRIORITY_OPTIONS } from '@repo/shared/types/notifications'
+import { MAINTENANCE_PRIORITY_OPTIONS } from '@repo/shared/constants/status-types'
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'
@@ -60,7 +60,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 		defaultValues: {
 			title: extendedRequest?.title ?? '',
 			description: extendedRequest?.description ?? '',
-			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'LOW',
+			priority: (extendedRequest?.priority as MaintenancePriority) ?? 'low',
 			unit_id: extendedRequest?.unit_id ?? '',
 			tenant_id: extendedRequest?.tenant_id ?? '',
 			estimated_cost: extendedRequest?.estimated_cost?.toString() ?? '',
@@ -139,7 +139,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											Unit *
 										</FieldLabel>
 										<Select
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onValueChange={field.handleChange}
 										>
 											<SelectTrigger
@@ -186,7 +186,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											id="tenant_id"
 											name="tenant_id"
 											placeholder="Tenant ID"
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
@@ -210,7 +210,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											id="title"
 											name="title"
 											placeholder="Kitchen faucet leak"
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
@@ -235,7 +235,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											name="description"
 											placeholder="Describe the issue in detail"
 											rows={4}
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
 												field.handleChange(e.target.value)
 											}
@@ -256,14 +256,16 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 									<Field>
 										<FieldLabel htmlFor="priority">Priority *</FieldLabel>
 										<Select
-											value={field.state.value || ''}
-											onValueChange={field.handleChange}
+											value={field.state.value ?? ''}
+											onValueChange={(value: string) =>
+												field.handleChange(value as MaintenancePriority)
+											}
 										>
 											<SelectTrigger id="priority">
 												<SelectValue placeholder="Select priority level" />
 											</SelectTrigger>
 											<SelectContent>
-												{NOTIFICATION_PRIORITY_OPTIONS.map(option => (
+												{MAINTENANCE_PRIORITY_OPTIONS.map(option => (
 													<SelectItem key={option.value} value={option.value}>
 														{option.label}
 													</SelectItem>
@@ -293,7 +295,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											min="0"
 											step="0.01"
 											placeholder="0.00"
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
@@ -319,7 +321,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											id="scheduled_date"
 											name="scheduled_date"
 											type="date"
-											value={field.state.value || ''}
+											value={field.state.value ?? ''}
 											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}

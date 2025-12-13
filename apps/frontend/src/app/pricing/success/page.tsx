@@ -53,7 +53,7 @@ export default function CheckoutSuccessPage() {
 				<main className="flex-1 page-offset-navbar flex-center">
 					<div className="text-center">
 						<div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4"></div>
-						<h2 className="text-xl font-semibold mb-2">
+						<h2 className="typography-h4 mb-2">
 							Verifying your payment...
 						</h2>
 						<p className="text-muted-foreground">

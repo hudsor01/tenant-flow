@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Shared Package Config",
+	"display": "TenantFlow Package Config",
 	"extends": "../typescript-config/library.json",
 	"compilerOptions": {
 		"baseUrl": ".",

@@ -334,7 +334,7 @@ export interface EmergencyContactResponse {
 }
 
 export interface PaymentStatus {
-	status: 'PAID' | 'DUE' | 'OVERDUE' | 'pending'
+	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
 	due_date: string
 	amount: number
 }
@@ -489,7 +489,7 @@ export interface CreateUnitInput {
 	square_feet?: number | null | undefined
 	rent_amount?: number | null | undefined
 	rent_currency?: string | null | undefined
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | null | undefined
+	status?: 'vacant' | 'occupied' | 'maintenance' | 'RESERVED' | null | undefined
 }
 
 export interface UpdateUnitInput {
@@ -500,7 +500,7 @@ export interface UpdateUnitInput {
 	square_feet?: number | null
 	rent_amount?: number | null
 	rent_currency?: string | null
-	status?: 'VACANT' | 'OCCUPIED' | 'MAINTENANCE' | 'RESERVED' | null
+	status?: 'vacant' | 'occupied' | 'maintenance' | 'RESERVED' | null
 }
 
 // Pagination response wrapper

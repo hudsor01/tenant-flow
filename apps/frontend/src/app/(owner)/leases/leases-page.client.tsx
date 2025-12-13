@@ -16,7 +16,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Button } from '#components/ui/button'
-import { CrudDialog, CrudDialogContent, CrudDialogHeader, CrudDialogTitle, CrudDialogDescription, CrudDialogBody, CrudDialogFooter } from '#components/ui/crud-dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '#components/ui/dialog'
 
 import { useCreateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import type { Lease } from '@repo/shared/types/core'
@@ -43,7 +43,7 @@ function LeaseCreateDialog() {
 
 	// Prefetch data for create dialog
 	queryClient.prefetchQuery(tenantQueries.list({ limit: 100 }))
-	queryClient.prefetchQuery(unitQueries.list({ status: 'VACANT', limit: 100 }))
+	queryClient.prefetchQuery(unitQueries.list({ status: 'available', limit: 100 }))
 
 	const createLeaseMutation = useCreateLeaseMutation()
 
@@ -115,23 +115,23 @@ function LeaseCreateDialog() {
 				<Plus className="size-4 mr-2" />
 				Add Lease
 			</Button>
-			<CrudDialog mode="create" open={open} onOpenChange={setOpen}>
-				<CrudDialogContent className="sm:max-w-125">
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent intent="create" className="sm:max-w-125">
 					<form onSubmit={handleSubmit}>
-						<CrudDialogHeader>
-							<CrudDialogTitle>Add New Lease</CrudDialogTitle>
-							<CrudDialogDescription>
+						<DialogHeader>
+							<DialogTitle>Add New Lease</DialogTitle>
+							<DialogDescription>
 								Create a new lease agreement with tenant, unit, and terms
-							</CrudDialogDescription>
-						</CrudDialogHeader>
-						<CrudDialogBody>
+							</DialogDescription>
+						</DialogHeader>
+						<DialogBody>
 							<div className="space-y-4">
 								<p className="text-muted">
 									Lease form coming soon - use the full-page form for now
 								</p>
 							</div>
-						</CrudDialogBody>
-						<CrudDialogFooter>
+						</DialogBody>
+						<DialogFooter>
 							<Button
 								type="button"
 								variant="outline"
@@ -143,10 +143,10 @@ function LeaseCreateDialog() {
 							<Button type="submit" disabled={createLeaseMutation.isPending}>
 								{createLeaseMutation.isPending ? 'Creating...' : 'Create Lease'}
 							</Button>
-						</CrudDialogFooter>
+						</DialogFooter>
 					</form>
-				</CrudDialogContent>
-			</CrudDialog>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }
@@ -178,7 +178,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	// Fetch leases with filters and pagination (uses initialData from Server Component)
 	const params: {
 		search?: string
-		status?: 'active' | 'expired' | 'terminated'
+		status?: 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -187,7 +187,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'active' | 'expired' | 'terminated'
+		params.status = status as 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useQuery(leaseQueries.list(params))
 
@@ -198,7 +198,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 		return (
 			<div className="container py-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="text-lg font-semibold text-destructive">
+					<h2 className="typography-large text-destructive">
 						Error Loading Leases
 					</h2>
 					<p className="text-muted">
@@ -214,7 +214,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+					<h1 className="typography-h2 tracking-tight flex items-center gap-2">
 						<FileText className="size-8" />
 						Leases
 					</h1>
@@ -250,9 +250,11 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="pending_signature">Pending Signature</SelectItem>
 						<SelectItem value="active">Active</SelectItem>
-						<SelectItem value="EXPIRED">Expired</SelectItem>
-						<SelectItem value="TERMINATED">Terminated</SelectItem>
+						<SelectItem value="expired">Expired</SelectItem>
+						<SelectItem value="terminated">Terminated</SelectItem>
 					</SelectContent>
 				</Select>
 
@@ -272,7 +274,7 @@ export function LeasesPageClient({ initialLeases, initialTotal }: LeasesPageClie
 			) : leases.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
-					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
+					<h3 className="mt-4 typography-large">No leases found</h3>
 					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'

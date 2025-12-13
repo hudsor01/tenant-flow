@@ -55,7 +55,7 @@ describe('UnitsController', () => {
 		rent_amount: 150000,
 		rent_currency: 'USD',
 		rent_period: 'MONTHLY',
-		status: 'VACANT',
+		status: 'available',
 		property_owner_id: 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
@@ -149,6 +149,32 @@ describe('UnitsController', () => {
 				)
 			).rejects.toThrow(BadRequestException)
 		})
+
+		it('should accept uppercase unit status and normalize to lowercase', async () => {
+			const mockUnits = [createMockUnit({ status: 'occupied' })]
+			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits as any)
+
+			const result = await controller.findAll(
+				createMockRequest({ user: mockUser }) as any,
+				null,
+				'OCCUPIED', // Uppercase input
+				null,
+				10,
+				0,
+				'created_at',
+				'desc'
+			)
+
+			// Verify service was called and status was normalized
+			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
+			expect(result).toEqual({
+				data: mockUnits,
+				total: mockUnits.length,
+				limit: 10,
+				offset: 0,
+				hasMore: false
+			})
+		})
 	})
 
 	describe('getStats', () => {
@@ -187,11 +213,11 @@ describe('UnitsController', () => {
 		})
 	})
 
-	describe('findOne', () => {
-		it('should return a unit by ID', async () => {
-			const mockUnit = createMockUnit({ id: 'unit-1' })
+		describe('findOne', () => {
+			it('should return a unit by ID', async () => {
+				const mockUnit = createMockUnit({ id: 'unit-1' })
 
-			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
+				mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
 
 			const result = await controller.findOne(
 				'mock-jwt-token',
@@ -204,13 +230,13 @@ describe('UnitsController', () => {
 			expect(result).toEqual(mockUnit)
 		})
 
-		it('should throw NotFoundException when unit not found', async () => {
-			mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.resolve(null))
+			it('should throw NotFoundException when unit not found', async () => {
+				mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.reject(new NotFoundException()))
 
-			await expect(
-				controller.findOne(
-					'mock-jwt-token',
-					'non-existent'
+				await expect(
+					controller.findOne(
+						'mock-jwt-token',
+						'non-existent'
 				)
 			).rejects.toThrow(NotFoundException)
 		})

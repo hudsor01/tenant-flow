@@ -87,7 +87,7 @@ const PasswordStrength = React.forwardRef<
 				{label && (
 					<label
 						htmlFor={inputId}
-						className="block text-sm font-medium mb-2 text-foreground"
+						className="block typography-small mb-2 text-foreground"
 					>
 						{label}
 					</label>

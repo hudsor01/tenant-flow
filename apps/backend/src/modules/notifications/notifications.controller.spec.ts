@@ -162,7 +162,7 @@ describe('NotificationsController', () => {
 			title: 'Test Notification',
 			content: 'Test content',
 			type: 'maintenance' as const,
-			priority: 'MEDIUM' as const,
+			priority: 'medium' as const,
 			actionUrl: '/test-url'
 		}
 
@@ -326,17 +326,17 @@ describe('NotificationsController', () => {
 
 	describe('getPriorityInfo', () => {
 		it('should return correct info for LOW priority', async () => {
-			const result = await controller.getPriorityInfo('LOW')
+			const result = await controller.getPriorityInfo('low')
 			expect(result).toEqual({ color: 'hsl(var(--muted-foreground))', label: 'Low Priority' })
 		})
 
 		it('should return correct info for MEDIUM priority', async () => {
-			const result = await controller.getPriorityInfo('MEDIUM')
+			const result = await controller.getPriorityInfo('medium')
 			expect(result).toEqual({ color: '#FF9500', label: 'Medium Priority' })
 		})
 
 		it('should return correct info for HIGH priority', async () => {
-			const result = await controller.getPriorityInfo('HIGH')
+			const result = await controller.getPriorityInfo('high')
 			expect(result).toEqual({ color: 'hsl(var(--destructive))', label: 'High Priority' })
 		})
 

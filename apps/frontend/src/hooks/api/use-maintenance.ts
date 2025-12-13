@@ -81,10 +81,8 @@ export function useMaintenanceRequestCreate() {
 				id: tempId,
 				title: newRequest.title || '',
 				description: newRequest.description,
-				priority:
-					(newRequest.priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT') ||
-					'MEDIUM',
-				status: 'OPEN',
+				priority: newRequest.priority || 'normal',
+				status: 'open',
 			unit_id: newRequest.unit_id || '',
 				tenant_id: newRequest.tenant_id || '',
 				property_owner_id: '',
@@ -260,13 +258,13 @@ export function useCompleteMaintenance() {
 					maintenanceQueries.lists()
 				)
 
-				// Optimistically update to COMPLETED status
+				// Optimistically update to completed status
 				queryClient.setQueryData<MaintenanceRequestWithVersion>(
 					maintenanceQueries.detail(id).queryKey,
 					(old) =>
 						old
 							? incrementVersion(old, {
-								status: 'COMPLETED' as const,
+								status: 'completed' as const,
 								completed_at: new Date().toISOString(),
 								updated_at: new Date().toISOString()
 							})
@@ -279,7 +277,7 @@ export function useCompleteMaintenance() {
 						old?.map(item =>
 							item.id === id
 								? incrementVersion(item, {
-									status: 'COMPLETED' as const,
+									status: 'completed' as const,
 									completed_at: new Date().toISOString(),
 									updated_at: new Date().toISOString()
 								})
@@ -358,13 +356,13 @@ export function useCancelMaintenance() {
 					maintenanceQueries.lists()
 				)
 
-				// Optimistically update to CANCELED status
+				// Optimistically update to cancelled status
 				queryClient.setQueryData<MaintenanceRequestWithVersion>(
 					maintenanceQueries.detail(id).queryKey,
 					(old) =>
 						old
 							? incrementVersion(old, {
-								status: 'CANCELED' as const,
+								status: 'cancelled' as const,
 								updated_at: new Date().toISOString()
 							})
 							: undefined
@@ -376,7 +374,7 @@ export function useCancelMaintenance() {
 						old?.map(item =>
 							item.id === id
 								? incrementVersion(item, {
-									status: 'CANCELED' as const,
+									status: 'cancelled' as const,
 									updated_at: new Date().toISOString()
 								})
 								: item

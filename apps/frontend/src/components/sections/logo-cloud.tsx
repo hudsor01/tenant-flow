@@ -52,7 +52,7 @@ export function LogoCloud({
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<BlurFade delay={0.1} inView>
 					<div className="text-center mb-8">
-						<p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
+						<p className="typography-small text-muted-foreground uppercase tracking-wider mb-2">
 							{title}
 						</p>
 						<p className="text-muted-foreground text-sm">

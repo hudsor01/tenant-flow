@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { Json } from '@repo/shared/types/supabase'
 
 /**
  * Stripe Webhook Service - Database-backed idempotency and event tracking
@@ -11,6 +12,8 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class StripeWebhookService {
+
+	private static readonly WEBHOOK_SOURCE = 'stripe'
 
 	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
 
@@ -36,6 +39,7 @@ export class StripeWebhookService {
 			const { data, error } = await client
 				.from('webhook_events')
 				.select('id')
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.eq('external_id', eventId)
 				.single()
 
@@ -121,19 +125,20 @@ export class StripeWebhookService {
 	 */
 	async recordEventProcessing(
 		eventId: string,
-		eventType: string
+		eventType: string,
+		rawPayload: { [key: string]: Json | undefined } = {}
 	): Promise<boolean> {
 		try {
 			const client = this.supabaseService.getAdminClient()
 
 			// SECURITY FIX #5: Use RPC-backed lock to avoid race windows
 			const { data, error } = await client.rpc(
-				'record_processed_stripe_event_lock',
+				'acquire_webhook_event_lock_with_id',
 				{
-					p_stripe_event_id: eventId,
+					p_webhook_source: StripeWebhookService.WEBHOOK_SOURCE,
+					p_external_id: eventId,
 					p_event_type: eventType,
-					p_status: 'processing',
-					p_processed_at: new Date().toISOString()
+					p_raw_payload: rawPayload
 				}
 			)
 
@@ -198,6 +203,7 @@ export class StripeWebhookService {
 					processed_at: new Date().toISOString(),
 					status: 'processed'
 				})
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.eq('external_id', eventId)
 
 			if (error) {
@@ -233,6 +239,7 @@ export class StripeWebhookService {
 			const { count } = await client
 				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.lt('processed_at', cutoffDate.toISOString())
 
 			if (!count || count === 0) {
@@ -244,6 +251,7 @@ export class StripeWebhookService {
 			const { error } = await client
 				.from('webhook_events')
 				.delete()
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.lt('processed_at', cutoffDate.toISOString())
 
 			if (error) {
@@ -304,17 +312,20 @@ export class StripeWebhookService {
 			const { count: totalEvents } = await client
 				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 
 			// Get today's count
 			const { count: todayEvents } = await client
 				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.gte('processed_at', todayStart.toISOString())
 
 			// Get last hour count
 			const { count: lastHourEvents } = await client
 				.from('webhook_events')
 				.select('*', { count: 'exact', head: true })
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.gte('processed_at', hourAgo.toISOString())
 
 			// Get event type breakdown from webhook_metrics table
@@ -355,6 +366,7 @@ export class StripeWebhookService {
 			const { data, error } = await client
 				.from('webhook_events')
 				.select('external_id')
+				.eq('webhook_source', StripeWebhookService.WEBHOOK_SOURCE)
 				.in('external_id', eventIds)
 
 			if (error) {

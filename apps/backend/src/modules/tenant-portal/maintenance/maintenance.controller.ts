@@ -13,7 +13,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 const MaintenanceRequestCreateSchema = z.object({
 	title: z.string().min(1).max(200),
 	description: z.string().min(1).max(2000),
-	priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+	priority: z.enum(['low', 'medium', 'high', 'urgent']),
 	category: z
 		.enum(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'])
 		.optional(),
@@ -87,7 +87,7 @@ export class TenantMaintenanceController {
 					title: body.title,
 					description: body.description,
 					priority: body.priority,
-					status: 'OPEN',
+					status: 'open',
 					requested_by: user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id
@@ -176,9 +176,9 @@ export class TenantMaintenanceController {
 
 	private calculateMaintenanceStats(requests: MaintenanceRequestRow[]) {
 		const total = requests.length
-		const open = requests.filter(r => r.status === 'OPEN').length
-		const inProgress = requests.filter(r => r.status === 'IN_PROGRESS').length
-		const completed = requests.filter(r => r.status === 'COMPLETED').length
+		const open = requests.filter(r => r.status === 'open').length
+		const inProgress = requests.filter(r => r.status === 'in_progress').length
+		const completed = requests.filter(r => r.status === 'completed').length
 
 		return { total, open, inProgress, completed }
 	}

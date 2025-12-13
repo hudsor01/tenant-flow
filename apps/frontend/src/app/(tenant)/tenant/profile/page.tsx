@@ -43,13 +43,12 @@ import { emailSchema } from '@repo/shared/validation/common'
 import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { useModalStore } from '#stores/modal-store'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
 	const [emergency_contactEditing, setEmergencyContactEditing] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-	const { openModal } = useModalStore()
+	const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false)
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const updateProfile = useSupabaseUpdateProfile()
 
@@ -249,7 +248,7 @@ export default function TenantProfilePage() {
 	return (
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
-				<h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
+				<h1 className="typography-h2 tracking-tight">My Profile</h1>
 				<p className="text-muted-foreground">
 					Manage your contact information and account settings
 				</p>
@@ -588,7 +587,7 @@ export default function TenantProfilePage() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => openModal('change-password')}
+							onClick={() => setShowChangePasswordDialog(true)}
 						>
 							Change Password
 						</Button>
@@ -597,7 +596,10 @@ export default function TenantProfilePage() {
 			</CardLayout>
 
 			{/* Password Change Dialog */}
-			<ChangePasswordDialog />
+			<ChangePasswordDialog
+				open={showChangePasswordDialog}
+				onOpenChange={setShowChangePasswordDialog}
+			/>
 
 			{/* Delete Emergency Contact Confirmation Dialog */}
 			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>

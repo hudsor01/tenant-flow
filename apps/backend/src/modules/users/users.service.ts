@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common'
+import {
+	Injectable,
+	InternalServerErrorException,
+	NotFoundException
+} from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 
@@ -11,7 +15,7 @@ export class UsersService {
 
 	async findUserByEmail(
 		email: string
-	): Promise<Database['public']['Tables']['users']['Row'] | null> {
+	): Promise<Database['public']['Tables']['users']['Row']> {
 		const { data, error } = await this.supabase
 			.getAdminClient() // This method is used for authentication lookups, so admin client is appropriate
 			.from('users')
@@ -19,8 +23,8 @@ export class UsersService {
 			.eq('email', email)
 			.single()
 
-		if (error) {
-			return null
+		if (error || !data) {
+			throw new NotFoundException('User not found')
 		}
 
 		return data
@@ -90,7 +94,7 @@ export class UsersService {
 	async getUserById(
 		token: string,
 		user_id: string
-	): Promise<Database['public']['Tables']['users']['Row'] | null> {
+	): Promise<Database['public']['Tables']['users']['Row']> {
 		const client = this.supabase.getUserClient(token)
 
 		// Use RLS to enforce that user can only access their own data
@@ -100,8 +104,8 @@ export class UsersService {
 			.eq('id', user_id)
 			.single()
 
-		if (error) {
-			return null
+		if (error || !data) {
+			throw new NotFoundException('User not found')
 		}
 
 		return data

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease, LeaseStatus } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -63,55 +63,8 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			// Build base query for counting (NO manual user_id/unit_id filtering needed)
-			let countQuery = client
-				.from('leases')
-				.select('*', { count: 'exact', head: true })
-
-			// Apply filters to count query
-			if (query.property_id) {
-				countQuery = countQuery.eq('property_id', String(query.property_id))
-			}
-			if (query.tenant_id) {
-				countQuery = countQuery.eq('primary_tenant_id', String(query.tenant_id))
-			}
-			if (query.status) {
-				countQuery = countQuery.eq('lease_status', query.status as string)
-			}
-			if (query.start_date) {
-				countQuery = countQuery.gte(
-					'start_date',
-					new Date(query.start_date as string).toISOString()
-				)
-			}
-			if (query.end_date) {
-				countQuery = countQuery.lte(
-					'end_date',
-					new Date(query.end_date as string).toISOString()
-				)
-			}
-			// SECURITY FIX #2: Use safe search to prevent SQL injection
-			if (query.search) {
-				const sanitized = sanitizeSearchInput(String(query.search))
-				if (sanitized) {
-					countQuery = countQuery.or(
-						buildMultiColumnSearch(sanitized, ['primary_tenant_id', 'unit_id'])
-					)
-				}
-			}
-
-			// Get total count
-			const { count, error: countError } = await countQuery
-			if (countError) {
-				this.logger.error('Failed to count leases', {
-					error: countError.message,
-					query
-				})
-				throw new BadRequestException('Failed to count leases')
-			}
-
-			// Build data query with filters (NO manual user_id/unit_id filtering needed)
-			let queryBuilder = client.from('leases').select('*')
+		// Build single query with both data and count (NO manual user_id/unit_id filtering needed)
+			let queryBuilder = client.from('leases').select('*', { count: 'exact' })
 
 			// Apply filters
 			if (query.property_id) {
@@ -124,7 +77,7 @@ export class LeasesService {
 				)
 			}
 			if (query.status) {
-				queryBuilder = queryBuilder.eq('lease_status', query.status as string)
+				queryBuilder = queryBuilder.eq('lease_status', query.status as LeaseStatus)
 			}
 			if (query.start_date) {
 				queryBuilder = queryBuilder.gte(
@@ -160,7 +113,7 @@ export class LeasesService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
+			const { data, count, error } = await queryBuilder
 
 			if (error) {
 				this.logger.error('Failed to fetch leases from Supabase', {

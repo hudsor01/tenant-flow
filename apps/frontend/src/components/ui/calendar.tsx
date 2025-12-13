@@ -70,7 +70,7 @@ function Calendar({
 					defaultClassNames.month_caption
 				),
 				dropdowns: cn(
-					'w-full flex items-center text-sm font-medium justify-center h-(--cell-size) gap-1.5',
+					'w-full flex items-center typography-small justify-center h-(--cell-size) gap-1.5',
 					defaultClassNames.dropdowns
 				),
 				dropdown_root: cn(
@@ -104,7 +104,7 @@ function Calendar({
 					defaultClassNames.week_number
 				),
 				day: cn(
-					'relative w-full h-full p-0 text-center [&:first-child[data-selected=true]_button]:rounded-l-md [&:last-child[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
+					'relative w-full h-full p-0 text-center first:[&[data-selected=true]_button]:rounded-l-md last:[&[data-selected=true]_button]:rounded-r-md group/day aspect-square select-none',
 					defaultClassNames.day
 				),
 				range_start: cn(

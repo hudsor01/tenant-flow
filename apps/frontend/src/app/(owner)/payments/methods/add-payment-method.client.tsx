@@ -45,7 +45,7 @@ export function AddPaymentMethod({ onSuccess }: AddPaymentMethodProps = {}) {
 			description="Collect rent automatically by saving a verified payment method."
 			className="space-y-6"
 		>
-			<div className="flex items-center gap-2 text-lg font-semibold mb-2">
+			<div className="flex items-center gap-2 typography-large mb-2">
 				<CreditCard className="size-5 text-primary" />
 				Add payment method
 			</div>

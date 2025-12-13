@@ -83,6 +83,7 @@ const data = {
 			url: '/financials',
 			icon: Receipt,
 			items: [
+				{ title: 'Rent Collection', url: '/rent-collection' },
 				{ title: 'Income Statement', url: '/financials/income-statement' },
 				{ title: 'Cash Flow', url: '/financials/cash-flow' },
 				{ title: 'Balance Sheet', url: '/financials/balance-sheet' },
@@ -139,10 +140,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					<SidebarMenuItem>
 						<SidebarMenuButton
 							asChild
-							className="data-[slot=sidebar-menu-button]:!p-1.5"
+							className="data-[slot=sidebar-menu-button]:p-1.5!"
 						>
 							<a href="/dashboard">
-								<Sparkles className="!size-5" />
+								<Sparkles className="size-5!" />
 								<span className="text-base font-semibold">TenantFlow</span>
 							</a>
 						</SidebarMenuButton>

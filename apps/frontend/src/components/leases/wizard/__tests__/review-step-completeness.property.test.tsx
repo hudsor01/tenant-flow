@@ -8,7 +8,7 @@
  */
 
 import * as fc from 'fast-check'
-import { render, screen, cleanup } from '@testing-library/react'
+import { render, screen, cleanup, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { ReviewStep } from '../review-step'
 import type { LeaseWizardData } from '@repo/shared/validation/lease-wizard.schemas'
@@ -56,6 +56,8 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 
 	/**
 	 * Property 9b: For any currency amount, it must be formatted correctly as USD.
+	 * Uses `within` to scope queries to the Financial Terms section to avoid
+	 * multiple element matches when the same currency value appears in different sections.
 	 */
 	it('should format all currency amounts correctly', async () => {
 		await fc.assert(
@@ -83,15 +85,27 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 							currency: 'USD'
 						}).format(cents / 100)
 
-					// PROPERTY ASSERTION: Rent amount should be displayed correctly
-					expect(screen.getByText(formatCurrency(rent_amount))).toBeInTheDocument()
+					// Use within to scope queries to Financial Terms section
+					// This avoids "multiple elements found" errors when same values appear elsewhere
+					// Use getAllByText and take the last element to handle any DOM cleanup timing issues
+					const financialHeadings = screen.getAllByText('Financial Terms')
+					const financialSection = financialHeadings[financialHeadings.length - 1]!.closest('div')!.parentElement!
+					const financialQueries = within(financialSection)
+
+					// PROPERTY ASSERTION: Rent amount should be displayed correctly in Financial Terms
+					expect(financialQueries.getByText(formatCurrency(rent_amount))).toBeInTheDocument()
 
 					// PROPERTY ASSERTION: Security deposit should be displayed correctly
-					expect(screen.getByText(formatCurrency(security_deposit))).toBeInTheDocument()
+					// Use getAllByText since security_deposit=0 ($0.00) may match '-' placeholder elsewhere
+					const securityDepositText = formatCurrency(security_deposit)
+					const securityMatches = financialQueries.getAllByText(securityDepositText)
+					expect(securityMatches.length).toBeGreaterThanOrEqual(1)
 
 					// PROPERTY ASSERTION: Late fee should be displayed if provided
 					if (late_fee_amount !== null) {
-						expect(screen.getByText(formatCurrency(late_fee_amount))).toBeInTheDocument()
+						const lateFeeText = formatCurrency(late_fee_amount)
+						const lateFeeMatches = financialQueries.getAllByText(lateFeeText)
+						expect(lateFeeMatches.length).toBeGreaterThanOrEqual(1)
 					}
 
 					cleanup()

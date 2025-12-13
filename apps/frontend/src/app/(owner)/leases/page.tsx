@@ -1,7 +1,5 @@
 'use client'
 
-import { Fragment } from 'react'
-
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -54,7 +52,6 @@ import Link from 'next/link'
 import { RenewLeaseDialog } from '#components/leases/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#components/leases/terminate-lease-dialog'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'
-import { useModalStore } from '#stores/modal-store'
 
 const ITEMS_PER_PAGE = 25
 
@@ -74,14 +71,16 @@ export default function LeasesPage() {
 			clearOnDefault: true
 		}
 	)
-	const [_selectedLease, setSelectedLease] = useState<Lease | null>(null)
-	const { openModal } = useModalStore()
+	const [selectedLease, setSelectedLease] = useState<Lease | null>(null)
+	const [showRenewDialog, setShowRenewDialog] = useState(false)
+	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
 	// Fetch leases with filters and pagination
-	// NOTE: Database uses lowercase status values: 'active', 'expired', 'terminated'
+	// NOTE: Database uses lowercase status values
 	const params: {
 		search?: string
-		status?: 'active' | 'expired' | 'terminated'
+		status?: 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 		limit: number
 		offset: number
 	} = {
@@ -90,7 +89,7 @@ export default function LeasesPage() {
 	}
 	if (search) params.search = search
 	if (status !== 'all')
-		params.status = status as 'active' | 'expired' | 'terminated'
+		params.status = status as 'draft' | 'pending_signature' | 'active' | 'expired' | 'terminated'
 
 	const { data: leasesResponse, isLoading, error } = useLeaseList(params)
 
@@ -100,16 +99,19 @@ export default function LeasesPage() {
 	// Delete mutation
 	const deleteLeaseMutation = useDeleteLeaseMutation()
 
-	const handleRenew = (lease_id: string) => {
-		openModal(`renew-lease-${lease_id}`)
+	const handleRenew = (lease: Lease) => {
+		setSelectedLease(lease)
+		setShowRenewDialog(true)
 	}
 
-	const handleTerminate = (lease_id: string) => {
-		openModal(`terminate-lease-${lease_id}`)
+	const handleTerminate = (lease: Lease) => {
+		setSelectedLease(lease)
+		setShowTerminateDialog(true)
 	}
 
-	const handleDelete = (lease_id: string) => {
-		openModal(`delete-lease-${lease_id}`)
+	const handleDelete = (lease: Lease) => {
+		setSelectedLease(lease)
+		setShowDeleteDialog(true)
 	}
 
 	const getStatusBadge = (status: string) => {
@@ -133,7 +135,7 @@ export default function LeasesPage() {
 		return (
 			<div className="container py-8">
 				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4">
-					<h2 className="text-lg font-semibold text-destructive">
+					<h2 className="typography-large text-destructive">
 						Error Loading Leases
 					</h2>
 					<p className="text-muted">
@@ -149,7 +151,7 @@ export default function LeasesPage() {
 			{/* Header */}
 			<div className="flex-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight">Leases</h1>
+					<h1 className="typography-h2 tracking-tight">Leases</h1>
 					<p className="text-muted-foreground">
 						Manage lease agreements and track tenant contracts
 					</p>
@@ -184,6 +186,8 @@ export default function LeasesPage() {
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Status</SelectItem>
+						<SelectItem value="draft">Draft</SelectItem>
+						<SelectItem value="pending_signature">Pending Signature</SelectItem>
 						<SelectItem value="active">Active</SelectItem>
 						<SelectItem value="expired">Expired</SelectItem>
 						<SelectItem value="terminated">Terminated</SelectItem>
@@ -206,7 +210,7 @@ export default function LeasesPage() {
 			) : leases.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<FileText className="mx-auto size-12 text-muted-foreground/50" />
-					<h3 className="mt-4 text-lg font-semibold">No leases found</h3>
+					<h3 className="mt-4 typography-large">No leases found</h3>
 					<p className="mt-2 text-muted">
 						{search || status !== 'all'
 							? 'Try adjusting your filters'
@@ -266,25 +270,22 @@ export default function LeasesPage() {
 											</DropdownMenuTrigger>
 											<DropdownMenuContent align="end">
 												<DropdownMenuLabel>Actions</DropdownMenuLabel>
-												<DropdownMenuItem
-													onClick={() => {
-														setSelectedLease(lease)
-														openModal(`edit-lease-${lease.id}`)
-													}}
-												>
-													<Edit className="mr-2 size-4" />
-													Edit Lease
+												<DropdownMenuItem asChild>
+													<Link href={`/leases/${lease.id}/edit`}>
+														<Edit className="mr-2 size-4" />
+														Edit Lease
+													</Link>
 												</DropdownMenuItem>
 												{lease.lease_status === 'active' && (
 													<>
 														<DropdownMenuItem
-															onClick={() => handleRenew(lease.id)}
+															onClick={() => handleRenew(lease)}
 														>
 															<RefreshCw className="mr-2 size-4" />
 															Renew Lease
 														</DropdownMenuItem>
 														<DropdownMenuItem
-															onClick={() => handleTerminate(lease.id)}
+															onClick={() => handleTerminate(lease)}
 														>
 															<X className="mr-2 size-4" />
 															Terminate Lease
@@ -293,7 +294,7 @@ export default function LeasesPage() {
 												)}
 												<DropdownMenuSeparator />
 												<DropdownMenuItem
-													onClick={() => handleDelete(lease.id)}
+													onClick={() => handleDelete(lease)}
 													className="text-destructive focus:text-destructive"
 												>
 													<Trash2 className="mr-2 size-4" />
@@ -380,20 +381,41 @@ export default function LeasesPage() {
 			)}
 
 			{/* Lease Dialogs */}
-			{leases.map(lease => (
-				<Fragment key={lease.id}>
-					<RenewLeaseDialog lease_id={lease.id} />
-					<TerminateLeaseDialog lease_id={lease.id} />
+			{selectedLease && (
+				<>
+					<RenewLeaseDialog
+						open={showRenewDialog}
+						onOpenChange={setShowRenewDialog}
+						lease={selectedLease}
+						onSuccess={() => {
+							setShowRenewDialog(false)
+							setSelectedLease(null)
+						}}
+					/>
+					<TerminateLeaseDialog
+						open={showTerminateDialog}
+						onOpenChange={setShowTerminateDialog}
+						lease={selectedLease}
+						onSuccess={() => {
+							setShowTerminateDialog(false)
+							setSelectedLease(null)
+						}}
+					/>
 					<ConfirmDialog
-						modalId={`delete-lease-${lease.id}`}
+						open={showDeleteDialog}
+						onOpenChange={setShowDeleteDialog}
 						title="Delete Lease"
-						description={`Are you sure you want to delete this lease? This action cannot be undone and will permanently remove the lease agreement.`}
+						description="Are you sure you want to delete this lease? This action cannot be undone and will permanently remove the lease agreement."
 						confirmText="Delete Lease"
-						onConfirm={() => deleteLeaseMutation.mutate(lease.id)}
+						onConfirm={() => {
+							deleteLeaseMutation.mutate(selectedLease.id)
+							setShowDeleteDialog(false)
+							setSelectedLease(null)
+						}}
 						loading={deleteLeaseMutation.isPending}
 					/>
-				</Fragment>
-			))}
+				</>
+			)}
 		</div>
 	)
 }

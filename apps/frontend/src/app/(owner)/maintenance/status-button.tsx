@@ -2,14 +2,14 @@
 
 import { Button } from '#components/ui/button'
 import {
-	CrudDialog,
-	CrudDialogContent,
-	CrudDialogDescription,
-	CrudDialogHeader,
-	CrudDialogTitle,
-	CrudDialogBody,
-	CrudDialogFooter
-} from '#components/ui/crud-dialog'
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogBody,
+	DialogFooter
+} from '#components/ui/dialog'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import {
@@ -28,7 +28,7 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import { maintenanceRequestUpdateSchema } from '@repo/shared/validation/maintenance'
 import { useForm } from '@tanstack/react-form'
 import { Settings } from 'lucide-react'
-import { useModalStore } from '#stores/modal-store'
+import { useState } from 'react'
 import { z } from 'zod'
 import { toast } from 'sonner'
 
@@ -40,13 +40,11 @@ interface StatusUpdateButtonProps {
 }
 
 export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
-	const { openModal } = useModalStore()
+	const [open, setOpen] = useState(false)
 
 	// Use modern TanStack Query hooks with optimistic updates
 	const completeMutation = useCompleteMaintenance()
 	const cancelMutation = useCancelMaintenance()
-
-	const modalId = `update-status-maintenance-${maintenance.id}`
 
 	const form = useForm({
 		defaultValues: {
@@ -75,6 +73,7 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 				}
 				// For other statuses (OPEN, IN_PROGRESS, ON_HOLD), use regular update
 				toast.success('Status updated successfully')
+				setOpen(false)
 				form.reset()
 			} catch (error) {
 				handleMutationError(error, 'Update status')
@@ -99,22 +98,22 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 				variant="outline"
 				size="sm"
 				className="flex items-center gap-2"
-				onClick={() => openModal(modalId)}
+				onClick={() => setOpen(true)}
 			>
 				<Settings className="size-4" />
 				Update Status
 			</Button>
 
-			<CrudDialog mode="edit" modalId={modalId}>
-				<CrudDialogContent className="sm:max-w-md">
-					<CrudDialogHeader>
-						<CrudDialogTitle>Update Status</CrudDialogTitle>
-						<CrudDialogDescription>
+			<Dialog open={open} onOpenChange={setOpen}>
+				<DialogContent intent="edit" className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>Update Status</DialogTitle>
+						<DialogDescription>
 							Update the status of this maintenance request.
-						</CrudDialogDescription>
-					</CrudDialogHeader>
+						</DialogDescription>
+					</DialogHeader>
 
-					<CrudDialogBody>
+					<DialogBody>
 						<form
 							onSubmit={e => {
 								e.preventDefault()
@@ -193,9 +192,9 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 								)}
 							</form.Field>
 						</form>
-					</CrudDialogBody>
+					</DialogBody>
 
-					<CrudDialogFooter>
+					<DialogFooter>
 						<Button
 							type="submit"
 							disabled={isPending}
@@ -203,9 +202,9 @@ export function StatusUpdateButton({ maintenance }: StatusUpdateButtonProps) {
 						>
 							{isPending ? 'Updating...' : 'Update Status'}
 						</Button>
-					</CrudDialogFooter>
-				</CrudDialogContent>
-			</CrudDialog>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</>
 	)
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, InternalServerErrorException, UseGuards, UseInterceptors } from '@nestjs/common'
+import { Controller, Get, InternalServerErrorException, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -138,7 +138,7 @@ export class TenantLeasesController {
 		}
 
 		if (!data) {
-			return null
+			throw new NotFoundException('Lease not found')
 		}
 
 		// Return full data with metadata

@@ -430,7 +430,7 @@ describe('RLS: Property Isolation', () => {
 				bedrooms: 1,
 				bathrooms: 1,
 				rent_amount: 1200,
-				status: 'VACANT'
+				status: 'vacant'
 			}
 
 			const { data, error } = await ownerA.client

@@ -117,7 +117,7 @@ export const queryPropertySchema = z
 			.string()
 			.max(50, 'State must be less than 50 characters')
 			.optional(),
-		status: z.enum(['active', 'inactive', 'MAINTENANCE']).optional(),
+		status: z.enum(['active', 'inactive', 'maintenance']).optional(),
 		limit: z
 			.number()
 			.int('Limit must be a whole number')
