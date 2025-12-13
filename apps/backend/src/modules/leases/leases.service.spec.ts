@@ -596,4 +596,33 @@ describe('LeasesService', () => {
       )
     })
   })
+
+  describe('query optimization', () => {
+    it('should use single query with count: exact', async () => {
+      const mockLeases = [createMockLease(), createMockLease({ id: 'lease-456' })]
+
+      // Mock the Supabase client to track query calls
+      const mockFrom = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        lte: jest.fn().mockReturnThis(),
+        or: jest.fn().mockReturnThis(),
+        range: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({
+          data: mockLeases,
+          count: 2,
+          error: null
+        })
+      })
+
+      mockUserClient.from = mockFrom
+
+      const result = await service.findAll(mockToken, { limit: 10, offset: 0 })
+
+      expect(result.data).toHaveLength(2)
+      expect(result.total).toBe(2)
+      expect(mockFrom).toHaveBeenCalledTimes(1)
+    })
+  })
 })

@@ -34,7 +34,7 @@ import { VALID_UNIT_STATUSES, type UnitStatus } from '../../schemas/units.schema
  * Type guard to check if a string is a valid UnitStatus
  */
 function isValidUnitStatus(status: string): status is UnitStatus {
-	return VALID_UNIT_STATUSES.includes(status as UnitStatus)
+	return (VALID_UNIT_STATUSES as readonly string[]).includes(status)
 }
 
 @Controller('units')

@@ -36,7 +36,7 @@ import { VALID_LEASE_STATUSES, type LeaseStatus } from '../../schemas/leases.sch
  * Type guard to check if a string is a valid LeaseStatus
  */
 function isValidLeaseStatus(status: string): status is LeaseStatus {
-	return VALID_LEASE_STATUSES.includes(status as LeaseStatus)
+	return (VALID_LEASE_STATUSES as readonly string[]).includes(status)
 }
 
 @Controller('leases')

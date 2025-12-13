@@ -105,7 +105,7 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 							min="1"
 							max="20"
 							placeholder="2"
-							value={data.max_occupants}
+							value={data.max_occupants || ''}
 							onChange={e =>
 								handleChange(
 									'max_occupants',
@@ -253,7 +253,7 @@ export function DetailsStep({ data, onChange }: DetailsStepProps) {
 					id="property_rules"
 					placeholder="Enter any additional property rules or restrictions..."
 					rows={4}
-					value={data.property_rules}
+					value={data.property_rules || ''}
 					onChange={e => handleChange('property_rules', e.target.value)}
 				/>
 			</div>
