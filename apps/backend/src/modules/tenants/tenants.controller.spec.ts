@@ -154,7 +154,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', user_id: 'user-1' }
 				mockQueryService.findOne.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOne('tenant-1', mockReq as any)
+				const result = await controller.findOne('tenant-1', mockReq as any, 'test-token')
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1', 'test-token')
@@ -170,7 +170,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', lease: { id: 'lease-1' } }
 				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOneWithLease('tenant-1', mockReq as any)
+				const result = await controller.findOneWithLease('tenant-1', mockReq as any, 'test-token')
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1', 'test-token')
@@ -189,7 +189,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', ...createDto }
 				mockCrudService.create.mockResolvedValue(mockTenant)
 
-				const result = await controller.create(createDto as any, mockReq as any)
+				const result = await controller.create(createDto as any, mockReq as any, 'test-token')
 
 				expect(result).toEqual(mockTenant)
 				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto, 'test-token')
@@ -206,7 +206,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', ...updateDto }
 				mockCrudService.update.mockResolvedValue(mockTenant)
 
-				const result = await controller.update('tenant-1', updateDto as any, mockReq as any)
+				const result = await controller.update('tenant-1', updateDto as any, mockReq as any, 'test-token')
 
 				expect(result).toEqual(mockTenant)
 				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto, 'test-token')
@@ -221,7 +221,7 @@ describe('TenantsController', () => {
 				}
 				mockCrudService.softDelete.mockResolvedValue(undefined)
 
-				await controller.remove('tenant-1', mockReq as any)
+				await controller.remove('tenant-1', mockReq as any, 'test-token')
 
 				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
 			})
@@ -235,7 +235,7 @@ describe('TenantsController', () => {
 				}
 				mockCrudService.hardDelete.mockResolvedValue(undefined)
 
-				await controller.hardDelete('tenant-1', mockReq as any)
+				await controller.hardDelete('tenant-1', mockReq as any, 'test-token')
 
 				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
 			})
@@ -251,7 +251,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', status: 'moved_out' }
 				mockCrudService.markAsMovedOut.mockResolvedValue(mockTenant)
 
-				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any)
+				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any, 'test-token')
 
 				expect(result).toEqual(mockTenant)
 				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease', 'test-token')
@@ -483,7 +483,7 @@ describe('TenantsController', () => {
 				mockQueryService.getTenantByAuthUserId.mockResolvedValue(mockTenant)
 				mockQueryService.getTenantPaymentHistory.mockResolvedValue(mockPayments)
 
-				const result = await controller.getMyPayments(mockReq as any)
+				const result = await controller.getMyPayments(mockReq as any, 'test-token', undefined)
 
 				expect(result).toEqual({ payments: mockPayments })
 				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1', 'test-token')

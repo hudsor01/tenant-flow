@@ -92,13 +92,13 @@ export class SupabaseService implements OnModuleDestroy {
 
   getAdminClient(): SupabaseClient<Database> {
     if (!this.adminClient) {
-      const url = this.config.getSupabaseUrl() || ''
+      const url = this.config.getSupabaseUrl()
       this.logger.error(
         `[${SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE}] Supabase admin client not initialized`,
         {
           errorCode: SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE,
           context: 'getAdminClient',
-          url: url.substring(0, 35)
+          url: url?.substring(0, 35) ?? 'URL_NOT_CONFIGURED'
         }
       )
       throw new InternalServerErrorException(

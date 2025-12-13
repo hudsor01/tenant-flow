@@ -59,7 +59,7 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Input
 							id="start_date"
 							type="date"
-							value={data.start_date || ''}
+							value={data.start_date}
 							onChange={e => handleChange('start_date', e.target.value)}
 						/>
 					</Field>
@@ -68,7 +68,7 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 						<Input
 							id="end_date"
 							type="date"
-							value={data.end_date || ''}
+							value={data.end_date}
 							onChange={e => handleChange('end_date', e.target.value)}
 						/>
 					</Field>
@@ -112,7 +112,7 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							type="text"
 							inputMode="numeric"
 							placeholder="1"
-							value={data.payment_day || ''}
+							value={data.payment_day}
 							onChange={e => handleChange('payment_day', parseInteger(e.target.value))}
 						/>
 						<FieldDescription>Day rent is due (1-31)</FieldDescription>
