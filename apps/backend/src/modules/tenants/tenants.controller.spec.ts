@@ -12,6 +12,8 @@ import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.g
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+// Test constants
+const MOCK_JWT_TOKEN = 'test-token'
 
 describe('TenantsController', () => {
 	let controller: TenantsController
@@ -115,7 +117,7 @@ describe('TenantsController', () => {
 
 				// Controller now returns PaginatedResponse format
 				expect(result).toEqual({ data: mockTenants, total: mockTenants.length })
-				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', { token: 'test-token' })
+				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith('user-1', { token: MOCK_JWT_TOKEN })
 			})
 		})
 
@@ -154,10 +156,10 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', user_id: 'user-1' }
 				mockQueryService.findOne.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOne('tenant-1', mockReq as any)
+				const result = await controller.findOne('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1', 'test-token')
+				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1', MOCK_JWT_TOKEN)
 			})
 		})
 
@@ -170,10 +172,10 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', lease: { id: 'lease-1' } }
 				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOneWithLease('tenant-1', mockReq as any)
+				const result = await controller.findOneWithLease('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1', 'test-token')
+				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1', MOCK_JWT_TOKEN)
 			})
 		})
 	})
@@ -189,10 +191,10 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', ...createDto }
 				mockCrudService.create.mockResolvedValue(mockTenant)
 
-				const result = await controller.create(createDto as any, mockReq as any)
+				const result = await controller.create(createDto as any, mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto, 'test-token')
+				expect(mockCrudService.create).toHaveBeenCalledWith('user-1', createDto, MOCK_JWT_TOKEN)
 			})
 		})
 
@@ -206,10 +208,10 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', ...updateDto }
 				mockCrudService.update.mockResolvedValue(mockTenant)
 
-				const result = await controller.update('tenant-1', updateDto as any, mockReq as any)
+				const result = await controller.update('tenant-1', updateDto as any, mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto, 'test-token')
+				expect(mockCrudService.update).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto, MOCK_JWT_TOKEN)
 			})
 		})
 
@@ -221,9 +223,9 @@ describe('TenantsController', () => {
 				}
 				mockCrudService.softDelete.mockResolvedValue(undefined)
 
-				await controller.remove('tenant-1', mockReq as any)
+				await controller.remove('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
 
-				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
+				expect(mockCrudService.softDelete).toHaveBeenCalledWith('user-1', 'tenant-1', MOCK_JWT_TOKEN)
 			})
 		})
 
@@ -235,9 +237,9 @@ describe('TenantsController', () => {
 				}
 				mockCrudService.hardDelete.mockResolvedValue(undefined)
 
-				await controller.hardDelete('tenant-1', mockReq as any)
+				await controller.hardDelete('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
 
-				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
+				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1', MOCK_JWT_TOKEN)
 			})
 		})
 
@@ -251,10 +253,10 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', status: 'moved_out' }
 				mockCrudService.markAsMovedOut.mockResolvedValue(mockTenant)
 
-				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any)
+				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease', 'test-token')
+				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease', MOCK_JWT_TOKEN)
 			})
 		})
 	})
@@ -343,7 +345,7 @@ describe('TenantsController', () => {
 		describe('validateInvitation', () => {
 			it('should validate invitation token', async () => {
 				const mockValidation = { valid: true, tenant_id: 'tenant-1' }
-				const tokenBody = { token: 'test-token' }
+				const tokenBody = { token: MOCK_JWT_TOKEN }
 				mockInvitationTokenService.validateToken.mockResolvedValue(mockValidation)
 
 				const result = await controller.validateInvitation(tokenBody as any)
@@ -355,13 +357,13 @@ describe('TenantsController', () => {
 
 		describe('acceptInvitation', () => {
 			it('should accept invitation', async () => {
-				const token = 'test-token'
+				const token = MOCK_JWT_TOKEN
 				const acceptBody = { authuser_id: 'auth-user-1' }
 				mockInvitationTokenService.acceptToken.mockResolvedValue(undefined)
 
 				await controller.acceptInvitation(token, acceptBody as any)
 
-				expect(mockInvitationTokenService.acceptToken).toHaveBeenCalledWith('test-token', 'auth-user-1')
+				expect(mockInvitationTokenService.acceptToken).toHaveBeenCalledWith(MOCK_JWT_TOKEN, 'auth-user-1')
 			})
 		})
 
@@ -483,10 +485,10 @@ describe('TenantsController', () => {
 				mockQueryService.getTenantByAuthUserId.mockResolvedValue(mockTenant)
 				mockQueryService.getTenantPaymentHistory.mockResolvedValue(mockPayments)
 
-				const result = await controller.getMyPayments(mockReq as any)
+				const result = await controller.getMyPayments(mockReq as any, MOCK_JWT_TOKEN, undefined)
 
 				expect(result).toEqual({ payments: mockPayments })
-				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1', 'test-token')
+				expect(mockQueryService.getTenantByAuthUserId).toHaveBeenCalledWith('auth-user-1', MOCK_JWT_TOKEN)
 				expect(mockQueryService.getTenantPaymentHistory).toHaveBeenCalledWith('tenant-1', 20)
 			})
 		})
