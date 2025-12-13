@@ -10,7 +10,7 @@ import { dateSchema, moneySchema, uuidSchema } from './shared.schema'
 
 const lease_statusSchema: JSONSchema = {
 	type: 'string',
-	enum: ['draft', 'active', 'expired', 'terminated'],
+	enum: ['draft', 'pending_signature', 'active', 'ended', 'terminated'],
 	default: 'draft'
 }
 

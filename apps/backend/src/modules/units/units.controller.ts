@@ -54,16 +54,16 @@ export class UnitsController {
 		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy: string,
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
-		// Validate enum values using native JavaScript (accept both cases)
+		// Validate enum values using native JavaScript
 		if (status) {
-			const upperStatus = status.toUpperCase()
+			const lowerStatus = status.toLowerCase()
 			if (
-				!['available', 'occupied', 'maintenance', 'reserved'].includes(upperStatus)
+				!['available', 'occupied', 'maintenance', 'reserved'].includes(lowerStatus)
 			) {
 				throw new BadRequestException('Invalid status value')
 			}
-			// Normalize to uppercase for database query
-			status = upperStatus
+			// Normalize to lowercase for database enum
+			status = lowerStatus
 		}
 		if (
 			!['created_at', 'unit_number', 'bedrooms', 'rent', 'status'].includes(
