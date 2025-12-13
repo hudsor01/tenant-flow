@@ -28,7 +28,14 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
-import { VALID_UNIT_STATUSES } from '../../schemas/units.schema'
+import { VALID_UNIT_STATUSES, type UnitStatus } from '../../schemas/units.schema'
+
+/**
+ * Type guard to check if a string is a valid UnitStatus
+ */
+function isValidUnitStatus(status: string): status is UnitStatus {
+	return VALID_UNIT_STATUSES.includes(status as UnitStatus)
+}
 
 @Controller('units')
 export class UnitsController {
@@ -58,7 +65,7 @@ export class UnitsController {
 		// Validate enum values using shared constant (DRY principle)
 		if (status) {
 			const lowerStatus = status.toLowerCase()
-			if (!VALID_UNIT_STATUSES.includes(lowerStatus as (typeof VALID_UNIT_STATUSES)[number])) {
+			if (!isValidUnitStatus(lowerStatus)) {
 				throw new BadRequestException('Invalid status value')
 			}
 			// Normalize to lowercase for database enum

@@ -30,7 +30,14 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
-import { VALID_LEASE_STATUSES } from '../../schemas/leases.schema'
+import { VALID_LEASE_STATUSES, type LeaseStatus } from '../../schemas/leases.schema'
+
+/**
+ * Type guard to check if a string is a valid LeaseStatus
+ */
+function isValidLeaseStatus(status: string): status is LeaseStatus {
+	return VALID_LEASE_STATUSES.includes(status as LeaseStatus)
+}
 
 @Controller('leases')
 export class LeasesController {
@@ -80,7 +87,7 @@ export class LeasesController {
 		}
 
 		// Validate status enum using shared constant (DRY principle)
-		if (status && !VALID_LEASE_STATUSES.includes(status as (typeof VALID_LEASE_STATUSES)[number])) {
+		if (status && !isValidLeaseStatus(status)) {
 			throw new BadRequestException('Invalid lease status')
 		}
 
