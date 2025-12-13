@@ -79,7 +79,7 @@ describe('SupabaseService - Error Codes', () => {
       )
     })
 
-    it('should log URL prefix when admin client is not initialized', async () => {
+    it('should log error when admin client is not initialized', async () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
@@ -98,11 +98,12 @@ describe('SupabaseService - Error Codes', () => {
         // Expected to throw
       }
 
-      // Verify URL prefix is logged (first 35 chars)
+      // Verify error is logged without URL (URL check was redundant)
       expect(mockAppLogger.error).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
-          url: 'https://test-project.supabase.co'.substring(0, 35)
+          errorCode: SUPABASE_ERROR_CODES.ADMIN_CLIENT_UNAVAILABLE,
+          context: 'getAdminClient'
         })
       )
     })

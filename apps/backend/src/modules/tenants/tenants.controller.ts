@@ -25,6 +25,7 @@ import {
 	UseGuards
 } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
+import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
@@ -147,9 +148,9 @@ export class TenantsController {
 	@Get(':id/with-lease')
 	async findOneWithLease(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenantWithLease = await this.queryService.findOneWithLease(
 			id,
 			token
@@ -163,9 +164,9 @@ export class TenantsController {
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenant = await this.queryService.findOne(id, token)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
@@ -184,10 +185,9 @@ export class TenantsController {
 	}
 
 	@Post()
-	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest) {
+	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest, @JwtToken() token: string) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenant = await this.crudService.create(
 			user_id,
 			dto,
@@ -204,11 +204,11 @@ export class TenantsController {
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateTenantDto,
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 
 		const tenant = await this.crudService.update(
 			user_id,
@@ -269,7 +269,8 @@ export class TenantsController {
 	async markAsMovedOut(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() body: { moveOutDate: string; moveOutReason: string },
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
 		if (!body.moveOutDate || !body.moveOutReason) {
 			throw new BadRequestException(
@@ -277,7 +278,6 @@ export class TenantsController {
 			)
 		}
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const tenant = await this.crudService.markAsMovedOut(
 			user_id,
 			id,
@@ -294,10 +294,10 @@ export class TenantsController {
 	@Delete(':id/hard-delete')
 	async hardDelete(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		await this.crudService.hardDelete(user_id, id, token)
 		return { message: 'Tenant permanently deleted' }
 	}
@@ -305,11 +305,11 @@ export class TenantsController {
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
 	) {
 		// Use Supabase's native auth.getUser() pattern
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		await this.crudService.softDelete(user_id, id, token)
 	}
 
@@ -510,10 +510,10 @@ export class TenantsController {
 	@Get('me/payments')
 	async getMyPayments(
 		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
 		const user_id = req.user.id
-		const token = req.headers.authorization?.replace('Bearer ', '') ?? ''
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 
 		// Get the tenant for this user first

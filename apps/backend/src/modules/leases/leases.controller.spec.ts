@@ -228,6 +228,38 @@ describe('LeasesController', () => {
 				controller.findAll('mock-jwt-token', 'invalid-uuid')
 			).rejects.toThrow(BadRequestException)
 		})
+
+		it('should reject invalid lease status "expired"', async () => {
+			await expect(
+				controller.findAll(
+					'mock-jwt-token',
+					undefined,
+					undefined,
+					undefined,
+					'expired' // Invalid status - should be "ended"
+				)
+			).rejects.toThrow('Invalid lease status')
+		})
+
+		it('should accept valid lease status "ended"', async () => {
+			const mockLeases = [createMockLease({ lease_status: 'ended' })]
+			mockLeasesService.findAll.mockResolvedValue({
+				data: mockLeases,
+				total: 1,
+				limit: 10,
+				offset: 0
+			})
+
+			const result = await controller.findAll(
+				'mock-jwt-token',
+				undefined,
+				undefined,
+				undefined,
+				'ended'
+			)
+
+			expect(result.data).toEqual(mockLeases)
+		})
 	})
 
 	describe('getStats', () => {

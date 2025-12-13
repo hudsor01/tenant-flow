@@ -121,8 +121,13 @@ export default function NewMaintenanceRequestPage() {
 		}
 
 		// Get uploaded image URLs from Supabase
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+		if (!supabaseUrl) {
+			toast.error('Application configuration error. Please contact support.')
+			return
+		}
+
 		const photoUrls = successes.map((fileName) => {
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 			const baseUrl = `${supabaseUrl}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})

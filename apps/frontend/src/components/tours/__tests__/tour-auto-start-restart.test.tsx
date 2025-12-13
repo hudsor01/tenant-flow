@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, act } from '@testing-library/react'
 import {
 	TenantOnboardingTour,
 	TenantTourTrigger
@@ -88,7 +88,9 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 		render(<TenantOnboardingTour forceShow={false} />)
 
 		// Fast-forward time by 1 second
-		vi.advanceTimersByTime(1000)
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
 
 		// Timer should have fired
 		expect(vi.getTimerCount()).toBe(0)
@@ -102,7 +104,9 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 		render(<TenantOnboardingTour forceShow={false} />)
 
 		// Fast-forward time by 1 second
-		vi.advanceTimersByTime(1000)
+		act(() => {
+			vi.advanceTimersByTime(1000)
+		})
 
 		// Tour should not auto-start because it's marked as completed
 		expect(localStorageMock.getItem(TOUR_STORAGE_KEY)).toBe('true')
@@ -117,13 +121,17 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 		expect(vi.getTimerCount()).toBeGreaterThan(0)
 
 		// Fast-forward by 999ms (just before 1 second)
-		vi.advanceTimersByTime(999)
+		act(() => {
+			vi.advanceTimersByTime(999)
+		})
 
 		// Timer should still be pending
 		expect(vi.getTimerCount()).toBeGreaterThan(0)
 
 		// Fast-forward by 1ms more (total 1000ms)
-		vi.advanceTimersByTime(1)
+		act(() => {
+			vi.advanceTimersByTime(1)
+		})
 
 		// Timer should have fired
 		expect(vi.getTimerCount()).toBe(0)
