@@ -94,7 +94,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 			const json = await res.json()
 			return json.data as Tenant[]
 		},
-		enabled: !!token && !!data.property_id
+		enabled: !!token
 	})
 
 	const handlePropertyChange = (propertyId: string) => {
