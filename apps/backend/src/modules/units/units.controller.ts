@@ -28,14 +28,7 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
-import { VALID_UNIT_STATUSES, type UnitStatus } from '../../schemas/units.schema'
-
-/**
- * Type guard to check if a string is a valid UnitStatus
- */
-function isValidUnitStatus(status: string): status is UnitStatus {
-	return (VALID_UNIT_STATUSES as readonly string[]).includes(status)
-}
+import { isValidUnitStatus } from '@repo/shared/validation/enum-validators'
 
 @Controller('units')
 export class UnitsController {

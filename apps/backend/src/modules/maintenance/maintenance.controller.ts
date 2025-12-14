@@ -28,6 +28,7 @@ import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
+import { isValidUUID } from '@repo/shared/validation/common'
 
 @Controller('maintenance')
 export class MaintenanceController {
@@ -55,20 +56,10 @@ export class MaintenanceController {
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
 		// Validate UUIDs if provided
-		if (
-			unit_id &&
-			!unit_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (unit_id && !isValidUUID(unit_id)) {
 			throw new BadRequestException('Invalid unit ID')
 		}
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
