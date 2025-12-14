@@ -15,7 +15,7 @@ export class AppService implements OnModuleInit {
 	 * Validates critical configuration and logs startup information
 	 */
 	async onModuleInit() {
-		this.logger.log('✅ Application initializing...')
+		this.logger.log('Application initializing...')
 
 		try {
 			// Validate critical environment variables
@@ -50,7 +50,7 @@ export class AppService implements OnModuleInit {
 				)
 			}
 
-			this.logger.log('✅ Application initialized successfully')
+			this.logger.log('Application initialized successfully')
 		} catch (error) {
 			this.logger.error('✗ Application initialization failed', { error })
 			throw error

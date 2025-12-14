@@ -3,7 +3,7 @@
  *
  * Tests for migration: 20251213140000_fix_rls_circular_dependency_properly.sql
  *
- * ⚠️ **TESTS SKIPPED**: These tests use mock JWT tokens that are NOT
+ * WARNING **TESTS SKIPPED**: These tests use mock JWT tokens that are NOT
  * configured in Supabase Auth. RLS policies are NOT actually enforced,
  * causing tests to pass vacuously without validating the migration.
  *

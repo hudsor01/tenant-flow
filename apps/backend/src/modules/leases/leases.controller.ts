@@ -30,14 +30,8 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
-import { VALID_LEASE_STATUSES, type LeaseStatus } from '../../schemas/leases.schema'
-
-/**
- * Type guard to check if a string is a valid LeaseStatus
- */
-function isValidLeaseStatus(status: string): status is LeaseStatus {
-	return (VALID_LEASE_STATUSES as readonly string[]).includes(status)
-}
+import { isValidLeaseStatus } from '@repo/shared/validation/enum-validators'
+import { isValidUUID } from '@repo/shared/validation/common'
 
 @Controller('leases')
 export class LeasesController {
@@ -61,28 +55,13 @@ export class LeasesController {
 		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
 		// Validate UUIDs if provided
-		if (
-			tenant_id &&
-			!tenant_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (tenant_id && !isValidUUID(tenant_id)) {
 			throw new BadRequestException('Invalid tenant ID')
 		}
-		if (
-			unit_id &&
-			!unit_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (unit_id && !isValidUUID(unit_id)) {
 			throw new BadRequestException('Invalid unit ID')
 		}
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
@@ -130,20 +109,10 @@ export class LeasesController {
 		@Query('timeframe', new DefaultValuePipe('90d')) timeframe?: string
 	) {
 		// Validate UUIDs if provided
-		if (
-			lease_id &&
-			!lease_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (lease_id && !isValidUUID(lease_id)) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
@@ -169,12 +138,7 @@ export class LeasesController {
 		@Query('period', new DefaultValuePipe('yearly')) period?: string
 	) {
 		// Validate property_id if provided
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
@@ -200,12 +164,7 @@ export class LeasesController {
 		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
 	) {
 		// Validate property_id if provided
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 
@@ -231,20 +190,10 @@ export class LeasesController {
 		@Query('period', new DefaultValuePipe('monthly')) period?: string
 	) {
 		// Validate UUIDs if provided
-		if (
-			lease_id &&
-			!lease_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (lease_id && !isValidUUID(lease_id)) {
 			throw new BadRequestException('Invalid lease ID')
 		}
-		if (
-			property_id &&
-			!property_id.match(
-				/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-			)
-		) {
+		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
 		}
 

@@ -15,10 +15,10 @@ import type { LeaseStatus, UnitStatus } from '@repo/shared/types/core'
  */
 export const VALID_LEASE_STATUSES = [
   'draft',
+  'pending_signature',
   'active',
-  'terminated',
-  'expired',
-  'evicted'
+  'ended',
+  'terminated'
 ] as const
 
 /**

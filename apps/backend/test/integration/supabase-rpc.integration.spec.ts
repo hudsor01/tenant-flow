@@ -45,7 +45,7 @@ if (missingEnv.length > 0 && shouldRunIntegration) {
 // Check for missing environment variables and skip tests if any are missing
 if (missingEnv.length > 0) {
 	process.stderr.write(
-		`⚠️  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n` +
+		`WARNING  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n` +
 		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n`
 	)
 }
