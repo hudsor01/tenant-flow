@@ -6,7 +6,7 @@
  */
 
 import type { Database } from './supabase.js'
-import type { LeaseStatus } from './core.js'
+import type { LeaseStatus, UnitStatus } from './core.js'
 
 // View type for data table views
 export type ViewType = 'grid' | 'table' | 'kanban'
@@ -126,9 +126,6 @@ export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi-select' 
 
 // Sort types
 export type SortDirection = 'asc' | 'desc'
-
-// UI Status Types
-export type UnitStatus = 'occupied' | 'vacant' | 'maintenance' | 'RESERVED'
 
 // Enhanced Unit Row type with relations for UI display
 export type UnitRow = Database['public']['Tables']['units']['Row'] & {
