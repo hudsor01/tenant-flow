@@ -6,7 +6,7 @@
  */
 
 import type { Database } from './supabase.js'
-import type { LeaseStatus, UnitStatus } from './core.js'
+import type { LeaseStatus } from './core.js'
 
 // View type for data table views
 export type ViewType = 'grid' | 'table' | 'kanban'
