@@ -217,14 +217,54 @@ export class LeasesService {
 			}
 
 			// Verify tenant exists and belongs to user (RLS will enforce ownership)
+			// Fetch tenant with user info for enriched error messages
 			const { data: tenant } = await client
 				.from('tenants')
-				.select('id')
+				.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
 				.eq('id', dto.primary_tenant_id)
 				.single()
 
 			if (!tenant) {
 				throw new BadRequestException('Tenant not found or access denied')
+			}
+
+			// Verify tenant was invited to this property
+			// Uses accepted_at IS NOT NULL (per user decision: ignore status after acceptance)
+			const { data: invitation } = await client
+				.from('tenant_invitations')
+				.select('id')
+				.eq('property_id', unit.property_id)
+				.eq('accepted_by_user_id', tenant.user_id)
+				.not('accepted_at', 'is', null)
+				.maybeSingle()
+
+			if (!invitation) {
+				// Enrich error message with context for better debugging
+				const tenantUser = tenant.user as { first_name: string | null; last_name: string | null; email: string | null } | null
+				const tenantName = tenantUser
+					? [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ') || tenantUser.email || 'Unknown'
+					: 'Unknown tenant'
+
+				// Fetch property name for error message
+				const { data: property } = await client
+					.from('properties')
+					.select('name')
+					.eq('id', unit.property_id)
+					.maybeSingle()
+
+				const propertyName = property?.name || 'this property'
+
+				this.logger.warn('Lease creation failed: Tenant not invited to property', {
+					tenant_id: dto.primary_tenant_id,
+					tenant_name: tenantName,
+					property_id: unit.property_id,
+					property_name: propertyName,
+					unit_id: dto.unit_id
+				})
+
+				throw new BadRequestException(
+					`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
+				)
 			}
 
 			// Build insert data with all fields from DTO

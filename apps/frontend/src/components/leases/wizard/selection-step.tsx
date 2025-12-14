@@ -15,7 +15,10 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Skeleton } from '#components/ui/skeleton'
-import { AlertCircle } from 'lucide-react'
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from '#components/ui/empty'
+import { Button } from '#components/ui/button'
+import { AlertCircle, UserPlus } from 'lucide-react'
+import Link from 'next/link'
 import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
 
 interface SelectionStepProps {
@@ -199,12 +202,29 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 							<AlertCircle className="h-4 w-4" />
 							Failed to load tenants: {tenantsError.message}
 						</div>
-					) : tenants?.length === 0 ? (
-						<div className="flex items-center gap-2 text-muted-foreground text-sm p-3 bg-muted rounded-md">
-							<AlertCircle className="h-4 w-4" />
-							No tenants found. Create a tenant first.
-						</div>
-					) : (
+				) : tenants?.length === 0 ? (
+					<Empty>
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<UserPlus />
+							</EmptyMedia>
+							<EmptyTitle>No Tenants Available</EmptyTitle>
+							<EmptyDescription>
+								{data.property_id 
+									? "No tenants have been invited to this property yet. Invite a tenant to get started."
+									: "No tenants found. Create or invite a tenant first."}
+							</EmptyDescription>
+						</EmptyHeader>
+						<EmptyContent>
+							<Link href="/tenants/invite">
+								<Button size="sm">
+									<UserPlus className="mr-2 h-4 w-4" />
+									Invite Tenant
+								</Button>
+							</Link>
+						</EmptyContent>
+					</Empty>
+				) : (
 						<Select
 							value={data.primary_tenant_id ?? ''}
 							onValueChange={handleTenantChange}

@@ -548,82 +548,111 @@ export class TenantListService {
 		const client = this.requireUserClient(filters.token)
 
 		try {
-			// Find accepted invitations for this property
-			// Note: Uses accepted_at IS NOT NULL instead of status check (per user decision)
-			const { data: invitations, error: invitationError } = await client
+			// OPTIMIZED: Single nested query instead of 3 separate queries
+			// Uses Supabase's relational query syntax for 1 round-trip
+			// Evidence: https://supabase.com/docs/guides/database/joins-and-nesting
+			const { data: invitationData, error: queryError } = await client
 				.from('tenant_invitations')
-				.select('accepted_by_user_id')
+				.select(`
+					accepted_by_user_id,
+					tenant:tenants!accepted_by_user_id(
+						id,
+						user_id,
+						emergency_contact_name,
+						emergency_contact_phone,
+						emergency_contact_relationship,
+						identity_verified,
+						created_at,
+						updated_at,
+						lease_tenants(
+							tenant_id,
+							lease:leases!inner(id, lease_status)
+						)
+					)
+				`)
 				.eq('property_id', propertyId)
-				.not('property_id', 'is', null)  // Exclude platform-only invitations
-				.not('accepted_at', 'is', null)  // Check acceptance timestamp, not status
+				.not('accepted_at', 'is', null)
 				.not('accepted_by_user_id', 'is', null)
 
-			if (invitationError) {
-				this.logger.error('Failed to fetch tenant invitations', {
-					error: invitationError.message,
-					propertyId
+			if (queryError) {
+				this.logger.error('Failed to fetch tenants with nested query', {
+					error: queryError.message,
+					propertyId,
+					userId
 				})
 				throw new BadRequestException('Failed to retrieve tenant invitations')
 			}
 
-			if (!invitations?.length) {
+			if (!invitationData?.length) {
 				this.logger.log('No accepted invitations found for property', { propertyId })
 				return []
 			}
 
-			const userIds = invitations.map(inv => inv.accepted_by_user_id).filter((id): id is string => id !== null)
-			if (!userIds.length) return []
-
-			// Fetch tenant records for those user IDs
-			const { data: tenants, error: tenantError } = await client
-				.from('tenants')
-				.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
-				.in('user_id', userIds)
-
-			if (tenantError) {
-				this.logger.error('Failed to fetch tenants by user IDs', {
-					error: tenantError.message,
-					userIds
-				})
-				throw new BadRequestException('Failed to retrieve tenants')
+			// Filter and transform results
+			interface InvitationWithTenant {
+				accepted_by_user_id: string
+				tenant: {
+					id: string
+					user_id: string
+					emergency_contact_name: string | null
+					emergency_contact_phone: string | null
+					emergency_contact_relationship: string | null
+					identity_verified: boolean | null
+					created_at: string | null
+					updated_at: string | null
+					lease_tenants: Array<{
+						tenant_id: string
+						lease: {
+							id: string
+							lease_status: string
+						} | null
+					}> | null
+				} | null
 			}
 
-			if (!tenants?.length) {
-				this.logger.log('No tenant records found for user IDs', { userIds })
-				return []
+			const rawData = invitationData as unknown as InvitationWithTenant[]
+
+			// Deduplicate tenants (tenant may have multiple invitations to same property)
+			const tenantMap = new Map<string, Tenant>()
+
+			for (const row of rawData) {
+				if (!row.tenant) continue
+
+				const tenant = row.tenant
+				
+				// Skip if already processed
+				if (tenantMap.has(tenant.id)) continue
+
+				// Check if tenant has active lease (one property per tenant rule)
+				const hasActiveLease = tenant.lease_tenants?.some(
+					lt => lt.lease?.lease_status === 'active'
+				) ?? false
+
+				// Only include tenants without active leases
+				if (!hasActiveLease) {
+					tenantMap.set(tenant.id, {
+						id: tenant.id,
+						user_id: tenant.user_id,
+						emergency_contact_name: tenant.emergency_contact_name,
+						emergency_contact_phone: tenant.emergency_contact_phone,
+						emergency_contact_relationship: tenant.emergency_contact_relationship,
+						identity_verified: tenant.identity_verified,
+						created_at: tenant.created_at,
+						updated_at: tenant.updated_at
+					} as Tenant)
+				}
 			}
 
-			// Exclude tenants who already have an active lease (one property per tenant)
-			const tenantIds = tenants.map(t => t.id)
-			const { data: activeLeases, error: leaseError } = await client
-				.from('lease_tenants')
-				.select('tenant_id, lease:leases!inner(lease_status)')
-				.in('tenant_id', tenantIds)
-				.eq('lease.lease_status', 'active')
-
-			if (leaseError) {
-				this.logger.error('Failed to fetch active leases', {
-					error: leaseError.message,
-					tenantIds
-				})
-				// Don't throw here - just return all tenants if we can't check lease status
-				return tenants as Tenant[]
-			}
-
-			const tenantsWithActiveLeases = new Set(
-				activeLeases?.map(lt => lt.tenant_id) || []
-			)
-
-			// Filter out tenants with active leases
-			const availableTenants = tenants.filter(tenant => !tenantsWithActiveLeases.has(tenant.id))
+			const availableTenants = Array.from(tenantMap.values())
 
 			this.logger.log('Found available tenants for property', {
 				propertyId,
-				totalInvited: tenants.length,
+				totalInvitations: invitationData.length,
+				uniqueTenants: rawData.filter(r => r.tenant).length,
 				availableCount: availableTenants.length
 			})
 
-			return availableTenants as Tenant[]
+			return availableTenants
 		} catch (error) {
 			this.logger.error('Error finding tenants by property', {
 				error: error instanceof Error ? error.message : String(error),
