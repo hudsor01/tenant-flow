@@ -1,20 +1,8 @@
 # RLS Performance Benchmarking Guide
 
-## ⚠️ CRITICAL: Circular Dependency Issue
-
-**Migration `20251213130000` DOES NOT properly fix the circular dependency!**
-
-The migration creates a cycle:
-1. `leases_select` → reads `lease_tenants` → triggers `lease_tenants_select`
-2. `lease_tenants_select` → reads `leases` → triggers `leases_select` again
-3. → **Infinite recursion!**
-
-**Proper fix**: Migration `20251213140000_fix_rls_circular_dependency_properly.sql`
-- Uses `SECURITY DEFINER` functions to bypass RLS within policy checks
-- Breaks recursion cycle by preventing nested RLS evaluations
-
 ## Overview
-This document provides guidance for benchmarking Row Level Security (RLS) policies after proper fix migration `20251213140000_fix_rls_circular_dependency_properly.sql`.
+
+This document provides guidance for benchmarking Row Level Security (RLS) policies after migration `20251213140000_fix_rls_circular_dependency_properly.sql`, which uses `SECURITY DEFINER` functions to break RLS circular dependencies.
 
 ## Migration Context
 
@@ -252,6 +240,6 @@ _[To be filled after benchmarking]_
 
 ## References
 
-- Migration: `20251213130000_fix_rls_circular_dependency.sql`
+- Migration: `20251213140000_fix_rls_circular_dependency_properly.sql`
 - Tests: `apps/backend/test/integration/rls/lease-circular-dependency.integration.spec.ts`
 - PostgreSQL RLS Docs: https://www.postgresql.org/docs/current/ddl-rowsecurity.html

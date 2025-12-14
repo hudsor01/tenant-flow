@@ -32,6 +32,7 @@ export interface ListFilters {
 	status?: string
 	search?: string
 	invitationStatus?: string
+	property_id?: string
 	limit?: number
 	offset?: number
 	token?: string
@@ -530,6 +531,109 @@ export class TenantListService {
 	/**
 	 * Transform raw tenant+lease_tenants query result to TenantWithLeaseInfo[]
 	 */
+
+	/**
+	 * Get all tenants invited to a specific property
+	 * Queries tenant_invitations to find accepted invitations for the property
+	 * Excludes tenants who already have an active lease (one property per tenant)
+	 */
+	async findByProperty(
+		userId: string,
+		propertyId: string,
+		filters: ListFilters = {}
+	): Promise<Tenant[]> {
+		if (!userId) throw new BadRequestException('User ID required')
+		if (!propertyId) throw new BadRequestException('Property ID required')
+
+		const client = this.requireUserClient(filters.token)
+
+		try {
+			// Find accepted invitations for this property
+			// Note: Uses accepted_at IS NOT NULL instead of status check (per user decision)
+			const { data: invitations, error: invitationError } = await client
+				.from('tenant_invitations')
+				.select('accepted_by_user_id')
+				.eq('property_id', propertyId)
+				.not('property_id', 'is', null)  // Exclude platform-only invitations
+				.not('accepted_at', 'is', null)  // Check acceptance timestamp, not status
+				.not('accepted_by_user_id', 'is', null)
+
+			if (invitationError) {
+				this.logger.error('Failed to fetch tenant invitations', {
+					error: invitationError.message,
+					propertyId
+				})
+				throw new BadRequestException('Failed to retrieve tenant invitations')
+			}
+
+			if (!invitations?.length) {
+				this.logger.log('No accepted invitations found for property', { propertyId })
+				return []
+			}
+
+			const userIds = invitations.map(inv => inv.accepted_by_user_id).filter((id): id is string => id !== null)
+			if (!userIds.length) return []
+
+			// Fetch tenant records for those user IDs
+			const { data: tenants, error: tenantError } = await client
+				.from('tenants')
+				.select('id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at')
+				.in('user_id', userIds)
+
+			if (tenantError) {
+				this.logger.error('Failed to fetch tenants by user IDs', {
+					error: tenantError.message,
+					userIds
+				})
+				throw new BadRequestException('Failed to retrieve tenants')
+			}
+
+			if (!tenants?.length) {
+				this.logger.log('No tenant records found for user IDs', { userIds })
+				return []
+			}
+
+			// Exclude tenants who already have an active lease (one property per tenant)
+			const tenantIds = tenants.map(t => t.id)
+			const { data: activeLeases, error: leaseError } = await client
+				.from('lease_tenants')
+				.select('tenant_id, lease:leases!inner(lease_status)')
+				.in('tenant_id', tenantIds)
+				.eq('lease.lease_status', 'active')
+
+			if (leaseError) {
+				this.logger.error('Failed to fetch active leases', {
+					error: leaseError.message,
+					tenantIds
+				})
+				// Don't throw here - just return all tenants if we can't check lease status
+				return tenants as Tenant[]
+			}
+
+			const tenantsWithActiveLeases = new Set(
+				activeLeases?.map(lt => lt.tenant_id) || []
+			)
+
+			// Filter out tenants with active leases
+			const availableTenants = tenants.filter(tenant => !tenantsWithActiveLeases.has(tenant.id))
+
+			this.logger.log('Found available tenants for property', {
+				propertyId,
+				totalInvited: tenants.length,
+				availableCount: availableTenants.length
+			})
+
+			return availableTenants as Tenant[]
+		} catch (error) {
+			this.logger.error('Error finding tenants by property', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				propertyId
+			})
+			throw error
+		}
+	}
+
 	private transformTenantsWithLease(
 		data: unknown[] | null
 	): TenantWithLeaseInfo[] {

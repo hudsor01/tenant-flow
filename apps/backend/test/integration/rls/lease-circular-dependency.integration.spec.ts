@@ -1,21 +1,22 @@
 /**
  * RLS Circular Dependency Fix - Integration Tests
  *
- * Tests for migration: 20251213130000_fix_rls_circular_dependency.sql
+ * Tests for migration: 20251213140000_fix_rls_circular_dependency_properly.sql
  *
- * ⚠️ **CRITICAL LIMITATION**: These tests use mock JWT tokens that are NOT
- * configured in Supabase Auth. RLS may not be properly enforced, causing
- * tests to pass vacuously without actually validating policies.
+ * ⚠️ **TESTS SKIPPED**: These tests use mock JWT tokens that are NOT
+ * configured in Supabase Auth. RLS policies are NOT actually enforced,
+ * causing tests to pass vacuously without validating the migration.
  *
- * **To properly test RLS**:
+ * **To enable these tests**:
  * 1. Set up Supabase Auth test users with real JWT tokens
  * 2. Use `supabase.auth.signInWithPassword()` to get valid sessions
  * 3. Extract `access_token` from session for `getUserClient()`
  * 4. Ensure test database has proper RLS policies enabled
+ * 5. Change `describe.skip` to `describe` below
  *
- * **Current Status**: PLACEHOLDER TESTS - Require Supabase Auth configuration
+ * **Current Status**: SKIPPED - Requires Supabase Auth configuration
  *
- * Verifies (when properly configured):
+ * Would verify (when properly configured):
  * 1. Property owners can read their leases
  * 2. Tenants can read assigned leases via lease_tenants
  * 3. Unrelated users are denied access
@@ -30,7 +31,7 @@ import { SupabaseModule } from '../../../src/database/supabase.module'
 import { SupabaseService } from '../../../src/database/supabase.service'
 import type { Database } from '@repo/shared/types/supabase'
 
-describe('RLS Circular Dependency Fix (Integration)', () => {
+describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 	let app: INestApplication
 	let supabase: SupabaseService
 

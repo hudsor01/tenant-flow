@@ -24,29 +24,44 @@ DROP POLICY IF EXISTS lease_tenants_select ON public.lease_tenants;
 
 -- Get lease IDs that a specific tenant can access
 -- SECURITY DEFINER allows this to bypass RLS on lease_tenants table
+-- Parameter validation prevents privilege escalation
 CREATE OR REPLACE FUNCTION public.get_tenant_accessible_lease_ids(p_tenant_id uuid)
 RETURNS SETOF uuid
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 STABLE
 AS $$
-  SELECT lease_id
-  FROM public.lease_tenants
-  WHERE tenant_id = p_tenant_id;
+BEGIN
+  -- Validate caller owns this tenant_id - prevent privilege escalation
+  IF p_tenant_id != public.get_current_tenant_id() THEN
+    RAISE EXCEPTION 'Access denied: cannot query leases for other tenants';
+  END IF;
+  
+  RETURN QUERY SELECT lease_id FROM public.lease_tenants WHERE tenant_id = p_tenant_id;
+END;
 $$;
 
 -- Get lease_tenants IDs that a specific property owner can access
 -- SECURITY DEFINER allows this to bypass RLS on leases table
+-- Parameter validation prevents privilege escalation
 CREATE OR REPLACE FUNCTION public.get_owner_accessible_lease_tenant_ids(p_owner_id uuid)
 RETURNS SETOF uuid
-LANGUAGE sql
+LANGUAGE plpgsql
 SECURITY DEFINER
 STABLE
 AS $$
-  SELECT lt.id
-  FROM public.lease_tenants lt
-  INNER JOIN public.leases l ON lt.lease_id = l.id
-  WHERE l.property_owner_id = p_owner_id;
+BEGIN
+  -- Validate caller owns this property_owner_id - prevent privilege escalation
+  IF p_owner_id != public.get_current_property_owner_id() THEN
+    RAISE EXCEPTION 'Access denied: cannot query lease tenants for other property owners';
+  END IF;
+  
+  RETURN QUERY 
+    SELECT lt.id
+    FROM public.lease_tenants lt
+    INNER JOIN public.leases l ON lt.lease_id = l.id
+    WHERE l.property_owner_id = p_owner_id;
+END;
 $$;
 
 -- ============================================================================
