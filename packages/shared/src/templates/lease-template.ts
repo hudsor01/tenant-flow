@@ -1,4 +1,6 @@
 import type { LeaseFormData, USState } from '../types/lease-generator.types.js'
+import { formatCurrency } from '../utils/currency.js'
+import { formatDate } from '../utils/formatting.js'
 
 export interface LeaseTemplateClause {
 	id: string
@@ -138,25 +140,6 @@ export const stateNames: Record<USState, string> = {
 	WI: 'Wisconsin',
 	WY: 'Wyoming',
 	DC: 'District of Columbia'
-}
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-	style: 'currency',
-	currency: 'USD'
-})
-
-function formatCurrency(cents: number) {
-	return currencyFormatter.format(cents / 100)
-}
-
-function formatDate(iso: string | undefined) {
-	if (!iso) return ''
-	const date = new Date(iso)
-	return date.toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'long',
-		day: 'numeric'
-	})
 }
 
 function formatOrdinal(input: number) {

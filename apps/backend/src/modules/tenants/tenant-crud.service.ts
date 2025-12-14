@@ -330,8 +330,24 @@ export class TenantCrudService {
 
 	/**
 	 * Bulk update multiple tenants in parallel
-	 * Verifies all tenants belong to user before updating
-	 * Returns results with success/failure for each tenant
+	 * 
+	 * ⚠️ WARNING: Not atomic - partial failures are possible.
+	 * If 5/10 updates succeed, there is no rollback. The operation uses
+	 * Promise.allSettled to process all updates concurrently, which means
+	 * some may succeed while others fail, leaving data in a partially updated state.
+	 * 
+	 * @param user_id - ID of the user performing the updates
+	 * @param updates - Array of tenant IDs and update data
+	 * @param token - Authentication token for RLS enforcement
+	 * @returns Object with `success` and `failed` arrays showing individual results
+	 * 
+	 * @example
+	 * const result = await bulkUpdate(userId, [
+	 *   { id: 'tenant-1', data: { emergency_contact_name: 'John' } },
+	 *   { id: 'tenant-2', data: { emergency_contact_phone: '555-0100' } }
+	 * ], token)
+	 * // result.success: [{ id: 'tenant-1', tenant: {...} }]
+	 * // result.failed: [{ id: 'tenant-2', error: 'Not found' }]
 	 */
 	async bulkUpdate(
 		user_id: string,
@@ -431,8 +447,21 @@ export class TenantCrudService {
 
 	/**
 	 * Bulk delete multiple tenants in parallel (soft delete)
-	 * Verifies all tenants belong to user before deletion
-	 * Returns results with success/failure for each tenant
+	 * 
+	 * ⚠️ WARNING: Not atomic - partial failures are possible.
+	 * If 5/10 deletions succeed, there is no rollback. The operation uses
+	 * Promise.allSettled to process all deletions concurrently, which means
+	 * some may succeed while others fail, leaving data in a partially deleted state.
+	 * 
+	 * @param user_id - ID of the user performing the deletions
+	 * @param tenant_ids - Array of tenant IDs to delete
+	 * @param token - Authentication token for RLS enforcement
+	 * @returns Object with `success` and `failed` arrays showing individual results
+	 * 
+	 * @example
+	 * const result = await bulkDelete(userId, ['tenant-1', 'tenant-2'], token)
+	 * // result.success: [{ id: 'tenant-1' }]
+	 * // result.failed: [{ id: 'tenant-2', error: 'Tenant does not belong to user' }]
 	 */
 	async bulkDelete(
 		user_id: string,
