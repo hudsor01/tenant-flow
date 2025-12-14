@@ -41,8 +41,7 @@ describe('TenantsController', () => {
 			create: jest.fn(),
 			update: jest.fn(),
 			softDelete: jest.fn(),
-			hardDelete: jest.fn(),
-			markAsMovedOut: jest.fn()
+			hardDelete: jest.fn()
 		}
 
 		mockEmergencyContactService = {
@@ -240,23 +239,6 @@ describe('TenantsController', () => {
 				await controller.hardDelete('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
 
 				expect(mockCrudService.hardDelete).toHaveBeenCalledWith('user-1', 'tenant-1', MOCK_JWT_TOKEN)
-			})
-		})
-
-		describe('markAsMovedOut', () => {
-			it('should mark tenant as moved out', async () => {
-				const mockReq = {
-					user: { id: 'user-1' },
-					headers: { authorization: 'Bearer test-token' }
-				}
-				const moveOutBody = { moveOutDate: '2025-12-31', moveOutReason: 'End of lease' }
-				const mockTenant = { id: 'tenant-1', status: 'moved_out' }
-				mockCrudService.markAsMovedOut.mockResolvedValue(mockTenant)
-
-				const result = await controller.markAsMovedOut('tenant-1', moveOutBody, mockReq as any, MOCK_JWT_TOKEN)
-
-				expect(result).toEqual(mockTenant)
-				expect(mockCrudService.markAsMovedOut).toHaveBeenCalledWith('user-1', 'tenant-1', '2025-12-31', 'End of lease', MOCK_JWT_TOKEN)
 			})
 		})
 	})

@@ -208,7 +208,7 @@ export class LeasesService {
 			// Verify unit exists and belongs to user (RLS will enforce ownership)
 			const { data: unit } = await client
 				.from('units')
-				.select('id, property_id')
+				.select('id, property_id, property:properties(name)')
 				.eq('id', dto.unit_id)
 				.single()
 
@@ -217,14 +217,52 @@ export class LeasesService {
 			}
 
 			// Verify tenant exists and belongs to user (RLS will enforce ownership)
+			// Fetch tenant with user info for enriched error messages
 			const { data: tenant } = await client
 				.from('tenants')
-				.select('id')
+				.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
 				.eq('id', dto.primary_tenant_id)
 				.single()
 
 			if (!tenant) {
 				throw new BadRequestException('Tenant not found or access denied')
+			}
+
+			// Verify tenant was invited to this property
+			// Uses accepted_at IS NOT NULL (per user decision: ignore status after acceptance)
+			const { data: invitation } = await client
+				.from('tenant_invitations')
+				.select('id')
+				.eq('property_id', unit.property_id)
+				.eq('accepted_by_user_id', tenant.user_id)
+				.not('accepted_at', 'is', null)
+				.maybeSingle()
+
+			if (!invitation) {
+				// Enrich error message with context for better debugging
+				// Type-safe access to user relation (query includes user join)
+			type UserInfo = { first_name: string | null; last_name: string | null; email: string | null } | null
+			const tenantUser: UserInfo = tenant.user
+				const tenantName = tenantUser
+					? [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ') || tenantUser.email || 'Unknown'
+					: 'Unknown tenant'
+
+				// Type-safe access to property relation (query includes property join)
+			type PropertyInfo = { name: string | null } | null
+			const propertyInfo: PropertyInfo = unit.property
+			const propertyName = propertyInfo?.name || 'this property'
+
+				this.logger.warn('Lease creation failed: Tenant not invited to property', {
+					tenant_id: dto.primary_tenant_id,
+					tenant_name: tenantName,
+					property_id: unit.property_id,
+					property_name: propertyName,
+					unit_id: dto.unit_id
+				})
+
+				throw new BadRequestException(
+					`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
+				)
 			}
 
 			// Build insert data with all fields from DTO
