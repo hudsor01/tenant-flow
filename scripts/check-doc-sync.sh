@@ -62,22 +62,31 @@ for principle in "${PRINCIPLES[@]}"; do
 done
 
 # Check file sizes (shouldn't differ by more than 20%)
-claude_size=$(wc -c < "$CLAUDE_MD")
-copilot_size=$(wc -c < "$COPILOT_MD")
+claude_size=$(wc -c < "$CLAUDE_MD" | tr -d ' ')
+copilot_size=$(wc -c < "$COPILOT_MD" | tr -d ' ')
 
-size_diff=$(echo "scale=2; ($copilot_size - $claude_size) / $claude_size * 100" | bc)
-size_diff_abs=${size_diff#-}  # Remove negative sign for comparison
+# Use pure bash arithmetic instead of bc for portability
+if [[ "$claude_size" -gt 0 ]]; then
+  size_diff=$(( (copilot_size - claude_size) * 100 / claude_size ))
+  size_diff_abs=${size_diff#-}  # Remove negative sign for comparison
 
-if (( $(echo "$size_diff_abs > 20" | bc -l) )); then
-  echo "⚠️  File size drift detected: ${size_diff}% difference"
-  echo "   CLAUDE.md: $claude_size bytes"
-  echo "   copilot-instructions.md: $copilot_size bytes"
-  DRIFT_DETECTED=true
+  if [[ "$size_diff_abs" -gt 20 ]]; then
+    echo "⚠️  File size drift detected: ${size_diff}% difference"
+    echo "   CLAUDE.md: $claude_size bytes"
+    echo "   copilot-instructions.md: $copilot_size bytes"
+    DRIFT_DETECTED=true
+  fi
 fi
 
-# Check last modified dates
-claude_modified=$(stat -f "%Sm" -t "%Y-%m-%d" "$CLAUDE_MD" 2>/dev/null || stat -c "%y" "$CLAUDE_MD" | cut -d' ' -f1)
-copilot_modified=$(stat -f "%Sm" -t "%Y-%m-%d" "$COPILOT_MD" 2>/dev/null || stat -c "%y" "$COPILOT_MD" | cut -d' ' -f1)
+# Check last modified dates (portable across macOS and Linux)
+if command -v stat >/dev/null 2>&1; then
+  # Try macOS format first, fall back to Linux format
+  claude_modified=$(stat -f "%Sm" -t "%Y-%m-%d" "$CLAUDE_MD" 2>/dev/null || stat -c "%y" "$CLAUDE_MD" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+  copilot_modified=$(stat -f "%Sm" -t "%Y-%m-%d" "$COPILOT_MD" 2>/dev/null || stat -c "%y" "$COPILOT_MD" 2>/dev/null | cut -d' ' -f1 || echo "unknown")
+else
+  claude_modified="stat not available"
+  copilot_modified="stat not available"
+fi
 
 echo ""
 echo "📅 Last modified:"

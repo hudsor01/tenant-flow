@@ -3,7 +3,19 @@
  *
  * Tests for migration: 20251213130000_fix_rls_circular_dependency.sql
  *
- * Verifies:
+ * ⚠️ **CRITICAL LIMITATION**: These tests use mock JWT tokens that are NOT
+ * configured in Supabase Auth. RLS may not be properly enforced, causing
+ * tests to pass vacuously without actually validating policies.
+ *
+ * **To properly test RLS**:
+ * 1. Set up Supabase Auth test users with real JWT tokens
+ * 2. Use `supabase.auth.signInWithPassword()` to get valid sessions
+ * 3. Extract `access_token` from session for `getUserClient()`
+ * 4. Ensure test database has proper RLS policies enabled
+ *
+ * **Current Status**: PLACEHOLDER TESTS - Require Supabase Auth configuration
+ *
+ * Verifies (when properly configured):
  * 1. Property owners can read their leases
  * 2. Tenants can read assigned leases via lease_tenants
  * 3. Unrelated users are denied access
