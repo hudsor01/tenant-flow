@@ -44,6 +44,7 @@ describe('LeasesService', () => {
       delete: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       neq: jest.fn().mockReturnThis(),
+      not: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
       or: jest.fn().mockReturnThis(),
@@ -125,11 +126,31 @@ describe('LeasesService', () => {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnValue({
               single: jest.fn().mockResolvedValue({
-                data: { id: 'tenant-789' },
+                data: {
+                  id: 'tenant-789',
+                  user_id: 'user-123',
+                  user: { first_name: 'John', last_name: 'Doe', email: 'john@example.com' }
+                },
                 error: null
               })
             })
           }
+        }
+        if (table === 'tenant_invitations') {
+          const invitationChain = {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            not: jest.fn().mockReturnValue({
+              maybeSingle: jest.fn().mockResolvedValue({
+                data: { id: 'invitation-123' },
+                error: null
+              })
+            })
+          }
+          // Make eq() return the chain object so .not() is available
+          invitationChain.eq = jest.fn().mockReturnValue(invitationChain)
+          invitationChain.select = jest.fn().mockReturnValue(invitationChain)
+          return invitationChain
         }
         if (table === 'leases') {
           return {

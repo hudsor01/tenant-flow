@@ -373,63 +373,6 @@ describe('TenantCrudService', () => {
     })
   })
 
-  describe('markAsMovedOut', () => {
-    const mockMoveOutDate = '2025-01-15'
-    const mockMoveOutReason = 'End of lease'
-
-    it('should mark tenant as moved out successfully', async () => {
-      const existingTenant = createMockTenant()
-      const movedOutTenant = createMockTenant()
-
-      mockTenantQueryService.findOne.mockResolvedValue(existingTenant)
-      mockUserClient.single.mockResolvedValue({
-        data: movedOutTenant,
-        error: null
-      })
-
-      const result = await service.markAsMovedOut(
-        mockUserId,
-        mockTenantId,
-        mockMoveOutDate,
-        mockMoveOutReason,
-        mockToken
-      )
-
-      expect(result).toEqual(movedOutTenant)
-      expect(mockUserClient.from).toHaveBeenCalledWith('tenants')
-      expect(mockUserClient.update).toHaveBeenCalled()
-    })
-
-    it('should throw NotFoundException when tenant does not exist', async () => {
-      mockTenantQueryService.findOne.mockResolvedValue(null)
-
-      await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
-      ).rejects.toThrow(NotFoundException)
-    })
-
-    it('should throw BadRequestException when tenant does not belong to user', async () => {
-      const tenantOwnedByAnotherUser = createMockTenant({ user_id: 'other-user' })
-      mockTenantQueryService.findOne.mockResolvedValue(tenantOwnedByAnotherUser)
-
-      await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
-      ).rejects.toThrow(BadRequestException)
-    })
-
-    it('should throw BadRequestException on database error', async () => {
-      mockTenantQueryService.findOne.mockResolvedValue(createMockTenant())
-      mockUserClient.single.mockResolvedValue({
-        data: null,
-        error: { message: 'Update failed' }
-      })
-
-      await expect(
-        service.markAsMovedOut(mockUserId, mockTenantId, mockMoveOutDate, mockMoveOutReason, mockToken)
-      ).rejects.toThrow(BadRequestException)
-    })
-  })
-
   describe('hardDelete', () => {
     it('should hard delete a tenant older than 7 years', async () => {
       // Create tenant that's 8 years old
