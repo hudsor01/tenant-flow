@@ -378,4 +378,163 @@ export class TenantCrudService {
 			throw error
 		}
 	}
+
+	/**
+	 * Bulk update multiple tenants in parallel
+	 * Verifies all tenants belong to user before updating
+	 * Returns results with success/failure for each tenant
+	 */
+	async bulkUpdate(
+		user_id: string,
+		updates: Array<{ id: string; data: UpdateTenantRequest }>,
+		token: string
+	): Promise<{
+		success: Array<{ id: string; tenant: Tenant }>
+		failed: Array<{ id: string; error: string }>
+	}> {
+		this.logger.log('Bulk updating tenants', { user_id, count: updates.length })
+
+		const client = this.requireUserClient(token)
+
+		// Process all updates in parallel
+		const results = await Promise.allSettled(
+			updates.map(async ({ id, data }) => {
+				try {
+					// Verify tenant exists and belongs to user
+					const existingTenant = await this.tenantQueryService.findOne(id, token)
+					if (!existingTenant) {
+						throw new NotFoundException(`Tenant ${id} not found`)
+					}
+
+					if (existingTenant.user_id !== user_id) {
+						throw new BadRequestException(`Tenant ${id} does not belong to user`)
+					}
+
+					// Build update data
+					const updateData: Partial<Database['public']['Tables']['tenants']['Update']> = {}
+
+					if (data.date_of_birth !== undefined) {
+						updateData.date_of_birth = data.date_of_birth || null
+					}
+					if (data.ssn_last_four !== undefined) {
+						updateData.ssn_last_four = data.ssn_last_four || null
+					}
+					if (data.emergency_contact_name !== undefined) {
+						updateData.emergency_contact_name = data.emergency_contact_name || null
+					}
+					if (data.emergency_contact_phone !== undefined) {
+						updateData.emergency_contact_phone = data.emergency_contact_phone || null
+					}
+					if (data.emergency_contact_relationship !== undefined) {
+						updateData.emergency_contact_relationship = data.emergency_contact_relationship || null
+					}
+					if (data.stripe_customer_id !== undefined) {
+						updateData.stripe_customer_id = data.stripe_customer_id
+					}
+
+					const { data: updated, error } = await client
+						.from('tenants')
+						.update(updateData)
+						.eq('id', id)
+						.select()
+						.single()
+
+					if (error) {
+						throw new BadRequestException(`Failed to update tenant ${id}: ${error.message}`)
+					}
+
+					return { id, tenant: updated as Tenant }
+				} catch (error) {
+					throw new Error(
+						error instanceof Error ? error.message : `Failed to update tenant ${id}`
+					)
+				}
+			})
+		)
+
+		// Separate successful and failed results
+		const success: Array<{ id: string; tenant: Tenant }> = []
+		const failed: Array<{ id: string; error: string }> = []
+
+		results.forEach((result, index) => {
+			const update = updates[index]
+			if (!update) return // Skip if index out of bounds
+
+			if (result.status === 'fulfilled') {
+				success.push(result.value)
+			} else {
+				failed.push({
+					id: update.id,
+					error: result.reason.message
+				})
+			}
+		})
+
+		this.logger.log('Bulk update completed', {
+			user_id,
+			total: updates.length,
+			success: success.length,
+			failed: failed.length
+		})
+
+		return { success, failed }
+	}
+
+	/**
+	 * Bulk delete multiple tenants in parallel (soft delete)
+	 * Verifies all tenants belong to user before deletion
+	 * Returns results with success/failure for each tenant
+	 */
+	async bulkDelete(
+		user_id: string,
+		tenant_ids: string[],
+		token: string
+	): Promise<{
+		success: Array<{ id: string }>
+		failed: Array<{ id: string; error: string }>
+	}> {
+		this.logger.log('Bulk deleting tenants', { user_id, count: tenant_ids.length })
+
+		// Process all deletions in parallel
+		const results = await Promise.allSettled(
+			tenant_ids.map(async (tenant_id) => {
+				try {
+					// Use existing softDelete method which handles verification
+					await this.softDelete(user_id, tenant_id, token)
+					return { id: tenant_id }
+				} catch (error) {
+					throw new Error(
+						error instanceof Error ? error.message : `Failed to delete tenant ${tenant_id}`
+					)
+				}
+			})
+		)
+
+		// Separate successful and failed results
+		const success: Array<{ id: string }> = []
+		const failed: Array<{ id: string; error: string }> = []
+
+		results.forEach((result, index) => {
+			const tenant_id = tenant_ids[index]
+			if (!tenant_id) return // Skip if index out of bounds
+
+			if (result.status === 'fulfilled') {
+				success.push(result.value)
+			} else {
+				failed.push({
+					id: tenant_id,
+					error: result.reason.message
+				})
+			}
+		})
+
+		this.logger.log('Bulk delete completed', {
+			user_id,
+			total: tenant_ids.length,
+			success: success.length,
+			failed: failed.length
+		})
+
+		return { success, failed }
+	}
 }

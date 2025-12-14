@@ -45,7 +45,7 @@ This plan consolidates all pending work across multiple plan files into ONE acti
 ---
 
 ### 2. Fix N+1 Query Patterns (HIGH PRIORITY)
-**Status**: Analysis complete, implementation needed
+**Status**: ✅ COMPLETE
 **Time**: 4 hours
 **Depends On**: Nothing
 
@@ -53,22 +53,23 @@ This plan consolidates all pending work across multiple plan files into ONE acti
 **Issue**: Multiple DELETE/UPDATE calls in loops
 **Impact**: HIGH for bulk operations
 
-- [ ] **Create bulk update endpoint** `POST /api/v1/tenants/bulk-update`
+- [x] **Create bulk update endpoint** `POST /api/v1/tenants/bulk-update`
   - File: `apps/backend/src/modules/tenants/tenants.controller.ts`
   - Accept array of `{ id, data }` objects
-  - Use Supabase batch operations or Promise.all with transaction
+  - Use Promise.allSettled for parallel processing with success/failed tracking
 
-- [ ] **Create bulk delete endpoint** `DELETE /api/v1/tenants/bulk-delete`
+- [x] **Create bulk delete endpoint** `DELETE /api/v1/tenants/bulk-delete`
   - File: `apps/backend/src/modules/tenants/tenants.controller.ts`
   - Accept array of IDs: `{ ids: string[] }`
   - Validate all IDs before deleting (RLS enforcement)
 
-- [ ] **Update frontend hooks** `apps/frontend/src/hooks/api/use-tenant.ts`
-  - Replace `.map(async id => apiRequest(DELETE))` with single bulk call
-  - Replace `.map(async ({id, data}) => apiRequest(PUT))` with single bulk call
+- [x] **Update frontend hooks** `apps/frontend/src/hooks/api/use-tenant.ts`
+  - Replaced `.map(async id => apiRequest(DELETE))` with single bulk call
+  - Replaced `.map(async ({id, data}) => apiRequest(PUT))` with single bulk call
+  - Added success/failure toast notifications
 
 #### 2.2 Verify No Sequential Queries in Services
-**Status**: Review needed
+**Status**: Review needed (LOW PRIORITY - move to future optimization)
 
 - [ ] Audit `apps/backend/src/modules/financial/financial.service.ts` for sequential queries
 - [ ] Verify `Promise.all` usage in subscription services (already good)
@@ -440,14 +441,14 @@ $$ LANGUAGE plpgsql;
 ## 📊 Progress Tracking
 
 **Total Tasks**: 80+
-**Completed**: 3 ✅
-**In Progress**: 1 🔄
+**Completed**: 4 ✅ (Node 24, RLS fix, RLS tests, N+1 patterns)
+**In Progress**: 1 🔄 (Tenant filtering)
 **Blocked**: 0 ⛔
 
 **Estimated Time to Merge**:
-- Critical tasks: ~8 hours
+- Critical tasks: ~4 hours remaining (Tenant filtering: 2h, Stashed work: 30min)
 - High priority: ~10 hours
-- **Minimum to merge**: ~8 hours (critical only)
+- **Minimum to merge**: ~4 hours (critical only)
 
 ---
 

@@ -320,6 +320,60 @@ export class TenantsController {
 	}
 
 	/**
+	 * Bulk update multiple tenants
+	 * Accepts array of {id, data} objects
+	 * Returns success/failed arrays
+	 */
+	@Post('bulk-update')
+	async bulkUpdate(
+		@Body() body: { updates: Array<{ id: string; data: UpdateTenantDto }> },
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
+	) {
+		if (!body.updates || !Array.isArray(body.updates)) {
+			throw new BadRequestException('updates array is required')
+		}
+
+		if (body.updates.length === 0) {
+			throw new BadRequestException('updates array cannot be empty')
+		}
+
+		if (body.updates.length > 100) {
+			throw new BadRequestException('Cannot update more than 100 tenants at once')
+		}
+
+		const user_id = req.user.id
+		return this.crudService.bulkUpdate(user_id, body.updates, token)
+	}
+
+	/**
+	 * Bulk delete multiple tenants
+	 * Accepts array of tenant IDs
+	 * Returns success/failed arrays
+	 */
+	@Delete('bulk-delete')
+	async bulkDelete(
+		@Body() body: { ids: string[] },
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
+	) {
+		if (!body.ids || !Array.isArray(body.ids)) {
+			throw new BadRequestException('ids array is required')
+		}
+
+		if (body.ids.length === 0) {
+			throw new BadRequestException('ids array cannot be empty')
+		}
+
+		if (body.ids.length > 100) {
+			throw new BadRequestException('Cannot delete more than 100 tenants at once')
+		}
+
+		const user_id = req.user.id
+		return this.crudService.bulkDelete(user_id, body.ids, token)
+	}
+
+	/**
 	 * Invite tenant to platform (no lease created)
 	 *
 	 * NEW ARCHITECTURE:
