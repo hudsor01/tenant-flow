@@ -529,10 +529,6 @@ export class TenantListService {
 	}
 
 	/**
-	 * Transform raw tenant+lease_tenants query result to TenantWithLeaseInfo[]
-	 */
-
-	/**
 	 * Get all tenants invited to a specific property
 	 * Queries tenant_invitations to find accepted invitations for the property
 	 * Excludes tenants who already have an active lease (one property per tenant)
@@ -619,7 +615,7 @@ export class TenantListService {
 				if (!row.tenant) continue
 
 				const tenant = row.tenant
-				
+
 				// Skip if already processed
 				if (tenantMap.has(tenant.id)) continue
 
@@ -663,6 +659,9 @@ export class TenantListService {
 		}
 	}
 
+	/**
+	 * Transform raw tenant+lease_tenants query result to TenantWithLeaseInfo[]
+	 */
 	private transformTenantsWithLease(
 		data: unknown[] | null
 	): TenantWithLeaseInfo[] {

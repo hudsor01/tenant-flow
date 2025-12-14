@@ -271,32 +271,6 @@ export class TenantsController {
 		return result
 	}
 
-	@Put(':id/mark-moved-out')
-	async markAsMovedOut(
-		@Param('id', ParseUUIDPipe) id: string,
-		@Body() body: { moveOutDate: string; moveOutReason: string },
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
-	) {
-		if (!body.moveOutDate || !body.moveOutReason) {
-			throw new BadRequestException(
-				'moveOutDate and moveOutReason are required'
-			)
-		}
-		const user_id = req.user.id
-		const tenant = await this.crudService.markAsMovedOut(
-			user_id,
-			id,
-			body.moveOutDate,
-			body.moveOutReason,
-			token
-		)
-		if (!tenant) {
-			throw new NotFoundException('Tenant not found')
-		}
-		return tenant
-	}
-
 	@Delete(':id/hard-delete')
 	async hardDelete(
 		@Param('id', ParseUUIDPipe) id: string,

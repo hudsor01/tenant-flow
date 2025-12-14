@@ -253,63 +253,6 @@ export class TenantCrudService {
 	}
 
 	/**
-	 * Mark tenant as moved out
-	 */
-	async markAsMovedOut(
-		user_id: string,
-		tenant_id: string,
-		moveOutDate: string,
-		moveOutReason: string,
-		token: string
-	): Promise<Tenant> {
-		try {
-			this.logger.log('Marking tenant as moved out', { tenant_id, user_id, moveOutDate, moveOutReason })
-
-			const client = this.requireUserClient(token)
-
-			// Verify tenant exists and belongs to user
-			const tenant = await this.tenantQueryService.findOne(tenant_id, token)
-			if (!tenant) {
-				throw new NotFoundException('Tenant not found')
-			}
-
-			if (tenant.user_id !== user_id) {
-				throw new BadRequestException('Tenant does not belong to user')
-			}
-
-			// Update tenant with move out information
-			const { data, error } = await client
-				.from('tenants')
-				.update({
-					// Note: tenants table currently has no move_out fields
-					// This should be updated when schema supports it
-				})
-				.eq('id', tenant_id)
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Error updating tenant move out status', { error: error.message, tenant_id })
-				throw new BadRequestException('Failed to update tenant status')
-			}
-
-			this.logger.log('Tenant marked as moved out', { tenant_id })
-			return data
-		} catch (error) {
-			if (error instanceof BadRequestException ||
-				error instanceof NotFoundException ||
-				error instanceof UnauthorizedException) {
-				throw error
-			}
-			this.logger.error('Error marking tenant as moved out', {
-				error: error instanceof Error ? error.message : String(error),
-				tenant_id
-			})
-			throw error
-		}
-	}
-
-	/**
 	 * Permanently hard delete a tenant
 	 * Only allowed for tenants 7+ years old
 	 * Verifies ownership before deletion

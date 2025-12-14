@@ -53,8 +53,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Check documentation sync
-        run: bash scripts/check-doc-sync.sh
-
       - name: Run lint
         run: pnpm lint

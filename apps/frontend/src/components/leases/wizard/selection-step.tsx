@@ -77,18 +77,24 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 		enabled: !!token && !!data.property_id
 	})
 
-	// Fetch tenants (all tenants for now, filtering by availability can be added)
+	// Fetch tenants (filtered by selected property)
 	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
-		queryKey: ['tenants', 'list', token],
+		queryKey: ['tenants', 'list', data.property_id, token],
 		queryFn: async () => {
-			const res = await fetch(`${getApiBaseUrl()}/api/v1/tenants`, {
-				headers: { Authorization: `Bearer ${token}` }
-			})
+			const params = new URLSearchParams()
+			if (data.property_id) {
+				params.set('property_id', data.property_id)
+			}
+
+			const res = await fetch(
+				`${getApiBaseUrl()}/api/v1/tenants?${params.toString()}`,
+				{ headers: { Authorization: `Bearer ${token}` } }
+			)
 			if (!res.ok) throw new Error('Failed to fetch tenants')
 			const json = await res.json()
 			return json.data as Tenant[]
 		},
-		enabled: !!token
+		enabled: !!token && !!data.property_id
 	})
 
 	const handlePropertyChange = (propertyId: string) => {
