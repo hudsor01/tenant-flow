@@ -48,7 +48,19 @@ export class LeasesService {
 	 */
 	async findAll(
 		token: string,
-		query: Record<string, unknown>
+		query: {
+			tenant_id?: string | undefined
+			unit_id?: string | undefined
+			property_id?: string | undefined
+			status?: string | undefined
+			start_date?: string | undefined
+			end_date?: string | undefined
+			search?: string | undefined
+			limit?: number | undefined
+			offset?: number | undefined
+			sortBy?: string | undefined
+			sortOrder?: string | undefined
+		}
 	): Promise<{ data: Lease[]; total: number; limit: number; offset: number }> {
 		try {
 			if (!token) {

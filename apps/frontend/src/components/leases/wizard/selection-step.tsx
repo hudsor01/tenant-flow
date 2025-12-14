@@ -81,15 +81,14 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
 		queryKey: ['tenants', 'list', data.property_id, token],
 		queryFn: async () => {
-			const params = new URLSearchParams()
+			const url = new URL(`${getApiBaseUrl()}/api/v1/tenants`)
 			if (data.property_id) {
-				params.set('property_id', data.property_id)
+				url.searchParams.set('property_id', data.property_id)
 			}
 
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/tenants?${params.toString()}`,
-				{ headers: { Authorization: `Bearer ${token}` } }
-			)
+			const res = await fetch(url.toString(), {
+				headers: { Authorization: `Bearer ${token}` }
+			})
 			if (!res.ok) throw new Error('Failed to fetch tenants')
 			const json = await res.json()
 			return json.data as Tenant[]

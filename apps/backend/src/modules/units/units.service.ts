@@ -32,7 +32,15 @@ export class UnitsService {
 	 */
 	async findAll(
 		token: string,
-		query: Record<string, unknown>
+		query: {
+			property_id?: string | null | undefined
+			status?: string | null | undefined
+			search?: string | null | undefined
+			limit?: number | undefined
+			offset?: number | undefined
+			sortBy?: string | undefined
+			sortOrder?: string | undefined
+		}
 	): Promise<Unit[]> {
 		try {
 			if (!token) {

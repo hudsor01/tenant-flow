@@ -247,6 +247,67 @@ describe('LeasesService', () => {
       )
     })
 
+    it('should throw BadRequestException when tenant is not invited to property', async () => {
+      // Mock unit lookup - succeeds
+      // Mock tenant lookup - succeeds
+      // Mock invitation lookup - fails (returns null)
+      mockUserClient.from.mockImplementation((table: string) => {
+        if (table === 'units') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: {
+                  id: 'unit-456',
+                  property_id: 'prop-123',
+                  property: { name: 'Test Property' }
+                },
+                error: null
+              })
+            })
+          }
+        }
+        if (table === 'tenants') {
+          return {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({
+                data: {
+                  id: 'tenant-789',
+                  user_id: 'user-123',
+                  user: { first_name: 'John', last_name: 'Doe', email: 'john@example.com' }
+                },
+                error: null
+              })
+            })
+          }
+        }
+        if (table === 'tenant_invitations') {
+          // NO INVITATION FOUND - This should trigger the validation error
+          const invitationChain = {
+            select: jest.fn().mockReturnThis(),
+            eq: jest.fn().mockReturnThis(),
+            not: jest.fn().mockReturnValue({
+              maybeSingle: jest.fn().mockResolvedValue({
+                data: null, // No invitation found
+                error: null
+              })
+            })
+          }
+          invitationChain.eq = jest.fn().mockReturnValue(invitationChain)
+          invitationChain.select = jest.fn().mockReturnValue(invitationChain)
+          return invitationChain
+        }
+        return mockUserClient
+      })
+
+      await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
+        new BadRequestException(
+          'Cannot create lease: John Doe has not been invited to Test Property. Please send an invitation first.'
+        )
+      )
+    })
+
     it('should throw BadRequestException on database insert error', async () => {
       mockUserClient.from.mockImplementation((table: string) => {
         if (table === 'units') {
