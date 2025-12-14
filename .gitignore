@@ -30,6 +30,7 @@ apps/backend/assets/generated-*.pdf
 *.md
 !.github/copilot-instructions.md
 !MIGRATION.md
+!supabase/migrations/RLS_PERFORMANCE.md
 
 # Local environment files
 .env.local
