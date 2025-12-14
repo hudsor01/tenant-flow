@@ -32,6 +32,11 @@ SECURITY DEFINER
 STABLE
 AS $$
 BEGIN
+  -- Explicit NULL checks to prevent privilege escalation via NULL bypass
+  IF p_tenant_id IS NULL OR public.get_current_tenant_id() IS NULL THEN
+    RAISE EXCEPTION 'Access denied: missing tenant identification';
+  END IF;
+  
   -- Validate caller owns this tenant_id - prevent privilege escalation
   IF p_tenant_id != public.get_current_tenant_id() THEN
     RAISE EXCEPTION 'Access denied: cannot query leases for other tenants';
@@ -51,6 +56,11 @@ SECURITY DEFINER
 STABLE
 AS $$
 BEGIN
+  -- Explicit NULL checks to prevent privilege escalation via NULL bypass
+  IF p_owner_id IS NULL OR public.get_current_property_owner_id() IS NULL THEN
+    RAISE EXCEPTION 'Access denied: missing property owner identification';
+  END IF;
+  
   -- Validate caller owns this property_owner_id - prevent privilege escalation
   IF p_owner_id != public.get_current_property_owner_id() THEN
     RAISE EXCEPTION 'Access denied: cannot query lease tenants for other property owners';

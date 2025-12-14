@@ -28,6 +28,12 @@ export class TenantCrudService {
 	) {}
 
 	/**
+	 * Minimum retention period for tenant data before hard deletion is allowed
+	 * Legal requirement: 7 years for tenant record retention
+	 */
+	private readonly MINIMUM_RETENTION_YEARS = 7
+
+	/**
 	 * Get user-scoped Supabase client with RLS enforcement
 	 * Throws UnauthorizedException if no token provided
 	 */
@@ -283,9 +289,9 @@ export class TenantCrudService {
 			const now = new Date()
 			const ageInYears = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
 
-			if (ageInYears < 7) {
+			if (ageInYears < this.MINIMUM_RETENTION_YEARS) {
 				throw new BadRequestException(
-					`Tenant must be at least 7 years old to hard delete. Current age: ${ageInYears.toFixed(1)} years`
+					`Tenant must be at least ${this.MINIMUM_RETENTION_YEARS} years old to hard delete. Current age: ${ageInYears.toFixed(1)} years`
 				)
 			}
 
