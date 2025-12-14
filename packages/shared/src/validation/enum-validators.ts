@@ -51,10 +51,10 @@ export function validateLeaseStatus(status: string): LeaseStatus {
  * Valid unit status values (must match database enum)
  */
 export const VALID_UNIT_STATUSES = [
-  'vacant',
+  'available',
   'occupied',
   'maintenance',
-  'unavailable'
+  'reserved'
 ] as const
 
 /**
