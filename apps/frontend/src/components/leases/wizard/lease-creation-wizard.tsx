@@ -6,7 +6,7 @@
  */
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
@@ -62,6 +62,7 @@ export function LeaseCreationWizard({
 	onSuccess
 }: LeaseCreationWizardProps) {
 	const router = useRouter()
+	const queryClient = useQueryClient()
 	const [currentStep, setCurrentStep] = useState<WizardStep>('selection')
 
 	// Form state for each step
@@ -165,6 +166,24 @@ export function LeaseCreationWizard({
 			toast.error(
 				error instanceof Error ? error.message : 'Failed to create lease'
 			)
+		},
+		// Invalidate tenant cache after lease creation (settled = success or error)
+		// Evidence: https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations
+		onSettled: (_data, _error, _variables) => {
+			// Invalidate tenant list for the property (tenant now has active lease)
+			if (selectionData.property_id) {
+				queryClient.invalidateQueries({
+					queryKey: ['tenants', 'list', selectionData.property_id]
+				})
+			}
+			// Invalidate all tenant queries to ensure consistency
+			queryClient.invalidateQueries({
+				queryKey: ['tenants']
+			})
+			// Invalidate leases list
+			queryClient.invalidateQueries({
+				queryKey: ['leases']
+			})
 		}
 	})
 

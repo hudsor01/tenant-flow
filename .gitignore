@@ -27,7 +27,6 @@ doppler.env
 **/lease-documents/**/*.pdf
 apps/backend/assets/generated-*.pdf
 *.pdf
-!.github/copilot-instructions.md
 *.md
 
 # Local environment files
@@ -258,16 +257,6 @@ playwright/.auth/
 .parcel-cache
 .fusebox/
 **/.DS_Store
-Thumbs.db
-**/Thumbs.db
-desktop.ini
-$RECYCLE.BIN/
-*.swp
-*.swo
-*~
-**/*~
-**/*.swp
-**/*.swo
 
 # IDE & EDITORS
 .vscode/*
