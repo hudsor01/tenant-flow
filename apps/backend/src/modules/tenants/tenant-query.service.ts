@@ -63,6 +63,18 @@ export class TenantQueryService {
 		return this.listService.findAllWithLeaseInfo(userId, filters)
 	}
 
+	/**
+	 * Get all tenants invited to a specific property
+	 * Excludes tenants who already have an active lease (one property per tenant)
+	 */
+	async findByProperty(
+		userId: string,
+		propertyId: string,
+		filters: ListFilters = {}
+	): Promise<Tenant[]> {
+		return this.listService.findByProperty(userId, propertyId, filters)
+	}
+
 	// ============================================================================
 	// DETAIL QUERIES - Delegated to TenantDetailService
 	// All methods require token for RLS enforcement

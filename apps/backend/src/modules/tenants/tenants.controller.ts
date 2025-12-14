@@ -66,6 +66,7 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest,
 		@Query('search') search?: string,
 		@Query('invitationStatus') invitationStatus?: string,
+		@Query('property_id') propertyId?: string,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number
 	) {
@@ -89,10 +90,15 @@ export class TenantsController {
 		const filters: Record<string, unknown> = { token }
 		if (search !== undefined) filters.search = search
 		if (invitationStatus !== undefined) filters.invitationStatus = invitationStatus
+		if (propertyId !== undefined) filters.property_id = propertyId
 		if (limit !== undefined) filters.limit = limit
 		if (offset !== undefined) filters.offset = offset
 
-		const data = await this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
+		// If property_id is provided, filter tenants by property
+		// Otherwise, return all tenants with lease info
+		const data = propertyId
+			? await this.queryService.findByProperty(user_id, propertyId, filters as ListFilters)
+			: await this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
 
 		// Return PaginatedResponse format expected by frontend
 		return {
