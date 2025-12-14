@@ -105,7 +105,6 @@ export function validateAndNormalizeLeaseStatus(status: string): LeaseStatus {
 /**
  * Validate and normalize unit status
  * @param status - The status value to validate and normalize
- * @param status - The status value to validate and normalize
  * @returns Normalized and validated unit status
  */
 export function validateAndNormalizeUnitStatus(status: string): UnitStatus {

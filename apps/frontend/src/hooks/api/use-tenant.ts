@@ -466,21 +466,33 @@ return incrementVersion(old, {
 
 /**
  * Hook for batch tenant operations
- * Useful for bulk updates/deletes with progress tracking
+ * Uses optimized bulk endpoints to avoid N+1 query pattern
  */
 export function useBatchTenantOperations() {
 	const queryClient = useQueryClient()
 
 	return {
 		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
-			const results = await Promise.allSettled(
-				updates.map(async ({ id, data }) => {
-					return apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
-						method: 'PUT',
-						body: JSON.stringify(data)
-					})
+			// Single API call to bulk update endpoint
+			const response = await apiRequest<{
+				success: Array<{ id: string; tenant: TenantWithLeaseInfo }>
+				failed: Array<{ id: string; error: string }>
+			}>('/api/v1/tenants/bulk-update', {
+				method: 'POST',
+				body: JSON.stringify({ updates })
+			})
+
+			// Show toast for failed updates
+			if (response.failed.length > 0) {
+				response.failed.forEach(failure => {
+					toast.error(`Failed to update tenant: ${failure.error}`)
 				})
-			)
+			}
+
+			// Show success toast
+			if (response.success.length > 0) {
+				toast.success(`Updated ${response.success.length} tenant(s)`)
+			}
 
 			// Invalidate all affected queries
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
@@ -488,21 +500,34 @@ export function useBatchTenantOperations() {
 				queryClient.invalidateQueries({ queryKey: tenantQueries.detail(id).queryKey })
 			})
 
-			return results
+			return response
 		},
 		batchDelete: async (ids: string[]) => {
-			const results = await Promise.allSettled(
-				ids.map(async id => {
-					return apiRequest(`/api/v1/tenants/${id}`, {
-						method: 'DELETE'
-					})
+			// Single API call to bulk delete endpoint
+			const response = await apiRequest<{
+				success: Array<{ id: string }>
+				failed: Array<{ id: string; error: string }>
+			}>('/api/v1/tenants/bulk-delete', {
+				method: 'DELETE',
+				body: JSON.stringify({ ids })
+			})
+
+			// Show toast for failed deletions
+			if (response.failed.length > 0) {
+				response.failed.forEach(failure => {
+					toast.error(`Failed to delete tenant: ${failure.error}`)
 				})
-			)
+			}
+
+			// Show success toast
+			if (response.success.length > 0) {
+				toast.success(`Deleted ${response.success.length} tenant(s)`)
+			}
 
 			// Invalidate all affected queries
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
-			return results
+			return response
 		}
 	}
 }
