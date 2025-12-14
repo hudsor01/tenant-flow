@@ -29,7 +29,6 @@ apps/backend/assets/generated-*.pdf
 *.pdf
 *.md
 !.github/copilot-instructions.md
-!MIGRATION.md
 !MASTER_PLAN.md
 !supabase/migrations/RLS_PERFORMANCE.md
 

@@ -404,12 +404,12 @@ $$ LANGUAGE plpgsql;
   - `docs/backend-frontend-parity-plan.md` (consolidated here)
   - `.claude/plans/consolidated_refactoring_plan_by_time.md` (consolidated here)
   - `.claude/plans/crispy-bubbling-kitten-agent-a0e8adc.md` (consolidated here)
-  - `.claude/plans/node-24-migration-plan.md` (consolidated into MIGRATION.md)
+  - `.claude/plans/node-24-migration-plan.md` (consolidated here)
+  - `MIGRATION.md` (Node 24 content consolidated here)
 
 - [x] Kept essential documentation:
-  - `MIGRATION.md` (Node 24 status - already complete)
-  - `docs/tenant-portal-api.md` (route reference - keep updated)
-  - `MASTER_PLAN.md` (this file - single source of truth)
+  - `MASTER_PLAN.md` (this file - single source of truth for all tasks)
+  - `docs/tenant-portal-api.md` (API route reference - keep updated)
 
 ---
 
