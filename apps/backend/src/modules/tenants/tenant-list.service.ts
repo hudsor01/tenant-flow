@@ -32,6 +32,7 @@ export interface ListFilters {
 	status?: string
 	search?: string
 	invitationStatus?: string
+	property_id?: string
 	limit?: number
 	offset?: number
 	token?: string
@@ -525,6 +526,137 @@ export class TenantListService {
 				lease: row.lease as unknown as Lease
 			} as TenantWithLeaseInfo
 		})
+	}
+
+	/**
+	 * Get all tenants invited to a specific property
+	 * Queries tenant_invitations to find accepted invitations for the property
+	 * Excludes tenants who already have an active lease (one property per tenant)
+	 */
+	async findByProperty(
+		userId: string,
+		propertyId: string,
+		filters: ListFilters = {}
+	): Promise<Tenant[]> {
+		if (!userId) throw new BadRequestException('User ID required')
+		if (!propertyId) throw new BadRequestException('Property ID required')
+
+		const client = this.requireUserClient(filters.token)
+
+		try {
+			// OPTIMIZED: Single nested query instead of 3 separate queries
+			// Uses Supabase's relational query syntax for 1 round-trip
+			// Evidence: https://supabase.com/docs/guides/database/joins-and-nesting
+			const { data: invitationData, error: queryError } = await client
+				.from('tenant_invitations')
+				.select(`
+					accepted_by_user_id,
+					tenant:tenants!accepted_by_user_id(
+						id,
+						user_id,
+						emergency_contact_name,
+						emergency_contact_phone,
+						emergency_contact_relationship,
+						identity_verified,
+						created_at,
+						updated_at,
+						lease_tenants(
+							tenant_id,
+							lease:leases!inner(id, lease_status)
+						)
+					)
+				`)
+				.eq('property_id', propertyId)
+				.not('accepted_at', 'is', null)
+				.not('accepted_by_user_id', 'is', null)
+
+			if (queryError) {
+				this.logger.error('Failed to fetch tenants with nested query', {
+					error: queryError.message,
+					propertyId,
+					userId
+				})
+				throw new BadRequestException('Failed to retrieve tenant invitations')
+			}
+
+			if (!invitationData?.length) {
+				this.logger.log('No accepted invitations found for property', { propertyId })
+				return []
+			}
+
+			// Filter and transform results
+			interface InvitationWithTenant {
+				accepted_by_user_id: string
+				tenant: {
+					id: string
+					user_id: string
+					emergency_contact_name: string | null
+					emergency_contact_phone: string | null
+					emergency_contact_relationship: string | null
+					identity_verified: boolean | null
+					created_at: string | null
+					updated_at: string | null
+					lease_tenants: Array<{
+						tenant_id: string
+						lease: {
+							id: string
+							lease_status: string
+						} | null
+					}> | null
+				} | null
+			}
+
+			const rawData = invitationData as unknown as InvitationWithTenant[]
+
+			// Deduplicate tenants (tenant may have multiple invitations to same property)
+			const tenantMap = new Map<string, Tenant>()
+
+			for (const row of rawData) {
+				if (!row.tenant) continue
+
+				const tenant = row.tenant
+
+				// Skip if already processed
+				if (tenantMap.has(tenant.id)) continue
+
+				// Check if tenant has active lease (one property per tenant rule)
+				const hasActiveLease = tenant.lease_tenants?.some(
+					lt => lt.lease?.lease_status === 'active'
+				) ?? false
+
+				// Only include tenants without active leases
+				if (!hasActiveLease) {
+					tenantMap.set(tenant.id, {
+						id: tenant.id,
+						user_id: tenant.user_id,
+						emergency_contact_name: tenant.emergency_contact_name,
+						emergency_contact_phone: tenant.emergency_contact_phone,
+						emergency_contact_relationship: tenant.emergency_contact_relationship,
+						identity_verified: tenant.identity_verified,
+						created_at: tenant.created_at,
+						updated_at: tenant.updated_at
+					} as Tenant)
+				}
+			}
+
+			const availableTenants = Array.from(tenantMap.values())
+
+			this.logger.log('Found available tenants for property', {
+				propertyId,
+				totalInvitations: invitationData.length,
+				uniqueTenants: rawData.filter(r => r.tenant).length,
+				availableCount: availableTenants.length
+			})
+
+			return availableTenants
+		} catch (error) {
+			this.logger.error('Error finding tenants by property', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				propertyId
+			})
+			throw error
+		}
 	}
 
 	/**
