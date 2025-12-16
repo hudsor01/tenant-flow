@@ -75,7 +75,7 @@ export class SubscriptionRetryService {
       .in('stripe_subscription_status', ['pending', 'failed'])
       .lt('subscription_retry_count', MAX_RETRY_ATTEMPTS)
       .order('subscription_last_attempt_at', { ascending: true, nullsFirst: true })
-      .limit(10) as { data: LeaseWithSubscriptionPending[] | null; error: unknown }
+      .limit(10) as { data: LeaseWithSubscriptionPending[] | null; error: unknown | null }
 
     if (error) {
       this.logger.error(logError('Failed to query leases for subscription retry', error))

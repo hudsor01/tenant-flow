@@ -2,11 +2,19 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SelectionStep } from '../selection-step'
-import { getApiBaseUrl } from '#lib/api-config'
 
 // Mock the API config
 vi.mock('#lib/api-config', () => ({
 	getApiBaseUrl: vi.fn(() => 'http://localhost:3001')
+}))
+
+// Mock the auth provider
+vi.mock('#providers/auth-provider', () => ({
+	useAuth: vi.fn(() => ({
+		session: {
+			access_token: 'test-token'
+		}
+	}))
 }))
 
 // Mock fetch globally
@@ -14,11 +22,8 @@ const mockFetch = vi.fn()
 global.fetch = mockFetch
 
 describe('SelectionStep - Tenant Filtering', () => {
-	const mockToken = 'test-jwt-token'
 	const mockData = {
-		property_id: 'prop-123',
-		unit_id: undefined,
-		primary_tenant_id: undefined
+		property_id: 'prop-123'
 	}
 	const mockOnChange = vi.fn()
 
@@ -99,7 +104,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={mockData} onChange={mockOnChange} token={mockToken} />
+				<SelectionStep data={mockData} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 
@@ -134,7 +139,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={mockData} onChange={mockOnChange} token={mockToken} />
+				<SelectionStep data={mockData} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 
@@ -157,11 +162,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 	})
 
 	it('should fetch all tenants when no property is selected', async () => {
-		const dataWithoutProperty = {
-			property_id: undefined,
-			unit_id: undefined,
-			primary_tenant_id: undefined
-		}
+		const dataWithoutProperty = {}
 
 		// Mock API responses
 		mockFetch.mockResolvedValueOnce({
@@ -181,7 +182,6 @@ describe('SelectionStep - Tenant Filtering', () => {
 				<SelectionStep
 					data={dataWithoutProperty}
 					onChange={mockOnChange}
-					token={mockToken}
 				/>
 			</QueryClientProvider>
 		)
@@ -189,7 +189,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 		// Wait for queries to complete
 		await waitFor(() => {
 			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining('/api/v1/tenants?'),
+				expect.stringContaining('/api/v1/tenants'),
 				expect.any(Object)
 			)
 		})
@@ -219,7 +219,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={mockData} onChange={mockOnChange} token={mockToken} />
+				<SelectionStep data={mockData} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 
@@ -252,7 +252,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		const { rerender } = render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={mockData} onChange={mockOnChange} token={mockToken} />
+				<SelectionStep data={mockData} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 
@@ -276,7 +276,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		rerender(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={updatedData} onChange={mockOnChange} token={mockToken} />
+				<SelectionStep data={updatedData} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 

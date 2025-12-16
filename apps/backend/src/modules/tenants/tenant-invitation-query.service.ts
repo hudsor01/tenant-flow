@@ -75,16 +75,7 @@ export class TenantInvitationQueryService {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			// First get property_owners.id from auth_user_id
-			const { data: ownerRecord } = await client
-				.from('property_owners')
-				.select('id')
-				.eq('user_id', userId)
-				.maybeSingle()
-
-			if (!ownerRecord) {
-				return { data: [], total: 0 }
-			}
+			// tenant_invitations now has owner_user_id directly, no need to query property_owners
 
 			// Build the query
 			let query = client
@@ -106,7 +97,7 @@ export class TenantInvitationQueryService {
 				`,
 					{ count: 'exact' }
 				)
-				.eq('property_owner_id', ownerRecord.id)
+				.eq('owner_user_id', userId)
 				.order('created_at', { ascending: false })
 
 			// Apply status filter

@@ -204,26 +204,15 @@ export class TenantListService {
 		const offset = filters.offset ?? 0
 
 		try {
-			// Use user client with RLS - property_owners_select_own policy will enforce auth.uid() match
-			const client = this.requireUserClient(filters.token)
-			// First check if user is a property owner
-			const { data: ownerRecord } = await client
-				.from('property_owners')
-				.select('id')
-				.eq('user_id', userId)
-				.maybeSingle()
-
 			// Run both queries in parallel for better performance
 			const [tenantsByUserResult, tenantsByOwnerResult] = await Promise.all([
 				this.fetchTenantsWithLeaseByUser(userId, filters, limit, offset),
-				ownerRecord?.id
-					? this.fetchTenantsWithLeaseByOwner(
-							ownerRecord.id,
-							filters,
-							limit,
-							offset
-						)
-					: Promise.resolve([])
+				this.fetchTenantsWithLeaseByOwner(
+					userId, // owner_user_id is now user_id directly
+					filters,
+					limit,
+					offset
+				)
 			])
 
 			// Deduplicate by tenant ID, preferring the first occurrence
@@ -341,21 +330,11 @@ export class TenantListService {
 		// Use user client with RLS - get_tenants_with_lease_by_owner RPC validates p_user_id = auth.uid()
 		const client = this.requireUserClient(filters.token)
 
-		// Get property owner's user_id for the RPC call
-		const { data: ownerRecord } = await client
-			.from('property_owners')
-			.select('user_id')
-			.eq('id', ownerId)
-			.single()
-
-		if (!ownerRecord?.user_id) {
-			return []
-		}
-
+		// ownerId is now user_id directly (no more property_owners table lookup needed)
 		// Get tenant IDs via RPC function
 		const { data: tenantIds, error: rpcError } = await client.rpc(
 			'get_tenants_with_lease_by_owner',
-			{ p_user_id: ownerRecord.user_id }
+			{ p_user_id: ownerId }
 		)
 
 		if (rpcError) {

@@ -31,7 +31,10 @@ import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 import { FindAllLeasesDto } from './dto/find-all-leases.dto'
+import { SubmitMissingLeaseFieldsDto } from './dto/submit-missing-lease-fields.dto'
 import { isValidUUID } from '@repo/shared/validation/common'
+import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
+import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 
 @Controller('leases')
 export class LeasesController {
@@ -39,7 +42,9 @@ export class LeasesController {
 		private readonly leasesService: LeasesService,
 		private readonly financialService: LeaseFinancialService,
 		private readonly lifecycleService: LeaseLifecycleService,
-		private readonly signatureService: LeaseSignatureService
+		private readonly signatureService: LeaseSignatureService,
+		private readonly pdfMapper: LeasePdfMapperService,
+		private readonly pdfGenerator: LeasePdfGeneratorService
 	) {}
 
 	@Get()
@@ -384,5 +389,68 @@ export class LeasesController {
 			req.user.id
 		)
 		return { document_url: documentUrl }
+	}
+
+	// ============================================================
+	// TEXAS LEASE PDF GENERATION ENDPOINTS
+	// ============================================================
+
+	/**
+	 * Get missing fields required for Texas lease PDF generation
+	 * Returns which fields need to be filled by user (not auto-filled from DB)
+	 */
+	@Get(':id/pdf/missing-fields')
+	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
+	async getPdfMissingFields(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string
+	) {
+		// Get complete lease data
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		// Map to PDF fields
+		const { fields, missing } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+
+		return {
+			lease_id: id,
+			missing_fields: missing.fields,
+			is_complete: missing.isComplete,
+			auto_filled_count: Object.keys(fields).filter(
+				k => fields[k as keyof typeof fields] !== undefined
+			).length
+		}
+	}
+
+	/**
+	 * Submit missing fields and generate filled Texas lease PDF
+	 * Returns PDF buffer for download or DocuSeal upload
+	 */
+	@Post(':id/pdf/generate')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 PDF generations per minute
+	async generateFilledPdf(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string,
+		@Body() missingFieldsDto: SubmitMissingLeaseFieldsDto
+	) {
+		// Get complete lease data
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		// Map to PDF fields
+		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+
+		// Merge user-provided fields with auto-filled fields
+		const completeFields = this.pdfMapper.mergeMissingFields(
+			fields,
+			missingFieldsDto as unknown as { [key: string]: string }
+		)
+
+		// Generate filled PDF
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id)
+
+		return {
+			lease_id: id,
+			pdf_size_bytes: pdfBuffer.length,
+			generated_at: new Date().toISOString()
+		}
 	}
 }

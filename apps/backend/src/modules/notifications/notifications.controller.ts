@@ -2,9 +2,12 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	DefaultValuePipe,
 	Delete,
 	Get,
 	Param,
+	ParseBoolPipe,
+	ParseIntPipe,
 	ParseUUIDPipe,
 	Post,
 	Put,
@@ -41,25 +44,83 @@ export class NotificationsController {
 	@Get()
 	async getNotifications(
 		@Req() req: AuthenticatedRequest,
-		@Query('limit') limit = '10',
-		@Query('offset') offset = '0'
+		@Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number = 20,
+		@Query('unreadOnly', new DefaultValuePipe(false), ParseBoolPipe)
+		unreadOnly: boolean = false
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
+		const currentPage = Math.max(page, 1)
+		const pageSize = Math.min(Math.max(limit, 1), 100)
+		const from = (currentPage - 1) * pageSize
+		const to = from + pageSize - 1
 		
+		const client = this.getUserClientFromRequest(req)
+		let query = client
+			.from('notifications')
+			.select('*', { count: 'exact' })
+			.eq('user_id', user_id)
+			.order('created_at', { ascending: false })
+
+		if (unreadOnly) {
+			query = query.eq('is_read', false)
+		}
+
+		const { data, error, count } = await query.range(from, to)
+
+		if (error) throw new BadRequestException(error.message)
+		return {
+			data: data ?? [],
+			total: count ?? 0,
+			page: currentPage,
+			limit: pageSize
+		}
+	}
+
+	@Put('read-all')
+	async markAllRead(@Req() req: AuthenticatedRequest) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException()
+
 		const client = this.getUserClientFromRequest(req)
 		const { data, error } = await client
 			.from('notifications')
-			.select('*')
+			.update({ is_read: true, read_at: new Date().toISOString() })
 			.eq('user_id', user_id)
-			.order('created_at', { ascending: false })
-			.range(
-				parseInt(offset, 10),
-				parseInt(offset, 10) + parseInt(limit, 10) - 1
-			)
+			.eq('is_read', false)
+			.select('id')
 
 		if (error) throw new BadRequestException(error.message)
-		return { notifications: data || [] }
+		return { updated: data?.length ?? 0 }
+	}
+
+	@Put('bulk-read')
+	async markSelectedRead(
+		@Req() req: AuthenticatedRequest,
+		@Body() body: { ids?: string[] }
+	) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException()
+
+		const ids = Array.isArray(body.ids)
+			? [...new Set(body.ids.filter(id => typeof id === 'string' && id.trim()))]
+			: []
+
+		if (ids.length === 0) {
+			throw new BadRequestException('ids array is required')
+		}
+
+		const client = this.getUserClientFromRequest(req)
+		const { data, error } = await client
+			.from('notifications')
+			.update({ is_read: true, read_at: new Date().toISOString() })
+			.eq('user_id', user_id)
+			.in('id', ids)
+			.select('id')
+
+		if (error) throw new BadRequestException(error.message)
+		return { updated: data?.length ?? 0 }
 	}
 
 	@Post()

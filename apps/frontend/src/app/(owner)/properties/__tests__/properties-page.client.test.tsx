@@ -59,8 +59,11 @@ vi.mock('@repo/shared/lib/frontend-logger', () => ({
 	})
 }))
 
-// Mock Supabase client
-const mockGetSession = vi.fn()
+// Mock Supabase client using vi.hoisted() to avoid initialization errors
+const { mockGetSession } = vi.hoisted(() => ({
+	mockGetSession: vi.fn()
+}))
+
 vi.mock('#utils/supabase/client', () => ({
 	createClient: () => ({
 		from: () => ({

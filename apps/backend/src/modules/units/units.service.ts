@@ -300,7 +300,18 @@ export class UnitsService {
 			// User-scoped client automatically verifies property ownership
 			const client = this.supabase.getUserClient(token)
 
-		// RLS automatically verifies property ownership - no manual check needed
+			// First get the property to retrieve owner_user_id
+			const { data: property, error: propertyError } = await client
+				.from('properties')
+				.select('owner_user_id')
+				.eq('id', createRequest.property_id)
+				.single()
+
+			if (propertyError || !property) {
+				throw new BadRequestException('Property not found or access denied')
+			}
+
+			// RLS automatically verifies property ownership - no manual check needed
 			const unitData = {
 				property_id: createRequest.property_id,
 				unit_number: createRequest.unit_number,
@@ -308,7 +319,8 @@ export class UnitsService {
 				bathrooms: createRequest.bathrooms || 1,
 				square_feet: createRequest.square_feet || null,
 				rent_amount: createRequest.rent ?? 0,
-				status: createRequest.status ?? 'available'
+				status: createRequest.status ?? 'available',
+				owner_user_id: property.owner_user_id
 			}
 
 			const { data, error } = await client

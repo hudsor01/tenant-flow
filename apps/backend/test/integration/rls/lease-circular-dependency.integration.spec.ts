@@ -81,14 +81,14 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 
 		// Create owners
 		const { data: owner1 } = await adminClient
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.insert({ email: 'owner1@test.com', name: 'Owner 1' })
 			.select('id')
 			.single()
 		owner1Id = owner1!.id
 
 		const { data: owner2 } = await adminClient
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.insert({ email: 'owner2@test.com', name: 'Owner 2' })
 			.select('id')
 			.single()
@@ -224,7 +224,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		await adminClient.from('units').delete().in('id', [unit1Id, unit2Id])
 		await adminClient.from('properties').delete().in('id', [property1Id, property2Id])
 		await adminClient.from('tenants').delete().in('id', [tenant1Id, tenant2Id])
-		await adminClient.from('property_owners').delete().in('id', [owner1Id, owner2Id])
+		await adminClient.from('stripe_connected_accounts').delete().in('id', [owner1Id, owner2Id])
 	})
 
 	describe('leases_select policy', () => {

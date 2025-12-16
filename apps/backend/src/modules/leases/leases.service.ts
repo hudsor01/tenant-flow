@@ -221,10 +221,10 @@ export class LeasesService {
 			// Unit and tenant queries don't depend on each other
 			const [unitResult, tenantResult] = await Promise.all([
 				client
-					.from('units')
-					.select('id, property_id, property:properties(name)')
-					.eq('id', dto.unit_id)
-					.single(),
+				.from('units')
+				.select('id, property_id, property:properties(name, owner_user_id)')
+				.eq('id', dto.unit_id)
+				.single(),
 				client
 					.from('tenants')
 					.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
@@ -284,6 +284,7 @@ export class LeasesService {
 			const insertData: Database['public']['Tables']['leases']['Insert'] = {
 				primary_tenant_id: dto.primary_tenant_id,
 				unit_id: dto.unit_id,
+				owner_user_id: unit.property?.owner_user_id,
 				start_date: dto.start_date,
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
@@ -483,6 +484,80 @@ export class LeasesService {
 				lease_id
 			})
 			throw new BadRequestException('Failed to delete lease')
+		}
+	}
+
+	/**
+	 * Get complete lease data required for PDF generation
+	 * Includes lease, property, unit, landlord, tenant with all relations
+	 */
+	async getLeaseDataForPdf(token: string, leaseId: string): Promise<{
+		lease: Database['public']['Tables']['leases']['Row']
+		property: Database['public']['Tables']['properties']['Row']
+		unit: Database['public']['Tables']['units']['Row']
+		landlord: Database['public']['Tables']['users']['Row']
+		tenant: Database['public']['Tables']['users']['Row']
+		tenantRecord: Database['public']['Tables']['tenants']['Row']
+	}> {
+		// RLS SECURITY: User-scoped client automatically validates ownership
+		const client = this.supabase.getUserClient(token)
+
+		// Get lease with full relations in parallel for performance
+		const { data: lease, error: leaseError } = await client
+			.from('leases')
+			.select(`
+				*,
+				unit:units!leases_unit_id_fkey (
+					*,
+					property:properties!units_property_id_fkey (*)
+				),
+				tenant:tenants!leases_primary_tenant_id_fkey (
+					*,
+					user:users!tenants_user_id_fkey (*)
+				)
+			`)
+			.eq('id', leaseId)
+			.single()
+
+		if (leaseError || !lease) {
+			throw new NotFoundException('Lease not found')
+		}
+
+		// Get landlord user (owner_user_id references auth.users.id)
+		const { data: landlord, error: landlordError } = await client
+			.from('users')
+			.select('*')
+			.eq('id', lease.owner_user_id)
+			.single()
+
+		if (landlordError || !landlord) {
+			throw new NotFoundException('Landlord not found')
+		}
+
+		// Extract nested relations
+		const unit = lease.unit as Database['public']['Tables']['units']['Row'] & {
+			property: Database['public']['Tables']['properties']['Row']
+		}
+
+		const tenantRecord = lease.tenant as Database['public']['Tables']['tenants']['Row'] & {
+			user: Database['public']['Tables']['users']['Row']
+		}
+
+		if (!unit?.property) {
+			throw new NotFoundException('Property not found for lease')
+		}
+
+		if (!tenantRecord?.user) {
+			throw new NotFoundException('Tenant user not found')
+		}
+
+		return {
+			lease,
+			property: unit.property,
+			unit,
+			landlord,
+			tenant: tenantRecord.user,
+			tenantRecord
 		}
 	}
 }

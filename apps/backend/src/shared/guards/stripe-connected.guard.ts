@@ -32,19 +32,19 @@ export class StripeConnectedGuard implements CanActivate {
 
 		const client = this.supabase.getAdminClient()
 
-		// Get user's Stripe Connect status from property_owners table
-		const { data: propertyOwner, error: ownerError } = await client
-			.from('property_owners')
+		// Get user's Stripe Connect status from stripe_connected_accounts table
+		const { data: stripeAccount, error: ownerError } = await client
+			.from('stripe_connected_accounts')
 			.select('stripe_account_id')
 			.eq('user_id', user_id)
 			.single()
 
-		if (ownerError || !propertyOwner) {
-			this.logger.error('StripeConnectedGuard: Failed to fetch property owner', {
+		if (ownerError || !stripeAccount) {
+			this.logger.error('StripeConnectedGuard: Failed to fetch Stripe account', {
 				user_id,
 				error: ownerError
 			})
-			throw new BadRequestException('Property owner not found')
+			throw new BadRequestException('Stripe account not found')
 		}
 
 		// Get user's onboarding status from users table
@@ -63,7 +63,7 @@ export class StripeConnectedGuard implements CanActivate {
 		}
 
 		// Verify Stripe Connected Account exists
-		if (!propertyOwner.stripe_account_id) {
+		if (!stripeAccount.stripe_account_id) {
 			this.logger.warn(
 				'StripeConnectedGuard: Missing connected account',
 				{ user_id }
@@ -86,7 +86,7 @@ export class StripeConnectedGuard implements CanActivate {
 
 		// Attach connected account ID to request for ConnectedAccountId decorator
 		// NestJS pattern: Guards validate, decorators extract
-		request.connectedAccountId = propertyOwner.stripe_account_id
+		request.connectedAccountId = stripeAccount.stripe_account_id
 
 		return true
 	}

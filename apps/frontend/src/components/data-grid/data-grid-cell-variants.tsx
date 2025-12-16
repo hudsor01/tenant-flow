@@ -47,7 +47,7 @@ import { useBadgeOverflow } from "#hooks/use-badge-overflow";
 import { useDebouncedCallback } from "#hooks/use-debounced-callback";
 import { getCellKey, getLineCount } from "#lib/data-grid";
 import { cn } from "#lib/utils";
-import type { CellVariantProps, FileCellData } from "#types/data-grid";
+import type { CellVariantProps, FileCellData } from "@repo/shared/types/data-grid";
 
 export function ShortTextCell<TData>({
   cell,
@@ -1476,7 +1476,7 @@ export function FileCell<TData>({
             name: f.name,
             size: f.size,
             type: f.type,
-            
+
           }));
           const filesWithTemp = [...files, ...tempFiles];
           setFiles(filesWithTemp);

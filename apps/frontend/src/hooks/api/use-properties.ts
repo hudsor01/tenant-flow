@@ -24,6 +24,8 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
 
+import { useUser } from '#hooks/api/use-auth'
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	handleMutationError,
@@ -116,14 +118,26 @@ export function usePropertyMaintenanceAnalytics() {
  */
 export function useCreateProperty() {
 	const queryClient = useQueryClient()
+	const { data: user } = useUser()
 
 	return useMutation({
 		mutationFn: async (
 			propertyData: PropertyCreate
 		): Promise<Property> => {
+			const ownerUserId =
+				user?.id ??
+				(propertyData as unknown as { owner_user_id?: string })?.owner_user_id ??
+				(propertyData as unknown as { property_owner_id?: string })?.property_owner_id ??
+				null
+
+			const payload = {
+				...propertyData,
+				owner_user_id: ownerUserId
+			} as PropertyCreate & { owner_user_id?: string | null }
+
 			return apiRequest<Property>('/api/v1/properties', {
 				method: 'POST',
-				body: JSON.stringify(propertyData)
+				body: JSON.stringify(payload)
 			})
 		},
 		onMutate: async (newProperty: PropertyCreate) => {
@@ -137,7 +151,13 @@ export function useCreateProperty() {
 
 			// Create optimistic property entry
 			const tempId = `temp-${Date.now()}`
-			const optimisticProperty: Property = {
+			const owner_user_id =
+				user?.id ??
+				(newProperty as unknown as { owner_user_id?: string })?.owner_user_id ??
+				(newProperty as unknown as { property_owner_id?: string })?.property_owner_id ??
+				null
+
+			const optimisticProperty = {
 				id: tempId,
 				name: newProperty.name,
 				address_line1: newProperty.address_line1,
@@ -146,14 +166,14 @@ export function useCreateProperty() {
 				state: newProperty.state,
 				postal_code: newProperty.postal_code,
 				country: newProperty.country || 'US',
-				property_owner_id: '', // Will be set by backend
+				owner_user_id,
 				property_type: newProperty.property_type || 'SINGLE_FAMILY',
 				status: 'active',
 				date_sold: null,
 				sale_price: null,
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
-			}
+			} as Property & { owner_user_id?: string | null }
 
 			// Optimistically update all caches (handle PaginatedResponse structure)
 			queryClient.setQueriesData<PaginatedResponse<Property>>(

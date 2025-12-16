@@ -308,29 +308,10 @@ export function expectPermissionError(error: any, context: string): void {
 }
 
 /**
- * Get the property_owners.id for a given auth.users.id
- * The properties table references property_owners.id, NOT auth.users.id
- * @param client - Authenticated Supabase client
- * @param authUserId - The auth.users.id
- * @returns The property_owners.id or null if not found
+ * NOTE: After Stripe decoupling migration, properties.owner_user_id references auth.users.id directly.
+ * The property_owners table was removed and replaced with stripe_connected_accounts.
+ * No helper function needed - just use the auth user ID directly.
  */
-export async function getPropertyOwnerId(
-	client: SupabaseClient<Database>,
-	authUserId: string
-): Promise<string | null> {
-	const { data, error } = await client
-		.from('property_owners')
-		.select('id')
-		.eq('user_id', authUserId)
-		.maybeSingle()
-
-	if (error) {
-		logger.warn(`Failed to get property owner ID: ${error.message}`)
-		return null
-	}
-
-	return data?.id || null
-}
 
 /**
  * Create or get a test lease for payment testing
@@ -370,16 +351,13 @@ export async function ensureTestLease(
 		return testlease_id
 	}
 
-	// Get the property_owners.id (NOT auth.users.id) for RLS compliance
-	const propertyOwnerId = await getPropertyOwnerId(ownerClient, owner_id)
-	if (!propertyOwnerId) {
-		throw new Error(`No property_owners record found for auth user ${owner_id}. User must be registered as a property owner.`)
-	}
+	// After Stripe decoupling: owner_user_id references auth.users.id directly
+	// No need to query property_owners table - use auth user ID directly
 
 	// Create minimal test property first (owner can create their own property)
 	const { error: propertyError } = await ownerClient.from('properties').upsert({
 		id: testproperty_id,
-		property_owner_id: propertyOwnerId,
+		owner_user_id: owner_id,
 		name: 'Test Property for Payments',
 		address_line1: '123 Test St',
 		city: 'Test City',
@@ -397,7 +375,7 @@ export async function ensureTestLease(
 	const { error: unitError } = await ownerClient.from('units').upsert({
 		id: testunit_id,
 		property_id: testproperty_id,
-		property_owner_id: propertyOwnerId,
+		owner_user_id: owner_id,
 		unit_number: '1',
 		rent_amount: 150000, // $1,500
 		bedrooms: 1,
@@ -452,6 +430,7 @@ export async function ensureTestLease(
 
 	const { error } = await ownerClient.from('leases').insert({
 		id: testlease_id,
+		owner_user_id: owner_id,
 		primary_tenant_id: actualTenantRecordId,
 		unit_id: testunit_id,
 		rent_amount: 150000, // $1,500

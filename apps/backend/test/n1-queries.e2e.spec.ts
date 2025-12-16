@@ -82,7 +82,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 
     // Create test owner
     const { data: ownerData, error: ownerError } = await supabaseClient
-      .from('property_owners')
+      .from('stripe_connected_accounts')
       .insert({
         user_id: userData.id,
         stripe_account_id: `acct_test_n1_${Date.now()}`,
@@ -187,7 +187,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
         }
 
         // Delete owner
-        await supabaseClient.from('property_owners').delete().eq('id', testOwnerId)
+        await supabaseClient.from('stripe_connected_accounts').delete().eq('id', testOwnerId)
       }
 
       // Delete test tenants

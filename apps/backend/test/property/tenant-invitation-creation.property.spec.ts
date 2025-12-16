@@ -52,7 +52,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
 
     // Get property_owner_id
     const { data: ownerData, error: ownerError } = await client
-      .from('property_owners')
+      .from('stripe_connected_accounts')
       .select('id')
       .eq('user_id', authData.user.id)
       .single()

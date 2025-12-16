@@ -21,7 +21,7 @@ import type {
   CellPosition,
   Direction,
   RowHeightValue,
-} from "#types/data-grid";
+} from "@repo/shared/types/data-grid";
 
 interface DataGridRowProps<TData> extends React.ComponentProps<"div"> {
   row: Row<TData>;

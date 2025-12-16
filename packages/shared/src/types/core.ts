@@ -161,7 +161,7 @@ export type Lease = Tables<'leases'>
 export type MaintenanceRequest = Tables<'maintenance_requests'>
 export type RentPayment = Tables<'rent_payments'>
 export type ExpenseRecord = Tables<'expenses'>
-export type ConnectedAccount = Tables<'property_owners'>
+export type ConnectedAccount = Tables<'stripe_connected_accounts'>
 export type PropertyInsert = TablesInsert<'properties'>
 export type UnitInsert = TablesInsert<'units'>
 
@@ -189,7 +189,7 @@ export type PaymentScheduleRow = Database['public']['Tables']['payment_schedules
 export type PaymentTransactionRow = Database['public']['Tables']['payment_transactions']['Row']
 export type PropertyRow = Database['public']['Tables']['properties']['Row']
 export type PropertyImageRow = Database['public']['Tables']['property_images']['Row']
-export type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+export type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 export type RentDueRow = Database['public']['Tables']['rent_due']['Row']
 export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 export type ReportRunRow = Database['public']['Tables']['report_runs']['Row']

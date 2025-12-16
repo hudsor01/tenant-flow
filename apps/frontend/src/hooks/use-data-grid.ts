@@ -39,7 +39,7 @@ import type {
   SearchState,
   SelectionState,
   UpdateCell,
-} from "#types/data-grid";
+} from "@repo/shared/types/data-grid";
 
 const DEFAULT_ROW_HEIGHT = "short";
 const OVERSCAN = 6;
@@ -2879,7 +2879,7 @@ function useDataGrid<TData>({
         const scrollOpts: Partial<CellPosition> = {};
         if (adjustedRowIndex !== undefined) scrollOpts.rowIndex = adjustedRowIndex;
         if (result.columnId !== undefined) scrollOpts.columnId = result.columnId;
-        
+
         onScrollToRow(scrollOpts);
         return;
       }

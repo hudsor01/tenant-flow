@@ -41,7 +41,7 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 	it('PROOF: Batch query gets all units at once (not N queries)', async () => {
 		// Find a property owner with properties
 		const { data: owners } = await client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('id, properties(id)')
 			.limit(1)
 			.single()
@@ -73,7 +73,7 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 	it('PROOF: Nested join gets properties+units+leases in ONE query', async () => {
 		// Find owner with data
 		const { data: owners } = await client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('id')
 			.limit(1)
 			.single()

@@ -40,7 +40,7 @@ import {
   TooltipTrigger,
 } from "#components/ui/tooltip";
 import { cn } from "#lib/utils";
-import type { CellOpts } from "#types/data-grid";
+import type { CellOpts } from "@repo/shared/types/data-grid";
 
 function getColumnVariant(variant?: CellOpts["variant"]): {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;

@@ -9,15 +9,12 @@
  */
 
 import {
-	BadRequestException,
 	Body,
 	Controller,
-	DefaultValuePipe,
 	Delete,
 	Get,
 	NotFoundException,
 	Param,
-	ParseIntPipe,
 	ParseUUIDPipe,
 	Post,
 	Put,
