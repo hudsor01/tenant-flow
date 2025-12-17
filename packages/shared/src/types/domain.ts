@@ -5,6 +5,9 @@
  * Reduces type file count while maintaining domain separation
  */
 
+// Import CSP types from base-types to avoid circular dependency with security.ts
+export type { CSPViolationReport, CSPReportBody } from './base-types.js'
+
 
 
 // CONTACT DOMAIN
@@ -258,24 +261,5 @@ export type StripeWebhookEventTypes =
 
 export type { WebhookNotification } from './stripe.js'
 
-
-export interface CSPViolationReport {
-	'document-uri': string
-	referrer: string
-	'violated-directive': string
-	'effective-directive': string
-	'original-policy': string
-	disposition: string
-	'blocked-uri': string
-	'line-number': number
-	'column-number': number
-	'source-file': string
-	'status-code': number
-	'script-sample': string
-}
-
-export interface CSPReportBody {
-	'csp-report': CSPViolationReport
-}
-
+// Re-export SecurityEvent from security.ts to avoid circular dependency
 export type { SecurityEvent } from './security.js'
