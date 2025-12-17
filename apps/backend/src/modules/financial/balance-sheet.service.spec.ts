@@ -121,7 +121,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           }
         ],
         maintenanceRequests: [],
@@ -139,7 +139,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '101',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           }
         ],
         properties: [
@@ -154,7 +154,7 @@ describe('BalanceSheetService', () => {
             date_sold: null,
             name: 'Property 1',
             postal_code: '12345',
-            property_owner_id: 'user-123',
+            owner_user_id: 'user-123',
             property_type: 'residential',
             sale_price: null,
             updated_at: '2024-01-01',
@@ -238,7 +238,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           },
           {
             id: 'lease-2',
@@ -259,7 +259,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-2'
+            owner_user_id: 'owner-2'
           }
         ],
         maintenanceRequests: [],
@@ -277,7 +277,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '101',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           },
           {
             id: 'unit-2',
@@ -292,7 +292,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '102',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           }
         ],
         properties: [
@@ -307,7 +307,7 @@ describe('BalanceSheetService', () => {
             date_sold: null,
             name: 'Property 1',
             postal_code: '12345',
-            property_owner_id: 'user-123',
+            owner_user_id: 'user-123',
             property_type: 'residential',
             sale_price: null,
             updated_at: '2024-01-01',
@@ -454,7 +454,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           },
           {
             id: 'lease-2',
@@ -475,7 +475,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-2'
+            owner_user_id: 'owner-2'
           },
           {
             id: 'lease-3',
@@ -496,7 +496,7 @@ describe('BalanceSheetService', () => {
             rent_amount: 1500,
             rent_currency: 'USD',
             stripe_subscription_id: null,
-            property_owner_id: 'owner-3'
+            owner_user_id: 'owner-3'
           }
         ],
         maintenanceRequests: [],
@@ -514,7 +514,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '101',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-1'
+            owner_user_id: 'owner-1'
           },
           {
             id: 'unit-2',
@@ -529,7 +529,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '201',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-2'
+            owner_user_id: 'owner-2'
           },
           {
             id: 'unit-3',
@@ -544,7 +544,7 @@ describe('BalanceSheetService', () => {
             status: 'occupied',
             unit_number: '301',
             updated_at: '2024-01-01',
-            property_owner_id: 'owner-3'
+            owner_user_id: 'owner-3'
           }
         ],
         properties: [
@@ -559,7 +559,7 @@ describe('BalanceSheetService', () => {
             date_sold: null,
             name: 'Property 1',
             postal_code: '12345',
-            property_owner_id: 'user-123',
+            owner_user_id: 'user-123',
             property_type: 'residential',
             sale_price: null,
             updated_at: '2024-01-01',
@@ -577,7 +577,7 @@ describe('BalanceSheetService', () => {
             date_sold: null,
             name: 'Property 2',
             postal_code: '12345',
-            property_owner_id: 'user-123',
+            owner_user_id: 'user-123',
             property_type: 'residential',
             sale_price: null,
             updated_at: '2024-01-01',
@@ -595,7 +595,7 @@ describe('BalanceSheetService', () => {
             date_sold: null,
             name: 'Property 3',
             postal_code: '12345',
-            property_owner_id: 'user-123',
+            owner_user_id: 'user-123',
             property_type: 'residential',
             sale_price: null,
             updated_at: '2024-01-01',

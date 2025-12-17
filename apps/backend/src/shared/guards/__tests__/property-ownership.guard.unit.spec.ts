@@ -76,9 +76,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       // Mock successful ownership verification
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -99,7 +97,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       // Verify correct query structure
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('properties')
-      expect(mockSupabaseClient.select).toHaveBeenCalledWith('property_owner:property_owner_id(user_id)')
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('owner_user_id')
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', propertyId)
       expect(mockSupabaseClient.single).toHaveBeenCalled()
     })
@@ -110,9 +108,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -148,9 +144,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: differentUserId
-          }
+          owner_user_id: differentUserId
         },
         error: null
       })
@@ -203,15 +197,13 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
   })
 
   describe('verifyLeaseOwnership', () => {
-    it('should query with correct join through property_owners table using property_owner_id', async () => {
+    it('should query with correct join through property_owners table using owner_user_id', async () => {
       const userId = 'user-123'
       const leaseId = 'lease-456'
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -229,9 +221,9 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       await guard.canActivate(context)
 
-      // Verify correct query structure with property_owner_id (not owner_id)
+      // Verify correct query structure with owner_user_id (not owner_id)
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('leases')
-      expect(mockSupabaseClient.select).toHaveBeenCalledWith('property_owner:property_owner_id(user_id)')
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('owner_user_id')
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', leaseId)
       expect(mockSupabaseClient.single).toHaveBeenCalled()
     })
@@ -242,9 +234,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -313,9 +303,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -335,7 +323,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       // Verify correct query structure with primary_tenant_id (not tenant_id)
       expect(mockSupabaseClient.from).toHaveBeenCalledWith('leases')
-      expect(mockSupabaseClient.select).toHaveBeenCalledWith('property_owner:property_owner_id(user_id)')
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith('owner_user_id')
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('primary_tenant_id', tenantId)
       expect(mockSupabaseClient.single).toHaveBeenCalled()
     })
@@ -346,9 +334,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -417,9 +403,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -457,9 +441,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -538,9 +520,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -576,9 +556,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -616,9 +594,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: userId
-          }
+          owner_user_id: userId
         },
         error: null
       })
@@ -684,9 +660,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       mockSupabaseClient.single.mockResolvedValue({
         data: {
-          property_owner: {
-            user_id: differentUserId
-          }
+          owner_user_id: differentUserId
         },
         error: null
       })

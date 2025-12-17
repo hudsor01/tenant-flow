@@ -210,7 +210,7 @@ export class LeasesService {
 			const [unitResult, tenantResult] = await Promise.all([
 				client
 					.from('units')
-					.select('id, property_id, property:properties(name)')
+					.select('id, property_id, property:properties(name, owner_user_id)')
 					.eq('id', dto.unit_id)
 					.single(),
 				client
@@ -269,10 +269,18 @@ export class LeasesService {
 			}
 
 			// Build insert data with all fields from DTO
-			const insertData: Database['public']['Tables']['leases']['Insert'] = {
-				primary_tenant_id: dto.primary_tenant_id,
-				unit_id: dto.unit_id,
-				start_date: dto.start_date,
+		// Extract owner_user_id from property relation
+		type PropertyWithOwner = { name: string | null; owner_user_id: string | null } | null
+		const property: PropertyWithOwner = unit.property
+		if (!property?.owner_user_id) {
+			throw new BadRequestException('Property owner not found')
+		}
+
+		const insertData: Database['public']['Tables']['leases']['Insert'] = {
+			primary_tenant_id: dto.primary_tenant_id,
+			unit_id: dto.unit_id,
+			owner_user_id: property.owner_user_id,
+			start_date: dto.start_date,
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
 				security_deposit: dto.security_deposit || 0,
@@ -436,6 +444,81 @@ export class LeasesService {
 		}
 
 		return data as Lease
+	}
+
+	/**
+	 * Get lease data with all relationships for PDF generation
+	 * Used by LeaseSignatureService to generate filled PDFs
+	 * RLS COMPLIANT: Uses getUserClient(token)
+	 */
+	async getLeaseDataForPdf(
+		token: string,
+		lease_id: string
+	): Promise<{
+		lease: Database['public']['Tables']['leases']['Row']
+		property: Database['public']['Tables']['properties']['Row']
+		unit: Database['public']['Tables']['units']['Row']
+		landlord: Database['public']['Tables']['users']['Row']
+		tenant: Database['public']['Tables']['users']['Row']
+		tenantRecord: Database['public']['Tables']['tenants']['Row']
+	}> {
+		const client = this.supabase.getUserClient(token)
+
+		// Fetch lease with all relationships
+		const { data: lease, error: leaseError } = await client
+			.from('leases')
+			.select(`
+				*,
+				unit:units(*),
+				property:properties(*),
+				tenant:tenants!leases_primary_tenant_id_fkey(*)
+			`)
+			.eq('id', lease_id)
+			.single()
+
+		if (leaseError || !lease) {
+			throw new NotFoundException(`Lease ${lease_id} not found`)
+		}
+
+		// Fetch landlord user (owner) - lease.owner_user_id references auth.users
+		const { data: landlord, error: landlordError } = await client
+			.from('users')
+			.select('*')
+			.eq('id', lease.owner_user_id)
+			.single()
+
+		if (landlordError || !landlord) {
+			throw new NotFoundException('Landlord user not found for lease')
+		}
+
+		// Fetch tenant user via tenantRecord.user_id
+		const tenantRecord = lease.tenant as Database['public']['Tables']['tenants']['Row']
+		const { data: tenant, error: tenantError } = await client
+			.from('users')
+			.select('*')
+			.eq('id', tenantRecord.user_id)
+			.single()
+
+		if (tenantError || !tenant) {
+			throw new NotFoundException('Tenant user not found for lease')
+		}
+
+		// Extract nested relations from arrays (Supabase returns joins as arrays)
+		const propertyArray = lease.property as unknown as Database['public']['Tables']['properties']['Row'][]
+		const unitArray = lease.unit as unknown as Database['public']['Tables']['units']['Row'][]
+
+		if (!propertyArray?.[0] || !unitArray?.[0]) {
+			throw new NotFoundException('Property or unit not found for lease')
+		}
+
+		return {
+			lease: lease as Database['public']['Tables']['leases']['Row'],
+			property: propertyArray[0],
+			unit: unitArray[0],
+			landlord,
+			tenant,
+			tenantRecord
+		}
 	}
 
 	/**

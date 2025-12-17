@@ -9,7 +9,7 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 
 interface LeaseContext {

@@ -49,12 +49,11 @@ interface LeaseWithOwnerData {
 		id: string
 		property_id: string
 		property: {
-			property_owner_id: string
-			owner: {
-				user_id: string
-				stripe_account_id: string | null
-				user: User
-			}
+			owner_user_id: string
+			stripe_connected_account: {
+				stripe_account_id: string
+			} | null
+			owner: User
 		}
 	}
 }
@@ -109,13 +108,12 @@ export class RentPaymentContextService {
 					id,
 					property_id,
 					property:property_id (
-						property_owner_id,
-						owner:property_owner_id (
-							user_id,
-							stripe_account_id,
-							user:user_id (*)
-						)
-					)
+					owner_user_id,
+					stripe_connected_account:stripe_connected_account_id (
+						stripe_account_id
+					),
+					owner:owner_user_id (*)
+				)
 				)
 			`)
 			.eq('id', lease_id)
@@ -133,7 +131,7 @@ export class RentPaymentContextService {
 		}
 
 		// Validate nested data exists
-		if (!typedData.unit?.property?.owner?.user) {
+		if (!typedData.unit?.property?.owner) {
 			throw new NotFoundException('Property owner not found for lease')
 		}
 
@@ -141,8 +139,8 @@ export class RentPaymentContextService {
 			throw new NotFoundException('Tenant not found for lease')
 		}
 
-		const ownerUser = typedData.unit.property.owner.user
-		const stripeAccountId = typedData.unit.property.owner.stripe_account_id
+		const ownerUser = typedData.unit.property.owner
+		const stripeAccountId = typedData.unit.property.stripe_connected_account?.stripe_account_id ?? null
 
 		// Authorization check - no separate query needed, tenant included in join
 		const isOwner = ownerUser.id === requestingUserId
@@ -189,16 +187,16 @@ export class RentPaymentContextService {
 			.select(`
 				id,
 				unit:unit_id (
-					property:property_id (
-						owner:property_owner_id (user_id)
-					)
+				property:property_id (
+					owner_user_id
 				)
+			)
 			`)
 			.eq('primary_tenant_id', tenant_id)
 			.limit(1)
 			.maybeSingle()
 
-		const ownerUserId = leaseWithOwner?.unit?.property?.owner?.user_id
+		const ownerUserId = leaseWithOwner?.unit?.property?.owner_user_id
 
 		if (error || ownerUserId !== requestingUserId) {
 			throw new ForbiddenException('You are not authorized to access this tenant')

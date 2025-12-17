@@ -133,4 +133,3 @@ bootstrap().catch((err: unknown) => {
   process.stderr.write(`Failed to start server: ${err}\n`)
   process.exit(1)
 })
-// test

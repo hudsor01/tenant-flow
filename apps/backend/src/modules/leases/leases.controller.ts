@@ -30,7 +30,7 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
-import { isValidLeaseStatus } from '@repo/shared/validation/enum-validators'
+import { FindAllLeasesDto } from './dto/find-all-leases.dto'
 import { isValidUUID } from '@repo/shared/validation/common'
 
 @Controller('leases')
@@ -45,47 +45,11 @@ export class LeasesController {
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query('tenant_id') tenant_id?: string,
-		@Query('unit_id') unit_id?: string,
-		@Query('property_id') property_id?: string,
-		@Query('status') status?: string,
-		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
-		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
-		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy?: string,
-		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
+		@Query() query: FindAllLeasesDto
 	) {
-		// Validate UUIDs if provided
-		if (tenant_id && !isValidUUID(tenant_id)) {
-			throw new BadRequestException('Invalid tenant ID')
-		}
-		if (unit_id && !isValidUUID(unit_id)) {
-			throw new BadRequestException('Invalid unit ID')
-		}
-		if (property_id && !isValidUUID(property_id)) {
-			throw new BadRequestException('Invalid property ID')
-		}
-
-		// Validate status enum using shared constant (DRY principle)
-		if (status && !isValidLeaseStatus(status)) {
-			throw new BadRequestException('Invalid lease status')
-		}
-
-		// Validate limits
-		if (limit && (limit < 1 || limit > 50)) {
-			throw new BadRequestException('Limit must be between 1 and 50')
-		}
-
+		// DTO validation handles all parameter validation via Zod schema
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
-		const data = await this.leasesService.findAll(token, {
-			tenant_id,
-			unit_id,
-			property_id,
-			status,
-			limit,
-			offset,
-			sortBy,
-			sortOrder
-		})
+		const data = await this.leasesService.findAll(token, { ...query })
 
 		// Return PaginatedResponse format expected by frontend
 		// Service already returns { data, total, limit, offset }, just add hasMore

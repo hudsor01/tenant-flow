@@ -246,7 +246,7 @@ describe('TenantPaymentService', () => {
     it('should return payment history for a tenant owned by user', async () => {
       const mockLease = { id: 'lease-1', unit_id: 'unit-1' }
       const mockUnit = { property_id: 'property-1' }
-      const mockProperty = { property_owner_id: 'user-1' }
+      const mockProperty = { owner_user_id: 'user-1' }
       const mockPayments = [
         {
           id: 'pi_1',

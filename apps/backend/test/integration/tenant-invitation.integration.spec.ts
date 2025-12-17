@@ -16,7 +16,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
-	getPropertyOwnerId,
+
 	TEST_OWNER,
 	type AuthenticatedTestClient
 } from './invitation-setup'
@@ -46,7 +46,7 @@ describe('Tenant Invitation Flow', () => {
 		ownerA = await authenticateAs(TEST_OWNER)
 
 		// Get the property_owners.id for RLS compliance
-		ownerAPropertyOwnerId = await getPropertyOwnerId(ownerA.client, ownerA.user_id)
+		ownerAPropertyOwnerId = ownerA.user_id
 		if (!ownerAPropertyOwnerId) {
 			throw new Error(`No property_owners record found for auth user ${ownerA.user_id}. User must be registered as a property owner.`)
 		}
@@ -59,7 +59,7 @@ describe('Tenant Invitation Flow', () => {
 			.from('properties')
 			.insert({
 				id: testPropertyId,
-				property_owner_id: ownerAPropertyOwnerId,
+				owner_user_id: ownerAPropertyOwnerId,
 				name: 'Test Invitation Property',
 				address_line1: '123 Invite St',
 				city: 'Test City',
@@ -83,7 +83,7 @@ describe('Tenant Invitation Flow', () => {
 			.insert({
 				id: testUnitId,
 				property_id: testPropertyId,
-				property_owner_id: ownerAPropertyOwnerId,
+				owner_user_id: ownerAPropertyOwnerId,
 				unit_number: '101',
 				rent_amount: 150000, // $1,500
 				bedrooms: 2,
@@ -146,7 +146,7 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${secureToken}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerAPropertyOwnerId!
+					owner_user_id: ownerAPropertyOwnerId!
 				})
 				.select('id, invitation_code')
 				.single()
@@ -182,7 +182,7 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${secureToken}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerAPropertyOwnerId!
+					owner_user_id: ownerAPropertyOwnerId!
 				})
 				.select('expires_at')
 				.single()
@@ -217,7 +217,7 @@ describe('Tenant Invitation Flow', () => {
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!
+				owner_user_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
@@ -252,7 +252,7 @@ describe('Tenant Invitation Flow', () => {
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiredAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!
+				owner_user_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
@@ -285,7 +285,7 @@ describe('Tenant Invitation Flow', () => {
 				expires_at: expiresAt.toISOString(),
 				accepted_at: new Date().toISOString(), // Already accepted
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!
+				owner_user_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
@@ -334,7 +334,7 @@ describe('Tenant Invitation Flow', () => {
 				id: testLeaseId,
 				primary_tenant_id: testTenantId,
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!,
+				owner_user_id: ownerAPropertyOwnerId!,
 				rent_amount: 150000, // $1,500
 				security_deposit: 150000,
 				start_date: startDate.toISOString().split('T')[0]!,
@@ -406,7 +406,7 @@ describe('Tenant Invitation Flow', () => {
 					invitation_url: `https://app.test/accept-invite?code=${token}`,
 					expires_at: expiresAt.toISOString(),
 					unit_id: testUnitId,
-					property_owner_id: ownerAPropertyOwnerId!
+					owner_user_id: ownerAPropertyOwnerId!
 				})
 				.select('id, accepted_at, expires_at, status')
 				.single()
@@ -435,7 +435,7 @@ describe('Tenant Invitation Flow', () => {
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!
+				owner_user_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
@@ -473,7 +473,7 @@ describe('Tenant Invitation Flow', () => {
 				invitation_url: `https://app.test/accept-invite?code=${token}`,
 				expires_at: expiresAt.toISOString(),
 				unit_id: testUnitId,
-				property_owner_id: ownerAPropertyOwnerId!
+				owner_user_id: ownerAPropertyOwnerId!
 			})
 			testData.invitations.push(testInviteId)
 
@@ -481,7 +481,7 @@ describe('Tenant Invitation Flow', () => {
 			const { data: invitations, error } = await ownerA.client
 				.from('tenant_invitations')
 				.select('id, email, status, expires_at')
-				.eq('property_owner_id', ownerAPropertyOwnerId!)
+				.eq('owner_user_id', ownerAPropertyOwnerId!)
 				.order('created_at', { ascending: false })
 
 			expect(error).toBeNull()

@@ -78,6 +78,16 @@ export interface CreateLeaseSubmissionParams {
 	unitNumber?: string | undefined
 }
 
+export interface CreateSubmissionFromPdfParams {
+	leaseId: string
+	pdfUrl: string
+	ownerEmail: string
+	ownerName: string
+	tenantEmail: string
+	tenantName: string
+	sendEmail?: boolean
+}
+
 @Injectable()
 export class DocuSealService {
 
@@ -191,6 +201,58 @@ export class DocuSealService {
 		})
 
 		this.logger.log('Resent signature request to submitter', { submitterId })
+	}
+
+	/**
+	 * Create submission from pre-filled PDF (production-ready approach)
+	 * Uses DocuSeal /submissions/pdf endpoint to submit already-filled PDF
+	 * for signature without template dependency
+	 */
+	async createSubmissionFromPdf(params: CreateSubmissionFromPdfParams): Promise<DocuSealSubmission> {
+		this.ensureEnabled()
+
+		const body = {
+			documents: [
+				{
+					name: `Lease Agreement - ${params.leaseId}`,
+					file: params.pdfUrl // DocuSeal accepts public URLs
+				}
+			],
+			submitters: [
+				{
+					role: 'Property Owner',
+					email: params.ownerEmail,
+					name: params.ownerName,
+					order: 1 // Owner signs first
+				},
+				{
+					role: 'Tenant',
+					email: params.tenantEmail,
+					name: params.tenantName,
+					order: 2 // Tenant signs second (sequential signing)
+				}
+			],
+			send_email: params.sendEmail ?? false,
+			order: 'preserved', // Sequential signing (owner → tenant)
+			metadata: {
+				lease_id: params.leaseId,
+				source: 'tenantflow',
+				document_type: 'lease_agreement'
+			}
+		}
+
+		const submission = await this.fetch<DocuSealSubmission>('/submissions/pdf', {
+			method: 'POST',
+			body: JSON.stringify(body)
+		})
+
+		this.logger.log('Created DocuSeal submission from filled PDF', {
+			submissionId: submission.id,
+			leaseId: params.leaseId,
+			pdfUrl: params.pdfUrl
+		})
+
+		return submission
 	}
 
 	/**

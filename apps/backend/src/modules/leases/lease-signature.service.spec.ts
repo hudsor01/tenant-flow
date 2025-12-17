@@ -16,9 +16,13 @@ import { Test } from '@nestjs/testing'
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { LeaseSignatureService } from './lease-signature.service'
+import { LeasesService } from './leases.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { DocuSealService } from '../docuseal/docuseal.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
+import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
+import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
+import { PdfStorageService } from '../pdf/pdf-storage.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -29,6 +33,12 @@ describe('LeaseSignatureService', () => {
 	let mockEventEmitter: jest.Mocked<Partial<EventEmitter2>>
 	let mockDocuSealService: jest.Mocked<Partial<DocuSealService>>
 	let mockLeaseSubscriptionService: jest.Mocked<Partial<LeaseSubscriptionService>>
+	let mockLeasesService: any
+	let mockPdfMapper: any
+	let mockPdfGenerator: any
+	let mockPdfStorage: any
+
+	const mockToken = 'mock-jwt-token'
 
 	// Helper to create a flexible Supabase query chain
 	const createMockChain = (resolveData: unknown = [], resolveError: unknown = null) => {
@@ -53,23 +63,112 @@ describe('LeaseSignatureService', () => {
 		error: null
 	})
 
+	// Helper to create a complete Supabase client mock with user emails
+	const createMockClientWithUsers = (
+		ownerId: string,
+		ownerEmail: string,
+		tenantUserId: string,
+		tenantEmail: string,
+		leaseData: any,
+		additionalMocks?: { [table: string]: any }
+	) => {
+		let userCallCount = 0
+		return jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain(leaseData)
+				}
+				if (table === 'tenants') {
+					return createMockChain({ id: leaseData.primary_tenant_id || 'tenant-456', user_id: tenantUserId })
+				}
+				if (table === 'users') {
+					const mockUserData = [
+						{ id: ownerId, email: ownerEmail, first_name: 'Owner', last_name: 'User' },
+						{ id: tenantUserId, email: tenantEmail, first_name: 'Tenant', last_name: 'User' }
+					]
+					const chain = createMockChain()
+					chain.single = jest.fn(() => {
+						const data = mockUserData[userCallCount++]
+						return Promise.resolve({ data, error: null })
+					})
+					return chain
+				}
+				if (additionalMocks && table in additionalMocks) {
+					return createMockChain(additionalMocks[table])
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+	}
+
 	beforeEach(async () => {
 		mockEventEmitter = {
 			emit: jest.fn()
 		}
 
 		mockDocuSealService = {
-			isEnabled: jest.fn().mockReturnValue(false),
-			createLeaseSubmission: jest.fn(),
-			getSubmitterSigningUrl: jest.fn(),
-			archiveSubmission: jest.fn(),
-			getSubmission: jest.fn(),
-			resendToSubmitter: jest.fn()
-		}
+		isEnabled: jest.fn().mockReturnValue(false),
+		createLeaseSubmission: jest.fn(),
+		createSubmissionFromPdf: jest.fn().mockResolvedValue({ id: 12345 }),
+		getSubmitterSigningUrl: jest.fn(),
+		archiveSubmission: jest.fn(),
+		getSubmission: jest.fn(),
+		resendToSubmitter: jest.fn()
+	}
 
 		mockLeaseSubscriptionService = {
 			activateLease: jest.fn().mockResolvedValue(undefined)
 		}
+
+		mockLeasesService = {
+			findOne: jest.fn(),
+			getLeaseDataForPdf: jest.fn().mockResolvedValue({
+				id: 'lease-123',
+				rent_amount: 150000,
+				unit: { unit_number: '101' },
+				property: { name: 'Test Property' },
+				tenant: {
+					user: {
+						id: 'tenant-user-id',
+						first_name: 'Test',
+						last_name: 'Tenant',
+						email: 'tenant@example.com'
+					}
+				},
+				property_owner: {
+					user: {
+						id: 'owner-user-id',
+						first_name: 'Property',
+						last_name: 'Owner',
+						email: 'owner@example.com'
+					}
+				}
+			})
+		}
+
+		mockPdfMapper = {
+			mapToPdfData: jest.fn(),
+			mapLeaseToPdfFields: jest.fn().mockReturnValue({
+				fields: {},
+				missing: { isComplete: true, fields: [] }
+			}),
+			mergeMissingFields: jest.fn((autoFilled, manual) => ({ ...autoFilled, ...manual })),
+			validateMissingFields: jest.fn().mockReturnValue({ isValid: true, errors: [] })
+		}
+
+		mockPdfGenerator = {
+			generatePdf: jest.fn().mockResolvedValue(Buffer.from('pdf-content')),
+			generateFilledPdf: jest.fn().mockResolvedValue(Buffer.from('filled-pdf-content'))
+		}
+
+		mockPdfStorage = {
+		uploadPdf: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf'),
+		getSignedUrl: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf?signed=true'),
+		uploadLeasePdf: jest.fn().mockResolvedValue({
+			publicUrl: 'https://storage.example.com/lease.pdf',
+			path: 'leases/lease-123.pdf'
+		})
+	}
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn(() => ({
@@ -84,6 +183,10 @@ describe('LeaseSignatureService', () => {
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: DocuSealService, useValue: mockDocuSealService },
 				{ provide: LeaseSubscriptionService, useValue: mockLeaseSubscriptionService },
+				{ provide: LeasesService, useValue: mockLeasesService },
+				{ provide: LeasePdfMapperService, useValue: mockPdfMapper },
+				{ provide: LeasePdfGeneratorService, useValue: mockPdfGenerator },
+				{ provide: PdfStorageService, useValue: mockPdfStorage },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -103,42 +206,52 @@ describe('LeaseSignatureService', () => {
 		const ownerId = 'owner-user-123' // auth.users.id
 		const propertyOwnerId = 'property-owner-456' // property_owners.id (FK in leases)
 
-		it('should transition lease from draft to pending_signature', async () => {
-			let updateData: any = null
+	it('should transition lease from draft to pending_signature', async () => {
+		let updateData: any = null
+		let userCallCount = 0
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						const chain = createMockChain({
-							id: leaseId,
-							lease_status: 'draft',
-							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
-						})
-						chain.update = jest.fn((data: any) => {
-							updateData = data
-							return chain
-						})
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					const chain = createMockChain({
+						id: leaseId,
+						lease_status: 'draft',
+						owner_user_id: ownerId,
+						primary_tenant_id: 'tenant-456'
+					})
+					chain.update = jest.fn((data: any) => {
+						updateData = data
 						return chain
-					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
-					if (table === 'tenants') {
-						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-					}
-					return createMockChain()
-				})
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+					})
+					return chain
+				}
+				if (table === 'tenants') {
+					return createMockChain({ id: 'tenant-456', user_id: 'tenant-user-789' })
+				}
+				if (table === 'users') {
+					const mockUserData = [
+						{ id: ownerId, email: 'owner@test.com', first_name: 'Owner', last_name: 'User' },
+						{ id: 'tenant-user-789', email: 'tenant@test.com', first_name: 'Tenant', last_name: 'User' }
+					]
+					const chain = createMockChain()
+					chain.single = jest.fn(() => {
+						const data = mockUserData[userCallCount++]
+						return Promise.resolve({ data, error: null })
+					})
+					return chain
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await service.sendForSignature(ownerId, leaseId)
+		await service.sendForSignature(ownerId, leaseId, { token: mockToken })
 
-			expect(updateData).toEqual(expect.objectContaining({
-				lease_status: 'pending_signature',
-				sent_for_signature_at: expect.any(String)
-			}))
-		})
+		expect(updateData).toEqual(expect.objectContaining({
+			lease_status: 'pending_signature',
+			sent_for_signature_at: expect.any(String),
+			pdf_storage_path: expect.any(String)
+		}))
+	})
 
 		it('should NOT allow sending non-draft lease for signature', async () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
@@ -147,7 +260,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'active', // Already active
-							property_owner_id: propertyOwnerId,
+							owner_user_id: ownerId,
 							property_owner: { user_id: ownerId }
 						})
 					}
@@ -158,7 +271,7 @@ describe('LeaseSignatureService', () => {
 				})
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await expect(service.sendForSignature(ownerId, leaseId))
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
 				.rejects.toThrow(BadRequestException)
 		})
 
@@ -169,8 +282,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'draft',
-							property_owner_id: 'different-property-owner', // Not the requesting owner
-							property_owner: { user_id: 'different-user-id' }
+							owner_user_id: 'different-user-id' // Not the requesting owner
 						})
 					}
 					if (table === 'property_owners') {
@@ -181,210 +293,227 @@ describe('LeaseSignatureService', () => {
 				})
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await expect(service.sendForSignature(ownerId, leaseId))
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
 				.rejects.toThrow(ForbiddenException)
 		})
 
 		it('should emit lease.sent_for_signature event', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						return createMockChain({
-							id: leaseId,
-							lease_status: 'draft',
-							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
-						})
-					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
-					if (table === 'tenants') {
-						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-					}
-					return createMockChain()
-				})
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+		let userCallCount = 0
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain({
+						id: leaseId,
+						lease_status: 'draft',
+						owner_user_id: ownerId,
+						primary_tenant_id: 'tenant-456'
+					})
+				}
+				if (table === 'tenants') {
+					return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+				}
+				if (table === 'users') {
+					const mockUserData = [
+						{ id: ownerId, email: 'owner@test.com', first_name: 'Owner', last_name: 'User' },
+						{ id: 'user-789', email: 'tenant@test.com', first_name: 'Tenant', last_name: 'User' }
+					]
+					const chain = createMockChain()
+					chain.single = jest.fn(() => {
+						const data = mockUserData[userCallCount++]
+						return Promise.resolve({ data, error: null })
+					})
+					return chain
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await service.sendForSignature(ownerId, leaseId)
+		await service.sendForSignature(ownerId, leaseId, { token: mockToken })
 
-			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
-				'lease.sent_for_signature',
-				expect.objectContaining({
-					lease_id: leaseId,
-					tenant_id: 'tenant-456'
-				})
-			)
-		})
+		expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+			'lease.sent_for_signature',
+			expect.objectContaining({
+				lease_id: leaseId,
+				tenant_id: 'tenant-456'
+			})
+		)
+	})
 
 		it('should NOT create Stripe subscription when sending for signature', async () => {
+		let userCallCount = 0
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain({
+						id: leaseId,
+						lease_status: 'draft',
+						owner_user_id: ownerId,
+						primary_tenant_id: 'tenant-456'
+					})
+				}
+				if (table === 'tenants') {
+					return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+				}
+				if (table === 'users') {
+					const mockUserData = [
+						{ id: ownerId, email: 'owner@test.com', first_name: 'Owner', last_name: 'User' },
+						{ id: 'user-789', email: 'tenant@test.com', first_name: 'Tenant', last_name: 'User' }
+					]
+					const chain = createMockChain()
+					chain.single = jest.fn(() => {
+						const data = mockUserData[userCallCount++]
+						return Promise.resolve({ data, error: null })
+					})
+					return chain
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+
+		await service.sendForSignature(ownerId, leaseId, { token: mockToken })
+
+		// Lease activation should NOT happen at this stage
+		expect(mockLeaseSubscriptionService.activateLease).not.toHaveBeenCalled()
+	})
+
+		describe('email validation with DocuSeal', () => {
+			it('should throw BadRequestException when owner email is missing', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'draft',
-							property_owner_id: propertyOwnerId,
-							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
+							owner_user_id: ownerId,
+							primary_tenant_id: 'tenant-456'
 						})
-					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
 					}
 					if (table === 'tenants') {
 						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+					}
+					if (table === 'users') {
+						// Return null email for owner
+						return createMockChain({ email: null, first_name: 'Test', last_name: 'Owner' })
 					}
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await service.sendForSignature(ownerId, leaseId)
-
-			// Lease activation should NOT happen at this stage
-			expect(mockLeaseSubscriptionService.activateLease).not.toHaveBeenCalled()
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
+				.rejects.toThrow(BadRequestException)
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
+				.rejects.toThrow('Owner and tenant must have valid email addresses')
 		})
 
-		describe('email validation with DocuSeal', () => {
-			it('should throw BadRequestException when owner email is missing for DocuSeal submission', async () => {
-				mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			it('should throw BadRequestException when tenant email is missing', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
 
-				mockSupabaseService.getAdminClient = jest.fn(() => ({
-					from: jest.fn((table: string) => {
-						if (table === 'leases') {
-							return createMockChain({
-								id: leaseId,
-								lease_status: 'draft',
-								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456',
-								property_owner: { user_id: ownerId }
-							})
+			let userQueryCount = 0
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						return createMockChain({
+							id: leaseId,
+							lease_status: 'draft',
+							owner_user_id: ownerId,
+							primary_tenant_id: 'tenant-456'
+						})
+					}
+					if (table === 'tenants') {
+						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+					}
+					if (table === 'users') {
+						userQueryCount++
+						// First query is for owner (return valid email), second is for tenant (return null)
+						if (userQueryCount === 1) {
+							return createMockChain({ email: 'owner@test.com', first_name: 'Test', last_name: 'Owner' })
 						}
-						if (table === 'property_owners') {
-							return createMockChain({ id: propertyOwnerId, user_id: ownerId })
-						}
-						if (table === 'users') {
-							// Return null email for owner
-							return createMockChain({ email: null, first_name: 'Test', last_name: 'Owner' })
-						}
-						if (table === 'tenants') {
-							return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-						}
-						return createMockChain()
-					})
-				})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+						return createMockChain({ email: null, first_name: 'Test', last_name: 'Tenant' })
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-				await expect(service.sendForSignature(ownerId, leaseId, { templateId: 123 }))
-					.rejects.toThrow(BadRequestException)
-				await expect(service.sendForSignature(ownerId, leaseId, { templateId: 123 }))
-					.rejects.toThrow('property owner email is missing')
-			})
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
+				.rejects.toThrow('Owner and tenant must have valid email addresses')
+		})
 
-			it('should throw BadRequestException when tenant email is missing for DocuSeal submission', async () => {
-				mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			it('should require valid emails even when DocuSeal is disabled', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(false)
 
-				let userQueryCount = 0
-				mockSupabaseService.getAdminClient = jest.fn(() => ({
-					from: jest.fn((table: string) => {
-						if (table === 'leases') {
-							return createMockChain({
-								id: leaseId,
-								lease_status: 'draft',
-								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456',
-								property_owner: { user_id: ownerId }
-							})
-						}
-						if (table === 'property_owners') {
-							return createMockChain({ id: propertyOwnerId, user_id: ownerId })
-						}
-						if (table === 'users') {
-							userQueryCount++
-							// First query is for owner (return valid email), second is for tenant (return null)
-							if (userQueryCount === 1) {
-								return createMockChain({ email: 'owner@test.com', first_name: 'Test', last_name: 'Owner' })
-							}
-							return createMockChain({ email: null, first_name: 'Test', last_name: 'Tenant' })
-						}
-						if (table === 'tenants') {
-							return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-						}
-						return createMockChain()
-					})
-				})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						const chain = createMockChain({
+							id: leaseId,
+							lease_status: 'draft',
+							owner_user_id: ownerId,
+							primary_tenant_id: 'tenant-456'
+						})
+						chain.update = jest.fn(() => chain)
+						return chain
+					}
+					if (table === 'tenants') {
+						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+					}
+					if (table === 'users') {
+						// Return null emails - should fail even though DocuSeal is disabled
+						return createMockChain({ email: null, first_name: 'Test', last_name: 'User' })
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-				await expect(service.sendForSignature(ownerId, leaseId, { templateId: 123 }))
-					.rejects.toThrow('tenant email is missing')
-			})
+			// Email validation is unconditional
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken }))
+				.rejects.toThrow('Owner and tenant must have valid email addresses')
+		})
 
-			it('should proceed without email validation when DocuSeal is disabled', async () => {
-				mockDocuSealService.isEnabled = jest.fn().mockReturnValue(false)
+			it('should proceed with valid emails when DocuSeal is enabled', async () => {
+			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+			mockDocuSealService.createSubmissionFromPdf = jest.fn().mockResolvedValue({ id: 999 })
 
-				mockSupabaseService.getAdminClient = jest.fn(() => ({
-					from: jest.fn((table: string) => {
-						if (table === 'leases') {
-							const chain = createMockChain({
-								id: leaseId,
-								lease_status: 'draft',
-								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456',
-								property_owner: { user_id: ownerId }
-							})
-							chain.update = jest.fn(() => chain)
-							return chain
-						}
-						if (table === 'property_owners') {
-							return createMockChain({ id: propertyOwnerId, user_id: ownerId })
-						}
-						if (table === 'users') {
-							// Return null emails - should still work since DocuSeal is disabled
-							return createMockChain({ email: null, first_name: 'Test', last_name: 'User' })
-						}
-						if (table === 'tenants') {
-							return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-						}
-						return createMockChain()
-					})
-				})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+			let userCallCount = 0
+			mockSupabaseService.getAdminClient = jest.fn(() => ({
+				from: jest.fn((table: string) => {
+					if (table === 'leases') {
+						const chain = createMockChain({
+							id: leaseId,
+							lease_status: 'draft',
+							owner_user_id: ownerId,
+							primary_tenant_id: 'tenant-456'
+						})
+						chain.update = jest.fn(() => chain)
+						return chain
+					}
+					if (table === 'tenants') {
+						return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
+					}
+					if (table === 'users') {
+						// Return valid emails for both owner and tenant
+						const mockUserData = [
+							{ id: ownerId, email: 'owner@test.com', first_name: 'Owner', last_name: 'User' },
+							{ id: 'user-789', email: 'tenant@test.com', first_name: 'Tenant', last_name: 'User' }
+						]
+						const chain = createMockChain()
+						chain.single = jest.fn(() => {
+							const data = mockUserData[userCallCount++]
+							return Promise.resolve({ data, error: null })
+						})
+						return chain
+					}
+					return createMockChain()
+				})
+			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-				// Should not throw - DocuSeal is disabled
-				await expect(service.sendForSignature(ownerId, leaseId)).resolves.not.toThrow()
-			})
-
-			it('should proceed without email validation when no templateId provided', async () => {
-				mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
-
-				mockSupabaseService.getAdminClient = jest.fn(() => ({
-					from: jest.fn((table: string) => {
-						if (table === 'leases') {
-							const chain = createMockChain({
-								id: leaseId,
-								lease_status: 'draft',
-								property_owner_id: propertyOwnerId,
-								primary_tenant_id: 'tenant-456',
-								property_owner: { user_id: ownerId }
-							})
-							chain.update = jest.fn(() => chain)
-							return chain
-						}
-						if (table === 'property_owners') {
-							return createMockChain({ id: propertyOwnerId, user_id: ownerId })
-						}
-						if (table === 'users') {
-							// Return null emails - should still work since no templateId
-							return createMockChain({ email: null, first_name: 'Test', last_name: 'User' })
-						}
-						if (table === 'tenants') {
-							return createMockChain({ id: 'tenant-456', user_id: 'user-789' })
-						}
-						return createMockChain()
-					})
-				})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
-
-				// Should not throw - no templateId means no DocuSeal
-				await expect(service.sendForSignature(ownerId, leaseId)).resolves.not.toThrow()
-			})
+			// Should succeed with valid emails
+			await expect(service.sendForSignature(ownerId, leaseId, { token: mockToken })).resolves.not.toThrow()
+			
+			// Verify DocuSeal submission was created
+			expect(mockDocuSealService.createSubmissionFromPdf).toHaveBeenCalled()
+		})
 		})
 	})
 
@@ -403,10 +532,10 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
+							property_owner: { user_id: ownerId },
+							owner_user_id: ownerId
 						})
 					}
 					if (table === 'property_owners') {
@@ -435,10 +564,10 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
+							property_owner: { user_id: ownerId },
+							owner_user_id: ownerId
 						})
 					}
 					if (table === 'property_owners') {
@@ -466,10 +595,10 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
+							property_owner: { user_id: ownerId },
+							owner_user_id: ownerId
 						})
 					}
 					if (table === 'property_owners') {
@@ -492,7 +621,6 @@ describe('LeaseSignatureService', () => {
 				expect.anything(), // supabase client
 				expect.objectContaining({
 					id: leaseId,
-					property_owner_id: propertyOwnerId,
 					rent_amount: 150000,
 					primary_tenant_id: 'tenant-456'
 				}),
@@ -509,10 +637,10 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: propertyOwnerId,
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: ownerId }
+							property_owner: { user_id: ownerId },
+							owner_user_id: ownerId
 						})
 					}
 					if (table === 'property_owners') {
@@ -547,7 +675,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							primary_tenant_id: 'tenant-456',
 							rent_amount: 150000
 						})
@@ -578,7 +706,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							primary_tenant_id: 'tenant-456',
 							rent_amount: 150000
 						})
@@ -608,7 +736,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							primary_tenant_id: 'different-tenant', // Not this tenant!
 							rent_amount: 150000
 						})
@@ -630,7 +758,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							primary_tenant_id: 'tenant-456',
 							rent_amount: 150000
 						})
@@ -655,7 +783,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: leaseId,
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							primary_tenant_id: 'tenant-456',
 							rent_amount: 150000
 						})
@@ -684,7 +812,7 @@ describe('LeaseSignatureService', () => {
 			leaseState: {
 				id: string
 				lease_status: string
-				property_owner_id: string
+				owner_user_id: string
 				primary_tenant_id: string
 				rent_amount: number
 				owner_signed_at: string | null
@@ -767,7 +895,7 @@ describe('LeaseSignatureService', () => {
 						return makeChain(() => tenantRecord)
 					case 'property_owners':
 						return makeChain(() => ({
-							id: leaseState.property_owner_id,
+							id: leaseState.owner_user_id,
 							user_id: ownerId,
 							stripe_account_id: 'acct_123',
 							charges_enabled: true,
@@ -784,10 +912,10 @@ describe('LeaseSignatureService', () => {
 		}
 
 		it('handles owner and tenant signing concurrently without double activation', async () => {
-			const leaseState = {
-				id: leaseId,
-				lease_status: 'pending_signature',
-				property_owner_id: 'property-owner-001',
+		const leaseState = {
+			id: leaseId,
+			lease_status: 'pending_signature',
+			owner_user_id: ownerUserId,
 				primary_tenant_id: 'tenant-001',
 				rent_amount: 250000,
 				owner_signed_at: null,
@@ -811,10 +939,10 @@ describe('LeaseSignatureService', () => {
 		})
 
 		it('prevents duplicate tenant signatures when requests race each other', async () => {
-			const leaseState = {
-				id: leaseId,
-				lease_status: 'pending_signature',
-				property_owner_id: 'property-owner-002',
+		const leaseState = {
+			id: leaseId,
+			lease_status: 'pending_signature',
+			owner_user_id: ownerUserId,
 				primary_tenant_id: 'tenant-002',
 				rent_amount: 180000,
 				owner_signed_at: null,
@@ -857,7 +985,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: 'lease-123',
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456'
 						})
@@ -873,7 +1001,7 @@ describe('LeaseSignatureService', () => {
 				expect.anything(), // supabase client
 				expect.objectContaining({
 					id: 'lease-123',
-					property_owner_id: 'owner-123',
+					owner_user_id: 'owner-123',
 					rent_amount: 150000,
 					primary_tenant_id: 'tenant-456'
 				}),
@@ -885,39 +1013,35 @@ describe('LeaseSignatureService', () => {
 		})
 
 		it('should call LeaseSubscriptionService.activateLease with signature data when owner signs last', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						return createMockChain({
-							id: 'lease-123',
-							property_owner_id: 'owner-123',
-							rent_amount: 150000,
-							primary_tenant_id: 'tenant-456',
-							property_owner: { user_id: 'owner-user-123' }
-						})
-					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: 'owner-user-123' })
-					}
-					return createMockChain()
-				}),
-				rpc: jest.fn(() => Promise.resolve(createSignLeaseRpcResult(true, true))) // both_signed = true
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain({
+						id: 'lease-123',
+						owner_user_id: 'owner-user-123', // Match the ownerId used in the test call
+						rent_amount: 150000,
+						primary_tenant_id: 'tenant-456'
+					})
+				}
+				return createMockChain()
+			}),
+			rpc: jest.fn(() => Promise.resolve(createSignLeaseRpcResult(true, true))) // both_signed = true
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await service.signLeaseAsOwner('owner-user-123', 'lease-123', '10.0.0.1')
+		await service.signLeaseAsOwner('owner-user-123', 'lease-123', '10.0.0.1')
 
 			expect(mockLeaseSubscriptionService.activateLease).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.objectContaining({
-					id: 'lease-123',
-					property_owner_id: 'owner-123'
-				}),
-				expect.objectContaining({
-					owner_signed_at: expect.any(String),
-					owner_signature_ip: '10.0.0.1'
-				})
-			)
-		})
+			expect.anything(),
+			expect.objectContaining({
+				id: 'lease-123',
+				owner_user_id: 'owner-user-123' // Match the actual value
+			}),
+			expect.objectContaining({
+				owner_signed_at: expect.any(String),
+				owner_signature_ip: '10.0.0.1'
+			})
+		)
+	})
 
 		it('should NOT call LeaseSubscriptionService.activateLease when only one party has signed', async () => {
 			mockSupabaseService.getAdminClient = jest.fn(() => ({
@@ -928,7 +1052,7 @@ describe('LeaseSignatureService', () => {
 					if (table === 'leases') {
 						return createMockChain({
 							id: 'lease-123',
-							property_owner_id: 'owner-123',
+							owner_user_id: 'owner-123',
 							rent_amount: 150000,
 							primary_tenant_id: 'tenant-456'
 						})
@@ -964,7 +1088,7 @@ describe('LeaseSignatureService', () => {
 							owner_signed_at: '2024-01-10T10:00:00Z',
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
-							property_owner_id: ownerId,
+							owner_user_id: ownerId,
 							primary_tenant_id: 'tenant-456',
 							property_owner: { user_id: ownerId }
 						})
@@ -997,7 +1121,7 @@ describe('LeaseSignatureService', () => {
 							owner_signed_at: '2024-01-10T10:00:00Z',
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
-							property_owner_id: ownerId,
+							owner_user_id: ownerId,
 							primary_tenant_id: 'tenant-456',
 							property_owner: { user_id: ownerId }
 						})
@@ -1024,7 +1148,7 @@ describe('LeaseSignatureService', () => {
 							owner_signed_at: null,
 							tenant_signed_at: null,
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
-							property_owner_id: ownerId,
+							owner_user_id: ownerId,
 							primary_tenant_id: 'tenant-456',
 							property_owner: { user_id: 'different-owner' }
 						})
@@ -1050,7 +1174,7 @@ describe('LeaseSignatureService', () => {
 							owner_signed_at: '2024-01-10T10:00:00Z',
 							tenant_signed_at: '2024-01-11T10:00:00Z',
 							sent_for_signature_at: '2024-01-09T10:00:00Z',
-							property_owner_id: ownerId,
+							owner_user_id: ownerId,
 							primary_tenant_id: 'tenant-456',
 							property_owner: { user_id: ownerId }
 						})
@@ -1089,7 +1213,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: '12345',
 							property_owner: { user_id: ownerId }
 						})
@@ -1121,7 +1245,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: '12345',
 							property_owner: { user_id: ownerId }
 						})
@@ -1152,7 +1276,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: '12345',
 							property_owner: { user_id: ownerId }
 						})
@@ -1178,44 +1302,44 @@ describe('LeaseSignatureService', () => {
 		})
 
 		it('should throw ForbiddenException when user does not own the lease', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						return createMockChain({
-							id: leaseId,
-							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
-							docuseal_submission_id: '12345',
-							property_owner: { user_id: 'different-owner-id' }
-						})
-					}
-					return createMockChain()
-				})
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+		mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
+		
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain({
+						id: leaseId,
+						lease_status: 'pending_signature',
+						owner_user_id: 'different-owner-id', // Different from the requesting ownerId
+						docuseal_submission_id: '12345'
+					})
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await expect(service.resendSignatureRequest(ownerId, leaseId))
-				.rejects.toThrow(ForbiddenException)
-		})
+		await expect(service.resendSignatureRequest(ownerId, leaseId))
+			.rejects.toThrow(ForbiddenException)
+	})
 
 		it('should throw BadRequestException when lease is not in pending_signature status', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
-				from: jest.fn((table: string) => {
-					if (table === 'leases') {
-						return createMockChain({
-							id: leaseId,
-							lease_status: 'draft',
-							property_owner_id: propertyOwnerId,
-							docuseal_submission_id: '12345',
-							property_owner: { user_id: ownerId }
-						})
-					}
-					return createMockChain()
-				})
-			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+		mockSupabaseService.getAdminClient = jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain({
+						id: leaseId,
+						lease_status: 'draft',
+						owner_user_id: ownerId,
+						docuseal_submission_id: '12345'
+					})
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
 
-			await expect(service.resendSignatureRequest(ownerId, leaseId))
-				.rejects.toThrow(BadRequestException)
-		})
+		await expect(service.resendSignatureRequest(ownerId, leaseId))
+			.rejects.toThrow(BadRequestException)
+	})
 
 		it('should throw BadRequestException when no DocuSeal submission exists', async () => {
 			mockDocuSealService.isEnabled = jest.fn().mockReturnValue(true)
@@ -1226,7 +1350,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: null, // No submission
 							property_owner: { user_id: ownerId }
 						})
@@ -1248,7 +1372,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: '12345',
 							property_owner: { user_id: ownerId }
 						})
@@ -1277,7 +1401,7 @@ describe('LeaseSignatureService', () => {
 						return createMockChain({
 							id: leaseId,
 							lease_status: 'pending_signature',
-							property_owner_id: propertyOwnerId,
+owner_user_id: ownerId,
 							docuseal_submission_id: '12345',
 							property_owner: { user_id: ownerId }
 						})

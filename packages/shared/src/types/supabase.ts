@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       activity: {
@@ -244,19 +269,20 @@ export type Database = {
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at: string | null
+          owner_user_id: string
           payment_day: number
           pet_deposit: number | null
           pet_rent: number | null
           pets_allowed: boolean | null
           primary_tenant_id: string
           property_built_before_1978: boolean | null
-          property_owner_id: string | null
           property_rules: string | null
           rent_amount: number
           rent_currency: string
           security_deposit: number
           sent_for_signature_at: string | null
           start_date: string
+          stripe_connected_account_id: string | null
           stripe_subscription_id: string | null
           stripe_subscription_status: Database["public"]["Enums"]["stripe_subscription_status"]
           subscription_failure_reason: string | null
@@ -290,19 +316,20 @@ export type Database = {
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at?: string | null
+          owner_user_id: string
           payment_day?: number
           pet_deposit?: number | null
           pet_rent?: number | null
           pets_allowed?: boolean | null
           primary_tenant_id: string
           property_built_before_1978?: boolean | null
-          property_owner_id?: string | null
           property_rules?: string | null
           rent_amount: number
           rent_currency?: string
           security_deposit: number
           sent_for_signature_at?: string | null
           start_date: string
+          stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
           stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
           subscription_failure_reason?: string | null
@@ -336,19 +363,20 @@ export type Database = {
             | Database["public"]["Enums"]["signature_method"]
             | null
           owner_signed_at?: string | null
+          owner_user_id?: string
           payment_day?: number
           pet_deposit?: number | null
           pet_rent?: number | null
           pets_allowed?: boolean | null
           primary_tenant_id?: string
           property_built_before_1978?: boolean | null
-          property_owner_id?: string | null
           property_rules?: string | null
           rent_amount?: number
           rent_currency?: string
           security_deposit?: number
           sent_for_signature_at?: string | null
           start_date?: string
+          stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
           stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
           subscription_failure_reason?: string | null
@@ -366,6 +394,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "leases_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leases_primary_tenant_id_fkey"
             columns: ["primary_tenant_id"]
             isOneToOne: false
@@ -373,10 +408,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "leases_property_owner_id_fkey"
-            columns: ["property_owner_id"]
+            foreignKeyName: "leases_stripe_connected_account_id_fkey"
+            columns: ["stripe_connected_account_id"]
             isOneToOne: false
-            referencedRelation: "property_owners"
+            referencedRelation: "stripe_connected_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -400,8 +435,8 @@ export type Database = {
           inspection_date: string | null
           inspection_findings: string | null
           inspector_id: string | null
+          owner_user_id: string
           priority: Database["public"]["Enums"]["maintenance_priority"]
-          property_owner_id: string | null
           requested_by: string | null
           scheduled_date: string | null
           status: Database["public"]["Enums"]["maintenance_status"]
@@ -421,8 +456,8 @@ export type Database = {
           inspection_date?: string | null
           inspection_findings?: string | null
           inspector_id?: string | null
+          owner_user_id: string
           priority?: Database["public"]["Enums"]["maintenance_priority"]
-          property_owner_id?: string | null
           requested_by?: string | null
           scheduled_date?: string | null
           status?: Database["public"]["Enums"]["maintenance_status"]
@@ -442,8 +477,8 @@ export type Database = {
           inspection_date?: string | null
           inspection_findings?: string | null
           inspector_id?: string | null
+          owner_user_id?: string
           priority?: Database["public"]["Enums"]["maintenance_priority"]
-          property_owner_id?: string | null
           requested_by?: string | null
           scheduled_date?: string | null
           status?: Database["public"]["Enums"]["maintenance_status"]
@@ -461,10 +496,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "maintenance_requests_property_owner_id_fkey"
-            columns: ["property_owner_id"]
+            foreignKeyName: "maintenance_requests_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
-            referencedRelation: "property_owners"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -775,12 +810,13 @@ export type Database = {
           date_sold: string | null
           id: string
           name: string
+          owner_user_id: string
           postal_code: string
-          property_owner_id: string
           property_type: string
           sale_price: number | null
           state: string
           status: Database["public"]["Enums"]["property_status"]
+          stripe_connected_account_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -792,12 +828,13 @@ export type Database = {
           date_sold?: string | null
           id?: string
           name: string
+          owner_user_id: string
           postal_code: string
-          property_owner_id: string
           property_type: string
           sale_price?: number | null
           state: string
           status?: Database["public"]["Enums"]["property_status"]
+          stripe_connected_account_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -809,20 +846,28 @@ export type Database = {
           date_sold?: string | null
           id?: string
           name?: string
+          owner_user_id?: string
           postal_code?: string
-          property_owner_id?: string
           property_type?: string
           sale_price?: number | null
           state?: string
           status?: Database["public"]["Enums"]["property_status"]
+          stripe_connected_account_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "properties_property_owner_id_fkey"
-            columns: ["property_owner_id"]
+            foreignKeyName: "properties_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
-            referencedRelation: "property_owners"
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "properties_stripe_connected_account_id_fkey"
+            columns: ["stripe_connected_account_id"]
+            isOneToOne: false
+            referencedRelation: "stripe_connected_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -855,74 +900,6 @@ export type Database = {
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      property_owners: {
-        Row: {
-          business_name: string | null
-          business_type: string
-          charges_enabled: boolean | null
-          completion_percentage: number | null
-          created_at: string | null
-          current_step: string | null
-          default_platform_fee_percent: number | null
-          id: string
-          onboarding_completed_at: string | null
-          onboarding_started_at: string | null
-          onboarding_status: string | null
-          payouts_enabled: boolean | null
-          requirements_due: string[] | null
-          stripe_account_id: string
-          tax_id: string | null
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          business_name?: string | null
-          business_type: string
-          charges_enabled?: boolean | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_step?: string | null
-          default_platform_fee_percent?: number | null
-          id?: string
-          onboarding_completed_at?: string | null
-          onboarding_started_at?: string | null
-          onboarding_status?: string | null
-          payouts_enabled?: boolean | null
-          requirements_due?: string[] | null
-          stripe_account_id: string
-          tax_id?: string | null
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          business_name?: string | null
-          business_type?: string
-          charges_enabled?: boolean | null
-          completion_percentage?: number | null
-          created_at?: string | null
-          current_step?: string | null
-          default_platform_fee_percent?: number | null
-          id?: string
-          onboarding_completed_at?: string | null
-          onboarding_started_at?: string | null
-          onboarding_status?: string | null
-          payouts_enabled?: boolean | null
-          requirements_due?: string[] | null
-          stripe_account_id?: string
-          tax_id?: string | null
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "property_owners_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1094,7 +1071,7 @@ export type Database = {
           id: string
           is_active: boolean | null
           next_run_at: string | null
-          property_owner_id: string
+          owner_user_id: string
           report_type: string
           schedule_cron: string | null
           title: string
@@ -1106,7 +1083,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           next_run_at?: string | null
-          property_owner_id: string
+          owner_user_id: string
           report_type: string
           schedule_cron?: string | null
           title: string
@@ -1118,7 +1095,7 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           next_run_at?: string | null
-          property_owner_id?: string
+          owner_user_id?: string
           report_type?: string
           schedule_cron?: string | null
           title?: string
@@ -1126,10 +1103,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "reports_property_owner_id_fkey"
-            columns: ["property_owner_id"]
+            foreignKeyName: "reports_owner_user_id_fkey"
+            columns: ["owner_user_id"]
             isOneToOne: false
-            referencedRelation: "property_owners"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -1167,6 +1144,74 @@ export type Database = {
             foreignKeyName: "security_audit_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_connected_accounts: {
+        Row: {
+          business_name: string | null
+          business_type: string
+          charges_enabled: boolean | null
+          completion_percentage: number | null
+          created_at: string | null
+          current_step: string | null
+          default_platform_fee_percent: number | null
+          id: string
+          onboarding_completed_at: string | null
+          onboarding_started_at: string | null
+          onboarding_status: string | null
+          payouts_enabled: boolean | null
+          requirements_due: string[] | null
+          stripe_account_id: string
+          tax_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          business_name?: string | null
+          business_type: string
+          charges_enabled?: boolean | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_step?: string | null
+          default_platform_fee_percent?: number | null
+          id?: string
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          onboarding_status?: string | null
+          payouts_enabled?: boolean | null
+          requirements_due?: string[] | null
+          stripe_account_id: string
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          business_name?: string | null
+          business_type?: string
+          charges_enabled?: boolean | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_step?: string | null
+          default_platform_fee_percent?: number | null
+          id?: string
+          onboarding_completed_at?: string | null
+          onboarding_started_at?: string | null
+          onboarding_status?: string | null
+          payouts_enabled?: boolean | null
+          requirements_due?: string[] | null
+          stripe_account_id?: string
+          tax_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_owners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["id"]
           },
@@ -1233,8 +1278,8 @@ export type Database = {
           invitation_code: string
           invitation_url: string
           lease_id: string | null
+          owner_user_id: string
           property_id: string | null
-          property_owner_id: string
           status: string
           type: string | null
           unit_id: string | null
@@ -1249,8 +1294,8 @@ export type Database = {
           invitation_code: string
           invitation_url: string
           lease_id?: string | null
+          owner_user_id: string
           property_id?: string | null
-          property_owner_id: string
           status?: string
           type?: string | null
           unit_id?: string | null
@@ -1265,8 +1310,8 @@ export type Database = {
           invitation_code?: string
           invitation_url?: string
           lease_id?: string | null
+          owner_user_id?: string
           property_id?: string | null
-          property_owner_id?: string
           status?: string
           type?: string | null
           unit_id?: string | null
@@ -1287,17 +1332,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "tenant_invitations_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "tenant_invitations_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tenant_invitations_property_owner_id_fkey"
-            columns: ["property_owner_id"]
-            isOneToOne: false
-            referencedRelation: "property_owners"
             referencedColumns: ["id"]
           },
           {
@@ -1365,8 +1410,8 @@ export type Database = {
           bedrooms: number | null
           created_at: string | null
           id: string
+          owner_user_id: string
           property_id: string
-          property_owner_id: string | null
           rent_amount: number
           rent_currency: string
           rent_period: string
@@ -1380,8 +1425,8 @@ export type Database = {
           bedrooms?: number | null
           created_at?: string | null
           id?: string
+          owner_user_id: string
           property_id: string
-          property_owner_id?: string | null
           rent_amount: number
           rent_currency?: string
           rent_period?: string
@@ -1395,8 +1440,8 @@ export type Database = {
           bedrooms?: number | null
           created_at?: string | null
           id?: string
+          owner_user_id?: string
           property_id?: string
-          property_owner_id?: string | null
           rent_amount?: number
           rent_currency?: string
           rent_period?: string
@@ -1407,17 +1452,17 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "units_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "units_property_id_fkey"
             columns: ["property_id"]
             isOneToOne: false
             referencedRelation: "properties"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "units_property_owner_id_fkey"
-            columns: ["property_owner_id"]
-            isOneToOne: false
-            referencedRelation: "property_owners"
             referencedColumns: ["id"]
           },
         ]
@@ -1837,7 +1882,7 @@ export type Database = {
         Returns: Json
       }
       get_cmd_type: { Args: { cmd_type: number }; Returns: string }
-      get_current_property_owner_id: { Args: never; Returns: string }
+      get_current_owner_user_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
@@ -1906,6 +1951,7 @@ export type Database = {
         Args: { _bucket: number; _quryid: number }
         Returns: Record<string, unknown>[]
       }
+      ledger_aggregation: { Args: never; Returns: Json }
       parse_address: { Args: { "": string }; Returns: Record<string, unknown> }
       pg_stat_monitor_internal: {
         Args: { showtext: boolean }
@@ -2144,6 +2190,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       invitation_type: ["platform_access", "lease_signing"],

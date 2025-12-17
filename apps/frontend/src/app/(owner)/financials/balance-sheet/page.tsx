@@ -403,7 +403,7 @@ const BalanceSheetPage = () => {
 						</div>
 						{data?.data?.balanceCheck === false && (
 							<div className="mt-2 text-sm text-destructive">
-								⚠️ Warning: Balance sheet equation does not balance
+								Warning: Balance sheet equation does not balance
 							</div>
 						)}
 					</div>

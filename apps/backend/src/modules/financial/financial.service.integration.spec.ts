@@ -77,7 +77,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	})
 
 	async function setupTestData() {
-		// Create test owner in users + property_owners to satisfy FK constraints
+		// Create test owner in users + stripe_connected_accounts to satisfy FK constraints
 		ownerUserId = randomUUID()
 
 		// Create tenant user in public.users first (FK constraint tenants.user_id -> public.users.id)
@@ -106,7 +106,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		)
 
 		const ownerRes = await pool.query(
-			`insert into property_owners (user_id, stripe_account_id, business_type, default_platform_fee_percent)
+			`insert into stripe_connected_accounts (user_id, stripe_account_id, business_type, default_platform_fee_percent)
        values ($1, $2, 'individual', 0) returning id`,
 			[ownerUserId, `acct_${ownerUserId.slice(0, 8)}`]
 		)
@@ -116,9 +116,9 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		// Create 3 test properties with units and leases
 		for (let i = 0; i < 3; i++) {
 			const propertyRes = await pool.query(
-				`insert into properties (property_owner_id, name, address_line1, city, state, postal_code, property_type)
+				`insert into properties (owner_user_id, name, address_line1, city, state, postal_code, property_type)
          values ($1, $2, $3, 'Test City', 'TS', '12345', 'SINGLE_FAMILY') returning id`,
-				[testOwnerId, `Test Property ${i}`, `${i} Test St`]
+				[ownerUserId, `Test Property ${i}`, `${i} Test St`]
 			)
 
 			const propertyId = propertyRes.rows[0].id
@@ -128,18 +128,18 @@ describe('FinancialService - N+1 Integration Tests', () => {
 			for (let j = 0; j < 2; j++) {
 				const rent = 1000 + i * 100 + j * 10
 				const unitRes = await pool.query(
-					`insert into units (property_id, property_owner_id, unit_number, rent_amount)
+					`insert into units (property_id, owner_user_id, unit_number, rent_amount)
            values ($1, $2, $3, $4) returning id`,
-					[propertyId, testOwnerId, `${i}0${j}`, rent]
+					[propertyId, ownerUserId, `${i}0${j}`, rent]
 				)
 				const unitId = unitRes.rows[0].id
 				testUnitIds.push(unitId)
 
 				// Create active lease for each unit
 				const leaseRes = await pool.query(
-					`insert into leases (unit_id, primary_tenant_id, start_date, end_date, rent_amount, rent_currency, security_deposit, payment_day)
-           values ($1, $2, '2025-01-01', '2025-12-31', $3, 'usd', 500, 1) returning id`,
-					[unitId, tenantId, rent]
+					`insert into leases (unit_id, owner_user_id, primary_tenant_id, start_date, end_date, rent_amount, rent_currency, security_deposit, payment_day)
+           values ($1, $2, $3, '2025-01-01', '2025-12-31', $4, 'usd', 500, 1) returning id`,
+					[unitId, ownerUserId, tenantId, rent]
 				)
 				testLeaseIds.push(leaseRes.rows[0].id)
 			}
@@ -147,7 +147,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	}
 
 	async function cleanupTestData() {
-		// Delete leases, units, properties, owners, users in reverse dependency order
+		// Delete leases, units, properties, stripe accounts, users in reverse dependency order
 		if (testLeaseIds.length) {
 			await pool.query(`delete from leases where id = any($1::uuid[])`, [testLeaseIds])
 		}
@@ -161,10 +161,10 @@ describe('FinancialService - N+1 Integration Tests', () => {
 			await pool.query(`delete from tenants where id = $1`, [tenantId])
 		}
 		if (testOwnerId) {
-			await pool.query(`delete from property_owners where id = $1`, [testOwnerId])
-			if (ownerUserId) {
-				await pool.query(`delete from users where id = $1`, [ownerUserId])
-			}
+			await pool.query(`delete from stripe_connected_accounts where id = $1`, [testOwnerId])
+		}
+		if (ownerUserId) {
+			await pool.query(`delete from users where id = $1`, [ownerUserId])
 		}
 	}
 
