@@ -63,6 +63,44 @@ describe('LeaseSignatureService', () => {
 		error: null
 	})
 
+	// Helper to create a complete Supabase client mock with user emails
+	const createMockClientWithUsers = (
+		ownerId: string,
+		ownerEmail: string,
+		tenantUserId: string,
+		tenantEmail: string,
+		leaseData: any,
+		additionalMocks?: { [table: string]: any }
+	) => {
+		let userCallCount = 0
+		return jest.fn(() => ({
+			from: jest.fn((table: string) => {
+				if (table === 'leases') {
+					return createMockChain(leaseData)
+				}
+				if (table === 'tenants') {
+					return createMockChain({ id: leaseData.primary_tenant_id || 'tenant-456', user_id: tenantUserId })
+				}
+				if (table === 'users') {
+					const mockUserData = [
+						{ id: ownerId, email: ownerEmail, first_name: 'Owner', last_name: 'User' },
+						{ id: tenantUserId, email: tenantEmail, first_name: 'Tenant', last_name: 'User' }
+					]
+					const chain = createMockChain()
+					chain.single = jest.fn(() => {
+						const data = mockUserData[userCallCount++]
+						return Promise.resolve({ data, error: null })
+					})
+					return chain
+				}
+				if (additionalMocks && table in additionalMocks) {
+					return createMockChain(additionalMocks[table])
+				}
+				return createMockChain()
+			})
+		})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
+	}
+
 	beforeEach(async () => {
 		mockEventEmitter = {
 			emit: jest.fn()

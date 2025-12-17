@@ -114,7 +114,7 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll(
-			createMockRequest({ user: mockUser }) as any,
+			'mock-jwt-token',
 			{
 				property_id: null,
 				status: undefined,
@@ -165,10 +165,10 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits as any)
 
 			const result = await controller.findAll(
-			createMockRequest({ user: mockUser }) as any,
+			'mock-jwt-token',
 			{
 				property_id: null,
-				status: 'OCCUPIED' as any, // Uppercase input
+				status: 'OCCUPIED' as any, // Uppercase input to test normalization
 				search: undefined,
 				limit: 10,
 				offset: 0,

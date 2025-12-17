@@ -12,6 +12,7 @@ import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
+// Type for notification_settings table row (table exists in DB but not yet in generated types)
 type NotificationSettingsRow = {
 	id: string
 	user_id: string

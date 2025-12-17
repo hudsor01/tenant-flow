@@ -52,8 +52,9 @@ export class LeasesController {
 		@JwtToken() token: string,
 		@Query() query: FindAllLeasesDto
 	) {
-		// DTO validation handled by ZodValidationPipe - no manual validation needed
-		const data = await this.leasesService.findAll(token, query)
+		// DTO validation handles all parameter validation via Zod schema
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		const data = await this.leasesService.findAll(token, { ...query })
 
 		// Return PaginatedResponse format expected by frontend
 		return {

@@ -221,10 +221,10 @@ export class LeasesService {
 			// Unit and tenant queries don't depend on each other
 			const [unitResult, tenantResult] = await Promise.all([
 				client
-				.from('units')
-				.select('id, property_id, property:properties(name, owner_user_id)')
-				.eq('id', dto.unit_id)
-				.single(),
+					.from('units')
+					.select('id, property_id, property:properties(name, owner_user_id)')
+					.eq('id', dto.unit_id)
+					.single(),
 				client
 					.from('tenants')
 					.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
@@ -280,12 +280,18 @@ export class LeasesService {
 				)
 			}
 
-			// Build insert data with all fields from DTO
-			const insertData: Database['public']['Tables']['leases']['Insert'] = {
-				primary_tenant_id: dto.primary_tenant_id,
-				unit_id: dto.unit_id,
-				owner_user_id: unit.property?.owner_user_id,
-				start_date: dto.start_date,
+			// Extract owner_user_id from property relation with type safety
+		type PropertyWithOwner = { name: string | null; owner_user_id: string | null } | null
+		const property: PropertyWithOwner = unit.property
+		if (!property?.owner_user_id) {
+			throw new BadRequestException('Property owner not found')
+		}
+
+		const insertData: Database['public']['Tables']['leases']['Insert'] = {
+			primary_tenant_id: dto.primary_tenant_id,
+			unit_id: dto.unit_id,
+			owner_user_id: property.owner_user_id,
+			start_date: dto.start_date,
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount,
 				security_deposit: dto.security_deposit || 0,

@@ -91,7 +91,7 @@ describe('Property 10: Draft Lease Creation', () => {
 								// Return table-specific mock chains with proper data
 				if (table === 'units') {
 										return createMockChain(
-						{ id: 'unit-123', property_id: 'property-456' }, // unit data
+						{ id: 'unit-123', property_id: 'property-456', property: { name: 'Test Property', owner_user_id: 'owner-123' } }, // unit data
 						null
 					)
 				}
@@ -168,7 +168,8 @@ describe('Property 10: Draft Lease Creation', () => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
@@ -256,7 +257,8 @@ describe('Property 10: Draft Lease Creation', () => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
@@ -360,7 +362,8 @@ describe('Property 10: Draft Lease Creation', () => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
