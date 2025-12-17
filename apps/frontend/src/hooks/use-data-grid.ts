@@ -39,7 +39,7 @@ import type {
   SearchState,
   SelectionState,
   UpdateCell,
-} from "@repo/shared/types/data-grid";
+} from "#types/data-grid";
 
 const DEFAULT_ROW_HEIGHT = "short";
 const OVERSCAN = 6;
