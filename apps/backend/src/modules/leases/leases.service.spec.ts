@@ -115,7 +115,11 @@ describe('LeasesService', () => {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnValue({
               single: jest.fn().mockResolvedValue({
-                data: { id: 'unit-456', property_id: 'prop-123' },
+                data: { 
+                  id: 'unit-456', 
+                  property_id: 'prop-123',
+                  property: { name: 'Test Property', owner_user_id: 'owner-123' }
+                },
                 error: null
               })
             })
