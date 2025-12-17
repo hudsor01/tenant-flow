@@ -134,7 +134,7 @@ export function useCreateLease() {
 				id: tempId,
 				primary_tenant_id: newLease.primary_tenant_id ?? null,
 				unit_id: newLease.unit_id ?? null,
-				property_owner_id: null, // Set server-side from auth
+				owner_user_id: '', // Placeholder - will be set by server
 				start_date: newLease.start_date,
 				end_date: newLease.end_date,
 				rent_amount: newLease.rent_amount,
@@ -172,7 +172,8 @@ export function useCreateLease() {
 				property_rules: null,
 				property_built_before_1978: null,
 				lead_paint_disclosure_acknowledged: null,
-				governing_state: null
+				governing_state: null,
+				stripe_connected_account_id: null
 			}
 
 			// Optimistically update all caches

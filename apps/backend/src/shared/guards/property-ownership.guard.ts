@@ -123,8 +123,8 @@ export class PropertyOwnershipGuard implements CanActivate {
   }
 
   /**
-   * Verify user owns the tenant (through lease → property ownership chain)
-   * Tenant belongs to Lease, Lease belongs to Property, Property has property_owner_id → property_owners.user_id
+   * Verify user owns the tenant (through lease ownership chain)
+   * Tenant belongs to Lease, Lease has owner_user_id → users.id
    */
   private async verifyTenantOwnership(
     user_id: string,
@@ -133,11 +133,11 @@ export class PropertyOwnershipGuard implements CanActivate {
     const client = this.supabase.getAdminClient()
 
     try {
-      // Follow the ownership chain: tenant → lease → property_owner → user
+      // Direct ownership check: leases.owner_user_id references users.id
       // Note: leases.primary_tenant_id (not tenant_id) references tenants.id
       const { data, error } = await client
         .from('leases')
-        .select('property_owner:property_owner_id(user_id)')
+        .select('owner_user_id')
         .eq('primary_tenant_id', tenant_id)
         .single()
 
@@ -150,9 +150,9 @@ export class PropertyOwnershipGuard implements CanActivate {
         return false
       }
 
-      // Supabase join returns nested object structure
-      const result = data as unknown as { property_owner: { user_id: string } | null }
-      const isOwner = result?.property_owner?.user_id === user_id
+      // Direct ownership comparison
+      const result = data as unknown as { owner_user_id: string | null }
+      const isOwner = result?.owner_user_id === user_id
 
       this.logger.debug('PropertyOwnershipGuard: verifyTenantOwnership result', {
         user_id,
@@ -172,8 +172,8 @@ export class PropertyOwnershipGuard implements CanActivate {
   }
 
   /**
-   * Verify user owns the lease (through property ownership)
-   * Lease has property_owner_id → property_owners.user_id
+   * Verify user owns the lease
+   * Lease has owner_user_id → users.id
    */
   private async verifyLeaseOwnership(
     user_id: string,
@@ -182,11 +182,10 @@ export class PropertyOwnershipGuard implements CanActivate {
     const client = this.supabase.getAdminClient()
 
     try {
-      // Join through property_owners table to match user_id
-      // Note: leases.property_owner_id references property_owners.id (not users.id)
+      // Direct ownership check: leases.owner_user_id references users.id
       const { data, error } = await client
         .from('leases')
-        .select('property_owner:property_owner_id(user_id)')
+        .select('owner_user_id')
         .eq('id', lease_id)
         .single()
 
@@ -200,8 +199,8 @@ export class PropertyOwnershipGuard implements CanActivate {
       }
 
       // Supabase join returns nested object structure
-      const result = data as unknown as { property_owner: { user_id: string } | null }
-      const isOwner = result?.property_owner?.user_id === user_id
+      const result = data as unknown as { owner_user_id: string | null }
+      const isOwner = result?.owner_user_id === user_id
 
       this.logger.debug('PropertyOwnershipGuard: verifyLeaseOwnership result', {
         user_id,
@@ -222,7 +221,7 @@ export class PropertyOwnershipGuard implements CanActivate {
 
   /**
    * Verify user owns the property
-   * Property has property_owner_id → property_owners.user_id
+   * Property has owner_user_id → users.id
    */
   private async verifyPropertyOwnership(
     user_id: string,
@@ -231,11 +230,10 @@ export class PropertyOwnershipGuard implements CanActivate {
     const client = this.supabase.getAdminClient()
 
     try {
-      // Join through property_owners table to match user_id
-      // Note: properties.property_owner_id references property_owners.id (not users.id)
+      // Direct ownership check: properties.owner_user_id references users.id
       const { data, error } = await client
         .from('properties')
-        .select('property_owner:property_owner_id(user_id)')
+        .select('owner_user_id')
         .eq('id', property_id)
         .single()
 
@@ -249,8 +247,8 @@ export class PropertyOwnershipGuard implements CanActivate {
       }
 
       // Supabase join returns nested object structure
-      const result = data as unknown as { property_owner: { user_id: string } | null }
-      const isOwner = result?.property_owner?.user_id === user_id
+      const result = data as unknown as { owner_user_id: string | null }
+      const isOwner = result?.owner_user_id === user_id
 
       this.logger.debug('PropertyOwnershipGuard: verifyPropertyOwnership result', {
         user_id,

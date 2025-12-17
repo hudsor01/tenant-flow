@@ -15,7 +15,7 @@ export class AppService implements OnModuleInit {
 	 * Validates critical configuration and logs startup information
 	 */
 	async onModuleInit() {
-		this.logger.log('✅ Application initializing...')
+		this.logger.log('Application initializing...')
 
 		try {
 			// Validate critical environment variables
@@ -40,7 +40,7 @@ export class AppService implements OnModuleInit {
 				if (dbStatus.status === 'healthy') {
 					this.logger.log('✓ Database connection: healthy')
 				} else {
-					this.logger.error('✗ Database connection: unhealthy', dbStatus.message)
+					this.logger.error('ERROR: Database connection: unhealthy', dbStatus.message)
 				}
 			} catch (dbError) {
 				// Don't fail startup on DB check - log warning and continue
@@ -50,9 +50,9 @@ export class AppService implements OnModuleInit {
 				)
 			}
 
-			this.logger.log('✅ Application initialized successfully')
+			this.logger.log('Application initialized successfully')
 		} catch (error) {
-			this.logger.error('✗ Application initialization failed', { error })
+			this.logger.error('ERROR: Application initialization failed', { error })
 			throw error
 		}
 	}

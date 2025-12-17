@@ -126,7 +126,7 @@ describeIf('DocuSealWebhookService Integration', () => {
 				state: 'TX',
 				postal_code: '78701',
 				property_type: 'apartment',
-				property_owner_id: testOwnerId
+				owner_user_id: testUserId
 			})
 			.select('id')
 			.single()
@@ -140,7 +140,7 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.insert({
 				unit_number: '101',
 				property_id: testPropertyId,
-				property_owner_id: testOwnerId,
+				owner_user_id: testOwnerId,
 				bedrooms: 2,
 				bathrooms: 1,
 				rent_amount: 150000, // $1500 in cents
@@ -190,7 +190,7 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.insert({
 				unit_id: testUnitId,
 				primary_tenant_id: testTenantId,
-				property_owner_id: testOwnerId,
+				owner_user_id: testOwnerId,
 				start_date: '2025-01-01',
 				end_date: '2026-01-01',
 				rent_amount: 150000,

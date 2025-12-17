@@ -7,6 +7,7 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '#providers/auth-provider'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
@@ -53,16 +54,15 @@ const WIZARD_STEPS: {
 ]
 
 interface LeaseCreationWizardProps {
-	token: string
 	onSuccess?: (leaseId: string) => void
 }
 
 export function LeaseCreationWizard({
-	token,
 	onSuccess
 }: LeaseCreationWizardProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const { session } = useAuth()
 	const [currentStep, setCurrentStep] = useState<WizardStep>('selection')
 
 	// Form state for each step
@@ -86,45 +86,54 @@ export function LeaseCreationWizard({
 
 	// Fetch property/unit/tenant names for review step
 	const { data: propertyData } = useQuery({
-		queryKey: ['property', selectionData.property_id, token],
+		queryKey: ['properties', selectionData.property_id, session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(
 				`${getApiBaseUrl()}/api/v1/properties/${selectionData.property_id}`,
 				{
-					headers: { Authorization: `Bearer ${token}` }
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session?.access_token}`
+					}
 				}
 			)
 			if (!res.ok) return null
 			return res.json()
 		},
-		enabled: !!selectionData.property_id && !!token
+		enabled: !!session && !!selectionData.property_id
 	})
 
 	const { data: unitData } = useQuery({
-		queryKey: ['unit', selectionData.unit_id, token],
+		queryKey: ['units', selectionData.unit_id, session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(`${getApiBaseUrl()}/api/v1/units/${selectionData.unit_id}`, {
-				headers: { Authorization: `Bearer ${token}` }
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session?.access_token}`
+				}
 			})
 			if (!res.ok) return null
 			return res.json()
 		},
-		enabled: !!selectionData.unit_id && !!token
+		enabled: !!session && !!selectionData.unit_id
 	})
 
 	const { data: tenantData } = useQuery({
-		queryKey: ['tenant', selectionData.primary_tenant_id, token],
+		queryKey: ['tenants', selectionData.primary_tenant_id, session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(
 				`${getApiBaseUrl()}/api/v1/tenants/${selectionData.primary_tenant_id}`,
 				{
-					headers: { Authorization: `Bearer ${token}` }
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session?.access_token}`
+					}
 				}
 			)
 			if (!res.ok) return null
 			return res.json()
 		},
-		enabled: !!selectionData.primary_tenant_id && !!token
+		enabled: !!session && !!selectionData.primary_tenant_id
 	})
 
 	// Create lease mutation
@@ -142,7 +151,7 @@ export function LeaseCreationWizard({
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`
+					Authorization: `Bearer ${session?.access_token}`
 				},
 				body: JSON.stringify(payload)
 			})
@@ -280,7 +289,6 @@ export function LeaseCreationWizard({
 							<SelectionStep
 								data={selectionData}
 								onChange={setSelectionData}
-								token={token}
 							/>
 						)}
 						{currentStep === 'terms' && (

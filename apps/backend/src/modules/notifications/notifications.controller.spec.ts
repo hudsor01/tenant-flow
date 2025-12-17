@@ -15,6 +15,7 @@ describe('NotificationsController', () => {
 		update: jest.Mock
 		delete: jest.Mock
 		eq: jest.Mock
+		in: jest.Mock
 		order: jest.Mock
 		range: jest.Mock
 		single: jest.Mock
@@ -56,8 +57,9 @@ describe('NotificationsController', () => {
 			update: jest.fn(() => mockSupabaseClient),
 			delete: jest.fn(() => mockSupabaseClient),
 			eq: jest.fn(() => mockSupabaseClient),
+			in: jest.fn(() => mockSupabaseClient),
 			order: jest.fn(() => mockSupabaseClient),
-			range: jest.fn(() => ({ data: [], error: null })),
+			range: jest.fn(() => ({ data: [], error: null, count: 0 })),
 			single: jest.fn(() => ({ data: {}, error: null }))
 		}
 
@@ -109,28 +111,47 @@ describe('NotificationsController', () => {
 	})
 
 	describe('getNotifications', () => {
-		it('should return notifications for authenticated user', async () => {
+		it('should return paginated notifications for authenticated user', async () => {
 			const mockNotifications = [
 				{ id: 'notif-1', title: 'Test 1', user_id: mockUserId },
 				{ id: 'notif-2', title: 'Test 2', user_id: mockUserId }
 			]
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: mockNotifications, error: null })
+			mockSupabaseClient.range.mockReturnValue({
+				data: mockNotifications,
+				error: null,
+				count: mockNotifications.length
+			})
 
 			const result = await controller.getNotifications(req)
 
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
 			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('user_id', mockUserId)
-			expect(result).toEqual({ notifications: mockNotifications })
+			expect(mockSupabaseClient.range).toHaveBeenCalledWith(0, 19)
+			expect(result).toEqual({
+				data: mockNotifications,
+				total: mockNotifications.length,
+				page: 1,
+				limit: 20
+			})
 		})
 
-		it('should handle custom limit and offset parameters', async () => {
+		it('should support page + limit parameters', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: [], error: null })
+			mockSupabaseClient.range.mockReturnValue({ data: [], error: null, count: 0 })
 
-			await controller.getNotifications(req, '20', '5')
+			await controller.getNotifications(req, 2, 20, false)
 
-			expect(mockSupabaseClient.range).toHaveBeenCalledWith(5, 24)
+			expect(mockSupabaseClient.range).toHaveBeenCalledWith(20, 39)
+		})
+
+		it('should support unreadOnly filter', async () => {
+			const req = createAuthenticatedRequest()
+			mockSupabaseClient.range.mockReturnValue({ data: [], error: null, count: 0 })
+
+			await controller.getNotifications(req, 1, 20, true)
+
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('is_read', false)
 		})
 
 		it('should throw UnauthorizedException when user.id is missing', async () => {
@@ -141,18 +162,22 @@ describe('NotificationsController', () => {
 
 		it('should throw BadRequestException on database error', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: null, error: { message: 'Database error' } })
+			mockSupabaseClient.range.mockReturnValue({
+				data: null,
+				error: { message: 'Database error' },
+				count: 0
+			})
 
 			await expect(controller.getNotifications(req)).rejects.toThrow(BadRequestException)
 		})
 
 		it('should return empty array when no notifications found', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: null, error: null })
+			mockSupabaseClient.range.mockReturnValue({ data: null, error: null, count: 0 })
 
 			const result = await controller.getNotifications(req)
 
-			expect(result).toEqual({ notifications: [] })
+			expect(result).toEqual({ data: [], total: 0, page: 1, limit: 20 })
 		})
 	})
 

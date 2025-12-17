@@ -252,6 +252,17 @@ export class MaintenanceService {
 				throw new BadRequestException('unit_id is required')
 			}
 
+			// Get unit to find property owner
+			const { data: unit, error: unitError } = await client
+				.from('units')
+				.select('property:property_id(owner_user_id)')
+				.eq('id', createRequest.unit_id)
+				.single()
+
+			if (unitError || !unit?.property?.owner_user_id) {
+				throw new BadRequestException('Unable to find property owner for unit')
+			}
+
 			const maintenanceData: Database['public']['Tables']['maintenance_requests']['Insert'] =
 				{
 					requested_by: user_id,
@@ -260,7 +271,8 @@ export class MaintenanceService {
 					description: createRequest.description,
 					priority: priorityMap[createRequest.priority || 'medium'] ?? 'normal',
 					unit_id: createRequest.unit_id,
-										...(createRequest.scheduled_date ? { scheduled_date: new Date(createRequest.scheduled_date).toISOString() } : {}),
+					owner_user_id: unit.property.owner_user_id,
+											...(createRequest.scheduled_date ? { scheduled_date: new Date(createRequest.scheduled_date).toISOString() } : {}),
 					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
 				}
 
@@ -408,45 +420,72 @@ export class MaintenanceService {
 				throw new BadRequestException('Failed to update maintenance request')
 			}
 
-			const updated = data as MaintenanceRequest
+				const updated = data as MaintenanceRequest
 
-			// Emit maintenance updated event with inline context
-			if (updated) {
-				// Get unit and property names inline
-				const { data: unit } = await client
-					.from('units')
-					.select('unit_number, property_id')
-					.eq('id', updated.unit_id)
-					.single()
-
-				let propertyName = 'Unknown Property'
-				const unitName = unit?.unit_number || 'Unknown Unit'
-
-				if (unit?.property_id) {
-					const { data: property } = await client
-						.from('properties')
-						.select('name')
-						.eq('id', unit.property_id)
+				// Emit maintenance updated event with inline context
+				if (updated) {
+					// Get unit and property names inline
+					const { data: unit } = await client
+						.from('units')
+						.select('unit_number, property_id')
+						.eq('id', updated.unit_id)
 						.single()
-					propertyName = property?.name || 'Unknown Property'
+
+					let propertyName = 'Unknown Property'
+					const unitNumber = unit?.unit_number || 'Unknown Unit'
+
+					if (unit?.property_id) {
+						const { data: property } = await client
+							.from('properties')
+							.select('name')
+							.eq('id', unit.property_id)
+							.single()
+						propertyName = property?.name || 'Unknown Property'
+					}
+
+					const title = updated.title || updated.description || 'Maintenance Request'
+					const priority = this.reversePriorityMap[updated.priority] || 'medium'
+					const tenantUserId = updated.requested_by
+					const ownerUserId = updated.owner_user_id
+
+					// Notify tenant (requester) if different from owner.
+					if (tenantUserId && tenantUserId !== ownerUserId) {
+						this.eventEmitter.emit(
+							'maintenance.updated',
+							new MaintenanceUpdatedEvent(
+								tenantUserId,
+								updated.id,
+								title,
+								updated.status,
+								priority,
+								propertyName,
+								unitNumber,
+								updated.description ?? '',
+								`/tenant/maintenance/request/${updated.id}`
+							)
+						)
+					}
+
+					// Always notify owner.
+					if (ownerUserId) {
+						this.eventEmitter.emit(
+							'maintenance.updated',
+							new MaintenanceUpdatedEvent(
+								ownerUserId,
+								updated.id,
+								title,
+								updated.status,
+								priority,
+								propertyName,
+								unitNumber,
+								updated.description ?? '',
+								`/maintenance/${updated.id}`
+							)
+						)
+					}
 				}
 
-				this.eventEmitter.emit(
-					'maintenance.updated',
-					new MaintenanceUpdatedEvent(
-						updated.requested_by ?? '',
-						updated.id,
-						updated.description ?? '',
-						updated.status,
-						this.reversePriorityMap[updated.priority] || 'medium',
-						propertyName,
-						unitName,
-						updated.description ?? ''
-					)
-				)
-			}
-
-			return updated
+				return updated
 		} catch (error) {
 			// Re-throw ConflictException as-is
 			if (error instanceof ConflictException) {

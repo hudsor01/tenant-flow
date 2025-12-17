@@ -286,18 +286,7 @@ export class ReportsService {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			// First get property_owners.id from auth_user_id
-			const { data: ownerRecord } = await client
-				.from('property_owners')
-				.select('id')
-				.eq('user_id', user_id)
-				.maybeSingle()
-
-			if (!ownerRecord) {
-				return this.getEmptyOccupancyMetrics()
-			}
-
-			// Get user's properties with units
+			// Get user's properties with units (owner_user_id is now directly on properties table)
 			const { data: properties } = await client
 				.from('properties')
 				.select(
@@ -310,7 +299,7 @@ export class ReportsService {
 					)
 					`
 				)
-				.eq('property_owner_id', ownerRecord.id)
+				.eq('owner_user_id', user_id)
 
 			if (!properties) {
 				return this.getEmptyOccupancyMetrics()

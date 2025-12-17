@@ -62,7 +62,7 @@ describe('Tenant Invitation Flow - Property-Based Integration Tests', () => {
     const { data: propertyData, error: propertyError } = await adminClient
       .from('properties')
       .insert({
-        property_owner_id: testUserId,
+        owner_user_id: testUserId,
         name: 'Test Property',
         address_line1: '123 Test St',
         city: 'Test City',

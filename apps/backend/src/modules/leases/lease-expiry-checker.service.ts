@@ -47,7 +47,7 @@ export class LeaseExpiryCheckerService {
 				.select(
 					'id, end_date, lease_status, unit_id, ' +
 					'tenant:tenants!primary_tenant_id(id, user_id, users(full_name)), ' +
-					'unit:units!unit_id(id, unit_number, property_id, property:properties(id, name, property_owner_id))'
+					'unit:units!unit_id(id, unit_number, property_id, property:properties(id, name, owner_user_id))'
 				)
 				.eq('lease_status', 'active')
 				.not('end_date', 'is', null)
@@ -71,7 +71,7 @@ export class LeaseExpiryCheckerService {
 					id: string
 					unit_number: string
 					property_id: string
-					property?: { id: string; name: string; property_owner_id: string }
+					property?: { id: string; name: string; owner_user_id: string }
 				}
 			}>
 
@@ -91,9 +91,9 @@ export class LeaseExpiryCheckerService {
 					// Property is now nested under unit (leases -> units -> properties)
 					const property = lease.unit?.property
 
-					// Validate property and property_owner_id exist before processing
-					if (!property || !property.property_owner_id) {
-						this.logger.warn('Skipping lease expiring event: missing property or property_owner_id', {
+					// Validate property and owner_user_id exist before processing
+					if (!property || !property.owner_user_id) {
+						this.logger.warn('Skipping lease expiring event: missing property or owner_user_id', {
 							lease_id: lease.id,
 							property_id: property?.id,
 							tenant_id: lease.tenant?.id
@@ -102,7 +102,7 @@ export class LeaseExpiryCheckerService {
 					}
 
 					const event = new LeaseExpiringEvent(
-						property.property_owner_id,
+						property.owner_user_id,
 						lease.tenant?.users?.full_name ?? 'Unknown Tenant',
 						property.name ?? 'Unknown Property',
 						lease.unit?.unit_number ?? 'Unknown Unit',

@@ -91,7 +91,7 @@ export class StripeConnectController {
 	private async getStripeAccountId(userId: string): Promise<string> {
 		const { data: propertyOwner, error } = await this.supabaseService
 			.getAdminClient()
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('stripe_account_id')
 			.eq('user_id', userId)
 			.single()
@@ -150,7 +150,7 @@ export class StripeConnectController {
 			// Check if user already has a property_owner record with stripe_account_id
 			const { data: propertyOwner } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('stripe_account_id')
 				.eq('user_id', user_id)
 				.single()
@@ -202,7 +202,7 @@ export class StripeConnectController {
 		try {
 			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('stripe_account_id')
 				.eq('user_id', user_id)
 				.single()
@@ -240,7 +240,7 @@ export class StripeConnectController {
 			// Get property owner record with Stripe Connect info
 			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
 				.eq('user_id', user_id)
 				.single()
@@ -272,7 +272,7 @@ export class StripeConnectController {
 			// Fetch updated status from property_owners
 			const { data: updatedOwner } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
 				.eq('user_id', user_id)
 				.single()
@@ -330,7 +330,7 @@ export class StripeConnectController {
 		try {
 			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('stripe_account_id, onboarding_status')
 				.eq('user_id', user_id)
 				.single()

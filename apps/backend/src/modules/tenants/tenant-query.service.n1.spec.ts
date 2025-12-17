@@ -80,8 +80,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
   describe('getTenantIdsForOwner - N+1 Prevention', () => {
     it('should use single query with joins instead of 3 sequential queries', async () => {
-      // Setup: Mock owner with properties → units → leases chain
-      const mockOwnerRecord = { id: 'owner-1' }
+      // Service now queries properties directly by owner_user_id (no property_owners query)
       const mockProperties = [
         {
           id: 'prop-1',
@@ -105,26 +104,11 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
       const mockClient = mockSupabaseService.getAdminClient()
 
-      let callIndex = 0
-      mockClient.select = jest.fn().mockImplementation((columns: string) => {
-        callIndex++
-
-        // First call: get owner record
-        if (callIndex === 1) {
-          mockClient.maybeSingle = jest.fn().mockResolvedValue({
-            data: mockOwnerRecord,
-            error: null
-          })
-        }
-        // Second call: should be SINGLE query with nested joins
-        else if (callIndex === 2) {
-          ; (mockClient as any).then = (cb: (result: any) => void) => {
-            cb({ data: mockProperties, error: null })
-            return Promise.resolve({ data: mockProperties, error: null })
-          }
-        }
-
-        return mockClient
+      // Mock the properties query with nested joins
+      mockClient.select = jest.fn().mockReturnValue(mockClient)
+      mockClient.eq = jest.fn().mockResolvedValue({
+        data: mockProperties,
+        error: null
       })
 
       // Reset query counter
@@ -133,11 +117,9 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
       // Execute
       const result = await service.getTenantIdsForOwner('auth-user-123')
 
-      // Assert: Should use ≤2 queries (not 4)
-      // 1 query: Get owner record
-      // 1 query: Get properties with nested units.leases in single join
-      // TOTAL: 2 queries (not 1 + properties + units + leases = 4)
-      expect(queryCount).toBeLessThanOrEqual(2)
+      // Assert: Should use single query (not 3)
+      // Service now uses: properties.select('id, units(id, leases(primary_tenant_id))').eq('owner_user_id', ...)
+      expect(queryCount).toBeLessThanOrEqual(1)
       expect(result).toEqual(['tenant-1', 'tenant-2'])
     })
 

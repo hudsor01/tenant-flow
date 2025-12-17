@@ -70,7 +70,7 @@ vi.mock('#hooks/use-lightbox-state', () => ({
 
 const DEFAULT_PROPERTY: Property = {
 	id: 'property-1',
-	property_owner_id: 'owner-1',
+	owner_user_id: 'owner-1',
 	name: 'Sunset Apartments',
 	address_line1: '123 Main St',
 	address_line2: null,
@@ -80,6 +80,7 @@ const DEFAULT_PROPERTY: Property = {
 	country: 'US',
 	property_type: 'multi_family',
 	status: 'active',
+		stripe_connected_account_id: null,
 	date_sold: null,
 	sale_price: null,
 	created_at: '2024-01-01T00:00:00Z',
