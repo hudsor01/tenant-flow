@@ -213,12 +213,14 @@ export class LeaseSignatureService {
 			(options.missingFields as { [key: string]: string }) || {}
 		)
 
-		// Step 5: Generate filled PDF
+		// Step 5: Generate filled PDF with state-specific template
 		let pdfBuffer: Buffer
+		const state = leaseData?.lease?.governing_state || 'TX'
 		try {
-			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId)
+			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId, state)
 			this.logger.log('Generated filled lease PDF', {
 				leaseId,
+				state,
 				sizeBytes: pdfBuffer.length
 			})
 		} catch (error) {

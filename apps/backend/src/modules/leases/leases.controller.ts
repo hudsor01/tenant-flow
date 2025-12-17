@@ -444,8 +444,9 @@ export class LeasesController {
 			missingFieldsDto as unknown as { [key: string]: string }
 		)
 
-		// Generate filled PDF
-		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id)
+		// Generate filled PDF with state-specific template
+		const state = leaseData?.lease?.governing_state || 'TX'
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, state)
 
 		return {
 			lease_id: id,
