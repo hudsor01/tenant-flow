@@ -98,7 +98,7 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
         )
       `
 			)
-			.eq('property_owner_id', owners.id)
+			.eq('owner_user_id', owners.id)
 			.not('units.leases.primary_tenant_id', 'is', null)
 			.limit(5)
 

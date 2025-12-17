@@ -47,21 +47,24 @@ export function useUpdateOwnerNotificationSettings() {
 			if (previous) {
 				queryClient.setQueryData<OwnerNotificationSettings>(
 					notificationSettingsKey,
-					old =>
-						old
-							? {
-									...old,
-									...updates,
-									...(updates.categories
-										? {
-												categories: {
-													...old.categories,
-													...updates.categories
-												}
-											}
-										: {})
-							  }
-							: old
+					(old: OwnerNotificationSettings | undefined): OwnerNotificationSettings | undefined => {
+						if (!old) return undefined
+
+						// Destructure categories out of updates to avoid Partial<> type conflict
+						const { categories: updatedCategories, ...restUpdates } = updates
+
+						return {
+							...old,
+							...restUpdates,
+							categories: updatedCategories
+								? {
+										maintenance: updatedCategories.maintenance ?? old.categories.maintenance,
+										leases: updatedCategories.leases ?? old.categories.leases,
+										general: updatedCategories.general ?? old.categories.general
+									}
+								: old.categories
+						}
+					}
 				)
 			}
 

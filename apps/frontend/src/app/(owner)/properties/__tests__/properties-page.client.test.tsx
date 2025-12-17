@@ -102,9 +102,10 @@ const mockProperties = [
 		city: 'Test City',
 		state: 'CA',
 		postal_code: '12345',
-		property_owner_id: 'owner-1',
+		owner_user_id: 'owner-1',
 		property_type: 'SINGLE_FAMILY',
 		status: 'active',
+		stripe_connected_account_id: null,
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z',
 		units: [
@@ -120,9 +121,10 @@ const mockProperties = [
 		city: 'Test City',
 		state: 'CA',
 		postal_code: '12345',
-		property_owner_id: 'owner-1',
+		owner_user_id: 'owner-1',
 		property_type: 'APARTMENT',
 		status: 'active',
+		stripe_connected_account_id: null,
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z',
 		units: [

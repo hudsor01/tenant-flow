@@ -15,10 +15,10 @@ import {
 } from '#lib/mutation-error-handler'
 import type { Database } from '@repo/shared/types/supabase'
 
-type NotificationRow = Database['public']['Tables']['notifications']['Row']
+type NotificationItem = Database['public']['Tables']['notifications']['Row']
 
 interface PaginatedNotifications {
-	data: NotificationRow[]
+	data: NotificationItem[]
 	total: number
 	page: number
 	limit: number
@@ -166,7 +166,7 @@ export function useCreateMaintenanceNotification() {
 			propertyName: string
 			unit_number: string
 		}) =>
-			apiRequest<{ notification: NotificationRow }>(
+			apiRequest<{ notification: NotificationItem }>(
 				'/api/v1/notifications/maintenance',
 				{
 					method: 'POST',

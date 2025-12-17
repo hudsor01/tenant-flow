@@ -50,7 +50,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
       throw new Error(`Failed to authenticate test owner: ${authError?.message}`)
     }
 
-    // Get property_owner_id
+    // Get owner_user_id
     const { data: ownerData, error: ownerError } = await client
       .from('stripe_connected_accounts')
       .select('id')
@@ -58,7 +58,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
       .single()
 
     if (ownerError || !ownerData) {
-      throw new Error(`Failed to get property_owner_id: ${ownerError?.message}`)
+      throw new Error(`Failed to get owner_user_id: ${ownerError?.message}`)
     }
 
     testPropertyOwnerId = ownerData.id
@@ -67,7 +67,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
     const { data: properties, error: propError } = await client
       .from('properties')
       .select('id')
-      .eq('property_owner_id', testPropertyOwnerId)
+      .eq('owner_user_id', testPropertyOwnerId)
       .limit(1)
 
     if (propError) {
@@ -81,7 +81,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
       const { data: newProperty, error: createError } = await client
         .from('properties')
         .insert({
-          property_owner_id: testPropertyOwnerId,
+          owner_user_id: testPropertyOwnerId,
           name: 'Property Test Property',
           address_line1: '123 Test St',
           city: 'Test City',
@@ -144,7 +144,7 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
             .from('tenant_invitations')
             .insert({
               email: uniqueEmail.toLowerCase(),
-              property_owner_id: testPropertyOwnerId,
+              owner_user_id: testPropertyOwnerId,
               property_id: testPropertyId,
               unit_id: null,
               invitation_code: invitationCode,

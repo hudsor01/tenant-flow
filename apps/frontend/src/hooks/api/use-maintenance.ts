@@ -85,7 +85,7 @@ export function useMaintenanceRequestCreate() {
 				status: 'open',
 			unit_id: newRequest.unit_id || '',
 				tenant_id: newRequest.tenant_id || '',
-				property_owner_id: '',
+				owner_user_id: '',
 				requested_by: null,
 				actual_cost: null,
 				assigned_to: null,

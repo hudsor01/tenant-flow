@@ -127,7 +127,7 @@ export function useCreateProperty() {
 			const ownerUserId =
 				user?.id ??
 				(propertyData as unknown as { owner_user_id?: string })?.owner_user_id ??
-				(propertyData as unknown as { property_owner_id?: string })?.property_owner_id ??
+				(propertyData as unknown as { owner_user_id?: string })?.owner_user_id ??
 				null
 
 			const payload = {
@@ -154,7 +154,7 @@ export function useCreateProperty() {
 			const owner_user_id =
 				user?.id ??
 				(newProperty as unknown as { owner_user_id?: string })?.owner_user_id ??
-				(newProperty as unknown as { property_owner_id?: string })?.property_owner_id ??
+				(newProperty as unknown as { owner_user_id?: string })?.owner_user_id ??
 				null
 
 			const optimisticProperty = {

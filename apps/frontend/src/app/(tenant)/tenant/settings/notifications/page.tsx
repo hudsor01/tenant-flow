@@ -15,16 +15,9 @@ import {
   useUnreadNotificationsCount
 } from '#hooks/api/use-notifications'
 import { CheckCircle2, ExternalLink, Loader2, Trash2 } from 'lucide-react'
+import type { Database } from '@repo/shared/types/supabase'
 
-type NotificationItem = {
-  id: string
-  title: string
-  message: string | null
-  notification_type: string
-  is_read: boolean | null
-  created_at: string | null
-  action_url: string | null
-}
+type NotificationItem = Database['public']['Tables']['notifications']['Row']
 
 export default function TenantNotificationsPage() {
   const router = useRouter()
