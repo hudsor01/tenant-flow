@@ -9,12 +9,15 @@
  */
 
 import {
+	BadRequestException,
 	Body,
 	Controller,
+	DefaultValuePipe,
 	Delete,
 	Get,
 	NotFoundException,
 	Param,
+	ParseIntPipe,
 	ParseUUIDPipe,
 	Post,
 	Put,
@@ -25,7 +28,7 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
-import { FindAllUnitsDto } from './dto/find-all-units.dto'
+import { isValidUnitStatus } from '@repo/shared/validation/enum-validators'
 
 @Controller('units')
 export class UnitsController {
@@ -43,24 +46,53 @@ export class UnitsController {
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query() query: FindAllUnitsDto
+		@Query('property_id', new DefaultValuePipe(null))
+		property_id: string | null,
+		@Query('status', new DefaultValuePipe(null)) status: string | null,
+		@Query('search', new DefaultValuePipe(null)) search: string | null,
+		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
+		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy: string,
+		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder: string
 	) {
-		// DTO validation handled by ZodValidationPipe - no manual validation needed
-		// Normalize status to lowercase for database enum
-		const normalizedQuery = {
-			...query,
-			status: query.status?.toLowerCase() as typeof query.status
+		// Validate enum values using shared constant (DRY principle)
+		if (status) {
+			const lowerStatus = status.toLowerCase()
+			if (!isValidUnitStatus(lowerStatus)) {
+				throw new BadRequestException('Invalid status value')
+			}
+			// Normalize to lowercase for database enum
+			status = lowerStatus
+		}
+		if (
+			!['created_at', 'unit_number', 'bedrooms', 'rent', 'status'].includes(
+				sortBy
+			)
+		) {
+			throw new BadRequestException('Invalid sortBy value')
+		}
+		if (!['asc', 'desc'].includes(sortOrder)) {
+			throw new BadRequestException('Invalid sortOrder value')
 		}
 
-		const data = await this.unitsService.findAll(token, normalizedQuery)
+		// RLS: Pass JWT token to service layer
+		const data = await this.unitsService.findAll(token, {
+			property_id,
+			status,
+			search,
+			limit,
+			offset,
+			sortBy,
+			sortOrder
+		})
 
 		// Return PaginatedResponse format expected by frontend
 		return {
 			data,
 			total: data.length,
-			limit: query.limit,
-			offset: query.offset,
-			hasMore: data.length >= query.limit
+			limit,
+			offset,
+			hasMore: data.length >= limit
 		}
 	}
 

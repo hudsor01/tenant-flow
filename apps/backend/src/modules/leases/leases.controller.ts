@@ -30,11 +30,8 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
-import { FindAllLeasesDto } from './dto/find-all-leases.dto'
-import { SubmitMissingLeaseFieldsDto } from './dto/submit-missing-lease-fields.dto'
+import { isValidLeaseStatus } from '@repo/shared/validation/enum-validators'
 import { isValidUUID } from '@repo/shared/validation/common'
-import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
-import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 
 @Controller('leases')
 export class LeasesController {
@@ -42,20 +39,56 @@ export class LeasesController {
 		private readonly leasesService: LeasesService,
 		private readonly financialService: LeaseFinancialService,
 		private readonly lifecycleService: LeaseLifecycleService,
-		private readonly signatureService: LeaseSignatureService,
-		private readonly pdfMapper: LeasePdfMapperService,
-		private readonly pdfGenerator: LeasePdfGeneratorService
+		private readonly signatureService: LeaseSignatureService
 	) {}
 
 	@Get()
 	async findAll(
 		@JwtToken() token: string,
-		@Query() query: FindAllLeasesDto
+		@Query('tenant_id') tenant_id?: string,
+		@Query('unit_id') unit_id?: string,
+		@Query('property_id') property_id?: string,
+		@Query('status') status?: string,
+		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number,
+		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset?: number,
+		@Query('sortBy', new DefaultValuePipe('created_at')) sortBy?: string,
+		@Query('sortOrder', new DefaultValuePipe('desc')) sortOrder?: string
 	) {
-		// DTO validation handled by ZodValidationPipe - no manual validation needed
-		const data = await this.leasesService.findAll(token, query)
+		// Validate UUIDs if provided
+		if (tenant_id && !isValidUUID(tenant_id)) {
+			throw new BadRequestException('Invalid tenant ID')
+		}
+		if (unit_id && !isValidUUID(unit_id)) {
+			throw new BadRequestException('Invalid unit ID')
+		}
+		if (property_id && !isValidUUID(property_id)) {
+			throw new BadRequestException('Invalid property ID')
+		}
+
+		// Validate status enum using shared constant (DRY principle)
+		if (status && !isValidLeaseStatus(status)) {
+			throw new BadRequestException('Invalid lease status')
+		}
+
+		// Validate limits
+		if (limit && (limit < 1 || limit > 50)) {
+			throw new BadRequestException('Limit must be between 1 and 50')
+		}
+
+		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
+		const data = await this.leasesService.findAll(token, {
+			tenant_id,
+			unit_id,
+			property_id,
+			status,
+			limit,
+			offset,
+			sortBy,
+			sortOrder
+		})
 
 		// Return PaginatedResponse format expected by frontend
+		// Service already returns { data, total, limit, offset }, just add hasMore
 		return {
 			...data,
 			hasMore: data.data.length >= data.limit
@@ -389,68 +422,5 @@ export class LeasesController {
 			req.user.id
 		)
 		return { document_url: documentUrl }
-	}
-
-	// ============================================================
-	// TEXAS LEASE PDF GENERATION ENDPOINTS
-	// ============================================================
-
-	/**
-	 * Get missing fields required for Texas lease PDF generation
-	 * Returns which fields need to be filled by user (not auto-filled from DB)
-	 */
-	@Get(':id/pdf/missing-fields')
-	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
-	async getPdfMissingFields(
-		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string
-	) {
-		// Get complete lease data
-		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
-
-		// Map to PDF fields
-		const { fields, missing } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
-
-		return {
-			lease_id: id,
-			missing_fields: missing.fields,
-			is_complete: missing.isComplete,
-			auto_filled_count: Object.keys(fields).filter(
-				k => fields[k as keyof typeof fields] !== undefined
-			).length
-		}
-	}
-
-	/**
-	 * Submit missing fields and generate filled Texas lease PDF
-	 * Returns PDF buffer for download or DocuSeal upload
-	 */
-	@Post(':id/pdf/generate')
-	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 PDF generations per minute
-	async generateFilledPdf(
-		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string,
-		@Body() missingFieldsDto: SubmitMissingLeaseFieldsDto
-	) {
-		// Get complete lease data
-		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
-
-		// Map to PDF fields
-		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
-
-		// Merge user-provided fields with auto-filled fields
-		const completeFields = this.pdfMapper.mergeMissingFields(
-			fields,
-			missingFieldsDto as unknown as { [key: string]: string }
-		)
-
-		// Generate filled PDF
-		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id)
-
-		return {
-			lease_id: id,
-			pdf_size_bytes: pdfBuffer.length,
-			generated_at: new Date().toISOString()
-		}
 	}
 }

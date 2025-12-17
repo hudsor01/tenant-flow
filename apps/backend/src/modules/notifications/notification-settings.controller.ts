@@ -9,23 +9,11 @@ import {
 } from '@nestjs/common'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
-type NotificationSettingsRow = {
-	id: string
-	user_id: string
-	email: boolean | null
-	sms: boolean | null
-	push: boolean | null
-	in_app: boolean | null
-	maintenance: boolean | null
-	leases: boolean | null
-	general: boolean | null
-	version?: number | null
-	created_at?: string | null
-	updated_at?: string | null
-}
+type NotificationSettingsRow = Database['public']['Tables']['notification_settings']['Row']
 
 const DEFAULT_SETTINGS: NotificationPreferences = {
 	email: true,
