@@ -370,7 +370,7 @@ export class TenantListService {
 					city: string
 					state: string
 					postal_code: string
-					property_owner_id: string
+					owner_user_id: string
 				} | null
 			} | null
 		}
@@ -442,7 +442,7 @@ export class TenantListService {
 							city,
 							state,
 							postal_code,
-							property_owner_id
+							owner_user_id
 						)
 					)
 				)

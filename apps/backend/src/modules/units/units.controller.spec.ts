@@ -114,16 +114,14 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll(
-			createMockRequest({ user: mockUser }) as any,
-			{
-				property_id: null,
-				status: undefined,
-				search: undefined,
-				limit: 10,
-				offset: 0,
-				sortBy: 'created_at',
-				sortOrder: 'desc'
-			}
+			'mock-jwt-token',
+			null, // property_id
+			null, // status
+			null, // search
+			10,   // limit
+			0,    // offset
+			'created_at', // sortBy
+			'desc' // sortOrder
 		)
 
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
@@ -165,16 +163,14 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits as any)
 
 			const result = await controller.findAll(
-			createMockRequest({ user: mockUser }) as any,
-			{
-				property_id: null,
-				status: 'OCCUPIED' as any, // Uppercase input
-				search: undefined,
-				limit: 10,
-				offset: 0,
-				sortBy: 'created_at',
-				sortOrder: 'desc'
-			}
+			'mock-jwt-token',
+			null, // property_id
+			'OCCUPIED', // status - uppercase input to test normalization
+			null, // search
+			10,   // limit
+			0,    // offset
+			'created_at', // sortBy
+			'desc' // sortOrder
 		)
 
 			// Verify service was called and status was normalized

@@ -325,7 +325,7 @@ export class SubscriptionQueryService {
 		const { data: properties, error: propertiesError } = await adminClient
 			.from('properties')
 			.select('id')
-			.eq('property_owner_id', ownerId)
+			.eq('owner_user_id', ownerId)
 
 		if (propertiesError) {
 			this.logger.error('Failed to load owner properties', {
@@ -432,7 +432,7 @@ export class SubscriptionQueryService {
 			const { data, error } = await this.supabase
 				.getAdminClient()
 				.from('properties')
-				.select('id, name, property_owner_id')
+				.select('id, name, owner_user_id')
 				.eq('id', propertyId)
 				.single<PropertyRow>()
 

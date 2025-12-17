@@ -33,7 +33,7 @@ interface RawInvitationRow {
 	id: string
 	email: string
 	unit_id: string | null
-	property_owner_id: string
+	owner_user_id: string
 	created_at: string
 	expires_at: string
 	accepted_at: string | null
@@ -85,7 +85,7 @@ export class TenantInvitationQueryService {
 					id,
 					email,
 					unit_id,
-					property_owner_id,
+					owner_user_id,
 					created_at,
 					expires_at,
 					accepted_at,
