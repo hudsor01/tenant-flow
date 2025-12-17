@@ -544,7 +544,7 @@ describe('PropertyOwnershipGuard', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
-          data: { property_owner: { user_id: userId } },
+          data: { owner_user_id: userId },
           error: null
         })
       }
@@ -606,7 +606,7 @@ describe('PropertyOwnershipGuard', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
-          data: { property_owner: { user_id: userId } },
+          data: { owner_user_id: userId },
           error: null
         })
       }
@@ -633,7 +633,7 @@ describe('PropertyOwnershipGuard', () => {
       // Verify database was queried
       expect(mockSupabaseService.getAdminClient).toHaveBeenCalled()
       expect(mockClient.from).toHaveBeenCalledWith('properties')
-      expect(mockClient.select).toHaveBeenCalledWith('property_owner:property_owner_id(user_id)')
+      expect(mockClient.select).toHaveBeenCalledWith('owner_user_id')
       expect(mockClient.eq).toHaveBeenCalledWith('id', propertyId)
     })
 
@@ -656,7 +656,7 @@ describe('PropertyOwnershipGuard', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
-          data: { property_owner: { user_id: userId } },
+          data: { owner_user_id: userId },
           error: null
         })
       }
@@ -700,7 +700,7 @@ describe('PropertyOwnershipGuard', () => {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         single: jest.fn().mockResolvedValue({
-          data: { property_owner: { user_id: user1Id } },
+          data: { owner_user_id: user1Id },
           error: null
         })
       }

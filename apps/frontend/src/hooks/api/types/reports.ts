@@ -1,34 +1,34 @@
-import type {
-	ListReportsResponse,
-	OccupancyMetrics,
-	PaymentAnalytics,
-	Report,
-	RevenueData
-} from '@repo/shared/types/reports'
-import type { UseMutationResult } from '@tanstack/react-query'
+/**
+ * Reports hook types
+ */
 
-export type UseReportsResult = {
-	reports: Report[]
-	total: number
-	isLoading: boolean
-	isFetching: boolean
-	deleteMutation: UseMutationResult<
-		void,
-		unknown,
-		string,
-		{ previous?: ListReportsResponse }
-	>
-	downloadMutation: UseMutationResult<void, unknown, string, unknown>
-	downloadingIds: Set<string>
-	deletingIds: Set<string>
-	downloadReport: (reportId: string) => void
-	deleteReport: (reportId: string) => void
+import type { UseMutationResult } from '@tanstack/react-query'
+import type {
+  Report,
+  ListReportsResponse,
+  RevenueData,
+  PaymentAnalytics,
+  OccupancyMetrics
+} from '@repo/shared/types/reports'
+
+export interface UseReportsResult {
+  reports: Report[]
+  total: number
+  isLoading: boolean
+  isFetching: boolean
+  deleteMutation: UseMutationResult<void, unknown, string, unknown>
+  downloadMutation: UseMutationResult<void, unknown, string, unknown>
+  downloadingIds: Set<string>
+  deletingIds: Set<string>
+  downloadReport: (reportId: string) => void
+  deleteReport: (reportId: string) => void
 }
 
+// Re-export for convenience
 export type {
-	Report,
-	ListReportsResponse,
-	RevenueData,
-	PaymentAnalytics,
-	OccupancyMetrics
+  Report,
+  ListReportsResponse,
+  RevenueData,
+  PaymentAnalytics,
+  OccupancyMetrics
 }

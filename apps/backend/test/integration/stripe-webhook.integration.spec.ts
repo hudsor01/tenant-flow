@@ -5,7 +5,7 @@
  * Uses real Supabase connection with authenticated owner client to verify integration works.
  *
  * Note: Since legacy SERVICE_ROLE keys are disabled, we use the owner's authenticated
- * client which has RLS access to their own property_owner record. This tests the real
+ * client which has RLS access to their own stripe_connected_accounts record. This tests the real
  * database interactions the same way production would work with proper admin keys.
  */
 import { Test } from '@nestjs/testing'
@@ -18,6 +18,8 @@ import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/s
 import { PaymentWebhookHandler } from '../../src/modules/billing/handlers/payment-webhook.handler'
 import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
 import { authenticateAs, TEST_USERS, type AuthenticatedTestClient } from './rls/setup'
+import { AppLogger } from '../../src/logger/app-logger.service'
+import { SilentLogger } from '../../src/__test__/silent-logger'
 
 describe('Stripe Webhook Integration', () => {
 	let processor: WebhookProcessor
@@ -33,16 +35,16 @@ describe('Stripe Webhook Integration', () => {
 		// Authenticate as the E2E owner
 		ownerAuth = await authenticateAs(TEST_USERS.OWNER_A)
 
-		// Get the owner's existing property_owner record
+		// Get the owner's existing Stripe Connect account record
 		const { data: existingPo, error: queryError } = await ownerAuth.client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('id, stripe_account_id, onboarding_status')
 			.eq('user_id', ownerAuth.user_id)
 			.single()
 
 		if (queryError || !existingPo) {
 			throw new Error(
-				`E2E owner must have a property_owner record: ${queryError?.message || 'Not found'}`
+				`E2E owner must have a stripe_connected_accounts record: ${queryError?.message || 'Not found'}`
 			)
 		}
 
@@ -56,7 +58,7 @@ describe('Stripe Webhook Integration', () => {
 
 		// Set up initial test state
 		const { error: updateError } = await ownerAuth.client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.update({
 				stripe_account_id: testStripeAccountId,
 				onboarding_status: 'in_progress',
@@ -72,7 +74,7 @@ describe('Stripe Webhook Integration', () => {
 		}
 
 		// Create mock SupabaseService using the owner's authenticated client
-		// This simulates what admin access would do - query/update the property_owners table
+		// This simulates what admin access would do - query/update the stripe_connected_accounts table
 		const supabaseService = {
 			getAdminClient: () => ownerAuth.client
 		}
@@ -102,7 +104,8 @@ describe('Stripe Webhook Integration', () => {
 				{ provide: SupabaseService, useValue: supabaseService },
 				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
 				{ provide: PaymentWebhookHandler, useValue: mockPaymentHandler },
-				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler }
+				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
+				{ provide: AppLogger, useValue: new SilentLogger() }
 			]
 		}).compile()
 
@@ -114,7 +117,7 @@ describe('Stripe Webhook Integration', () => {
 		if (!ownerAuth) return
 
 		// Restore original values - build update object conditionally for nullable stripe_account_id
-		const restoreData: TablesUpdate<'property_owners'> = {
+		const restoreData: TablesUpdate<'stripe_connected_accounts'> = {
 			onboarding_status: originalOnboardingStatus || 'not_started',
 			charges_enabled: false,
 			payouts_enabled: false,
@@ -128,7 +131,7 @@ describe('Stripe Webhook Integration', () => {
 		}
 
 		await ownerAuth.client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.update(restoreData)
 			.eq('user_id', ownerAuth.user_id)
 	})
@@ -137,7 +140,7 @@ describe('Stripe Webhook Integration', () => {
 		it('updates property_owner when Connect account completes onboarding', async () => {
 			// Verify initial state
 			const { data: before } = await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('onboarding_status, charges_enabled, payouts_enabled')
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
@@ -168,7 +171,7 @@ describe('Stripe Webhook Integration', () => {
 
 			// Verify database was updated
 			const { data: after } = await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('onboarding_status, charges_enabled, payouts_enabled, onboarding_completed_at')
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
@@ -182,7 +185,7 @@ describe('Stripe Webhook Integration', () => {
 		it('keeps in_progress status when account has disabled_reason', async () => {
 			// Reset to in_progress first
 			await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.update({
 					onboarding_status: 'in_progress',
 					charges_enabled: false,
@@ -213,7 +216,7 @@ describe('Stripe Webhook Integration', () => {
 
 			// Verify rejection
 			const { data: after } = await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('onboarding_status, charges_enabled, payouts_enabled')
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
@@ -226,7 +229,7 @@ describe('Stripe Webhook Integration', () => {
 		it('tracks requirements_due from Stripe account', async () => {
 			// Reset state
 			await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.update({
 					onboarding_status: 'in_progress',
 					charges_enabled: false,
@@ -257,7 +260,7 @@ describe('Stripe Webhook Integration', () => {
 
 			// Verify requirements were captured
 			const { data: after } = await ownerAuth.client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('requirements_due')
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()

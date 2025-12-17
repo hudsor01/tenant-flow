@@ -84,7 +84,7 @@ export const DEFAULT_USER: User = {
  */
 export const DEFAULT_PROPERTY: Property = {
 	id: 'property-1',
-	property_owner_id: 'user-1',
+	owner_user_id: 'user-1',
 	name: 'Test Property',
 	address_line1: '123 Main St',
 	address_line2: null,
@@ -96,6 +96,7 @@ export const DEFAULT_PROPERTY: Property = {
 	status: 'active',
 	date_sold: null,
 	sale_price: null,
+	stripe_connected_account_id: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
@@ -114,7 +115,7 @@ export const DEFAULT_LEASE: Lease = {
 	id: 'lease-1',
 	unit_id: 'unit-1',
 	primary_tenant_id: 'tenant-1',
-	property_owner_id: 'user-1',
+	owner_user_id: 'user-1',
 	start_date: '2024-01-01',
 	end_date: '2024-12-31',
 	rent_amount: 1500,
@@ -152,7 +153,8 @@ export const DEFAULT_LEASE: Lease = {
 	property_rules: null,
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
-	governing_state: null
+	governing_state: null,
+	stripe_connected_account_id: null
 }
 
 /**
@@ -197,7 +199,7 @@ export const DEFAULT_MAINTENANCE_REQUEST = {
 	category: 'plumbing' as const,
 	unit_id: 'unit-1',
 	tenant_id: 'tenant-1',
-	property_owner_id: 'user-1',
+	owner_user_id: 'user-1',
 	requested_by: 'user-1',
 	assigned_to: null,
 	estimated_cost: 150,

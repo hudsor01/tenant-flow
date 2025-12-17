@@ -12,7 +12,8 @@ export class MaintenanceUpdatedEvent {
 		public readonly priority: 'low' | 'medium' | 'high' | 'urgent',
 		public readonly propertyName: string,
 		public readonly unit_number: string,
-		public readonly description: string
+		public readonly description: string,
+		public readonly action_url: string = `/maintenance/${maintenanceId}`
 	) {}
 }
 

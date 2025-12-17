@@ -5,6 +5,7 @@
  * Property, Unit, and Tenant selection with cascading filters
  */
 import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '#providers/auth-provider'
 import { getApiBaseUrl } from '#lib/api-config'
 import { Label } from '#components/ui/label'
 import {
@@ -24,7 +25,6 @@ import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.sch
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>
 	onChange: (data: Partial<SelectionStepData>) => void
-	token: string
 }
 
 interface Property {
@@ -48,53 +48,63 @@ interface Tenant {
 	email: string
 }
 
-export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
+export function SelectionStep({ data, onChange }: SelectionStepProps) {
+	const { session } = useAuth()
+
 	// Fetch properties
 	const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
-		queryKey: ['properties', 'list', token],
+		queryKey: ['properties', 'list', session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(`${getApiBaseUrl()}/api/v1/properties`, {
-				headers: { Authorization: `Bearer ${token}` }
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session?.access_token}`
+				}
 			})
 			if (!res.ok) throw new Error('Failed to fetch properties')
 			const json = await res.json()
 			return json.data as Property[]
 		},
-		enabled: !!token
+		enabled: !!session
 	})
 
 	// Fetch units filtered by selected property
 	const { data: units, isLoading: unitsLoading, error: unitsError } = useQuery({
-		queryKey: ['units', 'list', data.property_id, token],
+		queryKey: ['units', 'by-property', data.property_id, session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(`${getApiBaseUrl()}/api/v1/units?property_id=${data.property_id}`, {
-				headers: { Authorization: `Bearer ${token}` }
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session?.access_token}`
+				}
 			})
 			if (!res.ok) throw new Error('Failed to fetch units')
 			const json = await res.json()
 			return json.data as Unit[]
 		},
-		enabled: !!token && !!data.property_id
+		enabled: !!session && !!data.property_id
 	})
 
 	// Fetch tenants (filtered by selected property)
 	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
-		queryKey: ['tenants', 'list', data.property_id, token],
+		queryKey: ['tenants', 'list', data.property_id, session?.access_token],
 		queryFn: async () => {
-			const params = new URLSearchParams()
+			const url = new URL(`${getApiBaseUrl()}/api/v1/tenants`)
 			if (data.property_id) {
-				params.set('property_id', data.property_id)
+				url.searchParams.set('property_id', data.property_id)
 			}
 
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/tenants?${params.toString()}`,
-				{ headers: { Authorization: `Bearer ${token}` } }
-			)
+			const res = await fetch(url.toString(), {
+				headers: {
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${session?.access_token}`
+				}
+			})
 			if (!res.ok) throw new Error('Failed to fetch tenants')
 			const json = await res.json()
 			return json.data as Tenant[]
 		},
-		enabled: !!token
+		enabled: !!session
 	})
 
 	const handlePropertyChange = (propertyId: string) => {
@@ -216,7 +226,7 @@ export function SelectionStep({ data, onChange, token }: SelectionStepProps) {
 							</EmptyMedia>
 							<EmptyTitle>No Tenants Available</EmptyTitle>
 							<EmptyDescription>
-								{data.property_id 
+								{data.property_id
 									? "No tenants have been invited to this property yet. Invite a tenant to get started."
 									: "No tenants found. Create or invite a tenant first."}
 							</EmptyDescription>

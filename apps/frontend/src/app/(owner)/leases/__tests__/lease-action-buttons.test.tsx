@@ -61,7 +61,7 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	id: 'lease-123',
 	unit_id: 'unit-101',
 	primary_tenant_id: 'tenant-123',
-	property_owner_id: 'owner-123',
+	owner_user_id: 'owner-123',
 	start_date: '2024-01-01',
 	end_date: '2024-12-31',
 	rent_amount: 2500,
@@ -98,6 +98,7 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
 	governing_state: null,
+	stripe_connected_account_id: null,
 	...overrides
 })
 

@@ -43,6 +43,23 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 	})
 }))
 
+vi.mock('#hooks/api/use-tenant-portal', () => ({
+	useTenantSettings: () => ({
+		data: {
+			profile: {
+				id: 'tenant-123',
+				first_name: 'Test',
+				last_name: 'User',
+				email: 'test@example.com',
+				phone: null
+			}
+		},
+		isLoading: false,
+		error: null,
+		refetch: vi.fn()
+	})
+}))
+
 function renderWithProviders(component: React.ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {

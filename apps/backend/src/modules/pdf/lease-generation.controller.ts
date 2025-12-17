@@ -159,17 +159,42 @@ export class LeaseGenerationController {
 		}
 
 		// OPTIMIZATION: Fetch property, unit, and tenant data in parallel with Promise.all
+		// First get property to extract owner_user_id
+		const { data: property, error: propertyError } = await this.supabase
+			.getAdminClient()
+			.from('properties')
+			.select(`
+				id,
+				address_line1,
+				city,
+				state,
+				postal_code,
+				owner_user_id
+			`)
+			.eq('id', property_id)
+			.single()
+
+		// Validate property query result
+		if (propertyError) {
+			if (propertyError.code === 'PGRST116') {
+				throw new NotFoundException(`Property not found: ${property_id}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch property data',
+				propertyError.message
+			)
+		}
+
+		if (!property) {
+			throw new NotFoundException(`Property not found: ${property_id}`)
+		}
+
+		// Now fetch unit, tenant, and owner user data in parallel
 		const [
-			{ data: property, error: propertyError },
 			{ data: unit, error: unitError },
-			{ data: tenant, error: tenantError }
+			{ data: tenant, error: tenantError },
+			{ data: ownerUser, error: ownerUserError }
 		] = await Promise.all([
-			this.supabase
-				.getAdminClient()
-				.from('properties')
-				.select('id, address_line1, city, state, postal_code, property_owner_id')
-				.eq('id', property_id)
-				.single(),
 			this.supabase
 				.getAdminClient()
 				.from('units')
@@ -181,25 +206,14 @@ export class LeaseGenerationController {
 				.from('users')
 				.select('id, first_name, last_name, email')
 				.eq('id', tenant_id)
+				.single(),
+			this.supabase
+				.getAdminClient()
+				.from('users')
+				.select('id, first_name, last_name, email')
+				.eq('id', property.owner_user_id)
 				.single()
 		])
-
-		// Validate property query result
-		if (propertyError) {
-			// PGRST116 = not found (no rows returned)
-			if (propertyError.code === 'PGRST116') {
-				throw new NotFoundException(`Property not found: ${property_id}`)
-			}
-			// Other database errors (connection, permissions, etc.)
-			throw new InternalServerErrorException(
-				'Failed to fetch property data',
-				propertyError.message
-			)
-		}
-
-		if (!property) {
-			throw new NotFoundException(`Property not found: ${property_id}`)
-		}
 
 		// Validate unit query result
 		if (unitError) {
@@ -238,19 +252,19 @@ export class LeaseGenerationController {
 			throw new NotFoundException(`Tenant not found: ${tenant_id}`)
 		}
 
-		// Fetch owner data from property owner
-		const { data: owner, error: ownerError } = await this.supabase
-			.getAdminClient()
-			.from('users')
-			.select('first_name, last_name, email')
-			.eq('id', property.property_owner_id)
-			.single()
-
-		// Owner is optional - if fetch fails, use fallback
-		if (ownerError && ownerError.code !== 'PGRST116') {
-			this.logger.warn(
-				`Failed to fetch owner data for property ${property_id}: ${ownerError.message}`
+		// Validate owner user query result
+		if (ownerUserError) {
+			if (ownerUserError.code === 'PGRST116') {
+				throw new NotFoundException(`Owner user not found for property: ${property_id}`)
+			}
+			throw new InternalServerErrorException(
+				'Failed to fetch owner user data',
+				ownerUserError.message
 			)
+		}
+
+		if (!ownerUser) {
+			throw new NotFoundException(`Owner user not found for property: ${property_id}`)
 		}
 
 		// Auto-fill form data
@@ -260,8 +274,8 @@ export class LeaseGenerationController {
 			property_id: property.id,
 
 			// Property owner info
-			ownerName: owner
-				? `${owner.first_name} ${owner.last_name}`
+			ownerName: ownerUser.first_name && ownerUser.last_name
+				? `${ownerUser.first_name} ${ownerUser.last_name}`
 				: 'Property Owner',
 			ownerAddress: `${property.address_line1}, ${property.city}, ${property.state} ${property.postal_code}`,
 

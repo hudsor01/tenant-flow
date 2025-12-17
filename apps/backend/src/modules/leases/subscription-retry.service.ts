@@ -23,12 +23,10 @@ interface LeaseWithSubscriptionPending {
   id: string
   rent_amount: number
   primary_tenant_id: string
-  property_owner_id: string
+  owner_user_id: string
+  stripe_connected_account_id: string | null
   subscription_retry_count: number | null
   subscription_last_attempt_at: string | null
-  property_owners: {
-    stripe_account_id: string | null
-  } | null
 }
 
 @Injectable()
@@ -65,17 +63,15 @@ export class SubscriptionRetryService {
 				id,
 				rent_amount,
 				primary_tenant_id,
-				property_owner_id,
+				owner_user_id,
+				stripe_connected_account_id,
 				subscription_retry_count,
-				subscription_last_attempt_at,
-				property_owners!leases_property_owner_id_fkey (
-					stripe_account_id
-				)
+				subscription_last_attempt_at
 			`)
       .in('stripe_subscription_status', ['pending', 'failed'])
       .lt('subscription_retry_count', MAX_RETRY_ATTEMPTS)
       .order('subscription_last_attempt_at', { ascending: true, nullsFirst: true })
-      .limit(10) as { data: LeaseWithSubscriptionPending[] | null; error: unknown }
+      .limit(10) as { data: LeaseWithSubscriptionPending[] | null; error: unknown | null }
 
     if (error) {
       this.logger.error(logError('Failed to query leases for subscription retry', error))
@@ -121,11 +117,11 @@ export class SubscriptionRetryService {
     }
 
     // Validate property owner has Stripe account
-    const stripeAccountId = lease.property_owners?.stripe_account_id
+    const stripeAccountId = lease.stripe_connected_account_id
     if (!stripeAccountId) {
       this.logger.error('Property owner missing Stripe account for lease', {
         leaseId: lease.id,
-        propertyOwnerId: lease.property_owner_id
+        propertyOwnerId: lease.owner_user_id
       })
 
       // Mark as failed with clear error
@@ -198,14 +194,14 @@ export class SubscriptionRetryService {
   private emitMaxRetriesReached(lease: LeaseWithSubscriptionPending): void {
     this.logger.error('CRITICAL: Subscription creation max retries reached', {
       leaseId: lease.id,
-      propertyOwnerId: lease.property_owner_id,
+      propertyOwnerId: lease.owner_user_id,
       tenantId: lease.primary_tenant_id,
       action_required: 'Manual intervention required to create subscription'
     })
 
     this.eventEmitter.emit('lease.subscription_max_retries', {
       lease_id: lease.id,
-      property_owner_id: lease.property_owner_id,
+      owner_user_id: lease.owner_user_id,
       tenant_id: lease.primary_tenant_id,
       retry_count: MAX_RETRY_ATTEMPTS
     })
@@ -239,11 +235,9 @@ export class SubscriptionRetryService {
 				id,
 				rent_amount,
 				primary_tenant_id,
-				property_owner_id,
-				stripe_subscription_status,
-				property_owners!leases_property_owner_id_fkey (
-					stripe_account_id
-				)
+				owner_user_id,
+				stripe_connected_account_id,
+				stripe_subscription_status
 			`)
       .eq('id', leaseId)
       .single() as { data: LeaseWithSubscriptionPending | null; error: unknown }
@@ -252,7 +246,7 @@ export class SubscriptionRetryService {
       return { success: false, error: 'Lease not found' }
     }
 
-    const stripeAccountId = lease.property_owners?.stripe_account_id
+    const stripeAccountId = lease.stripe_connected_account_id
     if (!stripeAccountId) {
       return { success: false, error: 'Property owner has no Stripe account' }
     }

@@ -13,26 +13,21 @@ import type { Tables, TablesInsert, Database } from './supabase.js'
 export type { ActivityItem }
 
 // ============================================================================
-// DB ENUM TYPE EXPORTS - Single source of truth from PostgreSQL
+// DB ENUM TYPE EXPORTS - Direct references to supabase.ts (no re-definition)
 // ============================================================================
-// These types are generated from the database schema and should be used
-// throughout the codebase instead of manually defined types.
+// These reference the Database types from supabase.ts directly.
+// If enums get out of sync, run: pnpm supabase gen types
 
-type Enums<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T]
-
-// Status Enums (from database)
-export type LeaseStatus = Enums<'lease_status'>
-export type UnitStatus = Enums<'unit_status'>
-export type PaymentStatus = Enums<'payment_status'>
-export type MaintenanceStatus = Enums<'maintenance_status'>
-export type MaintenancePriority = Enums<'maintenance_priority'>
-export type PropertyStatus = Enums<'property_status'>
-export type NotificationType = Enums<'notification_type'>
-
-// Other DB Enums (existing)
-export type InvitationType = Enums<'invitation_type'>
-export type SignatureMethod = Enums<'signature_method'>
-export type StripeSubscriptionStatus = Enums<'stripe_subscription_status'>
+export type LeaseStatus = Database['public']['Enums']['lease_status']
+export type UnitStatus = Database['public']['Enums']['unit_status']
+export type PaymentStatus = Database['public']['Enums']['payment_status']
+export type MaintenanceStatus = Database['public']['Enums']['maintenance_status']
+export type MaintenancePriority = Database['public']['Enums']['maintenance_priority']
+export type PropertyStatus = Database['public']['Enums']['property_status']
+export type NotificationType = Database['public']['Enums']['notification_type']
+export type InvitationType = Database['public']['Enums']['invitation_type']
+export type SignatureMethod = Database['public']['Enums']['signature_method']
+export type StripeSubscriptionStatus = Database['public']['Enums']['stripe_subscription_status']
 
 // Import app-only types that are NOT DB enums
 import type {
@@ -166,7 +161,7 @@ export type Lease = Tables<'leases'>
 export type MaintenanceRequest = Tables<'maintenance_requests'>
 export type RentPayment = Tables<'rent_payments'>
 export type ExpenseRecord = Tables<'expenses'>
-export type ConnectedAccount = Tables<'property_owners'>
+export type ConnectedAccount = Tables<'stripe_connected_accounts'>
 export type PropertyInsert = TablesInsert<'properties'>
 export type UnitInsert = TablesInsert<'units'>
 
@@ -194,7 +189,7 @@ export type PaymentScheduleRow = Database['public']['Tables']['payment_schedules
 export type PaymentTransactionRow = Database['public']['Tables']['payment_transactions']['Row']
 export type PropertyRow = Database['public']['Tables']['properties']['Row']
 export type PropertyImageRow = Database['public']['Tables']['property_images']['Row']
-export type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+export type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 export type RentDueRow = Database['public']['Tables']['rent_due']['Row']
 export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 export type ReportRunRow = Database['public']['Tables']['report_runs']['Row']

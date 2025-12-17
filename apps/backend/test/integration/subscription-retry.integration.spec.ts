@@ -183,7 +183,7 @@ describeIf('SubscriptionRetryService Integration', () => {
         id: 'test-lease-id',
         rent_amount: 1000,
         primary_tenant_id: 'test-tenant-id',
-        property_owner_id: 'test-owner-id',
+        owner_user_id: 'test-owner-id',
         subscription_retry_count: 0,
         subscription_last_attempt_at: null,
         property_owners: {
@@ -256,7 +256,7 @@ describeIf('SubscriptionRetryService Integration', () => {
         id: 'test-lease-no-stripe',
         rent_amount: 1000,
         primary_tenant_id: 'test-tenant-id',
-        property_owner_id: 'test-owner-id',
+        owner_user_id: 'test-owner-id',
         subscription_retry_count: 0,
         subscription_last_attempt_at: null,
         property_owners: {
@@ -345,7 +345,7 @@ describeIf('SubscriptionRetryService Integration', () => {
         id: 'test-lease-recent',
         rent_amount: 1000,
         primary_tenant_id: 'test-tenant-id',
-        property_owner_id: 'test-owner-id',
+        owner_user_id: 'test-owner-id',
         subscription_retry_count: 1,
         subscription_last_attempt_at: recentAttemptTime,
         property_owners: {

@@ -36,7 +36,7 @@ export class TenantSettingsController {
 	 */
 	@Get()
 	async getSettings(@JwtToken() token: string, @User() user: AuthUser) {
-		const [tenant, userData] = await Promise.all([
+		const [tenant, userResult] = await Promise.all([
 			this.fetchTenantProfile(token, user.id),
 			this.supabase
 				.getUserClient(token)
@@ -46,13 +46,21 @@ export class TenantSettingsController {
 				.single()
 		])
 
+		if (userResult.error) {
+			this.logger.error('Failed to load user settings profile', {
+				user_id: user.id,
+				error: userResult.error.message
+			})
+			throw new Error('Failed to load profile')
+		}
+
 		return {
 			profile: {
 				id: tenant.id,
-				first_name: userData.data?.first_name,
-				last_name: userData.data?.last_name,
-				email: userData.data?.email,
-				phone: userData.data?.phone,
+				first_name: userResult.data?.first_name ?? null,
+				last_name: userResult.data?.last_name ?? null,
+				email: userResult.data?.email ?? user.email ?? null,
+				phone: userResult.data?.phone ?? null,
 
 			}
 		}

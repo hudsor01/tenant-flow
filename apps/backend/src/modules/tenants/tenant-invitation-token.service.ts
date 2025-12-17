@@ -54,12 +54,11 @@ export class TenantInvitationTokenService {
 					accepted_at,
 					invitation_code,
 					property_id,
-					property_owner_id,
-					property_owners!tenant_invitations_property_owner_id_fkey (
-						business_name,
-						users!property_owners_user_id_fkey (
-							email
-						)
+					owner_user_id,
+					owner:owner_user_id (
+						email,
+						first_name,
+						last_name
 					),
 					properties!tenant_invitations_property_id_fkey (
 						name
@@ -88,9 +87,10 @@ export class TenantInvitationTokenService {
 			}
 
 			// Build response with optional fields
-			const propertyOwner = data.property_owners as {
-				business_name?: string
-				users?: { email?: string }
+			const owner = data.owner as {
+				email?: string
+				first_name?: string
+				last_name?: string
 			} | null
 			const property = data.properties as { name?: string } | null
 			const unit = data.units as { unit_number?: string } | null
@@ -111,8 +111,10 @@ export class TenantInvitationTokenService {
 			}
 
 			if (data.unit_id) result.unit_id = data.unit_id
-			if (propertyOwner?.business_name)
-				result.property_owner_name = propertyOwner.business_name
+			if (owner?.first_name || owner?.last_name)
+				result.property_owner_name = `${owner.first_name || ''} ${owner.last_name || ''}`.trim()
+			else if (owner?.email)
+				result.property_owner_name = owner.email
 			if (property?.name) result.property_name = property.name
 			if (unit?.unit_number) result.unit_number = unit.unit_number
 

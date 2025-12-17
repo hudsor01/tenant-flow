@@ -6,10 +6,14 @@ const fs = require('fs')
 const setupFile = path.resolve(__dirname, 'test/setup.ts')
 const setupFilesAfterEnv = fs.existsSync(setupFile) ? [setupFile] : []
 
+// Global setup runs BEFORE any test files are loaded (critical for env vars)
+const globalSetup = path.resolve(__dirname, 'test/global-setup.js')
+
 module.exports = {
 	displayName: 'backend',
 	preset: 'ts-jest',
 	testEnvironment: 'node',
+	globalSetup,
 	rootDir: '.',
 	cacheDirectory: '<rootDir>/node_modules/.cache/jest',
 	testMatch: [

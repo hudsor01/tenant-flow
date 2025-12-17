@@ -151,10 +151,11 @@ describe('TenantInvitationTokenService', () => {
 				accepted_at: null,
 				invitation_code: 'valid-token',
 				property_id: 'prop-123',
-				property_owner_id: 'owner-123',
-				property_owners: {
-					business_name: 'Test LLC',
-					users: { email: 'owner@test.com' }
+				owner_user_id: 'owner-123',
+				owner: {
+					first_name: 'Test',
+					last_name: 'LLC',
+					email: 'owner@test.com'
 				},
 				properties: { name: 'Test Property' },
 				units: { unit_number: '101' }
@@ -180,10 +181,11 @@ describe('TenantInvitationTokenService', () => {
 				accepted_at: new Date().toISOString(), // Already accepted
 				invitation_code: 'valid-token',
 				property_id: 'prop-123',
-				property_owner_id: 'owner-123',
-				property_owners: {
-					business_name: 'Test LLC',
-					users: { email: 'owner@test.com' }
+				owner_user_id: 'owner-123',
+				owner: {
+					first_name: 'Test',
+					last_name: 'LLC',
+					email: 'owner@test.com'
 				},
 				properties: { name: 'Test Property' },
 				units: { unit_number: '101' }
@@ -212,10 +214,11 @@ describe('TenantInvitationTokenService', () => {
 				accepted_at: null,
 				invitation_code: 'valid-token',
 				property_id: 'prop-123',
-				property_owner_id: 'owner-123',
-				property_owners: {
-					business_name: 'Test LLC',
-					users: { email: 'owner@test.com' }
+				owner_user_id: 'owner-123',
+				owner: {
+					first_name: 'Test',
+					last_name: 'LLC',
+					email: 'owner@test.com'
 				},
 				properties: { name: 'Test Property' },
 				units: { unit_number: '101' }
@@ -248,10 +251,11 @@ describe('TenantInvitationTokenService', () => {
 				accepted_at: null,
 				invitation_code: 'valid-token',
 				property_id: null,
-				property_owner_id: 'owner-123',
-				property_owners: {
-					business_name: 'Test LLC',
-					users: { email: 'owner@test.com' }
+				owner_user_id: 'owner-123',
+				owner: {
+					first_name: 'Test',
+					last_name: 'LLC',
+					email: 'owner@test.com'
 				},
 				properties: null,
 				units: null

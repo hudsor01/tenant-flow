@@ -19,6 +19,10 @@ import { LeaseSignatureService } from '../../src/modules/leases/lease-signature.
 import { SupabaseService } from '../../src/database/supabase.service'
 import { DocuSealService } from '../../src/modules/docuseal/docuseal.service'
 import { LeaseSubscriptionService } from '../../src/modules/leases/lease-subscription.service'
+import { LeasesService } from '../../src/modules/leases/leases.service'
+import { LeasePdfMapperService } from '../../src/modules/pdf/lease-pdf-mapper.service'
+import { LeasePdfGeneratorService } from '../../src/modules/pdf/lease-pdf-generator.service'
+import { PdfStorageService } from '../../src/modules/pdf/pdf-storage.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
 
@@ -30,6 +34,10 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 	let mockLeaseSubscriptionService: jest.Mocked<
 		Partial<LeaseSubscriptionService>
 	>
+	let mockLeasesService: any
+	let mockPdfMapper: any
+	let mockPdfGenerator: any
+	let mockPdfStorage: any
 
 	// Track what data was updated in the lease
 	let capturedLeaseUpdate: Record<string, unknown> | null = null
@@ -85,15 +93,66 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 		}
 
 		mockDocuSealService = {
-			isEnabled: jest.fn().mockReturnValue(true), // DocuSeal is enabled for this property test
-			createLeaseSubmission: jest.fn(),
-			getSubmitterSigningUrl: jest.fn(),
-			archiveSubmission: jest.fn()
-		}
+		isEnabled: jest.fn().mockReturnValue(true), // DocuSeal is enabled for this property test
+		createLeaseSubmission: jest.fn(),
+		createSubmissionFromPdf: jest.fn(),
+		getSubmitterSigningUrl: jest.fn(),
+		archiveSubmission: jest.fn()
+	}
 
 		mockLeaseSubscriptionService = {
 			activateLease: jest.fn().mockResolvedValue(undefined)
 		}
+
+		mockLeasesService = {
+			findOne: jest.fn(),
+			getLeaseDataForPdf: jest.fn().mockResolvedValue({
+				id: 'lease-123',
+				rent_amount: 150000,
+				unit: { unit_number: '101' },
+				property: { name: 'Test Property' },
+				tenant: {
+					user: {
+						id: 'tenant-user-id',
+						first_name: 'Test',
+						last_name: 'Tenant',
+						email: 'tenant@example.com'
+					}
+				},
+				property_owner: {
+					user: {
+						id: 'owner-user-id',
+						first_name: 'Property',
+						last_name: 'Owner',
+						email: 'owner@example.com'
+					}
+				}
+			})
+		}
+
+		mockPdfMapper = {
+			mapToPdfData: jest.fn(),
+			mapLeaseToPdfFields: jest.fn().mockReturnValue({
+				fields: {},
+				missing: { isComplete: true, fields: [] }
+			}),
+			mergeMissingFields: jest.fn((autoFilled, manual) => ({ ...autoFilled, ...manual })),
+			validateMissingFields: jest.fn().mockReturnValue({ isValid: true, errors: [] })
+		}
+
+		mockPdfGenerator = {
+			generatePdf: jest.fn().mockResolvedValue(Buffer.from('pdf-content')),
+			generateFilledPdf: jest.fn().mockResolvedValue(Buffer.from('filled-pdf-content'))
+		}
+
+		mockPdfStorage = {
+		uploadPdf: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf'),
+		getSignedUrl: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf?signed=true'),
+		uploadLeasePdf: jest.fn().mockResolvedValue({
+			publicUrl: 'https://storage.example.com/lease.pdf',
+			path: 'leases/test-lease.pdf'
+		})
+	}
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn(() => ({
@@ -113,6 +172,10 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					provide: LeaseSubscriptionService,
 					useValue: mockLeaseSubscriptionService
 				},
+				{ provide: LeasesService, useValue: mockLeasesService },
+				{ provide: LeasePdfMapperService, useValue: mockPdfMapper },
+				{ provide: LeasePdfGeneratorService, useValue: mockPdfGenerator },
+				{ provide: PdfStorageService, useValue: mockPdfStorage },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -173,13 +236,13 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					capturedLeaseUpdate = null
 
 					// Mock DocuSeal to return a submission with the generated ID
-					mockDocuSealService.createLeaseSubmission = jest
-						.fn()
-						.mockResolvedValue({
-							id: leaseData.docusealSubmissionId,
-							status: 'pending',
-							submitters: []
-						})
+				mockDocuSealService.createSubmissionFromPdf = jest
+					.fn()
+					.mockResolvedValue({
+						id: leaseData.docusealSubmissionId,
+						status: 'pending',
+						submitters: []
+					})
 
 					// Track user query count to return different data for owner vs tenant
 					let userQueryCount = 0
@@ -191,7 +254,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 								const chain = createMockChain({
 									id: leaseData.leaseId,
 									lease_status: 'draft', // Must be draft for sendForSignature
-									property_owner_id: leaseData.propertyOwnerId,
+									owner_user_id: leaseData.ownerUserId,
 									primary_tenant_id: leaseData.tenantId,
 									rent_amount: leaseData.rentAmount,
 									start_date: '2025-01-01',
@@ -245,25 +308,25 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					await service.sendForSignature(
 						leaseData.ownerUserId,
 						leaseData.leaseId,
-						{ templateId: leaseData.templateId }
+						{ templateId: leaseData.templateId, token: 'mock-jwt-token' }
 					)
 
 					// PROPERTY ASSERTIONS:
 
-					// 1. DocuSeal submission must be created (Requirement 6.2)
-					expect(
-						mockDocuSealService.createLeaseSubmission
-					).toHaveBeenCalledTimes(1)
-					expect(
-						mockDocuSealService.createLeaseSubmission
-					).toHaveBeenCalledWith(
-						expect.objectContaining({
-							templateId: leaseData.templateId,
-							leaseId: leaseData.leaseId,
-							ownerEmail: leaseData.ownerEmail,
-							tenantEmail: leaseData.tenantEmail
-						})
-					)
+					// 1. DocuSeal submission must be created from PDF (Requirement 6.2)
+				expect(
+					mockDocuSealService.createSubmissionFromPdf
+				).toHaveBeenCalledTimes(1)
+				expect(
+					mockDocuSealService.createSubmissionFromPdf
+				).toHaveBeenCalledWith(
+					expect.objectContaining({
+						leaseId: leaseData.leaseId,
+						pdfUrl: expect.stringContaining('storage.example.com'),
+						ownerEmail: leaseData.ownerEmail,
+						tenantEmail: leaseData.tenantEmail
+					})
+				)
 
 					// 2. Lease status must be updated to 'pending_signature' (Requirement 6.3)
 					expect(capturedLeaseUpdate).not.toBeNull()
@@ -333,7 +396,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 								return createMockChain({
 									id: leaseData.leaseId,
 									lease_status: 'draft',
-									property_owner_id: leaseData.propertyOwnerId,
+									owner_user_id: leaseData.ownerUserId,
 									primary_tenant_id: leaseData.tenantId,
 									rent_amount: 150000,
 									start_date: '2025-01-01',
@@ -382,7 +445,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					await service.sendForSignature(
 						leaseData.ownerUserId,
 						leaseData.leaseId,
-						{ templateId: leaseData.templateId }
+						{ templateId: leaseData.templateId, token: 'mock-jwt-token' }
 					)
 
 					// PROPERTY ASSERTIONS:

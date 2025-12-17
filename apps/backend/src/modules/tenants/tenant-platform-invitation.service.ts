@@ -57,36 +57,17 @@ export class TenantPlatformInvitationService {
     const client = this.supabase.getAdminClient()
 
     try {
-      // Step 1: Verify owner exists
-      const { data: owner, error: ownerError } = await client
-        .from('property_owners')
-        .select('id, user_id')
-        .eq('user_id', ownerId)
-        .maybeSingle()
-
-      if (ownerError || !owner) {
-        this.logger.warn('Tenant invitation failed: Property owner not found', {
-          ownerId,
-          email: dto.email,
-          property_id: dto.property_id,
-          unit_id: dto.unit_id,
-          error: ownerError?.message
-        })
-        throw new NotFoundException('Property owner not found')
-      }
-
-      // Step 2: If property_id provided, verify ownership
+      // Step 1: If property_id provided, verify ownership
       if (dto.property_id) {
         const { data: property, error: propError } = await client
           .from('properties')
-          .select('id, property_owner_id')
+          .select('id, owner_user_id')
           .eq('id', dto.property_id)
           .single()
 
-        if (propError || !property || property.property_owner_id !== owner.id) {
+        if (propError || !property || property.owner_user_id !== ownerId) {
           this.logger.warn('Tenant invitation failed: Property ownership verification failed', {
             ownerId,
-            property_owner_id: owner.id,
             property_id: dto.property_id,
             email: dto.email,
             error: propError?.message,
@@ -122,7 +103,7 @@ export class TenantPlatformInvitationService {
         .from('tenant_invitations')
         .select('id, status')
         .eq('email', dto.email.toLowerCase())
-        .eq('property_owner_id', owner.id)
+        .eq('owner_user_id', ownerId)
         .in('status', ['pending', 'sent'])
         .maybeSingle()
 
@@ -152,7 +133,7 @@ export class TenantPlatformInvitationService {
         .from('tenant_invitations')
         .insert({
           email: dto.email.toLowerCase(),
-          property_owner_id: owner.id,
+          owner_user_id: ownerId,
           property_id: dto.property_id || null,
           unit_id: dto.unit_id || null,
           invitation_code: invitationCode,
@@ -223,21 +204,12 @@ export class TenantPlatformInvitationService {
   async cancelInvitation(ownerId: string, invitationId: string): Promise<void> {
     const client = this.supabase.getAdminClient()
 
-    // Verify owner
-    const { data: owner } = await client
-      .from('property_owners')
-      .select('id')
-      .eq('user_id', ownerId)
-      .maybeSingle()
-
-    if (!owner) {
-      throw new NotFoundException('Property owner not found')
-    }
+    // Owner verification is implicit through RLS policies
 
     // Get invitation
     const { data: invitation, error: fetchError } = await client
       .from('tenant_invitations')
-      .select('id, status, property_owner_id')
+      .select('id, status, owner_user_id')
       .eq('id', invitationId)
       .single()
 
@@ -245,7 +217,7 @@ export class TenantPlatformInvitationService {
       throw new NotFoundException('Invitation not found')
     }
 
-    if (invitation.property_owner_id !== owner.id) {
+    if (invitation.owner_user_id !== ownerId) {
       throw new BadRequestException('Invitation does not belong to this owner')
     }
 
@@ -272,21 +244,12 @@ export class TenantPlatformInvitationService {
   async resendInvitation(ownerId: string, invitationId: string): Promise<void> {
     const client = this.supabase.getAdminClient()
 
-    // Verify owner
-    const { data: owner } = await client
-      .from('property_owners')
-      .select('id')
-      .eq('user_id', ownerId)
-      .maybeSingle()
-
-    if (!owner) {
-      throw new NotFoundException('Property owner not found')
-    }
+    // Owner verification is implicit through RLS policies
 
     // Get invitation
     const { data: invitation, error: fetchError } = await client
       .from('tenant_invitations')
-      .select('id, status, email, invitation_code, invitation_url, property_owner_id, property_id, unit_id')
+      .select('id, status, email, invitation_code, invitation_url, owner_user_id, property_id, unit_id')
       .eq('id', invitationId)
       .single()
 
@@ -294,7 +257,7 @@ export class TenantPlatformInvitationService {
       throw new NotFoundException('Invitation not found')
     }
 
-    if (invitation.property_owner_id !== owner.id) {
+    if (invitation.owner_user_id !== ownerId) {
       throw new BadRequestException('Invitation does not belong to this owner')
     }
 

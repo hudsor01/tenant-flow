@@ -106,7 +106,7 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	title: 'Kitchen Faucet Issue',
 	unit_id: 'unit-1',
 	requested_by: 'tenant-1',
-	property_owner_id: 'user-1',
+	owner_user_id: 'user-1',
 	description: 'The kitchen faucet is dripping continuously',
 	priority: 'medium',
 	status: 'open',

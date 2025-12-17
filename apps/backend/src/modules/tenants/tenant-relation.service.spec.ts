@@ -62,8 +62,7 @@ describe('TenantRelationService', () => {
 			}
 
 			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder)
-				.mockReturnValueOnce(propertiesBuilder)
+					.mockReturnValueOnce(propertiesBuilder)
 
 			const result = await service.getOwnerPropertyIds(mockAuthUserId)
 
@@ -113,8 +112,7 @@ describe('TenantRelationService', () => {
 			}
 
 			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder)
-				.mockReturnValueOnce(propertiesBuilder)
+					.mockReturnValueOnce(propertiesBuilder)
 
 			const result = await service.getOwnerPropertyIds(mockAuthUserId)
 
@@ -163,8 +161,7 @@ describe('TenantRelationService', () => {
 			}
 
 			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder)
-				.mockReturnValueOnce(propertiesBuilder)
+					.mockReturnValueOnce(propertiesBuilder)
 
 			const result = await service.getTenantIdsForOwner(mockAuthUserId)
 

@@ -1,11 +1,25 @@
 'use client'
 
 import { PasswordUpdateSection } from '#app/(tenant)/tenant/settings/password-update-section'
-import { useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { apiRequest } from '#lib/api-request'
 
 import { useAuth } from '#providers/auth-provider'
+import {
+	useDeleteNotification,
+	useBulkMarkNotificationsRead,
+	useMarkAllNotificationsRead,
+	useMarkNotificationRead,
+	useNotifications,
+	useUnreadNotificationsCount
+} from '#hooks/api/use-notifications'
+import {
+	useOwnerNotificationSettings,
+	useUpdateOwnerNotificationSettings
+} from '#hooks/api/use-notification-settings'
+import { useRouter, useSearchParams } from 'next/navigation'
+import type { Database } from '@repo/shared/types/supabase'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -13,17 +27,9 @@ import {
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
+import { Checkbox } from '#components/ui/checkbox'
+import { PreferenceRow } from '#components/notification/preference-row'
 import { Input } from '#components/ui/input'
-import {
-	Item,
-	ItemActions,
-	ItemContent,
-	ItemDescription,
-	ItemGroup,
-	ItemMedia,
-	ItemSeparator,
-	ItemTitle
-} from '#components/ui/item'
 import { Label } from '#components/ui/label'
 import {
 	Select,
@@ -36,11 +42,13 @@ import { Switch } from '#components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { Textarea } from '#components/ui/textarea'
 import {
-	AlertTriangle,
 	Bell,
+	CheckCircle2,
 	CreditCard,
 	Download,
+	ExternalLink,
 	Globe,
+	Loader2,
 	RefreshCw,
 	Save,
 	Settings,
@@ -51,9 +59,73 @@ import {
 } from 'lucide-react'
 import { Skeleton } from '#components/ui/skeleton'
 
+const OWNER_SETTINGS_TABS = [
+	'profile',
+	'notifications',
+	'security',
+	'billing',
+	'system'
+] as const
+type OwnerSettingsTab = (typeof OWNER_SETTINGS_TABS)[number]
+
+function isOwnerSettingsTab(value: string | null): value is OwnerSettingsTab {
+	return value !== null && (OWNER_SETTINGS_TABS as readonly string[]).includes(value)
+}
+
 export default function SettingsPage() {
 	const [isPending, startTransition] = useTransition()
 	const { session, user, isLoading: authLoading } = useAuth()
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const tabParam = searchParams.get('tab')
+	const [activeTab, setActiveTab] = useState<OwnerSettingsTab>(() =>
+		isOwnerSettingsTab(tabParam) ? tabParam : 'profile'
+	)
+	const [notificationPage, setNotificationPage] = useState(1)
+	const {
+		data: notificationsData,
+		isLoading: notificationsLoading,
+		isFetching: notificationsFetching
+	} = useNotifications({ page: notificationPage, limit: 10 })
+	const {
+		data: unreadData,
+		isLoading: unreadLoading
+	} = useUnreadNotificationsCount()
+	const unreadCount = unreadData?.total ?? 0
+	const markNotificationRead = useMarkNotificationRead()
+	const deleteNotification = useDeleteNotification()
+	const markAllNotificationsRead = useMarkAllNotificationsRead()
+	const bulkMarkNotificationsRead = useBulkMarkNotificationsRead()
+	const {
+		data: notificationSettings,
+		isLoading: notificationSettingsLoading
+	} = useOwnerNotificationSettings()
+	const updateNotificationSettings = useUpdateOwnerNotificationSettings()
+
+	const [selectedNotifications, setSelectedNotifications] = useState<string[]>([])
+
+	const isSettingsPending =
+		notificationSettingsLoading || updateNotificationSettings.isPending
+
+	type PreferenceKey =
+		| 'email'
+		| 'sms'
+		| 'push'
+		| 'inApp'
+		| 'maintenance'
+		| 'leases'
+		| 'general'
+
+	const isCategoryKey = (key: PreferenceKey): key is 'maintenance' | 'leases' | 'general' =>
+		key === 'maintenance' || key === 'leases' || key === 'general'
+
+	const handlePreferenceToggle = (key: PreferenceKey, value: boolean) => {
+		const payload = isCategoryKey(key)
+			? ({ categories: { [key]: value } } as const)
+			: ({ [key]: value } as const)
+
+		updateNotificationSettings.mutate(payload)
+	}
 
 	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
@@ -90,6 +162,67 @@ export default function SettingsPage() {
 		})
 	}
 
+	const handleOpenNotification = (
+		notification: Database['public']['Tables']['notifications']['Row']
+	) => {
+		if (!notification.action_url) return
+
+		router.push(notification.action_url)
+
+		if (!notification.is_read) {
+			markNotificationRead.mutate(notification.id)
+			}
+		}
+
+	const totalPages =
+		notificationsData && notificationsData.limit
+			? Math.max(1, Math.ceil(notificationsData.total / notificationsData.limit))
+			: 1
+
+	const currentPageIds = notificationsData?.data.map(notification => notification.id) ?? []
+	const allSelectedOnPage =
+		currentPageIds.length > 0 &&
+		currentPageIds.every(id => selectedNotifications.includes(id))
+
+	const toggleSelectAll = (checked: boolean | string) => {
+		if (checked) {
+			setSelectedNotifications(prev =>
+				Array.from(new Set([...prev, ...currentPageIds]))
+			)
+		} else {
+			setSelectedNotifications(prev =>
+				prev.filter(id => !currentPageIds.includes(id))
+			)
+		}
+	}
+
+	const toggleSelectOne = (id: string, checked: boolean | string) => {
+		if (checked) {
+			setSelectedNotifications(prev =>
+				prev.includes(id) ? prev : [...prev, id]
+			)
+		} else {
+			setSelectedNotifications(prev => prev.filter(item => item !== id))
+		}
+	}
+
+	const handleBulkMarkRead = () => {
+		if (!selectedNotifications.length) return
+		bulkMarkNotificationsRead.mutate(selectedNotifications, {
+			onSuccess: () => setSelectedNotifications([])
+		})
+	}
+
+	useEffect(() => {
+		setSelectedNotifications([])
+	}, [notificationPage])
+
+	useEffect(() => {
+		if (isOwnerSettingsTab(tabParam)) {
+			setActiveTab(tabParam)
+		}
+	}, [tabParam])
+
 	return (
 		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
 			<div className="flex-between">
@@ -103,7 +236,13 @@ export default function SettingsPage() {
 				</div>
 			</div>
 
-			<Tabs defaultValue="profile" className="space-y-6">
+			<Tabs
+				value={activeTab}
+				onValueChange={(value) =>
+					setActiveTab(isOwnerSettingsTab(value) ? value : 'profile')
+				}
+				className="space-y-6"
+			>
 				<TabsList className="grid w-full grid-cols-5">
 					<TabsTrigger value="profile" className="flex items-center gap-2">
 						<User className="size-4" />
@@ -115,6 +254,11 @@ export default function SettingsPage() {
 					>
 						<Bell className="size-4" />
 						Notifications
+						{!unreadLoading && unreadCount > 0 ? (
+							<Badge variant="secondary" className="px-2 py-0.5 text-xs">
+								{unreadCount}
+							</Badge>
+						) : null}
 					</TabsTrigger>
 					<TabsTrigger value="security" className="flex items-center gap-2">
 						<Shield className="size-4" />
@@ -271,155 +415,298 @@ export default function SettingsPage() {
 					</CardLayout>
 				</TabsContent>
 
-				<TabsContent value="notifications" className="space-y-6">
-					<CardLayout
-						title="Email Notifications"
-						className="p-6 border shadow-sm"
-					>
-						<ItemGroup>
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Bell />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="notify-maintenance">
-											New Maintenance Requests
-										</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Get notified when new maintenance requests are submitted
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch
-										id="notify-maintenance"
-										name="notify-maintenance"
-										defaultChecked
-									/>
-								</ItemActions>
-							</Item>
+		<TabsContent value="notifications" className="space-y-6">
+			<CardLayout
+				title="Notification Preferences"
+				description="Choose how you want to be notified"
+				className="p-6 border shadow-sm"
+			>
+				<div className="space-y-4">
+					{notificationSettingsLoading ? (
+						<div className="space-y-3">
+							<Skeleton className="h-5 w-48" />
+							<Skeleton className="h-5 w-40" />
+							<Skeleton className="h-5 w-44" />
+						</div>
+					) : (
+						<>
+							<PreferenceRow
+								label="Email alerts"
+								description="Receive notifications via email"
+								checked={notificationSettings?.email ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('email', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="SMS alerts"
+								description="Critical updates for payments and maintenance"
+								checked={notificationSettings?.sms ?? false}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('sms', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="Push notifications"
+								description="Instant in-app alerts on new activity"
+								checked={notificationSettings?.push ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('push', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="In-app banners"
+								description="Show alert banners inside the dashboard"
+								checked={notificationSettings?.inApp ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('inApp', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="Maintenance updates"
+								description="Progress on tenant maintenance requests"
+								checked={notificationSettings?.categories?.maintenance ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('maintenance', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="Lease updates"
+								description="Renewal reminders and signature events"
+								checked={notificationSettings?.categories?.leases ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('leases', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+							<PreferenceRow
+								label="General updates"
+								description="Product updates and system alerts"
+								checked={notificationSettings?.categories?.general ?? true}
+								onCheckedChange={checked =>
+									handlePreferenceToggle('general', checked)
+								}
+								disabled={isSettingsPending}
+							/>
+						</>
+					)}
+				</div>
+			</CardLayout>
 
-							<ItemSeparator />
+			<CardLayout
+				title="Notifications"
+				className="p-6 border shadow-sm"
+			>
+						<div className="flex flex-wrap items-center justify-between gap-3">
+							<div>
+								<p className="text-sm text-muted-foreground">
+									Real-time updates for maintenance, leases, payments, and system
+									alerts.
+								</p>
+							</div>
+							<div className="flex items-center gap-2">
+								<Badge variant={unreadCount > 0 ? 'secondary' : 'outline'}>
+									{unreadLoading ? '...' : `${unreadCount} unread`}
+								</Badge>
+								{notificationsData?.data?.length ? (
+									<Button
+										size="sm"
+										variant="outline"
+										disabled={
+											bulkMarkNotificationsRead.isPending ||
+											selectedNotifications.length === 0
+										}
+										onClick={handleBulkMarkRead}
+										className="gap-1"
+									>
+										{bulkMarkNotificationsRead.isPending ? (
+											<Loader2 className="size-4 animate-spin" />
+										) : (
+											<CheckCircle2 className="size-4" />
+										)}
+										Mark selected read
+									</Button>
+								) : null}
+								<Button
+									size="sm"
+									variant="outline"
+									disabled={
+										markAllNotificationsRead.isPending || unreadCount === 0
+									}
+									onClick={() => markAllNotificationsRead.mutate()}
+									className="gap-1"
+								>
+									{markAllNotificationsRead.isPending ? (
+										<Loader2 className="size-4 animate-spin" />
+									) : (
+										<CheckCircle2 className="size-4" />
+									)}
+									Mark all read
+								</Button>
+							</div>
+						</div>
 
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<RefreshCw />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="notify-renewals">Lease Renewals</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Reminders for upcoming lease renewals
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch
-										id="notify-renewals"
-										name="notify-renewals"
-										defaultChecked
-									/>
-								</ItemActions>
-							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<CreditCard />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="notify-payments">
-											Payment Notifications
-										</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Alerts for rent payments and overdue accounts
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch
-										id="notify-payments"
-										name="notify-payments"
-										defaultChecked
-									/>
-								</ItemActions>
-							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Settings />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="notify-system">System Updates</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Information about system maintenance and updates
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch id="notify-system" name="notify-system" />
-								</ItemActions>
-							</Item>
-						</ItemGroup>
-					</CardLayout>
-
-					<CardLayout
-						title="Push Notifications"
-						className="p-6 border shadow-sm"
-					>
-						<ItemGroup>
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<AlertTriangle />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="push-emergency">
-											Emergency Maintenance
-										</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Immediate alerts for critical issues
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch
-										id="push-emergency"
-										name="push-emergency"
-										defaultChecked
-									/>
-								</ItemActions>
-							</Item>
-
-							<ItemSeparator />
-
-							<Item variant="outline">
-								<ItemMedia variant="icon">
-									<Bell />
-								</ItemMedia>
-								<ItemContent>
-									<ItemTitle>
-										<Label htmlFor="push-messages">New Messages</Label>
-									</ItemTitle>
-									<ItemDescription>
-										Notifications for tenant messages
-									</ItemDescription>
-								</ItemContent>
-								<ItemActions>
-									<Switch
-										id="push-messages"
-										name="push-messages"
-										defaultChecked
-									/>
-								</ItemActions>
-							</Item>
-						</ItemGroup>
+						{notificationsLoading ? (
+							<div className="mt-4 space-y-3">
+								{[...Array(3)].map((_, idx) => (
+									<div key={idx} className="rounded-lg border p-4">
+										<Skeleton className="h-4 w-1/3" />
+										<Skeleton className="h-3 w-2/3 mt-2" />
+									</div>
+								))}
+							</div>
+						) : (
+							<>
+								{(notificationsData?.data.length ?? 0) === 0 ? (
+									<div className="mt-4 rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
+										No notifications yet. You'll see maintenance updates, lease
+										actions, and payment alerts here.
+									</div>
+								) : (
+									<div className="mt-4 divide-y rounded-lg border">
+										<div className="flex items-center gap-3 px-4 py-2 text-sm text-muted-foreground">
+											<Checkbox
+												checked={allSelectedOnPage}
+												onCheckedChange={toggleSelectAll}
+												aria-label="Select all notifications on this page"
+											/>
+											<span>
+												{selectedNotifications.length > 0
+													? `${selectedNotifications.length} selected`
+													: 'Select notifications to mark read'}
+											</span>
+										</div>
+										{notificationsData?.data.map(notification => {
+											const createdAt = notification.created_at
+												? new Date(notification.created_at).toLocaleString()
+												: ''
+											return (
+												<div
+													key={notification.id}
+													className="flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between"
+												>
+													<div className="flex items-start gap-3">
+														<Checkbox
+															checked={selectedNotifications.includes(notification.id)}
+															onCheckedChange={checked =>
+																toggleSelectOne(notification.id, checked)
+															}
+															aria-label={`Select notification ${notification.title}`}
+															className="mt-1"
+														/>
+														<div className="space-y-1">
+														<div className="flex flex-wrap items-center gap-2">
+															<Badge
+																variant={
+																	notification.is_read ? 'outline' : 'default'
+																}
+															>
+																{notification.notification_type}
+															</Badge>
+															<span className="font-medium text-foreground">
+																{notification.title}
+															</span>
+														</div>
+														<p className="text-sm text-muted-foreground">
+															{notification.message ?? 'No message provided'}
+														</p>
+														<p className="text-xs text-muted-foreground">
+															{createdAt}
+														</p>
+														</div>
+													</div>
+													<div className="flex flex-wrap items-center gap-2 self-start md:self-center">
+														{notification.action_url ? (
+															<Button
+																variant="ghost"
+																size="sm"
+																className="gap-1"
+																onClick={() => handleOpenNotification(notification)}
+															>
+																<ExternalLink className="size-4" />
+																Open
+															</Button>
+														) : null}
+														{!notification.is_read && (
+															<Button
+																variant="outline"
+																size="sm"
+																className="gap-1"
+																onClick={() =>
+																	markNotificationRead.mutate(notification.id)
+																}
+																disabled={markNotificationRead.isPending}
+															>
+																{markNotificationRead.isPending ? (
+																	<Loader2 className="size-4 animate-spin" />
+																) : (
+																	<CheckCircle2 className="size-4" />
+																)}
+																Mark read
+															</Button>
+														)}
+														<Button
+															variant="ghost"
+															size="sm"
+															className="gap-1 text-destructive"
+															onClick={() =>
+																deleteNotification.mutate(notification.id)
+															}
+															disabled={deleteNotification.isPending}
+														>
+															<Trash2 className="size-4" />
+															Delete
+														</Button>
+													</div>
+												</div>
+											)
+										})}
+									</div>
+								)}
+								<div className="mt-4 flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">
+										Page {notificationsData?.page ?? 1} of {totalPages}
+									</span>
+									<div className="flex items-center gap-2">
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={
+												notificationPage === 1 ||
+												notificationsLoading ||
+												notificationsFetching
+											}
+											onClick={() =>
+												setNotificationPage(prev => Math.max(1, prev - 1))
+											}
+										>
+											Previous
+										</Button>
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={
+												notificationPage >= totalPages ||
+												notificationsLoading ||
+												notificationsFetching
+											}
+											onClick={() =>
+												setNotificationPage(prev =>
+													Math.min(totalPages, prev + 1)
+												)
+											}
+										>
+											Next
+										</Button>
+									</div>
+								</div>
+							</>
+						)}
 					</CardLayout>
 				</TabsContent>
 

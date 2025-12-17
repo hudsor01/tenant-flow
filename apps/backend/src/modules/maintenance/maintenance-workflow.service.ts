@@ -134,30 +134,69 @@ export class MaintenanceWorkflowService {
 				return null
 			}
 
-			// Emit event for notifications
-			if (data) {
-				const updated = data as MaintenanceRequest
-				const propertyLabel = updated.unit_id
-					? `Unit ${updated.unit_id}`
-					: 'Unknown Property'
-				const unit_numberLabel = updated.unit_id ?? 'N/A'
+				// Emit event for notifications
+				if (data) {
+					const updated = data as MaintenanceRequest
+					const { data: unit } = await client
+						.from('units')
+						.select('unit_number, property_id')
+						.eq('id', updated.unit_id)
+						.single()
 
-				this.eventEmitter.emit(
-					'maintenance.updated',
-					new MaintenanceUpdatedEvent(
-						updated.requested_by ?? '',
-						updated.id,
-						updated.description ?? '',
-						updated.status ?? 'completed',
-						this.reversePriorityMap[updated.priority || 'normal'] || 'medium',
-						propertyLabel,
-						unit_numberLabel,
-						updated.description ?? ''
-					)
-				)
-			}
+					let propertyName = 'Unknown Property'
+					const unitNumber = unit?.unit_number || 'Unknown Unit'
 
-			return data as MaintenanceRequest
+					if (unit?.property_id) {
+						const { data: property } = await client
+							.from('properties')
+							.select('name')
+							.eq('id', unit.property_id)
+							.single()
+						propertyName = property?.name || 'Unknown Property'
+					}
+
+					const title = updated.title || updated.description || 'Maintenance Request'
+					const priority =
+						this.reversePriorityMap[updated.priority || 'normal'] || 'medium'
+					const tenantUserId = updated.requested_by
+					const ownerUserId = updated.owner_user_id
+
+					if (tenantUserId && tenantUserId !== ownerUserId) {
+						this.eventEmitter.emit(
+							'maintenance.updated',
+							new MaintenanceUpdatedEvent(
+								tenantUserId,
+								updated.id,
+								title,
+								updated.status ?? 'completed',
+								priority,
+								propertyName,
+								unitNumber,
+								updated.description ?? '',
+								`/tenant/maintenance/request/${updated.id}`
+							)
+						)
+					}
+
+					if (ownerUserId) {
+						this.eventEmitter.emit(
+							'maintenance.updated',
+							new MaintenanceUpdatedEvent(
+								ownerUserId,
+								updated.id,
+								title,
+								updated.status ?? 'completed',
+								priority,
+								propertyName,
+								unitNumber,
+								updated.description ?? '',
+								`/maintenance/${updated.id}`
+							)
+						)
+					}
+				}
+
+				return data as MaintenanceRequest
 		} catch (error) {
 			this.logger.error('Failed to complete maintenance request', {
 				error: error instanceof Error ? error.message : String(error),

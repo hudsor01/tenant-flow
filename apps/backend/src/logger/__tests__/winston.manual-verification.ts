@@ -37,7 +37,7 @@ function testResult(passed: boolean, message: string) {
   if (passed) {
     log(`✓ PASS: ${message}`, 'green')
   } else {
-    log(`✗ FAIL: ${message}`, 'red')
+    log(`FAIL: FAIL: ${message}`, 'red')
   }
 }
 
@@ -176,7 +176,7 @@ async function runAllTests() {
     log('\n✓ All manual verification tests passed!', 'green')
     log('Requirements 2.1, 2.2, 2.3 verified successfully', 'green')
   } else {
-    log('\n✗ Some tests failed. Review output above.', 'red')
+    log('\nFAIL: Some tests failed. Review output above.', 'red')
   }
 
   log('\n' + '█'.repeat(60) + '\n', 'cyan')

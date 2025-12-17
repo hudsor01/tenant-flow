@@ -130,7 +130,7 @@ async function validateSupabaseKeys(): Promise<void> {
           results.push({
             step: 'Connection Test',
             status: 'fail',
-            message: '❌ API key is not registered for this project',
+            message: 'ERROR API key is not registered for this project',
             details: {
               error: errorMessage,
               hint: 'The SB_SECRET_KEY does not match the SUPABASE_URL project. Check that you are using the correct key from your Supabase project settings.'
@@ -140,7 +140,7 @@ async function validateSupabaseKeys(): Promise<void> {
           results.push({
             step: 'Connection Test',
             status: 'pass',
-            message: '✅ Connection successful (table does not exist, but key is valid)',
+            message: 'SUCCESS Connection successful (table does not exist, but key is valid)',
             details: {
               note: 'The "users" table does not exist in your database, but the API key is valid'
             }
@@ -157,7 +157,7 @@ async function validateSupabaseKeys(): Promise<void> {
         results.push({
           step: 'Connection Test',
           status: 'pass',
-          message: '✅ Connection successful and query executed',
+          message: 'SUCCESS Connection successful and query executed',
           details: { note: 'Successfully queried the users table' }
         })
       }
@@ -175,11 +175,11 @@ async function validateSupabaseKeys(): Promise<void> {
   }
 
   // Print results
-  console.log('\n📊 Validation Results:\n')
+  console.log('\nANALYTICS Validation Results:\n')
   let allPassed = true
 
   for (const result of results) {
-    const icon = result.status === 'pass' ? '✅' : '❌'
+    const icon = result.status === 'pass' ? 'SUCCESS' : 'ERROR'
     console.log(`${icon} ${result.step}: ${result.message}`)
     if (result.details) {
       console.log('   Details:', JSON.stringify(result.details, null, 2))
@@ -193,11 +193,11 @@ async function validateSupabaseKeys(): Promise<void> {
 
   // Summary
   if (allPassed) {
-    console.log('🎉 All validation checks passed! Your Supabase configuration is correct.\n')
+    console.log('SUCCESS All validation checks passed! Your Supabase configuration is correct.\n')
     process.exit(0)
   } else {
-    console.log('⚠️  Some validation checks failed. Please review the errors above.\n')
-    console.log('💡 Common fixes:')
+    console.log('WARNING  Some validation checks failed. Please review the errors above.\n')
+    console.log('TIP Common fixes:')
     console.log('   1. Make sure you are running with Doppler: doppler run -- pnpm dev')
     console.log('   2. Check that SB_SECRET_KEY matches your SUPABASE_URL project')
     console.log('   3. Verify the key in your Supabase project settings: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api')
@@ -208,6 +208,6 @@ async function validateSupabaseKeys(): Promise<void> {
 
 // Run validation
 validateSupabaseKeys().catch((error) => {
-  console.error('❌ Validation script failed:', error)
+  console.error('ERROR Validation script failed:', error)
   process.exit(1)
 })

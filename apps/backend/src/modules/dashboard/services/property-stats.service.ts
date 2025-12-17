@@ -24,7 +24,7 @@ export class PropertyStatsService {
 		const { data, error } = await client
 			.from('properties')
 			.select('id, status')
-			.eq('property_owner_id', internaluser_id)
+			.eq('owner_user_id', internaluser_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch properties', { error: error.message })
@@ -68,7 +68,7 @@ export class PropertyStatsService {
 		const { data, error } = await client
 			.from('properties')
 			.select('id')
-			.eq('property_owner_id', internaluser_id)
+			.eq('owner_user_id', internaluser_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch property IDs', { error: error.message })

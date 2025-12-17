@@ -20,7 +20,7 @@ import { AppLogger } from '../logger/app-logger.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 
 @Injectable()

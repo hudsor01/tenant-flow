@@ -861,7 +861,7 @@ export function SelectCell<TData>({
   );
 
   const displayLabel =
-    options.find((opt) => opt.value === value)?.label ?? value;
+    options.find((opt: import("#types/data-grid").CellSelectOption) => opt.value === value)?.label ?? value;
 
   return (
     <DataGridCellWrapper<TData>
@@ -896,7 +896,7 @@ export function SelectCell<TData>({
             sideOffset={-8}
             className="min-w-[calc(var(--radix-select-trigger-width)+16px)]"
           >
-            {options.map((option) => (
+            {options.map((option: import("#types/data-grid").CellSelectOption) => (
               <SelectItem key={option.value} value={option.value}>
                 {option.label}
               </SelectItem>
@@ -1045,7 +1045,7 @@ export function MultiSelectCell<TData>({
   );
 
   const displayLabels = selectedValues
-    .map((val) => options.find((opt) => opt.value === val)?.label ?? val)
+    .map((val) => options.find((opt: import("#types/data-grid").CellSelectOption) => opt.value === val)?.label ?? val)
     .filter(Boolean);
 
   const rowHeight = tableMeta?.rowHeight ?? "short";
@@ -1086,7 +1086,7 @@ export function MultiSelectCell<TData>({
             <Command className="**:data-[slot=command-input-wrapper]:h-auto **:data-[slot=command-input-wrapper]:border-none **:data-[slot=command-input-wrapper]:p-0 [&_[data-slot=command-input-wrapper]_svg]:hidden">
               <div className="flex min-h-9 flex-wrap items-center gap-1 border-b px-3 py-1.5">
                 {selectedValues.map((value) => {
-                  const option = options.find((opt) => opt.value === value);
+                  const option = options.find((opt: import("#types/data-grid").CellSelectOption) => opt.value === value);
                   const label = option?.label ?? value;
 
                   return (
@@ -1121,7 +1121,7 @@ export function MultiSelectCell<TData>({
               <CommandList className="max-h-full">
                 <CommandEmpty>No options found.</CommandEmpty>
                 <CommandGroup className="max-h-[300px] scroll-py-1 overflow-y-auto overflow-x-hidden">
-                  {options.map((option) => {
+                  {options.map((option: import("#types/data-grid").CellSelectOption) => {
                     const isSelected = selectedValues.includes(option.value);
 
                     return (
@@ -1369,7 +1369,7 @@ export function FileCell<TData>({
   const multiple = fileCellOpts?.multiple ?? false;
 
   const acceptedTypes = React.useMemo(
-    () => (accept ? accept.split(",").map((t) => t.trim()) : null),
+    () => (accept ? accept.split(",").map((t: string) => t.trim()) : null),
     [accept],
   );
 
@@ -1397,7 +1397,7 @@ export function FileCell<TData>({
       }
       if (acceptedTypes) {
         const fileExtension = `.${file.name.split(".").pop()}`;
-        const isAccepted = acceptedTypes.some((type) => {
+        const isAccepted = acceptedTypes.some((type: string) => {
           if (type.endsWith("/*")) {
             const baseType = type.slice(0, -2);
             return file.type.startsWith(`${baseType}/`);
@@ -1476,7 +1476,7 @@ export function FileCell<TData>({
             name: f.name,
             size: f.size,
             type: f.type,
-            
+
           }));
           const filesWithTemp = [...files, ...tempFiles];
           setFiles(filesWithTemp);

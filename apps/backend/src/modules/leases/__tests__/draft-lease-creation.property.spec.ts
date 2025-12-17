@@ -91,7 +91,7 @@ describe('Property 10: Draft Lease Creation', () => {
 								// Return table-specific mock chains with proper data
 				if (table === 'units') {
 										return createMockChain(
-						{ id: 'unit-123', property_id: 'property-456' }, // unit data
+						{ id: 'unit-123', property_id: 'property-456', property: { name: 'Test Property', owner_user_id: 'owner-123' } }, // unit data
 						null
 					)
 				}
@@ -145,7 +145,7 @@ describe('Property 10: Draft Lease Creation', () => {
 	 * Property 10a: For any valid lease DTO, the lease must be created with status 'draft'
 	 * when no status is explicitly provided.
 	 */
-	it.skip('should create lease with draft status by default', async () => {
+	it('should create lease with draft status by default', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				fc.record({
@@ -162,17 +162,26 @@ describe('Property 10: Draft Lease Creation', () => {
 
 					const generatedLeaseId = fc.sample(fc.uuid(), 1)[0]!
 
-					// Setup mock to return unit and tenant found, then lease created
+					// Setup mock to return unit, tenant, invitation, then lease created
 					mockSupabaseService.getUserClient = jest.fn(() => ({
 						from: jest.fn((table: string) => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
 								return createMockChain({ id: leaseData.primary_tenant_id })
+							}
+							if (table === 'tenant_invitations') {
+								// Mock accepted invitation (required for lease creation)
+								return createMockChain({
+									id: 'test-invitation-id',
+									status: 'accepted',
+									accepted_at: new Date().toISOString()
+								})
 							}
 							if (table === 'leases') {
 								const chain = createMockChain({
@@ -208,7 +217,7 @@ describe('Property 10: Draft Lease Creation', () => {
 	 * Property 10b: For any lease DTO with wizard detail fields,
 	 * all fields must be correctly persisted.
 	 */
-	it.skip('should persist all lease detail fields from wizard flow', async () => {
+	it('should persist all lease detail fields from wizard flow', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				fc.record({
@@ -248,11 +257,20 @@ describe('Property 10: Draft Lease Creation', () => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
 								return createMockChain({ id: leaseData.primary_tenant_id })
+							}
+							if (table === 'tenant_invitations') {
+								// Mock accepted invitation (required for lease creation)
+								return createMockChain({
+									id: 'test-invitation-id',
+									status: 'accepted',
+									accepted_at: new Date().toISOString()
+								})
 							}
 							if (table === 'leases') {
 								return createMockChain({
@@ -320,7 +338,7 @@ describe('Property 10: Draft Lease Creation', () => {
 	/**
 	 * Property 10c: Financial fields must be correctly persisted with exact values.
 	 */
-	it.skip('should preserve exact financial amounts without modification', async () => {
+	it('should preserve exact financial amounts without modification', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				fc.record({
@@ -344,11 +362,20 @@ describe('Property 10: Draft Lease Creation', () => {
 							if (table === 'units') {
 								return createMockChain({
 									id: leaseData.unit_id,
-									property_id: 'test-property-id'
+									property_id: 'test-property-id',
+									property: { name: 'Test Property', owner_user_id: 'owner-123' }
 								})
 							}
 							if (table === 'tenants') {
 								return createMockChain({ id: leaseData.primary_tenant_id })
+							}
+							if (table === 'tenant_invitations') {
+								// Mock accepted invitation (required for lease creation)
+								return createMockChain({
+									id: 'test-invitation-id',
+									status: 'accepted',
+									accepted_at: new Date().toISOString()
+								})
 							}
 							if (table === 'leases') {
 								return createMockChain({

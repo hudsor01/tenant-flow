@@ -13,6 +13,8 @@ scripts/**/*.js
 scripts/**/*.js.map
 test/**/*.js
 test/**/*.js.map
+# Exception: Allow global-setup.js (required by Jest)
+!test/global-setup.js
 
 # Backend test files
 vitest.*

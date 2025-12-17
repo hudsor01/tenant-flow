@@ -43,10 +43,10 @@ const nextConfig: NextConfig = {
 			'@dnd-kit/sortable',
 			'@dnd-kit/utilities'
 		],
-		// Server Actions config
+		// Server Actions config - restricted to production domains only
 		serverActions: {
 			bodySizeLimit: '2mb',
-			allowedOrigins: ['tenantflow.app', '*.tenantflow.app', '*.vercel.app']
+			allowedOrigins: ['tenantflow.app', '*.tenantflow.app']
 		}
 	},
 
@@ -91,8 +91,28 @@ const nextConfig: NextConfig = {
 				value: 'DENY'
 			},
 			{
+				key: 'X-XSS-Protection',
+				value: '1; mode=block'
+			},
+			{
 				key: 'Referrer-Policy',
 				value: 'strict-origin-when-cross-origin'
+			},
+			{
+				key: 'Permissions-Policy',
+				value: 'camera=(), microphone=(), geolocation=()'
+			},
+			{
+				key: 'Cross-Origin-Embedder-Policy',
+				value: 'credentialless'
+			},
+			{
+				key: 'Cross-Origin-Opener-Policy',
+				value: 'same-origin'
+			},
+			{
+				key: 'Cross-Origin-Resource-Policy',
+				value: 'same-origin'
 			}
 		]
 		if (process.env.NODE_ENV === 'production') {

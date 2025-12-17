@@ -15,6 +15,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SelectionStep } from '../selection-step'
 import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
 
+// Mock the auth provider
+vi.mock('#providers/auth-provider', () => ({
+	useAuth: vi.fn(() => ({
+		session: {
+			access_token: 'test-token'
+		}
+	}))
+}))
+
 // Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
@@ -39,7 +48,7 @@ async function renderSelectionStep(
 	await act(async () => {
 		result = render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep data={data} onChange={onChange} token="test-token" />
+				<SelectionStep data={data} onChange={onChange} />
 			</QueryClientProvider>
 		)
 		// Allow initial queries to settle

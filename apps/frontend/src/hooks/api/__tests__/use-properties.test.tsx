@@ -65,11 +65,14 @@ vi.mock('@repo/shared/lib/frontend-logger', () => ({
 	})
 }))
 
-// Mock Supabase client
-const mockSupabaseSelect = vi.fn()
-const mockSupabaseEq = vi.fn()
-const mockSupabaseOrder = vi.fn()
-const mockGetSession = vi.fn()
+// Mock Supabase client using vi.hoisted() to avoid initialization errors
+const { mockGetSession, mockSupabaseSelect, mockSupabaseEq, mockSupabaseOrder } = vi.hoisted(() => ({
+	mockGetSession: vi.fn(),
+	mockSupabaseSelect: vi.fn(),
+	mockSupabaseEq: vi.fn(),
+	mockSupabaseOrder: vi.fn()
+}))
+
 vi.mock('#utils/supabase/client', () => ({
 	createClient: () => ({
 		from: () => ({
@@ -107,9 +110,7 @@ const mockProperty = {
 	city: 'Test City',
 	state: 'CA',
 	postal_code: '12345',
-	property_owner_id: 'owner-123',
 	property_type: 'SINGLE_FAMILY',
-	status: 'active',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
@@ -392,7 +393,7 @@ describe('Mutation Hooks', () => {
 				country: 'US',
 				property_type: 'SINGLE_FAMILY',
 				status: 'active',
-				property_owner_id: 'owner-123'
+				property_owner_id: 'user-1'
 			})
 
 			expect(mockFetch).toHaveBeenCalledWith(
@@ -418,7 +419,7 @@ describe('Mutation Hooks', () => {
 				country: 'US',
 				property_type: 'SINGLE_FAMILY',
 				status: 'active',
-				property_owner_id: 'owner-123'
+				property_owner_id: 'user-1'
 			})
 
 			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
@@ -448,7 +449,7 @@ describe('Mutation Hooks', () => {
 					country: 'US',
 					property_type: 'SINGLE_FAMILY',
 					status: 'active',
-					property_owner_id: 'owner-123'
+					property_owner_id: 'user-1'
 				})
 			).rejects.toThrow()
 

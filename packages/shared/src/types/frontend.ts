@@ -127,9 +127,6 @@ export type FilterType = 'text' | 'number' | 'date' | 'select' | 'multi-select' 
 // Sort types
 export type SortDirection = 'asc' | 'desc'
 
-// UI Status Types
-export type UnitStatus = 'occupied' | 'vacant' | 'maintenance' | 'RESERVED'
-
 // Enhanced Unit Row type with relations for UI display
 export type UnitRow = Database['public']['Tables']['units']['Row'] & {
   property?: {

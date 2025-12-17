@@ -78,7 +78,7 @@ const mockLease: Lease = {
 	id: 'lease-1',
 	unit_id: 'unit-1',
 	primary_tenant_id: 'tenant-1',
-	property_owner_id: 'user-1',
+	owner_user_id: 'user-1',
 	start_date: '2024-01-01',
 	end_date: '2024-12-31',
 	rent_amount: 1500,
@@ -116,7 +116,8 @@ const mockLease: Lease = {
 	property_rules: null,
 	property_built_before_1978: null,
 	lead_paint_disclosure_acknowledged: null,
-	governing_state: null
+	governing_state: null,
+	stripe_connected_account_id: null
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {

@@ -82,7 +82,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 
     // Create test owner
     const { data: ownerData, error: ownerError } = await supabaseClient
-      .from('property_owners')
+      .from('stripe_connected_accounts')
       .insert({
         user_id: userData.id,
         stripe_account_id: `acct_test_n1_${Date.now()}`,
@@ -102,9 +102,9 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
     const { data: properties } = await supabaseClient
       .from('properties')
       .insert([
-        { property_owner_id: testOwnerId, name: 'Test Property 1', address_line1: '123 Test St', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
-        { property_owner_id: testOwnerId, name: 'Test Property 2', address_line1: '456 Test Ave', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
-        { property_owner_id: testOwnerId, name: 'Test Property 3', address_line1: '789 Test Blvd', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' }
+        { owner_user_id: testOwnerId, name: 'Test Property 1', address_line1: '123 Test St', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
+        { owner_user_id: testOwnerId, name: 'Test Property 2', address_line1: '456 Test Ave', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' },
+        { owner_user_id: testOwnerId, name: 'Test Property 3', address_line1: '789 Test Blvd', city: 'Test City', state: 'CA', postal_code: '12345', property_type: 'SINGLE_FAMILY' }
       ])
       .select()
 
@@ -161,7 +161,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
         const { data: properties } = await supabaseClient
           .from('properties')
           .select('id')
-          .eq('property_owner_id', testOwnerId)
+          .eq('owner_user_id', testOwnerId)
 
         if (properties && properties.length > 0) {
           const propertyIds = properties.map(p => p.id)
@@ -187,7 +187,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
         }
 
         // Delete owner
-        await supabaseClient.from('property_owners').delete().eq('id', testOwnerId)
+        await supabaseClient.from('stripe_connected_accounts').delete().eq('id', testOwnerId)
       }
 
       // Delete test tenants

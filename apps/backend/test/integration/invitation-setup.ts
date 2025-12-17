@@ -139,29 +139,10 @@ export function getServiceClient(): SupabaseClient<Database> {
 }
 
 /**
- * Get the property_owners.id for a given auth.users.id
- * The properties table references property_owners.id, NOT auth.users.id
- * @param client - Authenticated Supabase client
- * @param authUserId - The auth.users.id
- * @returns The property_owners.id or null if not found
+ * NOTE: After Stripe decoupling migration, properties.owner_user_id references auth.users.id directly.
+ * The property_owners table was removed and replaced with stripe_connected_accounts.
+ * No helper function needed - just use the auth user ID directly.
  */
-export async function getPropertyOwnerId(
-	client: SupabaseClient<Database>,
-	authUserId: string
-): Promise<string | null> {
-	const { data, error } = await client
-		.from('property_owners')
-		.select('id')
-		.eq('user_id', authUserId)
-		.maybeSingle()
-
-	if (error) {
-		logger.warn(`Failed to get property owner ID: ${error.message}`)
-		return null
-	}
-
-	return data?.id || null
-}
 
 /**
  * Check if the service key bypasses RLS (required for test data setup).

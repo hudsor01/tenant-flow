@@ -64,7 +64,7 @@ describe('SubscriptionQueryService', () => {
 	const mockProperty = {
 		id: mockPropertyId,
 		name: 'Test Property',
-		property_owner_id: mockOwnerId
+		owner_user_id: mockOwnerId
 	}
 
 	const mockOwner = {

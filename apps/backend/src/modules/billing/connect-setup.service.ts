@@ -227,7 +227,7 @@ export class ConnectSetupService {
 		// Check if user already has a connected account (idempotent)
 		const { data: existingOwner, error: fetchError } = await this.supabaseService
 			.getAdminClient()
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('stripe_account_id')
 			.eq('user_id', params.user_id)
 			.single()
@@ -279,7 +279,7 @@ export class ConnectSetupService {
 
 			const { error: updateError } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.update({ stripe_account_id: account.id, onboarding_status: 'pending' })
 				.eq('user_id', params.user_id)
 
@@ -360,7 +360,7 @@ export class ConnectSetupService {
 
 			const { data: existingOwner, error: fetchError } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('onboarding_completed_at')
 				.eq('user_id', user_id)
 				.single()
@@ -395,7 +395,7 @@ export class ConnectSetupService {
 
 			const { error: ownerError } = await this.supabaseService
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.update(propertyOwnerUpdate)
 				.eq('user_id', user_id)
 

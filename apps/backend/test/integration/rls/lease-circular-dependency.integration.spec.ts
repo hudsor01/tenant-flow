@@ -3,7 +3,7 @@
  *
  * Tests for migration: 20251213140000_fix_rls_circular_dependency_properly.sql
  *
- * ⚠️ **TESTS SKIPPED**: These tests use mock JWT tokens that are NOT
+ * WARNING **TESTS SKIPPED**: These tests use mock JWT tokens that are NOT
  * configured in Supabase Auth. RLS policies are NOT actually enforced,
  * causing tests to pass vacuously without validating the migration.
  *
@@ -81,14 +81,14 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 
 		// Create owners
 		const { data: owner1 } = await adminClient
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.insert({ email: 'owner1@test.com', name: 'Owner 1' })
 			.select('id')
 			.single()
 		owner1Id = owner1!.id
 
 		const { data: owner2 } = await adminClient
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.insert({ email: 'owner2@test.com', name: 'Owner 2' })
 			.select('id')
 			.single()
@@ -113,7 +113,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		const { data: property1 } = await adminClient
 			.from('properties')
 			.insert({
-				property_owner_id: owner1Id,
+				owner_user_id: owner1Id,
 				name: 'Property 1',
 				address: '123 Main St',
 				city: 'Austin',
@@ -127,7 +127,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		const { data: property2 } = await adminClient
 			.from('properties')
 			.insert({
-				property_owner_id: owner2Id,
+				owner_user_id: owner2Id,
 				name: 'Property 2',
 				address: '456 Oak Ave',
 				city: 'Austin',
@@ -167,7 +167,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		const { data: lease1 } = await adminClient
 			.from('leases')
 			.insert({
-				property_owner_id: owner1Id,
+				owner_user_id: owner1Id,
 				unit_id: unit1Id,
 				primary_tenant_id: tenant1Id,
 				start_date: '2024-01-01',
@@ -185,7 +185,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		const { data: lease2 } = await adminClient
 			.from('leases')
 			.insert({
-				property_owner_id: owner2Id,
+				owner_user_id: owner2Id,
 				unit_id: unit2Id,
 				primary_tenant_id: tenant2Id,
 				start_date: '2024-01-01',
@@ -224,7 +224,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		await adminClient.from('units').delete().in('id', [unit1Id, unit2Id])
 		await adminClient.from('properties').delete().in('id', [property1Id, property2Id])
 		await adminClient.from('tenants').delete().in('id', [tenant1Id, tenant2Id])
-		await adminClient.from('property_owners').delete().in('id', [owner1Id, owner2Id])
+		await adminClient.from('stripe_connected_accounts').delete().in('id', [owner1Id, owner2Id])
 	})
 
 	describe('leases_select policy', () => {
@@ -233,14 +233,14 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 
 			const { data, error } = await client
 				.from('leases')
-				.select('id, property_owner_id')
+				.select('id, owner_user_id')
 				.eq('id', lease1Id)
 				.single()
 
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
 			expect(data?.id).toBe(lease1Id)
-			expect(data?.property_owner_id).toBe(owner1Id)
+			expect(data?.owner_user_id).toBe(owner1Id)
 		})
 
 		it('should deny property owners from reading other owners leases', async () => {
@@ -296,7 +296,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 			const client = supabase.getUserClient(OWNER_1_TOKEN)
 			const startTime = Date.now()
 
-			const { data, error } = await client.from('leases').select('id, property_owner_id')
+			const { data, error } = await client.from('leases').select('id, owner_user_id')
 
 			const duration = Date.now() - startTime
 
@@ -386,7 +386,7 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 				.select(
 					`
           id,
-          property_owner_id,
+          owner_user_id,
           lease_tenants (
             tenant_id,
             is_primary

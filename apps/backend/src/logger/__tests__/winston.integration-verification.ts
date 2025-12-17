@@ -94,7 +94,7 @@ async function testNormalStartup() {
           log(`   ✓ First entry has timestamp: ${firstEntry.timestamp}`, 'green')
           log(`   ✓ First entry has level: ${firstEntry.level}`, 'green')
         } catch (e) {
-          log('   ✗ Log entries are not valid JSON', 'red')
+          log('   FAIL: Log entries are not valid JSON', 'red')
         }
       }
     }
@@ -113,7 +113,7 @@ async function testNormalStartup() {
     return true
 
   } catch (error) {
-    log(`\n✗ SCENARIO 1 FAILED: ${error}`, 'red')
+    log(`\nFAIL: SCENARIO 1 FAILED: ${error}`, 'red')
     return false
   }
 }
@@ -184,7 +184,7 @@ async function testFallbackStartup() {
     return true
 
   } catch (error) {
-    log(`\n✗ SCENARIO 2 FAILED: ${error}`, 'red')
+    log(`\nFAIL: SCENARIO 2 FAILED: ${error}`, 'red')
     return false
   }
 }
@@ -271,7 +271,7 @@ async function runIntegrationTests() {
     log('\n✓ ALL INTEGRATION TESTS PASSED!', 'green')
     log('  Winston logging is production-ready', 'green')
   } else {
-    log('\n✗ SOME TESTS FAILED', 'red')
+    log('\nFAIL: SOME TESTS FAILED', 'red')
     log('  Review output above for details', 'red')
   }
 

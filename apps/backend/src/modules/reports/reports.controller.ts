@@ -102,7 +102,7 @@ export class ReportsController {
 			filename
 		})
 
-		const buffer = await this.exportService.generateExcel(payload, sheetName)
+		const buffer = await this.exportService.generateExcel(payload as Record<string, unknown> | Record<string, unknown>[], sheetName)
 
 		res.setHeader(
 			'Content-Type',
@@ -124,7 +124,7 @@ export class ReportsController {
 
 		this.logger.log('Generating CSV export', { filename })
 
-		const csv = await this.exportService.generateCSV(payload)
+		const csv = await this.exportService.generateCSV(payload as Record<string, unknown> | Record<string, unknown>[])
 
 		res.setHeader('Content-Type', 'text/csv')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
@@ -143,7 +143,7 @@ export class ReportsController {
 
 		this.logger.log('Generating PDF export', { filename })
 
-		const buffer = await this.exportService.generatePDF(payload, title)
+		const buffer = await this.exportService.generatePDF(payload as Record<string, unknown> | Record<string, unknown>[], title)
 
 		res.setHeader('Content-Type', 'application/pdf')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
@@ -192,7 +192,7 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.executiveMonthlyTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent,
+				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
 				'Executive Monthly Report'
 			)
 
@@ -291,7 +291,7 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.propertyPortfolioTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent,
+				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
 				'Property Portfolio Report'
 			)
 
@@ -393,7 +393,7 @@ export class ReportsController {
 			const pdfContent =
 				this.maintenanceOperationsTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent,
+				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
 				'Maintenance Operations Report'
 			)
 

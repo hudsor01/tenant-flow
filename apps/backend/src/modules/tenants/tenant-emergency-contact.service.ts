@@ -320,7 +320,7 @@ export class TenantEmergencyContactService {
 		// Verify property ownership
 		const { data: property, error: propertyError } = await client
 			.from('properties')
-			.select('property_owner_id')
+			.select('owner_user_id')
 			.eq('id', unit.property_id)
 			.single()
 
@@ -330,10 +330,11 @@ export class TenantEmergencyContactService {
 		}
 
 		// Final check: property owner matches requesting user
-		if (property.property_owner_id !== user_id) {
+		const propertyOwnerUserId = property.owner_user_id
+		if (propertyOwnerUserId !== user_id) {
 			this.logger.warn('Access denied: Not property owner', {
 				user_id,
-				propertyOwnerId: property.property_owner_id
+				propertyOwnerId: propertyOwnerUserId
 			})
 			throw new ForbiddenException('Access denied: Not property owner')
 		}

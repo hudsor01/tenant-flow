@@ -434,7 +434,7 @@ export class TenantPaymentService {
 
 		const { data: property, error: propertyError } = await client
 			.from('properties')
-			.select('property_owner_id')
+			.select('owner_user_id')
 			.eq('id', property_id)
 			.single()
 
@@ -446,10 +446,11 @@ export class TenantPaymentService {
 			throw new NotFoundException('Property not found for tenant')
 		}
 
-		if (property.property_owner_id !== user_id) {
+		const propertyOwnerUserId = property.owner_user_id
+		if (propertyOwnerUserId !== user_id) {
 			this.logger.warn('User is not property owner', {
 				user_id,
-			propertyOwnerId: property.property_owner_id
+				propertyOwnerId: propertyOwnerUserId
 			})
 			throw new ForbiddenException('Access denied: Not property owner')
 		}
@@ -458,36 +459,15 @@ export class TenantPaymentService {
 	private async getOwnerproperty_ids(auth_user_id: string): Promise<string[]> {
 		const client = this.supabase.getAdminClient()
 
-		// First get the property_owner record for this auth user
-		const { data: ownerRecord, error: ownerError } = await client
-			.from('property_owners')
-			.select('id')
-			.eq('user_id', auth_user_id)
-			.maybeSingle()
-
-		if (ownerError) {
-			this.logger.error('Failed to fetch property owner record', {
-				auth_user_id,
-				error: ownerError.message
-			})
-			throw new InternalServerErrorException('Failed to fetch owner properties')
-		}
-
-		// If no owner record, user has no properties
-		if (!ownerRecord) {
-			return []
-		}
-
-		// Now get properties for this owner
+		// Get properties owned by this user directly
 		const { data, error } = await client
 			.from('properties')
 			.select('id')
-			.eq('property_owner_id', ownerRecord.id)
+			.eq('owner_user_id', auth_user_id)
 
 		if (error) {
 			this.logger.error('Failed to fetch owner properties for payment summary', {
 				auth_user_id,
-				property_owner_id: ownerRecord.id,
 				error: error.message
 			})
 			throw new InternalServerErrorException('Failed to fetch owner properties')

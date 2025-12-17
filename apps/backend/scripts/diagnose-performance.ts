@@ -75,14 +75,14 @@ async function testEndpoint(endpoint: EndpointTest, authToken?: string): Promise
 }
 
 async function main() {
-	logger.log('🔍 PERFORMANCE DIAGNOSTIC TOOL')
+	logger.log('SEARCH PERFORMANCE DIAGNOSTIC TOOL')
 	logger.log('='.repeat(80))
 	logger.log('')
 
 	const authToken = process.env.TEST_AUTH_TOKEN || ''
 
 	if (!authToken) {
-		logger.warn('⚠️  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail')
+		logger.warn('WARNING  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail')
 		logger.warn('')
 	}
 
@@ -92,8 +92,8 @@ async function main() {
 		const result = await testEndpoint(endpoint, authToken)
 		results.push(result)
 
-		const statusIcon = result.status >= 200 && result.status < 300 ? '✅' : '❌'
-		const speedIcon = result.duration > 1000 ? '🐌' : result.duration > 500 ? '⚠️' : '⚡'
+		const statusIcon = result.status >= 200 && result.status < 300 ? 'SUCCESS' : 'ERROR'
+		const speedIcon = result.duration > 1000 ? 'SLOW' : result.duration > 500 ? 'WARNING' : 'FAST'
 
 		logger.log(`${statusIcon} ${speedIcon} [${result.status}] ${result.path}`)
 		logger.log(`   ${result.description}`)
@@ -114,9 +114,9 @@ async function main() {
 	const medium = results.filter(r => r.duration > 500 && r.duration <= 1000)
 	const fast = results.filter(r => r.duration <= 500)
 
-	logger.log(`⚡ Fast (<500ms): ${fast.length}`)
-	logger.log(`⚠️  Medium (500-1000ms): ${medium.length}`)
-	logger.log(`🐌 SLOW (>1000ms): ${slow.length}`)
+	logger.log(`FAST Fast (<500ms): ${fast.length}`)
+	logger.log(`WARNING  Medium (500-1000ms): ${medium.length}`)
+	logger.log(`SLOW SLOW (>1000ms): ${slow.length}`)
 	logger.log('')
 
 	if (slow.length > 0) {
@@ -128,7 +128,7 @@ async function main() {
 	}
 
 	const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length
-	logger.log(`📊 Average response time: ${Math.round(avgDuration)}ms`)
+	logger.log(`ANALYTICS Average response time: ${Math.round(avgDuration)}ms`)
 	logger.log('')
 }
 main().catch(error => {

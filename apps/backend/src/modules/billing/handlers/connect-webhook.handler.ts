@@ -41,7 +41,7 @@ export class ConnectWebhookHandler {
 			]
 
 			const { error } = await client
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.update({
 					charges_enabled: account.charges_enabled,
 					payouts_enabled: account.payouts_enabled,

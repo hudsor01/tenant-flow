@@ -119,7 +119,7 @@ export class LeaseFinancialService {
 			timeframe: string
 			period?: string
 		}
-	): Promise<unknown[]> {
+	): Promise<Database['public']['Tables']['leases']['Row'][]> {
 		if (!token) {
 			this.logger.warn('Lease analytics requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -156,7 +156,7 @@ export class LeaseFinancialService {
 	 * Get lease payment history
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async getPaymentHistory(token: string, lease_id: string): Promise<unknown[]> {
+	async getPaymentHistory(token: string, lease_id: string): Promise<Database['public']['Tables']['rent_payments']['Row'][]> {
 		if (!token || !lease_id) {
 			this.logger.warn('Payment history requested with missing parameters', { lease_id })
 			throw new BadRequestException('Authentication token and lease ID are required')

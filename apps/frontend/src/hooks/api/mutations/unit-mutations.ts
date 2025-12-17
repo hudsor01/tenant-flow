@@ -7,6 +7,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { useUser } from '#hooks/api/use-auth'
 import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import type { Unit } from '@repo/shared/types/core'
 import { unitQueries } from '../queries/unit-queries'
@@ -21,12 +22,16 @@ import { toast } from 'sonner'
  */
 export function useCreateUnitMutation() {
 	const queryClient = useQueryClient()
+	const { data: user } = useUser()
 
 	return useMutation({
 		mutationFn: (data: UnitInput) =>
 			apiRequest<Unit>('/api/v1/units', {
 				method: 'POST',
-				body: JSON.stringify(data)
+				body: JSON.stringify({
+					...data,
+					owner_user_id: user?.id
+				})
 			}),
 		onSuccess: (_newUnit) => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })

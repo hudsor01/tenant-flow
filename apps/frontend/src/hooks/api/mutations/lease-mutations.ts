@@ -7,6 +7,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { useUser } from '#hooks/api/use-auth'
 import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
 import type { Lease } from '@repo/shared/types/core'
 import { leaseQueries } from '../queries/lease-queries'
@@ -21,12 +22,16 @@ import { toast } from 'sonner'
  */
 export function useCreateLeaseMutation() {
 	const queryClient = useQueryClient()
+	const { data: user } = useUser()
 
 	return useMutation({
 		mutationFn: (data: LeaseCreate) =>
 			apiRequest<Lease>('/api/v1/leases', {
 				method: 'POST',
-				body: JSON.stringify(data)
+				body: JSON.stringify({
+					...data,
+					owner_user_id: user?.id
+				})
 			}),
 		onSuccess: (_newLease) => {
 			// Invalidate lease, tenant, and unit lists

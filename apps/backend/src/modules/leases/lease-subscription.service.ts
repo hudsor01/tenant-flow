@@ -26,7 +26,7 @@ interface LeaseForSubscription {
 
 interface LeaseForActivation {
 	id: string
-	property_owner_id: string | null
+	owner_user_id: string | null
 	primary_tenant_id: string
 	rent_amount: number
 }
@@ -58,15 +58,15 @@ export class LeaseSubscriptionService {
 	): Promise<void> {
 		this.logger.log('Activating lease - both parties have signed', { leaseId: lease.id })
 
-		if (!lease.property_owner_id) {
+		if (!lease.owner_user_id) {
 			throw new BadRequestException(LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.LEASE_NEEDS_OWNER_TO_ACTIVATE])
 		}
 
 		// Step 1: Get property owner's Stripe account
 		const { data: owner, error: ownerError } = await client
-			.from('property_owners')
+			.from('stripe_connected_accounts')
 			.select('id, stripe_account_id, charges_enabled, payouts_enabled')
-			.eq('id', lease.property_owner_id)
+			.eq('user_id', lease.owner_user_id)
 			.single()
 
 		if (ownerError || !owner || !owner.stripe_account_id) {

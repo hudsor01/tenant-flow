@@ -59,12 +59,11 @@ describe('RentPaymentContextService', () => {
 			id: 'unit-001',
 			property_id: 'prop-001',
 			property: {
-				property_owner_id: mockOwnerId,
-				owner: {
-					user_id: mockOwnerId,
-					stripe_account_id: 'acct_456',
-					user: mockOwnerUser
-				}
+				owner_user_id: mockOwnerId,
+				stripe_connected_account: {
+					stripe_account_id: 'acct_456'
+				},
+				owner: mockOwnerUser
 			}
 		}
 	}
@@ -246,7 +245,7 @@ describe('RentPaymentContextService', () => {
 				id: mockLeaseId,
 				unit: {
 					property: {
-						owner: { user_id: 'other-user-id' }
+						owner_user_id: 'other-user-id'
 					}
 				}
 			}
@@ -279,7 +278,7 @@ describe('RentPaymentContextService', () => {
 				id: mockLeaseId,
 				unit: {
 					property: {
-						owner: { user_id: 'actual-owner-id' }
+						owner_user_id: 'actual-owner-id'
 					}
 				}
 			}

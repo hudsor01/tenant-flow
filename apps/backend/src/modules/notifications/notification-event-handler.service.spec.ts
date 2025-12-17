@@ -281,7 +281,7 @@ describe('NotificationEventHandlerService', () => {
 										id: 'inv-123',
 										email: 'tenant@example.com',
 										unit_id: 'unit-456',
-										property_owner_id: 'owner-789',
+										owner_user_id: 'owner-789',
 										owner: {
 											user_id: 'user-abc',
 											user: { first_name: 'Property', last_name: 'Owner' }
@@ -305,11 +305,10 @@ describe('NotificationEventHandlerService', () => {
 
 			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
 				tenantEmail: 'tenant@example.com',
-				invitationUrl: 'https://app.example.com/invite/abc',
-				expiresAt: '2025-01-15T00:00:00Z',
-				propertyName: 'Harbor View',
-				unitNumber: '202',
-				ownerName: 'Property Owner'
+			invitationUrl: 'https://app.example.com/invite/abc',
+			expiresAt: '2025-01-15T00:00:00Z',
+			propertyName: 'Harbor View',
+			unitNumber: '202'
 			})
 		})
 	})
@@ -356,11 +355,7 @@ describe('NotificationEventHandlerService', () => {
 								single: jest.fn().mockResolvedValue({
 									data: {
 										name: 'Sunset Apartments',
-										property_owner_id: 'owner-abc',
-										owner: {
-											user_id: 'user-xyz',
-											user: { first_name: 'Property', last_name: 'Owner' }
-										}
+										owner_user_id: 'owner-abc'
 									},
 									error: null
 								})
@@ -380,6 +375,18 @@ describe('NotificationEventHandlerService', () => {
 						})
 					}
 				}
+				if (table === 'users') {
+					return {
+						select: jest.fn().mockReturnValue({
+							eq: jest.fn().mockReturnValue({
+								single: jest.fn().mockResolvedValue({
+									data: { first_name: 'Property', last_name: 'Owner' },
+									error: null
+								})
+							})
+						})
+					}
+				}
 				return { select: jest.fn().mockReturnThis() }
 			})
 
@@ -387,11 +394,11 @@ describe('NotificationEventHandlerService', () => {
 
 			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
 				tenantEmail: 'tenant@example.com',
-				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
-				expiresAt: '2025-01-15T00:00:00Z',
-				propertyName: 'Sunset Apartments',
-				unitNumber: '101',
-				ownerName: 'Property Owner'
+			invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+			expiresAt: '2025-01-15T00:00:00Z',
+			propertyName: 'Sunset Apartments',
+			unitNumber: '101',
+			ownerName: 'Property Owner'
 			})
 		})
 

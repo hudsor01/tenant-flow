@@ -214,8 +214,8 @@ export class StripeOwnerService {
 				rent_amount,
 				rent_currency,
 				primary_tenant_id,
-				property_owner_id,
-				property_owners!inner(
+				owner_user_id,
+				stripe_connected_accounts!inner(
 					stripe_account_id,
 					default_platform_fee_percent,
 					charges_enabled
@@ -232,28 +232,28 @@ export class StripeOwnerService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		const propertyOwner = lease.property_owners as unknown as {
+		const stripeConnectedAccount = lease.stripe_connected_accounts as unknown as {
 			stripe_account_id: string | null
 			default_platform_fee_percent: number
 			charges_enabled: boolean
 		}
 
 		// Validate property owner has completed Stripe Connect onboarding
-		if (!propertyOwner.stripe_account_id) {
+		if (!stripeConnectedAccount.stripe_account_id) {
 			this.logger.error('Property owner has not connected Stripe account', {
 				leaseId,
-				propertyOwnerId: lease.property_owner_id
+				stripeConnectedAccountId: lease.owner_user_id
 			})
 			throw new BadRequestException(
 				'Property owner has not completed Stripe Connect setup'
 			)
 		}
 
-		if (!propertyOwner.charges_enabled) {
+		if (!stripeConnectedAccount.charges_enabled) {
 			this.logger.error('Property owner Stripe account cannot accept charges', {
 				leaseId,
-				propertyOwnerId: lease.property_owner_id,
-				stripeAccountId: propertyOwner.stripe_account_id
+				stripeConnectedAccountId: lease.owner_user_id,
+				stripeAccountId: stripeConnectedAccount.stripe_account_id
 			})
 			throw new BadRequestException(
 				'Property owner Stripe account is not fully verified'
@@ -261,7 +261,7 @@ export class StripeOwnerService {
 		}
 
 		// Calculate application fee (platform revenue) - default 1%
-		const platformFeePercent = propertyOwner.default_platform_fee_percent ?? 1.0
+		const platformFeePercent = stripeConnectedAccount.default_platform_fee_percent ?? 1.0
 		const applicationFeeAmount = Math.round(
 			lease.rent_amount * (platformFeePercent / 100)
 		)
@@ -278,7 +278,7 @@ export class StripeOwnerService {
 			leaseId,
 			rentAmount: lease.rent_amount,
 			applicationFeeAmount,
-			destinationAccount: propertyOwner.stripe_account_id
+			destinationAccount: stripeConnectedAccount.stripe_account_id
 		})
 
 		// Create PaymentIntent with destination charges
@@ -289,14 +289,14 @@ export class StripeOwnerService {
 			customer: tenantStripeCustomerId,
 			application_fee_amount: applicationFeeAmount,
 			transfer_data: {
-				destination: propertyOwner.stripe_account_id
+				destination: stripeConnectedAccount.stripe_account_id
 			},
 			// Shows property owner's business name on tenant's bank statement
-			on_behalf_of: propertyOwner.stripe_account_id,
+			on_behalf_of: stripeConnectedAccount.stripe_account_id,
 			metadata: {
 				lease_id: leaseId,
 				tenant_id: lease.primary_tenant_id,
-				property_owner_id: lease.property_owner_id || '',
+				owner_user_id: lease.owner_user_id || '',
 				period_start: periodStartStr,
 				period_end: periodEndStr,
 				platform: 'tenantflow'

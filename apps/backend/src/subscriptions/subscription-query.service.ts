@@ -19,7 +19,7 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['property_owners']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 
 export interface LeaseContext {
@@ -128,7 +128,20 @@ export class SubscriptionQueryService {
 			const tenantUser = await this.getUserById(tenant.user_id)
 			const unit = await this.getUnitById(lease.unit_id)
 			const property = await this.getPropertyById(unit.property_id)
-			const owner = await this.getPropertyOwnerById(property.property_owner_id)
+			const ownerData = await this.cache.getOwnerByUserId(property.owner_user_id, async () => {
+				const adminClient = this.supabase.getAdminClient()
+				const { data: owner, error } = await adminClient
+					.from('stripe_connected_accounts')
+					.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
+					.eq('user_id', property.owner_user_id)
+					.maybeSingle<PropertyOwnerRow>()
+				if (error || !owner) {
+					this.logger.warn(`Owner not found for user ${property.owner_user_id}`)
+					throw new Error(`Owner not found for user ${property.owner_user_id}`)
+				}
+				return owner as PropertyOwnerRow // Type assertion: we've validated owner is not null above
+			})
+		const owner = ownerData as PropertyOwnerRow // Type assertion: getOwnerByUserId returns PropertyOwnerRow
 
 			return {
 				lease,
@@ -253,7 +266,7 @@ export class SubscriptionQueryService {
 		const owner = await this.cache.getOwnerByUserId(userId, async () => {
 			const adminClient = this.supabase.getAdminClient()
 			const { data: owner, error } = await adminClient
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
 				.eq('user_id', userId)
 				.maybeSingle<PropertyOwnerRow>()
@@ -312,7 +325,7 @@ export class SubscriptionQueryService {
 		const { data: properties, error: propertiesError } = await adminClient
 			.from('properties')
 			.select('id')
-			.eq('property_owner_id', ownerId)
+			.eq('owner_user_id', ownerId)
 
 		if (propertiesError) {
 			this.logger.error('Failed to load owner properties', {
@@ -419,7 +432,7 @@ export class SubscriptionQueryService {
 			const { data, error } = await this.supabase
 				.getAdminClient()
 				.from('properties')
-				.select('id, name, property_owner_id')
+				.select('id, name, owner_user_id')
 				.eq('id', propertyId)
 				.single<PropertyRow>()
 
@@ -435,7 +448,7 @@ export class SubscriptionQueryService {
 		return this.cache.getPropertyOwnerById(ownerId, async () => {
 			const { data, error } = await this.supabase
 				.getAdminClient()
-				.from('property_owners')
+				.from('stripe_connected_accounts')
 				.select(
 					'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
 				)

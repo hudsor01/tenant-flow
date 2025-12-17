@@ -35,14 +35,14 @@ export class PropertiesService {
 	 * Invalidate all property-related caches for a user/owner
 	 * Uses ZeroCacheService surgical invalidation
 	 */
-	private invalidatePropertyCaches(property_owner_id: string, property_id?: string): void {
+	private invalidatePropertyCaches(owner_user_id: string, property_id?: string): void {
 		// Invalidate specific property if ID provided
 		if (property_id) {
 			this.cache.invalidateByEntity('properties', property_id)
 		}
 		// Invalidate user's property list cache
-		this.cache.invalidate(`properties:owner:${property_owner_id}`)
-		this.logger.debug('Invalidated property caches', { property_owner_id, property_id })
+		this.cache.invalidate(`properties:owner:${owner_user_id}`)
+		this.logger.debug('Invalidated property caches', { owner_user_id, property_id })
 	}
 
 	async findAll(
@@ -118,33 +118,13 @@ export class PropertiesService {
 		}
 
 const user_id = req.user.id
-const client = this.supabase.getUserClient(token)
+		const client = this.supabase.getUserClient(token)
 
-// Fetch property_owner_id from property_owners table
-// Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
-const { data: propertyOwner, error: ownerError } = await client
-.from('property_owners')
-.select('id')
-.eq('user_id', user_id)
-.single()
-
-if (ownerError || !propertyOwner) {
-this.logger.error('Property owner not found', {
-error: ownerError?.message,
-user_id
-})
-throw new BadRequestException(
-'Property owner record not found. Please complete onboarding first.'
-)
-}
-
-const property_owner_id = propertyOwner.id
-
-const insertData: Database['public']['Tables']['properties']['Insert'] = {
-property_owner_id: property_owner_id,
+		const insertData: Database['public']['Tables']['properties']['Insert'] = {
 			name: request.name,
 			address_line1: request.address_line1,
 			city: request.city,
+			owner_user_id: user_id,
 			state: request.state,
 			postal_code: request.postal_code,
 			property_type: request.property_type as PropertyType
@@ -178,7 +158,7 @@ property_owner_id: property_owner_id,
 			)
 		}
 
-this.invalidatePropertyCaches(property_owner_id, data.id)
+this.invalidatePropertyCaches(user_id, data.id)
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id
@@ -254,10 +234,9 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 			throw new BadRequestException('Failed to update property')
 		}
 
-		// Invalidate caches using property_owner_id from returned data
-		if (data.property_owner_id) {
-			this.invalidatePropertyCaches(data.property_owner_id, property_id)
-		}
+		// Invalidate caches using the current user's ID
+		const user_id = req.user.id
+		this.invalidatePropertyCaches(user_id, property_id)
 
 		return data as Property
 	}
@@ -351,10 +330,8 @@ this.invalidatePropertyCaches(property_owner_id, data.id)
 			completedSteps: result.completedSteps
 		})
 
-		// Invalidate caches using property_owner_id from existing property
-		if (existing.property_owner_id) {
-			this.invalidatePropertyCaches(existing.property_owner_id, property_id)
-		}
+		// Invalidate caches using the current user's ID
+		this.invalidatePropertyCaches(user_id, property_id)
 
 		return { success: true, message: 'Property deleted successfully' }
 	}

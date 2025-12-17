@@ -42,7 +42,7 @@ const describeIntegration = missingEnv.length > 0 ? describe.skip : describe
 
 if (missingEnv.length > 0) {
 	console.warn(
-		`⚠️  Skipping EventIdempotency integration tests. Missing env: ${missingEnv.join(', ')}\n` +
+		`WARNING  Skipping EventIdempotency integration tests. Missing env: ${missingEnv.join(', ')}\n` +
 		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n` +
 		`   Required env vars:\n` +
 		`   - TEST_SUPABASE_URL=http://127.0.0.1:54321\n` +

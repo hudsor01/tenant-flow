@@ -18,7 +18,7 @@ TEST_DIR="tests/tanstack"
 CONFIG_FILE="tests/tanstack/playwright.config.ts"
 RESULTS_DIR="tanstack-test-results"
 
-echo -e "${BLUE}🚀 TenantFlow TanStack Query Test Suite${NC}"
+echo -e "${BLUE}ROCKET TenantFlow TanStack Query Test Suite${NC}"
 echo -e "${BLUE}======================================${NC}"
 echo ""
 

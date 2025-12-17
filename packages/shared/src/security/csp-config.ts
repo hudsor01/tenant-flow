@@ -34,15 +34,11 @@ export const CSP_DOMAINS = {
 	// Vercel analytics and speed insights
 	VERCEL_ANALYTICS: [
 		'https://*.vercel-insights.com',
-		'https://*.speed-insights.com',
-		'https://*.vercel-spdinsghts.com'
+		'https://*.vercel-analytics.com'
 	],
 
 	// Image sources
 	IMAGES: ['https://images.unsplash.com', 'data:', 'blob:'],
-
-	// External APIs
-	ZIP_API: ['http://api.zippopotam.us', 'https://api.zippopotam.us'],
 
 	// CDN for browser-image-compression library
 	CDN: ['https://cdn.jsdelivr.net']
@@ -94,7 +90,6 @@ export function generateCSPDirectives(
 			...CSP_DOMAINS.API_DOMAINS,
 			...CSP_DOMAINS.SUPABASE,
 			...CSP_DOMAINS.STRIPE,
-			...CSP_DOMAINS.ZIP_API,
 			...CSP_DOMAINS.VERCEL_ANALYTICS
 		],
 
@@ -159,6 +154,6 @@ export function getCSPString(
 ): string {
 	const env =
 		environment ||
-		(process.env["NODE_ENV"] === 'development' ? 'development' : 'production')
+		(process.env.NODE_ENV === 'development' ? 'development' : 'production')
 	return cspDirectivesToString(generateCSPDirectives(env))
 }
