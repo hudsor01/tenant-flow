@@ -154,7 +154,7 @@ export function createMockProperty(overrides?: Partial<Property>): Property {
 		country: 'US',
 		property_type: 'APARTMENT',
 		status: 'active',
-		property_owner_id: 'owner-123',
+		owner_user_id: 'owner-123',
 		sale_price: null,
 		date_sold: null,
 		created_at: now.toISOString(),
@@ -224,7 +224,8 @@ export function createMockLease(overrides?: Partial<Lease>): Lease {
 		subscription_retry_count: overrides?.subscription_retry_count || 0,
 		subscription_last_attempt_at:
 			overrides?.subscription_last_attempt_at || null,
-		property_owner_id: overrides?.property_owner_id || 'owner-123',
+		owner_user_id: overrides?.owner_user_id || 'owner-123',
+		stripe_connected_account_id: overrides?.stripe_connected_account_id ?? null,
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 		// Signature tracking fields
@@ -275,7 +276,7 @@ export function createMockMaintenanceRequest(
 		inspector_id: overrides?.inspector_id || null,
 		inspection_date: overrides?.inspection_date || null,
 		inspection_findings: overrides?.inspection_findings || null,
-		property_owner_id: overrides?.property_owner_id || 'owner-123',
+		owner_user_id: overrides?.owner_user_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
 

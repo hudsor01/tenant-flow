@@ -70,7 +70,7 @@ export class NotificationEventHandlerService {
 					title: `${priorityLabel} Maintenance Request`,
 					message: `Maintenance request for ${event.propertyName} - Unit ${event.unit_number}: ${event.title}`,
 					notification_type: 'maintenance',
-					action_url: '/maintenance',
+					action_url: event.action_url,
 					entity_id: event.maintenanceId,
 					entity_type: 'maintenance'
 				})
@@ -231,11 +231,8 @@ export class NotificationEventHandlerService {
 						id,
 						email,
 						unit_id,
-						property_owner_id,
-						owner:property_owner_id(
-							user_id,
-							user:user_id(first_name, last_name)
-						),
+						owner_user_id,
+						
 						unit:unit_id(
 							unit_number,
 							property_id,
@@ -255,10 +252,6 @@ export class NotificationEventHandlerService {
 					propertyName = invitation.unit?.property?.name ?? undefined
 					unitNumber = invitation.unit?.unit_number ?? undefined
 
-					const ownerUser = invitation.owner?.user as { first_name: string | null; last_name: string | null } | null
-					if (ownerUser?.first_name && ownerUser?.last_name) {
-						ownerName = `${ownerUser.first_name} ${ownerUser.last_name}`
-					}
 				}
 
 				await this.emailService.sendTenantInvitationEmail({
@@ -291,22 +284,24 @@ export class NotificationEventHandlerService {
 				if (event.property_id) {
 					const { data: property } = await client
 						.from('properties')
-						.select(`
-							name,
-							property_owner_id,
-							owner:property_owner_id(
-								user_id,
-								user:user_id(first_name, last_name)
-							)
-						`)
+						.select('name, owner_user_id')
 						.eq('id', event.property_id)
 						.single()
 
 					if (property) {
 						propertyName = property.name ?? undefined
-						const ownerUser = property.owner?.user as { first_name: string | null; last_name: string | null } | null
-						if (ownerUser?.first_name && ownerUser?.last_name) {
-							ownerName = `${ownerUser.first_name} ${ownerUser.last_name}`
+
+						// Fetch owner user if available
+						if (property.owner_user_id) {
+							const { data: ownerUser } = await client
+								.from('users')
+								.select('first_name, last_name')
+								.eq('id', property.owner_user_id)
+								.single()
+
+							if (ownerUser?.first_name && ownerUser?.last_name) {
+								ownerName = `${ownerUser.first_name} ${ownerUser.last_name}`
+							}
 						}
 					}
 				}

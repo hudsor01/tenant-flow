@@ -88,11 +88,7 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
 
             // Mock: Property is owned by a different user
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: differentUserId
-                }
-              },
+              data: { owner_user_id: differentUserId },
               error: null
             })
 
@@ -148,11 +144,7 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
 
             // Mock: Property is owned by a different user
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: differentUserId
-                }
-              },
+              data: { owner_user_id: differentUserId },
               error: null
             })
 
@@ -208,13 +200,9 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
           fc.uuid(),
           fc.uuid(),
           async (userId, propertyId) => {
-            // Mock: User owns the property
+            // Mock: User owns the property (matches production guard expectation)
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -366,13 +354,9 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
           fc.uuid(),
           fc.uuid(),
           async (userId, propertyId) => {
-            // Mock: User owns the property
+            // Mock: User owns the property (matches production guard expectation)
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -410,13 +394,9 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
           fc.uuid(),
           fc.uuid(),
           async (userId, propertyId, leaseId, tenantId) => {
-            // Mock: User owns all resources
+            // Mock: User owns all resources (matches production guard expectation)
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -730,84 +710,8 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
    * database again and update the cache
    */
   describe('Property 7: Cache expires after 5 minutes', () => {
-    it.skip('should refresh cache and query database after 5 minutes have elapsed (NOT APPLICABLE - request-scoped cache)', async () => {
-      await fc.assert(
-        fc.asyncProperty(
-          fc.uuid(),
-          fc.uuid(),
-          async (userId, propertyId) => {
-            // Mock: User owns the property
-            mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
-              error: null
-            })
-
-            // Simulate time-based cache with 5-minute TTL
-            const cacheStore = new Map<string, { value: boolean; timestamp: number }>()
-            const FIVE_MINUTES_MS = 5 * 60 * 1000
-
-            mockAuthCache.getOrSet.mockImplementation(async (key: string, factory: () => Promise<boolean>) => {
-              const now = Date.now()
-              const cached = cacheStore.get(key)
-
-              // If cache exists and hasn't expired (within 5 minutes)
-              if (cached && (now - cached.timestamp) < FIVE_MINUTES_MS) {
-                return cached.value
-              }
-
-              // Cache miss or expired - execute factory and update cache
-              const value = await factory()
-              cacheStore.set(key, { value, timestamp: now })
-              return value
-            })
-
-            const context = createContext({
-              user: { id: userId } as any,
-              body: {
-                property_id: propertyId
-              },
-              params: {},
-              query: {}
-            })
-
-            // First check - should query database and cache result
-            const result1 = await guard.canActivate(context)
-            expect(result1).toBe(true)
-            expect(mockSupabaseClient.single).toHaveBeenCalledTimes(1)
-
-            // Get the cache entry and manually set its timestamp to 6 minutes ago (expired)
-            const cacheKey = `property:${propertyId}:owner:${userId}`
-            const cachedEntry = cacheStore.get(cacheKey)
-            expect(cachedEntry).toBeDefined()
-
-            // Simulate 6 minutes passing by backdating the timestamp
-            if (cachedEntry) {
-              cachedEntry.timestamp = Date.now() - (6 * 60 * 1000)
-            }
-
-            // Reset database mock call count
-            mockSupabaseClient.single.mockClear()
-
-            // Second check after cache expiration - should query database again
-            const result2 = await guard.canActivate(context)
-            expect(result2).toBe(true)
-
-            // Assert: Database was queried again because cache expired
-            expect(mockSupabaseClient.single).toHaveBeenCalledTimes(1)
-
-            // Assert: Cache was updated with new timestamp
-            const updatedEntry = cacheStore.get(cacheKey)
-            expect(updatedEntry).toBeDefined()
-            expect(updatedEntry!.timestamp).toBeGreaterThan(cachedEntry!.timestamp)
-          }
-        ),
-        { numRuns: 100 }
-      )
-    })
+    // NOTE: Request-scoped cache doesn't persist across requests, so 5-minute expiry
+    // testing isn't applicable. Cache only lives for the duration of a single request.
 
     it('should not refresh cache if less than 5 minutes have elapsed', async () => {
       await fc.assert(
@@ -819,13 +723,9 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
             // Precondition: Ensure elapsed time is less than 5 minutes
             fc.pre(elapsedMs < 5 * 60 * 1000)
 
-            // Mock: User owns the property
+            // Mock: User owns the property (matches production guard expectation)
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -896,11 +796,7 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
 
             // Mock: User owns both properties
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -996,11 +892,7 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
 
             // Initial state: User owns the property
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: userId
-                }
-              },
+              data: { owner_user_id: userId },
               error: null
             })
 
@@ -1017,11 +909,7 @@ describe('PropertyOwnershipGuard - Property-Based Tests', () => {
 
             // Simulate ownership change: property now owned by different user
             mockSupabaseClient.single.mockResolvedValue({
-              data: {
-                property_owner: {
-                  user_id: newOwnerId
-                }
-              },
+              data: { owner_user_id: newOwnerId },
               error: null
             })
 

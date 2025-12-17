@@ -26,6 +26,24 @@ if (envResult.error) {
   console.warn('   Tests will use project root environment variables')
 }
 
+// CRITICAL FIX: Ensure SUPABASE_URL is set for config validation
+// The config schema expects SUPABASE_URL but Doppler provides NEXT_PUBLIC_SUPABASE_URL
+// Set SUPABASE_URL = NEXT_PUBLIC_SUPABASE_URL if not already set
+if (!process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (process.env.DEBUG) {
+    console.log(`   Using NEXT_PUBLIC_SUPABASE_URL for SUPABASE_URL: ${process.env.SUPABASE_URL}`)
+  }
+}
+
+// Similarly, ensure SUPABASE_PUBLISHABLE_KEY is set
+if (!process.env.SUPABASE_PUBLISHABLE_KEY && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+  process.env.SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if (process.env.DEBUG) {
+    console.log(`   Using NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY for SUPABASE_PUBLISHABLE_KEY`)
+  }
+}
+
 // Global test configuration
 jest.setTimeout(10000) // 10 second timeout for all tests
 
@@ -67,7 +85,9 @@ global.testCleanup = () => {
 
 // Log test environment setup
 const testEnv = process.env.NODE_ENV || 'test'
-const supabaseUrl = process.env.SUPABASE_URL || 'http://localhost:54321'
+// Prefer NEXT_PUBLIC_SUPABASE_URL for integration tests (real Supabase URL)
+// This matches the pattern used in test/integration/rls/setup.ts
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'not configured'
 
 if (process.env.DEBUG) {
   console.log(`✓ Jest test setup initialized`)

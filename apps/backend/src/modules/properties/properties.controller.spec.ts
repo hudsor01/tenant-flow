@@ -56,7 +56,7 @@ describe('PropertiesController', () => {
 	country: 'US',
 	property_type: 'SINGLE_FAMILY',
 	status: 'active',
-	property_owner_id: mockUser.id,
+	owner_user_id: mockUser.id,
 	date_sold: null,
 	sale_price: null,
 	created_at: new Date().toISOString(),

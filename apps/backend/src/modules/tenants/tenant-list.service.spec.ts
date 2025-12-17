@@ -38,8 +38,11 @@ describe('TenantListService', () => {
 	// Mock token for all tests - service now REQUIRES authentication
 	const mockToken = 'mock-jwt-token'
 
+	let mockClient: any
+
 	beforeEach(async () => {
-		const mockClient = {
+		// Create a single mock client instance that will be reused
+		mockClient = {
 			from: jest.fn(),
 			rpc: jest.fn()
 		}
@@ -217,16 +220,6 @@ describe('TenantListService', () => {
 		it('returns tenants with lease information (user is not owner)', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
-			// Mock property_owners query - user is NOT an owner
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: null, // User is not a property owner
-					error: null
-				})
-			}
-
 			// Mock tenants by user query (with lease_tenants)
 			const mockTenantWithLease = {
 				...mockTenant,
@@ -272,8 +265,13 @@ describe('TenantListService', () => {
 				})
 			}
 
+			// Mock RPC call for owner tenants (returns empty - user is not owner)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: [], // No tenant IDs (user is not an owner)
+				error: null
+			})
+
 			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder) // property_owners check
 				.mockReturnValueOnce(tenantByUserBuilder) // tenants by user
 
 			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
@@ -297,12 +295,6 @@ describe('TenantListService', () => {
 		it('returns empty array when no tenants found', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
-			}
-
 			const tenantByUserBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
@@ -310,9 +302,13 @@ describe('TenantListService', () => {
 				range: jest.fn().mockResolvedValue({ data: [], error: null })
 			}
 
-			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder)
-				.mockReturnValueOnce(tenantByUserBuilder)
+			// Mock RPC call for owner tenants (returns empty)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: [],
+				error: null
+			})
+
+			;(mockClient.from as jest.Mock).mockReturnValueOnce(tenantByUserBuilder)
 
 			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
 
@@ -320,84 +316,101 @@ describe('TenantListService', () => {
 		})
 
 		it('deduplicates tenants from both user and owner queries', async () => {
-			const mockClient = mockSupabaseService.getUserClient(mockToken)
+		const mockClient = mockSupabaseService.getUserClient(mockToken)
 
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: { id: mockOwnerId },
-					error: null
-				})
-			}
-
-			const mockTenantWithLease = {
-				...mockTenant,
-				lease_tenants: [
-					{
-						tenant_id: mockTenant.id,
-						lease_id: 'lease-1',
-						lease: {
-							id: 'lease-1',
-							start_date: '2024-01-01',
-							end_date: '2024-12-31',
-							lease_status: 'active',
-							rent_amount: 1500,
-							security_deposit: 3000,
-							unit: null
-						}
+		const mockTenantWithLease = {
+			...mockTenant,
+			lease_tenants: [
+				{
+					tenant_id: mockTenant.id,
+					lease_id: 'lease-1',
+					lease: {
+						id: 'lease-1',
+						start_date: '2024-01-01',
+						end_date: '2024-12-31',
+						lease_status: 'active',
+						rent_amount: 1500,
+						security_deposit: 3000,
+						unit: null
 					}
-				]
-			}
+				}
+			]
+		}
 
-			const tenantByUserBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				or: jest.fn().mockReturnThis(),
-				range: jest.fn().mockResolvedValue({
-					data: [mockTenantWithLease],
-					error: null
-				})
-			}
-
-			// RPC returns the same tenant ID
-			;(mockClient.rpc as jest.Mock).mockResolvedValue({
-				data: [mockTenant.id],
+		const tenantByUserBuilder = {
+			select: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
+			or: jest.fn().mockReturnThis(),
+			range: jest.fn().mockResolvedValue({
+				data: [mockTenantWithLease],
 				error: null
 			})
+		}
 
-			// Owner query for tenant details
-			const ownerUserIdBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValue({
-					data: { user_id: mockUserId },
-					error: null
-				})
-			}
-
-			const leaseTenantsBuilder = {
-				select: jest.fn().mockReturnThis(),
-				in: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				not: jest.fn().mockReturnThis(),
-				or: jest.fn().mockReturnThis(),
-				range: jest.fn().mockResolvedValue({
-					data: [{ tenant: mockTenant, lease: (mockTenantWithLease as any).lease_tenants[0].lease }],
-					error: null
-				})
-			}
-
-			;(mockClient.from as jest.Mock)
-				.mockReturnValueOnce(ownerBuilder) // property_owners check
-				.mockReturnValueOnce(tenantByUserBuilder) // tenants by user
-				.mockReturnValueOnce(ownerUserIdBuilder) // property_owners.user_id
-				.mockReturnValueOnce(leaseTenantsBuilder) // lease_tenants
-
-			const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
-
-			// Should deduplicate
-			expect(result).toHaveLength(1)
+		// RPC returns the same tenant ID (user is also an owner)
+		;(mockClient.rpc as jest.Mock).mockResolvedValue({
+			data: [mockTenant.id],
+			error: null
 		})
+
+		// Owner query for lease_tenants with tenant details
+		const leaseTenantsBuilder = {
+			select: jest.fn().mockReturnThis(),
+			in: jest.fn().mockReturnThis(),
+			eq: jest.fn().mockReturnThis(),
+			not: jest.fn().mockReturnThis(),
+			or: jest.fn().mockReturnThis(),
+			range: jest.fn().mockResolvedValue({
+				data: [{
+					tenant_id: mockTenant.id,
+					lease_id: 'lease-1',
+					tenant: {
+						...mockTenant,
+						user: {
+							first_name: 'John',
+							last_name: 'Doe',
+							email: 'john@example.com',
+							phone: '555-1234'
+						}
+					},
+					lease: {
+						id: 'lease-1',
+						start_date: '2024-01-01',
+						end_date: '2024-12-31',
+						lease_status: 'active',
+						rent_amount: 1500,
+						security_deposit: 3000,
+						unit: {
+							id: 'unit-1',
+							unit_number: '101',
+							bedrooms: 2,
+							bathrooms: 1,
+							square_feet: 900,
+							property: {
+								id: 'prop-1',
+								name: 'Test Property',
+								address_line1: '123 Main St',
+								address_line2: null,
+								city: 'Testville',
+								state: 'TX',
+								postal_code: '12345',
+								owner_user_id: mockOwnerId
+							}
+						}
+					}
+				}],
+				error: null
+			})
+		}
+
+		;(mockClient.from as jest.Mock)
+			.mockReturnValueOnce(tenantByUserBuilder) // tenants by user (first parallel query)
+			.mockReturnValueOnce(leaseTenantsBuilder) // lease_tenants for owner (second parallel query)
+
+		const result = await service.findAllWithLeaseInfo(mockUserId, { token: mockToken })
+
+		// Should deduplicate (same tenant appears in both queries)
+		expect(result).toHaveLength(1)
+	})
 	})
 })

@@ -13,7 +13,7 @@ import { NotFoundException } from '@nestjs/common'
 function createMockProperty(overrides?: Partial<any>): any {
   return {
     id: 'property-' + Math.random().toString(36).substr(2, 9),
-    property_owner_id: 'user-123',
+    owner_user_id: 'user-123',
     name: 'Test Property',
     address_line1: '123 Main St',
     city: 'Test City',
@@ -339,7 +339,7 @@ describe('PropertiesService', () => {
       expect(result).toEqual(mockCreated)
       expect(mockPropertiesQuery.insert).toHaveBeenCalledWith(
         expect.objectContaining({
-          property_owner_id: 'property-owner-123',
+          owner_user_id: 'user-123',
           name: 'Park View',
           address_line1: '123 Main St',
           city: 'Austin',
@@ -398,7 +398,7 @@ describe('PropertiesService', () => {
     it('should update a property after verifying ownership', async () => {
       const mockExisting = createMockProperty({
         id: 'prop-1',
-        property_owner_id: 'internal-uid-1'
+        owner_user_id: 'internal-uid-1'
       })
       const mockUpdated = { ...mockExisting, name: 'Updated Name' }
 

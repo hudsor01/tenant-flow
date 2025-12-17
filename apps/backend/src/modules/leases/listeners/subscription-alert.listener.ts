@@ -27,7 +27,7 @@ interface SubscriptionFailedEvent {
 /** Event payload for max retries reached */
 interface SubscriptionMaxRetriesEvent {
 	lease_id: string
-	property_owner_id: string
+	owner_user_id: string
 	tenant_id: string
 	retry_count: number
 }
@@ -75,7 +75,7 @@ export class SubscriptionAlertListener {
 			try {
 				this.logger.error('CRITICAL: Subscription creation max retries reached', {
 					leaseId: event.lease_id,
-					propertyOwnerId: event.property_owner_id,
+					propertyOwnerId: event.owner_user_id,
 					tenantId: event.tenant_id,
 					retryCount: event.retry_count,
 					action_required: 'Manual intervention required'
@@ -90,13 +90,10 @@ export class SubscriptionAlertListener {
 					id,
 					rent_amount,
 					subscription_failure_reason,
-					property_owners!leases_property_owner_id_fkey (
-						id,
-						users!property_owners_user_id_fkey (
-							email,
-							first_name,
-							last_name
-						)
+					owner:users!leases_owner_user_id_fkey (
+						email,
+						first_name,
+						last_name
 					),
 					tenants!leases_primary_tenant_id_fkey (
 						id,
@@ -122,7 +119,7 @@ export class SubscriptionAlertListener {
 			}
 
 			// Extract owner email (handle nested structure)
-			const ownerUser = (lease.property_owners as { users?: { email?: string; first_name?: string; last_name?: string } })?.users
+			const ownerUser = lease.owner as { email?: string; first_name?: string; last_name?: string } | undefined
 			const ownerEmail = ownerUser?.email
 			const ownerName = ownerUser ? `${ownerUser.first_name || ''} ${ownerUser.last_name || ''}`.trim() : 'Property Owner'
 

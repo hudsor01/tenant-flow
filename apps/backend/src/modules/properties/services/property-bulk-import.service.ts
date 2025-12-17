@@ -120,55 +120,16 @@ export class PropertyBulkImportService {
 				)
 			}
 
-// PHASE 1: Fetch property_owner_id for the authenticated user
-// Properties.property_owner_id is FK to property_owners.id (NOT auth.users.id)
-this.logger.log('[BULK_IMPORT:PHASE1.5] Fetching property_owner_id...', {
-	user_id,
-	user_id_type: typeof user_id,
-	user_id_length: user_id?.length
-})
-
-// Use user client to respect RLS for property_owner lookup
-const ownerResult = await client
-	.from('property_owners')
-	.select('id')
-	.eq('user_id', user_id)
-	.single()
-
-const propertyOwner = ownerResult.data
-const ownerError = ownerResult.error
-
-// Property owner must exist - created during onboarding with proper Stripe Connect setup
-if (ownerError || !propertyOwner) {
-	this.logger.error('[BULK_IMPORT:PHASE1.5:ERROR] Property owner not found', {
-		error: ownerError?.message,
-		errorCode: ownerError?.code,
-		errorDetails: ownerError?.details,
-		user_id,
-		user_id_type: typeof user_id
-	})
-	throw new BadRequestException(
-		'Property owner profile not found. Please complete your account setup before importing properties.'
-	)
-}
-
-this.logger.log('[BULK_IMPORT:PHASE1.5:SUCCESS] Property owner found', {
-	property_owner_id: propertyOwner.id,
-	user_id
-})
-
-const property_owner_id = propertyOwner.id
-
-const errors: Array<{ row: number; error: string }> = []
-const validRows: Array<
-Database['public']['Tables']['properties']['Insert']
-> = []
-
 			// PHASE 1: Validate ALL rows before inserting anything
 			this.logger.log('[BULK_IMPORT:PHASE2:START] Validating all rows...', {
 				totalRows: records.length,
 				user_id
 			})
+
+			const errors: Array<{ row: number; error: string }> = []
+			const validRows: Array<
+			Database['public']['Tables']['properties']['Insert']
+			> = []
 
 			const validationStartTime = Date.now()
 			for (let i = 0; i < records.length; i++) {
@@ -207,11 +168,10 @@ Database['public']['Tables']['properties']['Insert']
 					}
 
 // Build insert object
-// Use property_owner_id from property_owners table (NOT auth.uid())
 const insertData: Database['public']['Tables']['properties']['Insert'] =
 {
-property_owner_id: property_owner_id,
-							name: name.trim(),
+	name: name.trim(),
+	owner_user_id: user_id,
 							address_line1: address.trim(),
 							city: city.trim(),
 							state: state.trim(),

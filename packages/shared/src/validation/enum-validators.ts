@@ -5,8 +5,6 @@
  * Eliminates duplicate validation logic in controllers and services.
  */
 
-import type { LeaseStatus, UnitStatus } from '@repo/shared/types/core'
-
 // Lease Status Validation
 // ============================================================================
 
@@ -14,19 +12,21 @@ import type { LeaseStatus, UnitStatus } from '@repo/shared/types/core'
  * Valid lease status values (must match database enum)
  */
 export const VALID_LEASE_STATUSES = [
-  'draft',
-  'pending_signature',
-  'active',
-  'ended',
-  'terminated'
+	'draft',
+	'pending_signature',
+	'active',
+	'ended',
+	'terminated'
 ] as const
+
+export type LeaseStatus = typeof VALID_LEASE_STATUSES[number]
 
 /**
  * Type guard for lease status validation
  * Avoids unsafe casting by checking against string array
  */
 export function isValidLeaseStatus(status: string): status is LeaseStatus {
-  return (VALID_LEASE_STATUSES as readonly string[]).includes(status)
+	return (VALID_LEASE_STATUSES as readonly string[]).includes(status)
 }
 
 /**
@@ -36,12 +36,12 @@ export function isValidLeaseStatus(status: string): status is LeaseStatus {
  * @throws Error if status is invalid
  */
 export function validateLeaseStatus(status: string): LeaseStatus {
-  if (!isValidLeaseStatus(status)) {
-    throw new Error(
-      `Invalid lease status: ${status}. Valid values are: ${VALID_LEASE_STATUSES.join(', ')}`
-    )
-  }
-  return status
+	if (!isValidLeaseStatus(status)) {
+		throw new Error(
+			`Invalid lease status: ${status}. Valid values are: ${VALID_LEASE_STATUSES.join(', ')}`
+		)
+	}
+	return status
 }
 
 // Unit Status Validation
@@ -51,18 +51,20 @@ export function validateLeaseStatus(status: string): LeaseStatus {
  * Valid unit status values (must match database enum)
  */
 export const VALID_UNIT_STATUSES = [
-  'vacant',
-  'occupied',
-  'maintenance',
-  'unavailable'
+	'available',
+	'occupied',
+	'maintenance',
+	'reserved'
 ] as const
+
+export type UnitStatus = typeof VALID_UNIT_STATUSES[number]
 
 /**
  * Type guard for unit status validation
  * Avoids unsafe casting by checking against string array
  */
 export function isValidUnitStatus(status: string): status is UnitStatus {
-  return (VALID_UNIT_STATUSES as readonly string[]).includes(status)
+	return (VALID_UNIT_STATUSES as readonly string[]).includes(status)
 }
 
 /**
@@ -72,12 +74,12 @@ export function isValidUnitStatus(status: string): status is UnitStatus {
  * @throws Error if status is invalid
  */
 export function validateUnitStatus(status: string): UnitStatus {
-  if (!isValidUnitStatus(status)) {
-    throw new Error(
-      `Invalid unit status: ${status}. Valid values are: ${VALID_UNIT_STATUSES.join(', ')}`
-    )
-  }
-  return status
+	if (!isValidUnitStatus(status)) {
+		throw new Error(
+			`Invalid unit status: ${status}. Valid values are: ${VALID_UNIT_STATUSES.join(', ')}`
+		)
+	}
+	return status
 }
 
 // Case-Insensitive Normalization
@@ -89,7 +91,7 @@ export function validateUnitStatus(status: string): UnitStatus {
  * @returns Normalized lowercase status
  */
 export function normalizeStatus(status: string): string {
-  return status.toLowerCase()
+	return status.toLowerCase()
 }
 
 /**
@@ -98,8 +100,8 @@ export function normalizeStatus(status: string): string {
  * @returns Normalized and validated lease status
  */
 export function validateAndNormalizeLeaseStatus(status: string): LeaseStatus {
-  const normalized = normalizeStatus(status)
-  return validateLeaseStatus(normalized)
+	const normalized = normalizeStatus(status)
+	return validateLeaseStatus(normalized)
 }
 
 /**
@@ -108,6 +110,6 @@ export function validateAndNormalizeLeaseStatus(status: string): LeaseStatus {
  * @returns Normalized and validated unit status
  */
 export function validateAndNormalizeUnitStatus(status: string): UnitStatus {
-  const normalized = normalizeStatus(status)
-  return validateUnitStatus(normalized)
+	const normalized = normalizeStatus(status)
+	return validateUnitStatus(normalized)
 }

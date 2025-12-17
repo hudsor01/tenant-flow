@@ -102,19 +102,14 @@ export interface TenantDocument {
 
 export interface TenantProfile {
 	id: string
-	first_name: string
-	last_name: string
-	email: string
+	first_name: string | null
+	last_name: string | null
+	email: string | null
 	phone: string | null
-	status: string
 }
 
 export interface TenantSettings {
 	profile: TenantProfile
-	preferences: {
-		notifications: boolean
-		emailReminders: boolean
-	}
 }
 
 export interface MaintenanceRequestCreate {

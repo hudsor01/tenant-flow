@@ -117,7 +117,7 @@ export function useCreateUnit() {
 			const optimisticUnit: Unit = {
 			id: tempId,
 			property_id: newUnit.property_id,
-			property_owner_id: null,
+			owner_user_id: '', // Placeholder - will be set by server
 			unit_number: newUnit.unit_number ?? null,
 			bedrooms: newUnit.bedrooms ?? null,
 			bathrooms: newUnit.bathrooms ?? null,

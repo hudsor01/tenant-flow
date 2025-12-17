@@ -183,10 +183,10 @@ export class PropertyPerformanceService {
 				square_feet,
 				property_id,
 				properties!inner(
-					property_owner_id
+					owner_user_id
 				)
 			`)
-			.eq('properties.property_owner_id', user_id)
+			.eq('properties.owner_user_id', user_id)
 
 		if (error) {
 			this.logger.error(`Failed to fetch property units: ${error.message}`)
@@ -215,10 +215,10 @@ export class PropertyPerformanceService {
 			.select(`
 				status,
 				properties!inner(
-					property_owner_id
+					owner_user_id
 				)
 			`)
-			.eq('properties.property_owner_id', user_id)
+			.eq('properties.owner_user_id', user_id)
 
 		if (statusError) {
 			this.logger.error(`Failed to fetch unit statistics: ${statusError.message}`)
@@ -226,7 +226,7 @@ export class PropertyPerformanceService {
 		}
 
 		// Count units by status
-		type UnitStatusRow = { status: string; properties: { property_owner_id: string } }
+		type UnitStatusRow = { status: string; properties: { owner_user_id: string } }
 		const statusRows = (statusData || []) as UnitStatusRow[]
 		const statusCounts = statusRows.reduce((acc, unit) => {
 			const status = unit.status
@@ -235,10 +235,10 @@ export class PropertyPerformanceService {
 		}, {} as Record<string, number>)
 
 		// Get total units count
-	const { count: totalUnits, error: countError } = await this.getQueryClient()
+	const { count: totalUnits, error: countError} = await this.getQueryClient()
 		.from('units')
-		.select('*, properties!inner(property_owner_id)', { count: 'exact', head: true })
-			.eq('properties.property_owner_id', user_id)
+		.select('*, properties!inner(owner_user_id)', { count: 'exact', head: true })
+			.eq('properties.owner_user_id', user_id)
 
 		if (countError) {
 			this.logger.error(`Failed to count total units: ${countError.message}`)

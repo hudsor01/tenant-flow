@@ -10,7 +10,7 @@ export class ExportService {
 
 
 	async generateExcel(
-		payload: unknown,
+		payload: Record<string, unknown> | Record<string, unknown>[],
 		sheetName = 'Analytics'
 	): Promise<Buffer> {
 		const workbook = new ExcelJS.Workbook()
@@ -70,7 +70,7 @@ export class ExportService {
 		}
 	}
 
-	async generateCSV(payload: unknown): Promise<string> {
+	async generateCSV(payload: Record<string, unknown> | Record<string, unknown>[]): Promise<string> {
 		const records = this.normalizeRecords(payload)
 
 		if (!records.length) {
@@ -111,7 +111,7 @@ export class ExportService {
 	 * Creates a formatted PDF document from analytics data
 	 */
 	async generatePDF(
-		payload: unknown,
+		payload: Record<string, unknown> | Record<string, unknown>[],
 		title = 'Analytics Export'
 	): Promise<Buffer> {
 		try {
@@ -128,7 +128,7 @@ export class ExportService {
 		}
 	}
 
-	private normalizeRecords(payload: unknown): Record<string, unknown>[] {
+	private normalizeRecords(payload: Record<string, unknown> | Record<string, unknown>[]): Record<string, unknown>[] {
 		if (Array.isArray(payload)) {
 			if (payload.length === 0) {
 				return []

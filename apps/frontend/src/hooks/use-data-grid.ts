@@ -2879,7 +2879,7 @@ function useDataGrid<TData>({
         const scrollOpts: Partial<CellPosition> = {};
         if (adjustedRowIndex !== undefined) scrollOpts.rowIndex = adjustedRowIndex;
         if (result.columnId !== undefined) scrollOpts.columnId = result.columnId;
-        
+
         onScrollToRow(scrollOpts);
         return;
       }

@@ -26,21 +26,11 @@ export class TenantRelationService {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			// First get property_owners.id from auth_user_id
-			const { data: ownerRecord } = await client
-				.from('property_owners')
-				.select('id')
-				.eq('user_id', authUserId)
-				.maybeSingle()
-
-			if (!ownerRecord) {
-				return []
-			}
-
+			// Get properties directly by owner_user_id
 			const { data, error } = await client
 				.from('properties')
 				.select('id')
-				.eq('property_owner_id', ownerRecord.id)
+				.eq('owner_user_id', authUserId)
 
 			if (error) {
 				this.logger.error('Failed to fetch owner properties', {
@@ -69,23 +59,12 @@ export class TenantRelationService {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			// First get property_owners.id from auth_user_id
-			const { data: ownerRecord } = await client
-				.from('property_owners')
-				.select('id')
-				.eq('user_id', authUserId)
-				.maybeSingle()
-
-			if (!ownerRecord) {
-				return []
-			}
-
 			// Optimized: Single query with nested joins to get all tenant IDs
 			// properties -> units -> leases (with primary_tenant_id)
 			const { data: propertyData, error: propertyError } = await client
 				.from('properties')
 				.select('id, units(id, leases(primary_tenant_id))')
-				.eq('property_owner_id', ownerRecord.id)
+				.eq('owner_user_id', authUserId)
 
 			if (propertyError || !propertyData) {
 				return []

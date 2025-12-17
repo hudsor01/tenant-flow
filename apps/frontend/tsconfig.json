@@ -33,7 +33,7 @@
 		"playwright.config.ts",
 		"next.config.ts",
 		"proxy.ts"
-	],
+, "../../packages/shared/src/types/data-grid.ts", "../../packages/shared/src/types/data-table.ts", "../../packages/shared/src/types/marketing.d.ts", "../../packages/shared/src/types/next.d.ts", "../../packages/shared/src/types/stripe.d.ts"	],
 	"exclude": [
 		"node_modules",
 		".next",
