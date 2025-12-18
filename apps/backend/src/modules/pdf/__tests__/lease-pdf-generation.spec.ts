@@ -14,6 +14,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { LeasePdfMapperService } from '../lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../lease-pdf-generator.service'
+import { StateValidationService } from '../state-validation.service'
+import { TemplateCacheService } from '../template-cache.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import type { Database } from '@repo/shared/types/supabase'
 
@@ -32,12 +34,15 @@ describe('Lease PDF Generation (Integration)', () => {
 			providers: [
 				LeasePdfMapperService,
 				LeasePdfGeneratorService,
+				StateValidationService,
+				TemplateCacheService,
 				{
 					provide: AppLogger,
 					useValue: {
 						log: jest.fn(),
 						error: jest.fn(),
-						warn: jest.fn()
+						warn: jest.fn(),
+						debug: jest.fn()
 					}
 				}
 			]
@@ -199,7 +204,7 @@ describe('Lease PDF Generation (Integration)', () => {
 			const pdfBuffer = await generatorService.generateFilledPdf(
 				completeFields,
 				'test-lease-id',
-				'TX'
+				{ state: 'TX' }
 			)
 
 			// Verify PDF buffer
@@ -233,19 +238,14 @@ describe('Lease PDF Generation (Integration)', () => {
 			// When requesting a non-existent state, it will default to Texas template
 			// but should throw if Texas template also doesn't exist
 			// Since we have Texas template in test environment, this will succeed
-			const service = new LeasePdfGeneratorService({
-				log: jest.fn(),
-				error: jest.fn(),
-				warn: jest.fn()
-			} as unknown as AppLogger)
 
 			// ZZ state will default to Texas template, which exists, so no error
-			const result = await service.generateFilledPdf(
+			const result = await generatorService.generateFilledPdf(
 				mockFields as any,
 				'test-id',
-				'ZZ'
+				{ state: 'ZZ' }
 			)
-			
+
 			// Should succeed because it defaults to TX template
 			expect(result).toBeInstanceOf(Buffer)
 		})
@@ -264,7 +264,7 @@ describe('Lease PDF Generation (Integration)', () => {
 			const pdfBuffer = await generatorService.generateFilledPdf(
 				completeFields,
 				'test-lease-id',
-				'TX'
+				{ state: 'TX' }
 			)
 
 			expect(pdfBuffer).toBeInstanceOf(Buffer)

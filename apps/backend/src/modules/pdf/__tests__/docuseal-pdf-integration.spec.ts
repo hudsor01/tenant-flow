@@ -11,6 +11,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { LeasePdfMapperService } from '../lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../lease-pdf-generator.service'
+import { StateValidationService } from '../state-validation.service'
+import { TemplateCacheService } from '../template-cache.service'
 import { PdfStorageService } from '../pdf-storage.service'
 import { DocuSealService } from '../../docuseal/docuseal.service'
 import { LeaseSignatureService } from '../../leases/lease-signature.service'
@@ -83,6 +85,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 			providers: [
 				LeasePdfMapperService,
 				LeasePdfGeneratorService,
+				StateValidationService,
+				TemplateCacheService,
 				{
 					provide: PdfStorageService,
 					useValue: {
@@ -125,7 +129,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 					useValue: {
 						log: jest.fn(),
 						error: jest.fn(),
-						warn: jest.fn()
+						warn: jest.fn(),
+						debug: jest.fn()
 					}
 				},
 				{

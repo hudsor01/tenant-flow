@@ -3,19 +3,57 @@
  *
  * Fills residential lease PDF templates with data.
  * Uses pdf-lib to manipulate PDF form fields.
- * Currently configured for Texas Residential Lease Agreement.
+ * Supports state-specific templates with validation and caching.
  */
 
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { PDFDocument, PDFForm } from 'pdf-lib'
-import * as fs from 'fs/promises'
 import * as path from 'path'
 import type { LeasePdfFields } from './lease-pdf-mapper.service'
+import { StateValidationService } from './state-validation.service'
+import { TemplateCacheService } from './template-cache.service'
+import {
+	DEFAULT_STATE_CODE,
+	DEFAULT_STATE_NAME,
+	DEFAULT_TEMPLATE_TYPE,
+	SUPPORTED_STATES,
+	TemplateType,
+	SupportedStateCode
+} from './state-constants'
 import { AppLogger } from '../../logger/app-logger.service'
+
+/**
+ * PDF generation options
+ */
+export interface PdfGenerationOptions {
+	/**
+	 * State code for template selection
+	 */
+	state?: string | undefined
+
+	/**
+	 * Template type (residential, commercial, etc.)
+	 */
+	templateType?: TemplateType | undefined
+
+	/**
+	 * Whether to throw error for unsupported states
+	 */
+	throwOnUnsupportedState?: boolean | undefined
+
+	/**
+	 * Whether to validate template exists before generation
+	 */
+	validateTemplate?: boolean | undefined
+}
 
 @Injectable()
 export class LeasePdfGeneratorService {
-	constructor(private readonly logger: AppLogger) {}
+	constructor(
+		private readonly logger: AppLogger,
+		private readonly stateValidation: StateValidationService,
+		private readonly templateCache: TemplateCacheService
+	) {}
 
 	/**
 	 * Get template path for a given state
@@ -25,11 +63,11 @@ export class LeasePdfGeneratorService {
 	private getTemplatePath(state: string = 'TX'): string {
 		// Normalize state code to uppercase
 		const stateCode = state.toUpperCase()
-		
+
 		// Map state codes to template file names
 		// Currently only Texas template exists, but this allows for easy expansion
-		const templateFileName = `${this.getStateTemplateName(stateCode)}_Residential_Lease_Agreement.pdf`
-		
+		const templateFileName = `${this.getStateTemplateName(stateCode)}_${DEFAULT_TEMPLATE_TYPE}_Lease_Agreement.pdf`
+
 		return path.join(process.cwd(), 'assets', templateFileName)
 	}
 
@@ -39,37 +77,91 @@ export class LeasePdfGeneratorService {
 	 * @returns Full state name for template file
 	 */
 	private getStateTemplateName(state: string): string {
-		const stateNames: Record<string, string> = {
-			'TX': 'Texas',
-			'CA': 'California',
-			'NY': 'New_York',
-			'FL': 'Florida',
-			// Add more states as templates become available
-		}
-		
-		return stateNames[state] || 'Texas' // Default to Texas if state not found
+		return SUPPORTED_STATES[state as SupportedStateCode] || DEFAULT_STATE_NAME
 	}
 
 	/**
-	 * Generate filled PDF from template + data
+	 * Generate filled PDF from template + data with validation and caching
 	 * Returns PDF as Buffer for upload to DocuSeal or storage
 	 * @param fields - PDF field values
 	 * @param leaseId - Lease identifier for logging
-	 * @param state - Two-letter state code for template selection (defaults to 'TX')
+	 * @param options - PDF generation options
 	 */
 	async generateFilledPdf(
-		fields: LeasePdfFields, 
+		fields: LeasePdfFields,
 		leaseId: string,
-		state: string = 'TX'
+		options: PdfGenerationOptions = {}
 	): Promise<Buffer> {
-		this.logger.log('Generating lease PDF', { leaseId, state })
+		const {
+			state: inputState,
+			templateType = DEFAULT_TEMPLATE_TYPE,
+			throwOnUnsupportedState = false,
+			validateTemplate = true
+		} = options
+
+		// Validate and normalize state code
+		const stateValidation = this.stateValidation.validateState(inputState, {
+			throwOnUnsupported: throwOnUnsupportedState,
+			logWarnings: true
+		})
+
+		// Log any warnings from validation
+		if (stateValidation.warning) {
+			this.logger.warn('State validation warning', {
+				leaseId,
+				warning: stateValidation.warning,
+				inputState,
+				resolvedState: stateValidation.stateCode
+			})
+		}
+
+		const stateCode = stateValidation.stateCode
+
+		this.logger.log('Generating lease PDF', {
+			leaseId,
+			stateCode,
+			templateType,
+			inputState,
+			warnings: stateValidation.warning ? [stateValidation.warning] : undefined
+		})
 
 		try {
-			// Get state-specific template path
-			const templatePath = this.getTemplatePath(state)
-			
-			// Load template PDF
-			const templateBytes = await fs.readFile(templatePath)
+			// Validate template exists if requested
+			if (validateTemplate) {
+				const metadata = await this.templateCache.getTemplateMetadata(stateCode, templateType)
+				if (!metadata.exists) {
+					const error = `Template not found for state ${stateCode} and type ${templateType}`
+					this.logger.error('Template validation failed', {
+						leaseId,
+						stateCode,
+						templateType,
+						path: metadata.path
+					})
+
+					if (throwOnUnsupportedState) {
+						throw new BadRequestException(error)
+					}
+
+					// Fallback to default template
+					const defaultMetadata = await this.templateCache.getTemplateMetadata(DEFAULT_STATE_CODE, templateType)
+					if (!defaultMetadata.exists) {
+						throw new BadRequestException(`Default template not found for ${DEFAULT_STATE_CODE}`)
+					}
+
+					this.logger.warn('Using default template as fallback', {
+						leaseId,
+						defaultState: DEFAULT_STATE_CODE,
+						originalState: stateCode
+					})
+				}
+			}
+
+			// Get template content from cache (with fallback to filesystem)
+			const templateBytes = await this.templateCache.getTemplateContent(stateCode, templateType)
+			if (!templateBytes) {
+				throw new BadRequestException(`Failed to load template for state ${stateCode}`)
+			}
+
 			const pdfDoc = await PDFDocument.load(templateBytes)
 
 			// Get form
@@ -110,7 +202,8 @@ export class LeasePdfGeneratorService {
 
 			this.logger.log('Lease PDF generated successfully', {
 				leaseId,
-				state,
+				stateCode,
+				templateType,
 				size: pdfBytes.length
 			})
 
@@ -118,11 +211,30 @@ export class LeasePdfGeneratorService {
 		} catch (error) {
 			this.logger.error('Failed to generate lease PDF', {
 				leaseId,
-				state,
-				error: error instanceof Error ? error.message : String(error)
+				stateCode,
+				templateType,
+				error: error instanceof Error ? error.message : String(error),
+				stack: error instanceof Error ? error.stack : undefined
 			})
-			throw new Error(`PDF generation failed for state ${state}: ${error instanceof Error ? error.message : String(error)}`)
+
+			if (error instanceof BadRequestException) {
+				throw error
+			}
+
+			throw new BadRequestException(`PDF generation failed for state ${stateCode}: ${error instanceof Error ? error.message : String(error)}`)
 		}
+	}
+
+	/**
+	 * Legacy method for backward compatibility
+	 * @deprecated Use generateFilledPdf with options parameter instead
+	 */
+	async generateFilledPdfLegacy(
+		fields: LeasePdfFields,
+		leaseId: string,
+		state: string = 'TX'
+	): Promise<Buffer> {
+		return this.generateFilledPdf(fields, leaseId, { state })
 	}
 
 	/**
@@ -146,15 +258,32 @@ export class LeasePdfGeneratorService {
 	 * @param state - Two-letter state code (defaults to 'TX')
 	 */
 	async validateTemplate(state: string = 'TX'): Promise<boolean> {
-		const templatePath = this.getTemplatePath(state)
-		try {
-			await fs.access(templatePath)
-			this.logger.log('Lease PDF template found', { path: templatePath, state })
-			return true
-		} catch {
-			this.logger.error('Lease PDF template not found', { path: templatePath, state })
-			return false
+		// Validate state code
+		const validation = this.stateValidation.validateState(state, {
+			throwOnUnsupported: false,
+			logWarnings: true
+		})
+
+		// Get metadata from cache
+		const metadata = await this.templateCache.getTemplateMetadata(
+			validation.stateCode,
+			DEFAULT_TEMPLATE_TYPE
+		)
+
+		if (metadata.exists) {
+			this.logger.log('Lease PDF template found', {
+				path: metadata.path,
+				state: validation.stateCode,
+				size: metadata.size
+			})
+		} else {
+			this.logger.error('Lease PDF template not found', {
+				path: metadata.path,
+				state: validation.stateCode
+			})
 		}
+
+		return metadata.exists
 	}
 
 	/**
@@ -164,31 +293,36 @@ export class LeasePdfGeneratorService {
 	async getTemplateMetadata(state: string = 'TX'): Promise<{
 		exists: boolean
 		state: string
-		size?: number
-		fields?: string[]
+		size?: number | undefined
+		fields?: string[] | undefined
 	}> {
-		const templatePath = this.getTemplatePath(state)
+		// Validate state code
+		const validation = this.stateValidation.validateState(state, {
+			throwOnUnsupported: false,
+			logWarnings: true
+		})
+
 		try {
-			const stats = await fs.stat(templatePath)
-			const templateBytes = await fs.readFile(templatePath)
-			const pdfDoc = await PDFDocument.load(templateBytes)
-			const form = pdfDoc.getForm()
-			const fields = form.getFields().map(f => f.getName())
+			// Get metadata from cache
+			const metadata = await this.templateCache.getTemplateMetadata(
+				validation.stateCode,
+				DEFAULT_TEMPLATE_TYPE
+			)
 
 			return {
-				exists: true,
-				state,
-				size: stats.size,
-				fields
+				exists: metadata.exists,
+				state: validation.stateCode,
+				size: metadata.size,
+				fields: metadata.fields
 			}
 		} catch (error) {
 			this.logger.error('Failed to read template metadata', {
-				state,
+				state: validation.stateCode,
 				error: error instanceof Error ? error.message : String(error)
 			})
 			return {
 				exists: false,
-				state
+				state: validation.stateCode
 			}
 		}
 	}

@@ -213,11 +213,25 @@ export class LeaseSignatureService {
 			(options.missingFields as { [key: string]: string }) || {}
 		)
 
-		// Step 5: Generate filled PDF with state-specific template
+		// Step 5: Validate lease data and generate filled PDF with state-specific template
+		if (!leaseData) {
+			this.logger.error('Lease data is null or undefined', {
+				leaseId,
+				ownerId
+			})
+			throw new BadRequestException(
+				'Lease data not found. Please ensure the lease exists and try again.'
+			)
+		}
+
 		let pdfBuffer: Buffer
-		const state = leaseData?.lease?.governing_state || 'TX'
+		const state = leaseData.lease?.governing_state || undefined
 		try {
-			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId, state)
+			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId, {
+				state,
+				throwOnUnsupportedState: false,
+				validateTemplate: true
+			})
 			this.logger.log('Generated filled lease PDF', {
 				leaseId,
 				state,
@@ -226,10 +240,12 @@ export class LeaseSignatureService {
 		} catch (error) {
 			this.logger.error('Failed to generate lease PDF', {
 				error: error instanceof Error ? error.message : String(error),
-				leaseId
+				leaseId,
+				state,
+				leaseDataExists: !!leaseData
 			})
 			throw new BadRequestException(
-				'Failed to generate lease PDF. Please contact support.'
+				`Failed to generate lease PDF${state ? ` for state ${state}` : ''}. Please contact support.`
 			)
 		}
 

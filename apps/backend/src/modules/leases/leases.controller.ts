@@ -447,7 +447,10 @@ export class LeasesController {
 
 		// Generate filled PDF with state-specific template
 		const state = leaseData?.lease?.governing_state || 'TX'
-		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, state)
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, {
+			state,
+			validateTemplate: true
+		})
 
 		return {
 			lease_id: id,
