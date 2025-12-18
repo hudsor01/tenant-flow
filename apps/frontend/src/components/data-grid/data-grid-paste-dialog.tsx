@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from "#components/ui/dialog";
 import { cn } from "#lib/utils";
-import type { PasteDialogState } from "@repo/shared/types/data-grid";
+import type { PasteDialogState } from "#types/data-grid";
 
 interface DataGridPasteDialogProps<TData> {
   tableMeta: TableMeta<TData>;

@@ -10,7 +10,7 @@ import { DataGridSearch } from "#components/data-grid/data-grid-search";
 import type { useDataGrid } from "#hooks/use-data-grid";
 import { flexRender, getCommonPinningStyles } from "#lib/data-grid";
 import { cn } from "#lib/utils";
-import type { Direction } from "@repo/shared/types/data-grid";
+import type { Direction } from "#types/data-grid";
 
 interface DataGridProps<TData>
   extends Omit<ReturnType<typeof useDataGrid<TData>>, "dir">,

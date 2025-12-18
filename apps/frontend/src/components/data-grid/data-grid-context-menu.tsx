@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "#components/ui/dropdown-menu";
 import { parseCellKey } from "#lib/data-grid";
-import type { ContextMenuState, UpdateCell } from "@repo/shared/types/data-grid";
+import type { ContextMenuState, UpdateCell } from "#types/data-grid";
 
 interface DataGridContextMenuProps<TData> {
   tableMeta: TableMeta<TData>;
