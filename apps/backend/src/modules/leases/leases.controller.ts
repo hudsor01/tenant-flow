@@ -464,12 +464,17 @@ export class LeasesController {
 		}
 
 		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
-		const state = leaseData?.lease?.governing_state || undefined
+		const state = leaseData?.lease?.governing_state ?? undefined
 
 		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(fields, id, {
 			state,
 			validateTemplate: true
 		})
+
+		// Set security headers for PDF preview
+		res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';")
+		res.setHeader('X-Content-Type-Options', 'nosniff')
+		res.setHeader('X-Frame-Options', 'DENY')
 
 		res.setHeader('Content-Type', 'application/pdf')
 		res.setHeader('Content-Disposition', `inline; filename="lease-${id}.pdf"`)
@@ -507,7 +512,7 @@ export class LeasesController {
 		)
 
 		// Generate filled PDF with state-specific template
-		const state = leaseData?.lease?.governing_state || 'TX'
+		const state = leaseData?.lease?.governing_state ?? 'TX'
 		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, {
 			state,
 			validateTemplate: true

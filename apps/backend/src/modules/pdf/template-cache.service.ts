@@ -154,6 +154,17 @@ export class TemplateCacheService implements OnModuleInit {
 				error: error instanceof Error ? error.message : String(error)
 			})
 		}
+
+		// Register process signal handlers for graceful cleanup
+		process.on('SIGTERM', () => {
+			this.logger.log('SIGTERM received, cleaning up template cache...')
+			this.onModuleDestroy()
+		})
+
+		process.on('SIGINT', () => {
+			this.logger.log('SIGINT received, cleaning up template cache...')
+			this.onModuleDestroy()
+		})
 	}
 
 	/**
@@ -434,7 +445,14 @@ export class TemplateCacheService implements OnModuleInit {
 		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
 		const templateTypeValue = TEMPLATE_TYPES[templateType]
 		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
-		
+
+		// Expected base directories for security validation
+		const expectedBases = [
+			path.resolve(__dirname, '..', '..', '..', 'assets'),
+			path.resolve(process.cwd(), 'apps', 'backend', 'assets'),
+			path.resolve(process.cwd(), 'assets'),
+		]
+
 		// Try multiple possible paths to handle different execution contexts
 		const possiblePaths = [
 			// From compiled dist/modules/pdf/ or src/modules/pdf/
@@ -444,11 +462,34 @@ export class TemplateCacheService implements OnModuleInit {
 			// From backend root (local execution)
 			path.resolve(process.cwd(), 'assets', fileName),
 		]
-		
+
 		// Try each path until we find one that exists
 		for (const templatePath of possiblePaths) {
 			try {
+				// Path traversal protection: ensure normalized path starts with expected base
+				const normalizedPath = path.normalize(templatePath)
+				const isPathSafe = expectedBases.some(base =>
+					normalizedPath.startsWith(path.normalize(base))
+				)
+
+				if (!isPathSafe) {
+					this.logger.warn('Path traversal attempt detected', {
+						attemptedPath: templatePath,
+						normalizedPath,
+						expectedBases
+					})
+					continue
+				}
+
 				const stats = await fs.stat(templatePath)
+
+				// Log which path was successfully used
+				this.logger.log('Template found', {
+					stateCode,
+					templateType,
+					path: templatePath,
+					size: stats.size
+				})
 
 				// Load PDF to extract field names
 				let fields: string[] = []
