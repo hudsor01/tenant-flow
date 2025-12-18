@@ -101,7 +101,7 @@ export class LeasePdfGeneratorService {
 			if (validateTemplate) {
 				const metadata = await this.templateCache.getTemplateMetadata(stateCode, templateType)
 				if (!metadata.exists) {
-					const error = `Template not found for state ${stateCode} and type ${templateType}`
+					const error = `Failed to load template for state ${stateCode}`
 					this.logger.error('Template validation failed', {
 						leaseId,
 						stateCode,
@@ -116,7 +116,7 @@ export class LeasePdfGeneratorService {
 					// Fallback to default template
 					const defaultMetadata = await this.templateCache.getTemplateMetadata(DEFAULT_STATE_CODE, templateType)
 					if (!defaultMetadata.exists) {
-						throw new BadRequestException(`Default template not found for ${DEFAULT_STATE_CODE}`)
+						throw new BadRequestException(`Failed to load template for state ${DEFAULT_STATE_CODE}`)
 					}
 
 					this.logger.warn('Using default template as fallback', {
