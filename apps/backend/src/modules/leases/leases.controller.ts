@@ -19,8 +19,10 @@ import {
 	Post,
 	Put,
 	Query,
-	Req
+	Req,
+	Res
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -278,12 +280,32 @@ export class LeasesController {
 	async sendForSignature(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,
-		@Body() body?: { message?: string; templateId?: number }
+		@JwtToken() token: string,
+		@Body()
+		body?: {
+			message?: string
+			templateId?: number
+			missingFields?: {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+			}
+		}
 	) {
-		await this.signatureService.sendForSignature(req.user.id, id, {
-			message: body?.message,
-			templateId: body?.templateId
-		})
+		const options: {
+			token: string
+			message?: string
+			templateId?: number
+			missingFields?: {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+			}
+		} = { token }
+
+		if (body?.message !== undefined) options.message = body.message
+		if (body?.templateId !== undefined) options.templateId = body.templateId
+		if (body?.missingFields !== undefined) options.missingFields = body.missingFields
+
+		await this.signatureService.sendForSignature(req.user.id, id, options)
 		return { success: true }
 	}
 
@@ -425,6 +447,38 @@ export class LeasesController {
 				k => fields[k as keyof typeof fields] !== undefined
 			).length
 		}
+	}
+
+	/**
+	 * Preview filled Texas lease PDF as an inline PDF (no storage, no DocuSeal)
+	 * Uses auto-filled DB data; missing fields render as empty/defaults.
+	 */
+	@Get(':id/pdf/preview')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 previews per minute
+	async previewFilledPdf(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string,
+		@Res() res: Response
+	): Promise<void> {
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+		const state = leaseData?.lease?.governing_state || undefined
+
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(fields, id, {
+			state,
+			validateTemplate: true
+		})
+
+		res.setHeader('Content-Type', 'application/pdf')
+		res.setHeader('Content-Disposition', `inline; filename="lease-${id}.pdf"`)
+		res.setHeader('Content-Length', pdfBuffer.length)
+		res.setHeader('Cache-Control', 'no-cache')
+		res.send(pdfBuffer)
 	}
 
 	/**

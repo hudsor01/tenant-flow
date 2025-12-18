@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { FileText, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import {
@@ -15,6 +15,7 @@ import {
 } from '#components/ui/dialog'
 import { Textarea } from '#components/ui/textarea'
 import { Label } from '#components/ui/label'
+import { apiRequestRaw } from '#lib/api-request'
 import {
 	useSendLeaseForSignature,
 	useResendSignatureRequest
@@ -47,20 +48,50 @@ export function SendForSignatureButton({
 }: SendForSignatureButtonProps) {
 	const [open, setOpen] = useState(false)
 	const [message, setMessage] = useState('')
+	const [immediateFamilyMembers, setImmediateFamilyMembers] = useState('')
+	const [landlordNoticeAddress, setLandlordNoticeAddress] = useState('')
+	const [isPreviewing, setIsPreviewing] = useState(false)
 	const sendForSignature = useSendLeaseForSignature()
 	const resendSignature = useResendSignatureRequest()
 
 	const isResend = action === 'resend'
-	const mutation = isResend ? resendSignature : sendForSignature
 
 	const handleSend = async () => {
 		try {
 			const trimmedMessage = message.trim()
-			const payload: { leaseId: string; message?: string } = { leaseId }
-			if (trimmedMessage) {
-				payload.message = trimmedMessage
+
+			if (!isResend) {
+				const noticeAddress = landlordNoticeAddress.trim()
+				if (!noticeAddress) {
+					toast.error('Landlord notice address is required')
+					return
+				}
 			}
-			await mutation.mutateAsync(payload)
+
+			if (isResend) {
+				const payload: { leaseId: string; message?: string } = { leaseId }
+				if (trimmedMessage) payload.message = trimmedMessage
+				await resendSignature.mutateAsync(payload)
+			} else {
+				// Build payload conditionally to satisfy exactOptionalPropertyTypes
+				const payload: {
+					leaseId: string
+					message?: string
+					missingFields: {
+						immediate_family_members: string
+						landlord_notice_address: string
+					}
+				} = {
+					leaseId,
+					missingFields: {
+						immediate_family_members: immediateFamilyMembers.trim(),
+						landlord_notice_address: landlordNoticeAddress.trim()
+					}
+				}
+				if (trimmedMessage) payload.message = trimmedMessage
+				await sendForSignature.mutateAsync(payload)
+			}
+
 			toast.success(
 				isResend ? 'Signature request resent' : 'Lease sent for signature',
 				{
@@ -71,6 +102,8 @@ export function SendForSignatureButton({
 			)
 			setOpen(false)
 			setMessage('')
+			setImmediateFamilyMembers('')
+			setLandlordNoticeAddress('')
 		} catch (error) {
 			toast.error(
 				isResend
@@ -81,6 +114,23 @@ export function SendForSignatureButton({
 						error instanceof Error ? error.message : 'Please try again.'
 				}
 			)
+		}
+	}
+
+	const handlePreview = async () => {
+		try {
+			setIsPreviewing(true)
+			const res = await apiRequestRaw(`/api/v1/leases/${leaseId}/pdf/preview`)
+			const blob = await res.blob()
+			const url = URL.createObjectURL(blob)
+			window.open(url, '_blank', 'noopener,noreferrer')
+			setTimeout(() => URL.revokeObjectURL(url), 60_000)
+		} catch (error) {
+			toast.error('Failed to preview PDF', {
+				description: error instanceof Error ? error.message : 'Please try again.'
+			})
+		} finally {
+			setIsPreviewing(false)
 		}
 	}
 
@@ -129,20 +179,62 @@ export function SendForSignatureButton({
 					/>
 				</div>
 
+				{!isResend && (
+					<div className="space-y-4 pb-4">
+						<div>
+							<Label htmlFor="immediate-family-members" className="mb-2 block">
+								Immediate family members (optional)
+							</Label>
+							<Textarea
+								id="immediate-family-members"
+								placeholder="List immediate family members (or leave blank for None)"
+								value={immediateFamilyMembers}
+								onChange={e => setImmediateFamilyMembers(e.target.value)}
+								rows={3}
+								className="resize-none"
+							/>
+						</div>
+						<div>
+							<Label htmlFor="landlord-notice-address" className="mb-2 block">
+								Landlord notice address <span className="text-destructive">*</span>
+							</Label>
+							<Textarea
+								id="landlord-notice-address"
+								placeholder="Address where tenant must send formal notices..."
+								value={landlordNoticeAddress}
+								onChange={e => setLandlordNoticeAddress(e.target.value)}
+								rows={3}
+								className="resize-none"
+							/>
+						</div>
+					</div>
+				)}
+
 				<DialogFooter>
+					{!isResend && (
+						<Button
+							variant="outline"
+							onClick={handlePreview}
+							disabled={isPreviewing || sendForSignature.isPending}
+							className="gap-2"
+						>
+							<FileText className="h-4 w-4" />
+							{isPreviewing ? 'Loading...' : 'Preview PDF'}
+						</Button>
+					)}
 					<Button
 						variant="outline"
 						onClick={() => setOpen(false)}
-						disabled={mutation.isPending}
+						disabled={sendForSignature.isPending || resendSignature.isPending}
 					>
 						Cancel
 					</Button>
 					<Button
 						onClick={handleSend}
-						disabled={mutation.isPending}
+						disabled={sendForSignature.isPending || resendSignature.isPending}
 						className="gap-2"
 					>
-						{mutation.isPending ? (
+						{sendForSignature.isPending || resendSignature.isPending ? (
 							<>{isResend ? 'Resending...' : 'Sending...'}</>
 						) : (
 							<>

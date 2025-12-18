@@ -162,10 +162,21 @@ export function useSendForSignatureMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, message }: { id: string; message?: string }) =>
+		mutationFn: ({
+			id,
+			message,
+			missingFields
+		}: {
+			id: string
+			message?: string
+			missingFields: {
+				immediate_family_members: string
+				landlord_notice_address: string
+			}
+		}) =>
 			apiRequest<{ success: boolean }>(`/api/v1/leases/${id}/send-for-signature`, {
 				method: 'POST',
-				body: JSON.stringify({ message })
+				body: JSON.stringify({ message, missingFields })
 			}),
 		onSuccess: (_result, { id }) => {
 			// Invalidate lease detail and signature status
