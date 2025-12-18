@@ -297,43 +297,61 @@ export class TemplateCacheService {
 		stateCode: SupportedStateCode,
 		templateType: TemplateType
 	): Promise<TemplateMetadata> {
-		const templatePath = this.getTemplatePath(stateCode, templateType)
-
-		try {
-			const stats = await fs.stat(templatePath)
-
-			// Load PDF to extract field names
-			let fields: string[] = []
+		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
+		const templateTypeValue = TEMPLATE_TYPES[templateType]
+		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
+		
+		// Try multiple possible paths to handle different execution contexts
+		const possiblePaths = [
+			// From compiled dist/modules/pdf/ or src/modules/pdf/
+			path.resolve(__dirname, '..', '..', '..', 'assets', fileName),
+			// From repo root (CI context)
+			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
+			// From backend root (local execution)
+			path.resolve(process.cwd(), 'assets', fileName),
+		]
+		
+		// Try each path until we find one that exists
+		for (const templatePath of possiblePaths) {
 			try {
-				const templateBytes = await fs.readFile(templatePath)
-				const pdfDoc = await PDFDocument.load(templateBytes)
-				const form = pdfDoc.getForm()
-				fields = form.getFields().map(f => f.getName())
-			} catch (pdfError) {
-				this.logger.warn('Failed to extract PDF fields', {
-					stateCode,
-					templateType,
-					path: templatePath,
-					error: pdfError instanceof Error ? pdfError.message : String(pdfError)
-				})
-			}
+				const stats = await fs.stat(templatePath)
 
-			return {
-				exists: true,
-				size: stats.size,
-				fields,
-				path: templatePath,
-				stateCode,
-				templateType
+				// Load PDF to extract field names
+				let fields: string[] = []
+				try {
+					const templateBytes = await fs.readFile(templatePath)
+					const pdfDoc = await PDFDocument.load(templateBytes)
+					const form = pdfDoc.getForm()
+					fields = form.getFields().map(f => f.getName())
+				} catch (pdfError) {
+					this.logger.warn('Failed to extract PDF fields', {
+						stateCode,
+						templateType,
+						path: templatePath,
+						error: pdfError instanceof Error ? pdfError.message : String(pdfError)
+					})
+				}
+
+				return {
+					exists: true,
+					size: stats.size,
+					fields,
+					path: templatePath,
+					stateCode,
+					templateType
+				}
+			} catch {
+				// Try next path
+				continue
 			}
-		} catch {
-			// File doesn't exist
-			return {
-				exists: false,
-				path: templatePath,
-				stateCode,
-				templateType
-			}
+		}
+		
+		// None of the paths worked
+		return {
+			exists: false,
+			path: possiblePaths[0]!, // Return first attempted path for error messages
+			stateCode,
+			templateType
 		}
 	}
 
@@ -347,9 +365,19 @@ export class TemplateCacheService {
 		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
 		const templateTypeValue = TEMPLATE_TYPES[templateType]
 		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
-		// Use __dirname to get path relative to compiled module location
-		// From dist/modules/pdf/ go up 3 levels to backend root, then into assets/
-		return path.join(__dirname, '..', '..', '..', 'assets', fileName)
+		
+		// Try multiple possible paths to handle different execution contexts
+		const possiblePaths = [
+			// From compiled dist/modules/pdf/ or src/modules/pdf/
+			path.resolve(__dirname, '..', '..', '..', 'assets', fileName),
+			// From repo root (CI context)
+			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
+			// From backend root (local execution)
+			path.resolve(process.cwd(), 'assets', fileName),
+		]
+		
+		// Return the first path that exists (will be checked later)
+		return possiblePaths[0]!
 	}
 
 	/**
