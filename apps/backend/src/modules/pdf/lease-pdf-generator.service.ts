@@ -213,18 +213,6 @@ export class LeasePdfGeneratorService {
 	}
 
 	/**
-	 * Legacy method for backward compatibility
-	 * @deprecated Use generateFilledPdf with options parameter instead
-	 */
-	async generateFilledPdfLegacy(
-		fields: LeasePdfFields,
-		leaseId: string,
-		state: string = 'TX'
-	): Promise<Buffer> {
-		return this.generateFilledPdf(fields, leaseId, { state })
-	}
-
-	/**
 	 * Helper to safely fill a text field (handles missing fields)
 	 */
 	private fillTextField(form: PDFForm, fieldName: string, value: string, missingFields: string[]): void {

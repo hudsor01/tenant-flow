@@ -401,9 +401,4 @@ describe('LeaseValidationService', () => {
     })
   })
 
-  describe('getStateRequirements (deprecated)', () => {
-    it('should return Texas requirements regardless of state parameter', () => {
-      expect(service.getStateRequirements('TX')).toEqual(service.getTexasRequirements())
-    })
-  })
 })

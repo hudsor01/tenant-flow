@@ -48,7 +48,6 @@ export interface SignatureStatus {
 
 export interface SendForSignatureOptions {
 	message?: string | undefined
-	templateId?: number | undefined // DEPRECATED: DocuSeal template ID (legacy approach)
 	missingFields?: {
 		immediate_family_members?: string
 		landlord_notice_address?: string

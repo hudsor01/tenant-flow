@@ -273,7 +273,7 @@ export class LeasesController {
 
 	/**
 	 * Owner sends lease for signature (draft -> pending_signature)
-	 * If templateId is provided and DocuSeal is configured, creates e-signature request
+	 * Generates PDF and creates e-signature request if DocuSeal is configured
 	 */
 	@Post(':id/send-for-signature')
 	@Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 sends per hour
@@ -284,7 +284,6 @@ export class LeasesController {
 		@Body()
 		body?: {
 			message?: string
-			templateId?: number
 			missingFields?: {
 				immediate_family_members?: string
 				landlord_notice_address?: string
@@ -294,7 +293,6 @@ export class LeasesController {
 		const options: {
 			token: string
 			message?: string
-			templateId?: number
 			missingFields?: {
 				immediate_family_members?: string
 				landlord_notice_address?: string
@@ -302,7 +300,6 @@ export class LeasesController {
 		} = { token }
 
 		if (body?.message !== undefined) options.message = body.message
-		if (body?.templateId !== undefined) options.templateId = body.templateId
 		if (body?.missingFields !== undefined) options.missingFields = body.missingFields
 
 		await this.signatureService.sendForSignature(req.user.id, id, options)
