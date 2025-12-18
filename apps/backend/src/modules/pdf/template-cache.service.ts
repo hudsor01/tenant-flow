@@ -381,9 +381,26 @@ export class TemplateCacheService {
 	 * Start periodic cleanup
 	 */
 	private startCleanup(): void {
-		this.cleanupTimer = setInterval(() => {
-			this.cleanup()
-		}, this.config.cleanupInterval)
+		try {
+			this.cleanupTimer = setInterval(() => {
+				try {
+					this.cleanup()
+				} catch (error) {
+					this.logger.error('Cache cleanup failed', {
+						error: error instanceof Error ? error.message : String(error)
+					})
+				}
+			}, this.config.cleanupInterval)
+			
+			// Allow process to exit even if timer is running
+			if (this.cleanupTimer.unref) {
+				this.cleanupTimer.unref()
+			}
+		} catch (error) {
+			this.logger.error('Failed to start cache cleanup timer', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
 	}
 
 	/**

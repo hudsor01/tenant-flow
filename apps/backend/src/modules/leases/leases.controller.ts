@@ -409,6 +409,11 @@ export class LeasesController {
 		// Get complete lease data
 		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
 
+		// Validate lease data exists
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
 		// Map to PDF fields
 		const { fields, missing } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
 
@@ -436,13 +441,18 @@ export class LeasesController {
 		// Get complete lease data
 		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
 
+		// Validate lease data exists
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
 		// Map to PDF fields
 		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
 
 		// Merge user-provided fields with auto-filled fields
 		const completeFields = this.pdfMapper.mergeMissingFields(
 			fields,
-			missingFieldsDto as unknown as { [key: string]: string }
+			missingFieldsDto
 		)
 
 		// Generate filled PDF with state-specific template

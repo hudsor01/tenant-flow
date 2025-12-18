@@ -108,11 +108,15 @@ describe('Property 3: Loading State Timeout', () => {
 					.filter(s => s.trim().length > 0),
 				// Generate random loading states
 				fc.boolean(),
-				// Generate random content (non-whitespace)
+				// Generate random content (non-whitespace, different from error)
 				fc
 					.string({ minLength: 1, maxLength: 50 })
 					.filter(s => s.trim().length > 0),
 				(errorMessage, isLoading, contentText) => {
+					// Skip test if error message and content text are the same
+					if (errorMessage.trim() === contentText.trim()) {
+						return true // Property holds trivially for this case
+					}
 					const { unmount } = render(
 						<LoadingTimeoutWrapper
 							isLoading={isLoading}
