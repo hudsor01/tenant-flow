@@ -347,7 +347,9 @@ export class TemplateCacheService {
 		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
 		const templateTypeValue = TEMPLATE_TYPES[templateType]
 		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
-		return path.join(process.cwd(), 'assets', fileName)
+		// Use __dirname to get path relative to compiled module location
+		// From dist/modules/pdf/ go up 3 levels to backend root, then into assets/
+		return path.join(__dirname, '..', '..', '..', 'assets', fileName)
 	}
 
 	/**

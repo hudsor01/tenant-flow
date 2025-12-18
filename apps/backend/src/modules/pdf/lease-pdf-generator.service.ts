@@ -68,7 +68,9 @@ export class LeasePdfGeneratorService {
 		// Currently only Texas template exists, but this allows for easy expansion
 		const templateFileName = `${this.getStateTemplateName(stateCode)}_${DEFAULT_TEMPLATE_TYPE}_Lease_Agreement.pdf`
 
-		return path.join(process.cwd(), 'assets', templateFileName)
+		// Use __dirname to get path relative to compiled module location
+		// From dist/modules/pdf/ go up 3 levels to backend root, then into assets/
+		return path.join(__dirname, '..', '..', '..', 'assets', templateFileName)
 	}
 
 	/**
