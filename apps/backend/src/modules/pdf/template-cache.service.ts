@@ -356,31 +356,6 @@ export class TemplateCacheService {
 	}
 
 	/**
-	 * Get template file path
-	 */
-	private getTemplatePath(
-		stateCode: SupportedStateCode,
-		templateType: TemplateType
-	): string {
-		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
-		const templateTypeValue = TEMPLATE_TYPES[templateType]
-		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
-		
-		// Try multiple possible paths to handle different execution contexts
-		const possiblePaths = [
-			// From compiled dist/modules/pdf/ or src/modules/pdf/
-			path.resolve(__dirname, '..', '..', '..', 'assets', fileName),
-			// From repo root (CI context)
-			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
-			// From backend root (local execution)
-			path.resolve(process.cwd(), 'assets', fileName),
-		]
-		
-		// Return the first path that exists (will be checked later)
-		return possiblePaths[0]!
-	}
-
-	/**
 	 * Generate metadata cache key
 	 */
 	private getMetadataCacheKey(
