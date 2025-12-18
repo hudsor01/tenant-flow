@@ -109,6 +109,11 @@ export class LeasePdfGeneratorService {
 						path: metadata.path
 					})
 
+					// If we're already trying the default state, throw immediately
+					if (stateCode === DEFAULT_STATE_CODE) {
+						throw new BadRequestException(error)
+					}
+
 					if (throwOnUnsupportedState) {
 						throw new BadRequestException(error)
 					}
