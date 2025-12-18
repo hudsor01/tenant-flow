@@ -173,18 +173,20 @@ export class StateValidationService {
 		}
 
 		// Valid and supported state
-		const stateName: string = SUPPORTED_STATES[normalizedCode] || DEFAULT_STATE_NAME
+		// TypeScript doesn't narrow based on `in` check, so we cast after validation
+		const supportedCode = normalizedCode as SupportedStateCode
+		const stateName: string = SUPPORTED_STATES[supportedCode]
 
 		this.logger.log('State validation successful', {
 			input: stateCode,
-			normalized: normalizedCode,
+			normalized: supportedCode,
 			stateName,
 			isSupported
 		})
 
 		return {
 			isValid: true,
-			stateCode: normalizedCode,
+			stateCode: supportedCode,
 			stateName,
 			isSupported: true
 		}

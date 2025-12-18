@@ -19,13 +19,13 @@ export const DEFAULT_STATE_NAME = 'Texas' as const
  * Supported state codes and their corresponding template names
  * Only states with existing templates should be listed here
  */
-export const SUPPORTED_STATES: Record<string, string> = {
-	'TX': 'Texas',
+export const SUPPORTED_STATES = {
+	TX: 'Texas',
 	// Add more states as templates become available:
-	// 'CA': 'California',
-	// 'NY': 'New_York',
-	// 'FL': 'Florida',
-} as const
+	// CA: 'California',
+	// NY: 'New_York',
+	// FL: 'Florida',
+} as const satisfies Record<string, string>
 
 /**
  * All US state codes for validation purposes
