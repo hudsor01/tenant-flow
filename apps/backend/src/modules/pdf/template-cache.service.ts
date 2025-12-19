@@ -396,7 +396,7 @@ export class TemplateCacheService implements OnModuleInit {
 		const getPercentile = (p: number): number => {
 			if (sortedLoadTimes.length === 0) return 0
 			const index = Math.ceil((p / 100) * sortedLoadTimes.length) - 1
-			return sortedLoadTimes[Math.max(0, index)]!
+			return sortedLoadTimes[Math.max(0, index)] ?? 0
 		}
 
 		const avgLoadTime = sortedLoadTimes.length > 0

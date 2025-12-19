@@ -98,7 +98,7 @@ create policy "Admins can view all security events"
   for select
   to authenticated
   using (
-    (select auth.jwt()->>'app_metadata'->>'user_type') = 'ADMIN'
+    (select (auth.jwt()->'app_metadata'->>'user_type')) = 'ADMIN'
   );
 
 -- RLS Policy: Users can view their own security events

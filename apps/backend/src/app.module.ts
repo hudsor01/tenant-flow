@@ -158,7 +158,7 @@ import { AdminModule } from './modules/admin/admin.module'
 						url.pathname && url.pathname !== '/'
 							? Number(url.pathname.slice(1))
 							: undefined
-					const urlPort = url.port ? Number(url.port) : 6379
+					const urlPort = url.port && url.port !== '' ? Number(url.port) : 6379
 
 					return {
 						connection: {

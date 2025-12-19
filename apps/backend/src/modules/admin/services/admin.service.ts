@@ -109,9 +109,21 @@ export class AdminService {
 
 		// Search by email/name if provided
 		if (filters.search) {
-			const search = filters.search.trim().replace(/[(),]/g, '')
-			if (search) {
-				query = query.or(`email.ilike.%${search}%,full_name.ilike.%${search}%`)
+			// Sanitize search input: remove SQL special chars, wildcards, and control characters
+			const sanitized = filters.search
+				.trim()
+				.replace(/[%_*();'"\\]/g, '')  // Remove SQL wildcards and injection chars
+				.split('')
+				.filter(char => {
+					const code = char.charCodeAt(0)
+					// Keep only printable ASCII except control chars, DEL, and comma
+					return code >= 32 && code !== 44 && code !== 127
+				})
+				.join('')
+				.substring(0, 100)  // Limit length
+
+			if (sanitized) {
+				query = query.or(`email.ilike.%${sanitized}%,full_name.ilike.%${sanitized}%`)
 			}
 		}
 
