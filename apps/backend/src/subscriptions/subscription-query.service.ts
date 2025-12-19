@@ -444,25 +444,6 @@ export class SubscriptionQueryService {
 		})
 	}
 
-	private async getPropertyOwnerById(ownerId: string): Promise<PropertyOwnerRow> {
-		return this.cache.getPropertyOwnerById(ownerId, async () => {
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.from('stripe_connected_accounts')
-				.select(
-					'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
-				)
-				.eq('id', ownerId)
-				.single<PropertyOwnerRow>()
-
-			if (error || !data) {
-				throw new NotFoundException('Property owner not found')
-			}
-
-			return data
-		})
-	}
-
 	private async resolvePaymentMethodId(
 		tenantId: string,
 		preferred?: string

@@ -596,12 +596,23 @@ export function useSendLeaseForSignature() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
+		mutationFn: ({
+			leaseId,
+			message,
+			missingFields
+		}: {
+			leaseId: string
+			message?: string
+			missingFields: {
+				immediate_family_members: string
+				landlord_notice_address: string
+			}
+		}) =>
 			apiRequest<{ success: boolean }>(
 				`/api/v1/leases/${leaseId}/send-for-signature`,
 				{
 					method: 'POST',
-					body: JSON.stringify({ message })
+					body: JSON.stringify({ message, missingFields })
 				}
 			),
 		onSuccess: (_result, { leaseId }) => {

@@ -115,13 +115,15 @@ describe('UnitsController', () => {
 
 			const result = await controller.findAll(
 			'mock-jwt-token',
-			null, // property_id
-			null, // status
-			null, // search
-			10,   // limit
-			0,    // offset
-			'created_at', // sortBy
-			'desc' // sortOrder
+			{
+				property_id: null,
+				status: undefined,
+				search: undefined,
+				limit: 10,
+				offset: 0,
+				sortBy: 'created_at',
+				sortOrder: 'desc'
+			}
 		)
 
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
@@ -164,13 +166,15 @@ describe('UnitsController', () => {
 
 			const result = await controller.findAll(
 			'mock-jwt-token',
-			null, // property_id
-			'OCCUPIED', // status - uppercase input to test normalization
-			null, // search
-			10,   // limit
-			0,    // offset
-			'created_at', // sortBy
-			'desc' // sortOrder
+			{
+				property_id: null,
+				status: 'OCCUPIED' as any, // Uppercase input to test normalization
+				search: undefined,
+				limit: 10,
+				offset: 0,
+				sortBy: 'created_at',
+				sortOrder: 'desc'
+			}
 		)
 
 			// Verify service was called and status was normalized

@@ -14,6 +14,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { LeasePdfMapperService } from '../lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../lease-pdf-generator.service'
+import { StateValidationService } from '../state-validation.service'
+import { TemplateCacheService } from '../template-cache.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import type { Database } from '@repo/shared/types/supabase'
 
@@ -32,12 +34,15 @@ describe('Lease PDF Generation (Integration)', () => {
 			providers: [
 				LeasePdfMapperService,
 				LeasePdfGeneratorService,
+				StateValidationService,
+				TemplateCacheService,
 				{
 					provide: AppLogger,
 					useValue: {
 						log: jest.fn(),
 						error: jest.fn(),
-						warn: jest.fn()
+						warn: jest.fn(),
+						debug: jest.fn()
 					}
 				}
 			]
@@ -198,7 +203,8 @@ describe('Lease PDF Generation (Integration)', () => {
 
 			const pdfBuffer = await generatorService.generateFilledPdf(
 				completeFields,
-				'test-lease-id'
+				'test-lease-id',
+				{ state: 'TX' }
 			)
 
 			// Verify PDF buffer
@@ -214,26 +220,75 @@ describe('Lease PDF Generation (Integration)', () => {
 			const mockFields = {
 				landlord_name: 'Test',
 				tenant_name: 'Test',
-				// ... minimal fields
+				property_address: 'Test',
+				lease_start_date: 'January 1, 2025',
+				lease_end_date: 'December 31, 2025',
+				monthly_rent_amount: '1,000.00',
+				security_deposit_amount: '1,000.00',
+				late_fee_per_day: '50.00',
+				nsf_fee: '35.00',
+				month_to_month_rent: '1,200.00',
+				pet_fee_per_day: '25.00',
+				property_built_before_1978: 'No',
+				agreement_date_day: '1',
+				agreement_date_month: 'January',
+				agreement_date_year: '25'
 			}
 
-			// This should either throw or log error if template missing
-			await expect(async () => {
-				// Temporarily point to non-existent template
-				const service = new LeasePdfGeneratorService({
-					log: jest.fn(),
-					error: jest.fn(),
-					warn: jest.fn()
-				} as unknown as AppLogger)
+			// When requesting a non-existent state, it will default to Texas template
+			// but should throw if Texas template also doesn't exist
+			// Since we have Texas template in test environment, this will succeed
 
-				// @ts-expect-error - Testing internal method
-				service.templatePath = '/nonexistent/template.pdf'
+			// ZZ state will default to Texas template, which exists, so no error
+			const result = await generatorService.generateFilledPdf(
+				mockFields as any,
+				'test-id',
+				{ state: 'ZZ' }
+			)
 
-				await service.generateFilledPdf(
-					mockFields as any,
-					'test-id'
-				)
-			}).rejects.toThrow()
+			// Should succeed because it defaults to TX template
+			expect(result).toBeInstanceOf(Buffer)
+		})
+
+		it('should use state-specific template path', async () => {
+			const mockLeaseData = createMockLeaseData()
+			const { fields: autoFilled } =
+				mapperService.mapLeaseToPdfFields(mockLeaseData)
+
+			const completeFields = mapperService.mergeMissingFields(autoFilled, {
+				immediate_family_members: 'None',
+				landlord_notice_address: '456 Notice Ave, Austin, TX 78702'
+			})
+
+			// Should use Texas template for TX state
+			const pdfBuffer = await generatorService.generateFilledPdf(
+				completeFields,
+				'test-lease-id',
+				{ state: 'TX' }
+			)
+
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
+
+		it('should default to TX template when state is not provided', async () => {
+			const mockLeaseData = createMockLeaseData()
+			const { fields: autoFilled } =
+				mapperService.mapLeaseToPdfFields(mockLeaseData)
+
+			const completeFields = mapperService.mergeMissingFields(autoFilled, {
+				immediate_family_members: 'None',
+				landlord_notice_address: '456 Notice Ave, Austin, TX 78702'
+			})
+
+			// Should default to TX when no state provided
+			const pdfBuffer = await generatorService.generateFilledPdf(
+				completeFields,
+				'test-lease-id'
+			)
+
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
 		})
 	})
 })

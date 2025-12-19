@@ -11,6 +11,8 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { LeasePdfMapperService } from '../lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../lease-pdf-generator.service'
+import { StateValidationService } from '../state-validation.service'
+import { TemplateCacheService } from '../template-cache.service'
 import { PdfStorageService } from '../pdf-storage.service'
 import { DocuSealService } from '../../docuseal/docuseal.service'
 import { LeaseSignatureService } from '../../leases/lease-signature.service'
@@ -83,6 +85,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 			providers: [
 				LeasePdfMapperService,
 				LeasePdfGeneratorService,
+				StateValidationService,
+				TemplateCacheService,
 				{
 					provide: PdfStorageService,
 					useValue: {
@@ -125,7 +129,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 					useValue: {
 						log: jest.fn(),
 						error: jest.fn(),
-						warn: jest.fn()
+						warn: jest.fn(),
+						debug: jest.fn()
 					}
 				},
 				{
@@ -234,7 +239,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 
 			const pdfBuffer = await pdfGenerator.generateFilledPdf(
 				complete,
-				mockLeaseData.lease.id
+				mockLeaseData.lease.id,
+				'TX'
 			)
 
 			expect(pdfBuffer).toBeInstanceOf(Buffer)
@@ -251,7 +257,7 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 
 			// This should work fine with our test template
 			await expect(
-				pdfGenerator.generateFilledPdf(fields, 'test-id')
+				pdfGenerator.generateFilledPdf(fields, 'test-id', 'TX')
 			).resolves.toBeTruthy()
 		})
 	})
@@ -409,7 +415,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 			// 3. Generate PDF
 			const pdfBuffer = await pdfGenerator.generateFilledPdf(
 				complete,
-				mockLeaseData.lease.id
+				mockLeaseData.lease.id,
+				'TX'
 			)
 			expect(pdfBuffer).toBeInstanceOf(Buffer)
 
@@ -447,7 +454,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 			// Should not throw (real implementation handles errors)
 			const pdfBuffer = await pdfGenerator.generateFilledPdf(
 				complete,
-				mockLeaseData.lease.id
+				mockLeaseData.lease.id,
+				'TX'
 			)
 			expect(pdfBuffer).toBeTruthy()
 
@@ -500,7 +508,7 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 				landlord_notice_address: '456 Notice Ave, Austin, TX 78702'
 			})
 
-			await pdfGenerator.generateFilledPdf(complete, mockLeaseData.lease.id)
+			await pdfGenerator.generateFilledPdf(complete, mockLeaseData.lease.id, 'TX')
 
 			// Verify logger was called (implementation logs at each step)
 			expect(logger.log).toHaveBeenCalled()
