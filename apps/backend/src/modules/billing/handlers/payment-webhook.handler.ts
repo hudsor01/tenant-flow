@@ -10,9 +10,11 @@
 
 import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
+import { InjectQueue } from '@nestjs/bullmq'
+import type { Queue } from 'bullmq'
 import { SupabaseService } from '../../../database/supabase.service'
-import { EmailService } from '../../email/email.service'
 import { AppLogger } from '../../../logger/app-logger.service'
+import type { EmailJob } from '../../email/email.queue'
 
 /** Maximum number of payment retry attempts before marking as final failure */
 export const MAX_PAYMENT_RETRY_ATTEMPTS = 3
@@ -43,8 +45,11 @@ function isTenantWithEmail(data: unknown): data is TenantWithEmail {
 @Injectable()
 export class PaymentWebhookHandler {
 
-	constructor(private readonly supabase: SupabaseService,
-		private readonly emailService: EmailService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger,
+		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>
+	) {}
 
 	async handlePaymentAttached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
 		try {
@@ -359,13 +364,16 @@ export class PaymentWebhookHandler {
 			: null
 		const isLastAttempt = attemptCount >= MAX_PAYMENT_RETRY_ATTEMPTS
 
-		await this.emailService.sendPaymentFailedEmail({
-			customerEmail: tenantEmail,
-			amount: paymentIntent.amount,
-			currency: paymentIntent.currency || 'usd',
-			attemptCount,
-			invoiceUrl,
-			isLastAttempt
+		await this.emailQueue.add('payment-failed', {
+			type: 'payment-failed',
+			data: {
+				customerEmail: tenantEmail,
+				amount: paymentIntent.amount,
+				currency: paymentIntent.currency || 'usd',
+				attemptCount,
+				invoiceUrl,
+				isLastAttempt
+			}
 		})
 	}
 }

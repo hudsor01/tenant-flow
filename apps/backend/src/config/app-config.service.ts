@@ -252,6 +252,10 @@ export class AppConfigService {
 		)
 	}
 
+	getRedisUsername(): string | undefined {
+		return this.get('REDIS_USERNAME') || this.get('REDISUSER')
+	}
+
 	getRedisPassword(): string | undefined {
 		return (
 			this.get('REDIS_PASSWORD') ||
@@ -263,12 +267,22 @@ export class AppConfigService {
 		return this.get('REDIS_DB')
 	}
 
+	getRedisTls(): boolean {
+		return this.get('REDIS_TLS')
+	}
+
+	getBullMqWorkersEnabled(): boolean {
+		return this.get('BULLMQ_WORKERS_ENABLED')
+	}
+
 	getRedisConfig(): {
 		url?: string
 		host?: string
 		port?: number
+		username?: string
 		password?: string
 		db?: number
+		tls?: boolean
 	} {
 		const url = this.getRedisUrl()
 		if (url) {
@@ -277,14 +291,18 @@ export class AppConfigService {
 
 		const host = this.getRedisHost()
 		const port = this.getRedisPort()
+		const username = this.getRedisUsername()
 		const password = this.getRedisPassword()
 		const db = this.getRedisDb()
+		const tls = this.getRedisTls()
 
 		return {
 			...(host ? { host } : {}),
 			...(port ? { port: Number(port) } : {}),
+			...(username ? { username } : {}),
 			...(password ? { password } : {}),
-			...(db ? { db: Number(db) } : {})
+			...(db ? { db: Number(db) } : {}),
+			...(tls ? { tls } : {})
 		}
 	}
 
