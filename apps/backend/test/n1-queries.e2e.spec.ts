@@ -51,6 +51,13 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
         return
       }
 
+      // Check for invalid API key (using local key with remote instance)
+      if (connError?.message?.includes('Invalid API key')) {
+        console.warn('⚠️  Skipping E2E tests: Invalid service role key for this Supabase instance')
+        console.warn('   These tests require local Supabase: supabase start')
+        return
+      }
+
       // Check if required tables exist in schema cache
       if (connError?.code === 'PGRST205') {
         console.warn('⚠️  Skipping E2E test setup: Required tables not in schema cache.')

@@ -10,6 +10,7 @@ import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
+import { BullMqHealthIndicator } from './bullmq.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
 describe('HealthController', () => {
@@ -17,6 +18,7 @@ describe('HealthController', () => {
   let module: TestingModule
   let healthCheckService: HealthCheckService
   let supabaseHealth: SupabaseHealthIndicator
+  let bullmqHealth: { quickPing: jest.Mock }
 
   beforeEach(async () => {
     module = await Test.createTestingModule({
@@ -121,6 +123,12 @@ describe('HealthController', () => {
           }
         },
         {
+          provide: BullMqHealthIndicator,
+          useValue: {
+            quickPing: jest.fn()
+          }
+        },
+        {
           provide: StripeSyncService,
           useValue: {
             getHealthStatus: jest.fn().mockReturnValue({
@@ -144,6 +152,7 @@ describe('HealthController', () => {
     supabaseHealth = module.get<SupabaseHealthIndicator>(
       SupabaseHealthIndicator
     )
+    bullmqHealth = module.get(BullMqHealthIndicator)
 
     // Logger is handled by SilentLogger in the module
 
@@ -297,11 +306,15 @@ describe('HealthController', () => {
           message: undefined
         }
       })
+      bullmqHealth.quickPing.mockResolvedValue({
+        redis: { status: 'up', responseTime: 5 }
+      })
 
       const result = await controller.ready()
 
       expect(result).toEqual(mockReadyResult)
       expect(healthCheckService.check).toHaveBeenCalledWith([
+        expect.any(Function),
         expect.any(Function)
       ])
     })

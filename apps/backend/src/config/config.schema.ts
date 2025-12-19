@@ -178,11 +178,26 @@ const environmentSchema = z.object({
     .default('US'),
 
   // Redis
-  REDIS_URL: z.string().optional(),
+  REDIS_URL: z.string().url('Must be a valid URL').optional(),
   REDIS_HOST: z.string().optional(),
   REDIS_PORT: z.string().optional(),
+  REDIS_USERNAME: z.string().optional(),
   REDIS_PASSWORD: z.string().optional(),
   REDIS_DB: z.string().optional(),
+  REDIS_TLS: z
+    .preprocess(
+      val => (typeof val === 'string' ? val === 'true' : val),
+      z.boolean()
+    )
+    .default(false),
+
+  // BullMQ
+  BULLMQ_WORKERS_ENABLED: z
+    .preprocess(
+      val => (typeof val === 'string' ? val === 'true' : val),
+      z.boolean()
+    )
+    .default(true),
 
   // Logging
   LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
@@ -262,6 +277,7 @@ const environmentSchema = z.object({
     .coerce.boolean()
     .default(false),
   REDISHOST: z.string().optional(),
+  REDISUSER: z.string().optional(),
   REDISPASSWORD: z.string().optional(),
   REDISPORT: z.string().optional(),
   VERCEL_ENV: z.string().optional(),
@@ -269,6 +285,31 @@ const environmentSchema = z.object({
   DOCKER_CONTAINER: z
     .coerce.boolean()
     .default(false)
+}).superRefine((config, ctx) => {
+  if (config.NODE_ENV !== 'production') return
+
+  const redisUrl = config.REDIS_URL
+  const redisHost = config.REDIS_HOST || config.REDISHOST
+
+  if (!redisUrl && !redisHost) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['REDIS_URL'],
+      message:
+        'Redis is required in production. Set REDIS_URL (recommended) or REDIS_HOST/REDIS_PORT.'
+    })
+    return
+  }
+
+  const host = redisUrl ? new URL(redisUrl).hostname : redisHost
+  if (host && ['localhost', '127.0.0.1', '::1'].includes(host)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['REDIS_URL'],
+      message:
+        'Production Redis must not point to localhost. Use a managed/persistent Redis (Upstash/Redis Cloud/etc) and set REDIS_URL.'
+    })
+  }
 })
 
 export function validate(config: Record<string, unknown>) {

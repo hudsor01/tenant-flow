@@ -6,6 +6,10 @@ import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerModule } from '@nestjs/throttler'
+import { BullModule } from '@nestjs/bullmq'
+import { BullBoardModule } from '@bull-board/nestjs'
+import { ExpressAdapter } from '@bull-board/express'
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
 import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
@@ -51,6 +55,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module'
 import { MetricsModule } from './modules/metrics/metrics.module'
 import { DocuSealModule } from './modules/docuseal/docuseal.module'
+import { AdminModule } from './modules/admin/admin.module'
 
 /**
  * Core App Module - KISS principle
@@ -129,6 +134,89 @@ import { DocuSealModule } from './modules/docuseal/docuseal.module'
 		HealthModule,
 		MetricsModule,
 		AnalyticsModule,
+
+		// BullMQ configuration (before feature modules)
+		BullModule.forRootAsync({
+			imports: [SharedModule],
+			useFactory: (config: AppConfigService) => {
+				const redisUrl = config.getRedisUrl()
+				const redisHost = config.getRedisHost()
+				const username = config.getRedisUsername()
+				const password = config.getRedisPassword()
+				const db = config.getRedisDb()
+				const tlsEnabled = config.getRedisTls()
+
+				if (config.isProduction() && !redisUrl && !redisHost) {
+					throw new Error(
+						'Redis is required in production. Set REDIS_URL (recommended) or REDIS_HOST/REDIS_PORT.'
+					)
+				}
+
+				if (redisUrl) {
+					const url = new URL(redisUrl)
+					const urlDb =
+						url.pathname && url.pathname !== '/'
+							? Number(url.pathname.slice(1))
+							: undefined
+					const urlPort = url.port && url.port !== '' ? Number(url.port) : 6379
+
+					return {
+						connection: {
+							host: url.hostname,
+							port: Number.isFinite(urlPort) ? urlPort : 6379,
+							...(url.username ? { username: url.username } : {}),
+							...(url.password ? { password: url.password } : {}),
+							...(Number.isFinite(urlDb) ? { db: urlDb as number } : {}),
+							...(url.protocol === 'rediss:' || tlsEnabled ? { tls: {} } : {})
+						},
+						defaultJobOptions: {
+							attempts: 3,
+							backoff: {
+								type: 'exponential',
+								delay: 5000
+							}
+						}
+					}
+				}
+
+				const port = parseInt(config.getRedisPort() || '6379', 10)
+				const dbNumber = db ? Number(db) : undefined
+
+				return {
+						connection: {
+							host: redisHost || 'localhost',
+							port: Number.isFinite(port) ? port : 6379,
+							...(username && { username }),
+							...(password && { password }),
+							...(Number.isFinite(dbNumber) ? { db: dbNumber as number } : {}),
+							...(tlsEnabled ? { tls: {} } : {})
+						},
+					defaultJobOptions: {
+						attempts: 3,
+						backoff: {
+							type: 'exponential',
+							delay: 5000
+						}
+					}
+				}
+			},
+			inject: [AppConfigService]
+		}),
+
+		// Bull Board dashboard for queue monitoring
+		BullBoardModule.forRoot({
+			route: '/admin/queues',
+			adapter: ExpressAdapter
+		}),
+		BullBoardModule.forFeature({
+			name: 'emails',
+			adapter: BullMQAdapter
+		}),
+		BullBoardModule.forFeature({
+			name: 'stripe-webhooks',
+			adapter: BullMQAdapter
+		}),
+
 		StripeModule,
 		StripeSyncModule,
 		ContactModule,
@@ -148,7 +236,8 @@ import { DocuSealModule } from './modules/docuseal/docuseal.module'
 		UsersModule,
 		SecurityModule,
 		ReportsModule,
-		DocuSealModule
+		DocuSealModule,
+		AdminModule,
 	],
 	controllers: [AppController],
 	providers: [

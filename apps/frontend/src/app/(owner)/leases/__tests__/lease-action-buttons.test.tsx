@@ -35,6 +35,11 @@ const mockSendForSignature = {
 	isPending: false
 }
 
+const mockResendSignature = {
+	mutateAsync: vi.fn(),
+	isPending: false
+}
+
 const mockSignAsOwner = {
 	mutateAsync: vi.fn(),
 	isPending: false
@@ -48,6 +53,7 @@ const mockDeleteLease = {
 
 vi.mock('#hooks/api/use-lease', () => ({
 	useSendLeaseForSignature: () => mockSendForSignature,
+	useResendSignatureRequest: () => mockResendSignature,
 	useSignLeaseAsOwner: () => mockSignAsOwner,
 	useDeleteLease: (options?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
 		mockDeleteLease.mutate.mockImplementation(() => options?.onSuccess?.())
@@ -135,15 +141,11 @@ describe('LeaseActionButtons', () => {
 
 	describe('Dropdown Menu - Status Conditional Items', () => {
 		test('shows Send for Signature for draft leases', async () => {
-			const user = userEvent.setup()
 			render(<LeaseActionButtons lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })} />)
 
-			// Open dropdown
-			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
-
+			// Send for Signature is now a separate button, not in the dropdown
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /send for signature/i })).toBeInTheDocument()
+				expect(screen.getByTestId('send-for-signature-button')).toBeInTheDocument()
 			})
 		})
 
@@ -158,9 +160,10 @@ describe('LeaseActionButtons', () => {
 				/>
 			)
 
-			// Open dropdown
+			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
+			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
 				expect(screen.getByRole('menuitem', { name: /sign as owner/i })).toBeInTheDocument()
@@ -178,9 +181,10 @@ describe('LeaseActionButtons', () => {
 				/>
 			)
 
-			// Open dropdown
+			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
+			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
 				expect(screen.queryByRole('menuitem', { name: /sign as owner/i })).not.toBeInTheDocument()
@@ -191,9 +195,10 @@ describe('LeaseActionButtons', () => {
 			const user = userEvent.setup()
 			render(<LeaseActionButtons lease={createMockLease({ lease_status: 'active' })} />)
 
-			// Open dropdown
+			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
+			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
 				expect(screen.getByRole('menuitem', { name: /pay rent/i })).toBeInTheDocument()
@@ -206,9 +211,10 @@ describe('LeaseActionButtons', () => {
 			const user = userEvent.setup()
 			render(<LeaseActionButtons lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })} />)
 
-			// Open dropdown
+			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
+			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
 				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
@@ -221,9 +227,10 @@ describe('LeaseActionButtons', () => {
 			const user = userEvent.setup()
 			render(<LeaseActionButtons lease={createMockLease()} />)
 
-			// Open dropdown
+			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			await user.click(buttons[1]!)
+			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			await user.click(dropdownTrigger)
 
 			// Click Delete menu item
 			await waitFor(() => {

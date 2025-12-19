@@ -19,8 +19,10 @@ import {
 	Post,
 	Put,
 	Query,
-	Req
+	Req,
+	Res
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -31,7 +33,10 @@ import { LeaseSignatureService } from './lease-signature.service'
 import { CreateLeaseDto } from './dto/create-lease.dto'
 import { UpdateLeaseDto } from './dto/update-lease.dto'
 import { FindAllLeasesDto } from './dto/find-all-leases.dto'
+import { SubmitMissingLeaseFieldsDto } from './dto/submit-missing-lease-fields.dto'
 import { isValidUUID } from '@repo/shared/validation/common'
+import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
+import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 
 @Controller('leases')
 export class LeasesController {
@@ -39,7 +44,9 @@ export class LeasesController {
 		private readonly leasesService: LeasesService,
 		private readonly financialService: LeaseFinancialService,
 		private readonly lifecycleService: LeaseLifecycleService,
-		private readonly signatureService: LeaseSignatureService
+		private readonly signatureService: LeaseSignatureService,
+		private readonly pdfMapper: LeasePdfMapperService,
+		private readonly pdfGenerator: LeasePdfGeneratorService
 	) {}
 
 	@Get()
@@ -52,7 +59,6 @@ export class LeasesController {
 		const data = await this.leasesService.findAll(token, { ...query })
 
 		// Return PaginatedResponse format expected by frontend
-		// Service already returns { data, total, limit, offset }, just add hasMore
 		return {
 			...data,
 			hasMore: data.data.length >= data.limit
@@ -267,19 +273,36 @@ export class LeasesController {
 
 	/**
 	 * Owner sends lease for signature (draft -> pending_signature)
-	 * If templateId is provided and DocuSeal is configured, creates e-signature request
+	 * Generates PDF and creates e-signature request if DocuSeal is configured
 	 */
 	@Post(':id/send-for-signature')
 	@Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 sends per hour
 	async sendForSignature(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,
-		@Body() body?: { message?: string; templateId?: number }
+		@JwtToken() token: string,
+		@Body()
+		body?: {
+			message?: string
+			missingFields?: {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+			}
+		}
 	) {
-		await this.signatureService.sendForSignature(req.user.id, id, {
-			message: body?.message,
-			templateId: body?.templateId
-		})
+		const options: {
+			token: string
+			message?: string
+			missingFields?: {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+			}
+		} = { token }
+
+		if (body?.message !== undefined) options.message = body.message
+		if (body?.missingFields !== undefined) options.missingFields = body.missingFields
+
+		await this.signatureService.sendForSignature(req.user.id, id, options)
 		return { success: true }
 	}
 
@@ -386,5 +409,119 @@ export class LeasesController {
 			req.user.id
 		)
 		return { document_url: documentUrl }
+	}
+
+	// ============================================================
+	// TEXAS LEASE PDF GENERATION ENDPOINTS
+	// ============================================================
+
+	/**
+	 * Get missing fields required for Texas lease PDF generation
+	 * Returns which fields need to be filled by user (not auto-filled from DB)
+	 */
+	@Get(':id/pdf/missing-fields')
+	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
+	async getPdfMissingFields(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string
+	) {
+		// Get complete lease data
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		// Validate lease data exists
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		// Map to PDF fields
+		const { fields, missing } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+
+		return {
+			lease_id: id,
+			missing_fields: missing.fields,
+			is_complete: missing.isComplete,
+			auto_filled_count: Object.keys(fields).filter(
+				k => fields[k as keyof typeof fields] !== undefined
+			).length
+		}
+	}
+
+	/**
+	 * Preview filled Texas lease PDF as an inline PDF (no storage, no DocuSeal)
+	 * Uses auto-filled DB data; missing fields render as empty/defaults.
+	 */
+	@Get(':id/pdf/preview')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 previews per minute
+	async previewFilledPdf(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string,
+		@Res() res: Response
+	): Promise<void> {
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+		const state = leaseData?.lease?.governing_state ?? undefined
+
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(fields, id, {
+			state,
+			validateTemplate: true
+		})
+
+		// Set security headers for PDF preview
+		res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';")
+		res.setHeader('X-Content-Type-Options', 'nosniff')
+		res.setHeader('X-Frame-Options', 'DENY')
+
+		res.setHeader('Content-Type', 'application/pdf')
+		res.setHeader('Content-Disposition', `inline; filename="lease-${id}.pdf"`)
+		res.setHeader('Content-Length', pdfBuffer.length)
+		res.setHeader('Cache-Control', 'no-cache')
+		res.send(pdfBuffer)
+	}
+
+	/**
+	 * Submit missing fields and generate filled Texas lease PDF
+	 * Returns PDF buffer for download or DocuSeal upload
+	 */
+	@Post(':id/pdf/generate')
+	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 PDF generations per minute
+	async generateFilledPdf(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string,
+		@Body() missingFieldsDto: SubmitMissingLeaseFieldsDto
+	) {
+		// Get complete lease data
+		const leaseData = await this.leasesService.getLeaseDataForPdf(token, id)
+
+		// Validate lease data exists
+		if (!leaseData?.lease) {
+			throw new BadRequestException('Lease not found or access denied')
+		}
+
+		// Map to PDF fields
+		const { fields } = this.pdfMapper.mapLeaseToPdfFields(leaseData)
+
+		// Merge user-provided fields with auto-filled fields
+		const completeFields = this.pdfMapper.mergeMissingFields(
+			fields,
+			missingFieldsDto
+		)
+
+		// Generate filled PDF with state-specific template
+		const state = leaseData?.lease?.governing_state ?? 'TX'
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, {
+			state,
+			validateTemplate: true
+		})
+
+		return {
+			lease_id: id,
+			pdf_size_bytes: pdfBuffer.length,
+			generated_at: new Date().toISOString()
+		}
 	}
 }

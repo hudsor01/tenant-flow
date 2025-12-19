@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow NestJS TypeScript Config - Bundler Mode (November 2025)",
+	"display": "TenantFlow NestJS TypeScript Config - Strict CommonJS (December 2025)",
 	"extends": "./base.json",
 	"compilerOptions": {
 		"lib": ["ES2022"],

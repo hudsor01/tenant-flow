@@ -6,32 +6,39 @@
  * Purpose: Manually add AcroForm fields to the PDF template for testing the pdf-lib form filling API
 
  * Usage:
- * 1. Place Texas_Residential_Lease_Agreement.pdf in project root
+ * 1. Ensure the template exists at: apps/backend/src/modules/pdf/templates/Texas_Residential_Lease_Agreement.pdf
  * 2. Run: pnpm tsx apps/backend/scripts/add-form-fields-to-lease.ts
- * 3. Output: Texas_Residential_Lease_Agreement.filled.pdf with editable form fields
+ * 3. Output: apps/backend/assets/generated-Texas_Residential_Lease_Agreement.filled.pdf with editable form fields
 
  * IMPORTANT:
  * - This script is for template preparation ONLY
  * - DO NOT use in production code or deployment pipelines
  * - The output PDF should be reviewed manually before use
- * - Template modifications should be documented in apps/backend/assets/README.md
+ * - Template modifications should be documented in apps/backend/src/modules/pdf/README.md
  */
 
 import { PDFDocument } from 'pdf-lib'
 import { readFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { resolve } from 'node:path'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'AddFormFieldsScript' })
 
 async function addFormFields() {
-	const templatePath = join(
-		process.cwd(),
+	const templatePath = resolve(
+		__dirname,
+		'..',
+		'src',
+		'modules',
+		'pdf',
+		'templates',
 		'Texas_Residential_Lease_Agreement.pdf'
 	)
-	const outputPath = join(
-		process.cwd(),
-		'Texas_Residential_Lease_Agreement.filled.pdf'
+	const outputPath = resolve(
+		__dirname,
+		'..',
+		'assets',
+		'generated-Texas_Residential_Lease_Agreement.filled.pdf'
 	)
 
 	logger.info(' Loading PDF template...')

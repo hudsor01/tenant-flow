@@ -1,38 +1,24 @@
 import { Injectable } from '@nestjs/common'
-import { Resend } from 'resend'
-import { render } from '@react-email/render'
-import { AppConfigService } from '../../config/app-config.service'
-import { PaymentSuccessEmail } from '../../emails/payment-success-email'
-import { PaymentFailedEmail } from '../../emails/payment-failed-email'
-import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { AppLogger } from '../../logger/app-logger.service'
+import { EmailRendererService } from './email-renderer.service'
+import { EmailSenderService } from './email-sender.service'
+import { EmailTemplateService } from './email-template.service'
 
 /**
- * Email Service - Direct Resend Integration
+ * Email Service - Facade for Email Operations
  *
- * Ultra-Native: Uses Resend SDK directly, no abstractions
- * KISS: Simple email methods, no builders or factories
+ * Coordinates template preparation, HTML rendering, and delivery.
  */
 @Injectable()
 export class EmailService {
-	private readonly resend: InstanceType<typeof Resend> | null
+	constructor(
+		private readonly renderer: EmailRendererService,
+		private readonly sender: EmailSenderService,
+		private readonly template: EmailTemplateService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {
-		const apiKey = this.config.getResendApiKey()
-		if (!apiKey) {
-			this.logger.warn(
-				'RESEND_API_KEY not configured - email functionality will be disabled'
-			)
-			this.resend = null
-		} else {
-			this.resend = new Resend(apiKey)
-		}
-	}
-
-	/**
-	 * Send payment success email using React template
-	 */
 	async sendPaymentSuccessEmail(data: {
 		customerEmail: string
 		amount: number
@@ -40,34 +26,27 @@ export class EmailService {
 		invoiceUrl: string | null
 		invoicePdf: string | null
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping payment success email')
-			return
-		}
-
 		try {
-			const emailHtml = await render(PaymentSuccessEmail(data))
+			const emailData = this.template.preparePaymentSuccessEmail(data)
+			const html = await this.renderer.renderPaymentSuccessEmail(
+				emailData.templateData
+			)
 
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.customerEmail],
-				subject: `Payment Receipt - ${data.currency.toUpperCase()} ${(data.amount / 100).toFixed(2)}`,
-				html: emailHtml
-			})
-
-			this.logger.log('Payment success email sent successfully', {
-				emailId: result.data?.id
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
 		} catch (error) {
 			this.logger.error('Failed to send payment success email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send payment failed email using React template
-	 */
 	async sendPaymentFailedEmail(data: {
 		customerEmail: string
 		amount: number
@@ -76,71 +55,54 @@ export class EmailService {
 		invoiceUrl: string | null
 		isLastAttempt: boolean
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping payment failed email')
-			return
-		}
-
 		try {
-			const emailHtml = await render(PaymentFailedEmail(data))
+			const emailData = this.template.preparePaymentFailedEmail(data)
+			const html = await this.renderer.renderPaymentFailedEmail(
+				emailData.templateData
+			)
 
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.customerEmail],
-				subject: `Payment Failed - Action Required`,
-				html: emailHtml
-			})
-
-			this.logger.log('Payment failed email sent successfully', {
-				emailId: result.data?.id
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
 		} catch (error) {
 			this.logger.error('Failed to send payment failed email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send subscription canceled email using React template
-	 */
 	async sendSubscriptionCanceledEmail(data: {
 		customerEmail: string
 		subscriptionId: string
 		cancelAtPeriodEnd: boolean
 		currentPeriodEnd: Date | null
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn(
-				'Resend not configured, skipping subscription canceled email'
-			)
-			return
-		}
-
 		try {
-			const emailHtml = await render(SubscriptionCanceledEmail(data))
+			const emailData = this.template.prepareSubscriptionCanceledEmail(data)
+			const html = await this.renderer.renderSubscriptionCanceledEmail(
+				emailData.templateData
+			)
 
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.customerEmail],
-				subject: 'Subscription Canceled - TenantFlow',
-				html: emailHtml
-			})
-
-			this.logger.log('Subscription canceled email sent successfully', {
-				emailId: result.data?.id
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
 		} catch (error) {
 			this.logger.error('Failed to send subscription canceled email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				customerEmail: data.customerEmail
 			})
+			throw error
 		}
 	}
 
-
-	/**
-	 * Send tenant invitation email using React template
-	 */
 	async sendTenantInvitationEmail(data: {
 		tenantEmail: string
 		invitationUrl: string
@@ -149,38 +111,27 @@ export class EmailService {
 		ownerName?: string
 		expiresAt: string
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping tenant invitation email')
-			return
-		}
-
 		try {
-			// Dynamic import to avoid circular dependency issues
-			const { TenantInvitationEmail } = await import('../../emails/tenant-invitation-email')
-			const emailHtml = await render(TenantInvitationEmail(data))
+			const emailData = this.template.prepareTenantInvitationEmail(data)
+			const html = await this.renderer.renderTenantInvitationEmail(
+				emailData.templateData
+			)
 
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.tenantEmail],
-				subject: 'You\'ve Been Invited to TenantFlow - Accept Your Invitation',
-				html: emailHtml
-			})
-
-			this.logger.log('Tenant invitation email sent successfully', {
-				emailId: result.data?.id,
-				tenantEmail: data.tenantEmail
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
 		} catch (error) {
 			this.logger.error('Failed to send tenant invitation email', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantEmail: data.tenantEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send lease sent for signature email (tenant receives)
-	 */
 	async sendLeaseSentForSignatureEmail(data: {
 		tenantEmail: string
 		tenantName: string
@@ -190,50 +141,27 @@ export class EmailService {
 		message?: string
 		signUrl: string
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping lease signature email')
-			return
-		}
-
 		try {
-			const { LeaseSentForSignatureEmail } = await import('../../emails/lease-signature-email')
-			// Build props conditionally to satisfy exactOptionalPropertyTypes
-			const emailProps: {
-				tenantName: string
-				signUrl: string
-				propertyName?: string
-				unitNumber?: string
-				ownerName?: string
-				message?: string
-			} = {
-				tenantName: data.tenantName,
-				signUrl: data.signUrl
-			}
-			if (data.propertyName) emailProps.propertyName = data.propertyName
-			if (data.unitNumber) emailProps.unitNumber = data.unitNumber
-			if (data.ownerName) emailProps.ownerName = data.ownerName
-			if (data.message) emailProps.message = data.message
+			const emailData = this.template.prepareLeaseSentForSignatureEmail(data)
+			const html = await this.renderer.renderLeaseSentForSignatureEmail(
+				emailData.templateData
+			)
 
-			const emailHtml = await render(LeaseSentForSignatureEmail(emailProps))
-
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.tenantEmail],
-				subject: 'Action Required: Your Lease Agreement is Ready for Signature',
-				html: emailHtml
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
-
-			this.logger.log('Lease sent for signature email sent', { emailId: result.data?.id })
 		} catch (error) {
-			this.logger.error('Failed to send lease signature email', {
-				error: error instanceof Error ? error.message : String(error)
+			this.logger.error('Failed to send lease sent for signature email', {
+				error: error instanceof Error ? error.message : String(error),
+				tenantEmail: data.tenantEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send owner signed notification (tenant receives)
-	 */
 	async sendOwnerSignedEmail(data: {
 		tenantEmail: string
 		tenantName: string
@@ -243,37 +171,27 @@ export class EmailService {
 		signUrl: string
 		tenantHasSigned: boolean
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping owner signed email')
-			return
-		}
-
 		try {
-			const { LeaseOwnerSignedEmail } = await import('../../emails/lease-signature-email')
-			const emailHtml = await render(LeaseOwnerSignedEmail(data))
+			const emailData = this.template.prepareOwnerSignedEmail(data)
+			const html = await this.renderer.renderOwnerSignedEmail(
+				emailData.templateData
+			)
 
-			const subject = data.tenantHasSigned
-				? 'Your Lease is Now Active!'
-				: 'Your Landlord Has Signed - Your Signature Needed'
-
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.tenantEmail],
-				subject,
-				html: emailHtml
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
-
-			this.logger.log('Owner signed email sent', { emailId: result.data?.id })
 		} catch (error) {
 			this.logger.error('Failed to send owner signed email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				tenantEmail: data.tenantEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send tenant signed notification (owner receives)
-	 */
 	async sendTenantSignedEmail(data: {
 		ownerEmail: string
 		ownerName: string
@@ -283,37 +201,27 @@ export class EmailService {
 		dashboardUrl: string
 		ownerHasSigned: boolean
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping tenant signed email')
-			return
-		}
-
 		try {
-			const { LeaseTenantSignedEmail } = await import('../../emails/lease-signature-email')
-			const emailHtml = await render(LeaseTenantSignedEmail(data))
+			const emailData = this.template.prepareTenantSignedEmail(data)
+			const html = await this.renderer.renderTenantSignedEmail(
+				emailData.templateData
+			)
 
-			const subject = data.ownerHasSigned
-				? 'Lease Activated - Tenant Has Signed!'
-				: 'Tenant Has Signed - Your Signature Needed'
-
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.ownerEmail],
-				subject,
-				html: emailHtml
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
-
-			this.logger.log('Tenant signed email sent', { emailId: result.data?.id })
 		} catch (error) {
 			this.logger.error('Failed to send tenant signed email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				ownerEmail: data.ownerEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send lease activated email (both parties receive)
-	 */
 	async sendLeaseActivatedEmail(data: {
 		recipientEmail: string
 		recipientName: string
@@ -324,34 +232,27 @@ export class EmailService {
 		startDate: string
 		portalUrl: string
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping lease activated email')
-			return
-		}
-
 		try {
-			const { LeaseActivatedEmail } = await import('../../emails/lease-signature-email')
-			const emailHtml = await render(LeaseActivatedEmail(data))
+			const emailData = this.template.prepareLeaseActivatedEmail(data)
+			const html = await this.renderer.renderLeaseActivatedEmail(
+				emailData.templateData
+			)
 
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.recipientEmail],
-				subject: `Your Lease for ${data.propertyName || 'Your Property'} is Now Active`,
-				html: emailHtml
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
 			})
-
-			this.logger.log('Lease activated email sent', { emailId: result.data?.id })
 		} catch (error) {
 			this.logger.error('Failed to send lease activated email', {
-				error: error instanceof Error ? error.message : String(error)
+				error: error instanceof Error ? error.message : String(error),
+				recipientEmail: data.recipientEmail
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Send subscription failure alert email
-	 * Sent to property owner and optionally admin when subscription creation fails after max retries
-	 */
 	async sendSubscriptionFailureAlertEmail(data: {
 		recipientEmail: string
 		recipientName: string
@@ -364,90 +265,14 @@ export class EmailService {
 		retryCount: number
 		dashboardUrl: string
 	}): Promise<void> {
-		if (!this.resend) {
-			this.logger.warn('Resend not configured, skipping subscription failure alert email')
-			return
-		}
-
 		try {
-			const unitDisplay = data.unitNumber ? ` - Unit ${this.escapeHtml(data.unitNumber)}` : ''
-			const rentFormatted = (data.rentAmount / 100).toFixed(2)
+			const emailData = this.template.prepareSubscriptionFailureAlertEmail(data)
 
-			const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<style>
-		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-		.header { background: #DC2626; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
-		.field { margin-bottom: 15px; }
-		.label { font-weight: bold; color: #6B7280; font-size: 12px; text-transform: uppercase; }
-		.value { margin-top: 5px; }
-		.error-box { background: #FEF2F2; border: 1px solid #FECACA; padding: 15px; border-radius: 6px; margin: 15px 0; }
-		.action-btn { display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 15px; }
-	</style>
-</head>
-<body>
-	<div class="container">
-		<div class="header">
-			<h2>Action Required: Subscription Creation Failed</h2>
-		</div>
-		<div class="content">
-			<p>Hi ${this.escapeHtml(data.recipientName)},</p>
-			<p>We were unable to set up the billing subscription for the following lease after ${data.retryCount} attempts:</p>
-
-			<div class="field">
-				<div class="label">Property</div>
-				<div class="value">${this.escapeHtml(data.propertyName)}${unitDisplay}</div>
-			</div>
-
-			<div class="field">
-				<div class="label">Tenant</div>
-				<div class="value">${this.escapeHtml(data.tenantName)}</div>
-			</div>
-
-			<div class="field">
-				<div class="label">Monthly Rent</div>
-				<div class="value">$${rentFormatted}</div>
-			</div>
-
-			<div class="error-box">
-				<div class="label">Error Details</div>
-				<div class="value">${this.escapeHtml(data.failureReason)}</div>
-			</div>
-
-			<p><strong>What to do:</strong></p>
-			<ul>
-				<li>Verify the tenant's payment method is set up correctly</li>
-				<li>Check that Stripe Connect is properly configured</li>
-				<li>Contact support if the issue persists</li>
-			</ul>
-
-			<a href="${this.escapeHtml(data.dashboardUrl)}" class="action-btn">View Lease Details</a>
-
-			<p style="margin-top: 20px; color: #6B7280; font-size: 12px;">
-				Lease ID: ${this.escapeHtml(data.leaseId)}
-			</p>
-		</div>
-	</div>
-</body>
-</html>
-			`.trim()
-
-			const result = await this.resend.emails.send({
-				from: 'TenantFlow <noreply@tenantflow.app>',
-				to: [data.recipientEmail],
-				subject: `Action Required: Subscription Setup Failed for ${data.propertyName}`,
-				html: emailHtml
-			})
-
-			this.logger.log('Subscription failure alert email sent', {
-				emailId: result.data?.id,
-				recipientEmail: data.recipientEmail,
-				leaseId: data.leaseId
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html: emailData.html
 			})
 		} catch (error) {
 			this.logger.error('Failed to send subscription failure alert email', {
@@ -455,122 +280,39 @@ export class EmailService {
 				recipientEmail: data.recipientEmail,
 				leaseId: data.leaseId
 			})
+			throw error
 		}
 	}
 
-	/**
-	 * Escape HTML special characters to prevent XSS
-	 * Replaces: & < > " ' / with their HTML entity equivalents
-	 */
-	private escapeHtml(text: string): string {
-		return text
-			.replace(/&/g, '&amp;')   // Must be first to avoid double-escaping
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#039;')
-			.replace(/\//g, '&#x2F;')
-	}
+	async sendContactFormEmail(dto: ContactFormRequest): Promise<void> {
+		try {
+			const emailData = this.template.prepareContactFormEmail(dto)
 
-	/**
-	 * Generate team notification HTML for contact form submissions
-	 */
-	generateTeamNotificationHtml(dto: ContactFormRequest): string {
-		const name = this.escapeHtml(dto.name)
-		const email = this.escapeHtml(dto.email)
-		const company = dto.company ? this.escapeHtml(dto.company) : null
-		const phone = dto.phone ? this.escapeHtml(dto.phone) : null
-		const urgency = dto.urgency ? this.escapeHtml(dto.urgency) : null
-		const subject = this.escapeHtml(dto.subject)
-		const type = this.escapeHtml(dto.type)
-		const message = this.escapeHtml(dto.message)
+			const teamHtml = this.template.generateTeamNotificationHtml(dto)
+			await this.sender.sendEmail({
+				from: emailData.teamEmail.from,
+				to: emailData.teamEmail.to,
+				subject: emailData.teamEmail.subject,
+				html: teamHtml
+			})
 
-		return `
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<style>
-		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-		.header { background: #4F46E5; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
-		.field { margin-bottom: 15px; }
-		.label { font-weight: bold; color: #6B7280; }
-		.value { margin-top: 5px; }
-	</style>
-</head>
-<body>
-	<div class="container">
-		<div class="header">
-			<h2>New Contact Form Submission</h2>
-		</div>
-		<div class="content">
-			<div class="field">
-				<div class="label">From:</div>
-				<div class="value">${name} (${email})</div>
-			</div>
-			${company ? `<div class="field"><div class="label">Company:</div><div class="value">${company}</div></div>` : ''}
-			${phone ? `<div class="field"><div class="label">Phone:</div><div class="value">${phone}</div></div>` : ''}
-			<div class="field">
-				<div class="label">Subject:</div>
-				<div class="value">${subject}</div>
-			</div>
-			<div class="field">
-				<div class="label">Type:</div>
-				<div class="value">${type}</div>
-			</div>
-			${urgency ? `<div class="field"><div class="label">Urgency:</div><div class="value">${urgency}</div></div>` : ''}
-			<div class="field">
-				<div class="label">Message:</div>
-				<div class="value">${message}</div>
-			</div>
-		</div>
-	</div>
-</body>
-</html>
-		`.trim()
-	}
+			const userHtml = this.template.generateUserConfirmationHtml(dto)
+			await this.sender.sendEmail({
+				from: emailData.userEmail.from,
+				to: emailData.userEmail.to,
+				subject: emailData.userEmail.subject,
+				html: userHtml
+			})
 
-	/**
-	 * Generate user confirmation HTML for contact form submissions
-	 */
-	generateUserConfirmationHtml(dto: ContactFormRequest): string {
-		const name = this.escapeHtml(dto.name)
-		const subject = this.escapeHtml(dto.subject)
-		const supportPhone = this.config.getSupportPhone()
-		const phoneSection = supportPhone
-			? `<p class="message">If you need immediate assistance, please call us at ${this.escapeHtml(supportPhone)}.</p>`
-			: ''
-
-		return `
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<style>
-		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
-		.header { background: #4F46E5; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
-		.content { background: #f9fafb; padding: 20px; border-radius: 0 0 8px 8px; }
-		.message { margin-bottom: 20px; }
-	</style>
-</head>
-<body>
-	<div class="container">
-		<div class="header">
-			<h2>Thank You for Contacting TenantFlow</h2>
-		</div>
-		<div class="content">
-			<p class="message">Hi ${name},</p>
-			<p class="message">Thank you for reaching out to us. We've received your message regarding "${subject}" and our team will review it shortly.</p>
-			<p class="message">We typically respond within 4 hours during business hours (9 AM - 5 PM EST, Monday-Friday).</p>
-			${phoneSection}
-			<p class="message">Best regards,<br>The TenantFlow Team</p>
-		</div>
-	</div>
-</body>
-</html>
-		`.trim()
+			this.logger.log('Contact form emails sent successfully', {
+				userEmail: dto.email
+			})
+		} catch (error) {
+			this.logger.error('Failed to send contact form emails', {
+				error: error instanceof Error ? error.message : String(error),
+				userEmail: dto.email
+			})
+			throw error
+		}
 	}
 }

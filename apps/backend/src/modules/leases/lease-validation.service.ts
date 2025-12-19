@@ -179,17 +179,4 @@ export class LeaseValidationService {
 		}
 	}
 
-	/**
-	 * Get state requirements - currently returns Texas only
-	 * @deprecated Use getTexasRequirements() directly. Other states will be added later.
-	 */
-	getStateRequirements(_state: string): {
-		stateName: string
-		security_depositMax: string
-		lateFeeGracePeriod: string
-		requiredDisclosures: string[]
-	} {
-		// Always return Texas requirements for now
-		return this.getTexasRequirements()
-	}
 }

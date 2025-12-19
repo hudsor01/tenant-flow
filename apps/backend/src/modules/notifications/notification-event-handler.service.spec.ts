@@ -1,10 +1,11 @@
 import { Test } from '@nestjs/testing'
+import { getQueueToken } from '@nestjs/bullmq'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'
-import { EmailService } from '../email/email.service'
 import { NotificationEventHandlerService } from './notification-event-handler.service'
+import type { EmailJob } from '../email/email.queue'
 import {
 	MaintenanceUpdatedEvent,
 	PaymentReceivedEvent,
@@ -17,7 +18,7 @@ describe('NotificationEventHandlerService', () => {
 	let service: NotificationEventHandlerService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let mockFailedNotifications: jest.Mocked<FailedNotificationsService>
-	let mockEmailService: jest.Mocked<EmailService>
+	let mockEmailQueue: { add: jest.Mock }
 
 	const createMockAdminClient = () => {
 		const mockInsertResult = { error: null }
@@ -46,16 +47,16 @@ describe('NotificationEventHandlerService', () => {
 			retryWithBackoff: jest.fn().mockImplementation(async (fn) => fn())
 		} as unknown as jest.Mocked<FailedNotificationsService>
 
-		mockEmailService = {
-			sendTenantInvitationEmail: jest.fn().mockResolvedValue(undefined)
-		} as unknown as jest.Mocked<EmailService>
+		mockEmailQueue = {
+			add: jest.fn().mockResolvedValue(undefined)
+		}
 
 		const module = await Test.createTestingModule({
 			providers: [
 				NotificationEventHandlerService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: FailedNotificationsService, useValue: mockFailedNotifications },
-				{ provide: EmailService, useValue: mockEmailService },
+				{ provide: getQueueToken('emails'), useValue: mockEmailQueue },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -303,13 +304,16 @@ describe('NotificationEventHandlerService', () => {
 
 			await service.handleTenantInvitationSent(event)
 
-			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
-				tenantEmail: 'tenant@example.com',
-			invitationUrl: 'https://app.example.com/invite/abc',
-			expiresAt: '2025-01-15T00:00:00Z',
-			propertyName: 'Harbor View',
-			unitNumber: '202'
-			})
+			expect(mockEmailQueue.add).toHaveBeenCalledWith('tenant-invitation', {
+				type: 'tenant-invitation',
+				data: {
+					tenantEmail: 'tenant@example.com',
+					invitationUrl: 'https://app.example.com/invite/abc',
+					expiresAt: '2025-01-15T00:00:00Z',
+					propertyName: 'Harbor View',
+					unitNumber: '202'
+				}
+			} satisfies EmailJob)
 		})
 	})
 
@@ -326,11 +330,14 @@ describe('NotificationEventHandlerService', () => {
 
 			await service.handleTenantPlatformInvitationSent(event)
 
-			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
-				tenantEmail: 'tenant@example.com',
-				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
-				expiresAt: '2025-01-15T00:00:00Z'
-			})
+			expect(mockEmailQueue.add).toHaveBeenCalledWith('tenant-invitation', {
+				type: 'tenant-invitation',
+				data: {
+					tenantEmail: 'tenant@example.com',
+					invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+					expiresAt: '2025-01-15T00:00:00Z'
+				}
+			} satisfies EmailJob)
 		})
 
 		it('includes property and unit details when provided', async () => {
@@ -392,14 +399,17 @@ describe('NotificationEventHandlerService', () => {
 
 			await service.handleTenantPlatformInvitationSent(event)
 
-			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
-				tenantEmail: 'tenant@example.com',
-			invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
-			expiresAt: '2025-01-15T00:00:00Z',
-			propertyName: 'Sunset Apartments',
-			unitNumber: '101',
-			ownerName: 'Property Owner'
-			})
+			expect(mockEmailQueue.add).toHaveBeenCalledWith('tenant-invitation', {
+				type: 'tenant-invitation',
+				data: {
+					tenantEmail: 'tenant@example.com',
+					invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+					expiresAt: '2025-01-15T00:00:00Z',
+					propertyName: 'Sunset Apartments',
+					unitNumber: '101',
+					ownerName: 'Property Owner'
+				}
+			} satisfies EmailJob)
 		})
 
 		it('handles missing property/unit gracefully', async () => {
@@ -427,11 +437,14 @@ describe('NotificationEventHandlerService', () => {
 			await service.handleTenantPlatformInvitationSent(event)
 
 			// Should still send email without property details
-			expect(mockEmailService.sendTenantInvitationEmail).toHaveBeenCalledWith({
-				tenantEmail: 'tenant@example.com',
-				invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
-				expiresAt: '2025-01-15T00:00:00Z'
-			})
+			expect(mockEmailQueue.add).toHaveBeenCalledWith('tenant-invitation', {
+				type: 'tenant-invitation',
+				data: {
+					tenantEmail: 'tenant@example.com',
+					invitationUrl: 'https://app.tenantflow.app/accept-invite?code=abc123',
+					expiresAt: '2025-01-15T00:00:00Z'
+				}
+			} satisfies EmailJob)
 		})
 	})
 })

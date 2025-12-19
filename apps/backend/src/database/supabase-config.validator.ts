@@ -92,15 +92,4 @@ export class SupabaseConfigValidator {
     }
   }
 
-  /**
-   * Verify project ref matches URL
-   *
-   * @param url Supabase URL
-   * @param projectRef Expected project ref
-   * @returns True if project ref matches URL
-   */
-  private static validateProjectRef(url: string, projectRef: string): boolean {
-    const extractedRef = this.extractProjectRef(url)
-    return extractedRef === projectRef
-  }
 }

@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       activity: {
@@ -1149,6 +1124,60 @@ export type Database = {
           },
         ]
       }
+      security_events: {
+        Row: {
+          created_at: string
+          event_type: Database["public"]["Enums"]["security_event_type"]
+          id: string
+          ip_address: unknown
+          message: string
+          metadata: Json | null
+          request_id: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: Database["public"]["Enums"]["security_event_severity"]
+          tags: string[] | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          user_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: Database["public"]["Enums"]["security_event_type"]
+          id?: string
+          ip_address?: unknown
+          message: string
+          metadata?: Json | null
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: Database["public"]["Enums"]["security_event_severity"]
+          tags?: string[] | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: Database["public"]["Enums"]["security_event_type"]
+          id?: string
+          ip_address?: unknown
+          message?: string
+          metadata?: Json | null
+          request_id?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: Database["public"]["Enums"]["security_event_severity"]
+          tags?: string[] | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_type?: string | null
+        }
+        Relationships: []
+      }
       stripe_connected_accounts: {
         Row: {
           business_name: string | null
@@ -1871,6 +1900,7 @@ export type Database = {
         Args: { days_to_keep?: number }
         Returns: number
       }
+      cleanup_old_security_events: { Args: never; Returns: undefined }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       decode_error_level: { Args: { elevel: number }; Returns: string }
       get_billing_insights: {
@@ -2045,6 +2075,35 @@ export type Database = {
         | "cancelled"
         | "requires_action"
       property_status: "active" | "inactive" | "sold"
+      security_event_severity:
+        | "debug"
+        | "info"
+        | "warning"
+        | "error"
+        | "critical"
+      security_event_type:
+        | "auth.login"
+        | "auth.logout"
+        | "auth.failed_login"
+        | "auth.password_change"
+        | "auth.password_reset"
+        | "user.created"
+        | "user.updated"
+        | "user.deleted"
+        | "property.created"
+        | "property.updated"
+        | "property.deleted"
+        | "lease.created"
+        | "lease.updated"
+        | "lease.deleted"
+        | "lease.signed"
+        | "payment.created"
+        | "payment.failed"
+        | "subscription.created"
+        | "subscription.canceled"
+        | "admin.action"
+        | "system.error"
+        | "system.warning"
       signature_method: "in_app" | "docuseal"
       stripe_subscription_status: "none" | "pending" | "active" | "failed"
       unit_status: "available" | "occupied" | "maintenance" | "reserved"
@@ -2190,9 +2249,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       invitation_type: ["platform_access", "lease_signing"],
@@ -2222,6 +2278,37 @@ export const Constants = {
         "requires_action",
       ],
       property_status: ["active", "inactive", "sold"],
+      security_event_severity: [
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "critical",
+      ],
+      security_event_type: [
+        "auth.login",
+        "auth.logout",
+        "auth.failed_login",
+        "auth.password_change",
+        "auth.password_reset",
+        "user.created",
+        "user.updated",
+        "user.deleted",
+        "property.created",
+        "property.updated",
+        "property.deleted",
+        "lease.created",
+        "lease.updated",
+        "lease.deleted",
+        "lease.signed",
+        "payment.created",
+        "payment.failed",
+        "subscription.created",
+        "subscription.canceled",
+        "admin.action",
+        "system.error",
+        "system.warning",
+      ],
       signature_method: ["in_app", "docuseal"],
       stripe_subscription_status: ["none", "pending", "active", "failed"],
       unit_status: ["available", "occupied", "maintenance", "reserved"],

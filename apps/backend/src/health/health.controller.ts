@@ -14,6 +14,7 @@ import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 import { AppLogger } from '../logger/app-logger.service'
+import { BullMqHealthIndicator } from './bullmq.health'
 
 const HEALTH_THROTTLE = createThrottleDefaults({
 	envTtlKey: 'HEALTH_THROTTLE_TTL',
@@ -31,6 +32,7 @@ export class HealthController {
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
+		private readonly bullmq: BullMqHealthIndicator,
 		private readonly stripeSyncService: StripeSyncService, private readonly logger: AppLogger) {}
 
 	/**
@@ -50,7 +52,10 @@ export class HealthController {
 	@SetMetadata('isPublic', true)
 	@HealthCheck()
 	ready() {
-		return this.health.check([() => this.supabase.quickPing('database')])
+		return this.health.check([
+			() => this.supabase.quickPing('database'),
+			() => this.bullmq.quickPing('redis')
+		])
 	}
 
 	/**

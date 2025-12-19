@@ -5,10 +5,12 @@
 
 import { Injectable } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
+import { InjectQueue } from '@nestjs/bullmq'
+import type { Queue } from 'bullmq'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'
-import { EmailService } from '../email/email.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { EmailJob } from '../email/email.queue'
 import {
 	MaintenanceUpdatedEvent,
 	PaymentReceivedEvent,
@@ -55,7 +57,8 @@ export class NotificationEventHandlerService {
 
 	constructor(private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
-		private readonly emailService: EmailService, private readonly logger: AppLogger) {}
+		private readonly logger: AppLogger,
+		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>) {}
 
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
@@ -232,7 +235,7 @@ export class NotificationEventHandlerService {
 						email,
 						unit_id,
 						owner_user_id,
-						
+
 						unit:unit_id(
 							unit_number,
 							property_id,
@@ -254,13 +257,16 @@ export class NotificationEventHandlerService {
 
 				}
 
-				await this.emailService.sendTenantInvitationEmail({
-					tenantEmail: event.email,
-					invitationUrl: event.invitationUrl,
-					expiresAt: event.expiresAt,
-					...(propertyName && { propertyName }),
-					...(unitNumber && { unitNumber }),
-					...(ownerName && { ownerName })
+				await this.emailQueue.add('tenant-invitation', {
+					type: 'tenant-invitation',
+					data: {
+						tenantEmail: event.email,
+						invitationUrl: event.invitationUrl,
+						expiresAt: event.expiresAt,
+						...(propertyName && { propertyName }),
+						...(unitNumber && { unitNumber }),
+						...(ownerName && { ownerName })
+					}
 				})
 			},
 			'tenant.invitation.sent',
@@ -319,13 +325,16 @@ export class NotificationEventHandlerService {
 					}
 				}
 
-				await this.emailService.sendTenantInvitationEmail({
-					tenantEmail: event.email,
-					invitationUrl: event.invitation_url,
-					expiresAt: event.expires_at,
-					...(propertyName && { propertyName }),
-					...(unitNumber && { unitNumber }),
-					...(ownerName && { ownerName })
+				await this.emailQueue.add('tenant-invitation', {
+					type: 'tenant-invitation',
+					data: {
+						tenantEmail: event.email,
+						invitationUrl: event.invitation_url,
+						expiresAt: event.expires_at,
+						...(propertyName && { propertyName }),
+						...(unitNumber && { unitNumber }),
+						...(ownerName && { ownerName })
+					}
 				})
 			},
 			'tenant.platform_invitation.sent',

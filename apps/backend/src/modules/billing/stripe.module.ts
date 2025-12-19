@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { BullModule } from '@nestjs/bullmq'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
@@ -15,9 +16,9 @@ import { ConnectBillingService } from './connect-billing.service'
 import { ConnectPayoutsService } from './connect-payouts.service'
 import { StripeConnectController } from './stripe-connect.controller'
 import { StripeTenantController } from './stripe-tenant.controller'
-import { WebhookRetryService } from './webhook-retry.service'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { WebhookProcessor } from './webhook-processor.service'
+import { StripeWebhookQueueProcessor } from './stripe-webhook.queue'
 import {
 	SubscriptionWebhookHandler,
 	PaymentWebhookHandler,
@@ -27,6 +28,10 @@ import {
 import { UsersModule } from '../users/users.module'
 import { BillingService } from './billing.service'
 import { StripeSharedService } from './stripe-shared.service'
+
+const WORKERS_ENABLED =
+	process.env.BULLMQ_WORKERS_ENABLED !== 'false' &&
+	process.env.BULLMQ_WORKERS_ENABLED !== '0'
 
 /**
  * Production-Grade Stripe Module
@@ -44,7 +49,24 @@ import { StripeSharedService } from './stripe-shared.service'
 		EmailModule,
 		SecurityModule,
 		MetricsModule,
-		UsersModule
+		UsersModule,
+		BullModule.registerQueue({
+			name: 'stripe-webhooks',
+			defaultJobOptions: {
+				attempts: 5, // More retries for critical webhooks
+				backoff: {
+					type: 'exponential',
+					delay: 2000 // 2s, 4s, 8s, 16s, 32s
+				},
+				removeOnComplete: {
+					age: 24 * 3600, // Keep completed jobs for 24 hours
+					count: 1000
+				},
+				removeOnFail: {
+					age: 7 * 24 * 3600 // Keep failed jobs for 7 days
+				}
+			}
+		})
 	],
 	providers: [
 		StripeService,
@@ -64,7 +86,7 @@ import { StripeSharedService } from './stripe-shared.service'
 		CheckoutWebhookHandler,
 		ConnectWebhookHandler,
 		WebhookProcessor,
-		WebhookRetryService
+		...(WORKERS_ENABLED ? [StripeWebhookQueueProcessor] : [])
 	],
 	controllers: [
 		StripeController,
@@ -83,7 +105,8 @@ import { StripeSharedService } from './stripe-shared.service'
 		StripeConnectService,
 		ConnectSetupService,
 		ConnectBillingService,
-		ConnectPayoutsService
+		ConnectPayoutsService,
+		BullModule
 	]
 })
 export class StripeModule {}
