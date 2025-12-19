@@ -278,7 +278,7 @@ describe('LeasePdfGeneratorService', () => {
 					exists: true,
 					size: 1024,
 					fields: ['field1', 'field2'],
-					path: '/assets/Texas_residential_Lease_Agreement.pdf',
+					path: '/modules/pdf/templates/Texas_Residential_Lease_Agreement.pdf',
 					stateCode: 'TX',
 					templateType: 'RESIDENTIAL' as const
 				}
@@ -298,7 +298,7 @@ describe('LeasePdfGeneratorService', () => {
 					exists: false,
 					size: 0,
 					fields: [],
-					path: '/assets/California_residential_Lease_Agreement.pdf',
+					path: '/modules/pdf/templates/California_Residential_Lease_Agreement.pdf',
 					stateCode: 'CA',
 					templateType: 'RESIDENTIAL' as const
 				}
@@ -310,7 +310,7 @@ describe('LeasePdfGeneratorService', () => {
 
 				expect(templateCache.getTemplateMetadata).toHaveBeenCalledWith('CA')
 				expect(result.exists).toBe(false)
-				expect(result.path).toContain('California_residential_Lease_Agreement.pdf')
+				expect(result.path).toContain('California_Residential_Lease_Agreement.pdf')
 			})
 		})
 

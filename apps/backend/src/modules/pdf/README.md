@@ -8,15 +8,15 @@ Currently, the system supports the following state templates:
 
 | State Code | State Name | Template File | Status |
 |-------------|-------------|---------------|--------|
-| TX | Texas | `Texas_residential_Lease_Agreement.pdf` | ✅ Available |
+| TX | Texas | `Texas_Residential_Lease_Agreement.pdf` | ✅ Available |
 
 ### Template File Naming Convention
 
 Templates follow the naming pattern: `{StateName}_{TemplateType}_Lease_Agreement.pdf`
 
 - **StateName**: Full state name (e.g., Texas, California, New_York)
-- **TemplateType**: Currently only `residential` is supported
-- **Location**: All templates are stored in `/assets/` directory
+- **TemplateType**: Uses TitleCase in filenames (e.g. `Residential`); currently only residential is supported
+- **Location**: All templates are stored in `src/modules/pdf/templates/` (copied to `dist/` by `nest-cli.json`)
 
 ### Template Type Support
 
@@ -96,7 +96,7 @@ This architecture ensures:
 Run the test suite to verify functionality:
 
 ```bash
-npm test -- pdf/lease-pdf-generator.service.spec.ts
+pnpm -C apps/backend test -- pdf/lease-pdf-generator.service.spec.ts
 ```
 
 The tests cover:

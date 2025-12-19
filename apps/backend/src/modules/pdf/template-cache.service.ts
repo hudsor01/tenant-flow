@@ -74,6 +74,11 @@ export interface TemplateMetadata {
 	stateCode: SupportedStateCode
 
 	/**
+	 * State name (e.g. "Texas")
+	 */
+	stateName?: string
+
+	/**
 	 * Template type
 	 */
 	templateType: TemplateType
@@ -444,10 +449,21 @@ export class TemplateCacheService implements OnModuleInit {
 	): Promise<TemplateMetadata> {
 		const stateName = SUPPORTED_STATES[stateCode] || DEFAULT_STATE_NAME
 		const templateTypeValue = TEMPLATE_TYPES[templateType]
-		const fileName = `${stateName}_${templateTypeValue}_Lease_Agreement.pdf`
+
+		// Template filenames use TitleCase for the template type (e.g. "Residential", "Commercial")
+		const templateTypeForFileName =
+			templateTypeValue.charAt(0).toUpperCase() + templateTypeValue.slice(1)
+		const fileName = `${stateName}_${templateTypeForFileName}_Lease_Agreement.pdf`
 
 		// Expected base directories for security validation
 		const expectedBases = [
+			// Configured template location (copied by nest-cli into dist/)
+			path.resolve(__dirname, 'templates'),
+			// From repo root (CI context)
+			path.resolve(process.cwd(), 'apps', 'backend', 'src', 'modules', 'pdf', 'templates'),
+			// From backend root (local execution)
+			path.resolve(process.cwd(), 'src', 'modules', 'pdf', 'templates'),
+			// Backward compatibility: legacy assets locations
 			path.resolve(__dirname, '..', '..', '..', 'assets'),
 			path.resolve(process.cwd(), 'apps', 'backend', 'assets'),
 			path.resolve(process.cwd(), 'assets'),
@@ -456,11 +472,16 @@ export class TemplateCacheService implements OnModuleInit {
 		// Try multiple possible paths to handle different execution contexts
 		const possiblePaths = [
 			// From compiled dist/modules/pdf/ or src/modules/pdf/
-			path.resolve(__dirname, '..', '..', '..', 'assets', fileName),
+			path.resolve(__dirname, 'templates', fileName),
 			// From repo root (CI context)
-			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
+			path.resolve(process.cwd(), 'apps', 'backend', 'src', 'modules', 'pdf', 'templates', fileName),
 			// From backend root (local execution)
+			path.resolve(process.cwd(), 'src', 'modules', 'pdf', 'templates', fileName),
+			// Legacy: assets directory (older layout)
+			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
 			path.resolve(process.cwd(), 'assets', fileName),
+			path.resolve(__dirname, '..', '..', '..', 'assets', fileName),
+			path.resolve(__dirname, '..', '..', '..', '..', '..', 'apps', 'backend', 'assets', fileName),
 		]
 
 		// Try each path until we find one that exists
@@ -513,6 +534,7 @@ export class TemplateCacheService implements OnModuleInit {
 					fields,
 					path: templatePath,
 					stateCode,
+					stateName,
 					templateType
 				}
 			} catch {
