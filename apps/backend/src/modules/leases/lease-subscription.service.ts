@@ -13,7 +13,7 @@
 
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { SupabaseService } from '../../database/supabase.service'
+import type { SupabaseService } from '../../database/supabase.service'
 import { StripeConnectService } from '../billing/stripe-connect.service'
 import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -43,9 +43,11 @@ interface SignatureData {
 @Injectable()
 export class LeaseSubscriptionService {
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
 		private readonly eventEmitter: EventEmitter2,
-		private readonly stripeConnectService: StripeConnectService, private readonly logger: AppLogger) {}
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Activate a fully-signed lease and create Stripe subscription

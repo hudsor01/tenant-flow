@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common'
 import { TerminusModule } from '@nestjs/terminus'
 import { SupabaseModule } from '../database/supabase.module'
 import { SupabaseService } from '../database/supabase.service'
+import { EmailModule } from '../modules/email/email.module'
 import { StripeModule } from '../modules/billing/stripe.module'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
 import { MetricsService } from './metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
+import { BullMqHealthIndicator } from './bullmq.health'
 
 // Factory provider pattern for explicit SupabaseService injection
 const SupabaseServiceFactory = {
@@ -22,6 +24,7 @@ const SupabaseServiceFactory = {
 	imports: [
 		TerminusModule.forRoot(),
 		SupabaseModule,
+		EmailModule,
 		StripeModule // StripeModule exports StripeSyncService
 	],
 	controllers: [HealthController],
@@ -30,6 +33,7 @@ const SupabaseServiceFactory = {
 		MetricsService,
 		CircuitBreakerService,
 		SupabaseHealthIndicator,
+		BullMqHealthIndicator,
 		SupabaseServiceFactory
 	],
 	exports: []

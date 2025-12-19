@@ -155,7 +155,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', user_id: 'user-1' }
 				mockQueryService.findOne.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOne('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
+				const result = await controller.findOne('tenant-1', MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOne).toHaveBeenCalledWith('tenant-1', MOCK_JWT_TOKEN)
@@ -171,7 +171,7 @@ describe('TenantsController', () => {
 				const mockTenant = { id: 'tenant-1', lease: { id: 'lease-1' } }
 				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOneWithLease('tenant-1', mockReq as any, MOCK_JWT_TOKEN)
+				const result = await controller.findOneWithLease('tenant-1', MOCK_JWT_TOKEN)
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith('tenant-1', MOCK_JWT_TOKEN)
