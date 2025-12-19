@@ -489,13 +489,14 @@ describe('LeasesController', () => {
 			const result = await controller.sendForSignature(
 				lease_id,
 				mockRequest as any,
+				'mock-jwt-token',
 				{ message: 'Please review and sign' }
 			)
 
 			expect(mockSignatureService.sendForSignature).toHaveBeenCalledWith(
 				'owner-123',
 				lease_id,
-				{ message: 'Please review and sign', templateId: undefined }
+				{ token: 'mock-jwt-token', message: 'Please review and sign' }
 			)
 			expect(result).toEqual({ success: true })
 		})
@@ -507,7 +508,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, {})
+				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
 			).rejects.toThrow(NotFoundException)
 		})
 
@@ -518,7 +519,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, {})
+				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
 			).rejects.toThrow(BadRequestException)
 		})
 
@@ -529,7 +530,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, {})
+				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
 			).rejects.toThrow(ForbiddenException)
 		})
 	})

@@ -154,7 +154,6 @@ export class TenantsController {
 	@Get(':id/with-lease')
 	async findOneWithLease(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
 		@JwtToken() token: string
 	) {
 		const tenantWithLease = await this.queryService.findOneWithLease(
@@ -170,7 +169,6 @@ export class TenantsController {
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
 		@JwtToken() token: string
 	) {
 		const tenant = await this.queryService.findOne(id, token)

@@ -27,6 +27,7 @@ import { Label } from '#components/ui/label'
 import { RenewLeaseDialog } from '#app/(owner)/leases/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#app/(owner)/leases/terminate-lease-dialog'
 import { PayRentDialog } from '#components/leases/pay-rent-dialog'
+import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import {
 	CreditCard,
@@ -34,12 +35,11 @@ import {
 	MoreVertical,
 	PenLine,
 	RotateCcw,
-	Send,
 	Trash2,
 	X
 } from 'lucide-react'
 import { LEASE_STATUS } from '#lib/constants/status-values'
-import { useDeleteLease, useSendLeaseForSignature, useSignLeaseAsOwner } from '#hooks/api/use-lease'
+import { useDeleteLease, useSignLeaseAsOwner } from '#hooks/api/use-lease'
 import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
@@ -47,7 +47,6 @@ interface LeaseActionButtonsProps {
 }
 
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
-	const sendForSignature = useSendLeaseForSignature()
 	const signAsOwner = useSignLeaseAsOwner()
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 	const [showViewDialog, setShowViewDialog] = useState(false)
@@ -67,15 +66,6 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
 	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
 	const ownerHasSigned = !!lease.owner_signed_at
-
-	const handleSendForSignature = async () => {
-		try {
-			await sendForSignature.mutateAsync({ leaseId: lease.id })
-			toast.success('Lease sent for signature')
-		} catch {
-			toast.error('Failed to send lease for signature')
-		}
-	}
 
 	const handleSignAsOwner = async () => {
 		try {
@@ -114,27 +104,21 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 				View
 			</Button>
 
+			{isDraft && (
+				<SendForSignatureButton
+					leaseId={lease.id}
+					variant="outline"
+					size="sm"
+				/>
+			)}
+
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Button variant="outline" size="sm">
+					<Button variant="outline" size="sm" aria-label="Lease actions">
 						<MoreVertical className="size-4" />
 					</Button>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="end">
-					{isDraft && (
-						<>
-							<DropdownMenuItem
-								onClick={handleSendForSignature}
-								disabled={sendForSignature.isPending}
-								className="gap-2"
-							>
-								<Send className="size-4" />
-								{sendForSignature.isPending ? 'Sending...' : 'Send for Signature'}
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-						</>
-					)}
-
 					{isPendingSignature && !ownerHasSigned && (
 						<>
 							<DropdownMenuItem

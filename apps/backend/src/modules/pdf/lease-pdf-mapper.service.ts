@@ -227,7 +227,7 @@ export class LeasePdfMapperService {
 	 */
 	mergeMissingFields(
 		autoFilled: LeasePdfFields,
-		userProvided: { [key: string]: string }
+		userProvided: Partial<Pick<LeasePdfFields, 'immediate_family_members' | 'landlord_notice_address'>>
 	): LeasePdfFields {
 		return {
 			...autoFilled,

@@ -10,6 +10,7 @@ const BASE_CONFIG = {
   SB_SECRET_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test_service_role_key',
   SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
   PROJECT_REF: 'project-ref',
+  REDIS_URL: 'redis://redis:6379',
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
   STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret',
   SUPPORT_EMAIL: 'support@tenantflow.app',
@@ -59,6 +60,22 @@ describe('Configuration Schema Validation', () => {
 			delete config.DATABASE_URL
 
 			expect(() => validate(config)).toThrow('DATABASE_URL')
+		})
+
+		it('should throw error for missing Redis config in production', () => {
+			const config = createValidConfig()
+			delete config.REDIS_URL
+
+			expect(() => validate(config)).toThrow('Redis is required in production')
+		})
+
+		it('should throw error for localhost Redis in production', () => {
+			const config = createValidConfig()
+			config.REDIS_URL = 'redis://localhost:6379'
+
+			expect(() => validate(config)).toThrow(
+				'Production Redis must not point to localhost'
+			)
 		})
 
 		it('should throw error for short JWT_SECRET', () => {

@@ -2,7 +2,7 @@
  * Webhook Processor Service
  *
  * Orchestrates Stripe webhook event processing by delegating to focused handlers.
- * Used by both StripeWebhookController and WebhookRetryService.
+ * Used by StripeWebhookQueueProcessor.
  *
  * RESPONSIBILITY: Event routing only - no business logic
  * Business logic is in domain-specific handlers:
