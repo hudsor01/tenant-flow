@@ -406,6 +406,15 @@ describe('LeasePdfGeneratorService', () => {
 
 		describe('Error Handling', () => {
 			it('should handle PDF generation errors gracefully', async () => {
+				// Mock metadata check to pass so we reach getTemplateContent
+				jest.spyOn(templateCache, 'getTemplateMetadata')
+					.mockResolvedValue({
+						exists: true,
+						path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
+						stateCode: 'TX',
+						stateName: 'Texas'
+					})
+
 				jest.spyOn(templateCache, 'getTemplateContent')
 					.mockRejectedValue(new Error('Template load failed'))
 
@@ -426,6 +435,15 @@ describe('LeasePdfGeneratorService', () => {
 
 			it('should preserve original error when BadRequestException', async () => {
 				const badRequestError = new BadRequestException('Custom error')
+
+				// Mock metadata check to pass so we reach getTemplateContent
+				jest.spyOn(templateCache, 'getTemplateMetadata')
+					.mockResolvedValue({
+						exists: true,
+						path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
+						stateCode: 'TX',
+						stateName: 'Texas'
+					})
 
 				jest.spyOn(templateCache, 'getTemplateContent')
 					.mockRejectedValue(badRequestError)
