@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common'
+import { BullModule } from '@nestjs/bullmq'
 import { SupabaseModule } from '../../database/supabase.module'
 import { SharedModule } from '../../shared/shared.module'
 import { PDFModule } from '../pdf/pdf.module'
@@ -6,6 +7,7 @@ import { StripeModule } from '../billing/stripe.module'
 import { DocuSealModule } from '../docuseal/docuseal.module'
 import { EmailModule } from '../email/email.module'
 import { LeasesController } from './leases.controller'
+import { LeasesPdfQueueController } from './leases-pdf-queue.controller'
 import { LeasesService } from './leases.service'
 import { LeaseFinancialService } from './lease-financial.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
@@ -16,6 +18,7 @@ import { LeaseSignatureService } from './lease-signature.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
 import { SubscriptionRetryService } from './subscription-retry.service'
 import { SubscriptionAlertListener } from './listeners/subscription-alert.listener'
+import { PdfGenerationProcessor } from '../pdf/pdf-generation.processor'
 import { TenantsModule } from '../tenants/tenants.module'
 
 /**
@@ -43,9 +46,20 @@ import { TenantsModule } from '../tenants/tenants.module'
 		SharedModule,
 		StripeModule, // For billing when lease is activated
 		DocuSealModule, // For e-signature via self-hosted DocuSeal
-		EmailModule // For subscription failure alerts
+		EmailModule, // For subscription failure alerts
+		BullModule.registerQueue({
+			name: 'pdf-generation',
+			defaultJobOptions: {
+				removeOnComplete: 100, // Keep last 100 successful jobs for debugging
+				attempts: 3, // Retry failed jobs 3 times
+				backoff: {
+					type: 'exponential',
+					delay: 5000 // Start with 5s, then 10s, then 20s
+				}
+			}
+		})
 	],
-	controllers: [LeasesController],
+	controllers: [LeasesController, LeasesPdfQueueController],
 	providers: [
 		LeasesService,
 		LeaseFinancialService,
@@ -56,7 +70,8 @@ import { TenantsModule } from '../tenants/tenants.module'
 		LeaseSignatureService,
 		LeaseSubscriptionService, // Handles Stripe subscription creation (SRP split)
 		SubscriptionRetryService, // Background job for retrying failed subscriptions
-		SubscriptionAlertListener // Event listener for subscription failure alerts
+		SubscriptionAlertListener, // Event listener for subscription failure alerts
+		PdfGenerationProcessor // Queue processor for async PDF generation
 	],
 	exports: [
 		LeasesService,

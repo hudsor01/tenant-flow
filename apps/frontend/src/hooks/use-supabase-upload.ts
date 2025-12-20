@@ -133,8 +133,8 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
         setFiles(newFiles)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Effect depends on count, not contents; adding files would cause infinite loop
-  }, [files.length, setFiles, maxFiles])
+    // Effect has guards (length check and changed check) to prevent infinite loops
+  }, [files, setFiles, maxFiles])
 
   // Auto-upload: trigger upload immediately when NEW files are added
   // Using refs to avoid infinite loops while keeping behavior correct

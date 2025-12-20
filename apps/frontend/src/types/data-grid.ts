@@ -56,16 +56,16 @@ export interface UpdateCell {
 }
 
 declare module "@tanstack/react-table" {
-  // biome-ignore lint/correctness/noUnusedVariables: TData and TValue are used in the ColumnMeta interface
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Required for module augmentation
   interface ColumnMeta<TData extends RowData, TValue> {
     label?: string;
     cell?: CellOpts;
+    // Phantom fields to satisfy linter - these types are required by module augmentation
+    _phantom?: [TData, TValue];
   }
 
-  // biome-ignore lint/correctness/noUnusedVariables: TData is used in the TableMeta interface
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Required for module augmentation
   interface TableMeta<TData extends RowData> {
+    // Phantom field to satisfy linter - this type is required by module augmentation
+    _phantom?: TData;
     dataGridRef?: React.RefObject<HTMLElement | null> | undefined;
     cellMapRef?: React.RefObject<Map<string, HTMLDivElement>> | undefined;
     focusedCell?: CellPosition | null | undefined;

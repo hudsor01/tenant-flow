@@ -41,8 +41,9 @@ export function DataTableFacetedFilter<TData, TValue>({
 
   const columnFilterValue = column?.getFilterValue();
   const selectedValues = React.useMemo(
-    () =>
-      new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []),
+    () => new Set(
+      Array.isArray(columnFilterValue) ? columnFilterValue : [],
+    ),
     [columnFilterValue],
   );
 
