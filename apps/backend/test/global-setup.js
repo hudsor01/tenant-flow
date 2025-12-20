@@ -31,7 +31,10 @@ module.exports = async () => {
 	}
 
 	// Set default test values for required config variables if not already set
+	// This handles CI environments that don't have Doppler or real secrets
 	const requiredTestVars = {
+		SUPABASE_URL: 'http://127.0.0.1:54321',
+		SUPABASE_PUBLISHABLE_KEY: 'test-publishable-key',
 		NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
 		DATABASE_URL: 'postgresql://test:test@localhost:5432/test_db',
 		JWT_SECRET: 'test_jwt_secret_min_32_characters_long_for_testing_only',
