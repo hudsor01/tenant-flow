@@ -2,24 +2,22 @@
 import type { Database } from './supabase.js'
 import type { ControllerApiResponse as _ControllerApiResponse } from './errors.js'
 
+// Import shared primitives from base-types to avoid circular dependencies
+export type {
+	ApiError,
+	FrontendApiError,
+	ErrorType,
+	ErrorSeverity,
+	ExtendedAppError,
+	AsyncResult
+} from './base-types.js'
+
 export type { _ControllerApiResponse as ControllerApiResponse }
 
 type Lease = Database['public']['Tables']['leases']['Row']
 type Property = Database['public']['Tables']['properties']['Row']
 type Unit = Database['public']['Tables']['units']['Row']
 type Tenant = Database['public']['Tables']['tenants']['Row']
-
-export interface ApiError {
-	message: string
-	statusCode: number
-	error?: string
-}
-export interface FrontendApiError {
-	message: string
-	code?: string
-	details?: Record<string, unknown>
-	timestamp?: string
-}
 
 export interface RequestConfig {
 	params?: Record<string, string | number | boolean | string[] | undefined>
@@ -202,34 +200,6 @@ export interface UseActionStateFormReturn {
 	) => (formData: FormData) => void
 	reset: () => void
 }
-
-// Error handling types
-export type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical'
-
-export type ErrorType =
-	| 'VALIDATION_ERROR'
-	| 'NETWORK_ERROR'
-	| 'AUTHENTICATION_ERROR'
-	| 'AUTHORIZATION_ERROR'
-	| 'NOT_FOUND_ERROR'
-	| 'CONFLICT_ERROR'
-	| 'RATE_LIMIT_ERROR'
-	| 'INTERNAL_ERROR'
-	| 'EXTERNAL_SERVICE_ERROR'
-	| 'UNKNOWN_ERROR'
-
-export interface ExtendedAppError extends Error {
-	code: ErrorType
-	severity: ErrorSeverity
-	context?: Record<string, unknown>
-	userMessage?: string
-	retryable?: boolean
-	timestamp?: Date
-}
-
-export type AsyncResult<T> =
-	| { success: true; data: T; error?: never }
-	| { success: false; error: ExtendedAppError; data?: never }
 
 // API client loading states
 export interface UseApiCallOptions<TData = unknown> {
