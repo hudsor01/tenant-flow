@@ -1892,6 +1892,10 @@ export type Database = {
           success: boolean
         }[]
       }
+      assert_can_create_lease: {
+        Args: { p_primary_tenant_id: string; p_unit_id: string }
+        Returns: boolean
+      }
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
@@ -1921,6 +1925,15 @@ export type Database = {
         Returns: Json
       }
       get_histogram_timings: { Args: never; Returns: string }
+      get_lead_paint_compliance_report: {
+        Args: never
+        Returns: {
+          compliance_percentage: number
+          compliant_leases: number
+          non_compliant_leases: number
+          total_pre_1978_leases: number
+        }[]
+      }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
       get_metric_trend: {
         Args: { p_metric_name: string; p_period?: string; p_user_id: string }
@@ -1982,6 +1995,18 @@ export type Database = {
         Returns: Record<string, unknown>[]
       }
       ledger_aggregation: { Args: never; Returns: Json }
+      log_user_error: {
+        Args: {
+          p_context?: Json
+          p_error_code?: string
+          p_error_message?: string
+          p_error_stack?: string
+          p_error_type: string
+          p_ip_address?: string
+          p_user_agent?: string
+        }
+        Returns: string
+      }
       parse_address: { Args: { "": string }; Returns: Record<string, unknown> }
       pg_stat_monitor_internal: {
         Args: { showtext: boolean }
