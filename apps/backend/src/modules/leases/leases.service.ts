@@ -75,35 +75,8 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically filters to user's leases
 			const client = this.supabase.getUserClient(token)
 
-			// Build single query with relations to avoid N+1 queries in frontend
-			// PERFORMANCE FIX: Includes tenant, unit, and property data in single query
-			// Eliminates 3 requests → 1 request (200-400ms savings)
-			let queryBuilder = client.from('leases').select(`
-				*,
-				tenant:tenants!primary_tenant_id(
-					id,
-					full_name,
-					email,
-					phone,
-					user_id
-				),
-				unit:units!unit_id(
-					id,
-					unit_number,
-					property_id,
-					floor,
-					bedrooms,
-					bathrooms
-				),
-				property:properties(
-					id,
-					name,
-					address,
-					city,
-					state,
-					zip_code
-				)
-			`, { count: 'exact' })
+		// Build single query with both data and count (NO manual user_id/unit_id filtering needed)
+			let queryBuilder = client.from('leases').select('*', { count: 'exact' })
 
 			// Apply filters
 			if (query.property_id) {
@@ -228,129 +201,124 @@ export class LeasesService {
 	 */
 	async create(token: string, dto: CreateLeaseDto): Promise<Lease> {
 		try {
-			if (!token) {
-				this.logger.warn('Create lease called without token')
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			const unitId = dto.unit_id
-			const tenantId = dto.primary_tenant_id
-
-			if (!unitId) {
-				throw new BadRequestException('unit_id is required')
-			}
-			if (!tenantId) {
-				throw new BadRequestException('primary_tenant_id is required')
-			}
-
-			const parseDateOnly = (value: string): Date | null => {
-				if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null
-				const date = new Date(`${value}T00:00:00.000Z`)
-				if (Number.isNaN(date.getTime())) return null
-				const [year, month, day] = value.split('-').map(Number)
-				if (
-					date.getUTCFullYear() !== year ||
-					date.getUTCMonth() + 1 !== month ||
-					date.getUTCDate() !== day
-				) {
-					return null
-				}
-				return date
-			}
-
-			if (!dto.start_date || !dto.end_date) {
-				throw new BadRequestException('Start date and end date are required')
-			}
-
-			const startDate = parseDateOnly(dto.start_date)
-			const endDate = parseDateOnly(dto.end_date)
-
-			if (!startDate || !endDate) {
-				throw new BadRequestException('Invalid date format (YYYY-MM-DD required)')
-			}
-			if (endDate <= startDate) {
-				throw new BadRequestException('End date must be after start date')
-			}
-
-			if (!dto.rent_amount || dto.rent_amount <= 0) {
-				throw new BadRequestException('Rent amount must be positive')
-			}
-
-			const paymentDay = dto.payment_day ?? 1
-			if (paymentDay < 1 || paymentDay > 31) {
-				throw new BadRequestException('Payment day must be between 1 and 31')
-			}
-
-			const validStatuses: LeaseStatus[] = [
-				'draft',
-				'pending_signature',
-				'active',
-				'ended',
-				'terminated'
-			]
-			if (dto.lease_status && !validStatuses.includes(dto.lease_status as LeaseStatus)) {
-				throw new BadRequestException('Invalid lease status')
-			}
-			const leaseStatus = (dto.lease_status as LeaseStatus | undefined) ?? 'draft'
-
-			// Lead paint disclosure requirement
-			if (
-				dto.property_built_before_1978 === true &&
-				dto.lead_paint_disclosure_acknowledged !== true
-			) {
+			if (!token || !dto.unit_id || !dto.primary_tenant_id) {
+				this.logger.warn('Create lease called with missing parameters', {
+					dto
+				})
 				throw new BadRequestException(
-					'Lead paint disclosure acknowledgment is required for properties built before 1978'
+					'Authentication token, unit ID, and primary tenant ID are required'
 				)
 			}
 
-			this.logger.log('Creating lease via RLS-protected query', { dto })
+			this.logger.log('Creating lease via RLS-protected query', {
+				dto
+			})
 
-			// RLS SECURITY: User-scoped client automatically validates unit access + insert permissions
+			// RLS SECURITY: User-scoped client automatically validates unit/tenant ownership
 			const client = this.supabase.getUserClient(token)
 
-			// Fetch unit (RLS-protected). If the owner can't see it, they can't create a lease for it.
-			const { data: unit, error: unitError } = await client
-				.from('units')
-				.select('id, owner_user_id, property_id, property:properties(name)')
-				.eq('id', unitId)
-				.maybeSingle()
+			// Parallelize independent queries for performance (~40-80ms saved)
+			// Unit and tenant queries don't depend on each other
+			const [unitResult, tenantResult] = await Promise.all([
+				client
+					.from('units')
+					.select('id, property_id, property:properties(name, owner_user_id)')
+					.eq('id', dto.unit_id)
+					.single(),
+				client
+					.from('tenants')
+					.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
+					.eq('id', dto.primary_tenant_id)
+					.single()
+			])
 
-			if (unitError) {
-				this.logger.warn('Failed to fetch unit during lease creation', {
-					error: unitError.message,
-					unitId
-				})
-			}
+			const unit = unitResult.data
+			const tenant = tenantResult.data
 
 			if (!unit) {
 				throw new BadRequestException('Unit not found or access denied')
 			}
 
-			// IMPORTANT: Owners cannot SELECT tenants/users due to RLS.
-			// Use a tightly-scoped SECURITY DEFINER RPC to validate:
-			// - tenant exists
-			// - tenant has an invitation to this unit
-			// - invitation is accepted
-			// This keeps the write path user-scoped (no service role) while preserving correct access control.
-			const { error: inviteError } = await client.rpc('assert_can_create_lease', {
-				p_unit_id: unitId,
-				p_primary_tenant_id: tenantId
-			})
-
-			if (inviteError) {
-				throw new BadRequestException(inviteError.message)
+			if (!tenant) {
+				throw new BadRequestException('Tenant not found or access denied')
 			}
 
-			const insertData: Database['public']['Tables']['leases']['Insert'] = {
-				primary_tenant_id: tenantId,
-				unit_id: unitId,
-				owner_user_id: unit.owner_user_id,
-				start_date: dto.start_date!, // Validated above
-				end_date: dto.end_date!, // Validated above
-				rent_amount: dto.rent_amount!, // Validated above
-				security_deposit: dto.security_deposit ?? 0,
-				lease_status: leaseStatus,
-				payment_day: paymentDay,
+			// Verify tenant was invited to this property
+			// Uses accepted_at IS NOT NULL (per user decision: ignore status after acceptance)
+			const { data: invitation } = await client
+				.from('tenant_invitations')
+				.select('id')
+				.eq('property_id', unit.property_id)
+				.eq('accepted_by_user_id', tenant.user_id)
+				.not('accepted_at', 'is', null)
+				.maybeSingle()
+
+			if (!invitation) {
+				// Enrich error message with context for better debugging
+				// Type-safe access to user relation (query includes user join)
+			type UserInfo = { first_name: string | null; last_name: string | null; email: string | null } | null
+			const tenantUser: UserInfo = tenant.user
+				const tenantName = tenantUser
+					? [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ') || tenantUser.email || 'Unknown'
+					: 'Unknown tenant'
+
+				// Type-safe access to property relation (query includes property join)
+			type PropertyInfo = { name: string | null } | null
+			const propertyInfo: PropertyInfo = unit.property
+			const propertyName = propertyInfo?.name || 'this property'
+
+				this.logger.warn('Lease creation failed: Tenant not invited to property', {
+					tenant_id: dto.primary_tenant_id,
+					tenant_name: tenantName,
+					property_id: unit.property_id,
+					property_name: propertyName,
+					unit_id: dto.unit_id
+				})
+
+				throw new BadRequestException(
+				`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
+			)
+		}
+
+		// RACE CONDITION FIX: Check for existing active lease before creating new one
+		// This prevents duplicate leases for the same tenant+unit combination
+		const { data: existingLease } = await client
+			.from('leases')
+			.select('id, lease_status')
+			.eq('primary_tenant_id', dto.primary_tenant_id)
+			.eq('unit_id', dto.unit_id)
+			.not('lease_status', 'in', '("ended","terminated")')
+			.maybeSingle()
+
+		if (existingLease) {
+			this.logger.warn('Attempted to create duplicate active lease', {
+				existing_lease_id: existingLease.id,
+				existing_lease_status: existingLease.lease_status,
+				tenant_id: dto.primary_tenant_id,
+				unit_id: dto.unit_id
+			})
+			throw new BadRequestException(
+				`An active lease already exists for this tenant and unit (status: ${existingLease.lease_status}). Please end or terminate the existing lease before creating a new one.`
+			)
+		}
+
+			// Extract owner_user_id from property relation with type safety
+		type PropertyWithOwner = { name: string | null; owner_user_id: string | null } | null
+		const property: PropertyWithOwner = unit.property
+		if (!property?.owner_user_id) {
+			throw new BadRequestException('Property owner not found')
+		}
+
+		const insertData: Database['public']['Tables']['leases']['Insert'] = {
+			primary_tenant_id: dto.primary_tenant_id,
+			unit_id: dto.unit_id,
+			owner_user_id: property.owner_user_id,
+			start_date: dto.start_date!,
+				end_date: dto.end_date || '',
+				rent_amount: dto.rent_amount!,
+				security_deposit: dto.security_deposit || 0,
+				lease_status: (dto.lease_status || 'draft') as Database['public']['Enums']['lease_status'],
+				payment_day: dto.payment_day ?? 1,
 				rent_currency: dto.rent_currency || 'USD',
 				grace_period_days: dto.grace_period_days ?? null,
 				late_fee_amount: dto.late_fee_amount ?? null,
@@ -418,7 +386,7 @@ export class LeasesService {
 					error: error.message,
 					dto
 				})
-				throw new BadRequestException(error.message)
+				throw new BadRequestException('Failed to create lease')
 			}
 
 			const lease = data as Lease

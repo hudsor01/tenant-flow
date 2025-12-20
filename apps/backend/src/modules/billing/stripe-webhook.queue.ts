@@ -3,8 +3,6 @@ import { Injectable } from '@nestjs/common'
 import type { Job } from 'bullmq'
 import type Stripe from 'stripe'
 import { AppLogger } from '../../logger/app-logger.service'
-import { MetricsService } from '../../modules/metrics/metrics.service'
-import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { WebhookProcessor } from './webhook-processor.service'
 
 export interface StripeWebhookJob {
@@ -24,16 +22,13 @@ export interface StripeWebhookJob {
 export class StripeWebhookQueueProcessor extends WorkerHost {
 	constructor(
 		private readonly processor: WebhookProcessor,
-		private readonly logger: AppLogger,
-		private readonly metricsService: MetricsService,
-		private readonly webhookMonitoring: WebhookMonitoringService
+		private readonly logger: AppLogger
 	) {
 		super()
 	}
 
 	async process(job: Job<StripeWebhookJob>): Promise<void> {
 		const { eventId, eventType, stripeEvent } = job.data
-		const startTime = Date.now()
 
 		this.logger.log(`Processing Stripe webhook: ${eventType}`, {
 			jobId: job.id,
@@ -45,58 +40,16 @@ export class StripeWebhookQueueProcessor extends WorkerHost {
 			// Use existing WebhookProcessor
 			await this.processor.processEvent(stripeEvent)
 
-			const durationMs = Date.now() - startTime
-
-			// Record successful processing metrics
-			this.metricsService.recordStripeWebhookProcessed(eventType)
-			await this.webhookMonitoring.recordMetrics({
-				stripeEventId: eventId,
-				eventType,
-				processingDurationMs: durationMs,
-				success: true
-			})
-
 			this.logger.log(`Webhook processed successfully: ${eventType}`, {
 				jobId: job.id,
-				eventId,
-				durationMs
+				eventId
 			})
 		} catch (error) {
-			const durationMs = Date.now() - startTime
-
-			// Record failure metrics
-			this.metricsService.recordStripeWebhookFailed(
-				eventType,
-				error instanceof Error ? error.constructor.name : 'UnknownError'
-			)
-
-			await this.webhookMonitoring.recordMetrics({
-				stripeEventId: eventId,
-				eventType,
-				processingDurationMs: durationMs,
-				success: false
-			})
-
-			const failureRecord: Parameters<typeof this.webhookMonitoring.recordFailure>[0] = {
-				stripeEventId: eventId,
-				eventType,
-				failureReason: 'processing_error',
-				errorMessage: error instanceof Error ? error.message : String(error),
-				rawEventData: stripeEvent
-			}
-
-			if (error instanceof Error && error.stack) {
-				failureRecord.errorStack = error.stack
-			}
-
-			await this.webhookMonitoring.recordFailure(failureRecord)
-
 			this.logger.error(`Webhook processing failed: ${eventType}`, {
 				jobId: job.id,
 				eventId,
 				error: error instanceof Error ? error.message : String(error),
-				attempt: job.attemptsMade + 1,
-				durationMs
+				attempt: job.attemptsMade + 1
 			})
 			throw error // Let BullMQ handle retry
 		}

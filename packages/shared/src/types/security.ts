@@ -2,6 +2,9 @@
  * Security-related types shared between frontend and backend
  */
 
+// Import CSPViolationReport from base-types to avoid circular dependency with domain.ts
+export type { CSPViolationReport, CSPReportBody } from './base-types.js'
+
 // User user_types are consolidated in auth.ts - import from there
 // This ensures single source of truth and prevents duplication
 export { USER_user_type } from '../constants/auth.js'
@@ -276,11 +279,6 @@ export interface CSPNonceData {
 	expires: number
 	sessionId?: string
 }
-
-/**
- * CSP violation report structure - Re-export from domain.ts (primary source)
- */
-export type { CSPViolationReport } from './domain.js'
 
 /**
  * Security data classification types

@@ -18,7 +18,6 @@ import { StripeConnectController } from './stripe-connect.controller'
 import { StripeTenantController } from './stripe-tenant.controller'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { WebhookProcessor } from './webhook-processor.service'
-import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { StripeWebhookQueueProcessor } from './stripe-webhook.queue'
 import {
 	SubscriptionWebhookHandler,
@@ -87,7 +86,6 @@ const WORKERS_ENABLED =
 		CheckoutWebhookHandler,
 		ConnectWebhookHandler,
 		WebhookProcessor,
-		WebhookMonitoringService,
 		...(WORKERS_ENABLED ? [StripeWebhookQueueProcessor] : [])
 	],
 	controllers: [
