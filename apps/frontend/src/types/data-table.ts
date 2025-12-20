@@ -1,17 +1,17 @@
 import type { ColumnSort, Row, RowData } from "@tanstack/react-table";
 import type { DataTableConfig } from "#config/data-table";
-import type { FilterItemSchema } from "#lib/parsers.js";
+import type { FilterItemSchema } from "#lib/parsers";
 
 declare module "@tanstack/react-table" {
-  // biome-ignore lint/correctness/noUnusedVariables: TData is used in the TableMeta interface
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Required for module augmentation
   interface TableMeta<TData extends RowData> {
     queryKeys?: QueryKeys;
+    // Phantom field to satisfy linter - this type is required by module augmentation
+    _phantom?: TData;
   }
 
-  // biome-ignore lint/correctness/noUnusedVariables: TData and TValue are used in the ColumnMeta interface
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- Required for module augmentation
   interface ColumnMeta<TData extends RowData, TValue> {
+    // Phantom fields to satisfy linter - these types are required by module augmentation
+    _phantom?: [TData, TValue];
     label?: string;
     placeholder?: string;
     variant?: FilterVariant;

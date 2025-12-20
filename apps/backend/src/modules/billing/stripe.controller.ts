@@ -431,4 +431,138 @@ export class StripeController {
       stripeCustomerId: subscription.stripe_customer_id
     }
   }
+
+  /**
+   * Create Stripe Customer Portal session
+   * Allows users to manage their payment methods, view invoices, and update subscriptions
+   *
+   * SECURITY:
+   * - Verifies user owns the Stripe customer record
+   * - Validates return URL to prevent open redirects
+   * - Rate limited to prevent abuse
+   * - Logs audit events for security monitoring
+   * - Fails closed on any error (denies access)
+   */
+  @Post('create-billing-portal-session')
+  @Throttle({ default: STRIPE_API_THROTTLE })
+  async createBillingPortalSession(
+    @UserId() userId: string,
+    @Req() req: TenantAuthenticatedRequest
+  ) {
+    try {
+      // Extract user token for RLS-enforced database queries
+      const userToken = this.supabase.getTokenFromRequest(req)
+      if (!userToken) {
+        throw new UnauthorizedException('Valid authentication token required')
+      }
+
+      // Get user's email for customer lookup
+      const { data: userData, error: userError } = await this.supabase
+        .getUserClient(userToken)
+        .from('users')
+        .select('email, stripe_customer_id')
+        .eq('id', userId)
+        .single()
+
+      if (userError || !userData) {
+        // Log to user_errors table
+        await this.supabase.getAdminClient().rpc('log_user_error', {
+          p_error_type: 'application',
+          p_error_code: 'BILLING_PORTAL_USER_NOT_FOUND',
+          p_error_message: 'User record not found for billing portal',
+          p_context: { userId, error: userError?.message }
+        })
+        throw new NotFoundException('User record not found')
+      }
+
+      // Verify user has a Stripe customer ID
+      if (!userData.stripe_customer_id) {
+        // Log to user_errors table
+        await this.supabase.getAdminClient().rpc('log_user_error', {
+          p_error_type: 'application',
+          p_error_code: 'BILLING_PORTAL_NO_CUSTOMER',
+          p_error_message: 'No Stripe customer found for user',
+          p_context: { userId, email: userData.email }
+        })
+        throw new NotFoundException('No Stripe customer found. Please contact support.')
+      }
+
+      // Verify customer ownership (prevent lateral access)
+      const stripe = this.stripeService.getStripe()
+      const customer = await stripe.customers.retrieve(userData.stripe_customer_id)
+
+      if ('deleted' in customer || customer.email !== userData.email) {
+        // Customer mismatch - possible security issue
+        await this.securityService.logAuditEvent({
+          user_id: userId,
+          action: 'billing_portal_customer_mismatch',
+          entity_type: 'stripe_customer',
+          entity_id: userData.stripe_customer_id,
+          details: {
+            severity: 'high',
+            customer_email: 'email' in customer ? customer.email : null,
+            user_email: userData.email
+          }
+        })
+        throw new UnauthorizedException('Customer verification failed')
+      }
+
+      // Validate return URL (prevent open redirect attacks)
+      const frontendUrl = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL
+      if (!frontendUrl) {
+        throw new Error('FRONTEND_URL or NEXT_PUBLIC_APP_URL environment variable not configured')
+      }
+      const returnUrl = `${frontendUrl}/settings/billing`
+
+      // Create billing portal session
+      const session = await stripe.billingPortal.sessions.create({
+        customer: userData.stripe_customer_id,
+        return_url: returnUrl
+      })
+
+      // Log successful portal session creation
+      await this.securityService.logAuditEvent({
+        user_id: userId,
+        action: 'billing_portal_created',
+        entity_type: 'billing_portal_session',
+        entity_id: session.id,
+        details: {
+          customer_id: userData.stripe_customer_id,
+          return_url: returnUrl
+        }
+      })
+
+      return {
+        url: session.url
+      }
+    } catch (error) {
+      // Log error for monitoring
+      if (error instanceof Error) {
+        await this.supabase.getAdminClient().rpc('log_user_error', {
+          p_error_type: 'application',
+          p_error_code: 'BILLING_PORTAL_ERROR',
+          p_error_message: error.message,
+          ...(error.stack && { p_error_stack: error.stack }),
+          p_context: {
+            userId,
+            error_name: error.name
+          }
+        })
+      }
+
+      // Re-throw for NestJS error handling
+      if (error instanceof UnauthorizedException ||
+          error instanceof NotFoundException ||
+          error instanceof BadRequestException) {
+        throw error
+      }
+
+      // Handle Stripe errors
+      if (error instanceof Error && 'type' in error) {
+        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
+      }
+
+      throw error
+    }
+  }
 }

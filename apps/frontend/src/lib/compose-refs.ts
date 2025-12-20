@@ -56,8 +56,13 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
  * Accepts callback refs and RefObject(s)
  */
 function useComposedRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- refs array is spread, each ref is a dependency
-  return React.useCallback((node: T) => composeRefs(...refs)(node), refs);
+  // Store refs in a ref to avoid dependency array issues with rest parameters
+  const refsRef = React.useRef(refs);
+  React.useEffect(() => {
+    refsRef.current = refs;
+  });
+  
+  return React.useCallback((node: T) => composeRefs(...refsRef.current)(node), []);
 }
 
 export { composeRefs, useComposedRefs };
