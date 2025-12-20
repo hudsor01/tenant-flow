@@ -276,9 +276,31 @@ export class LeasesService {
 				})
 
 				throw new BadRequestException(
-					`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
-				)
-			}
+				`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
+			)
+		}
+
+		// RACE CONDITION FIX: Check for existing active lease before creating new one
+		// This prevents duplicate leases for the same tenant+unit combination
+		const { data: existingLease } = await client
+			.from('leases')
+			.select('id, lease_status')
+			.eq('primary_tenant_id', dto.primary_tenant_id)
+			.eq('unit_id', dto.unit_id)
+			.not('lease_status', 'in', '("ended","terminated")')
+			.maybeSingle()
+
+		if (existingLease) {
+			this.logger.warn('Attempted to create duplicate active lease', {
+				existing_lease_id: existingLease.id,
+				existing_lease_status: existingLease.lease_status,
+				tenant_id: dto.primary_tenant_id,
+				unit_id: dto.unit_id
+			})
+			throw new BadRequestException(
+				`An active lease already exists for this tenant and unit (status: ${existingLease.lease_status}). Please end or terminate the existing lease before creating a new one.`
+			)
+		}
 
 			// Extract owner_user_id from property relation with type safety
 		type PropertyWithOwner = { name: string | null; owner_user_id: string | null } | null
