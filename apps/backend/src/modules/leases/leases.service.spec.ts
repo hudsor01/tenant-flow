@@ -36,16 +36,17 @@ describe('LeasesService', () => {
 
   beforeEach(async () => {
     // Create a flexible mock client
-    mockUserClient = {
-      from: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      neq: jest.fn().mockReturnThis(),
-      not: jest.fn().mockReturnThis(),
-      gte: jest.fn().mockReturnThis(),
+	    mockUserClient = {
+	      from: jest.fn().mockReturnThis(),
+	      select: jest.fn().mockReturnThis(),
+	      insert: jest.fn().mockReturnThis(),
+	      update: jest.fn().mockReturnThis(),
+	      delete: jest.fn().mockReturnThis(),
+	      rpc: jest.fn(),
+	      eq: jest.fn().mockReturnThis(),
+	      neq: jest.fn().mockReturnThis(),
+	      not: jest.fn().mockReturnThis(),
+	      gte: jest.fn().mockReturnThis(),
       lte: jest.fn().mockReturnThis(),
       or: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
@@ -54,10 +55,13 @@ describe('LeasesService', () => {
       maybeSingle: jest.fn()
     }
 
-    mockSupabaseService = {
-      getUserClient: jest.fn().mockReturnValue(mockUserClient),
-      getAdminClient: jest.fn().mockReturnValue(mockUserClient)
-    }
+	    // Default: allow lease creation validation to pass (RPC-based invitation check)
+	    mockUserClient.rpc.mockResolvedValue({ error: null })
+
+	    mockSupabaseService = {
+	      getUserClient: jest.fn().mockReturnValue(mockUserClient),
+	      getAdminClient: jest.fn().mockReturnValue(mockUserClient)
+	    }
 
     const mockEmailService = {
       sendPaymentSuccessEmail: jest.fn(),
@@ -95,69 +99,41 @@ describe('LeasesService', () => {
   })
 
   describe('create', () => {
-    const validCreateDto = {
-      unit_id: 'unit-456',
-      primary_tenant_id: 'tenant-789',
-      start_date: '2025-01-01',
-      end_date: '2026-01-01',
-      rent_amount: 150000,
-      security_deposit: 150000,
-      lease_status: 'pending' as const
-    }
+	    const validCreateDto = {
+	      unit_id: 'unit-456',
+	      primary_tenant_id: 'tenant-789',
+	      start_date: '2025-01-01',
+	      end_date: '2026-01-01',
+	      rent_amount: 150000,
+	      security_deposit: 150000,
+	      lease_status: 'draft' as const
+	    }
 
     it('should create a lease successfully', async () => {
       const mockLease = createMockLease()
 
-      // Mock unit lookup
-      mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'units') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: { 
-                  id: 'unit-456', 
-                  property_id: 'prop-123',
-                  property: { name: 'Test Property', owner_user_id: 'owner-123' }
-                },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenants') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: {
-                  id: 'tenant-789',
-                  user_id: 'user-123',
-                  user: { first_name: 'John', last_name: 'Doe', email: 'john@example.com' }
-                },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenant_invitations') {
-          const invitationChain = {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            not: jest.fn().mockReturnValue({
-              maybeSingle: jest.fn().mockResolvedValue({
-                data: { id: 'invitation-123' },
-                error: null
-              })
-            })
-          }
-          // Make eq() return the chain object so .not() is available
-          invitationChain.eq = jest.fn().mockReturnValue(invitationChain)
-          invitationChain.select = jest.fn().mockReturnValue(invitationChain)
-          return invitationChain
-        }
-        if (table === 'leases') {
-          return {
+	      // Mock unit lookup
+	      mockUserClient.from.mockImplementation((table: string) => {
+	        if (table === 'units') {
+	          const unitQuery = {
+	            select: jest.fn().mockReturnThis(),
+	            eq: jest.fn().mockReturnThis(),
+	            maybeSingle: jest.fn().mockResolvedValue({
+	              data: {
+	                id: 'unit-456',
+	                owner_user_id: 'owner-123',
+	                property_id: 'prop-123',
+	                property: { name: 'Test Property' }
+	              },
+	              error: null
+	            })
+	          }
+	          unitQuery.select = jest.fn().mockReturnValue(unitQuery)
+	          unitQuery.eq = jest.fn().mockReturnValue(unitQuery)
+	          return unitQuery
+	        }
+	        if (table === 'leases') {
+	          return {
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({
@@ -198,112 +174,85 @@ describe('LeasesService', () => {
       )
     })
 
-    it('should throw BadRequestException when unit not found', async () => {
-      mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'units') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: null
-              })
-            })
-          }
-        }
-        return mockUserClient
-      })
+	    it('should throw BadRequestException when unit not found', async () => {
+	      mockUserClient.from.mockImplementation((table: string) => {
+	        if (table === 'units') {
+	          const unitQuery = {
+	            select: jest.fn().mockReturnThis(),
+	            eq: jest.fn().mockReturnThis(),
+	            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
+	          }
+	          unitQuery.select = jest.fn().mockReturnValue(unitQuery)
+	          unitQuery.eq = jest.fn().mockReturnValue(unitQuery)
+	          return unitQuery
+	        }
+	        return mockUserClient
+	      })
 
       await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
         BadRequestException
       )
     })
 
-    it('should throw BadRequestException when tenant not found', async () => {
-      mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'units') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: { id: 'unit-456' },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenants') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: null,
-                error: null
-              })
-            })
-          }
-        }
-        return mockUserClient
-      })
+	    it('should throw BadRequestException when tenant not found', async () => {
+	      mockUserClient.rpc.mockResolvedValueOnce({
+	        error: { message: 'Tenant not found' }
+	      })
+	      mockUserClient.from.mockImplementation((table: string) => {
+	        if (table === 'units') {
+	          const unitQuery = {
+	            select: jest.fn().mockReturnThis(),
+	            eq: jest.fn().mockReturnThis(),
+	            maybeSingle: jest.fn().mockResolvedValue({
+	              data: {
+	                id: 'unit-456',
+	                owner_user_id: 'owner-123',
+	                property_id: 'prop-123',
+	                property: { name: 'Test Property' }
+	              },
+	              error: null
+	            })
+	          }
+	          unitQuery.select = jest.fn().mockReturnValue(unitQuery)
+	          unitQuery.eq = jest.fn().mockReturnValue(unitQuery)
+	          return unitQuery
+	        }
+	        return mockUserClient
+	      })
 
       await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
         BadRequestException
       )
     })
 
-    it('should throw BadRequestException when tenant is not invited to property', async () => {
-      // Mock unit lookup - succeeds
-      // Mock tenant lookup - succeeds
-      // Mock invitation lookup - fails (returns null)
-      mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'units') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: {
-                  id: 'unit-456',
-                  property_id: 'prop-123',
-                  property: { name: 'Test Property' }
-                },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenants') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: {
-                  id: 'tenant-789',
-                  user_id: 'user-123',
-                  user: { first_name: 'John', last_name: 'Doe', email: 'john@example.com' }
-                },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenant_invitations') {
-          // NO INVITATION FOUND - This should trigger the validation error
-          const invitationChain = {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            not: jest.fn().mockReturnValue({
-              maybeSingle: jest.fn().mockResolvedValue({
-                data: null, // No invitation found
-                error: null
-              })
-            })
-          }
-          invitationChain.eq = jest.fn().mockReturnValue(invitationChain)
-          invitationChain.select = jest.fn().mockReturnValue(invitationChain)
-          return invitationChain
-        }
-        return mockUserClient
-      })
+	    it('should throw BadRequestException when tenant is not invited to property', async () => {
+	      mockUserClient.rpc.mockResolvedValueOnce({
+	        error: {
+	          message:
+	            'Cannot create lease: John Doe has not been invited to Test Property. Please send an invitation first.'
+	        }
+	      })
+	      mockUserClient.from.mockImplementation((table: string) => {
+	        if (table === 'units') {
+	          const unitQuery = {
+	            select: jest.fn().mockReturnThis(),
+	            eq: jest.fn().mockReturnThis(),
+	            maybeSingle: jest.fn().mockResolvedValue({
+	              data: {
+	                id: 'unit-456',
+	                owner_user_id: 'owner-123',
+	                property_id: 'prop-123',
+	                property: { name: 'Test Property' }
+	              },
+	              error: null
+	            })
+	          }
+	          unitQuery.select = jest.fn().mockReturnValue(unitQuery)
+	          unitQuery.eq = jest.fn().mockReturnValue(unitQuery)
+	          return unitQuery
+	        }
+	        return mockUserClient
+	      })
 
       await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
         new BadRequestException(
@@ -312,32 +261,28 @@ describe('LeasesService', () => {
       )
     })
 
-    it('should throw BadRequestException on database insert error', async () => {
-      mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'units') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: { id: 'unit-456' },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'tenants') {
-          return {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({
-                data: { id: 'tenant-789' },
-                error: null
-              })
-            })
-          }
-        }
-        if (table === 'leases') {
-          return {
+	    it('should throw BadRequestException on database insert error', async () => {
+	      mockUserClient.from.mockImplementation((table: string) => {
+	        if (table === 'units') {
+	          const unitQuery = {
+	            select: jest.fn().mockReturnThis(),
+	            eq: jest.fn().mockReturnThis(),
+	            maybeSingle: jest.fn().mockResolvedValue({
+	              data: {
+	                id: 'unit-456',
+	                owner_user_id: 'owner-123',
+	                property_id: 'prop-123',
+	                property: { name: 'Test Property' }
+	              },
+	              error: null
+	            })
+	          }
+	          unitQuery.select = jest.fn().mockReturnValue(unitQuery)
+	          unitQuery.eq = jest.fn().mockReturnValue(unitQuery)
+	          return unitQuery
+	        }
+	        if (table === 'leases') {
+	          return {
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({

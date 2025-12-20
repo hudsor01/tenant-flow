@@ -69,7 +69,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
   }
 
   describe('verifyPropertyOwnership', () => {
-    it('should query with correct join through property_owners table', async () => {
+    it('should query properties using owner_user_id schema', async () => {
       const userId = 'user-123'
       const propertyId = 'property-456'
 
@@ -197,7 +197,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
   })
 
   describe('verifyLeaseOwnership', () => {
-    it('should query with correct join through property_owners table using owner_user_id', async () => {
+    it('should query leases using owner_user_id schema', async () => {
       const userId = 'user-123'
       const leaseId = 'lease-456'
 
@@ -297,7 +297,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
   })
 
   describe('verifyTenantOwnership', () => {
-    it('should query with correct join through property_owners table using primary_tenant_id', async () => {
+    it('should query leases by primary_tenant_id using owner_user_id schema', async () => {
       const userId = 'user-123'
       const tenantId = 'tenant-456'
 

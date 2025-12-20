@@ -30,6 +30,25 @@ module.exports = async () => {
 		)
 	}
 
+	// Set default test values for required config variables if not already set
+	const requiredTestVars = {
+		NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+		DATABASE_URL: 'postgresql://test:test@localhost:5432/test_db',
+		JWT_SECRET: 'test_jwt_secret_min_32_characters_long_for_testing_only',
+		SB_SECRET_KEY: 'sb_secret_test_key_for_unit_tests_not_real',
+		STRIPE_SECRET_KEY: 'sk_test_mock_stripe_key_for_testing_not_real',
+		STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret_for_testing',
+		SUPPORT_EMAIL: 'support@test.local',
+		RESEND_API_KEY: 're_test_mock_resend_api_key_for_testing',
+		IDEMPOTENCY_KEY_SECRET: 'test_idempotency_secret_min_32_chars_long_for_testing'
+	}
+
+	for (const [key, value] of Object.entries(requiredTestVars)) {
+		if (!process.env[key]) {
+			process.env[key] = value
+		}
+	}
+
 	console.log(
 		`✓ Jest global setup complete (SUPABASE_URL: ${process.env.SUPABASE_URL?.slice(0, 30)}...)`
 	)

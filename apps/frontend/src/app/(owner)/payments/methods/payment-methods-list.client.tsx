@@ -25,14 +25,11 @@ import {
 	EmptyHeader,
 	EmptyTitle
 } from '#components/ui/empty'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import {
 	useDeletePaymentMethod,
 	usePaymentMethods,
@@ -62,6 +59,142 @@ export function PaymentMethodsList() {
 			),
 		[paymentMethods]
 	)
+
+	const columns: ColumnDef<PaymentMethodResponse>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'brand',
+				header: 'Method',
+				meta: {
+					label: 'Method',
+					variant: 'text',
+					placeholder: 'Search method...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => {
+					const method = row.original
+					return (
+						<div className="flex flex-col gap-1">
+							<span className="font-medium">
+								{method.brand
+									? `${method.brand} ending in ${method.last4}`
+									: method.bankName}
+							</span>
+							<span className="text-caption text-muted-foreground">
+								Added {new Date(method.createdAt).toLocaleDateString()}
+							</span>
+						</div>
+					)
+				}
+			},
+			{
+				accessorKey: 'type',
+				header: 'Type',
+				meta: {
+					label: 'Type',
+					variant: 'select',
+					options: [
+						{ label: 'Card', value: 'card' },
+						{ label: 'Bank Account', value: 'us_bank_account' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => formatMethodLabel(row.original.type)
+			},
+			{
+				accessorKey: 'isDefault',
+				header: 'Status',
+				meta: {
+					label: 'Status',
+					variant: 'select',
+					options: [
+						{ label: 'Default', value: 'true' },
+						{ label: 'Not Default', value: 'false' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => {
+					const method = row.original
+					return method.isDefault ? (
+						<Badge variant="secondary">Default</Badge>
+					) : (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() =>
+								setDefault.mutate(method.id, {
+									onSuccess: () => toast.success('Default payment method updated'),
+									onError: () => toast.error('Failed to set default method')
+								})
+							}
+						>
+							Make default
+						</Button>
+					)
+				}
+			},
+			{
+				id: 'actions',
+				cell: ({ row }) => {
+					const method = row.original
+					return (
+						<div className="flex items-center justify-end gap-1">
+							<AlertDialog>
+								<AlertDialogTrigger asChild>
+									<Button
+										variant="ghost"
+										size="icon-sm"
+										className="text-destructive hover:text-destructive"
+									>
+										<Trash2 className="size-4" />
+										<span className="sr-only">Delete payment method</span>
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>Remove payment method</AlertDialogTitle>
+										<AlertDialogDescription>
+											This payment method will be removed and can no longer be used
+											for rent.
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel>Cancel</AlertDialogCancel>
+										<AlertDialogAction
+											onClick={() =>
+												deleteMethod.mutate(method.id, {
+													onSuccess: () => toast.success('Payment method removed'),
+													onError: () =>
+														toast.error('Failed to remove payment method')
+												})
+											}
+											className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										>
+											Delete
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
+						</div>
+					)
+				}
+			}
+		],
+		[setDefault, deleteMethod]
+	)
+
+	const { table } = useDataTable({
+		data: sortedMethods,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
+	})
 
 	if (isLoading) {
 		return (
@@ -114,98 +247,9 @@ export function PaymentMethodsList() {
 			title="Saved payment methods"
 			description="Set a default payment method and manage saved accounts."
 		>
-			<div className="overflow-x-auto">
-				<Table>
-					<TableHeader>
-						<TableRow>
-							<TableHead>Method</TableHead>
-							<TableHead>Type</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead className="w-40 text-right">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{sortedMethods.map(method => (
-							<TableRow key={method.id}>
-								<TableCell>
-									<div className="flex flex-col gap-1">
-										<span className="font-medium">
-											{method.brand
-												? `${method.brand} ending in ${method.last4}`
-												: method.bankName}
-										</span>
-										<span className="text-caption">
-											Added {new Date(method.createdAt).toLocaleDateString()}
-										</span>
-									</div>
-								</TableCell>
-								<TableCell>{formatMethodLabel(method.type)}</TableCell>
-								<TableCell>
-									{method.isDefault ? (
-										<Badge variant="secondary">Default</Badge>
-									) : (
-										<Button
-											variant="outline"
-											size="sm"
-											onClick={() =>
-												setDefault.mutate(method.id, {
-													onSuccess: () =>
-														toast.success('Default payment method updated'),
-													onError: () =>
-														toast.error('Failed to set default method')
-												})
-											}
-										>
-											Make default
-										</Button>
-									)}
-								</TableCell>
-								<TableCell className="flex items-center justify-end gap-1 text-right">
-									<AlertDialog>
-										<AlertDialogTrigger asChild>
-											<Button
-												variant="ghost"
-												size="icon-sm"
-												className="text-destructive hover:text-destructive"
-											>
-												<Trash2 className="size-4" />
-												<span className="sr-only">Delete payment method</span>
-											</Button>
-										</AlertDialogTrigger>
-										<AlertDialogContent>
-											<AlertDialogHeader>
-												<AlertDialogTitle>
-													Remove payment method
-												</AlertDialogTitle>
-												<AlertDialogDescription>
-													This payment method will be removed and can no longer
-													be used for rent.
-												</AlertDialogDescription>
-											</AlertDialogHeader>
-											<AlertDialogFooter>
-												<AlertDialogCancel>Cancel</AlertDialogCancel>
-												<AlertDialogAction
-													onClick={() =>
-														deleteMethod.mutate(method.id, {
-															onSuccess: () =>
-																toast.success('Payment method removed'),
-															onError: () =>
-																toast.error('Failed to remove payment method')
-														})
-													}
-													className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-												>
-													Delete
-												</AlertDialogAction>
-											</AlertDialogFooter>
-										</AlertDialogContent>
-									</AlertDialog>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
-			</div>
+			<DataTable table={table}>
+				<DataTableToolbar table={table} />
+			</DataTable>
 		</CardLayout>
 	)
 }

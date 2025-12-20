@@ -1,5 +1,4 @@
-import { useSpring } from '@react-spring/core'
-import { animated } from '@react-spring/web'
+import { cn } from '#lib/utils'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 
@@ -9,7 +8,6 @@ type TimelineContentProps = {
 	className?: string
 	timelineRef: React.RefObject<HTMLElement | null>
 	once?: boolean
-	customVariants?: (isInView: boolean, animationNum: number) => Record<string, unknown>
 } & React.HTMLAttributes<HTMLDivElement>
 
 export const TimelineContent = ({
@@ -18,7 +16,6 @@ export const TimelineContent = ({
 	timelineRef,
 	className,
 	once = false,
-	customVariants,
 	...props
 }: TimelineContentProps) => {
 	const [isInView, setIsInView] = useState(false)
@@ -45,19 +42,24 @@ export const TimelineContent = ({
 		return () => observer.disconnect()
 	}, [timelineRef, once])
 
-	const defaultVariants = {
-		opacity: isInView ? 1 : 0,
-		filter: isInView ? 'blur(0px)' : 'blur(20px)',
-		transform: `translateY(${isInView ? 0 : 20}px)`,
-		delay: animationNum * 500,
-		config: { tension: 280, friction: 60 }
-	}
-
-	const spring = useSpring(customVariants ? customVariants(isInView, animationNum) : defaultVariants)
+	// Calculate stagger delay (500ms per item as per original)
+	const delayMs = animationNum * 500
 
 	return (
-		<animated.div style={spring} className={className} {...props}>
+		<div
+			className={cn(
+				'transition-all [transition-duration:var(--duration-slow)]',
+				isInView
+					? 'opacity-100 translate-y-0 blur-0'
+					: 'opacity-0 translate-y-5 blur-sm',
+				className
+			)}
+			style={{
+				transitionDelay: `${delayMs}ms`
+			}}
+			{...props}
+		>
 			{children}
-		</animated.div>
+		</div>
 	)
 }

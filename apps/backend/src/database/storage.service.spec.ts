@@ -19,6 +19,7 @@ import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { StorageService } from './storage.service'
 import { SupabaseService } from './supabase.service'
+import { CompressionService } from '../modules/documents/compression.service'
 
 describe('StorageService', () => {
   let service: StorageService
@@ -52,6 +53,11 @@ describe('StorageService', () => {
       verbose: jest.fn(),
     }
 
+    const mockCompressionService = {
+      compressPdf: jest.fn().mockImplementation(async (buf: Buffer) => buf),
+      compressImage: jest.fn().mockImplementation(async (buf: Buffer) => buf),
+    }
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StorageService,
@@ -66,6 +72,10 @@ describe('StorageService', () => {
         {
           provide: AppLogger,
           useValue: new SilentLogger()
+        },
+        {
+          provide: CompressionService,
+          useValue: mockCompressionService,
         }
       ],
     })

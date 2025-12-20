@@ -55,6 +55,7 @@ const style = document.createElement('style')
 style.textContent = mockCSSVariables
 document.head.appendChild(style)
 
+
 // Mock Next.js router hooks (needed for component rendering)
 vi.mock('next/navigation', () => ({
 	useRouter: () => ({
@@ -69,6 +70,20 @@ vi.mock('next/navigation', () => ({
 	useSearchParams: () => new URLSearchParams(),
 	useParams: () => ({})
 }))
+
+// Mock nuqs hooks to avoid Next.js app router dependency in tests
+// Returns test-friendly values without requiring Next.js app router context
+vi.mock('nuqs', async () => {
+	const actual = await vi.importActual<typeof import('nuqs')>('nuqs')
+	return {
+		...actual,
+		useQueryState: () => [null, vi.fn()],
+		useQueryStates: (keys: Record<string, unknown>) => {
+			const state = Object.keys(keys).reduce((acc, key) => ({ ...acc, [key]: null }), {})
+			return [state, vi.fn()]
+		}
+	}
+})
 
 /**
  * Create a mock fetch Response with proper text() and json() methods

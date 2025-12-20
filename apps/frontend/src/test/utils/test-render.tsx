@@ -77,7 +77,9 @@ export function render(
 
 	function Wrapper({ children }: { children: React.ReactNode }) {
 		const content = (
-			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+			<QueryClientProvider client={queryClient}>
+				{children}
+			</QueryClientProvider>
 		)
 
 		if (!userWrapper) {
@@ -112,7 +114,9 @@ export function createTestWrapper(queryClient?: QueryClient) {
 	const client = queryClient || createTestQueryClient()
 
 	const Wrapper = ({ children }: { children: React.ReactNode }) => (
-		<QueryClientProvider client={client}>{children}</QueryClientProvider>
+		<QueryClientProvider client={client}>
+			{children}
+		</QueryClientProvider>
 	)
 
 	return { Wrapper, queryClient: client }

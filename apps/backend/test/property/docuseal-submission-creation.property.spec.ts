@@ -270,7 +270,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 								})
 								return chain
 							}
-							if (table === 'property_owners') {
+							if (table === 'stripe_connected_accounts') {
 								return createMockChain({
 									id: leaseData.propertyOwnerId,
 									user_id: leaseData.ownerUserId
@@ -408,7 +408,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 									}
 								})
 							}
-							if (table === 'property_owners') {
+							if (table === 'stripe_connected_accounts') {
 								return createMockChain({
 									id: leaseData.propertyOwnerId,
 									user_id: leaseData.ownerUserId
