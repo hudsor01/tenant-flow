@@ -157,7 +157,18 @@ describe('LeasesService', () => {
           return invitationChain
         }
         if (table === 'leases') {
+          // Mock for checking existing lease (duplicate check)
+          const existingLeaseChain = {
+            eq: jest.fn().mockReturnThis(),
+            not: jest.fn().mockReturnThis(),
+            maybeSingle: jest.fn().mockResolvedValue({
+              data: null, // No existing lease by default
+              error: null
+            })
+          }
+          
           return {
+            select: jest.fn().mockReturnValue(existingLeaseChain),
             insert: jest.fn().mockReturnValue({
               select: jest.fn().mockReturnValue({
                 single: jest.fn().mockResolvedValue({

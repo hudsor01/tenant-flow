@@ -436,5 +436,6 @@ export type Result<T = void, E = string> =
 
 /**
  * ASYNC RESULT TYPE - For asynchronous operations
+ * Import from base-types to avoid circular dependency with api.ts/core.ts
  */
-export type { AsyncResult } from '../types/api.js'
+export type { AsyncResult } from '../types/base-types.js'

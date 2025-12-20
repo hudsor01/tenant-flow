@@ -346,10 +346,24 @@ export class DocuSealService {
 		})
 
 		if (!response.ok) {
+			// Parse error response body for detailed error information
+			let errorBody: unknown
+			try {
+				errorBody = await response.json()
+			} catch (parseError) {
+				// If body is not JSON, try to get text
+				try {
+					errorBody = await response.text()
+				} catch (textError) {
+					errorBody = null
+				}
+			}
+
 			this.logger.error('DocuSeal API error', {
 				endpoint,
 				status: response.status,
-				statusText: response.statusText
+				statusText: response.statusText,
+				errorBody // Log the actual error response from DocuSeal
 			})
 			throw new Error(`DocuSeal API error: ${response.status} ${response.statusText}`)
 		}
