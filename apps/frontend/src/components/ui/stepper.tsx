@@ -478,20 +478,21 @@ function StepperList(props: StepperListProps) {
       });
   }, []);
 
+  const handleListBlur = listProps.onBlur;
   const onBlur = React.useCallback(
     (event: React.FocusEvent<ListElement>) => {
-      listProps.onBlur?.(event);
+      handleListBlur?.(event);
       if (event.defaultPrevented) return;
 
       setIsTabbingBackOut(false);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire listProps object
-    [listProps.onBlur],
+    [handleListBlur],
   );
 
+  const handleListFocus = listProps.onFocus;
   const onFocus = React.useCallback(
     (event: React.FocusEvent<ListElement>) => {
-      listProps.onFocus?.(event);
+      handleListFocus?.(event);
       if (event.defaultPrevented) return;
 
       const isKeyboardFocus = !isClickFocusRef.current;
@@ -525,20 +526,19 @@ function StepperList(props: StepperListProps) {
       }
       isClickFocusRef.current = false;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire listProps object
-    [listProps.onFocus, isTabbingBackOut, currentValue, tabStopId],
+    [handleListFocus, isTabbingBackOut, currentValue, tabStopId],
   );
 
+  const handleListMouseDown = listProps.onMouseDown;
   const onMouseDown = React.useCallback(
     (event: React.MouseEvent<ListElement>) => {
-      listProps.onMouseDown?.(event);
+      handleListMouseDown?.(event);
 
       if (event.defaultPrevented) return;
 
       isClickFocusRef.current = true;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire listProps object
-    [listProps.onMouseDown],
+    [handleListMouseDown],
   );
 
   const focusContextValue = React.useMemo<FocusContextValue>(
@@ -755,9 +755,10 @@ function StepperTrigger(props: ButtonProps) {
     };
   }, [focusContext, triggerId, itemValue, isTabStop, isDisabled]);
 
+  const handleTriggerClick = triggerProps.onClick;
   const onClick = React.useCallback(
     async (event: React.MouseEvent<TriggerElement>) => {
-      triggerProps.onClick?.(event);
+      handleTriggerClick?.(event);
       if (event.defaultPrevented) return;
 
       if (!isDisabled && !context.nonInteractive) {
@@ -768,7 +769,7 @@ function StepperTrigger(props: ButtonProps) {
         await store.setStateWithValidation(itemValue, direction);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire triggerProps object
+    // Intentionally depend on specific callback, not entire triggerProps object
     [
       isDisabled,
       context.nonInteractive,
@@ -776,13 +777,14 @@ function StepperTrigger(props: ButtonProps) {
       itemValue,
       value,
       steps,
-      triggerProps.onClick,
+      handleTriggerClick,
     ],
   );
 
+  const handleTriggerFocus = triggerProps.onFocus;
   const onFocus = React.useCallback(
     async (event: React.FocusEvent<TriggerElement>) => {
-      triggerProps.onFocus?.(event);
+      handleTriggerFocus?.(event);
       if (event.defaultPrevented) return;
 
       focusContext.onItemFocus(triggerId);
@@ -805,7 +807,7 @@ function StepperTrigger(props: ButtonProps) {
 
       isMouseClickRef.current = false;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire triggerProps object
+    // Intentionally depend on specific callback, not entire triggerProps object
     [
       focusContext,
       triggerId,
@@ -817,13 +819,14 @@ function StepperTrigger(props: ButtonProps) {
       itemValue,
       value,
       steps,
-      triggerProps.onFocus,
+      handleTriggerFocus,
     ],
   );
 
+  const handleTriggerKeyDown = triggerProps.onKeyDown;
   const onKeyDown = React.useCallback(
     async (event: React.KeyboardEvent<TriggerElement>) => {
-      triggerProps.onKeyDown?.(event);
+      handleTriggerKeyDown?.(event);
       if (event.defaultPrevented) return;
 
       if (event.key === "Enter" && context.nonInteractive) {
@@ -907,7 +910,7 @@ function StepperTrigger(props: ButtonProps) {
         queueMicrotask(() => focusFirst(candidateRefs));
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire triggerProps object
+    // Intentionally depend on specific callback, not entire triggerProps object
     [
       focusContext,
       context.nonInteractive,
@@ -916,7 +919,7 @@ function StepperTrigger(props: ButtonProps) {
       orientation,
       loop,
       isDisabled,
-      triggerProps.onKeyDown,
+      handleTriggerKeyDown,
       store,
       itemValue,
       value,
@@ -924,9 +927,10 @@ function StepperTrigger(props: ButtonProps) {
     ],
   );
 
+  const handleTriggerMouseDown = triggerProps.onMouseDown;
   const onMouseDown = React.useCallback(
     (event: React.MouseEvent<TriggerElement>) => {
-      triggerProps.onMouseDown?.(event);
+      handleTriggerMouseDown?.(event);
       if (event.defaultPrevented) return;
 
       isMouseClickRef.current = true;
@@ -937,8 +941,8 @@ function StepperTrigger(props: ButtonProps) {
         focusContext.onItemFocus(triggerId);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire triggerProps object
-    [focusContext, triggerId, isDisabled, triggerProps.onMouseDown],
+    // Intentionally depend on specific callback, not entire triggerProps object
+    [focusContext, triggerId, isDisabled, handleTriggerMouseDown],
   );
 
   const TriggerPrimitive = asChild ? Slot : "button";
@@ -1176,9 +1180,10 @@ function StepperPrev(props: ButtonProps) {
   const currentIndex = value ? stepKeys.indexOf(value) : -1;
   const isDisabled = disabled || currentIndex <= 0;
 
+  const handlePrevClick = prevProps.onClick;
   const onClick = React.useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
-      prevProps.onClick?.(event);
+      handlePrevClick?.(event);
       if (event.defaultPrevented || isDisabled) return;
 
       const prevIndex = Math.max(currentIndex - 1, 0);
@@ -1188,8 +1193,8 @@ function StepperPrev(props: ButtonProps) {
         store.setState("value", prevStepValue);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire prevProps object
-    [prevProps.onClick, isDisabled, currentIndex, stepKeys, store],
+    // Intentionally depend on specific callback, not entire prevProps object
+    [handlePrevClick, isDisabled, currentIndex, stepKeys, store],
   );
 
   const PrevPrimitive = asChild ? Slot : "button";
@@ -1216,9 +1221,10 @@ function StepperNext(props: ButtonProps) {
   const currentIndex = value ? stepKeys.indexOf(value) : -1;
   const isDisabled = disabled || currentIndex >= stepKeys.length - 1;
 
+  const handleNextClick = nextProps.onClick;
   const onClick = React.useCallback(
     async (event: React.MouseEvent<HTMLButtonElement>) => {
-      nextProps.onClick?.(event);
+      handleNextClick?.(event);
       if (event.defaultPrevented || isDisabled) return;
 
       const nextIndex = Math.min(currentIndex + 1, stepKeys.length - 1);
@@ -1228,8 +1234,8 @@ function StepperNext(props: ButtonProps) {
         await store.setStateWithValidation(nextStepValue, "next");
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally depend on specific callback, not entire nextProps object
-    [nextProps.onClick, isDisabled, currentIndex, stepKeys, store],
+    // Intentionally depend on specific callback, not entire nextProps object
+    [handleNextClick, isDisabled, currentIndex, stepKeys, store],
   );
 
   const NextPrimitive = asChild ? Slot : "button";

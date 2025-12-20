@@ -10,13 +10,14 @@ import { LeaseGenerationController } from './lease-generation.controller'
 import { SupabaseModule } from '../../database/supabase.module'
 import { CacheConfigurationModule } from '../../cache/cache.module'
 import { SharedModule } from '../../shared/shared.module'
+import { DocumentsModule } from '../documents/documents.module'
 
 /**
  * PDF module for generating PDF documents
  * Provides services for lease PDF generation and other document types
  */
 @Module({
-	imports: [SupabaseModule, CacheConfigurationModule, SharedModule],
+	imports: [SupabaseModule, CacheConfigurationModule, SharedModule, DocumentsModule],
 	controllers: [LeaseGenerationController],
 	providers: [
 		PDFGeneratorService,

@@ -22,35 +22,22 @@ import {
 	EmptyMedia,
 	EmptyTitle
 } from '#components/ui/empty'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
-import { useQueryClient } from '@tanstack/react-query'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { useVirtualizer } from '@tanstack/react-virtual'
 import { Trash2, UserPlus } from 'lucide-react'
 import Link from 'next/link'
-import {
-	memo,
-	useMemo,
-	useOptimistic,
-	useRef,
-	useTransition
-} from 'react'
+import { useMemo } from 'react'
 import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'TenantsTable' })
 
 import type { TenantStats, TenantWithLeaseInfo } from '@repo/shared/types/core'
-
-// Threshold for enabling virtual scrolling - only virtualize if list is large
-const VIRTUAL_SCROLL_THRESHOLD = 50
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 interface TenantsTableProps {
 	initialTenants: TenantWithLeaseInfo[]
@@ -58,55 +45,144 @@ interface TenantsTableProps {
 	deleteTenantAction: (tenant_id: string) => Promise<{ success: boolean }>
 }
 
-interface TenantRowProps {
-	tenant: TenantWithLeaseInfo
-	onDelete: (id: string) => void
-	isPending: boolean
-	onPrefetch: (id: string) => void
-}
+export function TenantsTable({
+	initialTenants,
+	deleteTenantAction
+}: TenantsTableProps) {
+	const queryClient = useQueryClient()
 
-const TenantRow = memo(
-	({ tenant, onDelete, isPending, onPrefetch }: TenantRowProps) => {
-		return (
-			<TableRow key={tenant.id}>
-				<TableCell>
+	// TanStack Query mutation for delete with optimistic updates
+	const { mutate: deleteTenant, isPending: isDeleting } = useMutation({
+		mutationFn: deleteTenantAction,
+		onMutate: async (tenant_id) => {
+			// Cancel any outgoing refetches
+			await queryClient.cancelQueries({ queryKey: tenantQueries.list().queryKey })
+
+			// Snapshot the previous value
+			const previousTenants = queryClient.getQueryData<PaginatedResponse<TenantWithLeaseInfo>>(
+				tenantQueries.list().queryKey
+			)
+
+			// Optimistically update to the new value
+			queryClient.setQueryData<PaginatedResponse<TenantWithLeaseInfo>>(
+				tenantQueries.list().queryKey,
+				(old) => old ? {
+					...old,
+					data: old.data.filter((t) => t.id !== tenant_id)
+				} : old
+			)
+
+			return { previousTenants }
+		},
+		onError: (error, tenant_id, context) => {
+			// Rollback on error
+			if (context?.previousTenants) {
+				queryClient.setQueryData(tenantQueries.list().queryKey, context.previousTenants)
+			}
+			toast.error('Failed to delete tenant')
+			logger.error('Failed to delete tenant', { action: 'deleteTenant' }, error)
+		},
+		onSuccess: () => {
+			toast.success('Tenant deleted successfully')
+		},
+		onSettled: () => {
+			// Refetch after error or success
+			queryClient.invalidateQueries({ queryKey: tenantQueries.list().queryKey })
+		}
+	})
+
+	const columns: ColumnDef<TenantWithLeaseInfo>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'name',
+				header: 'Tenant',
+				meta: {
+					label: 'Tenant Name',
+					variant: 'text',
+					placeholder: 'Search tenant...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
 					<div className="flex flex-col">
-						<span className="font-medium">{tenant.name}</span>
-						<span className="text-muted">
-							{tenant.email}
-						</span>
+						<span className="font-medium">{row.original.name}</span>
+						<span className="text-muted">{row.original.email}</span>
 					</div>
-				</TableCell>
-				<TableCell className="hidden xl:table-cell">
-					{tenant.property?.name ? (
+				)
+			},
+			{
+				id: 'property',
+				header: 'Property',
+				accessorFn: (row) => row.property?.name,
+				meta: {
+					label: 'Property',
+					variant: 'text',
+					placeholder: 'Search property...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => {
+					const property = row.original.property
+					return property?.name ? (
 						<div className="flex flex-col">
-							<span>{tenant.property.name}</span>
+							<span>{property.name}</span>
 							<span className="text-muted">
-								{tenant.property.city}, {tenant.property.state}
+								{property.city}, {property.state}
 							</span>
 						</div>
 					) : (
 						<span className="text-muted-foreground">No property assigned</span>
-					)}
-				</TableCell>
-				<TableCell>
-					<div className="flex flex-col gap-1">
-						<Badge
-							variant={
-								tenant.paymentStatus === 'Overdue'
-									? 'destructive'
-									: tenant.paymentStatus === 'Current'
-										? 'secondary'
-										: 'outline'
-							}
-						>
-							{tenant.paymentStatus}
-						</Badge>
-						<Badge variant="outline">{tenant.lease_status}</Badge>
-					</div>
-				</TableCell>
-				<TableCell className="hidden lg:table-cell">
-					{tenant.currentLease ? (
+					)
+				}
+			},
+			{
+				accessorKey: 'paymentStatus',
+				header: 'Payment Status',
+				meta: {
+					label: 'Payment Status',
+					variant: 'select',
+					options: [
+						{ label: 'Current', value: 'Current' },
+						{ label: 'Overdue', value: 'Overdue' },
+						{ label: 'Pending', value: 'Pending' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<Badge
+						variant={
+							row.original.paymentStatus === 'Overdue'
+								? 'destructive'
+								: row.original.paymentStatus === 'Current'
+									? 'secondary'
+									: 'outline'
+						}
+					>
+						{row.original.paymentStatus}
+					</Badge>
+				)
+			},
+			{
+				accessorKey: 'lease_status',
+				header: 'Lease Status',
+				meta: {
+					label: 'Lease Status',
+					variant: 'select',
+					options: [
+						{ label: 'Active', value: 'Active' },
+						{ label: 'Pending', value: 'Pending' },
+						{ label: 'Expired', value: 'Expired' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<Badge variant="outline">{row.original.lease_status}</Badge>
+				)
+			},
+			{
+				id: 'lease',
+				header: 'Lease Details',
+				cell: ({ row }) => {
+					const tenant = row.original
+					return tenant.currentLease ? (
 						<div className="flex flex-col">
 							<span>#{tenant.currentLease.id.slice(0, 8)}</span>
 							<span className="text-muted">
@@ -121,126 +197,103 @@ const TenantRow = memo(
 						</div>
 					) : (
 						<span className="text-muted-foreground">No active lease</span>
-					)}
-				</TableCell>
-				<TableCell className="hidden lg:table-cell">
-					{tenant.monthlyRent
+					)
+				}
+			},
+			{
+				accessorKey: 'monthlyRent',
+				header: 'Monthly Rent',
+				meta: {
+					label: 'Monthly Rent',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) =>
+					row.original.monthlyRent
 						? new Intl.NumberFormat('en-US', {
-							style: 'currency',
-							currency: 'USD'
-						}).format(tenant.monthlyRent)
-						: '-'}
-				</TableCell>
-				<TableCell className="flex items-center justify-end gap-1 text-right">
-					<Button
-						asChild
-						size="sm"
-						variant="ghost"
-						onMouseEnter={() => onPrefetch(tenant.id)}
-					>
-						<Link href={`/tenants/${tenant.id}`}>View</Link>
-					</Button>
-					<Button
-						asChild
-						size="sm"
-						variant="ghost"
-						onMouseEnter={() => onPrefetch(tenant.id)}
-					>
-						<Link href={`/tenants/${tenant.id}/edit`}>Edit</Link>
-					</Button>
-					<AlertDialog>
-						<AlertDialogTrigger asChild>
+								style: 'currency',
+								currency: 'USD'
+							}).format(row.original.monthlyRent)
+						: '-'
+			},
+			{
+				id: 'actions',
+				cell: ({ row }) => {
+					const tenant = row.original
+					return (
+						<div className="flex items-center justify-end gap-1">
 							<Button
-								size="icon-sm"
+								asChild
+								size="sm"
 								variant="ghost"
-								className="text-destructive hover:text-destructive"
+								onMouseEnter={() =>
+									queryClient.prefetchQuery(tenantQueries.detail(tenant.id))
+								}
 							>
-								<Trash2 className="size-4" />
-								<span className="sr-only">Delete tenant</span>
+								<Link href={`/tenants/${tenant.id}`}>View</Link>
 							</Button>
-						</AlertDialogTrigger>
-						<AlertDialogContent>
-							<AlertDialogHeader>
-								<AlertDialogTitle>Delete tenant</AlertDialogTitle>
-								<AlertDialogDescription>
-									This action cannot be undone. This will permanently delete{' '}
-									<strong>{tenant.name}</strong> and remove associated leases
-									and payment history.
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-							<AlertDialogFooter>
-								<AlertDialogCancel>Cancel</AlertDialogCancel>
-								<AlertDialogAction
-									disabled={isPending}
-									onClick={() => onDelete(tenant.id)}
-									className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-								>
-									{isPending ? 'Deleting...' : 'Delete'}
-								</AlertDialogAction>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
-				</TableCell>
-			</TableRow>
-		)
-	}
-)
-TenantRow.displayName = 'TenantRow'
-
-export function TenantsTable({
-	initialTenants,
-	deleteTenantAction
-}: TenantsTableProps) {
-	const queryClient = useQueryClient()
-	const prefetchTenant = (tenantId: string) => {
-		queryClient.prefetchQuery(tenantQueries.detail(tenantId))
-	}
-
-	// React 19 useOptimistic for instant delete feedback
-	const [optimisticTenants, removeOptimistic] = useOptimistic(
-		initialTenants,
-		(state, tenant_id: string) => state.filter(t => t.id !== tenant_id)
-	)
-	const [isPending, startTransition] = useTransition()
-
-	const handleDelete = (tenant_id: string) => {
-		startTransition(async () => {
-			removeOptimistic(tenant_id) // Instant UI update
-			try {
-				await deleteTenantAction(tenant_id) // Server action with revalidatePath
-				toast.success('Tenant deleted successfully')
-			} catch (error) {
-				toast.error('Failed to delete tenant')
-				logger.error(
-					'Failed to delete tenant',
-					{ action: 'deleteTenant' },
-					error
-				)
-				// React automatically reverts optimistic update on error
+							<Button
+								asChild
+								size="sm"
+								variant="ghost"
+								onMouseEnter={() =>
+									queryClient.prefetchQuery(tenantQueries.detail(tenant.id))
+								}
+							>
+								<Link href={`/tenants/${tenant.id}/edit`}>Edit</Link>
+							</Button>
+							<AlertDialog>
+								<AlertDialogTrigger asChild>
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										className="text-destructive hover:text-destructive"
+									>
+										<Trash2 className="size-4" />
+										<span className="sr-only">Delete tenant</span>
+									</Button>
+								</AlertDialogTrigger>
+								<AlertDialogContent>
+									<AlertDialogHeader>
+										<AlertDialogTitle>Delete tenant</AlertDialogTitle>
+										<AlertDialogDescription>
+											This action cannot be undone. This will permanently
+											delete <strong>{tenant.name}</strong> and remove
+											associated leases and payment history.
+										</AlertDialogDescription>
+									</AlertDialogHeader>
+									<AlertDialogFooter>
+										<AlertDialogCancel>Cancel</AlertDialogCancel>
+										<AlertDialogAction
+											disabled={isDeleting}
+											onClick={() => deleteTenant(tenant.id)}
+											className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+										>
+											{isDeleting ? 'Deleting...' : 'Delete'}
+										</AlertDialogAction>
+									</AlertDialogFooter>
+								</AlertDialogContent>
+							</AlertDialog>
+						</div>
+					)
+				}
 			}
-		})
-	}
+		],
+		[queryClient, deleteTenant, isDeleting]
+	)
 
-	const sortedTenants = useMemo(() => {
-		if (!optimisticTenants || !Array.isArray(optimisticTenants)) return []
-		return [...optimisticTenants].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''))
-	}, [optimisticTenants])
-
-	// Move hooks to top level - BEFORE any conditional returns
-	// Use virtual scrolling only for large lists
-	const shouldVirtualize = sortedTenants.length > VIRTUAL_SCROLL_THRESHOLD
-	const parentRef = useRef<HTMLDivElement>(null)
-
-	// Configure virtualizer for row-based virtualization
-	const rowVirtualizer = useVirtualizer({
-		count: sortedTenants.length,
-		getScrollElement: () => parentRef.current,
-		estimateSize: () => 73, // Estimated row height in pixels
-		overscan: 5, // Render 5 extra items above/below viewport
-		enabled: shouldVirtualize
+	const { table } = useDataTable({
+		data: initialTenants,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
 	})
-
-	const virtualItems = rowVirtualizer.getVirtualItems()
 
 	const footer = (
 		<Button asChild>
@@ -251,7 +304,7 @@ export function TenantsTable({
 		</Button>
 	)
 
-	if (!sortedTenants.length) {
+	if (!initialTenants.length) {
 		return (
 			<CardLayout
 				title="Tenants"
@@ -279,103 +332,15 @@ export function TenantsTable({
 		)
 	}
 
-	// Render standard table for small lists, virtualized for large lists
-	if (!shouldVirtualize) {
-		return (
-			<CardLayout
-				title="Tenants"
-				description="Track tenant status, leases, and payments"
-				footer={footer}
-			>
-				<div className="overflow-x-auto">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Tenant</TableHead>
-								<TableHead className="hidden xl:table-cell">Property</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className="hidden lg:table-cell">Lease</TableHead>
-								<TableHead className="hidden lg:table-cell">Rent</TableHead>
-								<TableHead className="w-30 text-right">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{sortedTenants.map(tenant => (
-								<TenantRow
-									key={tenant.id}
-									tenant={tenant}
-									onDelete={handleDelete}
-									isPending={isPending}
-									onPrefetch={prefetchTenant}
-								/>
-							))}
-						</TableBody>
-					</Table>
-				</div>
-			</CardLayout>
-		)
-	}
-
-	// Virtualized table for large lists
 	return (
 		<CardLayout
 			title="Tenants"
 			description="Track tenant status, leases, and payments"
 			footer={footer}
 		>
-			<div
-				ref={parentRef}
-				className="overflow-x-auto overflow-y-auto"
-				style={{ maxHeight: '600px' }}
-			>
-				<Table>
-					<TableHeader className="sticky top-0 z-10 bg-background">
-						<TableRow>
-							<TableHead>Tenant</TableHead>
-							<TableHead className="hidden xl:table-cell">Property</TableHead>
-							<TableHead>Status</TableHead>
-							<TableHead className="hidden lg:table-cell">Lease</TableHead>
-							<TableHead className="hidden lg:table-cell">Rent</TableHead>
-							<TableHead className="w-30 text-right">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						<tr style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-							<td style={{ position: 'relative' }}>
-								{virtualItems.map(virtualRow => {
-									const tenant = sortedTenants[virtualRow.index]
-									if (!tenant) return null
-									return (
-										<div
-											key={tenant.id}
-											data-index={virtualRow.index}
-											ref={rowVirtualizer.measureElement}
-											style={{
-												position: 'absolute',
-												top: 0,
-												left: 0,
-												width: '100%',
-												transform: `translateY(${virtualRow.start}px)`
-											}}
-										>
-											<Table>
-												<TableBody>
-													<TenantRow
-														tenant={tenant}
-														onDelete={handleDelete}
-														isPending={isPending}
-														onPrefetch={prefetchTenant}
-													/>
-												</TableBody>
-											</Table>
-										</div>
-									)
-								})}
-							</td>
-						</tr>
-					</TableBody>
-				</Table>
-			</div>
+			<DataTable table={table}>
+				<DataTableToolbar table={table} />
+			</DataTable>
 		</CardLayout>
 	)
 }
