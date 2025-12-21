@@ -4,6 +4,7 @@ import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
 import { MetricsModule } from '../metrics/metrics.module'
+import { SseModule } from '../notifications/sse/sse.module'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeOwnerService } from './stripe-owner.service'
@@ -50,6 +51,7 @@ const WORKERS_ENABLED =
 		SecurityModule,
 		MetricsModule,
 		UsersModule,
+		SseModule, // For real-time payment status notifications
 		BullModule.registerQueue({
 			name: 'stripe-webhooks',
 			defaultJobOptions: {
