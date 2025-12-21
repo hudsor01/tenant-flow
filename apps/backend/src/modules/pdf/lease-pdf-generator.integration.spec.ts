@@ -72,7 +72,6 @@ describe('LeasePdfGeneratorService Integration', () => {
 			const foundPath = possiblePaths.find(p => existsSync(p))
 
 			expect(foundPath).toBeDefined()
-			console.log('✓ Texas template found at:', foundPath)
 		})
 
 		it('should load Texas template metadata from real filesystem', async () => {
@@ -107,8 +106,6 @@ describe('LeasePdfGeneratorService Integration', () => {
 			// Verify it's a valid PDF
 			const header = result.toString('utf8', 0, 4)
 			expect(header).toBe('%PDF')
-
-			console.log('✓ Generated PDF size:', result.length, 'bytes')
 		}, 10000) // 10s timeout for PDF generation
 
 		it('should validate template before generation', async () => {
@@ -176,8 +173,6 @@ describe('LeasePdfGeneratorService Integration', () => {
 				expect(result).toBeInstanceOf(Buffer)
 				expect(result.length).toBeGreaterThan(0)
 			})
-
-			console.log('✓ Generated', results.length, 'PDFs concurrently')
 		}, 30000)
 	})
 })

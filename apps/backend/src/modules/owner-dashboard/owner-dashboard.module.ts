@@ -7,6 +7,8 @@ import { TenantsModule } from './tenants/tenants.module'
 import { AnalyticsModule } from './analytics/analytics.module'
 import { ReportsModule } from './reports/reports.module'
 import { OwnerContextInterceptor } from './interceptors/owner-context.interceptor'
+import { DashboardEventAggregatorService } from './services/dashboard-event-aggregator.service'
+import { SseModule } from '../notifications/sse/sse.module'
 
 /**
  * OwnerDashboardModule
@@ -37,6 +39,7 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
 		TenantsModule,
 		AnalyticsModule,
 		ReportsModule,
+		SseModule, // For real-time dashboard updates
 
 		// RouterModule configuration for /owner route group
 		RouterModule.register([
@@ -53,7 +56,10 @@ import { OwnerContextInterceptor } from './interceptors/owner-context.intercepto
 			}
 		])
 	],
-	providers: [OwnerContextInterceptor],
+	providers: [
+		OwnerContextInterceptor,
+		DashboardEventAggregatorService // Listens for events and broadcasts SSE updates
+	],
 	exports: [OwnerContextInterceptor]
 })
 export class OwnerDashboardModule {}
