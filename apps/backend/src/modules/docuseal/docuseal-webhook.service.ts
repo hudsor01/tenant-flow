@@ -6,12 +6,16 @@
  * - submission.completed: All parties have signed
  *
  * Updates lease signature timestamps and triggers activation events.
+ * Broadcasts SSE events to connected clients for real-time UI updates.
  */
 
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SseService } from '../notifications/sse/sse.service'
+import type { LeaseSignatureUpdatedEvent } from '@repo/shared/events/sse-events'
+import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 import type {
 	FormCompletedPayload,
 	SubmissionCompletedPayload
@@ -20,8 +24,12 @@ import type {
 @Injectable()
 export class DocuSealWebhookService {
 
-	constructor(private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2,
+		private readonly logger: AppLogger,
+		private readonly sseService: SseService
+	) {}
 
 	/**
 	 * Handle form.completed event - a single submitter has signed
@@ -37,12 +45,19 @@ export class DocuSealWebhookService {
 		const client = this.supabase.getAdminClient()
 
 		// Find lease by DocuSeal submission ID first, then fallback to metadata.lease_id
-		let lease: { id: string; lease_status: string; owner_signed_at: string | null; tenant_signed_at: string | null } | null = null
+		let lease: {
+			id: string
+			lease_status: string
+			owner_signed_at: string | null
+			tenant_signed_at: string | null
+			owner_user_id: string
+			primary_tenant_id: string | null
+		} | null = null
 
 		// Try docuseal_submission_id first
 		const { data: leaseBySubmission, error: submissionError } = await client
 			.from('leases')
-			.select('id, lease_status, owner_signed_at, tenant_signed_at')
+			.select('id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id')
 			.eq('docuseal_submission_id', String(data.submission_id))
 			.maybeSingle()
 
@@ -60,7 +75,7 @@ export class DocuSealWebhookService {
 		if (!lease && data.metadata?.lease_id) {
 			const { data: leaseById, error: leaseIdError } = await client
 				.from('leases')
-				.select('id, lease_status, owner_signed_at, tenant_signed_at')
+				.select('id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id')
 				.eq('id', data.metadata.lease_id)
 				.maybeSingle()
 
@@ -113,6 +128,9 @@ export class DocuSealWebhookService {
 				via: 'docuseal'
 			})
 
+			// Broadcast SSE event to owner for real-time UI update
+			await this.broadcastSignatureUpdate(lease, 'owner', signedAt)
+
 			this.logger.log('Owner signature recorded via DocuSeal', { leaseId: lease.id })
 		} else if (isTenant && !lease.tenant_signed_at) {
 			const { error: updateError } = await client
@@ -138,8 +156,68 @@ export class DocuSealWebhookService {
 				via: 'docuseal'
 			})
 
+			// Broadcast SSE event to owner (and tenant if they're a platform user)
+			await this.broadcastSignatureUpdate(lease, 'tenant', signedAt)
+
 			this.logger.log('Tenant signature recorded via DocuSeal', { leaseId: lease.id })
 		}
+	}
+
+	/**
+	 * Broadcast SSE signature update event to relevant parties
+	 */
+	private async broadcastSignatureUpdate(
+		lease: {
+			id: string
+			owner_signed_at: string | null
+			tenant_signed_at: string | null
+			owner_user_id: string
+			primary_tenant_id: string | null
+		},
+		signedBy: 'owner' | 'tenant',
+		signedAt: string
+	): Promise<void> {
+		// Determine current signature status
+		const ownerSigned = signedBy === 'owner' || lease.owner_signed_at !== null
+		const tenantSigned = signedBy === 'tenant' || lease.tenant_signed_at !== null
+
+		let status: LeaseSignatureUpdatedEvent['payload']['status']
+		if (ownerSigned && tenantSigned) {
+			status = 'fully_signed'
+		} else if (ownerSigned) {
+			status = 'owner_signed'
+		} else if (tenantSigned) {
+			status = 'tenant_signed'
+		} else {
+			status = 'pending'
+		}
+
+		const sseEvent: LeaseSignatureUpdatedEvent = {
+			type: SSE_EVENT_TYPES.LEASE_SIGNATURE_UPDATED,
+			timestamp: new Date().toISOString(),
+			payload: {
+				leaseId: lease.id,
+				signedBy,
+				status,
+				signedAt
+			}
+		}
+
+		// Always broadcast to owner
+		await this.sseService.broadcast(lease.owner_user_id, sseEvent)
+
+		// Also broadcast to tenant if they're a platform user
+		if (lease.primary_tenant_id) {
+			await this.sseService.broadcast(lease.primary_tenant_id, sseEvent)
+		}
+
+		this.logger.debug('SSE signature update broadcast', {
+			leaseId: lease.id,
+			signedBy,
+			status,
+			ownerUserId: lease.owner_user_id,
+			tenantUserId: lease.primary_tenant_id
+		})
 	}
 
 	/**

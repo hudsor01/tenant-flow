@@ -25,6 +25,7 @@ import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 import { PdfStorageService } from '../pdf/pdf-storage.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SseService } from '../notifications/sse/sse.service'
 
 
 describe('LeaseSignatureService', () => {
@@ -190,6 +191,10 @@ describe('LeaseSignatureService', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: SseService,
+					useValue: { broadcast: jest.fn().mockResolvedValue(undefined) }
 				}
 			]
 		}).compile()
