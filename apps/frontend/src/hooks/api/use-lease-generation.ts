@@ -3,6 +3,13 @@
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createClient } from '#utils/supabase/client'
 import { apiRequest } from '#lib/api-request'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { logger } from '@repo/shared/lib/frontend-logger'
+import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { useSseEventListener } from '#hooks/use-sse'
+import type { PdfGenerationCompletedEvent } from '@repo/shared/events/sse-events'
 
 
 async function getAuthHeaders(): Promise<Record<string, string>> {
@@ -13,11 +20,6 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 		Authorization: `Bearer ${session?.access_token}`
 	}
 }
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '@repo/shared/lib/frontend-logger'
-import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
 
 /**
  * Query keys for lease generation
@@ -192,4 +194,102 @@ export function useEmailLease() {
 			handleMutationError(error, 'Email lease')
 		}
 	})
+}
+
+// ============================================================
+// ASYNC PDF GENERATION (Queue-based with SSE updates)
+// ============================================================
+
+/**
+ * Response from queue-pdf endpoint
+ */
+interface QueuePdfResponse {
+	message: string
+	jobId: string
+	statusUrl: string
+}
+
+/**
+ * Hook to queue PDF generation for a lease (async with SSE notifications)
+ *
+ * This queues the PDF generation in the background and relies on SSE
+ * to notify when the PDF is ready. Falls back to status endpoint polling
+ * if SSE is unavailable.
+ *
+ * @example
+ * ```tsx
+ * const { queuePdf, isQueuing, pdfReady, downloadUrl } = useQueueLeasePdf({
+ *   leaseId: 'lease-123',
+ *   onPdfReady: (downloadUrl) => {
+ *     // Auto-download or show notification
+ *   }
+ * })
+ *
+ * // Queue the PDF
+ * await queuePdf()
+ * ```
+ */
+export function useQueueLeasePdf(options: {
+	leaseId: string
+	onPdfReady?: (downloadUrl: string) => void
+	autoDownload?: boolean
+}) {
+	const { leaseId, onPdfReady, autoDownload = false } = options
+
+	// Listen for SSE PDF completion event
+	useSseEventListener('pdf.generation_completed', (event: PdfGenerationCompletedEvent) => {
+		if (event.payload.leaseId !== leaseId) return
+
+		const { downloadUrl } = event.payload
+
+		// Show toast notification
+		toast.success('PDF is ready!', {
+			action: {
+				label: 'Download',
+				onClick: () => window.open(downloadUrl, '_blank')
+			}
+		})
+
+		// Auto-download if enabled
+		if (autoDownload && downloadUrl) {
+			window.open(downloadUrl, '_blank')
+		}
+
+		// Call callback
+		onPdfReady?.(downloadUrl)
+
+		logger.info('PDF generation completed via SSE', {
+			action: 'pdf_generation_completed',
+			metadata: { leaseId }
+		})
+	})
+
+	const mutation = useMutation({
+		mutationFn: async () => {
+			return apiRequest<QueuePdfResponse>(`/api/v1/leases/${leaseId}/queue-pdf`, {
+				method: 'POST'
+			})
+		},
+		onSuccess: (data) => {
+			toast.info('PDF generation started. You\'ll be notified when it\'s ready.')
+			logger.info('PDF generation queued', {
+				action: 'pdf_generation_queued',
+				metadata: { leaseId, jobId: data.jobId }
+			})
+		},
+		onError: (error) => {
+			logger.error('Failed to queue PDF generation', {
+				action: 'pdf_generation_queue_error',
+				metadata: { leaseId, error: String(error) }
+			})
+			handleMutationError(error, 'Queue PDF generation')
+		}
+	})
+
+	return {
+		queuePdf: mutation.mutateAsync,
+		isQueuing: mutation.isPending,
+		queueError: mutation.error,
+		jobId: mutation.data?.jobId
+	}
 }

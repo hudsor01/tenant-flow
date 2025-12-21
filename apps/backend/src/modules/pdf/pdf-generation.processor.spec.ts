@@ -6,6 +6,7 @@ import { LeasePdfMapperService } from './lease-pdf-mapper.service'
 import { PdfStorageService } from './pdf-storage.service'
 import { LeasesService } from '../leases/leases.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SseService } from '../notifications/sse/sse.service'
 
 /**
  * TDD Test Suite for PDF Generation Queue Processor
@@ -22,6 +23,7 @@ describe('PdfGenerationProcessor (TDD)', () => {
 	let mockPdfStorage: jest.Mocked<PdfStorageService>
 	let mockLeasesService: jest.Mocked<LeasesService>
 	let mockLogger: jest.Mocked<AppLogger>
+	let mockSseService: jest.Mocked<SseService>
 
 	beforeEach(async () => {
 		// Create mocks
@@ -47,6 +49,10 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			error: jest.fn()
 		} as any
 
+		mockSseService = {
+			broadcast: jest.fn().mockResolvedValue(undefined)
+		} as any
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				PdfGenerationProcessor,
@@ -54,7 +60,8 @@ describe('PdfGenerationProcessor (TDD)', () => {
 				{ provide: LeasePdfMapperService, useValue: mockPdfMapper },
 				{ provide: PdfStorageService, useValue: mockPdfStorage },
 				{ provide: LeasesService, useValue: mockLeasesService },
-				{ provide: AppLogger, useValue: mockLogger }
+				{ provide: AppLogger, useValue: mockLogger },
+				{ provide: SseService, useValue: mockSseService }
 			]
 		}).compile()
 
@@ -75,11 +82,12 @@ describe('PdfGenerationProcessor (TDD)', () => {
 				attemptsMade: 0
 			} as Job<{ leaseId: string; token: string }>
 
+			const ownerId = 'owner-user-123'
 			const leaseData = {
-				lease: { id: leaseId, governing_state: 'TX' } as any,
+				lease: { id: leaseId, governing_state: 'TX', owner_user_id: ownerId } as any,
 				property: { name: 'Test Property' } as any,
 				unit: { unit_number: '101' } as any,
-				landlord: { first_name: 'John', last_name: 'Doe' } as any,
+				landlord: { id: ownerId, first_name: 'John', last_name: 'Doe' } as any,
 				tenant: { first_name: 'Jane', last_name: 'Smith' } as any,
 				tenantRecord: { id: 'tenant-123' } as any
 			}
@@ -112,6 +120,16 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			)
 			expect(mockPdfStorage.uploadLeasePdf).toHaveBeenCalledWith(leaseId, pdfBuffer)
 			expect(mockPdfStorage.getLeasePdfUrl).toHaveBeenCalledWith(leaseId)
+			expect(mockSseService.broadcast).toHaveBeenCalledWith(
+				ownerId,
+				expect.objectContaining({
+					type: 'pdf.generation_completed',
+					payload: expect.objectContaining({
+						leaseId,
+						downloadUrl: pdfUrl
+					})
+				})
+			)
 		})
 
 		it('should throw error if lease not found', async () => {
@@ -144,10 +162,10 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			} as Job<{ leaseId: string; token: string }>
 
 			const leaseData = {
-			lease: { id: leaseId, governing_state: 'TX' } as any,
+			lease: { id: leaseId, governing_state: 'TX', owner_user_id: 'owner-123' } as any,
 			property: {} as any,
 			unit: {} as any,
-			landlord: {} as any,
+			landlord: { id: 'owner-123' } as any,
 			tenant: {} as any,
 			tenantRecord: {} as any
 		}
