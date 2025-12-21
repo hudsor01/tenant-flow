@@ -4,6 +4,7 @@ import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { SecurityModule } from '../../security/security.module'
 import { MetricsModule } from '../metrics/metrics.module'
+import { SseModule } from '../notifications/sse/sse.module'
 import { StripeSyncService } from './stripe-sync.service'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeOwnerService } from './stripe-owner.service'
@@ -18,6 +19,7 @@ import { StripeConnectController } from './stripe-connect.controller'
 import { StripeTenantController } from './stripe-tenant.controller'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { WebhookProcessor } from './webhook-processor.service'
+import { WebhookMonitoringService } from './webhook-monitoring.service'
 import { StripeWebhookQueueProcessor } from './stripe-webhook.queue'
 import {
 	SubscriptionWebhookHandler,
@@ -50,6 +52,7 @@ const WORKERS_ENABLED =
 		SecurityModule,
 		MetricsModule,
 		UsersModule,
+		SseModule, // For real-time payment status notifications
 		BullModule.registerQueue({
 			name: 'stripe-webhooks',
 			defaultJobOptions: {
@@ -86,6 +89,7 @@ const WORKERS_ENABLED =
 		CheckoutWebhookHandler,
 		ConnectWebhookHandler,
 		WebhookProcessor,
+		WebhookMonitoringService,
 		...(WORKERS_ENABLED ? [StripeWebhookQueueProcessor] : [])
 	],
 	controllers: [
@@ -106,6 +110,7 @@ const WORKERS_ENABLED =
 		ConnectSetupService,
 		ConnectBillingService,
 		ConnectPayoutsService,
+		WebhookMonitoringService,
 		BullModule
 	]
 })
