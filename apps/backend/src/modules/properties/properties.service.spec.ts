@@ -294,7 +294,7 @@ describe('PropertiesService', () => {
         address_line1: '123 Main St'
       })
 
-      // Mock property_owners query - use function binding for proper 'this' context
+      // Mock stripe_connected_accounts query - use function binding for proper 'this' context
       const mockPropertyOwnerQuery = {
         select: jest.fn(function () { return this }),
         eq: jest.fn(function () { return this }),
@@ -313,7 +313,7 @@ describe('PropertiesService', () => {
 
       // Set up from() to return different mocks based on table name
       mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'property_owners') {
+        if (table === 'stripe_connected_accounts') {
           return mockPropertyOwnerQuery
         }
         if (table === 'properties') {
@@ -351,7 +351,7 @@ describe('PropertiesService', () => {
     })
 
     it('should throw BadRequestException on database error', async () => {
-      // Mock property_owners query (successful) - use function binding
+      // Mock stripe_connected_accounts query (successful) - use function binding
       const mockPropertyOwnerQuery = {
         select: jest.fn(function () { return this }),
         eq: jest.fn(function () { return this }),
@@ -372,7 +372,7 @@ describe('PropertiesService', () => {
 
       // Set up from() to return different mocks based on table name
       mockUserClient.from.mockImplementation((table: string) => {
-        if (table === 'property_owners') {
+        if (table === 'stripe_connected_accounts') {
           return mockPropertyOwnerQuery
         }
         if (table === 'properties') {

@@ -1,4 +1,3 @@
-
 'use client'
 
 import {
@@ -21,60 +20,28 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import { Input } from '#components/ui/input'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useQuery } from '@tanstack/react-query'
 import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { useDataTable } from '#hooks/use-data-table'
 import type { Unit } from '@repo/shared/types/core'
-import { Edit, Home, MoreVertical, Search, Trash2 } from 'lucide-react'
+import type { ColumnDef } from '@tanstack/react-table'
+import { Edit, Home, MoreVertical, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
 export default function UnitsPage() {
-	const [search, setSearch] = useState('')
-	const [statusFilter, setStatusFilter] = useState<string>('all')
-
-	// Fetch units with filters
-	const unitListParams: {
-		search?: string
-		status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
-		limit: number
-	} = {
-		limit: 100
-	}
-
-	if (search) unitListParams.search = search
-	if (statusFilter !== 'all') {
-		unitListParams.status = statusFilter as
-			| 'available'
-			| 'occupied'
-			| 'maintenance'
-			| 'reserved'
-	}
-
-	const { data: unitsResponse, isLoading, error } = useQuery(unitQueries.list(unitListParams))
-
-	const units = unitsResponse?.data
-	const total = unitsResponse?.total || 0
-
-	// Delete state and mutation
 	const [deleteunit_id, setDeleteunit_id] = useState<string | null>(null)
 	const deleteUnitMutation = useDeleteUnitMutation()
+
+	// Fetch all units (filtering handled by DataTable)
+	const { data: unitsResponse, isLoading, error } = useQuery(
+		unitQueries.list({ limit: 1000 })
+	)
+
+	const units = unitsResponse?.data ?? []
 
 	const handleDeleteClick = (unit_id: string) => {
 		setDeleteunit_id(unit_id)
@@ -101,7 +68,6 @@ export default function UnitsPage() {
 			reserved: 'outline'
 		}
 
-		// Display label with title case, DB values are lowercase
 		const labels: Record<Unit['status'], string> = {
 			available: 'Available',
 			occupied: 'Occupied',
@@ -111,6 +77,135 @@ export default function UnitsPage() {
 
 		return <Badge variant={variants[status]}>{labels[status]}</Badge>
 	}
+
+	const columns: ColumnDef<Unit>[] = [
+		{
+			accessorKey: 'unit_number',
+			header: 'Unit Number',
+			meta: {
+				label: 'Unit Number',
+				variant: 'text',
+				placeholder: 'Search unit number...'
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) => (
+				<span className="font-medium">{row.original.unit_number}</span>
+			)
+		},
+		{
+			accessorKey: 'property_id',
+			header: 'Property',
+			cell: ({ row }) => (
+				<span className="text-muted-foreground">
+					Property ID: {row.original.property_id.substring(0, 8)}...
+				</span>
+			)
+		},
+		{
+			accessorKey: 'bedrooms',
+			header: 'Bedrooms',
+			meta: {
+				label: 'Bedrooms',
+				variant: 'number'
+			},
+			enableColumnFilter: true
+		},
+		{
+			accessorKey: 'bathrooms',
+			header: 'Bathrooms',
+			meta: {
+				label: 'Bathrooms',
+				variant: 'number'
+			},
+			enableColumnFilter: true
+		},
+		{
+			accessorKey: 'square_feet',
+			header: 'Square Feet',
+			meta: {
+				label: 'Square Feet',
+				variant: 'number'
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) =>
+				row.original.square_feet ? `${row.original.square_feet} sq ft` : '-'
+		},
+		{
+			accessorKey: 'rent_amount',
+			header: 'Rent',
+			meta: {
+				label: 'Rent Amount',
+				variant: 'number'
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) =>
+				row.original.rent_amount
+					? `$${row.original.rent_amount.toLocaleString()}/mo`
+					: '-'
+		},
+		{
+			accessorKey: 'status',
+			header: 'Status',
+			meta: {
+				label: 'Status',
+				variant: 'select',
+				options: [
+					{ label: 'Available', value: 'available' },
+					{ label: 'Occupied', value: 'occupied' },
+					{ label: 'Maintenance', value: 'maintenance' },
+					{ label: 'Reserved', value: 'reserved' }
+				]
+			},
+			enableColumnFilter: true,
+			cell: ({ row }) => getStatusBadge(row.original.status)
+		},
+		{
+			id: 'actions',
+			cell: ({ row }) => {
+				const unit = row.original
+				return (
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button variant="ghost" size="icon">
+								<MoreVertical className="size-4" />
+								<span className="sr-only">Open menu</span>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							<DropdownMenuLabel>Actions</DropdownMenuLabel>
+							<DropdownMenuItem asChild>
+								<Link href={`/units/${unit.id}/edit`}>
+									<Edit className="mr-2 size-4" />
+									Edit Unit
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								onClick={() => handleDeleteClick(unit.id)}
+								className="text-destructive focus:text-destructive"
+							>
+								<Trash2 className="mr-2 size-4" />
+								Delete
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				)
+			}
+		}
+	]
+
+	const { table } = useDataTable({
+		data: units,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
+	})
 
 	if (error) {
 		return (
@@ -122,6 +217,17 @@ export default function UnitsPage() {
 					<p className="text-muted">
 						{error instanceof Error ? error.message : 'Failed to load units'}
 					</p>
+				</div>
+			</div>
+		)
+	}
+
+	if (isLoading) {
+		return (
+			<div className="container py-8">
+				<div className="rounded-lg border p-8 text-center">
+					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
+					<p className="mt-2 text-muted-foreground">Loading units...</p>
 				</div>
 			</div>
 		)
@@ -142,117 +248,22 @@ export default function UnitsPage() {
 				</Link>
 			</div>
 
-			{/* Filters */}
-			<div className="flex items-center gap-4">
-				<div className="relative flex-1 max-w-sm">
-					<Search className="absolute left-3 top-1/2 translate-y-[-50%] size-4 text-muted-foreground" />
-					<Input
-						placeholder="Search units..."
-						value={search}
-						onChange={e => setSearch(e.target.value)}
-						className="pl-9"
-					/>
-				</div>
-
-				<Select value={statusFilter} onValueChange={setStatusFilter}>
-					<SelectTrigger className="w-45">
-						<SelectValue placeholder="Filter by status" />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="all">All Status</SelectItem>
-						<SelectItem value="available">Vacant</SelectItem>
-						<SelectItem value="OCCUPIED">Occupied</SelectItem>
-						<SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-						<SelectItem value="RESERVED">Reserved</SelectItem>
-					</SelectContent>
-				</Select>
-
-				<div className="text-muted">
-					{total} unit{total !== 1 ? 's' : ''} found
-				</div>
-			</div>
-
-			{/* Table */}
-			{isLoading ? (
-				<div className="rounded-lg border p-8 text-center">
-					<div className="inline-block size-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent" />
-					<p className="mt-2 text-muted">Loading units...</p>
-				</div>
-			) : units?.length === 0 ? (
+			{/* DataTable with Toolbar */}
+			{units.length === 0 ? (
 				<div className="rounded-lg border p-8 text-center">
 					<Home className="mx-auto size-12 text-muted-foreground/50" />
 					<h3 className="mt-4 typography-large">No units found</h3>
-					<p className="mt-2 text-muted">
-						{search || statusFilter !== 'all'
-							? 'Try adjusting your filters'
-							: 'Get started by creating your first unit'}
+					<p className="mt-2 text-muted-foreground">
+						Get started by creating your first unit
 					</p>
 				</div>
 			) : (
-				<div className="rounded-lg border">
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Unit Number</TableHead>
-								<TableHead>Property</TableHead>
-								<TableHead>Bedrooms</TableHead>
-								<TableHead>Bathrooms</TableHead>
-								<TableHead>Square Feet</TableHead>
-								<TableHead>Rent</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className="w-16">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{units?.map(unit => (
-								<TableRow key={unit.id}>
-									<TableCell className="font-medium">
-										{unit.unit_number}
-									</TableCell>
-									<TableCell>
-										<span className="text-muted">
-											Property ID: {unit.property_id.substring(0, 8)}...
-										</span>
-									</TableCell>
-									<TableCell>{unit.bedrooms}</TableCell>
-									<TableCell>{unit.bathrooms}</TableCell>
-									<TableCell>
-										{unit.square_feet ? `${unit.square_feet} sq ft` : '-'}
-									</TableCell>
-									<TableCell>${unit.rent_amount?.toLocaleString()}/mo</TableCell>
-									<TableCell>{getStatusBadge(unit.status)}</TableCell>
-									<TableCell>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<Button variant="ghost" size="icon">
-													<MoreVertical className="size-4" />
-													<span className="sr-only">Open menu</span>
-												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end">
-												<DropdownMenuLabel>Actions</DropdownMenuLabel>
-												<DropdownMenuItem>
-													<Edit className="mr-2 size-4" />
-													Edit Unit
-												</DropdownMenuItem>
-												<DropdownMenuSeparator />
-												<DropdownMenuItem
-													onClick={() => handleDeleteClick(unit.id)}
-													className="text-destructive focus:text-destructive"
-												>
-													<Trash2 className="mr-2 size-4" />
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</TableCell>
-								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-				</div>
+				<DataTable table={table}>
+					<DataTableToolbar table={table} />
+				</DataTable>
 			)}
 
+			{/* Delete Confirmation Dialog */}
 			<AlertDialog open={!!deleteunit_id} onOpenChange={() => setDeleteunit_id(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>

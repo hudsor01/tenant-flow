@@ -8,6 +8,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { CompressionService } from '../documents/compression.service'
 
 export interface UploadPdfResult {
 	publicUrl: string
@@ -23,7 +24,8 @@ export class PdfStorageService {
 
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly compressionService: CompressionService
 	) {}
 
 	/**
@@ -49,6 +51,22 @@ export class PdfStorageService {
 		})
 
 		try {
+			// Compress PDF before uploading for reduced storage costs
+			const compressionResult = await this.compressionService.compressDocument(
+				pdfBuffer,
+				'application/pdf'
+			)
+
+			this.logger.log('PDF compression complete', {
+				leaseId,
+				originalSize: compressionResult.originalSize,
+				compressedSize: compressionResult.compressedSize,
+				compressionRatio: `${(compressionResult.ratio * 100).toFixed(1)}%`
+			})
+
+			// Use compressed buffer for upload
+			const uploadBuffer = compressionResult.compressed
+
 			// Use admin client for storage operations (bypasses RLS)
 			const client = this.supabase.getAdminClient()
 
@@ -58,7 +76,7 @@ export class PdfStorageService {
 				try {
 					const { data, error } = await client.storage
 						.from(this.BUCKET_NAME)
-						.upload(filePath, pdfBuffer, {
+						.upload(filePath, uploadBuffer, {
 							contentType: 'application/pdf',
 							cacheControl: '3600',
 							upsert: true // Overwrite if exists

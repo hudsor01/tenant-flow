@@ -27,14 +27,8 @@ import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
-import {
-	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	useReactTable
-} from '@tanstack/react-table'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useDataTable } from '#hooks/use-data-table'
 import { apiRequest } from '#lib/api-request'
 import {
 	tenantQueries,
@@ -277,13 +271,17 @@ export function InvitationsTableClient() {
 
 	const invitations = data?.data ?? []
 
-	const table = useReactTable({
+	const { table } = useDataTable({
 		data: invitations,
 		columns,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel()
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10,
+			},
+		}
 	})
 
 	if (isLoading) {

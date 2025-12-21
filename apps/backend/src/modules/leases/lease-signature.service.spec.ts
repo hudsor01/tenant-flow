@@ -25,6 +25,7 @@ import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 import { PdfStorageService } from '../pdf/pdf-storage.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SseService } from '../notifications/sse/sse.service'
 
 
 describe('LeaseSignatureService', () => {
@@ -190,6 +191,10 @@ describe('LeaseSignatureService', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: SseService,
+					useValue: { broadcast: jest.fn().mockResolvedValue(undefined) }
 				}
 			]
 		}).compile()
@@ -204,7 +209,7 @@ describe('LeaseSignatureService', () => {
 	describe('sendForSignature', () => {
 		const leaseId = 'lease-123'
 		const ownerId = 'owner-user-123' // auth.users.id
-		const propertyOwnerId = 'property-owner-456' // property_owners.id (FK in leases)
+			const propertyOwnerId = 'property-owner-456' // stripe_connected_accounts.id (Stripe Connect record for owner user_id)
 
 	it('should transition lease from draft to pending_signature', async () => {
 		let updateData: any = null
@@ -264,9 +269,9 @@ describe('LeaseSignatureService', () => {
 							property_owner: { user_id: ownerId }
 						})
 					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
+						if (table === 'stripe_connected_accounts') {
+							return createMockChain({ user_id: ownerId })
+						}
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
@@ -285,10 +290,10 @@ describe('LeaseSignatureService', () => {
 							owner_user_id: 'different-user-id' // Not the requesting owner
 						})
 					}
-					if (table === 'property_owners') {
-						// Return a different user_id so the ownership check fails
-						return createMockChain({ user_id: 'different-user-id' })
-					}
+						if (table === 'stripe_connected_accounts') {
+							// Return a different user_id so the ownership check fails
+							return createMockChain({ user_id: 'different-user-id' })
+						}
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<() => ReturnType<SupabaseService['getAdminClient']>>
@@ -520,7 +525,7 @@ describe('LeaseSignatureService', () => {
 	describe('signLease (as owner)', () => {
 		const leaseId = 'lease-123'
 		const ownerId = 'owner-user-123' // auth.users.id
-		const propertyOwnerId = 'property-owner-456' // property_owners.id (FK in leases)
+			const propertyOwnerId = 'property-owner-456' // stripe_connected_accounts.id (Stripe Connect record for owner user_id)
 		const signatureIp = '192.168.1.1'
 
 		it('should call atomic RPC for owner signature', async () => {
@@ -538,9 +543,9 @@ describe('LeaseSignatureService', () => {
 							owner_user_id: ownerId
 						})
 					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
+						if (table === 'stripe_connected_accounts') {
+							return createMockChain({ user_id: ownerId })
+						}
 					return createMockChain()
 				}),
 				rpc: jest.fn((name: string, params: Record<string, unknown>) => {
@@ -570,9 +575,9 @@ describe('LeaseSignatureService', () => {
 							owner_user_id: ownerId
 						})
 					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
+						if (table === 'stripe_connected_accounts') {
+							return createMockChain({ user_id: ownerId })
+						}
 					return createMockChain()
 				}),
 				rpc: jest.fn(() => Promise.resolve(createSignLeaseRpcResult(true, false))) // both_signed = false
@@ -601,9 +606,9 @@ describe('LeaseSignatureService', () => {
 							owner_user_id: ownerId
 						})
 					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
+						if (table === 'stripe_connected_accounts') {
+							return createMockChain({ user_id: ownerId })
+						}
 					return createMockChain()
 				}),
 				rpc: jest.fn((rpcName: string) => {
@@ -643,9 +648,9 @@ describe('LeaseSignatureService', () => {
 							owner_user_id: ownerId
 						})
 					}
-					if (table === 'property_owners') {
-						return createMockChain({ user_id: ownerId })
-					}
+						if (table === 'stripe_connected_accounts') {
+							return createMockChain({ user_id: ownerId })
+						}
 					return createMockChain()
 				}),
 				rpc: jest.fn(() => Promise.resolve(
@@ -893,14 +898,14 @@ describe('LeaseSignatureService', () => {
 						}))
 					case 'tenants':
 						return makeChain(() => tenantRecord)
-					case 'property_owners':
-						return makeChain(() => ({
-							id: leaseState.owner_user_id,
-							user_id: ownerId,
-							stripe_account_id: 'acct_123',
-							charges_enabled: true,
-							payouts_enabled: true
-						}))
+						case 'stripe_connected_accounts':
+							return makeChain(() => ({
+								id: leaseState.owner_user_id,
+								user_id: ownerId,
+								stripe_account_id: 'acct_123',
+								charges_enabled: true,
+								payouts_enabled: true
+							}))
 					case 'users':
 						return makeChain(() => ({ email: 'tenant@test.com', first_name: 'Test', last_name: 'Tenant' }))
 					default:

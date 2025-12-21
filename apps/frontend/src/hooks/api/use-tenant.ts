@@ -280,10 +280,17 @@ export function useTenantOperations() {
 
 
 /**
- * Hook for polling tenant data with configurable interval
- * Useful for real-time tenant status updates
+ * Hook for tenant data with real-time SSE updates
+ *
+ * Primary updates come from SSE (tenant.updated events).
+ * Fallback polling is reduced to 5 minutes for missed events.
+ *
+ * @param id - Tenant ID to fetch
+ * @param interval - Fallback polling interval (default: 5 minutes, reduced from 30 seconds)
+ * @deprecated Prefer using useTenant() with SSE enabled at app level.
+ * The polling fallback is now built into the query options.
  */
-export function useTenantPolling(id: string, interval: number = 30000) {
+export function useTenantPolling(id: string, interval: number = 5 * 60 * 1000) {
 	return useQuery({
 		...tenantQueries.polling(id),
 		refetchInterval: interval

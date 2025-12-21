@@ -25,7 +25,7 @@ import {
 } from '@nestjs/common'
 import { timingSafeEqual } from 'crypto'
 import type { Request } from 'express'
-import { WebhookMonitoringService } from './webhook-monitoring.service'
+import { WebhookMonitoringService } from '../billing/webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'

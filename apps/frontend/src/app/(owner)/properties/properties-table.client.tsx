@@ -11,10 +11,11 @@ import { Trash2, MapPin, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import { ColumnDef } from '@tanstack/react-table'
 import type { Property } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useDeletePropertyMutation } from '#hooks/api/mutations/property-mutations'
+import { useDataTable } from '#hooks/use-data-table'
 
 const logger = createLogger({ component: 'PropertiesTableClient' })
 
@@ -200,13 +201,17 @@ className = "bg-destructive text-destructive-foreground hover:bg-destructive/90"
 		}
 	]
 
-const table = useReactTable({
+const { table } = useDataTable({
   data: optimisticProperties,
   columns,
-  getCoreRowModel: getCoreRowModel(),
-  getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
-  getSortedRowModel: getSortedRowModel(),
+  pageCount: -1, // Client-side pagination
+  enableAdvancedFilter: true,
+  initialState: {
+    pagination: {
+      pageIndex: 0,
+      pageSize: 10,
+    },
+  },
 })
 
 return (
