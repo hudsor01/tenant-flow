@@ -48,6 +48,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 		StripeModule, // For billing when lease is activated
 		DocuSealModule, // For e-signature via self-hosted DocuSeal
 		EmailModule, // For subscription failure alerts
+		SseModule, // For real-time signature update notifications
 		BullModule.registerQueue({
 			name: 'pdf-generation',
 			defaultJobOptions: {
