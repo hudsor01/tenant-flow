@@ -42,7 +42,7 @@ describe('TenantRelationService', () => {
 		it('returns property IDs for an owner', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
 
-			// Mock property_owners query
+			// owner_user_id schema: query properties directly
 			const ownerBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
@@ -124,7 +124,7 @@ describe('TenantRelationService', () => {
 		it('returns tenant IDs for an owner', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
 
-			// Mock property_owners query
+			// owner_user_id schema: query properties directly
 			const ownerBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),

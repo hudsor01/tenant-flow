@@ -21,6 +21,7 @@ import { DocuSealWebhookService } from '../../src/modules/docuseal/docuseal-webh
 import { SupabaseService } from '../../src/database/supabase.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
+import { SseService } from '../../src/modules/notifications/sse/sse.service'
 
 describe('DocuSeal Webhook Handling Property Tests', () => {
 	let service: DocuSealWebhookService
@@ -106,6 +107,10 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: SseService,
+					useValue: { broadcast: jest.fn().mockResolvedValue(undefined) }
 				}
 			]
 		}).compile()

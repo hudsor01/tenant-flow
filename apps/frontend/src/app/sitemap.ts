@@ -1,10 +1,10 @@
-import { getAllBlogPosts } from '#lib/blog-posts'
+import { createClient } from '#utils/supabase/server'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MetadataRoute } from 'next'
 
 const logger = createLogger({ component: 'Sitemap' })
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
 	const currentDate = new Date().toISOString()
 
@@ -100,21 +100,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		}
 	]
 
-	// Dynamic blog posts
+	// Dynamic blog posts from database
 	let blogPages: MetadataRoute.Sitemap = []
 	try {
-		const blogPosts = getAllBlogPosts()
+		const supabase = await createClient()
+		const { data: blogPosts, error } = await supabase
+			.from('blogs')
+			.select('slug, published_at')
+			.eq('status', 'published')
+			.order('published_at', { ascending: false })
+
+		if (error) {
+			throw new Error(`Failed to fetch blog posts: ${error.message}`)
+		}
+
 		logger.info('Generating blog post sitemap entries', {
 			action: 'generateBlogSitemap',
 			route: '/sitemap.xml',
 			metadata: {
-				postCount: blogPosts.length
+				postCount: blogPosts?.length || 0
 			}
 		})
 
-		blogPages = blogPosts.map(post => ({
+		blogPages = (blogPosts || []).map(post => ({
 			url: `${baseUrl}/blog/${post.slug}`,
-			lastModified: new Date(post.date).toISOString(),
+			lastModified: post.published_at || currentDate,
 			changeFrequency: 'monthly' as const,
 			priority: 0.7
 		}))

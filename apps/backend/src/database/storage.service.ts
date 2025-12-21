@@ -10,13 +10,18 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import * as path from 'path'
 import { SupabaseService } from './supabase.service'
 import { AppLogger } from '../logger/app-logger.service'
+import { CompressionService } from '../modules/documents/compression.service'
 
 // StorageUploadResult now imported from @repo/shared to eliminate duplication
 
 @Injectable()
 export class StorageService {
 
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger,
+		private readonly compressionService: CompressionService
+	) {}
 
 	private get supabase(): SupabaseClient<Database> {
 		return this.supabaseService.getAdminClient()
@@ -105,9 +110,43 @@ export class StorageService {
 			uploadOptions.contentType = options.contentType
 		}
 
+		// Compress images and PDFs to reduce storage costs and improve performance
+		let uploadBuffer = file
+		const contentType = options?.contentType ?? 'application/octet-stream'
+		const shouldCompress =
+			contentType.startsWith('image/') || contentType === 'application/pdf'
+
+		if (shouldCompress) {
+			try {
+				const compressionResult = await this.compressionService.compressDocument(
+					file,
+					contentType
+				)
+
+				this.logger.log('File compression complete', {
+					bucket,
+					path: safePath,
+					contentType,
+					originalSize: compressionResult.originalSize,
+					compressedSize: compressionResult.compressedSize,
+					compressionRatio: `${(compressionResult.ratio * 100).toFixed(1)}%`
+				})
+
+				uploadBuffer = compressionResult.compressed
+			} catch (error) {
+				// Log compression failure but don't block upload
+				this.logger.warn('File compression failed, uploading original', {
+					bucket,
+					path: safePath,
+					contentType,
+					error: error instanceof Error ? error.message : String(error)
+				})
+			}
+		}
+
 		const { error } = await this.supabase.storage
 			.from(bucket)
-			.upload(safePath, file, uploadOptions)
+			.upload(safePath, uploadBuffer, uploadOptions)
 
 		if (error) {
 			// Log detailed error for debugging but don't expose to client
@@ -125,7 +164,7 @@ export class StorageService {
 			url: publicUrl,
 			path: safePath,
 			filename: safePath.split('/').pop() ?? safePath,
-			size: file.length,
+			size: uploadBuffer.length, // Use compressed size
 			mimeType: options?.contentType ?? 'application/octet-stream',
 			bucket
 		}

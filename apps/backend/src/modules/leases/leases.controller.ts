@@ -12,6 +12,7 @@ import {
 	DefaultValuePipe,
 	Delete,
 	Get,
+	Header,
 	NotFoundException,
 	Param,
 	ParseIntPipe,
@@ -337,9 +338,13 @@ export class LeasesController {
 	/**
 	 * Get signature status for a lease
 	 * Authorization: Only owner or assigned tenant can view
+	 *
+	 * Note: SSE provides real-time updates. This endpoint is now
+	 * a fallback for missed events or initial page load only.
 	 */
 	@Get(':id/signature-status')
-	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute (polling)
+	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute (fallback only, SSE is primary)
+	@Header('Cache-Control', 'private, max-age=30') // 30s cache for CDN/browser
 	async getSignatureStatus(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest

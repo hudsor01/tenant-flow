@@ -62,7 +62,7 @@ describe('TenantInvitationQueryService', () => {
 		it('returns paginated invitations for an owner', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
 
-			// Mock property_owners query
+			// owner_user_id schema: query invitations directly
 			const ownerBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),

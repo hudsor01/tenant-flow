@@ -80,7 +80,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
   describe('getTenantIdsForOwner - N+1 Prevention', () => {
     it('should use single query with joins instead of 3 sequential queries', async () => {
-      // Service now queries properties directly by owner_user_id (no property_owners query)
+      // Service now queries properties directly by owner_user_id
       const mockProperties = [
         {
           id: 'prop-1',

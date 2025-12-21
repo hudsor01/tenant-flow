@@ -103,12 +103,11 @@ export async function proxy(request: NextRequest) {
 	try {
 		const claimsResult = await supabase.auth.getClaims()
 		claims = claimsResult.data?.claims as SupabaseJwtPayload | null
-	} catch (error) {
+	} catch {
 		// Handle invalid/expired refresh tokens gracefully
 		// This happens when token was revoked server-side or expired
 		// Treat as unauthenticated - user will be redirected to login if on protected route
-		// eslint-disable-next-line no-restricted-syntax -- Edge runtime middleware, structured logging unavailable
-		console.warn('Auth token refresh failed:', (error as Error).message)
+		// No logging needed - this is expected behavior for expired/revoked tokens
 	}
 
 	const path = request.nextUrl.pathname

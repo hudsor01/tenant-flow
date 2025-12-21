@@ -9,12 +9,14 @@ import { useAuth } from '#providers/auth-provider'
 import { getApiBaseUrl } from '#lib/api-config'
 import { Label } from '#components/ui/label'
 import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
+	Combobox,
+	ComboboxAnchor,
+	ComboboxInput,
+	ComboboxTrigger,
+	ComboboxContent,
+	ComboboxEmpty,
+	ComboboxItem
+} from '#components/ui/combobox'
 import { Skeleton } from '#components/ui/skeleton'
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from '#components/ui/empty'
 import { Button } from '#components/ui/button'
@@ -154,21 +156,23 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 							Failed to load properties: {propertiesError.message}
 						</div>
 					) : (
-						<Select
+						<Combobox
 							value={data.property_id ?? ''}
 							onValueChange={handlePropertyChange}
 						>
-							<SelectTrigger id="property">
-								<SelectValue placeholder="Select a property" />
-							</SelectTrigger>
-							<SelectContent>
+							<ComboboxAnchor id="property">
+								<ComboboxInput placeholder="Search properties..." />
+								<ComboboxTrigger />
+							</ComboboxAnchor>
+							<ComboboxContent>
+								<ComboboxEmpty>No properties found</ComboboxEmpty>
 								{properties?.map(property => (
-									<SelectItem key={property.id} value={property.id}>
+									<ComboboxItem key={property.id} value={property.id}>
 										{property.name} - {property.address_line1}, {property.city}
-									</SelectItem>
+									</ComboboxItem>
 								))}
-							</SelectContent>
-						</Select>
+							</ComboboxContent>
+						</Combobox>
 					)}
 				</div>
 
@@ -193,18 +197,20 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 							No units found for this property
 						</div>
 					) : (
-						<Select value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
-							<SelectTrigger id="unit">
-								<SelectValue placeholder="Select a unit" />
-							</SelectTrigger>
-							<SelectContent>
+						<Combobox value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
+							<ComboboxAnchor id="unit">
+								<ComboboxInput placeholder="Search units..." />
+								<ComboboxTrigger />
+							</ComboboxAnchor>
+							<ComboboxContent>
+								<ComboboxEmpty>No units found</ComboboxEmpty>
 								{units?.map(unit => (
-									<SelectItem key={unit.id} value={unit.id}>
+									<ComboboxItem key={unit.id} value={unit.id}>
 										{unit.unit_number || 'Main Unit'}
-									</SelectItem>
+									</ComboboxItem>
 								))}
-							</SelectContent>
-						</Select>
+							</ComboboxContent>
+						</Combobox>
 					)}
 				</div>
 
@@ -241,21 +247,23 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 						</EmptyContent>
 					</Empty>
 				) : (
-						<Select
+						<Combobox
 							value={data.primary_tenant_id ?? ''}
 							onValueChange={handleTenantChange}
 						>
-							<SelectTrigger id="tenant">
-								<SelectValue placeholder="Select a tenant" />
-							</SelectTrigger>
-							<SelectContent>
+							<ComboboxAnchor id="tenant">
+								<ComboboxInput placeholder="Search tenants..." />
+								<ComboboxTrigger />
+							</ComboboxAnchor>
+							<ComboboxContent>
+								<ComboboxEmpty>No tenants found</ComboboxEmpty>
 								{tenants?.map(tenant => (
-									<SelectItem key={tenant.id} value={tenant.id}>
+									<ComboboxItem key={tenant.id} value={tenant.id}>
 										{tenant.first_name} {tenant.last_name} ({tenant.email})
-									</SelectItem>
+									</ComboboxItem>
 								))}
-							</SelectContent>
-						</Select>
+							</ComboboxContent>
+						</Combobox>
 					)}
 				</div>
 			</div>

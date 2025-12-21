@@ -6,6 +6,7 @@ import { PDFModule } from '../pdf/pdf.module'
 import { StripeModule } from '../billing/stripe.module'
 import { DocuSealModule } from '../docuseal/docuseal.module'
 import { EmailModule } from '../email/email.module'
+import { SseModule } from '../notifications/sse/sse.module'
 import { LeasesController } from './leases.controller'
 import { LeasesPdfQueueController } from './leases-pdf-queue.controller'
 import { LeasesService } from './leases.service'
@@ -47,6 +48,7 @@ import { TenantsModule } from '../tenants/tenants.module'
 		StripeModule, // For billing when lease is activated
 		DocuSealModule, // For e-signature via self-hosted DocuSeal
 		EmailModule, // For subscription failure alerts
+		SseModule, // For real-time signature update notifications
 		BullModule.registerQueue({
 			name: 'pdf-generation',
 			defaultJobOptions: {

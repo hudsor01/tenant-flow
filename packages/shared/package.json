@@ -41,6 +41,10 @@
 		"./templates/*": {
 			"types": "./dist/templates/*.d.ts",
 			"default": "./dist/templates/*.js"
+		},
+		"./events/*": {
+			"types": "./dist/events/*.d.ts",
+			"default": "./dist/events/*.js"
 		}
 	},
 	"files": [

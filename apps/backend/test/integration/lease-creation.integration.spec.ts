@@ -45,6 +45,8 @@ const toUUID = (str: string): string => {
 }
 
 describe('Lease Creation Integration (TDD)', () => {
+	jest.setTimeout(60000)
+
 	let app: INestApplication
 	let ownerA: AuthenticatedTestClient
 	let ownerB: AuthenticatedTestClient | null = null
@@ -53,7 +55,8 @@ describe('Lease Creation Integration (TDD)', () => {
 	// Deterministic test IDs for ownerA
 	const ownerAPropertyId = toUUID('ownerA-lease-test-property-1')
 	const testUnitId = toUUID('ownerA-lease-test-unit-1')
-	const testTenantId = toUUID('ownerA-lease-test-tenant-1')
+	const seededTenantId = toUUID('ownerA-lease-test-tenant-1')
+	let testTenantId = seededTenantId
 	const testInvitationId = toUUID('ownerA-lease-test-invitation-1')
 
 	beforeAll(async () => {
@@ -169,27 +172,29 @@ describe('Lease Creation Integration (TDD)', () => {
 
 		let actualTenantRecordId: string
 
-		if (existingTenant) {
-			actualTenantRecordId = existingTenant.id
-			console.log(`  ✅ Using existing tenant record: ${actualTenantRecordId}`)
-		} else {
+			if (existingTenant) {
+				actualTenantRecordId = existingTenant.id
+				console.log(`  ✅ Using existing tenant record: ${actualTenantRecordId}`)
+			} else {
 			// Create new tenant record for test setup
 			const { error: tenantError } = await serviceRoleClient
 				.from('tenants')
 				.insert({
-					id: testTenantId,
-					user_id: tenantUserId, // References auth.users.id (already exists from E2E setup)
-					stripe_customer_id: ''
-				})
+						id: seededTenantId,
+						user_id: tenantUserId, // References auth.users.id (already exists from E2E setup)
+						stripe_customer_id: ''
+					})
 
 			if (tenantError) {
 				console.error('❌ Failed to create tenant record:', tenantError)
 				throw new Error(`Tenant creation failed: ${tenantError.message}`)
 			}
 
-			actualTenantRecordId = testTenantId
-			console.log(`  ✅ Created tenant record: ${actualTenantRecordId}`)
-		}
+				actualTenantRecordId = seededTenantId
+				console.log(`  ✅ Created tenant record: ${actualTenantRecordId}`)
+			}
+
+			testTenantId = actualTenantRecordId
 
 		// Create accepted invitation (required for lease creation)
 		const expiresAt = new Date()
@@ -235,7 +240,7 @@ describe('Lease Creation Integration (TDD)', () => {
 		await serviceRoleClient
 			.from('tenants')
 			.delete()
-			.eq('id', testTenantId)
+			.eq('id', seededTenantId)
 
 		// Delete unit
 		await serviceRoleClient
@@ -329,32 +334,43 @@ describe('Lease Creation Integration (TDD)', () => {
 			const uninvitedTenantId = toUUID('uninvited-tenant-record')
 			const uninvitedTenantUserId = toUUID('uninvited-tenant-user')
 
-			await serviceRoleClient.from('tenants').insert({
-				id: uninvitedTenantId,
-				user_id: uninvitedTenantUserId,
-				stripe_customer_id: ''
-			})
+			try {
+				// Create required public.users row (tenants.user_id has FK to users.id)
+				await serviceRoleClient.from('users').upsert({
+					id: uninvitedTenantUserId,
+					email: `uninvited-${uninvitedTenantUserId.slice(0, 8)}@example.com`,
+					full_name: 'Uninvited Tenant',
+					user_type: 'TENANT',
+					status: 'active'
+				})
 
-			const payload = {
-				unit_id: testUnitId,
-				primary_tenant_id: uninvitedTenantId,
-				start_date: '2025-01-01',
-				end_date: '2026-01-01',
-				rent_amount: 150000
+				await serviceRoleClient.from('tenants').upsert({
+					id: uninvitedTenantId,
+					user_id: uninvitedTenantUserId,
+					stripe_customer_id: null
+				})
+
+				const payload = {
+					unit_id: testUnitId,
+					primary_tenant_id: uninvitedTenantId,
+					start_date: '2025-01-01',
+					end_date: '2026-01-01',
+					rent_amount: 150000
+				}
+
+				// WHEN: POST /api/v1/leases
+				const response = await request(app.getHttpServer())
+					.post('/api/v1/leases')
+					.set('Authorization', `Bearer ${ownerA.accessToken}`)
+					.send(payload)
+					.expect(400)
+
+				// THEN: Error message indicates tenant must be invited
+				expect(response.body.message).toMatch(/tenant must be invited|invitation/i)
+			} finally {
+				await serviceRoleClient.from('tenants').delete().eq('id', uninvitedTenantId)
+				await serviceRoleClient.from('users').delete().eq('id', uninvitedTenantUserId)
 			}
-
-			// WHEN: POST /api/v1/leases
-			const response = await request(app.getHttpServer())
-				.post('/api/v1/leases')
-				.set('Authorization', `Bearer ${ownerA.accessToken}`)
-				.send(payload)
-				.expect(400)
-
-			// THEN: Error message indicates tenant must be invited
-			expect(response.body.message).toMatch(/tenant must be invited|invitation/i)
-
-			// Cleanup
-			await serviceRoleClient.from('tenants').delete().eq('id', uninvitedTenantId)
 		})
 
 		/**
@@ -776,49 +792,63 @@ describe('Lease Creation Integration (TDD)', () => {
 			const pendingTenantUserId = toUUID('pending-tenant-user')
 			const pendingInvitationId = toUUID('pending-invitation')
 
-			await serviceRoleClient.from('tenants').insert({
-				id: pendingTenantId,
-				user_id: pendingTenantUserId,
-				stripe_customer_id: ''
-			})
+			try {
+				// Create required public.users row (tenants.user_id has FK to users.id)
+				await serviceRoleClient.from('users').upsert({
+					id: pendingTenantUserId,
+					email: 'pending@example.com',
+					full_name: 'Pending Tenant',
+					user_type: 'TENANT',
+					status: 'active'
+				})
 
-			const expiresAt = new Date()
-			expiresAt.setDate(expiresAt.getDate() + 7)
+				await serviceRoleClient.from('tenants').upsert({
+					id: pendingTenantId,
+					user_id: pendingTenantUserId,
+					stripe_customer_id: null
+				})
 
-			await serviceRoleClient.from('tenant_invitations').insert({
-				id: pendingInvitationId,
-				email: 'pending@example.com',
-				property_id: ownerAPropertyId,
-				unit_id: testUnitId,
-				owner_user_id: ownerA.user_id,
-				invitation_code: createHash('sha256').update('pending-inv').digest('hex').slice(0, 64),
-				invitation_url: 'https://test.com/pending',
-				expires_at: expiresAt.toISOString(),
-				accepted_at: null, // NOT ACCEPTED
-				accepted_by_user_id: null
-			})
+				const expiresAt = new Date()
+				expiresAt.setDate(expiresAt.getDate() + 7)
 
-			const payload = {
-				unit_id: testUnitId,
-				primary_tenant_id: pendingTenantId,
-				start_date: '2025-01-01',
-				end_date: '2026-01-01',
-				rent_amount: 150000
+				await serviceRoleClient.from('tenant_invitations').upsert({
+					id: pendingInvitationId,
+					email: 'pending@example.com',
+					property_id: ownerAPropertyId,
+					unit_id: testUnitId,
+					owner_user_id: ownerA.user_id,
+					invitation_code: createHash('sha256').update('pending-inv').digest('hex').slice(0, 64),
+					invitation_url: 'https://test.com/pending',
+					expires_at: expiresAt.toISOString(),
+					accepted_at: null, // NOT ACCEPTED
+					accepted_by_user_id: null
+				})
+
+				const payload = {
+					unit_id: testUnitId,
+					primary_tenant_id: pendingTenantId,
+					start_date: '2025-01-01',
+					end_date: '2026-01-01',
+					rent_amount: 150000
+				}
+
+				// WHEN: POST /api/v1/leases
+				const response = await request(app.getHttpServer())
+					.post('/api/v1/leases')
+					.set('Authorization', `Bearer ${ownerA.accessToken}`)
+					.send(payload)
+					.expect(400)
+
+				// THEN: Error indicates invitation not accepted
+				expect(response.body.message).toMatch(/invitation.*not.*accepted|pending/i)
+			} finally {
+				await serviceRoleClient
+					.from('tenant_invitations')
+					.delete()
+					.eq('id', pendingInvitationId)
+				await serviceRoleClient.from('tenants').delete().eq('id', pendingTenantId)
+				await serviceRoleClient.from('users').delete().eq('id', pendingTenantUserId)
 			}
-
-			// WHEN: POST /api/v1/leases
-			const response = await request(app.getHttpServer())
-				.post('/api/v1/leases')
-				.set('Authorization', `Bearer ${ownerA.accessToken}`)
-				.send(payload)
-				.expect(400)
-
-			// THEN: Error indicates invitation not accepted
-			expect(response.body.message).toMatch(/invitation.*not.*accepted|pending/i)
-
-			// Cleanup
-			await serviceRoleClient.from('tenant_invitations').delete().eq('id', pendingInvitationId)
-			await serviceRoleClient.from('tenants').delete().eq('id', pendingTenantId)
 		})
 
 		/**

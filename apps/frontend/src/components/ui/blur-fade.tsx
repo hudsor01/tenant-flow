@@ -1,25 +1,20 @@
 "use client"
 
 import { cn } from '#lib/utils'
-import { useSpring } from '@react-spring/core'
-import { animated } from '@react-spring/web'
 import type {
-	BlurFadeProps,
-	BlurFadeVariant
+	BlurFadeProps
 } from '@repo/shared/types/frontend-ui'
 import { useEffect, useRef, useState } from 'react'
-
 
 export function BlurFade({
 	children,
 	className,
-	variant,
 	delay = 0,
 	yOffset = 6,
 	inView = true,
-	blur = '4px', // Reduced blur for more modern feel
+	blur = '4px',
 	preset = 'default',
-	duration = 200, // Faster, more responsive animation
+	duration = 200,
 	reducedMotion = false,
 	onAnimationComplete
 }: BlurFadeProps) {
@@ -34,13 +29,12 @@ export function BlurFade({
 
 	useEffect(() => {
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-
 		const handleChange = () => setPrefersReducedMotion(mediaQuery.matches)
 		mediaQuery.addEventListener('change', handleChange)
 		return () => mediaQuery.removeEventListener('change', handleChange)
 	}, [])
 
-	// Intersection Observer for better performance
+	// Intersection Observer for performance
 	useEffect(() => {
 		if (!elementRef.current || inView === undefined) return
 
@@ -49,6 +43,9 @@ export function BlurFade({
 				const entry = entries[0]
 				if (entry && entry.isIntersecting) {
 					setIsVisible(true)
+					if (onAnimationComplete) {
+						setTimeout(onAnimationComplete, duration)
+					}
 				}
 			},
 			{
@@ -59,129 +56,72 @@ export function BlurFade({
 
 		observer.observe(elementRef.current)
 		return () => observer.disconnect()
-	}, [inView])
+	}, [inView, duration, onAnimationComplete])
 
-	// Animation presets with enhanced configurations
-	const presetVariants: Record<
-		string,
-		{ hidden: BlurFadeVariant; visible: BlurFadeVariant }
-	> = {
+	// Animation presets with CSS classes
+	const presetClasses: Record<string, { hidden: string; visible: string }> = {
 		default: {
-			hidden: {
-				y: yOffset,
-				x: 0,
-				scale: 1,
-				opacity: 0,
-				filter: `blur(${blur})`
-			},
-			visible: { y: 0, x: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `translate-y-[${yOffset}px] opacity-0 blur-[${blur}]`,
+			visible: 'translate-y-0 opacity-100 blur-0'
 		},
 		scale: {
-			hidden: { y: 0, x: 0, scale: 0.95, opacity: 0, filter: `blur(${blur})` },
-			visible: { y: 0, x: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `scale-95 opacity-0 blur-[${blur}]`,
+			visible: 'scale-100 opacity-100 blur-0'
 		},
 		'slide-up': {
-			hidden: {
-				y: yOffset * 2,
-				x: 0,
-				scale: 1,
-				opacity: 0,
-				filter: `blur(${blur})`
-			},
-			visible: { y: 0, x: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `translate-y-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
+			visible: 'translate-y-0 opacity-100 blur-0'
 		},
 		'slide-down': {
-			hidden: {
-				y: -yOffset * 2,
-				x: 0,
-				scale: 1,
-				opacity: 0,
-				filter: `blur(${blur})`
-			},
-			visible: { y: 0, x: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `-translate-y-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
+			visible: 'translate-y-0 opacity-100 blur-0'
 		},
 		'slide-left': {
-			hidden: {
-				x: -yOffset * 2,
-				y: 0,
-				scale: 1,
-				opacity: 0,
-				filter: `blur(${blur})`
-			},
-			visible: { x: 0, y: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `-translate-x-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
+			visible: 'translate-x-0 opacity-100 blur-0'
 		},
 		'slide-right': {
-			hidden: {
-				x: yOffset * 2,
-				y: 0,
-				scale: 1,
-				opacity: 0,
-				filter: `blur(${blur})`
-			},
-			visible: { x: 0, y: 0, scale: 1, opacity: 1, filter: `blur(0px)` }
+			hidden: `translate-x-[${yOffset * 2}px] opacity-0 blur-[${blur}]`,
+			visible: 'translate-x-0 opacity-100 blur-0'
 		}
 	}
 
-	const selectedVariant = variant || presetVariants[preset]
+	const selectedPreset = presetClasses[preset]
 	const shouldAnimate = inView !== undefined ? inView || isVisible : true
 	const shouldReduceMotion = reducedMotion || prefersReducedMotion
 
-	// Get target state with reduced motion support
-	const fallbackState = {
-		x: 0,
-		y: 0,
-		scale: 1,
-		opacity: 1,
-		filter: `blur(0px)`
-	}
-	let targetState = shouldAnimate
-		? selectedVariant?.visible || fallbackState
-		: selectedVariant?.hidden || {
-				...fallbackState,
-				opacity: 0,
-				filter: `blur(4px)`
-			}
+	// Determine current state classes
+	const stateClasses = shouldReduceMotion
+		? shouldAnimate
+			? 'opacity-100'
+			: 'opacity-0'
+		: shouldAnimate
+		? selectedPreset?.visible
+		: selectedPreset?.hidden
 
-	// Apply reduced motion overrides
-	if (shouldReduceMotion) {
-		targetState = {
-			x: 0,
-			y: 0,
-			scale: 1,
-			opacity: shouldAnimate ? 1 : 0,
-			filter: 'blur(0px)'
-		}
-	}
-
-	const spring = useSpring({
-		transform: `translateX(${targetState.x || 0}px) translateY(${targetState.y || 0}px) scale(${targetState.scale || 1})`,
-		opacity: targetState.opacity,
-		filter: targetState.filter,
-		config: shouldReduceMotion
-			? { duration: 0 }
-			: {
-					tension: 280,
-					friction: 60,
-					duration: Math.min(duration, 300) // Faster animations
-				},
-		delay: shouldReduceMotion ? 0 : delay * 80, // Even shorter delay multiplier
-		onRest: onAnimationComplete
-	})
+	const durationClass = {
+		150: '[transition-duration:var(--duration-instant)]',
+		200: '[transition-duration:var(--duration-fast)]',
+		300: '[transition-duration:var(--duration-normal)]',
+		500: '[transition-duration:var(--duration-slow)]'
+	}[duration] || '[transition-duration:var(--duration-fast)]'
 
 	return (
-		<animated.div
+		<div
 			ref={elementRef}
-			style={spring}
 			className={cn(
-				'will-change-transform',
-				'animate-in fade-in-0 duration-300',
+				'will-change-transform transition-all',
+				durationClass,
+				stateClasses,
 				className
 			)}
-			// Accessibility improvements
+			style={{
+				transitionDelay: shouldReduceMotion ? '0ms' : `${delay * 80}ms`
+			}}
 			aria-hidden={!shouldAnimate}
 		>
 			{children}
-		</animated.div>
+		</div>
 	)
 }
 

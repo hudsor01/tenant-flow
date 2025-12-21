@@ -6,7 +6,6 @@
  */
 
 // Lease Status Validation
-// ============================================================================
 
 /**
  * Valid lease status values (must match database enum)
@@ -45,7 +44,6 @@ export function validateLeaseStatus(status: string): LeaseStatus {
 }
 
 // Unit Status Validation
-// ============================================================================
 
 /**
  * Valid unit status values (must match database enum)
@@ -83,7 +81,6 @@ export function validateUnitStatus(status: string): UnitStatus {
 }
 
 // Case-Insensitive Normalization
-// ============================================================================
 
 /**
  * Normalize status values to lowercase (handles mixed case input)

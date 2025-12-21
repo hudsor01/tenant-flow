@@ -46,6 +46,7 @@ import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
 import { SubscriptionGuard } from './shared/guards/subscription.guard'
+import { RolesGuard } from './shared/guards/roles.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
 import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
@@ -56,6 +57,7 @@ import { TenantPortalModule } from './modules/tenant-portal/tenant-portal.module
 import { MetricsModule } from './modules/metrics/metrics.module'
 import { DocuSealModule } from './modules/docuseal/docuseal.module'
 import { AdminModule } from './modules/admin/admin.module'
+import { DocumentsModule } from './modules/documents/documents.module'
 
 /**
  * Core App Module - KISS principle
@@ -238,6 +240,7 @@ import { AdminModule } from './modules/admin/admin.module'
 		ReportsModule,
 		DocuSealModule,
 		AdminModule,
+		DocumentsModule,
 	],
 	controllers: [AppController],
 	providers: [
@@ -257,6 +260,10 @@ import { AdminModule } from './modules/admin/admin.module'
 		{
 			provide: APP_GUARD,
 			useClass: SubscriptionGuard
+		},
+		{
+			provide: APP_GUARD,
+			useClass: RolesGuard
 		},
 		{
 			provide: APP_INTERCEPTOR,

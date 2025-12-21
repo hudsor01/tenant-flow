@@ -158,7 +158,7 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder(mockTenantUser)) // users
 				.mockReturnValueOnce(createQueryBuilder(mockUnit)) // units
 				.mockReturnValueOnce(createQueryBuilder(mockProperty)) // properties
-				.mockReturnValueOnce(createQueryBuilder(mockOwner)) // property_owners
+				.mockReturnValueOnce(createQueryBuilder(mockOwner)) // stripe_connected_accounts
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' })) // payment_methods (default)
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' })) // payment_methods (fallback)
 

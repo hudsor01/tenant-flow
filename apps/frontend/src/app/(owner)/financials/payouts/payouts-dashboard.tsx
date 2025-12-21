@@ -2,20 +2,19 @@
 
 import { Spinner } from '#components/ui/loading-spinner'
 import { CardLayout } from '#components/ui/card-layout'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { DollarSign, ArrowDownRight, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { useMemo } from 'react'
 import {
 	useConnectedAccountBalance,
 	useConnectedAccountPayouts,
-	useConnectedAccountTransfers
+	useConnectedAccountTransfers,
+	type Payout,
+	type Transfer
 } from '#hooks/api/use-stripe-connect'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
 import { Badge } from '#components/ui/badge'
 import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
@@ -52,7 +51,7 @@ function BalanceCard() {
 	if (error || !balance) {
 		return (
 			<CardLayout title="Account Balance" description="Unable to load balance">
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Connect your Stripe account to view balance.
 				</p>
 			</CardLayout>
@@ -92,7 +91,78 @@ function BalanceCard() {
 }
 
 function PayoutsTable() {
-	const { data, isLoading, error } = useConnectedAccountPayouts({ limit: 10 })
+	const { data, isLoading, error } = useConnectedAccountPayouts({ limit: 100 })
+
+	const payoutColumns: ColumnDef<Payout>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'created',
+				header: 'Date',
+				cell: ({ row }) => formatDate(row.original.created)
+			},
+			{
+				accessorKey: 'amount',
+				header: 'Amount',
+				cell: ({ row }) => (
+					<span className="font-medium">
+						{formatCurrency(row.original.amount / 100)}
+					</span>
+				)
+			},
+			{
+				accessorKey: 'status',
+				header: 'Status',
+				meta: {
+					label: 'Status',
+					variant: 'select',
+					options: [
+						{ label: 'Paid', value: 'paid' },
+						{ label: 'Pending', value: 'pending' },
+						{ label: 'In Transit', value: 'in_transit' },
+						{ label: 'Canceled', value: 'canceled' },
+						{ label: 'Failed', value: 'failed' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => getPayoutStatusBadge(row.original.status)
+			},
+			{
+				accessorKey: 'arrival_date',
+				header: 'Arrival',
+				cell: ({ row }) => formatDate(row.original.arrival_date)
+			},
+			{
+				accessorKey: 'method',
+				header: 'Method',
+				meta: {
+					label: 'Method',
+					variant: 'select',
+					options: [
+						{ label: 'Standard', value: 'standard' },
+						{ label: 'Instant', value: 'instant' }
+					]
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<span className="capitalize">{row.original.method}</span>
+				)
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: data?.payouts ?? [],
+		columns: payoutColumns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
+	})
 
 	if (isLoading) {
 		return (
@@ -107,7 +177,7 @@ function PayoutsTable() {
 	if (error) {
 		return (
 			<CardLayout title="Payout History" description="Unable to load payouts">
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Connect your Stripe account to view payout history.
 				</p>
 			</CardLayout>
@@ -117,7 +187,7 @@ function PayoutsTable() {
 	if (!data?.payouts?.length) {
 		return (
 			<CardLayout title="Payout History" description="No payouts yet">
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Your payout history will appear here once you receive rent payments.
 				</p>
 			</CardLayout>
@@ -126,36 +196,67 @@ function PayoutsTable() {
 
 	return (
 		<CardLayout title="Payout History" description="Recent payouts to your bank account">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Date</TableHead>
-						<TableHead>Amount</TableHead>
-						<TableHead>Status</TableHead>
-						<TableHead>Arrival</TableHead>
-						<TableHead>Method</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{data.payouts.map(payout => (
-						<TableRow key={payout.id}>
-							<TableCell>{formatDate(payout.created)}</TableCell>
-							<TableCell className="font-medium">
-								{formatCurrency(payout.amount / 100)}
-							</TableCell>
-							<TableCell>{getPayoutStatusBadge(payout.status)}</TableCell>
-							<TableCell>{formatDate(payout.arrival_date)}</TableCell>
-							<TableCell className="capitalize">{payout.method}</TableCell>
-						</TableRow>
-					))}
-				</TableBody>
-			</Table>
+			<DataTable table={table}>
+				<DataTableToolbar table={table} />
+			</DataTable>
 		</CardLayout>
 	)
 }
 
 function TransfersTable() {
-	const { data, isLoading, error } = useConnectedAccountTransfers({ limit: 10 })
+	const { data, isLoading, error } = useConnectedAccountTransfers({ limit: 100 })
+
+	const transferColumns: ColumnDef<Transfer>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'created',
+				header: 'Date',
+				cell: ({ row }) => formatDate(row.original.created)
+			},
+			{
+				accessorKey: 'amount',
+				header: 'Amount',
+				cell: ({ row }) => (
+					<span className="font-medium text-success">
+						+{formatCurrency(row.original.amount / 100)}
+					</span>
+				)
+			},
+			{
+				accessorKey: 'description',
+				header: 'Description',
+				meta: {
+					label: 'Description',
+					variant: 'text',
+					placeholder: 'Search description...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => row.original.description || 'Rent payment'
+			},
+			{
+				id: 'tenant',
+				header: 'Tenant',
+				cell: ({ row }) =>
+					row.original.metadata?.tenant_id
+						? `Tenant ID: ${row.original.metadata.tenant_id.slice(0, 8)}...`
+						: '-'
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: data?.transfers ?? [],
+		columns: transferColumns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
+	})
 
 	if (isLoading) {
 		return (
@@ -170,7 +271,7 @@ function TransfersTable() {
 	if (error) {
 		return (
 			<CardLayout title="Rent Payments Received" description="Unable to load transfers">
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Connect your Stripe account to view rent payments.
 				</p>
 			</CardLayout>
@@ -180,7 +281,7 @@ function TransfersTable() {
 	if (!data?.transfers?.length) {
 		return (
 			<CardLayout title="Rent Payments Received" description="No rent payments yet">
-				<p className="text-muted">
+				<p className="text-muted-foreground">
 					Rent payments from tenants will appear here.
 				</p>
 			</CardLayout>
@@ -189,32 +290,9 @@ function TransfersTable() {
 
 	return (
 		<CardLayout title="Rent Payments Received" description="Rent collected from tenants">
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Date</TableHead>
-						<TableHead>Amount</TableHead>
-						<TableHead>Description</TableHead>
-						<TableHead>Tenant</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{data.transfers.map(transfer => (
-						<TableRow key={transfer.id}>
-							<TableCell>{formatDate(transfer.created)}</TableCell>
-							<TableCell className="font-medium text-success">
-								+{formatCurrency(transfer.amount / 100)}
-							</TableCell>
-							<TableCell>{transfer.description || 'Rent payment'}</TableCell>
-							<TableCell>
-								{transfer.metadata?.tenant_id
-									? `Tenant ID: ${transfer.metadata.tenant_id.slice(0, 8)}...`
-									: '-'}
-							</TableCell>
-						</TableRow>
-					))}
-				</TableBody>
-			</Table>
+			<DataTable table={table}>
+				<DataTableToolbar table={table} />
+			</DataTable>
 		</CardLayout>
 	)
 }

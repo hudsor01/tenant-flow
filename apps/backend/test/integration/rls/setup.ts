@@ -65,12 +65,16 @@ const logger = new Logger('RlsTestSetup')
 
 const missingRequiredVars = REQUIRED_TEST_USER_VARS.filter(varName => !process.env[varName])
 
-if (missingRequiredVars.length > 0) {
-	throw new Error(
-		`Missing required environment variables for integration tests:
+// Skip integration tests if required environment variables are not set
+// This allows unit tests to run without needing integration test credentials
+export const shouldSkipIntegrationTests = missingRequiredVars.length > 0
+
+if (shouldSkipIntegrationTests) {
+	logger.warn(
+		`Skipping integration tests due to missing environment variables:
   - ${missingRequiredVars.join('\n  - ')}
 
-Please set these variables in your environment or .env.local file before running integration tests.`
+To run integration tests, set these variables in your environment or .env.local file.`
 	)
 }
 
@@ -352,7 +356,7 @@ export async function ensureTestLease(
 	}
 
 	// After Stripe decoupling: owner_user_id references auth.users.id directly
-	// No need to query property_owners table - use auth user ID directly
+	// No need to query stripe_connected_accounts table - use auth user ID directly
 
 	// Create minimal test property first (owner can create their own property)
 	const { error: propertyError } = await ownerClient.from('properties').upsert({

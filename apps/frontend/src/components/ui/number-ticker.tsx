@@ -1,7 +1,6 @@
 "use client"
 
 import { ComponentPropsWithoutRef, RefObject, useEffect, useRef, useState } from "react"
-import { useSpring, animated } from "@react-spring/web"
 import { useIntersectionObserver } from "#hooks/use-intersection-observer"
 import { cn } from "#lib/utils"
 
@@ -11,6 +10,7 @@ interface NumberTickerProps extends ComponentPropsWithoutRef<"span"> {
   direction?: "up" | "down"
   delay?: number
   decimalPlaces?: number
+  duration?: number
 }
 
 export function NumberTicker({
@@ -20,9 +20,11 @@ export function NumberTicker({
   delay = 0,
   className,
   decimalPlaces = 0,
+  duration = 2000,
   ...props
 }: NumberTickerProps) {
   const ref = useRef<HTMLSpanElement>(null)
+  const [displayValue, setDisplayValue] = useState(startValue)
   const [hasAnimated, setHasAnimated] = useState(false)
   const { isIntersecting } = useIntersectionObserver(ref as RefObject<Element>, {
     threshold: 0.1,
@@ -32,25 +34,43 @@ export function NumberTicker({
   const from = direction === "down" ? value : startValue
   const to = direction === "down" ? startValue : value
 
-  const { number } = useSpring({
-    from: { number: from },
-    to: { number: hasAnimated ? to : from },
-    delay: delay * 1000,
-    config: {
-      tension: 100,
-      friction: 60,
-      precision: 0.01
-    },
-  })
-
   useEffect(() => {
     if (isIntersecting && !hasAnimated) {
-      queueMicrotask(() => setHasAnimated(true))
+      setHasAnimated(true)
+
+      const delayMs = delay * 1000
+      const startTime = Date.now() + delayMs
+      const change = to - from
+
+      const animate = () => {
+        const now = Date.now()
+        const elapsed = Math.max(0, now - startTime)
+        const progress = Math.min(elapsed / duration, 1)
+
+        // Easing function (ease-out)
+        const easeOutQuad = (t: number) => t * (2 - t)
+        const easedProgress = easeOutQuad(progress)
+
+        const current = from + (change * easedProgress)
+        setDisplayValue(current)
+
+        if (progress < 1) {
+          requestAnimationFrame(animate)
+        } else {
+          setDisplayValue(to)
+        }
+      }
+
+      if (delayMs > 0) {
+        setTimeout(() => requestAnimationFrame(animate), delayMs)
+      } else {
+        requestAnimationFrame(animate)
+      }
     }
-  }, [isIntersecting, hasAnimated])
+  }, [isIntersecting, hasAnimated, from, to, delay, duration])
 
   return (
-    <animated.span
+    <span
       ref={ref}
       className={cn(
         "inline-block tabular-nums tracking-wider",
@@ -58,13 +78,11 @@ export function NumberTicker({
       )}
       {...props}
     >
-      {number.to((n) =>
-        Intl.NumberFormat("en-US", {
-          minimumFractionDigits: decimalPlaces,
-          maximumFractionDigits: decimalPlaces,
-        }).format(n)
-      )}
-    </animated.span>
+      {Intl.NumberFormat("en-US", {
+        minimumFractionDigits: decimalPlaces,
+        maximumFractionDigits: decimalPlaces,
+      }).format(displayValue)}
+    </span>
   )
 }
 

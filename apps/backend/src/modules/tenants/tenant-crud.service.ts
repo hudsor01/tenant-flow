@@ -13,9 +13,12 @@ import type {
 } from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
+import type { TenantUpdatedEvent } from '@repo/shared/events/sse-events'
+import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantCreatedEvent } from '../notifications/events/notification.events'
 import { TenantQueryService } from './tenant-query.service'
+import { SseService } from '../notifications/sse/sse.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
@@ -24,7 +27,8 @@ export class TenantCrudService {
 		private readonly logger: AppLogger,
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly tenantQueryService: TenantQueryService
+		private readonly tenantQueryService: TenantQueryService,
+		private readonly sseService: SseService
 	) {}
 
 	/**
@@ -201,7 +205,23 @@ export class TenantCrudService {
 				throw new BadRequestException('Failed to update tenant')
 			}
 
-			return data as Tenant
+			const tenant = data as Tenant
+
+			// Broadcast SSE event for real-time updates
+			const changedFields = Object.keys(updateData)
+			if (changedFields.length > 0) {
+				const sseEvent: TenantUpdatedEvent = {
+					type: SSE_EVENT_TYPES.TENANT_UPDATED,
+					timestamp: new Date().toISOString(),
+					payload: {
+						tenantId: tenant_id,
+						changedFields
+					}
+				}
+				await this.sseService.broadcast(user_id, sseEvent)
+			}
+
+			return tenant
 		} catch (error) {
 			if (error instanceof BadRequestException ||
 				error instanceof NotFoundException ||
@@ -441,6 +461,25 @@ export class TenantCrudService {
 			success: success.length,
 			failed: failed.length
 		})
+
+		// Broadcast SSE events for successful updates
+		for (const { id: tenantId } of success) {
+			const update = updates.find(u => u.id === tenantId)
+			if (update) {
+				const changedFields = Object.keys(update.data).filter(key => update.data[key as keyof UpdateTenantRequest] !== undefined)
+				if (changedFields.length > 0) {
+					const sseEvent: TenantUpdatedEvent = {
+						type: SSE_EVENT_TYPES.TENANT_UPDATED,
+						timestamp: new Date().toISOString(),
+						payload: {
+							tenantId,
+							changedFields
+						}
+					}
+					await this.sseService.broadcast(user_id, sseEvent)
+				}
+			}
+		}
 
 		return { success, failed }
 	}

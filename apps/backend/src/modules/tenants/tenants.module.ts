@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { StripeModule } from '../billing/stripe.module'
+import { SseModule } from '../notifications/sse/sse.module'
 import { TenantsController } from './tenants.controller'
 
 // Query services (decomposed from TenantQueryService)
@@ -47,7 +48,7 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
  * - Clear dependency graph
  */
 @Module({
-	imports: [SupabaseModule, EmailModule, StripeModule],
+	imports: [SupabaseModule, EmailModule, StripeModule, SseModule],
 	controllers: [TenantsController],
 	providers: [
 		// Query services (decomposed)

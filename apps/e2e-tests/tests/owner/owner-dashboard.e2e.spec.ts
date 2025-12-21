@@ -40,8 +40,6 @@ test.describe('Owner Dashboard', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to dashboard (authenticated via storageState)
 		await page.goto(ROUTES.OWNER_DASHBOARD)
-
-		// Disable tour to prevent it from blocking interactions
 		await page.evaluate(() => {
 			localStorage.setItem('owner-tour-completed', 'true')
 		})

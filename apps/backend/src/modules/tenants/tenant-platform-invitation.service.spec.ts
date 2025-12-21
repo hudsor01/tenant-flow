@@ -149,10 +149,10 @@ describe('TenantPlatformInvitationService', () => {
     const ownerId = 'owner-123'
 
     it('should create invitation without requiring lease data', async () => {
-      // Setup: Owner exists in property_owners table
+      // Setup: Owner exists in stripe_connected_accounts table
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -177,7 +177,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -213,7 +213,7 @@ describe('TenantPlatformInvitationService', () => {
             })
             return chain
           }
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -232,7 +232,7 @@ describe('TenantPlatformInvitationService', () => {
       // This service should have NO Stripe dependencies
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -252,7 +252,7 @@ describe('TenantPlatformInvitationService', () => {
       // Owner does NOT have Stripe onboarded, but invitation should still work
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({
               id: 'owner-123',
               user_id: ownerId,
@@ -276,7 +276,7 @@ describe('TenantPlatformInvitationService', () => {
     it('should emit tenant.platform_invitation.sent event', async () => {
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -305,7 +305,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -333,7 +333,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -361,7 +361,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'properties') {
@@ -394,7 +394,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'units') {
@@ -433,7 +433,7 @@ describe('TenantPlatformInvitationService', () => {
     it('should throw if property does not belong to owner', async () => {
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'properties') {
@@ -453,7 +453,7 @@ describe('TenantPlatformInvitationService', () => {
     it('should prevent duplicate pending invitations for same email', async () => {
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: ownerId })
           }
           if (table === 'tenant_invitations') {
@@ -493,7 +493,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
           }
           if (table === 'tenant_invitations') {
@@ -520,7 +520,7 @@ describe('TenantPlatformInvitationService', () => {
     it('should not cancel an already accepted invitation', async () => {
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
           }
           if (table === 'tenant_invitations') {
@@ -541,7 +541,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
           }
           if (table === 'tenant_invitations') {
@@ -587,7 +587,7 @@ describe('TenantPlatformInvitationService', () => {
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
-          if (table === 'property_owners') {
+          if (table === 'stripe_connected_accounts') {
             return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
           }
           if (table === 'tenant_invitations') {

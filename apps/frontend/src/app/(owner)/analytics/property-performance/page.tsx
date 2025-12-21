@@ -10,14 +10,10 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
@@ -39,6 +35,200 @@ import {
 	VisitorAnalyticsChart
 } from './property-charts'
 import { Building2 } from 'lucide-react'
+import { useMemo } from 'react'
+
+function TopPropertiesTable({ properties }: { properties: PropertyPerformanceEntry[] }) {
+	const columns: ColumnDef<PropertyPerformanceEntry>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'propertyName',
+				header: 'Property',
+				meta: {
+					label: 'Property Name',
+					variant: 'text',
+					placeholder: 'Search property...'
+				},
+				enableColumnFilter: true
+			},
+			{
+				accessorKey: 'occupancyRate',
+				header: 'Occupancy',
+				meta: {
+					label: 'Occupancy Rate',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{formatPercentage(row.original.occupancyRate)}
+					</div>
+				)
+			},
+			{
+				id: 'units',
+				header: 'Units',
+				cell: ({ row }) => (
+					<div className="text-right">
+						{formatNumber(row.original.occupiedUnits)}/
+						{formatNumber(row.original.totalUnits)}
+					</div>
+				)
+			},
+			{
+				accessorKey: 'monthlyRevenue',
+				header: 'Monthly revenue',
+				meta: {
+					label: 'Monthly Revenue',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{formatCurrency(row.original.monthlyRevenue)}
+					</div>
+				)
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: properties,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 6
+			}
+		}
+	})
+
+	if (!properties.length) {
+		return (
+			<div className="text-center text-muted-foreground py-8">
+				No property data available
+			</div>
+		)
+	}
+
+	return (
+		<DataTable table={table}>
+			<DataTableToolbar table={table} />
+		</DataTable>
+	)
+}
+
+function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
+	const columns: ColumnDef<PropertyUnitDetail>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'unit_number',
+				header: 'Unit',
+				meta: {
+					label: 'Unit Number',
+					variant: 'text',
+					placeholder: 'Search unit...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="flex flex-col">
+						<span className="font-medium">{row.original.unit_number}</span>
+						<span className="text-caption">{row.original.property_id}</span>
+					</div>
+				)
+			},
+			{
+				accessorKey: 'status',
+				header: 'Status',
+				meta: {
+					label: 'Status',
+					variant: 'text',
+					placeholder: 'Search status...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>
+			},
+			{
+				accessorKey: 'bedrooms',
+				header: 'Bedrooms',
+				meta: {
+					label: 'Bedrooms',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{row.original.bedrooms !== null && row.original.bedrooms !== undefined
+							? formatNumber(row.original.bedrooms)
+							: '—'}
+					</div>
+				)
+			},
+			{
+				accessorKey: 'bathrooms',
+				header: 'Bathrooms',
+				meta: {
+					label: 'Bathrooms',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{row.original.bathrooms !== null && row.original.bathrooms !== undefined
+							? formatNumber(row.original.bathrooms)
+							: '—'}
+					</div>
+				)
+			},
+			{
+				accessorKey: 'rent',
+				header: 'Rent',
+				meta: {
+					label: 'Monthly Rent',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{row.original.rent !== null && row.original.rent !== undefined
+							? formatCurrency(row.original.rent)
+							: '—'}
+					</div>
+				)
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: units,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 8
+			}
+		}
+	})
+
+	if (!units.length) {
+		return (
+			<div className="text-center text-muted-foreground py-8">
+				No unit data available
+			</div>
+		)
+	}
+
+	return (
+		<DataTable table={table}>
+			<DataTableToolbar table={table} />
+		</DataTable>
+	)
+}
 
 function PropertyPerformanceSkeleton() {
 	return (
@@ -314,35 +504,7 @@ export default function PropertyPerformancePage() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-3 pt-0">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Property</TableHead>
-											<TableHead className="text-right">Occupancy</TableHead>
-											<TableHead className="text-right">Units</TableHead>
-											<TableHead className="text-right">
-												Monthly revenue
-											</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody>
-										{performance.slice(0, 6).map(property => (
-											<TableRow key={property.property_id}>
-												<TableCell>{property.propertyName}</TableCell>
-												<TableCell className="text-right">
-													{formatPercentage(property.occupancyRate)}
-												</TableCell>
-												<TableCell className="text-right">
-													{formatNumber(property.occupiedUnits)}/
-													{formatNumber(property.totalUnits)}
-												</TableCell>
-												<TableCell className="text-right">
-													{formatCurrency(property.monthlyRevenue)}
-												</TableCell>
-											</TableRow>
-										))}
-									</TableBody>
-								</Table>
+								<TopPropertiesTable properties={performance} />
 							</CardContent>
 						</Card>
 					</div>
@@ -355,49 +517,7 @@ export default function PropertyPerformancePage() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-0">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Unit</TableHead>
-										<TableHead>Status</TableHead>
-										<TableHead className="text-right">Bedrooms</TableHead>
-										<TableHead className="text-right">Bathrooms</TableHead>
-										<TableHead className="text-right">Rent</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{units.slice(0, 8).map(unit => (
-										<TableRow key={`${unit.property_id}-${unit.unit_id}`}>
-											<TableCell>
-												<div className="flex flex-col">
-													<span className="font-medium">{unit.unit_number}</span>
-													<span className="text-caption">
-														{unit.property_id}
-													</span>
-												</div>
-											</TableCell>
-											<TableCell>
-												<Badge variant="outline">{unit.status}</Badge>
-											</TableCell>
-											<TableCell className="text-right">
-												{unit.bedrooms !== null && unit.bedrooms !== undefined
-													? formatNumber(unit.bedrooms)
-													: '—'}
-											</TableCell>
-											<TableCell className="text-right">
-												{unit.bathrooms !== null && unit.bathrooms !== undefined
-													? formatNumber(unit.bathrooms)
-													: '—'}
-											</TableCell>
-											<TableCell className="text-right">
-												{unit.rent !== null && unit.rent !== undefined
-													? formatCurrency(unit.rent)
-													: '—'}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+							<ActiveUnitsTable units={units} />
 						</CardContent>
 					</Card>
 				</div>

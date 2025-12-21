@@ -94,13 +94,13 @@ RUN apk add --no-cache \
 
 WORKDIR /app
 
-ENV PNPM_HOME=/root/.local/share/pnpm \
-    NODE_ENV=production \
+# Note: PNPM_HOME is set temporarily for install, then unset for runtime
+# since container runs as 'node' user who can't write to /root
+ENV NODE_ENV=production \
     DOCKER_CONTAINER=true \
     NODE_OPTIONS="--enable-source-maps --max-old-space-size=1024" \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
-    PATH=/root/.local/share/pnpm:$PATH \
     PORT=4600
 
 # Copy workspace config
@@ -117,9 +117,9 @@ COPY --from=build --chown=node:node /app/packages/shared/dist ./packages/shared/
 RUN mkdir -p /app/reports /app/logs/backend && \
     chown -R node:node /app/reports /app/logs
 
-# Install production dependencies
+# Install production dependencies (set PNPM_HOME temporarily for this command only)
 RUN --mount=type=cache,id=s/c03893f1-40dd-475f-9a6d-47578a09303a-pnpm-prod,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
+    PNPM_HOME=/root/.local/share/pnpm pnpm install --frozen-lockfile --prod --prefer-offline --filter @repo/backend...
 
 # Fast cleanup using find (faster than glob patterns)
 RUN find node_modules -type d \( -name test -o -name tests -o -name .github -o -name docs \) -prune -exec rm -rf {} + 2>/dev/null || true && \

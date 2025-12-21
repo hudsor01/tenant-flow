@@ -1,7 +1,9 @@
+'use client'
+
 import { PageLayout } from '#components/layout/page-layout'
 import { HeroSection } from '#components/sections/hero-section'
 import { Button } from '#components/ui/button'
-import { getAllBlogPosts } from '#lib/blog-posts'
+import { useBlogs } from '#hooks/api/use-blogs'
 import {
 	ArrowRight,
 	BarChart3,
@@ -15,7 +17,7 @@ import Link from 'next/link'
 
 
 export default function BlogPage() {
-	const blogPosts = getAllBlogPosts()
+	const { data: blogPosts = [], isLoading } = useBlogs()
 	return (
 		<PageLayout>
 				{/* Hero Section */}
@@ -179,38 +181,59 @@ export default function BlogPage() {
 							</p>
 						</div>
 
-						<div className="grid md:grid-cols-3 gap-8">
-							{blogPosts.map(post => (
-								<Link
-									key={post.slug}
-									href={`/blog/${post.slug}`}
-									className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
-								>
-									<div className="flex-between mb-4">
-										<div className="text-muted">
-											{post.readTime}
+						{isLoading ? (
+							<div className="grid md:grid-cols-3 gap-8">
+								{[1, 2, 3].map(i => (
+									<div key={i} className="bg-card rounded-xl p-8 border border-border/50 shadow-md">
+										<div className="h-4 bg-muted rounded w-20 mb-4 animate-pulse" />
+										<div className="h-6 bg-muted rounded w-full mb-3 animate-pulse" />
+										<div className="h-4 bg-muted rounded w-full mb-2 animate-pulse" />
+										<div className="h-4 bg-muted rounded w-3/4 mb-4 animate-pulse" />
+										<div className="flex-between">
+											<div className="h-4 bg-muted rounded w-24 animate-pulse" />
+											<div className="h-4 bg-muted rounded w-20 animate-pulse" />
 										</div>
 									</div>
-
-									<h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
-										{post.title}
-									</h3>
-
-									<p className="text-muted-foreground mb-4 leading-relaxed">
-										{post.excerpt}
-									</p>
-
-									<div className="flex-between">
-										<div className="text-sm font-semibold text-primary">
-											Read Article
+								))}
+							</div>
+						) : blogPosts.length === 0 ? (
+							<div className="text-center text-muted-foreground">
+								<p>No blog posts available yet. Check back soon!</p>
+							</div>
+						) : (
+							<div className="grid md:grid-cols-3 gap-8">
+								{blogPosts.map(post => (
+									<Link
+										key={post.id}
+										href={`/blog/${post.slug}`}
+										className="bg-card rounded-xl p-8 border border-border/50 shadow-md transition-all duration-300 group hover:-translate-y-1"
+									>
+										<div className="flex-between mb-4">
+											<div className="text-muted">
+												{post.reading_time} min read
+											</div>
 										</div>
-										<div className="text-muted">
-											{post.date}
+
+										<h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors leading-tight">
+											{post.title}
+										</h3>
+
+										<p className="text-muted-foreground mb-4 leading-relaxed">
+											{post.excerpt}
+										</p>
+
+										<div className="flex-between">
+											<div className="text-sm font-semibold text-primary">
+												Read Article
+											</div>
+											<div className="text-muted">
+												{post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+											</div>
 										</div>
-									</div>
-								</Link>
-							))}
-						</div>
+									</Link>
+								))}
+							</div>
+						)}
 
 						<div className="text-center mt-16">
 							<Button size="lg" variant="outline" className="px-8">

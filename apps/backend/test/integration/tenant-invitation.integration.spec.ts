@@ -45,11 +45,11 @@ describe('Tenant Invitation Flow', () => {
 	beforeAll(async () => {
 		ownerA = await authenticateAs(TEST_OWNER)
 
-		// Get the property_owners.id for RLS compliance
-		ownerAPropertyOwnerId = ownerA.user_id
-		if (!ownerAPropertyOwnerId) {
-			throw new Error(`No property_owners record found for auth user ${ownerA.user_id}. User must be registered as a property owner.`)
-		}
+			// Use auth user id for owner_user_id schema
+			ownerAPropertyOwnerId = ownerA.user_id
+			if (!ownerAPropertyOwnerId) {
+				throw new Error(`No user_id found for auth user. User must be authenticated as an owner.`)
+			}
 
 		// Use owner's authenticated client - RLS policies allow owners to manage their data
 		const client = ownerA.client

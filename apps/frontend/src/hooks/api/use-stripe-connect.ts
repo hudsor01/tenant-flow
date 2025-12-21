@@ -128,7 +128,7 @@ interface BalanceResponse {
 	}
 }
 
-interface Payout {
+export interface Payout {
 	id: string
 	amount: number
 	currency: string
@@ -147,7 +147,7 @@ interface PayoutsResponse {
 	hasMore: boolean
 }
 
-interface Transfer {
+export interface Transfer {
 	id: string
 	amount: number
 	currency: string

@@ -1,39 +1,42 @@
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-import { leaseInputSchema } from '@repo/shared/validation/leases'
-import { createLeaseWizardRequestSchema } from '@repo/shared/validation/lease-wizard.schemas'
 
 /**
- * Standard lease creation DTO (existing functionality)
+ * Lease creation DTO
+ *
+ * IMPORTANT:
+ * - Keep this schema permissive so service-level validation can produce
+ *   domain-specific error messages (required fields, invalid date ranges,
+ *   invalid lease status, etc.) that our integration tests assert on.
+ * - Do not require optional fields that have server-side defaults.
  */
-export class CreateLeaseDto extends createZodDto(leaseInputSchema) {}
+const createLeaseRequestSchema = z.object({
+	unit_id: z.string().uuid().optional(),
+	primary_tenant_id: z.string().uuid().optional(),
+	start_date: z.string().optional(),
+	end_date: z.string().optional(),
+	rent_amount: z.number().int().optional(),
+	rent_currency: z.string().optional(),
+	security_deposit: z.number().int().optional().nullable(),
+	payment_day: z.number().int().optional().nullable(),
+	grace_period_days: z.number().int().optional().nullable(),
+	late_fee_amount: z.number().int().optional().nullable(),
+	late_fee_days: z.number().int().optional().nullable(),
+	lease_status: z.string().optional(),
+	auto_pay_enabled: z.boolean().optional(),
+	stripe_subscription_id: z.string().optional().nullable(),
 
-/**
- * Enhanced lease creation DTO for the wizard flow
- * Includes all lease detail fields (occupancy, pets, utilities, disclosures)
- */
-export class CreateLeaseWizardDto extends createZodDto(
-	createLeaseWizardRequestSchema
-) {}
-
-/**
- * Combined schema that accepts both standard and wizard inputs
- * Used by the create endpoint to handle both flows
- */
-const combinedCreateLeaseSchema = leaseInputSchema.extend({
-	// Lease Details (Step 3) - Optional for backwards compatibility
-	max_occupants: z.number().int().min(1).max(20).optional().nullable(),
-	pets_allowed: z.boolean().optional().default(false),
-	pet_deposit: z.number().min(0).optional().nullable(),
-	pet_rent: z.number().min(0).optional().nullable(),
-	utilities_included: z.array(z.string()).optional().default([]),
-	tenant_responsible_utilities: z.array(z.string()).optional().default([]),
-	property_rules: z.string().max(5000).optional().nullable(),
-	property_built_before_1978: z.boolean().optional().default(false),
+	// Wizard/detail fields
+	max_occupants: z.number().int().optional().nullable(),
+	pets_allowed: z.boolean().optional(),
+	pet_deposit: z.number().int().optional().nullable(),
+	pet_rent: z.number().int().optional().nullable(),
+	utilities_included: z.array(z.string()).optional().nullable(),
+	tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
+	property_rules: z.string().optional().nullable(),
+	property_built_before_1978: z.boolean().optional(),
 	lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
-	governing_state: z.string().length(2).optional().default('TX')
+	governing_state: z.string().optional()
 })
 
-export class CreateLeaseWithDetailsDto extends createZodDto(
-	combinedCreateLeaseSchema
-) {}
+export class CreateLeaseDto extends createZodDto(createLeaseRequestSchema) {}

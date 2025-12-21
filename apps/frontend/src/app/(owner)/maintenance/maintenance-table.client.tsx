@@ -25,10 +25,11 @@ import {
 import { Plus, Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
+import { useDataTable } from '#hooks/use-data-table'
 
 const logger = createLogger({ component: 'MaintenanceTableClient' })
 
@@ -130,13 +131,17 @@ export function MaintenanceTableClient({
 		}
 	]
 
-	const table = useReactTable({
+	const { table } = useDataTable({
 		data: optimisticRequests,
 		columns: columnsWithActions,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10,
+			},
+		},
 	})
 
 	return (

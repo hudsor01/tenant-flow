@@ -12,7 +12,6 @@ import {
   type PaginationState,
   type RowSelectionState,
   type SortingState,
-  type TableMeta,
   type TableOptions,
   type TableState,
   type Updater,
@@ -30,8 +29,8 @@ import {
 } from "nuqs";
 import * as React from "react";
 
-import { useDebouncedCallback } from "#hooks/use-debounced-callback.js";
-import { getSortingStateParser } from "#lib/parsers.js";
+import { useDebouncedCallback } from "#hooks/use-debounced-callback";
+import { getSortingStateParser } from "#lib/parsers";
 import type { ExtendedColumnSort, QueryKeys } from "#types/data-table";
 
 const PAGE_KEY = "page";
@@ -100,7 +99,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       throttleMs,
       debounceMs,
       clearOnDefault,
-      ...(startTransition && { startTransition }),
+      ...(startTransition ? { startTransition } : {}),
     }),
     [
       history,
@@ -271,7 +270,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const table = useReactTable({
     ...tableProps,
     columns,
-    ...(initialState && { initialState }),
+    ...(initialState ? { initialState } : {}),
     pageCount,
     state: {
       pagination,
@@ -301,6 +300,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
     manualSorting: true,
     manualFiltering: true,
     meta: {
+      readOnly: false,
       ...tableProps.meta,
       queryKeys: {
         page: pageKey,
@@ -309,7 +309,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
         filters: filtersKey,
         joinOperator: joinOperatorKey,
       },
-    } as TableMeta<TData>,
+    },
   });
 
   return { table, shallow, debounceMs, throttleMs };

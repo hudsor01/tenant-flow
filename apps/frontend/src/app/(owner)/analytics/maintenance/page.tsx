@@ -10,14 +10,10 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
@@ -28,10 +24,76 @@ import {
 } from '#components/ui/empty'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Wrench } from 'lucide-react'
+import { useMemo } from 'react'
 import {
 	MaintenanceCostChart,
 	MaintenanceTrendChart
 } from './maintenance-charts'
+
+type CategoryBreakdownItem = {
+	category: string
+	count: number
+}
+
+function CategoryBreakdownTable({ items }: { items: CategoryBreakdownItem[] }) {
+	const columns: ColumnDef<CategoryBreakdownItem>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'category',
+				header: 'Category',
+				meta: {
+					label: 'Category',
+					variant: 'text',
+					placeholder: 'Search category...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<span className="font-medium">{row.original.category}</span>
+				)
+			},
+			{
+				accessorKey: 'count',
+				header: 'Requests',
+				meta: {
+					label: 'Request Count',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">{formatNumber(row.original.count)}</div>
+				)
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: items,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10
+			}
+		}
+	})
+
+	if (!items.length) {
+		return (
+			<div className="text-center text-muted-foreground py-8">
+				No category data available
+			</div>
+		)
+	}
+
+	return (
+		<DataTable table={table}>
+			<DataTableToolbar table={table} />
+		</DataTable>
+	)
+}
 
 function MaintenanceSkeleton() {
 	return (
@@ -246,26 +308,7 @@ export default function MaintenanceInsightsPage() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-0">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Category</TableHead>
-										<TableHead className="text-right">Requests</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{categoryBreakdown.slice(0, 10).map(item => (
-										<TableRow key={item.category}>
-											<TableCell className="font-medium">
-												{item.category}
-											</TableCell>
-											<TableCell className="text-right">
-												{formatNumber(item.count)}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+							<CategoryBreakdownTable items={categoryBreakdown} />
 						</CardContent>
 					</Card>
 				</div>

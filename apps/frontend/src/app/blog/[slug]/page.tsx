@@ -1,31 +1,65 @@
+'use client'
+
 import { PageLayout } from '#components/layout/page-layout'
 import { Button } from '#components/ui/button'
-
-import { getBlogPost, getAllBlogPosts } from '#lib/blog-posts'
+import { useBlogBySlug } from '#hooks/api/use-blogs'
 import { ArrowLeft, ArrowRight, Clock, User } from 'lucide-react'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeRaw from 'rehype-raw'
 import rehypeSanitize from 'rehype-sanitize'
 
-// Pre-render all blog articles at build time (Next.js 16 static generation)
-export async function generateStaticParams() {
-	const posts = getAllBlogPosts()
-	return posts.map(post => ({ slug: post.slug }))
-}
+export default function BlogArticlePage() {
+	const params = useParams()
+	const slug = params.slug as string
+	const { data: post, isLoading } = useBlogBySlug(slug)
 
-export default async function BlogArticlePage({
-	params
-}: {
-	params: Promise<{ slug: string }>
-}) {
-	const { slug } = await params
-	const post = getBlogPost(slug)
+	if (isLoading) {
+		return (
+			<PageLayout>
+				<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
+					<div className="h-4 bg-muted rounded w-32 mb-8 animate-pulse" />
+				</div>
+				<article className="container mx-auto px-6 pb-16 max-w-4xl">
+					<header className="mb-12">
+						<div className="h-12 bg-muted rounded w-3/4 mb-6 animate-pulse" />
+						<div className="h-6 bg-muted rounded w-full mb-2 animate-pulse" />
+						<div className="h-6 bg-muted rounded w-2/3 mb-8 animate-pulse" />
+						<div className="flex items-center gap-6 border-t border-b border-border py-4">
+							<div className="h-4 bg-muted rounded w-24 animate-pulse" />
+							<div className="h-4 bg-muted rounded w-20 animate-pulse" />
+							<div className="h-4 bg-muted rounded w-24 animate-pulse" />
+						</div>
+					</header>
+					<div className="space-y-4">
+						{[1, 2, 3, 4, 5].map(i => (
+							<div key={i} className="h-4 bg-muted rounded w-full animate-pulse" />
+						))}
+					</div>
+				</article>
+			</PageLayout>
+		)
+	}
 
 	if (!post) {
-		notFound()
+		return (
+			<PageLayout>
+				<div className="container mx-auto px-6 py-16 max-w-4xl text-center">
+					<h1 className="text-4xl font-bold mb-4">Blog Post Not Found</h1>
+					<p className="text-muted-foreground mb-8">
+						The blog post you're looking for doesn't exist or has been removed.
+					</p>
+					<Button asChild>
+						<Link href="/blog">
+							<ArrowLeft className="size-4 mr-2" />
+							Back to Blog
+						</Link>
+					</Button>
+				</div>
+			</PageLayout>
+		)
 	}
 
 	const markdownContent = post.content.trim()
@@ -57,13 +91,21 @@ export default async function BlogArticlePage({
 						<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
 							<div className="flex items-center gap-2">
 								<User className="size-4" />
-								<span>{post.author}</span>
+								<span>TenantFlow Team</span>
 							</div>
 							<div className="flex items-center gap-2">
 								<Clock className="size-4" />
-								<span>{post.readTime}</span>
+								<span>{post.reading_time} min read</span>
 							</div>
-							<div>{post.date}</div>
+							<div>
+								{post.published_at
+									? new Date(post.published_at).toLocaleDateString('en-US', {
+										month: 'long',
+										day: 'numeric',
+										year: 'numeric'
+									})
+									: ''}
+							</div>
 						</div>
 					</header>
 

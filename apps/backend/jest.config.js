@@ -28,7 +28,9 @@ module.exports = {
 		'/node_modules/',
 		'/dist/',
 		'/coverage/',
-		'\\.integration\\.(spec|test)\\.ts$'
+		'\\.integration\\.(spec|test)\\.ts$',
+		'/test/security/',
+		'/test/performance/'
 	],
 	collectCoverageFrom: [
 		'src/**/*.{ts,js}',

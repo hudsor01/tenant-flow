@@ -2,20 +2,14 @@
 
 import { Badge } from '#components/ui/badge'
 import { CheckCircle2, Clock } from 'lucide-react'
-import type { Lease, Unit } from '@repo/shared/types/core'
+import type { LeaseWithRelations } from '@repo/shared/types/relations'
 import type { ColumnDef } from '@tanstack/react-table'
 import Link from 'next/link'
 import { LEASE_STATUS } from '#lib/constants/status-values'
 
-interface ColumnOptions {
-	tenantMap: Map<string, string>
-	unitMap: Map<string, Unit>
-}
-
-export function createLeaseColumns({
-	tenantMap,
-	unitMap
-}: ColumnOptions): ColumnDef<Lease>[] {
+// PERFORMANCE FIX: No longer needs tenant/unit maps
+// Relations are now included in the lease object from backend
+export function createLeaseColumns(): ColumnDef<LeaseWithRelations>[] {
 	return [
 		{
 			accessorKey: 'id',
@@ -101,10 +95,9 @@ export function createLeaseColumns({
 			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const lease = row.original
-				const tenantName = lease.primary_tenant_id
-					? (tenantMap.get(lease.primary_tenant_id) ?? 'Unknown')
-					: 'Unassigned'
-				return <span>{tenantName}</span>
+				// TODO: Backend should include user name in tenant relation
+				const tenantId = lease.tenant?.id ?? null
+				return <span>{tenantId ? `Tenant ${tenantId.slice(0, 8)}` : 'Unassigned'}</span>
 			}
 		},
 		{
@@ -112,7 +105,7 @@ export function createLeaseColumns({
 			header: 'Unit',
 			cell: ({ row }) => {
 				const lease = row.original
-				const unit = lease.unit_id ? unitMap.get(lease.unit_id) : null
+				const unit = lease.unit
 				return unit ? (
 					<div className="flex flex-col">
 						<span className="font-medium">Unit {unit.unit_number}</span>

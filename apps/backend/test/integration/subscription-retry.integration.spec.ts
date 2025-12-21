@@ -186,9 +186,9 @@ describeIf('SubscriptionRetryService Integration', () => {
         owner_user_id: 'test-owner-id',
         subscription_retry_count: 0,
         subscription_last_attempt_at: null,
-        property_owners: {
-          stripe_account_id: 'acct_test123'
-        }
+	        stripe_connected_accounts: {
+	          stripe_account_id: 'acct_test123'
+	        }
       }
 
       // Mock the initial query that returns leases
@@ -259,7 +259,7 @@ describeIf('SubscriptionRetryService Integration', () => {
         owner_user_id: 'test-owner-id',
         subscription_retry_count: 0,
         subscription_last_attempt_at: null,
-        property_owners: {
+        stripe_connected_accounts: {
           stripe_account_id: null // No Stripe account
         }
       }
@@ -348,7 +348,7 @@ describeIf('SubscriptionRetryService Integration', () => {
         owner_user_id: 'test-owner-id',
         subscription_retry_count: 1,
         subscription_last_attempt_at: recentAttemptTime,
-        property_owners: {
+        stripe_connected_accounts: {
           stripe_account_id: 'acct_test123'
         }
       }
@@ -394,7 +394,7 @@ describeIf('SubscriptionRetryService Integration', () => {
 
       // Verify the query structure
       expect(mockFrom).toHaveBeenCalledWith('leases')
-      expect(mockSelect).toHaveBeenCalledWith(expect.stringContaining('property_owners'))
+	      expect(mockSelect).toHaveBeenCalledWith(expect.stringContaining('stripe_connected_accounts'))
       expect(mockIn).toHaveBeenCalledWith('stripe_subscription_status', ['pending', 'failed'])
     })
   })
