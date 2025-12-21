@@ -22,8 +22,9 @@ export const ensureLogDirectory = (dir?: string): string => {
     // If we can't create the log directory (e.g., permission denied in Docker),
     // fall back to /tmp which should always be writable
     const fallbackDir = '/tmp/logs/backend'
-    console.warn(
-      `Failed to create log directory ${targetDir}: ${error instanceof Error ? error.message : String(error)}. Falling back to ${fallbackDir}`
+    // Use process.stderr for bootstrap logging (logger not yet initialized)
+    process.stderr.write(
+      `[WARN] Failed to create log directory ${targetDir}: ${error instanceof Error ? error.message : String(error)}. Falling back to ${fallbackDir}\n`
     )
     if (!fs.existsSync(fallbackDir)) {
       fs.mkdirSync(fallbackDir, { recursive: true })

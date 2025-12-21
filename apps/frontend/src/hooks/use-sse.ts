@@ -118,6 +118,7 @@ export interface UseSseReturn {
 
 /**
  * Query key mapping for automatic cache invalidation
+ * Maps SSE event types to TanStack Query keys for cache invalidation
  */
 const EVENT_TO_QUERY_KEYS: Record<SseEventType, string[][]> = {
 	'lease.signature_updated': [['leases'], ['lease']],
@@ -125,8 +126,10 @@ const EVENT_TO_QUERY_KEYS: Record<SseEventType, string[][]> = {
 	'pdf.generation_completed': [['leases'], ['lease']],
 	'tenant.updated': [['tenants'], ['tenant']],
 	'tenant.status_changed': [['tenants'], ['tenant']],
-	'dashboard.stats_updated': [['owner', 'dashboard'], ['owner', 'analytics']],
-	'payment.status_updated': [['tenant', 'payments'], ['tenant', 'amount-due']],
+	// Dashboard uses 'owner-dashboard' as base key
+	'dashboard.stats_updated': [['owner-dashboard']],
+	// Tenant portal payment queries
+	'payment.status_updated': [['tenant-portal'], ['tenant-payments']],
 	connected: [],
 	heartbeat: []
 }

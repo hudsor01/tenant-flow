@@ -188,21 +188,23 @@ export const tenantPortalQueries = {
 
 	/**
 	 * Amount due for current period
- * Critical data - uses interval for real-time updates
- */
+	 * Primary: SSE push via 'payment.status_updated' event
+	 * Fallback: 2 min polling for critical payment data
+	 */
 	amountDue: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'amount-due'],
 			queryFn: () => apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
 			cache: 'STATS',
-			refetchInterval: 60000, // 1 min - critical payment data
+			refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: false,
+			refetchOnWindowFocus: true, // Catch missed events on tab focus
 		}),
 
 	/**
- * Payment history and upcoming payments
- */
+	 * Payment history and upcoming payments
+	 * Primary: SSE push via 'payment.status_updated' event
+	 */
 	payments: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'payments'],
@@ -211,8 +213,8 @@ export const tenantPortalQueries = {
 				methodsEndpoint: string
 			}>('/api/v1/tenants/payments'),
 			cache: 'LIST',
-			// No interval - list data refreshes on navigation
-			refetchOnWindowFocus: false,
+			// No interval - SSE handles updates, tab focus catches missed events
+			refetchOnWindowFocus: true,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 

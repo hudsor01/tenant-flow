@@ -14,6 +14,8 @@ import { InjectQueue } from '@nestjs/bullmq'
 import type { Queue } from 'bullmq'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { SseService } from '../../notifications/sse/sse.service'
+import { SSE_EVENT_TYPES, type PaymentStatusUpdatedEvent } from '@repo/shared/events/sse-events'
 import type { EmailJob } from '../../email/email.queue'
 
 /** Maximum number of payment retry attempts before marking as final failure */
@@ -48,6 +50,7 @@ export class PaymentWebhookHandler {
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger,
+		private readonly sseService: SseService,
 		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>
 	) {}
 
@@ -175,10 +178,10 @@ export class PaymentWebhookHandler {
 				return
 			}
 
-			// Update rent_payments record
+			// Update rent_payments record - include tenant info for SSE
 			const { data: rentPayment, error: selectError } = await client
 				.from('rent_payments')
-				.select('id')
+				.select('id, tenant_id, tenants!inner(user_id)')
 				.eq('stripe_payment_intent_id', paymentIntent.id)
 				.maybeSingle()
 
@@ -211,6 +214,17 @@ export class PaymentWebhookHandler {
 					rentPaymentId: rentPayment.id,
 					paymentIntentId: paymentIntent.id
 				})
+
+				// Broadcast SSE event to tenant
+				const tenantUserId = (rentPayment as { tenants: { user_id: string } }).tenants?.user_id
+				if (tenantUserId) {
+					await this.broadcastPaymentStatus({
+						tenantId: rentPayment.tenant_id,
+						userId: tenantUserId,
+						status: 'succeeded',
+						amount: paymentIntent.amount / 100
+					})
+				}
 			} else {
 				// Payment intent may have been created but not yet recorded
 				this.logger.warn('No rent_payment record found for payment intent', {
@@ -246,10 +260,10 @@ export class PaymentWebhookHandler {
 				return
 			}
 
-			// Find and update rent_payment record
+			// Find and update rent_payment record - include tenant info for SSE
 			const { data: rentPayment, error: selectError } = await client
 				.from('rent_payments')
-				.select('id, tenant_id')
+				.select('id, tenant_id, tenants!inner(user_id)')
 				.eq('stripe_payment_intent_id', paymentIntent.id)
 				.maybeSingle()
 
@@ -306,6 +320,17 @@ export class PaymentWebhookHandler {
 					amount: paymentIntent.amount / 100,
 					failureReason: paymentIntent.last_payment_error?.message
 				})
+
+				// Broadcast SSE event to tenant
+				const tenantUserId = (rentPayment as { tenants: { user_id: string } }).tenants?.user_id
+				if (tenantUserId) {
+					await this.broadcastPaymentStatus({
+						tenantId: rentPayment.tenant_id,
+						userId: tenantUserId,
+						status: 'failed',
+						amount: paymentIntent.amount / 100
+					})
+				}
 
 				await this.sendPaymentFailureEmail(paymentIntent, rentPayment, client)
 			} else {
@@ -375,5 +400,43 @@ export class PaymentWebhookHandler {
 				isLastAttempt
 			}
 		})
+	}
+
+	/**
+	 * Broadcast payment status update via SSE
+	 */
+	private async broadcastPaymentStatus(params: {
+		tenantId: string
+		userId: string
+		status: 'succeeded' | 'failed' | 'pending'
+		amount?: number
+	}): Promise<void> {
+		const { tenantId, userId, status, amount } = params
+
+		const event: PaymentStatusUpdatedEvent = {
+			type: SSE_EVENT_TYPES.PAYMENT_STATUS_UPDATED,
+			timestamp: new Date().toISOString(),
+			payload: {
+				tenantId,
+				status,
+				...(amount !== undefined && { amount })
+			}
+		}
+
+		try {
+			await this.sseService.broadcast(userId, event)
+			this.logger.debug('Payment SSE broadcast sent', {
+				userId,
+				tenantId,
+				status
+			})
+		} catch (error) {
+			// Non-critical: log but don't throw
+			this.logger.error('Failed to broadcast payment SSE event', {
+				error: error instanceof Error ? error.message : String(error),
+				userId,
+				tenantId
+			})
+		}
 	}
 }

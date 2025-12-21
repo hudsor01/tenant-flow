@@ -6,6 +6,9 @@ import { LeasePdfMapperService } from './lease-pdf-mapper.service'
 import { PdfStorageService } from './pdf-storage.service'
 import { LeasesService } from '../leases/leases.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SseService } from '../notifications/sse/sse.service'
+import type { PdfGenerationCompletedEvent } from '@repo/shared/events/sse-events'
+import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 
 @Processor('pdf-generation')
 @Injectable()
@@ -15,7 +18,8 @@ export class PdfGenerationProcessor extends WorkerHost {
 		private readonly pdfMapperService: LeasePdfMapperService,
 		private readonly pdfStorageService: PdfStorageService,
 		private readonly leasesService: LeasesService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sseService: SseService
 	) {
 		super()
 	}
@@ -59,6 +63,20 @@ export class PdfGenerationProcessor extends WorkerHost {
 				leaseId,
 				pdfUrl
 			})
+
+			// 6. Broadcast SSE event to owner for real-time notification
+			const ownerId = leaseData.lease.owner_user_id
+			if (ownerId) {
+				const sseEvent: PdfGenerationCompletedEvent = {
+					type: SSE_EVENT_TYPES.PDF_GENERATION_COMPLETED,
+					timestamp: new Date().toISOString(),
+					payload: {
+						leaseId,
+						downloadUrl: pdfUrl
+					}
+				}
+				await this.sseService.broadcast(ownerId, sseEvent)
+			}
 
 			return { pdfUrl }
 		} catch (error) {
