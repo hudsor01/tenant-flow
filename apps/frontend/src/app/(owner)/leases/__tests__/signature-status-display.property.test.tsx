@@ -13,13 +13,13 @@
 import * as fc from 'fast-check'
 import { render, screen, cleanup } from '@testing-library/react'
 import { createLeaseColumns } from '../columns'
-import type { Lease, Unit } from '@repo/shared/types/core'
+import type { Lease } from '@repo/shared/types/core'
 import { flexRender } from '@tanstack/react-table'
 import { DEFAULT_LEASE } from '#test/utils/test-data'
 
 // Helper to render a cell from column definition
-function renderStatusCell(lease: Lease, tenantMap: Map<string, string>, unitMap: Map<string, Unit>) {
-	const columns = createLeaseColumns({ tenantMap, unitMap })
+function renderStatusCell(lease: Lease) {
+	const columns = createLeaseColumns()
 	const statusColumn = columns.find(c => 'accessorKey' in c && c.accessorKey === 'lease_status')
 
 	if (!statusColumn?.cell) {
@@ -87,7 +87,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 						updated_at: new Date().toISOString()
 					}
 
-					renderStatusCell(lease, new Map(), new Map())
+					renderStatusCell(lease)
 
 					// Property: Owner badge should be visible
 					const ownerBadge = screen.getByText('Owner')
@@ -146,7 +146,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 						updated_at: new Date().toISOString()
 					}
 
-					renderStatusCell(lease, new Map(), new Map())
+					renderStatusCell(lease)
 
 					// Property: Owner badge should be visible
 					const ownerBadge = screen.getByText('Owner')
@@ -200,7 +200,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 						updated_at: new Date().toISOString()
 					}
 
-					renderStatusCell(lease, new Map(), new Map())
+					renderStatusCell(lease)
 
 					// Property: Tenant badge should be visible
 					const tenantBadge = screen.getByText('Tenant')
@@ -254,7 +254,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 						updated_at: new Date().toISOString()
 					}
 
-					renderStatusCell(lease, new Map(), new Map())
+					renderStatusCell(lease)
 
 					// Property: Tenant badge should be visible
 					const tenantBadge = screen.getByText('Tenant')
@@ -301,7 +301,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 						updated_at: new Date().toISOString()
 					}
 
-					renderStatusCell(lease, new Map(), new Map())
+					renderStatusCell(lease)
 
 					// Property: Owner and Tenant signature badges should NOT be displayed
 					expect(screen.queryByText('Owner')).not.toBeInTheDocument()
@@ -348,7 +348,7 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 				updated_at: new Date().toISOString()
 			}
 
-			renderStatusCell(lease, new Map(), new Map())
+			renderStatusCell(lease)
 
 			// Verify Owner badge
 			const ownerBadge = screen.getByText('Owner')

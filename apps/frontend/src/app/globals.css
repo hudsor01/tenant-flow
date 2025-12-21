@@ -50,6 +50,13 @@
 	--leading-relaxed: 1.625;
 	--leading-loose: 2;
 	--tracking-display-2xl: -0.025em;
+
+	/* Animation durations - following UI/UX standards */
+	--duration-instant: 150ms;
+	--duration-fast: 200ms;
+	--duration-normal: 300ms;
+	--duration-slow: 500ms;
+	--duration-slower: 700ms;
 	--tracking-display-xl: -0.02em;
 	--tracking-display-lg: -0.015em;
 	--tracking-display-md: -0.01em;
@@ -602,20 +609,71 @@
 }
 
 
-@utility animate-fade-in {
-	animation: fade-in 300ms ease-in-out;
+/* ============================================================================
+   Composite Animation Utilities
+   ============================================================================
+   Semantic presets for common animation patterns to reduce repetition.
+   All use standardized duration tokens for consistency.
+   ========================================================================== */
+
+/* Entry animations */
+@utility enter-card {
+	@apply animate-in fade-in slide-in-from-bottom-4 duration-slow;
 }
 
-@utility animate-slide-up {
-	animation: slide-up 300ms ease-out;
+@utility enter-modal {
+	@apply animate-in fade-in zoom-in-95 duration-fast;
 }
 
-@utility animate-slide-down {
-	animation: slide-down 300ms ease-out;
+@utility enter-page {
+	@apply animate-in fade-in duration-slower;
 }
 
-@utility animate-scale {
-	animation: scale-in 200ms ease-out;
+@utility enter-sheet {
+	@apply animate-in fade-in duration-normal;
+}
+
+/* Exit animations */
+@utility exit-modal {
+	@apply animate-out fade-out zoom-out-95 duration-fast;
+}
+
+/* Loading states */
+@utility loading-skeleton {
+	@apply animate-pulse bg-muted;
+}
+
+@utility skeleton-text {
+	@apply h-4 rounded bg-muted animate-pulse;
+}
+
+@utility skeleton-heading {
+	@apply h-8 rounded bg-muted animate-pulse;
+}
+
+@utility skeleton-button {
+	@apply h-10 w-24 rounded-md bg-muted animate-pulse;
+}
+
+@utility skeleton-card {
+	@apply h-48 rounded-lg bg-muted animate-pulse;
+}
+
+/* Interactive states */
+@utility interactive-lift {
+	@apply transition-all duration-normal hover:-translate-y-1 hover:shadow-lg;
+}
+
+@utility interactive-fade {
+	@apply transition-opacity duration-fast opacity-70 hover:opacity-100;
+}
+
+@utility interactive-scale {
+	@apply transition-transform duration-fast hover:scale-105 active:scale-95;
+}
+
+@utility interactive-glow {
+	@apply transition-shadow duration-normal hover:shadow-xl hover:shadow-primary/10;
 }
 
 

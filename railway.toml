@@ -23,4 +23,6 @@ restartPolicyType = "ALWAYS"
 restartPolicyMaxRetries = 5
 
 # Run database migrations before deployment
-# preDeployCommand = "pnpm --filter @repo/database migrate:deploy"
+# CRITICAL: This must run before deployment to keep schema in sync with code
+# Deployment will fail if migrations fail (|| exit 1)
+preDeployCommand = "pnpm --filter @repo/database migrate:deploy || exit 1"

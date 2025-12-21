@@ -34,7 +34,7 @@ describe('RLS: Property Isolation', () => {
 	let ownerA: AuthenticatedTestClient
 	let ownerB: AuthenticatedTestClient | null = null
 	let tenantA: AuthenticatedTestClient | null = null
-	// After Stripe decoupling: owner_user_id references auth.users.id directly (not property_owners.id)
+	// After Stripe decoupling: owner_user_id references auth.users.id directly (not stripe_connected_accounts.id)
 	let ownerAPropertyOwnerId: string | null = null
 	let ownerBPropertyOwnerId: string | null = null
 
@@ -84,7 +84,7 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - some tests will be skipped')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - some tests will be skipped')
 				return
 			}
 			// Get owner A's first property
@@ -112,7 +112,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A can read their own properties', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - skipping test')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
 				return
 			}
 			const { data, error } = await ownerA.client
@@ -219,7 +219,7 @@ describe('RLS: Property Isolation', () => {
 	describe('Property Creation', () => {
 		it('owner A can create property', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - skipping test')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
 				return
 			}
 			const newProperty: Database['public']['Tables']['properties']['Insert'] = {
@@ -249,7 +249,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot create property for owner B', async () => {
 			if (!ownerB || !ownerBPropertyOwnerId) {
-				testLogger.warn('owner B not available or has no property_owners record - skipping test')
+				testLogger.warn('owner B not available or has no stripe_connected_accounts record - skipping test')
 				return
 			}
 
@@ -280,7 +280,7 @@ describe('RLS: Property Isolation', () => {
 				return
 			}
 
-			// Tenant doesn't have a property_owners record, so use any dummy ID
+			// Tenant doesn't have a stripe_connected_accounts record, so use any dummy ID
 			const property: Database['public']['Tables']['properties']['Insert'] = {
 				name: 'Tenant Spoofed Property',
 				property_type: 'CONDO',
@@ -310,7 +310,7 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - Unit Isolation tests will be skipped')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - Unit Isolation tests will be skipped')
 				return
 			}
 			// Get owner A's property and unit
@@ -390,7 +390,7 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A can create unit in their own property', async () => {
 		if (!ownerAproperty_id || !ownerAPropertyOwnerId) {
-			testLogger.warn('owner A has no properties or property_owners record - skipping test')
+			testLogger.warn('owner A has no properties or stripe_connected_accounts record - skipping test')
 			return
 		}
 
@@ -490,7 +490,7 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - Property Status Transitions tests will be skipped')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - Property Status Transitions tests will be skipped')
 				return
 			}
 			// Create a test property for status transition tests
@@ -563,7 +563,7 @@ describe('RLS: Property Isolation', () => {
 	describe('Property Metadata Access', () => {
 		it('owner A can read property metadata (address, features)', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no property_owners record - skipping test')
+				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
 				return
 			}
 			const { data, error } = await ownerA.client

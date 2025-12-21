@@ -90,7 +90,7 @@ describeIf('DocuSealWebhookService Integration', () => {
 			throw new Error('Failed to create test user')
 		}
 
-		// 2. Create user in public.users table (required FK for property_owners)
+			// 2. Create user in public.users table (required FK for stripe_connected_accounts)
 		const { error: userError } = await supabaseAdmin
 			.from('users')
 			.insert({
@@ -101,15 +101,15 @@ describeIf('DocuSealWebhookService Integration', () => {
 			})
 		if (userError) throw new Error(`Failed to create public user: ${userError.message}`)
 
-		// 4. Create property owner
-		const { data: owner, error: ownerError } = await supabaseAdmin
-			.from('property_owners')
-			.insert({
-				user_id: testUserId,
-				business_name: 'Integration Test LLC',
-				business_type: 'llc',
-				stripe_account_id: `acct_test_${Date.now()}`
-			})
+			// 4. Create stripe connected account record for owner
+			const { data: owner, error: ownerError } = await supabaseAdmin
+				.from('stripe_connected_accounts')
+				.insert({
+					user_id: testUserId,
+					business_name: 'Integration Test LLC',
+					business_type: 'llc',
+					stripe_account_id: `acct_test_${Date.now()}`
+				})
 			.select('id')
 			.single()
 
@@ -220,9 +220,9 @@ describeIf('DocuSealWebhookService Integration', () => {
 		if (testPropertyId) {
 			await supabaseAdmin.from('properties').delete().eq('id', testPropertyId)
 		}
-		if (testOwnerId) {
-			await supabaseAdmin.from('property_owners').delete().eq('id', testOwnerId)
-		}
+			if (testOwnerId) {
+				await supabaseAdmin.from('stripe_connected_accounts').delete().eq('id', testOwnerId)
+			}
 		// Clean up auth users
 		if (testUserId) {
 			await supabaseAdmin.auth.admin.deleteUser(testUserId)

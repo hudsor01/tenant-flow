@@ -10,14 +10,10 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow
-} from '#components/ui/table'
+import { DataTable } from '#components/data-table/data-table'
+import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
+import { useDataTable } from '#hooks/use-data-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
@@ -28,7 +24,124 @@ import {
 } from '#components/ui/empty'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { FileText } from 'lucide-react'
+import { useMemo } from 'react'
+import type { LeaseFinancialInsight } from '@repo/shared/types/financial-analytics'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
+
+function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {
+	const columns: ColumnDef<LeaseFinancialInsight>[] = useMemo(
+		() => [
+			{
+				accessorKey: 'lease_id',
+				header: 'Lease',
+				meta: {
+					label: 'Lease ID',
+					variant: 'text',
+					placeholder: 'Search lease...'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<span className="font-medium">{row.original.lease_id}</span>
+				)
+			},
+			{
+				accessorKey: 'tenantName',
+				header: 'Tenant',
+				meta: {
+					label: 'Tenant',
+					variant: 'text',
+					placeholder: 'Search tenant...'
+				},
+				enableColumnFilter: true
+			},
+			{
+				accessorKey: 'propertyName',
+				header: 'Property',
+				meta: {
+					label: 'Property',
+					variant: 'text',
+					placeholder: 'Search property...'
+				},
+				enableColumnFilter: true
+			},
+			{
+				accessorKey: 'rent_amount',
+				header: 'Monthly rent',
+				meta: {
+					label: 'Monthly Rent',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{formatCurrency(row.original.rent_amount)}
+					</div>
+				)
+			},
+			{
+				accessorKey: 'outstandingBalance',
+				header: 'Outstanding',
+				meta: {
+					label: 'Outstanding Balance',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{formatCurrency(row.original.outstandingBalance)}
+					</div>
+				)
+			},
+			{
+				accessorKey: 'profitabilityScore',
+				header: 'Score',
+				meta: {
+					label: 'Profitability Score',
+					variant: 'number'
+				},
+				enableColumnFilter: true,
+				cell: ({ row }) => (
+					<div className="text-right">
+						{row.original.profitabilityScore !== null &&
+						row.original.profitabilityScore !== undefined
+							? formatNumber(row.original.profitabilityScore, {
+									maximumFractionDigits: 1
+								})
+							: '—'}
+					</div>
+				)
+			}
+		],
+		[]
+	)
+
+	const { table } = useDataTable({
+		data: leases,
+		columns,
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 8
+			}
+		}
+	})
+
+	if (!leases.length) {
+		return (
+			<div className="text-center text-muted-foreground py-8">
+				No lease profitability data available
+			</div>
+		)
+	}
+
+	return (
+		<DataTable table={table}>
+			<DataTableToolbar table={table} />
+		</DataTable>
+	)
+}
 
 function LeaseAnalyticsSkeleton() {
 	return (
@@ -242,51 +355,7 @@ export default function LeaseAnalyticsPage() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="pt-0">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Lease</TableHead>
-										<TableHead>Tenant</TableHead>
-										<TableHead>Property</TableHead>
-										<TableHead className="text-right">Monthly rent</TableHead>
-										<TableHead className="text-right">Outstanding</TableHead>
-										<TableHead className="text-right">Score</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{profitability && profitability.length > 0 ? (
-										profitability.slice(0, 8).map(lease => (
-											<TableRow key={lease.lease_id}>
-												<TableCell className="font-medium">
-													{lease.lease_id}
-												</TableCell>
-												<TableCell>{lease.tenantName}</TableCell>
-												<TableCell>{lease.propertyName}</TableCell>
-												<TableCell className="text-right">
-													{formatCurrency(lease.rent_amount)}
-												</TableCell>
-												<TableCell className="text-right">
-													{formatCurrency(lease.outstandingBalance)}
-												</TableCell>
-												<TableCell className="text-right">
-													{lease.profitabilityScore !== null &&
-													lease.profitabilityScore !== undefined
-														? formatNumber(lease.profitabilityScore, {
-																maximumFractionDigits: 1
-															})
-														: '—'}
-												</TableCell>
-											</TableRow>
-										))
-									) : (
-										<TableRow>
-											<TableCell colSpan={6} className="text-center text-muted-foreground">
-												No lease profitability data available
-											</TableCell>
-										</TableRow>
-									)}
-								</TableBody>
-							</Table>
+							<ProfitabilityTable leases={profitability} />
 						</CardContent>
 					</Card>
 				</div>

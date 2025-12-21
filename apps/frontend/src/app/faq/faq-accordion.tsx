@@ -1,8 +1,8 @@
 'use client'
 
-import { animated, config, useSpring, useTransition } from '@react-spring/web'
+import { cn } from '#lib/utils'
 import { ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 interface FaqItem {
 	question: string
@@ -79,19 +79,7 @@ interface FaqItemProps {
 }
 
 function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
-	// Rotation animation for chevron
-	const chevronAnimation = useSpring({
-		transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-		config: config.default
-	})
-
-	// Height animation for answer
-	const contentTransitions = useTransition(isOpen, {
-		from: { height: 0, opacity: 0 },
-		enter: { height: 'auto', opacity: 1 },
-		leave: { height: 0, opacity: 0 },
-		config: config.default
-	})
+	const contentRef = useRef<HTMLDivElement>(null)
 
 	return (
 		<div className="group overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-primary/50 hover:shadow-lg">
@@ -102,24 +90,31 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				<h3 className="text-foreground typography-large pr-4">
 					{faq.question}
 				</h3>
-				<animated.div style={chevronAnimation} className="shrink-0">
-					<ChevronDown className="size-5 text-muted-foreground" />
-				</animated.div>
+				<ChevronDown
+					className={cn(
+						"size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]",
+						isOpen && "rotate-180"
+					)}
+				/>
 			</button>
 
-			{contentTransitions((style, item) =>
-				item ? (
-					<animated.div style={style} className="overflow-hidden">
-						<div className="px-6 pb-6">
-							<div className="border-t border-border pt-4">
-								<p className="text-muted-foreground leading-relaxed">
-									{faq.answer}
-								</p>
-							</div>
+			<div
+				ref={contentRef}
+				className={cn(
+					"grid transition-all [transition-duration:var(--duration-normal)] ease-in-out",
+					isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+				)}
+			>
+				<div className="overflow-hidden">
+					<div className="px-6 pb-6">
+						<div className="border-t border-border pt-4">
+							<p className="text-muted-foreground leading-relaxed">
+								{faq.answer}
+							</p>
 						</div>
-					</animated.div>
-				) : null
-			)}
+					</div>
+				</div>
+			</div>
 		</div>
 	)
 }

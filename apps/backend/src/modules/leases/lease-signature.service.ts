@@ -28,6 +28,9 @@ import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 import { PdfStorageService } from '../pdf/pdf-storage.service'
 import { LeasesService } from './leases.service'
+import { SseService } from '../notifications/sse/sse.service'
+import type { LeaseSignatureUpdatedEvent } from '@repo/shared/events/sse-events'
+import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 import {
 	LEASE_SIGNATURE_ERROR_MESSAGES,
 	LEASE_SIGNATURE_ERROR_CODES
@@ -75,7 +78,8 @@ export class LeaseSignatureService {
 		private readonly pdfMapper: LeasePdfMapperService,
 		private readonly pdfGenerator: LeasePdfGeneratorService,
 		private readonly pdfStorage: PdfStorageService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sseService: SseService
 	) {}
 
 	/**
@@ -475,11 +479,31 @@ export class LeaseSignatureService {
 				owner_signed_at: now,
 				owner_signature_ip: signatureIp
 			})
+
+			// Broadcast SSE event for fully signed lease
+			await this.broadcastSignatureUpdate(
+				leaseId,
+				lease.owner_user_id,
+				lease.primary_tenant_id,
+				'owner',
+				'fully_signed',
+				now
+			)
 		} else {
 			this.eventEmitter.emit('lease.owner_signed', {
 				lease_id: leaseId,
 				signed_at: now
 			})
+
+			// Broadcast SSE event for owner signature
+			await this.broadcastSignatureUpdate(
+				leaseId,
+				lease.owner_user_id,
+				lease.primary_tenant_id,
+				'owner',
+				'owner_signed',
+				now
+			)
 		}
 
 		this.logger.log('Owner signed lease', {
@@ -580,17 +604,76 @@ export class LeaseSignatureService {
 				tenant_signed_at: now,
 				tenant_signature_ip: signatureIp
 			})
+
+			// Broadcast SSE event for fully signed lease
+			await this.broadcastSignatureUpdate(
+				leaseId,
+				lease.owner_user_id,
+				tenant.user_id,
+				'tenant',
+				'fully_signed',
+				now
+			)
 		} else {
 			this.eventEmitter.emit('lease.tenant_signed', {
 				lease_id: leaseId,
 				tenant_id: tenant.id,
 				signed_at: now
 			})
+
+			// Broadcast SSE event for tenant signature
+			await this.broadcastSignatureUpdate(
+				leaseId,
+				lease.owner_user_id,
+				tenant.user_id,
+				'tenant',
+				'tenant_signed',
+				now
+			)
 		}
 
 		this.logger.log('Tenant signed lease', {
 			leaseId,
 			bothSigned: result.both_signed
+		})
+	}
+
+	/**
+	 * Broadcast SSE signature update event to relevant parties
+	 */
+	private async broadcastSignatureUpdate(
+		leaseId: string,
+		ownerUserId: string,
+		tenantUserId: string | null,
+		signedBy: 'owner' | 'tenant',
+		status: LeaseSignatureUpdatedEvent['payload']['status'],
+		signedAt: string
+	): Promise<void> {
+		const sseEvent: LeaseSignatureUpdatedEvent = {
+			type: SSE_EVENT_TYPES.LEASE_SIGNATURE_UPDATED,
+			timestamp: new Date().toISOString(),
+			payload: {
+				leaseId,
+				signedBy,
+				status,
+				signedAt
+			}
+		}
+
+		// Always broadcast to owner
+		await this.sseService.broadcast(ownerUserId, sseEvent)
+
+		// Also broadcast to tenant if they're a platform user
+		if (tenantUserId) {
+			await this.sseService.broadcast(tenantUserId, sseEvent)
+		}
+
+		this.logger.debug('SSE signature update broadcast', {
+			leaseId,
+			signedBy,
+			status,
+			ownerUserId,
+			tenantUserId
 		})
 	}
 
