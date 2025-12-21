@@ -9,11 +9,12 @@ import { Trash2, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useOptimistic, useState, useTransition, useEffect, useRef } from 'react'
 import { toast } from 'sonner'
-import { ColumnDef, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import type { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 import { useResendInvitation } from '#hooks/api/use-tenant'
+import { useDataTable } from '#hooks/use-data-table'
 
 const logger = createLogger({ component: 'TenantsTableClient' })
 
@@ -114,13 +115,17 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		}
 	]
 
-	const table = useReactTable({
+	const { table } = useDataTable({
 		data: optimisticTenants,
 		columns: columnsWithActions,
-		getCoreRowModel: getCoreRowModel(),
-		getFilteredRowModel: getFilteredRowModel(),
-		getPaginationRowModel: getPaginationRowModel(),
-		getSortedRowModel: getSortedRowModel(),
+		pageCount: -1,
+		enableAdvancedFilter: true,
+		initialState: {
+			pagination: {
+				pageIndex: 0,
+				pageSize: 10,
+			},
+		},
 	})
 
 	return (

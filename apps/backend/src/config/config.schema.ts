@@ -47,8 +47,14 @@ const environmentSchema = z.object({
     z.string()
       .url('Must be a valid URL')
       .refine(
-        (url) => url.includes('supabase.co') || url.includes('supabase.in') || url.includes('supabase.'),
-        'Must be a Supabase URL (contains supabase.co, supabase.in, or supabase.)'
+        (url) => {
+          return url.includes('supabase.co') || 
+                 url.includes('supabase.in') || 
+                 url.includes('supabase.') ||
+                 url.includes('127.0.0.1') || 
+                 url.includes('localhost')
+        },
+        'Must be a Supabase URL or localhost (for testing)'
       )
   ),
   /**

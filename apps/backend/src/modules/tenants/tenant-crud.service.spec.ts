@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { TenantCrudService } from './tenant-crud.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantQueryService } from './tenant-query.service'
+import { SseService } from '../notifications/sse/sse.service'
 import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
 import { SilentLogger } from '../../__test__/silent-logger'
@@ -70,6 +71,10 @@ describe('TenantCrudService', () => {
         {
           provide: AppLogger,
           useValue: new SilentLogger()
+        },
+        {
+          provide: SseService,
+          useValue: { broadcast: jest.fn().mockResolvedValue(undefined) }
         }
       ]
     }).compile()

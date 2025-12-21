@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Query, Body } from '@nestjs/common'
+import { Controller, Get, Post, Query, Body, UseGuards } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { AdminService } from '../services/admin.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Roles } from '../../../shared/decorators/roles.decorator'
+import { RolesGuard } from '../../../shared/guards/roles.guard'
 
 /**
  * Admin System Controller
  * Handles system monitoring and management endpoints
+ * 
+ * SECURITY: Protected by RolesGuard - only users with ADMIN role can access
  */
 @Controller('admin/system')
+@UseGuards(RolesGuard)
 @Roles('ADMIN')
 export class AdminSystemController {
 	constructor(

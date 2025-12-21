@@ -7,6 +7,7 @@ import { NotificationService } from './notification.service'
 import { NotificationEventHandlerService } from './notification-event-handler.service'
 import { FailedNotificationsService } from './failed-notifications.service'
 import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notification.listener'
+import { SseModule } from './sse/sse.module'
 
 /**
  * Notifications Module
@@ -14,10 +15,11 @@ import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notifi
  * - NotificationService: Core notification operations (event-driven creation)
  * - NotificationEventHandlerService: @OnEvent handlers
  * - FailedNotificationsService: Retry logic for failed notifications
+ * - SseModule: Real-time Server-Sent Events for push notifications
  * Controller handles CRUD with direct Supabase + RLS
  */
 @Module({
-	imports: [SupabaseModule, EmailModule],
+	imports: [SupabaseModule, EmailModule, SseModule],
 	controllers: [NotificationsController, NotificationSettingsController],
 	providers: [
 		NotificationService,
@@ -28,7 +30,8 @@ import { LeaseExpiryNotificationListener } from './listeners/lease-expiry-notifi
 	exports: [
 		NotificationService,
 		NotificationEventHandlerService,
-		FailedNotificationsService
+		FailedNotificationsService,
+		SseModule
 	]
 })
 export class NotificationsModule {}

@@ -8,7 +8,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
 import type { Lease } from '@repo/shared/types/core'
-import type { LeaseWithDetails } from '@repo/shared/types/relations'
+import type { LeaseWithDetails, LeaseWithRelations } from '@repo/shared/types/relations'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
@@ -61,7 +61,7 @@ export const leaseQueries = {
 				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
 				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
 				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<Lease>>(`/api/v1/leases${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<LeaseWithRelations>>(`/api/v1/leases${params ? `?${params}` : ''}`)
 			},
 			...QUERY_CACHE_TIMES.LIST,
 		}),

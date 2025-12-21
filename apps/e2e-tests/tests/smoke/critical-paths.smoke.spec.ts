@@ -175,9 +175,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 			await new Promise(resolve => setTimeout(resolve, 500))
 
 			// Try to get session from Supabase
-			// @ts-expect-error window.supabase may not be typed in browser context
 			if (typeof window.supabase !== 'undefined') {
-				// @ts-expect-error window.supabase not typed
 				const { data } = await window.supabase.auth.getSession()
 				return data?.session?.access_token || null
 			}

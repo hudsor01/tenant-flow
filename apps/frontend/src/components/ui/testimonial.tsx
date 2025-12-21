@@ -7,26 +7,6 @@ import { useRef } from 'react'
 function ClientFeedback() {
 	const testimonialRef = useRef<HTMLDivElement>(null)
 
-	const revealVariants = (isInView: boolean, animationNum: number) => {
-		if (isInView) {
-			return {
-				y: 0,
-				opacity: 1,
-				filter: 'blur(0px)',
-				transition: {
-					delay: animationNum * 0.4,
-					duration: 0.5
-				}
-			}
-		} else {
-			return {
-				filter: 'blur(10px)',
-				y: -20,
-				opacity: 0
-			}
-		}
-	}
-
 	return (
 		<main className="w-full bg-background">
 			<section
@@ -37,16 +17,14 @@ function ClientFeedback() {
 					<TimelineContent
 						className={'xl:text-4xl text-3xl  font-medium'}
 						animationNum={0}
-						customVariants={revealVariants}
-						timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 					>
 						<h1>Trusted by Property Managers and Real Estate Professionals</h1>
 					</TimelineContent>
 					<TimelineContent
 						className={'mx-auto text-muted-foreground'}
 						animationNum={1}
-						customVariants={revealVariants}
-						timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 					>
 						<p>
 							See how TenantFlow has transformed property management for our
@@ -58,8 +36,7 @@ function ClientFeedback() {
 					<div className="md:flex lg:flex-col lg:space-y-2 h-full lg:gap-0 gap-2 ">
 						<TimelineContent
 							animationNum={0}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -100,8 +77,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={1}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -141,8 +117,7 @@ function ClientFeedback() {
 					<div className="lg:h-full  md:flex lg:flex-col h-fit lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={2}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -182,8 +157,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={3}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -223,8 +197,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={4}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -266,8 +239,7 @@ function ClientFeedback() {
 					<div className="h-full md:flex lg:flex-col lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={5}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -304,8 +276,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={6}
-							customVariants={revealVariants}
-							timelineRef={testimonialRef}
+									timelineRef={testimonialRef}
 							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
