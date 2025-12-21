@@ -88,14 +88,21 @@ export const tenantQueries = {
 			structuralSharing: true
 		}),
 
+	/**
+	 * Tenant detail query with SSE real-time updates
+	 * SSE automatically invalidates queries on tenant.updated events
+	 * Fallback polling at 5 min for missed events, refetch on window focus
+	 */
 	polling: (id: string) =>
 		queryOptions({
 			queryKey: [...tenantQueries.details(), id, 'polling'],
 			queryFn: () => apiRequest<Tenant>(`/api/v1/tenants/${id}`),
 			enabled: !!id,
-			refetchInterval: 30000,
+			// SSE provides real-time updates; 5-min fallback for missed events
+			refetchInterval: 5 * 60 * 1000, // 5 minutes (reduced from 30 seconds)
 			refetchIntervalInBackground: false,
-			staleTime: 0
+			refetchOnWindowFocus: true,
+			staleTime: 30_000 // Consider fresh for 30 seconds
 		}),
 
 	notificationPreferences: (tenant_id: string) =>

@@ -289,9 +289,9 @@ describe('tenantQueries', () => {
 			expect(options.enabled).toBe(false)
 		})
 
-		it('should have refetch interval configured', () => {
+		it('should have refetch interval configured (5 min fallback, SSE is primary)', () => {
 			const options = tenantQueries.polling('tenant-123')
-			expect(options.refetchInterval).toBe(30000) // 30 seconds
+			expect(options.refetchInterval).toBe(5 * 60 * 1000) // 5 minutes fallback
 		})
 
 		it('should not refetch in background', () => {
@@ -299,9 +299,14 @@ describe('tenantQueries', () => {
 			expect(options.refetchIntervalInBackground).toBe(false)
 		})
 
-		it('should have staleTime of 0 for polling', () => {
+		it('should refetch on window focus', () => {
 			const options = tenantQueries.polling('tenant-123')
-			expect(options.staleTime).toBe(0)
+			expect(options.refetchOnWindowFocus).toBe(true)
+		})
+
+		it('should have staleTime of 30 seconds', () => {
+			const options = tenantQueries.polling('tenant-123')
+			expect(options.staleTime).toBe(30_000) // 30 seconds
 		})
 	})
 

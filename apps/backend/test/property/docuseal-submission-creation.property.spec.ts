@@ -25,6 +25,7 @@ import { LeasePdfGeneratorService } from '../../src/modules/pdf/lease-pdf-genera
 import { PdfStorageService } from '../../src/modules/pdf/pdf-storage.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
+import { SseService } from '../../src/modules/notifications/sse/sse.service'
 
 describe('Property 11: DocuSeal Submission Creation', () => {
 	let service: LeaseSignatureService
@@ -179,6 +180,10 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: SseService,
+					useValue: { broadcast: jest.fn().mockResolvedValue(undefined) }
 				}
 			]
 		}).compile()
