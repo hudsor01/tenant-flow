@@ -52,11 +52,12 @@
 	--tracking-display-2xl: -0.025em;
 
 	/* Animation durations - following UI/UX standards */
-	--duration-instant: 150ms;
-	--duration-fast: 200ms;
-	--duration-normal: 300ms;
-	--duration-slow: 500ms;
-	--duration-slower: 700ms;
+	/* Use --transition-duration-* prefix to generate duration-* utilities in Tailwind 4 */
+	--transition-duration-instant: 150ms;
+	--transition-duration-fast: 200ms;
+	--transition-duration-normal: 300ms;
+	--transition-duration-slow: 500ms;
+	--transition-duration-slower: 700ms;
 	--tracking-display-xl: -0.02em;
 	--tracking-display-lg: -0.015em;
 	--tracking-display-md: -0.01em;

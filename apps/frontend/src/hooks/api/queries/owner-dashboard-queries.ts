@@ -81,40 +81,42 @@ export const ownerDashboardQueries = {
 	analytics: {
 		/**
 		 * Dashboard statistics
-		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
+		 * Primary: SSE push via 'dashboard.stats_updated' event
+		 * Fallback: 5 min polling to catch missed events
 		 */
 		stats: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.stats(),
 				queryFn: () => apiRequest<DashboardStats>('/api/v1/owner/analytics/stats'),
 				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
+				refetchInterval: 5 * 60 * 1000, // Fallback: 5 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				// Don't refetch on focus when interval handles freshness
-				refetchOnWindowFocus: false,
+				refetchOnWindowFocus: true, // Catch missed events on tab focus
 				retry: 2,
 				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 			}),
 
 		/**
 		 * Dashboard activity feed
-		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
+		 * Primary: SSE push via 'dashboard.stats_updated' event
+		 * Fallback: 5 min polling to catch missed events
 		 */
 		activity: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.activity(),
 				queryFn: () => apiRequest<{ activities: Activity[] }>('/api/v1/owner/analytics/activity'),
 				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
+				refetchInterval: 5 * 60 * 1000, // Fallback: 5 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: false,
+				refetchOnWindowFocus: true, // Catch missed events on tab focus
 				retry: 2,
 				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
 			}),
 
 		/**
 		 * Unified dashboard page data
-		 * Uses STATS cache (1 min staleTime) with 2 min refresh interval
+		 * Primary: SSE push via 'dashboard.stats_updated' event
+		 * Fallback: 5 min polling to catch missed events
 		 */
 		pageData: () =>
 			queryOptions({
@@ -124,9 +126,9 @@ export const ownerDashboardQueries = {
 					activity: ActivityItem[]
 				}>('/api/v1/owner/analytics/page-data'),
 				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Auto-refresh every 2 minutes
+				refetchInterval: 5 * 60 * 1000, // Fallback: 5 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: false,
+				refetchOnWindowFocus: true, // Catch missed events on tab focus
 				retry: 2
 			})
 	},
