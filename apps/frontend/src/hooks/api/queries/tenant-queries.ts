@@ -11,7 +11,8 @@ import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/type
 import type {
 	PaginatedResponse,
 	TenantFilters,
-	TenantInvitation
+	TenantInvitation,
+	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
 
 // Re-export for backward compatibility
@@ -124,5 +125,44 @@ export const tenantQueries = {
 			queryKey: tenantQueries.invitations(),
 			queryFn: () => apiRequest<PaginatedResponse<TenantInvitation>>('/api/v1/tenants/invitations'),
 			...QUERY_CACHE_TIMES.LIST
+		}),
+
+	/**
+	 * Payment history for a specific tenant
+	 * Returns list of payment records with status, amount, and dates
+	 */
+	paymentHistory: (tenantId: string, limit?: number) =>
+		queryOptions({
+			queryKey: [...tenantQueries.details(), tenantId, 'payments', limit ?? 20],
+			queryFn: () => {
+				const params = limit ? `?limit=${limit}` : ''
+				return apiRequest<TenantPaymentHistoryResponse>(`/api/v1/tenants/${tenantId}/payments${params}`)
+			},
+			enabled: !!tenantId,
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 5 * 60 * 1000
+		}),
+
+	/**
+	 * All leases (past and current) for a specific tenant
+	 * Used in tenant detail view for lease history
+	 */
+	leaseHistory: (tenantId: string) =>
+		queryOptions({
+			queryKey: [...tenantQueries.details(), tenantId, 'leases'],
+			queryFn: () => apiRequest<{
+				leases: Array<{
+					id: string
+					property_name: string
+					unit_number: string
+					start_date: string
+					end_date: string | null
+					rent_amount: number
+					status: string
+				}>
+			}>(`/api/v1/tenants/${tenantId}/leases`),
+			enabled: !!tenantId,
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 10 * 60 * 1000
 		})
 }

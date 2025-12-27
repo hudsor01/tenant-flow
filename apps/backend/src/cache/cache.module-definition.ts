@@ -1,8 +1,10 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common'
 
 export interface CacheModuleOptions {
-	ttl: number
-	max: number
+	ttlShortMs?: number
+	ttlMediumMs?: number
+	ttlLongMs?: number
+	keyPrefix?: string
 	isGlobal?: boolean
 }
 

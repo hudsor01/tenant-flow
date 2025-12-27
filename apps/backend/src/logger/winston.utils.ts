@@ -11,6 +11,8 @@ import {
   DEFAULT_SERVICE_NAME
 } from './winston.config'
 
+// NOTE: Sync fs APIs are used intentionally here. This runs once during bootstrap
+// before the event loop starts accepting requests, so blocking is acceptable.
 export const ensureLogDirectory = (dir?: string): string => {
   const targetDir = dir ?? DEFAULT_LOG_DIR
   try {

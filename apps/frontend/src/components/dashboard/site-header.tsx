@@ -4,6 +4,7 @@ import { NavUser } from '#components/dashboard/nav-user'
 import { Button } from '#components/ui/button'
 import { ModeToggle } from '#components/ui/theme-switch'
 import { Tooltip, TooltipContent, TooltipTrigger } from '#components/ui/tooltip'
+import { SidebarTrigger, useSidebar } from '#components/ui/sidebar'
 import { useUnreadNotificationsCount } from '#hooks/api/use-notifications'
 import { cn } from '#lib/utils'
 import { ArrowLeft, Bell } from 'lucide-react'
@@ -15,24 +16,44 @@ type SiteHeaderProps = React.ComponentProps<'header'>
 export const SiteHeader = React.forwardRef<HTMLElement, SiteHeaderProps>(
 	({ className, ...props }, ref) => {
 		const router = useRouter()
+		const { isMobile } = useSidebar()
 
 		return (
 			<header
 				ref={ref}
 				className={cn(
-					'flex h-16 shrink-0 items-center gap-2 border-b px-6',
+					'flex h-16 shrink-0 items-center gap-2 border-b px-4 md:px-6',
 					className
 				)}
 				{...props}
 			>
-				<Button variant="ghost" size="icon" onClick={() => router.back()}>
+				{/* Mobile hamburger menu */}
+				{isMobile && (
+					<SidebarTrigger
+						className="md:hidden"
+						aria-label="Toggle sidebar menu"
+					/>
+				)}
+
+				{/* Back button */}
+				<Button
+					variant="ghost"
+					size="icon"
+					onClick={() => router.back()}
+					aria-label="Go back"
+					className="hidden md:flex"
+				>
 					<ArrowLeft className="size-5" />
 				</Button>
-				{/* Theme Toggle & User Avatar */}
+
+				{/* Theme Toggle, Notifications & User Avatar */}
 				<div className="ml-auto flex items-center gap-2">
 					<NotificationsBell onClick={() => router.push('/dashboard/settings?tab=notifications')} />
 					<ModeToggle />
-					<NavUser />
+					{/* Hide user menu on mobile header - it's in sidebar footer */}
+					<div className="hidden md:block">
+						<NavUser />
+					</div>
 				</div>
 			</header>
 		)

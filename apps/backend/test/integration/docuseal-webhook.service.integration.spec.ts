@@ -12,10 +12,10 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { DocuSealWebhookService } from './docuseal-webhook.service'
-import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
-import { AppLogger } from '../../logger/app-logger.service'
+import { DocuSealWebhookService } from '../../src/modules/docuseal/docuseal-webhook.service'
+import { SupabaseService } from '../../src/database/supabase.service'
+import { SilentLogger } from '../../src/__test__/silent-logger'
+import { AppLogger } from '../../src/logger/app-logger.service'
 
 
 // Skip if not running integration tests

@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~617 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract InviteValidation component into: `./components/invite-validation.tsx`
+// 2. Extract RegistrationForm into: `./components/registration-form.tsx`
+// 3. Extract SuccessMessage into: `./components/invite-success.tsx`
+// 4. Extract invite processing logic into: `#hooks/use-accept-invite.ts`
+// 5. Keep AcceptInvitePage as orchestration component
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 'use client'
 
 import React from 'react'

@@ -6,20 +6,58 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { Body, Controller, Get, NotFoundException, Patch, Req } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Delete,
+	Get,
+	NotFoundException,
+	Patch,
+	Post,
+	Req,
+	Param,
+	UseInterceptors,
+	UploadedFile
+} from '@nestjs/common'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { decode, JwtPayload } from 'jsonwebtoken'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UsersService } from './users.service'
+import { ProfileService } from './profile.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { AppLogger } from '../../logger/app-logger.service'
+import { UserToursService } from './user-tours.service'
+import { UserSessionsService } from './user-sessions.service'
+
+type UpdateTourProgressBody = {
+	status?: 'not_started' | 'in_progress' | 'completed' | 'skipped'
+	current_step?: number
+}
+
+type UpdatePhoneBody = {
+	phone: string | null
+}
+
+type UpdateEmergencyContactBody = {
+	name: string
+	phone: string
+	relationship: string
+}
 
 @Controller('users')
 export class UsersController {
-
-	constructor(private readonly supabaseService: SupabaseService,
-		private readonly usersService: UsersService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly usersService: UsersService,
+		private readonly profileService: ProfileService,
+		private readonly userToursService: UserToursService,
+		private readonly userSessionsService: UserSessionsService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get current user with Stripe customer ID
@@ -92,6 +130,29 @@ export class UsersController {
 	}
 
 	/**
+	 * Get full user profile with role-specific data
+	 *
+	 * Returns profile with:
+	 * - Base user info (name, email, phone, avatar)
+	 * - For tenants: emergency contact, current lease info
+	 * - For owners: Stripe connection status, property/unit counts
+	 */
+	@Get('profile')
+	@SkipSubscriptionCheck()
+	async getProfile(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Fetching user profile', { user_id: req.user.id })
+
+		return this.profileService.getProfile(token, req.user.id)
+	}
+
+	/**
 	 * Update current user's profile
 	 *
 	 * Updates the authenticated user's profile information including:
@@ -117,8 +178,7 @@ export class UsersController {
 			first_name: dto.first_name,
 			last_name: dto.last_name,
 			email: dto.email,
-			phone: dto.phone ?? null,
-
+			phone: dto.phone ?? null
 		})
 
 		this.logger.log('User profile updated successfully', { user_id })
@@ -128,8 +188,267 @@ export class UsersController {
 			first_name: updatedUser.first_name,
 			last_name: updatedUser.last_name,
 			email: updatedUser.email,
-			phone: updatedUser.phone,
-
+			phone: updatedUser.phone
 		}
+	}
+
+	/**
+	 * Upload user avatar
+	 *
+	 * Accepts image file (JPEG, PNG, GIF, WebP) up to 5MB
+	 * Stores in Supabase Storage and updates user record
+	 */
+	@Post('avatar')
+	@SkipSubscriptionCheck()
+	@UseInterceptors(FileInterceptor('avatar'))
+	async uploadAvatar(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest,
+		@UploadedFile() file: Express.Multer.File
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Uploading avatar', {
+			user_id: req.user.id,
+			fileSize: file?.size,
+			mimeType: file?.mimetype
+		})
+
+		return this.profileService.uploadAvatar(token, req.user.id, file)
+	}
+
+	/**
+	 * Remove user avatar
+	 *
+	 * Deletes avatar from storage and clears avatar_url in user record
+	 */
+	@Delete('avatar')
+	@SkipSubscriptionCheck()
+	async removeAvatar(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Removing avatar', { user_id: req.user.id })
+
+		await this.profileService.removeAvatar(token, req.user.id)
+
+		return { success: true, message: 'Avatar removed successfully' }
+	}
+
+	/**
+	 * Update phone number
+	 *
+	 * Validates phone format and updates user record
+	 */
+	@Patch('phone')
+	@SkipSubscriptionCheck()
+	async updatePhone(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest,
+		@Body() body: UpdatePhoneBody
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Updating phone number', { user_id: req.user.id })
+
+		return this.profileService.updatePhone(token, req.user.id, body.phone)
+	}
+
+	/**
+	 * Update emergency contact (for tenants)
+	 *
+	 * Updates emergency contact information in tenant record
+	 */
+	@Patch('emergency-contact')
+	@SkipSubscriptionCheck()
+	async updateEmergencyContact(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest,
+		@Body() body: UpdateEmergencyContactBody
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		if (!body.name || !body.phone || !body.relationship) {
+			throw new BadRequestException(
+				'Name, phone, and relationship are required'
+			)
+		}
+
+		this.logger.debug('Updating emergency contact', { user_id: req.user.id })
+
+		await this.profileService.updateEmergencyContact(token, req.user.id, body)
+
+		return { success: true, message: 'Emergency contact updated successfully' }
+	}
+
+	/**
+	 * Remove emergency contact (for tenants)
+	 *
+	 * Clears emergency contact information from tenant record
+	 */
+	@Delete('emergency-contact')
+	@SkipSubscriptionCheck()
+	async removeEmergencyContact(
+		@JwtToken() token: string,
+		@Req() req: AuthenticatedRequest
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Removing emergency contact', { user_id: req.user.id })
+
+		await this.profileService.clearEmergencyContact(token, req.user.id)
+
+		return { success: true, message: 'Emergency contact removed successfully' }
+	}
+
+	/**
+	 * Get all active sessions for the current user
+	 *
+	 * Returns a list of all active sessions with device/browser info.
+	 * The current session is marked with is_current: true
+	 */
+	@Get('sessions')
+	@SkipSubscriptionCheck()
+	async getSessions(
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		// Extract session_id from the JWT payload
+		// The JWT has already been verified by the auth guard
+		let currentSessionId: string | undefined
+		try {
+			const decoded = decode(token) as JwtPayload | null
+			currentSessionId = decoded?.session_id as string | undefined
+		} catch {
+			this.logger.debug('Could not decode JWT for session_id extraction')
+		}
+
+		this.logger.debug('Fetching user sessions', {
+			user_id: req.user.id,
+			currentSessionId
+		})
+
+		const sessions = await this.userSessionsService.getUserSessions(
+			req.user.id,
+			currentSessionId
+		)
+
+		return { sessions }
+	}
+
+	/**
+	 * Revoke a specific session
+	 *
+	 * Terminates the specified session, logging the user out of that device.
+	 * Users cannot revoke their current session through this endpoint.
+	 */
+	@Delete('sessions/:sessionId')
+	@SkipSubscriptionCheck()
+	async revokeSession(
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
+		@Param('sessionId') sessionId: string
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		// Extract current session_id from JWT to prevent self-revocation
+		let currentSessionId: string | undefined
+		try {
+			const decoded = decode(token) as JwtPayload | null
+			currentSessionId = decoded?.session_id as string | undefined
+		} catch {
+			// If we can't decode, allow the operation (backend will validate)
+		}
+
+		// Prevent users from revoking their current session
+		if (currentSessionId && currentSessionId === sessionId) {
+			throw new BadRequestException(
+				'Cannot revoke current session. Use logout instead.'
+			)
+		}
+
+		this.logger.debug('Revoking session', {
+			user_id: req.user.id,
+			sessionId
+		})
+
+		await this.userSessionsService.revokeSession(req.user.id, sessionId)
+
+		return { success: true, message: 'Session revoked successfully' }
+	}
+
+	/**
+	 * Get onboarding tour progress for current user
+	 */
+	@Get('tours/:tourKey')
+	@SkipSubscriptionCheck()
+	async getTourProgress(
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
+		@Param('tourKey') tourKey: string
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		return this.userToursService.getTourProgress(token, req.user.id, tourKey)
+	}
+
+	/**
+	 * Update onboarding tour progress for current user
+	 */
+	@Patch('tours/:tourKey')
+	@SkipSubscriptionCheck()
+	async updateTourProgress(
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
+		@Param('tourKey') tourKey: string,
+		@Body() body: UpdateTourProgressBody
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		return this.userToursService.updateTourProgress(
+			token,
+			req.user.id,
+			tourKey,
+			body
+		)
+	}
+
+	/**
+	 * Reset onboarding tour progress for current user
+	 */
+	@Post('tours/:tourKey/reset')
+	@SkipSubscriptionCheck()
+	async resetTourProgress(
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string,
+		@Param('tourKey') tourKey: string
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		return this.userToursService.resetTourProgress(token, req.user.id, tourKey)
 	}
 }

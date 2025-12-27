@@ -9,35 +9,47 @@ import { z } from 'zod'
 const propertyBaseSchema = z.object({
 	name: z
 		.string()
+		.trim()
 		.min(1, 'Property name is required')
-		.max(200, 'Property name must be less than 200 characters')
-		.trim(),
+		.max(200, 'Property name must be less than 200 characters'),
 
-	address: z
+	address_line1: z
 		.string()
+		.trim()
 		.min(1, 'Property address is required')
-		.max(500, 'Address must be less than 500 characters')
-		.trim(),
+		.max(500, 'Address must be less than 500 characters'),
+
+	address_line2: z
+		.string()
+		.max(500, 'Address line 2 must be less than 500 characters')
+		.optional()
+		.transform(val => val?.trim() ?? undefined),
 
 	city: z
 		.string()
+		.trim()
 		.min(1, 'City is required')
-		.max(100, 'City must be less than 100 characters')
-		.trim(),
+		.max(100, 'City must be less than 100 characters'),
 
 	state: z
 		.string()
+		.trim()
 		.min(2, 'State must be at least 2 characters')
-		.max(50, 'State must be less than 50 characters')
-		.trim(),
+		.max(50, 'State must be less than 50 characters'),
 
 	postal_code: z
 		.string()
+		.trim()
 		.regex(
 			/^\d{5}(-\d{4})?$/,
 			'Valid zip code is required (12345 or 12345-6789)'
-		)
-		.trim(),
+		),
+
+	country: z
+		.string()
+		.max(50, 'Country must be less than 50 characters')
+		.default('US')
+		.optional(),
 
 	description: z
 		.string()

@@ -21,7 +21,7 @@ import type {
 import { TenantDetailService } from './tenant-detail.service'
 import { TenantListService, ListFilters } from './tenant-list.service'
 import { TenantStatsService } from './tenant-stats.service'
-import { TenantRelationService } from './tenant-relation.service'
+import { TenantRelationService, LeaseHistoryItem } from './tenant-relation.service'
 import {
 	TenantInvitationQueryService,
 	TenantInvitation,
@@ -31,6 +31,7 @@ import {
 // Re-export types for backwards compatibility
 export type { ListFilters } from './tenant-list.service'
 export type { TenantInvitation, InvitationFilters } from './tenant-invitation-query.service'
+export type { LeaseHistoryItem } from './tenant-relation.service'
 
 @Injectable()
 export class TenantQueryService {
@@ -171,6 +172,14 @@ export class TenantQueryService {
 		tenantIds: string[]
 	): Promise<Map<string, RentPayment>> {
 		return this.relationService.batchFetchPaymentStatuses(tenantIds)
+	}
+
+	/**
+	 * Get all leases (past and current) for a tenant
+	 * Used in tenant detail view for lease history
+	 */
+	async getTenantLeaseHistory(tenantId: string): Promise<LeaseHistoryItem[]> {
+		return this.relationService.getTenantLeaseHistory(tenantId)
 	}
 
 	// ============================================================================

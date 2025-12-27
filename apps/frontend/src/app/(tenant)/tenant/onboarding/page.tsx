@@ -1,3 +1,8 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
+// 1. LINE 7: Direct path import `@repo/shared/lib/frontend-logger` - should import from `@repo/shared`
+// 2. LINE 76-77: Duplicate API_BASE_URL fallback pattern - should import `API_BASE_URL` from `@/lib/api-client`
+// See CLAUDE.md "API Base URL (Single Source of Truth)" and "Type System Rules"
+
 'use client'
 
 import { useEffect, useState } from 'react'

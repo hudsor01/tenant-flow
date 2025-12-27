@@ -1,9 +1,18 @@
-import { Inject, Injectable } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import type { Cache } from 'cache-manager'
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~537 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract customer operations into: `./stripe-customer.service.ts`
+// 2. Extract subscription operations into: `./stripe-subscription.service.ts`
+// 3. Extract payment method operations into: `./stripe-payment-method.service.ts`
+// 4. Keep StripeService as facade for Stripe operations
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
+import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
+import { createHash } from 'node:crypto'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { RedisCacheService } from '../../cache/cache.service'
 
 /**
  * Ultra-Native Stripe Service
@@ -18,11 +27,13 @@ export class StripeService {
   // Stripe API pagination defaults
   private readonly STRIPE_DEFAULT_LIMIT = 100 // Maximum items per page for Stripe API
   private readonly STRIPE_MAX_TOTAL_ITEMS = 1000 // Maximum total items to prevent unbounded pagination
+  private readonly SUBSCRIPTIONS_CACHE_TTL_MS = 90_000
+  private readonly INVOICES_CACHE_TTL_MS = 45_000
 
   constructor(
     private readonly stripeClientService: StripeClientService,
     private readonly logger: AppLogger,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+    private readonly cache: RedisCacheService
   ) {
     this.stripe = this.stripeClientService.getClient()
     this.logger.log('Stripe SDK initialized')
@@ -44,9 +55,13 @@ export class StripeService {
     limit?: number
   }): Promise<Stripe.Subscription[]> {
     // PERFORMANCE: Cache subscriptions per customer, status, and limit
-    const cacheKey = `stripe:subscriptions:${params?.customer || 'all'}:${params?.status || 'all'}:${params?.limit || 'all'}`
+    const cacheKey = this.buildCacheKey('subscriptions', {
+      customer: params?.customer ?? null,
+      status: params?.status ?? null,
+      limit: params?.limit ?? 10
+    })
 
-    const cached = await this.cacheManager.get<Stripe.Subscription[]>(cacheKey)
+    const cached = await this.getCachedValue<Stripe.Subscription[]>(cacheKey)
     if (cached) {
       this.logger.debug('Returning cached subscriptions', { cacheKey })
       return cached
@@ -65,8 +80,12 @@ export class StripeService {
       }
       const subscriptions = await this.stripe.subscriptions.list(requestParams)
 
-      // Cache for 2 minutes (subscriptions change frequently)
-      await this.cacheManager.set(cacheKey, subscriptions.data, 120000)
+      // Cache for 90s (subscriptions change frequently)
+      await this.setCachedValue(
+        cacheKey,
+        subscriptions.data,
+        this.SUBSCRIPTIONS_CACHE_TTL_MS
+      )
 
       return subscriptions.data
     } catch (error) {
@@ -138,9 +157,15 @@ export class StripeService {
     limit?: number
   }): Promise<Stripe.Invoice[]> {
     // PERFORMANCE: Cache invoices per customer, subscription, status, created date, and limit
-    const cacheKey = `stripe:invoices:${params?.customer || 'all'}:${params?.subscription || 'all'}:${params?.status || 'all'}:${params?.limit || 'all'}:${params?.created ? JSON.stringify(params.created) : 'all'}`
+    const cacheKey = this.buildCacheKey('invoices', {
+      customer: params?.customer ?? null,
+      subscription: params?.subscription ?? null,
+      status: params?.status ?? null,
+      limit: params?.limit ?? 10,
+      created: params?.created ?? null
+    })
 
-    const cached = await this.cacheManager.get<Stripe.Invoice[]>(cacheKey)
+    const cached = await this.getCachedValue<Stripe.Invoice[]>(cacheKey)
     if (cached) {
       this.logger.debug('Returning cached invoices', { cacheKey })
       return cached
@@ -165,8 +190,12 @@ export class StripeService {
       }
       const invoices = await this.stripe.invoices.list(requestParams)
 
-      // Cache for 1 minute (invoices can update frequently)
-      await this.cacheManager.set(cacheKey, invoices.data, 60000)
+      // Cache for 45s (invoices can update frequently)
+      await this.setCachedValue(
+        cacheKey,
+        invoices.data,
+        this.INVOICES_CACHE_TTL_MS
+      )
 
       return invoices.data
     } catch (error) {
@@ -475,5 +504,43 @@ export class StripeService {
       this.logger.error('Failed to get charge', { error, chargeId })
       return null
     }
+  }
+
+  private buildCacheKey(prefix: string, params: unknown): string {
+    const hash = this.hashParams(params)
+    return `stripe:${prefix}:${hash}`
+  }
+
+  private hashParams(params: unknown): string {
+    const stable = this.stableStringify(params)
+    return createHash('md5').update(stable).digest('hex')
+  }
+
+  private stableStringify(value: unknown): string {
+    if (value === null || typeof value !== 'object') {
+      return JSON.stringify(value)
+    }
+
+    if (Array.isArray(value)) {
+      return `[${value.map(item => this.stableStringify(item)).join(',')}]`
+    }
+
+    const record = value as Record<string, unknown>
+    const keys = Object.keys(record).sort()
+    return `{${keys
+      .map(key => `${JSON.stringify(key)}:${this.stableStringify(record[key])}`)
+      .join(',')}}`
+  }
+
+  private async getCachedValue<T>(cacheKey: string): Promise<T | null> {
+    return this.cache.get<T>(cacheKey)
+  }
+
+  private async setCachedValue<T>(
+    cacheKey: string,
+    value: T,
+    ttlMs: number
+  ): Promise<void> {
+    await this.cache.set(cacheKey, value, { ttlMs, tier: 'short', tags: ['stripe'] })
   }
 }

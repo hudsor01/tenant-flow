@@ -1,5 +1,5 @@
 import { BadRequestException, Logger } from '@nestjs/common'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StorageService } from '../../database/storage.service'
@@ -9,8 +9,9 @@ import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { NotFoundException } from '@nestjs/common'
+import type { Property } from '@repo/shared/types/core'
 // Define createMockProperty locally since it doesn't exist in mocks
-function createMockProperty(overrides?: Partial<any>): any {
+function createMockProperty(overrides?: Partial<Property>): Property {
   return {
     id: 'property-' + Math.random().toString(36).substr(2, 9),
     owner_user_id: 'user-123',
@@ -127,7 +128,7 @@ describe('PropertiesService', () => {
           }
         },
         {
-          provide: ZeroCacheService,
+          provide: RedisCacheService,
           useValue: {
             get: jest.fn(),
             set: jest.fn(),

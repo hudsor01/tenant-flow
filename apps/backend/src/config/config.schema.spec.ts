@@ -1,7 +1,7 @@
 import 'reflect-metadata'
 import { validate } from './config.schema'
 
-type MutableConfig = Record<string, any>
+type MutableConfig = Record<string, unknown>
 
 const BASE_CONFIG = {
   DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',

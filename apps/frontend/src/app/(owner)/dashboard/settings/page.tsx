@@ -1,3 +1,11 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~981 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract ProfileSettingsSection into: `./sections/profile-settings-section.tsx`
+// 2. Extract NotificationSettingsSection into: `./sections/notification-settings-section.tsx`
+// 3. Extract BillingSettingsSection into: `./sections/billing-settings-section.tsx`
+// 4. Keep main page as layout wrapper that imports sections
+
 'use client'
 
 import { PasswordUpdateSection } from '#app/(tenant)/tenant/settings/password-update-section'
@@ -18,6 +26,13 @@ import {
 	useOwnerNotificationSettings,
 	useUpdateOwnerNotificationSettings
 } from '#hooks/api/use-notification-settings'
+import { useUserSessions, useRevokeSession } from '#hooks/api/use-sessions'
+import { useInvoices } from '#hooks/api/use-billing'
+import { useMfaFactors, useMfaStatus } from '#hooks/api/use-mfa'
+import {
+	TwoFactorSetupDialog,
+	DisableTwoFactorDialog
+} from '#components/auth/two-factor-setup-dialog'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { Database } from '@repo/shared/types/supabase'
 import {
@@ -47,12 +62,14 @@ import {
 	CreditCard,
 	Download,
 	ExternalLink,
-	Globe,
 	Loader2,
 	RefreshCw,
 	Save,
 	Settings,
 	Shield,
+	Smartphone,
+	Monitor,
+	Tablet,
 	Trash2,
 	Upload,
 	User
@@ -101,8 +118,23 @@ export default function SettingsPage() {
 		isLoading: notificationSettingsLoading
 	} = useOwnerNotificationSettings()
 	const updateNotificationSettings = useUpdateOwnerNotificationSettings()
+	const { data: invoices, isLoading: invoicesLoading } = useInvoices()
+	const {
+		data: sessions,
+		isLoading: sessionsLoading,
+		refetch: refetchSessions
+	} = useUserSessions()
+	const revokeSession = useRevokeSession()
+	const { isLoading: mfaStatusLoading } = useMfaStatus()
+	const { data: mfaFactors, isLoading: mfaFactorsLoading, refetch: refetchMfaFactors } = useMfaFactors()
 
 	const [selectedNotifications, setSelectedNotifications] = useState<string[]>([])
+	const [showSetup2faDialog, setShowSetup2faDialog] = useState(false)
+	const [showDisable2faDialog, setShowDisable2faDialog] = useState(false)
+
+	// Get the first enrolled TOTP factor if any
+	const enrolledTotpFactor = mfaFactors?.find(f => f.type === 'totp' && f.status === 'verified')
+	const is2faEnabled = !!enrolledTotpFactor
 
 	const isSettingsPending =
 		notificationSettingsLoading || updateNotificationSettings.isPending
@@ -274,6 +306,19 @@ export default function SettingsPage() {
 					</TabsTrigger>
 				</TabsList>
 
+				{/* TODO [LOW PRIORITY]: Add avatar/profile photo upload functionality.
+				 * The profile section currently only has text fields for name, email, phone, etc.
+				 * To implement avatar upload:
+				 * 1. Create an AvatarUpload component with drag-and-drop or click-to-upload
+				 * 2. Use Supabase Storage bucket 'avatars' for storing images
+				 * 3. Validate file types (JPEG, PNG, WebP) and max size (5MB)
+				 * 4. Add image cropping UI (react-image-crop or similar) for square aspect ratio
+				 * 5. Store avatar URL in user_metadata: supabase.auth.updateUser({ data: { avatar_url } })
+				 * 6. Generate unique filename: `${userId}/${timestamp}.${ext}` to handle updates
+				 * 7. Display avatar in profile section and in the app header/navigation
+				 * 8. Add fallback to initials avatar (already implemented in Avatar component)
+				 * See: https://supabase.com/docs/guides/storage for Storage setup
+				 */}
 				<TabsContent value="profile" className="space-y-6">
 					<CardLayout
 						title="Profile Information"
@@ -713,65 +758,188 @@ export default function SettingsPage() {
 				<TabsContent value="security" className="space-y-6">
 					<PasswordUpdateSection />
 
-					<CardLayout
+						<CardLayout
 						title="Two-Factor Authentication"
 						className="p-6 border shadow-sm"
 					>
 						<div className="space-y-4">
-							<div className="flex-between">
-								<div>
-									<Label htmlFor="enable-2fa" className="font-medium">
-										Enable 2FA
-									</Label>
-									<p className="text-muted">
-										Add an extra layer of security to your account
-									</p>
+							{mfaStatusLoading || mfaFactorsLoading ? (
+								<div className="flex-between">
+									<div className="space-y-2">
+										<Skeleton className="h-4 w-24" />
+										<Skeleton className="h-3 w-48" />
+									</div>
+									<Skeleton className="h-6 w-11" />
 								</div>
-								<Switch id="enable-2fa" name="enable-2fa" />
-							</div>
-							<div className="pt-4 border-t">
-								<Button variant="outline">
-									<Shield className="size-4 mr-2" />
-									Configure 2FA
-								</Button>
-							</div>
+							) : (
+								<>
+									<div className="flex-between">
+										<div>
+											<Label className="font-medium">
+												{is2faEnabled ? '2FA Enabled' : 'Enable 2FA'}
+											</Label>
+											<p className="text-muted">
+												{is2faEnabled
+													? 'Your account is protected with two-factor authentication'
+													: 'Add an extra layer of security to your account'}
+											</p>
+										</div>
+										<Switch
+											checked={is2faEnabled}
+											onCheckedChange={(checked) => {
+												if (checked) {
+													setShowSetup2faDialog(true)
+												} else {
+													setShowDisable2faDialog(true)
+												}
+											}}
+										/>
+									</div>
+									<div className="pt-4 border-t">
+										{is2faEnabled ? (
+											<div className="flex items-center gap-2">
+												<Badge variant="success" className="text-xs">
+													<CheckCircle2 className="size-3 mr-1" />
+													Active
+												</Badge>
+												<span className="text-sm text-muted-foreground">
+													Using authenticator app
+												</span>
+											</div>
+										) : (
+											<Button
+												variant="outline"
+												onClick={() => setShowSetup2faDialog(true)}
+											>
+												<Shield className="size-4 mr-2" />
+												Set Up 2FA
+											</Button>
+										)}
+									</div>
+								</>
+							)}
 						</div>
 					</CardLayout>
 
+					<TwoFactorSetupDialog
+						open={showSetup2faDialog}
+						onOpenChange={setShowSetup2faDialog}
+						onSuccess={() => refetchMfaFactors()}
+					/>
+
+					{enrolledTotpFactor && (
+						<DisableTwoFactorDialog
+							open={showDisable2faDialog}
+							onOpenChange={setShowDisable2faDialog}
+							factorId={enrolledTotpFactor.id}
+							onSuccess={() => refetchMfaFactors()}
+						/>
+					)}
+
 					<CardLayout title="Active Sessions" className="p-6 border shadow-sm">
 						<div className="space-y-4">
-							<div className="flex-between p-4 rounded-lg bg-muted/20">
-								<div className="flex items-center gap-3">
-									<div className="size-11 rounded-full bg-primary/20 flex-center">
-										<div className="size-3 rounded-full bg-primary"></div>
-									</div>
-									<div>
-										<p className="font-medium">Current Session</p>
-										<p className="text-muted">
-											Chrome on macOS • San Francisco, CA
-										</p>
-									</div>
+							{sessionsLoading ? (
+								<>
+									<Skeleton className="h-20 w-full" />
+									<Skeleton className="h-20 w-full" />
+								</>
+							) : sessions && sessions.length > 0 ? (
+								sessions.map(session => {
+									const DeviceIcon = session.device === 'mobile'
+										? Smartphone
+										: session.device === 'tablet'
+										? Tablet
+										: Monitor
+
+									const lastActive = new Date(session.updated_at)
+									const now = new Date()
+									const diffMs = now.getTime() - lastActive.getTime()
+									const diffMins = Math.floor(diffMs / 60000)
+									const diffHours = Math.floor(diffMins / 60)
+									const diffDays = Math.floor(diffHours / 24)
+
+									let lastActiveText: string
+									if (session.is_current) {
+										lastActiveText = 'Now'
+									} else if (diffMins < 1) {
+										lastActiveText = 'Just now'
+									} else if (diffMins < 60) {
+										lastActiveText = `${diffMins} min ago`
+									} else if (diffHours < 24) {
+										lastActiveText = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+									} else {
+										lastActiveText = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
+									}
+
+									return (
+										<div
+											key={session.id}
+											className={`flex-between p-4 rounded-lg ${
+												session.is_current ? 'bg-primary/10' : 'bg-muted/20'
+											}`}
+										>
+											<div className="flex items-center gap-3">
+												<div
+													className={`size-11 rounded-full flex-center ${
+														session.is_current
+															? 'bg-primary/20'
+															: 'bg-muted'
+													}`}
+												>
+													{session.is_current ? (
+														<div className="size-3 rounded-full bg-primary" />
+													) : (
+														<DeviceIcon className="size-4" />
+													)}
+												</div>
+												<div>
+													<p className="font-medium">
+														{session.browser || 'Unknown Browser'}
+													</p>
+													<p className="text-muted">
+														{session.os || 'Unknown OS'} • {lastActiveText}
+													</p>
+												</div>
+											</div>
+											{session.is_current ? (
+												<Badge variant="default" className="text-xs">
+													Current
+												</Badge>
+											) : (
+												<Button
+													variant="ghost"
+													size="sm"
+													onClick={() => revokeSession.mutate(session.id)}
+													disabled={revokeSession.isPending}
+												>
+													{revokeSession.isPending ? (
+														<Loader2 className="size-4 animate-spin" />
+													) : (
+														'Revoke'
+													)}
+												</Button>
+											)}
+										</div>
+									)
+								})
+							) : (
+								<div className="text-center py-8 text-muted-foreground">
+									<Monitor className="size-12 mx-auto mb-3 opacity-50" />
+									<p>No active sessions found</p>
 								</div>
-								<Badge variant="default" className="text-xs">
-									Current
-								</Badge>
-							</div>
-							<div className="flex-between p-4 rounded-lg bg-muted/20">
-								<div className="flex items-center gap-3">
-									<div className="size-11 rounded-full bg-muted flex-center">
-										<Globe className="size-4" />
-									</div>
-									<div>
-										<p className="font-medium">Mobile App</p>
-										<p className="text-muted">
-											iPhone • Last active 2 hours ago
-										</p>
-									</div>
+							)}
+							{sessions && sessions.length > 0 && (
+								<div className="pt-4 border-t">
+									<Button
+										variant="outline"
+										size="sm"
+										onClick={() => refetchSessions()}
+									>
+										<RefreshCw className="size-4 mr-2" />
+										Refresh Sessions
+									</Button>
 								</div>
-								<Button variant="ghost" size="sm">
-									Revoke
-								</Button>
-							</div>
+							)}
 						</div>
 					</CardLayout>
 				</TabsContent>
@@ -816,31 +984,76 @@ export default function SettingsPage() {
 
 					<CardLayout title="Billing History" className="p-6 border shadow-sm">
 						<div className="space-y-3">
-							{[
-								{ date: 'Jan 15, 2024', amount: '$99.00', status: 'Paid' },
-								{ date: 'Dec 15, 2023', amount: '$99.00', status: 'Paid' },
-								{ date: 'Nov 15, 2023', amount: '$99.00', status: 'Paid' }
-							].map((invoice) => (
-								<div
-									key={invoice.date}
-									className="flex-between p-3 rounded-lg bg-muted/20"
-								>
-									<div>
-										<p className="font-medium">{invoice.date}</p>
-										<p className="text-muted">
-											{invoice.amount}
-										</p>
+							{invoicesLoading ? (
+								<>
+									{[1, 2, 3].map((i) => (
+										<div key={i} className="flex-between p-3 rounded-lg bg-muted/20">
+											<div className="space-y-2">
+												<Skeleton className="h-4 w-24" />
+												<Skeleton className="h-3 w-16" />
+											</div>
+											<div className="flex items-center gap-2">
+												<Skeleton className="h-5 w-12" />
+												<Skeleton className="h-8 w-8" />
+											</div>
+										</div>
+									))}
+								</>
+							) : invoices && invoices.length > 0 ? (
+								invoices.map((invoice) => (
+									<div
+										key={invoice.id}
+										className="flex-between p-3 rounded-lg bg-muted/20"
+									>
+										<div>
+											<p className="font-medium">{invoice.date}</p>
+											<p className="text-muted">
+												{invoice.amount}
+											</p>
+										</div>
+										<div className="flex items-center gap-2">
+											<Badge variant="default" className="text-xs">
+												{invoice.status}
+											</Badge>
+											{invoice.invoicePdf ? (
+												<Button
+													variant="ghost"
+													size="sm"
+													asChild
+												>
+													<a
+														href={invoice.invoicePdf}
+														target="_blank"
+														rel="noopener noreferrer"
+														aria-label="Download invoice PDF"
+													>
+														<Download className="size-4" />
+													</a>
+												</Button>
+											) : invoice.hostedUrl ? (
+												<Button
+													variant="ghost"
+													size="sm"
+													asChild
+												>
+													<a
+														href={invoice.hostedUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														aria-label="View invoice"
+													>
+														<ExternalLink className="size-4" />
+													</a>
+												</Button>
+											) : null}
+										</div>
 									</div>
-									<div className="flex items-center gap-2">
-										<Badge variant="default" className="text-xs">
-											{invoice.status}
-										</Badge>
-										<Button variant="ghost" size="sm">
-											<Download className="size-4" />
-										</Button>
-									</div>
-								</div>
-							))}
+								))
+							) : (
+								<p className="text-muted text-sm py-4 text-center">
+									No billing history available
+								</p>
+							)}
 						</div>
 					</CardLayout>
 				</TabsContent>

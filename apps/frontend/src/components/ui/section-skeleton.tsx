@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
+import type { CSSProperties } from 'react'
 import { cn } from '#lib/utils'
 
 const sectionSkeletonVariants = cva('animate-pulse', {
@@ -37,8 +38,7 @@ export function SectionSkeleton({
 						{[1, 2, 3].map(i => (
 							<div
 								key={i}
-								className="bg-muted/50 rounded-2xl animate-pulse"
-								style={{ height: '300px' }}
+								className="bg-muted/50 rounded-2xl animate-pulse h-[300px]"
 							/>
 						))}
 					</div>
@@ -47,13 +47,16 @@ export function SectionSkeleton({
 		)
 	}
 
+	// CSS custom property for dynamic height (Tailwind arbitrary value pattern)
+	const dynamicHeight = { '--skeleton-h': `${height}px` } as CSSProperties
+
 	if (variant === 'card') {
 		return (
 			<div className={cn(sectionSkeletonVariants({ variant }), className)}>
 				<div className="max-w-7xl mx-auto">
 					<div
-						className="bg-muted/50 rounded-3xl animate-pulse"
-						style={{ height }}
+						className="bg-muted/50 rounded-3xl animate-pulse h-(--skeleton-h)"
+						style={dynamicHeight}
 					/>
 				</div>
 			</div>
@@ -62,8 +65,12 @@ export function SectionSkeleton({
 
 	return (
 		<div
-			className={cn(sectionSkeletonVariants({ variant }), className)}
-			style={{ height }}
+			className={cn(
+				sectionSkeletonVariants({ variant }),
+				'h-(--skeleton-h)',
+				className
+			)}
+			style={dynamicHeight}
 			aria-label="Loading content..."
 		/>
 	)

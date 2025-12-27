@@ -3,6 +3,7 @@ import { Job } from 'bullmq'
 import { PdfGenerationProcessor } from './pdf-generation.processor'
 import { LeasePdfGeneratorService } from './lease-pdf-generator.service'
 import { LeasePdfMapperService } from './lease-pdf-mapper.service'
+import type { LeasePdfFields } from './lease-pdf-mapper.service'
 import { PdfStorageService } from './pdf-storage.service'
 import { LeasesService } from '../leases/leases.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -17,6 +18,8 @@ import { SseService } from '../notifications/sse/sse.service'
  * 3. Test PDF upload and database update
  */
 describe('PdfGenerationProcessor (TDD)', () => {
+	type LeaseData = Awaited<ReturnType<LeasesService['getLeaseDataForPdf']>>
+
 	let processor: PdfGenerationProcessor
 	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
 	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
@@ -29,29 +32,29 @@ describe('PdfGenerationProcessor (TDD)', () => {
 		// Create mocks
 		mockPdfGenerator = {
 			generateFilledPdf: jest.fn()
-		} as any
+		} as jest.Mocked<LeasePdfGeneratorService>
 
 		mockPdfMapper = {
 			mapLeaseToPdfFields: jest.fn()
-		} as any
+		} as jest.Mocked<LeasePdfMapperService>
 
 		mockPdfStorage = {
 			uploadLeasePdf: jest.fn(),
 			getLeasePdfUrl: jest.fn()
-		} as any
+		} as jest.Mocked<PdfStorageService>
 
 		mockLeasesService = {
 			getLeaseDataForPdf: jest.fn()
-		} as any
+		} as jest.Mocked<LeasesService>
 
 		mockLogger = {
 			log: jest.fn(),
 			error: jest.fn()
-		} as any
+		} as jest.Mocked<AppLogger>
 
 		mockSseService = {
 			broadcast: jest.fn().mockResolvedValue(undefined)
-		} as any
+		} as jest.Mocked<SseService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -83,23 +86,23 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			} as Job<{ leaseId: string; token: string }>
 
 			const ownerId = 'owner-user-123'
-			const leaseData = {
-				lease: { id: leaseId, governing_state: 'TX', owner_user_id: ownerId } as any,
-				property: { name: 'Test Property' } as any,
-				unit: { unit_number: '101' } as any,
-				landlord: { id: ownerId, first_name: 'John', last_name: 'Doe' } as any,
-				tenant: { first_name: 'Jane', last_name: 'Smith' } as any,
-				tenantRecord: { id: 'tenant-123' } as any
+			const leaseData: LeaseData = {
+				lease: { id: leaseId, governing_state: 'TX', owner_user_id: ownerId } as LeaseData['lease'],
+				property: { name: 'Test Property' } as LeaseData['property'],
+				unit: { unit_number: '101' } as LeaseData['unit'],
+				landlord: { id: ownerId, first_name: 'John', last_name: 'Doe' } as LeaseData['landlord'],
+				tenant: { first_name: 'Jane', last_name: 'Smith' } as LeaseData['tenant'],
+				tenantRecord: { id: 'tenant-123' } as LeaseData['tenantRecord']
 			}
 
-			const mappedFields = {
+			const mappedFields: LeasePdfFields = {
 				tenant_name: 'Jane Smith',
 				property_address: '123 Test St'
 			}
 
 			mockLeasesService.getLeaseDataForPdf.mockResolvedValue(leaseData)
 			mockPdfMapper.mapLeaseToPdfFields.mockReturnValue({
-				fields: mappedFields as any,
+				fields: mappedFields,
 				missing: []
 			})
 			mockPdfGenerator.generateFilledPdf.mockResolvedValue(pdfBuffer)
@@ -161,18 +164,18 @@ describe('PdfGenerationProcessor (TDD)', () => {
 				attemptsMade: 1
 			} as Job<{ leaseId: string; token: string }>
 
-			const leaseData = {
-			lease: { id: leaseId, governing_state: 'TX', owner_user_id: 'owner-123' } as any,
-			property: {} as any,
-			unit: {} as any,
-			landlord: { id: 'owner-123' } as any,
-			tenant: {} as any,
-			tenantRecord: {} as any
+			const leaseData: LeaseData = {
+			lease: { id: leaseId, governing_state: 'TX', owner_user_id: 'owner-123' } as LeaseData['lease'],
+			property: {} as LeaseData['property'],
+			unit: {} as LeaseData['unit'],
+			landlord: { id: 'owner-123' } as LeaseData['landlord'],
+			tenant: {} as LeaseData['tenant'],
+			tenantRecord: {} as LeaseData['tenantRecord']
 		}
 
 		mockLeasesService.getLeaseDataForPdf.mockResolvedValue(leaseData)
 		mockPdfMapper.mapLeaseToPdfFields.mockReturnValue({
-			fields: { tenant_name: 'Test Tenant' } as any,
+			fields: { tenant_name: 'Test Tenant' } as LeasePdfFields,
 			missing: []
 		})
 		mockPdfGenerator.generateFilledPdf.mockRejectedValue(error)

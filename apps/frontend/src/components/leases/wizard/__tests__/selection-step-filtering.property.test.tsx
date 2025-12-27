@@ -167,11 +167,13 @@ describe('Selection Step Filtering - Property Tests', () => {
 				{ timeout: 3000 }
 			)
 
-			// Give a bit more time for any additional requests
-			await new Promise(resolve => setTimeout(resolve, 100))
-
 			// PROPERTY ASSERTION: No units request should be made without property_id
-			expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(false)
+			await waitFor(
+				() => {
+					expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(false)
+				},
+				{ timeout: 3000 }
+			)
 		})
 
 		it('should request units with correct property_id for various property IDs', async () => {

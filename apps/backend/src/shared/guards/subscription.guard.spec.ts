@@ -139,7 +139,7 @@ describe('SubscriptionGuard', () => {
 
     supabaseService.getAdminClient.mockReturnValue({
       from: jest.fn().mockReturnValue(queryBuilder)
-    } as any)
+    } as ReturnType<SupabaseService["getAdminClient"]>)
 
     await expect(
       guard.canActivate(

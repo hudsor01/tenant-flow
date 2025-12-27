@@ -14,6 +14,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
+import type { Request, Response } from 'express'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
@@ -51,6 +52,16 @@ const mockSupabaseService = {
 }
 
 describe('StripeController', () => {
+	type UpdateSubscriptionResponse = Awaited<
+		ReturnType<StripeService['updateSubscription']>
+	>
+	type CreateSubscriptionResponse = Awaited<
+		ReturnType<StripeService['createSubscription']>
+	>
+	type BillingSubscription = Awaited<
+		ReturnType<BillingService['findSubscriptionByStripeId']>
+	>
+
 	let controller: StripeController
 	let stripeService: jest.Mocked<StripeService>
 	let stripeSharedService: jest.Mocked<StripeSharedService>
@@ -103,10 +114,10 @@ describe('StripeController', () => {
 				stripeSharedService.generateIdempotencyKey.mockReturnValue('key-123')
 				billingService.findSubscriptionByStripeId.mockResolvedValue({
 					customer: 'tenant-123'
-				} as any)
-				stripeService.updateSubscription.mockResolvedValue(mockSubscription as any)
+				} as BillingSubscription)
+				stripeService.updateSubscription.mockResolvedValue(mockSubscription as UpdateSubscriptionResponse)
 
-				await controller.updateSubscription(validUUID, mockReq as any, mockRes as any, {})
+				await controller.updateSubscription(validUUID, mockReq as Request, mockRes as Response, {})
 
 				expect(mockRes.status).toHaveBeenCalledWith(200)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -144,9 +155,9 @@ describe('StripeController', () => {
 				}
 
 				stripeSharedService.generateIdempotencyKey.mockReturnValue('key-123')
-				stripeService.createSubscription.mockResolvedValue(mockSubscription as any)
+				stripeService.createSubscription.mockResolvedValue(mockSubscription as CreateSubscriptionResponse)
 
-				await controller.createSubscription(mockReq as any, mockRes as any, body)
+				await controller.createSubscription(mockReq as Request, mockRes as Response, body)
 
 				expect(mockRes.status).toHaveBeenCalledWith(201)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -171,7 +182,7 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as any, mockRes as any, body)
+					controller.createSubscription(mockReq as Request, mockRes as Response, body)
 				).rejects.toThrow(BadRequestException)
 			})
 
@@ -189,7 +200,7 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as any, mockRes as any, body)
+					controller.createSubscription(mockReq as Request, mockRes as Response, body)
 				).rejects.toThrow(BadRequestException)
 			})
 		})

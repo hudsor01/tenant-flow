@@ -1,6 +1,6 @@
 'use client'
 
-import { useId } from 'react'
+import { useId, useMemo } from 'react'
 
 import { cn } from '#lib/utils'
 import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
@@ -16,6 +16,7 @@ interface GridPatternProps extends React.SVGProps<SVGSVGElement> {
 	variant?: 'default' | 'subtle' | 'bold' | 'primary' | 'accent'
 	animated?: boolean
 	opacity?: number
+	patternId?: string
 	[key: string]: unknown
 }
 
@@ -30,9 +31,12 @@ export function GridPattern({
 	variant = 'default',
 	animated = false,
 	opacity = 0.3,
+	patternId,
 	...props
 }: GridPatternProps) {
-	const id = useId()
+	const reactId = useId()
+	// Use provided patternId for stable hydration, or fall back to useId()
+	const id = useMemo(() => patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`, [patternId, reactId])
 
 	// Style variants for different visual approaches
 	const variantStyles = {

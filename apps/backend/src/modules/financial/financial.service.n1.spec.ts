@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import { FinancialService } from './financial.service'
 import { SupabaseService } from '../../database/supabase.service'
@@ -9,6 +10,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 
 describe('FinancialService - N+1 Query Prevention', () => {
+	type MockQueryResult = { data: unknown; error: unknown }
+	type MockQueryClient = ReturnType<SupabaseService['getUserClient']> & {
+		then?: (cb: (result: MockQueryResult) => void) => void
+	}
 	let service: FinancialService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let queryCount: number
@@ -61,12 +66,12 @@ describe('FinancialService - N+1 Query Prevention', () => {
 
 		service = module.get<FinancialService>(FinancialService)
 		// Override logger to suppress output
-		;(service as any).logger = {
+		;(service as unknown as { logger: Logger }).logger = {
 			log: jest.fn(),
 			warn: jest.fn(),
 			error: jest.fn(),
 			debug: jest.fn()
-		} as unknown as Logger
+		}
 	})
 
 	describe('getNetOperatingIncome - N+1 Prevention', () => {
@@ -91,7 +96,9 @@ describe('FinancialService - N+1 Query Prevention', () => {
 			]
 
 			// Mock client responses
-			const mockClient = mockSupabaseService.getUserClient('test-token')
+			const mockClient = mockSupabaseService.getUserClient(
+				'test-token'
+			) as MockQueryClient
 
 			let callIndex = 0
 			mockClient.select = jest.fn().mockImplementation((columns: string) => {
@@ -99,13 +106,13 @@ describe('FinancialService - N+1 Query Prevention', () => {
 
 				// First call: properties query
 				if (callIndex === 1) {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
+					mockClient.then = (cb: (result: MockQueryResult) => void) => {
 						cb({ data: mockProperties, error: null })
 					}
 				}
 				// Second call: batch units query with property join
 				else if (callIndex === 2 && columns.includes('properties(')) {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
+					mockClient.then = (cb: (result: MockQueryResult) => void) => {
 						cb({
 							data: mockUnits.map(u => ({
 								...u,
@@ -117,13 +124,13 @@ describe('FinancialService - N+1 Query Prevention', () => {
 				}
 				// Third call: batch leases query
 				else if (callIndex === 3) {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
+					mockClient.then = (cb: (result: MockQueryResult) => void) => {
 						cb({ data: mockLeases, error: null })
 					}
 				}
 				// Fourth call: expenses query
 				else if (callIndex === 4) {
-					;(mockClient as any).then = (cb: (result: any) => void) => {
+					mockClient.then = (cb: (result: MockQueryResult) => void) => {
 						cb({ data: [], error: null })
 					}
 				}

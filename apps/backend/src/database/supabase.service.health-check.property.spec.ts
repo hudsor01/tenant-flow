@@ -2,14 +2,27 @@ import { Test } from '@nestjs/testing'
 import * as fc from 'fast-check'
 import { SupabaseService } from './supabase.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
+import { SupabaseRpcService } from './supabase-rpc.service'
+import { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import { SupabaseHealthService } from './supabase-health.service'
 import { AppLogger } from '../logger/app-logger.service'
 import { AppConfigService } from '../config/app-config.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
   let service: SupabaseService
-  let mockAdminClient: any
-  let mockLogger: any
-  let mockConfig: any
+  let mockAdminClient: SupabaseClient<Database>
+  let mockLogger: jest.Mocked<Pick<AppLogger, 'debug' | 'error' | 'warn' | 'log'>>
+  let mockConfig: jest.Mocked<
+    Pick<
+      AppConfigService,
+      | 'getSupabaseProjectRef'
+      | 'getSupabaseUrl'
+      | 'getSupabasePublishableKey'
+      | 'getSupabaseSecretKey'
+    >
+  >
 
   beforeEach(async () => {
     mockLogger = {
@@ -22,7 +35,8 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
     mockConfig = {
       getSupabaseProjectRef: jest.fn().mockReturnValue('test-project-ref'),
       getSupabaseUrl: jest.fn().mockReturnValue('https://test.supabase.co'),
-      getSupabasePublishableKey: jest.fn().mockReturnValue('eyJtest-publishable-key')
+      getSupabasePublishableKey: jest.fn().mockReturnValue('eyJtest-publishable-key'),
+      getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
     }
 
     mockAdminClient = {
@@ -31,11 +45,12 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
       auth: {
         getUser: jest.fn()
       }
-    }
+    } as unknown as SupabaseClient<Database>
 
     const module = await Test.createTestingModule({
       providers: [
         SupabaseService,
+        SupabaseHealthService,
         {
           provide: SUPABASE_ADMIN_CLIENT,
           useValue: mockAdminClient
@@ -47,6 +62,23 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
         {
           provide: AppConfigService,
           useValue: mockConfig
+        },
+        {
+          provide: SupabaseRpcService,
+          useValue: {
+            rpcWithRetries: jest.fn(),
+            rpcWithCache: jest.fn()
+          }
+        },
+        {
+          provide: SupabaseInstrumentationService,
+          useValue: {
+            instrumentClient: jest.fn((client: SupabaseClient<Database>) => client),
+            trackQuery: jest.fn(),
+            recordRpcCall: jest.fn(),
+            recordRpcCacheHit: jest.fn(),
+            recordRpcCacheMiss: jest.fn()
+          }
         }
       ]
     }).compile()
@@ -153,13 +185,13 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
             // Verify missing RPC doesn't cause error-level logging
             if (rpcErrorType.includes('does not exist')) {
               // Should log at DEBUG level, not ERROR or WARN
-              const errorCalls = mockLogger.error.mock.calls.filter((call: any[]) =>
-                call.some((arg: any) =>
+              const errorCalls = mockLogger.error.mock.calls.filter((call: unknown[]) =>
+                call.some((arg: unknown) =>
                   typeof arg === 'string' && arg.includes('RPC')
                 )
               )
-              const warnCalls = mockLogger.warn.mock.calls.filter((call: any[]) =>
-                call.some((arg: any) =>
+              const warnCalls = mockLogger.warn.mock.calls.filter((call: unknown[]) =>
+                call.some((arg: unknown) =>
                   typeof arg === 'string' && arg.includes('RPC')
                 )
               )
@@ -264,15 +296,15 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
           await service.checkConnection()
 
           // Verify no ERROR or WARN logs about missing RPC
-          const errorCalls = mockLogger.error.mock.calls.filter((call: any[]) =>
-            call.some((arg: any) =>
+          const errorCalls = mockLogger.error.mock.calls.filter((call: unknown[]) =>
+            call.some((arg: unknown) =>
               typeof arg === 'string' &&
               (arg.includes('RPC') || arg.includes('health_check')) &&
               arg.includes('does not exist')
             )
           )
-          const warnCalls = mockLogger.warn.mock.calls.filter((call: any[]) =>
-            call.some((arg: any) =>
+          const warnCalls = mockLogger.warn.mock.calls.filter((call: unknown[]) =>
+            call.some((arg: unknown) =>
               typeof arg === 'string' &&
               (arg.includes('RPC') || arg.includes('health_check')) &&
               arg.includes('does not exist')

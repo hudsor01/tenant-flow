@@ -7,7 +7,7 @@ import { SilentLogger } from '../../__test__/silent-logger'
 import type {
 	FinancialMetricSummary,
 	NetOperatingIncomeByProperty
-} from '@repo/shared/types/financial-analytics'
+} from '@repo/shared/types/analytics'
 
 describe('FinancialAnalyticsService', () => {
 	let service: FinancialAnalyticsService
@@ -17,7 +17,7 @@ describe('FinancialAnalyticsService', () => {
 
 	beforeEach(async () => {
 		mockSupabaseService = {
-			rpcWithRetries: jest.fn()
+			rpcWithCache: jest.fn()
 		}
 
 		const module: TestingModule = await Test.createTestingModule({
@@ -55,16 +55,17 @@ describe('FinancialAnalyticsService', () => {
 				error: null
 			}
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue(mockRpcResponse)
+			mockSupabaseService.rpcWithCache!.mockResolvedValue(mockRpcResponse)
 
 			const result = await service.getFinancialMetrics(testUserId)
 
-			expect(mockSupabaseService.rpcWithRetries).toHaveBeenCalledWith(
+			expect(mockSupabaseService.rpcWithCache).toHaveBeenCalledWith(
 				'calculate_financial_metrics',
 				expect.objectContaining({
 					user_id: testUserId,
 					p_user_id: testUserId
-				})
+				}),
+				expect.any(Object)
 			)
 
 			expect(result).toMatchObject<Partial<FinancialMetricSummary>>({
@@ -74,7 +75,7 @@ describe('FinancialAnalyticsService', () => {
 		})
 
 		it('should return default metrics when RPC returns null', async () => {
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
 
 			const result = await service.getFinancialMetrics(testUserId)
 
@@ -84,7 +85,7 @@ describe('FinancialAnalyticsService', () => {
 		})
 
 		it('should handle RPC errors gracefully', async () => {
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: null,
 				error: { message: 'Database connection failed' }
 			})
@@ -103,7 +104,7 @@ describe('FinancialAnalyticsService', () => {
 				{ property_id: 'prop-2', property_name: 'Property B', noi: 3200 }
 			]
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: mockNOIData,
 				error: null
 			})
@@ -115,7 +116,7 @@ describe('FinancialAnalyticsService', () => {
 		})
 
 		it('should return empty array when no data', async () => {
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
 
 			const result = await service.getNetOperatingIncome(testUserId)
 
@@ -126,12 +127,12 @@ describe('FinancialAnalyticsService', () => {
 	describe('getFinancialAnalyticsPageData', () => {
 		it('should aggregate all financial data in parallel', async () => {
 			// Mock all RPC calls returning empty/default data
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
 
 			const result = await service.getFinancialAnalyticsPageData(testUserId)
 
 			// Should call all 9 RPC functions
-			expect(mockSupabaseService.rpcWithRetries).toHaveBeenCalledTimes(9)
+			expect(mockSupabaseService.rpcWithCache).toHaveBeenCalledTimes(9)
 
 			// Should return structured response
 			expect(result).toHaveProperty('metrics')
@@ -146,7 +147,7 @@ describe('FinancialAnalyticsService', () => {
 		it('should handle partial RPC failures gracefully', async () => {
 			// Some RPCs succeed, others fail
 			let callCount = 0
-			mockSupabaseService.rpcWithRetries!.mockImplementation(() => {
+			mockSupabaseService.rpcWithCache!.mockImplementation(() => {
 				callCount++
 				if (callCount % 2 === 0) {
 					return Promise.resolve({ data: null, error: { message: 'Failed' } })
@@ -172,22 +173,23 @@ describe('FinancialAnalyticsService', () => {
 				totals: { invoiced: 10200, paid: 9600, overdue: 600 }
 			}
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: mockBillingData,
 				error: null
 			})
 
 			const result = await service.getBillingInsights(testUserId)
 
-			expect(mockSupabaseService.rpcWithRetries).toHaveBeenCalledWith(
+			expect(mockSupabaseService.rpcWithCache).toHaveBeenCalledWith(
 				'get_billing_insights',
-				expect.objectContaining({ user_id: testUserId })
+				expect.objectContaining({ user_id: testUserId }),
+				expect.any(Object)
 			)
 			expect(result).toBeDefined()
 		})
 
 		it('should return default structure when RPC fails', async () => {
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: null,
 				error: { message: 'RPC timeout' }
 			})
@@ -207,7 +209,7 @@ describe('FinancialAnalyticsService', () => {
 				{ month: 'Feb', revenue: 11000, expenses: 4200, netIncome: 6800 }
 			]
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: mockMonthlyData,
 				error: null
 			})
@@ -227,16 +229,17 @@ describe('FinancialAnalyticsService', () => {
 				average_rent: 2083
 			}
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: mockLeaseSummary,
 				error: null
 			})
 
 			const result = await service.getLeaseFinancialSummary(testUserId)
 
-			expect(mockSupabaseService.rpcWithRetries).toHaveBeenCalledWith(
+			expect(mockSupabaseService.rpcWithCache).toHaveBeenCalledWith(
 				'get_lease_financial_summary',
-				expect.objectContaining({ user_id: testUserId })
+				expect.objectContaining({ user_id: testUserId }),
+				expect.any(Object)
 			)
 			expect(result).toBeDefined()
 		})
@@ -255,7 +258,7 @@ describe('FinancialAnalyticsService', () => {
 				}
 			]
 
-			mockSupabaseService.rpcWithRetries!.mockResolvedValue({
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
 				data: mockLeaseAnalytics,
 				error: null
 			})

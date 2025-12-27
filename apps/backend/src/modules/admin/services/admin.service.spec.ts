@@ -14,10 +14,25 @@ describe('AdminService', () => {
 
 	// Mock Supabase client with chainable query builder
 	const createMockSupabaseClient = (mockData = { data: [], error: null, count: 0 }) => {
-		const queryBuilder = {
+		const queryBuilder: {
+			select: jest.Mock
+			from: jest.Mock
+			eq: jest.Mock
+			or: jest.Mock
+			order: jest.Mock
+			range: jest.Mock
+			limit: jest.Mock
+			single: jest.Mock
+			update: jest.Mock
+			then?: (
+				onFulfilled: (value: typeof mockData) => unknown,
+				onRejected?: (reason: unknown) => unknown
+			) => Promise<unknown>
+		} = {
 			select: jest.fn().mockReturnThis(),
 			from: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
+			schema: jest.fn().mockReturnThis(),
 			or: jest.fn().mockReturnThis(),
 			order: jest.fn().mockReturnThis(),
 			range: jest.fn().mockReturnThis(),
@@ -27,9 +42,9 @@ describe('AdminService', () => {
 		}
 
 		// Add promise-like behavior
-		;(queryBuilder as any).then = function (
-			onFulfilled: (value: any) => any,
-			onRejected?: (reason: any) => any
+		queryBuilder.then = function (
+			onFulfilled: (value: typeof mockData) => unknown,
+			onRejected?: (reason: unknown) => unknown
 		) {
 			return Promise.resolve(mockData).then(onFulfilled, onRejected)
 		}
@@ -114,7 +129,7 @@ describe('AdminService', () => {
 				return mockClient
 			})
 
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			mockEmailQueue.getJobCounts.mockResolvedValue({
 				active: 2,
@@ -168,7 +183,7 @@ describe('AdminService', () => {
 			const mockClient = createMockSupabaseClient()
 			mockClient.from = jest.fn().mockReturnValue(nullClient)
 
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			mockEmailQueue.getJobCounts.mockResolvedValue({
 				active: 0,
@@ -215,7 +230,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 150
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			const result = await service.listUsers({
 				page: 1,
@@ -244,7 +259,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 10
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await service.listUsers({
 				page: 1,
@@ -261,7 +276,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 5
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await service.listUsers({
 				page: 1,
@@ -280,7 +295,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 0
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await service.listUsers({
 				page: 1,
@@ -301,7 +316,7 @@ describe('AdminService', () => {
 				error: mockError,
 				count: null
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await expect(
 				service.listUsers({
@@ -344,7 +359,7 @@ describe('AdminService', () => {
 				return mockClient
 			})
 
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			const result = await service.getUserDetails('user-1')
 
@@ -359,7 +374,7 @@ describe('AdminService', () => {
 			const mockError = new Error('User not found')
 			const mockClient = createMockSupabaseClient({ data: null, error: mockError, count: null })
 			mockClient.single = jest.fn().mockResolvedValue({ data: null, error: mockError, count: null })
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await expect(service.getUserDetails('invalid-id')).rejects.toThrow(
 				'User not found'
@@ -383,7 +398,7 @@ describe('AdminService', () => {
 
 			const mockClient = createMockSupabaseClient({ data: mockUpdatedUser, error: null, count: null })
 			mockClient.single = jest.fn().mockResolvedValue({ data: mockUpdatedUser, error: null, count: null })
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			const result = await service.updateUser('user-1', { role: 'ADMIN' })
 
@@ -403,7 +418,7 @@ describe('AdminService', () => {
 
 			const mockClient = createMockSupabaseClient({ data: mockUpdatedUser, error: null, count: null })
 			mockClient.single = jest.fn().mockResolvedValue({ data: mockUpdatedUser, error: null, count: null })
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await service.updateUser('user-1', { status: 'suspended' })
 
@@ -414,7 +429,7 @@ describe('AdminService', () => {
 			const mockError = new Error('Update failed')
 			const mockClient = createMockSupabaseClient({ data: null, error: mockError, count: null })
 			mockClient.single = jest.fn().mockResolvedValue({ data: null, error: mockError, count: null })
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await expect(
 				service.updateUser('user-1', { role: 'ADMIN' })
@@ -445,7 +460,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 45
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			const result = await service.getLogs({
 				limit: 100,
@@ -470,7 +485,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 0
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			await service.getLogs({
 				level: 'error',
@@ -499,7 +514,7 @@ describe('AdminService', () => {
 				error: null,
 				count: 1
 			})
-			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+			mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
 			const result = await service.getUserActivity('user-1', 100)
 

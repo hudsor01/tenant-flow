@@ -8,7 +8,7 @@ import { ReactLeasePDFService } from './react-lease-pdf.service'
 import { LeaseGenerationDto } from './dto/lease-generation.dto'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SupabaseService } from '../../database/supabase.service'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Filename sanitization constants
@@ -31,7 +31,7 @@ export class LeaseGenerationController {
 
 	constructor(private readonly leasePDF: ReactLeasePDFService,
 		private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Sanitize string for use in filename
@@ -152,7 +152,7 @@ export class LeaseGenerationController {
 
 		// Check cache first with parameterized key
 		const cacheKey = `lease-auto-fill:${user_id}:${property_id}:${unit_id}:${tenant_id}`
-		const cached = this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
+		const cached = await this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
 		if (cached) {
 			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
 			return cached
@@ -313,17 +313,15 @@ export class LeaseGenerationController {
 
 		// Cache the result for 30 seconds (short TTL for fresh data)
 		// Dependencies: invalidate when property, unit, or tenant data changes
-		this.cache.set(
-			cacheKey,
-			autoFilled,
-			30_000, // 30 seconds
-			[
-				`property:${property_id}`,
-				`unit:${unit_id}`,
-				`tenant:${tenant_id}`,
+		await this.cache.set(cacheKey, autoFilled, {
+			tier: 'short',
+			tags: [
+				`properties:${property_id}`,
+				`units:${unit_id}`,
+				`tenants:${tenant_id}`,
 				`user:${user_id}`
 			]
-		)
+		})
 
 		this.logger.debug(`Cached auto-fill data: ${cacheKey}`)
 		return autoFilled

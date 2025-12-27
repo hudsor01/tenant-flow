@@ -15,7 +15,17 @@
  * cannot reliably simulate this complexity. These should be converted to integration
  * tests with a real test database.
  *
- * TODO: Convert to integration tests in apps/backend/src/__integration__/leases/
+ * TODO [MEDIUM PRIORITY]: Convert to integration tests in apps/backend/test/integration/leases/
+ * Implementation steps:
+ * 1. Create test file: apps/backend/test/integration/leases/draft-lease-creation.integration.spec.ts
+ * 2. Use the existing test database setup from apps/backend/test/test-bed.utils.ts
+ * 3. Create test fixtures: seed test user, test property, test unit, test tenant
+ * 4. Test the full lease creation flow with real Supabase queries
+ * 5. Verify RLS policies are correctly applied (owner can only see own leases)
+ * 6. Test edge cases: duplicate tenant assignment, invalid unit_id, cross-property access
+ * 7. Clean up test data after each test run to avoid pollution
+ * 8. Use fast-check property-based testing for input validation edge cases
+ * Reference: See apps/backend/test/integration/tenant-invitation-flow.property.integration.spec.ts for pattern
  */
 
 import * as fc from 'fast-check'

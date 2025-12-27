@@ -7,7 +7,7 @@ import type {
 	PropertyUnitDetail,
 	UnitStatisticEntry,
 	VisitorAnalyticsResponse
-} from '@repo/shared/types/property-analytics'
+} from '@repo/shared/types/analytics'
 import {
 	buildPropertyPerformancePageResponse,
 	mapVisitorAnalytics
@@ -65,7 +65,10 @@ export class PropertyPerformanceService {
 		payload: Record<string, unknown>
 	): Promise<T | null> {
 		try {
-			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const result = await this.supabase.rpcWithCache(functionName, payload, {
+				cacheTier: 'short',
+				source: 'service'
+			})
 			// result may be an object with data/error similar to client.rpc
 			const res = result as {
 				data?: T
@@ -91,80 +94,46 @@ export class PropertyPerformanceService {
 	async getPropertyPerformance(
 		user_id: string
 	): Promise<PropertyPerformanceEntry[]> {
-		const [performanceResult, trendResult] = await Promise.all([
-			this.supabase.rpcWithRetries(
-				'get_property_performance_cached',
-				{ p_user_id: user_id }
-			),
-			this.supabase.rpcWithRetries(
-				'get_property_performance_trends',
-				{ p_user_id: user_id }
-			)
-		])
+		// Use consolidated RPC function (1 call instead of 2)
+		const result = await this.supabase.rpcWithCache(
+			'get_property_performance_with_trends',
+			{ p_user_id: user_id, p_timeframe: '30d', p_limit: 100 },
+			{ cacheTier: 'short', source: 'service' }
+		)
 
-		if (!performanceResult || (performanceResult as { error?: unknown }).error) {
+		if (!result || (result as { error?: unknown }).error) {
 			return []
 		}
 
-		const properties = ((performanceResult as { data?: unknown }).data || []) as Array<
-			Partial<PropertyPerformanceEntry> &
-			{
-				property_name?: string
-				occupancy_rate?: number
-				monthly_revenue?: number
-				annual_revenue?: number
-				total_units?: number
-				occupied_units?: number
-				vacant_units?: number
-			}
-		>
-
-		const trends = ((trendResult as { data?: unknown })?.data || []) as Array<{
+		const properties = ((result as { data?: unknown }).data || []) as Array<{
 			property_id: string
-			trend?: 'up' | 'down' | 'stable'
-			trend_percentage?: number | null
-			current_month_revenue?: number | null
-			previous_month_revenue?: number | null
+			property_name: string
+			occupancy_rate: number
+			total_revenue: number
+			previous_revenue: number
+			trend_percentage: number
+			timeframe: string
 		}>
 
 		return properties.map(property => {
-			const trendMatch = trends.find(t => t.property_id === property.property_id)
-			const trend = trendMatch?.trend ?? 'stable'
-			const trendPercentage = trendMatch?.trend_percentage ?? 0
+			const trend: 'up' | 'down' | 'stable' =
+				property.trend_percentage > 0 ? 'up' :
+				property.trend_percentage < 0 ? 'down' : 'stable'
 
 			return {
-				property_id: property.property_id as string,
-				propertyName:
-					property.propertyName ?? property.property_name ?? (property as { name?: string }).name ?? 'Unknown',
-				occupancyRate:
-					property.occupancyRate ??
-					property.occupancy_rate ??
-					(property as { occupancy_rate?: number }).occupancy_rate ??
-					0,
-				monthlyRevenue:
-					property.monthlyRevenue ??
-					property.monthly_revenue ??
-					(property as { monthly_revenue?: number }).monthly_revenue ??
-					0,
-				annualRevenue:
-					property.annualRevenue ??
-					property.annual_revenue ??
-					(property as { annual_revenue?: number }).annual_revenue ??
-					0,
-				totalUnits:
-					property.totalUnits ?? property.total_units ?? (property as { total_units?: number }).total_units ?? 0,
-				occupiedUnits:
-					property.occupiedUnits ??
-					property.occupied_units ??
-					(property as { occupied_units?: number }).occupied_units ??
-					0,
-				vacantUnits:
-					property.vacantUnits ?? property.vacant_units ?? (property as { vacant_units?: number }).vacant_units ?? 0,
-				address: (property as { address?: string }).address ?? '',
-				status: (property as { status?: string }).status ?? 'unknown',
-				property_type: (property as { property_type?: string }).property_type ?? 'unknown',
+				property_id: property.property_id,
+				propertyName: property.property_name ?? 'Unknown',
+				occupancyRate: property.occupancy_rate ?? 0,
+				monthlyRevenue: property.total_revenue ?? 0,
+				annualRevenue: (property.total_revenue ?? 0) * 12,
+				totalUnits: 0,    // Not returned by consolidated function, fetched separately
+				occupiedUnits: 0, // Not returned by consolidated function
+				vacantUnits: 0,   // Not returned by consolidated function
+				address: '',      // Not returned by consolidated function
+				status: 'unknown',
+				property_type: 'unknown',
 				trend,
-				trendPercentage
+				trendPercentage: property.trend_percentage ?? 0
 			}
 		})
 	}

@@ -11,13 +11,13 @@ describe('LeaseAnalyticsController', () => {
 	let controller: LeaseAnalyticsController
 	let service: Record<string, jest.Mock>
 
-	const createRequest = (user_id?: string): Partial<AuthenticatedRequest> => ({
-		path: '/analytics/leases',
-		method: 'GET',
-		headers: {},
-		cookies: {},
-		user: user_id ? ({ id: user_id } as any) : undefined
-	})
+const createRequest = (user_id?: string): Partial<AuthenticatedRequest> => ({
+	path: '/analytics/leases',
+	method: 'GET',
+	headers: {},
+	cookies: {},
+	user: user_id ? ({ id: user_id } as AuthenticatedRequest['user']) : undefined
+})
 
 	beforeEach(async () => {
 		service = {

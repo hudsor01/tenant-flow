@@ -1,3 +1,11 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~1099 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract signature validation into: `./helpers/signature-validation.helper.ts`
+// 2. Extract PDF generation logic into: `./helpers/lease-pdf.helper.ts`
+// 3. Extract notification logic into: `./helpers/signature-notification.helper.ts`
+// 4. Keep core signing flow in this service
+
 /**
  * LeaseSignatureService
  *

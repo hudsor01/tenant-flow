@@ -5,7 +5,7 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type {
 	IdentityVerificationRecord,
 	IdentityVerificationSessionPayload
-} from '@repo/shared/types/identity'
+} from '@repo/shared/types/stripe'
 import { stripeConnectKeys } from './use-stripe-connect'
 
 export const identityVerificationKeys = {

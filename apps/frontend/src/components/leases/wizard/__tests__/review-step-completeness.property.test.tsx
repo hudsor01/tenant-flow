@@ -147,10 +147,13 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 						})
 
 					// PROPERTY ASSERTION: Start date should be formatted
-					expect(screen.getByText(formatDate(start_date))).toBeInTheDocument()
+				// Use getAllByText since start_date and end_date may format to the same string
+					const startDateMatches = screen.getAllByText(formatDate(start_date))
+					expect(startDateMatches.length).toBeGreaterThanOrEqual(1)
 
 					// PROPERTY ASSERTION: End date should be formatted
-					expect(screen.getByText(formatDate(end_date))).toBeInTheDocument()
+					const endDateMatches = screen.getAllByText(formatDate(end_date))
+					expect(endDateMatches.length).toBeGreaterThanOrEqual(1)
 
 					cleanup()
 				}

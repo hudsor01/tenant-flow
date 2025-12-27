@@ -54,6 +54,22 @@ describe('SubscriptionsService (Facade)', () => {
 		service = module.get<SubscriptionsService>(SubscriptionsService)
 	})
 
+	type CreateSubscriptionResponse = Awaited<
+		ReturnType<SubscriptionBillingService['createSubscription']>
+	>
+	type UpdateSubscriptionResponse = Awaited<
+		ReturnType<SubscriptionBillingService['updateSubscription']>
+	>
+	type SubscriptionResponse = Awaited<
+		ReturnType<SubscriptionQueryService['getSubscription']>
+	>
+	type SubscriptionListResponse = Awaited<
+		ReturnType<SubscriptionQueryService['listSubscriptions']>
+	>
+	type LifecycleResponse = Awaited<
+		ReturnType<SubscriptionLifecycleService['pauseSubscription']>
+	>
+
 	describe('createSubscription', () => {
 		it('should delegate to billing service', async () => {
 			const mockRequest = {
@@ -63,8 +79,11 @@ describe('SubscriptionsService (Facade)', () => {
 				billingDayOfMonth: 1,
 				currency: 'usd'
 			}
-			const mockResponse = { id: mockLeaseId, status: 'active' }
-			mockBillingService.createSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: CreateSubscriptionResponse = {
+				id: mockLeaseId,
+				status: 'active'
+			} as CreateSubscriptionResponse
+			mockBillingService.createSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.createSubscription(mockUserId, mockRequest)
 
@@ -75,8 +94,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 	describe('getSubscription', () => {
 		it('should delegate to query service', async () => {
-			const mockResponse = { id: mockLeaseId }
-			mockQueryService.getSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: SubscriptionResponse = {
+				id: mockLeaseId
+			} as SubscriptionResponse
+			mockQueryService.getSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.getSubscription(mockLeaseId, mockUserId)
 
@@ -87,8 +108,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 	describe('listSubscriptions', () => {
 		it('should delegate to query service', async () => {
-			const mockResponse = [{ id: mockLeaseId }]
-			mockQueryService.listSubscriptions.mockResolvedValue(mockResponse as any)
+			const mockResponse: SubscriptionListResponse = [
+				{ id: mockLeaseId }
+			] as SubscriptionListResponse
+			mockQueryService.listSubscriptions.mockResolvedValue(mockResponse)
 
 			const result = await service.listSubscriptions(mockUserId)
 
@@ -99,8 +122,11 @@ describe('SubscriptionsService (Facade)', () => {
 
 	describe('pauseSubscription', () => {
 		it('should delegate to lifecycle service', async () => {
-			const mockResponse = { success: true, message: 'Paused' }
-			mockLifecycleService.pauseSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: LifecycleResponse = {
+				success: true,
+				message: 'Paused'
+			} as LifecycleResponse
+			mockLifecycleService.pauseSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.pauseSubscription(mockLeaseId, mockUserId)
 
@@ -111,8 +137,11 @@ describe('SubscriptionsService (Facade)', () => {
 
 	describe('resumeSubscription', () => {
 		it('should delegate to lifecycle service', async () => {
-			const mockResponse = { success: true, message: 'Resumed' }
-			mockLifecycleService.resumeSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: LifecycleResponse = {
+				success: true,
+				message: 'Resumed'
+			} as LifecycleResponse
+			mockLifecycleService.resumeSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.resumeSubscription(mockLeaseId, mockUserId)
 
@@ -123,8 +152,11 @@ describe('SubscriptionsService (Facade)', () => {
 
 	describe('cancelSubscription', () => {
 		it('should delegate to lifecycle service', async () => {
-			const mockResponse = { success: true, message: 'Canceled' }
-			mockLifecycleService.cancelSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: LifecycleResponse = {
+				success: true,
+				message: 'Canceled'
+			} as LifecycleResponse
+			mockLifecycleService.cancelSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.cancelSubscription(mockLeaseId, mockUserId)
 
@@ -136,8 +168,11 @@ describe('SubscriptionsService (Facade)', () => {
 	describe('updateSubscription', () => {
 		it('should delegate to billing service', async () => {
 			const mockUpdate = { amount: 2000 }
-			const mockResponse = { id: mockLeaseId, amount: 2000 }
-			mockBillingService.updateSubscription.mockResolvedValue(mockResponse as any)
+			const mockResponse: UpdateSubscriptionResponse = {
+				id: mockLeaseId,
+				amount: 2000
+			} as UpdateSubscriptionResponse
+			mockBillingService.updateSubscription.mockResolvedValue(mockResponse)
 
 			const result = await service.updateSubscription(mockLeaseId, mockUserId, mockUpdate)
 

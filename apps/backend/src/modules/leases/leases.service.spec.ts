@@ -5,16 +5,19 @@ import { LeasesService } from './leases.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { EmailService } from '../email/email.service'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import type { Lease } from '@repo/shared/types/core'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import type { CreateLeaseDto, UpdateLeaseDto } from './dto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 
 describe('LeasesService', () => {
   let service: LeasesService
-  let mockUserClient: any
-  let mockSupabaseService: any
+  let mockUserClient: SupabaseClient<Database>
+  let mockSupabaseService: jest.Mocked<SupabaseService>
 
   const mockToken = 'mock-jwt-token'
 
@@ -51,13 +54,14 @@ describe('LeasesService', () => {
       order: jest.fn().mockReturnThis(),
       range: jest.fn().mockReturnThis(),
       single: jest.fn(),
-      maybeSingle: jest.fn()
-    }
+      maybeSingle: jest.fn(),
+      rpc: jest.fn().mockResolvedValue({ data: true, error: null })
+    } as unknown as SupabaseClient<Database>
 
     mockSupabaseService = {
       getUserClient: jest.fn().mockReturnValue(mockUserClient),
       getAdminClient: jest.fn().mockReturnValue(mockUserClient)
-    }
+    } as jest.Mocked<SupabaseService>
 
     const mockEmailService = {
       sendPaymentSuccessEmail: jest.fn(),
@@ -77,7 +81,7 @@ describe('LeasesService', () => {
       providers: [
         LeasesService,
         { provide: SupabaseService, useValue: mockSupabaseService },
-        { provide: ZeroCacheService, useValue: mockCacheService },
+        { provide: RedisCacheService, useValue: mockCacheService },
         { provide: EmailService, useValue: mockEmailService },
         EventEmitter2,
         {
@@ -95,14 +99,14 @@ describe('LeasesService', () => {
   })
 
   describe('create', () => {
-    const validCreateDto = {
+    const validCreateDto: CreateLeaseDto = {
       unit_id: 'unit-456',
       primary_tenant_id: 'tenant-789',
       start_date: '2025-01-01',
       end_date: '2026-01-01',
       rent_amount: 150000,
       security_deposit: 150000,
-      lease_status: 'pending' as const
+      lease_status: 'draft' as const
     }
 
     it('should create a lease successfully', async () => {
@@ -182,13 +186,13 @@ describe('LeasesService', () => {
         return mockUserClient
       })
 
-      const result = await service.create(mockToken, validCreateDto as any)
+      const result = await service.create(mockToken, validCreateDto)
 
       expect(result).toEqual(mockLease)
     })
 
     it('should throw BadRequestException when token is missing', async () => {
-      await expect(service.create('', validCreateDto as any)).rejects.toThrow(
+      await expect(service.create('', validCreateDto)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -196,7 +200,7 @@ describe('LeasesService', () => {
     it('should throw BadRequestException when unit_id is missing', async () => {
       const invalidDto = { ...validCreateDto, unit_id: '' }
 
-      await expect(service.create(mockToken, invalidDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, invalidDto)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -204,7 +208,7 @@ describe('LeasesService', () => {
     it('should throw BadRequestException when primary_tenant_id is missing', async () => {
       const invalidDto = { ...validCreateDto, primary_tenant_id: '' }
 
-      await expect(service.create(mockToken, invalidDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, invalidDto)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -225,7 +229,7 @@ describe('LeasesService', () => {
         return mockUserClient
       })
 
-      await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, validCreateDto)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -257,15 +261,22 @@ describe('LeasesService', () => {
         return mockUserClient
       })
 
-      await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, validCreateDto)).rejects.toThrow(
         BadRequestException
       )
     })
 
     it('should throw BadRequestException when tenant is not invited to property', async () => {
+      mockUserClient.rpc.mockResolvedValue({
+        data: null,
+        error: {
+          message:
+            'Cannot create lease: John Doe has not been invited to Test Property. Please send an invitation first.'
+        }
+      })
+
       // Mock unit lookup - succeeds
       // Mock tenant lookup - succeeds
-      // Mock invitation lookup - fails (returns null)
       mockUserClient.from.mockImplementation((table: string) => {
         if (table === 'units') {
           return {
@@ -297,26 +308,10 @@ describe('LeasesService', () => {
             })
           }
         }
-        if (table === 'tenant_invitations') {
-          // NO INVITATION FOUND - This should trigger the validation error
-          const invitationChain = {
-            select: jest.fn().mockReturnThis(),
-            eq: jest.fn().mockReturnThis(),
-            not: jest.fn().mockReturnValue({
-              maybeSingle: jest.fn().mockResolvedValue({
-                data: null, // No invitation found
-                error: null
-              })
-            })
-          }
-          invitationChain.eq = jest.fn().mockReturnValue(invitationChain)
-          invitationChain.select = jest.fn().mockReturnValue(invitationChain)
-          return invitationChain
-        }
         return mockUserClient
       })
 
-      await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, validCreateDto)).rejects.toThrow(
         new BadRequestException(
           'Cannot create lease: John Doe has not been invited to Test Property. Please send an invitation first.'
         )
@@ -362,7 +357,7 @@ describe('LeasesService', () => {
         return mockUserClient
       })
 
-      await expect(service.create(mockToken, validCreateDto as any)).rejects.toThrow(
+      await expect(service.create(mockToken, validCreateDto)).rejects.toThrow(
         BadRequestException
       )
     })
@@ -588,7 +583,7 @@ describe('LeasesService', () => {
         })
       }))
 
-      const result = await service.update(mockToken, 'lease-123', validUpdateDto as any)
+      const result = await service.update(mockToken, 'lease-123', validUpdateDto)
 
       expect(result.rent_amount).toBe(175000)
     })
@@ -596,14 +591,14 @@ describe('LeasesService', () => {
     // FAIL FAST: Missing token should throw immediately, not return null
     it('should throw BadRequestException when token is missing', async () => {
       await expect(
-        service.update('', 'lease-123', validUpdateDto as any)
+        service.update('', 'lease-123', validUpdateDto)
       ).rejects.toThrow(BadRequestException)
     })
 
     // FAIL FAST: Missing lease_id should throw immediately, not return null
     it('should throw BadRequestException when lease_id is missing', async () => {
       await expect(
-        service.update(mockToken, '', validUpdateDto as any)
+        service.update(mockToken, '', validUpdateDto)
       ).rejects.toThrow(BadRequestException)
     })
 
@@ -614,7 +609,7 @@ describe('LeasesService', () => {
       )
 
       await expect(
-        service.update(mockToken, 'nonexistent', validUpdateDto as any)
+        service.update(mockToken, 'nonexistent', validUpdateDto)
       ).rejects.toThrow(NotFoundException)
     })
 
@@ -635,7 +630,7 @@ describe('LeasesService', () => {
       }))
 
       await expect(
-        service.update(mockToken, 'lease-123', validUpdateDto as any)
+        service.update(mockToken, 'lease-123', validUpdateDto)
       ).rejects.toThrow(BadRequestException)
     })
   })

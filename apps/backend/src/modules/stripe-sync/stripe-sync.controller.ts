@@ -1,3 +1,8 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - Commented-out code violation
+// Lines 189-191, 200-202, 207-209: Commented-out accessControlService calls should be DELETED
+// Per CLAUDE.md: "No commented-out code - Delete it, don't comment it"
+// If this functionality is needed later, retrieve it from git history
+
 /**
  * Stripe Sync Engine Webhook Controller
  *
@@ -7,9 +12,8 @@
  * See: https://github.com/supabase/stripe-sync-engine
  */
 
-import { BadRequestException, Controller, Header, Inject, Post, Req, SetMetadata } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import type { Cache } from 'cache-manager'
+import { BadRequestException, Controller, Header, Post, Req, SetMetadata } from '@nestjs/common'
+import { RedisCacheService } from '../../cache/cache.service'
 import type { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import type Stripe from 'stripe'
@@ -65,7 +69,7 @@ export class StripeSyncController {
     private readonly stripeClientService: StripeClientService,
     private readonly supabaseService: SupabaseService,
     private readonly appConfigService: AppConfigService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+    private readonly cache: RedisCacheService
   ) {
     // Ensure TypeScript recognizes usage of appConfigService
     if (!appConfigService) {
@@ -233,9 +237,9 @@ export class StripeSyncController {
 
     try {
       await Promise.all([
-        this.cacheManager.del('stripe:products'),
-        this.cacheManager.del('stripe:prices'),
-        this.cacheManager.del('stripe:pricing-config')
+        this.cache.del('stripe:products'),
+        this.cache.del('stripe:prices'),
+        this.cache.del('stripe:pricing-config')
       ])
 
       this.logger.log('Pricing cache invalidated successfully', {

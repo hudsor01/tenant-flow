@@ -5,13 +5,30 @@
 
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Database } from '@repo/shared/types/supabase'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionCacheService } from './subscription-cache.service'
 import { SubscriptionQueryService } from './subscription-query.service'
+import type { LeaseContext } from './subscription-query.service'
+import { RedisCacheService } from '../cache/cache.service'
+
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+
+type LeaseContextResponse = Awaited<
+	ReturnType<SubscriptionQueryService['mapLeaseContextToResponse']>
+>
+type StripeSubscriptionParam = NonNullable<
+	Parameters<SubscriptionQueryService['mapLeaseContextToResponse']>[1]
+>['stripeSubscription']
 
 describe('SubscriptionQueryService', () => {
 	let service: SubscriptionQueryService
@@ -40,32 +57,32 @@ describe('SubscriptionQueryService', () => {
 		unit_id: mockUnitId,
 		created_at: '2025-01-01T00:00:00Z',
 		updated_at: '2025-01-01T00:00:00Z'
-	}
+	} as LeaseRow
 
 	const mockTenant = {
 		id: mockTenantId,
 		user_id: mockTenantUserId,
 		stripe_customer_id: 'cus_test123'
-	}
+	} as TenantRow
 
 	const mockTenantUser = {
 		id: mockTenantUserId,
 		email: 'tenant@example.com',
 		first_name: 'Test',
 		last_name: 'Tenant'
-	}
+	} as UserRow
 
 	const mockUnit = {
 		id: mockUnitId,
 		unit_number: '101',
 		property_id: mockPropertyId
-	}
+	} as UnitRow
 
 	const mockProperty = {
 		id: mockPropertyId,
 		name: 'Test Property',
 		owner_user_id: mockOwnerId
-	}
+	} as PropertyRow
 
 	const mockOwner = {
 		id: mockOwnerId,
@@ -73,7 +90,7 @@ describe('SubscriptionQueryService', () => {
 		stripe_account_id: 'acct_test123',
 		charges_enabled: true,
 		default_platform_fee_percent: 2.5
-	}
+	} as PropertyOwnerRow
 
 	const mockStripeSubscription = {
 		id: mockStripeSubscriptionId,
@@ -86,7 +103,7 @@ describe('SubscriptionQueryService', () => {
 	}
 
 	// Helper to create query builder mock
-	const createQueryBuilder = (returnData: any, shouldError = false) => ({
+	const createQueryBuilder = <T>(returnData: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		in: jest.fn().mockReturnThis(),
@@ -122,7 +139,7 @@ describe('SubscriptionQueryService', () => {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
-		const mockCacheManager = {
+		const mockCache = {
 			get: jest.fn().mockResolvedValue(undefined),
 			set: jest.fn().mockResolvedValue(undefined),
 			del: jest.fn().mockResolvedValue(undefined)
@@ -134,7 +151,7 @@ describe('SubscriptionQueryService', () => {
 				SubscriptionCacheService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: StripeClientService, useValue: mockStripeClientService },
-				{ provide: CACHE_MANAGER, useValue: mockCacheManager },
+				{ provide: RedisCacheService, useValue: mockCache },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -259,19 +276,19 @@ describe('SubscriptionQueryService', () => {
 		it('should return subscriptions when tenant has leases', async () => {
 			// Mock findTenantByUserId to return a tenant
 			jest.spyOn(service, 'findTenantByUserId').mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			jest.spyOn(service, 'findOwnerByUserId').mockResolvedValue(null)
 
 			// Mock the lease context loading
-			const mockLeaseContext = {
-				lease: mockLease as any,
-				tenant: mockTenant as any,
-				tenantUser: mockTenantUser as any,
-				unit: mockUnit as any,
-				property: mockProperty as any,
-				owner: mockOwner as any
+			const mockLeaseContext: LeaseContext = {
+				lease: mockLease,
+				tenant: mockTenant,
+				tenantUser: mockTenantUser,
+				unit: mockUnit,
+				property: mockProperty,
+				owner: mockOwner
 			}
 
 			jest.spyOn(service, 'loadLeaseContext').mockResolvedValue(mockLeaseContext)
@@ -293,7 +310,7 @@ describe('SubscriptionQueryService', () => {
 				ownerId: mockOwnerUserId,
 				status: 'active',
 				updatedAt: '2025-01-01T00:00:00Z'
-			} as any
+			} as LeaseContextResponse
 
 			jest.spyOn(service, 'mapLeaseContextToResponse').mockResolvedValue(mockResponse)
 
@@ -340,7 +357,7 @@ describe('SubscriptionQueryService', () => {
 
 	describe('mapLeaseContextToResponse', () => {
 		it('should map lease context to response format', async () => {
-			const context = {
+			const context: LeaseContext = {
 				lease: mockLease,
 				tenant: mockTenant,
 				tenantUser: mockTenantUser,
@@ -354,7 +371,7 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' }))
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' }))
 
-			const result = await service.mapLeaseContextToResponse(context as any)
+			const result = await service.mapLeaseContextToResponse(context)
 
 			expect(result).toMatchObject({
 				id: mockLeaseId,
@@ -370,7 +387,7 @@ describe('SubscriptionQueryService', () => {
 		})
 
 		it('should use provided stripe subscription when passed', async () => {
-			const context = {
+			const context: LeaseContext = {
 				lease: mockLease,
 				tenant: mockTenant,
 				tenantUser: mockTenantUser,
@@ -389,8 +406,8 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' }))
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' }))
 
-			const result = await service.mapLeaseContextToResponse(context as any, {
-				stripeSubscription: customStripeSubscription as any
+			const result = await service.mapLeaseContextToResponse(context, {
+				stripeSubscription: customStripeSubscription as StripeSubscriptionParam
 			})
 
 			expect(result.status).toBe('paused')
@@ -403,7 +420,7 @@ describe('SubscriptionQueryService', () => {
 				id: 'pm-123',
 				stripe_payment_method_id: 'pm_stripe123',
 				tenant_id: mockTenantId
-			}
+			} as PaymentMethodRow
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(createQueryBuilder(mockPaymentMethod))

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { NotFoundException } from '@nestjs/common'
-import { Queue } from 'bullmq'
+import { Queue, type Job } from 'bullmq'
 import { LeasesPdfQueueController } from './leases-pdf-queue.controller'
 import { getQueueToken } from '@nestjs/bullmq'
 
@@ -19,7 +19,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 			add: jest.fn(),
 			getJob: jest.fn(),
 			getJobs: jest.fn()
-		} as any
+		} as jest.Mocked<Queue>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesPdfQueueController],
@@ -41,7 +41,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 			const token = 'test-jwt-token'
 			const jobId = 'job-123'
 
-			mockPdfQueue.add.mockResolvedValue({ id: jobId } as any)
+			mockPdfQueue.add.mockResolvedValue({ id: jobId } as unknown as Job)
 
 			// Act
 			const result = await controller.queuePdfGeneration(leaseId, token)
@@ -88,7 +88,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 				getState: jest.fn().mockResolvedValue('completed')
 			}
 
-			mockPdfQueue.getJob.mockResolvedValue(mockJob as any)
+			mockPdfQueue.getJob.mockResolvedValue(mockJob as unknown as Job)
 
 			// Act
 			const result = await controller.getPdfStatus(leaseId, jobId)
@@ -114,7 +114,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 				getState: jest.fn().mockResolvedValue('active')
 			}
 
-			mockPdfQueue.getJob.mockResolvedValue(mockJob as any)
+			mockPdfQueue.getJob.mockResolvedValue(mockJob as unknown as Job)
 
 			// Act
 			const result = await controller.getPdfStatus(leaseId, jobId)
@@ -140,7 +140,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 				getState: jest.fn().mockResolvedValue('failed')
 			}
 
-			mockPdfQueue.getJob.mockResolvedValue(mockJob as any)
+			mockPdfQueue.getJob.mockResolvedValue(mockJob as unknown as Job)
 
 			// Act
 			const result = await controller.getPdfStatus(leaseId, jobId)
@@ -196,7 +196,7 @@ describe('LeasesPdfQueueController (TDD)', () => {
 				}
 			]
 
-			mockPdfQueue.getJobs.mockResolvedValue(mockJobs as any)
+			mockPdfQueue.getJobs.mockResolvedValue(mockJobs as unknown as Job[])
 
 			// Act
 			const result = await controller.getPdfStatus(leaseId, undefined)

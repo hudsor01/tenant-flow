@@ -14,10 +14,12 @@ import type { Persister } from '@tanstack/react-query-persist-client'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLoadingStore } from '#stores/loading-store'
+import { useEffect, useMemo, useState } from 'react'
+import { createQueryErrorHandlers } from './query-error-handler'
+import { buildPersistOptions, createIdbPersister } from './query-persistence'
 
 const logger = createLogger({ component: 'QueryProvider' })
+const queryErrorHandlers = createQueryErrorHandlers(logger)
 
 // Dynamically import DevTools for development only (unused but kept for future use)
 const _ReactQueryDevtools = dynamic(
@@ -41,10 +43,17 @@ export function QueryProvider({
 }: QueryProviderProps) {
 	const [persister, setPersister] = useState<Persister | null>(null)
 	const [isPersistenceReady, setIsPersistenceReady] = useState(false)
-	const loadingMapRef = useRef<Map<string, string>>(new Map())
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({
+				// Enable request batching to reduce network round trips
+				// @ts-expect-error batcher is not in types but available in runtime
+				batcher: {
+					// Batch window: collect queries for 10ms before sending
+					batchWindowMs: 10,
+					// Maximum batch size: 10 queries per batch
+					maxBatchSize: 10
+				},
 				defaultOptions: {
 					queries: {
 						// Structural sharing for automatic re-render optimization
@@ -57,23 +66,8 @@ export function QueryProvider({
 						gcTime: 10 * 60 * 1000,
 
 						// Advanced retry logic with jittered exponential backoff
-						retry: (failureCount, error) => {
-							// Don't retry on 4xx errors (client errors)
-							if (error && typeof error === 'object' && 'status' in error) {
-								const status = (error as { status: number }).status
-								if (status >= 400 && status < 500) {
-									return false
-								}
-							}
-							// Retry up to 3 times for other errors
-							return failureCount < 3
-						},
-						retryDelay: attemptIndex => {
-							// Jittered exponential backoff: base delay with random jitter
-							const baseDelay = Math.min(1000 * 2 ** attemptIndex, 30000)
-							const jitter = Math.random() * 0.3 * baseDelay // ±30% jitter
-							return baseDelay + jitter
-						},
+						retry: queryErrorHandlers.retry,
+						retryDelay: queryErrorHandlers.retryDelay,
 
 						// Smart refetch behavior
 						refetchOnWindowFocus: 'always',
@@ -97,123 +91,12 @@ export function QueryProvider({
 						gcTime: 5 * 60 * 1000,
 
 						// Global mutation events
-						onSuccess: (data, variables, context) => {
-							logger.debug('Mutation succeeded', {
-								action: 'mutation_success',
-								metadata: {
-									variables:
-										typeof variables === 'object'
-											? Object.keys(variables || {})
-											: String(variables),
-									hasRollbackData: !!context
-								}
-							})
-						},
-						onError: (error, variables, context) => {
-							logger.warn('Mutation failed', {
-								action: 'mutation_error',
-								metadata: {
-									error: error instanceof Error ? error.message : String(error),
-									variables:
-										typeof variables === 'object'
-											? Object.keys(variables || {})
-											: String(variables),
-									hasRollbackData: !!context
-								}
-							})
-						}
+						onSuccess: queryErrorHandlers.onMutationSuccess,
+						onError: queryErrorHandlers.onMutationError
 					}
 				}
 			})
 	)
-
-	// Configure global query events for monitoring
-	useEffect(() => {
-		const loadingStore = useLoadingStore.getState()
-		const unsubscribeQueryCache = queryClient
-			.getQueryCache()
-			.subscribe(event => {
-				const query = 'query' in event ? event.query : undefined
-				if (!query) return
-
-				if (event.type === 'added') {
-					logger.debug('Query added', {
-						action: 'query_added',
-						metadata: { queryKey: query.queryKey }
-					})
-				} else if (event.type === 'removed') {
-					logger.debug('Query removed', {
-						action: 'query_removed',
-						metadata: { queryKey: query.queryKey }
-					})
-				}
-
-				const queryHash = query.queryHash
-				const currentFetchStatus = query.state.fetchStatus
-
-				// Start a loading operation when a query begins fetching
-				if (
-					currentFetchStatus === 'fetching' &&
-					!loadingMapRef.current.has(queryHash)
-				) {
-					const opId = `query_${queryHash}`
-					loadingStore.startLoading(opId, 'Updating data', 'query')
-					loadingMapRef.current.set(queryHash, opId)
-				}
-
-				// Stop the loading operation when fetch completes or is paused or errors
-				if (
-					(currentFetchStatus === 'idle' || currentFetchStatus === 'paused') &&
-					loadingMapRef.current.has(queryHash)
-				) {
-					const opId = loadingMapRef.current.get(queryHash)
-					if (opId) {
-						loadingStore.stopLoading(opId)
-					}
-					loadingMapRef.current.delete(queryHash)
-				}
-			})
-
-		// Handle any in-flight queries that existed before subscription
-		queryClient
-			.getQueryCache()
-			.getAll()
-			.forEach(query => {
-				const status = query.state.fetchStatus
-				if (
-					status === 'fetching' &&
-					!loadingMapRef.current.has(query.queryHash)
-				) {
-					const opId = `query_${query.queryHash}`
-					loadingStore.startLoading(opId, 'Updating data', 'query')
-					loadingMapRef.current.set(query.queryHash, opId)
-				}
-			})
-
-		const unsubscribeMutationCache = queryClient
-			.getMutationCache()
-			.subscribe(event => {
-				if (event.type === 'added') {
-					logger.debug('Mutation added', {
-						action: 'mutation_added',
-						metadata: { mutationId: event.mutation.mutationId }
-					})
-				} else if (event.type === 'removed') {
-					logger.debug('Mutation removed', {
-						action: 'mutation_removed',
-						metadata: { mutationId: event.mutation.mutationId }
-					})
-				}
-			})
-
-		const loadingMap = loadingMapRef.current
-		return () => {
-			unsubscribeQueryCache()
-			unsubscribeMutationCache()
-			loadingMap.forEach(opId => loadingStore.stopLoading(opId))
-			loadingMap.clear()
-		}
-	}, [queryClient])
 
 	// Configure focus and online managers for advanced UX
 	useEffect(() => {
@@ -262,81 +145,17 @@ export function QueryProvider({
 
 		let cancelled = false
 
-		async function initializePersister() {
-			try {
-				const { del, get, set } = await import('idb-keyval')
-				if (cancelled) return
+		const initializePersister = async () => {
+			const idbPersister = await createIdbPersister(logger, QUERY_CACHE_KEY)
+			if (cancelled) return
 
-				const idbPersister: Persister = {
-					persistClient: async (client: unknown) => {
-						try {
-							await set(QUERY_CACHE_KEY, client)
-						} catch (error) {
-							// DataCloneError or QuotaExceededError - log error clearly
-							// Cache persistence is best-effort, but we log for debugging
-							logger.error('IndexedDB persist failed - cache not saved', {
-								action: 'persist_client_error',
-								metadata: {
-									error: error instanceof Error ? error.message : String(error),
-									errorType: error instanceof Error ? error.name : 'Unknown'
-								}
-							})
-						}
-					},
-					restoreClient: async () => {
-						try {
-							const cached = await get(QUERY_CACHE_KEY)
-							if (cached === undefined) {
-								logger.info('IndexedDB cache miss - no cached data found')
-							}
-							return cached
-						} catch (error) {
-							// FAIL-FAST LOGGING: Distinguish error from cache miss
-							logger.error(
-								'IndexedDB restore failed - treating as cache miss',
-								{
-									action: 'restore_client_error',
-									metadata: {
-										error:
-											error instanceof Error ? error.message : String(error),
-										errorType: error instanceof Error ? error.name : 'Unknown',
-										// This is an ERROR, not a normal cache miss
-										isError: true
-									}
-								}
-							)
-							return undefined
-						}
-					},
-					removeClient: async () => {
-						try {
-							await del(QUERY_CACHE_KEY)
-						} catch (error) {
-							logger.error('IndexedDB remove failed - cache may be stale', {
-								action: 'remove_client_error',
-								metadata: {
-									error: error instanceof Error ? error.message : String(error),
-									errorType: error instanceof Error ? error.name : 'Unknown'
-								}
-							})
-						}
-					}
-				}
-
+			if (idbPersister) {
 				setPersister(idbPersister)
 				setIsPersistenceReady(true)
-			} catch (error) {
-				logger.warn(
-					'Failed to initialize IndexedDB persistence - falling back to in-memory cache',
-					{
-						action: 'init_persister_error',
-						metadata: {
-							error: error instanceof Error ? error.message : String(error)
-						}
-					}
-				)
-				setIsPersistenceReady(false)
+				return
 			}
+
+			setIsPersistenceReady(false)
 		}
 
 		void initializePersister()
@@ -380,50 +199,11 @@ export function QueryProvider({
 		return (
 			<PersistQueryClientProvider
 				client={queryClient}
-				persistOptions={{
+				persistOptions={buildPersistOptions({
 					persister,
 					maxAge: QUERY_CACHE_MAX_AGE,
-					buster: QUERY_CACHE_BUSTER,
-					dehydrateOptions: {
-						shouldDehydrateQuery: query => {
-							// Only persist successfully resolved queries
-							const queryState = query.state
-
-							// Skip queries that are currently fetching or have errors
-							if (
-								queryState.status === 'pending' ||
-								queryState.fetchStatus === 'fetching'
-							) {
-								return false
-							}
-
-							// Skip queries with errors
-							if (queryState.status === 'error') {
-								return false
-							}
-
-							// Skip auth session queries (sensitive data)
-							const queryKey = query.queryKey[0] as string
-							if (queryKey === 'auth') {
-								return false
-							}
-
-							// Skip if data contains non-serializable values
-							try {
-								if (queryState.data) {
-									// Quick check: try to stringify the data
-									JSON.stringify(queryState.data)
-								}
-							} catch {
-								// Data is not serializable, skip it
-								return false
-							}
-
-							// Only persist queries with actual data
-							return queryState.status === 'success' && queryState.data !== null
-						}
-					}
-				}}
+					buster: QUERY_CACHE_BUSTER
+				})}
 			>
 				{hydrateContent}
 			</PersistQueryClientProvider>

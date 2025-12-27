@@ -10,22 +10,21 @@ type MaintenanceRequestWithRelations = MaintenanceRequest & {
 	property?: { name: string } | null
 	unit?: { name: string } | null
 	assignedTo?: { name: string } | null
+	tenant?: { name: string } | null
 }
 
 interface MaintenanceSortableCardProps {
 	request: MaintenanceRequestWithRelations
 	columnId: string
+	onView?: (id: string) => void
 }
 
-export function MaintenanceSortableCard({ request, columnId }: MaintenanceSortableCardProps) {
-	const {
-		attributes,
-		listeners,
-		setNodeRef,
-		transform,
-		transition,
-		isDragging
-	} = useSortable({
+export function MaintenanceSortableCard({
+	request,
+	columnId,
+	onView
+}: MaintenanceSortableCardProps) {
+	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
 		id: request.id,
 		data: {
 			type: 'maintenance-request',
@@ -42,7 +41,7 @@ export function MaintenanceSortableCard({ request, columnId }: MaintenanceSortab
 
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-			<MaintenanceCard request={request} isDragging={isDragging} />
+			<MaintenanceCard request={request} isDragging={isDragging} onView={onView} />
 		</div>
 	)
 }

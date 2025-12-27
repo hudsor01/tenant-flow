@@ -32,12 +32,13 @@ const mockProperty: Property = {
 	country: 'US',
 	property_type: 'APARTMENT',
 	status: 'active',
-		stripe_connected_account_id: null,
+	stripe_connected_account_id: null,
 	owner_user_id: 'owner-1',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
 	date_sold: null,
-	sale_price: null
+	sale_price: null,
+	search_vector: null
 }
 
 describe('PropertyCard', () => {
@@ -98,11 +99,11 @@ describe('PropertyCard', () => {
 		})
 	})
 
-	describe('Actions Menu', () => {
-		it('should render actions menu button', () => {
+	describe('Actions Buttons', () => {
+		it('should render delete action button', () => {
 			render(<PropertyCard property={mockProperty} />)
 			expect(
-				screen.getByRole('button', { name: /actions for test property/i })
+				screen.getByRole('button', { name: /delete test property/i })
 			).toBeInTheDocument()
 		})
 	})
@@ -120,13 +121,13 @@ describe('PropertyCard', () => {
 		it('should render view details button', () => {
 			render(<PropertyCard property={mockProperty} />)
 			expect(
-				screen.getByRole('link', { name: /view details/i })
+				screen.getByRole('link', { name: /view test property/i })
 			).toBeInTheDocument()
 		})
 
 		it('should link to property details page', () => {
 			render(<PropertyCard property={mockProperty} />)
-			const link = screen.getByRole('link', { name: /view details/i })
+			const link = screen.getByRole('link', { name: /view test property/i })
 			expect(link).toHaveAttribute('href', '/properties/prop-1')
 		})
 	})
@@ -246,16 +247,24 @@ describe('PropertyCard', () => {
 
 		it('should have accessible name on actions menu button', () => {
 			render(<PropertyCard property={mockProperty} />)
-			const menuButton = screen.getByRole('button', {
-				name: /actions for test property/i
+			const deleteButton = screen.getByRole('button', {
+				name: /delete test property/i
 			})
-			expect(menuButton).toBeInTheDocument()
+			expect(deleteButton).toBeInTheDocument()
 		})
 
 		it('should have accessible name on view details link', () => {
 			render(<PropertyCard property={mockProperty} />)
 			const link = screen.getByRole('link', {
-				name: /view details for test property/i
+				name: /view test property/i
+			})
+			expect(link).toBeInTheDocument()
+		})
+
+		it('should have accessible name on edit link', () => {
+			render(<PropertyCard property={mockProperty} />)
+			const link = screen.getByRole('link', {
+				name: /edit test property/i
 			})
 			expect(link).toBeInTheDocument()
 		})

@@ -8,13 +8,13 @@ import type {
 	SecurityEvent,
 	SecurityMetrics,
 	SecurityThreatSummary,
-	SecurityTrendPoint
+	SecurityTrendPoint,
+	SecurityAuditLogEntry
 } from '@repo/shared/types/security'
 import {
 	SecurityEventSeverity as SecurityEventSeverityEnum,
 	SecurityEventType as SecurityEventTypeEnum
 } from '@repo/shared/types/security'
-import type { SecurityAuditLogEntry } from '@repo/shared/types/security-repository'
 import { SupabaseService } from '../database/supabase.service'
 import { AppLogger } from '../logger/app-logger.service'
 

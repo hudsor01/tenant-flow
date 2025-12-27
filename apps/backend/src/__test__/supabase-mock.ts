@@ -4,6 +4,7 @@
  */
 
 export interface MockSupabaseClient {
+	schema: jest.Mock
 	from: jest.Mock
 	select: jest.Mock
 	insert: jest.Mock
@@ -46,6 +47,7 @@ export interface MockSupabaseService {
  */
 export function createMockSupabaseClient(defaultReturn = { data: null, error: null }): MockSupabaseClient {
 	const mockClient: MockSupabaseClient = {
+		schema: jest.fn().mockReturnThis(),
 		from: jest.fn().mockReturnThis(),
 		select: jest.fn().mockReturnThis(),
 		insert: jest.fn().mockReturnThis(),

@@ -1,14 +1,14 @@
 /**
  * SSE Hook - Server-Sent Events Client
  *
- * Connects to the backend SSE endpoint for real-time event streaming.
- * Replaces polling patterns with push notifications.
+ * @deprecated Use `SseProvider` and `useSseConnection`/`useSseEvents` from
+ * `#providers/sse-provider` instead. The provider approach is more performant:
+ * - Single connection shared across the entire app
+ * - Fetch-based streaming (can detect 429 rate limiting)
+ * - Page Visibility API integration (disconnects when tab hidden)
+ * - Subscription pattern with zero re-renders
  *
- * Features:
- * - Auto-reconnect with exponential backoff
- * - TanStack Query cache invalidation on events
- * - Connection state management
- * - TypeScript-safe event handling
+ * This hook is kept for backwards compatibility but should not be used.
  *
  * @module use-sse
  */
@@ -19,11 +19,23 @@ import { createClient } from '#utils/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 import type { SseEvent, SseEventType } from '@repo/shared/events/sse-events'
 import { isSseEvent, SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
+
+const logger = createLogger({ component: 'UseSse' })
+
+/**
+ * Global connection state to prevent multiple concurrent connections
+ * This is shared across all hook instances to ensure only one SSE connection exists
+ */
+let globalEventSource: EventSource | null = null
+let globalConnectionCount = 0
+let lastConnectionAttempt = 0
+const MIN_CONNECTION_INTERVAL = 5000 // Minimum 5s between connection attempts
 
 /**
  * SSE connection state
  */
-export type SseConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error'
+export type SseConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error' | 'rate_limited'
 
 /**
  * SSE hook options
@@ -70,15 +82,21 @@ export interface UseSseOptions {
 
 	/**
 	 * Initial reconnect delay in ms
-	 * @default 1000
+	 * @default 2000
 	 */
 	initialReconnectDelay?: number
 
 	/**
 	 * Maximum reconnect delay in ms
-	 * @default 30000
+	 * @default 60000
 	 */
 	maxReconnectDelay?: number
+
+	/**
+	 * Rate limit backoff delay in ms (used when 429 is received)
+	 * @default 65000 (just over 1 minute to reset the rate limit)
+	 */
+	rateLimitBackoffDelay?: number
 }
 
 /**
@@ -94,6 +112,11 @@ export interface UseSseReturn {
 	 * Whether connected to SSE
 	 */
 	isConnected: boolean
+
+	/**
+	 * Whether rate limited (429 detected)
+	 */
+	isRateLimited: boolean
 
 	/**
 	 * Last received event
@@ -158,8 +181,9 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 		onError,
 		autoInvalidateQueries = true,
 		maxReconnectAttempts = 10,
-		initialReconnectDelay = 1000,
-		maxReconnectDelay = 30000
+		initialReconnectDelay = 2000,
+		maxReconnectDelay = 60000,
+		rateLimitBackoffDelay = 65000
 	} = options
 
 	const queryClient = useQueryClient()
@@ -167,41 +191,59 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const reconnectAttemptsRef = useRef(0)
 	const mountedRef = useRef(true)
+	const isConnectingRef = useRef(false)
+	const hasConnectedOnceRef = useRef(false)
 
 	const [connectionState, setConnectionState] = useState<SseConnectionState>('disconnected')
 	const [lastEvent, setLastEvent] = useState<SseEvent | null>(null)
 	const [reconnectAttempts, setReconnectAttempts] = useState(0)
 
+	// Store ALL mutable dependencies in refs to completely stabilize callbacks
+	const optionsRef = useRef({
+		eventTypes,
+		onEvent,
+		onConnectionChange,
+		onError,
+		autoInvalidateQueries,
+		maxReconnectAttempts,
+		initialReconnectDelay,
+		maxReconnectDelay,
+		rateLimitBackoffDelay
+	})
+
+	// Update refs when options change (no effect re-runs)
+	optionsRef.current = {
+		eventTypes,
+		onEvent,
+		onConnectionChange,
+		onError,
+		autoInvalidateQueries,
+		maxReconnectAttempts,
+		initialReconnectDelay,
+		maxReconnectDelay,
+		rateLimitBackoffDelay
+	}
+
 	/**
 	 * Update connection state with callback
 	 */
-	const updateConnectionState = useCallback(
-		(state: SseConnectionState) => {
-			setConnectionState(state)
-			onConnectionChange?.(state)
-		},
-		[onConnectionChange]
-	)
+	const updateConnectionState = useCallback((state: SseConnectionState) => {
+		setConnectionState(state)
+		optionsRef.current.onConnectionChange?.(state)
+	}, [])
 
 	/**
-	 * Invalidate queries based on event type
+	 * Calculate reconnect delay with exponential backoff
 	 */
-	const invalidateQueriesForEvent = useCallback(
-		(event: SseEvent) => {
-			if (!autoInvalidateQueries) return
-
-			const queryKeys = EVENT_TO_QUERY_KEYS[event.type]
-			if (!queryKeys || queryKeys.length === 0) return
-
-			for (const queryKey of queryKeys) {
-				queryClient.invalidateQueries({ queryKey })
-			}
-		},
-		[queryClient, autoInvalidateQueries]
-	)
+	const getReconnectDelay = useCallback(() => {
+		const { initialReconnectDelay: initial, maxReconnectDelay: max } = optionsRef.current
+		const delay = Math.min(initial * Math.pow(2, reconnectAttemptsRef.current), max)
+		// Add jitter (0-25% of delay)
+		return delay + Math.random() * delay * 0.25
+	}, [])
 
 	/**
-	 * Handle incoming SSE message
+	 * Handle incoming SSE message - stable callback using refs
 	 */
 	const handleMessage = useCallback(
 		(messageEvent: MessageEvent) => {
@@ -209,12 +251,13 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 				const event = JSON.parse(messageEvent.data) as unknown
 
 				if (!isSseEvent(event)) {
-					console.warn('[SSE] Received invalid event:', event)
+					logger.warn('Received invalid event', { event })
 					return
 				}
 
 				// Filter by event types if specified
-				if (eventTypes.length > 0 && !eventTypes.includes(event.type)) {
+				const types = optionsRef.current.eventTypes
+				if (types.length > 0 && !types.includes(event.type)) {
 					return
 				}
 
@@ -224,39 +267,74 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 				}
 
 				// Invalidate queries
-				invalidateQueriesForEvent(event)
+				if (optionsRef.current.autoInvalidateQueries) {
+					const queryKeys = EVENT_TO_QUERY_KEYS[event.type]
+					if (queryKeys && queryKeys.length > 0) {
+						for (const queryKey of queryKeys) {
+							queryClient.invalidateQueries({ queryKey })
+						}
+					}
+				}
 
 				// Call user callback
-				onEvent?.(event)
+				optionsRef.current.onEvent?.(event)
 			} catch {
-				console.error('[SSE] Failed to parse event:', messageEvent.data)
+				logger.error('Failed to parse event', { data: messageEvent.data })
 			}
 		},
-		[eventTypes, onEvent, invalidateQueriesForEvent]
+		[queryClient]
 	)
 
 	/**
-	 * Calculate reconnect delay with exponential backoff
-	 */
-	const getReconnectDelay = useCallback(() => {
-		const delay = Math.min(
-			initialReconnectDelay * Math.pow(2, reconnectAttemptsRef.current),
-			maxReconnectDelay
-		)
-		// Add jitter (0-25% of delay)
-		return delay + Math.random() * delay * 0.25
-	}, [initialReconnectDelay, maxReconnectDelay])
-
-	/**
-	 * Connect to SSE endpoint
+	 * Connect to SSE endpoint - stable callback
 	 */
 	const connect = useCallback(async () => {
-		if (!mountedRef.current) return
+		// Prevent concurrent connection attempts
+		if (!mountedRef.current || isConnectingRef.current) return
+
+		// Debounce: prevent rapid connection attempts (especially in React Strict Mode)
+		const now = Date.now()
+		const timeSinceLastAttempt = now - lastConnectionAttempt
+		if (timeSinceLastAttempt < MIN_CONNECTION_INTERVAL) {
+			logger.debug('Debouncing connection attempt', {
+				timeSinceLastAttempt,
+				minInterval: MIN_CONNECTION_INTERVAL
+			})
+			// Schedule a delayed connection attempt
+			reconnectTimeoutRef.current = setTimeout(() => {
+				if (mountedRef.current) {
+					connect()
+				}
+			}, MIN_CONNECTION_INTERVAL - timeSinceLastAttempt)
+			return
+		}
+
+		// If there's already a global connection, reuse it
+		if (globalEventSource && globalEventSource.readyState === EventSource.OPEN) {
+			logger.debug('Reusing existing global SSE connection')
+			eventSourceRef.current = globalEventSource
+			updateConnectionState('connected')
+			return
+		}
+
+		isConnectingRef.current = true
+		lastConnectionAttempt = now
+		globalConnectionCount++
 
 		// Cleanup existing connection
 		if (eventSourceRef.current) {
 			eventSourceRef.current.close()
 			eventSourceRef.current = null
+		}
+		if (globalEventSource) {
+			globalEventSource.close()
+			globalEventSource = null
+		}
+
+		// Clear any pending reconnect
+		if (reconnectTimeoutRef.current) {
+			clearTimeout(reconnectTimeoutRef.current)
+			reconnectTimeoutRef.current = null
 		}
 
 		updateConnectionState('connecting')
@@ -269,8 +347,9 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 			} = await supabase.auth.getSession()
 
 			if (!session?.access_token) {
-				console.warn('[SSE] No access token available')
-				updateConnectionState('error')
+				logger.warn('No access token available, SSE disabled')
+				updateConnectionState('disconnected')
+				isConnectingRef.current = false
 				return
 			}
 
@@ -281,34 +360,70 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 			// Create EventSource
 			const eventSource = new EventSource(sseUrl)
 			eventSourceRef.current = eventSource
+			globalEventSource = eventSource
 
 			// Handle open
 			eventSource.onopen = () => {
 				if (!mountedRef.current) return
-				console.log('[SSE] Connected')
+				logger.info('Connected')
 				reconnectAttemptsRef.current = 0
 				setReconnectAttempts(0)
+				isConnectingRef.current = false
+				hasConnectedOnceRef.current = true
 				updateConnectionState('connected')
 			}
 
 			// Handle message
 			eventSource.onmessage = handleMessage
 
-			// Handle error
-			eventSource.onerror = (error) => {
+			// Handle error - includes rate limiting detection
+			eventSource.onerror = (errorEvent) => {
 				if (!mountedRef.current) return
-				console.error('[SSE] Connection error:', error)
-				onError?.(error)
+
+				// Check if this is a rate limit error (429)
+				// Note: EventSource doesn't expose HTTP status, but rapid failures suggest rate limiting
+				const isLikelyRateLimited =
+					reconnectAttemptsRef.current >= 3 &&
+					Date.now() - lastConnectionAttempt < 10000
+
+				if (isLikelyRateLimited) {
+					logger.warn('Likely rate limited, backing off for 1 minute')
+					eventSource.close()
+					eventSourceRef.current = null
+					globalEventSource = null
+					isConnectingRef.current = false
+					updateConnectionState('rate_limited')
+
+					// Use rate limit backoff delay
+					const { rateLimitBackoffDelay: backoffDelay } = optionsRef.current
+					reconnectTimeoutRef.current = setTimeout(() => {
+						if (mountedRef.current) {
+							reconnectAttemptsRef.current = 0 // Reset attempts after backoff
+							setReconnectAttempts(0)
+							connect()
+						}
+					}, backoffDelay)
+					return
+				}
+
+				// Only log on first error after a successful connection
+				if (hasConnectedOnceRef.current && reconnectAttemptsRef.current === 0) {
+					logger.warn('Connection lost, will retry')
+				}
+
+				optionsRef.current.onError?.(errorEvent)
 
 				// EventSource auto-reconnects, but we handle it manually for better control
 				eventSource.close()
 				eventSourceRef.current = null
+				globalEventSource = null
+				isConnectingRef.current = false
 				updateConnectionState('error')
 
 				// Schedule reconnect
-				if (maxReconnectAttempts === 0 || reconnectAttemptsRef.current < maxReconnectAttempts) {
+				const { maxReconnectAttempts: maxAttempts } = optionsRef.current
+				if (maxAttempts === 0 || reconnectAttemptsRef.current < maxAttempts) {
 					const delay = getReconnectDelay()
-					console.log(`[SSE] Reconnecting in ${Math.round(delay)}ms (attempt ${reconnectAttemptsRef.current + 1})`)
 
 					reconnectTimeoutRef.current = setTimeout(() => {
 						if (mountedRef.current) {
@@ -318,14 +433,15 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 						}
 					}, delay)
 				} else {
-					console.error('[SSE] Max reconnect attempts reached')
+					logger.warn('Max reconnect attempts reached, giving up')
 				}
 			}
 		} catch (error) {
-			console.error('[SSE] Failed to connect:', error)
+			logger.error('Failed to connect', { error })
+			isConnectingRef.current = false
 			updateConnectionState('error')
 		}
-	}, [updateConnectionState, handleMessage, onError, maxReconnectAttempts, getReconnectDelay])
+	}, [updateConnectionState, handleMessage, getReconnectDelay])
 
 	/**
 	 * Disconnect from SSE
@@ -339,10 +455,16 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 
 		// Close EventSource
 		if (eventSourceRef.current) {
-			eventSourceRef.current.close()
+			// Only close global connection if this is the last subscriber
+			globalConnectionCount = Math.max(0, globalConnectionCount - 1)
+			if (globalConnectionCount === 0 && globalEventSource) {
+				globalEventSource.close()
+				globalEventSource = null
+			}
 			eventSourceRef.current = null
 		}
 
+		isConnectingRef.current = false
 		updateConnectionState('disconnected')
 	}, [updateConnectionState])
 
@@ -356,7 +478,7 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 		connect()
 	}, [disconnect, connect])
 
-	// Connect on mount, disconnect on unmount
+	// Single effect for mount/unmount - dependencies are now stable
 	useEffect(() => {
 		mountedRef.current = true
 
@@ -368,11 +490,13 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 			mountedRef.current = false
 			disconnect()
 		}
-	}, [enabled, connect, disconnect])
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- connect/disconnect are stable
+	}, [enabled])
 
 	return {
 		connectionState,
 		isConnected: connectionState === 'connected',
+		isRateLimited: connectionState === 'rate_limited',
 		lastEvent,
 		reconnectAttempts,
 		disconnect,

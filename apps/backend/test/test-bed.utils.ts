@@ -17,9 +17,14 @@ export interface TestBedResult<T> {
 	/** The class instance being tested */
 	unit: T
 	/** Unit reference for accessing dependencies */
-	unitRef: any
+	unitRef: UnitRef
 	/** Get a mocked dependency with type safety */
-	get: <TDep>(token: new (...args: any[]) => TDep) => any
+	get: <TDep>(token: Constructor<TDep>) => TDep
+}
+
+type Constructor<T> = new (...args: unknown[]) => T
+type UnitRef = {
+	get: <TDep>(token: Constructor<TDep>) => TDep
 }
 
 /**
@@ -62,16 +67,17 @@ export interface TestBedResult<T> {
  * @returns TestBedResult with the unit under test and mock utilities
  */
 export async function createTestBed<T>(
-	classType: new (...args: any[]) => T
+	classType: Constructor<T>
 ): Promise<TestBedResult<T>> {
-	const { unit, unitRef } = await TestBed.solitary(classType).compile()
+	const { unit, unitRef } = await TestBed.solitary(classType).compile() as {
+		unit: T
+		unitRef: UnitRef
+	}
 
 	return {
 		unit,
 		unitRef,
-		get: <TDep>(token: new (...args: any[]) => TDep): any => {
-			return unitRef.get(token)
-		}
+		get: <TDep>(token: Constructor<TDep>): TDep => unitRef.get(token)
 	}
 }
 
@@ -106,8 +112,8 @@ export async function createTestBed<T>(
  * @returns TestBedResult with the unit under test and mock utilities
  */
 export async function createTestBedWithOverrides<T>(
-	classType: new (...args: any[]) => T,
-	customProviders: any[]
+	classType: Constructor<T>,
+	customProviders: Array<unknown>
 ): Promise<TestBedResult<T>> {
 	// Create base test module using NestJS testing utilities
 	const moduleRef = await Test.createTestingModule({
@@ -119,8 +125,8 @@ export async function createTestBedWithOverrides<T>(
 
 	return {
 		unit,
-		unitRef: moduleRef as any,
-		get: <TDep>(token: new (...args: any[]) => TDep): any => {
+		unitRef: moduleRef,
+		get: <TDep>(token: Constructor<TDep>): TDep => {
 			return moduleRef.get(token)
 		}
 	}
@@ -140,9 +146,10 @@ export async function createTestBedWithOverrides<T>(
  * ```
  */
 export function createSupabaseChainMock(
-	finalResult: { data: any; error: any } = { data: null, error: null }
+	finalResult: { data: unknown; error: unknown } = { data: null, error: null }
 ) {
-	const chain: any = {
+	type SupabaseChainMock = Record<string, jest.Mock> & { then?: jest.Mock }
+	const chain: SupabaseChainMock = {
 		from: jest.fn().mockReturnThis(),
 		select: jest.fn().mockReturnThis(),
 		insert: jest.fn().mockReturnThis(),
@@ -179,7 +186,9 @@ export function createSupabaseChainMock(
 	// Support awaiting the chain directly (for queries that don't call .single() or .range())
 	chain.then = jest
 		.fn()
-		.mockImplementation((resolve: any) => Promise.resolve(resolve(finalResult)))
+		.mockImplementation((resolve: (value: typeof finalResult) => unknown) =>
+			Promise.resolve(resolve(finalResult))
+		)
 
 	return chain
 }
@@ -198,7 +207,7 @@ export function createMockConfigService(
 	env: Record<string, string | number | boolean> = {}
 ) {
 	return {
-		get: jest.fn((key: string, defaultValue?: any) => {
+		get: jest.fn((key: string, defaultValue?: unknown) => {
 			return env[key] ?? defaultValue
 		}),
 		getOrThrow: jest.fn((key: string) => {
@@ -229,11 +238,11 @@ export function createMockLogger() {
  * Create a mock CacheManager
  */
 export function createMockCacheManager() {
-	const store = new Map<string, any>()
+	const store = new Map<string, unknown>()
 
 	return {
 		get: jest.fn(async (key: string) => store.get(key)),
-		set: jest.fn(async (key: string, value: any) => {
+		set: jest.fn(async (key: string, value: unknown) => {
 			store.set(key, value)
 		}),
 		del: jest.fn(async (key: string) => {
@@ -242,7 +251,7 @@ export function createMockCacheManager() {
 		reset: jest.fn(async () => {
 			store.clear()
 		}),
-		wrap: jest.fn(async (key: string, fn: () => Promise<any>) => {
+		wrap: jest.fn(async (key: string, fn: () => Promise<unknown>) => {
 			if (store.has(key)) {
 				return store.get(key)
 			}

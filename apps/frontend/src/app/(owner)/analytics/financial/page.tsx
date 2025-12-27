@@ -21,7 +21,7 @@ import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/
 import type {
 	FinancialBreakdownRow,
 	LeaseFinancialInsight
-} from '@repo/shared/types/financial-analytics'
+} from '@repo/shared/types/analytics'
 import { ArrowDownRight, ArrowUpRight, FileDown } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo } from 'react'

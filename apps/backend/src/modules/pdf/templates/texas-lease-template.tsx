@@ -1,3 +1,17 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+//
+// File Size Issue:
+//    Current: ~774 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//
+// Recommended Refactoring Strategy:
+//    - Extract LeaseSection components into: `./components/lease-sections.tsx`
+//    - Extract styles into: `./texas-lease-styles.ts`
+//    - Extract disclosure components into: `./components/disclosures.tsx`
+//    - Keep template orchestration logic here
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 // React needed for JSX transform at runtime
 // Force classic JSX runtime for this file (Jest requires React in scope)
 /* @jsxRuntime classic */

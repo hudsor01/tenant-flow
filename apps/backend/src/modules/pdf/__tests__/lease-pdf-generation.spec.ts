@@ -14,6 +14,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { LeasePdfMapperService } from '../lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../lease-pdf-generator.service'
+import type { LeasePdfFields } from '../lease-pdf-mapper.service'
 import { StateValidationService } from '../state-validation.service'
 import { TemplateCacheService } from '../template-cache.service'
 import { AppLogger } from '../../../logger/app-logger.service'
@@ -217,7 +218,7 @@ describe('Lease PDF Generation (Integration)', () => {
 		})
 
 		it('should handle missing PDF template gracefully', async () => {
-			const mockFields = {
+			const mockFields: LeasePdfFields = {
 				landlord_name: 'Test',
 				tenant_name: 'Test',
 				property_address: 'Test',
@@ -241,7 +242,7 @@ describe('Lease PDF Generation (Integration)', () => {
 
 			// ZZ state will default to Texas template, which exists, so no error
 			const result = await generatorService.generateFilledPdf(
-				mockFields as any,
+				mockFields,
 				'test-id',
 				{ state: 'ZZ' }
 			)

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { TenantAutopayController } from './autopay.controller'
+import { RentPaymentsModule } from '../../rent-payments/rent-payments.module'
 
 /**
  * Tenant Autopay Module
@@ -8,6 +9,7 @@ import { TenantAutopayController } from './autopay.controller'
  * Routes are prefixed with /tenant/autopay via RouterModule.
  */
 @Module({
+	imports: [RentPaymentsModule],
 	controllers: [TenantAutopayController]
 })
 export class TenantAutopayModule {}

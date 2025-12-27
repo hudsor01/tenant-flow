@@ -1,3 +1,12 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~715 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract search/filter logic into: `./tenant-search.service.ts`
+// 2. Extract pagination logic into: `./tenant-pagination.service.ts`
+// 3. Extract statistics queries into: `./tenant-stats.service.ts`
+// 4. Keep core listing operations in this service
+// See: CLAUDE.md section "Small, Focused Modules"
+
 /**
  * Tenant List Service
  * Handles tenant listing and search operations

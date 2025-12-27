@@ -30,10 +30,10 @@ describe('DashboardController', () => {
 
   describe('Legacy /manage routes', () => {
     const expectGone = (path?: string) => {
-      expect(() => controller.handleLegacyRoute(path as any)).toThrow(
+      expect(() => controller.handleLegacyRoute(path)).toThrow(
         GoneException
       )
-      expect(() => controller.handleLegacyRoute(path as any)).toThrow(
+      expect(() => controller.handleLegacyRoute(path)).toThrow(
         'Legacy /manage routes have been removed. Use /owner/... endpoints.'
       )
     }

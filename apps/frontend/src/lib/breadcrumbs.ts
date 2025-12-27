@@ -2,7 +2,8 @@ import type { BreadcrumbItem } from '#components/ui/breadcrumb';
 
 // Map of route segments to readable labels
 const LABEL_MAP: Record<string, string> = {
-  manage: 'Dashboard',
+  // Owner dashboard routes
+  dashboard: 'Dashboard',
   properties: 'Properties',
   tenants: 'Tenants',
   units: 'Units',
@@ -14,12 +15,38 @@ const LABEL_MAP: Record<string, string> = {
   settings: 'Settings',
   new: 'Create New',
   edit: 'Edit',
+
+  // Analytics sub-routes
+  overview: 'Overview',
+  'property-performance': 'Property Performance',
+  occupancy: 'Occupancy',
+
+  // Financials routes
+  financials: 'Financials',
+  'rent-collection': 'Rent Collection',
+  'income-statement': 'Income Statement',
+  'cash-flow': 'Cash Flow',
+  'balance-sheet': 'Balance Sheet',
+  'tax-documents': 'Tax Documents',
+
+  // Documents routes
+  documents: 'Documents',
+  'lease-template': 'Lease Template',
+  generate: 'Generate',
+
+  // Tenant portal routes
   tenant: 'Tenant Portal',
   payments: 'Payments',
-  documents: 'Documents',
   profile: 'Profile',
   lease: 'Lease Info',
   onboarding: 'Onboarding',
+  autopay: 'Autopay',
+  methods: 'Payment Methods',
+  history: 'Payment History',
+
+  // Help and search
+  help: 'Get Help',
+  search: 'Search',
 };
 
 export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {

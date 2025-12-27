@@ -6,6 +6,7 @@ import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { RentPaymentAutopayService } from '../../rent-payments/rent-payment-autopay.service'
 
 /**
  * Tenant Autopay Controller
@@ -20,12 +21,17 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseInterceptors(TenantContextInterceptor)
 export class TenantAutopayController {
 
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger,
+		private readonly autopayService: RentPaymentAutopayService
+	) {}
 
 	/**
 	 * Get autopay/subscription status for active lease
 	 *
-	 * @returns Autopay configuration and subscription details
+	 * Returns subscription details including next payment date from Stripe.
+	 * The nextPaymentDate is derived from Stripe's current_period_end timestamp.
 	 */
 	@Get()
 	async getAutopayStatus(@JwtToken() token: string, @User() user: AuthUser) {
@@ -39,15 +45,20 @@ export class TenantAutopayController {
 			}
 		}
 
+		// Get autopay status from Stripe including next payment date
+		const autopayStatus = await this.autopayService.getAutopayStatus(
+			{ tenant_id: tenant.id, lease_id: lease.id },
+			user.id
+		)
+
 		return {
-			autopayEnabled: !!lease.stripe_subscription_id,
-			subscriptionId: lease.stripe_subscription_id,
+			autopayEnabled: autopayStatus.enabled,
+			subscriptionId: autopayStatus.subscriptionId,
+			subscriptionStatus: autopayStatus.status,
 			lease_id: lease.id,
 			tenant_id: tenant.id,
 			rent_amount: lease.rent_amount,
-			nextPaymentDate: lease.stripe_subscription_id
-				? await this.getNextPaymentDate(token, lease.id)
-				: null
+			nextPaymentDate: autopayStatus.nextPaymentDate
 		}
 	}
 
@@ -60,7 +71,7 @@ export class TenantAutopayController {
 			.single()
 
 		if (error || !data) {
-			throw new Error('Tenant account not found')
+			throw new NotFoundException('Tenant account not found')
 		}
 
 		return data
@@ -82,31 +93,8 @@ export class TenantAutopayController {
 				tenant_id,
 				error: error.message
 			})
-			throw new NotFoundException('Active lease not found')
-		}
-
-		if (!data) {
-			throw new NotFoundException('Active lease not found')
 		}
 
 		return data
-	}
-
-	private async getNextPaymentDate(token: string, lease_id: string) {
-		const { data, error } = await this.supabase
-			.getUserClient(token)
-			.from('rent_payments')
-			.select('due_date')
-			.eq('lease_id', lease_id)
-			.in('status', ['pending', 'pending'])
-			.order('due_date', { ascending: true })
-			.limit(1)
-			.maybeSingle()
-
-		if (error || !data) {
-			throw new NotFoundException('Next payment not found')
-		}
-
-		return data.due_date
 	}
 }

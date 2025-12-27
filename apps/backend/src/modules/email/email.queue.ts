@@ -28,6 +28,21 @@ export type EmailJob =
 			}
 	  }
 	| {
+			type: 'payment-reminder'
+			data: {
+				tenantName: string
+				tenantEmail: string
+				propertyName: string
+				unitNumber?: string
+				amount: number
+				currency: string
+				dueDate: string
+				daysUntilDue: number
+				paymentUrl: string
+				autopayEnabled: boolean
+			}
+	  }
+	| {
 			type: 'subscription-canceled'
 			data: {
 				customerEmail: string
@@ -111,6 +126,21 @@ export class EmailProcessor extends WorkerHost {
 					})
 					break
 
+				case 'payment-reminder':
+					await this.emailService.sendPaymentReminderEmail({
+						tenantName: data.tenantName,
+						tenantEmail: data.tenantEmail,
+						propertyName: data.propertyName,
+						...(data.unitNumber !== undefined && { unitNumber: data.unitNumber }),
+						amount: data.amount,
+						currency: data.currency,
+						dueDate: data.dueDate,
+						daysUntilDue: data.daysUntilDue,
+						paymentUrl: data.paymentUrl,
+						autopayEnabled: data.autopayEnabled
+					})
+					break
+
 				case 'subscription-canceled':
 					await this.emailService.sendSubscriptionCanceledEmail({
 						customerEmail: data.customerEmail,
@@ -185,6 +215,7 @@ export class EmailProcessor extends WorkerHost {
 			case 'payment-failed':
 			case 'subscription-canceled':
 				return job.data.data.customerEmail
+			case 'payment-reminder':
 			case 'tenant-invitation':
 			case 'lease-signature':
 				return job.data.data.tenantEmail
@@ -197,4 +228,3 @@ export class EmailProcessor extends WorkerHost {
 		}
 	}
 }
-

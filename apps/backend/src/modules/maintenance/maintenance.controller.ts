@@ -20,7 +20,6 @@ import {
 	Put,
 	Query
 } from '@nestjs/common'
-import type { MaintenanceRequestCreate, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { user_id } from '../../shared/decorators/user.decorator'
 import { MaintenanceService } from './maintenance.service'
@@ -28,6 +27,7 @@ import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
+import type { MaintenanceRequestCreate, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
 import { isValidUUID } from '@repo/shared/validation/common'
 
 @Controller('maintenance')
@@ -148,6 +148,61 @@ export class MaintenanceController {
 	}
 
 	/**
+	 * Create expense for maintenance request
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
+	@Post('expenses')
+	async createExpense(
+		@JwtToken() token: string,
+		@Body('maintenance_request_id', ParseUUIDPipe) maintenanceRequestId: string,
+		@Body('vendor_name') vendorName?: string,
+		@Body('amount') amount?: number,
+		@Body('expense_date') expenseDate?: string
+	) {
+		if (!amount || amount <= 0) {
+			throw new BadRequestException('Amount must be greater than 0')
+		}
+		if (amount > 999999) {
+			throw new BadRequestException('Amount cannot exceed 999999')
+		}
+		if (!expenseDate) {
+			throw new BadRequestException('Expense date is required')
+		}
+
+		return this.maintenanceService.createExpense(token, {
+			maintenance_request_id: maintenanceRequestId,
+			vendor_name: vendorName ?? null,
+			amount,
+			expense_date: expenseDate
+		})
+	}
+
+	/**
+	 * Get expenses for a maintenance request
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
+	@Get(':id/expenses')
+	async getExpenses(
+		@Param('id', ParseUUIDPipe) id: string,
+		@JwtToken() token: string
+	) {
+		return this.maintenanceService.getExpenses(token, id)
+	}
+
+	/**
+	 * Delete an expense
+	 * RLS COMPLIANT: Uses @JwtToken() decorator
+	 */
+	@Delete('expenses/:expenseId')
+	async deleteExpense(
+		@Param('expenseId', ParseUUIDPipe) expenseId: string,
+		@JwtToken() token: string
+	) {
+		await this.maintenanceService.deleteExpense(token, expenseId)
+		return { message: 'Expense deleted successfully' }
+	}
+
+	/**
 	 * Get one maintenance request by ID
 	 * RLS COMPLIANT: Uses @JwtToken() decorator
 	 */
@@ -173,7 +228,7 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@user_id() user_id: string
 	) {
-		return this.maintenanceService.create(token, user_id, dto as unknown as MaintenanceRequestCreate)
+		return this.maintenanceService.create(token, user_id, dto as MaintenanceRequestCreate)
 	}
 
 	/**
@@ -184,16 +239,10 @@ export class MaintenanceController {
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateMaintenanceDto,
-		@JwtToken() token: string
+		@JwtToken() token: string,
+		@Body('version') expectedVersion?: number
 	) {
-		// Pass version for optimistic locking
-		const expectedVersion = (dto as unknown as { version?: number }).version
-		const maintenance = await this.maintenanceService.update(
-			token,
-			id,
-			dto as unknown as MaintenanceRequestUpdate,
-			expectedVersion
-		)
+		const maintenance = await this.maintenanceService.update(token, id, dto as MaintenanceRequestUpdate, expectedVersion)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')
 		}

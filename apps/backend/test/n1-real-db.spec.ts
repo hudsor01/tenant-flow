@@ -51,7 +51,7 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 			return
 		}
 
-		const propertyIds = owners.properties.map((p: any) => p.id).slice(0, 3)
+		const propertyIds = (owners.properties as Array<{ id: string }>).map(p => p.id).slice(0, 3)
 
 		// PROOF: Single batch query gets ALL units for ALL properties
 		const startTime = Date.now()

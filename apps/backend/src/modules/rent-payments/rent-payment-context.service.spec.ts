@@ -5,15 +5,24 @@
 
 import { ForbiddenException, NotFoundException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+type UserRow = Database['public']['Tables']['users']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type StripeAccountRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+
 
 describe('RentPaymentContextService', () => {
 	let service: RentPaymentContextService
-	let mockAdminClient: any
+	let mockAdminClient: SupabaseClient<Database>
 
 	// Test data
 	const mockTenantId = 'tenant-123'
@@ -28,7 +37,7 @@ describe('RentPaymentContextService', () => {
 		last_name: 'Tenant',
 		full_name: 'Test Tenant',
 		phone: '555-1234'
-	}
+	} as UserRow
 
 	const mockOwnerUser = {
 		id: mockOwnerId,
@@ -36,17 +45,25 @@ describe('RentPaymentContextService', () => {
 		first_name: 'Property',
 		last_name: 'Owner',
 		full_name: 'Property Owner'
-	}
+	} as UserRow
 
 	const mockTenant = {
 		id: mockTenantId,
 		user_id: mockUserId,
 		created_at: '2025-01-01T00:00:00Z'
-	}
+	} as TenantRow
 
 	// Nested join result structure matching LeaseWithOwnerData
 	// Now includes tenant for authorization check
-	const mockLeaseWithOwnerData = {
+	const mockLeaseWithOwnerData: LeaseRow & {
+		tenant: Pick<TenantRow, 'user_id'>
+		unit: UnitRow & {
+			property: PropertyRow & {
+				stripe_connected_account: StripeAccountRow | null
+				owner: UserRow
+			}
+		}
+	} = {
 		id: mockLeaseId,
 		primary_tenant_id: mockTenantId,
 		unit_id: 'unit-001',
@@ -69,7 +86,7 @@ describe('RentPaymentContextService', () => {
 	}
 
 	// Helper to create query builder mock for single results
-	const createSingleQueryMock = (data: any, shouldError = false) => ({
+	const createSingleQueryMock = <T>(data: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		single: jest.fn().mockResolvedValue({
@@ -79,7 +96,7 @@ describe('RentPaymentContextService', () => {
 	})
 
 	// Helper for verifyTenantAccess nested join query with .limit().maybeSingle()
-	const createMaybeSingleQueryMock = (data: any, shouldError = false) => ({
+	const createMaybeSingleQueryMock = <T>(data: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		limit: jest.fn().mockReturnThis(),
@@ -92,7 +109,7 @@ describe('RentPaymentContextService', () => {
 	beforeEach(async () => {
 		mockAdminClient = {
 			from: jest.fn()
-		}
+		} as unknown as SupabaseClient<Database>
 
 		const mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)

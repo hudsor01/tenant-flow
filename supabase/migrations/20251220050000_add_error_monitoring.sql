@@ -40,26 +40,29 @@ COMMENT ON COLUMN public.user_errors.context IS
 -- INDEXES FOR FAST QUERYING
 -- ============================================================================
 
+-- Enable trigram indexing for error message search
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 -- User-specific error history
-CREATE INDEX idx_user_errors_user_id
+CREATE INDEX IF NOT EXISTS idx_user_errors_user_id
 ON public.user_errors(user_id, created_at DESC)
 WHERE user_id IS NOT NULL;
 
 -- Error type filtering (dashboard views)
-CREATE INDEX idx_user_errors_type
+CREATE INDEX IF NOT EXISTS idx_user_errors_type
 ON public.user_errors(error_type, created_at DESC);
 
 -- Unresolved errors (active issues)
-CREATE INDEX idx_user_errors_unresolved
+CREATE INDEX IF NOT EXISTS idx_user_errors_unresolved
 ON public.user_errors(created_at DESC)
 WHERE resolved_at IS NULL;
 
 -- Context search (find errors by endpoint, table, etc.)
-CREATE INDEX idx_user_errors_context_gin
+CREATE INDEX IF NOT EXISTS idx_user_errors_context_gin
 ON public.user_errors USING gin(context);
 
 -- Error message pattern search
-CREATE INDEX idx_user_errors_message_trgm
+CREATE INDEX IF NOT EXISTS idx_user_errors_message_trgm
 ON public.user_errors USING gin(error_message gin_trgm_ops);
 
 COMMENT ON INDEX idx_user_errors_user_id IS
@@ -77,16 +80,42 @@ COMMENT ON INDEX idx_user_errors_context_gin IS
 
 ALTER TABLE public.user_errors ENABLE ROW LEVEL SECURITY;
 
--- Service role can manage all errors (backend logging)
-CREATE POLICY "user_errors_service_role" ON public.user_errors
-FOR ALL TO service_role
+-- Service role policies (separate per operation per RLS best practices)
+DROP POLICY IF EXISTS "user_errors_service_role_select" ON public.user_errors;
+CREATE POLICY "user_errors_service_role_select" ON public.user_errors
+FOR SELECT TO service_role
+USING (true);
+
+DROP POLICY IF EXISTS "user_errors_service_role_insert" ON public.user_errors;
+CREATE POLICY "user_errors_service_role_insert" ON public.user_errors
+FOR INSERT TO service_role
+WITH CHECK (true);
+
+DROP POLICY IF EXISTS "user_errors_service_role_update" ON public.user_errors;
+CREATE POLICY "user_errors_service_role_update" ON public.user_errors
+FOR UPDATE TO service_role
 USING (true)
 WITH CHECK (true);
 
-COMMENT ON POLICY "user_errors_service_role" ON public.user_errors IS
-'Backend (service_role) can log and manage all errors';
+DROP POLICY IF EXISTS "user_errors_service_role_delete" ON public.user_errors;
+CREATE POLICY "user_errors_service_role_delete" ON public.user_errors
+FOR DELETE TO service_role
+USING (true);
+
+COMMENT ON POLICY "user_errors_service_role_select" ON public.user_errors IS
+'Backend (service_role) can read all errors';
+
+COMMENT ON POLICY "user_errors_service_role_insert" ON public.user_errors IS
+'Backend (service_role) can log errors';
+
+COMMENT ON POLICY "user_errors_service_role_update" ON public.user_errors IS
+'Backend (service_role) can update/resolve errors';
+
+COMMENT ON POLICY "user_errors_service_role_delete" ON public.user_errors IS
+'Backend (service_role) can cleanup old errors';
 
 -- Users can view their own errors (helpful for support)
+DROP POLICY IF EXISTS "user_errors_select_own" ON public.user_errors;
 CREATE POLICY "user_errors_select_own" ON public.user_errors
 FOR SELECT TO authenticated
 USING (user_id = auth.uid());
@@ -264,6 +293,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS critical_error_notification ON public.user_errors;
 CREATE TRIGGER critical_error_notification
 AFTER INSERT ON public.user_errors
 FOR EACH ROW

@@ -10,7 +10,13 @@
  * 2. Status-conditional menu items (draft, pending_signature, active)
  * 3. Delete menu item opens AlertDialog (not nested inside dropdown)
  * 4. AlertDialog Cancel closes dialog and allows further interaction
- * 5. Dialog properly shows toast on delete (TODO: implement mutation)
+ * 5. Dialog properly shows toast on delete
+ *
+ * Note: The useDeleteLease hook is fully implemented in use-lease.ts with:
+ * - DELETE /api/v1/leases/:id endpoint call
+ * - Optimistic updates with rollback on error
+ * - Query invalidation on success
+ * Tests mock this hook to isolate component behavior.
  */
 
 import { render, screen, waitFor } from '#test/utils/test-render'

@@ -30,6 +30,7 @@ export interface TenantPayment {
 export interface TenantAutopayStatus {
 	autopayEnabled: boolean
 	subscriptionId: string | null
+	subscriptionStatus?: string | null
 	lease_id?: string
 	tenant_id?: string
 	rent_amount?: number

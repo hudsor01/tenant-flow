@@ -1,3 +1,18 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+//
+// File Size Issue:
+//    Current: ~761 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//
+// Recommended Refactoring Strategy:
+//    - Extract PreviewPanel into: `./components/lease-preview-panel.tsx`
+//    - Extract ClauseEditor into: `./components/clause-editor.tsx`
+//    - Extract StateSelector into: `./components/state-selector.tsx`
+//    - Extract form state logic into: `#hooks/use-lease-template-form.ts`
+//    - Keep LeaseTemplateBuilder as orchestration component
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 'use client'
 
 import * as React from 'react'

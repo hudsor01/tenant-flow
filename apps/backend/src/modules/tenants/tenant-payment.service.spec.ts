@@ -6,16 +6,18 @@ import { TenantPaymentService } from './tenant-payment.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 
 describe('TenantPaymentService', () => {
   let service: TenantPaymentService
-  let mockSupabaseService: any
-  let mockLogger: any
+  let mockSupabaseService: jest.Mocked<SupabaseService>
+  let mockLogger: jest.Mocked<AppLogger>
 
   // Helper to create a flexible Supabase query chain
-  const createMockChain = (resolveData: any = [], resolveError: any = null) => {
-    const chain: any = {}
+  const createMockChain = (resolveData: unknown = [], resolveError: unknown = null) => {
+    const chain: Record<string, jest.Mock> = {}
     const methods = ['select', 'insert', 'update', 'delete', 'eq', 'neq', 'is', 'in', 'or', 'gte', 'lte', 'order', 'contains', 'not']
 
     methods.forEach(method => {
@@ -38,12 +40,15 @@ describe('TenantPaymentService', () => {
   }
 
   // Helper to create a mock Supabase client with schema support
-  const createMockClient = (fromFn?: any, rpcFn?: any) => {
-    const mockClient: any = {
+  const createMockClient = (
+    fromFn?: (table: string) => ReturnType<typeof createMockChain>,
+    rpcFn?: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>
+  ): SupabaseClient<Database> => {
+    const mockClient = {
       from: fromFn || jest.fn(() => createMockChain()),
       rpc: rpcFn || jest.fn(() => Promise.resolve({ data: null, error: null })),
       schema: jest.fn(() => mockClient)
-    }
+    } as unknown as SupabaseClient<Database>
     return mockClient
   }
 
@@ -53,11 +58,11 @@ describe('TenantPaymentService', () => {
       error: jest.fn(),
       warn: jest.fn(),
       debug: jest.fn()
-    }
+    } as jest.Mocked<AppLogger>
 
     mockSupabaseService = {
       getAdminClient: jest.fn(() => createMockClient())
-    }
+    } as jest.Mocked<SupabaseService>
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

@@ -3,15 +3,7 @@
  * Centralized error handling types for consistent error management
  */
 
-// Import shared base types to avoid circular dependencies
-import type {
-	ErrorType,
-	ApiResponse,
-	AsyncResult as BaseAsyncResult
-} from './base-types.js'
-
-// Re-export for backward compatibility
-export type { ErrorType }
+import type { ApiResponse } from './core.js'
 
 // React node type definition for error boundaries - avoiding React dependency
 export type ReactNodeType = unknown
@@ -168,8 +160,6 @@ export interface ErrorBoundaryProps {
 // Form error state
 export type FormErrorState = Record<string, string | undefined>
 
-// Async operation result - re-export from base-types for backward compatibility
-export type { BaseAsyncResult as AsyncResult }
 
 // Error context for debugging
 export interface ErrorContext {

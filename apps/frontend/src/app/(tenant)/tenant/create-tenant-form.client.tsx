@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~618 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract PersonalInfoSection into: `./components/personal-info-section.tsx`
+// 2. Extract AddressSection into: `./components/address-section.tsx`
+// 3. Extract EmergencyContactSection into: `./components/emergency-contact-section.tsx`
+// 4. Extract form validation logic into: `#hooks/use-create-tenant-form.ts`
+// 5. Keep CreateTenantForm as orchestration component
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 'use client'
 
 import { Button } from '#components/ui/button'

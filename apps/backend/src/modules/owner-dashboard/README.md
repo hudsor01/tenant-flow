@@ -436,11 +436,10 @@ All controllers use NestJS Logger for structured logs:
 ## Future Enhancements
 
 ### Planned Features
-1. **Real-time Updates**: WebSocket integration for live dashboard updates
-2. **Custom Reports**: User-defined report builder
-3. **Export Functionality**: PDF/Excel export for analytics
-4. **Scheduled Reports**: Email digest with weekly/monthly summaries
-5. **Comparative Analytics**: Multi-property comparison tools
+1. **Custom Reports**: User-defined report builder
+2. **Export Functionality**: PDF/Excel export for analytics
+3. **Scheduled Reports**: Email digest with weekly/monthly summaries
+4. **Comparative Analytics**: Multi-property comparison tools
 
 ### Extensibility
 Add new child modules following the pattern:

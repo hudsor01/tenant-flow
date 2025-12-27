@@ -52,6 +52,52 @@ import { ConfigModule } from '@nestjs/config'
 			help: 'Total number of database errors',
 			labelNames: ['error_type', 'table_name']
 		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_rpc_calls_total',
+			help: 'Total number of Supabase RPC calls',
+			labelNames: ['function_name', 'status']
+		}),
+		makeHistogramProvider({
+			name: 'tenantflow_supabase_rpc_duration_seconds',
+			help: 'Supabase RPC duration in seconds',
+			labelNames: ['function_name'],
+			buckets: [0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 1, 2, 5]
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_rpc_cache_hits_total',
+			help: 'Total number of Supabase RPC cache hits',
+			labelNames: ['function_name']
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_rpc_cache_misses_total',
+			help: 'Total number of Supabase RPC cache misses',
+			labelNames: ['function_name']
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_nplusone_detected_total',
+			help: 'Total number of potential N+1 query patterns detected',
+			labelNames: ['type', 'signature']
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_user_client_pool_hits_total',
+			help: 'Supabase user client pool cache hits',
+			labelNames: ['pool']
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_user_client_pool_misses_total',
+			help: 'Supabase user client pool cache misses',
+			labelNames: ['pool']
+		}),
+		makeCounterProvider({
+			name: 'tenantflow_supabase_user_client_pool_evictions_total',
+			help: 'Supabase user client pool evictions',
+			labelNames: ['pool']
+		}),
+		makeGaugeProvider({
+			name: 'tenantflow_supabase_user_client_pool_size',
+			help: 'Supabase user client pool size',
+			labelNames: ['pool']
+		}),
 
 		// Authentication metrics
 		makeCounterProvider({

@@ -12,7 +12,7 @@ import type {
 	MonthlyFinancialMetric,
 	NetOperatingIncomeByProperty,
 	RevenueExpenseBreakdown
-} from '../types/financial-analytics.js'
+} from '../types/analytics.js'
 
 function toNumber(value: unknown, fallback = 0): number {
 	if (typeof value === 'number' && Number.isFinite(value)) {

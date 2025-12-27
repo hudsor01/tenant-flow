@@ -9,6 +9,8 @@ import { AppLogger } from '../logger/app-logger.service'
 
 
 describe('SecurityController', () => {
+	type MetricsResponse = Awaited<ReturnType<SecurityMetricsService['getMetrics']>>
+
 	let controller: SecurityController
 	let mockMetricsService: jest.Mocked<SecurityMetricsService>
 	let mockConfigService: jest.Mocked<AppConfigService>
@@ -99,9 +101,9 @@ describe('SecurityController', () => {
 				highSeverityEvents: 15,
 				mediumSeverityEvents: 30,
 				lowSeverityEvents: 50
-			}
+			} as MetricsResponse
 
-			mockMetricsService.getMetrics.mockResolvedValue(mockMetrics as any)
+			mockMetricsService.getMetrics.mockResolvedValue(mockMetrics)
 
 			const result = await controller.getSecurityMetrics()
 

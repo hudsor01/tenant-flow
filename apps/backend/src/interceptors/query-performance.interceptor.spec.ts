@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import { QueryPerformanceInterceptor } from './query-performance.interceptor'
 
 import { of, throwError } from 'rxjs'
-import type { CallHandler, ExecutionContext } from '@nestjs/common'
+import type { CallHandler, ExecutionContext, Logger } from '@nestjs/common'
 import { performance } from 'node:perf_hooks'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
@@ -37,7 +37,7 @@ describe('QueryPerformanceInterceptor', () => {
       QueryPerformanceInterceptor
     )
       // Override the logger
-      ; (interceptor as any).logger = mockLogger
+      ; (interceptor as unknown as { logger: Logger }).logger = mockLogger
 
     mockExecutionContext = {
       switchToHttp: jest.fn().mockReturnValue({
@@ -188,7 +188,10 @@ describe('QueryPerformanceInterceptor', () => {
 
   describe('TDD: Configurable threshold', () => {
     it('should use default threshold of 1000ms', () => {
-      expect((interceptor as any).slowQueryThresholdMs).toBe(1000)
+      expect(
+        (interceptor as unknown as { slowQueryThresholdMs: number })
+          .slowQueryThresholdMs
+      ).toBe(1000)
     })
 
     it('should allow custom threshold via environment variable', async () => {
@@ -208,7 +211,10 @@ describe('QueryPerformanceInterceptor', () => {
         QueryPerformanceInterceptor
       )
 
-      expect((customInterceptor as any).slowQueryThresholdMs).toBe(2000)
+      expect(
+        (customInterceptor as unknown as { slowQueryThresholdMs: number })
+          .slowQueryThresholdMs
+      ).toBe(2000)
 
       delete process.env.SLOW_QUERY_THRESHOLD_MS
     })

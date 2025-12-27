@@ -39,7 +39,7 @@ import { Global, Module } from '@nestjs/common'
     {
       provide: AppConfigService,
       useFactory: (configService: ConfigService) => {
-        return new AppConfigService(configService as any)
+        return new AppConfigService(configService)
       },
       inject: [ConfigService]
     },

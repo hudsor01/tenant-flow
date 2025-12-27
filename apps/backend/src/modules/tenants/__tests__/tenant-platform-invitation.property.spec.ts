@@ -16,6 +16,8 @@ import { BadRequestException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import * as fc from 'fast-check'
 import { TenantPlatformInvitationService } from '../tenant-platform-invitation.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { AppConfigService } from '../../../config/app-config.service'
@@ -26,7 +28,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
   let mockEventEmitter: jest.Mocked<EventEmitter2>
   let mockLogger: jest.Mocked<AppLogger>
   let mockConfig: jest.Mocked<AppConfigService>
-  let mockSupabaseClient: any
+  let mockSupabaseClient: SupabaseClient<Database>
 
   beforeEach(() => {
     // Create mock Supabase client with chainable methods
@@ -44,22 +46,22 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
     // Create mock services
     mockSupabaseService = {
       getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
-    } as any
+    } as unknown as SupabaseClient<Database>
 
     mockEventEmitter = {
       emit: jest.fn()
-    } as any
+    } as unknown as SupabaseClient<Database>
 
     mockLogger = {
       log: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
       debug: jest.fn()
-    } as any
+    } as unknown as SupabaseClient<Database>
 
     mockConfig = {
       getNextPublicAppUrl: jest.fn().mockReturnValue('http://localhost:3000')
-    } as any
+    } as unknown as SupabaseClient<Database>
 
     service = new TenantPlatformInvitationService(
       mockLogger,
@@ -89,7 +91,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
           fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2), // first_name
           fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2), // last_name
           async (ownerId, email, firstName, lastName) => {
-            let capturedInsertData: any = null
+            let capturedInsertData: TenantInvitationInsert | null = null
 
             // Setup: No existing invitation
             mockSupabaseClient.maybeSingle.mockResolvedValueOnce({
@@ -106,7 +108,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
               })
             }
 
-            mockSupabaseClient.insert = jest.fn((data: any) => {
+            mockSupabaseClient.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return insertChain
             })
@@ -142,7 +144,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
           fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2), // first_name
           fc.string({ minLength: 2, maxLength: 50 }).filter(s => s.trim().length >= 2), // last_name
           async (ownerId, email, firstName, lastName) => {
-            let capturedInsertData: any = null
+            let capturedInsertData: TenantInvitationInsert | null = null
             const beforeCreation = new Date()
 
             // Setup: No existing invitation
@@ -160,7 +162,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
               })
             }
 
-            mockSupabaseClient.insert = jest.fn((data: any) => {
+            mockSupabaseClient.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return insertChain
             })

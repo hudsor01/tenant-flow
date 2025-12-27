@@ -11,7 +11,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken: () => (target: any, propertyKey: string, parameterIndex: number) => {
+	JwtToken: () => (target: object, propertyKey: string, parameterIndex: number) => {
 		// Store metadata for the decorator
 		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
 		existingParams.push(parameterIndex)
@@ -118,7 +118,7 @@ describe('BalanceSheetController', () => {
 
 		it('should throw UnauthorizedException when token is missing', async () => {
 			await expect(
-				controller.getBalanceSheet('' as any, '2024-10-31')
+				controller.getBalanceSheet('', '2024-10-31')
 			).rejects.toThrow('Authentication token is required')
 		})
 

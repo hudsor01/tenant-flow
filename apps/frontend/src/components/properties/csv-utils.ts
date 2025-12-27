@@ -1,4 +1,4 @@
-import type { ParsedRow } from '@repo/shared/types/bulk-import'
+import type { ParsedRow } from '@repo/shared/types/api-contracts'
 
 export const CSV_TEMPLATE_HEADERS = [
   'name',

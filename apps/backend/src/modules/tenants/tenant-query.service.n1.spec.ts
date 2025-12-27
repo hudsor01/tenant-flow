@@ -70,7 +70,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
     service = module.get<TenantRelationService>(TenantRelationService)
       // Override logger to suppress output
-      ; (service as any).logger = {
+      ; (service as unknown as { logger: Logger }).logger = {
         log: jest.fn(),
         warn: jest.fn(),
         error: jest.fn(),
@@ -102,7 +102,12 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
         }
       ]
 
-      const mockClient = mockSupabaseService.getAdminClient()
+      type MockAdminClient = ReturnType<SupabaseService['getAdminClient']> & {
+        then?: (cb: (result: { data: unknown; error: unknown }) => void) => void
+        select: jest.Mock
+        maybeSingle?: jest.Mock
+      }
+      const mockClient = mockSupabaseService.getAdminClient() as MockAdminClient
 
       // Mock the properties query with nested joins
       mockClient.select = jest.fn().mockReturnValue(mockClient)
@@ -138,7 +143,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
           })
         } else if (callIndex === 2) {
           // Nested join query
-          ; (mockClient as any).then = (cb: (result: any) => void) => {
+          mockClient.then = (cb: (result: { data: unknown; error: unknown }) => void) => {
             cb({ data: [], error: null })
             return Promise.resolve({ data: [], error: null })
           }
@@ -153,7 +158,7 @@ describe('TenantRelationService - N+1 Query Prevention', () => {
 
       // Should use nested joins in the select statement
       const selectCalls = mockClient.select.mock.calls
-      const hasNestedJoin = selectCalls.some((call: any[]) => {
+      const hasNestedJoin = selectCalls.some((call: unknown[]) => {
         const columns = call[0]
         return (
           typeof columns === 'string' &&

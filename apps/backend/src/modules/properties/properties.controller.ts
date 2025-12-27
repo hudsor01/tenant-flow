@@ -13,10 +13,8 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type {
-	PropertyCreate,
-	PropertyUpdate
-} from '@repo/shared/validation/properties'
+// Property types now imported from backend schemas, not shared package
+// Validation schemas/types are imported where needed; avoid unused type imports
 import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
@@ -126,10 +124,7 @@ export class PropertiesController {
 		@Body() dto: CreatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		return this.propertiesService.create(
-			req,
-			dto as unknown as PropertyCreate
-		)
+		return this.propertiesService.create(req, dto)
 	}
 
 	/**
@@ -203,16 +198,10 @@ export class PropertiesController {
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdatePropertyDto,
-		@Request() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest,
+		@Body('version') expectedVersion?: number
 	) {
-		//Pass version for optimistic locking
-		const expectedVersion = (dto as unknown as { version?: number }).version
-		const property = await this.propertiesService.update(
-			req,
-			id,
-			dto as unknown as PropertyUpdate,
-			expectedVersion
-		)
+		const property = await this.propertiesService.update(req, id, dto, expectedVersion)
 		if (!property) {
 			throw new NotFoundException({
 				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,

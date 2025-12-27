@@ -1,3 +1,10 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~591 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract lease analytics into: `./lease-analytics.service.ts`
+// 2. Extract lease search/filtering into: `./lease-search.service.ts`
+// 3. Keep core CRUD + status operations in this service
+
 // LeaseStatus type removed - using string literals from database enum
 /**
  * Leases Service - Ultra-Native NestJS Implementation
@@ -21,6 +28,7 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
+import { validateLeaseStatus } from '@repo/shared/validation/enum-validators'
 
 @Injectable()
 export class LeasesService {
@@ -217,67 +225,40 @@ export class LeasesService {
 			// RLS SECURITY: User-scoped client automatically validates unit/tenant ownership
 			const client = this.supabase.getUserClient(token)
 
-			// Parallelize independent queries for performance (~40-80ms saved)
-			// Unit and tenant queries don't depend on each other
-			const [unitResult, tenantResult] = await Promise.all([
-				client
-					.from('units')
-					.select('id, property_id, property:properties(name, owner_user_id)')
-					.eq('id', dto.unit_id)
-					.single(),
-				client
-					.from('tenants')
-					.select('id, user_id, user:users!tenants_user_id_fkey(first_name, last_name, email)')
-					.eq('id', dto.primary_tenant_id)
-					.single()
-			])
+			const { error: assertError } = await client.rpc('assert_can_create_lease', {
+				p_unit_id: dto.unit_id,
+				p_primary_tenant_id: dto.primary_tenant_id
+			})
+
+			if (assertError) {
+				throw new BadRequestException(assertError.message)
+			}
+
+			const unitResult = await client
+				.from('units')
+				.select('id, property_id, property:properties(name, owner_user_id)')
+				.eq('id', dto.unit_id)
+				.single()
 
 			const unit = unitResult.data
-			const tenant = tenantResult.data
 
 			if (!unit) {
 				throw new BadRequestException('Unit not found or access denied')
 			}
 
-			if (!tenant) {
-				throw new BadRequestException('Tenant not found or access denied')
+		if (dto.rent_amount !== undefined && dto.rent_amount !== null && dto.rent_amount <= 0) {
+			throw new BadRequestException('Rent amount must be greater than zero')
+		}
+
+		if (dto.start_date && dto.end_date) {
+			const startDate = new Date(dto.start_date)
+			const endDate = new Date(dto.end_date)
+			if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+				throw new BadRequestException('Invalid lease date format')
 			}
-
-			// Verify tenant was invited to this property
-			// Uses accepted_at IS NOT NULL (per user decision: ignore status after acceptance)
-			const { data: invitation } = await client
-				.from('tenant_invitations')
-				.select('id')
-				.eq('property_id', unit.property_id)
-				.eq('accepted_by_user_id', tenant.user_id)
-				.not('accepted_at', 'is', null)
-				.maybeSingle()
-
-			if (!invitation) {
-				// Enrich error message with context for better debugging
-				// Type-safe access to user relation (query includes user join)
-			type UserInfo = { first_name: string | null; last_name: string | null; email: string | null } | null
-			const tenantUser: UserInfo = tenant.user
-				const tenantName = tenantUser
-					? [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ') || tenantUser.email || 'Unknown'
-					: 'Unknown tenant'
-
-				// Type-safe access to property relation (query includes property join)
-			type PropertyInfo = { name: string | null } | null
-			const propertyInfo: PropertyInfo = unit.property
-			const propertyName = propertyInfo?.name || 'this property'
-
-				this.logger.warn('Lease creation failed: Tenant not invited to property', {
-					tenant_id: dto.primary_tenant_id,
-					tenant_name: tenantName,
-					property_id: unit.property_id,
-					property_name: propertyName,
-					unit_id: dto.unit_id
-				})
-
-				throw new BadRequestException(
-				`Cannot create lease: ${tenantName} has not been invited to ${propertyName}. Please send an invitation first.`
-			)
+			if (endDate <= startDate) {
+				throw new BadRequestException('End date must be after start date')
+			}
 		}
 
 		// RACE CONDITION FIX: Check for existing active lease before creating new one
@@ -309,6 +290,33 @@ export class LeasesService {
 			throw new BadRequestException('Property owner not found')
 		}
 
+		const dtoWithDetails = dto as CreateLeaseDto & {
+			max_occupants?: number | null
+			pets_allowed?: boolean
+			pet_deposit?: number | null
+			pet_rent?: number | null
+			utilities_included?: string[]
+			tenant_responsible_utilities?: string[]
+			property_rules?: string | null
+			property_built_before_1978?: boolean
+			lead_paint_disclosure_acknowledged?: boolean | null
+			governing_state?: string
+		}
+
+		if (
+			dtoWithDetails.property_built_before_1978 &&
+			dtoWithDetails.lead_paint_disclosure_acknowledged !== true
+		) {
+			throw new BadRequestException(
+				'Lead paint disclosure acknowledgment required for properties built before 1978'
+			)
+		}
+
+		const resolvedLeaseStatus =
+			dto.lease_status !== undefined
+				? validateLeaseStatus(dto.lease_status)
+				: 'draft'
+
 		const insertData: Database['public']['Tables']['leases']['Insert'] = {
 			primary_tenant_id: dto.primary_tenant_id,
 			unit_id: dto.unit_id,
@@ -317,7 +325,7 @@ export class LeasesService {
 				end_date: dto.end_date || '',
 				rent_amount: dto.rent_amount!,
 				security_deposit: dto.security_deposit || 0,
-				lease_status: (dto.lease_status || 'draft') as Database['public']['Enums']['lease_status'],
+				lease_status: resolvedLeaseStatus as Database['public']['Enums']['lease_status'],
 				payment_day: dto.payment_day ?? 1,
 				rent_currency: dto.rent_currency || 'USD',
 				grace_period_days: dto.grace_period_days ?? null,
@@ -327,19 +335,6 @@ export class LeasesService {
 			}
 
 			// Add lease detail fields if provided (wizard flow)
-			const dtoWithDetails = dto as CreateLeaseDto & {
-				max_occupants?: number | null
-				pets_allowed?: boolean
-				pet_deposit?: number | null
-				pet_rent?: number | null
-				utilities_included?: string[]
-				tenant_responsible_utilities?: string[]
-				property_rules?: string | null
-				property_built_before_1978?: boolean
-				lead_paint_disclosure_acknowledged?: boolean | null
-				governing_state?: string
-			}
-
 			if (dtoWithDetails.max_occupants !== undefined) {
 				insertData.max_occupants = dtoWithDetails.max_occupants
 			}

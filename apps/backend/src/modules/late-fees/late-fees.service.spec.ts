@@ -8,13 +8,19 @@ import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { LateFeesService } from './late-fees.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 describe('LateFeesService', () => {
+	type ApplyLateFeeResult = Awaited<
+		ReturnType<LateFeesService['applyLateFeeToInvoice']>
+	>
+
 	let service: LateFeesService
 	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
 	let mockStripeClientService: jest.Mocked<Partial<StripeClientService>>
 	let mockStripe: jest.Mocked<Partial<Stripe>>
-	let mockAdminClient: any
+	let mockAdminClient: SupabaseClient<Database>
 
 	const generateUUID = () => randomUUID()
 
@@ -29,7 +35,7 @@ describe('LateFeesService', () => {
 			in: jest.fn().mockReturnThis(),
 			order: jest.fn().mockReturnThis(),
 			single: jest.fn()
-		}
+		} as unknown as SupabaseClient<Database>
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
@@ -41,8 +47,8 @@ describe('LateFeesService', () => {
 		mockStripe = {
 			invoiceItems: {
 				create: jest.fn()
-			} as any
-		}
+			}
+		} as jest.Mocked<Partial<Stripe>>
 
 		// Mock StripeClientService
 		mockStripeClientService = {
@@ -420,7 +426,7 @@ describe('LateFeesService', () => {
 				.spyOn(service, 'applyLateFeeToInvoice')
 				.mockResolvedValue({
 					id: 'ii_123'
-				} as any)
+				} as ApplyLateFeeResult)
 
 			const result = await service.processLateFees(
 				lease_id,

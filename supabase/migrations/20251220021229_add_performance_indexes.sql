@@ -131,11 +131,11 @@ END $$;
 -- Display index sizes for monitoring
 SELECT
   schemaname,
-  tablename,
-  indexname,
+  relname,
+  indexrelname,
   pg_size_pretty(pg_relation_size(indexrelid)) as index_size
 FROM pg_stat_user_indexes
 WHERE schemaname = 'public'
-  AND tablename IN ('leases', 'lease_tenants', 'units')
-  AND indexname LIKE 'idx_%'
+  AND relname IN ('leases', 'lease_tenants', 'units')
+  AND indexrelname LIKE 'idx_%'
 ORDER BY pg_relation_size(indexrelid) DESC;

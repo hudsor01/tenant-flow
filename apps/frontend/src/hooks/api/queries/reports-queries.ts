@@ -5,7 +5,16 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-import type { ListReportsResponse, RevenueData, PaymentAnalytics, OccupancyMetrics } from '@repo/shared/types/reports'
+import type {
+	ListReportsResponse,
+	RevenueData,
+	PaymentAnalytics,
+	OccupancyMetrics,
+	FinancialReport,
+	PropertyReport,
+	TenantReport,
+	MaintenanceReport
+} from '@repo/shared/types/reports'
 
 /**
  * Query keys for reports
@@ -20,7 +29,15 @@ export const reportsKeys = {
 	paymentAnalytics: (start_date?: string, end_date?: string) =>
 		[...reportsKeys.all, 'analytics', 'payments', start_date, end_date] as const,
 	occupancyMetrics: () =>
-		[...reportsKeys.all, 'analytics', 'occupancy'] as const
+		[...reportsKeys.all, 'analytics', 'occupancy'] as const,
+	financial: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'financial', start_date, end_date] as const,
+	properties: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'properties', start_date, end_date] as const,
+	tenants: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'tenants', start_date, end_date] as const,
+	maintenance: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'maintenance', start_date, end_date] as const
 }
 
 /**
@@ -55,5 +72,65 @@ export const reportsQueries = {
 		queryOptions({
 			queryKey: reportsKeys.occupancyMetrics(),
 			queryFn: () => apiRequest<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
+		}),
+
+	financial: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.financial(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					FinancialReport | { data: FinancialReport }
+				>(`/api/v1/reports/financial${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	properties: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.properties(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					PropertyReport | { data: PropertyReport }
+				>(`/api/v1/reports/properties${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	tenants: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.tenants(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					TenantReport | { data: TenantReport }
+				>(`/api/v1/reports/tenants${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	maintenance: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.maintenance(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					MaintenanceReport | { data: MaintenanceReport }
+				>(`/api/v1/reports/maintenance${queryString}`)
+				return 'data' in response ? response.data : response
+			}
 		})
 }

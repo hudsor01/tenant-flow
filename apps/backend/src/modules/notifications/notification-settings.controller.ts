@@ -12,6 +12,24 @@ import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
+/**
+ * TODO [LOW PRIORITY]: Regenerate Supabase types to include notification_settings table.
+ *
+ * The notification_settings table exists in the database but was added after the last
+ * type generation. This manual type definition is a maintenance burden and can drift
+ * from the actual schema.
+ *
+ * Steps to fix:
+ * 1. Run `pnpm supabase:types` to regenerate packages/shared/src/types/supabase.ts
+ * 2. Import the generated type: `import type { Database } from '@repo/shared/types/supabase'`
+ * 3. Replace NotificationSettingsRow with: `Database['public']['Tables']['notification_settings']['Row']`
+ * 4. Update SupabaseService.getUserClient() return type to use the generated Database type
+ * 5. Remove the manual NotificationSettingsRow type below
+ * 6. Remove the `as unknown as SupabaseClient` cast in getUserClientFromRequest()
+ *
+ * Related migration: Check supabase/migrations/ for the notification_settings table creation
+ */
+
 // Type for notification_settings table row (table exists in DB but not yet in generated types)
 type NotificationSettingsRow = {
 	id: string

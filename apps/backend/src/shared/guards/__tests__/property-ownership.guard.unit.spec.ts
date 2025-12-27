@@ -18,7 +18,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
   let mockSupabaseService: jest.Mocked<SupabaseService>
   let mockAuthCache: jest.Mocked<AuthRequestCache>
   let mockLogger: jest.Mocked<AppLogger>
-  let mockSupabaseClient: any
+  let mockSupabaseClient: ReturnType<SupabaseService["getAdminClient"]>
 
   beforeEach(() => {
     // Create mock Supabase client with chainable methods
@@ -32,18 +32,18 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
     // Create mock services
     mockSupabaseService = {
       getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
-    } as any
+    } as jest.Mocked<SupabaseService>
 
     mockAuthCache = {
       getOrSet: jest.fn()
-    } as any
+    } as jest.Mocked<AuthRequestCache>
 
     mockLogger = {
       warn: jest.fn(),
       debug: jest.fn(),
       error: jest.fn(),
       log: jest.fn()
-    } as any
+    } as jest.Mocked<AppLogger>
 
     guard = new PropertyOwnershipGuard(
       mockSupabaseService,
@@ -87,7 +87,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -118,7 +118,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -154,7 +154,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -177,7 +177,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -213,7 +213,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { lease_id: leaseId },
         params: {},
         query: {}
@@ -244,7 +244,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { lease_id: leaseId },
         params: {},
         query: {}
@@ -277,7 +277,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { lease_id: leaseId },
         params: {},
         query: {}
@@ -313,7 +313,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { tenant_id: tenantId },
         params: {},
         query: {}
@@ -344,7 +344,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { tenant_id: tenantId },
         params: {},
         query: {}
@@ -377,7 +377,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { tenant_id: tenantId },
         params: {},
         query: {}
@@ -411,7 +411,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       mockAuthCache.getOrSet.mockResolvedValue(true)
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: {
           tenantData: {
             email: 'tenant@example.com',
@@ -449,7 +449,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       mockAuthCache.getOrSet.mockResolvedValue(true)
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: {
           leaseData: {
             lease_id: leaseId
@@ -482,7 +482,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -526,7 +526,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -567,7 +567,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -605,7 +605,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       // Test property cache key
       const propertyContext = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -622,7 +622,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       // Test lease cache key
       const leaseContext = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { lease_id: leaseId },
         params: {},
         query: {}
@@ -639,7 +639,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
       // Test tenant cache key
       const tenantContext = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { tenant_id: tenantId },
         params: {},
         query: {}
@@ -671,7 +671,7 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
       })
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}

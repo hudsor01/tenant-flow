@@ -1,3 +1,21 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
+//
+// 1. KISS Principle violation - File Size
+//    Current: ~561 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//    Recommended refactoring:
+//    - Extract status update logic into: `./maintenance-status.service.ts`
+//    - Extract assignment logic into: `./maintenance-assignment.service.ts`
+//    - Extract analytics/stats into: `./maintenance-stats.service.ts`
+//    - Keep core CRUD operations in this service
+//
+// 2. Sequential Query Anti-Pattern - update() method (lines ~442-458)
+//    Issue: Makes 2 separate queries (units, then properties) that could be 1 joined query
+//    Current: `client.from('units')...` then `client.from('properties')...`
+//    Fix: Use single query with join: `.select('unit_number, property:property_id(name)')`
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 /**
  * Maintenance Service - Ultra-Native NestJS Implementation
  * Direct Supabase access, no repository abstractions
@@ -10,7 +28,7 @@ import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '@repo/shared/types/core'
+import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, ExpenseRecord } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
@@ -424,7 +442,39 @@ export class MaintenanceService {
 
 				// Emit maintenance updated event with inline context
 				if (updated) {
-					// Get unit and property names inline
+					// ⚠️ SEQUENTIAL QUERY ANTI-PATTERN - INEFFICIENT DATABASE ACCESS
+					// ═══════════════════════════════════════════════════════════════════════════
+					//
+					// PROBLEM: Two sequential database queries where one joined query would suffice.
+					// This doubles the network latency and database load for every maintenance update.
+					//
+					// CURRENT BEHAVIOR (2 sequential queries):
+					//   Query 1: SELECT unit_number, property_id FROM units WHERE id = ?
+					//   Query 2: SELECT name FROM properties WHERE id = ? (conditional)
+					//   Total: 2 round trips, 2 query executions
+					//
+					// RECOMMENDED FIX (1 joined query):
+					//   const { data: unit } = await client
+					//     .from('units')
+					//     .select('unit_number, property:property_id(name)')
+					//     .eq('id', updated.unit_id)
+					//     .single()
+					//   // Access: unit.unit_number, unit.property?.name
+					//   Total: 1 round trip, 1 query execution
+					//
+					// WHY THIS MATTERS:
+					//   - Each maintenance update triggers these queries
+					//   - High-traffic systems may have 100s of updates/hour
+					//   - Database connection time is ~1-5ms per query (adds up!)
+					//   - Supabase has query limits on free/pro tiers
+					//
+					// ADDITIONAL ISSUE - ERROR HANDLING GAP:
+					//   If Query 1 succeeds but Query 2 fails, we still emit the event with
+					//   'Unknown Property' - this could cause confusing notifications.
+					//   A single joined query fails atomically, making error handling cleaner.
+					//
+					// ═══════════════════════════════════════════════════════════════════════════
+					// Query 1: Get unit data
 					const { data: unit } = await client
 						.from('units')
 						.select('unit_number, property_id')
@@ -434,6 +484,7 @@ export class MaintenanceService {
 					let propertyName = 'Unknown Property'
 					const unitNumber = unit?.unit_number || 'Unknown Unit'
 
+					// Query 2: Get property name (should be joined above)
 					if (unit?.property_id) {
 						const { data: property } = await client
 							.from('properties')
@@ -555,6 +606,142 @@ export class MaintenanceService {
 				error instanceof Error
 					? error.message
 					: 'Failed to remove maintenance request'
+			)
+		}
+	}
+
+	/**
+	 * Create expense for maintenance request
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 */
+	async createExpense(
+		token: string,
+		expenseData: {
+			maintenance_request_id: string
+			vendor_name: string | null
+			amount: number
+			expense_date: string
+		}
+	): Promise<ExpenseRecord> {
+		try {
+			if (!token) {
+				throw new BadRequestException('Authentication token is required')
+			}
+
+			this.logger.log('Creating expense via RLS-protected query', { expenseData })
+
+			const client = this.supabase.getUserClient(token)
+
+			// Verify user has access to the maintenance request
+			const maintenanceRequest = await this.findOne(token, expenseData.maintenance_request_id)
+			if (!maintenanceRequest) {
+				throw new BadRequestException('Maintenance request not found')
+			}
+
+			const { data, error } = await client
+				.from('expenses')
+				.insert({
+					maintenance_request_id: expenseData.maintenance_request_id,
+					vendor_name: expenseData.vendor_name,
+					amount: expenseData.amount,
+					expense_date: expenseData.expense_date,
+					owner_user_id: maintenanceRequest.owner_user_id
+				})
+				.select()
+				.single()
+
+			if (error) {
+				this.logger.error('Failed to create expense in Supabase', {
+					error: error.message,
+					expenseData
+				})
+				throw new BadRequestException('Failed to create expense')
+			}
+
+			return data as ExpenseRecord
+		} catch (error) {
+			this.logger.error('Maintenance service failed to create expense', {
+				error: error instanceof Error ? error.message : String(error),
+				expenseData
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to create expense'
+			)
+		}
+	}
+
+	/**
+	 * Get expenses for a maintenance request
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's expenses
+	 */
+	async getExpenses(token: string, maintenanceId: string): Promise<ExpenseRecord[]> {
+		try {
+			if (!token || !maintenanceId) {
+				this.logger.warn('Get expenses called with missing parameters', { maintenanceId })
+				return []
+			}
+
+			this.logger.log('Getting expenses via RLS-protected query', { maintenanceId })
+
+			const client = this.supabase.getUserClient(token)
+
+			const { data, error } = await client
+				.from('expenses')
+				.select('*')
+				.eq('maintenance_request_id', maintenanceId)
+				.order('expense_date', { ascending: false })
+
+			if (error) {
+				this.logger.error('Failed to fetch expenses from Supabase', {
+					error: error.message,
+					maintenanceId
+				})
+				return []
+			}
+
+			return data as ExpenseRecord[]
+		} catch (error) {
+			this.logger.error('Maintenance service failed to get expenses', {
+				error: error instanceof Error ? error.message : String(error),
+				maintenanceId
+			})
+			return []
+		}
+	}
+
+	/**
+	 * Delete an expense
+	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 */
+	async deleteExpense(token: string, expenseId: string): Promise<void> {
+		try {
+			if (!token || !expenseId) {
+				throw new BadRequestException('Authentication token and expense ID are required')
+			}
+
+			this.logger.log('Deleting expense via RLS-protected query', { expenseId })
+
+			const client = this.supabase.getUserClient(token)
+
+			const { error } = await client
+				.from('expenses')
+				.delete()
+				.eq('id', expenseId)
+
+			if (error) {
+				this.logger.error('Failed to delete expense in Supabase', {
+					error: error.message,
+					expenseId
+				})
+				throw new BadRequestException('Failed to delete expense')
+			}
+		} catch (error) {
+			this.logger.error('Maintenance service failed to delete expense', {
+				error: error instanceof Error ? error.message : String(error),
+				expenseId
+			})
+			throw new BadRequestException(
+				error instanceof Error ? error.message : 'Failed to delete expense'
 			)
 		}
 	}

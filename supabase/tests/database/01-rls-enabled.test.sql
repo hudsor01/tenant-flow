@@ -100,8 +100,8 @@ select ok(
 -- =============================================================================
 
 select ok(
-  (SELECT relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = 'subscriptions'),
-  'RLS should be enabled on public.subscriptions'
+  (SELECT relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'stripe' AND c.relname = 'subscriptions'),
+  'RLS should be enabled on stripe.subscriptions'
 );
 select ok(
   (SELECT relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = 'tenant_invitations'),

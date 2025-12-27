@@ -8,7 +8,11 @@ import type {
   ListReportsResponse,
   RevenueData,
   PaymentAnalytics,
-  OccupancyMetrics
+  OccupancyMetrics,
+  FinancialReport,
+  PropertyReport,
+  TenantReport,
+  MaintenanceReport
 } from '@repo/shared/types/reports'
 
 export interface UseReportsResult {
@@ -30,5 +34,9 @@ export type {
   ListReportsResponse,
   RevenueData,
   PaymentAnalytics,
-  OccupancyMetrics
+  OccupancyMetrics,
+  FinancialReport,
+  PropertyReport,
+  TenantReport,
+  MaintenanceReport
 }

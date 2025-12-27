@@ -7,7 +7,7 @@ import {
 } from '#components/ui/card'
 import { cn } from '#lib/utils'
 import { cardVariants } from '#components/ui/card'
-import type { MetricsCardProps } from '@repo/shared/types/frontend-ui'
+import type { MetricsCardProps } from '@repo/shared/types/frontend'
 import * as React from 'react'
 
 const colorMap = {

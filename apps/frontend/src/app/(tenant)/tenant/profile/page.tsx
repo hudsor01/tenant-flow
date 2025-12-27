@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~624 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract ProfileFormSection into: `./components/profile-form-section.tsx`
+// 2. Extract EmergencyContactSection into: `./components/emergency-contact-section.tsx`
+// 3. Extract NotificationPreferencesSection into: `./components/notification-preferences-section.tsx`
+// 4. Extract form validation/submission logic into: `#hooks/use-tenant-profile-form.ts`
+// 5. Keep TenantProfilePage as orchestration component
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 /**
  * Tenant Profile
  *

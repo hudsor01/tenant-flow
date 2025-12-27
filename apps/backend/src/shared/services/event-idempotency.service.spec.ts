@@ -420,7 +420,7 @@ describe('EventIdempotencyService', () => {
       // Mock for total count
       mockClient.from.mockReturnValueOnce({
         select: mockSelect.mockReturnValue({
-          then: (cb: any) => cb({ count: 100, error: null })
+          then: (cb: (result: { count: number; error: unknown }) => void) => cb({ count: 100, error: null })
         })
       })
 
@@ -428,7 +428,7 @@ describe('EventIdempotencyService', () => {
       mockClient.from.mockReturnValueOnce({
         select: jest.fn().mockReturnValue({
           gte: mockGte.mockReturnValue({
-            then: (cb: any) => cb({ count: 10, error: null })
+            then: (cb: (result: { count: number; error: unknown }) => void) => cb({ count: 10, error: null })
           })
         })
       })

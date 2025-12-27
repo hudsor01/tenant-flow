@@ -181,17 +181,7 @@ export class BillingService {
 
   /**
    * Find active subscription for a user (RLS-enforced query)
-   * Returns the subscription record from public.subscriptions table
-   * This method exists to avoid using admin client for user-scoped queries
-   */
-  /**
-   * Find active subscription for a user (RLS-enforced query)
-   * Returns the subscription record from public.subscriptions table
-   * Uses service client with user token to enforce RLS policies
-   */
-  /**
-   * Find active subscription for a user (RLS-enforced query)
-   * Returns the subscription record from public.subscriptions table
+   * Returns the subscription record from stripe.subscriptions table
    * Uses service client with user token to enforce RLS policies
    *
    * SECURITY: FAIL-CLOSED ERROR HANDLING
@@ -205,12 +195,15 @@ export class BillingService {
   ): Promise<{ stripe_subscription_id: string | null; stripe_customer_id: string | null } | null> {
     // Use user client to enforce RLS - only returns subscriptions user has access to
     const client = this.supabase.getUserClient(userToken)
-    const { data, error } = await client
+    const stripeClient = asStripeSchemaClient(client)
+
+    const { data, error } = (await stripeClient
+      .schema('stripe')
       .from('subscriptions')
-      .select('stripe_subscription_id, stripe_customer_id')
-      .eq('user_id', userId)
+      .select('id, customer')
+      .order('created', { ascending: false })
       .limit(1)
-      .single()
+      .single()) as { data: { id: string; customer: string | null } | null; error: SupabaseError | null }
 
     if (error) {
       // Not found is expected for users without subscriptions
@@ -218,11 +211,18 @@ export class BillingService {
         return null
       }
       // All other errors throw (fail-closed security)
-      this.logger.error('Failed to find subscription by user ID:', { error })
+      this.logger.error('Failed to find subscription by user ID:', { error, userId })
       throw error
     }
 
-    return data
+    if (!data) {
+      return null
+    }
+
+    return {
+      stripe_subscription_id: data.id ?? null,
+      stripe_customer_id: data.customer ?? null
+    }
   }
 
   /**

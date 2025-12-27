@@ -19,20 +19,34 @@
 -- USER SELECT POLICY - View Own Payment Methods
 -- ============================================================================
 
-CREATE POLICY "payment_methods_select_own" ON stripe.payment_methods
-FOR SELECT TO authenticated
-USING (
-  customer IN (
-    SELECT id FROM stripe.customers
-    WHERE email IN (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
-    OR (metadata->>'user_id')::uuid = auth.uid()
-  )
-);
+DO $$
+BEGIN
+  IF to_regclass('stripe.payment_methods') IS NULL THEN
+    RAISE NOTICE 'stripe.payment_methods not found; skipping payment_methods_select_own';
+    RETURN;
+  END IF;
 
-COMMENT ON POLICY "payment_methods_select_own" ON stripe.payment_methods IS
-'Users can view payment methods for their own Stripe customer record';
+  EXECUTE 'DROP POLICY IF EXISTS "payment_methods_select_own" ON stripe.payment_methods';
+
+  EXECUTE $policy$
+    CREATE POLICY "payment_methods_select_own" ON stripe.payment_methods
+    FOR SELECT TO authenticated
+    USING (
+      customer IN (
+        SELECT id FROM stripe.customers
+        WHERE email IN (
+          SELECT email FROM auth.users WHERE id = auth.uid()
+        )
+        OR (metadata->>'user_id')::uuid = auth.uid()
+      )
+    );
+  $policy$;
+
+  EXECUTE $comment$
+    COMMENT ON POLICY "payment_methods_select_own" ON stripe.payment_methods IS
+    'Users can view payment methods for their own Stripe customer record';
+  $comment$;
+END $$;
 
 -- ============================================================================
 -- FUTURE: USER UPDATE/DELETE POLICIES (Commented Out)

@@ -8,13 +8,15 @@ import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesController } from './late-fees.controller'
 import { LateFeesService } from './late-fees.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 describe('LateFeesController', () => {
 	let controller: LateFeesController
 	let mockLateFeesService: jest.Mocked<Partial<LateFeesService>>
 	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
-	let mockAdminClient: any
-	let singleResponses: Array<{ data: any; error: any }>
+	let mockAdminClient: SupabaseClient<Database>
+	let singleResponses: Array<{ data: unknown; error: unknown }>
 
 	const generateUUID = () => randomUUID()
 
@@ -33,7 +35,7 @@ describe('LateFeesController', () => {
 		({}) as AuthenticatedRequest
 
 	const enqueueSingleResponses = (
-		...responses: Array<{ data: any; error: any }>
+		...responses: Array<{ data: unknown; error: unknown }>
 	) => {
 		singleResponses.push(...responses)
 
@@ -73,7 +75,7 @@ describe('LateFeesController', () => {
 			single: jest.fn(
 				async () => singleResponses.shift() ?? { data: null, error: null }
 			)
-		}
+		} as unknown as SupabaseClient<Database>
 
 		mockLateFeesService = {
 			getLateFeeConfig: jest.fn(),
@@ -114,8 +116,8 @@ describe('LateFeesController', () => {
 		controller = module.get<LateFeesController>(LateFeesController)
 
 		// Replace injected services with mocks
-		;(controller as any).lateFeesService = mockLateFeesService
-		;(controller as any).supabaseService = mockSupabaseService
+		;(controller as unknown as { lateFeesService: typeof mockLateFeesService }).lateFeesService = mockLateFeesService
+		;(controller as unknown as { supabaseService: typeof mockSupabaseService }).supabaseService = mockSupabaseService
 
 		// Spy on logger
 		jest.spyOn(controller['logger'], 'log').mockImplementation(() => {})
@@ -150,7 +152,7 @@ describe('LateFeesController', () => {
 		})
 
 		it('should throw BadRequestException when service not available', async () => {
-			;(controller as any).lateFeesService = undefined
+			;(controller as unknown as { lateFeesService: typeof mockLateFeesService | undefined }).lateFeesService = undefined
 
 			await expect(
 				controller.getConfig(createMockRequest(), generateUUID())

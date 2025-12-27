@@ -1,7 +1,9 @@
-import { Body, Controller, Get, Param, Post, Request, UseGuards, ParseUUIDPipe } from '@nestjs/common'
+import { BadRequestException, Body, Controller, Get, Header, Param, Post, Query, Request, Res, UseGuards, ParseUUIDPipe } from '@nestjs/common'
+import { Response } from 'express'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
+import { PaymentAnalyticsService } from './payment-analytics.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -9,12 +11,122 @@ import { AppLogger } from '../../logger/app-logger.service'
 @Controller('rent-payments')
 export class RentPaymentsController {
 
-	constructor(private readonly rentPaymentsService: RentPaymentsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly rentPaymentsService: RentPaymentsService,
+		private readonly paymentAnalyticsService: PaymentAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
+
+	/**
+	 * Get payment analytics
+	 * GET /api/v1/rent-payments/analytics
+	 */
+	@Get('analytics')
+	async getPaymentAnalytics(@JwtToken() token: string) {
+		this.logger.log('Getting payment analytics for authenticated user')
+		const analytics = await this.paymentAnalyticsService.getPaymentAnalytics(token)
+		return { success: true, analytics }
+	}
+
+	/**
+	 * Get upcoming payments (next 30 days)
+	 * GET /api/v1/rent-payments/upcoming
+	 */
+	@Get('upcoming')
+	async getUpcomingPayments(@JwtToken() token: string) {
+		this.logger.log('Getting upcoming payments for authenticated user')
+		const payments = await this.paymentAnalyticsService.getUpcomingPayments(token)
+		return { success: true, payments }
+	}
+
+	/**
+	 * Get overdue payments
+	 * GET /api/v1/rent-payments/overdue
+	 */
+	@Get('overdue')
+	async getOverduePayments(@JwtToken() token: string) {
+		this.logger.log('Getting overdue payments for authenticated user')
+		const payments = await this.paymentAnalyticsService.getOverduePayments(token)
+		return { success: true, payments }
+	}
+
+	/**
+	 * Export payments as CSV
+	 * GET /api/v1/rent-payments/export
+	 */
+	@Get('export')
+	@Header('Content-Type', 'text/csv')
+	@Header('Content-Disposition', 'attachment; filename="payments.csv"')
+	async exportPayments(
+		@JwtToken() token: string,
+		@Query('status') status: string | undefined,
+		@Query('startDate') startDate: string | undefined,
+		@Query('endDate') endDate: string | undefined,
+		@Res() res?: Response
+	) {
+		this.logger.log('Exporting payments to CSV')
+		const filters: { status?: string; startDate?: string; endDate?: string } = {}
+		if (status) filters.status = status
+		if (startDate) filters.startDate = startDate
+		if (endDate) filters.endDate = endDate
+
+		const csv = await this.paymentAnalyticsService.exportPaymentsCSV(token, filters)
+
+		if (res) {
+			res.send(csv)
+		}
+		return csv
+	}
+
+	/**
+	 * Record a manual payment (cash, check, etc.)
+	 * POST /api/v1/rent-payments/manual
+	 */
+	@Post('manual')
+	async recordManualPayment(
+		@Body() body: {
+			lease_id: string
+			tenant_id: string
+			amount: number
+			payment_method: 'cash' | 'check' | 'money_order' | 'other'
+			paid_date: string
+			notes?: string
+		},
+		@JwtToken() token: string
+	) {
+		this.logger.log(`Recording manual payment for lease ${body.lease_id}`)
+
+		// Validate required fields
+		if (!body.lease_id || !body.tenant_id || !body.amount || !body.payment_method || !body.paid_date) {
+			throw new BadRequestException('Missing required fields')
+		}
+
+		if (body.amount <= 0) {
+			throw new BadRequestException('Amount must be greater than zero')
+		}
+
+		const result = await this.rentPaymentsService.recordManualPayment(
+			{
+				lease_id: body.lease_id,
+				tenant_id: body.tenant_id,
+				amount: body.amount,
+				payment_method: body.payment_method,
+				paid_date: body.paid_date,
+				notes: body.notes ?? undefined
+			},
+			token
+		)
+
+		return {
+			success: true,
+			payment: result
+		}
+	}
 
 	/**
 	 * Create a one-time rent payment
 	 * Phase 5: One-time Payments
-
+	 *
 	 * POST /api/v1/rent-payments
 	 */
 	@Post()
@@ -47,8 +159,8 @@ export class RentPaymentsController {
 	/**
 	 * Get payment history for all subscriptions
 	 * Phase 4: Payment History Enhancement
-
-	 * GET /api/v1/payments/history
+	 *
+	 * GET /api/v1/rent-payments/history
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history')
@@ -80,8 +192,8 @@ export class RentPaymentsController {
 	/**
 	 * Get payment history for a specific subscription
 	 * Phase 4: Payment History Enhancement
-
-	 * GET /api/v1/payments/history/subscription/:subscriptionId
+	 *
+	 * GET /api/v1/rent-payments/history/subscription/:subscriptionId
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('history/subscription/:subscriptionId')
@@ -122,8 +234,8 @@ export class RentPaymentsController {
 	/**
 	 * Get failed payment attempts for all subscriptions
 	 * Phase 4: Payment History Enhancement
-
-	 * GET /api/v1/payments/failed-attempts
+	 *
+	 * GET /api/v1/rent-payments/failed-attempts
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts')
@@ -149,8 +261,8 @@ export class RentPaymentsController {
 	/**
 	 * Get failed payment attempts for a specific subscription
 	 * Phase 4: Payment History Enhancement
-
-	 * GET /api/v1/payments/failed-attempts/subscription/:subscriptionId
+	 *
+	 * GET /api/v1/rent-payments/failed-attempts/subscription/:subscriptionId
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('failed-attempts/subscription/:subscriptionId')
@@ -288,7 +400,7 @@ export class RentPaymentsController {
 	/**
 	 * Get current payment status for a tenant
 	 * Task 2.4: Payment Status Tracking
-
+	 *
 	 * GET /api/v1/rent-payments/status/:tenant_id
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */

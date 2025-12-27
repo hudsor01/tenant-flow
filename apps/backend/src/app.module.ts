@@ -1,9 +1,9 @@
-import { CacheModule } from '@nestjs/cache-manager'
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { EventEmitterModule } from '@nestjs/event-emitter'
+import { HttpModule } from '@nestjs/axios'
 import { ScheduleModule } from '@nestjs/schedule'
 import { ThrottlerModule } from '@nestjs/throttler'
 import { BullModule } from '@nestjs/bullmq'
@@ -89,22 +89,20 @@ import { DocumentsModule } from './modules/documents/documents.module'
 			}
 		}),
 
-		// Smart caching for database-heavy operations
-		CacheModule.register({
-			isGlobal: true,
-			ttl: 30 * 1000, // 30 seconds default TTL
-			max: 1000 // Maximum number of items in cache
-		}),
-
-		// Zero cache service for performance optimization
+		// Unified Redis cache with TTL tiers
 		CacheConfigurationModule.forRoot({
 			isGlobal: true,
-			ttl: 30 * 1000,
-			max: 1000
+			ttlShortMs: 30_000,
+			ttlMediumMs: 5 * 60 * 1000,
+			ttlLongMs: 30 * 60 * 1000,
+			keyPrefix: 'cache'
 		}),
 
 		// Event system for decoupled architecture
 		EventEmitterModule.forRoot(),
+
+		// HTTP client for internal API calls (used by batch endpoint)
+		HttpModule,
 
 		// Native NestJS scheduler for cron jobs
 		ScheduleModule.forRoot(),

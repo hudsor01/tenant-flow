@@ -1,10 +1,17 @@
 import { BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantListService } from './tenant-list.service'
 import type { ListFilters } from './tenant-list.service'
+
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type TenantWithLeaseInfo = Awaited<
+	ReturnType<TenantListService['findAllWithLeaseInfo']>
+>[number]
 
 describe('TenantListService', () => {
 	let service: TenantListService
@@ -22,7 +29,7 @@ describe('TenantListService', () => {
 		identity_verified: true,
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z'
-	}
+	} as TenantRow
 
 	const mockTenant2 = {
 		id: 'tenant-2',
@@ -33,19 +40,19 @@ describe('TenantListService', () => {
 		identity_verified: false,
 		created_at: '2024-02-01T00:00:00Z',
 		updated_at: '2024-02-01T00:00:00Z'
-	}
+	} as TenantRow
 
 	// Mock token for all tests - service now REQUIRES authentication
 	const mockToken = 'mock-jwt-token'
 
-	let mockClient: any
+	let mockClient: SupabaseClient<Database>
 
 	beforeEach(async () => {
 		// Create a single mock client instance that will be reused
 		mockClient = {
 			from: jest.fn(),
 			rpc: jest.fn()
-		}
+		} as unknown as SupabaseClient<Database>
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockClient),
@@ -278,8 +285,9 @@ describe('TenantListService', () => {
 
 			expect(result).toHaveLength(1)
 			expect(result[0]?.id).toBe(mockTenant.id)
-			expect((result[0] as any)?.lease).toBeDefined()
-			expect((result[0] as any)?.lease?.id).toBe('lease-1')
+			const tenantWithLease = result[0] as TenantWithLeaseInfo | undefined
+			expect(tenantWithLease?.lease).toBeDefined()
+			expect(tenantWithLease?.lease?.id).toBe('lease-1')
 		})
 
 		it('throws UnauthorizedException when token is missing', async () => {

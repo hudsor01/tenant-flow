@@ -91,7 +91,7 @@ describe('RentPaymentAutopayService', () => {
 	}
 
 	// Helper to create query builder mock
-	const createQueryBuilder = (returnData: any, shouldError = false) => ({
+	const createQueryBuilder = <T>(returnData: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		update: jest.fn().mockReturnValue({

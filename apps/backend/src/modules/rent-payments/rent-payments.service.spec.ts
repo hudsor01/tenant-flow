@@ -6,6 +6,8 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
@@ -16,9 +18,48 @@ import { RentPaymentContextService } from './rent-payment-context.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+type StripeOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
 
-const createSingleQueryMock = <T>(data: T): any => {
-	const builder: any = {}
+type PaymentHistoryResponse = Awaited<
+	ReturnType<RentPaymentQueryService['getPaymentHistory']>
+>
+type SubscriptionPaymentHistoryResponse = Awaited<
+	ReturnType<RentPaymentQueryService['getSubscriptionPaymentHistory']>
+>
+type FailedPaymentResponse = Awaited<
+	ReturnType<RentPaymentQueryService['getFailedPaymentAttempts']>
+>
+type SubscriptionFailedPaymentResponse = Awaited<
+	ReturnType<RentPaymentQueryService['getSubscriptionFailedAttempts']>
+>
+type AutopaySetupResponse = Awaited<
+	ReturnType<RentPaymentAutopayService['setupTenantAutopay']>
+>
+type AutopayStatusResponse = Awaited<
+	ReturnType<RentPaymentAutopayService['getAutopayStatus']>
+>
+type TenantContext = Awaited<
+	ReturnType<RentPaymentContextService['getTenantContext']>
+>
+type LeaseContext = Awaited<
+	ReturnType<RentPaymentContextService['getLeaseContext']>
+>
+
+const createSingleQueryMock = <T>(data: T) => {
+	const builder: {
+		select: jest.Mock
+		eq: jest.Mock
+		single: jest.Mock
+	} = {
+		select: jest.fn(),
+		eq: jest.fn(),
+		single: jest.fn()
+	}
 	builder.select = jest.fn(() => builder)
 	builder.eq = jest.fn(() => builder)
 	builder.single = jest.fn(() => Promise.resolve({ data, error: null }))
@@ -31,7 +72,9 @@ describe('RentPaymentsService (Facade)', () => {
 	let mockAutopayService: jest.Mocked<RentPaymentAutopayService>
 	let mockContextService: jest.Mocked<RentPaymentContextService>
 
-	const adminClient: any = { from: jest.fn() }
+	const adminClient: SupabaseClient<Database> = {
+		from: jest.fn()
+	} as unknown as SupabaseClient<Database>
 	const mockSupabaseService = {
 		getAdminClient: jest.fn(() => adminClient)
 	}
@@ -102,8 +145,10 @@ describe('RentPaymentsService (Facade)', () => {
 
 	describe('Query method delegation', () => {
 		it('should delegate getPaymentHistory to query service', async () => {
-			const mockPayments = [{ id: 'payment-1' }]
-			mockQueryService.getPaymentHistory.mockResolvedValue(mockPayments as any)
+			const mockPayments = [{ id: 'payment-1' }] as RentPaymentRow[]
+			mockQueryService.getPaymentHistory.mockResolvedValue(
+				mockPayments as PaymentHistoryResponse
+			)
 
 			const result = await service.getPaymentHistory(mockToken)
 
@@ -112,8 +157,10 @@ describe('RentPaymentsService (Facade)', () => {
 		})
 
 		it('should delegate getSubscriptionPaymentHistory to query service', async () => {
-			const mockPayments = [{ id: 'payment-1' }]
-			mockQueryService.getSubscriptionPaymentHistory.mockResolvedValue(mockPayments as any)
+			const mockPayments = [{ id: 'payment-1' }] as RentPaymentRow[]
+			mockQueryService.getSubscriptionPaymentHistory.mockResolvedValue(
+				mockPayments as SubscriptionPaymentHistoryResponse
+			)
 
 			const result = await service.getSubscriptionPaymentHistory(mockSubscriptionId, mockToken)
 
@@ -125,8 +172,10 @@ describe('RentPaymentsService (Facade)', () => {
 		})
 
 		it('should delegate getFailedPaymentAttempts to query service', async () => {
-			const mockPayments = [{ id: 'payment-failed' }]
-			mockQueryService.getFailedPaymentAttempts.mockResolvedValue(mockPayments as any)
+			const mockPayments = [{ id: 'payment-failed' }] as RentPaymentRow[]
+			mockQueryService.getFailedPaymentAttempts.mockResolvedValue(
+				mockPayments as FailedPaymentResponse
+			)
 
 			const result = await service.getFailedPaymentAttempts(mockToken)
 
@@ -135,8 +184,10 @@ describe('RentPaymentsService (Facade)', () => {
 		})
 
 		it('should delegate getSubscriptionFailedAttempts to query service', async () => {
-			const mockPayments = [{ id: 'payment-failed' }]
-			mockQueryService.getSubscriptionFailedAttempts.mockResolvedValue(mockPayments as any)
+			const mockPayments = [{ id: 'payment-failed' }] as RentPaymentRow[]
+			mockQueryService.getSubscriptionFailedAttempts.mockResolvedValue(
+				mockPayments as SubscriptionFailedPaymentResponse
+			)
 
 			const result = await service.getSubscriptionFailedAttempts(mockSubscriptionId, mockToken)
 
@@ -151,7 +202,9 @@ describe('RentPaymentsService (Facade)', () => {
 	describe('Autopay method delegation', () => {
 		it('should delegate setupTenantAutopay to autopay service', async () => {
 			const mockResponse = { subscriptionId: mockSubscriptionId, status: 'active' }
-			mockAutopayService.setupTenantAutopay.mockResolvedValue(mockResponse as any)
+			mockAutopayService.setupTenantAutopay.mockResolvedValue(
+				mockResponse as AutopaySetupResponse
+			)
 
 			const params = { tenant_id: mockTenantId, lease_id: mockLeaseId }
 			const result = await service.setupTenantAutopay(params, mockUserId)
@@ -178,7 +231,9 @@ describe('RentPaymentsService (Facade)', () => {
 				status: 'active',
 				nextPaymentDate: '2025-02-01'
 			}
-			mockAutopayService.getAutopayStatus.mockResolvedValue(mockResponse as any)
+			mockAutopayService.getAutopayStatus.mockResolvedValue(
+				mockResponse as AutopayStatusResponse
+			)
 
 			const params = { tenant_id: mockTenantId, lease_id: mockLeaseId }
 			const result = await service.getAutopayStatus(params, mockUserId)
@@ -195,7 +250,7 @@ describe('RentPaymentsService (Facade)', () => {
 			first_name: 'Test',
 			last_name: 'Tenant',
 			email: 'tenant@example.com'
-		}
+		} as UserRow
 
 		const tenant = {
 			id: 'tenant123',
@@ -203,7 +258,7 @@ describe('RentPaymentsService (Facade)', () => {
 			email: 'tenant@example.com',
 			first_name: 'Test',
 			last_name: 'Tenant'
-		}
+		} as TenantRow
 
 		const lease = {
 			id: 'lease123',
@@ -211,19 +266,19 @@ describe('RentPaymentsService (Facade)', () => {
 			primary_tenant_id: 'tenant123',
 			rent_amount: 1500,
 			unit_id: 'unit123'
-		}
+		} as LeaseRow
 
 		const ownerUser = {
 			id: 'owner123',
-			connected_account_id: 'acct_456'
-		}
+			stripe_account_id: 'acct_456'
+		} as StripeOwnerRow
 
 		const tenantPaymentMethod = {
 			stripe_payment_method_id: 'pm_123',
 			stripe_customer_id: 'cus_existing',
 			type: 'card',
 			tenant_id: 'tenant123'
-		}
+		} as PaymentMethodRow
 
 		const rentPaymentRecord = {
 			id: 'payment123',
@@ -232,7 +287,7 @@ describe('RentPaymentsService (Facade)', () => {
 			lease_id: 'lease123',
 			amount: 150000,
 			status: 'succeeded'
-		}
+		} as RentPaymentRow
 
 		beforeEach(() => {
 			const paymentIntent = {
@@ -260,15 +315,15 @@ describe('RentPaymentsService (Facade)', () => {
 			)
 
 			mockContextService.getTenantContext.mockResolvedValue({
-				tenant: tenant as any,
-				tenantUser: tenantUser as any
-			})
+				tenant,
+				tenantUser
+			} as TenantContext)
 
 			mockContextService.getLeaseContext.mockResolvedValue({
-				lease: lease as any,
-				ownerUser: ownerUser as any,
+				lease,
+				ownerUser,
 				stripeAccountId: 'acct_456'
-			})
+			} as LeaseContext)
 		})
 
 		it('creates destination charge and persists rent payment', async () => {

@@ -48,63 +48,89 @@
 -- ENABLE RLS ON ALL STRIPE TABLES
 -- ============================================================================
 
--- Payment & Billing Data (Service Role Only)
-ALTER TABLE stripe.payment_intents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.charges ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.refunds ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.payouts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.disputes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.payment_methods ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.setup_intents ENABLE ROW LEVEL SECURITY;
-
--- Customer & Subscription Data (Service Role + Limited User Access)
-ALTER TABLE stripe.customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.subscription_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.subscription_schedules ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.active_entitlements ENABLE ROW LEVEL SECURITY;
-
--- Product Catalog (Service Role Only by default)
-ALTER TABLE stripe.products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.prices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.plans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.features ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.coupons ENABLE ROW LEVEL SECURITY;
-
--- Checkout & Events
-ALTER TABLE stripe.checkout_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.checkout_session_line_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.events ENABLE ROW LEVEL SECURITY;
-
--- Additional Tables
-ALTER TABLE stripe.credit_notes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.early_fraud_warnings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.tax_ids ENABLE ROW LEVEL SECURITY;
-ALTER TABLE stripe.migrations ENABLE ROW LEVEL SECURITY;
-
--- ============================================================================
--- SERVICE ROLE POLICIES (Full Access)
--- ============================================================================
-
--- Service role has full access to ALL stripe tables
 DO $$
 DECLARE
   stripe_table RECORD;
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'stripe') THEN
+    RAISE NOTICE 'stripe schema not found; skipping Stripe RLS migration';
+    RETURN;
+  END IF;
+
   FOR stripe_table IN
     SELECT tablename
     FROM pg_tables
     WHERE schemaname = 'stripe'
   LOOP
     EXECUTE format(
-      'CREATE POLICY "service_role_all" ON stripe.%I FOR ALL TO service_role USING (true) WITH CHECK (true)',
+      'ALTER TABLE stripe.%I ENABLE ROW LEVEL SECURITY',
+      stripe_table.tablename
+    );
+  END LOOP;
+END $$;
+
+-- ============================================================================
+-- SERVICE ROLE POLICIES (Full Access)
+-- ============================================================================
+
+-- Service role has full access to ALL stripe tables
+-- Per RLS best practices, separate policies for each operation
+DO $$
+DECLARE
+  stripe_table RECORD;
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'stripe') THEN
+    RAISE NOTICE 'stripe schema not found; skipping service role policies';
+    RETURN;
+  END IF;
+
+  FOR stripe_table IN
+    SELECT tablename
+    FROM pg_tables
+    WHERE schemaname = 'stripe'
+  LOOP
+    -- SELECT policy
+    EXECUTE format(
+      'DROP POLICY IF EXISTS "service_role_select" ON stripe.%I',
+      stripe_table.tablename
+    );
+    EXECUTE format(
+      'CREATE POLICY "service_role_select" ON stripe.%I FOR SELECT TO service_role USING (true)',
+      stripe_table.tablename
+    );
+
+    -- INSERT policy
+    EXECUTE format(
+      'DROP POLICY IF EXISTS "service_role_insert" ON stripe.%I',
+      stripe_table.tablename
+    );
+    EXECUTE format(
+      'CREATE POLICY "service_role_insert" ON stripe.%I FOR INSERT TO service_role WITH CHECK (true)',
+      stripe_table.tablename
+    );
+
+    -- UPDATE policy
+    EXECUTE format(
+      'DROP POLICY IF EXISTS "service_role_update" ON stripe.%I',
+      stripe_table.tablename
+    );
+    EXECUTE format(
+      'CREATE POLICY "service_role_update" ON stripe.%I FOR UPDATE TO service_role USING (true) WITH CHECK (true)',
+      stripe_table.tablename
+    );
+
+    -- DELETE policy
+    EXECUTE format(
+      'DROP POLICY IF EXISTS "service_role_delete" ON stripe.%I',
+      stripe_table.tablename
+    );
+    EXECUTE format(
+      'CREATE POLICY "service_role_delete" ON stripe.%I FOR DELETE TO service_role USING (true)',
       stripe_table.tablename
     );
 
     EXECUTE format(
-      'COMMENT ON POLICY "service_role_all" ON stripe.%I IS ''Backend (service_role) has full access to Stripe data''',
+      'COMMENT ON POLICY "service_role_select" ON stripe.%I IS ''Backend (service_role) can read Stripe data''',
       stripe_table.tablename
     );
   END LOOP;
@@ -115,82 +141,159 @@ END $$;
 -- ============================================================================
 
 -- CUSTOMERS: Users can view their own customer record
-CREATE POLICY "customers_select_own" ON stripe.customers
-FOR SELECT TO authenticated
-USING (
-  -- Match by email (Stripe customer email = user email)
-  email IN (
-    SELECT email FROM auth.users WHERE id = auth.uid()
-  )
-  OR
-  -- Match by metadata.user_id if stored
-  (metadata->>'user_id')::uuid = auth.uid()
-);
+DO $$
+BEGIN
+  IF to_regclass('stripe.customers') IS NULL THEN
+    RAISE NOTICE 'stripe.customers not found; skipping customers_select_own';
+    RETURN;
+  END IF;
 
-COMMENT ON POLICY "customers_select_own" ON stripe.customers IS
-'Users can view their own Stripe customer record (matched by email or metadata.user_id)';
+  EXECUTE 'DROP POLICY IF EXISTS "customers_select_own" ON stripe.customers';
 
--- SUBSCRIPTIONS: Users can view their own subscriptions
-CREATE POLICY "subscriptions_select_own" ON stripe.subscriptions
-FOR SELECT TO authenticated
-USING (
-  customer IN (
-    SELECT id FROM stripe.customers
-    WHERE email IN (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
-    OR (metadata->>'user_id')::uuid = auth.uid()
-  )
-);
-
-COMMENT ON POLICY "subscriptions_select_own" ON stripe.subscriptions IS
-'Users can view subscriptions for their own Stripe customer record';
-
--- INVOICES: Users can view their own invoices
-CREATE POLICY "invoices_select_own" ON stripe.invoices
-FOR SELECT TO authenticated
-USING (
-  customer IN (
-    SELECT id FROM stripe.customers
-    WHERE email IN (
-      SELECT email FROM auth.users WHERE id = auth.uid()
-    )
-    OR (metadata->>'user_id')::uuid = auth.uid()
-  )
-);
-
-COMMENT ON POLICY "invoices_select_own" ON stripe.invoices IS
-'Users can view invoices for their own Stripe customer record';
-
--- SUBSCRIPTION_ITEMS: Users can view items in their subscriptions
-CREATE POLICY "subscription_items_select_own" ON stripe.subscription_items
-FOR SELECT TO authenticated
-USING (
-  subscription IN (
-    SELECT id FROM stripe.subscriptions
-    WHERE customer IN (
-      SELECT id FROM stripe.customers
-      WHERE email IN (
+  EXECUTE $policy$
+    CREATE POLICY "customers_select_own" ON stripe.customers
+    FOR SELECT TO authenticated
+    USING (
+      -- Match by email (Stripe customer email = user email)
+      email IN (
         SELECT email FROM auth.users WHERE id = auth.uid()
       )
-      OR (metadata->>'user_id')::uuid = auth.uid()
-    )
-  )
-);
+      OR
+      -- Match by metadata.user_id if stored
+      (metadata->>'user_id')::uuid = auth.uid()
+    );
+  $policy$;
 
-COMMENT ON POLICY "subscription_items_select_own" ON stripe.subscription_items IS
-'Users can view subscription items for their own subscriptions';
+  EXECUTE $comment$
+    COMMENT ON POLICY "customers_select_own" ON stripe.customers IS
+    'Users can view their own Stripe customer record (matched by email or metadata.user_id)';
+  $comment$;
+END $$;
+
+-- SUBSCRIPTIONS: Users can view their own subscriptions
+DO $$
+BEGIN
+  IF to_regclass('stripe.subscriptions') IS NULL THEN
+    RAISE NOTICE 'stripe.subscriptions not found; skipping subscriptions_select_own';
+    RETURN;
+  END IF;
+
+  EXECUTE 'DROP POLICY IF EXISTS "subscriptions_select_own" ON stripe.subscriptions';
+
+  EXECUTE $policy$
+    CREATE POLICY "subscriptions_select_own" ON stripe.subscriptions
+    FOR SELECT TO authenticated
+    USING (
+      customer IN (
+        SELECT id FROM stripe.customers
+        WHERE email IN (
+          SELECT email FROM auth.users WHERE id = auth.uid()
+        )
+        OR (metadata->>'user_id')::uuid = auth.uid()
+      )
+    );
+  $policy$;
+
+  EXECUTE $comment$
+    COMMENT ON POLICY "subscriptions_select_own" ON stripe.subscriptions IS
+    'Users can view subscriptions for their own Stripe customer record';
+  $comment$;
+END $$;
+
+-- INVOICES: Users can view their own invoices
+DO $$
+BEGIN
+  IF to_regclass('stripe.invoices') IS NULL THEN
+    RAISE NOTICE 'stripe.invoices not found; skipping invoices_select_own';
+    RETURN;
+  END IF;
+
+  EXECUTE 'DROP POLICY IF EXISTS "invoices_select_own" ON stripe.invoices';
+
+  EXECUTE $policy$
+    CREATE POLICY "invoices_select_own" ON stripe.invoices
+    FOR SELECT TO authenticated
+    USING (
+      customer IN (
+        SELECT id FROM stripe.customers
+        WHERE email IN (
+          SELECT email FROM auth.users WHERE id = auth.uid()
+        )
+        OR (metadata->>'user_id')::uuid = auth.uid()
+      )
+    );
+  $policy$;
+
+  EXECUTE $comment$
+    COMMENT ON POLICY "invoices_select_own" ON stripe.invoices IS
+    'Users can view invoices for their own Stripe customer record';
+  $comment$;
+END $$;
+
+-- SUBSCRIPTION_ITEMS: Users can view items in their subscriptions
+DO $$
+BEGIN
+  IF to_regclass('stripe.subscription_items') IS NULL THEN
+    RAISE NOTICE 'stripe.subscription_items not found; skipping subscription_items_select_own';
+    RETURN;
+  END IF;
+
+  EXECUTE 'DROP POLICY IF EXISTS "subscription_items_select_own" ON stripe.subscription_items';
+
+  EXECUTE $policy$
+    CREATE POLICY "subscription_items_select_own" ON stripe.subscription_items
+    FOR SELECT TO authenticated
+    USING (
+      subscription IN (
+        SELECT id FROM stripe.subscriptions
+        WHERE customer IN (
+          SELECT id FROM stripe.customers
+          WHERE email IN (
+            SELECT email FROM auth.users WHERE id = auth.uid()
+          )
+          OR (metadata->>'user_id')::uuid = auth.uid()
+        )
+      )
+    );
+  $policy$;
+
+  EXECUTE $comment$
+    COMMENT ON POLICY "subscription_items_select_own" ON stripe.subscription_items IS
+    'Users can view subscription items for their own subscriptions';
+  $comment$;
+END $$;
 
 -- ACTIVE_ENTITLEMENTS: Users can view their active feature entitlements
-CREATE POLICY "active_entitlements_select_own" ON stripe.active_entitlements
-FOR SELECT TO authenticated
-USING (
-  -- Match by user lookup key if stored in Stripe
-  true -- TODO: Update this based on how entitlements are linked to users
-);
+DO $$
+BEGIN
+  IF to_regclass('stripe.active_entitlements') IS NULL THEN
+    RAISE NOTICE 'stripe.active_entitlements not found; skipping active_entitlements_select_own';
+    RETURN;
+  END IF;
 
-COMMENT ON POLICY "active_entitlements_select_own" ON stripe.active_entitlements IS
-'Users can view their active feature entitlements (needs user linkage)';
+  EXECUTE 'DROP POLICY IF EXISTS "active_entitlements_select_own" ON stripe.active_entitlements';
+
+  EXECUTE $policy$
+    CREATE POLICY "active_entitlements_select_own" ON stripe.active_entitlements
+    FOR SELECT TO authenticated
+    USING (
+      -- TODO [CRITICAL SECURITY]: This policy currently returns TRUE which grants all authenticated users access to ALL entitlements.
+      -- This is a major security vulnerability that allows users to see each other's subscription entitlements.
+      -- FIX REQUIRED: Replace 'true' with a proper user-scoping condition. Options include:
+      -- 1. If entitlements are linked via customer_id in active_entitlements table, join to stripe.customers where customer_id matches user email
+      -- 2. If using Stripe's lookup_key field, match against auth.jwt()->>'email' or a custom claim
+      -- 3. Create a user_entitlements mapping table that links auth.uid() to Stripe entitlement IDs
+      -- Example: EXISTS (SELECT 1 FROM stripe.customers c WHERE c.id = active_entitlements.customer_id AND c.email = auth.jwt()->>'email')
+      -- Match by user lookup key if stored in Stripe
+      true
+    );
+  $policy$;
+
+  EXECUTE $comment$
+    COMMENT ON POLICY "active_entitlements_select_own" ON stripe.active_entitlements IS
+    'Users can view their active feature entitlements (needs user linkage)';
+  $comment$;
+END $$;
 
 -- ============================================================================
 -- OPTIONAL: PUBLIC PRODUCT CATALOG (Commented Out)
@@ -272,13 +375,16 @@ END $$;
 -- MIGRATION COMPLETE
 -- ============================================================================
 
-RAISE NOTICE '=== Stripe Schema RLS Security Migration Complete ===';
-RAISE NOTICE '';
-RAISE NOTICE '🔒 All 26 Stripe tables now protected with RLS';
-RAISE NOTICE '🔒 Service role has full access (backend operations)';
-RAISE NOTICE '🔒 Users can view their own: customers, subscriptions, invoices';
-RAISE NOTICE '🔒 All payment data restricted to service_role only';
-RAISE NOTICE '';
-RAISE WARNING 'IMPORTANT: Verify user access patterns match your application needs';
-RAISE WARNING 'IMPORTANT: Update active_entitlements policy based on your user linkage';
-RAISE WARNING 'IMPORTANT: Consider exposing products/prices publicly if needed for pricing page';
+DO $$
+BEGIN
+  RAISE NOTICE '=== Stripe Schema RLS Security Migration Complete ===';
+  RAISE NOTICE '';
+  RAISE NOTICE '🔒 All 26 Stripe tables now protected with RLS';
+  RAISE NOTICE '🔒 Service role has full access (backend operations)';
+  RAISE NOTICE '🔒 Users can view their own: customers, subscriptions, invoices';
+  RAISE NOTICE '🔒 All payment data restricted to service_role only';
+  RAISE NOTICE '';
+  RAISE WARNING 'IMPORTANT: Verify user access patterns match your application needs';
+  RAISE WARNING 'IMPORTANT: Update active_entitlements policy based on your user linkage';
+  RAISE WARNING 'IMPORTANT: Consider exposing products/prices publicly if needed for pricing page';
+END $$;

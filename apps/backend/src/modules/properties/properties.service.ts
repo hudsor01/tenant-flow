@@ -1,3 +1,10 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~469 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract property stats/analytics into: `./property-stats.service.ts`
+// 2. Extract bulk operations into: `./property-bulk.service.ts`
+// 3. Keep core CRUD operations in this service
+
 import type { PropertyStatus } from '@repo/shared/types/core'
 import {
 	BadRequestException,
@@ -6,13 +13,13 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type {
-	PropertyCreate,
-	PropertyUpdate
-} from '@repo/shared/validation/properties'
+	CreatePropertyDto,
+	UpdatePropertyDto
+} from './property.schemas'
 import type { Property, PropertyType } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
@@ -27,21 +34,21 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class PropertiesService {
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService,
+		private readonly cache: RedisCacheService,
 		private readonly logger: AppLogger
 	) {}
 
 	/**
 	 * Invalidate all property-related caches for a user/owner
-	 * Uses ZeroCacheService surgical invalidation
+	 * Uses RedisCacheService surgical invalidation
 	 */
 	private invalidatePropertyCaches(owner_user_id: string, property_id?: string): void {
 		// Invalidate specific property if ID provided
 		if (property_id) {
-			this.cache.invalidateByEntity('properties', property_id)
+			void this.cache.invalidateByEntity('properties', property_id)
 		}
 		// Invalidate user's property list cache
-		this.cache.invalidate(`properties:owner:${owner_user_id}`)
+		void this.cache.invalidate(`properties:owner:${owner_user_id}`)
 		this.logger.debug('Invalidated property caches', { owner_user_id, property_id })
 	}
 
@@ -109,7 +116,7 @@ export class PropertiesService {
 
 	async create(
 		req: AuthenticatedRequest,
-		request: PropertyCreate
+		request: CreatePropertyDto
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
@@ -169,7 +176,7 @@ this.invalidatePropertyCaches(user_id, data.id)
 	async update(
 		req: AuthenticatedRequest,
 		property_id: string,
-		request: PropertyUpdate,
+		request: UpdatePropertyDto,
 		expectedVersion?: number
 	): Promise<Property> {
 		const token = getTokenFromRequest(req)

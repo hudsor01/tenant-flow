@@ -27,6 +27,7 @@ import {
 	useOccupancyMetrics,
 	usePaymentAnalytics
 } from '#hooks/api/use-reports'
+import { formatCurrency } from '#lib/formatters/currency'
 import { TrendingUp } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -44,6 +45,10 @@ import {
 	YAxis
 } from 'recharts'
 
+// Format currency with no decimals for whole dollar amounts
+const formatWholeAmount = (value: number) =>
+	formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+
 export default function AnalyticsPage() {
 	const [timeRange, setTimeRange] = useState('12')
 
@@ -55,16 +60,6 @@ export default function AnalyticsPage() {
 		usePaymentAnalytics()
 	const { data: occupancyMetrics, isLoading: occupancyLoading } =
 		useOccupancyMetrics()
-
-	// Format currency
-	const formatCurrency = (value: number) => {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
-		}).format(value)
-	}
 
 	// Format percentage
 	const formatPercent = (value: number) => {
@@ -114,7 +109,7 @@ export default function AnalyticsPage() {
 									<CardHeader>
 										<CardDescription>Total Revenue</CardDescription>
 										<CardTitle className="typography-h3 tabular-nums @[250px]/card:text-3xl">
-											{formatCurrency(paymentAnalytics?.totalRevenue || 0)}
+											{formatWholeAmount(paymentAnalytics?.totalRevenue || 0)}
 										</CardTitle>
 										<CardAction>
 											<Badge variant="outline">
@@ -287,7 +282,7 @@ export default function AnalyticsPage() {
 										<YAxis
 											className="text-xs"
 											tick={{ fill: 'var(--color-muted-foreground)' }}
-											tickFormatter={formatCurrency}
+											tickFormatter={formatWholeAmount}
 										/>
 										<Tooltip
 											contentStyle={{
@@ -295,7 +290,12 @@ export default function AnalyticsPage() {
 												border: '1px solid var(--color-border)',
 												borderRadius: '8px'
 											}}
-											formatter={(value: number) => formatCurrency(value)}
+											formatter={value => {
+												const numericValue = Array.isArray(value)
+													? Number(value[0])
+													: Number(value)
+												return formatWholeAmount(Number.isFinite(numericValue) ? numericValue : 0)
+											}}
 										/>
 										<Legend />
 										<Area
@@ -420,7 +420,12 @@ export default function AnalyticsPage() {
 													border: '1px solid var(--color-border)',
 													borderRadius: '8px'
 												}}
-												formatter={(value: number) => formatPercent(value)}
+												formatter={value => {
+													const numericValue = Array.isArray(value)
+														? Number(value[0])
+														: Number(value)
+													return formatPercent(Number.isFinite(numericValue) ? numericValue : 0)
+												}}
 											/>
 											<Line
 												type="monotone"

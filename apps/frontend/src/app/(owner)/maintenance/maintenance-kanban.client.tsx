@@ -12,13 +12,17 @@ import {
 	closestCorners
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { createSnapModifier, restrictToWindowEdges } from '@dnd-kit/modifiers'
 import {
-	createSnapModifier,
-	restrictToWindowEdges
-} from '@dnd-kit/modifiers'
-import { Badge } from '#components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+	AlertTriangle,
+	CheckCircle,
+	Clock,
+	Pause,
+	XCircle
+} from 'lucide-react'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
+import { BlurFade } from '#components/ui/blur-fade'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
 import type { MaintenanceRequest, MaintenanceStatus } from '@repo/shared/types/core'
@@ -32,29 +36,126 @@ type MaintenanceRequestWithRelations = MaintenanceRequest & {
 	property?: { name: string } | null
 	unit?: { name: string } | null
 	assignedTo?: { name: string } | null
+	tenant?: { name: string } | null
 }
 
-const COLUMNS: {
+interface ColumnConfig {
 	id: MaintenanceStatus
 	title: string
-	variant: 'default' | 'secondary' | 'outline'
-}[] = [
-	{ id: 'open', title: 'Open', variant: 'default' },
+	colorClass: string
+	icon: React.ReactNode
+}
+
+const COLUMNS: ColumnConfig[] = [
+	{
+		id: 'open',
+		title: 'Open',
+		colorClass: 'bg-orange-500/10',
+		icon: <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+	},
 	{
 		id: 'in_progress',
 		title: 'In Progress',
-		variant: 'secondary'
+		colorClass: 'bg-primary/10',
+		icon: <AlertTriangle className="w-4 h-4 text-primary" />
 	},
-	{ id: 'completed', title: 'Completed', variant: 'default' },
-	{ id: 'cancelled', title: 'Cancelled', variant: 'outline' },
-	{ id: 'on_hold', title: 'On Hold', variant: 'outline' }
+	{
+		id: 'completed',
+		title: 'Completed',
+		colorClass: 'bg-green-500/10',
+		icon: <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+	},
+	{
+		id: 'on_hold',
+		title: 'On Hold',
+		colorClass: 'bg-muted',
+		icon: <Pause className="w-4 h-4 text-muted-foreground" />
+	},
+	{
+		id: 'cancelled',
+		title: 'Cancelled',
+		colorClass: 'bg-muted',
+		icon: <XCircle className="w-4 h-4 text-muted-foreground" />
+	}
 ]
+
+function getDaysOpen(timestamp: string | null | undefined): number {
+	if (!timestamp) return 0
+	const date = new Date(timestamp)
+	const now = new Date()
+	const diff = now.getTime() - date.getTime()
+	return Math.floor(diff / (1000 * 60 * 60 * 24))
+}
+
+interface KanbanColumnProps {
+	column: ColumnConfig
+	requests: MaintenanceRequestWithRelations[]
+	columnIndex: number
+	onView: (id: string) => void
+}
+
+function KanbanColumn({ column, requests, columnIndex, onView }: KanbanColumnProps) {
+	// Sort by age (oldest first for open/in_progress, newest first for completed)
+	const sortedRequests = [...requests].sort((a, b) => {
+		if (column.id === 'completed' || column.id === 'cancelled') {
+			return getDaysOpen(a.created_at) - getDaysOpen(b.created_at)
+		}
+		return getDaysOpen(b.created_at) - getDaysOpen(a.created_at)
+	})
+
+	return (
+		<BlurFade delay={0.3 + columnIndex * 0.1} inView>
+			<div className="flex flex-col min-w-[300px] w-[300px] bg-muted/30 rounded-lg">
+				{/* Column Header */}
+				<div className="flex items-center gap-3 p-4 border-b border-border">
+					<div
+						className={`w-8 h-8 rounded-lg flex items-center justify-center ${column.colorClass}`}
+					>
+						{column.icon}
+					</div>
+					<div className="flex-1">
+						<h3 className="font-medium text-foreground">{column.title}</h3>
+					</div>
+					<span className="px-2 py-0.5 bg-muted rounded-full text-xs font-medium text-muted-foreground">
+						{requests.length}
+					</span>
+				</div>
+
+				{/* Cards Container */}
+				<div className="flex-1 p-3 space-y-3 overflow-y-auto max-h-[calc(100vh-380px)]">
+					<SortableContext
+						id={column.id}
+						items={sortedRequests.map(r => r.id)}
+						strategy={verticalListSortingStrategy}
+					>
+						{sortedRequests.map((request, idx) => (
+							<BlurFade key={request.id} delay={0.4 + columnIndex * 0.1 + idx * 0.03} inView>
+								<MaintenanceSortableCard
+									request={request}
+									columnId={column.id}
+									onView={onView}
+								/>
+							</BlurFade>
+						))}
+					</SortableContext>
+
+					{requests.length === 0 && (
+						<div className="text-center py-8">
+							<p className="text-sm text-muted-foreground">No requests</p>
+						</div>
+					)}
+				</div>
+			</div>
+		</BlurFade>
+	)
+}
 
 interface MaintenanceKanbanProps {
 	initialRequests: MaintenanceRequestWithRelations[]
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
+	const router = useRouter()
 	const [requests, setRequests] =
 		useState<MaintenanceRequestWithRelations[]>(initialRequests || [])
 	const [activeRequest, setActiveRequest] = useState<MaintenanceRequestWithRelations | null>(
@@ -106,9 +207,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 
 		// Optimistic update
 		const oldStatus = request.status
-		setRequests(prev =>
-			prev.map(r => (r.id === requestId ? { ...r, status: newStatus } : r))
-		)
+		setRequests(prev => prev.map(r => (r.id === requestId ? { ...r, status: newStatus } : r)))
 
 		// API update
 		startTransition(async () => {
@@ -121,9 +220,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					})
 				})
 
-				toast.success(
-					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`
-				)
+				toast.success(`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`)
 			} catch (error) {
 				logger.error('Status update failed', {
 					action: 'handleDragEnd',
@@ -138,6 +235,21 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		})
 	}
 
+	const handleViewRequest = (id: string) => {
+		router.push(`/maintenance/${id}`)
+	}
+
+	// Filter out columns with no requests except for the main ones
+	const visibleColumns = COLUMNS.filter(column => {
+		const count = requestsByStatus[column.id]?.length ?? 0
+		// Always show Open, In Progress, and Completed
+		if (['open', 'in_progress', 'completed'].includes(column.id)) {
+			return true
+		}
+		// Only show On Hold and Cancelled if they have requests
+		return count > 0
+	})
+
 	return (
 		<DndContext
 			sensors={sensors}
@@ -146,45 +258,20 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			onDragEnd={handleDragEnd}
 			modifiers={[snapToGrid, restrictToWindowEdges]}
 		>
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-				{COLUMNS.map(column => {
-					const columnRequests = requestsByStatus[column.id] || []
-					return (
-						<Card key={column.id} className="flex flex-col">
-							<CardHeader className="pb-3">
-								<div className="flex-between">
-									<CardTitle className="text-base font-medium">
-										{column.title}
-									</CardTitle>
-									<Badge variant={column.variant}>
-										{columnRequests.length}
-									</Badge>
-								</div>
-							</CardHeader>
-							<CardContent className="flex-1 space-y-3 min-h-[400px]">
-								<SortableContext
-									id={column.id}
-									items={columnRequests.map(r => r.id)}
-									strategy={verticalListSortingStrategy}
-								>
-									{columnRequests.map(request => (
-										<MaintenanceSortableCard
-											key={request.id}
-											request={request}
-											columnId={column.id}
-										/>
-									))}
-								</SortableContext>
-							</CardContent>
-						</Card>
-					)
-				})}
+			<div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 lg:-mx-8 lg:px-8">
+				{visibleColumns.map((column, idx) => (
+					<KanbanColumn
+						key={column.id}
+						column={column}
+						requests={requestsByStatus[column.id] || []}
+						columnIndex={idx}
+						onView={handleViewRequest}
+					/>
+				))}
 			</div>
 
 			<DragOverlay>
-				{activeRequest ? (
-					<MaintenanceCard request={activeRequest} isDragging />
-				) : null}
+				{activeRequest ? <MaintenanceCard request={activeRequest} isDragging /> : null}
 			</DragOverlay>
 		</DndContext>
 	)

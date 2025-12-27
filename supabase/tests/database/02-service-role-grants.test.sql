@@ -166,24 +166,12 @@ select extensions.ok(
 );
 
 -- =============================================================================
--- SUBSCRIPTIONS - Billing webhook processing
+-- STRIPE SUBSCRIPTIONS - Synced by Stripe Sync Engine
 -- =============================================================================
 
 select extensions.ok(
-  has_table_privilege('service_role', 'public.subscriptions', 'SELECT'),
-  'service_role should have SELECT on subscriptions'
-);
-select extensions.ok(
-  has_table_privilege('service_role', 'public.subscriptions', 'INSERT'),
-  'service_role should have INSERT on subscriptions'
-);
-select extensions.ok(
-  has_table_privilege('service_role', 'public.subscriptions', 'UPDATE'),
-  'service_role should have UPDATE on subscriptions'
-);
-select extensions.ok(
-  has_table_privilege('service_role', 'public.subscriptions', 'DELETE'),
-  'service_role should have DELETE on subscriptions'
+  has_table_privilege('service_role', 'stripe.subscriptions', 'SELECT'),
+  'service_role should have SELECT on stripe.subscriptions'
 );
 
 select * from extensions.finish();

@@ -6,21 +6,23 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 describe('MaintenanceInsightsService', () => {
   let service: MaintenanceInsightsService
-  let mockSupabase: jest.Mocked<Pick<SupabaseService, 'getAdminClient'>>
+  let mockSupabase: jest.Mocked<
+    Pick<SupabaseService, 'getAdminClient' | 'rpcWithCache'>
+  >
   let mockRpc: jest.Mock
 
   beforeEach(async () => {
     mockRpc = jest.fn()
+    type AdminClient = ReturnType<SupabaseService['getAdminClient']>
+    const mockAdminClient = { rpc: mockRpc } as unknown as AdminClient
     mockSupabase = {
-      getAdminClient: jest.fn().mockReturnValue({ rpc: mockRpc })
-    } as unknown as jest.Mocked<
-      Pick<SupabaseService, 'getAdminClient' | 'rpcWithRetries'>
-    >
-      ; (mockSupabase as unknown as any).rpcWithRetries = jest
+      getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
+      rpcWithCache: jest
         .fn()
         .mockImplementation((fn: string, payload: Record<string, unknown>) => {
-          return (mockSupabase.getAdminClient() as any).rpc(fn, payload)
+          return mockAdminClient.rpc(fn, payload)
         })
+    } as jest.Mocked<Pick<SupabaseService, 'getAdminClient' | 'rpcWithCache'>>
 
     const module = await Test.createTestingModule({
       providers: [

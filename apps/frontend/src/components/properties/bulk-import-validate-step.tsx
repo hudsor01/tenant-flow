@@ -9,7 +9,7 @@ import {
 	FileText
 } from 'lucide-react'
 import { cn } from '#lib/utils'
-import type { ParsedRow } from '@repo/shared/types/bulk-import'
+import type { ParsedRow } from '@repo/shared/types/api-contracts'
 import { Badge } from '#components/ui/badge'
 
 interface BulkImportValidateStepProps {

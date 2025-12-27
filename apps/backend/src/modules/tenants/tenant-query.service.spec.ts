@@ -1,5 +1,6 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Database } from '@repo/shared/types/supabase'
 import { TenantQueryService } from './tenant-query.service'
 import { TenantDetailService } from './tenant-detail.service'
 import { TenantListService } from './tenant-list.service'
@@ -8,6 +9,35 @@ import { TenantRelationService } from './tenant-relation.service'
 import { TenantInvitationQueryService } from './tenant-invitation-query.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+
+type TenantListResponse = Awaited<ReturnType<TenantListService['findAll']>>
+type TenantLeaseListResponse = Awaited<
+	ReturnType<TenantListService['findAllWithLeaseInfo']>
+>
+type TenantDetailResponse = Awaited<ReturnType<TenantDetailService['findOne']>>
+type TenantDetailLeaseResponse = Awaited<
+	ReturnType<TenantDetailService['findOneWithLease']>
+>
+type TenantByAuthResponse = Awaited<
+	ReturnType<TenantDetailService['getTenantByAuthUserId']>
+>
+type TenantStatsResponse = Awaited<ReturnType<TenantStatsService['getStats']>>
+type TenantSummaryResponse = Awaited<ReturnType<TenantStatsService['getSummary']>>
+type PaymentStatusResponse = Awaited<
+	ReturnType<TenantStatsService['fetchPaymentStatuses']>
+>
+type PaymentHistoryResponse = Awaited<
+	ReturnType<TenantRelationService['getTenantPaymentHistory']>
+>
+type BatchPaymentStatusResponse = Awaited<
+	ReturnType<TenantRelationService['batchFetchPaymentStatuses']>
+>
+type InvitationResponse = Awaited<
+	ReturnType<TenantInvitationQueryService['getInvitations']>
+>
 
 /**
  * TenantQueryService is now a facade/coordinator that delegates to specialized services.
@@ -35,37 +65,37 @@ describe('TenantQueryService', () => {
 		identity_verified: true,
 		created_at: '2024-01-01T00:00:00Z',
 		updated_at: '2024-01-01T00:00:00Z'
-	}
+	} as TenantRow
 
 	beforeEach(async () => {
 		mockDetailService = {
 			findOne: jest.fn(),
 			findOneWithLease: jest.fn(),
 			getTenantByAuthUserId: jest.fn()
-		} as any
+		} as jest.Mocked<TenantDetailService>
 
 		mockListService = {
 			findAll: jest.fn(),
 			findAllWithLeaseInfo: jest.fn()
-		} as any
+		} as jest.Mocked<TenantListService>
 
 		mockStatsService = {
 			getStats: jest.fn(),
 			getSummary: jest.fn(),
 			fetchPaymentStatuses: jest.fn()
-		} as any
+		} as jest.Mocked<TenantStatsService>
 
 		mockRelationService = {
 			getOwnerPropertyIds: jest.fn(),
 			getTenantIdsForOwner: jest.fn(),
 			getTenantPaymentHistory: jest.fn(),
 			batchFetchPaymentStatuses: jest.fn()
-		} as any
+		} as jest.Mocked<TenantRelationService>
 
 		mockInvitationService = {
 			getInvitations: jest.fn(),
 			computeInvitationStatus: jest.fn()
-		} as any
+		} as jest.Mocked<TenantInvitationQueryService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -94,7 +124,9 @@ describe('TenantQueryService', () => {
 	describe('List queries delegation', () => {
 		it('findAll delegates to TenantListService', async () => {
 			const mockTenants = [mockTenant]
-			mockListService.findAll.mockResolvedValue(mockTenants as any)
+			mockListService.findAll.mockResolvedValue(
+				mockTenants as TenantListResponse
+			)
 
 			const result = await service.findAll(mockUserId)
 
@@ -114,7 +146,7 @@ describe('TenantQueryService', () => {
 		it('findAllWithLeaseInfo delegates to TenantListService', async () => {
 			const mockTenantsWithLease = [{ ...mockTenant, lease: null }]
 			mockListService.findAllWithLeaseInfo.mockResolvedValue(
-				mockTenantsWithLease as any
+				mockTenantsWithLease as TenantLeaseListResponse
 			)
 
 			const result = await service.findAllWithLeaseInfo(mockUserId)
@@ -129,7 +161,9 @@ describe('TenantQueryService', () => {
 
 	describe('Detail queries delegation', () => {
 		it('findOne delegates to TenantDetailService with token', async () => {
-			mockDetailService.findOne.mockResolvedValue(mockTenant as any)
+			mockDetailService.findOne.mockResolvedValue(
+				mockTenant as TenantDetailResponse
+			)
 
 			const result = await service.findOne(mockTenantId, mockToken)
 
@@ -140,7 +174,7 @@ describe('TenantQueryService', () => {
 		it('findOneWithLease delegates to TenantDetailService with token', async () => {
 			const mockTenantWithLease = { ...mockTenant, lease: null }
 			mockDetailService.findOneWithLease.mockResolvedValue(
-				mockTenantWithLease as any
+				mockTenantWithLease as TenantDetailLeaseResponse
 			)
 
 			const result = await service.findOneWithLease(mockTenantId, mockToken)
@@ -154,7 +188,7 @@ describe('TenantQueryService', () => {
 
 		it('getTenantByAuthUserId delegates to TenantDetailService with token', async () => {
 			mockDetailService.getTenantByAuthUserId.mockResolvedValue(
-				mockTenant as any
+				mockTenant as TenantByAuthResponse
 			)
 
 			const result = await service.getTenantByAuthUserId(mockUserId, mockToken)
@@ -176,7 +210,9 @@ describe('TenantQueryService', () => {
 				totalTenants: 5,
 				activeTenants: 5
 			}
-			mockStatsService.getStats.mockResolvedValue(mockStats as any)
+			mockStatsService.getStats.mockResolvedValue(
+				mockStats as TenantStatsResponse
+			)
 
 			const result = await service.getStats(mockUserId)
 
@@ -193,7 +229,9 @@ describe('TenantQueryService', () => {
 				upcomingDueCents: 0,
 				timestamp: '2024-01-01T00:00:00Z'
 			}
-			mockStatsService.getSummary.mockResolvedValue(mockSummary as any)
+			mockStatsService.getSummary.mockResolvedValue(
+				mockSummary as TenantSummaryResponse
+			)
 
 			const result = await service.getSummary(mockUserId)
 
@@ -202,9 +240,11 @@ describe('TenantQueryService', () => {
 		})
 
 		it('fetchPaymentStatuses delegates to TenantStatsService', async () => {
-			const mockPayments = [{ id: 'payment-1', tenant_id: mockTenantId }]
+			const mockPayments = [
+				{ id: 'payment-1', tenant_id: mockTenantId }
+			] as RentPaymentRow[]
 			mockStatsService.fetchPaymentStatuses.mockResolvedValue(
-				mockPayments as any
+				mockPayments as PaymentStatusResponse
 			)
 
 			const tenantIds = [mockTenantId]
@@ -243,9 +283,11 @@ describe('TenantQueryService', () => {
 		})
 
 		it('getTenantPaymentHistory delegates to TenantRelationService', async () => {
-			const mockPayments = [{ id: 'payment-1', tenant_id: mockTenantId }]
+			const mockPayments = [
+				{ id: 'payment-1', tenant_id: mockTenantId }
+			] as RentPaymentRow[]
 			mockRelationService.getTenantPaymentHistory.mockResolvedValue(
-				mockPayments as any
+				mockPayments as PaymentHistoryResponse
 			)
 
 			const result = await service.getTenantPaymentHistory(mockTenantId)
@@ -269,9 +311,9 @@ describe('TenantQueryService', () => {
 		})
 
 		it('getTenantPaymentHistoryForTenant is an alias for getTenantPaymentHistory', async () => {
-			const mockPayments = [{ id: 'payment-1' }]
+			const mockPayments = [{ id: 'payment-1' }] as RentPaymentRow[]
 			mockRelationService.getTenantPaymentHistory.mockResolvedValue(
-				mockPayments as any
+				mockPayments as PaymentHistoryResponse
 			)
 
 			const result = await service.getTenantPaymentHistoryForTenant(
@@ -287,11 +329,11 @@ describe('TenantQueryService', () => {
 		})
 
 		it('batchFetchPaymentStatuses delegates to TenantRelationService', async () => {
-			const mockStatusMap = new Map([
-				['tenant-1', { id: 'payment-1' } as any]
+			const mockStatusMap = new Map<string, RentPaymentRow>([
+				['tenant-1', { id: 'payment-1' } as RentPaymentRow]
 			])
 			mockRelationService.batchFetchPaymentStatuses.mockResolvedValue(
-				mockStatusMap
+				mockStatusMap as BatchPaymentStatusResponse
 			)
 
 			const tenantIds = ['tenant-1', 'tenant-2']
@@ -311,7 +353,7 @@ describe('TenantQueryService', () => {
 				total: 1
 			}
 			mockInvitationService.getInvitations.mockResolvedValue(
-				mockInvitations as any
+				mockInvitations as InvitationResponse
 			)
 
 			const result = await service.getInvitations(mockUserId)

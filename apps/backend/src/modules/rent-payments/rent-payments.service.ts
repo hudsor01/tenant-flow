@@ -42,6 +42,15 @@ export interface CurrentPaymentStatus {
 	isOverdue: boolean
 }
 
+export interface ManualPaymentInput {
+	lease_id: string
+	tenant_id: string
+	amount: number
+	payment_method: 'cash' | 'check' | 'money_order' | 'other'
+	paid_date: string
+	notes?: string | undefined
+}
+
 @Injectable()
 export class RentPaymentsService {
 	private readonly stripe: Stripe
@@ -104,6 +113,106 @@ export class RentPaymentsService {
 		requestingUserId: string
 	): Promise<TenantAutopayStatusResponse> {
 		return this.autopayService.getAutopayStatus(params, requestingUserId)
+	}
+
+	// ==================
+	// MANUAL PAYMENT RECORDING
+	// ==================
+
+	/**
+	 * Record a manual payment (cash, check, money order, etc.)
+	 * This creates a rent payment record without going through Stripe
+	 */
+	async recordManualPayment(
+		params: ManualPaymentInput,
+		token: string
+	): Promise<RentPayment> {
+		const { lease_id, tenant_id, amount, payment_method, paid_date, notes } = params
+
+		// Use user client for RLS-protected access
+		const client = this.supabase.getUserClient(token)
+
+		// Verify the lease exists and user has access
+		const { data: lease, error: leaseError } = await client
+			.from('leases')
+			.select('id, rent_amount, primary_tenant_id')
+			.eq('id', lease_id)
+			.single()
+
+		if (leaseError || !lease) {
+			throw new NotFoundException('Lease not found or access denied')
+		}
+
+		// Verify tenant matches
+		if (lease.primary_tenant_id !== tenant_id) {
+			throw new ForbiddenException('Tenant does not match lease')
+		}
+
+		// Convert amount to cents
+		const amountInCents = Math.round(amount * 100)
+
+		// Map payment method to the expected format
+		const paymentMethodType = this.mapManualPaymentMethod(payment_method)
+
+		// Calculate due date (use paid date for manual payments)
+		const dueDate = new Date(paid_date)
+
+		// Insert the payment record using admin client
+		// Note: stripe_payment_intent_id is nullable after migration 20251226164649
+		// and notes column is added by the same migration
+		// We use a placeholder ID for manual payments since the column is required in current schema
+		const adminClient = this.supabase.getAdminClient()
+		const manualPaymentId = `MANUAL_${Date.now()}_${Math.random().toString(36).substring(7)}`
+		const insertPayload = {
+			tenant_id,
+			lease_id,
+			amount: amountInCents,
+			application_fee_amount: 0,
+			currency: 'usd',
+			due_date: dueDate.toISOString(),
+			late_fee_amount: null,
+			paid_date: new Date(paid_date).toISOString(),
+			payment_method_type: paymentMethodType,
+			period_start: dueDate.toISOString(),
+			period_end: new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).toISOString(),
+			status: 'succeeded' as PaymentStatus,
+			// Use placeholder ID until migration makes this column nullable
+			stripe_payment_intent_id: manualPaymentId
+		}
+
+		const { data: payment, error: insertError } = await adminClient
+			.from('rent_payments')
+			.insert(insertPayload)
+			.select('*')
+			.single()
+
+		if (insertError || !payment) {
+			this.logger.error('Failed to record manual payment', {
+				error: insertError?.message,
+				lease_id,
+				tenant_id
+			})
+			throw new BadRequestException('Failed to record payment')
+		}
+
+		this.logger.log('Manual payment recorded successfully', {
+			payment_id: payment.id,
+			amount: amountInCents,
+			payment_method,
+			notes: notes ?? undefined
+		})
+
+		return payment as RentPayment
+	}
+
+	private mapManualPaymentMethod(method: 'cash' | 'check' | 'money_order' | 'other'): string {
+		const methodMap: Record<string, string> = {
+			cash: 'CASH',
+			check: 'CHECK',
+			money_order: 'MONEY_ORDER',
+			other: 'OTHER'
+		}
+		return methodMap[method] || 'OTHER'
 	}
 
 	// ==================

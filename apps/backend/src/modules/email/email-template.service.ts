@@ -51,6 +51,39 @@ export class EmailTemplateService {
 	}
 
 	/**
+	 * Prepare payment reminder email data
+	 */
+	preparePaymentReminderEmail(data: {
+		tenantName: string
+		tenantEmail: string
+		propertyName: string
+		unitNumber?: string
+		amount: number
+		currency: string
+		dueDate: string
+		daysUntilDue: number
+		paymentUrl: string
+		autopayEnabled: boolean
+	}) {
+		const formattedAmount = (data.amount / 100).toFixed(2)
+		const locationDisplay = data.unitNumber
+			? `${data.propertyName} - Unit ${data.unitNumber}`
+			: data.propertyName
+
+		const isUrgent = data.daysUntilDue <= 3
+		const subject = isUrgent
+			? `Reminder: Rent Due in ${data.daysUntilDue} Days - ${data.currency.toUpperCase()} $${formattedAmount}`
+			: `Upcoming Rent Payment Reminder - ${locationDisplay}`
+
+		return {
+			from: this.config.getResendFromEmail(),
+			to: [data.tenantEmail],
+			subject,
+			templateData: data
+		}
+	}
+
+	/**
 	 * Prepare subscription canceled email data
 	 */
 	prepareSubscriptionCanceledEmail(data: {

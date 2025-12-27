@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~1414 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// This is a shadcn/ui component. Consider:
+// 1. Check if updates available via: `npx shadcn@latest diff file-upload`
+// 2. If custom modifications needed, extract into:
+//    - `file-upload-context.tsx` (state/context management)
+//    - `file-upload-dropzone.tsx` (dropzone component)
+//    - `file-upload-item.tsx` (file item display)
+//    - `file-upload.tsx` (main component)
+
 "use client";
 
 import { useDirection } from "@radix-ui/react-direction";

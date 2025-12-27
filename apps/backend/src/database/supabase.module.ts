@@ -10,7 +10,12 @@ import { createClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
 import { AppLogger } from '../logger/app-logger.service'
 import { DocumentsModule } from '../modules/documents/documents.module'
+import { MetricsModule } from '../modules/metrics/metrics.module'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
+import { SupabaseCacheService } from './supabase-cache.service'
+import { SupabaseHealthService } from './supabase-health.service'
+import { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import { SupabaseRpcService } from './supabase-rpc.service'
 import { SupabaseService } from './supabase.service'
 import { StorageService } from './storage.service'
 
@@ -20,7 +25,7 @@ export class SupabaseModule {
   static forRootAsync(): DynamicModule {
     return {
       module: SupabaseModule,
-      imports: [ConfigModule, DocumentsModule],
+      imports: [ConfigModule, DocumentsModule, MetricsModule],
       providers: [
         {
           provide: SUPABASE_ADMIN_CLIENT,
@@ -63,6 +68,10 @@ export class SupabaseModule {
           },
           inject: [AppConfigService, AppLogger]
         },
+        SupabaseCacheService,
+        SupabaseInstrumentationService,
+        SupabaseRpcService,
+        SupabaseHealthService,
         SupabaseService,
         StorageService
       ],

@@ -11,7 +11,7 @@ import {
 import { FileUp } from 'lucide-react'
 import { useState } from 'react'
 import { BulkImportStepper } from './bulk-import-stepper'
-import type { ImportStep } from '@repo/shared/types/bulk-import'
+import type { ImportStep } from '@repo/shared/types/api-contracts'
 
 export function PropertyBulkImportDialog() {
   const [open, setOpen] = useState(false)

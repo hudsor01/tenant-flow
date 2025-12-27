@@ -4,16 +4,23 @@ import * as FinancialLedgerHelpers from './financial-ledger.helpers'
 import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { TaxDocumentsService } from './tax-documents.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
+type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
 
 describe('TaxDocumentsService', () => {
   let service: TaxDocumentsService
   let supabaseService: jest.Mocked<SupabaseService>
-  let mockClient: any
+  let mockClient: SupabaseClient<Database>
 
   beforeEach(async () => {
     mockClient = {
@@ -25,7 +32,7 @@ describe('TaxDocumentsService', () => {
           error: null
         })
       }
-    }
+    } as unknown as SupabaseClient<Database>
 
     // Mock table queries used by loadLedgerData
     mockClient.from.mockImplementation((table: string) => {
@@ -42,14 +49,14 @@ describe('TaxDocumentsService', () => {
 
       // Mock the final resolution based on table
       mockQuery.then.mockImplementation((resolve) => {
-        let data: any[] = []
+        let data: unknown[] = []
         switch (table) {
           case 'rent_payments':
             data = [
               { id: 'rp1', amount: 20000, status: 'succeeded', due_date: '2024-06-01', paid_date: '2024-06-01', lease_id: 'lease-1' },
               { id: 'rp2', amount: 20000, status: 'succeeded', due_date: '2024-07-01', paid_date: '2024-07-01', lease_id: 'lease-1' },
               { id: 'rp3', amount: 20000, status: 'succeeded', due_date: '2024-08-01', paid_date: '2024-08-01', lease_id: 'lease-1' }
-            ]
+            ] as RentPaymentRow[]
             break
           case 'expenses':
             data = [
@@ -57,7 +64,7 @@ describe('TaxDocumentsService', () => {
               { id: 'e2', amount: 5000, expense_date: '2024-04-01', created_at: '2024-04-01', category: 'Insurance', property_id: 'prop-1' },
               { id: 'e3', amount: 5000, expense_date: '2024-05-01', created_at: '2024-05-01', category: 'Repairs', property_id: 'prop-1' },
               { id: 'e4', amount: 5000, expense_date: '2024-06-01', created_at: '2024-06-01', category: 'Utilities', property_id: 'prop-1' }
-            ]
+            ] as ExpenseRow[]
             break
           case 'leases':
             data = [
@@ -67,7 +74,7 @@ describe('TaxDocumentsService', () => {
                 unit_id: 'unit-1',
                 rent_amount: 1500
               }
-            ]
+            ] as LeaseRow[]
             break
           case 'maintenance_requests':
             data = []
@@ -79,7 +86,7 @@ describe('TaxDocumentsService', () => {
                 property_id: 'prop-1',
                 unit_number: '101'
               }
-            ]
+            ] as UnitRow[]
             break
           case 'properties':
             data = [
@@ -90,7 +97,7 @@ describe('TaxDocumentsService', () => {
                 acquisition_year: 2020,
                 created_at: '2020-01-01T00:00:00Z'
               }
-            ]
+            ] as PropertyRow[]
             break
         }
         return resolve({ data, error: null })
@@ -203,7 +210,7 @@ describe('TaxDocumentsService', () => {
         }
 
         // Default data for other tables
-        let data: any[] = []
+        let data: unknown[] = []
         switch (table) {
           case 'rent_payments':
             data = [

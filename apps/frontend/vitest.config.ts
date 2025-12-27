@@ -27,6 +27,15 @@ const loadEnvFile = (fileName: string) => {
 loadEnvFile('.env.test')
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      recharts: resolve(__dirname, 'src/test/mocks/recharts.tsx'),
+      'recharts/types/component/DefaultTooltipContent': resolve(
+        __dirname,
+        'src/test/mocks/recharts-tooltip.ts'
+      )
+    }
+  },
   plugins: [
     tsconfigPaths({
       ignoreConfigErrors: true
@@ -81,6 +90,9 @@ export default defineConfig({
       'playwright/**',
       'tests/tanstack/tanstack-test-results/**' // Exclude test result HTML files
     ],
+    deps: {
+      inline: ['@reduxjs/toolkit', 'recharts']
+    },
     testTimeout: 10000,
     hookTimeout: 10000
   }

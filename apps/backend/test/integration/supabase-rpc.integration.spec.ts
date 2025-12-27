@@ -86,7 +86,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc('get_dashboard_stats', {
+		const { data, error } = await client.rpc('get_dashboard_stats', {
 			user_id_param: user_id
 		})
 
@@ -102,7 +102,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 		expect(stats).toHaveProperty('revenue')
 	})
 
-	test('get_property_performance returns typed rows', async () => {
+	test('get_property_performance_cached returns typed rows', async () => {
 		const mockRows = [
 			{
 				property_id: 'prop-1',
@@ -120,8 +120,8 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
-			'get_property_performance',
+		const { data, error } = await client.rpc(
+			'get_property_performance_cached',
 			{
 				p_user_id: user_id
 			}
@@ -129,7 +129,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
-		expect(mockRpc).toHaveBeenCalledWith('get_property_performance', {
+		expect(mockRpc).toHaveBeenCalledWith('get_property_performance_cached', {
 			p_user_id: user_id
 		})
 
@@ -150,7 +150,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'calculate_maintenance_metrics',
 			{
 				p_user_id: user_id
@@ -184,7 +184,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'get_maintenance_analytics',
 			{
 				user_id: user_id
@@ -214,7 +214,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'get_tenants_by_owner',
 			{
 				p_user_id: user_id
@@ -239,7 +239,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'get_tenants_by_owner',
 			{
 				p_user_id: user_id
@@ -262,7 +262,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'get_tenants_with_lease_by_owner',
 			{
 				p_user_id: user_id
@@ -287,7 +287,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await (client as any).rpc(
+		const { data, error } = await client.rpc(
 			'get_tenants_with_lease_by_owner',
 			{
 				p_user_id: user_id

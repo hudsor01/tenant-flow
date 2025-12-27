@@ -14,11 +14,11 @@ import { createTestBed, type TestBedResult } from '../test-bed.utils'
  * Mock implementation of a data layer method
  */
 export interface MockDataLayerMethod {
-  mockResolvedValue: (value: any) => MockDataLayerMethod
-  mockRejectedValue: (error: any) => MockDataLayerMethod
-  mockImplementation: (fn: (...args: any[]) => any) => MockDataLayerMethod
-  mockReturnValue: (value: any) => MockDataLayerMethod
-  toHaveBeenCalledWith: (...args: any[]) => boolean
+  mockResolvedValue: (value: unknown) => MockDataLayerMethod
+  mockRejectedValue: (error: unknown) => MockDataLayerMethod
+  mockImplementation: (fn: (...args: unknown[]) => unknown) => MockDataLayerMethod
+  mockReturnValue: (value: unknown) => MockDataLayerMethod
+  toHaveBeenCalledWith: (...args: unknown[]) => boolean
 }
 
 /**
@@ -47,34 +47,36 @@ export interface MockDataLayerMethod {
  */
 export interface ServiceTestBed<T> {
   service: T
-  getMock: <D>(serviceName: new (...args: any[]) => D) => jest.Mocked<D>
-  get: <D>(serviceName: new (...args: any[]) => D) => D
+  getMock: <D>(serviceName: Constructor<D>) => jest.Mocked<D>
+  get: <D>(serviceName: Constructor<D>) => D
   verify: (
-    service: any,
+    service: Record<string, jest.Mock>,
     method: string,
     expectedCalls?: number
-  ) => { called: number; args: any[] }
+  ) => { called: number; args: unknown[] }
 }
+
+type Constructor<T> = new (...args: unknown[]) => T
 
 /**
  * Create service testbed with automatic mocking
  */
 export async function createServiceTestBed<T>(
-  serviceClass: new (...args: any[]) => T
+  serviceClass: Constructor<T>
 ): Promise<ServiceTestBed<T>> {
   const testBed = await createTestBed(serviceClass)
 
   return {
     service: testBed.unit,
     getMock: <D>(
-      serviceName: new (...args: any[]) => D
+      serviceName: Constructor<D>
     ): jest.Mocked<D> => {
       return testBed.get(serviceName)
     },
-    get: <D>(serviceName: new (...args: any[]) => D): D => {
+    get: <D>(serviceName: Constructor<D>): D => {
       return testBed.get(serviceName)
     },
-    verify: (service: any, method: string, expectedCalls?: number) => {
+    verify: (service: Record<string, jest.Mock>, method: string, expectedCalls?: number) => {
       const mock = service[method]
       if (!jest.isMockFunction(mock)) {
         throw new Error(`${method} is not a mock function`)
@@ -159,9 +161,9 @@ export function createMockDataLayer(
  * ```
  */
 export function verifyDataLayerCall(
-  mockDataLayer: any,
+  mockDataLayer: Record<string, jest.Mock>,
   method: string,
-  expectedArgs?: any[]
+  expectedArgs?: unknown[]
 ): void {
   const mock = mockDataLayer[method]
   if (!mock) {
@@ -172,7 +174,7 @@ export function verifyDataLayerCall(
   }
 
   if (expectedArgs) {
-    const called = mock.mock.calls.some((args: any[]) =>
+    const called = mock.mock.calls.some((args: unknown[]) =>
       JSON.stringify(args) === JSON.stringify(expectedArgs)
     )
     if (!called) {
@@ -229,17 +231,17 @@ export function createSupabaseErrorStub(errorMessage: string) {
  */
 export interface ServiceScenario {
   name: string
-  dataLayerResponse?: any
+  dataLayerResponse?: unknown
   dataLayerError?: string
-  expected?: any
+  expected?: Record<string, unknown>
   expectedError?: string
 }
 
 export async function runServiceScenarios(
-  service: any,
+  service: Record<string, (...args: unknown[]) => unknown>,
   methodName: string,
   scenarios: ServiceScenario[],
-  methodArgs: any[] = []
+  methodArgs: unknown[] = []
 ): Promise<void> {
   for (const scenario of scenarios) {
     try {
@@ -260,14 +262,15 @@ export async function runServiceScenarios(
           }
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!scenario.expectedError) {
         throw error
       }
 
-      if (!error.message.includes(scenario.expectedError)) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (!errorMessage.includes(scenario.expectedError)) {
         throw new Error(
-          `Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${error.message}"`
+          `Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${errorMessage}"`
         )
       }
     }
@@ -288,7 +291,13 @@ export async function runServiceScenarios(
  * const result = await service.create(req, dto)
  * ```
  */
-export function createMockRequest(overrides: Partial<any> = {}) {
+type MockRequestOverrides = Partial<{
+  user: { id?: string; email?: string; aud?: string }
+  headers: Record<string, string>
+  cookies: Record<string, string>
+}> & Record<string, unknown>
+
+export function createMockRequest(overrides: MockRequestOverrides = {}) {
   return {
     user: {
       id: 'user-123',
@@ -316,9 +325,9 @@ export function createMockRequest(overrides: Partial<any> = {}) {
  * ```
  */
 export function expectServiceCall(
-  mock: jest.Mocked<any>,
+  mock: jest.Mocked<Record<string, (...args: unknown[]) => unknown>>,
   methodName: string,
-  expectedArgs?: any[]
+  expectedArgs?: unknown[]
 ): void {
   const method = mock[methodName]
   if (!jest.isMockFunction(method)) {
@@ -332,7 +341,7 @@ export function expectServiceCall(
   }
 
   if (expectedArgs) {
-    const called = method.mock.calls.some((args: any[]) =>
+    const called = method.mock.calls.some((args: unknown[]) =>
       expectedArgs.every((expectedArg, index) =>
         JSON.stringify(args[index]) === JSON.stringify(expectedArg)
       )
@@ -349,14 +358,14 @@ export function expectServiceCall(
 /**
  * Create a service test helper that automatically sets up common mocks
  */
-export function createServiceTestHelper<T>(serviceClass: new (...args: any[]) => T) {
+export function createServiceTestHelper<T>(serviceClass: Constructor<T>) {
   return {
     create: async () => createServiceTestBed(serviceClass),
-    mockRequest: (overrides?: Partial<any>) => createMockRequest(overrides),
-    mockDataLayer: (methods?: any) => createMockDataLayer(methods),
-    verifyCall: (mock: jest.Mocked<any>, method: string, args?: any[]) =>
+    mockRequest: (overrides?: MockRequestOverrides) => createMockRequest(overrides),
+    mockDataLayer: (methods?: Partial<Record<string, jest.Mock>>) => createMockDataLayer(methods),
+    verifyCall: (mock: jest.Mocked<Record<string, (...args: unknown[]) => unknown>>, method: string, args?: unknown[]) =>
       expectServiceCall(mock, method, args),
-    verifyDataLayerCall: (mock: any, method: string, args?: any[]) =>
+    verifyDataLayerCall: (mock: Record<string, jest.Mock>, method: string, args?: unknown[]) =>
       verifyDataLayerCall(mock, method, args)
   }
 }

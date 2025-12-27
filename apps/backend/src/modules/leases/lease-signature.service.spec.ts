@@ -26,6 +26,9 @@ import { PdfStorageService } from '../pdf/pdf-storage.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SseService } from '../notifications/sse/sse.service'
+import type { Database } from '@repo/shared/types/supabase'
+
+type LeaseUpdate = Database['public']['Tables']['leases']['Update']
 
 
 describe('LeaseSignatureService', () => {
@@ -34,10 +37,10 @@ describe('LeaseSignatureService', () => {
 	let mockEventEmitter: jest.Mocked<Partial<EventEmitter2>>
 	let mockDocuSealService: jest.Mocked<Partial<DocuSealService>>
 	let mockLeaseSubscriptionService: jest.Mocked<Partial<LeaseSubscriptionService>>
-	let mockLeasesService: any
-	let mockPdfMapper: any
-	let mockPdfGenerator: any
-	let mockPdfStorage: any
+	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
+	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
+	let mockPdfStorage: jest.Mocked<PdfStorageService>
 
 	const mockToken = 'mock-jwt-token'
 
@@ -70,8 +73,8 @@ describe('LeaseSignatureService', () => {
 		ownerEmail: string,
 		tenantUserId: string,
 		tenantEmail: string,
-		leaseData: any,
-		additionalMocks?: { [table: string]: any }
+		leaseData: unknown,
+		additionalMocks?: Record<string, unknown>
 	) => {
 		let userCallCount = 0
 		return jest.fn(() => ({
@@ -212,7 +215,7 @@ describe('LeaseSignatureService', () => {
 			const propertyOwnerId = 'property-owner-456' // stripe_connected_accounts.id (Stripe Connect record for owner user_id)
 
 	it('should transition lease from draft to pending_signature', async () => {
-		let updateData: any = null
+		let updateData: LeaseUpdate | null = null
 		let userCallCount = 0
 
 		mockSupabaseService.getAdminClient = jest.fn(() => ({
@@ -224,7 +227,7 @@ describe('LeaseSignatureService', () => {
 						owner_user_id: ownerId,
 						primary_tenant_id: 'tenant-456'
 					})
-					chain.update = jest.fn((data: any) => {
+					chain.update = jest.fn((data: LeaseUpdate) => {
 						updateData = data
 						return chain
 					})

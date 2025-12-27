@@ -1,244 +1,57 @@
 /**
  * Webhook Health Controller
  *
- * Provides health check and monitoring endpoints for webhook system
- * Used for observability, alerting, and debugging
+ * Simple health check endpoint for webhook system
+ * Full webhook monitoring available in Stripe Dashboard:
+ * https://dashboard.stripe.com/webhooks
  *
- * Security: Implements role-based access control
- * - Public health endpoint for monitoring systems
- * - OWNER role required for administrative webhook monitoring
- * - Custom token authentication for configuration endpoint
+ * Following Stripe's official recommendation:
+ * - Use Stripe Dashboard for detailed metrics
+ * - Use this endpoint for basic uptime monitoring
  */
 
 import {
 	Controller,
 	Get,
-	Patch,
-	Param,
-	ParseUUIDPipe,
 	HttpStatus,
 	HttpCode,
-	SetMetadata,
-	UnauthorizedException,
-	Req,
-	UseGuards
+	SetMetadata
 } from '@nestjs/common'
-import { timingSafeEqual } from 'crypto'
-import type { Request } from 'express'
-import { WebhookMonitoringService } from '../billing/webhook-monitoring.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { RolesGuard } from '../../shared/guards/roles.guard'
-import { Roles } from '../../shared/decorators/roles.decorator'
-
-const CONFIG_AUTH_HEADER = 'x-webhook-config-token'
-
-const constantTimeEquals = (a?: string, b?: string): boolean => {
-	if (!a || !b) return false
-
-	const aBuf = Buffer.from(a)
-	const bBuf = Buffer.from(b)
-
-	if (aBuf.length !== bBuf.length) return false
-
-	return timingSafeEqual(aBuf, bBuf)
-}
 
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
 
 @Controller('webhooks/health')
 export class WebhookHealthController {
-	constructor(
-		private readonly webhookMonitoringService: WebhookMonitoringService,
-		private readonly appConfigService: AppConfigService
-	) {}
+	constructor(private readonly appConfigService: AppConfigService) {}
 
 	/**
 	 * GET /webhooks/health
 	 *
-	 * Returns overall webhook system health status
+	 * Returns webhook system health status
 	 * Used by monitoring systems (e.g., Uptime Kuma, Datadog)
+	 *
+	 * For detailed webhook metrics, use Stripe Dashboard:
+	 * https://dashboard.stripe.com/webhooks
 	 */
 	@Public()
 	@Get()
 	@HttpCode(HttpStatus.OK)
-	async getHealth() {
-		const issues = await this.webhookMonitoringService.detectHealthIssues()
-		const hasCriticalIssues = issues.some(issue => issue.severity === 'critical')
-		const hasWarnings = issues.some(issue => issue.severity === 'warning')
-
-		return {
-			status: hasCriticalIssues ? 'unhealthy' : hasWarnings ? 'degraded' : 'healthy',
-			timestamp: new Date().toISOString(),
-			issues: issues.length > 0 ? issues : undefined,
-			summary: {
-				total_issues: issues.length,
-				critical: issues.filter(i => i.severity === 'critical').length,
-				warnings: issues.filter(i => i.severity === 'warning').length,
-				info: issues.filter(i => i.severity === 'info').length
-			}
-		}
-	}
-
-	/**
-	 * GET /webhooks/health/summary
-	 *
-	 * Returns detailed 24-hour health summary with hourly breakdown
-	 * Used for dashboards and trend analysis
-	 * Requires OWNER role for administrative webhook monitoring access
-	 */
-	@UseGuards(RolesGuard)
-	@Roles('OWNER')
-	@Get('summary')
-	async getHealthSummary() {
-		const [healthSummary, eventTypeSummary] = await Promise.all([
-			this.webhookMonitoringService.getHealthSummary(),
-			this.webhookMonitoringService.getEventTypeSummary()
-		])
-
-		return {
-			timestamp: new Date().toISOString(),
-			hourly_metrics: healthSummary,
-			event_types: eventTypeSummary
-		}
-	}
-
-	/**
-	 * GET /webhooks/health/failures
-	 *
-	 * Returns unresolved webhook failures for investigation
-	 * Requires OWNER role to prevent exposing sensitive error details
-	 */
-	@UseGuards(RolesGuard)
-	@Roles('OWNER')
-	@Get('failures')
-	async getFailures() {
-		const failures = await this.webhookMonitoringService.getUnresolvedFailures()
-
-		return {
-			timestamp: new Date().toISOString(),
-			count: failures.length,
-			failures: failures.map(f => ({
-				id: f.id,
-				stripe_event_id: f.stripe_event_id,
-				event_type: f.event_type,
-				failure_reason: f.failure_reason,
-				error_message: f.error_message,
-				retry_count: f.retry_count,
-				created_at: f.created_at,
-				last_retry_at: f.last_retry_at
-			}))
-		}
-	}
-
-	/**
-	 * PATCH /webhooks/health/failures/:id/resolve
-	 *
-	 * Mark a webhook failure as resolved
-	 * Requires OWNER role for administrative webhook management
-	 */
-	@UseGuards(RolesGuard)
-	@Roles('OWNER')
-	@Patch('failures/:id/resolve')
-	@HttpCode(HttpStatus.OK)
-	async resolveFailure(
-		@Param('id', ParseUUIDPipe) id: string
-	): Promise<{ success: boolean; message: string }> {
-		await this.webhookMonitoringService.resolveFailure(id)
-
-		return {
-			success: true,
-			message: 'Failure marked as resolved'
-		}
-	}
-
-	/**
-	 * GET /webhooks/health/configuration
-	 *
-	 * Returns webhook configuration status and recommendations
-	 * Helps diagnose setup issues
-	 * Requires authentication to prevent exposing internal configuration
-	 */
-	@Get('configuration')
-	async getConfiguration(@Req() req: Request) {
-		const expectedToken = this.appConfigService.getStripeWebhookSecret()
-		const providedToken = this.getConfigurationToken(req)
-
-		if (!constantTimeEquals(providedToken, expectedToken)) {
-			throw new UnauthorizedException('Invalid configuration access token')
-		}
-
+	getHealth() {
 		const webhookSecret = this.appConfigService.getStripeWebhookSecret()
 		const stripeKey = this.appConfigService.getStripeSecretKey()
 
-		// Check environment configuration
-		const checks = {
-			webhook_secret_configured: !!webhookSecret,
-			webhook_secret_format: webhookSecret?.startsWith('whsec_') || false,
-			stripe_key_configured: !!stripeKey,
-			stripe_key_type: stripeKey?.startsWith('sk_live_')
-				? 'live'
-				: stripeKey?.startsWith('sk_test_')
-				? 'test'
-				: stripeKey?.startsWith('rk_')
-				? 'restricted'
-				: 'unknown',
-			database_connection: true, // Assume true if we got here
-			timestamp: new Date().toISOString()
-		}
-
-		const allChecksPassed = Object.values(checks).every(v =>
-			typeof v === 'boolean' ? v : true
-		)
-
-		const recommendations = []
-
-		if (!checks.webhook_secret_configured) {
-			recommendations.push({
-				severity: 'critical',
-				message: 'STRIPE_WEBHOOK_SECRET is not configured',
-				action: 'Set STRIPE_WEBHOOK_SECRET in Doppler from Stripe Dashboard webhook settings'
-			})
-		}
-
-		if (!checks.webhook_secret_format) {
-			recommendations.push({
-				severity: 'warning',
-				message: 'Webhook secret format may be invalid (should start with whsec_)',
-				action: 'Verify STRIPE_WEBHOOK_SECRET from Stripe Dashboard'
-			})
-		}
-
-		if (checks.stripe_key_type === 'test') {
-			recommendations.push({
-				severity: 'info',
-				message: 'Using Stripe test mode key',
-				action: 'Switch to live mode key when ready for production'
-			})
-		}
+		const isConfigured = !!webhookSecret && !!stripeKey
 
 		return {
-			status: allChecksPassed ? 'configured' : 'misconfigured',
-			checks,
-			recommendations,
-			endpoint_url: `${this.appConfigService.getApiBaseUrl()}/webhooks/stripe-sync`
+			status: isConfigured ? 'healthy' : 'misconfigured',
+			timestamp: new Date().toISOString(),
+			checks: {
+				webhook_secret_configured: !!webhookSecret,
+				stripe_key_configured: !!stripeKey
+			},
+			dashboard_url: 'https://dashboard.stripe.com/webhooks'
 		}
-	}
-
-	private getConfigurationToken(req: Request): string | undefined {
-		const header = req.headers[CONFIG_AUTH_HEADER]
-		const authHeader = Array.isArray(header) ? header[0] : header
-
-		if (authHeader) return authHeader
-
-		const authorization = Array.isArray(req.headers.authorization)
-			? req.headers.authorization[0]
-			: req.headers.authorization
-
-		if (authorization?.startsWith('Bearer ')) {
-			return authorization.slice(7)
-		}
-
-		return authorization
 	}
 }

@@ -1,3 +1,12 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~532 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract lease CRUD endpoints into: `./lease-crud.controller.ts`
+// 2. Extract lease status endpoints into: `./lease-status.controller.ts`
+// 3. Extract lease tenant endpoints into: `./lease-tenant.controller.ts`
+// 4. Keep LeasesController as base with common routes only
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
 

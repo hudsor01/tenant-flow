@@ -84,7 +84,7 @@ describe('UnitsController', () => {
 			getUserEmail: jest.fn().mockResolvedValue(mockUser.email),
 			isAuthenticated: jest.fn().mockResolvedValue(true),
 			getUserOrNull: jest.fn().mockResolvedValue(mockUser)
-		} as any
+		} as jest.Mocked<CurrentUserProvider>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [UnitsController],
@@ -146,10 +146,10 @@ describe('UnitsController', () => {
 
 		await expect(
 			controller.findAll(
-				createMockRequest({ user: mockUser }) as any,
+				createMockRequest({ user: mockUser }),
 				{
 					property_id: null,
-					status: 'INVALID_STATUS' as any,
+					status: 'INVALID_STATUS' as unknown as UnitUpdate['status'],
 					search: undefined,
 					limit: 10,
 					offset: 0,
@@ -162,13 +162,13 @@ describe('UnitsController', () => {
 
 		it('should accept uppercase unit status and normalize to lowercase', async () => {
 			const mockUnits = [createMockUnit({ status: 'occupied' })]
-			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits as any)
+			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll(
 			'mock-jwt-token',
 			{
 				property_id: null,
-				status: 'OCCUPIED' as any, // Uppercase input to test normalization
+				status: 'OCCUPIED' as unknown as UnitUpdate['status'], // Uppercase input to test normalization
 				search: undefined,
 				limit: 10,
 				offset: 0,
@@ -198,7 +198,7 @@ describe('UnitsController', () => {
 				maintenanceUnits: 2
 			}
 
-			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats as any)
+			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats('mock-jwt-token')
 			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith('mock-jwt-token')

@@ -23,18 +23,18 @@ describe('PropertyOwnershipGuard', () => {
   beforeEach(() => {
     // Create mock services
     mockSupabaseService = {
-      getAdminClient: jest.fn() as any
+      getAdminClient: jest.fn()
     }
 
     mockAuthCache = {
-      getOrSet: jest.fn() as any
+      getOrSet: jest.fn()
     }
 
     mockLogger = {
-      warn: jest.fn() as any,
-      debug: jest.fn() as any,
-      error: jest.fn() as any,
-      log: jest.fn() as any
+      warn: jest.fn(),
+      debug: jest.fn(),
+      error: jest.fn(),
+      log: jest.fn()
     }
 
     guard = new PropertyOwnershipGuard(
@@ -93,7 +93,7 @@ describe('PropertyOwnershipGuard', () => {
 
             // Create request with nested leaseData structure (matches InviteTenantRequest)
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 tenantData: {
                   email: 'tenant@example.com',
@@ -139,7 +139,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 property_id: propertyId
               },
@@ -169,7 +169,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {},
               params: {
                 property_id: propertyId
@@ -199,7 +199,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {},
               params: {},
               query: {
@@ -234,7 +234,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 property_id: bodyId
               },
@@ -279,7 +279,7 @@ describe('PropertyOwnershipGuard', () => {
 
             // Create request with property_id (simulating invitation request)
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 tenantData: {
                   email: 'tenant@example.com',
@@ -330,7 +330,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(false)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 tenantData: {
                   email: 'tenant@example.com',
@@ -382,7 +382,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             // Create request with property_id in different locations
-            const requestData: any = {
+            const requestData: Record<string, unknown> = {
               user: { id: userId },
               body: {},
               params: {},
@@ -423,7 +423,7 @@ describe('PropertyOwnershipGuard', () => {
           fc.uuid(),
           async (userId) => {
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {},
               params: {},
               query: {}
@@ -456,7 +456,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(true)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 leaseData: {
                   property_id: propertyId
@@ -491,7 +491,7 @@ describe('PropertyOwnershipGuard', () => {
             mockAuthCache.getOrSet.mockResolvedValue(false)
 
             const context = createContext({
-              user: { id: userId } as any,
+              user: { id: userId } as AuthenticatedRequest["user"],
               body: {
                 property_id: propertyId
               },
@@ -548,11 +548,11 @@ describe('PropertyOwnershipGuard', () => {
           error: null
         })
       }
-      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
       // First check - should call factory
       const context1 = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -571,7 +571,7 @@ describe('PropertyOwnershipGuard', () => {
 
       // Second check - should use cached value (no factory call)
       const context2 = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -610,10 +610,10 @@ describe('PropertyOwnershipGuard', () => {
           error: null
         })
       }
-      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -660,11 +660,11 @@ describe('PropertyOwnershipGuard', () => {
           error: null
         })
       }
-      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
       // Request with all three resource types
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: {
           property_id: propertyId,
           lease_id: leaseId,
@@ -704,11 +704,11 @@ describe('PropertyOwnershipGuard', () => {
           error: null
         })
       }
-      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as any)
+      mockSupabaseService.getAdminClient.mockReturnValue(mockClient as ReturnType<SupabaseService["getAdminClient"]>)
 
       // First user checks ownership
       const context1 = createContext({
-        user: { id: user1Id } as any,
+        user: { id: user1Id } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -717,7 +717,7 @@ describe('PropertyOwnershipGuard', () => {
 
       // Second user checks ownership of same property
       const context2 = createContext({
-        user: { id: user2Id } as any,
+        user: { id: user2Id } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}
@@ -738,7 +738,7 @@ describe('PropertyOwnershipGuard', () => {
       mockAuthCache.getOrSet.mockResolvedValue(false)
 
       const context = createContext({
-        user: { id: userId } as any,
+        user: { id: userId } as AuthenticatedRequest["user"],
         body: { property_id: propertyId },
         params: {},
         query: {}

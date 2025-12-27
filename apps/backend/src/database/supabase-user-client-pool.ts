@@ -8,6 +8,8 @@ interface CachedClient {
 	client: SupabaseClient<Database>
 	lastUsed: number
 	created_at: number
+	lastHealthCheck: number
+	healthCheckInFlight?: boolean
 }
 
 export interface SupabaseClientPoolMetrics {
@@ -24,11 +26,15 @@ interface SupabaseUserClientPoolOptions {
 	maxSize?: number
 	ttlMs?: number
 	cleanupIntervalMs?: number
+	healthCheckIntervalMs?: number
+	healthCheckTimeoutMs?: number
 }
 
-const DEFAULT_MAX_POOL_SIZE = 100
+const DEFAULT_MAX_POOL_SIZE = 50
 const DEFAULT_TTL = 5 * 60 * 1000
 const DEFAULT_CLEANUP_INTERVAL = 60 * 1000
+const DEFAULT_HEALTH_CHECK_INTERVAL = 60 * 1000
+const DEFAULT_HEALTH_CHECK_TIMEOUT = 2500
 
 export class SupabaseUserClientPool {
 	private readonly clients = new Map<string, CachedClient>()
@@ -42,6 +48,8 @@ export class SupabaseUserClientPool {
 	private readonly maxPoolSize: number
 	private readonly ttlMs: number
 	private readonly cleanupIntervalMs: number
+	private readonly healthCheckIntervalMs: number
+	private readonly healthCheckTimeoutMs: number
 	private cleanupTimer?: NodeJS.Timeout
 
 	constructor(private readonly options: SupabaseUserClientPoolOptions) {
@@ -49,6 +57,10 @@ export class SupabaseUserClientPool {
 		this.ttlMs = options.ttlMs ?? DEFAULT_TTL
 		this.cleanupIntervalMs =
 			options.cleanupIntervalMs ?? DEFAULT_CLEANUP_INTERVAL
+		this.healthCheckIntervalMs =
+			options.healthCheckIntervalMs ?? DEFAULT_HEALTH_CHECK_INTERVAL
+		this.healthCheckTimeoutMs =
+			options.healthCheckTimeoutMs ?? DEFAULT_HEALTH_CHECK_TIMEOUT
 		this.startCleanupTimer()
 	}
 
@@ -64,9 +76,17 @@ export class SupabaseUserClientPool {
 		const cached = this.clients.get(tokenKey)
 
 		if (cached) {
-			cached.lastUsed = Date.now()
+			const now = Date.now()
+			if (now - cached.lastUsed > this.ttlMs) {
+				this.clients.delete(tokenKey)
+				this.metrics.evictions++
+			} else {
+				cached.lastUsed = now
+				this.touch(tokenKey, cached)
+				this.maybeRunHealthCheck(tokenKey, cached)
 			this.metrics.hits++
 			return cached.client
+			}
 		}
 
 		this.metrics.misses++
@@ -90,8 +110,13 @@ export class SupabaseUserClientPool {
 		this.clients.set(tokenKey, {
 			client,
 			lastUsed: now,
-			created_at: now
+			created_at: now,
+			lastHealthCheck: 0
 		})
+		const evicted = this.enforceMaxSize()
+		if (evicted > 0) {
+			this.metrics.evictions += evicted
+		}
 
 		this.metrics.totalClients = this.clients.size
 
@@ -138,20 +163,7 @@ export class SupabaseUserClientPool {
 			}
 		}
 
-		if (this.clients.size > this.maxPoolSize) {
-			const entries = Array.from(this.clients.entries()).sort(
-				([, a], [, b]) => a.lastUsed - b.lastUsed
-			)
-
-			const toRemove = this.clients.size - this.maxPoolSize
-			for (let i = 0; i < toRemove; i++) {
-				const entry = entries[i]
-				if (entry) {
-					this.clients.delete(entry[0])
-					evicted++
-				}
-			}
-		}
+		evicted += this.enforceMaxSize()
 
 		if (evicted > 0) {
 			this.metrics.evictions += evicted
@@ -159,6 +171,66 @@ export class SupabaseUserClientPool {
 			this.options.logger.debug(
 				`Client pool cleanup: evicted ${evicted} clients, ${this.clients.size} remaining`
 			)
+		}
+	}
+
+	private touch(key: string, cached: CachedClient): void {
+		this.clients.delete(key)
+		this.clients.set(key, cached)
+	}
+
+	private enforceMaxSize(): number {
+		let evicted = 0
+		while (this.clients.size > this.maxPoolSize) {
+			const oldestKey = this.clients.keys().next().value as string | undefined
+			if (!oldestKey) break
+			this.clients.delete(oldestKey)
+			evicted++
+		}
+		return evicted
+	}
+
+	private maybeRunHealthCheck(key: string, cached: CachedClient): void {
+		const now = Date.now()
+		if (
+			now - cached.lastHealthCheck < this.healthCheckIntervalMs ||
+			cached.healthCheckInFlight
+		) {
+			return
+		}
+
+		cached.healthCheckInFlight = true
+		void this.checkClientHealth(key, cached)
+	}
+
+	private async checkClientHealth(
+		key: string,
+		cached: CachedClient
+	): Promise<void> {
+		try {
+			const result = await Promise.race([
+				cached.client.auth.getUser(),
+				new Promise((_, reject) =>
+					setTimeout(() => reject(new Error('Health check timeout')), this.healthCheckTimeoutMs)
+				)
+			])
+			if (result && typeof result === 'object' && 'error' in result) {
+				const maybeError = (result as { error?: unknown }).error
+				if (maybeError) {
+					throw maybeError
+				}
+			}
+			cached.lastHealthCheck = Date.now()
+		} catch (error) {
+			this.clients.delete(key)
+			this.metrics.evictions++
+			this.metrics.totalClients = this.clients.size
+			this.options.logger.debug(
+				`Client pool health check failed; evicted client (${key})`,
+				{ error: error instanceof Error ? error.message : String(error) }
+			)
+		} finally {
+			cached.healthCheckInFlight = false
 		}
 	}
 }

@@ -6,6 +6,7 @@ type PossibleRef<T> = React.Ref<T> | undefined;
  * Set a given ref to a given value
  * This utility takes care of different types of refs: callback refs and RefObject(s)
  */
+
 function setRef<T>(ref: PossibleRef<T>, value: T) {
   if (typeof ref === "function") {
     return ref(value);
@@ -61,7 +62,7 @@ function useComposedRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
   React.useEffect(() => {
     refsRef.current = refs;
   });
-  
+
   return React.useCallback((node: T) => composeRefs(...refsRef.current)(node), []);
 }
 

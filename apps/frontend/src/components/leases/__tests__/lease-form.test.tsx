@@ -81,8 +81,8 @@ const mockLease: Lease = {
 	owner_user_id: 'user-1',
 	start_date: '2024-01-01',
 	end_date: '2024-12-31',
-	rent_amount: 1500,
-	security_deposit: 1500,
+	rent_amount: 150000,
+	security_deposit: 150000,
 	lease_status: 'active',
 	grace_period_days: null,
 	late_fee_amount: null,
@@ -193,8 +193,8 @@ describe('LeaseForm', () => {
 
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('2024-01-01')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue('1500')
+			expect(screen.getByLabelText(/security deposit/i)).toHaveValue('1500')
 			// Note: Terms field not present in current component
 		})
 
@@ -243,7 +243,7 @@ describe('LeaseForm', () => {
 			await user.clear(rentInput)
 			await user.type(rentInput, '1500')
 
-			expect(rentInput).toHaveValue(1500)
+			expect(rentInput).toHaveValue('1500')
 		})
 
 		test('validates security deposit is numeric', async () => {
@@ -254,7 +254,7 @@ describe('LeaseForm', () => {
 			await user.clear(depositInput)
 			await user.type(depositInput, '1500')
 
-			expect(depositInput).toHaveValue(1500)
+			expect(depositInput).toHaveValue('1500')
 		})
 
 		test('validates date format for start date', async () => {
@@ -285,10 +285,10 @@ describe('LeaseForm', () => {
 			await user.clear(rentInput)
 			await user.type(rentInput, '0')
 
-			expect(rentInput).toHaveValue(0)
+			expect(rentInput).toHaveValue('')
 		})
 
-		test('accepts decimal values for rent amount', async () => {
+		test('normalizes decimal values for rent amount', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
@@ -296,7 +296,7 @@ describe('LeaseForm', () => {
 			await user.clear(rentInput)
 			await user.type(rentInput, '1500.50')
 
-			expect(rentInput).toHaveValue(1500.5)
+			expect(rentInput).toHaveValue('150050')
 		})
 	})
 
@@ -313,8 +313,8 @@ describe('LeaseForm', () => {
 
 			expect(screen.getByLabelText(/start date/i)).toHaveValue('2024-01-01')
 			expect(screen.getByLabelText(/end date/i)).toHaveValue('2024-12-31')
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue('1500')
+			expect(screen.getByLabelText(/security deposit/i)).toHaveValue('1500')
 			// Note: Terms field not present in current component
 		})
 
@@ -376,14 +376,12 @@ describe('LeaseForm', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
 			const rentInput = screen.getByLabelText(/monthly rent/i)
-			expect(rentInput).toHaveAttribute('type', 'number')
-			expect(rentInput).toHaveAttribute('min', '0')
-			expect(rentInput).toHaveAttribute('step', '0.01')
+			expect(rentInput).toHaveAttribute('type', 'text')
+			expect(rentInput).toHaveAttribute('inputmode', 'decimal')
 
 			const depositInput = screen.getByLabelText(/security deposit/i)
-			expect(depositInput).toHaveAttribute('type', 'number')
-			expect(depositInput).toHaveAttribute('min', '0')
-			expect(depositInput).toHaveAttribute('step', '0.01')
+			expect(depositInput).toHaveAttribute('type', 'text')
+			expect(depositInput).toHaveAttribute('inputmode', 'decimal')
 		})
 
 		test('date inputs have appropriate type', () => {
@@ -471,20 +469,20 @@ describe('LeaseForm', () => {
 		test('initializes rent amount to 0 in create mode', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(0)
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue('')
 		})
 
 		test('initializes security deposit to 0 in create mode', () => {
 			renderWithQueryClient(<LeaseForm mode="create" />)
 
-			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(0)
+			expect(screen.getByLabelText(/security deposit/i)).toHaveValue('')
 		})
 
 		test('populates financial fields from lease data in edit mode', () => {
 			renderWithQueryClient(<LeaseForm mode="edit" lease={mockLease} />)
 
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue(1500)
-			expect(screen.getByLabelText(/security deposit/i)).toHaveValue(1500)
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveValue('1500')
+			expect(screen.getByLabelText(/security deposit/i)).toHaveValue('1500')
 		})
 	})
 })

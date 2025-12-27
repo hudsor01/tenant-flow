@@ -1,33 +1,39 @@
+type Constructor<T> = new (...args: unknown[]) => T;
+type UnitRef = {
+    get: <TDep>(token: Constructor<TDep>) => TDep;
+};
 export interface TestBedResult<T> {
     unit: T;
-    unitRef: any;
-    get: <TDep>(token: new (...args: any[]) => TDep) => any;
+    unitRef: UnitRef;
+    get: <TDep>(token: Constructor<TDep>) => TDep;
 }
-export declare function createTestBed<T>(classType: new (...args: any[]) => T): Promise<TestBedResult<T>>;
-export declare function createTestBedWithOverrides<T>(classType: new (...args: any[]) => T, customProviders: any[]): Promise<TestBedResult<T>>;
+export declare function createTestBed<T>(classType: Constructor<T>): Promise<TestBedResult<T>>;
+export declare function createTestBedWithOverrides<T>(classType: Constructor<T>, customProviders: Array<unknown>): Promise<TestBedResult<T>>;
 export declare function createSupabaseChainMock(finalResult?: {
-    data: any;
-    error: any;
-}): any;
+    data: unknown;
+    error: unknown;
+}): Record<string, jest.Mock> & {
+    then?: jest.Mock;
+};
 export declare function createMockConfigService(env?: Record<string, string | number | boolean>): {
-    get: jest.Mock<any, [key: string, defaultValue?: any], any>;
-    getOrThrow: jest.Mock<string | number | boolean | undefined, [key: string], any>;
+    get: jest.Mock<unknown, [key: string, defaultValue?: unknown], unknown>;
+    getOrThrow: jest.Mock<string | number | boolean | undefined, [key: string], unknown>;
 };
 export declare function createMockLogger(): {
-    log: jest.Mock<any, any, any>;
-    error: jest.Mock<any, any, any>;
-    warn: jest.Mock<any, any, any>;
-    debug: jest.Mock<any, any, any>;
-    verbose: jest.Mock<any, any, any>;
-    setContext: jest.Mock<any, any, any>;
-    setLogLevels: jest.Mock<any, any, any>;
+    log: jest.Mock<unknown, unknown[], unknown>;
+    error: jest.Mock<unknown, unknown[], unknown>;
+    warn: jest.Mock<unknown, unknown[], unknown>;
+    debug: jest.Mock<unknown, unknown[], unknown>;
+    verbose: jest.Mock<unknown, unknown[], unknown>;
+    setContext: jest.Mock<unknown, unknown[], unknown>;
+    setLogLevels: jest.Mock<unknown, unknown[], unknown>;
 };
 export declare function createMockCacheManager(): {
-    get: jest.Mock<Promise<any>, [key: string], any>;
-    set: jest.Mock<Promise<void>, [key: string, value: any], any>;
-    del: jest.Mock<Promise<void>, [key: string], any>;
-    reset: jest.Mock<Promise<void>, [], any>;
-    wrap: jest.Mock<Promise<any>, [key: string, fn: () => Promise<any>], any>;
+    get: jest.Mock<Promise<unknown>, [key: string], unknown>;
+    set: jest.Mock<Promise<void>, [key: string, value: unknown], unknown>;
+    del: jest.Mock<Promise<void>, [key: string], unknown>;
+    reset: jest.Mock<Promise<void>, [], unknown>;
+    wrap: jest.Mock<Promise<unknown>, [key: string, fn: () => Promise<unknown>], unknown>;
 };
 export declare const TestCleanup: {
     clearMocks: () => void;

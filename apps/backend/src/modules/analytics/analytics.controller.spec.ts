@@ -2,6 +2,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { AnalyticsController } from './analytics.controller'
 import { AnalyticsService } from './analytics.service'
+import type { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
 import type { WebVitalMetric } from './dto/web-vital.dto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -121,7 +122,7 @@ describe('AnalyticsController', () => {
   })
 
   describe('ingestMobileEvent', () => {
-    const baseEvent = {
+    const baseEvent: MobileAnalyticsEventDto = {
       eventName: 'mobile_nav_opened',
       properties: {
         action: 'open',
@@ -135,7 +136,7 @@ describe('AnalyticsController', () => {
     }
 
     it('should forward events to the analytics service', async () => {
-      await controller.ingestMobileEvent(baseEvent as any)
+      await controller.ingestMobileEvent(baseEvent)
 
       expect(
         mockAnalyticsServiceInstance.recordMobileEvent

@@ -31,9 +31,11 @@ import { useDeletePropertyMutation } from '#hooks/api/mutations/property-mutatio
 
 interface PropertiesGridClientProps {
 	data: Property[]
+	/** Map of property_id to trend percentage from performance analytics */
+	trendMap?: Map<string, number> | undefined
 }
 
-export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
+export function PropertiesGridClient({ data, trendMap }: PropertiesGridClientProps) {
 	const router = useRouter()
 	const [isPending, startTransition] = useTransition()
 	const [optimisticProperties, removeOptimisticProperty] = useOptimistic(
@@ -143,6 +145,7 @@ export function PropertiesGridClient({ data }: PropertiesGridClientProps) {
 						onDelete={handleDeleteClick}
 						animationDelay={index * 50}
 						tabIndex={0}
+						trendPercentage={trendMap?.get(property.id)}
 					/>
 				))}
 			</div>

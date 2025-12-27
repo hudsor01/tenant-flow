@@ -1,3 +1,11 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~742 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract unit stats/analytics into: `./unit-stats.service.ts`
+// 2. Extract unit search/filtering into: `./unit-search.service.ts`
+// 3. Extract bulk operations into: `./unit-bulk.service.ts`
+// 4. Keep core CRUD operations in this service
+
 /**
  * Units Service - Supabase Functions Pattern Implementation
 
@@ -10,7 +18,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
 import type { Unit, UnitStats, UnitStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput
@@ -24,7 +32,7 @@ import { VALID_UNIT_STATUSES } from '../../schemas/units.schema'
 export class UnitsService {
 
 	constructor(private readonly supabase: SupabaseService,
-		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get all units for a user via direct Supabase query
@@ -340,8 +348,8 @@ export class UnitsService {
 			const createdUnit = data as Unit
 
 			// Invalidate caches so downstream consumers (lease auto-fill, dashboards) get fresh data
-			this.cache.invalidateByEntity('units', createdUnit.id)
-			this.cache.invalidateByEntity('properties', createdUnit.property_id)
+			void this.cache.invalidateByEntity('units', createdUnit.id)
+			void this.cache.invalidateByEntity('properties', createdUnit.property_id)
 
 			return createdUnit
 		} catch (error) {
@@ -440,9 +448,9 @@ export class UnitsService {
 			const updatedUnit = data as Unit
 
 			// Invalidate dependent caches so lease auto-fill returns fresh unit data
-			this.cache.invalidateByEntity('units', unit_id)
+			void this.cache.invalidateByEntity('units', unit_id)
 			if (updatedUnit.property_id) {
-				this.cache.invalidateByEntity('properties', updatedUnit.property_id)
+				void this.cache.invalidateByEntity('properties', updatedUnit.property_id)
 			}
 
 			return updatedUnit
@@ -510,9 +518,9 @@ export class UnitsService {
 			}
 
 			// Invalidate caches tied to this unit/property so data disappears immediately
-			this.cache.invalidateByEntity('units', unit_id)
+			void this.cache.invalidateByEntity('units', unit_id)
 			if (existingUnit?.property_id) {
-				this.cache.invalidateByEntity('properties', existingUnit.property_id)
+				void this.cache.invalidateByEntity('properties', existingUnit.property_id)
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {

@@ -9,15 +9,17 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 
 describe('JwtAuthGuard', () => {
+	type SupabaseUser = Awaited<ReturnType<SupabaseService['getUser']>>
+
 	let guard: JwtAuthGuard
 	let reflector: Reflector
 	let supabaseService: SupabaseService
 
-	const mockUser = {
+	const mockUser: SupabaseUser = {
 		id: 'user-123',
 		email: 'test@example.com',
 		app_metadata: { user_type: 'OWNER' }
-	}
+	} as SupabaseUser
 
 	const createMockContext = (hasAuthHeader = true): ExecutionContext => {
 		const request = {
@@ -71,7 +73,7 @@ describe('JwtAuthGuard', () => {
 		})
 
 		it('should allow access for authenticated users', async () => {
-			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser as any)
+			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser)
 
 			const result = await guard.canActivate(createMockContext())
 
@@ -87,7 +89,7 @@ describe('JwtAuthGuard', () => {
 		})
 
 		it('should attach user to request on successful auth', async () => {
-			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser as any)
+			jest.spyOn(supabaseService, 'getUser').mockResolvedValue(mockUser)
 			const context = createMockContext()
 
 			await guard.canActivate(context)

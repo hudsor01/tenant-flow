@@ -520,4 +520,114 @@ export class ReportsController {
 			data
 		}
 	}
+
+	// ==================== REPORT DATA ENDPOINTS ====================
+
+	/**
+	 * GET /reports/financial
+	 * Financial report data for income, expenses, cash flow, rent roll
+	 */
+	@Get('financial')
+	async getFinancialReport(
+		@Req() req: AuthenticatedRequest,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getFinancialReport(
+			user_id,
+			start_date,
+			end_date
+		)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/properties
+	 * Property report data for occupancy, vacancy, performance
+	 */
+	@Get('properties')
+	async getPropertyReport(
+		@Req() req: AuthenticatedRequest,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getPropertyReport(
+			user_id,
+			start_date,
+			end_date
+		)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/tenants
+	 * Tenant report data for payments, expirations, turnover
+	 */
+	@Get('tenants')
+	async getTenantReport(
+		@Req() req: AuthenticatedRequest,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getTenantReport(
+			user_id,
+			start_date,
+			end_date
+		)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/maintenance
+	 * Maintenance report data for work orders, costs, vendors
+	 */
+	@Get('maintenance')
+	async getMaintenanceReport(
+		@Req() req: AuthenticatedRequest,
+		@Query('start_date') start_date?: string,
+		@Query('end_date') end_date?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const data = await this.reportsService.getMaintenanceReport(
+			user_id,
+			start_date,
+			end_date
+		)
+
+		return {
+			success: true,
+			data
+		}
+	}
 }

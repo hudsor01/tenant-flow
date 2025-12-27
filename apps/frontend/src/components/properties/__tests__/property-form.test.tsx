@@ -80,11 +80,12 @@ const DEFAULT_PROPERTY: Property = {
 	country: 'US',
 	property_type: 'multi_family',
 	status: 'active',
-		stripe_connected_account_id: null,
+	stripe_connected_account_id: null,
 	date_sold: null,
 	sale_price: null,
 	created_at: '2024-01-01T00:00:00Z',
-	updated_at: '2024-01-01T00:00:00Z'
+	updated_at: '2024-01-01T00:00:00Z',
+	search_vector: null
 }
 
 function renderWithQueryClient(ui: React.ReactElement) {

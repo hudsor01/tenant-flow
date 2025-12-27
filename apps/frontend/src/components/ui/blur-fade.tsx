@@ -1,9 +1,7 @@
 "use client"
 
 import { cn } from '#lib/utils'
-import type {
-	BlurFadeProps
-} from '@repo/shared/types/frontend-ui'
+import type { BlurFadeProps } from '@repo/shared/types/frontend'
 import { useEffect, useRef, useState } from 'react'
 
 export function BlurFade({

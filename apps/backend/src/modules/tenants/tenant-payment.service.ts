@@ -1,3 +1,17 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+//
+// File Size Issue:
+//    Current: ~652 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//
+// Recommended Refactoring Strategy:
+//    - Extract payment status calculation into: `./tenant-payment-status.service.ts`
+//    - Extract payment summary logic into: `./tenant-payment-summary.service.ts`
+//    - Extract payment history logic into: `./tenant-payment-history.service.ts`
+//    - Keep core payment operations in this service
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import type {
 	OwnerPaymentSummaryResponse,
