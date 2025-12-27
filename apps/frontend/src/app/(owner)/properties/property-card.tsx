@@ -1,4 +1,5 @@
 import { Button } from '#components/ui/button'
+import { Badge } from '#components/ui/badge'
 import {
 	Card,
 	CardContent,
@@ -7,23 +8,22 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+	Tooltip,
+	TooltipContent,
+	TooltipTrigger
+} from '#components/ui/tooltip'
 import type { Property } from '@repo/shared/types/core'
 import {
 	ArrowDownRight,
 	ArrowUpRight,
 	Building2,
 	DollarSign,
+	Eye,
 	Home,
 	MapPin,
-	MoreHorizontal,
 	PencilIcon,
 	Trash2,
+	TrendingUp,
 	Users
 } from 'lucide-react'
 import Image from 'next/image'
@@ -42,6 +42,8 @@ interface PropertyCardProps {
 	className?: string
 	/** Tab index for keyboard navigation */
 	tabIndex?: number
+	/** Revenue trend percentage from analytics (positive = up, negative = down) */
+	trendPercentage?: number | undefined
 }
 
 import { cn } from '#lib/utils'
@@ -52,7 +54,8 @@ export const PropertyCard = memo(function PropertyCard({
 	onDelete,
 	animationDelay = 0,
 	className,
-	tabIndex = 0
+	tabIndex = 0,
+	trendPercentage = 0
 }: PropertyCardProps) {
 	const router = useRouter()
 	const { data: images } = usePropertyImages(property.id)
@@ -68,8 +71,11 @@ export const PropertyCard = memo(function PropertyCard({
 		.filter(unit => unit.status === 'occupied')
 		.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
 
-	// Mock revenue change for now (would come from analytics in production)
-	const revenueChange = 5.2 as number
+	// Revenue change from property performance analytics (passed via prop)
+	const revenueChange = trendPercentage
+
+	// High performer status (90%+ occupancy)
+	const isHighPerformer = occupancyRate >= 90
 
 	// Handle keyboard navigation - Enter/Space to view details
 	const handleKeyDown = useCallback(
@@ -127,6 +133,13 @@ export const PropertyCard = memo(function PropertyCard({
 						<Building2 className="size-16 text-muted-foreground" />
 					</div>
 				)}
+				{/* Top Performer Badge - shows for 90%+ occupancy */}
+				{isHighPerformer && (
+					<Badge className="absolute top-2 left-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md">
+						<TrendingUp className="h-3 w-3 mr-1" />
+						Top Performer
+					</Badge>
+				)}
 			</div>
 
 			<CardHeader className="pb-3">
@@ -139,43 +152,73 @@ export const PropertyCard = memo(function PropertyCard({
 						</CardDescription>
 					</div>
 
-					{/* Actions Menu */}
-					<DropdownMenu>
-						<DropdownMenuTrigger asChild>
-							<Button
-								variant="ghost"
-								size="icon"
-								className={cn(
-									'size-9 sm:size-9 touch-card sm:min-h-0 sm:min-w-0 shrink-0',
-									'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-									'transition-all duration-200'
-								)}
-								aria-label={`Actions for ${property.name}`}
-							>
-								<MoreHorizontal className="size-4" />
-								<span className="sr-only">Open menu for {property.name}</span>
-							</Button>
-						</DropdownMenuTrigger>
-						<DropdownMenuContent align="end">
-							<DropdownMenuItem asChild>
-								<Link href={`/properties/${property.id}`}>View Details</Link>
-							</DropdownMenuItem>
-							<DropdownMenuItem asChild>
-								<Link href={`/properties/${property.id}/edit`}>
-									<PencilIcon className="size-4 mr-2" />
-									Edit
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								className="text-destructive focus:text-destructive"
-								onClick={() => onDelete?.(property.id)}
-							>
-								<Trash2 className="size-4 mr-2" />
-								Delete
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
+					{/* Visible Action Buttons - always visible for better CRUD discoverability */}
+					<div className="flex items-center gap-1 shrink-0">
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									asChild
+									className={cn(
+										'size-8 text-muted-foreground hover:text-foreground',
+										'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+										'transition-all duration-200'
+									)}
+								>
+									<Link
+										href={`/properties/${property.id}`}
+										aria-label={`View ${property.name}`}
+									>
+										<Eye className="size-4" />
+									</Link>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>View Details</TooltipContent>
+						</Tooltip>
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									asChild
+									className={cn(
+										'size-8 text-muted-foreground hover:text-primary',
+										'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+										'transition-all duration-200'
+									)}
+								>
+									<Link
+										href={`/properties/${property.id}/edit`}
+										aria-label={`Edit ${property.name}`}
+									>
+										<PencilIcon className="size-4" />
+									</Link>
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Edit Property</TooltipContent>
+						</Tooltip>
+
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => onDelete?.(property.id)}
+									className={cn(
+										'size-8 text-muted-foreground hover:text-destructive',
+										'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+										'transition-all duration-200'
+									)}
+									aria-label={`Delete ${property.name}`}
+								>
+									<Trash2 className="size-4" />
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>Delete Property</TooltipContent>
+						</Tooltip>
+					</div>
 				</div>
 			</CardHeader>
 

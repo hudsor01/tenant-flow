@@ -1,10 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import type {
-	FileUploadOptions,
 	StorageEntityType,
 	StorageFileType,
 	StorageUploadResult
 } from '@repo/shared/types/domain'
+import type { FileUploadOptions } from '@repo/shared/types/file-upload'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import * as path from 'path'

@@ -17,7 +17,7 @@ import { ZodError } from 'zod'
 export interface DTOTestResult<T> {
   isValid: boolean
   data?: T
-  error?: ZodError | Error
+  error?: ZodError | HttpException | Error
   errorMessages: string[]
 }
 
@@ -38,10 +38,9 @@ export interface DTOTestResult<T> {
  * expect(result.data?.name).toBe('Test Property')
  * ```
  */
-export async function validateDTO<T>(
-  dtoClass: new (data: any) => T,
-  data: any
-): Promise<DTOTestResult<T>> {
+type NewDTO<T> = new (data: unknown) => T
+
+export async function validateDTO<T>(dtoClass: NewDTO<T>, data: unknown): Promise<DTOTestResult<T>> {
   try {
     // Create instance which triggers validation via nestjs-zod
     const instance = new dtoClass(data)
@@ -50,20 +49,19 @@ export async function validateDTO<T>(
       data: instance as T,
       errorMessages: []
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     const errorMessages: string[] = []
 
     if (error instanceof ZodError) {
-      errorMessages.push(
-        ...error.errors.map((e) => `${e.path.join('.')}: ${e.message}`)
-      )
+      errorMessages.push(...error.errors.map((e) => `${e.path.join('.')}: ${e.message}`))
     } else if (error instanceof BadRequestException) {
-      const response = error.getResponse() as any
-      if (typeof response === 'object' && response.message) {
-        if (Array.isArray(response.message)) {
-          errorMessages.push(...response.message)
+      const response = error.getResponse() as unknown
+      if (typeof response === 'object' && response && 'message' in response) {
+        const msg = (response as { message?: string }).message
+        if (Array.isArray(msg)) {
+          errorMessages.push(...msg)
         } else {
-          errorMessages.push(response.message)
+          errorMessages.push(String(msg))
         }
       }
     } else if (error instanceof Error) {
@@ -72,7 +70,7 @@ export async function validateDTO<T>(
 
     return {
       isValid: false,
-      error,
+      error: error as ZodError | Error,
       errorMessages
     }
   }
@@ -93,10 +91,7 @@ export async function validateDTO<T>(
  * expect(dto.name).toBe('Test Property')
  * ```
  */
-export async function expectValidDTO<T>(
-  dtoClass: new (data: any) => T,
-  data: any
-): Promise<T> {
+export async function expectValidDTO<T>(dtoClass: NewDTO<T>, data: unknown): Promise<T> {
   const result = await validateDTO(dtoClass, data)
   if (!result.isValid) {
     throw new Error(`DTO validation failed: ${result.errorMessages.join('; ')}`)
@@ -117,27 +112,17 @@ export async function expectValidDTO<T>(
  * expect(errors.some(e => e.includes('required'))).toBe(true)
  * ```
  */
-export async function expectDTOError(
-  dtoClass: new (data: any) => T,
-  data: any,
-  expectedFieldPath?: string | string[]
-): Promise<string[]> {
+export async function expectDTOError<T>(dtoClass: NewDTO<T>, data: unknown, expectedFieldPath?: string | string[]): Promise<string[]> {
   const result = await validateDTO(dtoClass, data)
   if (result.isValid) {
     throw new Error('Expected DTO validation to fail, but it passed')
   }
 
   if (expectedFieldPath) {
-    const paths = Array.isArray(expectedFieldPath)
-      ? expectedFieldPath
-      : [expectedFieldPath]
-    const hasExpectedPath = result.errorMessages.some((msg) =>
-      paths.some((path) => msg.includes(path))
-    )
+    const paths = Array.isArray(expectedFieldPath) ? expectedFieldPath : [expectedFieldPath]
+    const hasExpectedPath = result.errorMessages.some((msg) => paths.some((path) => msg.includes(path)))
     if (!hasExpectedPath) {
-      throw new Error(
-        `Expected error for field(s) [${paths.join(', ')}], but got: ${result.errorMessages.join('; ')}`
-      )
+      throw new Error(`Expected error for field(s) [${paths.join(', ')}], but got: ${result.errorMessages.join('; ')}`)
     }
   }
 
@@ -156,19 +141,14 @@ export async function expectDTOError(
  * )
  * ```
  */
-export async function expectDTOTransforms<T>(
-  dtoClass: new (data: any) => T,
-  inputData: any,
-  expectedTransformation: Partial<T>
-): Promise<T> {
+export async function expectDTOTransforms<T>(dtoClass: NewDTO<T>, inputData: unknown, expectedTransformation: Partial<T>): Promise<T> {
   const dto = await expectValidDTO(dtoClass, inputData)
 
-  for (const [key, expectedValue] of Object.entries(expectedTransformation)) {
-    const actualValue = (dto as any)[key]
+  for (const key of Object.keys(expectedTransformation) as Array<keyof T>) {
+    const expectedValue = expectedTransformation[key]
+    const actualValue = dto[key]
     if (actualValue !== expectedValue) {
-      throw new Error(
-        `Transformation failed for ${key}: expected ${expectedValue}, got ${actualValue}`
-      )
+      throw new Error(`Transformation failed for ${String(key)}: expected ${expectedValue}, got ${actualValue}`)
     }
   }
 
@@ -189,16 +169,10 @@ export async function expectDTOTransforms<T>(
  * expectDTOComputed(dto, 'hasAddressChange', true)
  * ```
  */
-export function expectDTOComputed<T>(
-  dto: T,
-  property: keyof T,
-  expectedValue: any
-): void {
+export function expectDTOComputed<T>(dto: T, property: keyof T, expectedValue: unknown): void {
   const actualValue = dto[property]
   if (actualValue !== expectedValue) {
-    throw new Error(
-      `Computed property ${String(property)} expected ${expectedValue}, got ${actualValue}`
-    )
+    throw new Error(`Computed property ${String(property)} expected ${String(expectedValue)}, got ${String(actualValue)}`)
   }
 }
 
@@ -213,8 +187,8 @@ export function expectDTOComputed<T>(
  * ])
  * ```
  */
-export interface DTOTestCase {
-  input: any
+export interface DTOTestCase<T = unknown> {
+  input: Partial<T> | unknown
   shouldFail: boolean
   expectedField?: string
   description?: string
@@ -223,34 +197,23 @@ export interface DTOTestCase {
 /**
  * Run batch DTO validation tests
  */
-export async function runDTOBatchTests<T>(
-  dtoClass: new (data: any) => T,
-  testCases: DTOTestCase[]
-): Promise<void> {
+export async function runDTOBatchTests<T>(dtoClass: NewDTO<T>, testCases: DTOTestCase<T>[]): Promise<void> {
   for (const testCase of testCases) {
     const result = await validateDTO(dtoClass, testCase.input)
 
     if (testCase.shouldFail) {
       if (result.isValid) {
-        throw new Error(
-          `Test case "${testCase.description || 'unnamed'}" expected to fail but passed`
-        )
+        throw new Error(`Test case "${testCase.description || 'unnamed'}" expected to fail but passed`)
       }
       if (testCase.expectedField) {
-        const hasExpectedField = result.errorMessages.some((msg) =>
-          msg.includes(testCase.expectedField!)
-        )
+        const hasExpectedField = result.errorMessages.some((msg) => msg.includes(testCase.expectedField!))
         if (!hasExpectedField) {
-          throw new Error(
-            `Test case "${testCase.description || 'unnamed'}" expected error on field ${testCase.expectedField}, got: ${result.errorMessages.join('; ')}`
-          )
+          throw new Error(`Test case "${testCase.description || 'unnamed'}" expected error on field ${testCase.expectedField}, got: ${result.errorMessages.join('; ')}`)
         }
       }
     } else {
       if (!result.isValid) {
-        throw new Error(
-          `Test case "${testCase.description || 'unnamed'}" expected to pass but failed: ${result.errorMessages.join('; ')}`
-        )
+        throw new Error(`Test case "${testCase.description || 'unnamed'}" expected to pass but failed: ${result.errorMessages.join('; ')}`)
       }
     }
   }
@@ -273,21 +236,14 @@ export function compareDTOs<T>(dto1: T, dto2: T, fields: (keyof T)[]): boolean {
  * Create a partial DTO for testing
  * Useful for optional fields in DTOs
  */
-export function createPartialDTO<T>(
-  dtoClass: new (data: any) => T,
-  partialData: Partial<any>
-): T {
+export function createPartialDTO<T>(dtoClass: new (data: Partial<T>) => T, partialData: Partial<T>): T {
   return new dtoClass(partialData) as T
 }
 
 /**
  * Test DTO with all fields populated
  */
-export async function expectCompleteDTO<T>(
-  dtoClass: new (data: any) => T,
-  data: any,
-  requiredFields: (keyof T)[]
-): Promise<T> {
+export async function expectCompleteDTO<T>(dtoClass: NewDTO<T>, data: unknown, requiredFields: (keyof T)[]): Promise<T> {
   const dto = await expectValidDTO(dtoClass, data)
 
   for (const field of requiredFields) {
@@ -316,19 +272,13 @@ export async function expectCompleteDTO<T>(
  * const dto2 = await factory.create({ name: 'Custom Name' })
  * ```
  */
-export function createDTOFactory<T>(
-  dtoClass: new (data: any) => T,
-  defaults: any
-) {
+export function createDTOFactory<T>(dtoClass: NewDTO<T>, defaults: Partial<T>) {
   return {
-    create: async (overrides?: Partial<any>): Promise<T> => {
-      return expectValidDTO(dtoClass, { ...defaults, ...overrides })
+    create: async (overrides?: Partial<T>): Promise<T> => {
+      return expectValidDTO(dtoClass, { ...(defaults || {}), ...(overrides || {}) })
     },
-    createInvalid: async (invalidData: any): Promise<string[]> => {
-      return expectDTOError(dtoClass, {
-        ...defaults,
-        ...invalidData
-      })
+    createInvalid: async (invalidData: Partial<T>): Promise<string[]> => {
+      return expectDTOError(dtoClass, { ...(defaults || {}), ...(invalidData || {}) })
     }
   }
 }

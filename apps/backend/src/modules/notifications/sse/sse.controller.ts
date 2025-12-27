@@ -141,8 +141,7 @@ export class SseController {
 		return {
 			status: 'healthy',
 			connections: stats.totalConnections,
-			uniqueUsers: stats.uniqueUsers,
-			oldestConnection: stats.oldestConnection?.toISOString() ?? null
+			uniqueUsers: stats.uniqueUsers
 		}
 	}
 }

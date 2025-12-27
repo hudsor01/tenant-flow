@@ -168,7 +168,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		}
 	}
 
-	async function countQueries(operation: () => Promise<any>): Promise<number> {
+	async function countQueries(operation: () => Promise<unknown>): Promise<number> {
 		// Enable query logging
 		await supabaseClient.rpc('pg_stat_statements_reset')
 
@@ -189,7 +189,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		// Count queries for the operation
 		let queryCount = 0
-		const queriesBefore: any[] = []
+		const queriesBefore: Array<{ table: string; query: number }> = []
 
 		// Track all queries by intercepting the client
 		const originalFrom = supabaseClient.from.bind(supabaseClient)
@@ -197,7 +197,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 			queryCount++
 			queriesBefore.push({ table, query: queryCount })
 			return originalFrom(table)
-		}) as any
+		}) as typeof supabaseClient.from
 
 		// Execute the method
 		await service.getNetOperatingIncome(mockToken, {

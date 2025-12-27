@@ -50,18 +50,8 @@ describeOrSkip('Property 1: Successful Invitation Creation', () => {
       throw new Error(`Failed to authenticate test owner: ${authError?.message}`)
     }
 
-    // Get owner_user_id
-    const { data: ownerData, error: ownerError } = await client
-      .from('stripe_connected_accounts')
-      .select('id')
-      .eq('user_id', authData.user.id)
-      .single()
-
-    if (ownerError || !ownerData) {
-      throw new Error(`Failed to get owner_user_id: ${ownerError?.message}`)
-    }
-
-    testPropertyOwnerId = ownerData.id
+    // After Stripe decoupling, properties.owner_user_id references auth.users.id
+    testPropertyOwnerId = authData.user.id
 
     // Get or create a test property
     const { data: properties, error: propError } = await client

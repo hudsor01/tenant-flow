@@ -4,39 +4,49 @@
 -- Affected: Admin panel log viewing and user activity tracking
 
 -- Create enum for event types
-create type security_event_type as enum (
-  'auth.login',
-  'auth.logout',
-  'auth.failed_login',
-  'auth.password_change',
-  'auth.password_reset',
-  'user.created',
-  'user.updated',
-  'user.deleted',
-  'property.created',
-  'property.updated',
-  'property.deleted',
-  'lease.created',
-  'lease.updated',
-  'lease.deleted',
-  'lease.signed',
-  'payment.created',
-  'payment.failed',
-  'subscription.created',
-  'subscription.canceled',
-  'admin.action',
-  'system.error',
-  'system.warning'
-);
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'security_event_type') then
+    create type security_event_type as enum (
+      'auth.login',
+      'auth.logout',
+      'auth.failed_login',
+      'auth.password_change',
+      'auth.password_reset',
+      'user.created',
+      'user.updated',
+      'user.deleted',
+      'property.created',
+      'property.updated',
+      'property.deleted',
+      'lease.created',
+      'lease.updated',
+      'lease.deleted',
+      'lease.signed',
+      'payment.created',
+      'payment.failed',
+      'subscription.created',
+      'subscription.canceled',
+      'admin.action',
+      'system.error',
+      'system.warning'
+    );
+  end if;
+end $$;
 
 -- Create enum for severity levels
-create type security_event_severity as enum (
-  'debug',
-  'info',
-  'warning',
-  'error',
-  'critical'
-);
+do $$
+begin
+  if not exists (select 1 from pg_type where typname = 'security_event_severity') then
+    create type security_event_severity as enum (
+      'debug',
+      'info',
+      'warning',
+      'error',
+      'critical'
+    );
+  end if;
+end $$;
 
 -- Create security_events table
 create table if not exists public.security_events (
@@ -70,17 +80,17 @@ create table if not exists public.security_events (
 );
 
 -- Add indexes for common queries
-create index idx_security_events_created_at on public.security_events (created_at desc);
-create index idx_security_events_user_id on public.security_events (user_id) where user_id is not null;
-create index idx_security_events_event_type on public.security_events (event_type);
-create index idx_security_events_severity on public.security_events (severity);
-create index idx_security_events_resource on public.security_events (resource_type, resource_id) where resource_type is not null;
+create index if not exists idx_security_events_created_at on public.security_events (created_at desc);
+create index if not exists idx_security_events_user_id on public.security_events (user_id) where user_id is not null;
+create index if not exists idx_security_events_event_type on public.security_events (event_type);
+create index if not exists idx_security_events_severity on public.security_events (severity);
+create index if not exists idx_security_events_resource on public.security_events (resource_type, resource_id) where resource_type is not null;
 
 -- GIN index for metadata JSONB queries
-create index idx_security_events_metadata on public.security_events using gin (metadata);
+create index if not exists idx_security_events_metadata on public.security_events using gin (metadata);
 
 -- GIN index for tags array queries
-create index idx_security_events_tags on public.security_events using gin (tags);
+create index if not exists idx_security_events_tags on public.security_events using gin (tags);
 
 -- Add comment for documentation
 comment on table public.security_events is 'Audit log for security events, user activity, and system logs';
@@ -93,6 +103,7 @@ comment on column public.security_events.tags is 'Array of tags for flexible cat
 alter table public.security_events enable row level security;
 
 -- RLS Policy: Admin users can read all security events
+drop policy if exists "Admins can view all security events" on public.security_events;
 create policy "Admins can view all security events"
   on public.security_events
   for select
@@ -102,6 +113,7 @@ create policy "Admins can view all security events"
   );
 
 -- RLS Policy: Users can view their own security events
+drop policy if exists "Users can view their own security events" on public.security_events;
 create policy "Users can view their own security events"
   on public.security_events
   for select
@@ -111,6 +123,7 @@ create policy "Users can view their own security events"
   );
 
 -- RLS Policy: System can insert security events (service role)
+drop policy if exists "Service role can insert security events" on public.security_events;
 create policy "Service role can insert security events"
   on public.security_events
   for insert

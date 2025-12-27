@@ -3,7 +3,7 @@
 import type {
 	OccupancyTrendPoint,
 	VacancyAnalysisEntry
-} from '@repo/shared/types/occupancy-analytics'
+} from '@repo/shared/types/analytics'
 import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from 'recharts'
 
 import { Badge } from '#components/ui/badge'

@@ -1,17 +1,30 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+//
+// File Size Issue:
+//    Current: ~540 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//
+// Recommended Refactoring Strategy:
+//    - Extract search logic into: `./search.service.ts`
+//    - Extract file utilities into: `./file-utility.service.ts`
+//    - Extract data transformation utilities into: `./data-utility.service.ts`
+//    - Keep core utility orchestration in this service
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 /**
  * Utility Service - Direct Supabase Implementation
 
  * Handles utility functions and global search operations
  */
 
-import { Inject, Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
-import type { Cache } from 'cache-manager'
-import type { SearchResult } from '@repo/shared/types/search'
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common'
+import type { SearchResult } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { USER_user_type } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import {
   buildILikePattern,
   buildMultiColumnSearch,
@@ -44,7 +57,7 @@ export class UtilityService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly logger: AppLogger,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache
+    private readonly cache: RedisCacheService
   ) { }
 
   /**
@@ -235,7 +248,7 @@ export class UtilityService {
    */
   async getUserIdFromSupabaseId(supabaseId: string): Promise<string> {
     const cacheKey = `user:supabaseId:${supabaseId}`
-    const cached = await this.cacheManager.get<string>(cacheKey)
+    const cached = await this.cache.get<string>(cacheKey)
     if (cached) return cached
 
     const { data, error } = await this.supabase
@@ -259,13 +272,13 @@ export class UtilityService {
       throw new NotFoundException('User not found')
     }
 
-    await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+    await this.cache.set(cacheKey, data.id, { tier: 'long' })
     return data.id
   }
 
   async getUserTypeByUserId(userId: string): Promise<string | null> {
     const cacheKey = `user:user_type:${userId}`
-    const cachedUserType = await this.cacheManager.get<string>(cacheKey)
+    const cachedUserType = await this.cache.get<string>(cacheKey)
     if (cachedUserType) {
       return cachedUserType
     }
@@ -290,7 +303,7 @@ export class UtilityService {
       return null
     }
 
-    await this.cacheManager.set(cacheKey, data.user_type, 1800)
+    await this.cache.set(cacheKey, data.user_type, { tier: 'long' })
     return data.user_type
   }
 
@@ -417,7 +430,7 @@ export class UtilityService {
 
         // Cache the new user ID
         const cacheKey = `user:supabaseId:${authUser.id}`
-        await this.cacheManager.set(cacheKey, data.id, 1800) // 30 min cache (reduced DB lookups for auth)
+        await this.cache.set(cacheKey, data.id, { tier: 'long' })
 
         return data.id
       }

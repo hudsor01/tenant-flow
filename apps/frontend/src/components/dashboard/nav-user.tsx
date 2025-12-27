@@ -5,10 +5,12 @@ import {
 	CreditCard,
 	LogOut,
 	MoreVertical,
+	User,
 	UserCircle
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
@@ -31,10 +33,16 @@ import { useSignOut } from '#hooks/api/use-auth'
 import { useAuth } from '#providers/auth-provider'
 
 export function NavUser() {
+	const [mounted, setMounted] = useState(false)
 	const { isMobile } = useSidebar()
 	const router = useRouter()
 	const { user, isLoading, isAuthenticated } = useAuth()
 	const signOutMutation = useSignOut()
+
+	// Prevent hydration mismatch from Radix UI auto-generated IDs
+	useEffect(() => {
+		setMounted(true)
+	}, [])
 
 	const displayName = useMemo(() => {
 		if (!user) {
@@ -79,6 +87,23 @@ export function NavUser() {
 		[isAuthenticated, router, signOutMutation, user]
 	)
 
+	// Render placeholder until mounted to prevent hydration mismatch
+	if (!mounted) {
+		return (
+			<SidebarMenu>
+				<SidebarMenuItem>
+					<div className="flex items-center gap-2 px-2 py-1.5">
+						<div className="size-11 rounded-lg bg-muted animate-pulse" />
+						<div className="grid flex-1 gap-1">
+							<div className="h-4 w-24 bg-muted rounded animate-pulse" />
+							<div className="h-3 w-32 bg-muted rounded animate-pulse" />
+						</div>
+					</div>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		)
+	}
+
 	return (
 		<SidebarMenu>
 			<SidebarMenuItem>
@@ -105,7 +130,7 @@ export function NavUser() {
 									className="text-muted-foreground truncate text-xs"
 									data-testid="user-email"
 								>
-									{isLoading ? 'Loading…' : emailAddress}
+									{isLoading ? 'Loading...' : emailAddress}
 								</span>
 							</div>
 							<MoreVertical className="ml-auto size-4" />
@@ -138,24 +163,45 @@ export function NavUser() {
 										className="text-muted-foreground truncate text-xs"
 										data-testid="user-email-dropdown"
 									>
-										{isLoading ? 'Loading…' : emailAddress}
+										{isLoading ? 'Loading...' : emailAddress}
 									</span>
 								</div>
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<UserCircle className="mr-2 size-4" />
-								Account
+							<DropdownMenuItem asChild>
+								<Link href="/profile" className="flex items-center">
+									<User className="mr-2 size-4" />
+									My Profile
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<CreditCard className="mr-2 size-4" />
-								Billing
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=account"
+									className="flex items-center"
+								>
+									<UserCircle className="mr-2 size-4" />
+									Account
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<Bell className="mr-2 size-4" />
-								Notifications
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=billing"
+									className="flex items-center"
+								>
+									<CreditCard className="mr-2 size-4" />
+									Billing
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=notifications"
+									className="flex items-center"
+								>
+									<Bell className="mr-2 size-4" />
+									Notifications
+								</Link>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
@@ -165,7 +211,7 @@ export function NavUser() {
 							disabled={isSigningOut}
 						>
 							<LogOut className="mr-2 size-4" />
-							{isSigningOut ? 'Signing out…' : 'Log out'}
+							{isSigningOut ? 'Signing out...' : 'Log out'}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

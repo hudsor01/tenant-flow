@@ -5,21 +5,39 @@
  * Reduces type file count while maintaining domain separation
  */
 
-// Import CSP types from base-types to avoid circular dependency with security.ts
-export type { CSPViolationReport, CSPReportBody } from './base-types.js'
+// CSP types - defined here as the canonical source (used by security.controller.ts)
+export interface CSPViolationReport {
+	'document-uri': string
+	referrer: string
+	'violated-directive': string
+	'effective-directive': string
+	'original-policy': string
+	disposition: string
+	'blocked-uri': string
+	'line-number': number
+	'column-number': number
+	'source-file': string
+	'status-code': number
+	'script-sample': string
+}
+
+export interface CSPReportBody {
+	'csp-report': CSPViolationReport
+}
 
 
 
 // CONTACT DOMAIN
 
 // UI-only const for contact form types (not stored in database)
+// Using `satisfies` for type validation while preserving literal types
 export const ContactFormType = {
 	GENERAL_INQUIRY: 'general',
 	SALES: 'sales',
 	SUPPORT: 'support',
 	PARTNERSHIP: 'partnership',
 	DEMO_REQUEST: 'demo'
-} as const
+} as const satisfies Record<string, string>
 
 
 export interface ContactFormRequest {
@@ -44,7 +62,7 @@ export const NotificationType = {
 	PAYMENT: 'payment',
 	BILLING: 'billing',
 	SYSTEM: 'system'
-} as const
+} as const satisfies Record<string, string>
 
 export type NotificationTypeValue =
 	(typeof NotificationType)[keyof typeof NotificationType]
@@ -57,25 +75,25 @@ export const WebVitalMetricName = {
 	INP: 'INP',
 	LCP: 'LCP',
 	TTFB: 'TTFB'
-} as const
+} as const satisfies Record<string, string>
 
 export const WebVitalRating = {
 	GOOD: 'good',
 	NEEDS_IMPROVEMENT: 'needs-improvement',
 	POOR: 'poor'
-} as const
+} as const satisfies Record<string, string>
 
 export const WebVitalLabel = {
 	WEB_VITAL: 'web-vital',
 	CUSTOM: 'custom'
-} as const
+} as const satisfies Record<string, string>
 
 export const WebVitalNavigationType = {
 	NAVIGATE: 'navigate',
 	RELOAD: 'reload',
 	BACK_FORWARD: 'back-forward',
 	PRERENDER: 'prerender'
-} as const
+} as const satisfies Record<string, string>
 
 export type WebVitalMetricNameValue =
 	(typeof WebVitalMetricName)[keyof typeof WebVitalMetricName]
@@ -98,7 +116,7 @@ export const StripeWebhookEventType = {
 	INVOICE_PAYMENT_SUCCEEDED: 'invoice.payment_succeeded',
 	INVOICE_PAYMENT_FAILED: 'invoice.payment_failed',
 	CHECKOUT_SESSION_COMPLETED: 'checkout.session.completed'
-} as const
+} as const satisfies Record<string, string>
 
 export type StripeWebhookEventTypeValue =
 	(typeof StripeWebhookEventType)[keyof typeof StripeWebhookEventType]
@@ -114,107 +132,24 @@ export interface StorageUploadResult {
 	bucket: string
 }
 
-export type { FileUploadOptions } from './file-upload.js'
+// NOTE: Import FileUploadOptions directly from './file-upload.js' - not re-exported here
 
 export type StorageEntityType = 'properties' | 'tenants' | 'maintenance' | 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
 
 
 
-export interface RevenueAnalytics {
-	period: string
-	total_revenue: number
-	subscription_revenue: number
-	one_time_revenue: number
-	customer_count: number
-	new_customers: number
-	churned_customers: number
-	mrr: number
-	arr: number
-}
-
-export interface ChurnAnalytics {
-	month: string
-	churned_subscriptions: number
-	avg_lifetime_days: number
-	churn_rate_percent: number
-	total_active_start_month: number
-}
-
-export interface CustomerLifetimeValue {
-	customer_id: string
-	email: string
-	total_revenue: number
-	subscription_count: number
-	first_subscription_date: string
-	last_cancellation_date?: string
-	avg_revenue_per_subscription: number
-	status: 'Active' | 'Churned'
-	lifetime_days?: number
-}
-
-
-export interface WebSocketMessage<
-	T = Record<string, string | number | boolean | null>
-> {
-	type: string
-	data: T
-	timestamp?: string
-	user_id?: string
-}
-
-export interface MaintenanceUpdateMessage
-	extends WebSocketMessage<{
-		id: string
-		type: string
-		status?: string
-		priority?: string
-		unit_id?: string
-		assignedTo?: string
-		metadata?: Record<string, string | number | boolean | null>
-	}> {
-	type: 'maintenance_update'
-}
-
-export type TypedWebSocketMessage = MaintenanceUpdateMessage | WebSocketMessage
-
-
-
-export interface UserSession {
-	id: string
-	user_id: string
-	user?: Record<string, unknown> | null
-	token: string
-	isAuthenticated: boolean
-	expiresAt: string
-	lastActivity: Date | null
-	sessionExpiry: Date | null
-	created_at: string
-	metadata?: Record<string, unknown>
-}
-
-export interface SessionConfig {
-	maxAge: number
-	secure: boolean
-	httpOnly: boolean
-	sameSite: 'strict' | 'lax' | 'none'
-}
-
-// USER MANAGEMENT DOMAIN
-
-export interface UserManagementConfig {
-	maxLoginAttempts: number
-	lockoutDuration: number
-	passwordMinLength: number
-	requireEmailVerification: boolean
-}
-
-// Re-export UserStats from stats.ts
-export type { UserStats } from './stats.js'
-
-
+// UI/UX PREFERENCES DOMAIN
 
 export type ThemeMode = 'light' | 'dark' | 'system'
+
+/**
+ * Data Density modes for UI spacing and information density
+ * - compact: Tighter spacing, smaller rows (h-8), more data visible
+ * - comfortable: Default spacing (h-12), balanced view
+ * - spacious: Generous spacing (h-16), easier scanning
+ */
+export type DataDensity = 'compact' | 'comfortable' | 'spacious'
 
 export type SemanticColorToken =
 	| 'background'
@@ -259,7 +194,5 @@ export type StripeWebhookEventTypes =
 
 
 
-export type { WebhookNotification } from './stripe.js'
-
-// Re-export SecurityEvent from security.ts to avoid circular dependency
-export type { SecurityEvent } from './security.js'
+// NOTE: Import WebhookNotification directly from './stripe.js' - not re-exported here
+// NOTE: Import SecurityEvent directly from './security.js' - not re-exported here

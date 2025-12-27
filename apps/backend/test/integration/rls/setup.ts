@@ -281,7 +281,7 @@ export function expectEmptyResult<T>(data: T[] | null, context: string): void {
 /**
  * Helper to expect query to fail with permission error
  */
-export function expectPermissionError(error: any, context: string): void {
+export function expectPermissionError(error: unknown, context: string): void {
 	if (!error) {
 		throw new Error(
 			`Expected permission error for ${context}, but query succeeded. RLS policy may be broken!`
@@ -292,16 +292,26 @@ export function expectPermissionError(error: any, context: string): void {
 	const permissionErrors = [
 		'PGRST301', // Permission denied
 		'42501', // Insufficient privilege
-		'42P01' // Relation does not exist (RLS hides table)
+		'42P01', // Relation does not exist (RLS hides table)
+		'23503' // Foreign key violation (RLS hides related records)
 	]
 
-	const errorCode = error.code || error.error_code || ''
-	const errorMessage = error.message || ''
+	const errorCode =
+		typeof error === 'object' && error
+			? ((error as { code?: string }).code ??
+				(error as { error_code?: string }).error_code ??
+				'')
+			: ''
+	const errorMessage =
+		typeof error === 'object' && error && 'message' in error
+			? String((error as { message?: string }).message ?? '')
+			: ''
 
 	if (
 		permissionErrors.some(code => errorCode.includes(code)) ||
 		errorMessage.toLowerCase().includes('permission') ||
-		errorMessage.toLowerCase().includes('policy')
+		errorMessage.toLowerCase().includes('policy') ||
+		errorMessage.toLowerCase().includes('violates foreign key constraint')
 	) {
 		return // Success - permission denied as expected
 	}

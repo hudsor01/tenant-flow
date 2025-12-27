@@ -1,23 +1,40 @@
 /**
- * ZeroCacheService TDD Tests
+ * RedisCacheService TDD Tests
  * Tests cache hit/miss behavior, TTL expiration, and surgical invalidation
  * Following CLAUDE.md: Test production usage, not every hook
  */
 
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
-import { ZeroCacheService } from './cache.service'
+import { RedisCacheService } from './cache.service'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
+import { AppConfigService } from '../config/app-config.service'
+import { MODULE_OPTIONS_TOKEN } from './cache.module-definition'
 
 
-describe('ZeroCacheService', () => {
-  let service: ZeroCacheService
+describe('RedisCacheService', () => {
+  let service: RedisCacheService
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ZeroCacheService,
+        RedisCacheService,
+        {
+          provide: MODULE_OPTIONS_TOKEN,
+          useValue: {
+            ttlShortMs: 30_000,
+            ttlMediumMs: 5 * 60 * 1000,
+            ttlLongMs: 30 * 60 * 1000,
+            keyPrefix: 'test-cache'
+          }
+        },
+        {
+          provide: AppConfigService,
+          useValue: {
+            getRedisConfig: jest.fn().mockReturnValue({})
+          }
+        },
         {
           provide: AppLogger,
           useValue: new SilentLogger()
@@ -25,7 +42,7 @@ describe('ZeroCacheService', () => {
       ]
     }).compile()
 
-    service = module.get<ZeroCacheService>(ZeroCacheService)
+    service = module.get<RedisCacheService>(RedisCacheService)
   })
 
   afterEach(() => {
@@ -33,30 +50,30 @@ describe('ZeroCacheService', () => {
   })
 
   describe('Cache Hit/Miss Behavior', () => {
-    it('should return null for cache miss', () => {
-      const result = service.get<string>('nonexistent-key')
+    it('should return null for cache miss', async () => {
+      const result = await service.get<string>('nonexistent-key')
       expect(result).toBeNull()
     })
 
-    it('should return cached data for cache hit', () => {
+    it('should return cached data for cache hit', async () => {
       const testData = { id: '123', name: 'Test Property' }
-      service.set('properties:123', testData)
+      await service.set('properties:123', testData)
 
-      const result = service.get<typeof testData>('properties:123')
+      const result = await service.get<typeof testData>('properties:123')
       expect(result).toEqual(testData)
     })
 
-    it('should increment hit count on cache hit', () => {
-      service.set('test-key', 'test-value')
-      service.get('test-key')
+    it('should increment hit count on cache hit', async () => {
+      await service.set('test-key', 'test-value')
+      await service.get('test-key')
 
       const stats = service.getStats()
       expect(stats.hits).toBe(1)
       expect(stats.misses).toBe(0)
     })
 
-    it('should increment miss count on cache miss', () => {
-      service.get('nonexistent-key')
+    it('should increment miss count on cache miss', async () => {
+      await service.get('nonexistent-key')
 
       const stats = service.getStats()
       expect(stats.hits).toBe(0)
@@ -65,9 +82,9 @@ describe('ZeroCacheService', () => {
   })
 
   describe('TTL Expiration', () => {
-    it('should return null for expired entries', () => {
+    it('should return null for expired entries', async () => {
       // Set with very short TTL (1ms)
-      service.set('short-lived', 'value', 1)
+      await service.set('short-lived', 'value', { ttlMs: 1 })
 
       // Wait for expiration
       const start = Date.now()
@@ -75,73 +92,73 @@ describe('ZeroCacheService', () => {
         // Busy wait to ensure TTL expires
       }
 
-      const result = service.get('short-lived')
+      const result = await service.get('short-lived')
       expect(result).toBeNull()
     })
 
-    it('should return data within TTL', () => {
+    it('should return data within TTL', async () => {
       // Set with 5 second TTL
-      service.set('long-lived', 'value', 5000)
+      await service.set('long-lived', 'value', { ttlMs: 5000 })
 
-      const result = service.get('long-lived')
+      const result = await service.get('long-lived')
       expect(result).toBe('value')
     })
 
-    it('should use default TTL of 5 minutes when not specified', () => {
-      service.set('default-ttl', 'value')
+    it('should use default TTL of 5 minutes when not specified', async () => {
+      await service.set('default-ttl', 'value')
 
       // Should still be valid immediately
-      const result = service.get('default-ttl')
+      const result = await service.get('default-ttl')
       expect(result).toBe('value')
     })
   })
 
   describe('Surgical Invalidation', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Setup test data
-      service.set('user:abc:properties', [{ id: '1' }], 300_000, ['user:abc', 'properties'])
-      service.set('user:abc:leases', [{ id: '2' }], 300_000, ['user:abc', 'leases'])
-      service.set('user:xyz:properties', [{ id: '3' }], 300_000, ['user:xyz', 'properties'])
-      service.set('properties:1', { name: 'Prop 1' }, 300_000, ['properties'])
-      service.set('properties:2', { name: 'Prop 2' }, 300_000, ['properties'])
+      await service.set('user:abc:properties', [{ id: '1' }], { ttlMs: 300_000, tags: ['user:abc', 'properties'] })
+      await service.set('user:abc:leases', [{ id: '2' }], { ttlMs: 300_000, tags: ['user:abc', 'leases'] })
+      await service.set('user:xyz:properties', [{ id: '3' }], { ttlMs: 300_000, tags: ['user:xyz', 'properties'] })
+      await service.set('properties:1', { name: 'Prop 1' }, { ttlMs: 300_000, tags: ['properties'] })
+      await service.set('properties:2', { name: 'Prop 2' }, { ttlMs: 300_000, tags: ['properties'] })
     })
 
-    it('should invalidate by exact pattern', () => {
-      const count = service.invalidate('properties:1')
+    it('should invalidate by exact pattern', async () => {
+      const count = await service.invalidate('properties:1')
 
       expect(count).toBe(1)
-      expect(service.get('properties:1')).toBeNull()
-      expect(service.get('properties:2')).not.toBeNull()
+      expect(await service.get('properties:1')).toBeNull()
+      expect(await service.get('properties:2')).not.toBeNull()
     })
 
-    it('should invalidate by pattern substring', () => {
+    it('should invalidate by pattern substring', async () => {
       // Invalidate all entries containing 'user:abc'
-      const count = service.invalidate('user:abc')
+      const count = await service.invalidate('user:abc')
 
       expect(count).toBe(2)
-      expect(service.get('user:abc:properties')).toBeNull()
-      expect(service.get('user:abc:leases')).toBeNull()
-      expect(service.get('user:xyz:properties')).not.toBeNull()
+      expect(await service.get('user:abc:properties')).toBeNull()
+      expect(await service.get('user:abc:leases')).toBeNull()
+      expect(await service.get('user:xyz:properties')).not.toBeNull()
     })
 
-    it('should invalidate by dependency', () => {
+    it('should invalidate by dependency', async () => {
       // Invalidate all entries with 'properties' dependency
-      const count = service.invalidate('properties')
+      const count = await service.invalidate('properties')
 
       expect(count).toBeGreaterThanOrEqual(4) // All entries with 'properties' dependency
     })
 
-    it('should invalidate by regex pattern', () => {
-      const count = service.invalidate(/^user:.*:properties$/)
+    it('should invalidate by regex pattern', async () => {
+      const count = await service.invalidate(/^user:.*:properties$/)
 
       expect(count).toBe(2) // user:abc:properties and user:xyz:properties
-      expect(service.get('user:abc:properties')).toBeNull()
-      expect(service.get('user:xyz:properties')).toBeNull()
-      expect(service.get('user:abc:leases')).not.toBeNull()
+      expect(await service.get('user:abc:properties')).toBeNull()
+      expect(await service.get('user:xyz:properties')).toBeNull()
+      expect(await service.get('user:abc:leases')).not.toBeNull()
     })
 
-    it('should increment invalidation count', () => {
-      service.invalidate('properties:1')
+    it('should increment invalidation count', async () => {
+      await service.invalidate('properties:1')
 
       const stats = service.getStats()
       expect(stats.invalidations).toBe(1)
@@ -149,85 +166,85 @@ describe('ZeroCacheService', () => {
   })
 
   describe('Entity-Based Invalidation', () => {
-    beforeEach(() => {
-      service.set('properties:123:details', { name: 'Test' }, 300_000, ['properties:123'])
-      service.set('properties:123:units', [{ id: '1' }], 300_000, ['properties:123'])
-      service.set('properties:456:details', { name: 'Other' }, 300_000, ['properties:456'])
+    beforeEach(async () => {
+      await service.set('properties:123:details', { name: 'Test' }, { ttlMs: 300_000, tags: ['properties:123'] })
+      await service.set('properties:123:units', [{ id: '1' }], { ttlMs: 300_000, tags: ['properties:123'] })
+      await service.set('properties:456:details', { name: 'Other' }, { ttlMs: 300_000, tags: ['properties:456'] })
     })
 
-    it('should invalidate by entity type and id', () => {
-      const count = service.invalidateByEntity('properties', '123')
+    it('should invalidate by entity type and id', async () => {
+      const count = await service.invalidateByEntity('properties', '123')
 
       expect(count).toBe(2) // Both entries for property 123
-      expect(service.get('properties:123:details')).toBeNull()
-      expect(service.get('properties:123:units')).toBeNull()
-      expect(service.get('properties:456:details')).not.toBeNull()
+      expect(await service.get('properties:123:details')).toBeNull()
+      expect(await service.get('properties:123:units')).toBeNull()
+      expect(await service.get('properties:456:details')).not.toBeNull()
     })
 
-    it('should invalidate all entities of type when no id provided', () => {
-      const count = service.invalidateByEntity('properties')
+    it('should invalidate all entities of type when no id provided', async () => {
+      const count = await service.invalidateByEntity('properties')
 
       expect(count).toBe(3) // All property entries
     })
   })
 
   describe('User-Based Invalidation', () => {
-    beforeEach(() => {
-      service.set('user:user123:dashboard', { stats: {} }, 300_000, ['user:user123'])
-      service.set('user:user123:properties', [], 300_000, ['user:user123'])
-      service.set('user:user456:dashboard', { stats: {} }, 300_000, ['user:user456'])
+    beforeEach(async () => {
+      await service.set('user:user123:dashboard', { stats: {} }, { ttlMs: 300_000, tags: ['user:user123'] })
+      await service.set('user:user123:properties', [], { ttlMs: 300_000, tags: ['user:user123'] })
+      await service.set('user:user456:dashboard', { stats: {} }, { ttlMs: 300_000, tags: ['user:user456'] })
     })
 
-    it('should invalidate all cache entries for a specific user', () => {
-      const count = service.invalidateByUser('user123')
+    it('should invalidate all cache entries for a specific user', async () => {
+      const count = await service.invalidateByUser('user123')
 
       expect(count).toBe(2)
-      expect(service.get('user:user123:dashboard')).toBeNull()
-      expect(service.get('user:user123:properties')).toBeNull()
-      expect(service.get('user:user456:dashboard')).not.toBeNull()
+      expect(await service.get('user:user123:dashboard')).toBeNull()
+      expect(await service.get('user:user123:properties')).toBeNull()
+      expect(await service.get('user:user456:dashboard')).not.toBeNull()
     })
   })
 
   describe('Cache Key Generation', () => {
     it('should generate user-specific cache keys', () => {
-      const key = ZeroCacheService.getUserKey('user123', 'properties:findAll', { limit: 10 })
+      const key = RedisCacheService.getUserKey('user123', 'properties:findAll', { limit: 10 })
       expect(key).toBe('user:user123:properties:findAll:{"limit":10}')
     })
 
     it('should generate user key without params', () => {
-      const key = ZeroCacheService.getUserKey('user123', 'dashboard:stats')
+      const key = RedisCacheService.getUserKey('user123', 'dashboard:stats')
       expect(key).toBe('user:user123:dashboard:stats')
     })
 
     it('should generate entity-specific cache keys', () => {
-      const key = ZeroCacheService.getEntityKey('properties', '123', 'details')
+      const key = RedisCacheService.getEntityKey('properties', '123', 'details')
       expect(key).toBe('properties:123:details')
     })
 
     it('should generate entity key without operation', () => {
-      const key = ZeroCacheService.getEntityKey('properties', '123')
+      const key = RedisCacheService.getEntityKey('properties', '123')
       expect(key).toBe('properties:123')
     })
   })
 
   describe('Cache Clear', () => {
-    it('should clear all cache entries', () => {
-      service.set('key1', 'value1')
-      service.set('key2', 'value2')
-      service.set('key3', 'value3')
+    it('should clear all cache entries', async () => {
+      await service.set('key1', 'value1')
+      await service.set('key2', 'value2')
+      await service.set('key3', 'value3')
 
-      service.clear()
+      await service.clear()
 
-      expect(service.get('key1')).toBeNull()
-      expect(service.get('key2')).toBeNull()
-      expect(service.get('key3')).toBeNull()
+      expect(await service.get('key1')).toBeNull()
+      expect(await service.get('key2')).toBeNull()
+      expect(await service.get('key3')).toBeNull()
     })
 
-    it('should increment invalidation count when clearing', () => {
-      service.set('key1', 'value1')
-      service.set('key2', 'value2')
+    it('should increment invalidation count when clearing', async () => {
+      await service.set('key1', 'value1')
+      await service.set('key2', 'value2')
 
-      service.clear()
+      await service.clear()
 
       const stats = service.getStats()
       expect(stats.invalidations).toBe(2)
@@ -241,10 +258,10 @@ describe('ZeroCacheService', () => {
       expect(health.details.isWithinMemoryLimit).toBe(true)
     })
 
-    it('should include cache statistics in health details', () => {
-      service.set('test', 'value')
-      service.get('test') // hit
-      service.get('nonexistent') // miss
+    it('should include cache statistics in health details', async () => {
+      await service.set('test', 'value')
+      await service.get('test') // hit
+      await service.get('nonexistent') // miss
 
       const health = service.isHealthy()
       expect(health.details.hits).toBeDefined()

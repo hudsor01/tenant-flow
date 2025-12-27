@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~581 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract SortableContext/Provider into: `./sortable-context.tsx`
+// 2. Extract SortableItem into: `./sortable-item.tsx`
+// 3. Extract DragHandle components into: `./drag-handle.tsx`
+// 4. Extract types into: `./sortable.types.ts`
+// 5. Keep Sortable as main export aggregator
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 "use client";
 
 import {

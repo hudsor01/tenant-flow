@@ -47,7 +47,10 @@ export const unitQueries = {
 	listByProperty: (property_id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.lists(), 'by-property', property_id],
-			queryFn: () => apiRequest<Unit[]>(`/api/v1/units?property_id=${property_id}`),
+			queryFn: async () => {
+				const response = await apiRequest<PaginatedResponse<Unit>>(`/api/v1/units?property_id=${property_id}`)
+				return response.data
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!property_id,
 		}),

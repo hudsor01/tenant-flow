@@ -1,9 +1,14 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
-import { Button } from '#components/ui/button'
-import { Input } from '#components/ui/input'
-import { Label } from '#components/ui/label'
+import * as React from 'react'
+import {
+	Building2,
+	Wallet,
+	CreditCard,
+	Download,
+	ChevronDown,
+	ChevronRight
+} from 'lucide-react'
 import {
 	Select,
 	SelectContent,
@@ -11,131 +16,192 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
-import {
-	Search,
-	Download,
-	Upload,
-	DollarSign,
-	CreditCard,
-	Building,
-	Users
-} from 'lucide-react'
-import { useState } from 'react'
+import { BlurFade } from '#components/ui/blur-fade'
+import { BorderBeam } from '#components/ui/border-beam'
+import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
 import { useBalanceSheet } from '#hooks/api/use-financial-statements'
-import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
+import { formatCents } from '#lib/formatters/currency'
 
-const BalanceSheetPage = () => {
-	const [year, setYear] = useState('2024')
-	const [month, setMonth] = useState('12')
+interface BalanceItem {
+	name: string
+	amount: number
+}
 
-	// Calculate as-of date
-	const asOfDate = `${year}-${month}-${new Date(parseInt(year), parseInt(month), 0).getDate()}`
-	const { data, isLoading, error } = useBalanceSheet(asOfDate)
+interface BalanceSectionProps {
+	title: string
+	icon: React.ElementType
+	items: { label: string; items: BalanceItem[]; subtotal: number }[]
+	total: number
+	totalLabel: string
+	colorClass: string
+}
 
-	// Transform API data to UI format
-	const transformedData = data?.data ? {
-		assets: {
-			current: [
-				{ name: 'Cash', amount: data.data.assets.currentAssets.cash },
-				{ name: 'Accounts Receivable', amount: data.data.assets.currentAssets.accountsReceivable },
-				{ name: 'Security Deposits', amount: data.data.assets.currentAssets.security_deposits }
-			],
-			nonCurrent: [
-				{ name: 'Property Values', amount: data.data.assets.fixedAssets.propertyValues },
-				{ name: 'Accumulated Depreciation', amount: -data.data.assets.fixedAssets.accumulatedDepreciation },
-				{ name: 'Net Property Value', amount: data.data.assets.fixedAssets.netPropertyValue }
-			]
-		},
-		liabilities: {
-			current: [
-				{ name: 'Accounts Payable', amount: data.data.liabilities.currentLiabilities.accountsPayable },
-				{ name: 'Security Deposit Liability', amount: data.data.liabilities.currentLiabilities.security_depositLiability },
-				{ name: 'Accrued Expenses', amount: data.data.liabilities.currentLiabilities.accruedExpenses }
-			],
-			nonCurrent: [
-				{ name: 'Mortgages Payable', amount: data.data.liabilities.longTermLiabilities.mortgagesPayable }
-			]
-		},
-		equity: [
-			{ name: 'Owner Capital', amount: data.data.equity.ownerCapital },
-			{ name: 'Retained Earnings', amount: data.data.equity.retainedEarnings },
-			{ name: 'Current Period Income', amount: data.data.equity.currentPeriodIncome }
-		]
-	} : null
+function BalanceSection({
+	title,
+	icon: Icon,
+	items,
+	total,
+	totalLabel,
+	colorClass
+}: BalanceSectionProps) {
+	const [expanded, setExpanded] = React.useState<Record<string, boolean>>({})
 
-	const renderSection = (title: string, items: FinancialLineItem[]) => (
-		<div className="space-y-4">
-			<h3 className="typography-large text-muted/900">{title}</h3>
-			<div className="space-y-2">
-				{items.map((item) => {
-					return (
-						<div
-							key={item.name}
-							className="flex-between p-3 bg-muted/50 rounded-lg"
-						>
-							<div className="flex-1">
-								<div className="font-medium text-muted/900">{item.name}</div>
-							</div>
-							<div className="text-right">
-								<div className="font-semibold text-muted/900">
-									${Math.abs(item.amount).toLocaleString()}
-								</div>
-							</div>
-						</div>
-					)
-				})}
+	const toggleExpanded = (label: string) => {
+		setExpanded(prev => ({ ...prev, [label]: !prev[label] }))
+	}
+
+	return (
+		<div className="bg-card border border-border rounded-lg overflow-hidden">
+			<div className={`p-4 border-b border-border flex items-center gap-3 ${colorClass}`}>
+				<Icon className="w-5 h-5" />
+				<h3 className="font-medium text-foreground">{title}</h3>
 			</div>
-		</div>
-	)
-
-	if (isLoading) {
-		return (
-			<div className="p-6 space-y-6">
-				<div className="flex-between">
-					<div>
-						<h1 className="typography-h2">Balance Sheet</h1>
-						<p className="text-muted/600">
-							Financial position at a specific point in time
-						</p>
-					</div>
-					<div className="flex gap-2">
-						<Skeleton className="h-10 w-24" />
-						<Skeleton className="h-10 w-24" />
-					</div>
-				</div>
-
-				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-					{[1, 2, 3].map(i => (
-						<Card key={i}>
-							<CardHeader>
-								<Skeleton className="h-6 w-32" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-8 w-full" />
-								<Skeleton className="h-4 w-24 mt-2" />
-							</CardContent>
-						</Card>
-					))}
-				</div>
-
-				<div className="space-y-4">
-					{[1, 2, 3].map(i => (
-						<div key={i}>
-							<Skeleton className="h-6 w-48 mb-4" />
-							<div className="space-y-2">
-								{[1, 2, 3].map(j => (
-									<div
-										key={j}
-										className="flex-between p-3 bg-muted/50 rounded-lg"
-									>
-										<Skeleton className="h-4 w-32" />
-										<Skeleton className="h-6 w-24" />
+			<div className="divide-y divide-border">
+				{items.map((section) => (
+					<div key={section.label}>
+						<button
+							onClick={() => toggleExpanded(section.label)}
+							className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+						>
+							<div className="flex items-center gap-2">
+								{expanded[section.label] ? (
+									<ChevronDown className="w-4 h-4 text-muted-foreground" />
+								) : (
+									<ChevronRight className="w-4 h-4 text-muted-foreground" />
+								)}
+								<span className="text-sm font-medium">{section.label}</span>
+							</div>
+							<span className="text-sm font-medium tabular-nums">{formatCents(section.subtotal * 100)}</span>
+						</button>
+						{expanded[section.label] && (
+							<div className="bg-muted/20 px-4 pb-4">
+								{section.items.map((item, idx) => (
+									<div key={idx} className="flex items-center justify-between py-2 pl-6">
+										<span className="text-sm text-muted-foreground">{item.name}</span>
+										<span className={`text-sm tabular-nums ${item.amount < 0 ? 'text-red-600' : ''}`}>
+											{formatCents(item.amount * 100)}
+										</span>
 									</div>
 								))}
 							</div>
-						</div>
+						)}
+					</div>
+				))}
+			</div>
+			<div className="p-4 bg-muted/30 border-t border-border">
+				<div className="flex items-center justify-between">
+					<span className="text-sm font-semibold">{totalLabel}</span>
+					<span className={`text-lg font-bold tabular-nums ${colorClass}`}>{formatCents(total * 100)}</span>
+				</div>
+			</div>
+		</div>
+	)
+}
+
+export default function BalanceSheetPage() {
+	const [year, setYear] = React.useState('2024')
+	const [month, setMonth] = React.useState('12')
+
+	// Calculate as-of date
+	const asOfDate = `${year}-${month}-${new Date(parseInt(year), parseInt(month), 0).getDate()}`
+	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate)
+	const balanceData = data?.data
+
+	// Transform API data to section format
+	const assetsItems = React.useMemo(() => {
+		if (!balanceData) return []
+		return [
+			{
+				label: 'Current Assets',
+				items: [
+					{ name: 'Cash', amount: balanceData.assets.currentAssets.cash },
+					{ name: 'Accounts Receivable', amount: balanceData.assets.currentAssets.accountsReceivable },
+					{ name: 'Security Deposits', amount: balanceData.assets.currentAssets.security_deposits }
+				],
+				subtotal: balanceData.assets.currentAssets.cash + balanceData.assets.currentAssets.accountsReceivable + balanceData.assets.currentAssets.security_deposits
+			},
+			{
+				label: 'Fixed Assets',
+				items: [
+					{ name: 'Property Values', amount: balanceData.assets.fixedAssets.propertyValues },
+					{ name: 'Accumulated Depreciation', amount: -balanceData.assets.fixedAssets.accumulatedDepreciation },
+					{ name: 'Net Property Value', amount: balanceData.assets.fixedAssets.netPropertyValue }
+				],
+				subtotal: balanceData.assets.fixedAssets.netPropertyValue
+			}
+		]
+	}, [balanceData])
+
+	const liabilitiesItems = React.useMemo(() => {
+		if (!balanceData) return []
+		return [
+			{
+				label: 'Current Liabilities',
+				items: [
+					{ name: 'Accounts Payable', amount: balanceData.liabilities.currentLiabilities.accountsPayable },
+					{ name: 'Security Deposit Liability', amount: balanceData.liabilities.currentLiabilities.security_depositLiability },
+					{ name: 'Accrued Expenses', amount: balanceData.liabilities.currentLiabilities.accruedExpenses }
+				],
+				subtotal: balanceData.liabilities.currentLiabilities.accountsPayable + balanceData.liabilities.currentLiabilities.security_depositLiability + balanceData.liabilities.currentLiabilities.accruedExpenses
+			},
+			{
+				label: 'Long-Term Liabilities',
+				items: [
+					{ name: 'Mortgages Payable', amount: balanceData.liabilities.longTermLiabilities.mortgagesPayable }
+				],
+				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable
+			}
+		]
+	}, [balanceData])
+
+	const equityItems = React.useMemo(() => {
+		if (!balanceData) return []
+		return [
+			{ name: 'Owner Capital', amount: balanceData.equity.ownerCapital },
+			{ name: 'Retained Earnings', amount: balanceData.equity.retainedEarnings },
+			{ name: 'Current Period Income', amount: balanceData.equity.currentPeriodIncome }
+		]
+	}, [balanceData])
+
+	const totalAssets = balanceData?.assets.totalAssets || 0
+	const totalLiabilities = balanceData?.liabilities.totalLiabilities || 0
+	const totalEquity = balanceData?.equity.totalEquity || 0
+	const isBalanced = balanceData?.balanceCheck !== false
+
+	const formatDate = (dateStr: string) => {
+		return new Date(dateStr).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric'
+		})
+	}
+
+	if (isLoading) {
+		return (
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				{/* Header skeleton */}
+				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+					<div>
+						<Skeleton className="h-8 w-40 mb-2" />
+						<Skeleton className="h-4 w-64" />
+					</div>
+					<div className="flex gap-2">
+						<Skeleton className="h-10 w-24" />
+						<Skeleton className="h-10 w-32" />
+						<Skeleton className="h-10 w-24" />
+					</div>
+				</div>
+				{/* Stats skeleton */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+					{[1, 2, 3].map(i => (
+						<Skeleton key={i} className="h-28 rounded-lg" />
+					))}
+				</div>
+				{/* Content skeleton */}
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					{[1, 2].map(i => (
+						<Skeleton key={i} className="h-80 rounded-lg" />
 					))}
 				</div>
 			</div>
@@ -144,273 +210,193 @@ const BalanceSheetPage = () => {
 
 	if (error) {
 		return (
-			<div className="p-6 space-y-6">
-				<div className="flex-between">
-					<div>
-						<h1 className="typography-h2">Balance Sheet</h1>
-						<p className="text-muted/600">
-							Financial position at a specific point in time
-						</p>
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				<div className="max-w-md mx-auto text-center py-16">
+					<div className="w-16 h-16 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-6">
+						<CreditCard className="w-8 h-8 text-destructive" />
 					</div>
+					<h2 className="text-xl font-semibold text-foreground mb-3">
+						Failed to Load Balance Sheet
+					</h2>
+					<p className="text-muted-foreground mb-6">
+						{error instanceof Error ? error.message : 'An error occurred'}
+					</p>
+					<button
+						onClick={() => void refetch()}
+						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+					>
+						Try Again
+					</button>
 				</div>
-				<Card>
-					<CardContent className="p-6">
-						<div className="text-center">
-							<p className="text-destructive">Failed to load balance sheet data. Please try again.</p>
-						</div>
-					</CardContent>
-				</Card>
 			</div>
 		)
 	}
 
-	if (!transformedData) {
-		return null
-	}
-
-	const totalAssets = data?.data?.assets.totalAssets || 0
-	const totalLiabilities = data?.data?.liabilities.totalLiabilities || 0
-	const totalEquity = data?.data?.equity.totalEquity || 0
-
 	return (
-		<div className="p-6 space-y-6">
+		<div className="p-6 lg:p-8 bg-background min-h-full">
 			{/* Header */}
-			<div className="flex-between">
-				<div>
-					<h1 className="typography-h2">Balance Sheet</h1>
-					<p className="text-muted/600">
-						Financial position at a specific point in time
-					</p>
-				</div>
-				<div className="flex gap-2">
-					<Button variant="outline" size="sm">
-						<Download className="w-4 h-4 mr-2" />
-						Export
-					</Button>
-					<Button size="sm">
-						<Upload className="w-4 h-4 mr-2" />
-						Import
-					</Button>
-				</div>
-			</div>
-
-			{/* Filters */}
-			<Card>
-				<CardContent className="p-4">
-					<div className="flex flex-wrap items-center gap-4">
-						<div className="flex items-center gap-2">
-							<Label>As Of Date</Label>
-							<Select value={year} onValueChange={setYear}>
-								<SelectTrigger className="w-24">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="2024">2024</SelectItem>
-									<SelectItem value="2023">2023</SelectItem>
-									<SelectItem value="2022">2022</SelectItem>
-								</SelectContent>
-							</Select>
-							<Select value={month} onValueChange={setMonth}>
-								<SelectTrigger className="w-32">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="01">January</SelectItem>
-									<SelectItem value="02">February</SelectItem>
-									<SelectItem value="03">March</SelectItem>
-									<SelectItem value="04">April</SelectItem>
-									<SelectItem value="05">May</SelectItem>
-									<SelectItem value="06">June</SelectItem>
-									<SelectItem value="07">July</SelectItem>
-									<SelectItem value="08">August</SelectItem>
-									<SelectItem value="09">September</SelectItem>
-									<SelectItem value="10">October</SelectItem>
-									<SelectItem value="11">November</SelectItem>
-									<SelectItem value="12">December</SelectItem>
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="flex items-center gap-2">
-							<Input placeholder="Search..." className="w-64" />
-							<Button variant="outline" size="sm">
-								<Search className="w-4 h-4" />
-							</Button>
-						</div>
+			<BlurFade delay={0.1} inView>
+				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+					<div>
+						<h1 className="text-2xl font-semibold text-foreground">Balance Sheet</h1>
+						<p className="text-muted-foreground">As of {formatDate(asOfDate)}</p>
 					</div>
-				</CardContent>
-			</Card>
+					<div className="flex gap-2">
+						<Select value={year} onValueChange={setYear}>
+							<SelectTrigger className="w-[100px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="2024">2024</SelectItem>
+								<SelectItem value="2023">2023</SelectItem>
+								<SelectItem value="2022">2022</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select value={month} onValueChange={setMonth}>
+							<SelectTrigger className="w-[130px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="01">January</SelectItem>
+								<SelectItem value="02">February</SelectItem>
+								<SelectItem value="03">March</SelectItem>
+								<SelectItem value="04">April</SelectItem>
+								<SelectItem value="05">May</SelectItem>
+								<SelectItem value="06">June</SelectItem>
+								<SelectItem value="07">July</SelectItem>
+								<SelectItem value="08">August</SelectItem>
+								<SelectItem value="09">September</SelectItem>
+								<SelectItem value="10">October</SelectItem>
+								<SelectItem value="11">November</SelectItem>
+								<SelectItem value="12">December</SelectItem>
+							</SelectContent>
+						</Select>
+						<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
+							<Download className="w-4 h-4" />
+							Export
+						</button>
+					</div>
+				</div>
+			</BlurFade>
 
-			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Total Assets</CardTitle>
-						<DollarSign className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">
-							${totalAssets.toLocaleString()}
-						</div>
-						<p className="text-caption">As of {asOfDate}</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">
-							Total Liabilities
-						</CardTitle>
-						<CreditCard className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">
-							${totalLiabilities.toLocaleString()}
-						</div>
-						<p className="text-caption">As of {asOfDate}</p>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Total Equity</CardTitle>
-						<Building className="h-4 w-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">
-							${totalEquity.toLocaleString()}
-						</div>
-						<p className="text-caption">As of {asOfDate}</p>
-					</CardContent>
-				</Card>
+			{/* Summary Stats - Premium Stat Components */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+				<BlurFade delay={0.15} inView>
+					<Stat className="relative overflow-hidden">
+						<BorderBeam size={100} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+						<StatLabel>Total Assets</StatLabel>
+						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+							${Math.floor(totalAssets).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<Building2 />
+						</StatIndicator>
+						<StatDescription>
+							what you own
+						</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.2} inView>
+					<Stat className="relative overflow-hidden">
+						<StatLabel>Total Liabilities</StatLabel>
+						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+							${Math.floor(totalLiabilities).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="destructive">
+							<CreditCard />
+						</StatIndicator>
+						<StatDescription>
+							what you owe
+						</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.25} inView>
+					<Stat className="relative overflow-hidden">
+						{totalEquity > 0 && (
+							<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
+						)}
+						<StatLabel>Total Equity</StatLabel>
+						<StatValue className="flex items-baseline">
+							${Math.floor(totalEquity).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Wallet />
+						</StatIndicator>
+						<StatDescription>
+							net worth
+						</StatDescription>
+					</Stat>
+				</BlurFade>
 			</div>
 
-			{/* Balance Sheet */}
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+			{/* Balance Equation Check */}
+			<BlurFade delay={0.3} inView>
+				<div className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}>
+					<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
+						<span className="font-medium">Assets ({formatCents(totalAssets * 100)})</span>
+						<span className="text-muted-foreground">=</span>
+						<span className="font-medium">Liabilities ({formatCents(totalLiabilities * 100)})</span>
+						<span className="text-muted-foreground">+</span>
+						<span className="font-medium">Equity ({formatCents(totalEquity * 100)})</span>
+						{isBalanced ? (
+							<span className="text-emerald-600 font-medium">✓ Balanced</span>
+						) : (
+							<span className="text-red-600 font-medium">✗ Unbalanced</span>
+						)}
+					</div>
+				</div>
+			</BlurFade>
+
+			{/* Balance Sheet Details */}
+			<BlurFade delay={0.35} inView>
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				{/* Assets */}
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<DollarSign className="w-5 h-5" />
-							Assets
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-6">
-						{renderSection(
-							'Current Assets',
-							transformedData.assets.current
-						)}
-						<Separator />
-						{renderSection(
-							'Non-Current Assets',
-							transformedData.assets.nonCurrent
-						)}
-						<Separator />
-						<div className="flex-between p-3 bg-blue-50 rounded-lg">
-							<div className="font-semibold">Total Assets</div>
-							<div className="font-bold text-lg">
-								${totalAssets.toLocaleString()}
-							</div>
-						</div>
-					</CardContent>
-				</Card>
+				<BalanceSection
+					title="Assets"
+					icon={Building2}
+					items={assetsItems}
+					total={totalAssets}
+					totalLabel="Total Assets"
+					colorClass="text-emerald-600"
+				/>
 
 				{/* Liabilities & Equity */}
 				<div className="space-y-6">
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<CreditCard className="w-5 h-5" />
-								Liabilities
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{renderSection(
-								'Current Liabilities',
-								transformedData.liabilities.current
-							)}
-							<Separator />
-							{renderSection(
-								'Non-Current Liabilities',
-								transformedData.liabilities.nonCurrent
-							)}
-							<Separator />
-							<div className="flex-between p-3 bg-destructive/10 rounded-lg">
-								<div className="font-semibold">Total Liabilities</div>
-								<div className="font-bold text-lg">
-									${totalLiabilities.toLocaleString()}
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+					<BalanceSection
+						title="Liabilities"
+						icon={CreditCard}
+						items={liabilitiesItems}
+						total={totalLiabilities}
+						totalLabel="Total Liabilities"
+						colorClass="text-red-600"
+					/>
 
-					<Card>
-						<CardHeader>
-							<CardTitle className="flex items-center gap-2">
-								<Users className="w-5 h-5" />
-								Equity
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-6">
-							{renderSection(
-								"Owner's Equity",
-								transformedData.equity
-							)}
-							<Separator />
-							<div className="flex-between p-3 bg-success/10 rounded-lg">
-								<div className="font-semibold">Total Equity</div>
-								<div className="font-bold text-lg">
-									${totalEquity.toLocaleString()}
+					{/* Equity (simpler section) */}
+					<div className="bg-card border border-border rounded-lg overflow-hidden">
+						<div className="p-4 border-b border-border flex items-center gap-3 text-primary">
+							<Wallet className="w-5 h-5" />
+							<h3 className="font-medium text-foreground">Equity</h3>
+						</div>
+						<div className="divide-y divide-border">
+							{equityItems.map((item, idx) => (
+								<div key={idx} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+									<span className="text-sm">{item.name}</span>
+									<span className="text-sm font-medium tabular-nums">{formatCents(item.amount * 100)}</span>
 								</div>
+							))}
+						</div>
+						<div className="p-4 bg-muted/30 border-t border-border">
+							<div className="flex items-center justify-between">
+								<span className="text-sm font-semibold">Total Equity</span>
+								<span className="text-lg font-bold text-primary tabular-nums">{formatCents(totalEquity * 100)}</span>
 							</div>
-						</CardContent>
-					</Card>
+						</div>
+					</div>
 				</div>
 			</div>
-
-			{/* Summary */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Financial Summary</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div className="text-center p-4 bg-muted/50 rounded-lg">
-							<div className="typography-h3 text-blue-600">
-								${totalAssets.toLocaleString()}
-							</div>
-							<div className="text-sm text-muted/600">Total Assets</div>
-						</div>
-						<div className="text-center p-4 bg-muted/50 rounded-lg">
-							<div className="typography-h3 text-destructive">
-								${totalLiabilities.toLocaleString()}
-							</div>
-							<div className="text-sm text-muted/600">Total Liabilities</div>
-						</div>
-						<div className="text-center p-4 bg-muted/50 rounded-lg">
-							<div className="typography-h3 text-success">
-								${totalEquity.toLocaleString()}
-							</div>
-							<div className="text-sm text-muted/600">Total Equity</div>
-						</div>
-					</div>
-					<div className="mt-4 p-4 bg-blue-50 rounded-lg">
-						<div className="text-sm text-muted/600">
-							<strong>Balance Sheet Equation:</strong> Assets = Liabilities +
-							Equity
-						</div>
-						<div className="text-sm text-muted/600 mt-1">
-							${totalAssets.toLocaleString()} = $
-							{totalLiabilities.toLocaleString()} + $
-							{totalEquity.toLocaleString()}
-						</div>
-						{data?.data?.balanceCheck === false && (
-							<div className="mt-2 text-sm text-destructive">
-								Warning: Balance sheet equation does not balance
-							</div>
-						)}
-					</div>
-				</CardContent>
-			</Card>
+			</BlurFade>
 		</div>
 	)
 }
-
-export default BalanceSheetPage

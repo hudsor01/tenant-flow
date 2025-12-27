@@ -190,7 +190,7 @@ class EmailTestRunner {
 			for (const template of templates) {
 				const templateStart = Date.now()
 
-				await service.renderTemplate(template as any, {
+				await service.renderTemplate(template, {
 					to: 'perf@test.com',
 					customerName: 'Performance Test',
 					planName: 'Pro Plan',

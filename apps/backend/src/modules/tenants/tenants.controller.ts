@@ -1,3 +1,12 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~580 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract tenant CRUD endpoints into: `./tenant-crud.controller.ts`
+// 2. Extract tenant invitation endpoints into: `./tenant-invitation.controller.ts`
+// 3. Extract tenant payment endpoints into: `./tenant-payment.controller.ts`
+// 4. Keep TenantsController as base with common routes only
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 /**
  * ULTRA-NATIVE CONTROLLER - DO NOT ADD ABSTRACTIONS
 
@@ -33,7 +42,7 @@ import type {
 	OwnerPaymentSummaryResponse,
 	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
-import type { ListFilters } from './tenant-query.service'
+import type { ListFilters, LeaseHistoryItem } from './tenant-query.service'
 import { TenantQueryService } from './tenant-query.service'
 import { TenantCrudService } from './tenant-crud.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
@@ -186,6 +195,19 @@ export class TenantsController {
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 		const payments = await this.queryService.getTenantPaymentHistory(id, normalizedLimit)
 		return { payments } as unknown as TenantPaymentHistoryResponse
+	}
+
+	/**
+	 * GET /tenants/:id/leases
+	 * Returns all leases (past and current) for a tenant
+	 * Used in tenant detail view for lease history
+	 */
+	@Get(':id/leases')
+	async getLeaseHistory(
+		@Param('id', ParseUUIDPipe) id: string
+	): Promise<{ leases: LeaseHistoryItem[] }> {
+		const leases = await this.queryService.getTenantLeaseHistory(id)
+		return { leases }
 	}
 
 	@Post()

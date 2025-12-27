@@ -14,7 +14,7 @@ import { render, screen } from '#test/utils/test-render'
 import { BulkImportValidateStep } from '../bulk-import-validate-step'
 import { describe, it, expect } from 'vitest'
 import '@testing-library/jest-dom/vitest'
-import type { ParsedRow } from '@repo/shared/types/bulk-import'
+import type { ParsedRow } from '@repo/shared/types/api-contracts'
 
 describe('BulkImportValidateStep Component', () => {
 	const createMockFile = (name: string, _size: number) => {

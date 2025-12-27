@@ -5,7 +5,7 @@
 
 import { BadRequestException, ForbiddenException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Database } from '@repo/shared/types/supabase'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SupabaseService } from '../database/supabase.service'
@@ -14,6 +14,18 @@ import { SubscriptionCacheService } from './subscription-cache.service'
 import { SubscriptionQueryService } from './subscription-query.service'
 import type { LeaseContext } from './subscription-query.service'
 import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
+import { RedisCacheService } from '../cache/cache.service'
+
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+
+type LeaseContextResponse = Awaited<
+	ReturnType<SubscriptionQueryService['mapLeaseContextToResponse']>
+>
 
 describe('SubscriptionLifecycleService', () => {
 	let service: SubscriptionLifecycleService
@@ -42,38 +54,38 @@ describe('SubscriptionLifecycleService', () => {
 		unit_id: mockUnitId,
 		created_at: '2025-01-01T00:00:00Z',
 		updated_at: '2025-01-01T00:00:00Z'
-	}
+	} as LeaseRow
 
 	const mockLeaseNoSubscription = {
 		...mockLeaseWithSubscription,
 		stripe_subscription_id: null,
 		auto_pay_enabled: false
-	}
+	} as LeaseRow
 
 	const mockTenant = {
 		id: mockTenantId,
 		user_id: mockTenantUserId,
 		stripe_customer_id: 'cus_test123'
-	}
+	} as TenantRow
 
 	const mockTenantUser = {
 		id: mockTenantUserId,
 		email: 'tenant@example.com',
 		first_name: 'Test',
 		last_name: 'Tenant'
-	}
+	} as UserRow
 
 	const mockUnit = {
 		id: mockUnitId,
 		unit_number: '101',
 		property_id: mockPropertyId
-	}
+	} as UnitRow
 
 	const mockProperty = {
 		id: mockPropertyId,
 		name: 'Test Property',
 		owner_user_id: mockOwnerId
-	}
+	} as PropertyRow
 
 	const mockOwner = {
 		id: mockOwnerId,
@@ -81,20 +93,20 @@ describe('SubscriptionLifecycleService', () => {
 		stripe_account_id: 'acct_test123',
 		charges_enabled: true,
 		default_platform_fee_percent: 2.5
-	}
+	} as PropertyOwnerRow
 
 	const mockLeaseContext: LeaseContext = {
-		lease: mockLeaseWithSubscription as any,
-		tenant: mockTenant as any,
-		tenantUser: mockTenantUser as any,
-		unit: mockUnit as any,
-		property: mockProperty as any,
-		owner: mockOwner as any
+		lease: mockLeaseWithSubscription,
+		tenant: mockTenant,
+		tenantUser: mockTenantUser,
+		unit: mockUnit,
+		property: mockProperty,
+		owner: mockOwner
 	}
 
 	const mockLeaseContextNoSubscription: LeaseContext = {
 		...mockLeaseContext,
-		lease: mockLeaseNoSubscription as any
+		lease: mockLeaseNoSubscription
 	}
 
 	const mockStripeSubscription = {
@@ -114,7 +126,7 @@ describe('SubscriptionLifecycleService', () => {
 	}
 
 	// Helper to create query builder mock
-	const createQueryBuilder = (returnData: any, shouldError = false) => ({
+	const createQueryBuilder = <T>(returnData: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		single: jest.fn().mockResolvedValue({
@@ -146,7 +158,7 @@ describe('SubscriptionLifecycleService', () => {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
-		const mockCacheManager = {
+		const mockCache = {
 			get: jest.fn().mockResolvedValue(undefined),
 			set: jest.fn().mockResolvedValue(undefined),
 			del: jest.fn().mockResolvedValue(undefined)
@@ -164,7 +176,7 @@ describe('SubscriptionLifecycleService', () => {
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: StripeClientService, useValue: mockStripeClientService },
 				{ provide: SubscriptionQueryService, useValue: mockQueryService },
-				{ provide: CACHE_MANAGER, useValue: mockCacheManager },
+				{ provide: RedisCacheService, useValue: mockCache },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -183,7 +195,7 @@ describe('SubscriptionLifecycleService', () => {
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				status: 'paused'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -225,7 +237,7 @@ describe('SubscriptionLifecycleService', () => {
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -259,7 +271,7 @@ describe('SubscriptionLifecycleService', () => {
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				status: 'canceled'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -292,19 +304,19 @@ describe('SubscriptionLifecycleService', () => {
 				lease: {
 					...mockLeaseWithSubscription,
 					stripe_subscription_id: mockStripeSubscriptionId // Explicitly set to avoid mutation issues
-				} as any,
-				tenant: { ...mockTenant } as any,
-				tenantUser: { ...mockTenantUser } as any,
-				unit: { ...mockUnit } as any,
-				property: { ...mockProperty } as any,
-				owner: { ...mockOwner } as any
+				} as LeaseRow,
+				tenant: { ...mockTenant } as TenantRow,
+				tenantUser: { ...mockTenantUser } as UserRow,
+				unit: { ...mockUnit } as UnitRow,
+				property: { ...mockProperty } as PropertyRow,
+				owner: { ...mockOwner } as PropertyOwnerRow
 			}
 
 			mockQueryService.loadLeaseContext.mockResolvedValueOnce(freshLeaseContext)
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValueOnce({
 				id: mockLeaseId,
 				status: 'canceled'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			const updateBuilder = createQueryBuilder(mockLeaseWithSubscription)

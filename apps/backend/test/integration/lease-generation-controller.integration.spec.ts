@@ -3,13 +3,14 @@ import { HttpStatus } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { NextFunction, Request, Response } from 'express'
 import { ZodValidationPipe } from 'nestjs-zod'
 import request from 'supertest'
 import { LeaseGenerationController } from '../../src/modules/pdf/lease-generation.controller'
 import { ReactLeasePDFService } from '../../src/modules/pdf/react-lease-pdf.service'
 import { SupabaseService } from '../../src/database/supabase.service'
 import { AuthRequestCache } from '../../src/shared/services/auth-request-cache.service'
-import { ZeroCacheService } from '../../src/cache/cache.service'
+import { RedisCacheService } from '../../src/cache/cache.service'
 import { RolesGuard } from '../../src/shared/guards/roles.guard'
 import { PropertyOwnershipGuard } from '../../src/shared/guards/property-ownership.guard'
 import { AppLogger } from '../../src/logger/app-logger.service'
@@ -128,7 +129,7 @@ describe('LeaseGenerationController (Integration)', () => {
 					useValue: mockAuthRequestCache
 				},
 				{
-					provide: ZeroCacheService,
+					provide: RedisCacheService,
 					useValue: mockZeroCacheService
 				},
 				{
@@ -149,7 +150,7 @@ describe('LeaseGenerationController (Integration)', () => {
 		app.useGlobalPipes(new ZodValidationPipe())
 
 		// Add middleware to set req.user for tests that need authenticated context
-		app.use((req: any, _res: any, next: any) => {
+		app.use((req: Request, _res: Response, next: NextFunction) => {
 			req.user = { id: 'test-user-id', email: 'test@example.com' }
 			next()
 		})
@@ -161,7 +162,9 @@ describe('LeaseGenerationController (Integration)', () => {
 	})
 
 	afterAll(async () => {
-		await app.close()
+		if (app) {
+			await app.close()
+		}
 	})
 
 	beforeEach(() => {

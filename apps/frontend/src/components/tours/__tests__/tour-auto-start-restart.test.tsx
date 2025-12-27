@@ -16,24 +16,15 @@ import {
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-const TOUR_STORAGE_KEY = 'tenant-onboarding-tour-completed'
+const mockGetTourProgress = vi.fn()
+const mockUpdateTourProgress = vi.fn()
+const mockResetTourProgress = vi.fn()
 
-// Mock localStorage
-const createLocalStorageMock = () => {
-	let store: Record<string, string> = {}
-	return {
-		getItem: (key: string) => store[key] || null,
-		setItem: (key: string, value: string) => {
-			store[key] = value
-		},
-		removeItem: (key: string) => {
-			delete store[key]
-		},
-		clear: () => {
-			store = {}
-		}
-	}
-}
+vi.mock('#hooks/api/use-tour-progress', () => ({
+	getTourProgress: (...args: unknown[]) => mockGetTourProgress(...args),
+	updateTourProgress: (...args: unknown[]) => mockUpdateTourProgress(...args),
+	resetTourProgress: (...args: unknown[]) => mockResetTourProgress(...args)
+}))
 
 // Mock matchMedia
 const setupMatchMedia = () => {
@@ -53,18 +44,14 @@ const setupMatchMedia = () => {
 }
 
 describe('Tour Auto-Start and Restart Behavior', () => {
-	let localStorageMock: ReturnType<typeof createLocalStorageMock>
 	let tourFileContent: string
 
 	beforeEach(() => {
 		vi.useFakeTimers()
-		localStorageMock = createLocalStorageMock()
-		Object.defineProperty(window, 'localStorage', {
-			value: localStorageMock,
-			writable: true
-		})
 		setupMatchMedia()
 		vi.clearAllMocks()
+		mockUpdateTourProgress.mockResolvedValue({})
+		mockResetTourProgress.mockResolvedValue({})
 
 		// Read the tour component file
 		tourFileContent = readFileSync(
@@ -77,51 +64,80 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 		vi.useRealTimers()
 	})
 
-	it('auto-starts the tour after 1 second for new users (5.1)', () => {
-		// Clear localStorage to simulate a new user
-		localStorageMock.clear()
-
-		// Verify no completion state exists
-		expect(localStorageMock.getItem(TOUR_STORAGE_KEY)).toBeNull()
+	it('auto-starts the tour after 1 second for new users (5.1)', async () => {
+		mockGetTourProgress.mockResolvedValue({
+			tour_key: 'tenant-onboarding',
+			status: 'not_started',
+			current_step: 0,
+			completed_at: null,
+			skipped_at: null,
+			last_seen_at: null
+		})
 
 		// Render the tour component
 		render(<TenantOnboardingTour forceShow={false} />)
 
+		// Flush the async load
+		await act(async () => {
+			await Promise.resolve()
+		})
+
 		// Fast-forward time by 1 second
-		act(() => {
+		await act(async () => {
 			vi.advanceTimersByTime(1000)
 		})
 
-		// Timer should have fired
-		expect(vi.getTimerCount()).toBe(0)
+		expect(mockUpdateTourProgress).toHaveBeenCalledWith('tenant-onboarding', {
+			status: 'in_progress'
+		})
 	})
 
-	it('does not auto-start the tour for returning users who completed it (5.1)', () => {
-		// Set tour as completed
-		localStorageMock.setItem(TOUR_STORAGE_KEY, 'true')
+	it('does not auto-start the tour for returning users who completed it (5.1)', async () => {
+		mockGetTourProgress.mockResolvedValue({
+			tour_key: 'tenant-onboarding',
+			status: 'completed',
+			current_step: 6,
+			completed_at: '2024-01-01T00:00:00Z',
+			skipped_at: null,
+			last_seen_at: '2024-01-01T00:00:00Z'
+		})
 
 		// Render the tour component
 		render(<TenantOnboardingTour forceShow={false} />)
 
+		await act(async () => {
+			await Promise.resolve()
+		})
+
 		// Fast-forward time by 1 second
-		act(() => {
+		await act(async () => {
 			vi.advanceTimersByTime(1000)
 		})
 
-		// Tour should not auto-start because it's marked as completed
-		expect(localStorageMock.getItem(TOUR_STORAGE_KEY)).toBe('true')
+		expect(mockUpdateTourProgress).not.toHaveBeenCalled()
 	})
 
-	it('uses a 1-second delay before auto-starting the tour (5.1)', () => {
-		localStorageMock.clear()
+	it('uses a 1-second delay before auto-starting the tour (5.1)', async () => {
+		mockGetTourProgress.mockResolvedValue({
+			tour_key: 'tenant-onboarding',
+			status: 'not_started',
+			current_step: 0,
+			completed_at: null,
+			skipped_at: null,
+			last_seen_at: null
+		})
 
 		render(<TenantOnboardingTour forceShow={false} />)
+
+		await act(async () => {
+			await Promise.resolve()
+		})
 
 		// Verify timer is set
 		expect(vi.getTimerCount()).toBeGreaterThan(0)
 
 		// Fast-forward by 999ms (just before 1 second)
-		act(() => {
+		await act(async () => {
 			vi.advanceTimersByTime(999)
 		})
 
@@ -129,7 +145,7 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 		expect(vi.getTimerCount()).toBeGreaterThan(0)
 
 		// Fast-forward by 1ms more (total 1000ms)
-		act(() => {
+		await act(async () => {
 			vi.advanceTimersByTime(1)
 		})
 
@@ -151,17 +167,26 @@ describe('Tour Auto-Start and Restart Behavior', () => {
 
 	it('TenantTourTrigger component has restart functionality (5.4)', () => {
 		// Verify the component file contains the restart logic
-		expect(tourFileContent).toContain('localStorage.removeItem')
-		expect(tourFileContent).toContain(TOUR_STORAGE_KEY)
+		expect(tourFileContent).toContain('resetTourProgress')
 		expect(tourFileContent).toContain('Take a Tour')
 		expect(tourFileContent).toContain('TenantTourTrigger')
 	})
 
-	it('tour component checks localStorage for completion state (5.1)', () => {
-		// Verify the component checks localStorage
-		expect(tourFileContent).toContain('localStorage.getItem')
-		expect(tourFileContent).toContain(TOUR_STORAGE_KEY)
+	it('tour component checks backend for completion state (5.1)', () => {
+		expect(tourFileContent).toContain('getTourProgress')
 		expect(tourFileContent).toContain('setTimeout')
 		expect(tourFileContent).toContain('1000') // 1 second delay
+	})
+
+	it('TenantTourTrigger restarts tour via backend reset (5.4)', async () => {
+		render(<TenantTourTrigger />)
+
+		const tourButton = screen.getByRole('button', { name: /take a tour/i })
+
+		await act(async () => {
+			tourButton.click()
+		})
+
+		expect(mockResetTourProgress).toHaveBeenCalledWith('tenant-onboarding')
 	})
 })

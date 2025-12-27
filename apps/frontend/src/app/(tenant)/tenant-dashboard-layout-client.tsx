@@ -1,38 +1,30 @@
 'use client'
 
-import { TenantSidebar } from '#components/dashboard/tenant-sidebar'
 import { SiteHeader } from '#components/dashboard/site-header'
 import { Breadcrumbs } from '#components/ui/breadcrumb'
 import { SidebarInset } from '#components/ui/sidebar'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { useSse } from '#hooks/use-sse'
+
+// SSE connection is now managed by SseProvider in the app providers
+// No need to call useSse() here - it auto-connects and invalidates queries
 
 export function TenantDashboardLayoutClient({ children }: { children: ReactNode }) {
 	const pathname = usePathname()
 	const breadcrumbs = generateBreadcrumbs(pathname)
 
-	// Connect to SSE for real-time updates (lease signatures, payments, etc.)
-	// Auto-invalidates TanStack Query cache based on event types
-	useSse()
-
 	return (
-		<>
-			<div className="flex h-full flex-col gap-[var(--layout-gap-items)] p-[var(--layout-gap-items)]">
-				<TenantSidebar />
-			</div>
-			<SidebarInset className="dashboard-root bg-muted/30">
-				<SiteHeader />
-				<div className="dashboard-main flex-1">
-					<div className="@container/main dashboard-content p-[var(--layout-content-padding)]">
-						<nav className="mb-[var(--layout-gap-group)]">
-							<Breadcrumbs items={breadcrumbs} />
-						</nav>
-						{children}
-					</div>
+		<SidebarInset className="dashboard-root bg-muted/30">
+			<SiteHeader />
+			<div className="dashboard-main flex-1">
+				<div className="@container/main dashboard-content p-[var(--layout-content-padding)]">
+					<nav className="mb-[var(--layout-gap-group)] border-b border-border/50 pb-[var(--layout-gap-items)]">
+						<Breadcrumbs items={breadcrumbs} />
+					</nav>
+					{children}
 				</div>
-			</SidebarInset>
-		</>
+			</div>
+		</SidebarInset>
 	)
 }

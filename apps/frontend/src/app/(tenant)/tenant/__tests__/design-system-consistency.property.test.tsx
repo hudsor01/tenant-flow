@@ -5,15 +5,20 @@
  * **Validates: Requirements 8.4, 8.5**
  *
  * Property 8: Design System Consistency
- * *For any* card component in the tenant portal, the component SHALL use the `card-standard`
- * CSS class and follow the Hero_Mockup_Design spacing system.
+ * *For any* card component in the tenant portal, the component SHALL use the design-os
+ * patterns and follow the design system spacing.
  *
  * This test uses fast-check to generate various card configurations and verify
  * that all cards in the tenant portal follow the design system patterns.
+ *
+ * Design-OS Patterns:
+ * - Stat Cards: Uses data-slot="stat" with card styling (rounded-lg, border, bg-card, shadow-sm)
+ * - Stat Values: Uses data-slot="stat-value" with font-semibold
+ * - Stat Labels: Uses data-slot="stat-label" with font-medium
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render } from '@testing-library/react'
 import * as fc from 'fast-check'
 
 // Mock the hooks
@@ -24,7 +29,11 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 				status: 'active',
 				start_date: '2024-01-01',
 				end_date: '2024-12-31',
-				rent_amount: 1500
+				rent_amount: 1500,
+				unit: {
+					unit_number: '101',
+					property: { name: 'Test Property' }
+				}
 			},
 			payments: {
 				upcoming: { dueDate: '2024-02-01', amount: 150000 },
@@ -32,6 +41,10 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 			},
 			maintenance: { open: 2, recent: [] }
 		},
+		isLoading: false
+	})),
+	useTenantLeaseDocuments: vi.fn(() => ({
+		data: { documents: [] },
 		isLoading: false
 	}))
 }))
@@ -67,12 +80,11 @@ vi.mock('#components/tours', () => ({
 import TenantDashboardPage from '../tenant-portal-page'
 
 /**
- * Card-standard CSS class pattern from globals.css:
- * @utility card-standard {
- *   @apply rounded-lg border border-border bg-card shadow-sm;
- * }
+ * Design-OS CSS patterns:
+ * - Stat component: rounded-lg border border-border bg-card shadow-sm
+ * - Uses data-slot attributes for styling hooks
  *
- * Hero Mockup Design spacing system:
+ * Design system spacing:
  * - Padding: p-2.5 to p-4 for cards
  * - Gap: gap-2 to gap-4 for layouts
  * - Border radius: rounded-lg
@@ -94,7 +106,8 @@ describe('Property 8: Design System Consistency', () => {
 				_iteration => {
 					render(<TenantDashboardPage />)
 
-					const statCards = screen.getAllByTestId('stat-card')
+					// Stat component uses data-slot="stat" not data-testid
+					const statCards = document.querySelectorAll('[data-slot="stat"]')
 
 					// Property: Every stat card must have card-standard styling
 					statCards.forEach(card => {
@@ -113,21 +126,23 @@ describe('Property 8: Design System Consistency', () => {
 	})
 
 	/**
-	 * Property: For any dashboard panel in the tenant portal, the component SHALL
-	 * follow the Hero Mockup Design spacing system
+	 * Property: For any card in the portal, content sections SHALL
+	 * follow the design-os spacing system
 	 */
-	it('should ensure dashboard panels follow Hero Mockup spacing system', () => {
+	it('should ensure content sections follow design-os spacing', () => {
 		fc.assert(
 			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
 				render(<TenantDashboardPage />)
 
-				const panels = document.querySelectorAll('.dashboard-panel')
+				// Check that stat cards exist and have proper structure
+				const statCards = document.querySelectorAll('[data-slot="stat"]')
 
-				// Property: Every dashboard panel must exist and be styled
-				panels.forEach(panel => {
-					expect(panel).toBeInTheDocument()
-					// Panels should have the dashboard-panel class for consistent styling
-					expect(panel).toHaveClass('dashboard-panel')
+				// Property: Every stat card must exist and have proper structure
+				expect(statCards.length).toBeGreaterThan(0)
+
+				// Each stat card should have the grid layout for proper spacing
+				statCards.forEach(card => {
+					expect(card).toHaveClass('grid')
 				})
 
 				return true
@@ -145,8 +160,8 @@ describe('Property 8: Design System Consistency', () => {
 			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
 				render(<TenantDashboardPage />)
 
-				// Get stat cards specifically (they should have rounded-lg)
-				const statCards = screen.getAllByTestId('stat-card')
+				// Get stat cards using data-slot attribute
+				const statCards = document.querySelectorAll('[data-slot="stat"]')
 
 				// Property: All stat cards should have rounded class
 				statCards.forEach(card => {
@@ -162,23 +177,19 @@ describe('Property 8: Design System Consistency', () => {
 	})
 
 	/**
-	 * Property: For any interactive element in cards, the element SHALL have
-	 * appropriate hover states defined
+	 * Property: For any stat card, the stat-indicator slot SHALL exist
+	 * for proper icon placement
 	 */
-	it('should ensure interactive card elements have hover states', () => {
+	it('should ensure stat cards have indicator slots for icons', () => {
 		fc.assert(
 			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
 				render(<TenantDashboardPage />)
 
-				// Quick actions should have hover states
-				const quickActions = document.querySelectorAll(
-					'.dashboard-quick-action'
-				)
+				// Stat cards should have indicator slots
+				const indicators = document.querySelectorAll('[data-slot="stat-indicator"]')
 
-				quickActions.forEach(action => {
-					// Should have the class that provides hover states via CSS
-					expect(action).toHaveClass('dashboard-quick-action')
-				})
+				// Property: Indicator slots should exist
+				expect(indicators.length).toBeGreaterThan(0)
 
 				return true
 			}),
@@ -188,7 +199,7 @@ describe('Property 8: Design System Consistency', () => {
 
 	/**
 	 * Property: For any card component, the typography SHALL follow the
-	 * Hero Mockup Design system (font-medium, font-semibold, font-bold)
+	 * design-os system (font-medium for labels, font-semibold for values)
 	 */
 	it('should ensure card typography follows design system', () => {
 		fc.assert(
@@ -215,14 +226,14 @@ describe('Property 8: Design System Consistency', () => {
 
 	/**
 	 * Property: For any card in the portal, the color palette SHALL be consistent
-	 * with the Hero Mockup Design (using CSS variables)
+	 * with the design-os system (using CSS variables)
 	 */
 	it('should ensure cards use consistent color palette via CSS variables', () => {
 		fc.assert(
 			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
 				render(<TenantDashboardPage />)
 
-				const statCards = screen.getAllByTestId('stat-card')
+				const statCards = document.querySelectorAll('[data-slot="stat"]')
 
 				statCards.forEach(card => {
 					// bg-card uses CSS variable --color-card

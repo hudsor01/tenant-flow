@@ -98,7 +98,8 @@ export const DEFAULT_PROPERTY: Property = {
 	sale_price: null,
 	stripe_connected_account_id: null,
 	created_at: '2024-01-01T00:00:00Z',
-	updated_at: '2024-01-01T00:00:00Z'
+	updated_at: '2024-01-01T00:00:00Z',
+	search_vector: null
 }
 
 /**

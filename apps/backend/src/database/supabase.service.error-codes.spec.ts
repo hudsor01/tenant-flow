@@ -8,12 +8,21 @@
 import { InternalServerErrorException } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 import { SUPABASE_ERROR_CODES } from './supabase.constants'
+import { SupabaseHealthService } from './supabase-health.service'
+import { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import { SupabaseRpcService } from './supabase-rpc.service'
 import { SupabaseService } from './supabase.service'
 
 describe('SupabaseService - Error Codes', () => {
-  let mockAppLogger: any
+  let mockAppLogger: jest.Mocked<
+    Pick<AppLogger, 'debug' | 'log' | 'error' | 'warn' | 'verbose'>
+  >
   let mockAdminClient: SupabaseClient<Database>
+  let mockRpcService: jest.Mocked<SupabaseRpcService>
+  let mockInstrumentation: jest.Mocked<SupabaseInstrumentationService>
 
   beforeEach(() => {
     // Create mock logger
@@ -42,6 +51,19 @@ describe('SupabaseService - Error Codes', () => {
         }))
       }
     } as unknown as SupabaseClient<Database>
+
+    mockRpcService = {
+      rpcWithRetries: jest.fn(),
+      rpcWithCache: jest.fn()
+    } as unknown as jest.Mocked<SupabaseRpcService>
+
+    mockInstrumentation = {
+      instrumentClient: jest.fn((client: SupabaseClient<Database>) => client),
+      trackQuery: jest.fn(),
+      recordRpcCall: jest.fn(),
+      recordRpcCacheHit: jest.fn(),
+      recordRpcCacheMiss: jest.fn()
+    } as unknown as jest.Mocked<SupabaseInstrumentationService>
   })
 
   afterEach(() => {
@@ -53,14 +75,22 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
-      }
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
+      } as unknown as AppConfigService
 
       // Create service with null admin client
       const service = new SupabaseService(
-        null as any,
+        null as unknown as SupabaseClient<Database>,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          null as unknown as SupabaseClient<Database>,
+          mockAppLogger,
+          mockAppConfigService
+        )
       )
 
       // Attempt to get admin client should throw
@@ -83,13 +113,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
-        null as any,
+        null as unknown as SupabaseClient<Database>,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          null as unknown as SupabaseClient<Database>,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       try {
@@ -114,13 +152,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue(undefined),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       // Attempt to get user client should throw
@@ -144,13 +190,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
+        getSupabasePublishableKey: jest.fn().mockReturnValue(undefined),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       // Attempt to get user client should throw
@@ -174,13 +228,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
+        getSupabasePublishableKey: jest.fn().mockReturnValue(undefined),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       try {
@@ -226,13 +288,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       // Mock RPC not available
@@ -271,13 +341,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       // Mock RPC throwing
@@ -309,13 +387,21 @@ describe('SupabaseService - Error Codes', () => {
       const mockAppConfigService = {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
-        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
+        getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key'),
+        getSupabaseSecretKey: jest.fn().mockReturnValue('sb-secret-test-key')
       }
 
       const service = new SupabaseService(
         mockAdminClient,
         mockAppLogger,
-        mockAppConfigService as any
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        new SupabaseHealthService(
+          mockAdminClient,
+          mockAppLogger,
+          mockAppConfigService as unknown as AppConfigService
+        )
       )
 
       // Mock RPC not available

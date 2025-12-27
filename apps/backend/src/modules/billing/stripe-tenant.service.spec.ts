@@ -16,7 +16,7 @@ const createMockStripe = (): jest.Mocked<Stripe> => {
   } as unknown as jest.Mocked<Stripe>
 
     // Properly mock the customers.create method to return a Promise
-    ; (mockStripe.customers.create as jest.MockedFunction<any>).mockResolvedValue({
+    ; (mockStripe.customers.create as jest.MockedFunction<Stripe['customers']['create']>).mockResolvedValue({
       id: 'cus_new'
     } as Stripe.Customer)
 

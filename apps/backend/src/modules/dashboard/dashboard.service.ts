@@ -1,3 +1,17 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+//
+// File Size Issue:
+//    Current: ~599 lines
+//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
+//
+// Recommended Refactoring Strategy:
+//    - Extract stats calculations into: `./dashboard-stats.service.ts`
+//    - Extract trends/analytics into: `./dashboard-trends.service.ts`
+//    - Extract property performance into: `./dashboard-performance.service.ts`
+//    - Keep core dashboard aggregation in this service
+//
+// See: CLAUDE.md section "KISS (Keep It Simple)"
+
 import { Injectable } from '@nestjs/common'
 import type {
 	DashboardStats,
@@ -16,7 +30,7 @@ import {
 } from '@repo/shared/constants/empty-states'
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
-import { ZeroCacheService } from '../../cache/cache.service'
+import { RedisCacheService } from '../../cache/cache.service'
 import type {
 	activitySchema} from '@repo/shared/validation/dashboard';
 import {
@@ -28,16 +42,12 @@ import { ValidationException } from '../../shared/exceptions/validation.exceptio
 import type { Database } from '@repo/shared/types/supabase'
 import { AppLogger } from '../../logger/app-logger.service'
 
-// Cache TTLs per CLAUDE.md: Stats 1min, Real-time 3min refetch
-const STATS_CACHE_TTL = 60_000 // 1 minute
-const ACTIVITY_CACHE_TTL = 180_000 // 3 minutes
-
 @Injectable()
 export class DashboardService {
 
 	constructor(private readonly supabase: SupabaseService,
 		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
-		private readonly cache: ZeroCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
 
 	/**
 	 * Get comprehensive dashboard statistics
@@ -50,8 +60,8 @@ export class DashboardService {
 		}
 
 		// Check cache first (CLAUDE.md: Stats 1min TTL)
-		const cacheKey = ZeroCacheService.getUserKey(user_id, 'dashboard:stats')
-		const cached = this.cache.get<DashboardStats>(cacheKey)
+		const cacheKey = RedisCacheService.getUserKey(user_id, 'dashboard:stats')
+		const cached = await this.cache.get<DashboardStats>(cacheKey)
 		if (cached) {
 			this.logger.debug('Dashboard stats cache hit', { user_id })
 			return cached
@@ -66,7 +76,10 @@ export class DashboardService {
 			)
 
 			// Cache the result
-			this.cache.set(cacheKey, stats, STATS_CACHE_TTL, [`user:${user_id}`, 'dashboard'])
+			await this.cache.set(cacheKey, stats, {
+				tier: 'short',
+				tags: [`user:${user_id}`, 'dashboard']
+			})
 
 			this.logger.log('Dashboard stats retrieved successfully', {
 				user_id,
@@ -102,8 +115,8 @@ export class DashboardService {
 		}
 
 		// Check cache first (CLAUDE.md: Real-time 3min TTL)
-		const cacheKey = ZeroCacheService.getUserKey(user_id, 'dashboard:activity')
-		const cached = this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(cacheKey)
+		const cacheKey = RedisCacheService.getUserKey(user_id, 'dashboard:activity')
+		const cached = await this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(cacheKey)
 		if (cached) {
 			this.logger.debug('Dashboard activity cache hit', { user_id })
 			return cached
@@ -154,7 +167,10 @@ export class DashboardService {
 			}
 
 			// Cache the validated result
-			this.cache.set(cacheKey, result, ACTIVITY_CACHE_TTL, [`user:${user_id}`, 'dashboard'])
+			await this.cache.set(cacheKey, result, {
+				tier: 'short',
+				tags: [`user:${user_id}`, 'dashboard']
+			})
 
 			return result
 		} catch (error) {

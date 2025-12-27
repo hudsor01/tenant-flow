@@ -20,7 +20,22 @@ export function TenantAutopayCard() {
 	const lease_id = autopay.data?.lease_id ?? null
 	const tenant_id = autopay.data?.tenant_id ?? null
 	const enabled = autopay.data?.autopayEnabled ?? false
-	const nextPaymentDate = autopay.data?.nextPaymentDate ?? 'Coming soon'
+
+	// Format next payment date from Stripe subscription's current_period_end
+	const formatNextPaymentDate = (isoDate: string | null | undefined): string => {
+		if (!isoDate) return 'Coming soon'
+		try {
+			return new Date(isoDate).toLocaleDateString(undefined, {
+				month: 'long',
+				day: 'numeric',
+				year: 'numeric'
+			})
+		} catch {
+			return 'Coming soon'
+		}
+	}
+
+	const nextPaymentDate = formatNextPaymentDate(autopay.data?.nextPaymentDate)
 
 	const defaultMethod = paymentMethods.find(method => method.isDefault) ?? paymentMethods[0]
 	const canEnable = Boolean(defaultMethod)

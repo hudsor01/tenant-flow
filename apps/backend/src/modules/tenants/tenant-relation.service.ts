@@ -12,6 +12,17 @@ import { AppLogger } from '../../logger/app-logger.service'
 /** Default limit for payment history queries */
 const DEFAULT_PAYMENT_HISTORY_LIMIT = 50
 
+/** Lease history item type for API response */
+export interface LeaseHistoryItem {
+	id: string
+	property_name: string
+	unit_number: string
+	start_date: string
+	end_date: string | null
+	rent_amount: number
+	status: string
+}
+
 @Injectable()
 export class TenantRelationService {
 
@@ -175,6 +186,85 @@ export class TenantRelationService {
 				error: error instanceof Error ? error.message : String(error)
 			})
 			return new Map()
+		}
+	}
+
+	/**
+	 * Get all leases (past and current) for a tenant
+	 * Used in tenant detail view for lease history
+	 */
+	async getTenantLeaseHistory(tenantId: string): Promise<LeaseHistoryItem[]> {
+		if (!tenantId) throw new BadRequestException('Tenant ID required')
+
+		try {
+			const client = this.supabase.getAdminClient()
+
+			// Get all leases for this tenant via lease_tenants junction table
+			const { data, error } = await client
+				.from('lease_tenants')
+				.select(`
+					lease:leases(
+						id,
+						start_date,
+						end_date,
+						rent_amount,
+						lease_status,
+						unit:units(
+							unit_number,
+							property:properties(
+								name
+							)
+						)
+					)
+				`)
+				.eq('tenant_id', tenantId)
+				.order('created_at', { ascending: false })
+
+			if (error) {
+				this.logger.error('Failed to fetch lease history', {
+					error: error.message,
+					tenantId
+				})
+				throw new BadRequestException('Failed to retrieve lease history')
+			}
+
+			// Transform the nested data into a flat response
+			const leaseHistory: LeaseHistoryItem[] = []
+
+			for (const item of data || []) {
+				const lease = (item as { lease: {
+					id: string
+					start_date: string
+					end_date: string | null
+					rent_amount: number
+					lease_status: string
+					unit: {
+						unit_number: string
+						property: { name: string }
+					}
+				} | null }).lease
+
+				if (lease && lease.unit) {
+					leaseHistory.push({
+						id: lease.id,
+						property_name: lease.unit.property?.name ?? 'Unknown Property',
+						unit_number: lease.unit.unit_number,
+						start_date: lease.start_date,
+						end_date: lease.end_date,
+						rent_amount: lease.rent_amount,
+						status: lease.lease_status
+					})
+				}
+			}
+
+			return leaseHistory
+		} catch (error) {
+			if (error instanceof BadRequestException) throw error
+			this.logger.error('Error getting lease history', {
+				error: error instanceof Error ? error.message : String(error),
+				tenantId
+			})
+			throw error
 		}
 	}
 }

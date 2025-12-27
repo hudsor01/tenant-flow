@@ -308,6 +308,7 @@ COMMENT ON POLICY "rent_due_select" ON public.rent_due IS
 -- ============================================================================
 
 -- Function to help identify slow RLS queries in production
+DROP FUNCTION IF EXISTS public.get_slow_rls_queries(numeric);
 CREATE OR REPLACE FUNCTION public.get_slow_rls_queries(
   min_avg_time_ms numeric DEFAULT 100
 )
@@ -399,15 +400,18 @@ END $$;
 -- MIGRATION COMPLETE
 -- ============================================================================
 
-RAISE NOTICE '=== RLS Policy Optimization Complete ===';
-RAISE NOTICE 'Optimized 6 critical policies:';
-RAISE NOTICE '  - documents (SELECT, UPDATE, DELETE)';
-RAISE NOTICE '  - payment_transactions (SELECT)';
-RAISE NOTICE '  - payment_schedules (SELECT)';
-RAISE NOTICE '  - rent_due (SELECT)';
-RAISE NOTICE '';
-RAISE NOTICE 'Added 6 performance indexes for RLS foreign keys';
-RAISE NOTICE 'Created monitoring function: get_slow_rls_queries()';
-RAISE NOTICE '';
-RAISE NOTICE '📊 Expected Performance Improvement: 30-40%';
-RAISE NOTICE '📖 See: RLS_BOTTLENECK_ANALYSIS.md for long-term roadmap';
+DO $$
+BEGIN
+  RAISE NOTICE '=== RLS Policy Optimization Complete ===';
+  RAISE NOTICE 'Optimized 6 critical policies:';
+  RAISE NOTICE '  - documents (SELECT, UPDATE, DELETE)';
+  RAISE NOTICE '  - payment_transactions (SELECT)';
+  RAISE NOTICE '  - payment_schedules (SELECT)';
+  RAISE NOTICE '  - rent_due (SELECT)';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Added 6 performance indexes for RLS foreign keys';
+  RAISE NOTICE 'Created monitoring function: get_slow_rls_queries()';
+  RAISE NOTICE '';
+  RAISE NOTICE '📊 Expected Performance Improvement: 30-40 percent';
+  RAISE NOTICE '📖 See: RLS_BOTTLENECK_ANALYSIS.md for long-term roadmap';
+END $$;

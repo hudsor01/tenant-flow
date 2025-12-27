@@ -2,6 +2,7 @@
 
 import { GoogleButton } from '#components/auth/google-button'
 import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
+import { MfaVerificationDialog } from '#components/auth/mfa-verification-dialog'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
@@ -25,6 +26,10 @@ function LoginPageContent() {
 	const [authError, setAuthError] = useState<string | null>(null)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+	// MFA state
+	const [showMfaDialog, setShowMfaDialog] = useState(false)
+	const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
+	const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)
 
 	const router = useRouter()
 	const searchParams = useSearchParams()
@@ -85,6 +90,26 @@ function LoginPageContent() {
 						destination = redirectTo
 					}
 
+					// Check if MFA verification is required
+					const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+
+					if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+						// User has MFA enabled but hasn't completed the second factor
+						logger.info('[MFA_REQUIRED]', { userId: data.session.user.id })
+
+						// Get the TOTP factor
+						const { data: factorsData } = await supabase.auth.mfa.listFactors()
+						const totpFactor = factorsData?.totp?.find(f => f.status === 'verified')
+
+						if (totpFactor) {
+							// Store pending redirect and show MFA dialog
+							setPendingRedirect(destination)
+							setMfaFactorId(totpFactor.id)
+							setShowMfaDialog(true)
+							return // Don't redirect yet, wait for MFA verification
+						}
+					}
+
 					logger.info('[LOGIN_REDIRECT]', {
 						destination,
 						userType: userType || 'OWNER'
@@ -122,6 +147,25 @@ function LoginPageContent() {
 		} finally {
 			setIsGoogleLoading(false)
 		}
+	}
+
+	// MFA verification handlers
+	const handleMfaSuccess = () => {
+		logger.info('[MFA_VERIFIED]', { destination: pendingRedirect })
+		setShowMfaDialog(false)
+		if (pendingRedirect) {
+			router.push(pendingRedirect)
+		}
+	}
+
+	const handleMfaCancel = async () => {
+		// Sign out since they cancelled MFA verification
+		const supabase = createClient()
+		await supabase.auth.signOut()
+		setShowMfaDialog(false)
+		setMfaFactorId(null)
+		setPendingRedirect(null)
+		setAuthError('Two-factor authentication is required to sign in.')
 	}
 
 	return (
@@ -386,6 +430,17 @@ function LoginPageContent() {
 				open={forgotPasswordOpen}
 				onOpenChange={setForgotPasswordOpen}
 			/>
+
+			{/* MFA Verification Dialog */}
+			{mfaFactorId && (
+				<MfaVerificationDialog
+					open={showMfaDialog}
+					onOpenChange={setShowMfaDialog}
+					factorId={mfaFactorId}
+					onSuccess={handleMfaSuccess}
+					onCancel={handleMfaCancel}
+				/>
+			)}
 		</>
 	)
 }
