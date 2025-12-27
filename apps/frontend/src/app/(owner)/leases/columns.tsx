@@ -95,9 +95,43 @@ export function createLeaseColumns(): ColumnDef<LeaseWithRelations>[] {
 			enableColumnFilter: true,
 			cell: ({ row }) => {
 				const lease = row.original
-				// TODO: Backend should include user name in tenant relation
-				const tenantId = lease.tenant?.id ?? null
-				return <span>{tenantId ? `Tenant ${tenantId.slice(0, 8)}` : 'Unassigned'}</span>
+				const tenant = lease.tenant as
+					| (LeaseWithRelations['tenant'] & {
+							user?: {
+								full_name?: string | null
+								first_name?: string | null
+								last_name?: string | null
+								name?: string | null
+							} | null
+							User?: {
+								full_name?: string | null
+								first_name?: string | null
+								last_name?: string | null
+								name?: string | null
+							} | null
+							name?: string | null
+							first_name?: string | null
+							last_name?: string | null
+					  })
+					| null
+				const tenantUser = tenant?.user ?? tenant?.User
+				const tenantName =
+					tenant?.name ||
+					(tenant?.first_name || tenant?.last_name
+						? `${tenant?.first_name ?? ''} ${tenant?.last_name ?? ''}`.trim()
+						: null) ||
+					tenantUser?.full_name ||
+					tenantUser?.name ||
+					(tenantUser?.first_name || tenantUser?.last_name
+						? `${tenantUser?.first_name ?? ''} ${tenantUser?.last_name ?? ''}`.trim()
+						: null)
+				const tenantId = tenant?.id ?? null
+				return (
+					<span>
+						{tenantName ||
+							(tenantId ? `Tenant ${tenantId.slice(0, 8)}` : 'Unassigned')}
+					</span>
+				)
 			}
 		},
 		{

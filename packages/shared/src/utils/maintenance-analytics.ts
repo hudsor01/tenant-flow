@@ -4,7 +4,7 @@ import type {
 	MaintenanceCostBreakdownEntry,
 	MaintenanceMetricSummary,
 	MaintenanceTrendPoint
-} from '../types/maintenance-analytics.js'
+} from '../types/analytics.js'
 
 function toNumber(value: unknown, fallback = 0): number {
 	if (typeof value === 'number' && Number.isFinite(value)) {

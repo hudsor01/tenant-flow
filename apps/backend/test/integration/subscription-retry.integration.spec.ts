@@ -50,7 +50,7 @@ import { Global, Module } from '@nestjs/common'
     {
       provide: AppConfigService,
       useFactory: (configService: ConfigService) => {
-        return new AppConfigService(configService as any)
+        return new AppConfigService(configService)
       },
       inject: [ConfigService]
     },
@@ -223,7 +223,7 @@ describeIf('SubscriptionRetryService Integration', () => {
           // Subsequent calls: status check
           return { select: mockSelectStatus }
         }
-      }) as any
+      }) as typeof adminClient.from
 
       // Mock the lease subscription service
       mockLeaseSubscriptionService.createSubscriptionForLease.mockResolvedValue(undefined)
@@ -291,7 +291,7 @@ describeIf('SubscriptionRetryService Integration', () => {
           // Second call: update
           return { update: mockUpdate }
         }
-      }) as any
+      }) as typeof adminClient.from
 
       // Run the retry job
       await subscriptionRetryService.retryFailedSubscriptions()
@@ -316,7 +316,11 @@ describeIf('SubscriptionRetryService Integration', () => {
   describe('exponential backoff calculation', () => {
     it('should calculate exponential backoff correctly', () => {
       // Access the private method via reflection for testing
-      const calculateBackoff = (subscriptionRetryService as any).calculateBackoff.bind(subscriptionRetryService)
+      const calculateBackoff = (
+        subscriptionRetryService as SubscriptionRetryService & {
+          calculateBackoff: (retryCount: number) => number
+        }
+      ).calculateBackoff.bind(subscriptionRetryService)
 
       // Test exponential backoff: baseDelay * 3^retryCount
       // Base delay is 5 minutes = 300,000 ms
@@ -363,7 +367,7 @@ describeIf('SubscriptionRetryService Integration', () => {
       const mockIn = jest.fn().mockReturnValue({ lt: mockLt })
       const mockSelect = jest.fn().mockReturnValue({ in: mockIn })
 
-      adminClient.from = jest.fn().mockReturnValue({ select: mockSelect }) as any
+      adminClient.from = jest.fn().mockReturnValue({ select: mockSelect }) as typeof adminClient.from
 
       // Run the retry job
       await subscriptionRetryService.retryFailedSubscriptions()

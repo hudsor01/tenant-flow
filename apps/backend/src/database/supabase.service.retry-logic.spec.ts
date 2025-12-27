@@ -1,12 +1,25 @@
 import { SupabaseService } from './supabase.service'
+import { SupabaseRpcService } from './supabase-rpc.service'
+import type { SupabaseCacheService } from './supabase-cache.service'
+import type { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import type { SupabaseHealthService } from './supabase-health.service'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import type { AppConfigService } from '../config/app-config.service'
+import type { AppLogger } from '../logger/app-logger.service'
 
 describe('SupabaseService - Enhanced Retry Logic', () => {
   let service: SupabaseService
-  let mockAdminClient: any
-  let mockLogger: any
-  let mockConfig: any
+  let mockAdminClient: SupabaseClient<Database>
+  let mockLogger: jest.Mocked<
+    Pick<AppLogger, 'debug' | 'log' | 'error' | 'warn' | 'verbose'>
+  >
+  let mockConfig: jest.Mocked<
+    Pick<AppConfigService, 'getSupabaseProjectRef' | 'getSupabaseUrl' | 'getSupabasePublishableKey'>
+  >
+  let mockCacheService: jest.Mocked<SupabaseCacheService>
+  let mockInstrumentation: jest.Mocked<SupabaseInstrumentationService>
+  let mockHealthService: jest.Mocked<SupabaseHealthService>
 
   beforeEach(() => {
     // Create mock admin client
@@ -30,8 +43,40 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
       getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
     }
 
+    mockCacheService = {
+      isEnabled: jest.fn().mockReturnValue(false),
+      buildRpcCacheKey: jest.fn(),
+      get: jest.fn(),
+      set: jest.fn()
+    } as unknown as jest.Mocked<SupabaseCacheService>
+
+    mockInstrumentation = {
+      instrumentClient: jest.fn((client: SupabaseClient<Database>) => client),
+      trackQuery: jest.fn(),
+      recordRpcCall: jest.fn(),
+      recordRpcCacheHit: jest.fn(),
+      recordRpcCacheMiss: jest.fn()
+    } as unknown as jest.Mocked<SupabaseInstrumentationService>
+
+    mockHealthService = {
+      checkConnection: jest.fn()
+    } as unknown as jest.Mocked<SupabaseHealthService>
+
+    const rpcService = new SupabaseRpcService(
+      mockLogger as unknown as AppLogger,
+      mockCacheService as unknown as SupabaseCacheService,
+      mockInstrumentation as unknown as SupabaseInstrumentationService
+    )
+
     // Create service directly
-    service = new SupabaseService(mockAdminClient, mockLogger, mockConfig)
+    service = new SupabaseService(
+      mockAdminClient,
+      mockLogger as unknown as AppLogger,
+      mockConfig as unknown as AppConfigService,
+      rpcService,
+      mockInstrumentation as unknown as SupabaseInstrumentationService,
+      mockHealthService as unknown as SupabaseHealthService
+    )
   })
 
   afterEach(() => {

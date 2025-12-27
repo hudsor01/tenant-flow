@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import type { TimeSeriesDataPoint } from '@repo/shared/types/dashboard-repository'
+import type { TimeSeriesDataPoint } from '@repo/shared/types/stats'
 import { cn } from '#lib/utils'
 import { BarChart3 } from 'lucide-react'
 

@@ -1,11 +1,11 @@
 /**
  * Standardized Error Handler for TanStack Query Mutations
- * 
+ *
  * Provides consistent error handling across all mutations:
  * - Structured logging with context
  * - User-friendly toast notifications
  * - Type-safe error extraction
- * 
+ *
  * Usage:
  * ```typescript
  * useMutation({

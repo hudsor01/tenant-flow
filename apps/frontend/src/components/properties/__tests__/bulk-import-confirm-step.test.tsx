@@ -13,7 +13,7 @@ import { render, screen } from '#test/utils/test-render'
 import { BulkImportConfirmStep } from '../bulk-import-confirm-step'
 import { describe, it, expect } from 'vitest'
 import '@testing-library/jest-dom/vitest'
-import type { BulkImportResult } from '@repo/shared/types/bulk-import'
+import type { BulkImportResult } from '@repo/shared/types/api-contracts'
 
 describe('BulkImportConfirmStep Component', () => {
   describe('Importing State', () => {

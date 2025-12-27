@@ -31,7 +31,7 @@ describe('ExportService', () => {
 
 			const buffer = await service.generateExcel(payload, 'Portfolio')
 			const workbook = new ExcelJS.Workbook()
-			await workbook.xlsx.load(buffer as any)
+			await workbook.xlsx.load(buffer)
 			const worksheet = workbook.getWorksheet('Portfolio')
 
 			expect(worksheet).toBeDefined()
@@ -61,7 +61,7 @@ describe('ExportService', () => {
 		it('provides a fallback row when the payload is empty', async () => {
 			const buffer = await service.generateExcel([], 'Empty')
 			const workbook = new ExcelJS.Workbook()
-			await workbook.xlsx.load(buffer as any)
+			await workbook.xlsx.load(buffer)
 			const worksheet = workbook.getWorksheet('Empty')
 
 			const row = worksheet?.getRow(2)

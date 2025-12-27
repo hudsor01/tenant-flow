@@ -3,7 +3,7 @@ import type {
 	OccupancyMetricSummary,
 	OccupancyTrendPoint,
 	VacancyAnalysisEntry
-} from '../types/occupancy-analytics.js'
+} from '../types/analytics.js'
 
 function toNumber(value: unknown, fallback = 0): number {
 	if (typeof value === 'number' && Number.isFinite(value)) {

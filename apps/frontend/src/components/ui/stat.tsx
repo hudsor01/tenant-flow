@@ -51,6 +51,8 @@ const statIndicatorVariants = cva(
         warning:
           "border-orange-500/20 bg-orange-500/10 text-orange-600 dark:text-orange-400",
         error: "border-destructive/20 bg-destructive/10 text-destructive",
+        destructive: "border-destructive/20 bg-destructive/10 text-destructive",
+        muted: "bg-muted/50 text-muted-foreground border-muted",
       },
     },
     defaultVariants: {

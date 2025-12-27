@@ -10,6 +10,9 @@ import { PropertyBulkImportService } from '../../src/modules/properties/services
 import { PropertyAnalyticsService } from '../../src/modules/properties/services/property-analytics.service'
 import { DashboardService } from '../../src/modules/dashboard/dashboard.service'
 import { AppLogger } from '../../src/logger/app-logger.service'
+import type { Database } from '@repo/shared/types/supabase'
+
+type PropertyRow = Database['public']['Tables']['properties']['Row']
 
 /**
  * Integration Tests - Properties Controller Production Validation
@@ -119,13 +122,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX',
 				postal_code: '78701',
 				property_type: 'APARTMENT',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440000',
 				status: 'active',
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
+			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
 
 			const validBody = {
 				name: 'Test Property',
@@ -134,7 +136,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX',
 				postal_code: '78701',
 				property_type: 'APARTMENT',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440000'
 			}
 
 			const response = await request(app.getHttpServer())
@@ -150,7 +151,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: mockCreatedProperty.state,
 				postal_code: mockCreatedProperty.postal_code,
 				property_type: mockCreatedProperty.property_type,
-				owner_user_id: mockCreatedProperty.owner_user_id,
 				status: mockCreatedProperty.status
 			})
 			// Zod adds defaults (country: 'US', status: 'active'), so use objectContaining
@@ -169,13 +169,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX',
 				postal_code: '75201',
 				property_type: 'SINGLE_FAMILY',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440001',
 				status: 'active',
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
+			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
 
 			// Send values with leading/trailing whitespace
 			const bodyWithWhitespace = {
@@ -185,7 +184,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX', // State should NOT be trimmed - it must be exactly 2 uppercase letters
 				postal_code: '75201',
 				property_type: 'SINGLE_FAMILY',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440001'
 			}
 
 			await request(app.getHttpServer())
@@ -210,7 +208,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			const invalidBody = {
 				name: 'Invalid Property',
 				address_line1: '789 Elm St',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440002',
 				city: 'Houston',
 				state: 'TX',
 				postal_code: '77001',
@@ -246,7 +243,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			const invalidBody = {
 				name: '   ', // Only whitespace, will be trimmed to empty
 				address_line1: '123 Main St',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440003',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
@@ -265,9 +261,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			const invalidBody = {
 				name: 'Bad State Property',
 				address_line1: '123 Main St',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440003',
 				city: 'Austin',
-				state: 'texas', // Should be 'TX'
+				state: 'T', // Too short
 				postal_code: '78701',
 				property_type: 'APARTMENT'
 			}
@@ -284,7 +279,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			const invalidBody = {
 				name: 'Bad ZIP Property',
 				address_line1: '123 Main St',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440003',
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '1234', // Should be 5 or 9 digits
@@ -308,13 +302,12 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX',
 				postal_code: '78205-1234',
 				property_type: 'CONDO',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440004',
 				status: 'active',
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as any)
+			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
 
 			const validBody = {
 				name: 'ZIP+4 Property',
@@ -323,7 +316,6 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				state: 'TX',
 				postal_code: '78205-1234', // ZIP+4 format
 				property_type: 'CONDO',
-				owner_user_id: '550e8400-e29b-41d4-a716-446655440004'
 			}
 
 			await request(app.getHttpServer())
@@ -345,7 +337,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				status: 'active'
 			}
 
-			propertiesService.update.mockResolvedValue(mockUpdatedProperty as any)
+			propertiesService.update.mockResolvedValue(mockUpdatedProperty as PropertyRow)
 
 			const updateBody = {
 				name: 'Updated Property',
@@ -391,7 +383,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				name: 'Partially Updated Property'
 			}
 
-			propertiesService.update.mockResolvedValue(mockUpdatedProperty as any)
+			propertiesService.update.mockResolvedValue(mockUpdatedProperty as PropertyRow)
 
 			const partialBody = {
 				name: 'Partially Updated Property'

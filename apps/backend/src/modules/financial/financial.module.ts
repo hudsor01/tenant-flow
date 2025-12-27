@@ -19,10 +19,12 @@ import { FinancialService } from './financial.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { FinancialAnalyticsPublicController } from './financial-analytics.controller'
+import { FinancialOverviewController } from './financial-overview.controller'
 
 @Module({
 	imports: [],
 	controllers: [
+		FinancialOverviewController,
 		IncomeStatementController,
 		CashFlowController,
 		BalanceSheetController,

@@ -25,7 +25,11 @@ export type {
 	ListReportsResponse,
 	RevenueData,
 	PaymentAnalytics,
-	OccupancyMetrics
+	OccupancyMetrics,
+	FinancialReport,
+	PropertyReport,
+	TenantReport,
+	MaintenanceReport
 } from './types/reports'
 
 // module-scoped timers map for delete undo timeouts
@@ -260,6 +264,34 @@ export function usePaymentAnalytics(start_date?: string, end_date?: string) {
  */
 export function useOccupancyMetrics() {
 	return useQuery(reportsQueries.occupancyMetrics())
+}
+
+/**
+ * Hook for fetching financial report data
+ */
+export function useFinancialReport(start_date?: string, end_date?: string) {
+	return useQuery(reportsQueries.financial(start_date, end_date))
+}
+
+/**
+ * Hook for fetching property report data
+ */
+export function usePropertyReport(start_date?: string, end_date?: string) {
+	return useQuery(reportsQueries.properties(start_date, end_date))
+}
+
+/**
+ * Hook for fetching tenant report data
+ */
+export function useTenantReport(start_date?: string, end_date?: string) {
+	return useQuery(reportsQueries.tenants(start_date, end_date))
+}
+
+/**
+ * Hook for fetching maintenance report data
+ */
+export function useMaintenanceReport(start_date?: string, end_date?: string) {
+	return useQuery(reportsQueries.maintenance(start_date, end_date))
 }
 
 /**

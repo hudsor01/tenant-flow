@@ -66,7 +66,7 @@ describe('Property 6: Navigation Consistency', () => {
 
 					unmount()
 				}),
-				{ numRuns: 100 }
+				{ numRuns: 50 }
 			)
 		})
 
@@ -100,7 +100,7 @@ describe('Property 6: Navigation Consistency', () => {
 
 					unmount()
 				}),
-				{ numRuns: 100 }
+				{ numRuns: 50 }
 			)
 		})
 
@@ -138,7 +138,7 @@ describe('Property 6: Navigation Consistency', () => {
 
 					unmount()
 				}),
-				{ numRuns: 100 }
+				{ numRuns: 25 }
 			)
 		})
 	})

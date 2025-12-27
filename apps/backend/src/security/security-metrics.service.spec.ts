@@ -13,8 +13,8 @@ describe('SecurityMetricsService', () => {
 
 	beforeEach(() => {
 		mockSupabaseService = createMockSupabaseService({
-			data: securityAuditLogFixture as any,
-			error: null as any
+			data: securityAuditLogFixture,
+			error: null
 		})
 		// Ensure RPC/default returns the audit log fixture when queried
 		const mockAdmin = mockSupabaseService.getAdminClient()

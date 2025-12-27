@@ -6,6 +6,13 @@ import { SecurityMonitorService } from './security-monitor.service'
 import { randomUUID } from 'crypto'
 
 describe('SecurityMonitorService', () => {
+  type SecurityLogPayload = {
+    security: {
+      timestamp: string
+      event?: string
+      [key: string]: unknown
+    }
+  }
   let service: SecurityMonitorService
   let loggerSpy: jest.SpyInstance
 
@@ -80,7 +87,7 @@ describe('SecurityMonitorService', () => {
       service.logSecurityEvent(event)
 
       const logCall = loggerSpy.mock.calls[0]
-      const logData = logCall[0] as any
+      const logData = logCall[0] as SecurityLogPayload
       const timestamp = logData.security.timestamp
 
       // Should be a valid ISO string
@@ -323,12 +330,12 @@ describe('SecurityMonitorService', () => {
 
       // Test that logFailedLogin uses the same event name as direct logSecurityEvent call
       service.logFailedLogin(email, ip)
-      const failedLoginCall = loggerSpy.mock.calls[0][0] as any
+      const failedLoginCall = loggerSpy.mock.calls[0][0] as SecurityLogPayload
 
       jest.clearAllMocks()
 
       service.logSecurityEvent('Failed Login', { email, ip })
-      const directCall = loggerSpy.mock.calls[0][0] as any
+      const directCall = loggerSpy.mock.calls[0][0] as SecurityLogPayload
 
       expect(failedLoginCall.security.event).toBe(directCall.security.event)
     })
@@ -341,7 +348,9 @@ describe('SecurityMonitorService', () => {
       service.logSuspiciousActivity(user_id, 'Test Activity')
 
       const calls = loggerSpy.mock.calls
-      const timestamps = calls.map(call => (call[0] as any).security.timestamp)
+      const timestamps = calls.map(
+        call => (call[0] as SecurityLogPayload).security.timestamp
+      )
 
       // All timestamps should be valid ISO strings
       timestamps.forEach(timestamp => {

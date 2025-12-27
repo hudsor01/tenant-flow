@@ -12,7 +12,7 @@
 /**
  * Mock Supabase RPC response
  */
-export interface SupabaseRPCResponse<T = any> {
+export interface SupabaseRPCResponse<T = unknown> {
   data: T | null
   error: Error | null
   count?: number
@@ -120,7 +120,7 @@ export function createMockSupabaseClient() {
     }
   })
 
-  return chainProxy as any
+  return chainProxy as Record<string, jest.Mock>
 }
 
 /**
@@ -136,9 +136,9 @@ export function createMockSupabaseClient() {
  * ```
  */
 export function expectRPCCall(
-  mockClient: any,
+  mockClient: Record<string, jest.Mock>,
   method: string,
-  expectedArgs?: any[]
+  expectedArgs?: unknown[]
 ): void {
   const mock = mockClient[method]
   if (!jest.isMockFunction(mock)) {
@@ -150,7 +150,7 @@ export function expectRPCCall(
   }
 
   if (expectedArgs) {
-    const called = mock.mock.calls.some((args: any[]) =>
+    const called = mock.mock.calls.some((args: unknown[]) =>
       JSON.stringify(args) === JSON.stringify(expectedArgs)
     )
     if (!called) {
@@ -184,14 +184,14 @@ export function expectRPCCall(
 export interface DataLayerScenario {
   name: string
   response: SupabaseRPCResponse
-  expected?: any
+  expected?: Record<string, unknown>
   expectedError?: string
 }
 
 export async function runDataLayerScenarios(
-  dataLayerMethod: (...args: any[]) => Promise<any>,
+  dataLayerMethod: (...args: unknown[]) => Promise<unknown>,
   scenarios: DataLayerScenario[],
-  methodArgs: any[] = []
+  methodArgs: unknown[] = []
 ): Promise<void> {
   for (const scenario of scenarios) {
     try {
@@ -213,14 +213,15 @@ export async function runDataLayerScenarios(
           }
         })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (!scenario.expectedError) {
         throw error
       }
 
-      if (!error.message.includes(scenario.expectedError)) {
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (!errorMessage.includes(scenario.expectedError)) {
         throw new Error(
-          `Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${error.message}"`
+          `Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${errorMessage}"`
         )
       }
     }
@@ -310,9 +311,9 @@ export class RLSEnforcementTest {
  * ```
  */
 export class N1QueryTest {
-  private queries: Array<{ method: string; args: any[] }> = []
+  private queries: Array<{ method: string; args: unknown[] }> = []
 
-  recordQuery(method: string, args: any[]): void {
+  recordQuery(method: string, args: unknown[]): void {
     this.queries.push({ method, args })
   }
 
@@ -336,7 +337,7 @@ export class N1QueryTest {
     return this.queries.length
   }
 
-  getQueries(): Array<{ method: string; args: any[] }> {
+  getQueries(): Array<{ method: string; args: unknown[] }> {
     return this.queries
   }
 
@@ -369,8 +370,9 @@ export function createDataLayerResponseFactory<T>(defaults: T) {
       return createSupabaseRPCError(message)
     },
     createBatch: (count: number, overrides?: Partial<T>): SupabaseRPCResponse<T[]> => {
+      const baseId = (defaults as { id?: string }).id ?? 'item'
       const items = Array.from({ length: count }, (_, i) =>
-        ({ ...defaults, ...overrides, id: `${(defaults as any).id}-${i}` } as T)
+        ({ ...defaults, ...overrides, id: `${baseId}-${i}` } as T)
       )
       return createSupabaseRPCResponse(items)
     }
@@ -396,7 +398,7 @@ export interface DataLayerPaginationExpectation {
 }
 
 export function expectDataLayerPagination(
-  response: SupabaseRPCResponse<any[]>,
+  response: SupabaseRPCResponse<unknown[]>,
   expectations: DataLayerPaginationExpectation
 ): void {
   if (!Array.isArray(response.data)) {

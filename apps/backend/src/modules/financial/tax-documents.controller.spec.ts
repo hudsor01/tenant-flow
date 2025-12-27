@@ -11,7 +11,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken: () => (target: any, propertyKey: string, parameterIndex: number) => {
+	JwtToken: () => (target: object, propertyKey: string, parameterIndex: number) => {
 		// Store metadata for the decorator
 		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
 		existingParams.push(parameterIndex)

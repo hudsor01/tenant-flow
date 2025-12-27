@@ -21,9 +21,13 @@ import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { Database } from '@repo/shared/types/supabase'
 
 
 describe('TenantPlatformInvitationService', () => {
+  type TenantInvitationInsert = Database['public']['Tables']['tenant_invitations']['Insert']
+  type TenantInvitationUpdate = Database['public']['Tables']['tenant_invitations']['Update']
+
   let service: TenantPlatformInvitationService
   let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
   let mockEventEmitter: jest.Mocked<Partial<EventEmitter2>>
@@ -173,7 +177,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should set invitation type to platform_access', async () => {
-      let capturedInsertData: any = null
+      let capturedInsertData: TenantInvitationInsert | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -183,7 +187,7 @@ describe('TenantPlatformInvitationService', () => {
           if (table === 'tenant_invitations') {
             const chain = createMockChainNoExisting({ id: 'invitation-123' })
             const originalInsert = chain.insert!
-            chain.insert = jest.fn((data: any) => {
+            chain.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return originalInsert(data)
             })
@@ -301,7 +305,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should generate secure 64-character hex invitation code', async () => {
-      let capturedInsertData: any = null
+      let capturedInsertData: TenantInvitationInsert | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -311,7 +315,7 @@ describe('TenantPlatformInvitationService', () => {
           if (table === 'tenant_invitations') {
             const chain = createMockChainNoExisting({ id: 'invitation-123' })
             const originalInsert = chain.insert!
-            chain.insert = jest.fn((data: any) => {
+            chain.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return originalInsert(data)
             })
@@ -328,7 +332,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should set invitation expiry to 7 days', async () => {
-      let capturedInsertData: any = null
+      let capturedInsertData: TenantInvitationInsert | null = null
       const now = new Date()
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
@@ -339,7 +343,7 @@ describe('TenantPlatformInvitationService', () => {
           if (table === 'tenant_invitations') {
             const chain = createMockChainNoExisting({ id: 'invitation-123' })
             const originalInsert = chain.insert!
-            chain.insert = jest.fn((data: any) => {
+            chain.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return originalInsert(data)
             })
@@ -357,7 +361,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should allow optional property_id context', async () => {
-      let capturedInsertData: any = null
+      let capturedInsertData: TenantInvitationInsert | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -371,7 +375,7 @@ describe('TenantPlatformInvitationService', () => {
           if (table === 'tenant_invitations') {
             const chain = createMockChainNoExisting({ id: 'invitation-123' })
             const originalInsert = chain.insert!
-            chain.insert = jest.fn((data: any) => {
+            chain.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return originalInsert(data)
             })
@@ -390,7 +394,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should allow optional unit_id context', async () => {
-      let capturedInsertData: any = null
+      let capturedInsertData: TenantInvitationInsert | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -406,7 +410,7 @@ describe('TenantPlatformInvitationService', () => {
           if (table === 'tenant_invitations') {
             const chain = createMockChainNoExisting({ id: 'invitation-123' })
             const originalInsert = chain.insert!
-            chain.insert = jest.fn((data: any) => {
+            chain.insert = jest.fn((data: TenantInvitationInsert) => {
               capturedInsertData = data
               return originalInsert(data)
             })
@@ -489,7 +493,7 @@ describe('TenantPlatformInvitationService', () => {
   describe('cancelInvitation', () => {
     it('should cancel a pending invitation', async () => {
       let updateCalled = false
-      let updateData: any = null
+      let updateData: TenantInvitationUpdate | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -498,7 +502,7 @@ describe('TenantPlatformInvitationService', () => {
           }
           if (table === 'tenant_invitations') {
             const chain = createMockChain({ id: 'invitation-123', status: 'sent', owner_user_id: 'owner-123' })
-            chain.update = jest.fn((data: any) => {
+            chain.update = jest.fn((data: TenantInvitationUpdate) => {
               updateCalled = true
               updateData = data
               const updateChain: Record<string, jest.Mock> = {}
@@ -537,7 +541,7 @@ describe('TenantPlatformInvitationService', () => {
 
   describe('resendInvitation', () => {
     it('should resend invitation and update expiry', async () => {
-      let updateData: any = null
+      let updateData: TenantInvitationUpdate | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -555,7 +559,7 @@ describe('TenantPlatformInvitationService', () => {
               property_id: 'property-456',
               unit_id: 'unit-789'
             })
-            chain.update = jest.fn((data: any) => {
+            chain.update = jest.fn((data: TenantInvitationUpdate) => {
               updateData = data
               const updateChain: Record<string, jest.Mock> = {}
               updateChain.eq = jest.fn(() => Promise.resolve({ data: null, error: null }))
@@ -583,7 +587,7 @@ describe('TenantPlatformInvitationService', () => {
     })
 
     it('should regenerate code for expired invitations', async () => {
-      let updateData: any = null
+      let updateData: TenantInvitationUpdate | null = null
 
       mockSupabaseService.getAdminClient = jest.fn(() => ({
         from: jest.fn((table: string) => {
@@ -599,7 +603,7 @@ describe('TenantPlatformInvitationService', () => {
               invitation_url: 'https://app.com/accept-invite?code=old-code',
               owner_user_id: 'owner-123'
             })
-            chain.update = jest.fn((data: any) => {
+            chain.update = jest.fn((data: TenantInvitationUpdate) => {
               updateData = data
               const updateChain: Record<string, jest.Mock> = {}
               updateChain.eq = jest.fn(() => Promise.resolve({ data: null, error: null }))

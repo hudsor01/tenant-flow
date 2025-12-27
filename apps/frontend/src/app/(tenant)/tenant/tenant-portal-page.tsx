@@ -1,583 +1,222 @@
 'use client'
 
-import '../../(owner)/dashboard.css'
-import {
-	Stat,
-	StatLabel,
-	StatValue,
-	StatDescription,
-	StatIndicator
-} from '#components/ui/stat'
-import { ErrorBoundary } from '#components/error-boundary/error-boundary'
+import { TenantPortal, type RentStatus } from '#components/tenant-portal'
+import { TenantOnboardingTour, TenantTourTrigger } from '#components/tours'
 import { Skeleton } from '#components/ui/skeleton'
 import { Button } from '#components/ui/button'
-import {
-	Empty,
-	EmptyHeader,
-	EmptyMedia,
-	EmptyDescription
-} from '#components/ui/empty'
-import { TenantOnboardingTour, TenantTourTrigger } from '#components/tours'
-import { useTenantPortalDashboard } from '#hooks/api/use-tenant-portal'
+import { BlurFade } from '#components/ui/blur-fade'
+import { useTenantPortalDashboard, useTenantLeaseDocuments } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
 import { useQuery } from '@tanstack/react-query'
-import { formatCurrency } from '#lib/formatters/currency'
-import { formatDate } from '#lib/formatters/date'
-import {
-	Home,
-	Calendar,
-	Wrench,
-	CreditCard,
-	FileText,
-	User,
-	ArrowRight,
-	CheckCircle2,
-	Clock,
-	AlertTriangle,
-	PenLine
-} from 'lucide-react'
+import { PenLine } from 'lucide-react'
 import Link from 'next/link'
 import { LEASE_STATUS } from '#lib/constants/status-values'
-import { useEffect, useState } from 'react'
 
 /**
  * Tenant Portal Dashboard
  *
- * Self-service portal for tenants to:
+ * Design-OS aligned self-service portal for tenants to:
  * - View their lease information
- * - Pay rent
- * - View payment history
- * - Submit maintenance requests
+ * - Pay rent with animated stats cards
+ * - View payment history with download receipts
+ * - Submit and track maintenance requests
+ * - Access documents
  *
- * Scope: Tenant-only data (their property, unit, leases, requests)
+ * Layout follows design-os specification:
+ * - Centered max-w-5xl layout
+ * - BlurFade animations on all sections
+ * - BorderBeam accents for payment status
+ * - NumberTicker for animated values
  */
 export default function TenantDashboardPage() {
-	const { data, isLoading } = useTenantPortalDashboard()
-	const { data: amountDue, isLoading: isLoadingAmountDue } = useQuery(
-		tenantPortalQueries.amountDue()
-	)
-	const { data: autopayStatus, isLoading: isLoadingAutopay } = useQuery(
-		tenantPortalQueries.autopay()
-	)
+  const { data, isLoading } = useTenantPortalDashboard()
+  const { data: documentsData, isLoading: isLoadingDocuments } = useTenantLeaseDocuments()
+  const { data: amountDue, isLoading: isLoadingAmountDue } = useQuery(
+    tenantPortalQueries.amountDue()
+  )
+  // Autopay status query - data available for future use if needed
+  const _autopayQuery = useQuery(tenantPortalQueries.autopay())
 
-	// Mobile detection for responsive test hooks
-	const [isMobile, setIsMobile] = useState<boolean>(() => {
-		if (
-			typeof window === 'undefined' ||
-			typeof window.matchMedia !== 'function'
-		)
-			return false
-		return window.matchMedia('(max-width: 768px)').matches
-	})
+  const activeLease = data?.lease
+  const recentPayments = data?.payments?.recent ?? []
+  const maintenanceRequests = data?.maintenance?.recent ?? []
+  const documents = documentsData?.documents ?? []
 
-	useEffect(() => {
-		if (
-			typeof window !== 'undefined' &&
-			typeof window.matchMedia === 'function'
-		) {
-			const mq = window.matchMedia('(max-width: 768px)')
-			const handler = (event: MediaQueryListEvent) => setIsMobile(event.matches)
-			mq.addEventListener('change', handler)
-			setIsMobile(mq.matches)
-			return () => mq.removeEventListener('change', handler)
-		}
-		return undefined
-	}, [])
+  // Check if lease needs tenant signature
+  const needsSignature =
+    activeLease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE &&
+    !activeLease?.tenant_signed_at
 
-	const activeLease = data?.lease
-	const upcomingPayment = data?.payments?.upcoming
-	const maintenanceSummary = data?.maintenance
-	const recentPayments = data?.payments?.recent ?? []
-	const recentRequests = data?.maintenance?.recent ?? []
+  // Calculate rent status for display
+  const getRentStatus = (): RentStatus => {
+    if (isLoadingAmountDue) return 'upcoming'
+    if (amountDue?.already_paid) return 'paid'
+    if (amountDue && amountDue.days_late > 0) return 'overdue'
 
-	// Check if lease needs tenant signature
-	const needsSignature =
-		activeLease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE &&
-		!activeLease?.tenant_signed_at
+    // Check if due within 0 days
+    if (amountDue?.due_date) {
+      const dueDate = new Date(amountDue.due_date)
+      const today = new Date()
+      const daysUntilDue = Math.ceil(
+        (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      )
+      if (daysUntilDue === 0) return 'due_today'
+    }
+    return 'upcoming'
+  }
 
-	// Calculate payment status for badge
-	const getPaymentStatus = () => {
-		if (isLoadingAmountDue) return null
-		if (amountDue?.already_paid) {
-			return { label: 'Paid', variant: 'success' as const, icon: CheckCircle2 }
-		}
-		if (amountDue && amountDue.days_late > 0) {
-			return {
-				label: 'Overdue',
-				variant: 'destructive' as const,
-				icon: AlertTriangle
-			}
-		}
-		// Check if due within 5 days
-		if (amountDue?.due_date) {
-			const dueDate = new Date(amountDue.due_date)
-			const today = new Date()
-			const daysUntilDue = Math.ceil(
-				(dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-			)
-			if (daysUntilDue <= 5 && daysUntilDue >= 0) {
-				return { label: 'Due Soon', variant: 'warning' as const, icon: Clock }
-			}
-		}
-		return null
-	}
+  // Calculate days until due
+  const getDaysUntilDue = (): number => {
+    if (!amountDue?.due_date) return 0
+    const dueDate = new Date(amountDue.due_date)
+    const today = new Date()
+    return Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  }
 
-	const paymentStatus = getPaymentStatus()
+  // Get tenant name from settings or lease
+  const tenantFirstName = 'Tenant' // Fallback, could come from settings
 
-	// Format next payment
-	const nextPaymentDate = upcomingPayment?.dueDate
-		? formatDate(upcomingPayment.dueDate)
-		: 'TBD'
-	const nextPaymentAmount = upcomingPayment?.amount
-		? formatCurrency(upcomingPayment.amount / 100)
-		: activeLease?.rent_amount
-			? formatCurrency(activeLease.rent_amount)
-			: '$0'
+  // Property info from lease
+  const propertyName = activeLease?.unit?.property?.name ?? 'Your Property'
+  const unitNumber = activeLease?.unit?.unit_number ?? ''
 
-	// Quick actions data
-	const tenantQuickActions = [
-		{
-			title: 'Pay Rent',
-			description: 'Make a rent payment',
-			icon: CreditCard,
-			href: '/tenant/payments/new',
-			tourId: 'pay-rent'
-		},
-		{
-			title: 'Submit Request',
-			description: 'Report maintenance issue',
-			icon: Wrench,
-			href: '/tenant/maintenance/new',
-			tourId: 'maintenance'
-		},
-		{
-			title: 'View Lease',
-			description: 'See lease details',
-			icon: FileText,
-			href: '/tenant/lease'
-		},
-		{
-			title: 'My Profile',
-			description: 'Update your information',
-			icon: User,
-			href: '/tenant/profile'
-		}
-	]
+  // Format payments for component
+  const formattedPayments = recentPayments.map(payment => ({
+    id: payment.id,
+    amount: payment.amount,
+    paidDate: payment.paidAt ?? payment.created_at,
+    receiptUrl: payment.receiptUrl ?? undefined,
+  }))
 
-	return (
-		<>
-			<TenantOnboardingTour />
-			<div className="dashboard-root @container/main flex min-h-screen w-full flex-col bg-gradient-to-br from-[var(--color-background)] via-[var(--color-card)] to-[var(--color-muted)]/50 dark:from-[var(--color-background)] dark:via-(--card) dark:to-(--muted)/50">
-				<div className="dashboard-main border-b-2 border-(--color-border)/40 bg-gradient-to-b from-[var(--color-background)] via-[var(--color-muted)]/30 to-[var(--color-muted)]/20 dark:border-[var(--color-border)]/40 dark:from-[var(--color-background)] dark:via-[var(--color-muted)]/30 dark:to-[var(--color-muted)]/20">
-					<div className="dashboard-section mx-auto max-w-400 px-(--layout-container-padding-x) py-(--layout-content-padding)">
-						<div className="flex-between">
-							<h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-[var(--color-foreground)] via-[var(--color-foreground)]/80 to-[var(--color-foreground)] bg-clip-text text-transparent dark:from-[var(--color-background)] dark:via-(--background) dark:to-[var(--color-background)]">
-								Tenant Portal
-							</h1>
-							<TenantTourTrigger />
-						</div>
+  // Format maintenance requests for component
+  const formattedRequests = maintenanceRequests.map(request => ({
+    id: request.id,
+    title: request.title,
+    status: mapMaintenanceStatus(request.status),
+  }))
 
-						{/* Pending Signature Alert */}
-						{needsSignature && activeLease && (
-							<div
-								className="rounded-lg border border-warning/20 bg-warning/10 dark:border-warning/80 dark:bg-warning/10 p-4 flex-between gap-4"
-								data-testid="pending-signature"
-							>
-								<div className="flex items-center gap-3">
-									<div className="flex-center w-10 h-10 rounded-full bg-warning/20 dark:bg-warning/20">
-										<PenLine className="size-5 text-warning dark:text-warning" />
-									</div>
-									<div>
-										<p className="font-semibold text-warning dark:text-warning-foreground">
-											Lease Agreement Pending Your Signature
-										</p>
-										<p className="text-sm text-warning dark:text-warning">
-											Please review and sign your lease agreement to complete
-											the process.
-										</p>
-									</div>
-								</div>
-								<Link href="/tenant/lease">
-									<Button className="gap-2">
-										<PenLine className="size-4" />
-										Sign Lease
-									</Button>
-								</Link>
-							</div>
-						)}
+  // Format documents for component
+  const formattedDocuments = documents.map(doc => ({
+    id: doc.id,
+    name: doc.name,
+    uploadedAt: doc.created_at ?? new Date().toISOString(),
+    downloadUrl: doc.url ?? undefined,
+  }))
 
-						{/* Stats Cards - Inline from SectionCards pattern */}
-						<div
-							data-testid="tenant-dashboard-stats"
-							data-spacing-section="comfortable"
-							style={{ gap: 'var(--layout-gap-group)' }}
-						>
-							<ErrorBoundary
-								fallback={
-									<div className="dashboard-panel p-(--layout-content-padding-compact)">
-										<p className="text-muted">Unable to load dashboard stats</p>
-									</div>
-								}
-							>
-								{isLoading ? (
-									<div
-										className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-items)"
-										style={{ gap: 'var(--layout-gap-group)' }}
-									>
-										{[...Array(3)].map((_, i) => (
-											<div
-												key={i}
-												className="dashboard-widget rounded-xl border bg-card p-(--layout-content-padding-compact)"
-											>
-												<Skeleton className="h-5 w-32 mb-4" />
-												<Skeleton className="h-9 w-24 mb-2" />
-												<Skeleton className="h-4 w-full" />
-											</div>
-										))}
-									</div>
-								) : (
-									<div
-										className="dashboard-cards-container grid grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-3 gap-(--layout-gap-group)"
-										data-mobile-stacked={isMobile ? 'true' : 'false'}
-										style={{ gap: 'var(--layout-gap-group)' }}
-									>
-										{/* Lease Card */}
-										<Stat data-testid="stat-card">
-											<StatLabel>Current Lease</StatLabel>
-											<StatValue>
-												{activeLease?.status === 'active'
-													? 'Active'
-													: 'Inactive'}
-											</StatValue>
-											<StatDescription>
-												{activeLease?.start_date && activeLease?.end_date
-													? `${formatDate(activeLease.start_date)} - ${formatDate(activeLease.end_date)}`
-													: 'No active lease'}
-											</StatDescription>
-											<StatIndicator variant="icon" color="primary">
-												<Home />
-											</StatIndicator>
-										</Stat>
+  // Rent amount (in cents)
+  const rentAmount = amountDue?.total_due_cents ?? (activeLease?.rent_amount ?? 0) * 100
+  const rentDueDate = amountDue?.due_date ?? new Date().toISOString()
 
-										{/* Payment Card */}
-										<Stat data-testid="stat-card">
-											<StatLabel>Next Payment</StatLabel>
-											<StatValue>{nextPaymentAmount}</StatValue>
-											<StatDescription>Due: {nextPaymentDate}</StatDescription>
-											{autopayStatus?.autopayEnabled && !isLoadingAutopay ? (
-												<StatIndicator
-													variant="badge"
-													color="success"
-													data-testid="autopay-badge"
-													data-variant="success"
-												>
-													<CheckCircle2 className="size-3" />
-													Autopay Active
-												</StatIndicator>
-											) : paymentStatus ? (
-												<StatIndicator
-													variant="badge"
-													color={
-														paymentStatus.variant === 'success'
-															? 'success'
-															: paymentStatus.variant === 'warning'
-																? 'warning'
-																: 'error'
-													}
-												>
-													<paymentStatus.icon className="size-3" />
-													{paymentStatus.label}
-												</StatIndicator>
-											) : (
-												<StatIndicator variant="icon" color="primary">
-													<Calendar />
-												</StatIndicator>
-											)}
-										</Stat>
+  // Handlers
+  const handleDownloadReceipt = (paymentId: string) => {
+    const payment = recentPayments.find(p => p.id === paymentId)
+    if (payment?.receiptUrl) {
+      window.open(payment.receiptUrl, '_blank')
+    }
+  }
 
-										{/* Maintenance Card */}
-										<Stat data-testid="stat-card">
-											<StatLabel>Maintenance</StatLabel>
-											<StatValue>{maintenanceSummary?.open ?? 0}</StatValue>
-											<StatDescription>
-												{maintenanceSummary?.open === 0
-													? 'No open requests'
-													: maintenanceSummary?.open === 1
-														? '1 request in progress'
-														: `${maintenanceSummary.open} requests in progress`}
-											</StatDescription>
-											<StatIndicator variant="icon" color="primary">
-												<Wrench />
-											</StatIndicator>
-										</Stat>
-									</div>
-								)}
-							</ErrorBoundary>
-						</div>
-					</div>
-				</div>
+  const handleDownloadDocument = (documentId: string) => {
+    const doc = documents.find(d => d.id === documentId)
+    if (doc?.url) {
+      window.open(doc.url, '_blank')
+    }
+  }
 
-				<div className="dashboard-main flex-1 py-(--layout-content-padding) px-(--layout-container-padding-x)">
-					<div className="dashboard-content mx-auto max-w-400">
-						{/* Quick Actions - Inline from QuickActionsSection pattern */}
-						<ErrorBoundary
-							fallback={
-								<div className="dashboard-panel p-(--layout-content-padding-compact)">
-									<p className="text-muted">Unable to load quick actions</p>
-								</div>
-							}
-						>
-							<section
-								className="dashboard-panel"
-								data-density="compact"
-								data-tour="quick-actions"
-								data-testid="tenant-dashboard-quick-actions"
-								data-spacing-section="comfortable"
-								style={{ gap: 'var(--layout-gap-group)' }}
-							>
-								<div className="dashboard-panel-header" data-variant="actions">
-									<h3 className="dashboard-panel-title">Quick Actions</h3>
-									<p className="dashboard-panel-description">
-										Common tasks and shortcuts
-									</p>
-								</div>
-								<div className="dashboard-panel-body">
-									<div className="dashboard-quick-actions">
-										{tenantQuickActions.map(action => {
-											const Icon = action.icon
-											return (
-												<Link
-													key={action.href}
-													href={action.href}
-													className="dashboard-quick-action group focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring"
-													aria-label={`${action.title}: ${action.description}`}
-													data-touch-target="true"
-													data-spacing="comfortable"
-													style={{
-														minHeight: 'var(--touch-target-min)',
-														minWidth: 'var(--touch-target-min)',
-														padding:
-															'var(--touch-target-padding) calc(var(--touch-target-padding) * 1.25)'
-													}}
-													{...(action.tourId && { 'data-tour': action.tourId })}
-												>
-													<div className="dashboard-quick-action-icon">
-														<Icon className="size-5" aria-hidden="true" />
-													</div>
-													<div className="dashboard-quick-action-content">
-														<p className="dashboard-quick-action-title">
-															{action.title}
-														</p>
-														<p className="dashboard-quick-action-description">
-															{action.description}
-														</p>
-													</div>
-													<div className="dashboard-quick-action-chevron">
-														<ArrowRight className="size-4 transition-transform duration-200" />
-													</div>
-												</Link>
-											)
-										})}
-									</div>
-								</div>
-							</section>
-						</ErrorBoundary>
+  if (isLoading || isLoadingDocuments) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          <div className="mb-6">
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-32 rounded-lg" />
+            ))}
+          </div>
+          <Skeleton className="h-24 rounded-lg mb-6" />
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Skeleton className="h-64 rounded-lg" />
+            <Skeleton className="h-64 rounded-lg" />
+          </div>
+          <Skeleton className="h-48 rounded-lg mt-6" />
+        </main>
+      </div>
+    )
+  }
 
-						{/* Recent Activity - Inline from ActivitySection pattern */}
-						<ErrorBoundary
-							fallback={
-								<div className="dashboard-panel p-(--layout-content-padding-compact)">
-									<p className="text-muted">Unable to load activity</p>
-								</div>
-							}
-						>
-							<div
-								className="dashboard-grid"
-								data-tour="recent-activity"
-								data-testid="tenant-dashboard-activity"
-								data-spacing-section="comfortable"
-								style={{ gap: 'var(--layout-gap-group)' }}
-							>
-								{/* Recent Payments */}
-								<section className="dashboard-panel" data-density="compact">
-									<div className="dashboard-panel-header">
-										<div>
-											<h3 className="dashboard-panel-title">Recent Payments</h3>
-											<p className="dashboard-panel-description">
-												Your payment history
-											</p>
-										</div>
-										<Link
-											href="/tenant/payments/history"
-											className="text-sm text-primary hover:underline font-medium"
-										>
-											View All
-										</Link>
-									</div>
-									<div className="dashboard-panel-body">
-										{isLoading ? (
-											<div className="space-y-4">
-												{[...Array(3)].map((_, i) => (
-													<Skeleton key={i} className="h-16 w-full" />
-												))}
-											</div>
-										) : recentPayments.length === 0 ? (
-											<Empty>
-												<EmptyHeader>
-													<EmptyMedia variant="icon">
-														<Calendar />
-													</EmptyMedia>
-													<EmptyDescription>No payments yet</EmptyDescription>
-												</EmptyHeader>
-											</Empty>
-										) : (
-											<div className="space-y-1">
-												{recentPayments.slice(0, 5).map(payment => (
-													<div
-														key={payment.id}
-														className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-													>
-														{/* Avatar initials in colored circle - Hero Mockup pattern */}
-														<div className="size-8 rounded-full bg-success/10 flex-center text-success text-xs font-medium">
-															<CheckCircle2 className="size-4" />
-														</div>
-														{/* Action text with name highlighting */}
-														<div className="flex-1 min-w-0">
-															<div className="text-sm text-foreground">
-																<span className="font-medium">Payment</span>
-																<span className="text-muted-foreground">
-																	{' '}
-																	completed
-																</span>
-															</div>
-														</div>
-														{/* Status badge with rounded-full */}
-														<span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">
-															{formatCurrency(payment.amount / 100)}
-														</span>
-														{/* Timestamp */}
-														<span className="text-xs text-muted-foreground">
-															{payment.created_at
-																? formatDate(payment.created_at)
-																: payment.dueDate
-																	? formatDate(payment.dueDate)
-																	: ''}
-														</span>
-													</div>
-												))}
-											</div>
-										)}
-									</div>
-								</section>
+  return (
+    <>
+      <TenantOnboardingTour />
 
-								{/* Recent Maintenance */}
-								<section className="dashboard-panel" data-density="compact">
-									<div className="dashboard-panel-header">
-										<div>
-											<h3 className="dashboard-panel-title">
-												Maintenance Requests
-											</h3>
-											<p className="dashboard-panel-description">
-												Your recent requests
-											</p>
-										</div>
-										<Link
-											href="/tenant/maintenance"
-											className="text-sm text-primary hover:underline font-medium"
-										>
-											View All
-										</Link>
-									</div>
-									<div className="dashboard-panel-body">
-										{isLoading ? (
-											<div className="space-y-4">
-												{[...Array(3)].map((_, i) => (
-													<Skeleton key={i} className="h-16 w-full" />
-												))}
-											</div>
-										) : recentRequests.length === 0 ? (
-											<Empty>
-												<EmptyHeader>
-													<EmptyMedia variant="icon">
-														<Wrench />
-													</EmptyMedia>
-													<EmptyDescription>
-														No maintenance requests yet
-													</EmptyDescription>
-												</EmptyHeader>
-											</Empty>
-										) : (
-											<div className="space-y-1">
-												{recentRequests.slice(0, 5).map(request => {
-													const statusConfig = {
-														PENDING: {
-															bg: 'bg-warning/10',
-															textColor: 'text-warning',
-															badgeBg: 'bg-warning/10 text-warning'
-														},
-														IN_PROGRESS: {
-															bg: 'bg-primary/10',
-															textColor: 'text-primary',
-															badgeBg: 'bg-primary/10 text-primary'
-														},
-														COMPLETED: {
-															bg: 'bg-success/10',
-															textColor: 'text-success',
-															badgeBg: 'bg-success/10 text-success'
-														},
-														CANCELED: {
-															bg: 'bg-muted',
-															textColor: 'text-muted-foreground',
-															badgeBg: 'bg-muted text-muted-foreground'
-														}
-													} as const
+      {/* Pending Signature Alert */}
+      {needsSignature && activeLease && (
+        <div className="max-w-5xl mx-auto px-6 pt-6">
+          <BlurFade delay={0.1} inView>
+            <div
+              className="rounded-lg border border-warning/20 bg-warning/10 dark:border-warning/80 dark:bg-warning/10 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              data-testid="pending-signature"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-warning/20 dark:bg-warning/20">
+                  <PenLine className="size-5 text-warning dark:text-warning" aria-hidden="true" />
+                </div>
+                <div>
+                  <p className="font-semibold text-warning dark:text-warning-foreground">
+                    Lease Agreement Pending Your Signature
+                  </p>
+                  <p className="text-sm text-warning dark:text-warning">
+                    Please review and sign your lease agreement to complete the process.
+                  </p>
+                </div>
+              </div>
+              <Button asChild className="gap-2">
+                <Link href="/tenant/lease">
+                  <PenLine className="size-4" aria-hidden="true" />
+                  Sign Lease
+                </Link>
+              </Button>
+            </div>
+          </BlurFade>
+        </div>
+      )}
 
-													const config =
-														statusConfig[
-															request.status as keyof typeof statusConfig
-														] || statusConfig.PENDING
+      <TenantPortal
+        tenantFirstName={tenantFirstName}
+        propertyName={propertyName}
+        unitNumber={unitNumber}
+        rentAmount={rentAmount}
+        rentDueDate={rentDueDate}
+        rentStatus={getRentStatus()}
+        daysUntilDue={getDaysUntilDue()}
+        payments={formattedPayments}
+        maintenanceRequests={formattedRequests}
+        documents={formattedDocuments}
+        onDownloadReceipt={handleDownloadReceipt}
+        onDownloadDocument={handleDownloadDocument}
+      />
 
-													return (
-														<div
-															key={request.id}
-															className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors"
-														>
-															{/* Avatar initials in colored circle - Hero Mockup pattern */}
-															<div
-																className={`size-8 rounded-full ${config.bg} flex-center ${config.textColor} text-xs font-medium`}
-															>
-																<Wrench className="size-4" />
-															</div>
-															{/* Action text with name highlighting */}
-															<div className="flex-1 min-w-0">
-																<div className="text-sm text-foreground">
-																	<span className="font-medium">
-																		{request.title}
-																	</span>
-																</div>
-															</div>
-															{/* Status badge with rounded-full */}
-															<span
-																className={`text-xs px-2 py-0.5 rounded-full ${config.badgeBg}`}
-															>
-																{request.status.replace('_', ' ')}
-															</span>
-															{/* Timestamp */}
-															<span className="text-xs text-muted-foreground">
-																{formatDate(request.created_at)}
-															</span>
-														</div>
-													)
-												})}
-											</div>
-										)}
-									</div>
-								</section>
-							</div>
-						</ErrorBoundary>
-					</div>
-				</div>
-			</div>
-		</>
-	)
+      {/* Tour Trigger */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <TenantTourTrigger />
+      </div>
+    </>
+  )
+}
+
+/**
+ * Map backend maintenance status to design-os status format
+ */
+function mapMaintenanceStatus(
+  status: string
+): 'open' | 'in_progress' | 'completed' | 'cancelled' {
+  const statusMap: Record<string, 'open' | 'in_progress' | 'completed' | 'cancelled'> = {
+    PENDING: 'open',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed',
+    CANCELED: 'cancelled',
+    CANCELLED: 'cancelled',
+  }
+  return statusMap[status] ?? 'open'
 }

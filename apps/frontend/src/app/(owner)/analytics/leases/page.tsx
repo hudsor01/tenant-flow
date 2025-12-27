@@ -25,7 +25,7 @@ import {
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { FileText } from 'lucide-react'
 import { useMemo } from 'react'
-import type { LeaseFinancialInsight } from '@repo/shared/types/financial-analytics'
+import type { LeaseFinancialInsight } from '@repo/shared/types/analytics'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
 function ProfitabilityTable({ leases }: { leases: LeaseFinancialInsight[] }) {

@@ -14,6 +14,9 @@ import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 
 describe('MaintenanceController', () => {
+	type MaintenanceStats = Awaited<
+		ReturnType<MaintenanceReportingService['getStats']>
+	>
 	let controller: MaintenanceController
 	let service: jest.Mocked<MaintenanceService>
 	let reportingService: jest.Mocked<MaintenanceReportingService>
@@ -107,10 +110,9 @@ describe('MaintenanceController', () => {
 			unit_id: randomUUID(),
 			tenant_id: randomUUID(),
 			title: 'Repair Request',
-			description: 'Fix',
+			description: 'Fix the leaking faucet in the kitchen sink',
 			priority: 'medium' as const,
-			category: 'GENERAL' as const,
-			status: 'pending' as const
+			status: 'open' as const
 		}
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.create.mockResolvedValue(mockMaintenanceRequest)
@@ -147,7 +149,7 @@ describe('MaintenanceController', () => {
 	})
 
 	it('returns stats (getStats)', async () => {
-		const stats = {
+		const stats: MaintenanceStats = {
 			total: 10,
 			open: 3,
 			inProgress: 2,
@@ -156,7 +158,7 @@ describe('MaintenanceController', () => {
 			avgResponseTimeHours: 12.5,
 			byPriority: { low: 2, medium: 4, high: 3, emergency: 1 }
 		}
-		reportingService.getStats.mockResolvedValue(stats as any)
+		reportingService.getStats.mockResolvedValue(stats)
 		const result = await controller.getStats(mockToken)
 		expect(result).toEqual(stats)
 	})

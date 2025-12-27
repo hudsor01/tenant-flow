@@ -16,6 +16,44 @@
 -- Strategy: Add policies for authenticated users based on ownership patterns
 -- ============================================================================
 
+-- Drop existing policies to make migration re-runnable
+DROP POLICY IF EXISTS "processed_internal_events_service_role" ON public.processed_internal_events;
+DROP POLICY IF EXISTS "processed_internal_events_service_role_select" ON public.processed_internal_events;
+DROP POLICY IF EXISTS "processed_internal_events_service_role_insert" ON public.processed_internal_events;
+DROP POLICY IF EXISTS "processed_internal_events_service_role_update" ON public.processed_internal_events;
+DROP POLICY IF EXISTS "processed_internal_events_service_role_delete" ON public.processed_internal_events;
+DROP POLICY IF EXISTS "blogs_delete_service_role" ON public.blogs;
+DROP POLICY IF EXISTS "property_images_update_owner" ON public.property_images;
+DROP POLICY IF EXISTS "documents_update_owner" ON public.documents;
+DROP POLICY IF EXISTS "activity_insert_own" ON public.activity;
+DROP POLICY IF EXISTS "activity_update_own" ON public.activity;
+DROP POLICY IF EXISTS "activity_delete_own" ON public.activity;
+DROP POLICY IF EXISTS "notifications_insert_own" ON public.notifications;
+DROP POLICY IF EXISTS "notifications_delete_own" ON public.notifications;
+DROP POLICY IF EXISTS "notification_logs_insert" ON public.notification_logs;
+DROP POLICY IF EXISTS "notification_logs_update" ON public.notification_logs;
+DROP POLICY IF EXISTS "notification_logs_delete" ON public.notification_logs;
+DROP POLICY IF EXISTS "payment_schedules_insert" ON public.payment_schedules;
+DROP POLICY IF EXISTS "payment_schedules_update" ON public.payment_schedules;
+DROP POLICY IF EXISTS "payment_schedules_delete" ON public.payment_schedules;
+DROP POLICY IF EXISTS "payment_transactions_insert" ON public.payment_transactions;
+DROP POLICY IF EXISTS "payment_transactions_update" ON public.payment_transactions;
+DROP POLICY IF EXISTS "payment_transactions_delete" ON public.payment_transactions;
+DROP POLICY IF EXISTS "rent_due_insert" ON public.rent_due;
+DROP POLICY IF EXISTS "rent_due_update" ON public.rent_due;
+DROP POLICY IF EXISTS "rent_due_delete" ON public.rent_due;
+DO $$
+BEGIN
+  IF to_regclass('public.subscriptions') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "subscriptions_insert" ON public.subscriptions;
+    DROP POLICY IF EXISTS "subscriptions_update" ON public.subscriptions;
+    DROP POLICY IF EXISTS "subscriptions_delete" ON public.subscriptions;
+  END IF;
+END $$;
+DROP POLICY IF EXISTS "user_feature_access_insert" ON public.user_feature_access;
+DROP POLICY IF EXISTS "user_feature_access_update" ON public.user_feature_access;
+DROP POLICY IF EXISTS "user_feature_access_delete" ON public.user_feature_access;
+
 -- ============================================================================
 -- 1. PROCESSED_INTERNAL_EVENTS - Service Role Only (System Table)
 -- ============================================================================
@@ -26,13 +64,31 @@
 COMMENT ON TABLE public.processed_internal_events IS
 'Internal event processing tracking table. Service role only. Not for user access.';
 
--- Service role policy (all operations)
-CREATE POLICY "processed_internal_events_service_role"
+-- Service role policies (separate per operation per RLS best practices)
+CREATE POLICY "processed_internal_events_service_role_select"
 ON public.processed_internal_events
-FOR ALL
+FOR SELECT
+TO service_role
+USING (true);
+
+CREATE POLICY "processed_internal_events_service_role_insert"
+ON public.processed_internal_events
+FOR INSERT
+TO service_role
+WITH CHECK (true);
+
+CREATE POLICY "processed_internal_events_service_role_update"
+ON public.processed_internal_events
+FOR UPDATE
 TO service_role
 USING (true)
 WITH CHECK (true);
+
+CREATE POLICY "processed_internal_events_service_role_delete"
+ON public.processed_internal_events
+FOR DELETE
+TO service_role
+USING (true);
 
 -- ============================================================================
 -- 2. BLOGS - Add DELETE Policy
@@ -329,33 +385,38 @@ COMMENT ON POLICY "rent_due_delete" ON public.rent_due IS
 -- ============================================================================
 
 -- Backend manages Stripe subscriptions
-CREATE POLICY "subscriptions_insert"
-ON public.subscriptions
-FOR INSERT
-TO service_role
-WITH CHECK (true);
+DO $$
+BEGIN
+  IF to_regclass('public.subscriptions') IS NOT NULL THEN
+    CREATE POLICY "subscriptions_insert"
+    ON public.subscriptions
+    FOR INSERT
+    TO service_role
+    WITH CHECK (true);
 
-CREATE POLICY "subscriptions_update"
-ON public.subscriptions
-FOR UPDATE
-TO service_role
-USING (true)
-WITH CHECK (true);
+    CREATE POLICY "subscriptions_update"
+    ON public.subscriptions
+    FOR UPDATE
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
 
-CREATE POLICY "subscriptions_delete"
-ON public.subscriptions
-FOR DELETE
-TO service_role
-USING (true);
+    CREATE POLICY "subscriptions_delete"
+    ON public.subscriptions
+    FOR DELETE
+    TO service_role
+    USING (true);
 
-COMMENT ON POLICY "subscriptions_insert" ON public.subscriptions IS
-'Service role creates subscriptions when users subscribe';
+    COMMENT ON POLICY "subscriptions_insert" ON public.subscriptions IS
+    'Service role creates subscriptions when users subscribe';
 
-COMMENT ON POLICY "subscriptions_update" ON public.subscriptions IS
-'Service role updates subscription status from Stripe webhooks';
+    COMMENT ON POLICY "subscriptions_update" ON public.subscriptions IS
+    'Service role updates subscription status from Stripe webhooks';
 
-COMMENT ON POLICY "subscriptions_delete" ON public.subscriptions IS
-'Service role can delete cancelled subscriptions';
+    COMMENT ON POLICY "subscriptions_delete" ON public.subscriptions IS
+    'Service role can delete cancelled subscriptions';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- 12. USER_FEATURE_ACCESS - Add INSERT, UPDATE, DELETE Policies
@@ -431,20 +492,23 @@ END $$;
 -- MIGRATION COMPLETE
 -- ============================================================================
 
-RAISE NOTICE '=== RLS Policy Gaps Fixed ===';
-RAISE NOTICE 'Added policies for:';
-RAISE NOTICE '  - processed_internal_events (service_role only)';
-RAISE NOTICE '  - blogs (DELETE)';
-RAISE NOTICE '  - property_images (UPDATE)';
-RAISE NOTICE '  - documents (UPDATE)';
-RAISE NOTICE '  - activity (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - notifications (INSERT, DELETE)';
-RAISE NOTICE '  - notification_logs (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - payment_schedules (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - payment_transactions (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - rent_due (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - subscriptions (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '  - user_feature_access (INSERT, UPDATE, DELETE)';
-RAISE NOTICE '';
-RAISE NOTICE '🔒 Security: Users can now access their data without admin permissions';
-RAISE NOTICE '🔒 Backend operations properly restricted to service_role';
+DO $$
+BEGIN
+  RAISE NOTICE '=== RLS Policy Gaps Fixed ===';
+  RAISE NOTICE 'Added policies for:';
+  RAISE NOTICE '  - processed_internal_events (service_role only)';
+  RAISE NOTICE '  - blogs (DELETE)';
+  RAISE NOTICE '  - property_images (UPDATE)';
+  RAISE NOTICE '  - documents (UPDATE)';
+  RAISE NOTICE '  - activity (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - notifications (INSERT, DELETE)';
+  RAISE NOTICE '  - notification_logs (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - payment_schedules (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - payment_transactions (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - rent_due (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - subscriptions (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '  - user_feature_access (INSERT, UPDATE, DELETE)';
+  RAISE NOTICE '';
+  RAISE NOTICE '🔒 Security: Users can now access their data without admin permissions';
+  RAISE NOTICE '🔒 Backend operations properly restricted to service_role';
+END $$;

@@ -33,6 +33,8 @@ import {
 
 interface PropertiesViewClientProps {
 	properties: Property[]
+	/** Map of property_id to trend percentage from performance analytics */
+	trendMap?: Map<string, number> | undefined
 }
 
 /**
@@ -40,7 +42,8 @@ interface PropertiesViewClientProps {
  * Receives data from parent to avoid duplicate fetching
  */
 export function PropertiesViewClient({
-	properties
+	properties,
+	trendMap
 }: PropertiesViewClientProps) {
 	const isMobile = useIsMobile()
 	const queryClient = useQueryClient()
@@ -265,7 +268,7 @@ export function PropertiesViewClient({
 					</div>
 				</Empty>
 			) : currentView === 'grid' ? (
-				<PropertiesGridClient data={filteredProperties} />
+				<PropertiesGridClient data={filteredProperties} trendMap={trendMap} />
 			) : (
 				<PropertiesTableClient initialProperties={filteredProperties} />
 			)}

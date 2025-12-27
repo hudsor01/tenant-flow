@@ -30,7 +30,7 @@ import type {
 	BulkImportResult,
 	ParsedRow,
 	ImportStep
-} from '@repo/shared/types/bulk-import'
+} from '@repo/shared/types/api-contracts'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'

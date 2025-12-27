@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { TenantCrudService } from './tenant-crud.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { TenantQueryService } from './tenant-query.service'
+import { TenantDetailService } from './tenant-detail.service'
 import { SseService } from '../notifications/sse/sse.service'
 import type { CreateTenantRequest, UpdateTenantRequest } from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
@@ -16,7 +19,8 @@ describe('TenantCrudService', () => {
   let mockSupabaseService: jest.Mocked<SupabaseService>
   let mockEventEmitter: jest.Mocked<EventEmitter2>
   let mockTenantQueryService: jest.Mocked<TenantQueryService>
-  let mockUserClient: any
+  let mockTenantDetailService: jest.Mocked<TenantDetailService>
+  let mockUserClient: SupabaseClient<Database>
 
   const mockUserId = 'user-123'
   const mockTenantId = 'tenant-456'
@@ -46,7 +50,7 @@ describe('TenantCrudService', () => {
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       single: jest.fn()
-    }
+    } as unknown as SupabaseClient<Database>
 
     mockSupabaseService = {
       getUserClient: jest.fn().mockReturnValue(mockUserClient),
@@ -61,6 +65,10 @@ describe('TenantCrudService', () => {
       findOne: jest.fn()
     } as unknown as jest.Mocked<TenantQueryService>
 
+    mockTenantDetailService = {
+      findByIds: jest.fn().mockResolvedValue(new Map())
+    } as unknown as jest.Mocked<TenantDetailService>
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TenantCrudService,
@@ -68,6 +76,7 @@ describe('TenantCrudService', () => {
         { provide: SupabaseService, useValue: mockSupabaseService },
         { provide: EventEmitter2, useValue: mockEventEmitter },
         { provide: TenantQueryService, useValue: mockTenantQueryService },
+        { provide: TenantDetailService, useValue: mockTenantDetailService },
         {
           provide: AppLogger,
           useValue: new SilentLogger()

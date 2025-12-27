@@ -332,36 +332,86 @@ export class LateFeesService {
 				throw new BadRequestException('Owner Stripe customer not found')
 			}
 
-			// Process each overdue payment
+			// Extract to const for type narrowing in nested closures
+			const stripeCustomerId = userData.stripe_customer_id
+
+			// ⚠️ SEQUENTIAL EXTERNAL API CALLS - STRIPE RATE LIMITING CONSIDERATION
+			// ═══════════════════════════════════════════════════════════════════════════
+			//
+			// PATTERN: Sequential await in loop calling Stripe API for each payment.
+			//
+			// IMPLEMENTATION: Concurrent processing with Promise.allSettled()
+			//
+			// OPTIMIZATIONS APPLIED:
+			//   1. Pre-calculate all fees before processing (single pass)
+			//   2. Process payments concurrently using Promise.allSettled()
+			//   3. Chunked processing (10 concurrent) to respect Stripe rate limits
+			//   4. Partial failure handling - one failure doesn't block others
+			//
+			// RATE LIMIT CONSIDERATIONS:
+			//   - Stripe: 100 req/sec (test), 10,000 req/sec (production)
+			//   - CONCURRENCY_LIMIT of 10 is conservative and safe
+			//   - Adjust if monitoring shows bottlenecks
+			//
+			// ═══════════════════════════════════════════════════════════════════════════
+			// Process overdue payments concurrently with Promise.allSettled()
+			// Uses chunked processing to respect Stripe rate limits (10 concurrent max)
+			const CONCURRENCY_LIMIT = 10
+
+			// Pre-calculate which payments need late fees
+			const paymentsWithFees = overduePayments
+				.map(payment => ({
+					payment,
+					calculation: this.calculateLateFee(payment.amount, payment.daysOverdue, config)
+				}))
+				.filter(({ calculation }) => calculation.shouldApplyFee)
+
+			// Process in chunks to respect rate limits
 			const results: Array<{
 				paymentId: string
 				late_fee_amount: number
 				daysOverdue: number
 			}> = []
 
-			for (const payment of overduePayments) {
-				const calculation = this.calculateLateFee(
-					payment.amount,
-					payment.daysOverdue,
-					config
-				)
-
-				if (calculation.shouldApplyFee) {
+			// Helper to process a chunk of payments concurrently
+			const processChunk = async (
+				chunk: typeof paymentsWithFees
+			): Promise<void> => {
+				const chunkPromises = chunk.map(async ({ payment, calculation }) => {
 					await this.applyLateFeeToInvoice(
-						userData.stripe_customer_id,
+						stripeCustomerId,
 						lease_id,
 						payment.id,
 						calculation.late_fee_amount,
 						calculation.reason,
 						token
 					)
-
-					results.push({
+					return {
 						paymentId: payment.id,
 						late_fee_amount: calculation.late_fee_amount,
 						daysOverdue: payment.daysOverdue
-					})
+					}
+				})
+
+				const settled = await Promise.allSettled(chunkPromises)
+
+				for (const result of settled) {
+					if (result.status === 'fulfilled') {
+						results.push(result.value)
+					} else {
+						// Log failure but continue processing other payments
+						this.logger.error('Failed to apply late fee to individual payment', {
+							lease_id,
+							error: result.reason instanceof Error ? result.reason.message : String(result.reason)
+						})
+					}
 				}
+			}
+
+			// Process in chunks of CONCURRENCY_LIMIT
+			for (let i = 0; i < paymentsWithFees.length; i += CONCURRENCY_LIMIT) {
+				const chunk = paymentsWithFees.slice(i, i + CONCURRENCY_LIMIT)
+				await processChunk(chunk)
 			}
 
 			const totalLateFees = results.reduce((sum, r) => sum + r.late_fee_amount, 0)

@@ -1,12 +1,10 @@
 import type {
-	LeaseFinancialInsight,
-	LeaseFinancialSummary
-} from '../types/financial-analytics.js'
-import type {
 	LeaseAnalyticsPageResponse,
+	LeaseFinancialInsight,
+	LeaseFinancialSummary,
 	LeaseLifecyclePoint,
 	LeaseStatusBreakdown
-} from '../types/lease-analytics.js'
+} from '../types/analytics.js'
 
 function toNumber(value: unknown, fallback = 0): number {
 	if (typeof value === 'number' && Number.isFinite(value)) {

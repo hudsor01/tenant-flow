@@ -1,27 +1,22 @@
 import { Module, Global } from '@nestjs/common'
-import { CacheModule as NestCacheModule } from '@nestjs/cache-manager'
-import { ZeroCacheService } from './cache.service'
-import {
-	ConfigurableModuleClass,
-	type CacheModuleOptions
-} from './cache.module-definition'
+import { RedisCacheService } from './cache.service'
+import { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } from './cache.module-definition'
 
 @Global()
-@Module({})
-export class CacheConfigurationModule extends ConfigurableModuleClass {
-	static override forRoot(options: CacheModuleOptions) {
-		return {
-			global: true,
-			module: CacheConfigurationModule,
-			imports: [
-				NestCacheModule.register({
-					isGlobal: options.isGlobal ?? true,
-					ttl: options.ttl,
-					max: options.max
-				})
-			],
-			providers: [ZeroCacheService],
-			exports: [ZeroCacheService, NestCacheModule]
+@Module({
+	providers: [
+		RedisCacheService,
+		{
+			provide: MODULE_OPTIONS_TOKEN,
+			useValue: {
+				ttlShortMs: 30_000,
+				ttlMediumMs: 5 * 60 * 1000,
+				ttlLongMs: 30 * 60 * 1000,
+				keyPrefix: 'cache',
+				isGlobal: true
+			}
 		}
-	}
-}
+	],
+	exports: [RedisCacheService]
+})
+export class CacheConfigurationModule extends ConfigurableModuleClass {}
