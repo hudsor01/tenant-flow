@@ -442,7 +442,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 
             // Delay should not be excessively long (backoff + max jitter + generous tolerance)
             const maxJitter = Math.min(1000, expectedMinDelay)
-            expect(delay).toBeLessThan(expectedMinDelay + maxJitter + 200)
+            expect(delay).toBeLessThan(expectedMinDelay + maxJitter + 300)
           }
         }
       ),

@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Avatar, AvatarFallback, AvatarImage } from '#components/ui/avatar'
@@ -33,10 +33,16 @@ import { useSignOut } from '#hooks/api/use-auth'
 import { useAuth } from '#providers/auth-provider'
 
 export function NavUser() {
+	const [mounted, setMounted] = useState(false)
 	const { isMobile } = useSidebar()
 	const router = useRouter()
 	const { user, isLoading, isAuthenticated } = useAuth()
 	const signOutMutation = useSignOut()
+
+	// Prevent hydration mismatch from Radix UI auto-generated IDs
+	useEffect(() => {
+		setMounted(true)
+	}, [])
 
 	const displayName = useMemo(() => {
 		if (!user) {
@@ -80,6 +86,23 @@ export function NavUser() {
 		},
 		[isAuthenticated, router, signOutMutation, user]
 	)
+
+	// Render placeholder until mounted to prevent hydration mismatch
+	if (!mounted) {
+		return (
+			<SidebarMenu>
+				<SidebarMenuItem>
+					<div className="flex items-center gap-2 px-2 py-1.5">
+						<div className="size-11 rounded-lg bg-muted animate-pulse" />
+						<div className="grid flex-1 gap-1">
+							<div className="h-4 w-24 bg-muted rounded animate-pulse" />
+							<div className="h-3 w-32 bg-muted rounded animate-pulse" />
+						</div>
+					</div>
+				</SidebarMenuItem>
+			</SidebarMenu>
+		)
+	}
 
 	return (
 		<SidebarMenu>

@@ -251,7 +251,7 @@ export default function DashboardPage() {
 	return (
 		<>
 			<OwnerOnboardingTour />
-			<div className="@container/main flex min-h-screen w-full flex-col bg-(--background)">
+			<div className="@container/main flex min-h-screen w-full flex-col bg-background">
 				<ErrorBoundary
 					fallback={
 						<div className="p-6 lg:p-8">

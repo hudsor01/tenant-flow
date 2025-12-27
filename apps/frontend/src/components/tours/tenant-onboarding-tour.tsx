@@ -39,12 +39,18 @@ interface TenantOnboardingTourProps {
 export function TenantOnboardingTour({
 	forceShow = false
 }: TenantOnboardingTourProps) {
+	const [mounted, setMounted] = useState(false)
 	const [open, setOpen] = useState(false)
 	const [isMobile, setIsMobile] = useState(false)
 
+	// Track client-side mount to prevent hydration mismatch
+	useEffect(() => {
+		setMounted(true)
+	}, [])
+
 	// Detect mobile viewport
 	useEffect(() => {
-		if (typeof window === 'undefined') return undefined
+		if (!mounted) return undefined
 
 		const checkMobile = () => {
 			setIsMobile(window.innerWidth < 768)
@@ -53,11 +59,11 @@ export function TenantOnboardingTour({
 		checkMobile()
 		window.addEventListener('resize', checkMobile)
 		return () => window.removeEventListener('resize', checkMobile)
-	}, [])
+	}, [mounted])
 
 	// Check if tour has been completed before
 	useEffect(() => {
-		if (typeof window === 'undefined') return undefined
+		if (!mounted) return undefined
 
 		let isActive = true
 		let timer: ReturnType<typeof setTimeout> | null = null
@@ -88,7 +94,7 @@ export function TenantOnboardingTour({
 			isActive = false
 			if (timer) clearTimeout(timer)
 		}
-	}, [forceShow])
+	}, [forceShow, mounted])
 
 	const handleComplete = () => {
 		void Promise.resolve(
@@ -118,8 +124,8 @@ export function TenantOnboardingTour({
 		})
 	}, [open])
 
-	// Don't render anything during SSR
-	if (typeof window === 'undefined') return null
+	// Don't render until mounted on client to prevent hydration mismatch
+	if (!mounted) return null
 
 	return (
 		<Tour
