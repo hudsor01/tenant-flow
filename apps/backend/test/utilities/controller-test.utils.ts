@@ -18,8 +18,8 @@ import * as request from 'supertest'
  */
 export interface ControllerTestResult {
   status: number
-  body: any
-  headers: any
+  body: unknown
+  headers: Record<string, string>
 }
 
 /**
@@ -43,31 +43,33 @@ export interface ControllerTestResult {
  * expect(response.body.id).toBe('prop-1')
  * ```
  */
-export interface ControllerTestBed {
+export interface ControllerTestBed<TService = unknown> {
   app: INestApplication
-  service: any
+  service: TService
   get: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
-  post: <T>(path: string, body: any) => Promise<ControllerTestResult & { body: T }>
-  put: <T>(path: string, body: any) => Promise<ControllerTestResult & { body: T }>
+  post: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
+  put: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
   delete: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
-  patch: <T>(path: string, body: any) => Promise<ControllerTestResult & { body: T }>
+  patch: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
   close: () => Promise<void>
 }
+
+type Constructor<T> = new (...args: unknown[]) => T
 
 /**
  * Create a testbed for controller testing with Supertest
  */
-export async function createControllerTest(
-  controllerClass: any,
-  serviceClass: any,
-  serviceMocks: Partial<any> = {}
-): Promise<ControllerTestBed> {
-  const mockService = {
-    ...Object.keys(serviceMocks).reduce((acc, key) => {
-      acc[key] = jest.fn().mockResolvedValue(serviceMocks[key])
-      return acc
-    }, {} as any)
-  }
+export async function createControllerTest<TController, TService>(
+  controllerClass: Constructor<TController>,
+  serviceClass: Constructor<TService>,
+  serviceMocks: Partial<TService> = {}
+): Promise<ControllerTestBed<TService>> {
+  const mockService: Record<string, jest.Mock> = {}
+  Object.keys(serviceMocks).forEach(key => {
+    mockService[key] = jest.fn().mockResolvedValue(
+      serviceMocks[key as keyof TService]
+    )
+  })
 
   const moduleRef: TestingModule = await Test.createTestingModule({
     controllers: [controllerClass],
@@ -95,7 +97,7 @@ export async function createControllerTest(
         headers: res.headers
       }
     },
-    post: async <T,>(path: string, body: any): Promise<ControllerTestResult & { body: T }> => {
+    post: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
       const res = await request(httpServer)
         .post(path)
         .send(body)
@@ -106,7 +108,7 @@ export async function createControllerTest(
         headers: res.headers
       }
     },
-    put: async <T,>(path: string, body: any): Promise<ControllerTestResult & { body: T }> => {
+    put: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
       const res = await request(httpServer)
         .put(path)
         .send(body)
@@ -125,7 +127,7 @@ export async function createControllerTest(
         headers: res.headers
       }
     },
-    patch: async <T,>(path: string, body: any): Promise<ControllerTestResult & { body: T }> => {
+    patch: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
       const res = await request(httpServer)
         .patch(path)
         .send(body)
@@ -155,7 +157,7 @@ export async function createControllerTest(
  */
 export interface HTTPResponseExpectation {
   status: number
-  bodyContains?: Partial<any>
+  bodyContains?: Partial<Record<string, unknown>>
   bodyLength?: number
   headerContains?: Record<string, string>
 }
@@ -257,7 +259,15 @@ export function expectErrorResponse(
  * })
  * ```
  */
-export function createAuthenticatedRequest(overrides: Partial<any> = {}) {
+type AuthenticatedRequestOverrides = Partial<{
+  userId: string
+  email: string
+  token: string
+  headers: Record<string, string>
+}> & Record<string, unknown>
+
+export function createAuthenticatedRequest(overrides: AuthenticatedRequestOverrides = {}) {
+  const overrideHeaders = overrides.headers ?? {}
   return {
     user: {
       id: overrides.userId || 'user-123',
@@ -266,7 +276,7 @@ export function createAuthenticatedRequest(overrides: Partial<any> = {}) {
     },
     headers: {
       authorization: `Bearer ${overrides.token || 'test-token'}`,
-      ...overrides.headers
+      ...overrideHeaders
     },
     ...overrides
   }

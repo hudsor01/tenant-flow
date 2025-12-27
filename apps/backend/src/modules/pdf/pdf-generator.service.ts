@@ -1,4 +1,15 @@
-import type { OnModuleDestroy } from '@nestjs/common';
+/**
+ * PDF Generator Service
+ *
+ * Generates PDFs using:
+ * - @react-pdf/renderer for React-based PDFs (invoices, lease agreements)
+ * - Puppeteer for HTML-based PDFs (complex templates)
+ * - pdf-lib for PDF template filling (handled by LeasePdfGeneratorService)
+ *
+ * Styles extracted to ./pdf-styles.ts for maintainability.
+ */
+
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import React from 'react'
 import {
@@ -6,24 +17,36 @@ import {
 	Page,
 	Text,
 	View,
-	StyleSheet,
 	renderToBuffer,
 	type DocumentProps
 } from '@react-pdf/renderer'
 import puppeteer from 'puppeteer'
 import { AppLogger } from '../../logger/app-logger.service'
+import { PdfTemplateRendererService } from './pdf-template-renderer.service'
+import { invoiceStyles, leaseStyles } from './pdf-styles'
 
-/**
- * PDF Generator Service
- * - @react-pdf/renderer for React-based PDFs (invoices)
- * - Puppeteer for HTML-based PDFs (legacy lease-pdf.service.ts)
- * - pdf-lib for PDF template filling (new texas-lease-pdf.service.ts)
- */
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
+	private readonly maxPageBytes = Number.parseInt(
+		process.env.PDF_PUPPETEER_MAX_PAGE_MB ?? '256',
+		10
+	) * 1024 * 1024
+	private readonly maxBrowserBytes = Number.parseInt(
+		process.env.PDF_PUPPETEER_MAX_BROWSER_MB ?? '512',
+		10
+	) * 1024 * 1024
+	private readonly memoryCheckIntervalMs = Number.parseInt(
+		process.env.PDF_PUPPETEER_MEMORY_CHECK_MS ?? '15000',
+		10
+	)
+	private lastMemoryCheckAt = 0
+	private activePages = 0
 
-	constructor(private readonly logger: AppLogger) {}
+	constructor(
+		private readonly logger: AppLogger,
+		private readonly templateRenderer: PdfTemplateRendererService
+	) {}
 
 	/**
 	 * Generate invoice PDF using React components
@@ -48,20 +71,20 @@ export class PDFGeneratorService implements OnModuleDestroy {
 				null,
 				React.createElement(
 					Page,
-					{ size: 'A4', style: styles.page },
+					{ size: 'A4', style: invoiceStyles.page },
 					// Header
 					React.createElement(
 						View,
-						{ style: styles.header },
+						{ style: invoiceStyles.header },
 						React.createElement(
 							Text,
-							{ style: styles.companyName },
+							{ style: invoiceStyles.companyName },
 							invoiceData.companyName || 'TenantFlow'
 						),
 						invoiceData.companyAddress
 							? React.createElement(
 									Text,
-									{ style: styles.companyAddress },
+									{ style: invoiceStyles.companyAddress },
 									invoiceData.companyAddress
 								)
 							: null
@@ -69,39 +92,39 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					// Invoice Title and Meta
 					React.createElement(
 						View,
-						{ style: styles.invoiceMeta },
-						React.createElement(Text, { style: styles.invoiceTitle }, 'INVOICE'),
+						{ style: invoiceStyles.invoiceMeta },
+						React.createElement(Text, { style: invoiceStyles.invoiceTitle }, 'INVOICE'),
 						React.createElement(
 							Text,
-							{ style: styles.metaText },
+							{ style: invoiceStyles.metaText },
 							`Invoice #: ${invoiceData.invoiceNumber}`
 						),
 						React.createElement(
 							Text,
-							{ style: styles.metaText },
+							{ style: invoiceStyles.metaText },
 							`Date: ${new Date(invoiceData.date).toLocaleDateString()}`
 						)
 					),
 					// Customer Info
 					React.createElement(
 						View,
-						{ style: styles.customerInfo },
-						React.createElement(Text, { style: styles.sectionTitle }, 'Bill To:'),
-						React.createElement(Text, { style: styles.customerName }, invoiceData.customerName),
-						React.createElement(Text, { style: styles.customerEmail }, invoiceData.customerEmail)
+						{ style: invoiceStyles.customerInfo },
+						React.createElement(Text, { style: invoiceStyles.sectionTitle }, 'Bill To:'),
+						React.createElement(Text, { style: invoiceStyles.customerName }, invoiceData.customerName),
+						React.createElement(Text, { style: invoiceStyles.customerEmail }, invoiceData.customerEmail)
 					),
 					// Items Table
 					React.createElement(
 						View,
-						{ style: styles.table },
+						{ style: invoiceStyles.table },
 						// Table Header
 						React.createElement(
 							View,
-							{ style: styles.tableHeader },
-							React.createElement(Text, { style: styles.tableColHeader }, 'Description'),
+							{ style: invoiceStyles.tableHeader },
+							React.createElement(Text, { style: invoiceStyles.tableColHeader }, 'Description'),
 							React.createElement(
 								Text,
-								{ style: [styles.tableColHeader, styles.amountCol] },
+								{ style: [invoiceStyles.tableColHeader, invoiceStyles.amountCol] },
 								'Amount'
 							)
 						),
@@ -109,11 +132,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						...invoiceData.items.map(item =>
 							React.createElement(
 								View,
-								{ key: item.description, style: styles.tableRow },
-								React.createElement(Text, { style: styles.tableCol }, item.description),
+								{ key: item.description, style: invoiceStyles.tableRow },
+								React.createElement(Text, { style: invoiceStyles.tableCol }, item.description),
 								React.createElement(
 									Text,
-									{ style: [styles.tableCol, styles.amountCol] },
+									{ style: [invoiceStyles.tableCol, invoiceStyles.amountCol] },
 									`${item.currency.toUpperCase()} ${(item.amount / 100).toFixed(2)}`
 								)
 							)
@@ -121,11 +144,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						// Total Row
 						React.createElement(
 							View,
-							{ style: styles.totalRow },
-							React.createElement(Text, { style: styles.totalLabel }, 'Total'),
+							{ style: invoiceStyles.totalRow },
+							React.createElement(Text, { style: invoiceStyles.totalLabel }, 'Total'),
 							React.createElement(
 								Text,
-								{ style: [styles.totalAmount, styles.amountCol] },
+								{ style: [invoiceStyles.totalAmount, invoiceStyles.amountCol] },
 								`${invoiceData.total.currency.toUpperCase()} ${(invoiceData.total.amount / 100).toFixed(2)}`
 							)
 						)
@@ -133,7 +156,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					// Footer
 					React.createElement(
 						View,
-						{ style: styles.footer },
+						{ style: invoiceStyles.footer },
 						React.createElement(Text, null, 'Thank you for your business!')
 					)
 				)
@@ -174,63 +197,63 @@ export class PDFGeneratorService implements OnModuleDestroy {
 				null,
 				React.createElement(
 					Page,
-					{ size: 'A4', style: styles.leasePage },
+					{ size: 'A4', style: leaseStyles.page },
 					// Title
 					React.createElement(
 						Text,
-						{ style: styles.leaseTitle },
+						{ style: leaseStyles.title },
 						'RESIDENTIAL LEASE AGREEMENT'
 					),
 					// Property Info
 					React.createElement(
 						View,
-						{ style: styles.propertyInfo },
+						{ style: leaseStyles.propertyInfo },
 						React.createElement(
 							Text,
-							{ style: styles.propertyLabel },
+							{ style: leaseStyles.propertyLabel },
 							`Property Address: ${leaseData.propertyAddress}`
 						)
 					),
 					// Parties
 					React.createElement(
 						View,
-						{ style: styles.leaseSection },
-						React.createElement(Text, { style: styles.leaseSectionTitle }, 'PARTIES'),
+						{ style: leaseStyles.section },
+						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'PARTIES'),
 						React.createElement(
 							Text,
-							{ style: styles.leaseText },
+							{ style: leaseStyles.text },
 							`Owner: ${leaseData.ownerName}`
 						),
 						React.createElement(
 							Text,
-							{ style: styles.leaseText },
+							{ style: leaseStyles.text },
 							`Tenant: ${leaseData.tenantName}`
 						)
 					),
 					// Lease Term
 					React.createElement(
 						View,
-						{ style: styles.leaseSection },
-						React.createElement(Text, { style: styles.leaseSectionTitle }, 'LEASE TERM'),
+						{ style: leaseStyles.section },
+						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'LEASE TERM'),
 						React.createElement(
 							Text,
-							{ style: styles.leaseText },
+							{ style: leaseStyles.text },
 							`Start Date: ${new Date(leaseData.start_date).toLocaleDateString()}`
 						),
 						React.createElement(
 							Text,
-							{ style: styles.leaseText },
+							{ style: leaseStyles.text },
 							`End Date: ${new Date(leaseData.end_date).toLocaleDateString()}`
 						)
 					),
 					// Rent
 					React.createElement(
 						View,
-						{ style: styles.leaseSection },
-						React.createElement(Text, { style: styles.leaseSectionTitle }, 'RENT'),
+						{ style: leaseStyles.section },
+						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'RENT'),
 						React.createElement(
 							Text,
-							{ style: styles.leaseText },
+							{ style: leaseStyles.text },
 							`The monthly rent amount is ${leaseData.currency.toUpperCase()} ${leaseData.rent_amount.toFixed(2)}, due on the 1st day of each month.`
 						)
 					),
@@ -238,16 +261,16 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					leaseData.terms && leaseData.terms.length > 0
 						? React.createElement(
 								View,
-								{ style: styles.leaseSection },
+								{ style: leaseStyles.section },
 								React.createElement(
 									Text,
-									{ style: styles.leaseSectionTitle },
+									{ style: leaseStyles.sectionTitle },
 									'TERMS AND CONDITIONS'
 								),
 								...leaseData.terms.map((term, index) =>
 									React.createElement(
 										Text,
-										{ key: index, style: styles.termItem },
+										{ key: index, style: leaseStyles.termItem },
 										`${index + 1}. ${term}`
 									)
 								)
@@ -256,32 +279,32 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					// Signatures
 					React.createElement(
 						View,
-						{ style: styles.signatures },
-						React.createElement(Text, { style: styles.leaseSectionTitle }, 'SIGNATURES'),
+						{ style: leaseStyles.signatures },
+						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'SIGNATURES'),
 						React.createElement(
 							View,
-							{ style: styles.signatureRow },
+							{ style: leaseStyles.signatureRow },
 							React.createElement(
 								View,
-								{ style: styles.signatureBlock },
-								React.createElement(View, { style: styles.signatureLine }),
+								{ style: leaseStyles.signatureBlock },
+								React.createElement(View, { style: leaseStyles.signatureLine }),
 								React.createElement(
 									Text,
-									{ style: styles.signatureLabel },
+									{ style: leaseStyles.signatureLabel },
 									`Owner: ${leaseData.ownerName}`
 								),
-								React.createElement(Text, { style: styles.signatureDate }, 'Date: _________________')
+								React.createElement(Text, { style: leaseStyles.signatureDate }, 'Date: _________________')
 							),
 							React.createElement(
 								View,
-								{ style: styles.signatureBlock },
-								React.createElement(View, { style: styles.signatureLine }),
+								{ style: leaseStyles.signatureBlock },
+								React.createElement(View, { style: leaseStyles.signatureLine }),
 								React.createElement(
 									Text,
-									{ style: styles.signatureLabel },
+									{ style: leaseStyles.signatureLabel },
 									`Tenant: ${leaseData.tenantName}`
 								),
-								React.createElement(Text, { style: styles.signatureDate }, 'Date: _________________')
+								React.createElement(Text, { style: leaseStyles.signatureDate }, 'Date: _________________')
 							)
 						)
 					)
@@ -340,9 +363,14 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			format: options?.format || 'A4'
 		})
 
+		let page: Awaited<ReturnType<
+			Awaited<ReturnType<typeof puppeteer.launch>>['newPage']
+		>> | null = null
+
 		try {
 			const browser = await this.getBrowser()
-			const page = await browser.newPage()
+			page = await browser.newPage()
+			this.activePages += 1
 
 			// Set HTML content
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
@@ -371,15 +399,64 @@ export class PDFGeneratorService implements OnModuleDestroy {
 
 			// Cleanup
 			await page.close()
+			page = null
+			this.activePages = Math.max(this.activePages - 1, 0)
 
 			this.logger.log('PDF generated successfully', {
 				sizeKB: Math.round(pdfBuffer.length / 1024)
 			})
 			return Buffer.from(pdfBuffer)
 		} catch (error) {
+			try {
+				if (page && !page.isClosed()) {
+					await page.close()
+				}
+			} catch {
+				// ignore cleanup errors
+			}
+			page = null
+			this.activePages = Math.max(this.activePages - 1, 0)
 			this.logger.error('Error generating PDF:', { error })
 			throw new InternalServerErrorException('Failed to generate PDF')
 		}
+	}
+
+	/**
+	 * Render HTML template then generate PDF.
+	 */
+	async generatePDFWithTemplate(
+		templateName: string,
+		data: Record<string, unknown>,
+		options?: {
+			format?: 'A4' | 'Letter' | 'Legal'
+			margin?: {
+				top?: string
+				right?: string
+				bottom?: string
+				left?: string
+			}
+			headerTemplate?: string
+			footerTemplate?: string
+			landscape?: boolean
+			cacheKey?: string
+			cacheTtlMs?: number
+		}
+	): Promise<Buffer> {
+		const renderOptions =
+			options?.cacheKey || options?.cacheTtlMs
+				? {
+						...(options?.cacheKey ? { cacheKey: options.cacheKey } : {}),
+						...(options?.cacheTtlMs ? { ttlMs: options.cacheTtlMs } : {})
+					}
+				: undefined
+
+		const html = await this.templateRenderer.renderTemplate(
+			templateName,
+			data,
+			renderOptions
+		)
+
+		return this.generatePDF(html, options)
 	}
 
 	/**
@@ -388,6 +465,7 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	private async getBrowser(): Promise<
 		Awaited<ReturnType<typeof puppeteer.launch>>
 	> {
+		await this.maybeRecycleBrowser()
 		if (!this.browser?.connected) {
 			this.logger.log('Launching Puppeteer browser')
 
@@ -404,11 +482,48 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					'--disable-extensions',
 					'--disable-background-timer-throttling',
 					'--disable-backgrounding-occluded-windows',
-					'--disable-renderer-backgrounding'
+					'--disable-renderer-backgrounding',
+					'--js-flags=--max-old-space-size=256'
 				]
 			})
 		}
 		return this.browser
+	}
+
+	private async maybeRecycleBrowser(): Promise<void> {
+		const now = Date.now()
+		if (now - this.lastMemoryCheckAt < this.memoryCheckIntervalMs) {
+			return
+		}
+		this.lastMemoryCheckAt = now
+
+		const usage = process.memoryUsage()
+		const heapUsage = usage.heapUsed
+		const rssUsage = usage.rss
+		const overLimit = heapUsage > this.maxPageBytes || rssUsage > this.maxBrowserBytes
+		if (!overLimit || !this.browser) {
+			return
+		}
+
+		if (this.activePages > 0) {
+			this.logger.warn('Skipping Puppeteer recycle while pages are active', {
+				activePages: this.activePages,
+				heapMB: Math.round(heapUsage / 1024 / 1024),
+				rssMB: Math.round(rssUsage / 1024 / 1024)
+			})
+			return
+		}
+
+		this.logger.warn('Recycling Puppeteer browser due to memory usage', {
+			heapMB: Math.round(heapUsage / 1024 / 1024),
+			rssMB: Math.round(rssUsage / 1024 / 1024)
+		})
+		try {
+			await this.browser.close()
+		} catch {
+			// ignore cleanup errors
+		}
+		this.browser = null
 	}
 
 	/**
@@ -422,179 +537,3 @@ export class PDFGeneratorService implements OnModuleDestroy {
 	}
 }
 
-// Styles for Invoice PDF
-const styles = StyleSheet.create({
-	page: {
-		padding: 30,
-		fontFamily: 'Helvetica',
-		fontSize: 11,
-		color: '#333333'
-	},
-	header: {
-		borderBottomWidth: 2,
-		borderBottomColor: '#007bff',
-		paddingBottom: 15,
-		marginBottom: 25
-	},
-	companyName: {
-		fontSize: 20,
-		fontWeight: 'bold',
-		color: '#007bff',
-		marginBottom: 5
-	},
-	companyAddress: {
-		fontSize: 10,
-		color: '#666666'
-	},
-	invoiceMeta: {
-		marginBottom: 25,
-		alignItems: 'flex-end'
-	},
-	invoiceTitle: {
-		fontSize: 24,
-		fontWeight: 'bold',
-		marginBottom: 10
-	},
-	metaText: {
-		fontSize: 10,
-		marginBottom: 3
-	},
-	customerInfo: {
-		marginBottom: 25
-	},
-	sectionTitle: {
-		fontSize: 13,
-		fontWeight: 'bold',
-		marginBottom: 8
-	},
-	customerName: {
-		fontSize: 11,
-		marginBottom: 3
-	},
-	customerEmail: {
-		fontSize: 10,
-		color: '#666666'
-	},
-	table: {
-		marginBottom: 25
-	},
-	tableHeader: {
-		flexDirection: 'row',
-		backgroundColor: '#f8f9fa',
-		borderBottomWidth: 1,
-		borderBottomColor: '#dddddd',
-		paddingVertical: 8,
-		paddingHorizontal: 10
-	},
-	tableColHeader: {
-		flex: 1,
-		fontSize: 10,
-		fontWeight: 'bold'
-	},
-	tableRow: {
-		flexDirection: 'row',
-		borderBottomWidth: 1,
-		borderBottomColor: '#eeeeee',
-		paddingVertical: 10,
-		paddingHorizontal: 10
-	},
-	tableCol: {
-		flex: 1,
-		fontSize: 10
-	},
-	amountCol: {
-		textAlign: 'right',
-		width: 100,
-		flex: 0
-	},
-	totalRow: {
-		flexDirection: 'row',
-		backgroundColor: '#f8f9fa',
-		paddingVertical: 12,
-		paddingHorizontal: 10,
-		marginTop: 5
-	},
-	totalLabel: {
-		flex: 1,
-		fontSize: 11,
-		fontWeight: 'bold'
-	},
-	totalAmount: {
-		fontSize: 11,
-		fontWeight: 'bold'
-	},
-	footer: {
-		marginTop: 40,
-		fontSize: 10,
-		color: '#666666',
-		textAlign: 'center'
-	},
-	// Lease Agreement Styles
-	leasePage: {
-		padding: 40,
-		fontFamily: 'Times-Roman',
-		fontSize: 11,
-		lineHeight: 1.6,
-		color: '#333333'
-	},
-	leaseTitle: {
-		textAlign: 'center',
-		fontSize: 18,
-		fontWeight: 'bold',
-		marginBottom: 25,
-		textDecoration: 'underline'
-	},
-	propertyInfo: {
-		backgroundColor: '#f8f9fa',
-		padding: 15,
-		borderLeftWidth: 4,
-		borderLeftColor: '#007bff',
-		marginVertical: 20
-	},
-	propertyLabel: {
-		fontSize: 11,
-		fontWeight: 'bold'
-	},
-	leaseSection: {
-		marginBottom: 20
-	},
-	leaseSectionTitle: {
-		fontSize: 12,
-		fontWeight: 'bold',
-		marginBottom: 8
-	},
-	leaseText: {
-		fontSize: 11,
-		marginBottom: 5
-	},
-	termItem: {
-		fontSize: 11,
-		marginBottom: 8,
-		paddingLeft: 15
-	},
-	signatures: {
-		marginTop: 40
-	},
-	signatureRow: {
-		flexDirection: 'row',
-		justifyContent: 'space-between',
-		marginTop: 20
-	},
-	signatureBlock: {
-		width: '45%'
-	},
-	signatureLine: {
-		borderBottomWidth: 1,
-		borderBottomColor: '#333333',
-		marginBottom: 8,
-		marginTop: 25
-	},
-	signatureLabel: {
-		fontSize: 10,
-		fontWeight: 'bold',
-		marginBottom: 3
-	},
-	signatureDate: {
-		fontSize: 10
-	}
-})

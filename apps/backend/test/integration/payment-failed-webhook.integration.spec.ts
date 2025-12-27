@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing'
+import { getQueueToken } from '@nestjs/bullmq'
 import type Stripe from 'stripe'
 import { WebhookProcessor } from '../../src/modules/billing/webhook-processor.service'
 import { SupabaseService } from '../../src/database/supabase.service'
@@ -8,17 +9,26 @@ import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/s
 import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
 import { ConnectWebhookHandler } from '../../src/modules/billing/handlers/connect-webhook.handler'
 import { AppLogger } from '../../src/logger/app-logger.service'
+import { SseService } from '../../src/modules/notifications/sse/sse.service'
 
 describe('payment_intent.payment_failed integration', () => {
 	let emailService: { sendPaymentFailedEmail: jest.Mock }
 	let processor: WebhookProcessor
 	let insertedTransaction: Record<string, unknown> | null
+	let emailQueue: { add: jest.Mock }
 
 	beforeEach(async () => {
 		insertedTransaction = null
 
 		const rentPayment = { id: 'rent_123', tenant_id: 'tenant_123' }
-		const rentPaymentsBuilder: any = { mode: 'select', error: null }
+		const rentPaymentsBuilder: {
+			mode: 'select' | 'update'
+			error: null
+			select: jest.Mock
+			update: jest.Mock
+			eq: jest.Mock
+			maybeSingle: jest.Mock
+		} = { mode: 'select', error: null, select: jest.fn(), update: jest.fn(), eq: jest.fn(), maybeSingle: jest.fn() }
 		rentPaymentsBuilder.select = jest.fn(() => rentPaymentsBuilder)
 		rentPaymentsBuilder.update = jest.fn(() => {
 			rentPaymentsBuilder.mode = 'update'
@@ -30,7 +40,11 @@ describe('payment_intent.payment_failed integration', () => {
 		})
 		rentPaymentsBuilder.maybeSingle = jest.fn(async () => ({ data: rentPayment, error: null }))
 
-		const tenantsBuilder: any = {}
+		const tenantsBuilder: {
+			select: jest.Mock
+			eq: jest.Mock
+			single: jest.Mock
+		} = { select: jest.fn(), eq: jest.fn(), single: jest.fn() }
 		tenantsBuilder.select = jest.fn(() => tenantsBuilder)
 		tenantsBuilder.eq = jest.fn(() => tenantsBuilder)
 		tenantsBuilder.single = jest.fn(async () => ({
@@ -38,25 +52,28 @@ describe('payment_intent.payment_failed integration', () => {
 			error: null
 		}))
 
-		const paymentTransactionsBuilder: any = {
-			insert: jest.fn(async (payload: any) => {
+		const paymentTransactionsBuilder: {
+			insert: jest.Mock
+			upsert: jest.Mock
+		} = {
+			insert: jest.fn(async (payload: Record<string, unknown>) => {
 				insertedTransaction = payload
 				return { data: null, error: null }
 			}),
-			upsert: jest.fn(async (payload: any) => {
+			upsert: jest.fn(async (payload: Record<string, unknown>) => {
 				insertedTransaction = payload
 				return { data: null, error: null }
 			})
 		}
 
-		const supabaseClient: any = {
+		const supabaseClient = {
 			from: jest.fn((table: string) => {
 				if (table === 'rent_payments') return rentPaymentsBuilder
 				if (table === 'tenants') return tenantsBuilder
 				if (table === 'payment_transactions') return paymentTransactionsBuilder
 				return {}
 			})
-		}
+		} as unknown as ReturnType<SupabaseService['getAdminClient']>
 
 		emailService = {
 			sendPaymentFailedEmail: jest.fn().mockResolvedValue(undefined)
@@ -85,12 +102,25 @@ describe('payment_intent.payment_failed integration', () => {
 			verbose: jest.fn()
 		}
 
+		const mockSseService = {
+			broadcast: jest.fn(),
+			broadcastToUser: jest.fn(),
+			broadcastToUsers: jest.fn()
+		}
+
+		const mockEmailQueue = {
+			add: jest.fn()
+		}
+		emailQueue = mockEmailQueue
+
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				WebhookProcessor,
 				PaymentWebhookHandler,
 				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
 				{ provide: EmailService, useValue: emailService },
+				{ provide: SseService, useValue: mockSseService },
+				{ provide: getQueueToken('emails'), useValue: mockEmailQueue },
 				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
 				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler },
@@ -127,12 +157,16 @@ describe('payment_intent.payment_failed integration', () => {
 			})
 		)
 
-		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledTimes(1)
-		expect(emailService.sendPaymentFailedEmail).toHaveBeenCalledWith(
+		expect(emailQueue.add).toHaveBeenCalledTimes(1)
+		expect(emailQueue.add).toHaveBeenCalledWith(
+			'payment-failed',
 			expect.objectContaining({
-				customerEmail: 'tenant@example.com',
-				attemptCount: 3,
-				isLastAttempt: true
+				type: 'payment-failed',
+				data: expect.objectContaining({
+					customerEmail: 'tenant@example.com',
+					attemptCount: 3,
+					isLastAttempt: true
+				})
 			})
 		)
 	})

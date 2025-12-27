@@ -76,6 +76,39 @@ export class EmailService {
 		}
 	}
 
+	async sendPaymentReminderEmail(data: {
+		tenantName: string
+		tenantEmail: string
+		propertyName: string
+		unitNumber?: string
+		amount: number
+		currency: string
+		dueDate: string
+		daysUntilDue: number
+		paymentUrl: string
+		autopayEnabled: boolean
+	}): Promise<void> {
+		try {
+			const emailData = this.template.preparePaymentReminderEmail(data)
+			const html = await this.renderer.renderPaymentReminderEmail(
+				emailData.templateData
+			)
+
+			await this.sender.sendEmail({
+				from: emailData.from,
+				to: emailData.to,
+				subject: emailData.subject,
+				html
+			})
+		} catch (error) {
+			this.logger.error('Failed to send payment reminder email', {
+				error: error instanceof Error ? error.message : String(error),
+				tenantEmail: data.tenantEmail
+			})
+			throw error
+		}
+	}
+
 	async sendSubscriptionCanceledEmail(data: {
 		customerEmail: string
 		subscriptionId: string

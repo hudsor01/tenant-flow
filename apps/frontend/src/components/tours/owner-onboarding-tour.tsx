@@ -17,10 +17,19 @@ import {
 	TourClose,
 	TourArrow
 } from '#components/ui/tour'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { HelpCircle } from 'lucide-react'
 import { Button } from '#components/ui/button'
+import {
+	getTourProgress,
+	resetTourProgress,
+	updateTourProgress,
+	type TourKey
+} from '#hooks/api/use-tour-progress'
 
-const TOUR_STORAGE_KEY = 'owner-onboarding-tour-completed'
+const TOUR_KEY: TourKey = 'owner-onboarding'
+const TOUR_AUTO_START_DELAY_MS = 1000
+const logger = createLogger({ component: 'OwnerOnboardingTour' })
 
 interface OwnerOnboardingTourProps {
 	/** Force show the tour even if previously completed */
@@ -50,24 +59,64 @@ export function OwnerOnboardingTour({
 	useEffect(() => {
 		if (typeof window === 'undefined') return undefined
 
-		const tourCompleted = localStorage.getItem(TOUR_STORAGE_KEY)
-		if (!tourCompleted || forceShow) {
-			// Delay tour start to allow page to render
-			const timer = setTimeout(() => setOpen(true), 1000)
-			return () => clearTimeout(timer)
+		let isActive = true
+		let timer: ReturnType<typeof setTimeout> | null = null
+
+		const loadProgress = async () => {
+			try {
+				const progress = await getTourProgress(TOUR_KEY)
+				if (!isActive) return
+
+				const isCompleted =
+					progress.status === 'completed' || progress.status === 'skipped'
+
+				if (!isCompleted || forceShow) {
+					timer = setTimeout(() => setOpen(true), TOUR_AUTO_START_DELAY_MS)
+				}
+			} catch (error) {
+				logger.error('Failed to load tour progress', { error })
+				if (!isActive) return
+				if (forceShow) {
+					timer = setTimeout(() => setOpen(true), TOUR_AUTO_START_DELAY_MS)
+				}
+			}
 		}
-		return undefined
+
+		void loadProgress()
+
+		return () => {
+			isActive = false
+			if (timer) clearTimeout(timer)
+		}
 	}, [forceShow])
 
 	const handleComplete = () => {
-		localStorage.setItem(TOUR_STORAGE_KEY, 'true')
+		void Promise.resolve(
+			updateTourProgress(TOUR_KEY, { status: 'completed' })
+		).catch(error => {
+			logger.error('Failed to persist tour completion', { error })
+		})
 		setOpen(false)
 	}
 
 	const handleSkip = () => {
-		localStorage.setItem(TOUR_STORAGE_KEY, 'true')
+		void Promise.resolve(
+			updateTourProgress(TOUR_KEY, { status: 'skipped' })
+		).catch(error => {
+			logger.error('Failed to persist tour skip', { error })
+		})
 		setOpen(false)
 	}
+
+	useEffect(() => {
+		if (!open) return
+
+		void Promise.resolve(
+			updateTourProgress(TOUR_KEY, { status: 'in_progress' })
+		).catch(error => {
+			logger.error('Failed to mark tour in progress', { error })
+		})
+	}, [open])
 
 	// Don't render anything during SSR
 	if (typeof window === 'undefined') return null
@@ -78,6 +127,17 @@ export function OwnerOnboardingTour({
 			onOpenChange={setOpen}
 			onComplete={handleComplete}
 			onSkip={handleSkip}
+			onValueChange={step => {
+				if (!open) return
+				void Promise.resolve(
+					updateTourProgress(TOUR_KEY, {
+						status: 'in_progress',
+						current_step: step
+					})
+				).catch(error => {
+					logger.error('Failed to persist tour step', { error })
+				})
+			}}
 			stepFooter={
 				<TourFooter className="flex-between w-full">
 					<TourStepCounter className="text-muted-foreground text-sm" />
@@ -185,7 +245,9 @@ export function OwnerTourTrigger() {
 	const [open, setOpen] = useState(false)
 
 	const startTour = () => {
-		localStorage.removeItem(TOUR_STORAGE_KEY)
+		void resetTourProgress(TOUR_KEY).catch(error => {
+			logger.error('Failed to reset tour progress', { error })
+		})
 		setOpen(true)
 	}
 

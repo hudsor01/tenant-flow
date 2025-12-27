@@ -10,7 +10,10 @@ import {
 } from '#lib/theme-utils'
 import type { ThemeMode } from '@repo/shared/types/domain'
 import type { PreferencesState } from '#stores/preferences-store'
-import { createPreferencesStore } from '#stores/preferences-store'
+import {
+	createPreferencesStore,
+	getStoredDataDensity
+} from '#stores/preferences-store'
 
 const PreferencesStoreContext =
 	createContext<StoreApi<PreferencesState> | null>(null)
@@ -42,7 +45,7 @@ export const PreferencesStoreProvider = ({
 	// FIXED: Use useRef instead of useState (per official Zustand Next.js docs)
 	// This ensures store is created before first render, preventing undefined errors
 	const storeRef = useRef<StoreApi<PreferencesState> | null>(null)
-	
+
 	if (storeRef.current === null) {
 		storeRef.current = createPreferencesStore({ themeMode })
 	}
@@ -51,6 +54,7 @@ export const PreferencesStoreProvider = ({
 		const store = storeRef.current
 		if (!store) return
 
+		// Handle theme initialization
 		const initialTheme = store.getState().themeMode
 		applyTheme(initialTheme)
 		persistThemeMode(initialTheme)
@@ -58,6 +62,12 @@ export const PreferencesStoreProvider = ({
 		const storedPreference = getStoredThemeMode()
 		if (storedPreference && storedPreference !== initialTheme) {
 			store.getState().setThemeMode(storedPreference)
+		}
+
+		// Handle data density initialization from localStorage
+		const storedDensity = getStoredDataDensity()
+		if (storedDensity) {
+			store.getState().setDataDensity(storedDensity)
 		}
 
 		let previousThemeMode = initialTheme
@@ -107,4 +117,14 @@ export function usePreferencesStore<T>(
 	}
 
 	return useStore(store, selector)
+}
+
+/**
+ * Hook to access data density preference
+ */
+export function useDataDensity() {
+	return usePreferencesStore(state => ({
+		dataDensity: state.dataDensity,
+		setDataDensity: state.setDataDensity
+	}))
 }

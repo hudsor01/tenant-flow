@@ -33,7 +33,7 @@ export class MetricsController extends PrometheusController {
 	@SetMetadata('isPublic', true)
 	@Throttle({ default: METRICS_THROTTLE })
 	@Get(['metrics', 'metric'])
-	async getMetrics(@Req() req: Request, @Res() res: Response) {
+	async getMetrics(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
 		const requireAuth = this.appConfigService.isPrometheusAuthRequired()
 		const expectedToken = this.appConfigService.getPrometheusBearerToken()
 

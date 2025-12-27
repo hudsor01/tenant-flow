@@ -53,14 +53,50 @@ export class LeaseExpiryNotificationListener {
 					return
 				}
 
-				// Check for existing notifications (idempotency)
-				const existingNotifications: Record<string, boolean> = {}
-				for (const notificationType of notificationTypes) {
-					existingNotifications[notificationType] =
-						await this.notificationService.existsLeaseNotification(
+				// ⚠️ N+1 QUERY ANTI-PATTERN - IDEMPOTENCY CHECK
+				// ═══════════════════════════════════════════════════════════════════════════
+				//
+				// PROBLEM: This executes N database queries for N notification types (typically 1-3).
+				// While small N here, this pattern is problematic for cron jobs processing many leases.
+				//
+				// CURRENT BEHAVIOR (O(n) queries per lease):
+				//   for each notificationType:
+				//     SELECT COUNT(*) FROM notifications WHERE user_id = ? AND type = ?
+				//   Total: N queries × M leases = N×M queries per cron run
+				//
+				// RECOMMENDED FIX (O(1) queries per lease):
+				//   const { data: existingTypes } = await client
+				//     .from('notifications')
+				//     .select('type')
+				//     .eq('user_id', event.user_id)
+				//     .in('type', notificationTypes)
+				//   const existingSet = new Set(existingTypes.map(n => n.type))
+				//   // Then filter: notificationTypes.filter(t => !existingSet.has(t))
+				//   Total: 1 query per lease regardless of notification type count
+				//
+				// IMPACT: For daily cron processing 100 leases with 3 notification types each:
+				//   Current: 300 queries
+				//   Optimized: 100 queries (3x reduction)
+				//
+				// ADDITIONAL CONCERN - RACE CONDITION:
+				//   Between checking existsLeaseNotification() and creating the notification,
+				//   another process could create the same notification. The batch approach
+				//   with a unique constraint on (user_id, type, lease_id) would be safer.
+				//
+				// ═══════════════════════════════════════════════════════════════════════════
+				// Check for existing notifications concurrently (idempotency)
+				const existenceChecks = await Promise.all(
+					notificationTypes.map(async notificationType => ({
+						type: notificationType,
+						exists: await this.notificationService.existsLeaseNotification(
 							event.user_id,
 							notificationType
 						)
+					}))
+				)
+				const existingNotifications: Record<string, boolean> = {}
+				for (const { type, exists } of existenceChecks) {
+					existingNotifications[type] = exists
 				}
 
 				// Filter out notification types that already exist

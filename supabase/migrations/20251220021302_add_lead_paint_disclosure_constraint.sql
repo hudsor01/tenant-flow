@@ -74,15 +74,24 @@ END $$;
 -- ============================================================================
 
 -- Add constraint: If property built before 1978, disclosure must be acknowledged
-ALTER TABLE public.leases
-ADD CONSTRAINT lead_paint_disclosure_required
-CHECK (
-  property_built_before_1978 = false
-  OR (property_built_before_1978 = true AND lead_paint_disclosure_acknowledged = true)
-);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'lead_paint_disclosure_required'
+  ) THEN
+    ALTER TABLE public.leases
+    ADD CONSTRAINT lead_paint_disclosure_required
+    CHECK (
+      property_built_before_1978 = false
+      OR (property_built_before_1978 = true AND lead_paint_disclosure_acknowledged = true)
+    );
 
-COMMENT ON CONSTRAINT lead_paint_disclosure_required ON public.leases IS
-'Enforces Federal lead paint disclosure requirement for pre-1978 properties (42 U.S.C. § 4852d)';
+    COMMENT ON CONSTRAINT lead_paint_disclosure_required ON public.leases IS
+    'Enforces Federal lead paint disclosure requirement for pre-1978 properties (42 U.S.C. § 4852d)';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- ADD PERFORMANCE INDEX
@@ -115,6 +124,7 @@ BEGIN
       start_date,
       end_date,
       rent_amount,
+      security_deposit,
       property_built_before_1978,
       lead_paint_disclosure_acknowledged,
       lease_status
@@ -125,6 +135,7 @@ BEGIN
       '00000000-0000-0000-0000-000000000000'::uuid,
       '2025-01-01',
       '2026-01-01',
+      1000,
       1000,
       false, -- Built after 1978
       false, -- Disclosure not acknowledged (should be OK)
@@ -155,6 +166,7 @@ BEGIN
       start_date,
       end_date,
       rent_amount,
+      security_deposit,
       property_built_before_1978,
       lead_paint_disclosure_acknowledged,
       lease_status
@@ -165,6 +177,7 @@ BEGIN
       '00000000-0000-0000-0000-000000000000'::uuid,
       '2025-01-01',
       '2026-01-01',
+      1000,
       1000,
       true,  -- Built before 1978
       false, -- Disclosure NOT acknowledged (should FAIL)
@@ -194,6 +207,7 @@ BEGIN
       start_date,
       end_date,
       rent_amount,
+      security_deposit,
       property_built_before_1978,
       lead_paint_disclosure_acknowledged,
       lease_status
@@ -204,6 +218,7 @@ BEGIN
       '00000000-0000-0000-0000-000000000000'::uuid,
       '2025-01-01',
       '2026-01-01',
+      1000,
       1000,
       true, -- Built before 1978
       true, -- Disclosure acknowledged (should PASS)
@@ -268,9 +283,12 @@ SELECT * FROM public.get_lead_paint_compliance_report();
 -- MIGRATION COMPLETE
 -- ============================================================================
 
-RAISE NOTICE '=== Lead Paint Disclosure Constraint Migration Complete ===';
-RAISE NOTICE 'Constraint: lead_paint_disclosure_required';
-RAISE NOTICE 'Index: idx_leases_lead_paint_compliance';
-RAISE NOTICE 'Function: get_lead_paint_compliance_report()';
-RAISE NOTICE '';
-RAISE WARNING 'LEGAL REVIEW REQUIRED: Verify all pre-1978 property leases have proper documentation';
+DO $$
+BEGIN
+  RAISE NOTICE '=== Lead Paint Disclosure Constraint Migration Complete ===';
+  RAISE NOTICE 'Constraint: lead_paint_disclosure_required';
+  RAISE NOTICE 'Index: idx_leases_lead_paint_compliance';
+  RAISE NOTICE 'Function: get_lead_paint_compliance_report()';
+  RAISE NOTICE '';
+  RAISE WARNING 'LEGAL REVIEW REQUIRED: Verify all pre-1978 property leases have proper documentation';
+END $$;

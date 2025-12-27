@@ -5,8 +5,10 @@ import {
 	CreditCard,
 	LogOut,
 	MoreVertical,
+	User,
 	UserCircle
 } from 'lucide-react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
@@ -105,7 +107,7 @@ export function NavUser() {
 									className="text-muted-foreground truncate text-xs"
 									data-testid="user-email"
 								>
-									{isLoading ? 'Loading…' : emailAddress}
+									{isLoading ? 'Loading...' : emailAddress}
 								</span>
 							</div>
 							<MoreVertical className="ml-auto size-4" />
@@ -138,24 +140,45 @@ export function NavUser() {
 										className="text-muted-foreground truncate text-xs"
 										data-testid="user-email-dropdown"
 									>
-										{isLoading ? 'Loading…' : emailAddress}
+										{isLoading ? 'Loading...' : emailAddress}
 									</span>
 								</div>
 							</div>
 						</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						<DropdownMenuGroup>
-							<DropdownMenuItem>
-								<UserCircle className="mr-2 size-4" />
-								Account
+							<DropdownMenuItem asChild>
+								<Link href="/profile" className="flex items-center">
+									<User className="mr-2 size-4" />
+									My Profile
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<CreditCard className="mr-2 size-4" />
-								Billing
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=account"
+									className="flex items-center"
+								>
+									<UserCircle className="mr-2 size-4" />
+									Account
+								</Link>
 							</DropdownMenuItem>
-							<DropdownMenuItem>
-								<Bell className="mr-2 size-4" />
-								Notifications
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=billing"
+									className="flex items-center"
+								>
+									<CreditCard className="mr-2 size-4" />
+									Billing
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild>
+								<Link
+									href="/dashboard/settings?tab=notifications"
+									className="flex items-center"
+								>
+									<Bell className="mr-2 size-4" />
+									Notifications
+								</Link>
 							</DropdownMenuItem>
 						</DropdownMenuGroup>
 						<DropdownMenuSeparator />
@@ -165,7 +188,7 @@ export function NavUser() {
 							disabled={isSigningOut}
 						>
 							<LogOut className="mr-2 size-4" />
-							{isSigningOut ? 'Signing out…' : 'Log out'}
+							{isSigningOut ? 'Signing out...' : 'Log out'}
 						</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>

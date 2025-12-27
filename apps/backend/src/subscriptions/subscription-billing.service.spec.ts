@@ -5,7 +5,7 @@
 
 import { BadRequestException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
-import { CACHE_MANAGER } from '@nestjs/cache-manager'
+import type { Database } from '@repo/shared/types/supabase'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SupabaseService } from '../database/supabase.service'
@@ -14,6 +14,19 @@ import { SubscriptionCacheService } from './subscription-cache.service'
 import { SubscriptionQueryService } from './subscription-query.service'
 import type { LeaseContext } from './subscription-query.service'
 import { SubscriptionBillingService } from './subscription-billing.service'
+import { RedisCacheService } from '../cache/cache.service'
+
+type LeaseRow = Database['public']['Tables']['leases']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+type UnitRow = Database['public']['Tables']['units']['Row']
+type PropertyRow = Database['public']['Tables']['properties']['Row']
+type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+
+type LeaseContextResponse = Awaited<
+	ReturnType<SubscriptionQueryService['mapLeaseContextToResponse']>
+>
 
 describe('SubscriptionBillingService', () => {
 	let service: SubscriptionBillingService
@@ -43,38 +56,38 @@ describe('SubscriptionBillingService', () => {
 		unit_id: mockUnitId,
 		created_at: '2025-01-01T00:00:00Z',
 		updated_at: '2025-01-01T00:00:00Z'
-	}
+	} as LeaseRow
 
 	const mockLeaseWithSubscription = {
 		...mockLease,
 		stripe_subscription_id: mockStripeSubscriptionId,
 		auto_pay_enabled: true
-	}
+	} as LeaseRow
 
 	const mockTenant = {
 		id: mockTenantId,
 		user_id: mockTenantUserId,
 		stripe_customer_id: 'cus_test123'
-	}
+	} as TenantRow
 
 	const mockTenantUser = {
 		id: mockTenantUserId,
 		email: 'tenant@example.com',
 		first_name: 'Test',
 		last_name: 'Tenant'
-	}
+	} as UserRow
 
 	const mockUnit = {
 		id: mockUnitId,
 		unit_number: '101',
 		property_id: mockPropertyId
-	}
+	} as UnitRow
 
 	const mockProperty = {
 		id: mockPropertyId,
 		name: 'Test Property',
 		owner_user_id: mockOwnerId
-	}
+	} as PropertyRow
 
 	const mockOwner = {
 		id: mockOwnerId,
@@ -82,33 +95,33 @@ describe('SubscriptionBillingService', () => {
 		stripe_account_id: 'acct_test123',
 		charges_enabled: true,
 		default_platform_fee_percent: 2.5
-	}
+	} as PropertyOwnerRow
 
 	const mockOwnerNotConnected = {
 		...mockOwner,
 		stripe_account_id: null,
 		charges_enabled: false
-	}
+	} as PropertyOwnerRow
 
 	const mockPaymentMethod = {
 		id: mockPaymentMethodId,
 		stripe_payment_method_id: 'pm_stripe_test',
 		tenant_id: mockTenantId,
 		stripe_customer_id: 'cus_test123'
-	}
+	} as PaymentMethodRow
 
 	const mockLeaseContext: LeaseContext = {
-		lease: mockLease as any,
-		tenant: mockTenant as any,
-		tenantUser: mockTenantUser as any,
-		unit: mockUnit as any,
-		property: mockProperty as any,
-		owner: mockOwner as any
+		lease: mockLease,
+		tenant: mockTenant,
+		tenantUser: mockTenantUser,
+		unit: mockUnit,
+		property: mockProperty,
+		owner: mockOwner
 	}
 
 	const mockLeaseContextWithSubscription: LeaseContext = {
 		...mockLeaseContext,
-		lease: mockLeaseWithSubscription as any
+		lease: mockLeaseWithSubscription
 	}
 
 	const mockStripeSubscription = {
@@ -119,7 +132,7 @@ describe('SubscriptionBillingService', () => {
 	}
 
 	// Helper to create query builder mock
-	const createQueryBuilder = (returnData: any, shouldError = false) => ({
+	const createQueryBuilder = <T>(returnData: T, shouldError = false) => ({
 		select: jest.fn().mockReturnThis(),
 		eq: jest.fn().mockReturnThis(),
 		single: jest.fn().mockResolvedValue({
@@ -159,7 +172,7 @@ describe('SubscriptionBillingService', () => {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
-		const mockCacheManager = {
+		const mockCache = {
 			get: jest.fn().mockResolvedValue(undefined),
 			set: jest.fn().mockResolvedValue(undefined),
 			del: jest.fn().mockResolvedValue(undefined)
@@ -179,7 +192,7 @@ describe('SubscriptionBillingService', () => {
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{ provide: StripeClientService, useValue: mockStripeClientService },
 				{ provide: SubscriptionQueryService, useValue: mockQueryService },
-				{ provide: CACHE_MANAGER, useValue: mockCacheManager },
+				{ provide: RedisCacheService, useValue: mockCache },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -196,15 +209,15 @@ describe('SubscriptionBillingService', () => {
 		it('should create subscription with destination charges', async () => {
 			// Setup mocks
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContext)
-			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod)
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLease))
@@ -233,11 +246,11 @@ describe('SubscriptionBillingService', () => {
 
 		it('should validate billing day between 1 and 28', async () => {
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContext)
-			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod)
 
 			// Invalid billing day (29)
 			await expect(
@@ -266,19 +279,19 @@ describe('SubscriptionBillingService', () => {
 			// Use a lease context WITHOUT subscription (stripe_subscription_id is null)
 			const leaseContextNoSub = {
 				...mockLeaseContext,
-				lease: { ...mockLease, stripe_subscription_id: null } as any
+				lease: { ...mockLease, stripe_subscription_id: null } as LeaseRow
 			}
 
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(leaseContextNoSub)
-			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod)
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLease))
@@ -301,11 +314,11 @@ describe('SubscriptionBillingService', () => {
 
 		it('should throw BadRequestException if lease already has subscription', async () => {
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContextWithSubscription)
-			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod)
 
 			await expect(
 				service.createSubscription(mockTenantUserId, {
@@ -321,15 +334,15 @@ describe('SubscriptionBillingService', () => {
 		it('should throw BadRequestException if owner not Stripe connected', async () => {
 			const contextWithUnconnectedOwner: LeaseContext = {
 				...mockLeaseContext,
-				owner: mockOwnerNotConnected as any
+				owner: mockOwnerNotConnected
 			}
 
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(contextWithUnconnectedOwner)
-			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(mockPaymentMethod)
 
 			await expect(
 				service.createSubscription(mockTenantUserId, {
@@ -349,11 +362,11 @@ describe('SubscriptionBillingService', () => {
 			}
 
 			mockQueryService.findTenantByUserId.mockResolvedValue({
-				tenant: mockTenant as any,
-				user: mockTenantUser as any
+				tenant: mockTenant,
+				user: mockTenantUser
 			})
 			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContext)
-			mockQueryService.getPaymentMethod.mockResolvedValue(wrongTenantPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(wrongTenantPaymentMethod as PaymentMethodRow)
 
 			await expect(
 				service.createSubscription(mockTenantUserId, {
@@ -374,7 +387,7 @@ describe('SubscriptionBillingService', () => {
 				id: mockLeaseId,
 				amount: 2000,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -397,7 +410,7 @@ describe('SubscriptionBillingService', () => {
 				id: mockLeaseId,
 				billingDayOfMonth: 15,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -428,12 +441,12 @@ describe('SubscriptionBillingService', () => {
 			}
 
 			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContextWithSubscription)
-			mockQueryService.getPaymentMethod.mockResolvedValue(newPaymentMethod as any)
+			mockQueryService.getPaymentMethod.mockResolvedValue(newPaymentMethod as PaymentMethodRow)
 			mockQueryService.mapLeaseContextToResponse.mockResolvedValue({
 				id: mockLeaseId,
 				paymentMethodId: newPaymentMethodId,
 				status: 'active'
-			} as any)
+			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
@@ -458,7 +471,7 @@ describe('SubscriptionBillingService', () => {
 			// Lease without stripe_subscription_id
 			const leaseContextNoSub = {
 				...mockLeaseContext,
-				lease: { ...mockLease, stripe_subscription_id: null } as any
+				lease: { ...mockLease, stripe_subscription_id: null } as LeaseRow
 			}
 			mockQueryService.loadLeaseContext.mockResolvedValue(leaseContextNoSub)
 

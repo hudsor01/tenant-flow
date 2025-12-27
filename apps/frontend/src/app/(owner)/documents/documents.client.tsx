@@ -63,6 +63,22 @@ export default function DocumentsClient() {
 					</CardContent>
 				</Card>
 
+				{/* TODO [MEDIUM PRIORITY]: Implement additional document templates beyond the lease agreement.
+				 * The documents module should be expanded to include:
+				 * 1. Property Inspection Reports - Pre/post move-in checklists with photo upload
+				 * 2. Rental Applications - Tenant application forms with background check integration
+				 * 3. Tenant Notices - Late rent notices, lease violation notices, move-out notices
+				 * 4. Maintenance Request Forms - Printable work order forms
+				 *
+				 * Implementation steps:
+				 * - Create template components in apps/frontend/src/app/(owner)/documents/templates/
+				 * - Use the existing PDF generation service (apps/backend/src/modules/pdf/) for exports
+				 * - Store templates in Supabase Storage with owner_user_id scoping
+				 * - Add template customization UI (logo upload, custom fields, state-specific clauses)
+				 * - Consider using a form builder library for dynamic template creation
+				 *
+				 * Template structure: Each template needs a preview component, edit form, and PDF export
+				 */}
 				{/* Future Templates Placeholder */}
 				<Card className="opacity-60">
 					<CardHeader>

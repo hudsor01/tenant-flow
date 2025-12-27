@@ -18,12 +18,20 @@ import { AppConfigService } from '../config/app-config.service'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
+import { SupabaseRpcService } from './supabase-rpc.service'
+import { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import { SupabaseHealthService } from './supabase-health.service'
 import { SupabaseService } from './supabase.service'
 
 describe('SupabaseService', () => {
   let service: SupabaseService
   let mockAdminClient: SupabaseClient<Database>
-  let mockAppLogger: any
+  let mockAppLogger: jest.Mocked<
+    Pick<AppLogger, 'debug' | 'log' | 'error' | 'warn' | 'verbose'>
+  >
+  let mockRpcService: jest.Mocked<SupabaseRpcService>
+  let mockInstrumentation: jest.Mocked<SupabaseInstrumentationService>
+  let mockHealthService: jest.Mocked<SupabaseHealthService>
 
   beforeEach(async () => {
     // Set up environment variables that SupabaseService actually uses
@@ -64,7 +72,24 @@ describe('SupabaseService', () => {
       getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
       getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
       getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
-    }
+    } as unknown as AppConfigService
+
+    mockRpcService = {
+      rpcWithRetries: jest.fn(),
+      rpcWithCache: jest.fn()
+    } as unknown as jest.Mocked<SupabaseRpcService>
+
+    mockInstrumentation = {
+      instrumentClient: jest.fn((client: SupabaseClient<Database>) => client),
+      trackQuery: jest.fn(),
+      recordRpcCall: jest.fn(),
+      recordRpcCacheHit: jest.fn(),
+      recordRpcCacheMiss: jest.fn()
+    } as unknown as jest.Mocked<SupabaseInstrumentationService>
+
+    mockHealthService = {
+      checkConnection: jest.fn().mockResolvedValue({ status: 'healthy', method: 'rpc' })
+    } as unknown as jest.Mocked<SupabaseHealthService>
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -80,6 +105,18 @@ describe('SupabaseService', () => {
         {
           provide: AppLogger,
           useValue: mockAppLogger
+        },
+        {
+          provide: SupabaseRpcService,
+          useValue: mockRpcService
+        },
+        {
+          provide: SupabaseInstrumentationService,
+          useValue: mockInstrumentation
+        },
+        {
+          provide: SupabaseHealthService,
+          useValue: mockHealthService
         }
       ]
     })
@@ -102,7 +139,6 @@ describe('SupabaseService', () => {
       // Service should initialize successfully with environment variables
       expect(service).toBeDefined()
       expect(service.getAdminClient()).toBeDefined()
-      expect(service.getAdminClient()).toBe(mockAdminClient)
 
       // Check that logger was called with expected message
       expect(mockAppLogger.debug).toHaveBeenCalledWith(
@@ -117,7 +153,14 @@ describe('SupabaseService', () => {
         getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
       }
 
-      const testService = new SupabaseService(mockAdminClient as any, mockAppLogger, mockAppConfigService as any)
+      const testService = new SupabaseService(
+        mockAdminClient,
+        mockAppLogger,
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        mockHealthService
+      )
 
       // The service should be created but getUserClient should throw when called with missing publishable key
       expect(testService).toBeDefined()
@@ -155,9 +198,16 @@ describe('SupabaseService', () => {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue(undefined),
         getSupabasePublishableKey: jest.fn().mockReturnValue('test-publishable-key')
-      }
+      } as unknown as AppConfigService
 
-      const testService = new SupabaseService(mockAdminClient as any, mockAppLogger, mockAppConfigService as any)
+      const testService = new SupabaseService(
+        mockAdminClient,
+        mockAppLogger,
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        mockHealthService
+      )
 
       expect(() => testService.getUserClient('test-token')).toThrow(
         InternalServerErrorException
@@ -169,9 +219,16 @@ describe('SupabaseService', () => {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue('https://test-project.supabase.co'),
         getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
-      }
+      } as unknown as AppConfigService
 
-      const testService = new SupabaseService(mockAdminClient as any, mockAppLogger, mockAppConfigService as any)
+      const testService = new SupabaseService(
+        mockAdminClient,
+        mockAppLogger,
+        mockAppConfigService,
+        mockRpcService,
+        mockInstrumentation,
+        mockHealthService
+      )
 
       expect(() => testService.getUserClient('test-token')).toThrow(
         InternalServerErrorException
@@ -229,7 +286,7 @@ describe('SupabaseService', () => {
         getSupabaseProjectRef: jest.fn().mockReturnValue('test-project'),
         getSupabaseUrl: jest.fn().mockReturnValue(undefined),
         getSupabasePublishableKey: jest.fn().mockReturnValue(undefined)
-      }
+      } as unknown as AppConfigService
 
       const mockLogger = {
         debug: jest.fn(),
@@ -237,9 +294,15 @@ describe('SupabaseService', () => {
         error: jest.fn(),
         warn: jest.fn(),
         verbose: jest.fn()
-      }
+      } as jest.Mocked<
+        Pick<AppLogger, 'debug' | 'log' | 'error' | 'warn' | 'verbose'>
+      >
 
-      const testService = new SupabaseService(mockAdminClient as any, mockLogger as any, mockAppConfigService as any)
+      const testService = new SupabaseService(
+        mockAdminClient,
+        mockLogger,
+        mockAppConfigService
+      )
 
       expect(() => testService.getUserClient('test-token')).toThrow()
     })

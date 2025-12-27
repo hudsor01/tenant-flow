@@ -1,3 +1,12 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~568 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract subscription endpoints into: `./stripe-subscription.controller.ts`
+// 2. Extract payment method endpoints into: `./stripe-payment-methods.controller.ts`
+// 3. Extract webhook endpoints into: `./stripe-webhooks.controller.ts`
+// 4. Keep StripeController as base with common routes only
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 import {
   Controller,
   Get,
@@ -24,7 +33,7 @@ import { user_id as UserId } from '../../shared/decorators/user.decorator'
 import { createThrottleDefaults } from '../../config/throttle.config'
 import { z } from 'zod'
 import type Stripe from 'stripe'
-import type { AuthenticatedRequest } from '@repo/shared/src/types/backend-domain.js'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type { Database } from '@repo/shared/src/types/supabase.js'
 import { uuidSchema } from '@repo/shared/validation/common'
 
@@ -564,5 +573,70 @@ export class StripeController {
 
       throw error
     }
+  }
+
+  /**
+   * Get user's billing invoices from Stripe
+   * Returns paginated list of invoices for the authenticated user's Stripe customer
+   */
+  @Get('invoices')
+  @Throttle({ default: STRIPE_API_THROTTLE })
+  async getInvoices(
+    @UserId() userId: string,
+    @Req() req: TenantAuthenticatedRequest
+  ): Promise<{
+    invoices: Array<{
+      id: string
+      amount_paid: number
+      status: string
+      created: number
+      invoice_pdf: string | null
+      hosted_invoice_url: string | null
+      currency: string
+      description: string | null
+    }>
+  }> {
+    // Get user token for RLS-enforced database queries
+    const userToken = this.supabase.getTokenFromRequest(req)
+    if (!userToken) {
+      throw new UnauthorizedException('Valid authentication token required')
+    }
+
+    // Get user's Stripe customer ID
+    const { data: userData, error: userError } = await this.supabase
+      .getUserClient(userToken)
+      .from('users')
+      .select('stripe_customer_id')
+      .eq('id', userId)
+      .single()
+
+    if (userError || !userData) {
+      throw new NotFoundException('User record not found')
+    }
+
+    if (!userData.stripe_customer_id) {
+      // User doesn't have a Stripe customer yet - return empty list
+      return { invoices: [] }
+    }
+
+    // Fetch invoices from Stripe
+    const stripeInvoices = await this.stripeService.listInvoices({
+      customer: userData.stripe_customer_id,
+      limit: 10
+    })
+
+    // Map to response format, coercing undefined to null for type safety
+    const invoices = stripeInvoices.map(invoice => ({
+      id: invoice.id,
+      amount_paid: invoice.amount_paid,
+      status: invoice.status ?? 'unknown',
+      created: invoice.created,
+      invoice_pdf: invoice.invoice_pdf ?? null,
+      hosted_invoice_url: invoice.hosted_invoice_url ?? null,
+      currency: invoice.currency,
+      description: invoice.description
+    }))
+
+    return { invoices }
   }
 }

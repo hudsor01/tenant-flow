@@ -1,6 +1,8 @@
 import { Logger } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { BalanceSheetService } from './balance-sheet.service'
 import * as ledgerHelpers from './financial-ledger.helpers'
@@ -11,7 +13,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 describe('BalanceSheetService', () => {
   let service: BalanceSheetService
   let supabaseService: jest.Mocked<SupabaseService>
-  let mockClient: any
+  let mockClient: SupabaseClient<Database>
 
   const createEmptyLedger = () => ({
     rentPayments: [],
@@ -32,7 +34,7 @@ describe('BalanceSheetService', () => {
           error: null
         })
       }
-    }
+    } as unknown as SupabaseClient<Database>
 
     supabaseService = {
       getAdminClient: jest.fn().mockReturnValue(mockClient),

@@ -6,6 +6,7 @@
  */
 import { Badge } from '#components/ui/badge'
 import { Separator } from '#components/ui/separator'
+import { formatCents } from '#lib/formatters/currency'
 import {
 	CheckCircle2,
 	Home,
@@ -17,6 +18,10 @@ import {
 	FileText
 } from 'lucide-react'
 import type { LeaseWizardData } from '@repo/shared/validation/lease-wizard.schemas'
+
+// Format cents to currency, returning '-' for null/undefined
+const formatCentsOrDash = (cents?: number | null) =>
+	typeof cents === 'number' ? formatCents(cents) : '-'
 
 interface ReviewStepProps {
 	data: Partial<LeaseWizardData>
@@ -31,13 +36,6 @@ export function ReviewStep({
 	unitNumber,
 	tenantName
 }: ReviewStepProps) {
-	const formatCurrency = (cents?: number | null) => {
-		if (typeof cents !== 'number') return '-'
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD'
-		}).format(cents / 100)
-	}
 
 	const formatDate = (dateStr: string | undefined) => {
 		if (!dateStr) return '-'
@@ -115,13 +113,13 @@ export function ReviewStep({
 					<div>
 						<p className="text-sm text-muted-foreground">Monthly Rent</p>
 						<p className="font-medium text-lg">
-							{formatCurrency(data.rent_amount)}
+							{formatCentsOrDash(data.rent_amount)}
 						</p>
 					</div>
 					<div>
 						<p className="text-sm text-muted-foreground">Security Deposit</p>
 						<p className="font-medium">
-							{formatCurrency(data.security_deposit)}
+							{formatCentsOrDash(data.security_deposit)}
 						</p>
 					</div>
 					<div>
@@ -143,7 +141,7 @@ export function ReviewStep({
 					<div>
 						<p className="text-sm text-muted-foreground">Late Fee</p>
 						<p className="font-medium">
-							{formatCurrency(data.late_fee_amount)}
+							{formatCentsOrDash(data.late_fee_amount)}
 						</p>
 					</div>
 				</div>
@@ -175,12 +173,12 @@ export function ReviewStep({
 									</Badge>
 									{data.pet_deposit && (
 										<span className="text-sm">
-											Deposit: {formatCurrency(data.pet_deposit)}
+											Deposit: {formatCentsOrDash(data.pet_deposit)}
 										</span>
 									)}
 									{data.pet_rent && (
 										<span className="text-sm">
-											Rent: {formatCurrency(data.pet_rent)}/mo
+											Rent: {formatCentsOrDash(data.pet_rent)}/mo
 										</span>
 									)}
 								</>

@@ -13,7 +13,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication } from '@nestjs/common'
 import { AppModule } from '../../src/app.module'
-import * as request from 'supertest'
+import request from 'supertest'
 import { createClient } from '@supabase/supabase-js'
 import * as jwt from 'jsonwebtoken'
 import { shouldSkipIntegrationTests } from '../integration/rls/setup'

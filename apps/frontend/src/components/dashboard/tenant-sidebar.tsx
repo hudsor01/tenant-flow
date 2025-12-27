@@ -4,37 +4,45 @@ import {
 	CreditCard,
 	FileText,
 	Home,
-	Receipt,
-	RefreshCw,
 	Settings,
+	Sparkles,
 	UserCircle,
 	Wrench,
+	HelpCircle,
 	type LucideIcon
 } from 'lucide-react'
-import Link from 'next/link'
-import * as React from 'react'
 
 import { NavMain } from '#components/dashboard/nav-main'
 import { NavSecondary } from '#components/dashboard/nav-secondary'
-import { Sidebar, SidebarContent } from '#components/ui/sidebar'
+import { NavUser } from '#components/dashboard/nav-user'
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem
+} from '#components/ui/sidebar'
+import { Skeleton } from '#components/ui/skeleton'
+import { useIsMounted } from '#hooks/use-is-mounted'
 
-const navigation: {
-	navMain: {
-		title: string
-		url: string
-		icon?: LucideIcon
-		children?: {
-			title: string
-			url: string
-			icon?: LucideIcon
-		}[]
-	}[]
-	navSecondary: {
-		title: string
-		url: string
-		icon: LucideIcon
-	}[]
-} = {
+/**
+ * Tenant Portal Navigation Structure
+ *
+ * Per spec:
+ * - Dashboard (Home) -> /tenant
+ * - My Profile (UserCircle) -> /tenant/profile
+ * - My Lease (FileText) -> /tenant/lease
+ * - Payments (CreditCard) -> collapsible with sub-items
+ *   - Autopay -> /tenant/payments/autopay
+ *   - Payment Methods -> /tenant/payments/methods
+ *   - Payment History -> /tenant/payments/history
+ * - Maintenance (Wrench) -> /tenant/maintenance
+ * - Documents (FileText) -> /tenant/documents
+ * - Settings -> /tenant/settings (secondary nav)
+ */
+const navigation = {
 	navMain: [
 		{
 			title: 'Dashboard',
@@ -52,28 +60,6 @@ const navigation: {
 			icon: FileText
 		},
 		{
-			title: 'Payments',
-			url: '/tenant/payments',
-			icon: CreditCard,
-			children: [
-				{
-					title: 'Autopay',
-					url: '/tenant/payments/autopay',
-					icon: RefreshCw
-				},
-				{
-					title: 'Payment Methods',
-					url: '/tenant/payments/methods',
-					icon: CreditCard
-				},
-				{
-					title: 'Payment History',
-					url: '/tenant/payments/history',
-					icon: Receipt
-				}
-			]
-		},
-		{
 			title: 'Maintenance',
 			url: '/tenant/maintenance',
 			icon: Wrench
@@ -83,56 +69,100 @@ const navigation: {
 			url: '/tenant/documents',
 			icon: FileText
 		}
-	],
+	] satisfies { title: string; url: string; icon: LucideIcon }[],
+	navCollapsible: [
+		{
+			title: 'Payments',
+			url: '/tenant/payments',
+			icon: CreditCard,
+			items: [
+				{ title: 'Autopay', url: '/tenant/payments/autopay' },
+				{ title: 'Payment Methods', url: '/tenant/payments/methods' },
+				{ title: 'Payment History', url: '/tenant/payments/history' }
+			]
+		}
+	] satisfies {
+		title: string
+		url: string
+		icon: LucideIcon
+		items: { title: string; url: string }[]
+	}[],
 	navSecondary: [
 		{
 			title: 'Settings',
 			url: '/tenant/settings',
 			icon: Settings
+		},
+		{
+			title: 'Get Help',
+			url: '/help',
+			icon: HelpCircle
 		}
-	]
+	] satisfies { title: string; url: string; icon: LucideIcon }[]
 }
 
+/**
+ * TenantSidebar - Navigation sidebar for the tenant portal
+ *
+ * Features:
+ * - Consistent with owner dashboard sidebar pattern
+ * - Collapsible Payments section with sub-navigation
+ * - Mobile responsive (Sheet on mobile via Sidebar component)
+ * - User menu in footer
+ * - Light/dark mode support
+ */
 export function TenantSidebar({
 	...props
 }: React.ComponentProps<typeof Sidebar>) {
+	const isMounted = useIsMounted()
+
 	return (
-		<>
-			{/* Card 1: Brand */}
-			<div className="rounded-xl border border-border bg-card p-4">
-				<Link href="/tenant" className="flex items-center gap-2">
-					<Home className="size-5" />
-					<span className="text-base font-semibold">TenantFlow</span>
-				</Link>
-			</div>
-
-			{/* Card 2: Search */}
-			<div className="rounded-xl border border-border bg-card p-4">
-				<div className="flex items-center gap-2 rounded-lg border border-border bg-muted px-3 py-2">
-					<span className="text-muted">Search</span>
-					<kbd className="ml-auto rounded border border-border px-2 py-0.5 text-caption">
-						⌘K
-					</kbd>
-				</div>
-			</div>
-
-			{/* Card 3: Navigation */}
-			<div className="flex-1 overflow-hidden rounded-xl border border-border bg-card">
-				<Sidebar
-					collapsible="offcanvas"
-					className="border-0 bg-transparent"
-					{...props}
-				>
-					<SidebarContent className="overflow-visible">
-						<NavMain items={navigation.navMain} />
-					</SidebarContent>
-				</Sidebar>
-			</div>
-
-			{/* Card 4: Settings */}
-			<div className="rounded-xl border border-border bg-card p-2">
-				<NavSecondary items={navigation.navSecondary} />
-			</div>
-		</>
+		<Sidebar collapsible="offcanvas" data-tour="tenant-sidebar-nav" {...props}>
+			<SidebarHeader>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton
+							asChild
+							className="data-[slot=sidebar-menu-button]:p-1.5!"
+						>
+							<a href="/tenant">
+								<Sparkles className="size-5!" />
+								<span className="text-base font-semibold">TenantFlow</span>
+							</a>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarHeader>
+			<SidebarContent>
+				{isMounted ? (
+					<>
+						<NavMain
+							items={navigation.navMain}
+							collapsibleItems={navigation.navCollapsible}
+						/>
+						<NavSecondary items={navigation.navSecondary} className="mt-auto" />
+					</>
+				) : (
+					<div className="flex flex-col gap-2 p-2">
+						{[...Array(8)].map((_, i) => (
+							<Skeleton key={i} className="h-8 w-full rounded-md" />
+						))}
+					</div>
+				)}
+			</SidebarContent>
+			<SidebarFooter>
+				{isMounted ? (
+					<NavUser />
+				) : (
+					<div className="flex items-center gap-2 p-2">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-1">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-3 w-32" />
+						</div>
+					</div>
+				)}
+			</SidebarFooter>
+		</Sidebar>
 	)
 }

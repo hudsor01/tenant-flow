@@ -1,4 +1,4 @@
 import { createZodDto } from 'nestjs-zod'
-import { propertyCreateSchema } from '@repo/shared/validation/properties'
+import { createPropertySchema } from '../property.schemas'
 
-export class CreatePropertyDto extends createZodDto(propertyCreateSchema) {}
+export class CreatePropertyDto extends createZodDto(createPropertySchema) {}

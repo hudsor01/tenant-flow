@@ -2,17 +2,33 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { PaymentMethodsService } from './payment-methods.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
+type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
+type TenantRow = Database['public']['Tables']['tenants']['Row']
+type UserRow = Database['public']['Tables']['users']['Row']
+
 
 type SupabaseQueryResult<T> = Promise<{ data: T; error: null }>
 
-const createSelectSingleMock = <T>(result: T): any => {
-	const builder: any = {}
+const createSelectSingleMock = <T>(result: T) => {
+	const builder: {
+		select: jest.Mock
+		eq: jest.Mock
+		single: jest.Mock
+		update: jest.Mock
+	} = {
+		select: jest.fn(),
+		eq: jest.fn(),
+		single: jest.fn(),
+		update: jest.fn()
+	}
 	builder.select = jest.fn(() => builder)
 	builder.eq = jest.fn(() => builder)
 	builder.single = jest.fn(
@@ -30,8 +46,8 @@ const createSelectSingleMock = <T>(result: T): any => {
 
 describe('PaymentMethodsService', () => {
 	let service: PaymentMethodsService
-	const userClient: any = { from: jest.fn() }
-	const adminClient: any = { from: jest.fn() }
+	const userClient: SupabaseClient<Database> = { from: jest.fn() } as unknown as SupabaseClient<Database>
+	const adminClient: SupabaseClient<Database> = { from: jest.fn() } as unknown as SupabaseClient<Database>
 	const mockSupabaseService = {
 		getUserClient: jest.fn(() => userClient),
 		getAdminClient: jest.fn(() => adminClient)
@@ -152,7 +168,10 @@ describe('PaymentMethodsService', () => {
 
 		beforeEach(() => {
 			resolvetenant_idSpy = jest
-				.spyOn(service as any, 'resolvetenant_id')
+				.spyOn(
+					service as unknown as { resolvetenant_id: (...args: unknown[]) => unknown },
+					'resolvetenant_id'
+				)
 				.mockResolvedValue('tenant-123')
 		})
 
@@ -161,7 +180,7 @@ describe('PaymentMethodsService', () => {
 		})
 
 		it('returns tenant payment methods', async () => {
-			const builder: any = {
+			const builder: Record<string, jest.Mock> = {
 				select: jest.fn(() => builder),
 				eq: jest.fn(() => builder),
 				order: jest.fn(() =>
@@ -188,7 +207,7 @@ describe('PaymentMethodsService', () => {
 		})
 
 		it('throws BadRequestException on database error', async () => {
-			const builder: any = {
+			const builder: Record<string, jest.Mock> = {
 				select: jest.fn(() => builder),
 				eq: jest.fn(() => builder),
 				order: jest.fn(() =>
@@ -277,7 +296,7 @@ describe('PaymentMethodsService', () => {
 
 	describe('deletePaymentMethod', () => {
 		it('detaches, deletes, and promotes next default payment method', async () => {
-			const tenantBuilder: any = {
+			const tenantBuilder: Record<string, jest.Mock> = {
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						single: jest.fn(() =>
@@ -290,7 +309,7 @@ describe('PaymentMethodsService', () => {
 				}))
 			}
 
-			const recordBuilder: any = {
+			const recordBuilder: Record<string, jest.Mock> = {
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						eq: jest.fn(() => ({
@@ -308,7 +327,7 @@ describe('PaymentMethodsService', () => {
 				}))
 			}
 
-			const deleteBuilder: any = {
+			const deleteBuilder: Record<string, jest.Mock> = {
 				delete: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						eq: jest.fn(() => Promise.resolve({ error: null }))
@@ -316,7 +335,7 @@ describe('PaymentMethodsService', () => {
 				}))
 			}
 
-			const listBuilder: any = {
+			const listBuilder: Record<string, jest.Mock> = {
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						order: jest.fn(() => ({
@@ -331,7 +350,7 @@ describe('PaymentMethodsService', () => {
 				}))
 			}
 
-			const promoteBuilder: any = {
+			const promoteBuilder: Record<string, jest.Mock> = {
 				update: jest.fn(() => ({
 					eq: jest.fn(() => Promise.resolve({ error: null }))
 				}))
@@ -370,7 +389,7 @@ describe('PaymentMethodsService', () => {
 		})
 
 		it('throws NotFoundException when payment method is missing', async () => {
-			const tenantBuilder: any = {
+			const tenantBuilder: Record<string, jest.Mock> = {
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						single: jest.fn(() =>
@@ -383,7 +402,7 @@ describe('PaymentMethodsService', () => {
 				}))
 			}
 
-			const missingBuilder: any = {
+			const missingBuilder: Record<string, jest.Mock> = {
 				select: jest.fn(() => ({
 					eq: jest.fn(() => ({
 						eq: jest.fn(() => ({

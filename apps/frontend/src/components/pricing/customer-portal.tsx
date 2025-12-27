@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~640 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract PlanCard component into: `./plan-card.tsx`
+// 2. Extract UsageStats component into: `./usage-stats.tsx`
+// 3. Extract Testimonial component into: `./testimonial-card.tsx`
+// 4. Extract portal mutation hooks into: `#hooks/api/use-customer-portal.ts`
+// 5. Keep CustomerPortalCard as orchestration component
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 'use client'
 
 import { Badge } from '#components/ui/badge'

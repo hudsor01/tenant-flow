@@ -15,12 +15,23 @@ import { SupabaseService } from './supabase.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { AppLogger } from '../logger/app-logger.service'
 import { AppConfigService } from '../config/app-config.service'
+import { SupabaseRpcService } from './supabase-rpc.service'
+import { SupabaseCacheService } from './supabase-cache.service'
+import { SupabaseInstrumentationService } from './supabase-instrumentation.service'
+import { SupabaseHealthService } from './supabase-health.service'
+import type { Database } from '@repo/shared/types/supabase'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
   let service: SupabaseService
-  let mockAdminClient: any
-  let mockLogger: any
-  let mockConfig: any
+  let mockAdminClient: SupabaseClient<Database>
+  let mockLogger: jest.Mocked<Pick<AppLogger, 'debug' | 'error' | 'warn' | 'log'>>
+  let mockConfig: jest.Mocked<
+    Pick<AppConfigService, 'getSupabaseProjectRef' | 'getSupabaseUrl' | 'getSupabasePublishableKey'>
+  >
+  let mockCacheService: jest.Mocked<SupabaseCacheService>
+  let mockInstrumentation: jest.Mocked<SupabaseInstrumentationService>
+  let mockHealthService: jest.Mocked<SupabaseHealthService>
 
   beforeEach(async () => {
     mockLogger = {
@@ -42,7 +53,32 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
       auth: {
         getUser: jest.fn()
       }
-    }
+    } as unknown as SupabaseClient<Database>
+
+    mockCacheService = {
+      isEnabled: jest.fn().mockReturnValue(false),
+      buildRpcCacheKey: jest.fn(),
+      get: jest.fn(),
+      set: jest.fn()
+    } as unknown as jest.Mocked<SupabaseCacheService>
+
+    mockInstrumentation = {
+      instrumentClient: jest.fn((client: SupabaseClient<Database>) => client),
+      trackQuery: jest.fn(),
+      recordRpcCall: jest.fn(),
+      recordRpcCacheHit: jest.fn(),
+      recordRpcCacheMiss: jest.fn()
+    } as unknown as jest.Mocked<SupabaseInstrumentationService>
+
+    mockHealthService = {
+      checkConnection: jest.fn()
+    } as unknown as jest.Mocked<SupabaseHealthService>
+
+    const rpcService = new SupabaseRpcService(
+      mockLogger as unknown as AppLogger,
+      mockCacheService as unknown as SupabaseCacheService,
+      mockInstrumentation as unknown as SupabaseInstrumentationService
+    )
 
     const module = await Test.createTestingModule({
       providers: [
@@ -58,12 +94,62 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
         {
           provide: AppConfigService,
           useValue: mockConfig
+        },
+        {
+          provide: SupabaseRpcService,
+          useValue: rpcService
+        },
+        {
+          provide: SupabaseInstrumentationService,
+          useValue: mockInstrumentation
+        },
+        {
+          provide: SupabaseHealthService,
+          useValue: mockHealthService
         }
       ]
     }).compile()
 
     service = module.get<SupabaseService>(SupabaseService)
   })
+
+  const buildModule = async (client: SupabaseClient<Database>) => {
+    const rpcService = new SupabaseRpcService(
+      mockLogger as unknown as AppLogger,
+      mockCacheService as unknown as SupabaseCacheService,
+      mockInstrumentation as unknown as SupabaseInstrumentationService
+    )
+
+    return Test.createTestingModule({
+      providers: [
+        SupabaseService,
+        {
+          provide: SUPABASE_ADMIN_CLIENT,
+          useValue: client
+        },
+        {
+          provide: AppLogger,
+          useValue: mockLogger
+        },
+        {
+          provide: AppConfigService,
+          useValue: mockConfig
+        },
+        {
+          provide: SupabaseRpcService,
+          useValue: rpcService
+        },
+        {
+          provide: SupabaseInstrumentationService,
+          useValue: mockInstrumentation
+        },
+        {
+          provide: SupabaseHealthService,
+          useValue: mockHealthService
+        }
+      ]
+    }).compile()
+  }
 
   /**
    * Property 4: Transient errors trigger retry logic
@@ -157,8 +243,8 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 
             // Verify debug logs mention the function name and error
             const debugCalls = mockLogger.debug.mock.calls
-            const retryLogs = debugCalls.filter((call: any[]) =>
-              call.some((arg: any) =>
+            const retryLogs = debugCalls.filter((call: unknown[]) =>
+              call.some((arg: unknown) =>
                 typeof arg === 'string' &&
                 (arg.includes('test_function') || arg.includes('attempt'))
               )
@@ -212,14 +298,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           }
 
           // Create a new service instance with the fresh mock
-          const module = await Test.createTestingModule({
-            providers: [
-              SupabaseService,
-              { provide: SUPABASE_ADMIN_CLIENT, useValue: freshMockClient },
-              { provide: AppLogger, useValue: mockLogger },
-              { provide: AppConfigService, useValue: mockConfig }
-            ]
-          }).compile()
+          const module = await buildModule(freshMockClient)
 
           const testService = module.get<SupabaseService>(SupabaseService)
 
@@ -291,14 +370,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           }
 
           // Create a new service instance
-          const module = await Test.createTestingModule({
-            providers: [
-              SupabaseService,
-              { provide: SUPABASE_ADMIN_CLIENT, useValue: freshMockClient },
-              { provide: AppLogger, useValue: mockLogger },
-              { provide: AppConfigService, useValue: mockConfig }
-            ]
-          }).compile()
+          const module = await buildModule(freshMockClient)
 
           const testService = module.get<SupabaseService>(SupabaseService)
 
@@ -350,14 +422,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           }
 
           // Create a new service instance
-          const module = await Test.createTestingModule({
-            providers: [
-              SupabaseService,
-              { provide: SUPABASE_ADMIN_CLIENT, useValue: freshMockClient },
-              { provide: AppLogger, useValue: mockLogger },
-              { provide: AppConfigService, useValue: mockConfig }
-            ]
-          }).compile()
+          const module = await buildModule(freshMockClient)
 
           const testService = module.get<SupabaseService>(SupabaseService)
 
@@ -417,13 +482,18 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           expect(attemptCount).toBe(1)
 
           // Property 2: Should return success data
-          expect(result.data).toEqual(data)
+          // Note: Supabase normalizes undefined to null, so we accept both
+          if (data === undefined) {
+            expect(result.data === null || result.data === undefined).toBe(true)
+          } else {
+            expect(result.data).toEqual(data)
+          }
           expect(result.error).toBeNull()
 
           // Property 3: Should not log retry attempts
           const debugCalls = mockLogger.debug.mock.calls
-          const retryLogs = debugCalls.filter((call: any[]) =>
-            call.some((arg: any) =>
+          const retryLogs = debugCalls.filter((call: unknown[]) =>
+            call.some((arg: unknown) =>
               typeof arg === 'string' && arg.includes('attempt')
             )
           )
@@ -448,7 +518,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
         }),
         async ({ errorType, failures }) => {
           // Run the same scenario twice with fresh service instances
-          const results: any[] = []
+          const results: unknown[] = []
 
           for (let run = 0; run < 2; run++) {
             let attemptCount = 0
@@ -467,14 +537,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
             }
 
             // Create a new service instance
-            const module = await Test.createTestingModule({
-              providers: [
-                SupabaseService,
-                { provide: SUPABASE_ADMIN_CLIENT, useValue: freshMockClient },
-                { provide: AppLogger, useValue: mockLogger },
-                { provide: AppConfigService, useValue: mockConfig }
-              ]
-            }).compile()
+            const module = await buildModule(freshMockClient)
 
             const testService = module.get<SupabaseService>(SupabaseService)
 
@@ -543,14 +606,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
           }
 
           // Create a new service instance
-          const module = await Test.createTestingModule({
-            providers: [
-              SupabaseService,
-              { provide: SUPABASE_ADMIN_CLIENT, useValue: freshMockClient },
-              { provide: AppLogger, useValue: mockLogger },
-              { provide: AppConfigService, useValue: mockConfig }
-            ]
-          }).compile()
+          const module = await buildModule(freshMockClient)
 
           const testService = module.get<SupabaseService>(SupabaseService)
 

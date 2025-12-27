@@ -2,9 +2,6 @@
  * Security-related types shared between frontend and backend
  */
 
-// Import CSPViolationReport from base-types to avoid circular dependency with domain.ts
-export type { CSPViolationReport, CSPReportBody } from './base-types.js'
-
 // User user_types are consolidated in auth.ts - import from there
 // This ensures single source of truth and prevents duplication
 export { USER_user_type } from '../constants/auth.js'
@@ -155,40 +152,6 @@ export interface SecurityValidationResult<
 }
 
 /**
- * Compliance monitoring status and metrics
- */
-export interface ComplianceStatus {
-	overallScore: number
-	fairHousingStatus?: {
-		riskLevel?: SecurityEventSeverity
-		score?: number
-		violations?: number
-	}
-	dataRetentionStatus?: {
-		overdueRecords?: number
-		score?: number
-		riskLevel?: SecurityEventSeverity
-	}
-	securityStatus?: {
-		criticalEvents?: number
-		score?: number
-		riskLevel?: SecurityEventSeverity
-	}
-	recentAlerts?: SecurityEvent[]
-	recommendations?: string[]
-}
-
-/**
- * Security header configuration for CSP and other security policies
- */
-export interface SecurityHeaderConfig {
-	contentSecurityPolicy: CSPDirectives
-	permissionsPolicy: PermissionsPolicyDirectives
-	strictTransportSecurity: HSTSConfig
-	crossOriginPolicies: CrossOriginConfig
-}
-
-/**
  * Content Security Policy directives with type safety
  */
 export interface CSPDirectives {
@@ -206,101 +169,6 @@ export interface CSPDirectives {
 	'frame-ancestors': string[]
 	'upgrade-insecure-requests'?: boolean
 	'block-all-mixed-content'?: boolean
-}
-
-/**
- * Permissions Policy configuration
- */
-export interface PermissionsPolicyDirectives {
-	camera: string
-	microphone: string
-	geolocation: string
-	gyroscope: string
-	magnetometer: string
-	payment: string
-	usb: string
-	'interest-cohort': string
-	'browsing-topics': string
-	'attribution-reporting': string
-	'trust-token-redemption': string
-	fullscreen: string
-	'picture-in-picture': string
-	accelerometer: string
-	'ambient-light-sensor': string
-	autoplay: string
-	'clipboard-read': string
-	'clipboard-write': string
-	'display-capture': string
-	'document-domain': string
-	'encrypted-media': string
-	'execution-while-not-rendered': string
-	'execution-while-out-of-viewport': string
-	gamepad: string
-	hid: string
-	'idle-detection': string
-	'local-fonts': string
-	midi: string
-	'navigation-override': string
-	'otp-credentials': string
-	'publickey-credentials-create': string
-	'publickey-credentials-get': string
-	'screen-wake-lock': string
-	serial: string
-	'speaker-selection': string
-	'storage-access': string
-	'web-share': string
-	'window-management': string
-	'xr-spatial-tracking': string
-}
-
-/**
- * HTTP Strict Transport Security configuration
- */
-export interface HSTSConfig {
-	maxAge: number
-	includeSubDomains: boolean
-	preload: boolean
-}
-
-/**
- * Cross-origin policy configuration
- */
-export interface CrossOriginConfig {
-	embedderPolicy: 'unsafe-none' | 'require-corp'
-	openerPolicy: 'unsafe-none' | 'same-origin-allow-popups' | 'same-origin'
-	resourcePolicy: 'same-site' | 'same-origin' | 'cross-origin'
-}
-
-/**
- * CSP nonce management types
- */
-export interface CSPNonceData {
-	nonce: string
-	expires: number
-	sessionId?: string
-}
-
-/**
- * Security data classification types
- */
-export type DataClassificationType =
-	| 'PII' // Personally identifiable information
-	| 'PHI' // Protected health information
-	| 'FINANCIAL' // Financial/payment data
-	| 'CREDENTIALS' // Authentication credentials
-	| 'LEGAL' // Legal documents/contracts
-	| 'OPERATIONAL' // Business operational data
-	| 'PUBLIC' // Public information
-
-/**
- * Type-safe user metadata for authentication
- */
-export interface SecureAppMetadata {
-	provider?: string
-	providers?: string[]
-	user_type?: string
-	organizationId?: string
-	permissions?: string[]
 }
 
 /**

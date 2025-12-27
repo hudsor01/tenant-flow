@@ -85,11 +85,42 @@ export class SubscriptionRetryService {
 
     this.logger.log(`Retrying ${leases.length} failed subscription(s)`)
 
-    for (const lease of leases) {
-      await this.retrySubscriptionCreation(client, lease)
+    // ⚠️ CONCURRENT PROCESSING WITH PARTIAL FAILURE HANDLING
+    // ═══════════════════════════════════════════════════════════════════════════
+    //
+    // PATTERN: Process all retries concurrently using Promise.allSettled()
+    //
+    // RATIONALE:
+    //   - Each retry is independent (no shared state between leases)
+    //   - Query already limits to 10 leases max
+    //   - Individual failures logged within retrySubscriptionCreation()
+    //   - Stripe rate limit: 100 req/sec (test), 10,000 req/sec (prod)
+    //   - 10 concurrent requests is well within safe limits
+    //
+    // ═══════════════════════════════════════════════════════════════════════════
+    const retryResults = await Promise.allSettled(
+      leases.map(lease => this.retrySubscriptionCreation(client, lease))
+    )
+
+    // Log any unexpected errors (retrySubscriptionCreation handles its own errors,
+    // but Promise rejection would indicate an unhandled exception)
+    const unexpectedFailures = retryResults.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected'
+    )
+
+    if (unexpectedFailures.length > 0) {
+      this.logger.error('Unexpected failures during subscription retry batch', {
+        failureCount: unexpectedFailures.length,
+        errors: unexpectedFailures.map(f =>
+          f.reason instanceof Error ? f.reason.message : String(f.reason)
+        )
+      })
     }
 
-    this.logger.log('Subscription retry job completed')
+    this.logger.log('Subscription retry job completed', {
+      total: leases.length,
+      unexpectedFailures: unexpectedFailures.length
+    })
   }
 
   /**

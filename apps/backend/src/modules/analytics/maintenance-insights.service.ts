@@ -36,7 +36,10 @@ export class MaintenanceInsightsService {
 		payload: Record<string, unknown>
 	): Promise<T | null> {
 		try {
-			const result = await this.supabase.rpcWithRetries(functionName, payload)
+			const result = await this.supabase.rpcWithCache(functionName, payload, {
+				cacheTier: 'short',
+				source: 'service'
+			})
 			// rpcWithRetries returns either the raw client result ({ data, error }) or
 			// an object shaped like { data: null, error: { message }, attempts } on final failure.
 			const res = result as {

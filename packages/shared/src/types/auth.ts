@@ -6,7 +6,6 @@
 // Import constants from the single source of truth
 import type { USER_user_type } from '../constants/auth.js'
 import type { Database } from './supabase.js'
-import type { LoginFormData, SignupFormData, FormState } from './forms.js'
 import type { AuthError as BaseAuthError } from './errors.js'
 
 // Use Supabase User type directly - matches what we get from auth
@@ -16,8 +15,6 @@ import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 export type { User as SupabaseAuthUser } from '@supabase/supabase-js'
 // Canonical backend/frontend auth user alias
 export type AuthUser = SupabaseAuthUser
-// Legacy alias for backward compatibility
-export type { SupabaseAuthUser as authUser }
 
 // User role type derived from constants
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
@@ -99,11 +96,6 @@ export type AuthError = BaseAuthError
 import type { Session } from '@supabase/supabase-js'
 export type AuthSession = Session
 
-export interface SignupCredentials {
-	email: string
-	password: string
-	name: string
-}
 
 export interface SupabaseJwtPayload {
 	sub: string // Supabase user ID
@@ -139,11 +131,6 @@ export interface JwtPayload {
 	exp?: number
 }
 
-// Google OAuth user type - extends Supabase's User with Google-specific fields
-export interface GoogleOAuthUser extends SupabaseAuthUser {
-	name?: string
-	picture?: string
-}
 
 // Backend auth request/response schemas - consolidated in api-contracts.ts
 // See api-contracts.ts for: LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput
@@ -166,20 +153,6 @@ export interface RequestWithUser {
 	method?: string
 }
 
-// MIGRATED from apps/backend/src/shared/guards/throttler-proxy.guard.ts
-export interface ThrottlerRequest {
-	headers: Record<string, string | string[] | undefined>
-	ip?: string
-	socket?: { remoteAddress?: string }
-}
-
-export interface AuthContextType {
-	user: SupabaseAuthUser | null
-	loading: boolean
-	signIn: (credentials: LoginCredentials) => Promise<void>
-	signOut: () => Promise<void>
-	signUp: (credentials: SignupCredentials) => Promise<void>
-}
 
 // Permission and role enums (consolidated from security.ts)
 
@@ -206,62 +179,3 @@ export const Permission = {
 
 export type PermissionValue = (typeof Permission)[keyof typeof Permission]
 
-// Security validation and context types
-export interface SecurityValidationResult {
-	isValid: boolean
-	errors: string[]
-	warnings: string[]
-}
-
-export interface AuthContext {
-	user: SupabaseAuthUser | null
-	permissions: PermissionValue[]
-	roles: UserRole[]
-}
-
-// Form state type alias for auth forms
-export type AuthFormState = FormState<SupabaseAuthUser>
-
-// FRONTEND AUTH STORE STATE (moved from auth-store.ts)
-
-// Frontend auth store state for Zustand (compatible with Supabase types)
-export interface AuthState {
-	user: SupabaseAuthUser | null // Support both Supabase User and SupabaseAuthUser
-	session: AuthSession | null // Use AuthSession for Supabase compatibility
-	isAuthenticated: boolean
-	isLoading: boolean
-	setUser: (user: SupabaseAuthUser | null) => void
-	setSession: (session: AuthSession | null) => void
-	setLoading: (loading: boolean) => void
-	signOut: () => void
-}
-
-// AUTH FORM PROPS TYPES
-
-export interface AuthFormProps {
-	onSubmit?: (data: LoginFormData | SignupFormData) => Promise<void> | void
-	onForgotPassword?: () => void
-	onSignUp?: () => void
-	onLogin?: () => void
-	onGoogleLogin?: () => Promise<void> | void
-	onGoogleSignUp?: () => Promise<void> | void
-	isLoading?: boolean
-	isGoogleLoading?: boolean
-	className?: string
-}
-
-// LOGIN LAYOUT PROPS - UI component configuration
-export interface LoginLayoutProps {
-	mode?: 'login' | 'signup'
-	imageOnRight?: boolean
-	imageUrl?: string
-	authProps?: AuthFormProps
-	title?: string
-	subtitle?: string
-	content?: {
-		heading: string
-		description: string
-		stats: Array<{ value: string; label: string }>
-	}
-	className?: string
-}

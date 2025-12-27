@@ -35,10 +35,10 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 	let mockLeaseSubscriptionService: jest.Mocked<
 		Partial<LeaseSubscriptionService>
 	>
-	let mockLeasesService: any
-	let mockPdfMapper: any
-	let mockPdfGenerator: any
-	let mockPdfStorage: any
+	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
+	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
+	let mockPdfStorage: jest.Mocked<PdfStorageService>
 
 	// Track what data was updated in the lease
 	let capturedLeaseUpdate: Record<string, unknown> | null = null

@@ -29,6 +29,8 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem
 } from '#components/ui/sidebar'
+import { Skeleton } from '#components/ui/skeleton'
+import { useIsMounted } from '#hooks/use-is-mounted'
 
 const data = {
 	navMain: [
@@ -133,6 +135,8 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const isMounted = useIsMounted()
+
 	return (
 		<Sidebar collapsible="offcanvas" data-tour="sidebar-nav" {...props}>
 			<SidebarHeader>
@@ -151,12 +155,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				</SidebarMenu>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={data.navMain} collapsibleItems={data.navCollapsible} />
-				<NavDocuments items={data.documents} />
-				<NavSecondary items={data.navSecondary} className="mt-auto" />
+				{isMounted ? (
+					<>
+						<NavMain items={data.navMain} collapsibleItems={data.navCollapsible} />
+						<NavDocuments items={data.documents} />
+						<NavSecondary items={data.navSecondary} className="mt-auto" />
+					</>
+				) : (
+					<div className="flex flex-col gap-2 p-2">
+						{[...Array(8)].map((_, i) => (
+							<Skeleton key={i} className="h-8 w-full rounded-md" />
+						))}
+					</div>
+				)}
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser />
+				{isMounted ? (
+					<NavUser />
+				) : (
+					<div className="flex items-center gap-2 p-2">
+						<Skeleton className="size-10 rounded-lg" />
+						<div className="flex-1 space-y-1">
+							<Skeleton className="h-4 w-24" />
+							<Skeleton className="h-3 w-32" />
+						</div>
+					</div>
+				)}
 			</SidebarFooter>
 		</Sidebar>
 	)

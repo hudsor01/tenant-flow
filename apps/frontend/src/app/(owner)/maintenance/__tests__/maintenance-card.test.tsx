@@ -2,6 +2,12 @@
  * MaintenanceCard Component Tests
  * Tests maintenance request card display, priority badges, and navigation
  *
+ * NOTE: The MaintenanceCard component displays:
+ * - Title (or description as fallback) in the card header
+ * - Property/unit combined as "Property Name · Unit X"
+ * - Aging display (Today, X days) instead of formatted date
+ * - Entire card wrapped in Link (no separate View/Edit buttons)
+ *
  * @jest-environment jsdom
  */
 
@@ -14,35 +20,52 @@ describe('MaintenanceCard', () => {
 	const defaultRequest = DEFAULT_MAINTENANCE_REQUEST
 
 	describe('Display and Rendering', () => {
-		test('renders maintenance request description', () => {
+		test('renders maintenance request title when present', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
-			// Assert
+			// Assert - component shows title ?? description
+			expect(screen.getByText(defaultRequest.title)).toBeInTheDocument()
+		})
+
+		test('renders description when title is not present', () => {
+			// Arrange
+			// Use null since component uses ?? (nullish coalescing)
+			// Cast to unknown first since title is normally required
+			const requestWithoutTitle = {
+				...defaultRequest,
+				title: null as unknown as string
+			}
+
+			// Act
+			render(<MaintenanceCard request={requestWithoutTitle} />)
+
+			// Assert - falls back to description
 			expect(screen.getByText(defaultRequest.description)).toBeInTheDocument()
 		})
 
-		test('displays property and unit information', () => {
+		test('displays property and unit information combined', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
-			// Assert
-			expect(screen.getByText('Test Property')).toBeInTheDocument()
-			expect(screen.getByText('Unit Apt 101')).toBeInTheDocument()
+			// Assert - property and unit are combined with " · Unit " separator
+			// The actual format is: "Test Property · Unit Apt 101"
+			const locationText = screen.getByText(/Test Property.*Unit.*Apt 101/i)
+			expect(locationText).toBeInTheDocument()
 		})
 
-		test('displays created date in formatted style', () => {
-			// Act
-			render(<MaintenanceCard request={defaultRequest} />)
+		test('displays aging indicator instead of formatted date', () => {
+			// Arrange - use a recent date so aging shows "Today" or "X days"
+			const recentRequest = {
+				...defaultRequest,
+				created_at: new Date().toISOString()
+			}
 
-			// Assert
-			const formattedDate = new Date(
-				defaultRequest.created_at
-			).toLocaleDateString('en-US', {
-				month: 'short',
-				day: 'numeric'
-			})
-			expect(screen.getByText(formattedDate)).toBeInTheDocument()
+			// Act
+			render(<MaintenanceCard request={recentRequest} />)
+
+			// Assert - aging display shows "Today" for same-day requests
+			expect(screen.getByText('Today')).toBeInTheDocument()
 		})
 
 		test('renders without property when property is null', () => {
@@ -50,35 +73,34 @@ describe('MaintenanceCard', () => {
 			const requestWithoutProperty = {
 				...defaultRequest,
 				property: null,
-				unit: null
+				unit: null,
+				unit_id: null as unknown as string
 			}
 
 			// Act
 			render(<MaintenanceCard request={requestWithoutProperty} />)
 
-			// Assert
-			expect(screen.queryByText('Test Property')).not.toBeInTheDocument()
+			// Assert - shows "Unknown Property" as fallback (no unit suffix when unit_id is null)
+			expect(screen.getByText('Unknown Property')).toBeInTheDocument()
 		})
 
-		test('renders without description when description is null', () => {
+		test('renders with title even when description is empty', () => {
 			// Arrange
-			const requestWithoutDescription = {
+			const requestWithEmptyDescription = {
 				...defaultRequest,
-				description: '' // Use empty string instead of null for type safety
+				description: ''
 			}
 
 			// Act
-			render(<MaintenanceCard request={requestWithoutDescription} />)
+			render(<MaintenanceCard request={requestWithEmptyDescription} />)
 
-			// Assert
-			expect(
-				screen.queryByText('Kitchen faucet has been dripping for the past week')
-			).not.toBeInTheDocument()
+			// Assert - still shows title
+			expect(screen.getByText(defaultRequest.title)).toBeInTheDocument()
 		})
 	})
 
 	describe('Priority Badges', () => {
-		test('displays urgent priority with destructive variant', () => {
+		test('displays urgent priority with destructive styling', () => {
 			// Arrange
 			const emergencyRequest = {
 				...defaultRequest,
@@ -92,7 +114,7 @@ describe('MaintenanceCard', () => {
 			expect(screen.getByText('urgent')).toBeInTheDocument()
 		})
 
-		test('displays high priority with destructive variant', () => {
+		test('displays high priority', () => {
 			// Arrange
 			const highPriorityRequest = {
 				...defaultRequest,
@@ -106,7 +128,7 @@ describe('MaintenanceCard', () => {
 			expect(screen.getByText('high')).toBeInTheDocument()
 		})
 
-		test('displays medium priority with secondary variant', () => {
+		test('displays medium priority', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
@@ -114,7 +136,7 @@ describe('MaintenanceCard', () => {
 			expect(screen.getByText('medium')).toBeInTheDocument()
 		})
 
-		test('displays low priority with outline variant', () => {
+		test('displays low priority', () => {
 			// Arrange
 			const lowPriorityRequest = {
 				...defaultRequest,
@@ -129,29 +151,35 @@ describe('MaintenanceCard', () => {
 		})
 	})
 
-	describe('Actions and Navigation', () => {
-		test('has view button that links to detail page', () => {
+	describe('Navigation', () => {
+		test('card is wrapped in link to detail page', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
-			// Assert
-			const viewButton = screen.getByRole('link', { name: /View/i })
-			expect(viewButton).toHaveAttribute(
-				'href',
-				'/maintenance/maintenance-1'
-			)
+			// Assert - entire card is wrapped in a Link
+			const link = screen.getByRole('link')
+			expect(link).toHaveAttribute('href', '/maintenance/maintenance-1')
 		})
 
-		test('has edit button that links to edit page', () => {
+		test('uses onView callback when provided instead of Link', () => {
+			// Arrange
+			const onView = vi.fn()
+
+			// Act
+			render(<MaintenanceCard request={defaultRequest} onView={onView} />)
+
+			// Assert - card is now a button, not a link
+			const button = screen.getByRole('button', { name: /plumbing issue/i })
+			expect(button).toBeInTheDocument()
+		})
+
+		test('has more options button', () => {
 			// Act
 			render(<MaintenanceCard request={defaultRequest} />)
 
-			// Assert
-			const editButton = screen.getByRole('link', { name: /Edit/i })
-			expect(editButton).toHaveAttribute(
-				'href',
-				'/maintenance/maintenance-1/edit'
-			)
+			// Assert - "More options" button exists
+			const moreButton = screen.getByRole('button', { name: /more options/i })
+			expect(moreButton).toBeInTheDocument()
 		})
 	})
 
@@ -174,10 +202,66 @@ describe('MaintenanceCard', () => {
 			)
 
 			// Assert - the card wrapper should not have opacity-50 class
-			const cardElement = container.querySelector('[class*="card"]')
+			const cardElement = container.querySelector('[class*="bg-card"]')
 			expect(cardElement).toBeInTheDocument()
 			const classes = cardElement?.className || ''
 			expect(classes).not.toMatch(/opacity-50/)
+		})
+	})
+
+	describe('Urgent Requests', () => {
+		test('shows BorderBeam for urgent priority', () => {
+			// Arrange
+			const urgentRequest = {
+				...defaultRequest,
+				priority: 'urgent' as const
+			}
+
+			// Act
+			const { container } = render(<MaintenanceCard request={urgentRequest} />)
+
+			// Assert - BorderBeam is rendered for urgent requests
+			const borderBeam = container.querySelector('[class*="border-beam"]')
+			expect(borderBeam).toBeInTheDocument()
+		})
+
+		test('does not show BorderBeam for non-urgent priority', () => {
+			// Act
+			const { container } = render(<MaintenanceCard request={defaultRequest} />)
+
+			// Assert - BorderBeam is not rendered for medium priority
+			const borderBeam = container.querySelector('[class*="border-beam"]')
+			expect(borderBeam).not.toBeInTheDocument()
+		})
+	})
+
+	describe('Tenant Display', () => {
+		test('shows tenant name when tenant is provided', () => {
+			// Arrange
+			const requestWithTenant = {
+				...defaultRequest,
+				tenant: { name: 'John Doe' }
+			}
+
+			// Act
+			render(<MaintenanceCard request={requestWithTenant} />)
+
+			// Assert
+			expect(screen.getByText('John Doe')).toBeInTheDocument()
+		})
+
+		test('does not show tenant section when tenant is not provided', () => {
+			// Arrange - default request has no tenant
+			const requestWithoutTenant = {
+				...defaultRequest,
+				tenant: null
+			}
+
+			// Act
+			render(<MaintenanceCard request={requestWithoutTenant} />)
+
+			// Assert - no tenant section
+			expect(screen.queryByText('John Doe')).not.toBeInTheDocument()
 		})
 	})
 })

@@ -308,6 +308,7 @@ export interface SupabaseError {
 export interface StripeSchemaQueryResult<T> {
   data: T | null
   error: SupabaseError | null
+  count?: number | null
 }
 
 /**
@@ -351,7 +352,10 @@ export type StripeTableRowType<T extends StripeSchemaTable> =
  * Simplified query builder interface for stripe schema
  */
 export interface StripeTableQueryBuilder<T> {
-  select(columns?: string): StripeTableQueryBuilder<T>
+  select(
+    columns?: string,
+    options?: { count?: 'exact' | 'planned' | 'estimated'; head?: boolean }
+  ): StripeTableQueryBuilder<T>
   eq(column: string, value: string | number | boolean): StripeTableQueryBuilder<T>
   contains(column: string, value: Record<string, unknown>): StripeTableQueryBuilder<T>
   order(column: string, options?: { ascending?: boolean }): StripeTableQueryBuilder<T>
@@ -365,7 +369,7 @@ export interface StripeTableQueryBuilder<T> {
 
 /**
  * Helper to cast Supabase client to stripe schema client
- * Use this instead of `as any` for type-safe stripe schema access
+ * Use this instead of unsafe casts for type-safe stripe schema access
  *
  * @example
  * const stripeClient = asStripeSchemaClient(client)
