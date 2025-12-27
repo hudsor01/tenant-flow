@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import type {
 	MaintenanceAnalyticsPageResponse,
 	MaintenanceMetricSummary
-} from '@repo/shared/types/maintenance-analytics'
+} from '@repo/shared/types/analytics'
 import {
 	buildMaintenanceAnalyticsPageResponse,
 	mapMaintenanceCategoryBreakdown,

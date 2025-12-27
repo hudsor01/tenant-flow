@@ -19,7 +19,7 @@ import type {
 	MetricTrend,
 	TimeSeriesDataPoint,
 	DashboardTimeSeriesOptions
-} from '@repo/shared/types/dashboard-repository'
+} from '@repo/shared/types/stats'
 
 /**
  * Hierarchical query keys for owner dashboard

@@ -1,13 +1,11 @@
 import { Injectable } from '@nestjs/common'
 import type {
 	LeaseFinancialInsight,
-	LeaseFinancialSummary
-} from '@repo/shared/types/financial-analytics'
-import type {
+	LeaseFinancialSummary,
 	LeaseAnalyticsPageResponse,
 	LeaseLifecyclePoint,
 	LeaseStatusBreakdown
-} from '@repo/shared/types/lease-analytics'
+} from '@repo/shared/types/analytics'
 import {
 	buildLeaseAnalyticsPageResponse,
 	mapLeaseLifecycle,

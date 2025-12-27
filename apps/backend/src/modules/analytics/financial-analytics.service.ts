@@ -5,7 +5,7 @@ import type {
 	FinancialOverviewSnapshot,
 	LeaseFinancialSummary,
 	NetOperatingIncomeByProperty
-} from '@repo/shared/types/financial-analytics'
+} from '@repo/shared/types/analytics'
 import {
 	buildFinancialAnalyticsPageResponse,
 	mapBillingInsights,

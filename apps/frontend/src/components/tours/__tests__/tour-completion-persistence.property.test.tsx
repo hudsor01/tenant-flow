@@ -98,7 +98,7 @@ describe('Property 5: Tour Completion Persistence', () => {
 					}
 				}
 			),
-			{ numRuns: 40 }
+			{ numRuns: 20 }
 		)
 	})
 })

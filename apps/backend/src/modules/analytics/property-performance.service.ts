@@ -7,7 +7,7 @@ import type {
 	PropertyUnitDetail,
 	UnitStatisticEntry,
 	VisitorAnalyticsResponse
-} from '@repo/shared/types/property-analytics'
+} from '@repo/shared/types/analytics'
 import {
 	buildPropertyPerformancePageResponse,
 	mapVisitorAnalytics

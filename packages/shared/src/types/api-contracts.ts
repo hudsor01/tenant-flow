@@ -599,5 +599,27 @@ export type UpdatePropertyRequest = UpdatePropertyInput
 export type CreateMaintenanceRequest = CreateMaintenanceRequestInput
 export type UpdateMaintenanceRequest = UpdateMaintenanceRequestInput
 
+// Bulk Import types (merged from bulk-import.ts)
+export type ImportStep = 'upload' | 'validate' | 'confirm'
+
+export interface BulkImportResult {
+	success: boolean
+	imported: number
+	failed: number
+	errors: Array<{ row: number; error: string }>
+}
+
+export interface ParsedRow {
+	row: number
+	data: Record<string, string>
+	errors: string[]
+}
+
+export interface BulkImportStepperProps {
+	currentStep: ImportStep
+	onStepChange: (step: ImportStep) => void
+	modalId: string
+}
+
 // Constants
 export const DEFAULT_RETRY_ATTEMPTS = 3

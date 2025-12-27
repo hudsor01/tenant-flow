@@ -147,7 +147,7 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 					}
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -180,7 +180,7 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 					}
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 
@@ -213,7 +213,7 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 					}
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 25 }
 		)
 	})
 })

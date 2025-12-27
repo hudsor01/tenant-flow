@@ -9,7 +9,7 @@ import {
 } from '#components/ui/chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import type { TimeSeriesDataPoint } from '@repo/shared/types/dashboard-repository'
+import type { TimeSeriesDataPoint } from '@repo/shared/types/stats'
 
 const chartConfig = {
 	revenue: {

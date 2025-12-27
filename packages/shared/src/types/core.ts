@@ -212,7 +212,7 @@ export interface FinancialOverviewResponse {
 	year: number
 }
 
-export type { ExpenseSummaryResponse } from './financial-analytics.js'
+export type { ExpenseSummaryResponse } from './analytics.js'
 
 export interface LeaseStatsResponse {
 	totalLeases: number
@@ -473,3 +473,17 @@ export type PropertyWithVersion = Property & { version?: number }
 export type UnitWithVersion = Unit & { version?: number }
 export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & { version?: number }
 export type PaymentMethodResponseWithVersion = PaymentMethodResponse & { version?: number }
+
+// ============================================================================
+// SEARCH TYPES
+// ============================================================================
+
+export type SearchResultType = 'properties' | 'tenants' | 'units' | 'leases'
+
+export interface SearchResult {
+	id: string
+	type: SearchResultType
+	name: string
+	description?: string
+	metadata?: Record<string, unknown>
+}

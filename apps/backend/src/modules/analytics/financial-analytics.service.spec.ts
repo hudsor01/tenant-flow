@@ -7,7 +7,7 @@ import { SilentLogger } from '../../__test__/silent-logger'
 import type {
 	FinancialMetricSummary,
 	NetOperatingIncomeByProperty
-} from '@repo/shared/types/financial-analytics'
+} from '@repo/shared/types/analytics'
 
 describe('FinancialAnalyticsService', () => {
 	let service: FinancialAnalyticsService

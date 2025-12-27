@@ -29,7 +29,7 @@ import type {
 	MetricTrend,
 	TimeSeriesDataPoint,
 	DashboardTimeSeriesOptions
-} from '@repo/shared/types/dashboard-repository'
+} from '@repo/shared/types/stats'
 import { ownerDashboardKeys, ownerDashboardQueries } from './queries/owner-dashboard-queries'
 
 // ============================================================================

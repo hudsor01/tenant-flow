@@ -19,7 +19,7 @@
  */
 
 import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common'
-import type { SearchResult } from '@repo/shared/types/search'
+import type { SearchResult } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { USER_user_type } from '@repo/shared/constants/auth'
 import { SupabaseService } from '../../database/supabase.service'
