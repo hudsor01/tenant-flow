@@ -98,25 +98,34 @@ export class RedisCacheService implements OnModuleDestroy {
 		const cacheKey = this.buildKey(key)
 
 		if (this.redis) {
-			const cached = await this.redis.get(cacheKey)
-			if (!cached) {
-				this.stats.misses++
-				return null
-			}
 			try {
-				this.stats.hits++
-				return JSON.parse(cached) as T
+				const cached = await this.redis.get(cacheKey)
+				if (!cached) {
+					this.stats.misses++
+					return null
+				}
+				try {
+					this.stats.hits++
+					return JSON.parse(cached) as T
+				} catch (parseError) {
+					this.stats.misses++
+					this.logger.warn('Failed to parse cached value; evicting key', {
+						key,
+						error: parseError instanceof Error ? parseError.message : String(parseError)
+					})
+					await this.redis.del(cacheKey).catch(() => {})
+					return null
+				}
 			} catch (error) {
-				this.stats.misses++
-				this.logger.warn('Failed to parse cached value; evicting key', {
+				// Redis connection failed - fall back to in-memory cache
+				this.logger.warn('Redis get failed, falling back to in-memory cache', {
 					key,
 					error: error instanceof Error ? error.message : String(error)
 				})
-				await this.redis.del(cacheKey)
-				return null
 			}
 		}
 
+		// In-memory fallback
 		const entry = this.fallbackCache.get(cacheKey)
 		if (!entry) {
 			this.stats.misses++
@@ -139,26 +148,35 @@ export class RedisCacheService implements OnModuleDestroy {
 		const payload = JSON.stringify(data)
 
 		if (this.redis) {
-			const pipeline = this.redis.pipeline()
-			if (ttlMs > 0) {
-				pipeline.set(cacheKey, payload, 'PX', ttlMs)
-			} else {
-				pipeline.set(cacheKey, payload)
-			}
-
-			if (options?.tags && options.tags.length > 0) {
-				const tagKey = this.keyTagsKey(cacheKey)
-				pipeline.del(tagKey)
-				pipeline.sadd(tagKey, ...options.tags)
-				for (const tag of options.tags) {
-					pipeline.sadd(this.tagKey(tag), cacheKey)
+			try {
+				const pipeline = this.redis.pipeline()
+				if (ttlMs > 0) {
+					pipeline.set(cacheKey, payload, 'PX', ttlMs)
+				} else {
+					pipeline.set(cacheKey, payload)
 				}
-			}
 
-			await pipeline.exec()
-			return
+				if (options?.tags && options.tags.length > 0) {
+					const tagKey = this.keyTagsKey(cacheKey)
+					pipeline.del(tagKey)
+					pipeline.sadd(tagKey, ...options.tags)
+					for (const tag of options.tags) {
+						pipeline.sadd(this.tagKey(tag), cacheKey)
+					}
+				}
+
+				await pipeline.exec()
+				return
+			} catch (error) {
+				// Redis connection failed - fall back to in-memory cache
+				this.logger.warn('Redis set failed, falling back to in-memory cache', {
+					key,
+					error: error instanceof Error ? error.message : String(error)
+				})
+			}
 		}
 
+		// In-memory fallback
 		const entry: InMemoryEntry = {
 			value: payload,
 			...(ttlMs > 0 ? { expiresAt: Date.now() + ttlMs } : {}),
@@ -172,34 +190,43 @@ export class RedisCacheService implements OnModuleDestroy {
 		const cacheKeys = normalized.map(key => this.buildKey(key))
 
 		if (this.redis) {
-			if (cacheKeys.length === 0) return
+			try {
+				if (cacheKeys.length === 0) return
 
-			// Batch fetch all tag sets in one pipeline (single round trip)
-			const tagKeys = cacheKeys.map(key => this.keyTagsKey(key))
-			const fetchPipeline = this.redis.pipeline()
-			for (const tagKey of tagKeys) {
-				fetchPipeline.smembers(tagKey)
-			}
-			const tagResults = await fetchPipeline.exec()
-
-			// Build single pipeline for all deletions (single round trip)
-			const deletePipeline = this.redis.pipeline()
-			for (let i = 0; i < cacheKeys.length; i++) {
-				const cacheKey = cacheKeys[i] as string
-				const tagKey = tagKeys[i] as string
-				const result = tagResults?.[i]
-				const tags = (result?.[1] as string[]) ?? []
-
-				for (const tag of tags) {
-					deletePipeline.srem(this.tagKey(tag), cacheKey)
+				// Batch fetch all tag sets in one pipeline (single round trip)
+				const tagKeys = cacheKeys.map(key => this.keyTagsKey(key))
+				const fetchPipeline = this.redis.pipeline()
+				for (const tagKey of tagKeys) {
+					fetchPipeline.smembers(tagKey)
 				}
-				deletePipeline.del(tagKey)
-				deletePipeline.del(cacheKey)
+				const tagResults = await fetchPipeline.exec()
+
+				// Build single pipeline for all deletions (single round trip)
+				const deletePipeline = this.redis.pipeline()
+				for (let i = 0; i < cacheKeys.length; i++) {
+					const cacheKey = cacheKeys[i] as string
+					const tagKey = tagKeys[i] as string
+					const result = tagResults?.[i]
+					const tags = (result?.[1] as string[]) ?? []
+
+					for (const tag of tags) {
+						deletePipeline.srem(this.tagKey(tag), cacheKey)
+					}
+					deletePipeline.del(tagKey)
+					deletePipeline.del(cacheKey)
+				}
+				await deletePipeline.exec()
+				return
+			} catch (error) {
+				// Redis connection failed - fall back to in-memory cache
+				this.logger.warn('Redis del failed, falling back to in-memory cache', {
+					keys: normalized,
+					error: error instanceof Error ? error.message : String(error)
+				})
 			}
-			await deletePipeline.exec()
-			return
 		}
 
+		// In-memory fallback
 		for (const cacheKey of cacheKeys) {
 			this.fallbackCache.delete(cacheKey)
 		}
@@ -248,12 +275,19 @@ export class RedisCacheService implements OnModuleDestroy {
 
 	async clear(): Promise<void> {
 		if (this.redis) {
-			const keys = await this.findKeys(/.*/)
-			if (keys.length > 0) {
-				await this.redis.del(...keys)
+			try {
+				const keys = await this.findKeys(/.*/)
+				if (keys.length > 0) {
+					await this.redis.del(...keys)
+				}
+				this.stats.invalidations += keys.length
+				return
+			} catch (error) {
+				// Redis connection failed - fall back to in-memory cache
+				this.logger.warn('Redis clear failed, falling back to in-memory cache', {
+					error: error instanceof Error ? error.message : String(error)
+				})
 			}
-			this.stats.invalidations += keys.length
-			return
 		}
 
 		const count = this.fallbackCache.size
@@ -349,34 +383,54 @@ export class RedisCacheService implements OnModuleDestroy {
 			})
 		}
 
-		const keys: string[] = []
-		const matchPattern =
-			pattern instanceof RegExp
-				? `${this.keyPrefix}:*`
-				: `${this.keyPrefix}:*${pattern}*`
+		try {
+			const keys: string[] = []
+			const matchPattern =
+				pattern instanceof RegExp
+					? `${this.keyPrefix}:*`
+					: `${this.keyPrefix}:*${pattern}*`
 
-		let cursor = '0'
-		do {
-			const [nextCursor, batch] = await this.redis.scan(
-				cursor,
-				'MATCH',
-				matchPattern,
-				'COUNT',
-				500
-			)
-			cursor = nextCursor
-			if (pattern instanceof RegExp) {
-				for (const key of batch) {
-					if (pattern.test(this.stripKey(key))) {
-						keys.push(key)
+			let cursor = '0'
+			do {
+				const [nextCursor, batch] = await this.redis.scan(
+					cursor,
+					'MATCH',
+					matchPattern,
+					'COUNT',
+					500
+				)
+				cursor = nextCursor
+				if (pattern instanceof RegExp) {
+					for (const key of batch) {
+						if (pattern.test(this.stripKey(key))) {
+							keys.push(key)
+						}
 					}
+				} else {
+					keys.push(...batch)
 				}
-			} else {
-				keys.push(...batch)
-			}
-		} while (cursor !== '0')
+			} while (cursor !== '0')
 
-		return keys
+			return keys
+		} catch (error) {
+			// Redis connection failed - fall back to in-memory cache
+			this.logger.warn('Redis findKeys failed, falling back to in-memory cache', {
+				pattern: pattern.toString(),
+				error: error instanceof Error ? error.message : String(error)
+			})
+			const keys = Array.from(this.fallbackCache.keys())
+			if (pattern instanceof RegExp) {
+				return keys.filter(key => pattern.test(this.stripKey(key)))
+			}
+			return keys.filter(key => {
+				const entry = this.fallbackCache.get(key)
+				const stripped = this.stripKey(key)
+				return (
+					stripped.includes(pattern) ||
+					(entry?.tags ? entry.tags.includes(pattern) : false)
+				)
+			})
+		}
 	}
 
 	private async findTaggedKeys(tag: string): Promise<string[]> {
@@ -385,7 +439,19 @@ export class RedisCacheService implements OnModuleDestroy {
 				.filter(([, entry]) => entry.tags?.includes(tag))
 				.map(([key]) => key)
 		}
-		return this.redis.smembers(this.tagKey(tag))
+
+		try {
+			return await this.redis.smembers(this.tagKey(tag))
+		} catch (error) {
+			// Redis connection failed - fall back to in-memory cache
+			this.logger.warn('Redis findTaggedKeys failed, falling back to in-memory cache', {
+				tag,
+				error: error instanceof Error ? error.message : String(error)
+			})
+			return Array.from(this.fallbackCache.entries())
+				.filter(([, entry]) => entry.tags?.includes(tag))
+				.map(([key]) => key)
+		}
 	}
 
 	private cleanupExpired(): void {
