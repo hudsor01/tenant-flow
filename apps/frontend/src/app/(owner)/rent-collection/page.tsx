@@ -1,46 +1,80 @@
 'use client'
 
+import * as React from 'react'
 import { format } from 'date-fns'
 import {
-	AlertCircle,
 	AlertTriangle,
+	Calendar,
 	CheckCircle,
+	ChevronDown,
+	ChevronLeft,
+	ChevronRight,
+	Clock,
 	CreditCard,
 	DollarSign,
-	History,
+	Download,
+	Eye,
+	FileText,
 	MoreVertical,
 	Pause,
+	Percent,
 	Play,
-	XCircle
+	Plus,
+	RefreshCw,
+	Search,
+	Send,
+	TrendingUp,
+	X,
+	XCircle,
+	Zap
 } from 'lucide-react'
 
-import { Spinner } from '#components/ui/loading-spinner'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useDataTable } from '#hooks/use-data-table'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
-import type { RentSubscriptionResponse } from '@repo/shared/types/api-contracts'
-import type { ColumnDef } from '@tanstack/react-table'
-import { useState, useMemo, useCallback } from 'react'
-
-import { Badge } from '#components/ui/badge'
-import { Button } from '#components/ui/button'
+import { Input } from '#components/ui/input'
+import { BlurFade } from '#components/ui/blur-fade'
+import { NumberTicker } from '#components/ui/number-ticker'
+import { BorderBeam } from '#components/ui/border-beam'
+import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue
+} from '#components/ui/select'
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow
+} from '#components/ui/table'
+import { Skeleton } from '#components/ui/skeleton'
+import { Button } from '#components/ui/button'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
+import {
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '#components/ui/collapsible'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger
+} from '#components/ui/dialog'
+import { Label } from '#components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 
 import {
 	useFailedPaymentAttempts,
@@ -53,24 +87,264 @@ import {
 	useResumeSubscription,
 	useSubscriptions
 } from '#hooks/api/use-subscriptions'
-import type { PaymentHistoryItem, FailedPaymentAttempt } from '#hooks/api/queries/payment-history-queries'
+import {
+	usePaymentAnalytics,
+	useUpcomingPayments,
+	useOverduePayments,
+	useRecordManualPayment,
+	useExportPayments
+} from '#hooks/api/use-payments'
+import { formatCents } from '#lib/formatters/currency'
+import { toast } from 'sonner'
 
-export default function RentCollectionPage() {
-	return <RentCollectionContent />
+type SubscriptionStatus = 'active' | 'paused' | 'canceled'
+
+function getStatusBadge(status: SubscriptionStatus) {
+	const styles: Record<SubscriptionStatus, string> = {
+		active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+		paused: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+		canceled: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
+	}
+	const labels: Record<SubscriptionStatus, string> = {
+		active: 'Active',
+		paused: 'Paused',
+		canceled: 'Canceled'
+	}
+	return (
+		<span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${styles[status]}`}>
+			{status === 'active' && <CheckCircle className="w-3 h-3" />}
+			{status === 'paused' && <Pause className="w-3 h-3" />}
+			{status === 'canceled' && <XCircle className="w-3 h-3" />}
+			{labels[status]}
+		</span>
+	)
 }
 
-function RentCollectionContent() {
+type PaymentStatusType = 'succeeded' | 'pending' | 'processing' | 'failed' | 'canceled'
+
+function getPaymentStatusConfig(status: string) {
+	const statusMap: Record<PaymentStatusType, {
+		className: string
+		label: string
+		Icon: typeof CheckCircle
+	}> = {
+		succeeded: {
+			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+			label: 'Paid',
+			Icon: CheckCircle
+		},
+		pending: {
+			className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+			label: 'Pending',
+			Icon: Clock
+		},
+		processing: {
+			className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+			label: 'Processing',
+			Icon: Clock
+		},
+		failed: {
+			className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+			label: 'Failed',
+			Icon: XCircle
+		},
+		canceled: {
+			className: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			label: 'Canceled',
+			Icon: XCircle
+		}
+	}
+	const defaultConfig = {
+		className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+		label: 'Pending',
+		Icon: Clock
+	}
+	return statusMap[status as PaymentStatusType] ?? defaultConfig
+}
+
+function getPaymentStatusBadge(status: string) {
+	const config = getPaymentStatusConfig(status)
+	const StatusIcon = config.Icon
+	return (
+		<span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${config.className}`}>
+			<StatusIcon className="w-3 h-3" />
+			{config.label}
+		</span>
+	)
+}
+
+// Record Manual Payment Dialog
+function RecordPaymentDialog() {
+	const [open, setOpen] = React.useState(false)
+	const [formData, setFormData] = React.useState({
+		lease_id: '',
+		tenant_id: '',
+		amount: '',
+		payment_method: 'cash' as 'cash' | 'check' | 'money_order' | 'other',
+		paid_date: format(new Date(), 'yyyy-MM-dd'),
+		notes: ''
+	})
+
+	const recordPayment = useRecordManualPayment()
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault()
+
+		try {
+			await recordPayment.mutateAsync({
+				...formData,
+				amount: parseFloat(formData.amount)
+			})
+			toast.success('Payment recorded successfully')
+			setOpen(false)
+			setFormData({
+				lease_id: '',
+				tenant_id: '',
+				amount: '',
+				payment_method: 'cash',
+				paid_date: format(new Date(), 'yyyy-MM-dd'),
+				notes: ''
+			})
+		} catch {
+			toast.error('Failed to record payment')
+		}
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button variant="default" className="gap-2">
+					<Plus className="h-4 w-4" />
+					Record Payment
+				</Button>
+			</DialogTrigger>
+			<DialogContent className="sm:max-w-md">
+				<DialogHeader>
+					<DialogTitle>Record Manual Payment</DialogTitle>
+					<DialogDescription>
+						Record a payment received via cash, check, or money order.
+					</DialogDescription>
+				</DialogHeader>
+				<form onSubmit={handleSubmit} className="space-y-4">
+					<div className="grid gap-4">
+						<div className="grid gap-2">
+							<Label htmlFor="lease_id">Lease ID</Label>
+							<Input
+								id="lease_id"
+								placeholder="Enter lease ID"
+								value={formData.lease_id}
+								onChange={(e) => setFormData(prev => ({ ...prev, lease_id: e.target.value }))}
+								required
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="tenant_id">Tenant ID</Label>
+							<Input
+								id="tenant_id"
+								placeholder="Enter tenant ID"
+								value={formData.tenant_id}
+								onChange={(e) => setFormData(prev => ({ ...prev, tenant_id: e.target.value }))}
+								required
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="amount">Amount</Label>
+							<div className="relative">
+								<DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+								<Input
+									id="amount"
+									type="number"
+									step="0.01"
+									min="0"
+									placeholder="0.00"
+									value={formData.amount}
+									onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+									className="pl-9"
+									required
+								/>
+							</div>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="payment_method">Payment Method</Label>
+							<Select
+								value={formData.payment_method}
+								onValueChange={(value) => setFormData(prev => ({ ...prev, payment_method: value as typeof formData.payment_method }))}
+							>
+								<SelectTrigger id="payment_method">
+									<SelectValue />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="cash">Cash</SelectItem>
+									<SelectItem value="check">Check</SelectItem>
+									<SelectItem value="money_order">Money Order</SelectItem>
+									<SelectItem value="other">Other</SelectItem>
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="paid_date">Payment Date</Label>
+							<Input
+								id="paid_date"
+								type="date"
+								value={formData.paid_date}
+								onChange={(e) => setFormData(prev => ({ ...prev, paid_date: e.target.value }))}
+								required
+							/>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="notes">Notes (optional)</Label>
+							<Input
+								id="notes"
+								placeholder="Add any notes..."
+								value={formData.notes}
+								onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+							/>
+						</div>
+					</div>
+					<DialogFooter>
+						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={recordPayment.isPending}>
+							{recordPayment.isPending ? (
+								<>
+									<RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+									Recording...
+								</>
+							) : (
+								'Record Payment'
+							)}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	)
+}
+
+export default function RentCollectionPage() {
 	const { data: subscriptions, isLoading } = useSubscriptions()
 	const { data: paymentMethods } = usePaymentMethods()
 	const { data: paymentHistory } = usePaymentHistory()
 	const { data: failedAttempts } = useFailedPaymentAttempts()
+	const { data: analytics } = usePaymentAnalytics()
+	const { data: upcomingPayments } = useUpcomingPayments()
+	const { data: overduePayments } = useOverduePayments()
 	const pauseSubscription = usePauseSubscription()
 	const resumeSubscription = useResumeSubscription()
 	const cancelSubscription = useCancelSubscription()
+	const exportPayments = useExportPayments()
 
-	const [actioningId, setActioningId] = useState<string | null>(null)
+	const [searchQuery, setSearchQuery] = React.useState('')
+	const [statusFilter, setStatusFilter] = React.useState<string>('all')
+	const [currentPage, setCurrentPage] = React.useState(1)
+	const [actioningId, setActioningId] = React.useState<string | null>(null)
+	const [failedOpen, setFailedOpen] = React.useState(true)
+	const [overdueOpen, setOverdueOpen] = React.useState(true)
+	const [activeTab, setActiveTab] = React.useState('subscriptions')
+	const itemsPerPage = 10
 
-	const handlePause = useCallback(async (id: string) => {
+	const handlePause = React.useCallback(async (id: string) => {
 		setActioningId(id)
 		try {
 			await pauseSubscription.mutateAsync(id)
@@ -79,7 +353,7 @@ function RentCollectionContent() {
 		}
 	}, [pauseSubscription])
 
-	const handleResume = useCallback(async (id: string) => {
+	const handleResume = React.useCallback(async (id: string) => {
 		setActioningId(id)
 		try {
 			await resumeSubscription.mutateAsync(id)
@@ -88,7 +362,7 @@ function RentCollectionContent() {
 		}
 	}, [resumeSubscription])
 
-	const handleCancel = useCallback(async (id: string) => {
+	const handleCancel = React.useCallback(async (id: string) => {
 		setActioningId(id)
 		try {
 			await cancelSubscription.mutateAsync(id)
@@ -97,721 +371,719 @@ function RentCollectionContent() {
 		}
 	}, [cancelSubscription])
 
-	const activeSubscriptions =
-		subscriptions?.filter(s => s.status === 'active') || []
-	const pausedSubscriptions =
-		subscriptions?.filter(s => s.status === 'paused') || []
-	const canceledSubscriptions =
-		subscriptions?.filter(s => s.status === 'canceled') || []
-
-	const totalMonthlyRevenue = activeSubscriptions.reduce(
-		(sum, sub) => sum + (sub.amount || 0),
-		0
-	)
-
-	const getStatusBadge = (status: string) => {
-		switch (status) {
-			case 'active':
-				return <Badge variant="default">Active</Badge>
-			case 'paused':
-				return <Badge variant="outline">Paused</Badge>
-			case 'canceled':
-				return <Badge variant="destructive">Canceled</Badge>
-			default:
-				return <Badge variant="outline">{status}</Badge>
+	const handleExport = React.useCallback(async () => {
+		try {
+			await exportPayments.mutateAsync(
+				statusFilter !== 'all' ? { status: statusFilter } : {}
+			)
+			toast.success('Payments exported successfully')
+		} catch {
+			toast.error('Failed to export payments')
 		}
-	}
+	}, [exportPayments, statusFilter])
 
-	const getPaymentMethodInfo = useCallback((paymentMethodId: string) => {
+	const getPaymentMethodInfo = React.useCallback((paymentMethodId: string) => {
 		const paymentMethod = paymentMethods?.find(
 			(pm: PaymentMethodResponse) => pm.id === paymentMethodId
 		)
 		if (!paymentMethod) return null
 
 		return {
-			type: paymentMethod.type === 'card' ? 'Card' : 'Bank Account',
+			type: paymentMethod.type === 'card' ? 'Card' : 'Bank',
 			last4: paymentMethod.last4,
 			brand: paymentMethod.brand
 		}
 	}, [paymentMethods])
 
-	// Active Subscriptions Columns
-	const activeColumns: ColumnDef<RentSubscriptionResponse>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'tenantId',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant ID',
-					variant: 'text',
-					placeholder: 'Search tenant...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<span className="font-medium">{row.original.tenantId}</span>
-				)
-			},
-			{
-				accessorKey: 'leaseId',
-				header: 'Property / Unit',
-				meta: {
-					label: 'Lease ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'amount',
-				header: 'Amount',
-				cell: ({ row }) =>
-					`$${((row.original.amount ?? 0) / 100).toFixed(2)}/mo`
-			},
-			{
-				id: 'paymentMethod',
-				header: 'Payment Method',
-				cell: ({ row }) => {
-					const paymentMethodInfo = row.original.paymentMethodId
-						? getPaymentMethodInfo(row.original.paymentMethodId)
-						: null
+	// Calculate stats from analytics or subscriptions
+	const activeSubscriptions = subscriptions?.filter(s => s.status === 'active') || []
 
-					return paymentMethodInfo ? (
-						<div className="flex items-center gap-2">
-							<CreditCard className="size-4" />
-							<span className="text-sm">
-								{paymentMethodInfo.type} ending in {paymentMethodInfo.last4}
-							</span>
-						</div>
-					) : (
-						<span className="text-muted-foreground">No payment method</span>
-					)
-				}
-			},
-			{
-				accessorKey: 'nextChargeDate',
-				header: 'Next Charge',
-				cell: ({ row }) =>
-					row.original.nextChargeDate
-						? format(new Date(row.original.nextChargeDate), 'MMM d, yyyy')
-						: 'N/A'
-			},
-			{
-				accessorKey: 'status',
-				header: 'Status',
-				cell: ({ row }) =>
-					row.original.status ? getStatusBadge(row.original.status) : 'Unknown'
-			},
-			{
-				id: 'actions',
-				cell: ({ row }) => {
-					const sub = row.original
-					return (
-						<div className="text-right">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="sm"
-										disabled={actioningId === sub.id}
-									>
-										{actioningId === sub.id ? (
-											<Spinner className="size-4 animate-spin" />
-										) : (
-											<MoreVertical className="size-4" />
-										)}
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									<DropdownMenuLabel>Actions</DropdownMenuLabel>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem
-										onClick={() => sub.id && handlePause(sub.id)}
-									>
-										<Pause className="mr-2 size-4" />
-										Pause Subscription
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => sub.id && handleCancel(sub.id)}
-										className="text-destructive"
-									>
-										<XCircle className="mr-2 size-4" />
-										Cancel Subscription
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					)
+	const totalMonthlyRevenue = activeSubscriptions.reduce(
+		(sum, sub) => sum + (sub.amount || 0),
+		0
+	)
+	const platformFees = Math.round(totalMonthlyRevenue * 0.029)
+
+	// Use analytics data if available
+	const collectionRate = analytics?.collectionRate ?? 0
+	const onTimeRate = analytics?.onTimePaymentRate ?? 0
+	const totalCollected = analytics?.totalCollected ?? 0
+	const totalPending = analytics?.totalPending ?? 0
+	const totalOverdue = analytics?.totalOverdue ?? 0
+
+	// Filter subscriptions
+	const filteredSubscriptions = React.useMemo(() => {
+		return (subscriptions || []).filter((sub) => {
+			if (searchQuery) {
+				const query = searchQuery.toLowerCase()
+				if (!sub.tenantId.toLowerCase().includes(query) &&
+					!sub.leaseId.toLowerCase().includes(query)) {
+					return false
 				}
 			}
-		],
-		[actioningId, getPaymentMethodInfo, handlePause, handleCancel]
+			if (statusFilter !== 'all' && sub.status !== statusFilter) {
+				return false
+			}
+			return true
+		})
+	}, [subscriptions, searchQuery, statusFilter])
+
+	// Pagination
+	const totalPages = Math.ceil(filteredSubscriptions.length / itemsPerPage)
+	const paginatedSubscriptions = filteredSubscriptions.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage
 	)
 
-	// Paused Subscriptions Columns
-	const pausedColumns: ColumnDef<RentSubscriptionResponse>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'tenantId',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant ID',
-					variant: 'text',
-					placeholder: 'Search tenant...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<span className="font-medium">{row.original.tenantId}</span>
-				)
-			},
-			{
-				accessorKey: 'leaseId',
-				header: 'Property / Unit',
-				meta: {
-					label: 'Lease ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'amount',
-				header: 'Amount',
-				cell: ({ row }) =>
-					`$${((row.original.amount ?? 0) / 100).toFixed(2)}/mo`
-			},
-			{
-				id: 'paymentMethod',
-				header: 'Payment Method',
-				cell: ({ row }) => {
-					const paymentMethodInfo = row.original.paymentMethodId
-						? getPaymentMethodInfo(row.original.paymentMethodId)
-						: null
+	// Reset page when filters change
+	React.useEffect(() => {
+		setCurrentPage(1)
+	}, [searchQuery, statusFilter])
 
-					return paymentMethodInfo ? (
-						<div className="flex items-center gap-2">
-							<CreditCard className="size-4" />
-							<span className="text-sm">
-								{paymentMethodInfo.type} ending in {paymentMethodInfo.last4}
-							</span>
-						</div>
-					) : (
-						<span className="text-muted-foreground">No payment method</span>
-					)
-				}
-			},
-			{
-				accessorKey: 'updatedAt',
-				header: 'Paused On',
-				cell: ({ row }) =>
-					row.original.updatedAt
-						? format(new Date(row.original.updatedAt), 'MMM d, yyyy')
-						: 'N/A'
-			},
-			{
-				accessorKey: 'status',
-				header: 'Status',
-				cell: ({ row }) =>
-					row.original.status ? getStatusBadge(row.original.status) : 'Unknown'
-			},
-			{
-				id: 'actions',
-				cell: ({ row }) => {
-					const sub = row.original
-					return (
-						<div className="text-right">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button
-										variant="ghost"
-										size="sm"
-										disabled={actioningId === sub.id}
-									>
-										{actioningId === sub.id ? (
-											<Spinner className="size-4 animate-spin" />
-										) : (
-											<MoreVertical className="size-4" />
-										)}
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									<DropdownMenuLabel>Actions</DropdownMenuLabel>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem
-										onClick={() => sub.id && handleResume(sub.id)}
-									>
-										<Play className="mr-2 size-4" />
-										Resume Subscription
-									</DropdownMenuItem>
-									<DropdownMenuItem
-										onClick={() => sub.id && handleCancel(sub.id)}
-										className="text-destructive"
-									>
-										<XCircle className="mr-2 size-4" />
-										Cancel Subscription
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</div>
-					)
-				}
-			}
-		],
-		[actioningId, getPaymentMethodInfo, handleResume, handleCancel]
-	)
+	const clearFilters = () => {
+		setSearchQuery('')
+		setStatusFilter('all')
+	}
 
-	// Canceled Subscriptions Columns
-	const canceledColumns: ColumnDef<RentSubscriptionResponse>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'tenantId',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant ID',
-					variant: 'text',
-					placeholder: 'Search tenant...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<span className="font-medium">{row.original.tenantId}</span>
-				)
-			},
-			{
-				accessorKey: 'leaseId',
-				header: 'Property / Unit',
-				meta: {
-					label: 'Lease ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'amount',
-				header: 'Amount',
-				cell: ({ row }) =>
-					`$${((row.original.amount ?? 0) / 100).toFixed(2)}/mo`
-			},
-			{
-				id: 'paymentMethod',
-				header: 'Payment Method',
-				cell: ({ row }) => {
-					const paymentMethodInfo = row.original.paymentMethodId
-						? getPaymentMethodInfo(row.original.paymentMethodId)
-						: null
-
-					return paymentMethodInfo ? (
-						<div className="flex items-center gap-2">
-							<CreditCard className="size-4" />
-							<span className="text-sm">
-								{paymentMethodInfo.type} ending in {paymentMethodInfo.last4}
-							</span>
-						</div>
-					) : (
-						<span className="text-muted-foreground">No payment method</span>
-					)
-				}
-			},
-			{
-				accessorKey: 'updatedAt',
-				header: 'Canceled On',
-				cell: ({ row }) =>
-					row.original.updatedAt
-						? format(new Date(row.original.updatedAt), 'MMM d, yyyy')
-						: 'N/A'
-			},
-			{
-				accessorKey: 'status',
-				header: 'Status',
-				cell: ({ row }) =>
-					row.original.status ? getStatusBadge(row.original.status) : 'Unknown'
-			}
-		],
-		[getPaymentMethodInfo]
-	)
-
-	// Payment History Columns
-	const paymentHistoryColumns: ColumnDef<PaymentHistoryItem>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'created_at',
-				header: 'Date',
-				cell: ({ row }) =>
-					format(new Date(row.original.created_at), 'MMM d, yyyy')
-			},
-			{
-				accessorKey: 'subscriptionId',
-				header: 'Subscription',
-				meta: {
-					label: 'Subscription ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'tenant_id',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'amount',
-				header: 'Amount',
-				cell: ({ row }) => `$${(row.original.amount / 100).toFixed(2)}`
-			},
-			{
-				accessorKey: 'status',
-				header: 'Status',
-				meta: {
-					label: 'Status',
-					variant: 'select',
-					options: [
-						{ label: 'Successful', value: 'true' },
-						{ label: 'Failed', value: 'false' }
-					]
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<Badge
-						variant={row.original.isSuccessful ? 'default' : 'destructive'}
-					>
-						{row.original.status}
-					</Badge>
-				)
-			},
-			{
-				accessorKey: 'description',
-				header: 'Description',
-				cell: ({ row }) => (
-					<span className="max-w-xs truncate">
-						{row.original.description || 'Rent payment'}
-					</span>
-				)
-			}
-		],
-		[]
-	)
-
-	// Failed Attempts Columns
-	const failedAttemptsColumns: ColumnDef<FailedPaymentAttempt>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'created_at',
-				header: 'Date',
-				cell: ({ row }) =>
-					format(new Date(row.original.created_at), 'MMM d, yyyy')
-			},
-			{
-				accessorKey: 'subscriptionId',
-				header: 'Subscription',
-				meta: {
-					label: 'Subscription ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'tenant_id',
-				header: 'Tenant',
-				meta: {
-					label: 'Tenant ID',
-					variant: 'text'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'amount',
-				header: 'Amount',
-				cell: ({ row }) => `$${(row.original.amount / 100).toFixed(2)}`
-			},
-			{
-				accessorKey: 'attemptNumber',
-				header: 'Attempt #'
-			},
-			{
-				accessorKey: 'failureReason',
-				header: 'Reason',
-				cell: ({ row }) => (
-					<span className="max-w-xs text-sm text-destructive">
-						{row.original.failureReason}
-					</span>
-				)
-			},
-			{
-				accessorKey: 'nextRetryDate',
-				header: 'Next Retry',
-				cell: ({ row }) =>
-					row.original.nextRetryDate
-						? format(new Date(row.original.nextRetryDate), 'MMM d')
-						: 'No retry'
-			}
-		],
-		[]
-	)
-
-	// DataTable instances
-	const { table: activeTable } = useDataTable({
-		data: activeSubscriptions,
-		columns: activeColumns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
-
-	const { table: pausedTable } = useDataTable({
-		data: pausedSubscriptions,
-		columns: pausedColumns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
-
-	const { table: canceledTable } = useDataTable({
-		data: canceledSubscriptions,
-		columns: canceledColumns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
-
-	const { table: paymentHistoryTable } = useDataTable({
-		data: (paymentHistory || []).slice(0, 10),
-		columns: paymentHistoryColumns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
-
-	const { table: failedAttemptsTable } = useDataTable({
-		data: (failedAttempts || []).slice(0, 10),
-		columns: failedAttemptsColumns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 10
-			}
-		}
-	})
-
-	return (
-		<div className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-			<div className="flex-between">
-				<div>
-					<h1 className="typography-h2 text-foreground">Rent Collection</h1>
-					<p className="text-muted-foreground mt-1">
-						Manage tenant autopay subscriptions and payment history
-					</p>
+	if (isLoading) {
+		return (
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				{/* Header skeleton */}
+				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+					<div>
+						<Skeleton className="h-8 w-48 mb-2" />
+						<Skeleton className="h-4 w-72" />
+					</div>
+					<Skeleton className="h-10 w-24" />
+				</div>
+				{/* Stats skeleton */}
+				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+					{[1, 2, 3, 4].map(i => (
+						<Skeleton key={i} className="h-24 rounded-lg" />
+					))}
+				</div>
+				{/* Table skeleton */}
+				<div className="bg-card border border-border rounded-lg p-4 space-y-3">
+					{[1, 2, 3, 4, 5].map(i => (
+						<Skeleton key={i} className="h-12 w-full" />
+					))}
 				</div>
 			</div>
+		)
+	}
 
-			{/* Summary Cards */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Monthly Revenue</CardTitle>
-						<DollarSign className="size-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">
-							${(totalMonthlyRevenue / 100).toFixed(2)}
-						</div>
-						<p className="text-caption">
-							From {activeSubscriptions.length} active subscriptions
-						</p>
-					</CardContent>
-				</Card>
+	return (
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			{/* Header */}
+			<BlurFade delay={0.1} inView>
+				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+					<div>
+						<h1 className="text-2xl font-semibold text-foreground">Rent Collection</h1>
+						<p className="text-muted-foreground">Manage payments, subscriptions, and collection analytics</p>
+					</div>
+					<div className="flex gap-2">
+						<Button
+							variant="outline"
+							onClick={handleExport}
+							disabled={exportPayments.isPending}
+							className="gap-2"
+						>
+							{exportPayments.isPending ? (
+								<RefreshCw className="h-4 w-4 animate-spin" />
+							) : (
+								<Download className="h-4 w-4" />
+							)}
+							Export
+						</Button>
+						<RecordPaymentDialog />
+					</div>
+				</div>
+			</BlurFade>
 
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">
-							Active Subscriptions
-						</CardTitle>
-						<CheckCircle className="size-4 text-success" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">{activeSubscriptions.length}</div>
-						<p className="text-caption">Auto-collecting rent</p>
-					</CardContent>
-				</Card>
+			{/* Enhanced Stats - Using Analytics Data */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+				<BlurFade delay={0.15} inView>
+					<Stat className="relative overflow-hidden">
+						{totalCollected > 0 && (
+							<BorderBeam size={80} duration={8} colorFrom="hsl(142 71% 45%)" colorTo="hsl(142 71% 45% / 0.3)" />
+						)}
+						<StatLabel>Collected (MTD)</StatLabel>
+						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
+							${Math.floor(totalCollected / 100).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<TrendingUp />
+						</StatIndicator>
+						<StatDescription>
+							{collectionRate > 0 ? `${collectionRate}% rate` : 'this month'}
+						</StatDescription>
+					</Stat>
+				</BlurFade>
 
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">
-							Paused Subscriptions
-						</CardTitle>
-						<Pause className="size-4 text-warning" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">{pausedSubscriptions.length}</div>
-						<p className="text-caption">Temporarily on hold</p>
-					</CardContent>
-				</Card>
+				<BlurFade delay={0.2} inView>
+					<Stat className="relative overflow-hidden">
+						{totalPending > 0 && (
+							<BorderBeam size={80} duration={8} colorFrom="hsl(45 93% 47%)" colorTo="hsl(45 93% 47% / 0.3)" />
+						)}
+						<StatLabel>Pending</StatLabel>
+						<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
+							${Math.floor(totalPending / 100).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="warning">
+							<Clock />
+						</StatIndicator>
+						<StatDescription>
+							{upcomingPayments?.length ?? 0} upcoming
+						</StatDescription>
+					</Stat>
+				</BlurFade>
 
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Failed Payments</CardTitle>
-						<AlertTriangle className="size-4 text-destructive" />
-					</CardHeader>
-					<CardContent>
-						<div className="typography-h3">{failedAttempts?.length || 0}</div>
-						<p className="text-caption">Need attention</p>
-					</CardContent>
-				</Card>
+				<BlurFade delay={0.25} inView>
+					<Stat className="relative overflow-hidden">
+						{totalOverdue > 0 && (
+							<BorderBeam size={80} duration={4} colorFrom="hsl(0 84% 60%)" colorTo="hsl(0 84% 60% / 0.3)" />
+						)}
+						<StatLabel>Overdue</StatLabel>
+						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
+							${Math.floor(totalOverdue / 100).toLocaleString()}
+						</StatValue>
+						<StatIndicator variant="icon" color="destructive">
+							<AlertTriangle />
+						</StatIndicator>
+						<StatDescription>
+							{overduePayments?.length ?? 0} late
+						</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.3} inView>
+					<Stat className="relative overflow-hidden">
+						<StatLabel>On-Time Rate</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={onTimeRate} duration={800} />%
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Percent />
+						</StatIndicator>
+						<StatDescription>
+							{activeSubscriptions.length} autopay active
+						</StatDescription>
+					</Stat>
+				</BlurFade>
 			</div>
 
-			{/* Subscriptions Table */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Tenant Subscriptions</CardTitle>
-					<CardDescription>
-						Manage automatic rent collection for all tenants
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<Tabs defaultValue="active" className="space-y-4">
-						<TabsList>
-							<TabsTrigger value="active" className="flex items-center gap-2">
-								Active ({activeSubscriptions.length})
-							</TabsTrigger>
-							<TabsTrigger value="paused" className="flex items-center gap-2">
-								Paused ({pausedSubscriptions.length})
-							</TabsTrigger>
-							<TabsTrigger value="canceled" className="flex items-center gap-2">
-								Canceled ({canceledSubscriptions.length})
-							</TabsTrigger>
-						</TabsList>
+			{/* Fee Summary */}
+			<BlurFade delay={0.35} inView>
+				<div className="bg-card border border-border rounded-lg p-4 mb-6">
+					<div className="flex flex-wrap items-center gap-6 text-sm">
+						<div className="flex items-center gap-2">
+							<span className="text-muted-foreground">Monthly Revenue:</span>
+							<span className="font-medium text-foreground">{formatCents(totalMonthlyRevenue)}</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<span className="text-muted-foreground">Est. Platform Fees:</span>
+							<span className="font-medium text-foreground">-{formatCents(platformFees)}</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<span className="text-muted-foreground">Net Monthly:</span>
+							<span className="font-medium text-foreground">{formatCents(totalMonthlyRevenue - platformFees)}</span>
+						</div>
+					</div>
+				</div>
+			</BlurFade>
 
-						<TabsContent value="active">
-							{isLoading ? (
-								<div className="flex-center py-8">
-									<Spinner className="size-8 animate-spin text-muted-foreground" />
+			{/* Overdue Payments Alert */}
+			{(overduePayments?.length ?? 0) > 0 && (
+				<BlurFade delay={0.4} inView>
+					<Collapsible open={overdueOpen} onOpenChange={setOverdueOpen} className="mb-6">
+						<CollapsibleTrigger className="w-full">
+							<div className="bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-3 flex items-center justify-between hover:bg-destructive/15 transition-colors">
+								<div className="flex items-center gap-3">
+									<AlertTriangle className="w-5 h-5 text-destructive" />
+									<span className="font-medium text-foreground">
+										{overduePayments?.length} Overdue Payment{overduePayments?.length !== 1 ? 's' : ''} Need Attention
+									</span>
 								</div>
-							) : activeSubscriptions.length === 0 ? (
-								<div className="rounded-lg border p-8 text-center">
-									<AlertCircle className="size-12 text-muted-foreground mx-auto mb-4" />
-									<p className="text-muted-foreground">
-										No active subscriptions
-									</p>
-									<p className="text-muted-foreground mt-2">
-										Create subscriptions for tenants to enable autopay
-									</p>
+								<ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${overdueOpen ? 'rotate-180' : ''}`} />
+							</div>
+						</CollapsibleTrigger>
+						<CollapsibleContent>
+							<div className="mt-2 bg-card border border-border rounded-lg overflow-hidden">
+								<Table>
+									<TableHeader className="bg-muted/50">
+										<TableRow className="hover:bg-transparent">
+											<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tenant</TableHead>
+											<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Property</TableHead>
+											<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</TableHead>
+											<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Days Overdue</TableHead>
+											<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Late Fee</TableHead>
+											<TableHead></TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{overduePayments?.slice(0, 5).map((payment) => (
+											<TableRow key={payment.id}>
+												<TableCell className="font-medium text-sm">
+													{payment.tenantName}
+												</TableCell>
+												<TableCell className="text-sm">
+													{payment.propertyName} - {payment.unitNumber}
+												</TableCell>
+												<TableCell className="tabular-nums font-medium text-destructive">
+													{formatCents(payment.amount)}
+												</TableCell>
+												<TableCell className="text-sm">
+													<span className="text-destructive font-medium">{payment.daysOverdue} days</span>
+												</TableCell>
+												<TableCell className="text-sm">
+													{payment.lateFeeApplied ? (
+														<span className="text-amber-600">{formatCents(payment.lateFeeAmount)}</span>
+													) : (
+														<span className="text-muted-foreground">Not applied</span>
+													)}
+												</TableCell>
+												<TableCell>
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+																<MoreVertical className="h-4 w-4" />
+															</Button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent align="end">
+															<DropdownMenuItem>
+																<Send className="mr-2 h-4 w-4" />
+																Send Reminder
+															</DropdownMenuItem>
+															{!payment.lateFeeApplied && (
+																<DropdownMenuItem>
+																	<DollarSign className="mr-2 h-4 w-4" />
+																	Apply Late Fee
+																</DropdownMenuItem>
+															)}
+															{payment.lateFeeApplied && (
+																<DropdownMenuItem>
+																	<X className="mr-2 h-4 w-4" />
+																	Waive Late Fee
+																</DropdownMenuItem>
+															)}
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						</CollapsibleContent>
+					</Collapsible>
+				</BlurFade>
+			)}
+
+			{/* Failed Payments Alert (if any) */}
+			{(failedAttempts?.length ?? 0) > 0 && (
+				<BlurFade delay={0.4} inView>
+				<Collapsible open={failedOpen} onOpenChange={setFailedOpen} className="mb-6">
+					<CollapsibleTrigger className="w-full">
+						<div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg px-4 py-3 flex items-center justify-between hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors">
+							<div className="flex items-center gap-3">
+								<XCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+								<span className="font-medium text-foreground">
+									{failedAttempts?.length} Failed Payment Attempt{failedAttempts?.length !== 1 ? 's' : ''}
+								</span>
+							</div>
+							<ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${failedOpen ? 'rotate-180' : ''}`} />
+						</div>
+					</CollapsibleTrigger>
+					<CollapsibleContent>
+						<div className="mt-2 bg-card border border-border rounded-lg overflow-hidden">
+							<Table>
+								<TableHeader className="bg-muted/50">
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tenant</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Attempt</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Reason</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Next Retry</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{failedAttempts?.slice(0, 5).map((attempt) => (
+										<TableRow key={attempt.id}>
+											<TableCell className="text-sm">
+												{format(new Date(attempt.created_at), 'MMM d, yyyy')}
+											</TableCell>
+											<TableCell className="font-medium text-sm">
+												{attempt.tenant_id.slice(0, 8)}...
+											</TableCell>
+											<TableCell className="tabular-nums">
+												{formatCents(attempt.amount)}
+											</TableCell>
+											<TableCell className="text-sm">
+												#{attempt.attemptNumber}
+											</TableCell>
+											<TableCell className="text-sm text-destructive max-w-xs truncate">
+												{attempt.failureReason}
+											</TableCell>
+											<TableCell className="text-sm">
+												{attempt.nextRetryDate
+													? format(new Date(attempt.nextRetryDate), 'MMM d')
+													: 'No retry'}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					</CollapsibleContent>
+				</Collapsible>
+				</BlurFade>
+			)}
+
+			{/* Tabs for different views */}
+			<BlurFade delay={0.45} inView>
+				<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+					<TabsList className="grid w-full grid-cols-3 max-w-md">
+						<TabsTrigger value="subscriptions" className="gap-2">
+							<Zap className="h-4 w-4" />
+							Autopay
+						</TabsTrigger>
+						<TabsTrigger value="upcoming" className="gap-2">
+							<Calendar className="h-4 w-4" />
+							Upcoming
+						</TabsTrigger>
+						<TabsTrigger value="history" className="gap-2">
+							<FileText className="h-4 w-4" />
+							History
+						</TabsTrigger>
+					</TabsList>
+
+					{/* Subscriptions Tab */}
+					<TabsContent value="subscriptions">
+						<div className="bg-card border border-border rounded-lg overflow-hidden">
+							{/* Toolbar */}
+							<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row items-start sm:items-center gap-3">
+								<div className="relative w-full sm:w-64">
+									<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+									<Input
+										placeholder="Search subscriptions..."
+										value={searchQuery}
+										onChange={(e) => setSearchQuery(e.target.value)}
+										className="pl-9 h-9"
+									/>
 								</div>
-							) : (
-								<DataTable table={activeTable}>
-									<DataTableToolbar table={activeTable} />
-								</DataTable>
+
+								<div className="flex items-center gap-3 sm:ml-auto w-full sm:w-auto">
+									{(searchQuery || statusFilter !== 'all') && (
+										<button
+											onClick={clearFilters}
+											className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+										>
+											<X className="h-3 w-3" />
+											Clear
+										</button>
+									)}
+
+									<Select value={statusFilter} onValueChange={setStatusFilter}>
+										<SelectTrigger className="w-[140px] h-9">
+											<SelectValue placeholder="Status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="all">All Status</SelectItem>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="paused">Paused</SelectItem>
+											<SelectItem value="canceled">Canceled</SelectItem>
+										</SelectContent>
+									</Select>
+
+									<span className="text-sm text-muted-foreground whitespace-nowrap">
+										{filteredSubscriptions.length} subscription{filteredSubscriptions.length !== 1 ? 's' : ''}
+									</span>
+								</div>
+							</div>
+
+							{/* Table */}
+							<Table>
+								<TableHeader className="bg-muted/50">
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tenant</TableHead>
+										<TableHead className="hidden sm:table-cell text-xs font-medium text-muted-foreground uppercase tracking-wider">Lease</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</TableHead>
+										<TableHead className="hidden md:table-cell text-xs font-medium text-muted-foreground uppercase tracking-wider">Payment Method</TableHead>
+										<TableHead className="hidden lg:table-cell text-xs font-medium text-muted-foreground uppercase tracking-wider">Next Charge</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</TableHead>
+										<TableHead></TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{paginatedSubscriptions.map((sub) => {
+										const paymentInfo = sub.paymentMethodId
+											? getPaymentMethodInfo(sub.paymentMethodId)
+											: null
+
+										return (
+											<TableRow key={sub.id} className="group">
+												<TableCell>
+													<div className="flex items-center gap-3">
+														<div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+															<span className="text-xs font-medium text-primary">
+																{sub.tenantId.slice(0, 2).toUpperCase()}
+															</span>
+														</div>
+														<div>
+															<p className="font-medium text-foreground text-sm">{sub.tenantId.slice(0, 8)}...</p>
+															<p className="text-xs text-muted-foreground sm:hidden">{sub.leaseId.slice(0, 8)}...</p>
+														</div>
+													</div>
+												</TableCell>
+												<TableCell className="hidden sm:table-cell text-sm">
+													{sub.leaseId.slice(0, 8)}...
+												</TableCell>
+												<TableCell className="tabular-nums font-medium">
+													{formatCents(sub.amount ?? 0)}/mo
+												</TableCell>
+												<TableCell className="hidden md:table-cell">
+													{paymentInfo ? (
+														<div className="flex items-center gap-2 text-sm">
+															<CreditCard className="w-4 h-4 text-muted-foreground" />
+															<span>{paymentInfo.type} ••{paymentInfo.last4}</span>
+														</div>
+													) : (
+														<span className="text-muted-foreground text-sm">-</span>
+													)}
+												</TableCell>
+												<TableCell className="hidden lg:table-cell text-sm">
+													{sub.nextChargeDate
+														? format(new Date(sub.nextChargeDate), 'MMM d, yyyy')
+														: '-'}
+												</TableCell>
+												<TableCell>
+													<div className="flex items-center gap-2">
+														{getStatusBadge(sub.status as SubscriptionStatus)}
+														{sub.status === 'active' && (
+															<span title="Autopay enabled">
+																<Zap className="w-3.5 h-3.5 text-primary" />
+															</span>
+														)}
+													</div>
+												</TableCell>
+												<TableCell>
+													<DropdownMenu>
+														<DropdownMenuTrigger asChild>
+															<Button
+																variant="ghost"
+																size="sm"
+																disabled={actioningId === sub.id}
+																className="h-8 w-8 p-0"
+															>
+																{actioningId === sub.id ? (
+																	<Clock className="h-4 w-4 animate-spin" />
+																) : (
+																	<MoreVertical className="h-4 w-4" />
+																)}
+															</Button>
+														</DropdownMenuTrigger>
+														<DropdownMenuContent align="end">
+															<DropdownMenuItem>
+																<Eye className="mr-2 h-4 w-4" />
+																View Details
+															</DropdownMenuItem>
+															<DropdownMenuSeparator />
+															{sub.status === 'active' && (
+																<DropdownMenuItem onClick={() => sub.id && handlePause(sub.id)}>
+																	<Pause className="mr-2 h-4 w-4" />
+																	Pause Subscription
+																</DropdownMenuItem>
+															)}
+															{sub.status === 'paused' && (
+																<DropdownMenuItem onClick={() => sub.id && handleResume(sub.id)}>
+																	<Play className="mr-2 h-4 w-4" />
+																	Resume Subscription
+																</DropdownMenuItem>
+															)}
+															{sub.status !== 'canceled' && (
+																<DropdownMenuItem
+																	onClick={() => sub.id && handleCancel(sub.id)}
+																	className="text-destructive focus:text-destructive"
+																>
+																	<XCircle className="mr-2 h-4 w-4" />
+																	Cancel Subscription
+																</DropdownMenuItem>
+															)}
+														</DropdownMenuContent>
+													</DropdownMenu>
+												</TableCell>
+											</TableRow>
+										)
+									})}
+								</TableBody>
+							</Table>
+
+							{/* Empty state */}
+							{filteredSubscriptions.length === 0 && (subscriptions?.length ?? 0) > 0 && (
+								<div className="text-center py-12">
+									<p className="text-muted-foreground">No subscriptions match your filters</p>
+									<button
+										onClick={clearFilters}
+										className="mt-3 text-sm text-primary hover:underline"
+									>
+										Clear filters
+									</button>
+								</div>
 							)}
-						</TabsContent>
 
-						<TabsContent value="paused">
-							{pausedSubscriptions.length === 0 ? (
-								<div className="rounded-lg border p-8 text-center">
+							{(subscriptions?.length ?? 0) === 0 && (
+								<div className="text-center py-12">
+									<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
+										<DollarSign className="w-8 h-8 text-primary" />
+									</div>
+									<h2 className="text-xl font-semibold text-foreground mb-3">
+										No subscriptions yet
+									</h2>
 									<p className="text-muted-foreground">
-										No paused subscriptions
+										Create subscriptions for tenants to enable automatic rent collection.
 									</p>
 								</div>
-							) : (
-								<DataTable table={pausedTable}>
-									<DataTableToolbar table={pausedTable} />
-								</DataTable>
 							)}
-						</TabsContent>
 
-						<TabsContent value="canceled">
-							{canceledSubscriptions.length === 0 ? (
-								<div className="rounded-lg border p-8 text-center">
-									<p className="text-muted-foreground">
-										No canceled subscriptions
-									</p>
+							{/* Pagination */}
+							{filteredSubscriptions.length > 0 && totalPages > 1 && (
+								<div className="px-4 py-3 border-t border-border flex items-center justify-between">
+									<span className="text-sm text-muted-foreground">
+										Showing {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, filteredSubscriptions.length)} of {filteredSubscriptions.length}
+									</span>
+									<div className="flex items-center gap-1">
+										<button
+											onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+											disabled={currentPage === 1}
+											className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											<ChevronLeft className="w-4 h-4" />
+										</button>
+										{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
+											<button
+												key={page}
+												onClick={() => setCurrentPage(page)}
+												className={`min-w-8 h-8 px-2 text-sm font-medium rounded-md transition-colors ${
+													page === currentPage
+														? 'bg-primary text-primary-foreground'
+														: 'hover:bg-muted text-muted-foreground'
+												}`}
+											>
+												{page}
+											</button>
+										))}
+										<button
+											onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+											disabled={currentPage === totalPages}
+											className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+										>
+											<ChevronRight className="w-4 h-4" />
+										</button>
+									</div>
 								</div>
-							) : (
-								<DataTable table={canceledTable}>
-									<DataTableToolbar table={canceledTable} />
-								</DataTable>
 							)}
-						</TabsContent>
-					</Tabs>
-				</CardContent>
-			</Card>
+						</div>
+					</TabsContent>
 
-			{/* Payment History Section */}
-			<Card>
-				<CardHeader>
-					<CardTitle className="flex items-center gap-2">
-						<History className="size-5" />
-						Payment History & Failed Attempts
-					</CardTitle>
-					<CardDescription>
-						View recent payment activity and failed payment attempts across all
-						subscriptions
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<Tabs defaultValue="recent-payments" className="space-y-4">
-						<TabsList>
-							<TabsTrigger value="recent-payments">
-								Recent Payments ({paymentHistory?.length || 0})
-							</TabsTrigger>
-							<TabsTrigger
-								value="failed-attempts"
-								className="flex items-center gap-2"
-							>
-								<AlertTriangle className="size-4" />
-								Failed Attempts ({failedAttempts?.length || 0})
-							</TabsTrigger>
-						</TabsList>
-
-						<TabsContent value="recent-payments">
-							{!paymentHistory || paymentHistory.length === 0 ? (
-								<div className="rounded-lg border p-8 text-center">
-									<p className="text-muted-foreground">
-										No payment history available
-									</p>
+					{/* Upcoming Payments Tab */}
+					<TabsContent value="upcoming">
+						<div className="bg-card border border-border rounded-lg overflow-hidden">
+							<div className="px-4 py-3 border-b border-border">
+								<h3 className="font-medium text-foreground">Upcoming Payments (Next 30 Days)</h3>
+								<p className="text-sm text-muted-foreground">{upcomingPayments?.length ?? 0} expected payments</p>
+							</div>
+							<Table>
+								<TableHeader className="bg-muted/50">
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tenant</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Property</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Due Date</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Autopay</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{upcomingPayments?.map((payment) => (
+										<TableRow key={payment.id}>
+											<TableCell className="font-medium text-sm">{payment.tenantName}</TableCell>
+											<TableCell className="text-sm">{payment.propertyName} - {payment.unitNumber}</TableCell>
+											<TableCell className="tabular-nums font-medium">{formatCents(payment.amount)}</TableCell>
+											<TableCell className="text-sm">{format(new Date(payment.dueDate), 'MMM d, yyyy')}</TableCell>
+											<TableCell>
+												{payment.autopayEnabled ? (
+													<span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+														<Zap className="w-3 h-3" />
+														Enabled
+													</span>
+												) : (
+													<span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400">
+														Not setup
+													</span>
+												)}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+							{(upcomingPayments?.length ?? 0) === 0 && (
+								<div className="text-center py-12">
+									<Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+									<p className="text-muted-foreground">No upcoming payments in the next 30 days</p>
 								</div>
-							) : (
-								<DataTable table={paymentHistoryTable}>
-									<DataTableToolbar table={paymentHistoryTable} />
-								</DataTable>
 							)}
-						</TabsContent>
+						</div>
+					</TabsContent>
 
-						<TabsContent value="failed-attempts">
-							{!failedAttempts || failedAttempts.length === 0 ? (
-								<div className="rounded-lg border p-8 text-center">
-									<p className="text-muted-foreground">
-										No failed payment attempts
-									</p>
+					{/* Payment History Tab */}
+					<TabsContent value="history">
+						<div className="bg-card border border-border rounded-lg overflow-hidden">
+							<div className="px-4 py-3 border-b border-border">
+								<h3 className="font-medium text-foreground">Payment History</h3>
+								<p className="text-sm text-muted-foreground">{paymentHistory?.length ?? 0} total payments</p>
+							</div>
+							<Table>
+								<TableHeader className="bg-muted/50">
+									<TableRow className="hover:bg-transparent">
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Date</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tenant</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</TableHead>
+										<TableHead className="hidden md:table-cell text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</TableHead>
+										<TableHead className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{paymentHistory?.slice(0, 20).map((payment) => (
+										<TableRow key={payment.id}>
+											<TableCell className="text-sm">
+												{format(new Date(payment.created_at), 'MMM d, yyyy')}
+											</TableCell>
+											<TableCell className="font-medium text-sm">
+												{payment.tenant_id.slice(0, 8)}...
+											</TableCell>
+											<TableCell className="tabular-nums">
+												{formatCents(payment.amount)}
+											</TableCell>
+											<TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-xs truncate">
+												{payment.description || 'Rent payment'}
+											</TableCell>
+											<TableCell>
+												{getPaymentStatusBadge(payment.status)}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+							{(paymentHistory?.length ?? 0) === 0 && (
+								<div className="text-center py-12">
+									<FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+									<p className="text-muted-foreground">No payment history yet</p>
 								</div>
-							) : (
-								<DataTable table={failedAttemptsTable}>
-									<DataTableToolbar table={failedAttemptsTable} />
-								</DataTable>
 							)}
-						</TabsContent>
-					</Tabs>
-				</CardContent>
-			</Card>
+						</div>
+					</TabsContent>
+				</Tabs>
+			</BlurFade>
 		</div>
 	)
 }

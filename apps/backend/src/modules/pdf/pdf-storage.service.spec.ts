@@ -17,6 +17,19 @@ import { AppLogger } from '../../logger/app-logger.service'
 import { CompressionService } from '../documents/compression.service'
 
 describe('PdfStorageService', () => {
+	type StorageClient = {
+		upload: jest.Mock
+		getPublicUrl: jest.Mock
+		list: jest.Mock
+		remove: jest.Mock
+	}
+	type AdminClient = {
+		storage: {
+			from: jest.Mock
+			listBuckets: jest.Mock
+		}
+	}
+
 	let service: PdfStorageService
 	let supabaseService: jest.Mocked<SupabaseService>
 	let logger: jest.Mocked<AppLogger>
@@ -28,14 +41,14 @@ describe('PdfStorageService', () => {
 
 	beforeEach(async () => {
 		// Create mock Supabase storage client
-		const mockStorageClient = {
+		const mockStorageClient: StorageClient = {
 			upload: jest.fn(),
 			getPublicUrl: jest.fn(),
 			list: jest.fn(),
 			remove: jest.fn()
 		}
 
-		const mockAdminClient = {
+		const mockAdminClient: AdminClient = {
 			storage: {
 				from: jest.fn().mockReturnValue(mockStorageClient),
 				listBuckets: jest.fn()
@@ -45,13 +58,13 @@ describe('PdfStorageService', () => {
 		// Mock services
 		supabaseService = {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
-		} as any
+		} as jest.Mocked<SupabaseService>
 
 		logger = {
 			log: jest.fn(),
 			warn: jest.fn(),
 			error: jest.fn()
-		} as any
+		} as jest.Mocked<AppLogger>
 
 		compressionService = {
 			compressDocument: jest.fn().mockResolvedValue({
@@ -60,7 +73,7 @@ describe('PdfStorageService', () => {
 				compressedSize: 50000,
 				ratio: 0.5
 			})
-		} as any
+		} as jest.Mocked<CompressionService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -162,7 +175,12 @@ describe('PdfStorageService', () => {
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
 
-			jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined)
+			jest
+				.spyOn(
+					service as unknown as { sleep: (ms: number) => Promise<void> },
+					'sleep'
+				)
+				.mockResolvedValue(undefined)
 
 			// Act
 			const result = await service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
@@ -175,8 +193,12 @@ describe('PdfStorageService', () => {
 			expect(uploadMock).toHaveBeenCalledTimes(3)
 
 			// Verify exponential backoff sleep calls
-			expect((service as any).sleep).toHaveBeenCalledWith(1000) // 1st retry delay
-			expect((service as any).sleep).toHaveBeenCalledWith(2000) // 2nd retry delay
+			expect(
+				(service as unknown as { sleep: (ms: number) => Promise<void> }).sleep
+			).toHaveBeenCalledWith(1000) // 1st retry delay
+			expect(
+				(service as unknown as { sleep: (ms: number) => Promise<void> }).sleep
+			).toHaveBeenCalledWith(2000) // 2nd retry delay
 
 			// Verify warning logs
 			expect(logger.warn).toHaveBeenCalledTimes(2) // 2 failed attempts
@@ -231,7 +253,12 @@ describe('PdfStorageService', () => {
 				error: { message: 'Network error' }
 			})
 
-			jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined)
+			jest
+				.spyOn(
+					service as unknown as { sleep: (ms: number) => Promise<void> },
+					'sleep'
+				)
+				.mockResolvedValue(undefined)
 
 			// Act & Assert
 			await expect(service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)).rejects.toThrow(
@@ -328,7 +355,12 @@ describe('PdfStorageService', () => {
 				error: { message: 'Error' }
 			})
 
-			jest.spyOn(service as any, 'sleep').mockResolvedValue(undefined)
+			jest
+				.spyOn(
+					service as unknown as { sleep: (ms: number) => Promise<void> },
+					'sleep'
+				)
+				.mockResolvedValue(undefined)
 
 			// Act & Assert - Custom retries: 5
 			await expect(
@@ -622,7 +654,9 @@ describe('PdfStorageService', () => {
 	describe('generateFileName (private)', () => {
 		it('should generate consistent filename format', () => {
 			// Act - access private method via reflection
-			const fileName = (service as any).generateFileName(mockLeaseId)
+			const fileName = (
+				service as unknown as { generateFileName: (id: string) => string }
+			).generateFileName(mockLeaseId)
 
 			// Assert
 			expect(fileName).toMatch(/^lease-123e4567-e89b-12d3-a456-426614174000-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.pdf$/)
@@ -632,8 +666,12 @@ describe('PdfStorageService', () => {
 
 		it('should generate unique filenames for same lease', () => {
 			// Act
-			const fileName1 = (service as any).generateFileName(mockLeaseId)
-			const fileName2 = (service as any).generateFileName(mockLeaseId)
+			const fileName1 = (
+				service as unknown as { generateFileName: (id: string) => string }
+			).generateFileName(mockLeaseId)
+			const fileName2 = (
+				service as unknown as { generateFileName: (id: string) => string }
+			).generateFileName(mockLeaseId)
 
 			// Assert - filenames should differ due to timestamp
 			// (In reality, they might be the same if executed in same millisecond,
@@ -649,7 +687,9 @@ describe('PdfStorageService', () => {
 			jest.useFakeTimers()
 
 			// Act
-			const sleepPromise = (service as any).sleep(1000)
+			const sleepPromise = (
+				service as unknown as { sleep: (ms: number) => Promise<void> }
+			).sleep(1000)
 
 			// Advance timers
 			jest.advanceTimersByTime(1000)

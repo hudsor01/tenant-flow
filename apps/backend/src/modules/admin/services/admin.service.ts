@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectQueue } from '@nestjs/bullmq'
 import type { Queue } from 'bullmq'
 import type { Database } from '@repo/shared/types/supabase'
+import { asStripeSchemaClient } from '../../../types/stripe-schema'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 
@@ -43,6 +44,7 @@ export class AdminService {
 	 */
 	async getMetrics() {
 		const client = this.supabase.getAdminClient()
+		const stripeClient = asStripeSchemaClient(client)
 
 		// Get counts from database
 		const [
@@ -57,7 +59,8 @@ export class AdminService {
 				.from('leases')
 				.select('*', { count: 'exact', head: true })
 				.eq('status', 'active'),
-			client
+			stripeClient
+				.schema('stripe')
 				.from('subscriptions')
 				.select('*', { count: 'exact', head: true })
 				.eq('status', 'active')

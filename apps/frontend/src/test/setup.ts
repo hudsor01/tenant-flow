@@ -20,7 +20,7 @@ import { server } from '../../tests/integration/mocks/server'
 
 // Set up required environment variables for tests
 process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:4600'
 process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
 process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
@@ -98,6 +98,70 @@ beforeAll(async () => {
 		testState.backendAvailable = false
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
 	}
+})
+
+// Mock window.matchMedia for components that use media queries
+Object.defineProperty(window, 'matchMedia', {
+	writable: true,
+	value: vi.fn().mockImplementation(query => ({
+		matches: false,
+		media: query,
+		onchange: null,
+		addListener: vi.fn(), // deprecated
+		removeListener: vi.fn(), // deprecated
+		addEventListener: vi.fn(),
+		removeEventListener: vi.fn(),
+		dispatchEvent: vi.fn(),
+	})),
+})
+
+// Mock ResizeObserver for components that use it
+class ResizeObserverMock {
+	observe = vi.fn()
+	unobserve = vi.fn()
+	disconnect = vi.fn()
+}
+Object.defineProperty(window, 'ResizeObserver', {
+	writable: true,
+	value: ResizeObserverMock,
+})
+
+// Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
+class IntersectionObserverMock {
+	readonly root: Element | null = null
+	readonly rootMargin: string = ''
+	readonly thresholds: ReadonlyArray<number> = []
+
+	constructor(
+		private callback: IntersectionObserverCallback,
+		_options?: IntersectionObserverInit
+	) {}
+
+	observe = vi.fn((target: Element) => {
+		// Immediately trigger the callback with isIntersecting: true
+		// This ensures components render as if they're in view
+		this.callback(
+			[
+				{
+					target,
+					isIntersecting: true,
+					intersectionRatio: 1,
+					boundingClientRect: target.getBoundingClientRect(),
+					intersectionRect: target.getBoundingClientRect(),
+					rootBounds: null,
+					time: Date.now()
+				}
+			] as IntersectionObserverEntry[],
+			this
+		)
+	})
+	unobserve = vi.fn()
+	disconnect = vi.fn()
+	takeRecords = vi.fn(() => [])
+}
+Object.defineProperty(window, 'IntersectionObserver', {
+	writable: true,
+	value: IntersectionObserverMock,
 })
 
 // Mock Next.js router hooks (still needed for component rendering)

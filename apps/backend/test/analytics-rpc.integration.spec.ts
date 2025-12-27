@@ -59,7 +59,7 @@ describe('Supabase Analytics RPC Endpoints', () => {
 	}
 
 	const createQueryChain = () => {
-		const chain: any = {}
+		const chain: Record<string, jest.Mock> = {}
 		chain.select = jest.fn(() => chain)
 		chain.eq = jest.fn(() => chain)
 		chain.limit = jest.fn(async () => ({

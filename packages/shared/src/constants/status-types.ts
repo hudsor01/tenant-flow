@@ -434,8 +434,3 @@ export type Result<T = void, E = string> =
 	| { success: true; value: T; error?: never }
 	| { success: false; error: E; value?: never }
 
-/**
- * ASYNC RESULT TYPE - For asynchronous operations
- * Import from base-types to avoid circular dependency with api.ts/core.ts
- */
-export type { AsyncResult } from '../types/base-types.js'

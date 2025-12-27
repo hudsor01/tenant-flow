@@ -141,7 +141,7 @@ describe('PropertiesController', () => {
 			]
 
 			mockPropertiesServiceInstance.findAllWithUnits.mockResolvedValue(
-				mockPropertiesWithUnits as any
+				mockPropertiesWithUnits
 			)
 
 			const mockRequest = createMockRequest({ user: mockUser })
@@ -149,7 +149,7 @@ describe('PropertiesController', () => {
 				null, // search
 				10, // limit
 				0, // offset
-				mockRequest as any
+				mockRequest
 			)
 
 			expect(
@@ -172,7 +172,7 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findOne(
 				'property-1',
-				mockRequest as any
+				mockRequest
 			)
 			expect(mockPropertiesServiceInstance.findOne).toHaveBeenCalledWith(
 				mockRequest,
@@ -190,7 +190,7 @@ describe('PropertiesController', () => {
 			await expect(
 				controller.findOne(
 					'non-existent',
-					createMockRequest({ user: mockUser }) as any
+					createMockRequest({ user: mockUser })
 				)
 			).rejects.toThrow(NotFoundException)
 		})
@@ -205,7 +205,7 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.create(
 				validPropertyCreate as unknown as CreatePropertyDto,
-				mockRequest as any
+				mockRequest
 			)
 			expect(mockPropertiesServiceInstance.create).toHaveBeenCalledWith(
 				mockRequest,
@@ -228,7 +228,7 @@ describe('PropertiesController', () => {
 			const result = await controller.update(
 				'property-1',
 				validPropertyUpdate as unknown as UpdatePropertyDto,
-				mockRequest as any
+				mockRequest
 			)
 			expect(mockPropertiesServiceInstance.update).toHaveBeenCalledWith(
 				mockRequest,
@@ -247,7 +247,7 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.remove(
 				'property-1',
-				mockRequest as any
+				mockRequest
 			)
 
 			expect(mockPropertiesServiceInstance.remove).toHaveBeenCalledWith(
@@ -269,7 +269,7 @@ describe('PropertiesController', () => {
 					sale_date: '2025-01-15',
 					sale_price: 500000
 				},
-				createMockRequest({ user: mockUser }) as any
+				createMockRequest({ user: mockUser })
 			)
 
 			expect(mockPropertiesServiceInstance.markAsSold).toHaveBeenCalled()

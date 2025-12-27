@@ -2,6 +2,7 @@ import { BadRequestException, ForbiddenException, NotFoundException } from '@nes
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Lease } from '@repo/shared/types/core'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -16,6 +17,7 @@ import { LeaseLifecycleService } from './lease-lifecycle.service'
 import { LeaseSignatureService } from './lease-signature.service'
 import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
+import type { FindAllLeasesDto } from './dto/find-all-leases.dto'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
@@ -23,8 +25,10 @@ describe('LeasesController', () => {
 	let mockFinancialService: jest.Mocked<LeaseFinancialService>
 	let mockLifecycleService: jest.Mocked<LeaseLifecycleService>
 	let mockSignatureService: jest.Mocked<LeaseSignatureService>
-	let mockPdfMapper: any
-	let mockPdfGenerator: any
+	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
+	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
+
+	type SendForSignatureBody = Parameters<LeasesController['sendForSignature']>[3]
 
 	const generateUUID = () => randomUUID()
 
@@ -255,7 +259,7 @@ describe('LeasesController', () => {
 		)
 
 		await expect(
-			controller.findAll('mock-jwt-token', { tenant_id: 'invalid-uuid' } as any)
+			controller.findAll('mock-jwt-token', { tenant_id: 'invalid-uuid' } as FindAllLeasesDto)
 		).rejects.toThrow(BadRequestException)
 	})
 
@@ -273,7 +277,7 @@ describe('LeasesController', () => {
 					tenant_id: undefined,
 					unit_id: undefined,
 					property_id: undefined,
-					status: 'expired' as any // Invalid status - should be "ended"
+					status: 'expired' as unknown as Lease['lease_status'] // Invalid status - should be "ended"
 				}
 			)
 		).rejects.toThrow('Invalid lease status')
@@ -488,7 +492,7 @@ describe('LeasesController', () => {
 
 			const result = await controller.sendForSignature(
 				lease_id,
-				mockRequest as any,
+				mockRequest as AuthenticatedRequest,
 				'mock-jwt-token',
 				{ message: 'Please review and sign' }
 			)
@@ -508,7 +512,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
+				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
 			).rejects.toThrow(NotFoundException)
 		})
 
@@ -519,7 +523,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
+				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
 			).rejects.toThrow(BadRequestException)
 		})
 
@@ -530,7 +534,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.sendForSignature(lease_id, mockRequest as any, 'mock-jwt-token', {})
+				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
 			).rejects.toThrow(ForbiddenException)
 		})
 	})
@@ -545,7 +549,7 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			mockSignatureService.signLeaseAsOwner.mockResolvedValue(undefined)
 
-			const result = await controller.signAsOwner(lease_id, mockRequest as any)
+			const result = await controller.signAsOwner(lease_id, mockRequest as AuthenticatedRequest)
 
 			expect(mockSignatureService.signLeaseAsOwner).toHaveBeenCalledWith(
 				'owner-123',
@@ -562,7 +566,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.signAsOwner(lease_id, mockRequest as any)
+				controller.signAsOwner(lease_id, mockRequest as AuthenticatedRequest)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -577,7 +581,7 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			mockSignatureService.signLeaseAsTenant.mockResolvedValue(undefined)
 
-			const result = await controller.signAsTenant(lease_id, mockRequest as any)
+			const result = await controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
 
 			expect(mockSignatureService.signLeaseAsTenant).toHaveBeenCalledWith(
 				'tenant-user-123',
@@ -594,7 +598,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.signAsTenant(lease_id, mockRequest as any)
+				controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
 			).rejects.toThrow(ForbiddenException)
 		})
 
@@ -605,7 +609,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.signAsTenant(lease_id, mockRequest as any)
+				controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -631,7 +635,7 @@ describe('LeasesController', () => {
 			}
 			mockSignatureService.getSignatureStatus.mockResolvedValue(mockStatus)
 
-			const result = await controller.getSignatureStatus(lease_id, mockRequest as any)
+			const result = await controller.getSignatureStatus(lease_id, mockRequest as AuthenticatedRequest)
 
 			expect(mockSignatureService.getSignatureStatus).toHaveBeenCalledWith(lease_id, mockUserId)
 			expect(result).toEqual(mockStatus)
@@ -644,7 +648,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.getSignatureStatus(lease_id, mockRequest as any)
+				controller.getSignatureStatus(lease_id, mockRequest as AuthenticatedRequest)
 			).rejects.toThrow(NotFoundException)
 		})
 	})

@@ -10,7 +10,13 @@ import { SseService } from '../notifications/sse/sse.service'
 import type { PdfGenerationCompletedEvent } from '@repo/shared/events/sse-events'
 import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 
-@Processor('pdf-generation')
+@Processor('pdf-generation', {
+	concurrency: Number.parseInt(process.env.PDF_QUEUE_CONCURRENCY ?? '2', 10),
+	limiter: {
+		max: Number.parseInt(process.env.PDF_QUEUE_LIMIT_MAX ?? '20', 10),
+		duration: Number.parseInt(process.env.PDF_QUEUE_LIMIT_DURATION_MS ?? '60000', 10)
+	}
+})
 @Injectable()
 export class PdfGenerationProcessor extends WorkerHost {
 	constructor(

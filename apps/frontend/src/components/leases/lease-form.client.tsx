@@ -13,6 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { LeaseFormFields } from '#components/leases/lease-form-fields.client'
 import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation
@@ -22,7 +23,7 @@ import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { LeaseStatus, Property, Unit, LeaseWithExtras } from '@repo/shared/types/core'
+import type { LeaseStatus, Property, LeaseWithExtras } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
@@ -212,148 +213,21 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 							Please refresh to retry.
 						</p>
 					)}
-
-					<form.Field name="unit_id">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="unit_id">Unit *</FieldLabel>
-								<Select
-									value={field.state.value}
-									onValueChange={field.handleChange}
-									disabled={!selectedPropertyId || unitsIsError}
-								>
-									<SelectTrigger id="unit_id">
-										<SelectValue placeholder="Select unit" />
-									</SelectTrigger>
-									<SelectContent>
-										{(units ?? []).map((unit: Unit) => (
-											<SelectItem key={unit.id} value={unit.id}>
-												Unit {unit.unit_number}
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					{unitsIsError && (
-						<p className="text-sm text-destructive mt-2">
-							Failed to load units for the selected property.
-							{unitsError ? ` ${unitsError.message}` : ''} Please retry.
-						</p>
-					)}
 				</div>
 
-				<form.Field name="primary_tenant_id">
-					{field => (
-						<Field>
-							<FieldLabel htmlFor="primary_tenant_id">Primary Tenant *</FieldLabel>
-							<Select value={field.state.value} onValueChange={field.handleChange}>
-								<SelectTrigger id="primary_tenant_id">
-									<SelectValue placeholder="Select tenant" />
-								</SelectTrigger>
-								<SelectContent>
-									{tenants.map(tenant => (
-										<SelectItem key={tenant.id} value={tenant.id}>
-											{tenant.name}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
-						</Field>
-					)}
-				</form.Field>
+				<LeaseFormFields
+					form={form}
+					units={units ?? []}
+					tenants={tenants}
+					unitSelectDisabled={!selectedPropertyId || unitsIsError}
+				/>
 
-					<div className="grid gap-4 md:grid-cols-2">
-					<form.Field name="start_date">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="start_date">Start Date *</FieldLabel>
-								<Input
-									id="start_date"
-									type="date"
-									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="end_date">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="end_date">End Date *</FieldLabel>
-								<Input
-									id="end_date"
-									type="date"
-									value={field.state.value}
-									onChange={e => field.handleChange(e.target.value)}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-				</div>
-
-					<div className="grid gap-4 md:grid-cols-2">
-					<form.Field name="rent_amount">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="rent_amount">Monthly Rent *</FieldLabel>
-								<Input
-									id="rent_amount"
-									type="number"
-									min="0"
-									step="0.01"
-									value={field.state.value}
-									onChange={e => {
-										const v = e.target.value
-										field.handleChange(v === '' ? 0 : parseFloat(v))
-									}}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field name="security_deposit">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="security_deposit">
-									Security Deposit *
-								</FieldLabel>
-								<Input
-									id="security_deposit"
-									type="number"
-									min="0"
-									step="0.01"
-									value={field.state.value}
-									onChange={e => {
-										const v = e.target.value
-										field.handleChange(v === '' ? 0 : parseFloat(v))
-									}}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-				</div>
+				{unitsIsError && (
+					<p className="text-sm text-destructive mt-2">
+						Failed to load units for the selected property.
+						{unitsError ? ` ${unitsError.message}` : ''} Please retry.
+					</p>
+				)}
 
 				<form.Field name="lease_status">
 					{field => (

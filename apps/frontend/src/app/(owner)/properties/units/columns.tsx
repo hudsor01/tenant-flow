@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~609 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract UnitActionsCell into: `./components/unit-actions-cell.tsx`
+// 2. Extract UnitStatusCell into: `./components/unit-status-cell.tsx`
+// 3. Extract EditUnitDialog into: `./components/edit-unit-dialog.tsx`
+// 4. Extract column definitions into: `./unit-column-defs.ts`
+// 5. Keep columns.tsx as export aggregator
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 import {
 	AlertDialog,
 	AlertDialogAction,

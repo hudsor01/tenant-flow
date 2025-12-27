@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~541 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract DesktopNav into: `./navbar-desktop.tsx`
+// 2. Extract MobileNav/Sheet into: `./navbar-mobile.tsx`
+// 3. Extract UserMenu into: `./navbar-user-menu.tsx`
+// 4. Extract NavLinks into: `./navbar-links.tsx`
+// 5. Keep Navbar as orchestration component
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 'use client'
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#components/ui/sheet'

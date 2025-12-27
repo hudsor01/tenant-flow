@@ -26,6 +26,30 @@ export class TenantDetailService {
 	}
 
 	/**
+	 * Batch fetch tenants by IDs - O(1) query instead of O(N)
+	 * RLS automatically filters to only tenants the user can access
+	 */
+	async findByIds(tenantIds: string[], token: string): Promise<Map<string, Tenant>> {
+		if (tenantIds.length === 0) return new Map()
+
+		const client = this.requireUserClient(token)
+		const { data, error } = await client
+			.from('tenants')
+			.select(
+				'id, user_id, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, identity_verified, created_at, updated_at'
+			)
+			.in('id', tenantIds)
+
+		if (error) {
+			this.logger.error('Failed to batch fetch tenants', { error: error.message })
+			throw new NotFoundException('Failed to fetch tenants')
+		}
+
+		// Return as Map for O(1) lookups
+		return new Map((data ?? []).map(t => [t.id, t as Tenant]))
+	}
+
+	/**
 	 * Get single tenant by ID
 	 */
 	async findOne(tenantId: string, token: string): Promise<Tenant> {

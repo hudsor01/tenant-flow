@@ -5,7 +5,9 @@
  * RentPaymentsService (Facade) → Delegates to specialized services
  * ├─ RentPaymentQueryService (payment history queries)
  * ├─ RentPaymentAutopayService (autopay setup, cancel, status)
- * └─ RentPaymentContextService (tenant and lease context loading)
+ * ├─ RentPaymentContextService (tenant and lease context loading)
+ * ├─ PaymentAnalyticsService (analytics, trends, CSV export)
+ * └─ PaymentReminderService (scheduled payment reminder emails)
  *
  * Benefits:
  * - Single Responsibility Principle
@@ -16,6 +18,7 @@
  */
 
 import { Module } from '@nestjs/common'
+import { BullModule } from '@nestjs/bullmq'
 import { StripeModule } from '../billing/stripe.module'
 import { RentPaymentsController } from './rent-payments.controller'
 
@@ -23,12 +26,19 @@ import { RentPaymentsController } from './rent-payments.controller'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
+import { PaymentAnalyticsService } from './payment-analytics.service'
+import { PaymentReminderService } from './payment-reminder.service'
 
 // Facade service
 import { RentPaymentsService } from './rent-payments.service'
 
 @Module({
-	imports: [StripeModule],
+	imports: [
+		StripeModule,
+		BullModule.registerQueue({
+			name: 'emails'
+		})
+	],
 	controllers: [RentPaymentsController],
 	providers: [
 		// Context service (no dependencies on other rent-payment services)
@@ -37,6 +47,10 @@ import { RentPaymentsService } from './rent-payments.service'
 		RentPaymentQueryService,
 		// Autopay service (depends on Context)
 		RentPaymentAutopayService,
+		// Analytics service (payment metrics and trends)
+		PaymentAnalyticsService,
+		// Payment reminder scheduler
+		PaymentReminderService,
 		// Facade service (coordinates all services)
 		RentPaymentsService
 	],
@@ -45,6 +59,8 @@ import { RentPaymentsService } from './rent-payments.service'
 		RentPaymentQueryService,
 		RentPaymentAutopayService,
 		RentPaymentContextService,
+		PaymentAnalyticsService,
+		PaymentReminderService,
 		// Export facade (main entry point)
 		RentPaymentsService
 	]

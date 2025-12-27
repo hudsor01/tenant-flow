@@ -1,3 +1,13 @@
+// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
+// This file is ~709 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
+// Recommended refactoring:
+// 1. Extract SidebarProvider/context into: `./sidebar-context.tsx`
+// 2. Extract SidebarMenu components into: `./sidebar-menu.tsx`
+// 3. Extract SidebarGroup components into: `./sidebar-group.tsx`
+// 4. Extract SidebarHeader/Footer into: `./sidebar-header-footer.tsx`
+// 5. Keep core Sidebar component as orchestration in this file
+// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'

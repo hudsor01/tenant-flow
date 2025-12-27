@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { render, pretty } from '@react-email/render'
 import { PaymentFailedEmail } from '../../emails/payment-failed-email'
 import { PaymentSuccessEmail } from '../../emails/payment-success-email'
+import { PaymentReminderEmail } from '../../emails/payment-reminder-email'
 import { SubscriptionCanceledEmail } from '../../emails/subscription-canceled-email'
 import { TenantInvitationEmail } from '../../emails/tenant-invitation-email'
 import {
@@ -55,6 +56,30 @@ export class EmailRendererService {
 			this.logger.error('Failed to render payment failed email', {
 				error: error instanceof Error ? error.message : String(error),
 				customerEmail: data.customerEmail
+			})
+			throw error
+		}
+	}
+
+	async renderPaymentReminderEmail(data: {
+		tenantName: string
+		tenantEmail: string
+		propertyName: string
+		unitNumber?: string
+		amount: number
+		currency: string
+		dueDate: string
+		daysUntilDue: number
+		paymentUrl: string
+		autopayEnabled: boolean
+	}): Promise<string> {
+		try {
+			const html = await render(PaymentReminderEmail(data))
+			return pretty(html)
+		} catch (error) {
+			this.logger.error('Failed to render payment reminder email', {
+				error: error instanceof Error ? error.message : String(error),
+				tenantEmail: data.tenantEmail
 			})
 			throw error
 		}

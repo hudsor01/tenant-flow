@@ -96,6 +96,24 @@ export class MetricsService {
 		private databaseOperationsCounter: Counter<string>,
 		@InjectMetric('tenantflow_database_errors_total')
 		private databaseErrorsCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_rpc_calls_total')
+		private supabaseRpcCallsCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_rpc_duration_seconds')
+		private supabaseRpcDurationHistogram: Histogram<string>,
+		@InjectMetric('tenantflow_supabase_rpc_cache_hits_total')
+		private supabaseRpcCacheHitsCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_rpc_cache_misses_total')
+		private supabaseRpcCacheMissesCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_nplusone_detected_total')
+		private nPlusOneDetectedCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_user_client_pool_hits_total')
+		private supabaseUserClientPoolHitsCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_user_client_pool_misses_total')
+		private supabaseUserClientPoolMissesCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_user_client_pool_evictions_total')
+		private supabaseUserClientPoolEvictionsCounter: Counter<string>,
+		@InjectMetric('tenantflow_supabase_user_client_pool_size')
+		private supabaseUserClientPoolSizeGauge: Gauge<string>,
 		@InjectMetric('tenantflow_auth_attempts_total')
 		private authAttemptsCounter: Counter<string>,
 		@InjectMetric('tenantflow_auth_success_total')
@@ -152,6 +170,59 @@ export class MetricsService {
 		})
 	}
 
+	recordSupabaseRpcCall(
+		functionName: string,
+		durationMs: number,
+		status: 'success' | 'error' | 'cache'
+	): void {
+		const normalized = this.normalizeFunctionName(functionName)
+		this.supabaseRpcCallsCounter.inc({
+			function_name: normalized,
+			status
+		})
+		if (status !== 'cache') {
+			this.supabaseRpcDurationHistogram.observe(
+				{ function_name: normalized },
+				Math.max(durationMs, 0) / 1000
+			)
+		}
+	}
+
+	recordSupabaseRpcCacheHit(functionName: string): void {
+		this.supabaseRpcCacheHitsCounter.inc({
+			function_name: this.normalizeFunctionName(functionName)
+		})
+	}
+
+	recordSupabaseRpcCacheMiss(functionName: string): void {
+		this.supabaseRpcCacheMissesCounter.inc({
+			function_name: this.normalizeFunctionName(functionName)
+		})
+	}
+
+	recordNPlusOneDetection(type: string, signature: string): void {
+		this.nPlusOneDetectedCounter.inc({
+			type,
+			signature: this.normalizeSignature(signature)
+		})
+	}
+
+	recordSupabaseUserClientPoolHits(count = 1): void {
+		this.supabaseUserClientPoolHitsCounter.inc({ pool: 'user' }, count)
+	}
+
+	recordSupabaseUserClientPoolMisses(count = 1): void {
+		this.supabaseUserClientPoolMissesCounter.inc({ pool: 'user' }, count)
+	}
+
+	recordSupabaseUserClientPoolEvictions(count = 1): void {
+		this.supabaseUserClientPoolEvictionsCounter.inc({ pool: 'user' }, count)
+	}
+
+	setSupabaseUserClientPoolSize(size: number): void {
+		this.supabaseUserClientPoolSizeGauge.set({ pool: 'user' }, size)
+	}
+
 	// Authentication metric methods
 	recordAuthAttempt(method: string): void {
 		this.authAttemptsCounter.inc({ method })
@@ -183,5 +254,20 @@ export class MetricsService {
 			{ method: normalizedMethod, route: normalizedRoute },
 			Math.max(durationMs, 0) / 1000
 		)
+	}
+
+	private normalizeFunctionName(functionName: string): string {
+		const normalized = functionName?.trim()
+		if (!normalized) return 'unknown'
+		if (normalized.length > 64) {
+			return normalized.slice(0, 64)
+		}
+		return normalized
+	}
+
+	private normalizeSignature(signature: string): string {
+		const normalized = signature?.trim()
+		if (!normalized) return 'unknown'
+		return normalized.length > 96 ? normalized.slice(0, 96) : normalized
 	}
 }

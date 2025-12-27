@@ -37,27 +37,57 @@ BEGIN
   END IF;
 
   -- Property owner profile (idempotent by user_id)
-  SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
-  IF v_owner IS NULL THEN
-    INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-    VALUES (v_owner_user, 'acct_seed_123', 'sole_prop', 'Seed Property Group', true, true)
-    RETURNING id INTO v_owner;
+  IF to_regclass('public.stripe_connected_accounts') IS NOT NULL THEN
+    SELECT id INTO v_owner FROM public.stripe_connected_accounts WHERE user_id = v_owner_user LIMIT 1;
+    IF v_owner IS NULL THEN
+      INSERT INTO public.stripe_connected_accounts (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
+      VALUES (v_owner_user, 'acct_seed_123', 'sole_prop', 'Seed Property Group', true, true)
+      RETURNING id INTO v_owner;
+    END IF;
+  ELSE
+    SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
+    IF v_owner IS NULL THEN
+      INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
+      VALUES (v_owner_user, 'acct_seed_123', 'sole_prop', 'Seed Property Group', true, true)
+      RETURNING id INTO v_owner;
+    END IF;
   END IF;
 
   -- Property (idempotent by owner + name)
-  SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Seed Residence' LIMIT 1;
-  IF v_property IS NULL THEN
-    INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
-    VALUES (v_owner, 'Seed Residence', '123 Seed St', 'Seedville', 'CA', '94000', 'residential', 'active')
-    RETURNING id INTO v_property;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'properties' AND column_name = 'owner_user_id'
+  ) THEN
+    SELECT id INTO v_property FROM public.properties WHERE owner_user_id = v_owner_user AND name = 'Seed Residence' LIMIT 1;
+    IF v_property IS NULL THEN
+      INSERT INTO public.properties (owner_user_id, name, address_line1, city, state, postal_code, property_type, status)
+      VALUES (v_owner_user, 'Seed Residence', '123 Seed St', 'Seedville', 'CA', '94000', 'residential', 'active')
+      RETURNING id INTO v_property;
+    END IF;
+  ELSE
+    SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Seed Residence' LIMIT 1;
+    IF v_property IS NULL THEN
+      INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+      VALUES (v_owner, 'Seed Residence', '123 Seed St', 'Seedville', 'CA', '94000', 'residential', 'active')
+      RETURNING id INTO v_property;
+    END IF;
   END IF;
 
   -- Unit (idempotent by property + unit_number)
   SELECT id INTO v_unit FROM public.units WHERE property_id = v_property AND unit_number = '1A' LIMIT 1;
   IF v_unit IS NULL THEN
-    INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-    VALUES (v_property, v_owner, '1A', 2, 1.0, 900, 1800, 'available')
-    RETURNING id INTO v_unit;
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'units' AND column_name = 'owner_user_id'
+    ) THEN
+      INSERT INTO public.units (property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+      VALUES (v_property, v_owner_user, '1A', 2, 1.0, 900, 1800, 'available')
+      RETURNING id INTO v_unit;
+    ELSE
+      INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+      VALUES (v_property, v_owner, '1A', 2, 1.0, 900, 1800, 'available')
+      RETURNING id INTO v_unit;
+    END IF;
   END IF;
 
   -- Tenant profile (idempotent by user_id)
@@ -69,16 +99,36 @@ BEGIN
   END IF;
 
   -- Maintenance requests (one open, one completed)
-  INSERT INTO public.maintenance_requests
-    (unit_id, tenant_id, property_owner_id, status, priority, description, requested_by, created_at)
-  VALUES
-    (v_unit, v_tenant, v_owner, 'open',       'normal', 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
-    (v_unit, v_tenant, v_owner, 'completed',  'high',   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
+  ) THEN
+    INSERT INTO public.maintenance_requests
+      (unit_id, tenant_id, owner_user_id, status, priority, description, requested_by, created_at)
+    VALUES
+      (v_unit, v_tenant, v_owner_user, 'open'::maintenance_status,       'normal'::maintenance_priority, 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
+      (v_unit, v_tenant, v_owner_user, 'completed'::maintenance_status,  'high'::maintenance_priority,   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
+  ELSE
+    INSERT INTO public.maintenance_requests
+      (unit_id, tenant_id, property_owner_id, status, priority, description, requested_by, created_at)
+    VALUES
+      (v_unit, v_tenant, v_owner, 'open'::maintenance_status,       'normal'::maintenance_priority, 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
+      (v_unit, v_tenant, v_owner, 'completed'::maintenance_status,  'high'::maintenance_priority,   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
+  END IF;
 
   -- Mark completion for the completed request
-  UPDATE public.maintenance_requests
-  SET completed_at = created_at + interval '1 day'
-  WHERE status = 'completed' AND property_owner_id = v_owner;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
+  ) THEN
+    UPDATE public.maintenance_requests
+    SET completed_at = created_at + interval '1 day'
+    WHERE status = 'completed' AND owner_user_id = v_owner_user;
+  ELSE
+    UPDATE public.maintenance_requests
+    SET completed_at = created_at + interval '1 day'
+    WHERE status = 'completed' AND property_owner_id = v_owner;
+  END IF;
 END $$;
 
 -- Bulk synthetic data for performance testing (large owner dataset)
@@ -108,27 +158,57 @@ BEGIN
   END IF;
 
   -- Property owner profile (idempotent by user_id)
-  SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
-  IF v_owner IS NULL THEN
-    INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-    VALUES (v_owner_user, 'acct_perf_123', 'sole_prop', 'Perf Property Group', true, true)
-    RETURNING id INTO v_owner;
+  IF to_regclass('public.stripe_connected_accounts') IS NOT NULL THEN
+    SELECT id INTO v_owner FROM public.stripe_connected_accounts WHERE user_id = v_owner_user LIMIT 1;
+    IF v_owner IS NULL THEN
+      INSERT INTO public.stripe_connected_accounts (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
+      VALUES (v_owner_user, 'acct_perf_123', 'sole_prop', 'Perf Property Group', true, true)
+      RETURNING id INTO v_owner;
+    END IF;
+  ELSE
+    SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
+    IF v_owner IS NULL THEN
+      INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
+      VALUES (v_owner_user, 'acct_perf_123', 'sole_prop', 'Perf Property Group', true, true)
+      RETURNING id INTO v_owner;
+    END IF;
   END IF;
 
   -- Property (idempotent by owner + name)
-  SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Perf Residence' LIMIT 1;
-  IF v_property IS NULL THEN
-    INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
-    VALUES (v_owner, 'Perf Residence', '999 Perf St', 'Perfville', 'CA', '94001', 'residential', 'active')
-    RETURNING id INTO v_property;
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'properties' AND column_name = 'owner_user_id'
+  ) THEN
+    SELECT id INTO v_property FROM public.properties WHERE owner_user_id = v_owner_user AND name = 'Perf Residence' LIMIT 1;
+    IF v_property IS NULL THEN
+      INSERT INTO public.properties (owner_user_id, name, address_line1, city, state, postal_code, property_type, status)
+      VALUES (v_owner_user, 'Perf Residence', '999 Perf St', 'Perfville', 'CA', '94001', 'residential', 'active')
+      RETURNING id INTO v_property;
+    END IF;
+  ELSE
+    SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Perf Residence' LIMIT 1;
+    IF v_property IS NULL THEN
+      INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+      VALUES (v_owner, 'Perf Residence', '999 Perf St', 'Perfville', 'CA', '94001', 'residential', 'active')
+      RETURNING id INTO v_property;
+    END IF;
   END IF;
 
   -- Unit (idempotent by property + unit_number)
   SELECT id INTO v_unit FROM public.units WHERE property_id = v_property AND unit_number = 'Perf-1' LIMIT 1;
   IF v_unit IS NULL THEN
-    INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-    VALUES (v_property, v_owner, 'Perf-1', 3, 2.0, 1200, 2500, 'available')
-    RETURNING id INTO v_unit;
+    IF EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'units' AND column_name = 'owner_user_id'
+    ) THEN
+      INSERT INTO public.units (property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+      VALUES (v_property, v_owner_user, 'Perf-1', 3, 2.0, 1200, 2500, 'available')
+      RETURNING id INTO v_unit;
+    ELSE
+      INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+      VALUES (v_property, v_owner, 'Perf-1', 3, 2.0, 1200, 2500, 'available')
+      RETURNING id INTO v_unit;
+    END IF;
   END IF;
 
   -- Tenant profile (idempotent by user_id)
@@ -141,41 +221,80 @@ BEGIN
 
   -- Insert many maintenance requests for perf testing
   -- Insert perf maintenance requests only if fewer than 2000 exist for this owner
-  IF (SELECT COUNT(*) FROM public.maintenance_requests WHERE property_owner_id = v_owner) < 2000 THEN
-    INSERT INTO public.maintenance_requests (
-      unit_id,
-      tenant_id,
-      property_owner_id,
-      status,
-      priority,
-      description,
-      requested_by,
-      created_at,
-      completed_at
-    )
-    SELECT
-      v_unit,
-      v_tenant,
-      v_owner,
-      (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1]::text AS status,
-      (ARRAY['low','normal','high','urgent'])[(g % 4)+1]::text AS priority,
-      'Perf seed request #' || g AS description,
-      v_tenant_user,
-      now() - (g % 60) * interval '1 day' AS created_at,
-      CASE
-        WHEN (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] = 'completed'
-        THEN (now() - (g % 60) * interval '1 day') + interval '12 hours'
-        ELSE NULL
-      END AS completed_at
-    FROM generate_series(1, 2000) AS g
-    WHERE NOT EXISTS (
-      SELECT 1 FROM public.maintenance_requests mr
-      WHERE mr.property_owner_id = v_owner
-        AND mr.description = 'Perf seed request #' || g
-    );
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
+  ) THEN
+    IF (SELECT COUNT(*) FROM public.maintenance_requests WHERE owner_user_id = v_owner_user) < 2000 THEN
+      INSERT INTO public.maintenance_requests (
+        unit_id,
+        tenant_id,
+        owner_user_id,
+        status,
+        priority,
+        description,
+        requested_by,
+        created_at,
+        completed_at
+      )
+      SELECT
+        v_unit,
+        v_tenant,
+        v_owner_user,
+        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1]::maintenance_status AS status,
+        (ARRAY['low','normal','high','urgent'])[(g % 4)+1]::maintenance_priority AS priority,
+        'Perf seed request #' || g AS description,
+        v_tenant_user,
+        now() - (g % 60) * interval '1 day' AS created_at,
+        CASE
+          WHEN (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] = 'completed'
+          THEN (now() - (g % 60) * interval '1 day') + interval '12 hours'
+          ELSE NULL
+        END AS completed_at
+      FROM generate_series(1, 2000) AS g
+      WHERE NOT EXISTS (
+        SELECT 1 FROM public.maintenance_requests mr
+        WHERE mr.owner_user_id = v_owner_user
+          AND mr.description = 'Perf seed request #' || g
+      );
+    END IF;
+  ELSE
+    IF (SELECT COUNT(*) FROM public.maintenance_requests WHERE property_owner_id = v_owner) < 2000 THEN
+      INSERT INTO public.maintenance_requests (
+        unit_id,
+        tenant_id,
+        property_owner_id,
+        status,
+        priority,
+        description,
+        requested_by,
+        created_at,
+        completed_at
+      )
+      SELECT
+        v_unit,
+        v_tenant,
+        v_owner,
+        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1]::maintenance_status AS status,
+        (ARRAY['low','normal','high','urgent'])[(g % 4)+1]::maintenance_priority AS priority,
+        'Perf seed request #' || g AS description,
+        v_tenant_user,
+        now() - (g % 60) * interval '1 day' AS created_at,
+        CASE
+          WHEN (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] = 'completed'
+          THEN (now() - (g % 60) * interval '1 day') + interval '12 hours'
+          ELSE NULL
+        END AS completed_at
+      FROM generate_series(1, 2000) AS g
+      WHERE NOT EXISTS (
+        SELECT 1 FROM public.maintenance_requests mr
+        WHERE mr.property_owner_id = v_owner
+          AND mr.description = 'Perf seed request #' || g
+      );
+    END IF;
   END IF;
 
-  RAISE NOTICE 'Perf test property_owner_id: %', v_owner;
+  RAISE NOTICE 'Perf test owner_user_id: %', v_owner_user;
 END $$;
 
 SELECT 1;

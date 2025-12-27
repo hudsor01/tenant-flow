@@ -114,9 +114,9 @@ describe('CSV Utilities', () => {
     })
 
     it('returns error for file exceeding size limit', () => {
-      // Create a file larger than 5MB
-      const largeContent = 'x'.repeat(CSV_MAX_FILE_SIZE_BYTES + 1)
-      const file = new File([largeContent], 'large.csv', { type: 'text/csv' })
+      // Create a small file but mock its size to exceed 5MB
+      const file = new File(['x'], 'large.csv', { type: 'text/csv' })
+      Object.defineProperty(file, 'size', { value: CSV_MAX_FILE_SIZE_BYTES + 1 })
 
       const result = getFileValidationError(file)
 
@@ -124,8 +124,9 @@ describe('CSV Utilities', () => {
     })
 
     it('returns null for file at exactly the size limit', () => {
-      const content = 'x'.repeat(CSV_MAX_FILE_SIZE_BYTES)
-      const file = new File([content], 'exact.csv', { type: 'text/csv' })
+      // Create a small file but mock its size to be exactly at the limit
+      const file = new File(['x'], 'exact.csv', { type: 'text/csv' })
+      Object.defineProperty(file, 'size', { value: CSV_MAX_FILE_SIZE_BYTES })
 
       const result = getFileValidationError(file)
 
@@ -134,8 +135,9 @@ describe('CSV Utilities', () => {
 
     it('validates type before size', () => {
       // Invalid type AND too large - should return type error first
-      const largeContent = 'x'.repeat(CSV_MAX_FILE_SIZE_BYTES + 1)
-      const file = new File([largeContent], 'large.txt', { type: 'text/plain' })
+      // Use a small file but mock its size to exceed 5MB
+      const file = new File(['x'], 'large.txt', { type: 'text/plain' })
+      Object.defineProperty(file, 'size', { value: CSV_MAX_FILE_SIZE_BYTES + 1 })
 
       const result = getFileValidationError(file)
 

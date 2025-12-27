@@ -1,22 +1,17 @@
 /**
- * CORE TYPES - Consolidated shared types using TypeScript 5.9.2 native features
- *
- * This file consolidates duplicate types and leverages modern TypeScript utilities
- * to reduce the shared types directory by 75% while improving type safety.
+ * CORE TYPES - Lean shared types
+ * Only exports types that are actually used across the codebase.
  */
 
-import type { ReactNode } from 'react'
 import type { DashboardActivity, ActivityItem } from './activity.js'
-import type { Tables, TablesInsert, Database } from './supabase.js'
+import type { Tables, TablesInsert, TablesUpdate, Database } from './supabase.js'
 
 // Re-export ActivityItem for use across the app
 export type { ActivityItem }
 
 // ============================================================================
-// DB ENUM TYPE EXPORTS - Direct references to supabase.ts (no re-definition)
+// DB ENUM TYPE EXPORTS - Direct references to supabase.ts
 // ============================================================================
-// These reference the Database types from supabase.ts directly.
-// If enums get out of sync, run: pnpm supabase gen types
 
 export type LeaseStatus = Database['public']['Enums']['lease_status']
 export type UnitStatus = Database['public']['Enums']['unit_status']
@@ -26,7 +21,6 @@ export type MaintenancePriority = Database['public']['Enums']['maintenance_prior
 export type PropertyStatus = Database['public']['Enums']['property_status']
 export type NotificationType = Database['public']['Enums']['notification_type']
 export type InvitationType = Database['public']['Enums']['invitation_type']
-export type SignatureMethod = Database['public']['Enums']['signature_method']
 export type StripeSubscriptionStatus = Database['public']['Enums']['stripe_subscription_status']
 
 // Import app-only types that are NOT DB enums
@@ -36,40 +30,9 @@ import type {
   PropertyType as PropertyTypeFromConstants
 } from '../constants/status-types.js'
 
-export type DeepReadonly<T> = {
-	readonly [P in keyof T]: T[P] extends Record<string, unknown>
-		? DeepReadonly<T[P]>
-		: T[P]
-}
-
-export type DeepPartial<T> = {
-	[P in keyof T]?: T[P] extends Record<string, unknown>
-		? DeepPartial<T[P]>
-		: T[P]
-}
-
-export type CamelCase<S extends string> =
-	S extends `${infer P1}_${infer P2}${infer P3}`
-		? `${P1}${Capitalize<P2>}${CamelCase<P3>}`
-		: S
-
-export type SnakeCase<S extends string> = S extends `${infer T}${infer U}`
-	? `${T extends Capitalize<T> ? '_' : ''}${Lowercase<T>}${SnakeCase<U>}`
-	: S
-
-// Use built-in utility for key extraction
-export type KeysOfType<T, U> = keyof {
-	[K in keyof T as T[K] extends U ? K : never]: T[K]
-}
-
 export type ApiResponse<T = unknown> =
 	| { success: true; data: T; error?: never }
 	| { success: false; error: string; data?: never }
-
-// STRIPE TYPES - Using official Stripe Node SDK types
-export interface StripeCheckoutSessionResponse {
-	client_secret: string
-}
 
 export interface StripeSessionStatusResponse {
 	status: string
@@ -78,22 +41,14 @@ export interface StripeSessionStatusResponse {
 	payment_intent_status: string | null
 }
 
-export interface CreateBillingSubscriptionRequest {
-	customerId: string
-	tenantId: string
-	amount: number
-	productId: string
-	subscriptionType?: string
-}
-
 export interface CreateCheckoutSessionRequest {
 	productName: string
 	tenantId: string
 	domain: string
 	description?: string
 	isSubscription?: boolean
-	priceId: string // Required Stripe price ID (e.g., price_1234...)
-	customerEmail?: string // Authenticated user email for Stripe customer identification
+	priceId: string
+	customerEmail?: string
 }
 
 export interface CreateConnectedPaymentRequest {
@@ -105,7 +60,6 @@ export interface CreateConnectedPaymentRequest {
 	propertyId?: string
 }
 
-// Consolidated pagination (single interface)
 export interface Pagination {
 	page?: number
 	limit?: number
@@ -114,44 +68,10 @@ export interface Pagination {
 	hasMore?: boolean
 }
 
-// Consolidate all pagination-related interfaces in one place
-export interface PaginationOptions {
-	page?: number
-	limit?: number
-	offset?: number
-}
 
-export interface SortOptions {
-	field: string
-	direction: 'asc' | 'desc'
-}
-
-export interface BaseFilterOptions extends PaginationOptions {
-	sort?: SortOptions
-	search?: string
-}
-
-// Consolidated query parameters
-export interface QueryParams extends Pagination {
-	search?: string
-	sort?: string
-	order?: 'asc' | 'desc'
-}
-export type Status = 'idle' | 'loading' | 'success' | 'error'
-export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error'
-export type ProcessStatus = 'pending' | 'processing' | 'completed' | 'failed'
-
-export type Result<T = void, E = string> =
-	| { ok: true; value: T; error?: never }
-	| { ok: false; error: E; value?: never }
-
-export interface AppError extends Error {
-	code?: string
-	statusCode?: number
-	context?: Record<string, unknown>
-}
-
-
+// ============================================================================
+// DB TABLE TYPE ALIASES - Only the ones actually used
+// ============================================================================
 
 export type User = Tables<'users'>
 export type Property = Tables<'properties'>
@@ -163,62 +83,20 @@ export type RentPayment = Tables<'rent_payments'>
 export type ExpenseRecord = Tables<'expenses'>
 export type ConnectedAccount = Tables<'stripe_connected_accounts'>
 export type PropertyInsert = TablesInsert<'properties'>
-export type UnitInsert = TablesInsert<'units'>
 
-// Tenant input/update types for forms
 export type TenantInput = TablesInsert<'tenants'>
 export type TenantUpdate = Partial<TenantInput>
 
+// Insert/Update types - only export what's actually used
+export type UserInsert = TablesInsert<'users'>
+export type UserUpdate = TablesUpdate<'users'>
+export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
+
+
 // ============================================================================
-// DB ROW TYPE EXPORTS - All database table Row types
+// EXTENDED TYPES - With relations/computed fields
 // ============================================================================
-// These are the canonical Row types from the generated supabase.ts schema.
-// Use these instead of defining inline types in services.
 
-export type ActivityRow = Database['public']['Tables']['activity']['Row']
-export type BlogRow = Database['public']['Tables']['blogs']['Row']
-export type DocumentRow = Database['public']['Tables']['documents']['Row']
-export type ExpenseRow = Database['public']['Tables']['expenses']['Row']
-export type LeaseTenantRow = Database['public']['Tables']['lease_tenants']['Row']
-export type LeaseRow = Database['public']['Tables']['leases']['Row']
-export type MaintenanceRequestRow = Database['public']['Tables']['maintenance_requests']['Row']
-export type NotificationLogRow = Database['public']['Tables']['notification_logs']['Row']
-export type NotificationRow = Database['public']['Tables']['notifications']['Row']
-export type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
-export type PaymentScheduleRow = Database['public']['Tables']['payment_schedules']['Row']
-export type PaymentTransactionRow = Database['public']['Tables']['payment_transactions']['Row']
-export type PropertyRow = Database['public']['Tables']['properties']['Row']
-export type PropertyImageRow = Database['public']['Tables']['property_images']['Row']
-export type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
-export type RentDueRow = Database['public']['Tables']['rent_due']['Row']
-export type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
-export type ReportRunRow = Database['public']['Tables']['report_runs']['Row']
-export type ReportRow = Database['public']['Tables']['reports']['Row']
-export type SecurityAuditLogRow = Database['public']['Tables']['security_audit_log']['Row']
-export type SubscriptionRow = Database['public']['Tables']['subscriptions']['Row']
-export type TenantInvitationRow = Database['public']['Tables']['tenant_invitations']['Row']
-export type TenantRow = Database['public']['Tables']['tenants']['Row']
-export type UnitRow = Database['public']['Tables']['units']['Row']
-export type UserAccessLogRow = Database['public']['Tables']['user_access_log']['Row']
-export type UserFeatureAccessRow = Database['public']['Tables']['user_feature_access']['Row']
-export type UserPreferencesRow = Database['public']['Tables']['user_preferences']['Row']
-export type UserRow = Database['public']['Tables']['users']['Row']
-export type WebhookAttemptRow = Database['public']['Tables']['webhook_attempts']['Row']
-export type WebhookEventRow = Database['public']['Tables']['webhook_events']['Row']
-export type WebhookMetricRow = Database['public']['Tables']['webhook_metrics']['Row']
-
-// Database table insert/update types for backend services
-export type UserInsert = Database['public']['Tables']['users']['Insert']
-export type UserUpdate = Database['public']['Tables']['users']['Update']
-export type RentPaymentInsert = Database['public']['Tables']['rent_payments']['Insert']
-export type RentPaymentUpdate = Database['public']['Tables']['rent_payments']['Update']
-export type MaintenanceRequestInsert = Database['public']['Tables']['maintenance_requests']['Insert']
-export type MaintenanceRequestUpdate = Database['public']['Tables']['maintenance_requests']['Update']
-
-// Augmented types with optimistic locking version field for mutations
-// IMPORTANT: Only Leases have version field for optimistic locking - other entities don't support versioning
-// Property, Unit, Tenant, and MaintenanceRequest don't have version columns in the database
-// Types with additional computed/relational properties
 export type LeaseWithExtras = Lease & {
 	version?: number
 	tenant_id?: string
@@ -266,12 +144,11 @@ export type TenantWithExtras = Tenant & {
 	move_out_date?: string | null
 }
 
-// Re-export app-only types from constants (NOT DB enums)
+// Re-export app-only types from constants
 export type MaintenanceCategory = MaintenanceCategoryFromConstants
 export type PropertyType = PropertyTypeFromConstants
 export type ActivityEntityType = ActivityEntityTypeFromConstants
 
-// Enhanced Unit Row type with relations for UI display
 export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] & {
 	property?: {
 		name: string
@@ -288,93 +165,22 @@ export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] 
 		rent_amount: number
 		status: LeaseStatus
 	} | null
-	// Optional enhancement fields for UI display
 	marketValue?: number
 	lastUpdated?: string
 }
 
-// Maintenance API response with optional relations
-export interface MaintenanceRequestResponse {
-	data: (MaintenanceRequest & {
-		property?: { name: string } | null
-		unit?: { name: string } | null
-		assignedTo?: { name: string } | null
-	})[]
-	total: number
-	limit: number
-	offset: number
-}
+// NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase.js'
+// Do NOT re-export here to avoid circular dependencies
 
-// Re-export Database type for type composition
-export type {
-	Database,
-	Enums,
-	Tables,
-	TablesInsert,
-	TablesUpdate
-} from './supabase'
-
-export type EnvConfig = Record<string, string | number | boolean>
-
-// HTTP Method types
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
 
-// Use template literals for type-safe string patterns
-export type EntityType =
-	| 'properties'
-	| 'units'
-	| 'tenants'
-	| 'leases'
-	| 'maintenance'
+export type EntityType = 'properties' | 'units' | 'tenants' | 'leases' | 'maintenance'
 export type ActionType = 'create' | 'update' | 'delete' | 'view'
 export type Permission = `${EntityType}:${ActionType}`
 
-// Use built-in Awaited utility
-export type AsyncValue<T> = Awaited<T>
-
-// Use native utility types for common patterns
-export type CreateInput<T> = Omit<T, 'id' | 'createdAt' | 'updatedAt'>
-export type UpdateInput<T> = Partial<CreateInput<T>>
-export type EntityWithRelations<T, R> = T & R
-
-export type FormErrors<T> = Partial<Record<keyof T, string>>
-export type ComponentProps<T = Record<string, unknown>> = T & {
-	className?: string
-	children?: ReactNode
-}
-
-export type EventHandler<T = Event> = (event: T) => void
-export type AsyncEventHandler<T = Event> = (event: T) => Promise<void>
-
-export interface DateRange {
-	start: Date
-	end: Date
-}
-
-export type TimePeriod =
-	| 'today'
-	| 'yesterday'
-	| 'last7days'
-	| 'last30days'
-	| 'thisMonth'
-	| 'lastMonth'
-	| 'thisYear'
-	| 'lastYear'
-	| 'custom'
-
-// ESSENTIAL FILE UPLOAD TYPE (not available natively)
-
-export interface FileUpload {
-	file: File
-	url?: string
-	status: UploadStatus
-	progress?: number
-	error?: string
-}
 
 // Re-export Stats types from stats.ts
 export type {
-  BaseStats,
   PropertyStats,
   TenantStats,
   TenantSummary,
@@ -388,7 +194,6 @@ export type {
   CacheEntry,
   UserStats
 } from './stats.js'
-
 
 export interface FinancialOverviewResponse {
 	chartData: Array<{
@@ -407,8 +212,7 @@ export interface FinancialOverviewResponse {
 	year: number
 }
 
-// Re-export from financial-analytics (production type with real expense categories)
-export type { ExpenseSummaryResponse } from './financial-analytics.js'
+export type { ExpenseSummaryResponse } from './analytics.js'
 
 export interface LeaseStatsResponse {
 	totalLeases: number
@@ -422,7 +226,6 @@ export interface LeaseStatsResponse {
 }
 
 export interface TenantWithLeaseInfo {
-	// Base tenant fields from tenants table
 	id: string
 	user_id: string
 	created_at: string | null
@@ -434,15 +237,11 @@ export interface TenantWithLeaseInfo {
 	ssn_last_four: string | null
 	stripe_customer_id: string | null
 	updated_at: string | null
-
-	// User information (from joined users table)
 	name?: string
 	email?: string
 	phone?: string | null
 	first_name?: string | null
 	last_name?: string | null
-
-	// Current lease information
 	currentLease?: {
 		id: string
 		start_date: string
@@ -453,8 +252,6 @@ export interface TenantWithLeaseInfo {
 		primary_tenant_id: string
 		unit_id: string
 	} | null
-
-	// All leases for this tenant
 	leases?: Array<{
 		id: string
 		start_date: string
@@ -465,8 +262,6 @@ export interface TenantWithLeaseInfo {
 			address_line1: string
 		}
 	}>
-
-	// Unit information
 	unit?: {
 		id: string
 		unit_number: string | null
@@ -475,8 +270,6 @@ export interface TenantWithLeaseInfo {
 		square_feet: number | null
 		rent_amount: number
 	} | null
-
-	// Property information
 	property?: {
 		id: string
 		name: string
@@ -486,8 +279,6 @@ export interface TenantWithLeaseInfo {
 		state: string
 		postal_code: string
 	} | null
-
-	// Derived fields for UI display
 	monthlyRent?: number
 	lease_status?: string
 	paymentStatus?: string | null
@@ -497,14 +288,13 @@ export interface TenantWithLeaseInfo {
 	leaseEnd?: string | null
 }
 
-// Property Performance Response Types
 export interface PropertyPerformance {
 	property: string
 	property_id: string
 	totalUnits: number
 	occupiedUnits: number
 	vacantUnits: number
-	occupancyRate: number // e.g. 95.5
+	occupancyRate: number
 	revenue: number
 	monthlyRevenue: number
 	potentialRevenue: number
@@ -519,19 +309,17 @@ export interface PropertyPerformanceResponse {
 	properties: PropertyPerformance[]
 }
 
-// System Uptime Response Types
 export interface SystemUptime {
-	uptime: string // e.g. "99.95%"
-	uptimePercentage: number // e.g. 99.95
-	sla: string // e.g. "99.5%" - target SLA
+	uptime: string
+	uptimePercentage: number
+	sla: string
 	slaStatus: 'excellent' | 'good' | 'acceptable' | 'poor'
 	status: 'operational' | 'degraded' | 'outage'
-	lastIncident: string | null // ISO timestamp of last incident
-	responseTime: number // Average response time in ms
-	timestamp: string // ISO timestamp of measurement
+	lastIncident: string | null
+	responseTime: number
+	timestamp: string
 }
 
-// Dashboard Metrics Response (replaces Record<string, unknown>)
 export interface DashboardMetricsResponse {
 	totalProperties: number
 	totalUnits: number
@@ -543,7 +331,6 @@ export interface DashboardMetricsResponse {
 	timestamp: string
 }
 
-// Dashboard Summary Response (replaces Record<string, unknown>)
 export interface DashboardSummaryResponse {
 	overview: {
 		properties: number
@@ -566,20 +353,6 @@ export interface DashboardSummaryResponse {
 	timestamp: string
 }
 
-// Stripe Pricing Component Props
-export interface StripePricingTableProps {
-	pricingTableId?: string
-	clientReferenceId?: string
-	customerEmail?: string
-	customerSessionClientSecret?: string
-	className?: string
-}
-
-// Email service uses inline types with Stripe SDK - no shared interfaces needed
-
-// ANALYTICS RPC RESPONSE TYPES - For backend controller type safety
-
-// Financial Analytics RPC Responses
 export interface FinancialMetrics {
 	revenue: number
 	expenses: number
@@ -607,7 +380,6 @@ export interface DashboardSummary {
 	avgRoi: number
 }
 
-// Maintenance Analytics RPC Responses
 export interface MaintenanceMetrics {
 	totalCost: number
 	avgCost: number
@@ -638,8 +410,6 @@ export interface MaintenancePerformance {
 	emergencyRequests: number
 }
 
-// FORM PROGRESS TYPES - Frontend form state persistence
-
 export type FormProgressData = {
 	email?: string
 	name?: string
@@ -654,12 +424,6 @@ export type FormProgressData = {
 	confirmPassword?: string
 }
 
-// REPOSITORY INPUT TYPES (Database table Insert/Update types)
-// Re-export from repository files (single source of truth per domain)
-
-
-// PAYMENT METHOD TYPES - Tenant payment system (Phase 2-3)
-
 export type PaymentMethodType = 'card' | 'us_bank_account'
 
 export interface PaymentMethodResponse {
@@ -673,12 +437,6 @@ export interface PaymentMethodResponse {
 	isDefault: boolean
 	createdAt: string
 }
-
-export interface SetDefaultPaymentMethodRequest {
-	paymentMethodId: string
-}
-
-// RENT SUBSCRIPTION TYPES - Autopay subscriptions (Phase 4)
 
 export type SubscriptionStatus =
 	| 'incomplete'
@@ -696,7 +454,6 @@ export interface UpdateSubscriptionRequest {
 	billingDayOfMonth?: number
 }
 
-// TENANT NOTIFICATION PREFERENCES TYPE
 export interface TenantNotificationPreferences {
 	pushNotifications?: boolean
 	emailNotifications?: boolean
@@ -709,10 +466,24 @@ export interface TenantNotificationPreferences {
 	[key: string]: boolean | undefined
 }
 
-// WithVersion types for optimistic locking - defined after their base types
+// WithVersion types for optimistic locking
 export type LeaseWithVersion = Lease & { version?: number }
 export type MaintenanceRequestWithVersion = MaintenanceRequest & { version?: number }
 export type PropertyWithVersion = Property & { version?: number }
 export type UnitWithVersion = Unit & { version?: number }
 export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & { version?: number }
 export type PaymentMethodResponseWithVersion = PaymentMethodResponse & { version?: number }
+
+// ============================================================================
+// SEARCH TYPES
+// ============================================================================
+
+export type SearchResultType = 'properties' | 'tenants' | 'units' | 'leases'
+
+export interface SearchResult {
+	id: string
+	type: SearchResultType
+	name: string
+	description?: string
+	metadata?: Record<string, unknown>
+}

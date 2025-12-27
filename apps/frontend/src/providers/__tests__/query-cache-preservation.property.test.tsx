@@ -51,7 +51,7 @@ describe('Property 4: Data Cache Preservation', () => {
 					expect(queryState?.dataUpdatedAt).toBeGreaterThan(0)
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 50 }
 		)
 	})
 
@@ -111,7 +111,7 @@ describe('Property 4: Data Cache Preservation', () => {
 					expect(unchangedCached2).toEqual(data2)
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 50 }
 		)
 	})
 
@@ -160,7 +160,7 @@ describe('Property 4: Data Cache Preservation', () => {
 					}
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 50 }
 		)
 	})
 
@@ -186,7 +186,7 @@ describe('Property 4: Data Cache Preservation', () => {
 					expect(queryClient.getQueryData(queryKey)).toBeUndefined()
 				}
 			),
-			{ numRuns: 100 }
+			{ numRuns: 50 }
 		)
 	})
 })

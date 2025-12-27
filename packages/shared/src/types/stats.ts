@@ -3,13 +3,9 @@
  * Consolidated source for all stats, metrics, and statistical aggregations
  */
 
-// Base statistics interface
-export interface BaseStats {
-	total: number
-}
-
 // Property statistics
-export interface PropertyStats extends BaseStats {
+export interface PropertyStats {
+	total: number
 	occupied: number
 	vacant: number
 	occupancyRate: number
@@ -18,7 +14,8 @@ export interface PropertyStats extends BaseStats {
 }
 
 // Tenant statistics
-export interface TenantStats extends BaseStats {
+export interface TenantStats {
+	total: number
 	active: number
 	inactive: number
 	newThisMonth: number
@@ -45,7 +42,8 @@ export interface TenantSummary {
 }
 
 // Unit statistics
-export interface UnitStats extends BaseStats {
+export interface UnitStats {
+	total: number
 	occupied: number
 	vacant: number
 	maintenance: number
@@ -72,7 +70,8 @@ export interface UnitStatistics {
 }
 
 // Lease statistics
-export interface LeaseStats extends BaseStats {
+export interface LeaseStats {
+	total: number
 	active: number
 	expired: number
 	expiringSoon: number
@@ -96,7 +95,8 @@ export interface LeaseStatistics {
 }
 
 // Maintenance statistics
-export interface MaintenanceStats extends BaseStats {
+export interface MaintenanceStats {
+	total: number
 	open: number
 	inProgress: number
 	completed: number
@@ -181,4 +181,34 @@ export interface UserStats {
 	activeUsers: number
 	newUsersThisMonth: number
 	verifiedUsers: number
+}
+
+// Dashboard trend and time series types (merged from dashboard-repository.ts)
+export interface MetricTrend {
+	current: number
+	previous: number | null
+	change: number
+	percentChange: number
+}
+
+export interface TimeSeriesDataPoint {
+	date: string
+	value: number
+}
+
+export interface DashboardTrendData {
+	occupancyRate: MetricTrend
+	activeTenants: MetricTrend
+	monthlyRevenue: MetricTrend
+	openMaintenance: MetricTrend
+}
+
+export interface DashboardTimeSeriesOptions {
+	metric:
+		| 'occupancy_rate'
+		| 'active_tenants'
+		| 'monthly_revenue'
+		| 'total_maintenance'
+		| 'open_maintenance'
+	days?: number
 }

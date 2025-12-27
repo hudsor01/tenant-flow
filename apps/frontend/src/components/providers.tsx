@@ -6,6 +6,7 @@ import { DEFAULT_THEME_MODE, THEME_MODE_STORAGE_KEY } from '#lib/theme-utils'
 import { AuthStoreProvider } from '#providers/auth-provider'
 import { PreferencesStoreProvider } from '#providers/preferences-provider'
 import { QueryProvider } from '#providers/query-provider'
+import { SseProvider } from '#providers/sse-provider'
 import { ThemeProvider } from '#providers/theme-provider'
 import type { PreferencesState } from '#stores/preferences-store'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
@@ -32,8 +33,10 @@ export function Providers({
 				<QueryProvider>
 					<NuqsAdapter>
 						<AuthStoreProvider>
-							{children}
-							<GlobalLoadingIndicator />
+							<SseProvider>
+								{children}
+								<GlobalLoadingIndicator />
+							</SseProvider>
 						</AuthStoreProvider>
 					</NuqsAdapter>
 				</QueryProvider>

@@ -12,7 +12,7 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication } from '@nestjs/common'
 import { AppModule } from '../../src/app.module'
-import * as request from 'supertest'
+import request from 'supertest'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import { shouldSkipIntegrationTests } from '../integration/rls/setup'
 
@@ -469,7 +469,9 @@ describeOrSkip('RLS Policy Security Tests', () => {
 
 				// Verify no data belongs to ownerB (if owner_user_id exists)
 				if (data && data.length > 0 && 'owner_user_id' in data[0]) {
-					const hasOwnerBData = data.some((row: any) => row.owner_user_id === ownerB.userId)
+					const hasOwnerBData = (data as Array<{ owner_user_id?: string | null }>).some(
+						row => row.owner_user_id === ownerB.userId
+					)
 					expect(hasOwnerBData).toBe(false)
 				}
 			}
@@ -485,7 +487,7 @@ describeOrSkip('RLS Policy Security Tests', () => {
 			expect(error).toBeNull()
 
 			if (data && data.length > 0) {
-				data.forEach((lease: any) => {
+				(data as Array<{ properties?: { owner_user_id?: string | null } | null }>).forEach((lease) => {
 					// Verify units and properties also belong to ownerA
 					if (lease.properties) {
 						expect(lease.properties.owner_user_id).toBe(ownerA.userId)

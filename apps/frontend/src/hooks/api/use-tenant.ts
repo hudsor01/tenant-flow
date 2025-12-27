@@ -11,38 +11,36 @@
  * - Optimistic updates
  */
 
-import { apiRequest } from '#lib/api-request'
-
-import { logger } from '@repo/shared/lib/frontend-logger'
-import { toast } from 'sonner' // Still needed for some success handlers
 import { useMemo } from 'react'
 import {
-	handleMutationError,
-	handleMutationSuccess
-} from '#lib/mutation-error-handler'
-import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
-import type {
-	Tenant,
-	TenantInput,
-	TenantUpdate,
-	TenantWithLeaseInfo,
-	TenantWithExtras,
-	TenantWithLeaseInfoWithVersion
-} from '@repo/shared/types/core'
-import {
 	keepPreviousData,
-	useMutation,
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
+import type { Tenant, TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { tenantQueries } from './queries/tenant-queries'
+import {
+	useCreateTenant as useCreateTenantMutation,
+	useUpdateTenant as useUpdateTenantMutation
+} from './mutations/tenant-mutations'
+
+// Re-export all mutations from the mutations module
+export {
+	useCreateTenant,
+	useUpdateTenant,
+	useCreateTenantMutation as useCreateTenantMutationFactory,
+	useUpdateTenantMutation as useUpdateTenantMutationFactory,
+	useDeleteTenantMutation,
+	useMarkTenantAsMovedOut,
+	useBatchTenantOperations,
+	useInviteTenant,
+	useResendInvitation,
+	useCancelInvitation,
+	useUpdateNotificationPreferences
+} from './mutations/tenant-mutations'
 
 /**
  * Hook to fetch tenant by ID
- * Uses queryOptions pattern for type-safe, reusable configuration
- *
- * NOTE: Prefetch is handled manually in useAllTenants and useTenantList
- * due to type mismatch between Tenant and TenantWithLeaseInfo.
  */
 export function useTenant(id: string) {
 	return useQuery(tenantQueries.detail(id))
@@ -50,7 +48,6 @@ export function useTenant(id: string) {
 
 /**
  * Hook to fetch tenant with lease information
- * Uses queryOptions pattern for type-safe, reusable configuration
  */
 export function useTenantWithLease(id: string) {
 	return useQuery(tenantQueries.withLease(id))
@@ -58,20 +55,15 @@ export function useTenantWithLease(id: string) {
 
 /**
  * Hook to fetch tenant list with pagination
- * TanStack Query cache is the single source of truth
  */
 export function useTenantList(page: number = 1, limit: number = 50) {
 	const queryClient = useQueryClient()
-
-	// Convert page to offset (backend expects offset, not page)
 	const offset = (page - 1) * limit
-
 	const queryOptions = tenantQueries.list({ limit, offset })
 
 	return useQuery({
 		...queryOptions,
 		select: response => {
-			// Prefill individual tenant detail caches when data arrives
 			response.data?.forEach?.(tenant => {
 				const detailKey = tenantQueries.detail(tenant.id).queryKey
 				const leaseKey = tenantQueries.withLease(tenant.id).queryKey
@@ -98,7 +90,6 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 
 /**
  * Hook to fetch all tenants (for dropdowns, selects, etc.)
- * TanStack Query cache is the single source of truth
  */
 export function useAllTenants() {
 	const queryClient = useQueryClient()
@@ -106,8 +97,6 @@ export function useAllTenants() {
 	return useQuery({
 		...tenantQueries.allTenants(),
 		select: response => {
-			// Prefetch individual tenant details only if not already cached
-			// This prevents overwriting fresher detail data with potentially stale list data
 			response.forEach(tenant => {
 				const existingDetail = queryClient.getQueryData(
 					tenantQueries.detail(tenant.id).queryKey
@@ -116,12 +105,17 @@ export function useAllTenants() {
 					tenantQueries.withLease(tenant.id).queryKey
 				)
 
-				// Only set if no existing data (avoids race condition where detail is fresher)
 				if (!existingDetail) {
-					queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, tenant as unknown as Tenant)
+					queryClient.setQueryData(
+						tenantQueries.detail(tenant.id).queryKey,
+						tenant as unknown as Tenant
+					)
 				}
 				if (!existingWithLease) {
-					queryClient.setQueryData(tenantQueries.withLease(tenant.id).queryKey, tenant)
+					queryClient.setQueryData(
+						tenantQueries.withLease(tenant.id).queryKey,
+						tenant
+					)
 				}
 			})
 
@@ -131,138 +125,11 @@ export function useAllTenants() {
 }
 
 /**
- * Mutation hook to create a new tenant
- * No optimistic updates - waits for server response
- */
-export function useCreateTenant() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: (tenantData: TenantInput) =>
-			apiRequest<Tenant>('/api/v1/tenants', {
-				method: 'POST',
-				body: JSON.stringify(tenantData)
-			}),
-		onError: err => handleMutationError(err, 'Create tenant'),
-		onSuccess: data => {
-			// Invalidate queries to refetch with new/updated tenant
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })
-		}
-	})
-}
-
-/**
- * Mutation hook to update an existing tenant with enhanced optimistic updates
- * Includes comprehensive rollback mechanism for both detail and list caches
- */
-export function useUpdateTenant() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) =>
-			apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(data)
-			}),
-		onMutate: async ({ id, data }) => {
-			// Cancel all outgoing queries for this tenant (using queryOptions keys)
-			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
-
-			// Snapshot all relevant caches for comprehensive rollback
-			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey
-			)
-			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey
-			)
-			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantQueries.lists()
-			)
-
-			// Optimistically update detail cache
-		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
-			tenantQueries.detail(id).queryKey,
-			(old: TenantWithLeaseInfoWithVersion | undefined) => {
-				if (!old) return old
-				return incrementVersion(old, {
-					...data,
-					updated_at: new Date().toISOString()
-				})
-			}
-		)
-
-			// Optimistically update with-lease cache
-		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
-			tenantQueries.withLease(id).queryKey,
-			(old: TenantWithLeaseInfoWithVersion | undefined) => {
-				if (!old) return old
-				return incrementVersion(old, {
-					...data,
-					updated_at: new Date().toISOString()
-				})
-			}
-		)
-
-			// Optimistically update list cache
-		queryClient.setQueryData<TenantWithLeaseInfoWithVersion[]>(
-			tenantQueries.lists(),
-			(old: TenantWithLeaseInfoWithVersion[] | undefined) => {
-				if (!old) return old
-				return old.map(tenant =>
-					tenant.id === id
-						? incrementVersion(tenant, {
-								...data,
-								updated_at: new Date().toISOString()
-							})
-						: tenant
-				)
-			}
-		)
-
-			return { previousDetail, previousWithLease, previousList, id }
-		},
-		onError: (err, _variables, context) => {
-			// Comprehensive rollback: restore all caches
-			if (context) {
-				if (context.previousDetail) {
-					queryClient.setQueryData(
-						tenantQueries.detail(context.id).queryKey,
-						context.previousDetail as unknown as Tenant
-					)
-				}
-				if (context.previousWithLease) {
-					queryClient.setQueryData(
-						tenantQueries.withLease(context.id).queryKey,
-						context.previousWithLease
-					)
-				}
-				if (context.previousList) {
-					queryClient.setQueryData(tenantQueries.lists(), context.previousList)
-				}
-			}
-
-			handleMutationError(err, 'Update tenant')
-		},
-
-		onSuccess: data => {
-			// Invalidate queries to refetch with updated tenant
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(data.id).queryKey })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.withLease(data.id).queryKey })
-		}
-	})
-}
-
-/**
  * Combined hook for tenant operations needed by tenant management pages
- * Note: DELETE operations now use React 19 useOptimistic with Server Actions
  */
 export function useTenantOperations() {
-	const createTenant = useCreateTenant()
-	const updateTenant = useUpdateTenant()
+	const createTenant = useCreateTenantMutation()
+	const updateTenant = useUpdateTenantMutation()
 
 	return useMemo(
 		() => ({
@@ -275,20 +142,9 @@ export function useTenantOperations() {
 	)
 }
 
-
-
-
-
 /**
- * Hook for tenant data with real-time SSE updates
- *
- * Primary updates come from SSE (tenant.updated events).
- * Fallback polling is reduced to 5 minutes for missed events.
- *
- * @param id - Tenant ID to fetch
- * @param interval - Fallback polling interval (default: 5 minutes, reduced from 30 seconds)
+ * Hook for tenant data with polling fallback
  * @deprecated Prefer using useTenant() with SSE enabled at app level.
- * The polling fallback is now built into the query options.
  */
 export function useTenantPolling(id: string, interval: number = 5 * 60 * 1000) {
 	return useQuery({
@@ -299,7 +155,6 @@ export function useTenantPolling(id: string, interval: number = 5 * 60 * 1000) {
 
 /**
  * Hook for prefetching tenant data before navigation
- * Call this on hover or before route changes
  */
 export function usePrefetchTenant() {
 	const queryClient = useQueryClient()
@@ -316,7 +171,6 @@ export function usePrefetchTenant() {
 
 /**
  * Hook for optimistic tenant updates with automatic rollback
- * Enhanced with proper TypeScript types and error handling
  */
 export function useOptimisticTenantUpdate() {
 	const queryClient = useQueryClient()
@@ -326,15 +180,14 @@ export function useOptimisticTenantUpdate() {
 			id: string,
 			updates: Partial<TenantWithLeaseInfo>
 		) => {
-			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: tenantQueries.detail(id).queryKey
+			})
 
-			// Snapshot previous value
 			const previous = queryClient.getQueryData<Tenant>(
 				tenantQueries.detail(id).queryKey
 			)
 
-			// Optimistically update
 			queryClient.setQueryData<Tenant>(
 				tenantQueries.detail(id).queryKey,
 				old => {
@@ -347,283 +200,15 @@ export function useOptimisticTenantUpdate() {
 				previous,
 				rollback: () => {
 					if (previous) {
-						queryClient.setQueryData(tenantQueries.detail(id).queryKey, previous)
+						queryClient.setQueryData(
+							tenantQueries.detail(id).queryKey,
+							previous
+						)
 					}
 				}
 			}
 		}
 	}
-}
-
-/**
- * Mutation hook to mark tenant as moved out (soft delete)
- * Includes optimistic updates with automatic rollback
- * Follows industry-standard 7-year retention pattern
- */
-export function useMarkTenantAsMovedOut() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async ({
-			id,
-			data
-		}: {
-			id: string
-			data: { moveOutDate: string; moveOutReason: string }
-		}): Promise<TenantWithLeaseInfo> => {
-			return apiRequest<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${id}/mark-moved-out`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
-				}
-			)
-		},
-		onMutate: async ({ id, data: _data }) => {
-			// Cancel in-flight queries
-			await queryClient.cancelQueries({ queryKey: tenantQueries.detail(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.withLease(id).queryKey })
-			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
-
-			// Snapshot previous values
-			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantQueries.detail(id).queryKey
-			)
-			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
-				tenantQueries.withLease(id).queryKey
-			)
-			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
-				tenantQueries.lists()
-			)
-
-			// Optimistic update - mark as MOVED_OUT in detail caches
-		queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
-			tenantQueries.detail(id).queryKey,
-			(old: TenantWithLeaseInfoWithVersion | undefined) => {
-				if (!old) return old
-// TypeScript: These fields may not exist in the type but are set by the API
-return incrementVersion(old, {
-				updated_at: new Date().toISOString()
-			} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
-			}
-		)
-
-			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
-			tenantQueries.withLease(id).queryKey,
-			(old: TenantWithLeaseInfoWithVersion | undefined) => {
-				if (!old) return old
-// TypeScript: These fields may not exist in the type but are set by the API
-return incrementVersion(old, {
-				updated_at: new Date().toISOString()
-			} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
-			}
-		)
-
-			// Optimistic update - remove from list (soft delete)
-			queryClient.setQueryData<TenantWithLeaseInfo[]>(
-				tenantQueries.lists(),
-				old => {
-					if (!old) return old
-					return old.filter(tenant => tenant.id !== id)
-				}
-			)
-
-			return { previousDetail, previousWithLease, previousList, id }
-		},
-		onError: (err, _variables, context) => {
-			// Rollback on error
-			if (context) {
-				if (context.previousDetail) {
-					queryClient.setQueryData(
-						tenantQueries.detail(context.id).queryKey,
-						context.previousDetail as unknown as Tenant
-					)
-				}
-				if (context.previousWithLease) {
-					queryClient.setQueryData(
-						tenantQueries.withLease(context.id).queryKey,
-						context.previousWithLease
-					)
-				}
-				if (context.previousList) {
-					queryClient.setQueryData(tenantQueries.lists(), context.previousList)
-				}
-			}
-
-			handleMutationError(err, 'Mark tenant as moved out')
-		},
-		onSuccess: data => {
-			handleMutationSuccess(
-			'Mark tenant as moved out',
-			`${data?.name ?? 'Tenant'} has been marked as moved out`
-		)
-		},
-		onSettled: (_data, _error, variables) => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({
-				queryKey: tenantQueries.detail(variables.id).queryKey
-			})
-			queryClient.invalidateQueries({
-				queryKey: tenantQueries.withLease(variables.id).queryKey
-			})
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-		}
-	})
-}
-
-/**
- * Hook for batch tenant operations
- * Uses optimized bulk endpoints to avoid N+1 query pattern
- */
-export function useBatchTenantOperations() {
-	const queryClient = useQueryClient()
-
-	return {
-		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
-			// Single API call to bulk update endpoint
-			const response = await apiRequest<{
-				success: Array<{ id: string; tenant: TenantWithLeaseInfo }>
-				failed: Array<{ id: string; error: string }>
-			}>('/api/v1/tenants/bulk-update', {
-				method: 'POST',
-				body: JSON.stringify({ updates })
-			})
-
-			// Show toast for failed updates
-			if (response.failed.length > 0) {
-				response.failed.forEach(failure => {
-					toast.error(`Failed to update tenant: ${failure.error}`)
-				})
-			}
-
-			// Show success toast
-			if (response.success.length > 0) {
-				toast.success(`Updated ${response.success.length} tenant(s)`)
-			}
-
-			// Invalidate all affected queries
-			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-			updates.forEach(({ id }) => {
-				queryClient.invalidateQueries({ queryKey: tenantQueries.detail(id).queryKey })
-			})
-
-			return response
-		},
-		batchDelete: async (ids: string[]) => {
-			// Single API call to bulk delete endpoint
-			const response = await apiRequest<{
-				success: Array<{ id: string }>
-				failed: Array<{ id: string; error: string }>
-			}>('/api/v1/tenants/bulk-delete', {
-				method: 'DELETE',
-				body: JSON.stringify({ ids })
-			})
-
-			// Show toast for failed deletions
-			if (response.failed.length > 0) {
-				response.failed.forEach(failure => {
-					toast.error(`Failed to delete tenant: ${failure.error}`)
-				})
-			}
-
-			// Show success toast
-			if (response.success.length > 0) {
-				toast.success(`Deleted ${response.success.length} tenant(s)`)
-			}
-
-			// Invalidate all affected queries
-			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-
-			return response
-		}
-	}
-}
-
-/**
- * Invite tenant - Creates tenant record and sends invitation email
- * Backend automatically sends invitation after tenant creation
- */
-export function useInviteTenant() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: async (data: {
-			email: string
-			first_name: string
-			last_name: string
-			phone: string | null
-			lease_id: string
-		}): Promise<TenantWithExtras> => {
-			const response = await apiRequest<TenantWithExtras>('/api/v1/tenants', {
-				method: 'POST',
-				body: JSON.stringify({
-					email: data?.email ?? '',
-					name: `${data.first_name} ${data.last_name}`.trim(),
-					phone: data.phone ?? null
-				})
-			})
-
-			// Associate tenant with lease
-			if (data.lease_id) {
-				await apiRequest(`/api/v1/leases/${data.lease_id}`, {
-					method: 'PATCH',
-					body: JSON.stringify({ tenant_id: response.id })
-				})
-			}
-
-			return response
-		},
-		onSuccess: data => {
-			toast.success('Invitation sent', {
-				description: `${data?.name ?? 'Tenant'} will receive an email to accept the invitation`
-			})
-
-			// Invalidate tenant list to show new pending tenant
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-
-			logger.info('Tenant invitation sent', {
-				action: 'invite_tenant',
-				metadata: { tenant_id: data?.id, email: data?.email ?? '' }
-			})
-		},
-		onError: error => {
-			handleMutationError(error, 'Send tenant invitation')
-		}
-	})
-}
-
-/**
- * Resend invitation email for expired or pending invitations
- */
-export function useResendInvitation() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: (tenant_id: string) =>
-			apiRequest<{ message: string }>(
-				`/api/v1/tenants/${tenant_id}/resend-invitation`,
-				{
-					method: 'POST'
-				}
-			),
-		onSuccess: (_, tenant_id) => {
-			toast.success('Invitation resent', {
-				description: 'A new invitation email has been sent'
-			})
-
-			// Refresh tenant data to show updated invitation_sent_at
-			queryClient.invalidateQueries({ queryKey: tenantQueries.detail(tenant_id).queryKey })
-			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
-
-			logger.info('Tenant invitation resent', {
-				action: 'resend_invitation',
-				metadata: { tenant_id }
-			})
-		},
-		onError: error => {
-			handleMutationError(error, 'Resend invitation')
-		}
-	})
 }
 
 /**
@@ -634,43 +219,8 @@ export function useNotificationPreferences(tenant_id: string) {
 }
 
 /**
- * Mutation hook to update notification preferences for a tenant
+ * Hook to fetch tenant invitations list
  */
-export function useUpdateNotificationPreferences() {
-	const queryClient = useQueryClient()
-
-	return useMutation({
-		mutationFn: ({
-			tenant_id,
-			preferences
-		}: {
-			tenant_id: string
-			preferences: {
-				emailNotifications: boolean
-				smsNotifications: boolean
-				maintenanceUpdates: boolean
-				paymentReminders: boolean
-			}
-		}) =>
-			apiRequest(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
-				method: 'PUT',
-				body: JSON.stringify(preferences)
-			}),
-		onSuccess: (_data, variables) => {
-			toast.success('Notification preferences updated')
-
-			// Invalidate notification preferences query
-			queryClient.invalidateQueries({
-				queryKey: [...tenantQueries.detail(variables.tenant_id).queryKey, 'notification-preferences']
-			})
-
-			logger.info('Notification preferences updated', {
-				action: 'update_notification_preferences',
-				metadata: { tenant_id: variables.tenant_id }
-			})
-		},
-		onError: error => {
-			handleMutationError(error, 'Update notification preferences')
-		}
-	})
+export function useInvitations() {
+	return useQuery(tenantQueries.invitationList())
 }

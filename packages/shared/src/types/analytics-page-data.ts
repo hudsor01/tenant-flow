@@ -4,14 +4,16 @@
  * Used by analytics-page.ts to provide unified page data loading
  */
 
-import type { FinancialAnalyticsPageResponse } from './financial-analytics'
-import type { LeaseAnalyticsPageResponse, LeaseLifecyclePoint } from './lease-analytics'
-import type { MaintenanceAnalyticsPageResponse, MaintenanceTrendPoint as MAMaintenanceTrendPoint } from './maintenance-analytics'
-import type { OccupancyAnalyticsPageResponse } from './occupancy-analytics'
 import type {
+	FinancialAnalyticsPageResponse,
+	LeaseAnalyticsPageResponse,
+	LeaseLifecyclePoint,
+	MaintenanceAnalyticsPageResponse,
+	MaintenanceTrendPoint as MAMaintenanceTrendPoint,
+	OccupancyAnalyticsPageResponse,
 	PropertyPerformancePageResponse,
 	VisitorAnalyticsResponse
-} from './property-analytics'
+} from './analytics.js'
 
 // ============================================================================
 // Response Time Analytics Types

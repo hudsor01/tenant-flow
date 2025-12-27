@@ -6,6 +6,7 @@ import { LeasePdfGeneratorService } from './lease-pdf-generator.service'
 import { PdfStorageService } from './pdf-storage.service'
 import { StateValidationService } from './state-validation.service'
 import { TemplateCacheService } from './template-cache.service'
+import { PdfTemplateRendererService } from './pdf-template-renderer.service'
 import { LeaseGenerationController } from './lease-generation.controller'
 import { SupabaseModule } from '../../database/supabase.module'
 import { CacheConfigurationModule } from '../../cache/cache.module'
@@ -26,14 +27,16 @@ import { DocumentsModule } from '../documents/documents.module'
 		LeasePdfGeneratorService,
 		PdfStorageService,
 		StateValidationService,
-		TemplateCacheService
+		TemplateCacheService,
+		PdfTemplateRendererService
 	],
 	exports: [
 		PDFGeneratorService,
 		ReactLeasePDFService,
 		LeasePdfMapperService,
 		LeasePdfGeneratorService,
-		PdfStorageService
+		PdfStorageService,
+		PdfTemplateRendererService
 	]
 })
 export class PDFModule {}

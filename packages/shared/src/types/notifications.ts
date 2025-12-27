@@ -66,16 +66,16 @@ export interface MaintenanceNotificationData extends NotificationData {
 	unitId?: string
 }
 
-// WebSocket types for real-time notifications
-export interface NotificationWebSocketMessage {
+// Real-time notification types
+export interface NotificationMessage {
 	type: string
 	data: Record<string, string | number | boolean | null>
 	timestamp?: Date | string
 	id?: string
 }
 
-// Base WebSocket message type
-export interface WebSocketMessage {
+// Base message type
+export interface Message {
 	type: string
 	data: Record<string, unknown>
 	timestamp?: string
@@ -84,7 +84,7 @@ export interface WebSocketMessage {
 
 
 
-export interface UseWebSocketOptions {
+export interface UseOptions {
 	autoConnect?: boolean
 	reconnectAttempts?: number
 	reconnectDelay?: number
