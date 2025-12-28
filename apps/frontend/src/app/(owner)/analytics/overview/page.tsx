@@ -151,8 +151,8 @@ export default function AnalyticsPage() {
 						<BorderBeam
 							size={100}
 							duration={10}
-							colorFrom="hsl(var(--primary))"
-							colorTo="hsl(var(--primary)/0.3)"
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 						/>
 						<StatLabel>Occupancy Rate</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5">

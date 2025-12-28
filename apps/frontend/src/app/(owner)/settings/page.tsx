@@ -840,8 +840,8 @@ function SecuritySettings() {
 					<BorderBeam
 						size={80}
 						duration={10}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary)/0.3)"
+						colorFrom="var(--color-primary)"
+						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Two-Factor Authentication
@@ -1095,8 +1095,8 @@ function BillingSettings() {
 					<BorderBeam
 						size={100}
 						duration={12}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary)/0.3)"
+						colorFrom="var(--color-primary)"
+						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
 					<h3 className="mb-4 text-sm font-medium text-muted-foreground uppercase tracking-wider">
 						Current Plan

@@ -31,8 +31,8 @@ export function RentPaymentCard({
 					<BorderBeam
 						size={120}
 						duration={10}
-						colorFrom="hsl(var(--primary))"
-						colorTo="hsl(var(--primary) / 0.3)"
+						colorFrom="var(--color-primary)"
+						colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 					/>
 				)}
 				<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

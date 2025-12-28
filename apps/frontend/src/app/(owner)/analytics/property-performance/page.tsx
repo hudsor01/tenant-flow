@@ -374,8 +374,8 @@ export default function PropertyPerformancePage() {
 						<BorderBeam
 							size={100}
 							duration={10}
-							colorFrom="hsl(var(--primary))"
-							colorTo="hsl(var(--primary)/0.3)"
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 						/>
 						<StatLabel>Total properties</StatLabel>
 						<StatValue className="flex items-baseline">

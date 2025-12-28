@@ -97,8 +97,8 @@ export function TenantStatsCards({
 						<BorderBeam
 							size={80}
 							duration={8}
-							colorFrom="hsl(var(--primary))"
-							colorTo="hsl(var(--primary) / 0.3)"
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 						/>
 					)}
 					<StatLabel>Next Payment</StatLabel>
@@ -122,8 +122,8 @@ export function TenantStatsCards({
 						<BorderBeam
 							size={80}
 							duration={4}
-							colorFrom="hsl(var(--destructive))"
-							colorTo="hsl(var(--destructive) / 0.3)"
+							colorFrom="var(--color-destructive)"
+							colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
 						/>
 					)}
 					{rentStatus === 'due_today' && (

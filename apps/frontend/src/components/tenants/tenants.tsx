@@ -613,7 +613,7 @@ function TenantGrid({
 								<BorderBeam
 									size={100}
 									duration={12}
-									colorFrom="hsl(var(--primary)/0.5)"
+									colorFrom="oklch(from var(--color-primary) l c h / 0.5)"
 									colorTo="transparent"
 								/>
 							)}

@@ -96,10 +96,7 @@ export function useCreateRentPayment() {
 			// Optimistically update cache
 			queryClient.setQueryData<RentPayment[] | undefined>(
 				rentPaymentKeys.list(),
-				old =>
-					old
-						? [optimisticPayment as RentPayment, ...old]
-						: [optimisticPayment as RentPayment]
+				old => (old ? [optimisticPayment, ...old] : [optimisticPayment])
 			)
 
 			return { previousList, tempId }
@@ -110,42 +107,15 @@ export function useCreateRentPayment() {
 				queryClient.setQueryData(rentPaymentKeys.list(), context.previousList)
 			}
 		},
-		onSuccess: (res, _variables, context) => {
-			if (res?.payment) {
-				// Replace optimistic entry with real data
-				queryClient.setQueryData<
-					import('@repo/shared/types/core').RentPayment[] | undefined
-				>(rentPaymentKeys.list(), old =>
-					old
-						? old.map(p =>
-								p.id === context?.tempId
-									? (res.payment as unknown as import('@repo/shared/types/core').RentPayment)
-									: p
-							)
-						: [
-								res.payment as unknown as import('@repo/shared/types/core').RentPayment
-							]
-				)
-			}
+		onSuccess: (_res, _variables, _context) => {
+			// The API returns a partial payment object, so we rely on onSettled
+			// to refetch the full list with proper RentPayment types
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: rentPaymentKeys.list() })
 		}
 	})
-}
-
-/**
- * Payment status response type
- * Task 2.4: Payment Status Tracking
- */
-export interface PaymentStatus {
-	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
-	rent_amount: number
-	nextDueDate: string | null
-	lastPaymentDate: string | null
-	outstandingBalance: number
-	isOverdue: boolean
 }
 
 /**
@@ -157,7 +127,9 @@ export function usePaymentStatus(tenant_id: string) {
 	return useQuery({
 		queryKey: rentPaymentKeys.status(tenant_id),
 		queryFn: () =>
-			apiRequest<PaymentStatus>(`/api/v1/rent-payments/status/${tenant_id}`),
+			apiRequest<TenantPaymentStatusResponse>(
+				`/api/v1/rent-payments/status/${tenant_id}`
+			),
 		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.STATS, // Payment status can change
 		retry: 2

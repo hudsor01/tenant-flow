@@ -238,8 +238,8 @@ export function MaintenanceViewClient() {
 							<BorderBeam
 								size={80}
 								duration={4}
-								colorFrom="hsl(var(--destructive))"
-								colorTo="hsl(var(--destructive)/0.3)"
+								colorFrom="var(--color-destructive)"
+								colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
 							/>
 						)}
 						<StatLabel>Urgent</StatLabel>

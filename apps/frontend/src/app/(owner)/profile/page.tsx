@@ -243,8 +243,8 @@ export default function OwnerProfilePage() {
 							<BorderBeam
 								size={100}
 								duration={12}
-								colorFrom="hsl(var(--primary))"
-								colorTo="hsl(var(--primary)/0.3)"
+								colorFrom="var(--color-primary)"
+								colorTo="oklch(from var(--color-primary) l c h / 0.3)"
 							/>
 
 							{/* Avatar Section */}

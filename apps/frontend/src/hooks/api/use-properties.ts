@@ -128,22 +128,11 @@ export function useCreateProperty() {
 
 	return useMutation({
 		mutationFn: async (propertyData: PropertyCreate): Promise<Property> => {
-			const ownerUserId =
-				user?.id ??
-				(propertyData as unknown as { owner_user_id?: string })
-					?.owner_user_id ??
-				(propertyData as unknown as { owner_user_id?: string })
-					?.owner_user_id ??
-				null
-
-			const payload = {
-				...propertyData,
-				owner_user_id: ownerUserId
-			} as PropertyCreate & { owner_user_id?: string | null }
-
+			// owner_user_id is set server-side from the authenticated user's JWT
+			// No need to pass it from the client
 			return apiRequest<Property>('/api/v1/properties', {
 				method: 'POST',
-				body: JSON.stringify(payload)
+				body: JSON.stringify(propertyData)
 			})
 		},
 		onMutate: async (newProperty: PropertyCreate) => {
@@ -159,13 +148,8 @@ export function useCreateProperty() {
 
 			// Create optimistic property entry
 			const tempId = `temp-${Date.now()}`
-			const owner_user_id =
-				user?.id ??
-				(newProperty as unknown as { owner_user_id?: string })?.owner_user_id ??
-				(newProperty as unknown as { owner_user_id?: string })?.owner_user_id ??
-				null
 
-			const optimisticProperty = {
+			const optimisticProperty: Property = {
 				id: tempId,
 				name: newProperty.name,
 				address_line1: newProperty.address_line1,
@@ -174,14 +158,16 @@ export function useCreateProperty() {
 				state: newProperty.state,
 				postal_code: newProperty.postal_code,
 				country: newProperty.country || 'US',
-				owner_user_id,
+				owner_user_id: user?.id ?? '',
 				property_type: newProperty.property_type || 'SINGLE_FAMILY',
 				status: 'active',
 				date_sold: null,
 				sale_price: null,
+				search_vector: null,
+				stripe_connected_account_id: null,
 				created_at: new Date().toISOString(),
 				updated_at: new Date().toISOString()
-			} as Property & { owner_user_id?: string | null }
+			}
 
 			// Optimistically update all caches (handle PaginatedResponse structure)
 			queryClient.setQueriesData<PaginatedResponse<Property>>(
