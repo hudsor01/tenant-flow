@@ -8,7 +8,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { leaseQueries } from './queries/lease-queries'
 import { rentPaymentKeys } from './use-rent-payments'
 import {
@@ -55,9 +58,13 @@ export function useUpdateLateFeeConfig() {
 			queryClient.invalidateQueries({
 				queryKey: leaseQueries.detail(variables.lease_id).queryKey
 			})
-			handleMutationSuccess('Update late fee configuration', 'Configuration updated successfully')
+			handleMutationSuccess(
+				'Update late fee configuration',
+				'Configuration updated successfully'
+			)
 		},
-		onError: (error) => handleMutationError(error, 'Update late fee configuration')
+		onError: error =>
+			handleMutationError(error, 'Update late fee configuration')
 	})
 }
 
@@ -76,9 +83,12 @@ export function useProcessLateFees() {
 
 	return useMutation({
 		mutationFn: (lease_id: string) =>
-			apiRequest<ProcessLateFeesResult>(`/api/v1/late-fees/lease/${lease_id}/process`, {
-				method: 'POST'
-			}),
+			apiRequest<ProcessLateFeesResult>(
+				`/api/v1/late-fees/lease/${lease_id}/process`,
+				{
+					method: 'POST'
+				}
+			),
 		onSuccess: (result: ProcessLateFeesResult, lease_id) => {
 			queryClient.invalidateQueries({
 				queryKey: lateFeesKeys.overdue(lease_id)
@@ -100,7 +110,7 @@ export function useProcessLateFees() {
 				`Processed ${result.processed} late fee(s) - Total: ${totalFormatted}`
 			)
 		},
-		onError: (error) => handleMutationError(error, 'Process late fees')
+		onError: error => handleMutationError(error, 'Process late fees')
 	})
 }
 
@@ -120,10 +130,13 @@ export function useApplyLateFee() {
 			late_fee_amount: number
 			reason: string
 		}) =>
-			apiRequest<ApplyLateFeeResult>(`/api/v1/late-fees/payment/${paymentId}/apply`, {
-				method: 'POST',
-				body: JSON.stringify({ late_fee_amount, reason })
-			}),
+			apiRequest<ApplyLateFeeResult>(
+				`/api/v1/late-fees/payment/${paymentId}/apply`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ late_fee_amount, reason })
+				}
+			),
 		onSuccess: (result: ApplyLateFeeResult) => {
 			queryClient.invalidateQueries({
 				queryKey: rentPaymentKeys.all
@@ -142,7 +155,7 @@ export function useApplyLateFee() {
 				`${amountFormatted} late fee added to invoice`
 			)
 		},
-		onError: (error) => handleMutationError(error, 'Apply late fee')
+		onError: error => handleMutationError(error, 'Apply late fee')
 	})
 }
 

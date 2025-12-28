@@ -228,9 +228,7 @@ test.describe('Next.js 16 Proxy - Performance', () => {
 		expect(totalTime).toBeLessThan(3000)
 	})
 
-	test('should not make unnecessary API calls in proxy', async ({
-		page
-	}) => {
+	test('should not make unnecessary API calls in proxy', async ({ page }) => {
 		await loginAsOwner(page)
 
 		const apiCalls: string[] = []

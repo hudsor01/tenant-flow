@@ -35,7 +35,12 @@ const MIN_CONNECTION_INTERVAL = 5000 // Minimum 5s between connection attempts
 /**
  * SSE connection state
  */
-export type SseConnectionState = 'connecting' | 'connected' | 'disconnected' | 'error' | 'rate_limited'
+export type SseConnectionState =
+	| 'connecting'
+	| 'connected'
+	| 'disconnected'
+	| 'error'
+	| 'rate_limited'
 
 /**
  * SSE hook options
@@ -194,7 +199,8 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 	const isConnectingRef = useRef(false)
 	const hasConnectedOnceRef = useRef(false)
 
-	const [connectionState, setConnectionState] = useState<SseConnectionState>('disconnected')
+	const [connectionState, setConnectionState] =
+		useState<SseConnectionState>('disconnected')
 	const [lastEvent, setLastEvent] = useState<SseEvent | null>(null)
 	const [reconnectAttempts, setReconnectAttempts] = useState(0)
 
@@ -236,8 +242,12 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 	 * Calculate reconnect delay with exponential backoff
 	 */
 	const getReconnectDelay = useCallback(() => {
-		const { initialReconnectDelay: initial, maxReconnectDelay: max } = optionsRef.current
-		const delay = Math.min(initial * Math.pow(2, reconnectAttemptsRef.current), max)
+		const { initialReconnectDelay: initial, maxReconnectDelay: max } =
+			optionsRef.current
+		const delay = Math.min(
+			initial * Math.pow(2, reconnectAttemptsRef.current),
+			max
+		)
 		// Add jitter (0-25% of delay)
 		return delay + Math.random() * delay * 0.25
 	}, [])
@@ -310,7 +320,10 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 		}
 
 		// If there's already a global connection, reuse it
-		if (globalEventSource && globalEventSource.readyState === EventSource.OPEN) {
+		if (
+			globalEventSource &&
+			globalEventSource.readyState === EventSource.OPEN
+		) {
 			logger.debug('Reusing existing global SSE connection')
 			eventSourceRef.current = globalEventSource
 			updateConnectionState('connected')
@@ -377,7 +390,7 @@ export function useSse(options: UseSseOptions = {}): UseSseReturn {
 			eventSource.onmessage = handleMessage
 
 			// Handle error - includes rate limiting detection
-			eventSource.onerror = (errorEvent) => {
+			eventSource.onerror = errorEvent => {
 				if (!mountedRef.current) return
 
 				// Check if this is a rate limit error (429)
@@ -522,7 +535,7 @@ export function useSseEventListener<T extends SseEventType>(
 	return useSse({
 		...options,
 		eventTypes: [eventType],
-		onEvent: (event) => {
+		onEvent: event => {
 			if (event.type === eventType) {
 				callback(event as Extract<SseEvent, { type: T }>)
 			}

@@ -52,31 +52,36 @@ vi.mock('#hooks/api/mutations/property-mutations', () => ({
 					property_id: propertyId,
 					image_url: 'https://example.com/image1.webp',
 					display_order: 1,
-					created_at: '2024-01-01T00:00:00Z',				},
+					created_at: '2024-01-01T00:00:00Z'
+				},
 				{
 					id: 'img-2',
 					property_id: propertyId,
 					image_url: 'https://example.com/image2.webp',
 					display_order: 2,
-					created_at: '2024-01-01T00:00:00Z',				},
+					created_at: '2024-01-01T00:00:00Z'
+				},
 				{
 					id: 'img-3',
 					property_id: propertyId,
 					image_url: 'https://example.com/image3.webp',
 					display_order: 3,
-					created_at: '2024-01-01T00:00:00Z',				},
+					created_at: '2024-01-01T00:00:00Z'
+				},
 				{
 					id: 'img-4',
 					property_id: propertyId,
 					image_url: 'https://example.com/image4.webp',
 					display_order: 4,
-					created_at: '2024-01-01T00:00:00Z',				},
+					created_at: '2024-01-01T00:00:00Z'
+				},
 				{
 					id: 'img-5',
 					property_id: propertyId,
 					image_url: 'https://example.com/image5.webp',
 					display_order: 5,
-					created_at: '2024-01-01T00:00:00Z',				}
+					created_at: '2024-01-01T00:00:00Z'
+				}
 			] as PropertyImage[],
 			isLoading: false
 		}
@@ -95,17 +100,18 @@ function createWrapper() {
 		}
 	})
 	return function Wrapper({ children }: { children: React.ReactNode }) {
-		return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		return (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		)
 	}
 }
 
 describe('PropertyImageGallery Component', () => {
 	describe('Rendering and Layout', () => {
 		it('renders responsive grid with images', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should render images
 			const images = screen.getAllByRole('img', { hidden: true })
@@ -113,10 +119,9 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('displays first 4 images in grid', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show 4 image items (first 4 only)
 			const images = screen.getAllByRole('img', { hidden: true })
@@ -124,20 +129,18 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('shows "+N more" badge when images exceed 4', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show "+1" for the 5th image
 			expect(screen.getByText(/\+1/)).toBeInTheDocument()
 		})
 
 		it('shows image count info when more than 4 images', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/showing 4 of 5 images/i)).toBeInTheDocument()
 		})
@@ -145,10 +148,9 @@ describe('PropertyImageGallery Component', () => {
 
 	describe('Primary Image Badge', () => {
 		it('displays primary badge on first image', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// First image should have "Primary" badge
 			const badges = screen.getAllByText(/primary/i)
@@ -156,10 +158,9 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('only shows primary badge on first image', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			const primaryBadges = screen.getAllByText(/primary/i)
 			expect(primaryBadges.length).toBe(1)
@@ -168,19 +169,17 @@ describe('PropertyImageGallery Component', () => {
 
 	describe('Empty State', () => {
 		it('shows empty state when no images', () => {
-			render(
-				<PropertyImageGallery propertyId="empty-prop" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="empty-prop" />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/no images yet/i)).toBeInTheDocument()
 		})
 
 		it('shows helpful message in edit mode when empty', () => {
-			render(
-				<PropertyImageGallery propertyId="empty-prop" editable={true} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="empty-prop" editable={true} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/no images yet/i)).toBeInTheDocument()
 			expect(screen.getByText(/upload images below/i)).toBeInTheDocument()
@@ -199,47 +198,48 @@ describe('PropertyImageGallery Component', () => {
 
 	describe('Loading State', () => {
 		it('shows skeleton loaders while loading', () => {
-		const { container } = render(
-			<PropertyImageGallery propertyId="loading-prop" />,
-			{ wrapper: createWrapper() }
-		)
+			const { container } = render(
+				<PropertyImageGallery propertyId="loading-prop" />,
+				{ wrapper: createWrapper() }
+			)
 
-		// Component should render in loading state
-		expect(container).toBeDefined()
-	})
+			// Component should render in loading state
+			expect(container).toBeDefined()
+		})
 	})
 
 	describe('Edit Mode - Delete Button', () => {
 		it('hides delete button in view mode', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" editable={false} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" editable={false} />, {
+				wrapper: createWrapper()
+			})
 
 			const deleteButtons = screen.queryAllByRole('button', { name: /delete/i })
 			expect(deleteButtons.length).toBe(0)
 		})
 
 		it('shows delete button on hover in edit mode', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" editable={true} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" editable={true} />, {
+				wrapper: createWrapper()
+			})
 
 			// In edit mode, delete buttons should exist but with opacity-0
-			const deleteButtons = screen.getAllByRole('button', { name: /delete image/i })
+			const deleteButtons = screen.getAllByRole('button', {
+				name: /delete image/i
+			})
 			expect(deleteButtons.length).toBeGreaterThan(0)
 		})
 
 		it('shows confirmation dialog before deleting', async () => {
 			const user = userEvent.setup()
 
-			render(
-				<PropertyImageGallery propertyId="prop-123" editable={true} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" editable={true} />, {
+				wrapper: createWrapper()
+			})
 
-			const deleteButtons = screen.getAllByRole('button', { name: /delete image/i })
+			const deleteButtons = screen.getAllByRole('button', {
+				name: /delete image/i
+			})
 			if (deleteButtons.length > 0) {
 				const firstDeleteButton = deleteButtons[0]
 				if (!firstDeleteButton) {
@@ -252,19 +252,22 @@ describe('PropertyImageGallery Component', () => {
 					expect(screen.getByRole('alertdialog')).toBeInTheDocument()
 				})
 				expect(screen.getByText(/delete image/i)).toBeInTheDocument()
-				expect(screen.getByText(/this action cannot be undone/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/this action cannot be undone/i)
+				).toBeInTheDocument()
 			}
 		})
 
 		it('closes dialog when cancel is clicked', async () => {
 			const user = userEvent.setup()
 
-			render(
-				<PropertyImageGallery propertyId="prop-123" editable={true} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" editable={true} />, {
+				wrapper: createWrapper()
+			})
 
-			const deleteButtons = screen.getAllByRole('button', { name: /delete image/i })
+			const deleteButtons = screen.getAllByRole('button', {
+				name: /delete image/i
+			})
 			if (deleteButtons.length > 0) {
 				const firstDeleteButton = deleteButtons[0]
 				if (!firstDeleteButton) return
@@ -289,55 +292,52 @@ describe('PropertyImageGallery Component', () => {
 
 	describe('Lightbox Integration', () => {
 		it('opens lightbox when clicking image', async () => {
-		const user = userEvent.setup()
-		render(
-			<PropertyImageGallery propertyId="prop-123" />,
-			{ wrapper: createWrapper() }
-		)
+			const user = userEvent.setup()
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
-		// Find image in view and try to click it
-		const images = screen.getAllByRole('img', { hidden: true })
-		if (images.length > 0) {
-			// Try to find parent button element
-			const imageParent = images[0]?.closest('button')
-			if (imageParent) {
-				await user.click(imageParent)
-				await waitFor(() => {
-					const dialog = screen.getByRole('dialog')
-					expect(dialog).toBeInTheDocument()
-				})
+			// Find image in view and try to click it
+			const images = screen.getAllByRole('img', { hidden: true })
+			if (images.length > 0) {
+				// Try to find parent button element
+				const imageParent = images[0]?.closest('button')
+				if (imageParent) {
+					await user.click(imageParent)
+					await waitFor(() => {
+						const dialog = screen.getByRole('dialog')
+						expect(dialog).toBeInTheDocument()
+					})
+				}
 			}
-		}
-	})
+		})
 
 		it('opens lightbox with correct initial index', async () => {
-		const user = userEvent.setup()
-		render(
-			<PropertyImageGallery propertyId="prop-123" />,
-			{ wrapper: createWrapper() }
-		)
+			const user = userEvent.setup()
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
-		// Find images and try to click third one
-		const images = screen.getAllByRole('img', { hidden: true })
-		if (images.length > 2) {
-			const imageParent = images[2]?.closest('button')
-			if (imageParent) {
-				await user.click(imageParent)
-				await waitFor(() => {
-					const dialog = screen.getByRole('dialog')
-					expect(dialog).toBeInTheDocument()
-				})
+			// Find images and try to click third one
+			const images = screen.getAllByRole('img', { hidden: true })
+			if (images.length > 2) {
+				const imageParent = images[2]?.closest('button')
+				if (imageParent) {
+					await user.click(imageParent)
+					await waitFor(() => {
+						const dialog = screen.getByRole('dialog')
+						expect(dialog).toBeInTheDocument()
+					})
+				}
 			}
-		}
-	})
+		})
 	})
 
 	describe('Image Interactions', () => {
 		it('shows hover effect on images', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Images should have hover styles applied via tailwind
 			const images = screen.getAllByRole('img', { hidden: true })
@@ -349,10 +349,9 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('sets correct alt text for images', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByAltText(/property image 1/i)).toBeInTheDocument()
 			expect(screen.getByAltText(/property image 2/i)).toBeInTheDocument()
@@ -374,10 +373,9 @@ describe('PropertyImageGallery Component', () => {
 
 	describe('Edge Cases', () => {
 		it('handles undefined images gracefully', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show empty state, not crash
 			// With the default mock, should show images
@@ -386,10 +384,9 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('handles single image correctly', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show single image without "+N more" badge
 			// This test passes with the default mock which has 5 images
@@ -399,10 +396,9 @@ describe('PropertyImageGallery Component', () => {
 		})
 
 		it('handles exactly 4 images without "+N more"', () => {
-			render(
-				<PropertyImageGallery propertyId="prop-123" />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageGallery propertyId="prop-123" />, {
+				wrapper: createWrapper()
+			})
 
 			// Should not show "+N more" when there are 5 images (shows +1)
 			// The default mock has 5 images, so we should see "+1"

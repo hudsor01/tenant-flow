@@ -1,7 +1,4 @@
-import {
-	BadRequestException,
-	Injectable
-} from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
@@ -63,7 +60,9 @@ export class PropertyMaintenanceAnalyticsService {
 
 		// Validate timeframe using constant
 		if (
-			!VALID_TIMEFRAMES.includes(query.timeframe as (typeof VALID_TIMEFRAMES)[number])
+			!VALID_TIMEFRAMES.includes(
+				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
+			)
 		) {
 			this.logger.warn('[ANALYTICS:MAINTENANCE:VALIDATION] Invalid timeframe', {
 				user_id,
@@ -79,12 +78,18 @@ export class PropertyMaintenanceAnalyticsService {
 
 		// SECURITY: Verify property ownership before proceeding
 		if (query.property_id) {
-			const { data: property } = await getPropertyForUser(req, query.property_id)
+			const { data: property } = await getPropertyForUser(
+				req,
+				query.property_id
+			)
 			if (!property) {
-				this.logger.warn('[ANALYTICS:MAINTENANCE:SECURITY] Property not found', {
-					user_id,
-					property_id: query.property_id
-				})
+				this.logger.warn(
+					'[ANALYTICS:MAINTENANCE:SECURITY] Property not found',
+					{
+						user_id,
+						property_id: query.property_id
+					}
+				)
 				throw new BadRequestException('Property not found or access denied')
 			}
 		}
@@ -135,7 +140,7 @@ export class PropertyMaintenanceAnalyticsService {
 		}
 
 		// Process each property's maintenance data
-		const result = (properties ?? []).map((property) =>
+		const result = (properties ?? []).map(property =>
 			this.processMaintenanceData(
 				property as MaintenanceQueryProperty,
 				start,
@@ -171,8 +176,8 @@ export class PropertyMaintenanceAnalyticsService {
 		let totalCost = 0
 
 		const units = property.units || []
-		units.forEach((unit) => {
-			unit.maintenance_requests?.forEach((req) => {
+		units.forEach(unit => {
+			unit.maintenance_requests?.forEach(req => {
 				// Count requests in timeframe
 				if (
 					req.created_at &&
@@ -193,7 +198,7 @@ export class PropertyMaintenanceAnalyticsService {
 					}
 				}
 				// Add expenses
-				req.expenses?.forEach((exp) => {
+				req.expenses?.forEach(exp => {
 					if (
 						exp.expense_date &&
 						new Date(exp.expense_date) >= start &&
@@ -205,7 +210,8 @@ export class PropertyMaintenanceAnalyticsService {
 			})
 		})
 
-		const averageCostPerRequest = totalRequests > 0 ? totalCost / totalRequests : 0
+		const averageCostPerRequest =
+			totalRequests > 0 ? totalCost / totalRequests : 0
 
 		return {
 			property_id: property.id,

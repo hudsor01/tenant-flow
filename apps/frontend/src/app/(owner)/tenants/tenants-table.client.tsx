@@ -1,13 +1,35 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '#components/ui/dialog'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger
+} from '#components/ui/dialog'
 import { Trash2, Plus } from 'lucide-react'
 import Link from 'next/link'
-import { useOptimistic, useState, useTransition, useEffect, useRef } from 'react'
+import {
+	useOptimistic,
+	useState,
+	useTransition,
+	useEffect,
+	useRef
+} from 'react'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
@@ -23,7 +45,10 @@ interface TenantsTableClientProps {
 	initialTenants: TenantWithLeaseInfo[]
 }
 
-export function TenantsTableClient({ columns, initialTenants }: TenantsTableClientProps) {
+export function TenantsTableClient({
+	columns,
+	initialTenants
+}: TenantsTableClientProps) {
 	const [isPending, startTransition] = useTransition()
 	const [deletingId, setDeletingId] = useState<string | null>(null)
 	const [optimisticTenants, removeOptimistic] = useOptimistic(
@@ -56,10 +81,15 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		startTransition(async () => {
 			removeOptimistic(tenant_id)
 			try {
-				await apiRequest<void>(`/api/v1/tenants/${tenant_id}`, { method: 'DELETE' })
+				await apiRequest<void>(`/api/v1/tenants/${tenant_id}`, {
+					method: 'DELETE'
+				})
 				toast.success(`Tenant "${tenantName}" deleted`)
 			} catch (error) {
-				logger.error('Delete failed', { action: 'handleDelete', metadata: { tenant_id, error } })
+				logger.error('Delete failed', {
+					action: 'handleDelete',
+					metadata: { tenant_id, error }
+				})
 				toast.error('Failed to delete tenant')
 				// Optimistic update will auto-rollback on error
 			} finally {
@@ -85,7 +115,11 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 						</Button>
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
-								<Button size="sm" variant="ghost" className="text-destructive hover:text-destructive">
+								<Button
+									size="sm"
+									variant="ghost"
+									className="text-destructive hover:text-destructive"
+								>
 									<Trash2 className="size-4" />
 									<span className="sr-only">Delete</span>
 								</Button>
@@ -94,7 +128,8 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 								<AlertDialogHeader>
 									<AlertDialogTitle>Delete tenant</AlertDialogTitle>
 									<AlertDialogDescription>
-										Permanently delete <strong>{tenant.name}</strong> and associated leases?
+										Permanently delete <strong>{tenant.name}</strong> and
+										associated leases?
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -104,7 +139,9 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 										onClick={() => handleDelete(tenant.id, tenant.name ?? '')}
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
-										{isPending && deletingId === tenant.id ? 'Deleting...' : 'Delete'}
+										{isPending && deletingId === tenant.id
+											? 'Deleting...'
+											: 'Delete'}
 									</AlertDialogAction>
 								</AlertDialogFooter>
 							</AlertDialogContent>
@@ -123,9 +160,9 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
-			},
-		},
+				pageSize: 10
+			}
+		}
 	})
 
 	return (
@@ -133,7 +170,9 @@ export function TenantsTableClient({ columns, initialTenants }: TenantsTableClie
 			<CardHeader className="flex-between flex-row">
 				<div>
 					<CardTitle>Tenants</CardTitle>
-					<CardDescription>Manage tenants and lease information</CardDescription>
+					<CardDescription>
+						Manage tenants and lease information
+					</CardDescription>
 				</div>
 				<Button asChild>
 					<Link href="/tenants/new">

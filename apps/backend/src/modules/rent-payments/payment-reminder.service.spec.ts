@@ -17,7 +17,10 @@ describe('PaymentReminderService', () => {
 		add: jest.fn().mockResolvedValue({ id: 'job-1' })
 	}
 
-	const createMockQueryBuilder = (data: unknown = [], error: unknown = null) => {
+	const createMockQueryBuilder = (
+		data: unknown = [],
+		error: unknown = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -27,7 +30,7 @@ describe('PaymentReminderService', () => {
 			limit: jest.fn().mockReturnThis(),
 			single: jest.fn().mockResolvedValue({ data, error }),
 			insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-			then: jest.fn().mockImplementation((resolve) => resolve({ data, error }))
+			then: jest.fn().mockImplementation(resolve => resolve({ data, error }))
 		}
 		return builder
 	}

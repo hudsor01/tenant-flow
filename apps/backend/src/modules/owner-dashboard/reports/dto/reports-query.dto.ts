@@ -14,7 +14,10 @@ export const MetricType = {
 
 export type MetricTypeValue = (typeof MetricType)[keyof typeof MetricType]
 
-const metricValues = Object.values(MetricType) as [MetricTypeValue, ...MetricTypeValue[]]
+const metricValues = Object.values(MetricType) as [
+	MetricTypeValue,
+	...MetricTypeValue[]
+]
 
 /**
  * Valid periods for trend comparisons
@@ -28,7 +31,10 @@ export const PeriodType = {
 
 export type PeriodTypeValue = (typeof PeriodType)[keyof typeof PeriodType]
 
-const periodValues = Object.values(PeriodType) as [PeriodTypeValue, ...PeriodTypeValue[]]
+const periodValues = Object.values(PeriodType) as [
+	PeriodTypeValue,
+	...PeriodTypeValue[]
+]
 
 /**
  * Query params for time series endpoint

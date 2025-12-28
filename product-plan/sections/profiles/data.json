@@ -1,0 +1,32 @@
+{
+	"profile": {
+		"id": "user-001",
+		"email": "owner@tenantflow.com",
+		"fullName": "Alex Thompson",
+		"firstName": "Alex",
+		"lastName": "Thompson",
+		"phone": "(512) 555-1000",
+		"avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200",
+		"userType": "owner",
+		"status": "active",
+		"createdAt": "2023-01-15T10:00:00Z",
+		"updatedAt": "2024-12-01T14:30:00Z"
+	},
+	"ownerProfile": {
+		"businessName": "Thompson Property Management",
+		"businessType": "individual",
+		"stripeConnected": true,
+		"propertiesCount": 8,
+		"unitsCount": 52
+	},
+	"tenantProfile": {
+		"dateOfBirth": "1990-05-15",
+		"emergencyContactName": "John Chen",
+		"emergencyContactPhone": "(512) 555-9999",
+		"emergencyContactRelationship": "Spouse",
+		"identityVerified": true,
+		"currentPropertyName": "Riverside Apartments",
+		"currentUnitNumber": "4A",
+		"moveInDate": "2024-01-15"
+	}
+}

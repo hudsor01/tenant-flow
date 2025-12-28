@@ -20,7 +20,9 @@ import { DEFAULT_LEASE } from '#test/utils/test-data'
 // Helper to render a cell from column definition
 function renderStatusCell(lease: Lease) {
 	const columns = createLeaseColumns()
-	const statusColumn = columns.find(c => 'accessorKey' in c && c.accessorKey === 'lease_status')
+	const statusColumn = columns.find(
+		c => 'accessorKey' in c && c.accessorKey === 'lease_status'
+	)
 
 	if (!statusColumn?.cell) {
 		throw new Error('Status column not found')
@@ -65,20 +67,36 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
 					owner_user_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString().slice(0, 10)),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().slice(0, 10)),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2025-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
 					rent_amount: fc.integer({ min: 50000, max: 500000 }),
 					security_deposit: fc.integer({ min: 0, max: 500000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
 					// Owner has signed
-					owner_signed_at: fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString()),
+					owner_signed_at: fc
+						.integer({ min: minTimestamp, max: maxTimestamp })
+						.map(ts => new Date(ts).toISOString()),
 					// Tenant may or may not have signed
 					tenant_signed_at: fc.oneof(
 						fc.constant(null),
-						fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString())
+						fc
+							.integer({ min: minTimestamp, max: maxTimestamp })
+							.map(ts => new Date(ts).toISOString())
 					)
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					const lease: Lease = {
 						...DEFAULT_LEASE,
 						...leaseData,
@@ -124,8 +142,20 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
 					owner_user_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString().slice(0, 10)),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().slice(0, 10)),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2025-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
 					rent_amount: fc.integer({ min: 50000, max: 500000 }),
 					security_deposit: fc.integer({ min: 0, max: 500000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
@@ -134,10 +164,12 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					// Tenant may or may not have signed
 					tenant_signed_at: fc.oneof(
 						fc.constant(null),
-						fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString())
+						fc
+							.integer({ min: minTimestamp, max: maxTimestamp })
+							.map(ts => new Date(ts).toISOString())
 					)
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					const lease: Lease = {
 						...DEFAULT_LEASE,
 						...leaseData,
@@ -178,20 +210,36 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
 					owner_user_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString().slice(0, 10)),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().slice(0, 10)),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2025-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
 					rent_amount: fc.integer({ min: 50000, max: 500000 }),
 					security_deposit: fc.integer({ min: 0, max: 500000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
 					// Owner may or may not have signed
 					owner_signed_at: fc.oneof(
 						fc.constant(null),
-						fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString())
+						fc
+							.integer({ min: minTimestamp, max: maxTimestamp })
+							.map(ts => new Date(ts).toISOString())
 					),
 					// Tenant has signed
-					tenant_signed_at: fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString())
+					tenant_signed_at: fc
+						.integer({ min: minTimestamp, max: maxTimestamp })
+						.map(ts => new Date(ts).toISOString())
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					const lease: Lease = {
 						...DEFAULT_LEASE,
 						...leaseData,
@@ -232,20 +280,34 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
 					owner_user_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString().slice(0, 10)),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().slice(0, 10)),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2025-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
 					rent_amount: fc.integer({ min: 50000, max: 500000 }),
 					security_deposit: fc.integer({ min: 0, max: 500000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
 					// Owner may or may not have signed
 					owner_signed_at: fc.oneof(
 						fc.constant(null),
-						fc.integer({ min: minTimestamp, max: maxTimestamp }).map(ts => new Date(ts).toISOString())
+						fc
+							.integer({ min: minTimestamp, max: maxTimestamp })
+							.map(ts => new Date(ts).toISOString())
 					),
 					// Tenant has NOT signed
 					tenant_signed_at: fc.constant(null)
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					const lease: Lease = {
 						...DEFAULT_LEASE,
 						...leaseData,
@@ -283,17 +345,34 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
 					owner_user_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString().slice(0, 10)),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().slice(0, 10)),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2025-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().slice(0, 10)),
 					rent_amount: fc.integer({ min: 50000, max: 500000 }),
 					security_deposit: fc.integer({ min: 0, max: 500000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
 					owner_signed_at: fc.constant(null),
 					tenant_signed_at: fc.constant(null),
 					// Any status except pending_signature
-					lease_status: fc.constantFrom('draft' as const, 'active' as const, 'ended' as const, 'terminated' as const)
+					lease_status: fc.constantFrom(
+						'draft' as const,
+						'active' as const,
+						'ended' as const,
+						'terminated' as const
+					)
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					const lease: Lease = {
 						...DEFAULT_LEASE,
 						...leaseData,
@@ -323,10 +402,30 @@ describe('Property 15: Signature Status Display Accuracy', () => {
 	 */
 	it('should correctly display all four signature state combinations', async () => {
 		const signatureStates = [
-			{ owner: null, tenant: null, expectedOwnerSigned: false, expectedTenantSigned: false },
-			{ owner: '2024-01-15T10:00:00Z', tenant: null, expectedOwnerSigned: true, expectedTenantSigned: false },
-			{ owner: null, tenant: '2024-01-16T14:00:00Z', expectedOwnerSigned: false, expectedTenantSigned: true },
-			{ owner: '2024-01-15T10:00:00Z', tenant: '2024-01-16T14:00:00Z', expectedOwnerSigned: true, expectedTenantSigned: true }
+			{
+				owner: null,
+				tenant: null,
+				expectedOwnerSigned: false,
+				expectedTenantSigned: false
+			},
+			{
+				owner: '2024-01-15T10:00:00Z',
+				tenant: null,
+				expectedOwnerSigned: true,
+				expectedTenantSigned: false
+			},
+			{
+				owner: null,
+				tenant: '2024-01-16T14:00:00Z',
+				expectedOwnerSigned: false,
+				expectedTenantSigned: true
+			},
+			{
+				owner: '2024-01-15T10:00:00Z',
+				tenant: '2024-01-16T14:00:00Z',
+				expectedOwnerSigned: true,
+				expectedTenantSigned: true
+			}
 		]
 
 		for (const state of signatureStates) {

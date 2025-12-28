@@ -64,22 +64,26 @@ const statusConfig: Record<
 > = {
 	occupied: {
 		label: 'Occupied',
-		className: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+		className:
+			'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
 		icon: User
 	},
 	available: {
 		label: 'Available',
-		className: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
+		className:
+			'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
 		icon: Home
 	},
 	maintenance: {
 		label: 'Maintenance',
-		className: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+		className:
+			'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
 		icon: Wrench
 	},
 	reserved: {
 		label: 'Reserved',
-		className: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400',
+		className:
+			'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400',
 		icon: Home
 	}
 }
@@ -174,7 +178,10 @@ export function PropertyUnitsTable({
 						<Home className="size-5" />
 						Units ({unitList.length})
 					</CardTitle>
-					<Button onClick={() => setAddUnitOpen(true)} className="gap-2 min-h-11">
+					<Button
+						onClick={() => setAddUnitOpen(true)}
+						className="gap-2 min-h-11"
+					>
 						<Plus className="size-4" />
 						Add Unit
 					</Button>

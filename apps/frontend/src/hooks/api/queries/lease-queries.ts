@@ -8,7 +8,10 @@ import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
 import type { Lease } from '@repo/shared/types/core'
-import type { LeaseWithDetails, LeaseWithRelations } from '@repo/shared/types/relations'
+import type {
+	LeaseWithDetails,
+	LeaseWithRelations
+} from '@repo/shared/types/relations'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
 /**
@@ -58,12 +61,16 @@ export const leaseQueries = {
 				const searchParams = new URLSearchParams()
 				if (filters?.status) searchParams.append('status', filters.status)
 				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
 				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<LeaseWithRelations>>(`/api/v1/leases${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<LeaseWithRelations>>(
+					`/api/v1/leases${params ? `?${params}` : ''}`
+				)
 			},
-			...QUERY_CACHE_TIMES.LIST,
+			...QUERY_CACHE_TIMES.LIST
 		}),
 
 	details: () => [...leaseQueries.all(), 'detail'] as const,
@@ -74,38 +81,41 @@ export const leaseQueries = {
 			queryFn: () => apiRequest<Lease>(`/api/v1/leases/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id,
-			retry: 2,
+			retry: 2
 		}),
 
 	tenantPortalActive: () =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'tenant-portal', 'active'],
-			queryFn: () => apiRequest<TenantPortalLease | null>('/api/v1/tenants/leases'),
+			queryFn: () =>
+				apiRequest<TenantPortalLease | null>('/api/v1/tenants/leases'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			retry: 2,
+			retry: 2
 		}),
 
 	expiring: (days: number = 30) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'expiring', days],
-			queryFn: () => apiRequest<Lease[]>(`/api/v1/leases/expiring?days=${days}`),
+			queryFn: () =>
+				apiRequest<Lease[]>(`/api/v1/leases/expiring?days=${days}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			retry: 2,
+			retry: 2
 		}),
 
 	stats: () =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'stats'],
 			queryFn: () => apiRequest('/api/v1/leases/stats'),
-			...QUERY_CACHE_TIMES.STATS,
+			...QUERY_CACHE_TIMES.STATS
 		}),
 
 	signatureStatus: (id: string) =>
 		queryOptions({
 			queryKey: [...leaseQueries.all(), 'signature-status', id],
-			queryFn: () => apiRequest<SignatureStatus>(`/api/v1/leases/${id}/signature-status`),
+			queryFn: () =>
+				apiRequest<SignatureStatus>(`/api/v1/leases/${id}/signature-status`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	analytics: {
@@ -113,25 +123,25 @@ export const leaseQueries = {
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'performance'],
 				queryFn: () => apiRequest('/api/v1/leases/analytics/performance'),
-				...QUERY_CACHE_TIMES.STATS,
+				...QUERY_CACHE_TIMES.STATS
 			}),
 		duration: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'duration'],
 				queryFn: () => apiRequest('/api/v1/leases/analytics/duration'),
-				...QUERY_CACHE_TIMES.STATS,
+				...QUERY_CACHE_TIMES.STATS
 			}),
 		turnover: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'turnover'],
 				queryFn: () => apiRequest('/api/v1/leases/analytics/turnover'),
-				...QUERY_CACHE_TIMES.STATS,
+				...QUERY_CACHE_TIMES.STATS
 			}),
 		revenue: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'revenue'],
 				queryFn: () => apiRequest('/api/v1/leases/analytics/revenue'),
-				...QUERY_CACHE_TIMES.STATS,
-			}),
-	},
+				...QUERY_CACHE_TIMES.STATS
+			})
+	}
 }

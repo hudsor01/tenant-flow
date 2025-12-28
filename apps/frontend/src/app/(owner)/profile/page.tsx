@@ -23,6 +23,7 @@ import {
 	LogOut,
 	Mail,
 	Phone,
+	Settings,
 	Shield,
 	User,
 	ExternalLink
@@ -52,7 +53,8 @@ export default function OwnerProfilePage() {
 	const router = useRouter()
 	const fileInputRef = useRef<HTMLInputElement>(null)
 	const [isEditing, setIsEditing] = useState(false)
-	const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false)
+	const [showChangePasswordDialog, setShowChangePasswordDialog] =
+		useState(false)
 	const [formData, setFormData] = useState({
 		first_name: '',
 		last_name: '',
@@ -222,12 +224,12 @@ export default function OwnerProfilePage() {
 		updatePhone.isPending
 
 	return (
-		<div className="p-6 lg:p-8 bg-background min-h-full">
+		<div className="space-y-6">
 			{/* Header */}
 			<BlurFade delay={0.1} inView>
-				<div className="mb-6">
+				<div>
 					<h1 className="text-2xl font-bold">My Profile</h1>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted-foreground">
 						View and manage your account information
 					</p>
 				</div>
@@ -291,9 +293,13 @@ export default function OwnerProfilePage() {
 									</button>
 								)}
 
-								<h2 className="mt-4 text-xl font-semibold">{profile.full_name}</h2>
+								<h2 className="mt-4 text-xl font-semibold">
+									{profile.full_name}
+								</h2>
 								<p className="text-sm text-muted-foreground capitalize">
-									{profile.user_type === 'owner' ? 'Property Owner' : profile.user_type}
+									{profile.user_type === 'owner'
+										? 'Property Owner'
+										: profile.user_type}
 								</p>
 
 								<div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
@@ -446,10 +452,7 @@ export default function OwnerProfilePage() {
 									</div>
 
 									<div className="flex gap-3 pt-4">
-										<Button
-											onClick={handleSaveProfile}
-											disabled={isPending}
-										>
+										<Button onClick={handleSaveProfile} disabled={isPending}>
 											{updateProfile.isPending ? (
 												<>
 													<Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -477,7 +480,9 @@ export default function OwnerProfilePage() {
 											</label>
 											<div className="flex items-center gap-2">
 												<User className="h-4 w-4 text-muted-foreground" />
-												<p className="text-sm font-medium">{profile.full_name}</p>
+												<p className="text-sm font-medium">
+													{profile.full_name}
+												</p>
 											</div>
 										</div>
 									</BlurFade>
@@ -539,9 +544,7 @@ export default function OwnerProfilePage() {
 												<CheckCircle className="h-5 w-5 text-emerald-600" />
 											</div>
 											<div>
-												<p className="text-sm font-medium">
-													Stripe Connected
-												</p>
+												<p className="text-sm font-medium">Stripe Connected</p>
 												<p className="text-xs text-muted-foreground">
 													You can receive payments from tenants
 												</p>
@@ -641,19 +644,35 @@ export default function OwnerProfilePage() {
 						<section className="rounded-lg border bg-card p-6">
 							<h3 className="mb-4 text-lg font-semibold">Quick Links</h3>
 
-							<div className="grid gap-3 sm:grid-cols-3">
+							<div className="grid gap-3 sm:grid-cols-4">
 								<button
 									type="button"
 									onClick={() => router.push('/settings')}
 									className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 								>
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-										<Building2 className="h-5 w-5" />
+										<Settings className="h-5 w-5" />
 									</div>
 									<div>
 										<p className="text-sm font-medium">Account Settings</p>
 										<p className="text-xs text-muted-foreground">
-											Manage preferences
+											Manage your account preferences
+										</p>
+									</div>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => router.push('/settings?tab=billing')}
+									className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
+								>
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+										<ExternalLink className="h-5 w-5" />
+									</div>
+									<div>
+										<p className="text-sm font-medium">Billing</p>
+										<p className="text-xs text-muted-foreground">
+											Plans and payment details
 										</p>
 									</div>
 								</button>
@@ -669,26 +688,101 @@ export default function OwnerProfilePage() {
 									<div>
 										<p className="text-sm font-medium">Security</p>
 										<p className="text-xs text-muted-foreground">
-											Password & 2FA
+											Password and 2FA settings
 										</p>
 									</div>
 								</button>
 
 								<button
 									type="button"
-									onClick={() => router.push('/settings?tab=billing')}
+									onClick={() => router.push('/settings?tab=notifications')}
 									className="flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-colors hover:bg-muted/50 hover:border-primary/50 group"
 								>
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-										<Calendar className="h-5 w-5" />
+										<Mail className="h-5 w-5" />
 									</div>
 									<div>
-										<p className="text-sm font-medium">Billing</p>
+										<p className="text-sm font-medium">Notifications</p>
 										<p className="text-xs text-muted-foreground">
-											Subscription & payments
+											Manage notification preferences
 										</p>
 									</div>
 								</button>
+							</div>
+						</section>
+					</BlurFade>
+
+					{/* Recent Activity */}
+					<BlurFade delay={0.9} inView>
+						<section className="rounded-lg border bg-card p-6">
+							<div className="mb-4 flex items-center justify-between">
+								<h3 className="text-lg font-semibold">Recent Activity</h3>
+								<button
+									type="button"
+									onClick={() => router.push('/activity')}
+									className="text-sm font-medium text-primary hover:underline"
+								>
+									View All
+								</button>
+							</div>
+
+							<div className="space-y-4">
+								<BlurFade delay={0.95} inView>
+									<div className="flex items-start gap-3 hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors">
+										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+											<Edit className="h-4 w-4" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-sm">
+												<span className="text-muted-foreground">
+													Updated profile information
+												</span>
+											</p>
+											<div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+												<Calendar className="h-3 w-3" />
+												Recently
+											</div>
+										</div>
+									</div>
+								</BlurFade>
+
+								<BlurFade delay={1.0} inView>
+									<div className="flex items-start gap-3 hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors">
+										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+											<Building2 className="h-4 w-4" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-sm">
+												<span className="text-muted-foreground">
+													Viewed properties dashboard
+												</span>
+											</p>
+											<div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+												<Calendar className="h-3 w-3" />
+												Today
+											</div>
+										</div>
+									</div>
+								</BlurFade>
+
+								<BlurFade delay={1.05} inView>
+									<div className="flex items-start gap-3 hover:bg-muted/30 rounded-lg p-2 -mx-2 transition-colors">
+										<div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+											<Shield className="h-4 w-4" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-sm">
+												<span className="text-muted-foreground">
+													Logged in to account
+												</span>
+											</p>
+											<div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+												<Calendar className="h-3 w-3" />
+												Today
+											</div>
+										</div>
+									</div>
+								</BlurFade>
 							</div>
 						</section>
 					</BlurFade>
@@ -710,10 +804,10 @@ export default function OwnerProfilePage() {
 
 function ProfileSkeleton() {
 	return (
-		<div className="p-6 lg:p-8">
-			<div className="mb-6">
+		<div className="space-y-6">
+			<div>
 				<Skeleton className="h-8 w-48 mb-2" />
-				<Skeleton className="h-4 w-64" />
+				<Skeleton className="h-5 w-64" />
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-3">
@@ -745,6 +839,8 @@ function ProfileSkeleton() {
 					</div>
 					<Skeleton className="h-32 rounded-lg" />
 					<Skeleton className="h-32 rounded-lg" />
+					<Skeleton className="h-32 rounded-lg" />
+					<Skeleton className="h-48 rounded-lg" />
 				</div>
 			</div>
 		</div>

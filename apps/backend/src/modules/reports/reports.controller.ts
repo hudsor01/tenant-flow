@@ -1,4 +1,14 @@
-import { BadRequestException, Body, Controller, Get, UnauthorizedException, Post, Query, Req, Res } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	UnauthorizedException,
+	Post,
+	Query,
+	Req,
+	Res
+} from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { ExportService } from './export.service'
@@ -48,15 +58,17 @@ type ExportRequestDto = z.infer<typeof exportRequestSchema>
 
 @Controller('reports')
 export class ReportsController {
-
-	constructor(private readonly exportService: ExportService,
+	constructor(
+		private readonly exportService: ExportService,
 		private readonly reportsService: ReportsService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
 		private readonly maintenanceOperationsTemplate: MaintenanceOperationsTemplate,
-		private readonly taxPreparationTemplate: TaxPreparationTemplate, private readonly logger: AppLogger) {}
+		private readonly taxPreparationTemplate: TaxPreparationTemplate,
+		private readonly logger: AppLogger
+	) {}
 
 	private parseRequest(body: ExportRequestDto): ExportRequestDto {
 		try {
@@ -102,7 +114,10 @@ export class ReportsController {
 			filename
 		})
 
-		const buffer = await this.exportService.generateExcel(payload as Record<string, unknown> | Record<string, unknown>[], sheetName)
+		const buffer = await this.exportService.generateExcel(
+			payload as Record<string, unknown> | Record<string, unknown>[],
+			sheetName
+		)
 
 		res.setHeader(
 			'Content-Type',
@@ -124,7 +139,9 @@ export class ReportsController {
 
 		this.logger.log('Generating CSV export', { filename })
 
-		const csv = await this.exportService.generateCSV(payload as Record<string, unknown> | Record<string, unknown>[])
+		const csv = await this.exportService.generateCSV(
+			payload as Record<string, unknown> | Record<string, unknown>[]
+		)
 
 		res.setHeader('Content-Type', 'text/csv')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
@@ -143,7 +160,10 @@ export class ReportsController {
 
 		this.logger.log('Generating PDF export', { filename })
 
-		const buffer = await this.exportService.generatePDF(payload as Record<string, unknown> | Record<string, unknown>[], title)
+		const buffer = await this.exportService.generatePDF(
+			payload as Record<string, unknown> | Record<string, unknown>[],
+			title
+		)
 
 		res.setHeader('Content-Type', 'application/pdf')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
@@ -192,7 +212,9 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.executiveMonthlyTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Executive Monthly Report'
 			)
 
@@ -291,7 +313,9 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.propertyPortfolioTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Property Portfolio Report'
 			)
 
@@ -393,7 +417,9 @@ export class ReportsController {
 			const pdfContent =
 				this.maintenanceOperationsTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Maintenance Operations Report'
 			)
 

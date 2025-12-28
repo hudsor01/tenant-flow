@@ -1,0 +1,171 @@
+{
+	"payments": [
+		{
+			"id": "pay-001",
+			"tenantName": "Sarah Chen",
+			"propertyName": "Riverside Apartments",
+			"unitNumber": "4A",
+			"amount": 185000,
+			"status": "succeeded",
+			"paymentMethodType": "card",
+			"dueDate": "2024-12-01",
+			"paidDate": "2024-12-01T10:15:00Z",
+			"periodStart": "2024-12-01",
+			"periodEnd": "2024-12-31"
+		},
+		{
+			"id": "pay-002",
+			"tenantName": "James Wilson",
+			"propertyName": "Sunset Gardens",
+			"unitNumber": "2",
+			"amount": 155000,
+			"status": "failed",
+			"paymentMethodType": "card",
+			"dueDate": "2024-12-01",
+			"periodStart": "2024-12-01",
+			"periodEnd": "2024-12-31",
+			"daysOverdue": 23
+		},
+		{
+			"id": "pay-003",
+			"tenantName": "Emily Rodriguez",
+			"propertyName": "Downtown Lofts",
+			"unitNumber": "8B",
+			"amount": 195000,
+			"status": "succeeded",
+			"paymentMethodType": "bank_account",
+			"dueDate": "2024-12-01",
+			"paidDate": "2024-12-01T08:30:00Z",
+			"periodStart": "2024-12-01",
+			"periodEnd": "2024-12-31"
+		},
+		{
+			"id": "pay-004",
+			"tenantName": "David Kim",
+			"propertyName": "Downtown Lofts",
+			"unitNumber": "12C",
+			"amount": 195000,
+			"status": "succeeded",
+			"paymentMethodType": "card",
+			"dueDate": "2024-12-01",
+			"paidDate": "2024-12-02T14:20:00Z",
+			"periodStart": "2024-12-01",
+			"periodEnd": "2024-12-31"
+		},
+		{
+			"id": "pay-005",
+			"tenantName": "Michael Torres",
+			"propertyName": "Oak Grove Townhomes",
+			"unitNumber": "3",
+			"amount": 175000,
+			"status": "pending",
+			"dueDate": "2025-01-01",
+			"periodStart": "2025-01-01",
+			"periodEnd": "2025-01-31"
+		}
+	],
+	"upcomingPayments": [
+		{
+			"id": "upcoming-001",
+			"tenantName": "Sarah Chen",
+			"propertyName": "Riverside Apartments",
+			"unitNumber": "4A",
+			"amount": 185000,
+			"dueDate": "2025-01-01",
+			"autopayEnabled": true,
+			"paymentMethodConfigured": true
+		},
+		{
+			"id": "upcoming-002",
+			"tenantName": "Michael Torres",
+			"propertyName": "Oak Grove Townhomes",
+			"unitNumber": "3",
+			"amount": 175000,
+			"dueDate": "2025-01-01",
+			"autopayEnabled": false,
+			"paymentMethodConfigured": false
+		},
+		{
+			"id": "upcoming-003",
+			"tenantName": "Emily Rodriguez",
+			"propertyName": "Downtown Lofts",
+			"unitNumber": "8B",
+			"amount": 195000,
+			"dueDate": "2025-01-01",
+			"autopayEnabled": true,
+			"paymentMethodConfigured": true
+		},
+		{
+			"id": "upcoming-004",
+			"tenantName": "David Kim",
+			"propertyName": "Downtown Lofts",
+			"unitNumber": "12C",
+			"amount": 195000,
+			"dueDate": "2025-01-01",
+			"autopayEnabled": true,
+			"paymentMethodConfigured": true
+		}
+	],
+	"analytics": {
+		"totalCollected": 4875000,
+		"totalPending": 350000,
+		"totalOverdue": 155000,
+		"collectionRate": 97.3,
+		"averagePaymentTime": 0.8,
+		"onTimePaymentRate": 94.5,
+		"monthlyTrend": [
+			{ "month": "Sep", "collected": 4650000, "pending": 0, "failed": 75000 },
+			{ "month": "Oct", "collected": 4725000, "pending": 0, "failed": 50000 },
+			{ "month": "Nov", "collected": 4800000, "pending": 0, "failed": 25000 },
+			{ "month": "Dec", "collected": 4720000, "pending": 0, "failed": 155000 }
+		]
+	},
+	"selectedPayment": {
+		"id": "pay-002",
+		"leaseId": "lease-007",
+		"tenantId": "tenant-006",
+		"tenantName": "James Wilson",
+		"tenantEmail": "j.wilson@email.com",
+		"propertyName": "Sunset Gardens",
+		"unitNumber": "2",
+		"amount": 155000,
+		"status": "failed",
+		"paymentMethodType": "card",
+		"dueDate": "2024-12-01",
+		"periodStart": "2024-12-01",
+		"periodEnd": "2024-12-31",
+		"lateFeeAmount": 5000,
+		"daysOverdue": 23,
+		"applicationFeeAmount": 4650,
+		"transactions": [
+			{
+				"id": "txn-001",
+				"paymentMethodId": "pm-001",
+				"paymentMethodLast4": "4242",
+				"paymentMethodBrand": "visa",
+				"amount": 155000,
+				"status": "failed",
+				"failureReason": "Card declined - insufficient funds",
+				"attemptedAt": "2024-12-01T09:00:00Z"
+			},
+			{
+				"id": "txn-002",
+				"paymentMethodId": "pm-001",
+				"paymentMethodLast4": "4242",
+				"paymentMethodBrand": "visa",
+				"amount": 155000,
+				"status": "failed",
+				"failureReason": "Card declined - insufficient funds",
+				"attemptedAt": "2024-12-04T09:00:00Z"
+			}
+		],
+		"createdAt": "2024-12-01T09:00:00Z",
+		"updatedAt": "2024-12-04T09:00:00Z"
+	},
+	"statusFilter": "all",
+	"dateRange": {
+		"start": "2024-12-01",
+		"end": "2024-12-31",
+		"preset": "month"
+	}
+}

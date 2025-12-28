@@ -577,9 +577,7 @@ function ClauseSelector(props: {
 							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
 								{section.title}
 							</h3>
-							<p className="text-caption">
-								{section.description}
-							</p>
+							<p className="text-caption">{section.description}</p>
 						</div>
 						<div className="space-y-2">
 							{section.clauses.map(clause => {

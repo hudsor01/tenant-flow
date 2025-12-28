@@ -5,7 +5,10 @@
 
 import { apiRequest } from '#lib/api-request'
 
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -72,14 +75,12 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 
 			// Optimistically update
 			if (previousPreferences) {
-			queryClient.setQueryData<NotificationPreferences>(
-				notificationPreferencesKeys.tenant(tenant_id),
-				(old: NotificationPreferences | undefined) =>
-					old
-					? { ...old, ...newPreferences }
-					: undefined
-			)
-		}
+				queryClient.setQueryData<NotificationPreferences>(
+					notificationPreferencesKeys.tenant(tenant_id),
+					(old: NotificationPreferences | undefined) =>
+						old ? { ...old, ...newPreferences } : undefined
+				)
+			}
 
 			return { previousPreferences }
 		},
@@ -102,7 +103,7 @@ export function useUpdateNotificationPreferences(tenant_id: string) {
 
 			handleMutationError(err, 'Update notification preferences')
 		},
-		onSuccess: (data) => {
+		onSuccess: data => {
 			// Update cache with server response
 			queryClient.setQueryData<NotificationPreferences>(
 				notificationPreferencesKeys.tenant(tenant_id),

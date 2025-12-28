@@ -125,12 +125,21 @@ describe('propertyQueries', () => {
 
 		it('should generate analytics maintenance key', () => {
 			const options = propertyQueries.analytics.maintenance()
-			expect(options.queryKey).toEqual(['properties', 'analytics', 'maintenance'])
+			expect(options.queryKey).toEqual([
+				'properties',
+				'analytics',
+				'maintenance'
+			])
 		})
 
 		it('should generate images key extending detail key', () => {
 			const options = propertyQueries.images('prop-123')
-			expect(options.queryKey).toEqual(['properties', 'detail', 'prop-123', 'images'])
+			expect(options.queryKey).toEqual([
+				'properties',
+				'detail',
+				'prop-123',
+				'images'
+			])
 		})
 
 		it('should generate withUnits key', () => {
@@ -191,7 +200,9 @@ describe('propertyQueries', () => {
 
 	describe('detail query', () => {
 		it('should call fetch with property ID in endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ id: 'prop-123', name: 'Test' }))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ id: 'prop-123', name: 'Test' })
+			)
 
 			const options = propertyQueries.detail('prop-123')
 			await options.queryFn!({} as never)
@@ -227,12 +238,14 @@ describe('propertyQueries', () => {
 
 	describe('stats query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
-				total: 10,
-				occupied: 8,
-				vacant: 2,
-				occupancyRate: 80
-			}))
+			mockFetch.mockResolvedValue(
+				createMockResponse({
+					total: 10,
+					occupied: 8,
+					vacant: 2,
+					occupancyRate: 80
+				})
+			)
 
 			const options = propertyQueries.stats()
 			await options.queryFn!({} as never)
@@ -296,7 +309,11 @@ describe('propertyQueries', () => {
 	describe('images query', () => {
 		it('should use Supabase client directly for images', async () => {
 			const mockImages = [
-				{ id: 'img-1', property_id: 'prop-123', image_url: 'https://example.com/img1.jpg' }
+				{
+					id: 'img-1',
+					property_id: 'prop-123',
+					image_url: 'https://example.com/img1.jpg'
+				}
 			]
 			mockSupabaseOrder.mockResolvedValue({ data: mockImages, error: null })
 
@@ -306,7 +323,9 @@ describe('propertyQueries', () => {
 			expect(mockSupabaseFrom).toHaveBeenCalledWith('property_images')
 			expect(mockSupabaseSelect).toHaveBeenCalledWith('*')
 			expect(mockSupabaseEq).toHaveBeenCalledWith('property_id', 'prop-123')
-			expect(mockSupabaseOrder).toHaveBeenCalledWith('display_order', { ascending: true })
+			expect(mockSupabaseOrder).toHaveBeenCalledWith('display_order', {
+				ascending: true
+			})
 			expect(result).toEqual(mockImages)
 		})
 
@@ -318,7 +337,9 @@ describe('propertyQueries', () => {
 
 			const options = propertyQueries.images('prop-123')
 
-			await expect(options.queryFn!({} as never)).rejects.toThrow('Database error')
+			await expect(options.queryFn!({} as never)).rejects.toThrow(
+				'Database error'
+			)
 		})
 
 		it('should be disabled when property_id is empty', () => {

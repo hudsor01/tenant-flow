@@ -1,7 +1,11 @@
 /**
  * Lease Generation Form - Step 4: Review & Legal
  */
-import type { ReactFormExtendedApi, FormValidateOrFn, FormAsyncValidateOrFn } from '@tanstack/react-form'
+import type {
+	ReactFormExtendedApi,
+	FormValidateOrFn,
+	FormAsyncValidateOrFn
+} from '@tanstack/react-form'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { Input } from '#components/ui/input'
 import { FieldLabel } from '#components/ui/field'
@@ -30,9 +34,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">
-					Legal Requirements
-				</h3>
+				<h3 className="typography-large mb-4">Legal Requirements</h3>
 				<div className="space-y-4">
 					<form.Field name="governingState">
 						{field => (
@@ -82,9 +84,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 									checked={Field.state.value}
 									onCheckedChange={checked => Field.handleChange(!!checked)}
 								/>
-								<FieldLabel>
-									Prevailing Party Recovers Attorney Fees
-								</FieldLabel>
+								<FieldLabel>Prevailing Party Recovers Attorney Fees</FieldLabel>
 							</div>
 						)}
 					</form.Field>
@@ -92,9 +92,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 			</div>
 
 			<div>
-				<h3 className="typography-large mb-4">
-					Lead Paint Disclosure
-				</h3>
+				<h3 className="typography-large mb-4">Lead Paint Disclosure</h3>
 				<div className="space-y-4">
 					<form.Field name="propertyBuiltBefore1978">
 						{field => (
@@ -125,9 +123,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 														field.handleChange(!!checked)
 													}
 												/>
-												<FieldLabel>
-													Lead Paint Disclosure Provided
-												</FieldLabel>
+												<FieldLabel>Lead Paint Disclosure Provided</FieldLabel>
 											</div>
 										)}
 									</form.Field>
@@ -171,9 +167,7 @@ export function ReviewStep({ form }: ReviewStepProps) {
 								<dd className="mt-1">{ownerName || '-'}</dd>
 							</div>
 							<div>
-								<dt className="font-medium text-muted-foreground">
-									Tenant
-								</dt>
+								<dt className="font-medium text-muted-foreground">Tenant</dt>
 								<dd className="mt-1">{tenantName || '-'}</dd>
 							</div>
 							<div className="col-span-2">
@@ -197,7 +191,8 @@ export function ReviewStep({ form }: ReviewStepProps) {
 									Monthly Rent
 								</dt>
 								<dd className="mt-1">
-									${(rent_amount / 100).toLocaleString('en-US', {
+									$
+									{(rent_amount / 100).toLocaleString('en-US', {
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 2
 									})}

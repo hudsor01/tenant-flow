@@ -8,15 +8,22 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken: () => (target: object, propertyKey: string, parameterIndex: number) => {
-		// Store metadata for the decorator
-		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
-		existingParams.push(parameterIndex)
-		Reflect.defineMetadata('custom:jwt-token-params', existingParams, target, propertyKey)
-	}
+	JwtToken:
+		() => (target: object, propertyKey: string, parameterIndex: number) => {
+			// Store metadata for the decorator
+			const existingParams =
+				Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) ||
+				[]
+			existingParams.push(parameterIndex)
+			Reflect.defineMetadata(
+				'custom:jwt-token-params',
+				existingParams,
+				target,
+				propertyKey
+			)
+		}
 }))
 
 describe('TaxDocumentsController', () => {
@@ -194,15 +201,15 @@ describe('TaxDocumentsController', () => {
 		})
 
 		it('should throw BadRequestException for tax year below 2000', async () => {
-			await expect(controller.getTaxDocuments('mock-jwt-token', '1999')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				controller.getTaxDocuments('mock-jwt-token', '1999')
+			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should throw BadRequestException for tax year above 2100', async () => {
-			await expect(controller.getTaxDocuments('mock-jwt-token', '2101')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				controller.getTaxDocuments('mock-jwt-token', '2101')
+			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should handle service errors', async () => {
@@ -210,9 +217,9 @@ describe('TaxDocumentsController', () => {
 				new Error('Service error')
 			)
 
-			await expect(controller.getTaxDocuments('mock-jwt-token', '2024')).rejects.toThrow(
-				'Service error'
-			)
+			await expect(
+				controller.getTaxDocuments('mock-jwt-token', '2024')
+			).rejects.toThrow('Service error')
 		})
 
 		it('should verify Schedule E calculations', async () => {

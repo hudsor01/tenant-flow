@@ -22,7 +22,9 @@ describe('Full backend analytics metrics smoke', () => {
 		process.env.PROMETHEUS_BEARER_TOKEN =
 			process.env.PROMETHEUS_BEARER_TOKEN ?? 'test_prometheus_token'
 
-		JwtAuthGuard.prototype.canActivate = async function (context: ExecutionContext) {
+		JwtAuthGuard.prototype.canActivate = async function (
+			context: ExecutionContext
+		) {
 			const req = context.switchToHttp().getRequest()
 			if (req && !req.user) {
 				req.user = { id: 'user-123', app_metadata: { user_type: 'OWNER' } }
@@ -35,8 +37,7 @@ describe('Full backend analytics metrics smoke', () => {
 
 		const moduleRef = await Test.createTestingModule({
 			imports: [AppModule]
-		})
-			.compile()
+		}).compile()
 
 		const app = moduleRef.createNestApplication<NestExpressApplication>({
 			rawBody: true,

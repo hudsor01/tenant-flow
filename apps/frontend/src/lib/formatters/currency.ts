@@ -34,8 +34,7 @@ export const formatCurrency = (
 export const formatCents = (
 	cents: number,
 	options?: CurrencyFormatOptions
-): string =>
-	formatCurrency(cents / 100, options)
+): string => formatCurrency(cents / 100, options)
 
 export const formatNumber = sharedFormatNumber
 

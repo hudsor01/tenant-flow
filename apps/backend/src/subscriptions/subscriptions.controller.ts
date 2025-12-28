@@ -41,9 +41,9 @@ export class SubscriptionsController {
 	 */
 	@Post()
 	async createSubscription(
-			@Request() req: AuthenticatedRequest,
-			@Body() request: CreateSubscriptionRequest
-		): Promise<RentSubscriptionResponse> {
+		@Request() req: AuthenticatedRequest,
+		@Body() request: CreateSubscriptionRequest
+	): Promise<RentSubscriptionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
 			throw new UnauthorizedException()

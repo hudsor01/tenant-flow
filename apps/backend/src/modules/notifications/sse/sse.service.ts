@@ -266,8 +266,14 @@ export class SseService implements SseBroadcaster, OnModuleDestroy {
 		}
 	}
 
-	private sendToConnection(connection: SseConnection, event: SseEvent): boolean {
-		if (connection.subject.closed || connection.subject.observers.length === 0) {
+	private sendToConnection(
+		connection: SseConnection,
+		event: SseEvent
+	): boolean {
+		if (
+			connection.subject.closed ||
+			connection.subject.observers.length === 0
+		) {
 			return false
 		}
 

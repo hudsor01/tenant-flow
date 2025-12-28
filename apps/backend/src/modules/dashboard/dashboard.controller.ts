@@ -9,8 +9,7 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Controller('manage')
 export class DashboardController {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	@All('*path')
 	handleLegacyRoute(@Param('path') path = ''): never {
@@ -18,6 +17,8 @@ export class DashboardController {
 		this.logger.warn(
 			`Legacy /manage${normalizedPath} route invoked; legacy layer removed. Use /owner routes instead.`
 		)
-		throw new GoneException('Legacy /manage routes have been removed. Use /owner/... endpoints.')
+		throw new GoneException(
+			'Legacy /manage routes have been removed. Use /owner/... endpoints.'
+		)
 	}
 }

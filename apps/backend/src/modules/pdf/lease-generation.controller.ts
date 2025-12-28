@@ -1,4 +1,20 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res, UseGuards, NotFoundException, BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	ParseUUIDPipe,
+	Post,
+	Req,
+	Res,
+	UseGuards,
+	NotFoundException,
+	BadRequestException,
+	InternalServerErrorException,
+	UnauthorizedException
+} from '@nestjs/common'
 import type { Response } from 'express'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
@@ -28,40 +44,49 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
 @UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
 export class LeaseGenerationController {
-
-	constructor(private readonly leasePDF: ReactLeasePDFService,
+	constructor(
+		private readonly leasePDF: ReactLeasePDFService,
 		private readonly supabase: SupabaseService,
-		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Sanitize string for use in filename
 	 * Removes special characters and limits length
 	 */
-	private sanitizeForFilename(value: string | undefined, maxLength: number): string {
+	private sanitizeForFilename(
+		value: string | undefined,
+		maxLength: number
+	): string {
 		const fallback = 'file'
 		if (!value?.trim()) return fallback
 
-		return value
-			.trim()
-			.normalize('NFKD') // Unicode normalization to prevent attacks
-			.replace(/[^a-zA-Z0-9]/g, '-')
-			.replace(/-+/g, '-')
-			.replace(/^-|-$/g, '')
-			.slice(0, maxLength) || fallback
+		return (
+			value
+				.trim()
+				.normalize('NFKD') // Unicode normalization to prevent attacks
+				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
+				.slice(0, maxLength) || fallback
+		)
 	}
 
 	/**
 	 * Generate lease filename from DTO data
 	 */
 	private generateLeaseFilename(dto: LeaseGenerationDto): string {
-		const sanitizedAddress = this.sanitizeForFilename(
-			dto.propertyAddress || 'properties',
-			MAX_ADDRESS_LENGTH
-		) || 'properties'
-		const sanitizedTenant = this.sanitizeForFilename(
-			dto.tenantName || 'tenants',
-			MAX_TENANT_NAME_LENGTH
-		) || 'tenants'
+		const sanitizedAddress =
+			this.sanitizeForFilename(
+				dto.propertyAddress || 'properties',
+				MAX_ADDRESS_LENGTH
+			) || 'properties'
+		const sanitizedTenant =
+			this.sanitizeForFilename(
+				dto.tenantName || 'tenants',
+				MAX_TENANT_NAME_LENGTH
+			) || 'tenants'
 		const date = new Date().toISOString().split('T')[0]
 		return `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 	}
@@ -80,7 +105,9 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(
+				dto as LeaseGenerationFormData
+			)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Preview mode - display in browser (NO DOWNLOAD, NO DATABASE SAVE)
@@ -113,7 +140,9 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(
+				dto as LeaseGenerationFormData
+			)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Force download
@@ -152,7 +181,8 @@ export class LeaseGenerationController {
 
 		// Check cache first with parameterized key
 		const cacheKey = `lease-auto-fill:${user_id}:${property_id}:${unit_id}:${tenant_id}`
-		const cached = await this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
+		const cached =
+			await this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
 		if (cached) {
 			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
 			return cached
@@ -163,14 +193,16 @@ export class LeaseGenerationController {
 		const { data: property, error: propertyError } = await this.supabase
 			.getAdminClient()
 			.from('properties')
-			.select(`
+			.select(
+				`
 				id,
 				address_line1,
 				city,
 				state,
 				postal_code,
 				owner_user_id
-			`)
+			`
+			)
 			.eq('id', property_id)
 			.single()
 
@@ -255,7 +287,9 @@ export class LeaseGenerationController {
 		// Validate owner user query result
 		if (ownerUserError) {
 			if (ownerUserError.code === 'PGRST116') {
-				throw new NotFoundException(`Owner user not found for property: ${property_id}`)
+				throw new NotFoundException(
+					`Owner user not found for property: ${property_id}`
+				)
 			}
 			throw new InternalServerErrorException(
 				'Failed to fetch owner user data',
@@ -264,7 +298,9 @@ export class LeaseGenerationController {
 		}
 
 		if (!ownerUser) {
-			throw new NotFoundException(`Owner user not found for property: ${property_id}`)
+			throw new NotFoundException(
+				`Owner user not found for property: ${property_id}`
+			)
 		}
 
 		// Auto-fill form data
@@ -274,9 +310,10 @@ export class LeaseGenerationController {
 			property_id: property.id,
 
 			// Property owner info
-			ownerName: ownerUser.first_name && ownerUser.last_name
-				? `${ownerUser.first_name} ${ownerUser.last_name}`
-				: 'Property Owner',
+			ownerName:
+				ownerUser.first_name && ownerUser.last_name
+					? `${ownerUser.first_name} ${ownerUser.last_name}`
+					: 'Property Owner',
 			ownerAddress: `${property.address_line1}, ${property.city}, ${property.state} ${property.postal_code}`,
 
 			// Tenant info (REQUIRED)

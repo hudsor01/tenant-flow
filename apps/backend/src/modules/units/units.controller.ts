@@ -41,10 +41,7 @@ export class UnitsController {
 	 */
 	@SkipSubscriptionCheck()
 	@Get()
-	async findAll(
-		@JwtToken() token: string,
-		@Query() query: FindAllUnitsDto
-	) {
+	async findAll(@JwtToken() token: string, @Query() query: FindAllUnitsDto) {
 		// DTO validation handled by ZodValidationPipe - no manual validation needed
 		// Normalize status to lowercase for database enum
 		const normalizedQuery = {

@@ -7,8 +7,6 @@ import { FinancialRevenueService } from './financial-revenue.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
-
 describe('FinancialService - N+1 Query Prevention', () => {
 	type MockQueryResult = { data: unknown; error: unknown }
 	type MockQueryClient = ReturnType<SupabaseService['getUserClient']> & {
@@ -142,7 +140,10 @@ describe('FinancialService - N+1 Query Prevention', () => {
 			queryCount = 0
 
 			// Execute
-			await service.getNetOperatingIncome('test-token', { start_date: '2025-01-01', end_date: '2025-12-31' })
+			await service.getNetOperatingIncome('test-token', {
+				start_date: '2025-01-01',
+				end_date: '2025-12-31'
+			})
 
 			// Assert: Should use ≤5 queries (not 10+)
 			// 1 query: Get all properties
@@ -152,6 +153,5 @@ describe('FinancialService - N+1 Query Prevention', () => {
 			// TOTAL: ≤5 queries (not 1 + 3*units + 3*leases + 3*expenses = 10+)
 			expect(queryCount).toBeLessThanOrEqual(5)
 		})
-
 	})
 })

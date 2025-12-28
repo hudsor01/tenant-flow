@@ -43,18 +43,16 @@ export const useFormProgress = () => {
  * Hook for modal-specific form progress
  */
 export const useModalFormProgress = (modalId: string) => {
-	const {
-		setModalFormProgress,
-		resetModalFormProgress,
-		getModalFormProgress
-	} = useUIStore()
+	const { setModalFormProgress, resetModalFormProgress, getModalFormProgress } =
+		useUIStore()
 
 	const progress = getModalFormProgress(modalId)
 
 	return {
 		progress,
-		setProgress: (progressData: Partial<Parameters<typeof setModalFormProgress>[1]>) =>
-			setModalFormProgress(modalId, progressData),
+		setProgress: (
+			progressData: Partial<Parameters<typeof setModalFormProgress>[1]>
+		) => setModalFormProgress(modalId, progressData),
 		resetProgress: () => resetModalFormProgress(modalId)
 	}
 }
@@ -84,14 +82,18 @@ export const useFormNavigation = (modalId?: string) => {
 		totalSteps: progress.totalSteps,
 		nextStep: () => {
 			if (modalId) {
-				store.setModalFormProgress(modalId, { currentStep: progress.currentStep + 1 })
+				store.setModalFormProgress(modalId, {
+					currentStep: progress.currentStep + 1
+				})
 			} else {
 				store.nextStep()
 			}
 		},
 		previousStep: () => {
 			if (modalId) {
-				store.setModalFormProgress(modalId, { currentStep: progress.currentStep - 1 })
+				store.setModalFormProgress(modalId, {
+					currentStep: progress.currentStep - 1
+				})
 			} else {
 				store.previousStep()
 			}

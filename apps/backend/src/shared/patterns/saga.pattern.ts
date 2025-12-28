@@ -74,17 +74,15 @@ export async function executeSaga<T = unknown>(
 	} catch (error) {
 		// Compensation phase: Rollback completed steps in reverse order
 		const lastStep = executedSteps[executedSteps.length - 1]
-		log?.error(
-			`Saga failed at step: ${lastStep?.name || 'unknown'}`,
-			'Saga',
-			{ error: error instanceof Error ? error.message : String(error) }
-		)
+		log?.error(`Saga failed at step: ${lastStep?.name || 'unknown'}`, 'Saga', {
+			error: error instanceof Error ? error.message : String(error)
+		})
 
 		// Compensate in reverse order
 		for (let i = executedSteps.length - 1; i >= 0; i--) {
 			const executedStep = executedSteps[i]
 			if (!executedStep) continue
-			
+
 			const { name, result } = executedStep
 			const step = steps[i]
 			if (!step) continue

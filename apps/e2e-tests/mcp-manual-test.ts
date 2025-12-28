@@ -29,7 +29,9 @@ async function main() {
 		})
 
 		logger.info(' Taking screenshot of login page...')
-		await page.screenshot({ path: 'apps/e2e-tests/mcp-output/01-login-page.png' })
+		await page.screenshot({
+			path: 'apps/e2e-tests/mcp-output/01-login-page.png'
+		})
 
 		logger.info(' Step 2: Fill login credentials')
 		const email = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
@@ -111,7 +113,9 @@ async function main() {
 		await page.waitForTimeout(5000)
 	} catch (error) {
 		logger.error(' Error during test', {
-			metadata: { error: error instanceof Error ? error.message : String(error) }
+			metadata: {
+				error: error instanceof Error ? error.message : String(error)
+			}
 		})
 		await page.screenshot({
 			path: 'apps/e2e-tests/mcp-output/error-screenshot.png'

@@ -3,11 +3,31 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity, ActivityItem } from './activity.js'
-import type { Tables, TablesInsert, TablesUpdate, Database } from './supabase.js'
+import type { DashboardActivity, ActivityItem as ActivityItemType } from './activity.js'
+import type {
+	Tables,
+	TablesInsert,
+	TablesUpdate,
+	Database
+} from './supabase.js'
+import type {
+	CacheEntry as CacheEntryType,
+	CacheStats as CacheStatsType,
+	DashboardFinancialStats as DashboardFinancialStatsType,
+	DashboardStats as DashboardStatsType,
+	LeaseStats as LeaseStatsType,
+	MaintenanceAnalyticsData as MaintenanceAnalyticsDataType,
+	MaintenanceStats as MaintenanceStatsType,
+	PropertyStats as PropertyStatsType,
+	TenantStats as TenantStatsType,
+	TenantSummary as TenantSummaryType,
+	UnitStats as UnitStatsType,
+	UserStats as UserStatsType
+} from './stats.js'
+import type { ExpenseSummaryResponse as ExpenseSummaryResponseType } from './analytics.js'
 
-// Re-export ActivityItem for use across the app
-export type { ActivityItem }
+// Activity item alias for use across the app
+export type ActivityItem = ActivityItemType
 
 // ============================================================================
 // DB ENUM TYPE EXPORTS - Direct references to supabase.ts
@@ -16,18 +36,21 @@ export type { ActivityItem }
 export type LeaseStatus = Database['public']['Enums']['lease_status']
 export type UnitStatus = Database['public']['Enums']['unit_status']
 export type PaymentStatus = Database['public']['Enums']['payment_status']
-export type MaintenanceStatus = Database['public']['Enums']['maintenance_status']
-export type MaintenancePriority = Database['public']['Enums']['maintenance_priority']
+export type MaintenanceStatus =
+	Database['public']['Enums']['maintenance_status']
+export type MaintenancePriority =
+	Database['public']['Enums']['maintenance_priority']
 export type PropertyStatus = Database['public']['Enums']['property_status']
 export type NotificationType = Database['public']['Enums']['notification_type']
 export type InvitationType = Database['public']['Enums']['invitation_type']
-export type StripeSubscriptionStatus = Database['public']['Enums']['stripe_subscription_status']
+export type StripeSubscriptionStatus =
+	Database['public']['Enums']['stripe_subscription_status']
 
 // Import app-only types that are NOT DB enums
 import type {
-  ActivityEntityType as ActivityEntityTypeFromConstants,
-  MaintenanceCategory as MaintenanceCategoryFromConstants,
-  PropertyType as PropertyTypeFromConstants
+	ActivityEntityType as ActivityEntityTypeFromConstants,
+	MaintenanceCategory as MaintenanceCategoryFromConstants,
+	PropertyType as PropertyTypeFromConstants
 } from '../constants/status-types.js'
 
 export type ApiResponse<T = unknown> =
@@ -68,7 +91,6 @@ export interface Pagination {
 	hasMore?: boolean
 }
 
-
 // ============================================================================
 // DB TABLE TYPE ALIASES - Only the ones actually used
 // ============================================================================
@@ -91,7 +113,6 @@ export type TenantUpdate = Partial<TenantInput>
 export type UserInsert = TablesInsert<'users'>
 export type UserUpdate = TablesUpdate<'users'>
 export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
-
 
 // ============================================================================
 // EXTENDED TYPES - With relations/computed fields
@@ -149,51 +170,61 @@ export type MaintenanceCategory = MaintenanceCategoryFromConstants
 export type PropertyType = PropertyTypeFromConstants
 export type ActivityEntityType = ActivityEntityTypeFromConstants
 
-export type UnitRowWithRelations = Database['public']['Tables']['units']['Row'] & {
-	property?: {
-		name: string
-		address: string
+export type UnitRowWithRelations =
+	Database['public']['Tables']['units']['Row'] & {
+		property?: {
+			name: string
+			address: string
+		}
+		tenant?: {
+			name: string
+			email: string
+			phone?: string
+		} | null
+		lease?: {
+			start_date: string
+			end_date: string | null
+			rent_amount: number
+			status: LeaseStatus
+		} | null
+		marketValue?: number
+		lastUpdated?: string
 	}
-	tenant?: {
-		name: string
-		email: string
-		phone?: string
-	} | null
-	lease?: {
-		start_date: string
-		end_date: string | null
-		rent_amount: number
-		status: LeaseStatus
-	} | null
-	marketValue?: number
-	lastUpdated?: string
-}
 
 // NOTE: Import Tables, TablesInsert, TablesUpdate, Enums directly from './supabase.js'
 // Do NOT re-export here to avoid circular dependencies
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS'
+export type HttpMethod =
+	| 'GET'
+	| 'POST'
+	| 'PUT'
+	| 'PATCH'
+	| 'DELETE'
+	| 'HEAD'
+	| 'OPTIONS'
 
-export type EntityType = 'properties' | 'units' | 'tenants' | 'leases' | 'maintenance'
+export type EntityType =
+	| 'properties'
+	| 'units'
+	| 'tenants'
+	| 'leases'
+	| 'maintenance'
 export type ActionType = 'create' | 'update' | 'delete' | 'view'
 export type Permission = `${EntityType}:${ActionType}`
 
-
-// Re-export Stats types from stats.ts
-export type {
-  PropertyStats,
-  TenantStats,
-  TenantSummary,
-  UnitStats,
-  LeaseStats,
-  MaintenanceStats,
-  MaintenanceAnalyticsData,
-  DashboardStats,
-  DashboardFinancialStats,
-  CacheStats,
-  CacheEntry,
-  UserStats
-} from './stats.js'
+// Stats types from stats.ts
+export type PropertyStats = PropertyStatsType
+export type TenantStats = TenantStatsType
+export type TenantSummary = TenantSummaryType
+export type UnitStats = UnitStatsType
+export type LeaseStats = LeaseStatsType
+export type MaintenanceStats = MaintenanceStatsType
+export type MaintenanceAnalyticsData = MaintenanceAnalyticsDataType
+export type DashboardStats = DashboardStatsType
+export type DashboardFinancialStats = DashboardFinancialStatsType
+export type CacheStats = CacheStatsType
+export type CacheEntry = CacheEntryType
+export type UserStats = UserStatsType
 
 export interface FinancialOverviewResponse {
 	chartData: Array<{
@@ -212,7 +243,7 @@ export interface FinancialOverviewResponse {
 	year: number
 }
 
-export type { ExpenseSummaryResponse } from './analytics.js'
+export type ExpenseSummaryResponse = ExpenseSummaryResponseType
 
 export interface LeaseStatsResponse {
 	totalLeases: number
@@ -468,11 +499,17 @@ export interface TenantNotificationPreferences {
 
 // WithVersion types for optimistic locking
 export type LeaseWithVersion = Lease & { version?: number }
-export type MaintenanceRequestWithVersion = MaintenanceRequest & { version?: number }
+export type MaintenanceRequestWithVersion = MaintenanceRequest & {
+	version?: number
+}
 export type PropertyWithVersion = Property & { version?: number }
 export type UnitWithVersion = Unit & { version?: number }
-export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & { version?: number }
-export type PaymentMethodResponseWithVersion = PaymentMethodResponse & { version?: number }
+export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfo & {
+	version?: number
+}
+export type PaymentMethodResponseWithVersion = PaymentMethodResponse & {
+	version?: number
+}
 
 // ============================================================================
 // SEARCH TYPES

@@ -77,9 +77,7 @@ export function QuickCreateDialog({
 								<option.icon className="size-8 shrink-0 text-primary" />
 								<div className="flex flex-col gap-1">
 									<span className="font-semibold">{option.title}</span>
-									<span className="text-caption">
-										{option.description}
-									</span>
+									<span className="text-caption">{option.description}</span>
 								</div>
 							</Button>
 						))}

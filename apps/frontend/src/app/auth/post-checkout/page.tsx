@@ -88,7 +88,11 @@ export default function PostCheckoutPage() {
 		) {
 			mutateRef.current(sessionId)
 		}
-	}, [searchParams, sendMagicLinkMutation.isSuccess, sendMagicLinkMutation.isPending])
+	}, [
+		searchParams,
+		sendMagicLinkMutation.isSuccess,
+		sendMagicLinkMutation.isPending
+	])
 
 	if (sendMagicLinkMutation.isPending) {
 		return (

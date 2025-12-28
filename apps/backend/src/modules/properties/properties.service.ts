@@ -5,19 +5,21 @@
 // 2. Extract bulk operations into: `./property-bulk.service.ts`
 // 3. Keep core CRUD operations in this service
 
-import type { PropertyStatus } from '@repo/shared/types/core'
+import type {
+	Property,
+	PropertyStatus,
+	PropertyInsert,
+	PropertyUpdate
+} from '@repo/shared/types/api-contracts'
 import {
 	BadRequestException,
 	ConflictException,
 	Injectable,
 	NotFoundException
 } from '@nestjs/common'
-import type {
-	CreatePropertyDto,
-	UpdatePropertyDto
-} from './property.schemas'
-import type { Property, PropertyType } from '@repo/shared/types/core'
-import type { Database } from '@repo/shared/types/supabase'
+import type { CreatePropertyDto, UpdatePropertyDto } from './property.schemas'
+import type { PropertyType } from '@repo/shared/types/core'
+
 import { SupabaseService } from '../../database/supabase.service'
 import { RedisCacheService } from '../../cache/cache.service'
 import {
@@ -42,14 +44,20 @@ export class PropertiesService {
 	 * Invalidate all property-related caches for a user/owner
 	 * Uses RedisCacheService surgical invalidation
 	 */
-	private invalidatePropertyCaches(owner_user_id: string, property_id?: string): void {
+	private invalidatePropertyCaches(
+		owner_user_id: string,
+		property_id?: string
+	): void {
 		// Invalidate specific property if ID provided
 		if (property_id) {
 			void this.cache.invalidateByEntity('properties', property_id)
 		}
 		// Invalidate user's property list cache
 		void this.cache.invalidate(`properties:owner:${owner_user_id}`)
-		this.logger.debug('Invalidated property caches', { owner_user_id, property_id })
+		this.logger.debug('Invalidated property caches', {
+			owner_user_id,
+			property_id
+		})
 	}
 
 	async findAll(
@@ -124,10 +132,10 @@ export class PropertiesService {
 			throw new BadRequestException('Authentication required')
 		}
 
-const user_id = req.user.id
+		const user_id = req.user.id
 		const client = this.supabase.getUserClient(token)
 
-		const insertData: Database['public']['Tables']['properties']['Insert'] = {
+		const insertData: PropertyInsert = {
 			name: request.name,
 			address_line1: request.address_line1,
 			city: request.city,
@@ -165,7 +173,7 @@ const user_id = req.user.id
 			)
 		}
 
-this.invalidatePropertyCaches(user_id, data.id)
+		this.invalidatePropertyCaches(user_id, data.id)
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id
@@ -200,7 +208,7 @@ this.invalidatePropertyCaches(user_id, data.id)
 			throw new BadRequestException('Invalid property type')
 		}
 
-		const updated_data: Database['public']['Tables']['properties']['Update'] = {
+		const updated_data: PropertyUpdate = {
 			updated_at: new Date().toISOString()
 		}
 
@@ -215,7 +223,10 @@ this.invalidatePropertyCaches(user_id, data.id)
 			updated_data.property_type = request.property_type as PropertyType
 		}
 
-		let query = client.from('properties').update(updated_data).eq('id', property_id)
+		let query = client
+			.from('properties')
+			.update(updated_data)
+			.eq('id', property_id)
 
 		if (expectedVersion !== undefined) {
 			query = query.eq('version', expectedVersion)
@@ -346,7 +357,12 @@ this.invalidatePropertyCaches(user_id, data.id)
 	async findAllWithUnits(
 		req: AuthenticatedRequest,
 		query: { search: string | null; limit: number; offset: number }
-	): Promise<{ data: Property[]; total: number; limit: number; offset: number }> {
+	): Promise<{
+		data: Property[]
+		total: number
+		limit: number
+		offset: number
+	}> {
 		const token = getTokenFromRequest(req)
 		if (!token) {
 			this.logger.error('No authentication token found in request')

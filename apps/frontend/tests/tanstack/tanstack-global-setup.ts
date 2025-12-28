@@ -122,7 +122,8 @@ async function globalSetup() {
 
 		const setupQueryClientExposure = () => {
 			if (windowWithQueryClient.queryClient) {
-				windowWithQueryClient.__QUERY_CLIENT__ = windowWithQueryClient.queryClient
+				windowWithQueryClient.__QUERY_CLIENT__ =
+					windowWithQueryClient.queryClient
 				return
 			}
 

@@ -5,10 +5,10 @@
 
 import type {
 	ExpressTypeProvider,
-	JSONSchema
+	JSONSchema as JSONSchemaType
 } from '@repo/shared/types/backend-domain'
 
-export type { JSONSchema }
+export type JSONSchema = JSONSchemaType
 
 export const defaultTypeProvider: ExpressTypeProvider = {
 	output: {},

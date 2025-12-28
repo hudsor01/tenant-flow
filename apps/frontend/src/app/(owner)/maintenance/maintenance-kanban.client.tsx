@@ -13,19 +13,16 @@ import {
 } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { createSnapModifier, restrictToWindowEdges } from '@dnd-kit/modifiers'
-import {
-	AlertTriangle,
-	CheckCircle,
-	Clock,
-	Pause,
-	XCircle
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle, Clock, Pause, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { BlurFade } from '#components/ui/blur-fade'
 import { MaintenanceCard } from './maintenance-card'
 import { MaintenanceSortableCard } from './maintenance-sortable-card'
-import type { MaintenanceRequest, MaintenanceStatus } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceStatus
+} from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 
@@ -50,8 +47,8 @@ const COLUMNS: ColumnConfig[] = [
 	{
 		id: 'open',
 		title: 'Open',
-		colorClass: 'bg-orange-500/10',
-		icon: <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+		colorClass: 'bg-warning/10',
+		icon: <Clock className="w-4 h-4 text-warning" />
 	},
 	{
 		id: 'in_progress',
@@ -62,8 +59,8 @@ const COLUMNS: ColumnConfig[] = [
 	{
 		id: 'completed',
 		title: 'Completed',
-		colorClass: 'bg-green-500/10',
-		icon: <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+		colorClass: 'bg-success/10',
+		icon: <CheckCircle className="w-4 h-4 text-success" />
 	},
 	{
 		id: 'on_hold',
@@ -94,7 +91,12 @@ interface KanbanColumnProps {
 	onView: (id: string) => void
 }
 
-function KanbanColumn({ column, requests, columnIndex, onView }: KanbanColumnProps) {
+function KanbanColumn({
+	column,
+	requests,
+	columnIndex,
+	onView
+}: KanbanColumnProps) {
 	// Sort by age (oldest first for open/in_progress, newest first for completed)
 	const sortedRequests = [...requests].sort((a, b) => {
 		if (column.id === 'completed' || column.id === 'cancelled') {
@@ -129,7 +131,11 @@ function KanbanColumn({ column, requests, columnIndex, onView }: KanbanColumnPro
 						strategy={verticalListSortingStrategy}
 					>
 						{sortedRequests.map((request, idx) => (
-							<BlurFade key={request.id} delay={0.4 + columnIndex * 0.1 + idx * 0.03} inView>
+							<BlurFade
+								key={request.id}
+								delay={0.4 + columnIndex * 0.1 + idx * 0.03}
+								inView
+							>
 								<MaintenanceSortableCard
 									request={request}
 									columnId={column.id}
@@ -156,11 +162,11 @@ interface MaintenanceKanbanProps {
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const router = useRouter()
-	const [requests, setRequests] =
-		useState<MaintenanceRequestWithRelations[]>(initialRequests || [])
-	const [activeRequest, setActiveRequest] = useState<MaintenanceRequestWithRelations | null>(
-		null
+	const [requests, setRequests] = useState<MaintenanceRequestWithRelations[]>(
+		initialRequests || []
 	)
+	const [activeRequest, setActiveRequest] =
+		useState<MaintenanceRequestWithRelations | null>(null)
 	const [, startTransition] = useTransition()
 
 	const sensors = useSensors(
@@ -207,7 +213,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 
 		// Optimistic update
 		const oldStatus = request.status
-		setRequests(prev => prev.map(r => (r.id === requestId ? { ...r, status: newStatus } : r)))
+		setRequests(prev =>
+			prev.map(r => (r.id === requestId ? { ...r, status: newStatus } : r))
+		)
 
 		// API update
 		startTransition(async () => {
@@ -216,11 +224,14 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 					method: 'PUT',
 					body: JSON.stringify({
 						status: newStatus,
-						completed_at: newStatus === 'completed' ? new Date().toISOString() : undefined
+						completed_at:
+							newStatus === 'completed' ? new Date().toISOString() : undefined
 					})
 				})
 
-				toast.success(`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`)
+				toast.success(
+					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`
+				)
 			} catch (error) {
 				logger.error('Status update failed', {
 					action: 'handleDragEnd',
@@ -271,7 +282,9 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			</div>
 
 			<DragOverlay>
-				{activeRequest ? <MaintenanceCard request={activeRequest} isDragging /> : null}
+				{activeRequest ? (
+					<MaintenanceCard request={activeRequest} isDragging />
+				) : null}
 			</DragOverlay>
 		</DndContext>
 	)

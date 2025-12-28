@@ -2,7 +2,11 @@ import { MaintenanceDetails } from './maintenance-details.client'
 import { Suspense } from 'react'
 import { Skeleton } from '#components/ui/skeleton'
 
-async function MaintenanceDetailsWrapper({ params }: { params: Promise<{ id: string }> }) {
+async function MaintenanceDetailsWrapper({
+	params
+}: {
+	params: Promise<{ id: string }>
+}) {
 	const { id } = await params
 	return <MaintenanceDetails id={id} />
 }
@@ -14,9 +18,7 @@ export default async function MaintenanceDetailPage({
 	return (
 		<div className="space-y-10">
 			<div className="space-y-2">
-				<h1 className="typography-h3 tracking-tight">
-					Maintenance request
-				</h1>
+				<h1 className="typography-h3 tracking-tight">Maintenance request</h1>
 				<p className="text-muted-foreground">
 					Review request details, contact information, and work status.
 				</p>

@@ -1,0 +1,159 @@
+{
+	"tenant": {
+		"id": "tenant-001",
+		"fullName": "Sarah Chen",
+		"firstName": "Sarah",
+		"lastName": "Chen",
+		"email": "sarah.chen@email.com",
+		"phone": "(512) 555-0101",
+		"avatarUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100",
+		"emergencyContactName": "John Chen",
+		"emergencyContactPhone": "(512) 555-9999",
+		"emergencyContactRelationship": "Spouse"
+	},
+	"lease": {
+		"id": "lease-001",
+		"propertyName": "Riverside Apartments",
+		"propertyAddress": "1234 River Rd, Austin, TX 78701",
+		"unitNumber": "4A",
+		"startDate": "2024-01-15",
+		"endDate": "2025-01-14",
+		"rentAmount": 185000,
+		"securityDeposit": 185000,
+		"paymentDay": 1,
+		"status": "active",
+		"autopayEnabled": true,
+		"daysUntilExpiry": 21
+	},
+	"nextPayment": {
+		"amount": 185000,
+		"dueDate": "2025-01-01",
+		"daysUntilDue": 8,
+		"autopayEnabled": true,
+		"paymentMethodConfigured": true,
+		"defaultPaymentMethodLast4": "4242"
+	},
+	"payments": [
+		{
+			"id": "pay-001",
+			"amount": 185000,
+			"status": "succeeded",
+			"periodStart": "2024-12-01",
+			"periodEnd": "2024-12-31",
+			"dueDate": "2024-12-01",
+			"paidDate": "2024-12-01T10:15:00Z",
+			"paymentMethodLast4": "4242",
+			"receiptUrl": "/receipts/pay-001.pdf"
+		},
+		{
+			"id": "pay-002",
+			"amount": 185000,
+			"status": "succeeded",
+			"periodStart": "2024-11-01",
+			"periodEnd": "2024-11-30",
+			"dueDate": "2024-11-01",
+			"paidDate": "2024-11-01T09:30:00Z",
+			"paymentMethodLast4": "4242",
+			"receiptUrl": "/receipts/pay-002.pdf"
+		},
+		{
+			"id": "pay-003",
+			"amount": 185000,
+			"status": "succeeded",
+			"periodStart": "2024-10-01",
+			"periodEnd": "2024-10-31",
+			"dueDate": "2024-10-01",
+			"paidDate": "2024-10-01T11:00:00Z",
+			"paymentMethodLast4": "4242",
+			"receiptUrl": "/receipts/pay-003.pdf"
+		},
+		{
+			"id": "pay-004",
+			"amount": 185000,
+			"status": "succeeded",
+			"periodStart": "2024-09-01",
+			"periodEnd": "2024-09-30",
+			"dueDate": "2024-09-01",
+			"paidDate": "2024-09-01T10:45:00Z",
+			"paymentMethodLast4": "4242",
+			"receiptUrl": "/receipts/pay-004.pdf"
+		},
+		{
+			"id": "pay-005",
+			"amount": 185000,
+			"status": "succeeded",
+			"periodStart": "2024-08-01",
+			"periodEnd": "2024-08-31",
+			"dueDate": "2024-08-01",
+			"paidDate": "2024-08-01T09:15:00Z",
+			"paymentMethodLast4": "4242",
+			"receiptUrl": "/receipts/pay-005.pdf"
+		}
+	],
+	"paymentMethods": [
+		{
+			"id": "pm-001",
+			"type": "card",
+			"last4": "4242",
+			"brand": "visa",
+			"expMonth": 12,
+			"expYear": 2027,
+			"isDefault": true
+		},
+		{
+			"id": "pm-002",
+			"type": "bank_account",
+			"last4": "6789",
+			"bankName": "Chase",
+			"isDefault": false
+		}
+	],
+	"maintenanceRequests": [
+		{
+			"id": "maint-tenant-001",
+			"title": "Kitchen faucet dripping",
+			"description": "The kitchen faucet has been dripping slowly for about a week. It's getting worse.",
+			"status": "completed",
+			"priority": "normal",
+			"submittedAt": "2024-11-15T14:30:00Z",
+			"updatedAt": "2024-11-18T16:00:00Z",
+			"completedAt": "2024-11-18T16:00:00Z"
+		},
+		{
+			"id": "maint-tenant-002",
+			"title": "Garbage disposal not working",
+			"description": "Garbage disposal makes humming sound but blades don't spin.",
+			"status": "in_progress",
+			"priority": "normal",
+			"submittedAt": "2024-12-20T10:00:00Z",
+			"updatedAt": "2024-12-22T09:00:00Z",
+			"scheduledDate": "2024-12-27"
+		}
+	],
+	"documents": [
+		{
+			"id": "doc-001",
+			"documentType": "lease_agreement",
+			"fileName": "Lease_Agreement_4A_2024.pdf",
+			"fileSize": 245000,
+			"uploadedAt": "2024-01-10T14:30:00Z",
+			"downloadUrl": "/documents/lease-001/lease_agreement.pdf"
+		},
+		{
+			"id": "doc-002",
+			"documentType": "addendum",
+			"fileName": "Pet_Addendum.pdf",
+			"fileSize": 45000,
+			"uploadedAt": "2024-01-10T14:35:00Z",
+			"downloadUrl": "/documents/lease-001/pet_addendum.pdf"
+		},
+		{
+			"id": "doc-003",
+			"documentType": "receipt",
+			"fileName": "Security_Deposit_Receipt.pdf",
+			"fileSize": 28000,
+			"uploadedAt": "2024-01-15T10:00:00Z",
+			"downloadUrl": "/documents/lease-001/deposit_receipt.pdf"
+		}
+	]
+}

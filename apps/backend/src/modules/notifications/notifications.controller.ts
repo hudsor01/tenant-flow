@@ -55,7 +55,7 @@ export class NotificationsController {
 		const pageSize = Math.min(Math.max(limit, 1), 100)
 		const from = (currentPage - 1) * pageSize
 		const to = from + pageSize - 1
-		
+
 		const client = this.getUserClientFromRequest(req)
 		let query = client
 			.from('notifications')
@@ -161,7 +161,7 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		
+
 		const client = this.getUserClientFromRequest(req)
 		const { error } = await client
 			.from('notifications')
@@ -180,7 +180,7 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		
+
 		const client = this.getUserClientFromRequest(req)
 		const { error } = await client
 			.from('notifications')

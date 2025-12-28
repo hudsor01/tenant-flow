@@ -18,7 +18,14 @@ import {
 	ComboboxItem
 } from '#components/ui/combobox'
 import { Skeleton } from '#components/ui/skeleton'
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription, EmptyContent, EmptyMedia } from '#components/ui/empty'
+import {
+	Empty,
+	EmptyHeader,
+	EmptyTitle,
+	EmptyDescription,
+	EmptyContent,
+	EmptyMedia
+} from '#components/ui/empty'
 import { Button } from '#components/ui/button'
 import { AlertCircle, UserPlus } from 'lucide-react'
 import Link from 'next/link'
@@ -54,7 +61,11 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 	const { session } = useAuth()
 
 	// Fetch properties
-	const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
+	const {
+		data: properties,
+		isLoading: propertiesLoading,
+		error: propertiesError
+	} = useQuery({
 		queryKey: ['properties', 'list', session?.access_token],
 		queryFn: async () => {
 			const res = await fetch(`${getApiBaseUrl()}/api/v1/properties`, {
@@ -71,15 +82,22 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 	})
 
 	// Fetch units filtered by selected property
-	const { data: units, isLoading: unitsLoading, error: unitsError } = useQuery({
+	const {
+		data: units,
+		isLoading: unitsLoading,
+		error: unitsError
+	} = useQuery({
 		queryKey: ['units', 'by-property', data.property_id, session?.access_token],
 		queryFn: async () => {
-			const res = await fetch(`${getApiBaseUrl()}/api/v1/units?property_id=${data.property_id}`, {
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session?.access_token}`
+			const res = await fetch(
+				`${getApiBaseUrl()}/api/v1/units?property_id=${data.property_id}`,
+				{
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session?.access_token}`
+					}
 				}
-			})
+			)
 			if (!res.ok) throw new Error('Failed to fetch units')
 			const json = await res.json()
 			return json.data as Unit[]
@@ -88,7 +106,11 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 	})
 
 	// Fetch tenants (filtered by selected property)
-	const { data: tenants, isLoading: tenantsLoading, error: tenantsError } = useQuery({
+	const {
+		data: tenants,
+		isLoading: tenantsLoading,
+		error: tenantsError
+	} = useQuery({
 		queryKey: ['tenants', 'list', data.property_id, session?.access_token],
 		queryFn: async () => {
 			const url = new URL(`${getApiBaseUrl()}/api/v1/tenants`)
@@ -138,7 +160,7 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">Select Property & Tenant</h3>
+				<h3 className="text-lg font-medium mb-4">Select Property & Tenant</h3>
 				<p className="text-muted-foreground text-sm mb-6">
 					Choose the property, unit, and tenant for this lease agreement.
 				</p>
@@ -197,7 +219,10 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 							No units found for this property
 						</div>
 					) : (
-						<Combobox value={data.unit_id ?? ''} onValueChange={handleUnitChange}>
+						<Combobox
+							value={data.unit_id ?? ''}
+							onValueChange={handleUnitChange}
+						>
 							<ComboboxAnchor id="unit">
 								<ComboboxInput placeholder="Search units..." />
 								<ComboboxTrigger />
@@ -224,29 +249,29 @@ export function SelectionStep({ data, onChange }: SelectionStepProps) {
 							<AlertCircle className="h-4 w-4" />
 							Failed to load tenants: {tenantsError.message}
 						</div>
-				) : tenants?.length === 0 ? (
-					<Empty>
-						<EmptyHeader>
-							<EmptyMedia variant="icon">
-								<UserPlus />
-							</EmptyMedia>
-							<EmptyTitle>No Tenants Available</EmptyTitle>
-							<EmptyDescription>
-								{data.property_id
-									? "No tenants have been invited to this property yet. Invite a tenant to get started."
-									: "No tenants found. Create or invite a tenant first."}
-							</EmptyDescription>
-						</EmptyHeader>
-						<EmptyContent>
-							<Link href="/tenants/invite">
-								<Button size="sm">
-									<UserPlus className="mr-2 h-4 w-4" />
-									Invite Tenant
-								</Button>
-							</Link>
-						</EmptyContent>
-					</Empty>
-				) : (
+					) : tenants?.length === 0 ? (
+						<Empty>
+							<EmptyHeader>
+								<EmptyMedia variant="icon">
+									<UserPlus />
+								</EmptyMedia>
+								<EmptyTitle>No Tenants Available</EmptyTitle>
+								<EmptyDescription>
+									{data.property_id
+										? 'No tenants have been invited to this property yet. Invite a tenant to get started.'
+										: 'No tenants found. Create or invite a tenant first.'}
+								</EmptyDescription>
+							</EmptyHeader>
+							<EmptyContent>
+								<Link href="/tenants/invite">
+									<Button size="sm">
+										<UserPlus className="mr-2 h-4 w-4" />
+										Invite Tenant
+									</Button>
+								</Link>
+							</EmptyContent>
+						</Empty>
+					) : (
 						<Combobox
 							value={data.primary_tenant_id ?? ''}
 							onValueChange={handleTenantChange}

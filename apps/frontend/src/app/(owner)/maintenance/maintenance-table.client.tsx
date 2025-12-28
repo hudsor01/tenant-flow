@@ -61,7 +61,9 @@ export function MaintenanceTableClient({
 		startTransition(async () => {
 			removeOptimistic(requestId)
 			try {
-				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, { method: 'DELETE' })
+				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, {
+					method: 'DELETE'
+				})
 				toast.success(`Request "${requestTitle}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', {
@@ -115,7 +117,9 @@ export function MaintenanceTableClient({
 									<AlertDialogCancel>Cancel</AlertDialogCancel>
 									<AlertDialogAction
 										disabled={isPending && deletingId === request.id}
-										onClick={() => handleDelete(request.id, request.description)}
+										onClick={() =>
+											handleDelete(request.id, request.description)
+										}
 										className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
 									>
 										{isPending && deletingId === request.id
@@ -139,9 +143,9 @@ export function MaintenanceTableClient({
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
-			},
-		},
+				pageSize: 10
+			}
+		}
 	})
 
 	return (

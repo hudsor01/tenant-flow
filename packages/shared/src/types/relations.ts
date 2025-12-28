@@ -3,10 +3,17 @@
  * Extended entity types with proper relations to avoid circular imports
  */
 
-import type { TenantWithLeaseInfo } from './core.js'
 import type { PropertyType } from '../constants/status-types.js'
 import type { Database } from './supabase.js'
 import type { User } from '@supabase/supabase-js'
+import type {
+	PaymentMethodResponseWithVersion as PaymentMethodResponseWithVersionType,
+	PropertyWithVersion as PropertyWithVersionType,
+	TenantWithLeaseInfo as TenantWithLeaseInfoType,
+	TenantWithLeaseInfoWithVersion as TenantWithLeaseInfoWithVersionType,
+	UnitWithVersion as UnitWithVersionType
+} from './core.js'
+import type { PropertyFormData as PropertyFormDataType } from './forms.js'
 
 // Define types properly from Database schema
 type Property = Database['public']['Tables']['properties']['Row']
@@ -19,7 +26,10 @@ type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
-import type { NotificationData } from './notifications.js'
+import type {
+	NotificationData,
+	NotificationPreferencesWithVersion as NotificationPreferencesWithVersionType
+} from './notifications.js'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
@@ -267,8 +277,8 @@ export interface PropertySummary {
 	monthlyRevenue?: number
 }
 
-// Re-export PropertyFormData from forms.ts
-export type { PropertyFormData } from './forms.js'
+// Property form data alias
+export type PropertyFormData = PropertyFormDataType
 
 /**
  * PropertyStatsExtended - Property statistics for dashboard
@@ -308,14 +318,13 @@ export interface PropertyFilters {
 	state?: string
 }
 
-// Re-export TenantWithLeaseInfo from core.ts to comply with import location requirements
-export type { TenantWithLeaseInfo }
+// TenantWithLeaseInfo alias to comply with import location requirements
+export type TenantWithLeaseInfo = TenantWithLeaseInfoType
 
-// Re-export all WithVersion types for optimistic locking
-export type {
-	PropertyWithVersion,
-	UnitWithVersion,
-	TenantWithLeaseInfoWithVersion,
-	PaymentMethodResponseWithVersion
-} from './core.js'
-export type { NotificationPreferencesWithVersion } from './notifications.js'
+// WithVersion types for optimistic locking
+export type PropertyWithVersion = PropertyWithVersionType
+export type UnitWithVersion = UnitWithVersionType
+export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfoWithVersionType
+export type PaymentMethodResponseWithVersion = PaymentMethodResponseWithVersionType
+export type NotificationPreferencesWithVersion =
+	NotificationPreferencesWithVersionType

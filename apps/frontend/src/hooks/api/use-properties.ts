@@ -19,7 +19,10 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import type { PropertyCreate, PropertyUpdate } from '@repo/shared/validation/properties'
+import type {
+	PropertyCreate,
+	PropertyUpdate
+} from '@repo/shared/validation/properties'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
 import { useMemo } from 'react'
@@ -32,7 +35,10 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { propertyQueries, type PropertyFilters } from './queries/property-queries'
+import {
+	propertyQueries,
+	type PropertyFilters
+} from './queries/property-queries'
 
 /**
  * Hook to fetch property by ID
@@ -64,7 +70,7 @@ export function usePropertyList(params?: {
 		...listQuery,
 		...QUERY_CACHE_TIMES.LIST,
 		// Extract data array for backward compatibility with components
-		select: (response) => response.data,
+		select: response => response.data,
 		retry: 2,
 		structuralSharing: true
 	})
@@ -121,13 +127,13 @@ export function useCreateProperty() {
 	const { data: user } = useUser()
 
 	return useMutation({
-		mutationFn: async (
-			propertyData: PropertyCreate
-		): Promise<Property> => {
+		mutationFn: async (propertyData: PropertyCreate): Promise<Property> => {
 			const ownerUserId =
 				user?.id ??
-				(propertyData as unknown as { owner_user_id?: string })?.owner_user_id ??
-				(propertyData as unknown as { owner_user_id?: string })?.owner_user_id ??
+				(propertyData as unknown as { owner_user_id?: string })
+					?.owner_user_id ??
+				(propertyData as unknown as { owner_user_id?: string })
+					?.owner_user_id ??
 				null
 
 			const payload = {
@@ -145,7 +151,9 @@ export function useCreateProperty() {
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state (cache stores PaginatedResponse<Property>)
-			const previousLists = queryClient.getQueriesData<PaginatedResponse<Property>>({
+			const previousLists = queryClient.getQueriesData<
+				PaginatedResponse<Property>
+			>({
 				queryKey: propertyQueries.lists()
 			})
 
@@ -226,7 +234,9 @@ export function useCreateProperty() {
 		onSettled: () => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: propertyQueries.stats().queryKey
+			})
 		}
 	})
 }
@@ -259,7 +269,9 @@ export function useUpdateProperty() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: propertyQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state
@@ -271,20 +283,26 @@ export function useUpdateProperty() {
 			})
 
 			// Optimistically update detail cache
-		queryClient.setQueryData<PropertyWithVersion>(propertyQueries.detail(id).queryKey, old =>
-			old ? incrementVersion(old, data as Partial<PropertyWithVersion>) : undefined
-		)
+			queryClient.setQueryData<PropertyWithVersion>(
+				propertyQueries.detail(id).queryKey,
+				old =>
+					old
+						? incrementVersion(old, data as Partial<PropertyWithVersion>)
+						: undefined
+			)
 
 			// Optimistically update list caches
-		queryClient.setQueriesData<PropertyWithVersion[]>(
-			{ queryKey: propertyQueries.lists() },
-			old => {
-				if (!old) return old
-				return old.map(property =>
-					property.id === id ? incrementVersion(property, data as Partial<PropertyWithVersion>) : property
-				)
-			}
-		)
+			queryClient.setQueriesData<PropertyWithVersion[]>(
+				{ queryKey: propertyQueries.lists() },
+				old => {
+					if (!old) return old
+					return old.map(property =>
+						property.id === id
+							? incrementVersion(property, data as Partial<PropertyWithVersion>)
+							: property
+					)
+				}
+			)
 
 			return { previousDetail, previousLists }
 		},
@@ -323,14 +341,21 @@ export function useUpdateProperty() {
 
 			queryClient.setQueriesData<Property[]>(
 				{ queryKey: propertyQueries.lists() },
-				old => (old ? old.map(property => (property.id === id ? data : property)) : old)
+				old =>
+					old
+						? old.map(property => (property.id === id ? data : property))
+						: old
 			)
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({
+				queryKey: propertyQueries.detail(id).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: propertyQueries.stats().queryKey
+			})
 		}
 	})
 }
@@ -368,7 +393,9 @@ export function useMarkPropertySold() {
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
-			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: propertyQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
 
 			// Snapshot previous state for rollback
@@ -406,7 +433,9 @@ export function useMarkPropertySold() {
 		onSettled: () => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: propertyQueries.stats().queryKey
+			})
 		}
 	})
 }
@@ -427,7 +456,9 @@ export function useDeleteProperty() {
 		onMutate: async id => {
 			// Cancel outgoing queries to avoid overwriting optimistic update
 			await queryClient.cancelQueries({ queryKey: propertyQueries.lists() })
-			await queryClient.cancelQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: propertyQueries.detail(id).queryKey
+			})
 
 			// Snapshot previous state for rollback
 			const previousList = queryClient.getQueryData<Property[]>(
@@ -455,19 +486,23 @@ export function useDeleteProperty() {
 
 			handleMutationError(error, 'Delete property')
 		},
-			onSuccess: (_, id) => {
+		onSuccess: (_, id) => {
 			handleMutationSuccess(
 				'Delete property',
 				'Property has been removed from your portfolio'
 			)
 
 			// Remove individual property cache
-			queryClient.removeQueries({ queryKey: propertyQueries.detail(id).queryKey })
+			queryClient.removeQueries({
+				queryKey: propertyQueries.detail(id).queryKey
+			})
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: propertyQueries.stats().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: propertyQueries.stats().queryKey
+			})
 		}
 	})
 }

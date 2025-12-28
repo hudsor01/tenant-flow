@@ -13,9 +13,8 @@ export class PropertyPerformanceController {
 	async getPropertyPerformance(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.propertyPerformanceService.getPropertyPerformance(
-			userId
-		)
+		const data =
+			await this.propertyPerformanceService.getPropertyPerformance(userId)
 
 		return {
 			success: true,
@@ -43,9 +42,7 @@ export class PropertyPerformanceController {
 	async getUnitStatistics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.propertyPerformanceService.getUnitStatistics(
-			userId
-		)
+		const data = await this.propertyPerformanceService.getUnitStatistics(userId)
 
 		return {
 			success: true,
@@ -59,9 +56,8 @@ export class PropertyPerformanceController {
 	async getVisitorAnalytics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.propertyPerformanceService.getVisitorAnalytics(
-			userId
-		)
+		const data =
+			await this.propertyPerformanceService.getVisitorAnalytics(userId)
 
 		return {
 			success: true,

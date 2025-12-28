@@ -51,9 +51,7 @@ const buildStripeWebhookPaths = (globalPrefix?: string): string[] => {
 		const normalizedBase = normalizeRoutePath(basePath)
 		uniquePaths.add(normalizedBase)
 		if (prefix) {
-			uniquePaths.add(
-				normalizeRoutePath(`${prefix}${normalizedBase}`)
-			)
+			uniquePaths.add(normalizeRoutePath(`${prefix}${normalizedBase}`))
 		}
 	}
 
@@ -130,11 +128,7 @@ export async function registerExpressMiddleware(
 	)
 
 	// Cookie parsing
-	app.use(
-		cookieParser(
-			appConfigService.getJwtSecret()
-		)
-	)
+	app.use(cookieParser(appConfigService.getJwtSecret()))
 
 	// Body parsing limits - exclude Stripe webhook paths to preserve raw buffer
 	// FIX: Create middleware instances ONCE, not on every request

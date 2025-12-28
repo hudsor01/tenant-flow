@@ -1,0 +1,416 @@
+{
+	"_meta": {
+		"models": {
+			"properties": "Real estate assets managed by the owner, containing one or more rental units.",
+			"units": "Individual rentable spaces within a property with specific attributes and occupancy status.",
+			"summary": "Aggregate portfolio metrics across all properties."
+		},
+		"relationships": [
+			"Each Property contains multiple Units",
+			"Each Unit can have at most one active Lease and Tenant",
+			"Properties track aggregate metrics from their Units",
+			"Summary aggregates metrics across all Properties"
+		]
+	},
+	"summary": {
+		"totalProperties": 4,
+		"totalUnits": 30,
+		"occupiedUnits": 26,
+		"availableUnits": 3,
+		"maintenanceUnits": 1,
+		"overallOccupancyRate": 87,
+		"totalMonthlyRevenue": 5340000
+	},
+	"properties": [
+		{
+			"id": "prop-1",
+			"name": "Maple Gardens",
+			"addressLine1": "123 Maple Street",
+			"addressLine2": null,
+			"city": "Austin",
+			"state": "TX",
+			"postalCode": "78701",
+			"propertyType": "apartment",
+			"status": "active",
+			"images": [],
+			"totalUnits": 8,
+			"occupiedUnits": 7,
+			"availableUnits": 1,
+			"maintenanceUnits": 0,
+			"occupancyRate": 88,
+			"monthlyRevenue": 1420000,
+			"units": [
+				{
+					"id": "unit-101",
+					"unitNumber": "101",
+					"bedrooms": 2,
+					"bathrooms": 1,
+					"sqft": 950,
+					"rentAmount": 185000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-1",
+						"name": "Sarah Chen",
+						"email": "sarah.chen@email.com",
+						"leaseEndDate": "2025-01-15"
+					}
+				},
+				{
+					"id": "unit-102",
+					"unitNumber": "102",
+					"bedrooms": 2,
+					"bathrooms": 1,
+					"sqft": 950,
+					"rentAmount": 185000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-2",
+						"name": "David Park",
+						"email": "david.park@email.com",
+						"leaseEndDate": "2025-06-30"
+					}
+				},
+				{
+					"id": "unit-103",
+					"unitNumber": "103",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 650,
+					"rentAmount": 140000,
+					"status": "available",
+					"tenant": null
+				},
+				{
+					"id": "unit-104",
+					"unitNumber": "104",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 650,
+					"rentAmount": 140000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-3",
+						"name": "Maria Santos",
+						"email": "maria.santos@email.com",
+						"leaseEndDate": "2025-08-31"
+					}
+				},
+				{
+					"id": "unit-201",
+					"unitNumber": "201",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1100,
+					"rentAmount": 210000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-4",
+						"name": "Lisa Wang",
+						"email": "lisa.wang@email.com",
+						"leaseEndDate": "2025-04-15"
+					}
+				},
+				{
+					"id": "unit-202",
+					"unitNumber": "202",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1100,
+					"rentAmount": 210000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-5",
+						"name": "Michael Brown",
+						"email": "michael.brown@email.com",
+						"leaseEndDate": "2025-09-30"
+					}
+				},
+				{
+					"id": "unit-203",
+					"unitNumber": "203",
+					"bedrooms": 3,
+					"bathrooms": 2,
+					"sqft": 1400,
+					"rentAmount": 280000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-6",
+						"name": "Jennifer Lopez",
+						"email": "jennifer.lopez@email.com",
+						"leaseEndDate": "2025-12-31"
+					}
+				},
+				{
+					"id": "unit-204",
+					"unitNumber": "204",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 700,
+					"rentAmount": 150000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-7",
+						"name": "Chris Taylor",
+						"email": "chris.taylor@email.com",
+						"leaseEndDate": "2025-07-31"
+					}
+				}
+			]
+		},
+		{
+			"id": "prop-2",
+			"name": "Oak Street Apartments",
+			"addressLine1": "456 Oak Avenue",
+			"addressLine2": "Building A",
+			"city": "Austin",
+			"state": "TX",
+			"postalCode": "78702",
+			"propertyType": "multi_family",
+			"status": "active",
+			"images": [],
+			"totalUnits": 12,
+			"occupiedUnits": 11,
+			"availableUnits": 1,
+			"maintenanceUnits": 0,
+			"occupancyRate": 92,
+			"monthlyRevenue": 2240000,
+			"units": [
+				{
+					"id": "unit-oak-101",
+					"unitNumber": "101",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 700,
+					"rentAmount": 160000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-8",
+						"name": "James Wilson",
+						"email": "james.wilson@email.com",
+						"leaseEndDate": "2025-05-31"
+					}
+				},
+				{
+					"id": "unit-oak-102",
+					"unitNumber": "102",
+					"bedrooms": 2,
+					"bathrooms": 1,
+					"sqft": 900,
+					"rentAmount": 185000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-9",
+						"name": "Amanda White",
+						"email": "amanda.white@email.com",
+						"leaseEndDate": "2025-03-31"
+					}
+				},
+				{
+					"id": "unit-oak-103",
+					"unitNumber": "103",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1050,
+					"rentAmount": 210000,
+					"status": "available",
+					"tenant": null
+				},
+				{
+					"id": "unit-oak-204",
+					"unitNumber": "204",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1050,
+					"rentAmount": 210000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-10",
+						"name": "Marcus Johnson",
+						"email": "marcus.johnson@email.com",
+						"leaseEndDate": "2025-02-01"
+					}
+				}
+			]
+		},
+		{
+			"id": "prop-3",
+			"name": "Downtown Lofts",
+			"addressLine1": "789 Congress Avenue",
+			"addressLine2": "Suite 100",
+			"city": "Austin",
+			"state": "TX",
+			"postalCode": "78701",
+			"propertyType": "condo",
+			"status": "active",
+			"images": [],
+			"totalUnits": 6,
+			"occupiedUnits": 5,
+			"availableUnits": 0,
+			"maintenanceUnits": 1,
+			"occupancyRate": 83,
+			"monthlyRevenue": 1400000,
+			"units": [
+				{
+					"id": "unit-dt-a1",
+					"unitNumber": "A1",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 850,
+					"rentAmount": 240000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-11",
+						"name": "Anna Martinez",
+						"email": "anna.martinez@email.com",
+						"leaseEndDate": "2025-10-31"
+					}
+				},
+				{
+					"id": "unit-dt-a2",
+					"unitNumber": "A2",
+					"bedrooms": 1,
+					"bathrooms": 1,
+					"sqft": 850,
+					"rentAmount": 240000,
+					"status": "maintenance",
+					"tenant": null
+				},
+				{
+					"id": "unit-dt-b1",
+					"unitNumber": "B1",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1200,
+					"rentAmount": 320000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-12",
+						"name": "Emily Rodriguez",
+						"email": "emily.rodriguez@email.com",
+						"leaseEndDate": "2025-02-28"
+					}
+				},
+				{
+					"id": "unit-dt-b2",
+					"unitNumber": "B2",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1200,
+					"rentAmount": 320000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-13",
+						"name": "Robert Kim",
+						"email": "robert.kim@email.com",
+						"leaseEndDate": "2025-11-30"
+					}
+				},
+				{
+					"id": "unit-dt-c1",
+					"unitNumber": "C1",
+					"bedrooms": 2,
+					"bathrooms": 1,
+					"sqft": 1000,
+					"rentAmount": 280000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-14",
+						"name": "Nicole Adams",
+						"email": "nicole.adams@email.com",
+						"leaseEndDate": "2025-08-15"
+					}
+				},
+				{
+					"id": "unit-dt-c2",
+					"unitNumber": "C2",
+					"bedrooms": 3,
+					"bathrooms": 2,
+					"sqft": 1500,
+					"rentAmount": 380000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-15",
+						"name": "Daniel Lee",
+						"email": "daniel.lee@email.com",
+						"leaseEndDate": "2025-12-15"
+					}
+				}
+			]
+		},
+		{
+			"id": "prop-4",
+			"name": "Riverside Condos",
+			"addressLine1": "321 River Road",
+			"addressLine2": null,
+			"city": "Austin",
+			"state": "TX",
+			"postalCode": "78703",
+			"propertyType": "townhouse",
+			"status": "active",
+			"images": [],
+			"totalUnits": 4,
+			"occupiedUnits": 3,
+			"availableUnits": 1,
+			"maintenanceUnits": 0,
+			"occupancyRate": 75,
+			"monthlyRevenue": 720000,
+			"units": [
+				{
+					"id": "unit-rv-1",
+					"unitNumber": "1",
+					"bedrooms": 3,
+					"bathrooms": 2.5,
+					"sqft": 1800,
+					"rentAmount": 280000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-16",
+						"name": "Kevin Thompson",
+						"email": "kevin.thompson@email.com",
+						"leaseEndDate": "2025-04-30"
+					}
+				},
+				{
+					"id": "unit-rv-2",
+					"unitNumber": "2",
+					"bedrooms": 3,
+					"bathrooms": 2.5,
+					"sqft": 1800,
+					"rentAmount": 280000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-17",
+						"name": "Jessica Moore",
+						"email": "jessica.moore@email.com",
+						"leaseEndDate": "2025-07-15"
+					}
+				},
+				{
+					"id": "unit-rv-3",
+					"unitNumber": "3",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1400,
+					"rentAmount": 220000,
+					"status": "available",
+					"tenant": null
+				},
+				{
+					"id": "unit-rv-4",
+					"unitNumber": "4",
+					"bedrooms": 2,
+					"bathrooms": 2,
+					"sqft": 1400,
+					"rentAmount": 220000,
+					"status": "occupied",
+					"tenant": {
+						"id": "tenant-18",
+						"name": "Brandon Harris",
+						"email": "brandon.harris@email.com",
+						"leaseEndDate": "2025-09-01"
+					}
+				}
+			]
+		}
+	]
+}

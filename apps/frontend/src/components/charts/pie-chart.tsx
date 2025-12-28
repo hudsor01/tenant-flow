@@ -58,11 +58,11 @@ export function ModernExplodedPieChart({
 		},
 		occupied: {
 			label: 'Occupied',
-			color: 'var(--chart-1)' // Success green
+			color: 'var(--color-chart-1)' // Semantic chart token
 		},
 		vacant: {
 			label: 'Vacant',
-			color: 'var(--chart-2)' // Warning orange
+			color: 'var(--color-chart-2)' // Semantic chart token
 		},
 		maintenance: {
 			label: 'Maintenance',
@@ -70,7 +70,7 @@ export function ModernExplodedPieChart({
 		},
 		pending: {
 			label: 'Pending',
-			color: 'var(--chart-3)' // Info blue
+			color: 'var(--color-chart-3)' // Semantic chart token
 		}
 	} satisfies ChartConfig
 
@@ -162,7 +162,11 @@ export function ModernExplodedPieChart({
 								if (!config) return null
 
 								return (
-									<SelectItem key={name} value={name} className="rounded-lg [&_span]:flex">
+									<SelectItem
+										key={name}
+										value={name}
+										className="rounded-lg [&_span]:flex"
+									>
 										<div className="flex items-center gap-2 text-xs">
 											<span
 												className="flex h-3 w-3 shrink-0 rounded-xs"
@@ -202,11 +206,14 @@ export function ModernExplodedPieChart({
 								<Cell
 									key={`cell-${index}`}
 									fill={entry.fill}
-									stroke={index === activeIndex ? 'var(--color-border)' : 'none'}
+									stroke={
+										index === activeIndex ? 'var(--color-border)' : 'none'
+									}
 									strokeWidth={index === activeIndex ? 2 : 0}
 									style={{
 										filter: index === activeIndex ? 'brightness(1.1)' : 'none',
-										transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+										transform:
+											index === activeIndex ? 'scale(1.05)' : 'scale(1)',
 										transformOrigin: 'center',
 										transition: 'all 200ms ease-in-out'
 									}}
@@ -234,7 +241,9 @@ export function ModernExplodedPieChart({
 													y={(viewBox.cy || 0) + 24}
 													className="fill-muted-foreground"
 												>
-													{chartConfig[activeSegment as keyof typeof chartConfig]?.label || activeSegment}
+													{chartConfig[
+														activeSegment as keyof typeof chartConfig
+													]?.label || activeSegment}
 												</tspan>
 											</text>
 										)

@@ -43,7 +43,7 @@ export class PropertyBulkImportService {
 			user_id,
 			fileSize: fileBuffer.length,
 			timestamp: new Date().toISOString()
-	})
+		})
 
 		try {
 			// Parse CSV file using csv-parse (RFC 4180 compliant streaming parser)
@@ -52,7 +52,7 @@ export class PropertyBulkImportService {
 			})
 
 			const parseStartTime = Date.now()
-		let parseTime = 0
+			let parseTime = 0
 			const records = await new Promise<Record<string, string>[]>(
 				(resolve, reject) => {
 					const rows: Record<string, string>[] = []
@@ -83,21 +83,27 @@ export class PropertyBulkImportService {
 							rows.push(row)
 						})
 						.on('error', (error: Error) => {
-							this.logger.error('[BULK_IMPORT:PHASE1:ERROR] CSV parsing failed', {
-								error: error.message,
-								user_id
-							})
+							this.logger.error(
+								'[BULK_IMPORT:PHASE1:ERROR] CSV parsing failed',
+								{
+									error: error.message,
+									user_id
+								}
+							)
 							reject(
 								new BadRequestException(`CSV parsing failed: ${error.message}`)
 							)
 						})
 						.on('end', () => {
 							parseTime = Date.now() - parseStartTime
-							this.logger.log('[BULK_IMPORT:PHASE1:COMPLETE] CSV parsing completed', {
-								rowsParsed: rows.length,
-								duration_ms: parseTime,
-								user_id
-							})
+							this.logger.log(
+								'[BULK_IMPORT:PHASE1:COMPLETE] CSV parsing completed',
+								{
+									rowsParsed: rows.length,
+									duration_ms: parseTime,
+									user_id
+								}
+							)
 							resolve(rows)
 						})
 				}
@@ -128,7 +134,7 @@ export class PropertyBulkImportService {
 
 			const errors: Array<{ row: number; error: string }> = []
 			const validRows: Array<
-			Database['public']['Tables']['properties']['Insert']
+				Database['public']['Tables']['properties']['Insert']
 			> = []
 
 			const validationStartTime = Date.now()
@@ -167,11 +173,11 @@ export class PropertyBulkImportService {
 						)
 					}
 
-// Build insert object
-const insertData: Database['public']['Tables']['properties']['Insert'] =
-{
-	name: name.trim(),
-	owner_user_id: user_id,
+					// Build insert object
+					const insertData: Database['public']['Tables']['properties']['Insert'] =
+						{
+							name: name.trim(),
+							owner_user_id: user_id,
 							address_line1: address.trim(),
 							city: city.trim(),
 							state: state.trim(),
@@ -203,21 +209,27 @@ const insertData: Database['public']['Tables']['properties']['Insert'] =
 			}
 
 			const validationTime = Date.now() - validationStartTime
-			this.logger.log('[BULK_IMPORT:PHASE2:COMPLETE] Row validation completed', {
-				validRows: validRows.length,
-				invalidRows: errors.length,
-				duration_ms: validationTime,
-				user_id
-			})
+			this.logger.log(
+				'[BULK_IMPORT:PHASE2:COMPLETE] Row validation completed',
+				{
+					validRows: validRows.length,
+					invalidRows: errors.length,
+					duration_ms: validationTime,
+					user_id
+				}
+			)
 
 			// PHASE 2: If ANY validation errors, fail fast with ALL errors
 			if (errors.length > 0) {
-				this.logger.warn('[BULK_IMPORT:FAILED] Validation failed - aborting insert', {
-					user_id,
-					totalRows: records.length,
-					failedRows: errors.length,
-					validRows: validRows.length
-				})
+				this.logger.warn(
+					'[BULK_IMPORT:FAILED] Validation failed - aborting insert',
+					{
+						user_id,
+						totalRows: records.length,
+						failedRows: errors.length,
+						validRows: validRows.length
+					}
+				)
 
 				return {
 					success: false,
@@ -228,10 +240,13 @@ const insertData: Database['public']['Tables']['properties']['Insert'] =
 			}
 
 			// PHASE 3: Atomic batch insert (all or nothing)
-			this.logger.log('[BULK_IMPORT:PHASE3:START] Starting atomic batch insert...', {
-				rowCount: validRows.length,
-				user_id
-			})
+			this.logger.log(
+				'[BULK_IMPORT:PHASE3:START] Starting atomic batch insert...',
+				{
+					rowCount: validRows.length,
+					user_id
+				}
+			)
 
 			const insertStartTime = Date.now()
 			const { data, error } = await client
@@ -256,17 +271,20 @@ const insertData: Database['public']['Tables']['properties']['Insert'] =
 			const insertTime = Date.now() - insertStartTime
 			const totalTime = Date.now() - startTime
 
-			this.logger.log('[BULK_IMPORT:SUCCESS] Bulk import completed successfully', {
-				user_id,
-				imported: data?.length || 0,
-				duration_ms: totalTime,
-				phases: {
-					parsing: parseTime,
-					validation: validationTime,
-					insertion: insertTime
-				},
-				timestamp: new Date().toISOString()
-			})
+			this.logger.log(
+				'[BULK_IMPORT:SUCCESS] Bulk import completed successfully',
+				{
+					user_id,
+					imported: data?.length || 0,
+					duration_ms: totalTime,
+					phases: {
+						parsing: parseTime,
+						validation: validationTime,
+						insertion: insertTime
+					},
+					timestamp: new Date().toISOString()
+				}
+			)
 
 			return {
 				success: true,

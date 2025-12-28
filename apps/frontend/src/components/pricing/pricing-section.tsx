@@ -5,13 +5,15 @@ import { Tabs, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { useState } from 'react'
 
 export function PricingSection() {
-	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>(
+		'monthly'
+	)
 
 	return (
 		<div className="flex flex-col items-center gap-8">
 			<Tabs
 				defaultValue={billingCycle}
-				onValueChange={(value) => {
+				onValueChange={value => {
 					if (value === 'monthly' || value === 'yearly') {
 						setBillingCycle(value)
 					}

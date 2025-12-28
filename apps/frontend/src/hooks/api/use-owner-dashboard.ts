@@ -15,7 +15,11 @@
  * - /owner/analytics/trends - Charts data (deferred)
  */
 
-import { useQuery, useSuspenseQuery, useQueryClient } from '@tanstack/react-query'
+import {
+	useQuery,
+	useSuspenseQuery,
+	useQueryClient
+} from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { Activity } from '@repo/shared/types/activity'
@@ -30,7 +34,10 @@ import type {
 	TimeSeriesDataPoint,
 	DashboardTimeSeriesOptions
 } from '@repo/shared/types/stats'
-import { ownerDashboardKeys, ownerDashboardQueries } from './queries/owner-dashboard-queries'
+import {
+	ownerDashboardKeys,
+	ownerDashboardQueries
+} from './queries/owner-dashboard-queries'
 
 // ============================================================================
 // TYPES
@@ -71,18 +78,17 @@ export function useDashboardStatsSuspense() {
 		queryKey: ownerDashboardKeys.analytics.stats(),
 		queryFn: async (): Promise<DashboardStatsData> => {
 			const response = await apiRequest<{
-				stats: DashboardStats
-				metricTrends?: {
-					occupancyRate: MetricTrend | null
-					activeTenants: MetricTrend | null
-					monthlyRevenue: MetricTrend | null
-					openMaintenance: MetricTrend | null
-				}
+				success: boolean
+				data: DashboardStats
+				message?: string
 			}>('/api/v1/owner/analytics/stats')
 
+			// Backend returns { success, data, message } - extract data
+			const stats = response.data
+
 			return {
-				stats: response.stats ?? response as unknown as DashboardStats,
-				metricTrends: response.metricTrends ?? {
+				stats,
+				metricTrends: {
 					occupancyRate: null,
 					activeTenants: null,
 					monthlyRevenue: null,
@@ -103,18 +109,17 @@ export function useDashboardStats() {
 		queryKey: ownerDashboardKeys.analytics.stats(),
 		queryFn: async (): Promise<DashboardStatsData> => {
 			const response = await apiRequest<{
-				stats: DashboardStats
-				metricTrends?: {
-					occupancyRate: MetricTrend | null
-					activeTenants: MetricTrend | null
-					monthlyRevenue: MetricTrend | null
-					openMaintenance: MetricTrend | null
-				}
+				success: boolean
+				data: DashboardStats
+				message?: string
 			}>('/api/v1/owner/analytics/stats')
 
+			// Backend returns { success, data, message } - extract data
+			const stats = response.data
+
 			return {
-				stats: response.stats ?? response as unknown as DashboardStats,
-				metricTrends: response.metricTrends ?? {
+				stats,
+				metricTrends: {
 					occupancyRate: null,
 					activeTenants: null,
 					monthlyRevenue: null,
@@ -247,9 +252,10 @@ export function usePropertyPerformanceSuspense() {
 	return useSuspenseQuery({
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
-			const response = await apiRequest<{ success: boolean; data: PropertyPerformance[] }>(
-				'/api/v1/owner/properties/performance'
-			)
+			const response = await apiRequest<{
+				success: boolean
+				data: PropertyPerformance[]
+			}>('/api/v1/owner/properties/performance')
 			return response.data ?? []
 		},
 		staleTime: 5 * 60 * 1000,
@@ -264,9 +270,10 @@ export function usePropertyPerformance() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
-			const response = await apiRequest<{ success: boolean; data: PropertyPerformance[] }>(
-				'/api/v1/owner/properties/performance'
-			)
+			const response = await apiRequest<{
+				success: boolean
+				data: PropertyPerformance[]
+			}>('/api/v1/owner/properties/performance')
 			return response.data ?? []
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
@@ -432,7 +439,11 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 	const currentYear = new Date().getFullYear()
 
 	return useQuery<FinancialChartDatum[]>({
-		queryKey: [...ownerDashboardKeys.financial.revenueTrends(currentYear), timeRange, months] as const,
+		queryKey: [
+			...ownerDashboardKeys.financial.revenueTrends(currentYear),
+			timeRange,
+			months
+		] as const,
 		queryFn: async () => {
 			const data = await apiRequest<FinancialMetrics[]>(
 				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`

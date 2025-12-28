@@ -1,5 +1,16 @@
-import { Controller, Get, Patch, Param, Query, Body, UseGuards } from '@nestjs/common'
-import { AdminService, type AdminUserListResponse } from '../services/admin.service'
+import {
+	Controller,
+	Get,
+	Patch,
+	Param,
+	Query,
+	Body,
+	UseGuards
+} from '@nestjs/common'
+import {
+	AdminService,
+	type AdminUserListResponse
+} from '../services/admin.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
@@ -7,7 +18,7 @@ import { RolesGuard } from '../../../shared/guards/roles.guard'
 /**
  * Admin Users Controller
  * Handles user management endpoints for admins
- * 
+ *
  * SECURITY: Protected by RolesGuard - only users with ADMIN role can access
  */
 @Controller('admin/users')

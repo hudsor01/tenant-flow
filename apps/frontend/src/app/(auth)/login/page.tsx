@@ -5,7 +5,11 @@ import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { MfaVerificationDialog } from '#components/auth/mfa-verification-dialog'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import { getFieldErrorMessage } from '#lib/utils/form'
 import { authQueryKeys } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -82,7 +86,9 @@ function LoginPageContent() {
 
 					// Read user_type directly from login response to avoid race condition
 					// with useUserRole hook not having updated session yet
-					const userType = data.session.user.app_metadata?.user_type as string | undefined
+					const userType = data.session.user.app_metadata?.user_type as
+						| string
+						| undefined
 					const redirectTo = searchParams?.get('redirect')
 					let destination = userType === 'TENANT' ? '/tenant' : '/dashboard'
 
@@ -91,15 +97,21 @@ function LoginPageContent() {
 					}
 
 					// Check if MFA verification is required
-					const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+					const { data: aalData } =
+						await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
-					if (aalData?.nextLevel === 'aal2' && aalData?.currentLevel !== 'aal2') {
+					if (
+						aalData?.nextLevel === 'aal2' &&
+						aalData?.currentLevel !== 'aal2'
+					) {
 						// User has MFA enabled but hasn't completed the second factor
 						logger.info('[MFA_REQUIRED]', { userId: data.session.user.id })
 
 						// Get the TOTP factor
 						const { data: factorsData } = await supabase.auth.mfa.listFactors()
-						const totpFactor = factorsData?.totp?.find(f => f.status === 'verified')
+						const totpFactor = factorsData?.totp?.find(
+							f => f.status === 'verified'
+						)
 
 						if (totpFactor) {
 							// Store pending redirect and show MFA dialog
@@ -120,7 +132,8 @@ function LoginPageContent() {
 					router.push(destination)
 				}
 			} catch (error) {
-				const message = error instanceof Error ? error.message : 'Please try again'
+				const message =
+					error instanceof Error ? error.message : 'Please try again'
 				setAuthError(message)
 			}
 		}
@@ -201,7 +214,9 @@ function LoginPageContent() {
 								</h2>
 
 								<p className="text-muted-foreground max-w-md mx-auto text-base">
-									Join 10,000+ property managers who check their dashboard daily to see vacancy rates drop, NOI increase, and hours saved multiply.
+									Join 10,000+ property managers who check their dashboard daily
+									to see vacancy rates drop, NOI increase, and hours saved
+									multiply.
 								</p>
 
 								<div className="grid grid-cols-3 gap-6 pt-6">
@@ -209,14 +224,16 @@ function LoginPageContent() {
 										{ value: '$2.4K+', label: 'Saved Per\nProperty' },
 										{ value: '98.7%', label: 'Customer\nSuccess' },
 										{ value: '90 sec', label: 'Support\nResponse' }
-									].map((stat) => (
+									].map(stat => (
 										<div key={stat.value} className="text-center">
 											<div className="text-foreground font-bold mb-1 text-base">
 												{stat.value}
 											</div>
 											<div
 												className="text-muted-foreground text-xs font-medium"
-												dangerouslySetInnerHTML={{ __html: stat.label.replace('\n', '<br />') }}
+												dangerouslySetInnerHTML={{
+													__html: stat.label.replace('\n', '<br />')
+												}}
 											/>
 										</div>
 									))}
@@ -242,7 +259,8 @@ function LoginPageContent() {
 									Welcome Back to Your $30,000 Annual Savings
 								</h1>
 								<p className="text-muted-foreground text-sm">
-									Your properties are generating 40% more NOI while you've been away.
+									Your properties are generating 40% more NOI while you've been
+									away.
 								</p>
 							</div>
 						</div>
@@ -250,19 +268,24 @@ function LoginPageContent() {
 						{/* Helper Text */}
 						<div className="bg-muted/50 rounded-lg p-4 space-y-2 text-sm border border-border/50">
 							<p className="text-muted-foreground">
-								<strong className="text-foreground">Property Owners:</strong> New to TenantFlow?{' '}
-								<Link href="/pricing" className="text-primary hover:underline font-medium">
+								<strong className="text-foreground">Property Owners:</strong>{' '}
+								New to TenantFlow?{' '}
+								<Link
+									href="/pricing"
+									className="text-primary hover:underline font-medium"
+								>
 									View plans
 								</Link>
 							</p>
 							<p className="text-muted-foreground">
-								<strong className="text-foreground">Tenants:</strong> Check your email for an invitation link
+								<strong className="text-foreground">Tenants:</strong> Check your
+								email for an invitation link
 							</p>
 						</div>
 
 						{/* Login Form */}
 						<form
-							onSubmit={(e) => {
+							onSubmit={e => {
 								e.preventDefault()
 								form.handleSubmit()
 							}}
@@ -273,13 +296,14 @@ function LoginPageContent() {
 									data-testid="auth-error"
 									className="p-3 rounded-md border border-destructive/30 bg-destructive/10 text-sm text-destructive"
 								>
-									<span className="font-medium">Sign in failed:</span> {authError}
+									<span className="font-medium">Sign in failed:</span>{' '}
+									{authError}
 								</div>
 							)}
 
 							{/* Email Field */}
 							<form.Field name="email">
-								{(field) => (
+								{field => (
 									<Field>
 										<FieldLabel htmlFor="email">Email address</FieldLabel>
 										<InputGroup>
@@ -293,7 +317,7 @@ function LoginPageContent() {
 												placeholder="Enter your email"
 												autoComplete="email"
 												value={field.state.value}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={e => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
 												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
@@ -310,7 +334,7 @@ function LoginPageContent() {
 
 							{/* Password Field */}
 							<form.Field name="password">
-								{(field) => (
+								{field => (
 									<Field>
 										<FieldLabel htmlFor="password">Password</FieldLabel>
 										<InputGroup>
@@ -321,7 +345,7 @@ function LoginPageContent() {
 												placeholder="Enter your password"
 												autoComplete="current-password"
 												value={field.state.value}
-												onChange={(e) => field.handleChange(e.target.value)}
+												onChange={e => field.handleChange(e.target.value)}
 												onBlur={field.handleBlur}
 												disabled={form.state.isSubmitting}
 												aria-invalid={field.state.meta.errors.length > 0}
@@ -408,7 +432,9 @@ function LoginPageContent() {
 							<div className="flex-center flex-wrap gap-4 sm:gap-6 text-xs">
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Lock className="size-3" />
-									<span className="font-medium hidden sm:inline">Bank-level Security</span>
+									<span className="font-medium hidden sm:inline">
+										Bank-level Security
+									</span>
 									<span className="font-medium sm:hidden">Secure</span>
 								</div>
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
@@ -417,7 +443,9 @@ function LoginPageContent() {
 								</div>
 								<div className="flex items-center gap-1.5 text-muted-foreground/70">
 									<Smartphone className="size-3" />
-									<span className="font-medium hidden sm:inline">Mobile Ready</span>
+									<span className="font-medium hidden sm:inline">
+										Mobile Ready
+									</span>
 									<span className="font-medium sm:hidden">Mobile</span>
 								</div>
 							</div>

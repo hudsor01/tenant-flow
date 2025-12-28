@@ -11,10 +11,11 @@ import { toast } from 'sonner'
 import { useSseEventListener } from '#hooks/use-sse'
 import type { PdfGenerationCompletedEvent } from '@repo/shared/events/sse-events'
 
-
 async function getAuthHeaders(): Promise<Record<string, string>> {
 	const supabase = createClient()
-	const { data: { session } } = await supabase.auth.getSession()
+	const {
+		data: { session }
+	} = await supabase.auth.getSession()
 	return {
 		'Content-Type': 'application/json',
 		Authorization: `Bearer ${session?.access_token}`
@@ -27,14 +28,24 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 export const leaseGenerationKeys = {
 	all: ['lease-generation'] as const,
 	autoFill: (property_id: string, unit_id: string, tenant_id: string) =>
-		[...leaseGenerationKeys.all, 'auto-fill', property_id, unit_id, tenant_id] as const
+		[
+			...leaseGenerationKeys.all,
+			'auto-fill',
+			property_id,
+			unit_id,
+			tenant_id
+		] as const
 }
 
 /**
  * Hook to fetch auto-filled lease form data
  * property_id, unit_id, and tenant_id are all REQUIRED
  */
-export function useLeaseAutoFill(property_id: string, unit_id: string, tenant_id: string) {
+export function useLeaseAutoFill(
+	property_id: string,
+	unit_id: string,
+	tenant_id: string
+) {
 	return useQuery({
 		queryKey: leaseGenerationKeys.autoFill(property_id, unit_id, tenant_id),
 		queryFn: () =>
@@ -86,7 +97,10 @@ export function useGenerateLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData) => {
 			const controller = new AbortController()
-			const timeoutId = setTimeout(() => controller.abort(), PDF_GENERATION_TIMEOUT_MS)
+			const timeoutId = setTimeout(
+				() => controller.abort(),
+				PDF_GENERATION_TIMEOUT_MS
+			)
 
 			try {
 				const headers = await getAuthHeaders()
@@ -103,13 +117,17 @@ export function useGenerateLease() {
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(`Failed to generate lease: ${response.status} ${errorText}`)
+					throw new Error(
+						`Failed to generate lease: ${response.status} ${errorText}`
+					)
 				}
 
 				// Validate content-type before processing
 				const contentType = response.headers.get('content-type')
 				if (!contentType?.includes('application/pdf')) {
-					throw new Error(`Invalid response type: expected PDF, got ${contentType}`)
+					throw new Error(
+						`Invalid response type: expected PDF, got ${contentType}`
+					)
 				}
 
 				const blob = await response.blob()
@@ -148,7 +166,10 @@ export function useEmailLease() {
 	return useMutation({
 		mutationFn: async (data: LeaseGenerationFormData & { emailTo: string }) => {
 			const controller = new AbortController()
-			const timeoutId = setTimeout(() => controller.abort(), PDF_GENERATION_TIMEOUT_MS)
+			const timeoutId = setTimeout(
+				() => controller.abort(),
+				PDF_GENERATION_TIMEOUT_MS
+			)
 
 			try {
 				const headers = await getAuthHeaders()
@@ -165,7 +186,9 @@ export function useEmailLease() {
 
 				if (!response.ok) {
 					const errorText = await response.text()
-					throw new Error(`Failed to email lease: ${response.status} ${errorText}`)
+					throw new Error(
+						`Failed to email lease: ${response.status} ${errorText}`
+					)
 				}
 
 				const result = (await response.json()) as { success: boolean }
@@ -220,64 +243,68 @@ interface QueuePdfResponse {
  * ```tsx
  * const { queuePdf, isQueuing, pdfReady, downloadUrl } = useQueueLeasePdf({
  *   leaseId: 'lease-123',
- *   onPdfReady: (downloadUrl) => {
- *     // Auto-download or show notification
+ *   onPdfReadyAction: (downloadUrl) => {
  *   }
  * })
  *
- * // Queue the PDF
  * await queuePdf()
  * ```
  */
 export function useQueueLeasePdf(options: {
 	leaseId: string
-	onPdfReady?: (downloadUrl: string) => void
+	onPdfReadyAction?: (downloadUrl: string) => void
 	autoDownload?: boolean
 }) {
-	const { leaseId, onPdfReady, autoDownload = false } = options
+	const { leaseId, onPdfReadyAction, autoDownload = false } = options
 
 	// Listen for SSE PDF completion event
-	useSseEventListener('pdf.generation_completed', (event: PdfGenerationCompletedEvent) => {
-		if (event.payload.leaseId !== leaseId) return
+	useSseEventListener(
+		'pdf.generation_completed',
+		(event: PdfGenerationCompletedEvent) => {
+			if (event.payload.leaseId !== leaseId) return
 
-		const { downloadUrl } = event.payload
+			const { downloadUrl } = event.payload
 
-		// Show toast notification
-		toast.success('PDF is ready!', {
-			action: {
-				label: 'Download',
-				onClick: () => window.open(downloadUrl, '_blank')
+			// Show toast notification
+			toast.success('PDF is ready!', {
+				action: {
+					label: 'Download',
+					onClick: () => window.open(downloadUrl, '_blank')
+				}
+			})
+
+			// Auto-download if enabled
+			if (autoDownload && downloadUrl) {
+				window.open(downloadUrl, '_blank')
 			}
-		})
 
-		// Auto-download if enabled
-		if (autoDownload && downloadUrl) {
-			window.open(downloadUrl, '_blank')
+			// Call callback
+			onPdfReadyAction?.(downloadUrl)
+
+			logger.info('PDF generation completed via SSE', {
+				action: 'pdf_generation_completed',
+				metadata: { leaseId }
+			})
 		}
-
-		// Call callback
-		onPdfReady?.(downloadUrl)
-
-		logger.info('PDF generation completed via SSE', {
-			action: 'pdf_generation_completed',
-			metadata: { leaseId }
-		})
-	})
+	)
 
 	const mutation = useMutation({
 		mutationFn: async () => {
-			return apiRequest<QueuePdfResponse>(`/api/v1/leases/${leaseId}/queue-pdf`, {
-				method: 'POST'
-			})
+			return apiRequest<QueuePdfResponse>(
+				`/api/v1/leases/${leaseId}/queue-pdf`,
+				{
+					method: 'POST'
+				}
+			)
 		},
-		onSuccess: (data) => {
-			toast.info('PDF generation started. You\'ll be notified when it\'s ready.')
+		onSuccess: data => {
+			toast.info("PDF generation started. You'll be notified when it's ready.")
 			logger.info('PDF generation queued', {
 				action: 'pdf_generation_queued',
 				metadata: { leaseId, jobId: data.jobId }
 			})
 		},
-		onError: (error) => {
+		onError: error => {
 			logger.error('Failed to queue PDF generation', {
 				action: 'pdf_generation_queue_error',
 				metadata: { leaseId, error: String(error) }

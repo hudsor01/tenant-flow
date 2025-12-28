@@ -12,7 +12,13 @@
 //
 // See: CLAUDE.md section "KISS (Keep It Simple)"
 
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	InternalServerErrorException,
+	NotFoundException
+} from '@nestjs/common'
 import type {
 	OwnerPaymentSummaryResponse,
 	TenantPaymentRecord
@@ -20,15 +26,21 @@ import type {
 import type { Database } from '@repo/shared/types/supabase'
 import type { RentPayment, PaymentStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
-import { asStripeSchemaClient, type SupabaseError, type StripePaymentIntent } from '../../types/stripe-schema'
+import {
+	asStripeSchemaClient,
+	type SupabaseError,
+	type StripePaymentIntent
+} from '../../types/stripe-schema'
 import { AppLogger } from '../../logger/app-logger.service'
 
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
 
 @Injectable()
 export class TenantPaymentService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Calculate payment status for a tenant
@@ -83,8 +95,6 @@ export class TenantPaymentService {
 		}
 	}
 
-
-
 	async getTenantPaymentHistory(
 		user_id: string,
 		tenant_id: string,
@@ -95,13 +105,14 @@ export class TenantPaymentService {
 		const client = this.supabase.getAdminClient()
 		const stripeClient = asStripeSchemaClient(client)
 
-		const { data, error }: { data: unknown; error: SupabaseError | null } = await stripeClient
-			.schema('stripe')
-			.from('payment_intents')
-			.select('*')
-			.contains('metadata', { tenant_id })
-			.order('created', { ascending: false })
-			.limit(limit)
+		const { data, error }: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('payment_intents')
+				.select('*')
+				.contains('metadata', { tenant_id })
+				.order('created', { ascending: false })
+				.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to fetch tenant payment history', {
@@ -109,11 +120,15 @@ export class TenantPaymentService {
 				tenant_id,
 				error: error.message
 			})
-			throw new InternalServerErrorException('Failed to fetch tenant payment history')
+			throw new InternalServerErrorException(
+				'Failed to fetch tenant payment history'
+			)
 		}
 
 		const paymentIntents = (data as StripePaymentIntent[]) || []
-		const payments = paymentIntents.map(intent => this._mapStripePaymentIntentToRecord(intent))
+		const payments = paymentIntents.map(intent =>
+			this._mapStripePaymentIntentToRecord(intent)
+		)
 
 		return { payments }
 	}
@@ -158,9 +173,12 @@ export class TenantPaymentService {
 		const recipientId: string | null = tenant.user_id ?? null
 
 		if (!recipientId) {
-			this.logger.warn('Tenant has no linked user account for reminder delivery', {
-				tenant_id
-			})
+			this.logger.warn(
+				'Tenant has no linked user account for reminder delivery',
+				{
+					tenant_id
+				}
+			)
 			throw new BadRequestException('Tenant is not linked to a user account')
 		}
 
@@ -188,12 +206,12 @@ export class TenantPaymentService {
 			? new Date(duePayment.due_date).toLocaleDateString('en-US', {
 					month: 'short',
 					day: 'numeric'
-			  })
+				})
 			: 'soon'
 
 		const defaultMessage = formattedAmount
-		? `Reminder: Rent payment of ${formattedAmount} is due ${dueDateText}.`
-		: `Reminder: Rent payment is due ${dueDateText}.`
+			? `Reminder: Rent payment of ${formattedAmount} is due ${dueDateText}.`
+			: `Reminder: Rent payment is due ${dueDateText}.`
 		const reminderMessage = note?.trim() || defaultMessage
 
 		const now = new Date().toISOString()
@@ -235,7 +253,9 @@ export class TenantPaymentService {
 		}
 	}
 
-	private _mapStripePaymentIntentToRecord(intent: StripePaymentIntent): TenantPaymentRecord {
+	private _mapStripePaymentIntentToRecord(
+		intent: StripePaymentIntent
+	): TenantPaymentRecord {
 		return {
 			id: intent.id,
 			amount: intent.amount ?? 0,
@@ -262,20 +282,23 @@ export class TenantPaymentService {
 		const client = this.supabase.getAdminClient()
 		const stripeClient = asStripeSchemaClient(client)
 
-		const { data, error }: { data: unknown; error: SupabaseError | null } = await stripeClient
-			.schema('stripe')
-			.from('payment_intents')
-			.select('*')
-			.contains('metadata', { tenant_id })
-			.order('created', { ascending: false })
-			.limit(limit)
+		const { data, error }: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('payment_intents')
+				.select('*')
+				.contains('metadata', { tenant_id })
+				.order('created', { ascending: false })
+				.limit(limit)
 
 		if (error) {
 			this.logger.error('Failed to query tenant payment intents', {
 				tenant_id,
 				error: error.message
 			})
-			throw new InternalServerErrorException('Failed to fetch tenant payment history')
+			throw new InternalServerErrorException(
+				'Failed to fetch tenant payment history'
+			)
 		}
 
 		return ((data as StripePaymentIntent[]) || []).map(intent =>
@@ -299,7 +322,9 @@ export class TenantPaymentService {
 		try {
 			// Handle undefined/null user_id gracefully (e.g., SSR without auth)
 			if (!user_id) {
-				this.logger.warn('getOwnerPaymentSummary called without user_id, returning empty response')
+				this.logger.warn(
+					'getOwnerPaymentSummary called without user_id, returning empty response'
+				)
 				return emptyResponse
 			}
 
@@ -307,10 +332,13 @@ export class TenantPaymentService {
 			try {
 				tenant_ids = await this.gettenant_idsForOwner(user_id)
 			} catch (error) {
-				this.logger.warn('Failed to get tenant IDs for payment summary, returning zeros', {
-					user_id,
-					error: error instanceof Error ? error.message : String(error)
-				})
+				this.logger.warn(
+					'Failed to get tenant IDs for payment summary, returning zeros',
+					{
+						user_id,
+						error: error instanceof Error ? error.message : String(error)
+					}
+				)
 				return emptyResponse
 			}
 
@@ -330,10 +358,13 @@ export class TenantPaymentService {
 
 			if (error) {
 				// Stripe schema may not exist or have permission issues - return zeros gracefully
-				this.logger.warn('Stripe schema query failed for payment summary, returning zeros', {
-					user_id,
-					error: error.message
-				})
+				this.logger.warn(
+					'Stripe schema query failed for payment summary, returning zeros',
+					{
+						user_id,
+						error: error.message
+					}
+				)
 				return {
 					...emptyResponse,
 					tenantCount: tenant_ids.length
@@ -341,10 +372,12 @@ export class TenantPaymentService {
 			}
 
 			// Filter intents in-memory since stripe schema doesn't support .or()
-			const filteredIntents = (intents as StripePaymentIntent[])?.filter(intent => {
-				const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
-				return tenantId && tenant_ids.includes(tenantId)
-			}) || []
+			const filteredIntents =
+				(intents as StripePaymentIntent[])?.filter(intent => {
+					const tenantId = (intent.metadata as { tenant_id?: string } | null)
+						?.tenant_id
+					return tenantId && tenant_ids.includes(tenantId)
+				}) || []
 
 			let lateFeeTotal = 0
 			let unpaidTotal = 0
@@ -352,7 +385,8 @@ export class TenantPaymentService {
 			const perTenantCount = new Map<string, number>()
 
 			for (const intent of filteredIntents) {
-				const tenantId = (intent.metadata as { tenant_id?: string } | null)?.tenant_id
+				const tenantId = (intent.metadata as { tenant_id?: string } | null)
+					?.tenant_id
 				if (!tenantId) continue
 
 				// Enforce per-tenant cap in-memory since PostgREST can't window by group
@@ -378,16 +412,24 @@ export class TenantPaymentService {
 			}
 		} catch (outerError) {
 			// DEFENSIVE: Catch any unexpected errors and return gracefully
-			this.logger.error('Unexpected error in getOwnerPaymentSummary, returning zeros', {
-				user_id,
-				error: outerError instanceof Error ? outerError.message : String(outerError),
-				stack: outerError instanceof Error ? outerError.stack : undefined
-			})
+			this.logger.error(
+				'Unexpected error in getOwnerPaymentSummary, returning zeros',
+				{
+					user_id,
+					error:
+						outerError instanceof Error
+							? outerError.message
+							: String(outerError),
+					stack: outerError instanceof Error ? outerError.stack : undefined
+				}
+			)
 			return emptyResponse
 		}
 	}
 
-	private async getTenantByAuthuser_id(authuser_id: string): Promise<{ id: string }> {
+	private async getTenantByAuthuser_id(
+		authuser_id: string
+	): Promise<{ id: string }> {
 		const client = this.supabase.getAdminClient()
 		const { data, error } = await client
 			.from('tenants')
@@ -396,7 +438,10 @@ export class TenantPaymentService {
 			.single()
 
 		if (error || !data) {
-			this.logger.warn('Tenant record not found for auth user', { authuser_id, error })
+			this.logger.warn('Tenant record not found for auth user', {
+				authuser_id,
+				error
+			})
 			throw new NotFoundException('Tenant record not found')
 		}
 
@@ -432,17 +477,23 @@ export class TenantPaymentService {
 				.single()
 
 			if (unitError || !unit?.property_id) {
-				this.logger.warn('Unit missing property when verifying tenant ownership', {
-					unit_id: lease.unit_id,
-					error: unitError
-				})
+				this.logger.warn(
+					'Unit missing property when verifying tenant ownership',
+					{
+						unit_id: lease.unit_id,
+						error: unitError
+					}
+				)
 				throw new NotFoundException('Property not found for tenant lease')
 			}
 			property_id = unit.property_id
 		}
 
 		if (!property_id) {
-			this.logger.warn('Tenant lease has no associated property', { tenant_id, lease_id: lease?.id })
+			this.logger.warn('Tenant lease has no associated property', {
+				tenant_id,
+				lease_id: lease?.id
+			})
 			throw new NotFoundException('Property not associated with tenant lease')
 		}
 
@@ -480,10 +531,13 @@ export class TenantPaymentService {
 			.eq('owner_user_id', auth_user_id)
 
 		if (error) {
-			this.logger.error('Failed to fetch owner properties for payment summary', {
-				auth_user_id,
-				error: error.message
-			})
+			this.logger.error(
+				'Failed to fetch owner properties for payment summary',
+				{
+					auth_user_id,
+					error: error.message
+				}
+			)
 			throw new InternalServerErrorException('Failed to fetch owner properties')
 		}
 
@@ -500,10 +554,12 @@ export class TenantPaymentService {
 		const client = this.supabase.getAdminClient()
 		const { data, error } = await client
 			.from('leases')
-			.select(`
+			.select(
+				`
 				primary_tenant_id,
 				units!inner(property_id)
-			`)
+			`
+			)
 			.in('units.property_id', property_ids)
 			.not('primary_tenant_id', 'is', null)
 
@@ -516,7 +572,9 @@ export class TenantPaymentService {
 		}
 
 		const tenant_ids = (data || [])
-			.map((lease: { primary_tenant_id: string | null }) => lease.primary_tenant_id)
+			.map(
+				(lease: { primary_tenant_id: string | null }) => lease.primary_tenant_id
+			)
 			.filter((id): id is string => id !== null && id !== undefined)
 
 		return Array.from(new Set(tenant_ids))
@@ -555,7 +613,9 @@ export class TenantPaymentService {
 			}
 
 			const limit = filters?.limit || 50
-			queryBuilder = queryBuilder.order('created_at', { ascending: false }).limit(limit)
+			queryBuilder = queryBuilder
+				.order('created_at', { ascending: false })
+				.limit(limit)
 
 			const { data, error } = await queryBuilder
 
@@ -645,7 +705,10 @@ export class TenantPaymentService {
 	}): TenantPaymentRecord {
 		const tenantId = intent.tenant_id ?? intent.metadata?.tenant_id
 		const paidDate = intent.succeeded_at
-		const paymentId = typeof intent.id === 'string' && intent.id.length > 0 ? intent.id : `pi_${Date.now()}`
+		const paymentId =
+			typeof intent.id === 'string' && intent.id.length > 0
+				? intent.id
+				: `pi_${Date.now()}`
 
 		return {
 			id: paymentId,
@@ -654,7 +717,9 @@ export class TenantPaymentService {
 			status: intent.status ?? 'pending',
 			currency: intent.currency ?? 'USD',
 			receipt_email: null,
-			metadata: intent.metadata ? { tenant_id: intent.metadata.tenant_id } : undefined,
+			metadata: intent.metadata
+				? { tenant_id: intent.metadata.tenant_id }
+				: undefined,
 			created_at: new Date().toISOString(),
 			...(paidDate ? { paid_date: paidDate } : {}),
 			due_date: '',

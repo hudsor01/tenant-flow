@@ -184,7 +184,9 @@ export class PaymentReminderService {
 					}
 				} catch (leaseError) {
 					const errorMessage =
-						leaseError instanceof Error ? leaseError.message : String(leaseError)
+						leaseError instanceof Error
+							? leaseError.message
+							: String(leaseError)
 					errors.push(`Lease ${lease.id}: ${errorMessage}`)
 				}
 			}
@@ -323,7 +325,9 @@ export class PaymentReminderService {
 	/**
 	 * Queue payment reminder email
 	 */
-	private async queuePaymentReminderEmail(data: PaymentReminderData): Promise<void> {
+	private async queuePaymentReminderEmail(
+		data: PaymentReminderData
+	): Promise<void> {
 		const appUrl = this.config.getNextPublicAppUrl()
 		const paymentUrl = `${appUrl}/tenant`
 

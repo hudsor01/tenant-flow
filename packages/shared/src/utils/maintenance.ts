@@ -22,7 +22,8 @@ export const getPriorityColor = (priority: MaintenancePriority): string => {
 		normal: 'bg-muted text-muted-foreground border-border',
 		medium: 'bg-warning/10 text-warning-foreground border-warning/20',
 		high: 'bg-warning/10 text-warning-foreground border-warning/20',
-		urgent: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
+		urgent:
+			'bg-destructive/10 text-destructive-foreground border-destructive/20'
 	}
 	return colors[priority] || 'bg-muted text-muted-foreground border-border'
 }

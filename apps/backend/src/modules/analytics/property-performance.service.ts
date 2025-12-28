@@ -16,8 +16,15 @@ import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Local DTOs to satisfy strict typing for nested selects
-type PaymentRow = { amount: number | null; status: string | null; paid_date: string | null }
-type LeaseRow = { lease_status: string | null; rent_payments?: PaymentRow[] | null }
+type PaymentRow = {
+	amount: number | null
+	status: string | null
+	paid_date: string | null
+}
+type LeaseRow = {
+	lease_status: string | null
+	rent_payments?: PaymentRow[] | null
+}
 type UnitRow = {
 	id: string
 	unit_number: string | null
@@ -32,8 +39,10 @@ type UnitRow = {
 
 @Injectable()
 export class PropertyPerformanceService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	private getQueryClient(): SupabaseClient<Database> {
 		const maybeClient = this.supabase as unknown as {
@@ -56,7 +65,9 @@ export class PropertyPerformanceService {
 		}
 
 		return {
-			from: () => ({ select: () => ({ eq: () => ({ data: [], error: null }) }) })
+			from: () => ({
+				select: () => ({ eq: () => ({ data: [], error: null }) })
+			})
 		} as unknown as SupabaseClient<Database>
 	}
 
@@ -117,8 +128,11 @@ export class PropertyPerformanceService {
 
 		return properties.map(property => {
 			const trend: 'up' | 'down' | 'stable' =
-				property.trend_percentage > 0 ? 'up' :
-				property.trend_percentage < 0 ? 'down' : 'stable'
+				property.trend_percentage > 0
+					? 'up'
+					: property.trend_percentage < 0
+						? 'down'
+						: 'stable'
 
 			return {
 				property_id: property.property_id,
@@ -126,10 +140,10 @@ export class PropertyPerformanceService {
 				occupancyRate: property.occupancy_rate ?? 0,
 				monthlyRevenue: property.total_revenue ?? 0,
 				annualRevenue: (property.total_revenue ?? 0) * 12,
-				totalUnits: 0,    // Not returned by consolidated function, fetched separately
+				totalUnits: 0, // Not returned by consolidated function, fetched separately
 				occupiedUnits: 0, // Not returned by consolidated function
-				vacantUnits: 0,   // Not returned by consolidated function
-				address: '',      // Not returned by consolidated function
+				vacantUnits: 0, // Not returned by consolidated function
+				address: '', // Not returned by consolidated function
 				status: 'unknown',
 				property_type: 'unknown',
 				trend,
@@ -142,7 +156,8 @@ export class PropertyPerformanceService {
 		const client = this.getQueryClient()
 		const { data, error } = await client
 			.from('units')
-			.select(`
+			.select(
+				`
 				id,
 				unit_number,
 				status,
@@ -154,7 +169,8 @@ export class PropertyPerformanceService {
 				properties!inner(
 					owner_user_id
 				)
-			`)
+			`
+			)
 			.eq('properties.owner_user_id', user_id)
 
 		if (error) {
@@ -181,32 +197,45 @@ export class PropertyPerformanceService {
 		const client = this.getQueryClient()
 		const { data: statusData, error: statusError } = await client
 			.from('units')
-			.select(`
+			.select(
+				`
 				status,
 				properties!inner(
 					owner_user_id
 				)
-			`)
+			`
+			)
 			.eq('properties.owner_user_id', user_id)
 
 		if (statusError) {
-			this.logger.error(`Failed to fetch unit statistics: ${statusError.message}`)
+			this.logger.error(
+				`Failed to fetch unit statistics: ${statusError.message}`
+			)
 			return []
 		}
 
 		// Count units by status
-		type UnitStatusRow = { status: string; properties: { owner_user_id: string } }
+		type UnitStatusRow = {
+			status: string
+			properties: { owner_user_id: string }
+		}
 		const statusRows = (statusData || []) as UnitStatusRow[]
-		const statusCounts = statusRows.reduce((acc, unit) => {
-			const status = unit.status
-			acc[status] = (acc[status] || 0) + 1
-			return acc
-		}, {} as Record<string, number>)
+		const statusCounts = statusRows.reduce(
+			(acc, unit) => {
+				const status = unit.status
+				acc[status] = (acc[status] || 0) + 1
+				return acc
+			},
+			{} as Record<string, number>
+		)
 
 		// Get total units count
-	const { count: totalUnits, error: countError} = await this.getQueryClient()
-		.from('units')
-		.select('*, properties!inner(owner_user_id)', { count: 'exact', head: true })
+		const { count: totalUnits, error: countError } = await this.getQueryClient()
+			.from('units')
+			.select('*, properties!inner(owner_user_id)', {
+				count: 'exact',
+				head: true
+			})
 			.eq('properties.owner_user_id', user_id)
 
 		if (countError) {
@@ -234,11 +263,12 @@ export class PropertyPerformanceService {
 		return stats
 	}
 
-	async getVisitorAnalytics(user_id: string): Promise<VisitorAnalyticsResponse> {
-		const raw = await this.callRpc(
-			'get_visitor_analytics',
-			{ p_user_id: user_id }
-		)
+	async getVisitorAnalytics(
+		user_id: string
+	): Promise<VisitorAnalyticsResponse> {
+		const raw = await this.callRpc('get_visitor_analytics', {
+			p_user_id: user_id
+		})
 
 		if (!raw) {
 			this.logger.warn(
@@ -261,12 +291,14 @@ export class PropertyPerformanceService {
 	async getPropertyPerformancePageData(
 		user_id: string
 	): Promise<PropertyPerformancePageResponse> {
-		const [performance, units, unitStats, visitorAnalytics] = await Promise.all([
-			this.getPropertyPerformance(user_id),
-			this.getPropertyUnits(user_id),
-			this.getUnitStatistics(user_id),
-			this.getVisitorAnalytics(user_id)
-		])
+		const [performance, units, unitStats, visitorAnalytics] = await Promise.all(
+			[
+				this.getPropertyPerformance(user_id),
+				this.getPropertyUnits(user_id),
+				this.getUnitStatistics(user_id),
+				this.getVisitorAnalytics(user_id)
+			]
+		)
 
 		return buildPropertyPerformancePageResponse({
 			performance,

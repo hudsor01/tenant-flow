@@ -12,18 +12,22 @@ import {
 	Plus,
 	Search,
 	UserCheck,
-	Wrench,
-	X
+	Wrench
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Input } from '#components/ui/input'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { BorderBeam } from '#components/ui/border-beam'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
+import {
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatDescription
+} from '#components/ui/stat'
 import { usePreferencesStore } from '#providers/preferences-provider'
 import { MaintenanceKanban } from './maintenance-kanban.client'
 import { MaintenanceTableClient } from './maintenance-table.client'
@@ -44,7 +48,9 @@ type MaintenanceRequestWithRelations = MaintenanceRequest & {
 export function MaintenanceViewClient() {
 	const router = useRouter()
 	const viewPreferences = usePreferencesStore(state => state.viewPreferences)
-	const setViewPreference = usePreferencesStore(state => state.setViewPreference)
+	const setViewPreference = usePreferencesStore(
+		state => state.setViewPreference
+	)
 	const currentView = (viewPreferences?.maintenance ?? 'kanban') as ViewType
 
 	const [searchQuery, setSearchQuery] = React.useState('')
@@ -61,9 +67,13 @@ export function MaintenanceViewClient() {
 
 	// Calculate stats
 	const openCount = requests.filter(r => r.status === 'open').length
-	const inProgressCount = requests.filter(r => r.status === 'in_progress').length
+	const inProgressCount = requests.filter(
+		r => r.status === 'in_progress'
+	).length
 	const completedCount = requests.filter(r => r.status === 'completed').length
-	const urgentCount = requests.filter(r => r.priority === 'urgent' && r.status !== 'completed').length
+	const urgentCount = requests.filter(
+		r => r.priority === 'urgent' && r.status !== 'completed'
+	).length
 
 	// Filter requests
 	const filteredRequests = React.useMemo(() => {
@@ -74,7 +84,11 @@ export function MaintenanceViewClient() {
 			const title = r.title?.toLowerCase() ?? ''
 			const description = r.description?.toLowerCase() ?? ''
 			const propertyName = r.property?.name?.toLowerCase() ?? ''
-			return title.includes(query) || description.includes(query) || propertyName.includes(query)
+			return (
+				title.includes(query) ||
+				description.includes(query) ||
+				propertyName.includes(query)
+			)
 		})
 	}, [requests, searchQuery])
 
@@ -154,8 +168,10 @@ export function MaintenanceViewClient() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Maintenance</h1>
-						<p className="text-muted-foreground">Track and manage maintenance requests</p>
+						<h1 className="typography-h1">Maintenance</h1>
+						<p className="text-muted-foreground">
+							Track and manage maintenance requests
+						</p>
 					</div>
 					<Link
 						href="/maintenance/new"
@@ -172,7 +188,12 @@ export function MaintenanceViewClient() {
 				<BlurFade delay={0.15} inView>
 					<Stat className="relative overflow-hidden">
 						{openCount > 0 && (
-							<BorderBeam size={80} duration={8} colorFrom="hsl(45 93% 47%)" colorTo="hsl(45 93% 47% / 0.3)" />
+							<BorderBeam
+								size={80}
+								duration={8}
+								colorFrom="hsl(45 93% 47%)"
+								colorTo="hsl(45 93% 47% / 0.3)"
+							/>
 						)}
 						<StatLabel>Open</StatLabel>
 						<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
@@ -181,9 +202,7 @@ export function MaintenanceViewClient() {
 						<StatIndicator variant="icon" color="warning">
 							<Clock />
 						</StatIndicator>
-						<StatDescription>
-							awaiting action
-						</StatDescription>
+						<StatDescription>awaiting action</StatDescription>
 					</Stat>
 				</BlurFade>
 
@@ -196,9 +215,7 @@ export function MaintenanceViewClient() {
 						<StatIndicator variant="icon" color="primary">
 							<AlertTriangle />
 						</StatIndicator>
-						<StatDescription>
-							being worked on
-						</StatDescription>
+						<StatDescription>being worked on</StatDescription>
 					</Stat>
 				</BlurFade>
 
@@ -211,16 +228,19 @@ export function MaintenanceViewClient() {
 						<StatIndicator variant="icon" color="success">
 							<CheckCircle />
 						</StatIndicator>
-						<StatDescription>
-							this month
-						</StatDescription>
+						<StatDescription>this month</StatDescription>
 					</Stat>
 				</BlurFade>
 
 				<BlurFade delay={0.3} inView>
 					<Stat className="relative overflow-hidden">
 						{urgentCount > 0 && (
-							<BorderBeam size={80} duration={4} colorFrom="hsl(var(--destructive))" colorTo="hsl(var(--destructive)/0.3)" />
+							<BorderBeam
+								size={80}
+								duration={4}
+								colorFrom="hsl(var(--destructive))"
+								colorTo="hsl(var(--destructive)/0.3)"
+							/>
 						)}
 						<StatLabel>Urgent</StatLabel>
 						<StatValue className="flex items-baseline text-red-600 dark:text-red-400">
@@ -290,29 +310,29 @@ export function MaintenanceViewClient() {
 				</div>
 			</BlurFade>
 
-			{/* Toolbar */}
-			<BlurFade delay={0.4} inView>
+			{/* Standardized Toolbar: Search LEFT, View Toggle RIGHT */}
+			<BlurFade delay={0.35} inView>
 				<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
-					<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row items-start sm:items-center gap-3">
-						{/* Search */}
-						<div className="relative w-full sm:w-64">
-							<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-							<Input
+					<div className="px-4 py-3 border-b border-border flex items-center gap-3">
+						{/* LEFT: Search */}
+						<div className="relative w-64">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+							<input
+								type="text"
 								placeholder="Search requests..."
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-9 h-9"
+								onChange={e => setSearchQuery(e.target.value)}
+								className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
 							/>
 						</div>
 
-						{/* Right side: Clear + View Toggle */}
-						<div className="flex items-center gap-3 sm:ml-auto w-full sm:w-auto">
+						{/* RIGHT: Clear + View Toggle (Kanban left, List right) */}
+						<div className="flex items-center gap-3 ml-auto">
 							{searchQuery && (
 								<button
 									onClick={() => setSearchQuery('')}
-									className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
+									className="text-sm text-muted-foreground hover:text-foreground"
 								>
-									<X className="h-3 w-3" />
 									Clear
 								</button>
 							)}
@@ -338,24 +358,23 @@ export function MaintenanceViewClient() {
 									}`}
 								>
 									<List className="w-4 h-4" />
-									Table
+									List
 								</button>
 							</div>
-
-							<span className="text-sm text-muted-foreground whitespace-nowrap">
-								{filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
-							</span>
 						</div>
 					</div>
 				</div>
 			</BlurFade>
 
 			{/* Content */}
-			<BlurFade delay={0.45} inView>
+			<BlurFade delay={0.4} inView>
 				{currentView === 'kanban' ? (
 					<MaintenanceKanban initialRequests={filteredRequests} />
 				) : (
-					<MaintenanceTableClient columns={columns} initialRequests={filteredRequests} />
+					<MaintenanceTableClient
+						columns={columns}
+						initialRequests={filteredRequests}
+					/>
 				)}
 			</BlurFade>
 		</div>

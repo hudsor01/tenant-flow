@@ -21,7 +21,9 @@ const SESSION_FILE = join(process.cwd(), '.vitest-session.json')
 
 export async function setup() {
 	if (process.env.RUN_INTEGRATION_TESTS !== 'true') {
-		logger.info('Skipping integration test setup (RUN_INTEGRATION_TESTS != true)')
+		logger.info(
+			'Skipping integration test setup (RUN_INTEGRATION_TESTS != true)'
+		)
 		return
 	}
 
@@ -40,7 +42,9 @@ export async function setup() {
 	}
 
 	if (!supabaseUrl || !supabaseKey) {
-		throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL and/or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
+		throw new Error(
+			'Missing NEXT_PUBLIC_SUPABASE_URL and/or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+		)
 	}
 
 	// Authenticate with Supabase
@@ -75,7 +79,9 @@ export async function setup() {
 		'utf-8'
 	)
 
-	logger.info('Integration test global setup complete', { user_id: data.user?.id })
+	logger.info('Integration test global setup complete', {
+		user_id: data.user?.id
+	})
 }
 
 export async function teardown() {

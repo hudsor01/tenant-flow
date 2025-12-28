@@ -240,8 +240,10 @@ function Sidebar({
 			<div
 				className={cn(
 					'relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
-					collapsible === 'icon' && 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
-					(variant === 'floating' || variant === 'inset') && 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]',
+					collapsible === 'icon' &&
+						'group-data-[collapsible=icon]:w-(--sidebar-width-icon)',
+					(variant === 'floating' || variant === 'inset') &&
+						'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+var(--spacing-4)+2px)]',
 					'group-data-[collapsible=offcanvas]:w-0'
 				)}
 			/>
@@ -301,7 +303,6 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 	return (
 		<button
 			data-sidebar="rail"
-
 			aria-label="Toggle Sidebar"
 			tabIndex={-1}
 			onClick={toggleSidebar}
@@ -320,7 +321,6 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
 	return (
 		<main
-
 			className={cn(
 				'bg-background relative flex w-full flex-1 flex-col',
 				'md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
@@ -606,7 +606,9 @@ function SidebarMenuSkeleton({
 	showIcon?: boolean
 }) {
 	// Random width between 50 to 90%.
-	const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)
+	const [width] = React.useState(
+		() => `${Math.floor(Math.random() * 40) + 50}%`
+	)
 
 	return (
 		<div

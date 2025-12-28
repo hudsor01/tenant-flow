@@ -40,7 +40,13 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-type PageState = 'loading' | 'valid' | 'invalid' | 'expired' | 'error' | 'accepted'
+type PageState =
+	| 'loading'
+	| 'valid'
+	| 'invalid'
+	| 'expired'
+	| 'error'
+	| 'accepted'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
@@ -64,8 +70,6 @@ interface InvitationData {
 	property_name?: string
 	unit_number?: string
 }
-
-
 
 function AcceptInviteContent() {
 	const [showPassword, setShowPassword] = useState(false)

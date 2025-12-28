@@ -10,6 +10,11 @@
 		"lib": ["ES2022", "DOM"],
 		"composite": false
 	},
-	"include": ["tests/**/*.ts", "auth-helpers.ts", "../frontend/tests/fixtures/**/*.ts", "global.d.ts"],
+	"include": [
+		"tests/**/*.ts",
+		"auth-helpers.ts",
+		"../frontend/tests/fixtures/**/*.ts",
+		"global.d.ts"
+	],
 	"exclude": ["tests/**/__snapshots__/**", "tests/tanstack-query/**"]
 }

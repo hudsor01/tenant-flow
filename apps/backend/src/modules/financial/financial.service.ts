@@ -20,10 +20,12 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class FinancialService {
-
-	constructor(private readonly supabaseService: SupabaseService,
+	constructor(
+		private readonly supabaseService: SupabaseService,
 		private readonly expenseService: FinancialExpenseService,
-		private readonly revenueService: FinancialRevenueService, private readonly logger: AppLogger) {}
+		private readonly revenueService: FinancialRevenueService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get expense summary - delegates to expense service
@@ -58,9 +60,7 @@ export class FinancialService {
 			const client = this.supabaseService.getUserClient(token)
 
 			// Get user's property IDs - RLS automatically filters
-			const { data: properties } = await client
-				.from('properties')
-				.select('id')
+			const { data: properties } = await client.from('properties').select('id')
 
 			const propertyRows = (properties ?? []) as Array<{ id: string }>
 			const property_ids = propertyRows.map(p => p.id)
@@ -158,7 +158,9 @@ export class FinancialService {
 						if (!l.end_date) return false
 						const end_date = new Date(l.end_date)
 						const now = new Date()
-						const thirtyDaysFromNow = new Date(now.getTime() + THIRTY_DAYS_IN_MS)
+						const thirtyDaysFromNow = new Date(
+							now.getTime() + THIRTY_DAYS_IN_MS
+						)
 						return end_date > now && end_date <= thirtyDaysFromNow
 					}).length
 				},

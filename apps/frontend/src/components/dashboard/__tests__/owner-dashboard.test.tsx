@@ -46,8 +46,15 @@ vi.mock('#hooks/api/use-lease', () => ({
 
 // Mock useInViewport hook to always return visible
 vi.mock('#components/deferred-section', () => ({
-	DeferredSection: ({ children, fallback: _fallback, priority }: { children: React.ReactNode, fallback: React.ReactNode, priority?: boolean }) =>
-		priority ? children : children,
+	DeferredSection: ({
+		children,
+		fallback: _fallback,
+		priority
+	}: {
+		children: React.ReactNode
+		fallback: React.ReactNode
+		priority?: boolean
+	}) => (priority ? children : children),
 	useInViewport: () => [{ current: null }, true] // Always visible for tests
 }))
 
@@ -57,14 +64,19 @@ vi.mock('react', async () => {
 	return {
 		...actual,
 		// Activity component just renders children in tests
-		Activity: ({ children }: { children: React.ReactNode; mode?: string }) => children
+		Activity: ({ children }: { children: React.ReactNode; mode?: string }) =>
+			children
 	}
 })
 
 const mockUseDashboardStats = vi.mocked(ownerDashboardHooks.useDashboardStats)
 const mockUseDashboardCharts = vi.mocked(ownerDashboardHooks.useDashboardCharts)
-const mockUseDashboardActivity = vi.mocked(ownerDashboardHooks.useDashboardActivity)
-const mockUsePropertyPerformance = vi.mocked(ownerDashboardHooks.usePropertyPerformance)
+const mockUseDashboardActivity = vi.mocked(
+	ownerDashboardHooks.useDashboardActivity
+)
+const mockUsePropertyPerformance = vi.mocked(
+	ownerDashboardHooks.usePropertyPerformance
+)
 
 // Helper to create complete mock query result with all required TanStack Query properties
 function createMockQueryResult<T>(overrides: {
@@ -100,7 +112,7 @@ function createMockQueryResult<T>(overrides: {
 		isStale: false,
 		refetch: vi.fn(),
 		fetchStatus: isLoading ? 'fetching' : 'idle',
-		promise: Promise.resolve(overrides.data as T),
+		promise: Promise.resolve(overrides.data as T)
 	} as unknown
 }
 
@@ -112,13 +124,13 @@ const mockStats = {
 		vacant: 1,
 		occupancyRate: 80,
 		totalMonthlyRent: 5000000,
-		averageRent: 1000000,
+		averageRent: 1000000
 	},
 	tenants: {
 		total: 48,
 		active: 45,
 		inactive: 3,
-		newThisMonth: 2,
+		newThisMonth: 2
 	},
 	units: {
 		total: 28,
@@ -130,18 +142,18 @@ const mockStats = {
 		occupancyRate: 92,
 		occupancyChange: 3,
 		totalPotentialRent: 4725000,
-		totalActualRent: 4218750,
+		totalActualRent: 4218750
 	},
 	leases: {
 		total: 45,
 		active: 40,
 		expired: 3,
-		expiringSoon: 2,
+		expiringSoon: 2
 	},
 	revenue: {
 		monthly: 4725000, // In cents ($47,250)
 		yearly: 56700000,
-		growth: 12.5,
+		growth: 12.5
 	},
 	maintenance: {
 		total: 16,
@@ -154,16 +166,21 @@ const mockStats = {
 			low: 2,
 			medium: 6,
 			high: 5,
-			emergency: 3,
-		},
-	},
+			emergency: 3
+		}
+	}
 }
 
 const mockMetricTrends = {
 	occupancyRate: { current: 92, previous: 89, change: 3, percentChange: 3.4 },
 	activeTenants: { current: 45, previous: 40, change: 5, percentChange: 12.5 },
-	monthlyRevenue: { current: 4725000, previous: 4200000, change: 525000, percentChange: 12.5 },
-	openMaintenance: { current: 4, previous: 6, change: -2, percentChange: -33.3 },
+	monthlyRevenue: {
+		current: 4725000,
+		previous: 4200000,
+		change: 525000,
+		percentChange: 12.5
+	},
+	openMaintenance: { current: 4, previous: 6, change: -2, percentChange: -33.3 }
 }
 
 const mockTimeSeries = {
@@ -173,7 +190,7 @@ const mockTimeSeries = {
 		{ date: '2024-09-01', value: 90 },
 		{ date: '2024-10-01', value: 89 },
 		{ date: '2024-11-01', value: 91 },
-		{ date: '2024-12-01', value: 92 },
+		{ date: '2024-12-01', value: 92 }
 	],
 	monthlyRevenue: [
 		{ date: '2024-07-01', value: 3800000 },
@@ -181,8 +198,8 @@ const mockTimeSeries = {
 		{ date: '2024-09-01', value: 3950000 },
 		{ date: '2024-10-01', value: 4400000 },
 		{ date: '2024-11-01', value: 4600000 },
-		{ date: '2024-12-01', value: 4725000 },
-	],
+		{ date: '2024-12-01', value: 4725000 }
+	]
 }
 
 const mockPropertyPerformance = [
@@ -192,7 +209,7 @@ const mockPropertyPerformance = [
 		totalUnits: 10,
 		occupiedUnits: 8,
 		occupancyRate: 80,
-		monthlyRevenue: 1600000,
+		monthlyRevenue: 1600000
 	},
 	{
 		property: 'Test Property 2',
@@ -200,8 +217,8 @@ const mockPropertyPerformance = [
 		totalUnits: 5,
 		occupiedUnits: 5,
 		occupancyRate: 100,
-		monthlyRevenue: 1000000,
-	},
+		monthlyRevenue: 1000000
+	}
 ]
 
 // Empty stats for new user/empty state tests
@@ -212,13 +229,13 @@ const emptyStats = {
 		vacant: 0,
 		occupancyRate: 0,
 		totalMonthlyRent: 0,
-		averageRent: 0,
+		averageRent: 0
 	},
 	tenants: {
 		total: 0,
 		active: 0,
 		inactive: 0,
-		newThisMonth: 0,
+		newThisMonth: 0
 	},
 	units: {
 		total: 0,
@@ -230,18 +247,18 @@ const emptyStats = {
 		occupancyRate: 0,
 		occupancyChange: 0,
 		totalPotentialRent: 0,
-		totalActualRent: 0,
+		totalActualRent: 0
 	},
 	leases: {
 		total: 0,
 		active: 0,
 		expired: 0,
-		expiringSoon: 0,
+		expiringSoon: 0
 	},
 	revenue: {
 		monthly: 0,
 		yearly: 0,
-		growth: 0,
+		growth: 0
 	},
 	maintenance: {
 		total: 0,
@@ -254,9 +271,9 @@ const emptyStats = {
 			low: 0,
 			medium: 0,
 			high: 0,
-			emergency: 0,
-		},
-	},
+			emergency: 0
+		}
+	}
 }
 
 describe('OwnerDashboard', () => {
@@ -269,21 +286,33 @@ describe('OwnerDashboard', () => {
 		mockUsePropertyPerformance.mockReset()
 		// Default mock for activity - empty activities
 		mockUseDashboardActivity.mockReturnValue(
-			createMockQueryResult({ data: { activities: [] } }) as ReturnType<typeof ownerDashboardHooks.useDashboardActivity>
+			createMockQueryResult({ data: { activities: [] } }) as ReturnType<
+				typeof ownerDashboardHooks.useDashboardActivity
+			>
 		)
 		// Default mock for property performance
 		mockUsePropertyPerformance.mockReturnValue(
-			createMockQueryResult({ data: mockPropertyPerformance }) as ReturnType<typeof ownerDashboardHooks.usePropertyPerformance>
+			createMockQueryResult({ data: mockPropertyPerformance }) as ReturnType<
+				typeof ownerDashboardHooks.usePropertyPerformance
+			>
 		)
 	})
 
 	describe('Loading State', () => {
 		it('renders loading skeleton when data is loading', () => {
 			mockUseDashboardStats.mockReturnValue(
-				createMockQueryResult({ data: undefined, isLoading: true, status: 'pending' }) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
+				createMockQueryResult({
+					data: undefined,
+					isLoading: true,
+					status: 'pending'
+				}) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
 			)
 			mockUseDashboardCharts.mockReturnValue(
-				createMockQueryResult({ data: undefined, isLoading: true, status: 'pending' }) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
+				createMockQueryResult({
+					data: undefined,
+					isLoading: true,
+					status: 'pending'
+				}) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
 			)
 
 			const { container } = render(<OwnerDashboard />)
@@ -295,10 +324,18 @@ describe('OwnerDashboard', () => {
 
 		it('renders skeleton for stat cards during loading', () => {
 			mockUseDashboardStats.mockReturnValue(
-				createMockQueryResult({ data: undefined, isLoading: true, status: 'pending' }) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
+				createMockQueryResult({
+					data: undefined,
+					isLoading: true,
+					status: 'pending'
+				}) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
 			)
 			mockUseDashboardCharts.mockReturnValue(
-				createMockQueryResult({ data: undefined, isLoading: true, status: 'pending' }) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
+				createMockQueryResult({
+					data: undefined,
+					isLoading: true,
+					status: 'pending'
+				}) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
 			)
 
 			const { container } = render(<OwnerDashboard />)
@@ -319,7 +356,7 @@ describe('OwnerDashboard', () => {
 							occupancyRate: null,
 							activeTenants: null,
 							monthlyRevenue: null,
-							openMaintenance: null,
+							openMaintenance: null
 						}
 					}
 				}) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
@@ -329,7 +366,7 @@ describe('OwnerDashboard', () => {
 					data: {
 						timeSeries: {
 							occupancyRate: [],
-							monthlyRevenue: [],
+							monthlyRevenue: []
 						}
 					}
 				}) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
@@ -338,7 +375,9 @@ describe('OwnerDashboard', () => {
 			render(<OwnerDashboard />)
 
 			expect(screen.getByText('Welcome to TenantFlow')).toBeInTheDocument()
-			expect(screen.getByText(/Get started by adding your first property/)).toBeInTheDocument()
+			expect(
+				screen.getByText(/Get started by adding your first property/)
+			).toBeInTheDocument()
 		})
 
 		it('shows Add Your First Property CTA in empty state', () => {
@@ -350,7 +389,7 @@ describe('OwnerDashboard', () => {
 							occupancyRate: null,
 							activeTenants: null,
 							monthlyRevenue: null,
-							openMaintenance: null,
+							openMaintenance: null
 						}
 					}
 				}) as ReturnType<typeof ownerDashboardHooks.useDashboardStats>
@@ -360,7 +399,7 @@ describe('OwnerDashboard', () => {
 					data: {
 						timeSeries: {
 							occupancyRate: [],
-							monthlyRevenue: [],
+							monthlyRevenue: []
 						}
 					}
 				}) as ReturnType<typeof ownerDashboardHooks.useDashboardCharts>
@@ -368,7 +407,9 @@ describe('OwnerDashboard', () => {
 
 			render(<OwnerDashboard />)
 
-			const ctaButton = screen.getByRole('link', { name: /Add Your First Property/i })
+			const ctaButton = screen.getByRole('link', {
+				name: /Add Your First Property/i
+			})
 			expect(ctaButton).toBeInTheDocument()
 			expect(ctaButton).toHaveAttribute('href', '/properties/new')
 		})
@@ -401,7 +442,9 @@ describe('OwnerDashboard', () => {
 			// Revenue appears twice (metric card and chart legend), so use getAllByText
 			expect(screen.getAllByText('Revenue').length).toBeGreaterThanOrEqual(1)
 			// Maintenance appears twice (metric card and quick actions), so use getAllByText
-			expect(screen.getAllByText('Maintenance').length).toBeGreaterThanOrEqual(1)
+			expect(screen.getAllByText('Maintenance').length).toBeGreaterThanOrEqual(
+				1
+			)
 		})
 
 		it('displays occupancy rate with percentage', () => {
@@ -503,28 +546,36 @@ describe('OwnerDashboard', () => {
 		it('renders Add Property action with correct link', () => {
 			render(<OwnerDashboard />)
 
-			const addPropertyLink = screen.getByRole('link', { name: /Add Property/i })
+			const addPropertyLink = screen.getByRole('link', {
+				name: /Add Property/i
+			})
 			expect(addPropertyLink).toHaveAttribute('href', '/properties/new')
 		})
 
 		it('renders Invite Tenant action with correct link', () => {
 			render(<OwnerDashboard />)
 
-			const inviteTenantLink = screen.getByRole('link', { name: /Invite Tenant/i })
+			const inviteTenantLink = screen.getByRole('link', {
+				name: /Invite Tenant/i
+			})
 			expect(inviteTenantLink).toHaveAttribute('href', '/tenants/new')
 		})
 
 		it('renders Create Lease action with correct link', () => {
 			render(<OwnerDashboard />)
 
-			const createLeaseLink = screen.getByRole('link', { name: /Create Lease/i })
+			const createLeaseLink = screen.getByRole('link', {
+				name: /Create Lease/i
+			})
 			expect(createLeaseLink).toHaveAttribute('href', '/leases/new')
 		})
 
 		it('renders New Request action with correct link', () => {
 			render(<OwnerDashboard />)
 
-			const newRequestLink = screen.getByRole('link', { name: /New Request.*Create maintenance request/i })
+			const newRequestLink = screen.getByRole('link', {
+				name: /New Request.*Create maintenance request/i
+			})
 			expect(newRequestLink).toHaveAttribute('href', '/maintenance/new')
 		})
 	})
@@ -551,7 +602,9 @@ describe('OwnerDashboard', () => {
 		it('renders dashboard title', () => {
 			render(<OwnerDashboard />)
 
-			expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument()
+			expect(
+				screen.getByRole('heading', { name: 'Dashboard' })
+			).toBeInTheDocument()
 		})
 
 		it('renders portfolio overview subtitle', () => {
@@ -600,7 +653,9 @@ describe('OwnerDashboard', () => {
 		it('renders custom date range button', () => {
 			render(<OwnerDashboard />)
 
-			expect(screen.getByRole('button', { name: /Custom/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /Custom/i })
+			).toBeInTheDocument()
 		})
 	})
 
@@ -705,7 +760,9 @@ describe('OwnerDashboard', () => {
 		it('renders chart and quick actions in flex layout', () => {
 			const { container } = render(<OwnerDashboard />)
 
-			const flexContainer = container.querySelector('.flex.flex-col.lg\\:flex-row')
+			const flexContainer = container.querySelector(
+				'.flex.flex-col.lg\\:flex-row'
+			)
 			expect(flexContainer).toBeInTheDocument()
 		})
 	})

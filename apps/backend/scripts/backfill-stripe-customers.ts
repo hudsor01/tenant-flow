@@ -67,7 +67,10 @@ async function ensureStripeCustomer(user: UserRow): Promise<string> {
 		.eq('id', user.id)
 
 	if (error) {
-		console.error('Failed to persist Stripe customer to users table', { user_id: user.id, error })
+		console.error('Failed to persist Stripe customer to users table', {
+			user_id: user.id,
+			error
+		})
 	}
 
 	return customer.id
@@ -143,7 +146,9 @@ async function backfillTenants(): Promise<number> {
 					.single()
 
 				if (userError || !user) {
-					console.warn(`Skipping tenant ${tenant.id}: user ${tenant.user_id} not found`)
+					console.warn(
+						`Skipping tenant ${tenant.id}: user ${tenant.user_id} not found`
+					)
 					continue
 				}
 
@@ -163,7 +168,9 @@ async function backfillTenants(): Promise<number> {
 				}
 
 				updated += 1
-				console.log(`✔️  Linked tenant ${tenant.id} to Stripe customer ${stripeId}`)
+				console.log(
+					`✔️  Linked tenant ${tenant.id} to Stripe customer ${stripeId}`
+				)
 			} catch (err) {
 				console.error(`Failed to backfill tenant ${tenant.id}`, err)
 			}
@@ -182,7 +189,10 @@ async function main() {
 	const userCreates = await backfillUsers()
 	const tenantUpdates = await backfillTenants()
 
-	console.log('Backfill complete', { users_created: userCreates, tenants_updated: tenantUpdates })
+	console.log('Backfill complete', {
+		users_created: userCreates,
+		tenants_updated: tenantUpdates
+	})
 }
 
 main().catch(err => {

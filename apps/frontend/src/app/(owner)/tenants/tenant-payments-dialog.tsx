@@ -26,13 +26,21 @@ interface TenantPaymentsDialogProps {
 	tenantName: string
 }
 
-export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDialogProps) {
+export function TenantPaymentsDialog({
+	tenant_id,
+	tenantName
+}: TenantPaymentsDialogProps) {
 	const limit = 10
 	const [isOpen, setIsOpen] = useState(false)
-	const paymentsQuery = useOwnerTenantPayments(tenant_id, { limit, enabled: isOpen })
+	const paymentsQuery = useOwnerTenantPayments(tenant_id, {
+		limit,
+		enabled: isOpen
+	})
 	const reminderMutation = useSendTenantPaymentReminder()
 	const hasOutstandingPayments =
-		paymentsQuery.data?.payments.some(payment => payment.status !== 'succeeded') ?? false
+		paymentsQuery.data?.payments.some(
+			payment => payment.status !== 'succeeded'
+		) ?? false
 
 	return (
 		<Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -44,31 +52,42 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Payments for {tenantName}</DialogTitle>
-					<DialogDescription>Stripe payment history for this tenant.</DialogDescription>
+					<DialogDescription>
+						Stripe payment history for this tenant.
+					</DialogDescription>
 				</DialogHeader>
 				{paymentsQuery.isLoading ? (
 					<Skeleton className="h-24" />
 				) : (
 					<div className="space-y-3">
-					{paymentsQuery.data?.payments.length ? (
-						paymentsQuery.data.payments.map((payment: TenantPaymentRecord) => (
-								<div key={payment.id} className="border rounded-md p-3 space-y-1">
-									<div className="flex-between text-xs font-semibold text-muted-foreground">
-										<span>{payment.created_at ?? 'Date unknown'}</span>
-										<Badge variant={payment.status === 'succeeded' ? 'secondary' : 'outline'}>
-											{payment.status}
-										</Badge>
-									</div>
-									<div className="typography-large">
-										{formatCents(payment.amount)}
-									</div>
-									{payment.description && (
-										<div className="text-muted">
-											{payment.description}
+						{paymentsQuery.data?.payments.length ? (
+							paymentsQuery.data.payments.map(
+								(payment: TenantPaymentRecord) => (
+									<div
+										key={payment.id}
+										className="border rounded-md p-3 space-y-1"
+									>
+										<div className="flex-between text-xs font-semibold text-muted-foreground">
+											<span>{payment.created_at ?? 'Date unknown'}</span>
+											<Badge
+												variant={
+													payment.status === 'succeeded'
+														? 'secondary'
+														: 'outline'
+												}
+											>
+												{payment.status}
+											</Badge>
 										</div>
-									)}
-								</div>
-							))
+										<div className="typography-large">
+											{formatCents(payment.amount)}
+										</div>
+										{payment.description && (
+											<div className="text-muted">{payment.description}</div>
+										)}
+									</div>
+								)
+							)
 						) : (
 							<div className="text-muted">No payments found</div>
 						)}
@@ -91,17 +110,22 @@ export function TenantPaymentsDialog({ tenant_id, tenantName }: TenantPaymentsDi
 									ownerQueryKey: [...tenantPaymentKeys.owner(tenant_id), limit]
 								},
 								{
-									onSuccess: data => toast.success(data.message ?? 'Reminder sent'),
+									onSuccess: data =>
+										toast.success(data.message ?? 'Reminder sent'),
 									onError: error =>
 										toast.error(
-											error instanceof Error ? error.message : 'Failed to send reminder'
+											error instanceof Error
+												? error.message
+												: 'Failed to send reminder'
 										)
 								}
 							)
 						}
 						disabled={!hasOutstandingPayments || reminderMutation.isPending}
 					>
-						{reminderMutation.isPending ? 'Sending reminder...' : 'Send reminder'}
+						{reminderMutation.isPending
+							? 'Sending reminder...'
+							: 'Send reminder'}
 					</Button>
 				</div>
 			</DialogContent>

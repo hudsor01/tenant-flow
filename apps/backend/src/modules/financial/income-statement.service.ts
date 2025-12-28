@@ -17,8 +17,10 @@ import {
 
 @Injectable()
 export class IncomeStatementService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate income statement for a given period
@@ -40,7 +42,9 @@ export class IncomeStatementService {
 			throw new Error('Failed to authenticate user from token')
 		}
 
-		this.logger.log(`Generating income statement (${start_date} to ${end_date})`)
+		this.logger.log(
+			`Generating income statement (${start_date} to ${end_date})`
+		)
 
 		// Validate date parameters before creating Date objects
 		const startDate = new Date(start_date)
@@ -139,9 +143,10 @@ export class IncomeStatementService {
 		const expenses = ledger.expenses.filter(expense =>
 			isWithinRange(expense.expense_date ?? expense.created_at, range)
 		)
-		const maintenance = ledger.maintenanceRequests.filter(request =>
-			request.status === 'completed' &&
-			isWithinRange(request.completed_at ?? request.created_at, range)
+		const maintenance = ledger.maintenanceRequests.filter(
+			request =>
+				request.status === 'completed' &&
+				isWithinRange(request.completed_at ?? request.created_at, range)
 		)
 
 		const totalRevenue = payments

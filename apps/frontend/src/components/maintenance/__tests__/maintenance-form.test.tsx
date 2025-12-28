@@ -281,7 +281,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toHaveValue('Kitchen Faucet Issue')
+				expect(screen.getByLabelText(/title/i)).toHaveValue(
+					'Kitchen Faucet Issue'
+				)
 			})
 		})
 	})
@@ -374,7 +376,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('combobox', { name: /priority/i })
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -560,7 +564,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('combobox', { name: /priority/i })
+				).toBeInTheDocument()
 			})
 			// Note: Priority options defined in NOTIFICATION_PRIORITY_OPTIONS from @repo/shared:
 			// Low, Medium, High, Urgent

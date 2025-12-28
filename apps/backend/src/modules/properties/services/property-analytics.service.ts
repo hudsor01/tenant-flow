@@ -1,7 +1,4 @@
-import {
-	BadRequestException,
-	Injectable
-} from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
@@ -51,7 +48,10 @@ interface PropertyPerformanceRpcResult {
 type AnalyticsRpcFn = (
 	fn: string,
 	params: PropertyPerformanceRpcParams
-) => Promise<{ data: PropertyPerformanceRpcResult[] | null; error: Error | null }>
+) => Promise<{
+	data: PropertyPerformanceRpcResult[] | null
+	error: Error | null
+}>
 
 /**
  * Property Analytics Service
@@ -120,10 +120,13 @@ export class PropertyAnalyticsService {
 				query.property_id
 			)
 			if (!property) {
-				this.logger.warn('[ANALYTICS:PERFORMANCE:SECURITY] Property not found', {
-					user_id,
-					property_id: query.property_id
-				})
+				this.logger.warn(
+					'[ANALYTICS:PERFORMANCE:SECURITY] Property not found',
+					{
+						user_id,
+						property_id: query.property_id
+					}
+				)
 				throw new BadRequestException('Property not found or access denied')
 			}
 
@@ -171,23 +174,17 @@ export class PropertyAnalyticsService {
 
 		const rawResults: PropertyPerformanceRpcResult[] = data ?? []
 		const result: PropertyPerformanceData[] = rawResults
-			.filter((item) => Boolean(item.property_id))
-			.map((item) => ({
+			.filter(item => Boolean(item.property_id))
+			.map(item => ({
 				property_id: item.property_id as string,
 				property_name:
 					item.property_name ??
 					item.propertyName ??
 					item.name ??
 					'Unknown property',
-				occupancy_rate: toNumber(
-					item.occupancy_rate ?? item.occupancyRate
-				),
-				total_revenue: toNumber(
-					item.total_revenue ?? item.totalRevenue
-				),
-				total_expenses: toNumber(
-					item.total_expenses ?? item.totalExpenses
-				),
+				occupancy_rate: toNumber(item.occupancy_rate ?? item.occupancyRate),
+				total_revenue: toNumber(item.total_revenue ?? item.totalRevenue),
+				total_expenses: toNumber(item.total_expenses ?? item.totalExpenses),
 				net_income: toNumber(item.net_income ?? item.netIncome),
 				timeframe: item.timeframe ?? query.timeframe
 			}))

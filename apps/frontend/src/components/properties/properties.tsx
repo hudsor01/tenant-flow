@@ -22,30 +22,15 @@ import {
 	Settings2,
 	Check,
 	Wrench,
-	TrendingUp,
 	X
 } from 'lucide-react'
 import Image from 'next/image'
 
 import { Button } from '#components/ui/button'
 import { Badge } from '#components/ui/badge'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger
-} from '#components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipTrigger } from '#components/ui/tooltip'
 import { Input } from '#components/ui/input'
 import { Checkbox } from '#components/ui/checkbox'
-import { Stat, StatLabel, StatValue } from '#components/ui/stat'
-import { BorderBeam } from '#components/ui/border-beam'
-import NumberTicker from '#components/ui/number-ticker'
 import { cn } from '#lib/utils'
 
 // ============================================================================
@@ -101,7 +86,9 @@ export interface PropertiesProps {
 	onPropertyEdit?: (id: string) => void
 	onPropertyDelete?: (id: string) => void
 	onAddProperty?: () => void
-	onFilterChange?: (filter: 'all' | 'occupied' | 'available' | 'maintenance') => void
+	onFilterChange?: (
+		filter: 'all' | 'occupied' | 'available' | 'maintenance'
+	) => void
 	onBulkImport?: () => void
 }
 
@@ -142,51 +129,37 @@ interface PropertyCardProps {
 	isSelected?: boolean
 	onSelect?: (id: string) => void
 	onView?: () => void
-	onEdit?: () => void
-	onDelete?: () => void
 }
 
 function PropertyCard({
 	property,
 	isSelected,
 	onSelect,
-	onView,
-	onEdit,
-	onDelete
+	onView
 }: PropertyCardProps) {
-	const isHighPerformer = property.occupancyRate >= 90
-
 	return (
-		<Card
+		<div
 			className={cn(
-				'overflow-hidden group',
-				'hover:border-primary/20 hover:shadow-lg hover:-translate-y-0.5',
-				'transition-all duration-300 ease-out',
-				'animate-in fade-in slide-in-from-bottom-4',
+				'bg-card border rounded-sm overflow-hidden',
+				'hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1',
+				'transition-all duration-300 group',
 				isSelected && 'border-primary ring-2 ring-primary/20'
 			)}
 		>
 			{/* Property Image */}
-			<div className="relative aspect-video w-full overflow-hidden bg-muted">
+			<div className="h-44 relative overflow-hidden">
 				{property.imageUrl ? (
 					<Image
 						src={property.imageUrl}
 						alt={property.name}
 						fill
-						className="object-cover transition-transform duration-300 group-hover:scale-105"
+						className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
 						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 					/>
 				) : (
-					<div className="flex-center h-full bg-muted">
-						<Building2 className="size-16 text-muted-foreground" />
+					<div className="flex items-center justify-center h-full bg-muted">
+						<Building2 className="w-16 h-16 text-muted-foreground" />
 					</div>
-				)}
-				{/* Top Performer Badge */}
-				{isHighPerformer && (
-					<Badge className="absolute top-2 left-2 bg-emerald-500 hover:bg-emerald-600 text-white shadow-md">
-						<TrendingUp className="h-3 w-3 mr-1" />
-						Top Performer
-					</Badge>
 				)}
 				{/* Selection checkbox */}
 				{onSelect && (
@@ -195,125 +168,65 @@ function PropertyCard({
 							checked={isSelected ?? false}
 							onCheckedChange={() => onSelect(property.id)}
 							className="bg-background/80 border-border"
+							aria-label={`Select ${property.name}`}
 						/>
 					</div>
 				)}
 			</div>
 
-			<CardHeader className="pb-3">
-				<div className="flex items-start justify-between gap-2">
-					<div className="space-y-1 flex-1 min-w-0">
-						<CardTitle className="text-lg truncate">{property.name}</CardTitle>
-						<CardDescription className="flex items-center gap-1.5 text-sm">
-							<MapPin className="size-3.5 shrink-0" />
-							<span className="truncate">{property.addressLine1}, {property.city}</span>
-						</CardDescription>
-					</div>
-
-					{/* Action Buttons */}
-					<div className="flex items-center gap-1 shrink-0">
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={onView}
-									className="size-8 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-									aria-label={`View ${property.name}`}
-								>
-									<Eye className="size-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>View Details</TooltipContent>
-						</Tooltip>
-
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={onEdit}
-									className="size-8 text-muted-foreground hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-									aria-label={`Edit ${property.name}`}
-								>
-									<Pencil className="size-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>Edit Property</TooltipContent>
-						</Tooltip>
-
-						<Tooltip>
-							<TooltipTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									onClick={onDelete}
-									className="size-8 text-muted-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-									aria-label={`Delete ${property.name}`}
-								>
-									<Trash2 className="size-4" />
-								</Button>
-							</TooltipTrigger>
-							<TooltipContent>Delete Property</TooltipContent>
-						</Tooltip>
-					</div>
+			{/* Content */}
+			<div className="p-4">
+				<h3 className="font-semibold text-foreground mb-1 truncate">
+					{property.name}
+				</h3>
+				<div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-4">
+					<MapPin className="w-3.5 h-3.5 shrink-0" />
+					<span className="truncate">
+						{property.addressLine1}, {property.city}
+					</span>
 				</div>
-			</CardHeader>
 
-			<CardContent className="space-y-3">
 				{/* Stats Row */}
-				<div className="grid grid-cols-3 gap-3">
-					{/* Units */}
-					<div className="flex items-center gap-2 group/metric">
-						<div className="icon-container-sm bg-info/10 text-info transition-transform duration-200 group-hover/metric:scale-105">
-							<Home className="size-3.5" />
-						</div>
-						<div className="flex-1 min-w-0">
-							<p className="text-xs text-muted-foreground">Units</p>
-							<p className="text-lg font-medium leading-none">
+				<div className="flex items-center justify-between text-xs border-t border-border pt-4">
+					<div className="text-center">
+						<p className="text-muted-foreground mb-1">Units</p>
+						<div className="flex items-center justify-center gap-1">
+							<Home className="w-3.5 h-3.5 text-primary" />
+							<span className="font-semibold text-foreground">
 								{property.occupiedUnits}/{property.totalUnits}
-							</p>
+							</span>
 						</div>
 					</div>
-
-					{/* Occupancy */}
-					<div className="flex items-center gap-2 group/metric">
-						<div className="icon-container-sm bg-primary/10 text-primary transition-transform duration-200 group-hover/metric:scale-105">
-							<Users className="size-3.5" />
-						</div>
-						<div className="flex-1 min-w-0">
-							<p className="text-xs text-muted-foreground">Occupancy</p>
-							<p className="text-lg font-medium leading-none">
-								{property.occupancyRate.toFixed(0)}%
-							</p>
-						</div>
+					<div className="w-px h-8 bg-border" />
+					<div className="text-center">
+						<p className="text-muted-foreground mb-1">Occupancy</p>
+						<span className="font-semibold text-foreground">
+							{property.occupancyRate.toFixed(0)}%
+						</span>
 					</div>
-
-					{/* Revenue */}
-					<div className="flex items-center gap-2 group/metric">
-						<div className="icon-container-sm bg-success/10 text-success transition-transform duration-200 group-hover/metric:scale-105">
-							<DollarSign className="size-3.5" />
-						</div>
-						<div className="flex-1 min-w-0">
-							<p className="text-xs text-muted-foreground">Revenue</p>
-							<p className="text-lg font-medium leading-none truncate">
+					<div className="w-px h-8 bg-border" />
+					<div className="text-center">
+						<p className="text-muted-foreground mb-1">Revenue</p>
+						<div className="flex items-center justify-center gap-1">
+							<DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+							<span className="font-semibold text-foreground">
 								{formatCurrencyCompact(property.monthlyRevenue)}
-							</p>
+							</span>
 						</div>
 					</div>
 				</div>
 
-				{/* View Details Button */}
-				<Button
+				{/* View Button */}
+				<button
 					onClick={onView}
-					className="w-full"
-					variant="default"
-					size="sm"
+					className="w-full mt-4 py-2.5 text-sm font-medium text-primary border border-primary/20 bg-primary/5 hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-sm transition-all duration-200 flex items-center justify-center gap-2 group/btn min-h-11"
+					aria-label={`View details for ${property.name}`}
 				>
+					<Eye className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
 					View Details
-				</Button>
-			</CardContent>
-		</Card>
+				</button>
+			</div>
+		</div>
 	)
 }
 
@@ -323,7 +236,13 @@ function PropertyCard({
 
 type SortField = 'name' | 'address' | 'units' | 'occupancy' | 'revenue'
 type SortDirection = 'asc' | 'desc'
-type ColumnId = 'property' | 'address' | 'units' | 'occupancy' | 'revenue' | 'status'
+type ColumnId =
+	| 'property'
+	| 'address'
+	| 'units'
+	| 'occupancy'
+	| 'revenue'
+	| 'status'
 
 interface ColumnConfig {
 	id: ColumnId
@@ -363,7 +282,11 @@ function PropertyTable({
 	const [sortField, setSortField] = useState<SortField>('name')
 	const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 	const [visibleColumns, setVisibleColumns] = useState<Set<ColumnId>>(
-		new Set(TABLE_COLUMNS.filter(c => c.alwaysVisible || c.defaultVisible).map(c => c.id))
+		new Set(
+			TABLE_COLUMNS.filter(c => c.alwaysVisible || c.defaultVisible).map(
+				c => c.id
+			)
+		)
 	)
 	const [showColumnMenu, setShowColumnMenu] = useState(false)
 
@@ -415,7 +338,13 @@ function PropertyTable({
 		})
 	}, [properties, sortField, sortDirection])
 
-	const SortHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
+	const SortHeader = ({
+		field,
+		children
+	}: {
+		field: SortField
+		children: React.ReactNode
+	}) => (
 		<button
 			onClick={() => handleSort(field)}
 			className="flex items-center gap-1 hover:text-foreground transition-colors group"
@@ -424,18 +353,21 @@ function PropertyTable({
 			<ArrowUpDown
 				className={cn(
 					'w-3.5 h-3.5 transition-colors',
-					sortField === field ? 'text-primary' : 'text-muted-foreground/50 group-hover:text-muted-foreground'
+					sortField === field
+						? 'text-primary'
+						: 'text-muted-foreground/50 group-hover:text-muted-foreground'
 				)}
 			/>
 		</button>
 	)
 
 	return (
-		<div className="bg-card border border-border rounded-lg overflow-hidden">
+		<div className="bg-card border border-border rounded-sm overflow-hidden">
 			{/* Table Toolbar */}
 			<div className="px-4 py-2 border-b border-border flex items-center justify-between">
 				<span className="text-sm text-muted-foreground">
-					{properties.length} {properties.length === 1 ? 'property' : 'properties'}
+					{properties.length}{' '}
+					{properties.length === 1 ? 'property' : 'properties'}
 				</span>
 
 				{/* Column Visibility Toggle */}
@@ -448,7 +380,12 @@ function PropertyTable({
 					>
 						<Settings2 className="w-4 h-4" />
 						Columns
-						<ChevronDown className={cn('w-3.5 h-3.5 transition-transform', showColumnMenu && 'rotate-180')} />
+						<ChevronDown
+							className={cn(
+								'w-3.5 h-3.5 transition-transform',
+								showColumnMenu && 'rotate-180'
+							)}
+						/>
 					</Button>
 
 					{showColumnMenu && (
@@ -457,11 +394,11 @@ function PropertyTable({
 								className="fixed inset-0 z-10"
 								onClick={() => setShowColumnMenu(false)}
 							/>
-							<div className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg z-20 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
+							<div className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-sm shadow-lg z-20 py-1 animate-in fade-in slide-in-from-top-2 duration-150">
 								<div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border">
 									Toggle Columns
 								</div>
-								{TABLE_COLUMNS.map((column) => (
+								{TABLE_COLUMNS.map(column => (
 									<button
 										key={column.id}
 										onClick={() => toggleColumn(column.id)}
@@ -485,7 +422,9 @@ function PropertyTable({
 										</div>
 										<span className="text-foreground">{column.label}</span>
 										{column.alwaysVisible && (
-											<span className="ml-auto text-xs text-muted-foreground">Required</span>
+											<span className="ml-auto text-xs text-muted-foreground">
+												Required
+											</span>
 										)}
 									</button>
 								))}
@@ -502,7 +441,10 @@ function PropertyTable({
 						<tr className="border-b border-border bg-muted/30">
 							<th className="w-12 px-4 py-3">
 								<Checkbox
-									checked={selectedRows.size === properties.length && properties.length > 0}
+									checked={
+										selectedRows.size === properties.length &&
+										properties.length > 0
+									}
 									onCheckedChange={onSelectAll}
 								/>
 							</th>
@@ -542,7 +484,7 @@ function PropertyTable({
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-border">
-						{sortedProperties.map((property) => (
+						{sortedProperties.map(property => (
 							<tr
 								key={property.id}
 								className={cn(
@@ -559,7 +501,7 @@ function PropertyTable({
 								{isColumnVisible('property') && (
 									<td className="px-4 py-3">
 										<div className="flex items-center gap-3">
-											<div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+											<div className="w-10 h-10 rounded-sm overflow-hidden bg-muted flex-shrink-0">
 												{property.imageUrl ? (
 													<Image
 														src={property.imageUrl}
@@ -575,7 +517,9 @@ function PropertyTable({
 												)}
 											</div>
 											<div>
-												<p className="font-medium text-foreground">{property.name}</p>
+												<p className="font-medium text-foreground">
+													{property.name}
+												</p>
 												<p className="text-xs text-muted-foreground">
 													{formatPropertyType(property.propertyType)}
 												</p>
@@ -587,7 +531,9 @@ function PropertyTable({
 									<td className="px-4 py-3 hidden md:table-cell">
 										<div className="flex items-center gap-1.5 text-sm text-muted-foreground">
 											<MapPin className="w-3.5 h-3.5 shrink-0" />
-											<span className="truncate max-w-[200px]">{property.addressLine1}, {property.city}</span>
+											<span className="truncate max-w-[200px]">
+												{property.addressLine1}, {property.city}
+											</span>
 										</div>
 									</td>
 								)}
@@ -614,7 +560,9 @@ function PropertyTable({
 													style={{ width: `${property.occupancyRate}%` }}
 												/>
 											</div>
-											<span className="text-sm font-medium text-foreground">{property.occupancyRate}%</span>
+											<span className="text-sm font-medium text-foreground">
+												{property.occupancyRate}%
+											</span>
 										</div>
 									</td>
 								)}
@@ -622,21 +570,31 @@ function PropertyTable({
 									<td className="px-4 py-3">
 										<div className="flex items-center gap-1">
 											{property.availableUnits > 0 && (
-												<Badge variant="outline" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0">
+												<Badge
+													variant="outline"
+													className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-0"
+												>
 													{property.availableUnits} available
 												</Badge>
 											)}
 											{property.maintenanceUnits > 0 && (
-												<Badge variant="outline" className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-0">
+												<Badge
+													variant="outline"
+													className="bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-0"
+												>
 													<Wrench className="w-3 h-3 mr-1" />
 													{property.maintenanceUnits}
 												</Badge>
 											)}
-											{property.availableUnits === 0 && property.maintenanceUnits === 0 && (
-												<Badge variant="outline" className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-0">
-													Full
-												</Badge>
-											)}
+											{property.availableUnits === 0 &&
+												property.maintenanceUnits === 0 && (
+													<Badge
+														variant="outline"
+														className="bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 border-0"
+													>
+														Full
+													</Badge>
+												)}
 										</div>
 									</td>
 								)}
@@ -814,15 +772,18 @@ export function Properties({
 		return properties.filter(p => {
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
-				if (!p.name.toLowerCase().includes(query) &&
+				if (
+					!p.name.toLowerCase().includes(query) &&
 					!p.addressLine1.toLowerCase().includes(query) &&
-					!p.city.toLowerCase().includes(query)) {
+					!p.city.toLowerCase().includes(query)
+				) {
 					return false
 				}
 			}
 			if (statusFilter === 'occupied' && p.availableUnits > 0) return false
 			if (statusFilter === 'available' && p.availableUnits === 0) return false
-			if (statusFilter === 'maintenance' && p.maintenanceUnits === 0) return false
+			if (statusFilter === 'maintenance' && p.maintenanceUnits === 0)
+				return false
 			if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false
 			return true
 		})
@@ -841,7 +802,7 @@ export function Properties({
 		return (
 			<div className="p-6 lg:p-8 min-h-full bg-background">
 				<div className="max-w-md mx-auto text-center py-16">
-					<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
+					<div className="w-16 h-16 rounded-sm bg-primary/10 flex items-center justify-center mx-auto mb-6">
 						<Building2 className="w-8 h-8 text-primary" />
 					</div>
 					<h2 className="text-xl font-semibold text-foreground mb-3">
@@ -869,7 +830,9 @@ export function Properties({
 			<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
 				<div>
 					<h1 className="text-2xl font-bold text-foreground">Properties</h1>
-					<p className="text-sm text-muted-foreground mt-1">Manage your property portfolio</p>
+					<p className="text-sm text-muted-foreground mt-1">
+						Manage your property portfolio
+					</p>
 				</div>
 				<div className="flex items-center gap-2">
 					<Button
@@ -895,92 +858,87 @@ export function Properties({
 			{/* Stats Section */}
 			<section className="mb-8">
 				<div className="flex items-center justify-between mb-4">
-					<h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Overview</h2>
+					<h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+						Overview
+					</h2>
 				</div>
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 					{/* Total Properties */}
-					<div className="relative overflow-hidden">
-						<Stat className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-							<div className="flex items-center justify-between mb-2">
-								<StatLabel>Properties</StatLabel>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Properties</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{summary.totalProperties}
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Building2 className="w-4 h-4 text-primary" />
 							</div>
-							<div className="flex items-end justify-between">
-								<StatValue>
-									<NumberTicker value={summary.totalProperties} />
-								</StatValue>
-								<div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-									<Building2 className="w-4 h-4 text-primary" />
-								</div>
-							</div>
-						</Stat>
-						<BorderBeam size={80} duration={12} delay={0} className="opacity-0 group-hover:opacity-100" />
+						</div>
 					</div>
 
 					{/* Occupancy Rate */}
-					<div className="relative overflow-hidden">
-						<Stat className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-							<div className="flex items-center justify-between mb-2">
-								<StatLabel>Occupancy</StatLabel>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Occupancy</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{summary.overallOccupancyRate}%
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Users className="w-4 h-4 text-primary" />
 							</div>
-							<div className="flex items-end justify-between">
-								<StatValue>
-									<NumberTicker value={summary.overallOccupancyRate} />%
-								</StatValue>
-								<div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-									<Users className="w-4 h-4 text-primary" />
-								</div>
-							</div>
-						</Stat>
-						<BorderBeam size={80} duration={12} delay={3} className="opacity-0 group-hover:opacity-100" />
+						</div>
 					</div>
 
 					{/* Available Units */}
-					<div className="relative overflow-hidden">
-						<Stat className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-							<div className="flex items-center justify-between mb-2">
-								<StatLabel>Available</StatLabel>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Available</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{summary.availableUnits}
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Home className="w-4 h-4 text-primary" />
 							</div>
-							<div className="flex items-end justify-between">
-								<StatValue>
-									<NumberTicker value={summary.availableUnits} />
-								</StatValue>
-								<div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-									<Home className="w-4 h-4 text-primary" />
-								</div>
-							</div>
-						</Stat>
-						<BorderBeam size={80} duration={12} delay={6} className="opacity-0 group-hover:opacity-100" />
+						</div>
 					</div>
 
 					{/* Monthly Revenue */}
-					<div className="relative overflow-hidden">
-						<Stat className="bg-card border border-border rounded-lg p-4 hover:border-primary/30 hover:shadow-md transition-all group">
-							<div className="flex items-center justify-between mb-2">
-								<StatLabel>Monthly Revenue</StatLabel>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Monthly Revenue</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<div>
+								<p className="text-2xl font-bold text-foreground">
+									{formatCurrency(summary.totalMonthlyRevenue)}
+								</p>
+								{summary.totalUnits > 0 && (
+									<p className="text-xs text-muted-foreground">
+										{formatCurrency(
+											Math.round(
+												summary.totalMonthlyRevenue / summary.totalUnits
+											)
+										)}
+										/unit avg
+									</p>
+								)}
 							</div>
-							<div className="flex items-end justify-between">
-								<div>
-									<StatValue className="text-emerald-600 dark:text-emerald-400">
-										{formatCurrency(summary.totalMonthlyRevenue)}
-									</StatValue>
-									{summary.totalUnits > 0 && (
-										<p className="text-xs text-muted-foreground">
-											{formatCurrency(Math.round(summary.totalMonthlyRevenue / summary.totalUnits))}/unit avg
-										</p>
-									)}
-								</div>
-								<div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
-									<DollarSign className="w-4 h-4 text-emerald-600" />
-								</div>
+							<div className="w-9 h-9 rounded-sm bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500/20 transition-colors">
+								<DollarSign className="w-4 h-4 text-emerald-600" />
 							</div>
-						</Stat>
-						<BorderBeam size={80} duration={12} delay={9} className="opacity-0 group-hover:opacity-100" />
+						</div>
 					</div>
 				</div>
 			</section>
 
 			{/* Portfolio Section */}
-			<section className="bg-card border border-border rounded-lg overflow-hidden">
+			<section className="bg-card border border-border rounded-sm overflow-hidden">
 				{/* Toolbar: Search LEFT, View Toggle RIGHT */}
 				<div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-wrap">
 					{/* LEFT: Search + Filters */}
@@ -990,7 +948,7 @@ export function Properties({
 							type="search"
 							placeholder="Search properties..."
 							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
+							onChange={e => setSearchQuery(e.target.value)}
 							className="pl-9 h-10 focus:shadow-sm transition-shadow"
 							aria-label="Search properties by name, address, or city"
 						/>
@@ -998,12 +956,12 @@ export function Properties({
 
 					<select
 						value={statusFilter}
-						onChange={(e) => {
+						onChange={e => {
 							const value = e.target.value as typeof statusFilter
 							setStatusFilter(value)
 							onFilterChange?.(value)
 						}}
-						className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-10"
+						className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 						aria-label="Filter by status"
 					>
 						<option value="all">All Statuses</option>
@@ -1014,8 +972,8 @@ export function Properties({
 
 					<select
 						value={typeFilter}
-						onChange={(e) => setTypeFilter(e.target.value)}
-						className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-10"
+						onChange={e => setTypeFilter(e.target.value)}
+						className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 						aria-label="Filter by property type"
 					>
 						<option value="all">All Types</option>
@@ -1030,38 +988,45 @@ export function Properties({
 					{/* RIGHT: Count + View Toggle */}
 					<div className="flex items-center gap-3 ml-auto">
 						<span className="text-sm text-muted-foreground hidden sm:block tabular-nums">
-							{filteredProperties.length} {filteredProperties.length === 1 ? 'property' : 'properties'}
+							{filteredProperties.length}{' '}
+							{filteredProperties.length === 1 ? 'property' : 'properties'}
 						</span>
 
 						<div
-							className="flex items-center gap-1 p-1 bg-muted rounded-lg"
+							className="flex items-center gap-1 p-1 bg-muted"
 							role="tablist"
 							aria-label="View mode"
 						>
-							<Button
-								variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-								size="sm"
+							<button
 								onClick={() => setViewMode('table')}
-								className="gap-1.5 min-h-9"
+								className={cn(
+									'flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9',
+									viewMode === 'table'
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'
+								)}
 								role="tab"
 								aria-selected={viewMode === 'table'}
 								aria-label="Switch to table view"
 							>
 								<List className="w-4 h-4" />
 								Table
-							</Button>
-							<Button
-								variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-								size="sm"
+							</button>
+							<button
 								onClick={() => setViewMode('grid')}
-								className="gap-1.5 min-h-9"
+								className={cn(
+									'flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium transition-colors min-h-9',
+									viewMode === 'grid'
+										? 'bg-background text-foreground shadow-sm'
+										: 'text-muted-foreground hover:text-foreground'
+								)}
 								role="tab"
 								aria-selected={viewMode === 'grid'}
 								aria-label="Switch to grid view"
 							>
 								<LayoutGrid className="w-4 h-4" />
 								Grid
-							</Button>
+							</button>
 						</div>
 					</div>
 				</div>
@@ -1070,15 +1035,13 @@ export function Properties({
 				{viewMode === 'grid' && (
 					<div className="p-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
 						<div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-							{filteredProperties.map((property) => (
+							{filteredProperties.map(property => (
 								<PropertyCard
 									key={property.id}
 									property={property}
 									isSelected={selectedRows.has(property.id)}
 									onSelect={toggleSelect}
 									onView={() => onPropertyClick?.(property.id)}
-									onEdit={() => onPropertyEdit?.(property.id)}
-									onDelete={() => onPropertyDelete?.(property.id)}
 								/>
 							))}
 						</div>
@@ -1103,8 +1066,13 @@ export function Properties({
 				{/* No results */}
 				{filteredProperties.length === 0 && properties.length > 0 && (
 					<div className="text-center py-12">
-						<Search className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" aria-hidden="true" />
-						<p className="text-muted-foreground">No properties match your filters</p>
+						<Search
+							className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3"
+							aria-hidden="true"
+						/>
+						<p className="text-muted-foreground">
+							No properties match your filters
+						</p>
 						<Button
 							variant="link"
 							onClick={() => {

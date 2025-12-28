@@ -60,7 +60,7 @@ vi.mock('next/navigation', () => ({
 	usePathname: vi.fn(() => '/tenant')
 }))
 
-vi.mock('#components/tours', () => ({
+vi.mock('#components/tours/tenant-onboarding-tour', () => ({
 	TenantOnboardingTour: () => null,
 	TenantTourTrigger: () => <button type="button">Take a Tour</button>
 }))
@@ -107,7 +107,12 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 					autopayEnabled: fc.boolean(),
 					subscriptionId: fc.option(fc.string(), { nil: null }),
 					nextPaymentDate: fc.option(
-						fc.integer({ min: Date.UTC(2020, 0, 1), max: Date.UTC(2030, 11, 31) }).map(ts => new Date(ts).toISOString()),
+						fc
+							.integer({
+								min: Date.UTC(2020, 0, 1),
+								max: Date.UTC(2030, 11, 31)
+							})
+							.map(ts => new Date(ts).toISOString()),
 						{ nil: null }
 					),
 					lease_id: fc.option(fc.uuid(), { nil: null }),
@@ -136,7 +141,7 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 						// Should have 4 stat cards regardless of autopay status
 						expect(statCards.length).toBe(4)
 
-						// Each card should have proper design-os styling
+						// Each card should have proper design-os styling (Stat uses rounded-lg)
 						statCards.forEach(card => {
 							expect(card).toHaveClass('rounded-lg')
 							expect(card).toHaveClass('border')
@@ -153,66 +158,60 @@ describe('Property Test: Autopay Status Visibility (Property 7)', () => {
 
 	it('Property 7: Dashboard renders correctly during autopay loading state', () => {
 		fc.assert(
-			fc.property(
-				fc.boolean(),
-				_autopayEnabled => {
-					// Setup mock for loading state
-					mockUseQuery.mockImplementation((options: MockQueryOptions) => {
-						const queryKey = options?.queryKey || []
-						if (queryKey.includes('tenant-autopay')) {
-							return {
-								data: undefined,
-								isLoading: true
-							}
+			fc.property(fc.boolean(), _autopayEnabled => {
+				// Setup mock for loading state
+				mockUseQuery.mockImplementation((options: MockQueryOptions) => {
+					const queryKey = options?.queryKey || []
+					if (queryKey.includes('tenant-autopay')) {
+						return {
+							data: undefined,
+							isLoading: true
 						}
-						return { data: null, isLoading: false }
-					})
-
-					// Render component
-					const { unmount } = render(<TenantDashboardPage />)
-
-					try {
-						// Property: Stat cards should still render during loading
-						const statCards = document.querySelectorAll('[data-slot="stat"]')
-						expect(statCards.length).toBe(4)
-					} finally {
-						unmount()
 					}
+					return { data: null, isLoading: false }
+				})
+
+				// Render component
+				const { unmount } = render(<TenantDashboardPage />)
+
+				try {
+					// Property: Stat cards should still render during loading
+					const statCards = document.querySelectorAll('[data-slot="stat"]')
+					expect(statCards.length).toBe(4)
+				} finally {
+					unmount()
 				}
-			),
+			}),
 			{ numRuns: 25 }
 		)
 	})
 
 	it('Property 7: Dashboard renders correctly when autopay data is null', () => {
 		fc.assert(
-			fc.property(
-				fc.constant(null),
-				() => {
-					// Setup mock for null data
-					mockUseQuery.mockImplementation((options: MockQueryOptions) => {
-						const queryKey = options?.queryKey || []
-						if (queryKey.includes('tenant-autopay')) {
-							return {
-								data: null,
-								isLoading: false
-							}
+			fc.property(fc.constant(null), () => {
+				// Setup mock for null data
+				mockUseQuery.mockImplementation((options: MockQueryOptions) => {
+					const queryKey = options?.queryKey || []
+					if (queryKey.includes('tenant-autopay')) {
+						return {
+							data: null,
+							isLoading: false
 						}
-						return { data: null, isLoading: false }
-					})
-
-					// Render component
-					const { unmount } = render(<TenantDashboardPage />)
-
-					try {
-						// Property: Dashboard should render stat cards even when autopay is null
-						const statCards = document.querySelectorAll('[data-slot="stat"]')
-						expect(statCards.length).toBe(4)
-					} finally {
-						unmount()
 					}
+					return { data: null, isLoading: false }
+				})
+
+				// Render component
+				const { unmount } = render(<TenantDashboardPage />)
+
+				try {
+					// Property: Dashboard should render stat cards even when autopay is null
+					const statCards = document.querySelectorAll('[data-slot="stat"]')
+					expect(statCards.length).toBe(4)
+				} finally {
+					unmount()
 				}
-			),
+			}),
 			{ numRuns: 25 }
 		)
 	})

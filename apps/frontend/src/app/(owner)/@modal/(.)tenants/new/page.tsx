@@ -17,8 +17,12 @@ import { useQuery } from '@tanstack/react-query'
  * Lease creation is handled separately after tenant onboards.
  */
 export default function InviteTenantModal() {
-	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(propertyQueries.list())
-	const { data: unitsResponse, isLoading: unitsLoading } = useQuery(unitQueries.list())
+	const { data: propertiesResponse, isLoading: propertiesLoading } = useQuery(
+		propertyQueries.list()
+	)
+	const { data: unitsResponse, isLoading: unitsLoading } = useQuery(
+		unitQueries.list()
+	)
 	const properties = propertiesResponse?.data ?? []
 	const units = unitsResponse?.data ?? []
 
@@ -30,12 +34,13 @@ export default function InviteTenantModal() {
 				<div>
 					<DialogTitle>Invite Tenant</DialogTitle>
 					<DialogDescription>
-						Send a portal invitation to a new tenant. You can create their lease after they complete onboarding.
+						Send a portal invitation to a new tenant. You can create their lease
+						after they complete onboarding.
 					</DialogDescription>
 				</div>
 				{isLoading ? (
 					<div className="space-y-4">
-						{[1, 2, 3, 4].map((i) => (
+						{[1, 2, 3, 4].map(i => (
 							<Skeleton key={i} className="h-10 w-full" />
 						))}
 					</div>

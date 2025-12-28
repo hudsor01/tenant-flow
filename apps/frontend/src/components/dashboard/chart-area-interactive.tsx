@@ -26,7 +26,10 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
-import { useFinancialChartData, type FinancialTimeRange } from '#hooks/api/use-owner-dashboard'
+import {
+	useFinancialChartData,
+	type FinancialTimeRange
+} from '#hooks/api/use-owner-dashboard'
 import { useIsMobile } from '#hooks/use-mobile'
 import { cn } from '#lib/utils'
 
@@ -35,11 +38,11 @@ export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'var(--chart-1)'
+		color: 'var(--color-chart-1)'
 	},
 	expenses: {
 		label: 'Expenses',
-		color: 'var(--chart-2)'
+		color: 'var(--color-chart-2)'
 	}
 } satisfies ChartConfig
 
@@ -83,7 +86,10 @@ export function ChartAreaInteractive({
 				</div>
 				<div className="flex">
 					{isMobile ? (
-						<Select value={timeRange} onValueChange={(value) => setTimeRange(value as FinancialTimeRange)}>
+						<Select
+							value={timeRange}
+							onValueChange={value => setTimeRange(value as FinancialTimeRange)}
+						>
 							<SelectTrigger
 								className="w-40 rounded-lg sm:ml-auto"
 								aria-label="Select time range"
@@ -109,7 +115,9 @@ export function ChartAreaInteractive({
 						<ToggleGroup
 							type="single"
 							value={timeRange}
-							onValueChange={value => value && setTimeRange(value as FinancialTimeRange)}
+							onValueChange={value =>
+								value && setTimeRange(value as FinancialTimeRange)
+							}
 							className="ml-auto flex gap-2"
 						>
 							<ToggleGroupItem
@@ -202,7 +210,9 @@ export function ChartAreaInteractive({
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>
-				) : !chartData || !Array.isArray(chartData) || chartData.length === 0 ? (
+				) : !chartData ||
+				  !Array.isArray(chartData) ||
+				  chartData.length === 0 ? (
 					<Empty className="h-75 flex-center">
 						<EmptyTitle>No data available</EmptyTitle>
 						<EmptyDescription>

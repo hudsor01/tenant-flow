@@ -53,7 +53,9 @@ describe('FinancialOverviewController', () => {
 			]
 		}).compile()
 
-		controller = module.get<FinancialOverviewController>(FinancialOverviewController)
+		controller = module.get<FinancialOverviewController>(
+			FinancialOverviewController
+		)
 		financialService = module.get(FinancialService)
 		supabaseService = module.get(SupabaseService)
 	})
@@ -117,9 +119,27 @@ describe('FinancialOverviewController', () => {
 			supabaseService.getTokenFromRequest.mockReturnValue(mockToken)
 			// Mock returns the same structure as FinancialRevenueService.getRevenueTrends
 			financialService.getRevenueTrends.mockResolvedValue([
-				{ period: '2024-01', revenue: 4000, expenses: 1000, netIncome: 3000, profitMargin: 75 },
-				{ period: '2024-02', revenue: 4200, expenses: 1100, netIncome: 3100, profitMargin: 73.81 },
-				{ period: '2024-03', revenue: 4300, expenses: 1050, netIncome: 3250, profitMargin: 75.58 }
+				{
+					period: '2024-01',
+					revenue: 4000,
+					expenses: 1000,
+					netIncome: 3000,
+					profitMargin: 75
+				},
+				{
+					period: '2024-02',
+					revenue: 4200,
+					expenses: 1100,
+					netIncome: 3100,
+					profitMargin: 73.81
+				},
+				{
+					period: '2024-03',
+					revenue: 4300,
+					expenses: 1050,
+					netIncome: 3250,
+					profitMargin: 75.58
+				}
 			])
 
 			const result = await controller.getMonthlyMetrics(mockRequest)
@@ -136,7 +156,10 @@ describe('FinancialOverviewController', () => {
 
 			await controller.getMonthlyMetrics(mockRequest, '2023')
 
-			expect(financialService.getRevenueTrends).toHaveBeenCalledWith(mockToken, 2023)
+			expect(financialService.getRevenueTrends).toHaveBeenCalledWith(
+				mockToken,
+				2023
+			)
 		})
 
 		it('should default to current year when no year provided', async () => {

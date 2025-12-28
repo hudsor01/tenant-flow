@@ -18,7 +18,11 @@ import {
 } from '#components/ui/dialog'
 import { Clock, MapPin, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceStatus,
+	MaintenancePriority
+} from '@repo/shared/types/core'
 import { apiRequest } from '#lib/api-request'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
 
@@ -56,10 +60,15 @@ function getStatusBadge(status: MaintenanceStatus | string) {
 		}
 	}
 
-	const badge = config[normalizedStatus] ?? { className: 'bg-muted text-muted-foreground', label: status }
+	const badge = config[normalizedStatus] ?? {
+		className: 'bg-muted text-muted-foreground',
+		label: status
+	}
 
 	return (
-		<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+		<span
+			className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
+		>
 			{badge.label}
 		</span>
 	)
@@ -91,10 +100,15 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 		}
 	}
 
-	const badge = config[normalizedPriority] ?? { className: 'bg-muted text-muted-foreground', label: priority }
+	const badge = config[normalizedPriority] ?? {
+		className: 'bg-muted text-muted-foreground',
+		label: priority
+	}
 
 	return (
-		<span className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}>
+		<span
+			className={`px-2 py-0.5 rounded-full text-xs font-medium ${badge.className}`}
+		>
 			{badge.label}
 		</span>
 	)
@@ -122,7 +136,8 @@ function getAgingBadge(timestamp: string | null | undefined) {
 		className = 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
 		label = `${days} days`
 	} else if (days <= 14) {
-		className = 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
+		className =
+			'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
 		label = `${days} days`
 	} else {
 		className = 'bg-destructive/10 text-destructive'
@@ -130,7 +145,9 @@ function getAgingBadge(timestamp: string | null | undefined) {
 	}
 
 	return (
-		<div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${className}`}>
+		<div
+			className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${className}`}
+		>
 			<Clock className="w-3 h-3" />
 			{label}
 		</div>
@@ -144,7 +161,10 @@ export const columns: ColumnDef<MaintenanceRequestWithRelations>[] = [
 		cell: ({ row }) => {
 			const request = row.original
 			return (
-				<Link href={`/maintenance/${request.id}`} className="hover:underline block">
+				<Link
+					href={`/maintenance/${request.id}`}
+					className="hover:underline block"
+				>
 					<div className="flex flex-col gap-1">
 						<span className="font-medium text-foreground line-clamp-1">
 							{request.title ?? request.description}
@@ -191,19 +211,27 @@ export const columns: ColumnDef<MaintenanceRequestWithRelations>[] = [
 	}
 ]
 
-function MaintenanceActionsCell({ request }: { request: MaintenanceRequestWithRelations }) {
+function MaintenanceActionsCell({
+	request
+}: {
+	request: MaintenanceRequestWithRelations
+}) {
 	const queryClient = useQueryClient()
 	const [isDeleting, setIsDeleting] = useState(false)
 
 	const handleDelete = async () => {
 		setIsDeleting(true)
 		try {
-			await apiRequest<void>(`/api/v1/maintenance/${request.id}`, { method: 'DELETE' })
+			await apiRequest<void>(`/api/v1/maintenance/${request.id}`, {
+				method: 'DELETE'
+			})
 			toast.success('Request deleted')
 
 			await Promise.all([
 				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() }),
-				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
+				queryClient.invalidateQueries({
+					queryKey: maintenanceQueries.stats().queryKey
+				})
 			])
 		} catch {
 			toast.error('Failed to delete')
@@ -233,8 +261,8 @@ function MaintenanceActionsCell({ request }: { request: MaintenanceRequestWithRe
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Request</AlertDialogTitle>
 						<AlertDialogDescription>
-							Permanently delete "{request.title ?? request.description}"? This action cannot be
-							undone.
+							Permanently delete "{request.title ?? request.description}"? This
+							action cannot be undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

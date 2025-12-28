@@ -21,7 +21,9 @@ export const createRpcResultSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 	})
 
 // Schema for get_user_id_by_stripe_customer RPC response
-export const user_idByStripeCustomerSchema = createRpcResultSchema(z.string().uuid())
+export const user_idByStripeCustomerSchema = createRpcResultSchema(
+	z.string().uuid()
+)
 export type user_idByStripeCustomerResult = z.infer<
 	typeof user_idByStripeCustomerSchema
 >
@@ -82,7 +84,9 @@ export const stripeSubscriptionSchema = z.object({
 	updated_at: z.string().nullable()
 })
 
-export type StripeSubscriptionDBValidated = z.infer<typeof stripeSubscriptionSchema>
+export type StripeSubscriptionDBValidated = z.infer<
+	typeof stripeSubscriptionSchema
+>
 
 // Stripe Prices table schema
 export const stripePriceSchema = z.object({
@@ -125,7 +129,9 @@ export const stripePaymentIntentSchema = z.object({
 	updated_at: z.string().nullable()
 })
 
-export type StripePaymentIntentDBValidated = z.infer<typeof stripePaymentIntentSchema>
+export type StripePaymentIntentDBValidated = z.infer<
+	typeof stripePaymentIntentSchema
+>
 
 // Generic array validation helpers
 export const createValidatedArray = <T extends z.ZodTypeAny>(schema: T) =>
@@ -137,7 +143,9 @@ export const validateDatabaseResponse = <T>(
 ): T => {
 	const result = schema.safeParse(data)
 	if (!result.success) {
-		throw new Error(`Database response validation failed: ${result.error.message}`)
+		throw new Error(
+			`Database response validation failed: ${result.error.message}`
+		)
 	}
 	return result.data
 }

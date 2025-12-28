@@ -16,9 +16,11 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class FinancialRevenueService {
-
-	constructor(private readonly supabaseService: SupabaseService,
-		private readonly expenseService: FinancialExpenseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly expenseService: FinancialExpenseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get revenue trends by month for a given year
@@ -51,7 +53,10 @@ export class FinancialRevenueService {
 			yearEnd
 		)
 
-		const revenueByMonth = this.calculateMonthlyRevenue(leases || [], targetYear)
+		const revenueByMonth = this.calculateMonthlyRevenue(
+			leases || [],
+			targetYear
+		)
 		const expensesByMonth = this.expenseService.groupExpensesByMonth(expenses)
 		const monthlyMetrics: FinancialMetrics[] = []
 
@@ -199,7 +204,10 @@ export class FinancialRevenueService {
 	/**
 	 * Calculate monthly revenue from leases for a given year
 	 */
-	calculateMonthlyRevenue(leases: Lease[], targetYear: number): Map<string, number> {
+	calculateMonthlyRevenue(
+		leases: Lease[],
+		targetYear: number
+	): Map<string, number> {
 		const map = new Map<string, number>()
 
 		// Initialize all months with 0 revenue

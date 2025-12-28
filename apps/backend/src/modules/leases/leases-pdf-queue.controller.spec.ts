@@ -162,9 +162,9 @@ describe('LeasesPdfQueueController (TDD)', () => {
 			mockPdfQueue.getJob.mockResolvedValue(null)
 
 			// Act & Assert
-			await expect(
-				controller.getPdfStatus(leaseId, jobId)
-			).rejects.toThrow(NotFoundException)
+			await expect(controller.getPdfStatus(leaseId, jobId)).rejects.toThrow(
+				NotFoundException
+			)
 		})
 
 		it('should find latest job for lease when no jobId provided', async () => {

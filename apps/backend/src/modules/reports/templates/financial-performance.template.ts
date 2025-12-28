@@ -34,8 +34,10 @@ export interface FinancialPerformanceReportData {
 
 @Injectable()
 export class FinancialPerformanceTemplate {
-
-	constructor(private readonly financialService: FinancialAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly financialService: FinancialAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

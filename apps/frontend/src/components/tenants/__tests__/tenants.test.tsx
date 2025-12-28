@@ -116,12 +116,26 @@ describe('Tenants Component', () => {
 
 	describe('Component Rendering', () => {
 		it('renders without crashing', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
-			expect(screen.getByRole('heading', { name: /tenants/i })).toBeInTheDocument()
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
+			expect(
+				screen.getByRole('heading', { name: /tenants/i })
+			).toBeInTheDocument()
 		})
 
 		it('displays correct stats in header', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Check stats are displayed - use getAllByText since badges also show these
 			expect(screen.getByText('Total Tenants')).toBeInTheDocument()
@@ -131,7 +145,13 @@ describe('Tenants Component', () => {
 		})
 
 		it('displays tenant data in table view', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Check tenant names are displayed
 			expect(screen.getByText('John Smith')).toBeInTheDocument()
@@ -140,25 +160,41 @@ describe('Tenants Component', () => {
 		})
 
 		it('shows invite tenant button', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 			// There may be multiple invite buttons (action bar, quick actions)
-			expect(screen.getAllByRole('button', { name: /invite tenant/i }).length).toBeGreaterThan(0)
+			expect(
+				screen.getAllByRole('button', { name: /invite tenant/i }).length
+			).toBeGreaterThan(0)
 		})
 	})
 
 	describe('Empty State', () => {
 		it('shows empty state when no tenants', () => {
-			render(<Tenants tenants={[]} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants tenants={[]} selectedTenant={undefined} {...mockHandlers} />
+			)
 
 			expect(screen.getByText(/no tenants yet/i)).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: /invite your first tenant/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /invite your first tenant/i })
+			).toBeInTheDocument()
 		})
 
 		it('calls onInviteTenant when clicking invite button in empty state', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={[]} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants tenants={[]} selectedTenant={undefined} {...mockHandlers} />
+			)
 
-			await user.click(screen.getByRole('button', { name: /invite your first tenant/i }))
+			await user.click(
+				screen.getByRole('button', { name: /invite your first tenant/i })
+			)
 			expect(mockHandlers.onInviteTenant).toHaveBeenCalledOnce()
 		})
 	})
@@ -166,7 +202,13 @@ describe('Tenants Component', () => {
 	describe('View Toggle', () => {
 		it('switches between table and grid view', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find and click grid view button
 			const gridButton = screen.getByRole('button', { name: /grid/i })
@@ -188,7 +230,13 @@ describe('Tenants Component', () => {
 	describe('Search and Filter', () => {
 		it('filters tenants by search query', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			const searchInput = screen.getByPlaceholderText(/search tenants/i)
 			await user.type(searchInput, 'John Smith')
@@ -200,7 +248,13 @@ describe('Tenants Component', () => {
 
 		it('filters tenants by email', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			const searchInput = screen.getByPlaceholderText(/search tenants/i)
 			await user.type(searchInput, 'jane.doe@')
@@ -212,17 +266,31 @@ describe('Tenants Component', () => {
 
 		it('shows no results message when search has no matches', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			const searchInput = screen.getByPlaceholderText(/search tenants/i)
 			await user.type(searchInput, 'nonexistent')
 
-			expect(screen.getByText(/no tenants match your filters/i)).toBeInTheDocument()
+			expect(
+				screen.getByText(/no tenants match your filters/i)
+			).toBeInTheDocument()
 		})
 
 		it('clears filters when clicking clear button', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			const searchInput = screen.getByPlaceholderText(/search tenants/i)
 			await user.type(searchInput, 'John')
@@ -242,10 +310,18 @@ describe('Tenants Component', () => {
 	describe('Selection', () => {
 		it('selects a tenant by clicking checkbox', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find the first tenant's checkbox (use aria-label)
-			const checkbox = screen.getByRole('checkbox', { name: /select john smith/i })
+			const checkbox = screen.getByRole('checkbox', {
+				name: /select john smith/i
+			})
 			await user.click(checkbox)
 
 			// Action bar should appear (has role="toolbar" in the portal)
@@ -254,10 +330,18 @@ describe('Tenants Component', () => {
 
 		it('selects all tenants with select all checkbox', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find select all checkbox
-			const selectAllCheckbox = screen.getByRole('checkbox', { name: /select all/i })
+			const selectAllCheckbox = screen.getByRole('checkbox', {
+				name: /select all/i
+			})
 			await user.click(selectAllCheckbox)
 
 			// Action bar should appear (has role="toolbar" in the portal)
@@ -266,14 +350,24 @@ describe('Tenants Component', () => {
 
 		it('deselects all when clicking close on action bar', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Select a tenant first
-			const checkbox = screen.getByRole('checkbox', { name: /select john smith/i })
+			const checkbox = screen.getByRole('checkbox', {
+				name: /select john smith/i
+			})
 			await user.click(checkbox)
 
 			// Click deselect button on action bar
-			const deselectButton = screen.getByRole('button', { name: /deselect all/i })
+			const deselectButton = screen.getByRole('button', {
+				name: /deselect all/i
+			})
 			await user.click(deselectButton)
 
 			// Action bar should disappear
@@ -284,7 +378,13 @@ describe('Tenants Component', () => {
 	describe('Actions', () => {
 		it('calls onViewTenant when clicking tenant name', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			await user.click(screen.getByText('John Smith'))
 			expect(mockHandlers.onViewTenant).toHaveBeenCalledWith('tenant-1')
@@ -292,7 +392,13 @@ describe('Tenants Component', () => {
 
 		it('calls onEditTenant when clicking edit button', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find all edit buttons and click the first one
 			const editButtons = screen.getAllByRole('button', { name: /edit/i })
@@ -302,7 +408,13 @@ describe('Tenants Component', () => {
 
 		it('calls onDeleteTenant when clicking delete button', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find all delete buttons and click the first one
 			const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
@@ -312,17 +424,31 @@ describe('Tenants Component', () => {
 
 		it('calls onInviteTenant when clicking invite button', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// There may be multiple invite buttons - click the first one
-			const inviteButtons = screen.getAllByRole('button', { name: /invite tenant/i })
+			const inviteButtons = screen.getAllByRole('button', {
+				name: /invite tenant/i
+			})
 			await user.click(inviteButtons[0]!)
 			expect(mockHandlers.onInviteTenant).toHaveBeenCalled()
 		})
 
 		it('calls onExport from quick actions', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			const exportButton = screen.getByRole('button', { name: /export/i })
 			await user.click(exportButton)
@@ -332,7 +458,13 @@ describe('Tenants Component', () => {
 
 	describe('Status Display', () => {
 		it('shows correct status badges', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Status badges appear in both stats and table rows
 			expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
@@ -343,21 +475,39 @@ describe('Tenants Component', () => {
 
 	describe('Data Formatting', () => {
 		it('formats currency correctly', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={mockSelectedTenant}
+					{...mockHandlers}
+				/>
+			)
 
 			// The component should format amounts from cents to dollars
 			// This would be visible in the detail sheet when open
 		})
 
 		it('handles missing phone number gracefully', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Bob Johnson has no phone number
 			// Table should show dash or empty for missing phone
 		})
 
 		it('handles missing property gracefully', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Bob Johnson has no current property
 			// Table should show dash or empty for missing property
@@ -366,7 +516,13 @@ describe('Tenants Component', () => {
 
 	describe('Quick Actions', () => {
 		it('renders all quick action buttons', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Check for quick action buttons (may appear multiple times)
 			expect(screen.getAllByText('Invite Tenant').length).toBeGreaterThan(0)
@@ -377,7 +533,13 @@ describe('Tenants Component', () => {
 
 		it('calls onMessageAll when clicking message all button', async () => {
 			const user = userEvent.setup()
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Find and click the "Message All" quick action
 			const messageAllButton = screen.getByText('Message All').closest('button')
@@ -390,7 +552,13 @@ describe('Tenants Component', () => {
 
 	describe('Accessibility', () => {
 		it('has accessible name for all interactive elements', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// All buttons should have accessible names
 			const buttons = screen.getAllByRole('button')
@@ -400,13 +568,23 @@ describe('Tenants Component', () => {
 		})
 
 		it('has accessible checkboxes with labels', () => {
-			render(<Tenants tenants={mockTenants} selectedTenant={undefined} {...mockHandlers} />)
+			render(
+				<Tenants
+					tenants={mockTenants}
+					selectedTenant={undefined}
+					{...mockHandlers}
+				/>
+			)
 
 			// Select all checkbox
-			expect(screen.getByRole('checkbox', { name: /select all/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('checkbox', { name: /select all/i })
+			).toBeInTheDocument()
 
 			// Individual tenant checkboxes
-			expect(screen.getByRole('checkbox', { name: /select john smith/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('checkbox', { name: /select john smith/i })
+			).toBeInTheDocument()
 		})
 	})
 
@@ -445,19 +623,33 @@ describe('TenantDetailSheet', () => {
 
 	it('displays tenant contact information', async () => {
 		const user = userEvent.setup()
-		render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+		render(
+			<Tenants
+				tenants={mockTenants}
+				selectedTenant={mockSelectedTenant}
+				{...mockHandlers}
+			/>
+		)
 
 		// Click on tenant to open detail sheet
 		await user.click(screen.getByText('John Smith'))
 
 		// The detail sheet should show tenant info
 		// Note: Sheet content may be in a portal, so we use getAllByText
-		expect(screen.getAllByText('john.smith@example.com').length).toBeGreaterThan(0)
+		expect(
+			screen.getAllByText('john.smith@example.com').length
+		).toBeGreaterThan(0)
 	})
 
 	it('displays current lease information when present', async () => {
 		const user = userEvent.setup()
-		render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+		render(
+			<Tenants
+				tenants={mockTenants}
+				selectedTenant={mockSelectedTenant}
+				{...mockHandlers}
+			/>
+		)
 
 		// Click on tenant to open detail sheet
 		await user.click(screen.getByText('John Smith'))
@@ -468,7 +660,13 @@ describe('TenantDetailSheet', () => {
 
 	it('displays emergency contact when present', async () => {
 		const user = userEvent.setup()
-		render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+		render(
+			<Tenants
+				tenants={mockTenants}
+				selectedTenant={mockSelectedTenant}
+				{...mockHandlers}
+			/>
+		)
 
 		// Click on tenant to open detail sheet
 		await user.click(screen.getByText('John Smith'))
@@ -480,7 +678,13 @@ describe('TenantDetailSheet', () => {
 
 	it('displays payment history when present', async () => {
 		const user = userEvent.setup()
-		render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+		render(
+			<Tenants
+				tenants={mockTenants}
+				selectedTenant={mockSelectedTenant}
+				{...mockHandlers}
+			/>
+		)
 
 		// Click on tenant to open detail sheet
 		await user.click(screen.getByText('John Smith'))
@@ -491,7 +695,13 @@ describe('TenantDetailSheet', () => {
 
 	it('displays lease history when present', async () => {
 		const user = userEvent.setup()
-		render(<Tenants tenants={mockTenants} selectedTenant={mockSelectedTenant} {...mockHandlers} />)
+		render(
+			<Tenants
+				tenants={mockTenants}
+				selectedTenant={mockSelectedTenant}
+				{...mockHandlers}
+			/>
+		)
 
 		// Click on tenant to open detail sheet
 		await user.click(screen.getByText('John Smith'))

@@ -1,4 +1,9 @@
-import { Card, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { formatCents } from '@repo/shared/lib/format'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 
@@ -35,17 +40,13 @@ export function OwnerPaymentSummary({ summary }: OwnerPaymentSummaryProps) {
 			<Card>
 				<CardHeader>
 					<CardDescription>Outstanding invoices</CardDescription>
-					<CardTitle className="typography-h3">
-						{values.unpaidCount}
-					</CardTitle>
+					<CardTitle className="typography-h3">{values.unpaidCount}</CardTitle>
 				</CardHeader>
 			</Card>
 			<Card>
 				<CardHeader>
 					<CardDescription>Tenants monitored</CardDescription>
-					<CardTitle className="typography-h3">
-						{values.tenantCount}
-					</CardTitle>
+					<CardTitle className="typography-h3">{values.tenantCount}</CardTitle>
 				</CardHeader>
 			</Card>
 		</div>

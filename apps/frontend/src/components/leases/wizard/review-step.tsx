@@ -36,7 +36,6 @@ export function ReviewStep({
 	unitNumber,
 	tenantName
 }: ReviewStepProps) {
-
 	const formatDate = (dateStr: string | undefined) => {
 		if (!dateStr) return '-'
 		return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
@@ -49,7 +48,7 @@ export function ReviewStep({
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">Review Lease Details</h3>
+				<h3 className="text-lg font-medium mb-4">Review Lease Details</h3>
 				<p className="text-muted-foreground text-sm mb-6">
 					Please review all information before creating the draft lease.
 				</p>

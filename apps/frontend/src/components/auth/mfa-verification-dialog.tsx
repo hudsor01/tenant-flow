@@ -115,8 +115,8 @@ export function MfaVerificationDialog({
 						Two-Factor Authentication
 					</DialogTitle>
 					<DialogDescription>
-						Enter the 6-digit code from your authenticator app to complete
-						sign in
+						Enter the 6-digit code from your authenticator app to complete sign
+						in
 					</DialogDescription>
 				</DialogHeader>
 				<DialogBody className="space-y-6">

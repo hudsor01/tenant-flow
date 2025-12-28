@@ -86,7 +86,9 @@ const OWNER_SETTINGS_TABS = [
 type OwnerSettingsTab = (typeof OWNER_SETTINGS_TABS)[number]
 
 function isOwnerSettingsTab(value: string | null): value is OwnerSettingsTab {
-	return value !== null && (OWNER_SETTINGS_TABS as readonly string[]).includes(value)
+	return (
+		value !== null && (OWNER_SETTINGS_TABS as readonly string[]).includes(value)
+	)
 }
 
 export default function SettingsPage() {
@@ -104,19 +106,15 @@ export default function SettingsPage() {
 		isLoading: notificationsLoading,
 		isFetching: notificationsFetching
 	} = useNotifications({ page: notificationPage, limit: 10 })
-	const {
-		data: unreadData,
-		isLoading: unreadLoading
-	} = useUnreadNotificationsCount()
+	const { data: unreadData, isLoading: unreadLoading } =
+		useUnreadNotificationsCount()
 	const unreadCount = unreadData?.total ?? 0
 	const markNotificationRead = useMarkNotificationRead()
 	const deleteNotification = useDeleteNotification()
 	const markAllNotificationsRead = useMarkAllNotificationsRead()
 	const bulkMarkNotificationsRead = useBulkMarkNotificationsRead()
-	const {
-		data: notificationSettings,
-		isLoading: notificationSettingsLoading
-	} = useOwnerNotificationSettings()
+	const { data: notificationSettings, isLoading: notificationSettingsLoading } =
+		useOwnerNotificationSettings()
 	const updateNotificationSettings = useUpdateOwnerNotificationSettings()
 	const { data: invoices, isLoading: invoicesLoading } = useInvoices()
 	const {
@@ -126,14 +124,22 @@ export default function SettingsPage() {
 	} = useUserSessions()
 	const revokeSession = useRevokeSession()
 	const { isLoading: mfaStatusLoading } = useMfaStatus()
-	const { data: mfaFactors, isLoading: mfaFactorsLoading, refetch: refetchMfaFactors } = useMfaFactors()
+	const {
+		data: mfaFactors,
+		isLoading: mfaFactorsLoading,
+		refetch: refetchMfaFactors
+	} = useMfaFactors()
 
-	const [selectedNotifications, setSelectedNotifications] = useState<string[]>([])
+	const [selectedNotifications, setSelectedNotifications] = useState<string[]>(
+		[]
+	)
 	const [showSetup2faDialog, setShowSetup2faDialog] = useState(false)
 	const [showDisable2faDialog, setShowDisable2faDialog] = useState(false)
 
 	// Get the first enrolled TOTP factor if any
-	const enrolledTotpFactor = mfaFactors?.find(f => f.type === 'totp' && f.status === 'verified')
+	const enrolledTotpFactor = mfaFactors?.find(
+		f => f.type === 'totp' && f.status === 'verified'
+	)
 	const is2faEnabled = !!enrolledTotpFactor
 
 	const isSettingsPending =
@@ -148,7 +154,9 @@ export default function SettingsPage() {
 		| 'leases'
 		| 'general'
 
-	const isCategoryKey = (key: PreferenceKey): key is 'maintenance' | 'leases' | 'general' =>
+	const isCategoryKey = (
+		key: PreferenceKey
+	): key is 'maintenance' | 'leases' | 'general' =>
 		key === 'maintenance' || key === 'leases' || key === 'general'
 
 	const handlePreferenceToggle = (key: PreferenceKey, value: boolean) => {
@@ -203,15 +211,19 @@ export default function SettingsPage() {
 
 		if (!notification.is_read) {
 			markNotificationRead.mutate(notification.id)
-			}
 		}
+	}
 
 	const totalPages =
 		notificationsData && notificationsData.limit
-			? Math.max(1, Math.ceil(notificationsData.total / notificationsData.limit))
+			? Math.max(
+					1,
+					Math.ceil(notificationsData.total / notificationsData.limit)
+				)
 			: 1
 
-	const currentPageIds = notificationsData?.data.map(notification => notification.id) ?? []
+	const currentPageIds =
+		notificationsData?.data.map(notification => notification.id) ?? []
 	const allSelectedOnPage =
 		currentPageIds.length > 0 &&
 		currentPageIds.every(id => selectedNotifications.includes(id))
@@ -270,7 +282,7 @@ export default function SettingsPage() {
 
 			<Tabs
 				value={activeTab}
-				onValueChange={(value) =>
+				onValueChange={value =>
 					setActiveTab(isOwnerSettingsTab(value) ? value : 'profile')
 				}
 				className="space-y-6"
@@ -366,7 +378,9 @@ export default function SettingsPage() {
 										id="first_name"
 										name="first_name"
 										autoComplete="given-name"
-										defaultValue={(user?.user_metadata?.first_name as string) || ''}
+										defaultValue={
+											(user?.user_metadata?.first_name as string) || ''
+										}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -375,7 +389,9 @@ export default function SettingsPage() {
 										id="last_name"
 										name="last_name"
 										autoComplete="family-name"
-										defaultValue={(user?.user_metadata?.last_name as string) || ''}
+										defaultValue={
+											(user?.user_metadata?.last_name as string) || ''
+										}
 									/>
 								</div>
 								<div className="space-y-2">
@@ -460,98 +476,97 @@ export default function SettingsPage() {
 					</CardLayout>
 				</TabsContent>
 
-		<TabsContent value="notifications" className="space-y-6">
-			<CardLayout
-				title="Notification Preferences"
-				description="Choose how you want to be notified"
-				className="p-6 border shadow-sm"
-			>
-				<div className="space-y-4">
-					{notificationSettingsLoading ? (
-						<div className="space-y-3">
-							<Skeleton className="h-5 w-48" />
-							<Skeleton className="h-5 w-40" />
-							<Skeleton className="h-5 w-44" />
+				<TabsContent value="notifications" className="space-y-6">
+					<CardLayout
+						title="Notification Preferences"
+						description="Choose how you want to be notified"
+						className="p-6 border shadow-sm"
+					>
+						<div className="space-y-4">
+							{notificationSettingsLoading ? (
+								<div className="space-y-3">
+									<Skeleton className="h-5 w-48" />
+									<Skeleton className="h-5 w-40" />
+									<Skeleton className="h-5 w-44" />
+								</div>
+							) : (
+								<>
+									<PreferenceRow
+										label="Email alerts"
+										description="Receive notifications via email"
+										checked={notificationSettings?.email ?? true}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('email', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="SMS alerts"
+										description="Critical updates for payments and maintenance"
+										checked={notificationSettings?.sms ?? false}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('sms', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="Push notifications"
+										description="Instant in-app alerts on new activity"
+										checked={notificationSettings?.push ?? true}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('push', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="In-app banners"
+										description="Show alert banners inside the dashboard"
+										checked={notificationSettings?.inApp ?? true}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('inApp', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="Maintenance updates"
+										description="Progress on tenant maintenance requests"
+										checked={
+											notificationSettings?.categories?.maintenance ?? true
+										}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('maintenance', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="Lease updates"
+										description="Renewal reminders and signature events"
+										checked={notificationSettings?.categories?.leases ?? true}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('leases', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+									<PreferenceRow
+										label="General updates"
+										description="Product updates and system alerts"
+										checked={notificationSettings?.categories?.general ?? true}
+										onCheckedChange={checked =>
+											handlePreferenceToggle('general', checked)
+										}
+										disabled={isSettingsPending}
+									/>
+								</>
+							)}
 						</div>
-					) : (
-						<>
-							<PreferenceRow
-								label="Email alerts"
-								description="Receive notifications via email"
-								checked={notificationSettings?.email ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('email', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="SMS alerts"
-								description="Critical updates for payments and maintenance"
-								checked={notificationSettings?.sms ?? false}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('sms', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="Push notifications"
-								description="Instant in-app alerts on new activity"
-								checked={notificationSettings?.push ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('push', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="In-app banners"
-								description="Show alert banners inside the dashboard"
-								checked={notificationSettings?.inApp ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('inApp', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="Maintenance updates"
-								description="Progress on tenant maintenance requests"
-								checked={notificationSettings?.categories?.maintenance ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('maintenance', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="Lease updates"
-								description="Renewal reminders and signature events"
-								checked={notificationSettings?.categories?.leases ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('leases', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-							<PreferenceRow
-								label="General updates"
-								description="Product updates and system alerts"
-								checked={notificationSettings?.categories?.general ?? true}
-								onCheckedChange={checked =>
-									handlePreferenceToggle('general', checked)
-								}
-								disabled={isSettingsPending}
-							/>
-						</>
-					)}
-				</div>
-			</CardLayout>
+					</CardLayout>
 
-			<CardLayout
-				title="Notifications"
-				className="p-6 border shadow-sm"
-			>
+					<CardLayout title="Notifications" className="p-6 border shadow-sm">
 						<div className="flex flex-wrap items-center justify-between gap-3">
 							<div>
 								<p className="text-sm text-muted-foreground">
-									Real-time updates for maintenance, leases, payments, and system
-									alerts.
+									Real-time updates for maintenance, leases, payments, and
+									system alerts.
 								</p>
 							</div>
 							<div className="flex items-center gap-2">
@@ -637,7 +652,9 @@ export default function SettingsPage() {
 												>
 													<div className="flex items-start gap-3">
 														<Checkbox
-															checked={selectedNotifications.includes(notification.id)}
+															checked={selectedNotifications.includes(
+																notification.id
+															)}
 															onCheckedChange={checked =>
 																toggleSelectOne(notification.id, checked)
 															}
@@ -645,24 +662,24 @@ export default function SettingsPage() {
 															className="mt-1"
 														/>
 														<div className="space-y-1">
-														<div className="flex flex-wrap items-center gap-2">
-															<Badge
-																variant={
-																	notification.is_read ? 'outline' : 'default'
-																}
-															>
-																{notification.notification_type}
-															</Badge>
-															<span className="font-medium text-foreground">
-																{notification.title}
-															</span>
-														</div>
-														<p className="text-sm text-muted-foreground">
-															{notification.message ?? 'No message provided'}
-														</p>
-														<p className="text-xs text-muted-foreground">
-															{createdAt}
-														</p>
+															<div className="flex flex-wrap items-center gap-2">
+																<Badge
+																	variant={
+																		notification.is_read ? 'outline' : 'default'
+																	}
+																>
+																	{notification.notification_type}
+																</Badge>
+																<span className="font-medium text-foreground">
+																	{notification.title}
+																</span>
+															</div>
+															<p className="text-sm text-muted-foreground">
+																{notification.message ?? 'No message provided'}
+															</p>
+															<p className="text-xs text-muted-foreground">
+																{createdAt}
+															</p>
 														</div>
 													</div>
 													<div className="flex flex-wrap items-center gap-2 self-start md:self-center">
@@ -671,7 +688,9 @@ export default function SettingsPage() {
 																variant="ghost"
 																size="sm"
 																className="gap-1"
-																onClick={() => handleOpenNotification(notification)}
+																onClick={() =>
+																	handleOpenNotification(notification)
+																}
 															>
 																<ExternalLink className="size-4" />
 																Open
@@ -758,7 +777,7 @@ export default function SettingsPage() {
 				<TabsContent value="security" className="space-y-6">
 					<PasswordUpdateSection />
 
-						<CardLayout
+					<CardLayout
 						title="Two-Factor Authentication"
 						className="p-6 border shadow-sm"
 					>
@@ -786,7 +805,7 @@ export default function SettingsPage() {
 										</div>
 										<Switch
 											checked={is2faEnabled}
-											onCheckedChange={(checked) => {
+											onCheckedChange={checked => {
 												if (checked) {
 													setShowSetup2faDialog(true)
 												} else {
@@ -845,11 +864,12 @@ export default function SettingsPage() {
 								</>
 							) : sessions && sessions.length > 0 ? (
 								sessions.map(session => {
-									const DeviceIcon = session.device === 'mobile'
-										? Smartphone
-										: session.device === 'tablet'
-										? Tablet
-										: Monitor
+									const DeviceIcon =
+										session.device === 'mobile'
+											? Smartphone
+											: session.device === 'tablet'
+												? Tablet
+												: Monitor
 
 									const lastActive = new Date(session.updated_at)
 									const now = new Date()
@@ -881,9 +901,7 @@ export default function SettingsPage() {
 											<div className="flex items-center gap-3">
 												<div
 													className={`size-11 rounded-full flex-center ${
-														session.is_current
-															? 'bg-primary/20'
-															: 'bg-muted'
+														session.is_current ? 'bg-primary/20' : 'bg-muted'
 													}`}
 												>
 													{session.is_current ? (
@@ -986,8 +1004,11 @@ export default function SettingsPage() {
 						<div className="space-y-3">
 							{invoicesLoading ? (
 								<>
-									{[1, 2, 3].map((i) => (
-										<div key={i} className="flex-between p-3 rounded-lg bg-muted/20">
+									{[1, 2, 3].map(i => (
+										<div
+											key={i}
+											className="flex-between p-3 rounded-lg bg-muted/20"
+										>
 											<div className="space-y-2">
 												<Skeleton className="h-4 w-24" />
 												<Skeleton className="h-3 w-16" />
@@ -1000,27 +1021,21 @@ export default function SettingsPage() {
 									))}
 								</>
 							) : invoices && invoices.length > 0 ? (
-								invoices.map((invoice) => (
+								invoices.map(invoice => (
 									<div
 										key={invoice.id}
 										className="flex-between p-3 rounded-lg bg-muted/20"
 									>
 										<div>
 											<p className="font-medium">{invoice.date}</p>
-											<p className="text-muted">
-												{invoice.amount}
-											</p>
+											<p className="text-muted">{invoice.amount}</p>
 										</div>
 										<div className="flex items-center gap-2">
 											<Badge variant="default" className="text-xs">
 												{invoice.status}
 											</Badge>
 											{invoice.invoicePdf ? (
-												<Button
-													variant="ghost"
-													size="sm"
-													asChild
-												>
+												<Button variant="ghost" size="sm" asChild>
 													<a
 														href={invoice.invoicePdf}
 														target="_blank"
@@ -1031,11 +1046,7 @@ export default function SettingsPage() {
 													</a>
 												</Button>
 											) : invoice.hostedUrl ? (
-												<Button
-													variant="ghost"
-													size="sm"
-													asChild
-												>
+												<Button variant="ghost" size="sm" asChild>
 													<a
 														href={invoice.hostedUrl}
 														target="_blank"

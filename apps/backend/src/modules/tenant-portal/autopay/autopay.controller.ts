@@ -1,4 +1,10 @@
-import { Controller, Get, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	NotFoundException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -20,7 +26,6 @@ import { RentPaymentAutopayService } from '../../rent-payments/rent-payment-auto
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantAutopayController {
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger,

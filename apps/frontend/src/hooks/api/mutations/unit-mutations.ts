@@ -16,7 +16,6 @@ import { leaseQueries } from '../queries/lease-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
-
 /**
  * Create unit mutation
  */
@@ -33,12 +32,12 @@ export function useCreateUnitMutation() {
 					owner_user_id: user?.id
 				})
 			}),
-		onSuccess: (_newUnit) => {
+		onSuccess: _newUnit => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			toast.success('Unit created successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Create unit')
 		}
 	})
@@ -51,12 +50,20 @@ export function useUpdateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: UnitUpdate; version?: number }) =>
+		mutationFn: ({
+			id,
+			data,
+			version
+		}: {
+			id: string
+			data: UnitUpdate
+			version?: number
+		}) =>
 			apiRequest<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)
 			}),
-		onSuccess: (updatedUnit) => {
+		onSuccess: updatedUnit => {
 			queryClient.setQueryData(
 				unitQueries.detail(updatedUnit.id).queryKey,
 				updatedUnit
@@ -66,7 +73,7 @@ export function useUpdateUnitMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Unit updated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Update unit')
 		}
 	})
@@ -84,13 +91,15 @@ export function useDeleteUnitMutation() {
 				method: 'DELETE'
 			}),
 		onSuccess: (_result, deletedId) => {
-			queryClient.removeQueries({ queryKey: unitQueries.detail(deletedId).queryKey })
+			queryClient.removeQueries({
+				queryKey: unitQueries.detail(deletedId).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Unit deleted successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Delete unit')
 		}
 	})

@@ -10,9 +10,16 @@ type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
 /**
  * Maps detailed notification event types to database enum categories
  */
-function mapEventTypeToCategory(eventType: DatabaseNotificationEventType): NotificationType {
+function mapEventTypeToCategory(
+	eventType: DatabaseNotificationEventType
+): NotificationType {
 	if (eventType.startsWith('lease_')) return 'lease'
-	if (eventType.startsWith('subscription_') || eventType.startsWith('payment_') || eventType === 'trial_ending') return 'payment'
+	if (
+		eventType.startsWith('subscription_') ||
+		eventType.startsWith('payment_') ||
+		eventType === 'trial_ending'
+	)
+		return 'payment'
 	if (eventType.startsWith('maintenance_')) return 'maintenance'
 	return 'system'
 }
@@ -35,8 +42,10 @@ export interface CreateNotificationParams {
  */
 @Injectable()
 export class NotificationService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Create in-app notification for user
@@ -217,7 +226,6 @@ export class NotificationService {
 			})
 		}
 	}
-
 
 	/**
 	 * Check if a notification already exists (idempotency)

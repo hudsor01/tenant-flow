@@ -25,8 +25,10 @@ export interface LeaseHistoryItem {
 
 @Injectable()
 export class TenantRelationService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get all owner property IDs
@@ -51,7 +53,7 @@ export class TenantRelationService {
 				return []
 			}
 
-			return ((data as Array<{ id: string }>) || []).map((p) => p.id)
+			return ((data as Array<{ id: string }>) || []).map(p => p.id)
 		} catch (error) {
 			this.logger.error('Error getting owner property IDs', {
 				error: error instanceof Error ? error.message : String(error),
@@ -202,7 +204,8 @@ export class TenantRelationService {
 			// Get all leases for this tenant via lease_tenants junction table
 			const { data, error } = await client
 				.from('lease_tenants')
-				.select(`
+				.select(
+					`
 					lease:leases(
 						id,
 						start_date,
@@ -216,7 +219,8 @@ export class TenantRelationService {
 							)
 						)
 					)
-				`)
+				`
+				)
 				.eq('tenant_id', tenantId)
 				.order('created_at', { ascending: false })
 
@@ -232,17 +236,21 @@ export class TenantRelationService {
 			const leaseHistory: LeaseHistoryItem[] = []
 
 			for (const item of data || []) {
-				const lease = (item as { lease: {
-					id: string
-					start_date: string
-					end_date: string | null
-					rent_amount: number
-					lease_status: string
-					unit: {
-						unit_number: string
-						property: { name: string }
+				const lease = (
+					item as {
+						lease: {
+							id: string
+							start_date: string
+							end_date: string | null
+							rent_amount: number
+							lease_status: string
+							unit: {
+								unit_number: string
+								property: { name: string }
+							}
+						} | null
 					}
-				} | null }).lease
+				).lease
 
 				if (lease && lease.unit) {
 					leaseHistory.push({

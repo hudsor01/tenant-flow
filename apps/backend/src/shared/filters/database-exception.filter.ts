@@ -1,6 +1,4 @@
-import type {
-	ExceptionFilter,
-	ArgumentsHost} from '@nestjs/common';
+import type { ExceptionFilter, ArgumentsHost } from '@nestjs/common'
 import { Catch, HttpStatus } from '@nestjs/common'
 import type { Response } from 'express'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -18,7 +16,7 @@ interface PostgrestError {
 /**
  * Database Exception Filter
  * Handles PostgreSQL/PostgREST errors and maps them to appropriate HTTP status codes
- * 
+ *
  * Common PostgREST error codes:
  * - PGRST116: Not found (404)
  * - PGRST301: JWT expired (401)
@@ -29,8 +27,7 @@ interface PostgrestError {
  */
 @Catch()
 export class DatabaseExceptionFilter implements ExceptionFilter {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	catch(exception: unknown, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()

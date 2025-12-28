@@ -9,7 +9,14 @@
  * - submission.completed: All parties have signed
  */
 
-import { BadRequestException, Body, Controller, Headers, Post, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Headers,
+	Post,
+	UnauthorizedException
+} from '@nestjs/common'
 import { timingSafeEqual } from 'crypto'
 import { DocuSealWebhookService } from './docuseal-webhook.service'
 import {
@@ -29,12 +36,18 @@ export interface DocuSealWebhookPayload {
 
 @Controller('webhooks/docuseal')
 export class DocuSealWebhookController {
+	constructor(
+		private readonly webhookService: DocuSealWebhookService,
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger,
+		private readonly supabaseService: SupabaseService
+	) {}
 
-	constructor(private readonly webhookService: DocuSealWebhookService,
-		private readonly config: AppConfigService, private readonly logger: AppLogger,
-		private readonly supabaseService: SupabaseService) {}
-
-	private async acquireWebhookLock(externalId: string, eventType: string, rawPayload: unknown): Promise<boolean> {
+	private async acquireWebhookLock(
+		externalId: string,
+		eventType: string,
+		rawPayload: unknown
+	): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.rpc('acquire_webhook_event_lock_with_id', {
@@ -117,10 +130,13 @@ export class DocuSealWebhookController {
 			)
 
 			if (!lockAcquired) {
-				this.logger.log('DocuSeal webhook duplicate detected, skipping processing', {
-					eventType: payload.event_type,
-					externalId
-				})
+				this.logger.log(
+					'DocuSeal webhook duplicate detected, skipping processing',
+					{
+						eventType: payload.event_type,
+						externalId
+					}
+				)
 				return { received: true }
 			}
 
@@ -139,12 +155,16 @@ export class DocuSealWebhookController {
 				}
 
 				case 'submission.completed': {
-					const result = submissionCompletedPayloadSchema.safeParse(payload.data)
+					const result = submissionCompletedPayloadSchema.safeParse(
+						payload.data
+					)
 					if (!result.success) {
 						this.logger.warn('Invalid submission.completed payload', {
 							errors: result.error.flatten()
 						})
-						throw new BadRequestException('Invalid submission.completed payload')
+						throw new BadRequestException(
+							'Invalid submission.completed payload'
+						)
 					}
 					await this.webhookService.handleSubmissionCompleted(result.data)
 					break

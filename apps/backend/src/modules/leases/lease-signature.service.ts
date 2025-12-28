@@ -59,10 +59,12 @@ export interface SignatureStatus {
 
 export interface SendForSignatureOptions {
 	message?: string | undefined
-	missingFields?: {
-		immediate_family_members?: string
-		landlord_notice_address?: string
-	} | undefined // User-provided missing PDF fields
+	missingFields?:
+		| {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+		  }
+		| undefined // User-provided missing PDF fields
 	token?: string | undefined // JWT token for database queries
 }
 
@@ -238,11 +240,15 @@ export class LeaseSignatureService {
 		let pdfBuffer: Buffer
 		const state = leaseData.lease?.governing_state || undefined
 		try {
-			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId, {
-				state,
-				throwOnUnsupportedState: false,
-				validateTemplate: true
-			})
+			pdfBuffer = await this.pdfGenerator.generateFilledPdf(
+				completeFields,
+				leaseId,
+				{
+					state,
+					throwOnUnsupportedState: false,
+					validateTemplate: true
+				}
+			)
 			this.logger.log('Generated filled lease PDF', {
 				leaseId,
 				state,
@@ -263,7 +269,10 @@ export class LeaseSignatureService {
 		// Step 6: Upload PDF to Supabase Storage
 		let pdfUrl: string
 		try {
-			const uploadResult = await this.pdfStorage.uploadLeasePdf(leaseId, pdfBuffer)
+			const uploadResult = await this.pdfStorage.uploadLeasePdf(
+				leaseId,
+				pdfBuffer
+			)
 			pdfUrl = uploadResult.publicUrl
 			this.logger.log('Uploaded lease PDF to storage', {
 				leaseId,
@@ -290,8 +299,16 @@ export class LeaseSignatureService {
 				.single()
 		])
 
-		let ownerUser: { email: string; first_name: string | null; last_name: string | null } | null = null
-		let tenantUser: { email: string; first_name: string | null; last_name: string | null } | null = null
+		let ownerUser: {
+			email: string
+			first_name: string | null
+			last_name: string | null
+		} | null = null
+		let tenantUser: {
+			email: string
+			first_name: string | null
+			last_name: string | null
+		} | null = null
 
 		if (lease.owner_user_id && tenantRecord?.user_id) {
 			const [ownerResult, tenantResult] = await Promise.all([
@@ -414,9 +431,7 @@ export class LeaseSignatureService {
 		// Step 1: Get lease for authorization check (read-only, no lock needed)
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select(
-				'id, owner_user_id, rent_amount, primary_tenant_id'
-			)
+			.select('id, owner_user_id, rent_amount, primary_tenant_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -766,9 +781,7 @@ export class LeaseSignatureService {
 		// Get lease with DocuSeal submission ID
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, docuseal_submission_id, owner_user_id, primary_tenant_id'
-			)
+			.select('id, docuseal_submission_id, owner_user_id, primary_tenant_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -841,9 +854,7 @@ export class LeaseSignatureService {
 		// Get lease and verify ownership
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, lease_status, owner_user_id, docuseal_submission_id'
-			)
+			.select('id, lease_status, owner_user_id, docuseal_submission_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -944,9 +955,7 @@ export class LeaseSignatureService {
 		// Get lease and verify ownership
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, lease_status, owner_user_id, docuseal_submission_id'
-			)
+			.select('id, lease_status, owner_user_id, docuseal_submission_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -1014,7 +1023,10 @@ export class LeaseSignatureService {
 				if (options?.message) {
 					resendOptions.message = options.message
 				}
-				await this.docuSealService.resendToSubmitter(submitter.id, resendOptions)
+				await this.docuSealService.resendToSubmitter(
+					submitter.id,
+					resendOptions
+				)
 			}
 		}
 

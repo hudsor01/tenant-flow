@@ -1,4 +1,11 @@
-import { Controller, Get, Req, Res, UnauthorizedException, SetMetadata } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Req,
+	Res,
+	UnauthorizedException,
+	SetMetadata
+} from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { timingSafeEqual } from 'crypto'
@@ -25,15 +32,20 @@ const METRICS_THROTTLE = createThrottleDefaults({
  */
 @Controller() // Define explicit route paths inside decorators
 export class MetricsController extends PrometheusController {
-
-	constructor(private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly appConfigService: AppConfigService,
+		private readonly logger: AppLogger
+	) {
 		super()
 	}
 
 	@SetMetadata('isPublic', true)
 	@Throttle({ default: METRICS_THROTTLE })
 	@Get(['metrics', 'metric'])
-	async getMetrics(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+	async getMetrics(
+		@Req() req: Request,
+		@Res({ passthrough: true }) res: Response
+	) {
 		const requireAuth = this.appConfigService.isPrometheusAuthRequired()
 		const expectedToken = this.appConfigService.getPrometheusBearerToken()
 

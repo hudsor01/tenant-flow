@@ -52,7 +52,10 @@ interface SseContextValue {
 	/** Current connection state */
 	connectionState: SseConnectionState
 	/** Subscribe to SSE events - returns unsubscribe function */
-	subscribe: (callback: EventCallback, eventTypes?: SseEventType[]) => () => void
+	subscribe: (
+		callback: EventCallback,
+		eventTypes?: SseEventType[]
+	) => () => void
 	/** Manually reconnect */
 	reconnect: () => void
 	/** Whether currently connected */
@@ -101,15 +104,23 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 	const queryClient = useQueryClient()
 
 	// Connection state (only thing that causes re-renders)
-	const [connectionState, setConnectionState] = useState<SseConnectionState>('idle')
+	const [connectionState, setConnectionState] =
+		useState<SseConnectionState>('idle')
 
 	// Refs for mutable state (no re-renders)
 	const abortControllerRef = useRef<AbortController | null>(null)
 	const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 	const reconnectAttemptsRef = useRef(0)
-	const subscribersRef = useRef<Map<symbol, { callback: EventCallback; eventTypes: SseEventType[] | undefined }>>(new Map())
+	const subscribersRef = useRef<
+		Map<
+			symbol,
+			{ callback: EventCallback; eventTypes: SseEventType[] | undefined }
+		>
+	>(new Map())
 	const isConnectingRef = useRef(false)
-	const isVisibleRef = useRef(typeof document !== 'undefined' ? !document.hidden : true)
+	const isVisibleRef = useRef(
+		typeof document !== 'undefined' ? !document.hidden : true
+	)
 
 	/**
 	 * Notify all subscribers of an event
@@ -117,7 +128,11 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 	const notifySubscribers = useCallback((event: SseEvent) => {
 		subscribersRef.current.forEach(({ callback, eventTypes }) => {
 			// Filter by event types if specified
-			if (eventTypes && eventTypes.length > 0 && !eventTypes.includes(event.type)) {
+			if (
+				eventTypes &&
+				eventTypes.length > 0 &&
+				!eventTypes.includes(event.type)
+			) {
 				return
 			}
 			try {
@@ -180,7 +195,9 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 		try {
 			// Get access token
 			const supabase = createClient()
-			const { data: { session } } = await supabase.auth.getSession()
+			const {
+				data: { session }
+			} = await supabase.auth.getSession()
 
 			if (!session?.access_token) {
 				logger.debug('No session, SSE disabled')
@@ -208,7 +225,9 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 
 			// Handle rate limiting (429)
 			if (response.status === 429) {
-				logger.warn('Rate limited, backing off', { backoff: RATE_LIMIT_BACKOFF })
+				logger.warn('Rate limited, backing off', {
+					backoff: RATE_LIMIT_BACKOFF
+				})
 				setConnectionState('rate_limited')
 				isConnectingRef.current = false
 				reconnectTimeoutRef.current = setTimeout(() => {
@@ -377,7 +396,9 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 		isConnected: connectionState === 'connected'
 	}
 
-	return <SseContext.Provider value={contextValue}>{children}</SseContext.Provider>
+	return (
+		<SseContext.Provider value={contextValue}>{children}</SseContext.Provider>
+	)
 }
 
 // ============================================================================
@@ -420,7 +441,7 @@ export function useSseEvents(
 
 	useEffect(() => {
 		// Use ref to avoid re-subscribing when callback changes
-		return subscribe((event) => callbackRef.current(event), eventTypes)
+		return subscribe(event => callbackRef.current(event), eventTypes)
 	}, [subscribe, eventTypes])
 }
 
@@ -442,7 +463,7 @@ export function useSseEventListener<T extends SseEventType>(
 	callbackRef.current = callback
 
 	useSseEvents(
-		(event) => {
+		event => {
 			if (event.type === eventType) {
 				callbackRef.current(event as Extract<SseEvent, { type: T }>)
 			}

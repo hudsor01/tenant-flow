@@ -25,7 +25,9 @@ export function getRequiredEnvVar(name: string): string {
  */
 export function createSupabaseTestClient(): SupabaseClient<Database> {
 	const supabaseUrl = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-	const supabaseAnonKey = getRequiredEnvVar('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY')
+	const supabaseAnonKey = getRequiredEnvVar(
+		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'
+	)
 
 	return createClient<Database>(supabaseUrl, supabaseAnonKey, {
 		auth: {

@@ -62,8 +62,7 @@ const formatMoney = (value: number) =>
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 
 // Safe formatters for Recharts Tooltip (handles undefined)
-const safeFormatMoney = (value: number | undefined) =>
-	formatMoney(value ?? 0)
+const safeFormatMoney = (value: number | undefined) => formatMoney(value ?? 0)
 
 const safeFormatPercent = (value: number | undefined) =>
 	formatPercent(value ?? 0)
@@ -88,10 +87,8 @@ export default function ReportsPage() {
 
 	const { data: financialReport, isLoading: financialLoading } =
 		useFinancialReport(startDate, endDate)
-	const { data: propertyReport, isLoading: propertyLoading } = usePropertyReport(
-		startDate,
-		endDate
-	)
+	const { data: propertyReport, isLoading: propertyLoading } =
+		usePropertyReport(startDate, endDate)
 	const { data: tenantReport, isLoading: tenantLoading } = useTenantReport(
 		startDate,
 		endDate
@@ -100,10 +97,7 @@ export default function ReportsPage() {
 		useMaintenanceReport(startDate, endDate)
 
 	const hasAnyData =
-		financialReport ||
-		propertyReport ||
-		tenantReport ||
-		maintenanceReport
+		financialReport || propertyReport || tenantReport || maintenanceReport
 
 	const handlePdfExport = async (
 		reportKey: string,
@@ -142,31 +136,34 @@ export default function ReportsPage() {
 	}
 
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div className="border-b bg-background p-6 border-fill-tertiary">
-				<div className="mx-auto max-w-400 py-4">
-					<div className="flex-between mb-4">
-						<div>
-							<h1 className="typography-h2">Reports & Analytics</h1>
-							<p className="text-muted-foreground mt-1">
-								Generate financial, property, tenant, and maintenance reports
-							</p>
-						</div>
-						<div className="flex items-center gap-2">
-							<Link href="/reports/analytics">
-								<Button variant="outline" size="sm">
-									<BarChart3 className="size-4 mr-2" />
-									Analytics
-								</Button>
-							</Link>
-							<Link href="/reports/generate">
-								<Button size="sm">
-									<FileText className="size-4 mr-2" />
-									Generate Reports
-								</Button>
-							</Link>
-						</div>
-					</div>
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			{/* Header */}
+			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+				<div>
+					<h1 className="text-2xl font-semibold text-foreground">
+						Reports & Analytics
+					</h1>
+					<p className="text-muted-foreground">
+						Generate financial, property, tenant, and maintenance reports.
+					</p>
+				</div>
+				<div className="flex items-center gap-2">
+					<Link href="/reports/analytics">
+						<Button variant="outline" size="sm">
+							<BarChart3 className="size-4 mr-2" />
+							Analytics
+						</Button>
+					</Link>
+					<Link href="/reports/generate">
+						<Button size="sm">
+							<FileText className="size-4 mr-2" />
+							Generate Reports
+						</Button>
+					</Link>
+				</div>
+			</div>
+
+			<div className="mx-auto max-w-400">
 
 					<Card className="mb-6">
 						<CardHeader>
@@ -180,7 +177,10 @@ export default function ReportsPage() {
 						</CardHeader>
 						<CardContent className="flex flex-col gap-3 sm:flex-row sm:items-end">
 							<div className="flex flex-col gap-2">
-								<label className="text-sm text-muted-foreground" htmlFor="start">
+								<label
+									className="text-sm text-muted-foreground"
+									htmlFor="start"
+								>
 									Start date
 								</label>
 								<Input
@@ -273,7 +273,7 @@ export default function ReportsPage() {
 											<Card>
 												<CardHeader>
 													<CardDescription>Total Income</CardDescription>
-													<CardTitle className="text-2xl">
+													<CardTitle className="typography-stat">
 														{formatMoney(financialReport.summary.totalIncome)}
 													</CardTitle>
 												</CardHeader>
@@ -281,7 +281,7 @@ export default function ReportsPage() {
 											<Card>
 												<CardHeader>
 													<CardDescription>Total Expenses</CardDescription>
-													<CardTitle className="text-2xl">
+													<CardTitle className="typography-stat">
 														{formatMoney(financialReport.summary.totalExpenses)}
 													</CardTitle>
 												</CardHeader>
@@ -289,7 +289,7 @@ export default function ReportsPage() {
 											<Card>
 												<CardHeader>
 													<CardDescription>Net Income</CardDescription>
-													<CardTitle className="text-2xl">
+													<CardTitle className="typography-stat">
 														{formatMoney(financialReport.summary.netIncome)}
 													</CardTitle>
 												</CardHeader>
@@ -297,7 +297,7 @@ export default function ReportsPage() {
 											<Card>
 												<CardHeader>
 													<CardDescription>Occupancy</CardDescription>
-													<CardTitle className="text-2xl">
+													<CardTitle className="typography-stat">
 														{formatPercent(
 															financialReport.summary.rentRollOccupancyRate
 														)}
@@ -324,8 +324,16 @@ export default function ReportsPage() {
 																x2="0"
 																y2="1"
 															>
-																<stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.6} />
-																<stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0} />
+																<stop
+																	offset="5%"
+																	stopColor="var(--chart-1)"
+																	stopOpacity={0.6}
+																/>
+																<stop
+																	offset="95%"
+																	stopColor="var(--chart-1)"
+																	stopOpacity={0}
+																/>
 															</linearGradient>
 															<linearGradient
 																id="expenseGradient"
@@ -334,16 +342,26 @@ export default function ReportsPage() {
 																x2="0"
 																y2="1"
 															>
-																<stop offset="5%" stopColor="var(--chart-3)" stopOpacity={0.6} />
-																<stop offset="95%" stopColor="var(--chart-3)" stopOpacity={0} />
+																<stop
+																	offset="5%"
+																	stopColor="var(--chart-3)"
+																	stopOpacity={0.6}
+																/>
+																<stop
+																	offset="95%"
+																	stopColor="var(--chart-3)"
+																	stopOpacity={0}
+																/>
 															</linearGradient>
 														</defs>
 														<CartesianGrid strokeDasharray="3 3" />
 														<XAxis dataKey="month" />
-														<YAxis tickFormatter={value => formatMoney(Number(value))} />
-														<Tooltip
-															formatter={safeFormatMoney}
+														<YAxis
+															tickFormatter={value =>
+																formatMoney(Number(value))
+															}
 														/>
+														<Tooltip formatter={safeFormatMoney} />
 														<Legend />
 														<Area
 															type="monotone"
@@ -375,7 +393,8 @@ export default function ReportsPage() {
 											Property Reports
 										</h2>
 										<p className="text-muted-foreground">
-											Occupancy rates, vacancy analysis, and property performance
+											Occupancy rates, vacancy analysis, and property
+											performance
 										</p>
 									</div>
 									<Button
@@ -420,7 +439,9 @@ export default function ReportsPage() {
 												<CardHeader>
 													<CardDescription>Occupancy</CardDescription>
 													<CardTitle className="text-2xl">
-														{formatPercent(propertyReport.summary.occupancyRate)}
+														{formatPercent(
+															propertyReport.summary.occupancyRate
+														)}
 													</CardTitle>
 												</CardHeader>
 											</Card>
@@ -436,10 +457,12 @@ export default function ReportsPage() {
 														<CartesianGrid strokeDasharray="3 3" />
 														<XAxis dataKey="propertyName" />
 														<YAxis />
-														<Tooltip
-															formatter={safeFormatPercent}
+														<Tooltip formatter={safeFormatPercent} />
+														<Bar
+															dataKey="occupancyRate"
+															name="Occupancy"
+															fill="var(--chart-2)"
 														/>
-														<Bar dataKey="occupancyRate" name="Occupancy" fill="var(--chart-2)" />
 													</BarChart>
 												</ResponsiveContainer>
 											</CardContent>
@@ -505,7 +528,9 @@ export default function ReportsPage() {
 												<CardHeader>
 													<CardDescription>On-time Payments</CardDescription>
 													<CardTitle className="text-2xl">
-														{formatPercent(tenantReport.summary.onTimePaymentRate)}
+														{formatPercent(
+															tenantReport.summary.onTimePaymentRate
+														)}
 													</CardTitle>
 												</CardHeader>
 											</Card>
@@ -521,9 +546,7 @@ export default function ReportsPage() {
 														<CartesianGrid strokeDasharray="3 3" />
 														<XAxis dataKey="month" />
 														<YAxis />
-														<Tooltip
-															formatter={safeFormatPercent}
-														/>
+														<Tooltip formatter={safeFormatPercent} />
 														<Line
 															type="monotone"
 															dataKey="onTimeRate"
@@ -552,7 +575,7 @@ export default function ReportsPage() {
 													tenantReport.leaseExpirations.map(expiration => (
 														<div
 															key={expiration.leaseId}
-															className="flex items-center justify-between rounded border border-border/40 px-3 py-2 text-sm"
+															className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-sm"
 														>
 															<div>
 																<div className="font-medium">
@@ -586,7 +609,9 @@ export default function ReportsPage() {
 									<Button
 										variant="outline"
 										size="sm"
-										disabled={!maintenanceReport || isExporting === 'maintenance'}
+										disabled={
+											!maintenanceReport || isExporting === 'maintenance'
+										}
 										onClick={() =>
 											handlePdfExport(
 												'maintenance',
@@ -658,9 +683,7 @@ export default function ReportsPage() {
 															<CartesianGrid strokeDasharray="3 3" />
 															<XAxis dataKey="month" />
 															<YAxis />
-															<Tooltip
-															formatter={safeFormatMoney}
-														/>
+															<Tooltip formatter={safeFormatMoney} />
 															<Line
 																type="monotone"
 																dataKey="cost"
@@ -690,10 +713,12 @@ export default function ReportsPage() {
 													maintenanceReport.vendorPerformance.map(vendor => (
 														<div
 															key={vendor.vendorName}
-															className="flex items-center justify-between rounded border border-border/40 px-3 py-2 text-sm"
+															className="flex items-center justify-between rounded-sm border border-border px-3 py-2 text-sm"
 														>
 															<div>
-																<div className="font-medium">{vendor.vendorName}</div>
+																<div className="font-medium">
+																	{vendor.vendorName}
+																</div>
 																<div className="text-muted-foreground">
 																	{vendor.jobs} jobs
 																</div>
@@ -709,7 +734,6 @@ export default function ReportsPage() {
 							</section>
 						</div>
 					)}
-				</div>
 			</div>
 		</div>
 	)

@@ -8,7 +8,7 @@ import { RolesGuard } from '../../../shared/guards/roles.guard'
 /**
  * Admin System Controller
  * Handles system monitoring and management endpoints
- * 
+ *
  * SECURITY: Protected by RolesGuard - only users with ADMIN role can access
  */
 @Controller('admin/system')
@@ -58,7 +58,8 @@ export class AdminSystemController {
 	 */
 	@Get('logs')
 	async getLogs(
-		@Query('level') level?: Database['public']['Enums']['security_event_severity'],
+		@Query('level')
+		level?: Database['public']['Enums']['security_event_severity'],
 		@Query('limit') limit = '100',
 		@Query('offset') offset = '0'
 	) {

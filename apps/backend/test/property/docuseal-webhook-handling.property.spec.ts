@@ -140,7 +140,8 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						submissionId: fc.integer({ min: 1, max: 999999 }),
 						leaseId: fc.uuid(),
 						ownerEmail: fc.emailAddress(),
-						completedAt: fc.date({ noInvalidDate: true,
+						completedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2026-12-31')
 						}),
@@ -218,11 +219,13 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						submissionId: fc.integer({ min: 1, max: 999999 }),
 						leaseId: fc.uuid(),
 						ownerEmail: fc.emailAddress(),
-						existingSignedAt: fc.date({ noInvalidDate: true,
+						existingSignedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2025-06-01')
 						}),
-						newCompletedAt: fc.date({ noInvalidDate: true,
+						newCompletedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2025-06-02'),
 							max: new Date('2026-12-31')
 						})
@@ -283,7 +286,8 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						submissionId: fc.integer({ min: 1, max: 999999 }),
 						leaseId: fc.uuid(),
 						tenantEmail: fc.emailAddress(),
-						completedAt: fc.date({ noInvalidDate: true,
+						completedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2026-12-31')
 						}),
@@ -331,7 +335,9 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						expect(typeof capturedLeaseUpdate?.tenant_signed_at).toBe('string')
 
 						// 2. Signature method must be 'docuseal'
-						expect(capturedLeaseUpdate?.tenant_signature_method).toBe('docuseal')
+						expect(capturedLeaseUpdate?.tenant_signature_method).toBe(
+							'docuseal'
+						)
 
 						// 3. lease.tenant_signed event must be emitted
 						const tenantSignedEvent = emittedEvents.find(
@@ -356,7 +362,8 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						submissionId: fc.integer({ min: 1, max: 999999 }),
 						leaseId: fc.uuid(),
 						tenantEmail: fc.emailAddress(),
-						existingSignedAt: fc.date({ noInvalidDate: true,
+						existingSignedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2025-06-01')
 						})
@@ -419,11 +426,13 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						leaseId: fc.uuid(),
 						ownerEmail: fc.emailAddress(),
 						tenantEmail: fc.emailAddress(),
-						ownerCompletedAt: fc.date({ noInvalidDate: true,
+						ownerCompletedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2025-06-01')
 						}),
-						tenantCompletedAt: fc.date({ noInvalidDate: true,
+						tenantCompletedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2025-06-02'),
 							max: new Date('2026-12-31')
 						}),
@@ -486,9 +495,9 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 						})
 
 						// 3. Event must contain document URL for signed document storage
-						expect((completedEvent?.payload as Record<string, unknown>)?.document_url).toBe(
-							webhookData.documentUrl
-						)
+						expect(
+							(completedEvent?.payload as Record<string, unknown>)?.document_url
+						).toBe(webhookData.documentUrl)
 					}
 				),
 				{ numRuns: 50 }
@@ -501,7 +510,8 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 					fc.record({
 						submissionId: fc.integer({ min: 1, max: 999999 }),
 						leaseId: fc.uuid(),
-						completedAt: fc.date({ noInvalidDate: true,
+						completedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2026-12-31')
 						})
@@ -536,7 +546,9 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 							e => e.event === 'docuseal.submission_completed'
 						)
 						expect(completedEvent).toBeDefined()
-						expect((completedEvent?.payload as Record<string, unknown>)?.document_url).toBeUndefined()
+						expect(
+							(completedEvent?.payload as Record<string, unknown>)?.document_url
+						).toBeUndefined()
 					}
 				),
 				{ numRuns: 25 }
@@ -548,7 +560,8 @@ describe('DocuSeal Webhook Handling Property Tests', () => {
 				fc.asyncProperty(
 					fc.record({
 						submissionId: fc.integer({ min: 1, max: 999999 }),
-						completedAt: fc.date({ noInvalidDate: true,
+						completedAt: fc.date({
+							noInvalidDate: true,
 							min: new Date('2024-01-01'),
 							max: new Date('2026-12-31')
 						})

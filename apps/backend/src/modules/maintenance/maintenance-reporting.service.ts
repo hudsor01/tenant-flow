@@ -5,15 +5,20 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common'
-import type { MaintenanceRequest, MaintenanceStats } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceStats
+} from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceReportingService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get maintenance statistics
@@ -21,7 +26,9 @@ export class MaintenanceReportingService {
 	 */
 	async getStats(
 		token: string
-	): Promise<MaintenanceStats & { totalCost: number; avgResponseTimeHours: number }> {
+	): Promise<
+		MaintenanceStats & { totalCost: number; avgResponseTimeHours: number }
+	> {
 		if (!token) {
 			this.logger.warn('Maintenance stats requested without token')
 			throw new BadRequestException('Authentication token is required')
@@ -42,14 +49,19 @@ export class MaintenanceReportingService {
 			throw new BadRequestException('Failed to get maintenance statistics')
 		}
 
-		type MaintenanceRow = Database['public']['Tables']['maintenance_requests']['Row']
+		type MaintenanceRow =
+			Database['public']['Tables']['maintenance_requests']['Row']
 		type RequestPick = Pick<
 			MaintenanceRow,
 			'created_at' | 'completed_at' | 'estimated_cost' | 'priority' | 'status'
 		>
 		const requests = (data ?? []) as RequestPick[]
 		const now = new Date()
-		const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+		const todayStart = new Date(
+			now.getFullYear(),
+			now.getMonth(),
+			now.getDate()
+		)
 
 		const completedRequests = requests.filter(
 			(r): r is RequestPick & { completed_at: string; created_at: string } =>
@@ -85,7 +97,10 @@ export class MaintenanceReportingService {
 				high: requests.filter(r => r.priority === 'high').length,
 				emergency: requests.filter(r => r.priority === 'urgent').length
 			},
-			totalCost: requests.reduce((sum: number, r) => sum + (r.estimated_cost || 0), 0),
+			totalCost: requests.reduce(
+				(sum: number, r) => sum + (r.estimated_cost || 0),
+				0
+			),
 			avgResponseTimeHours: avgResolutionTime
 		}
 
@@ -102,7 +117,9 @@ export class MaintenanceReportingService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		this.logger.log('Getting urgent maintenance requests via RLS-protected query')
+		this.logger.log(
+			'Getting urgent maintenance requests via RLS-protected query'
+		)
 
 		const client = this.supabase.getUserClient(token)
 
@@ -115,9 +132,12 @@ export class MaintenanceReportingService {
 			.order('created_at', { ascending: true })
 
 		if (error) {
-			this.logger.error('Failed to get urgent maintenance requests from Supabase', {
-				error: error.message
-			})
+			this.logger.error(
+				'Failed to get urgent maintenance requests from Supabase',
+				{
+					error: error.message
+				}
+			)
 			throw new BadRequestException('Failed to get urgent maintenance requests')
 		}
 
@@ -134,7 +154,9 @@ export class MaintenanceReportingService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		this.logger.log('Getting overdue maintenance requests via RLS-protected query')
+		this.logger.log(
+			'Getting overdue maintenance requests via RLS-protected query'
+		)
 
 		const client = this.supabase.getUserClient(token)
 
@@ -146,10 +168,15 @@ export class MaintenanceReportingService {
 			.order('scheduled_date', { ascending: true })
 
 		if (error) {
-			this.logger.error('Failed to get overdue maintenance requests from Supabase', {
-				error: error.message
-			})
-			throw new BadRequestException('Failed to get overdue maintenance requests')
+			this.logger.error(
+				'Failed to get overdue maintenance requests from Supabase',
+				{
+					error: error.message
+				}
+			)
+			throw new BadRequestException(
+				'Failed to get overdue maintenance requests'
+			)
 		}
 
 		return data as MaintenanceRequest[]

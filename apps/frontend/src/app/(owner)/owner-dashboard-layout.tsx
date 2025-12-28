@@ -1,21 +1,20 @@
-import { AppSidebar } from '#components/dashboard/app-sidebar'
-import { ServerSidebarProvider } from '#components/ui/server-sidebar-provider'
-import { OwnerDashboardLayoutClient } from './owner-dashboard-layout-client'
+import { AppShell } from '#components/shell/AppShell'
 import type { ReactNode } from 'react'
-import './dashboard.css'
 
-export async function OwnerDashboardLayout({ children }: { children: ReactNode }) {
-	return (
-		<ServerSidebarProvider
-			style={
-				{
-					'--sidebar-width': 'calc(var(--spacing) * 72)',
-					'--header-height': 'calc(var(--spacing) * 12)'
-				} as React.CSSProperties
-			}
-		>
-			<AppSidebar />
-			<OwnerDashboardLayoutClient>{children}</OwnerDashboardLayoutClient>
-		</ServerSidebarProvider>
-	)
+/**
+ * Owner Dashboard Layout
+ *
+ * Uses the design-os AppShell pattern:
+ * - Sidebar navigation with command palette trigger
+ * - Header with breadcrumbs and user menu
+ * - Floating quick actions dock
+ *
+ * Auth is handled by proxy.ts - this is purely presentational.
+ */
+export async function OwnerDashboardLayout({
+	children
+}: {
+	children: ReactNode
+}) {
+	return <AppShell>{children}</AppShell>
 }

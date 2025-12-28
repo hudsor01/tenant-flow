@@ -1,4 +1,13 @@
-import { Controller, Get, Req, UnauthorizedException, HttpException, InternalServerErrorException, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Req,
+	UnauthorizedException,
+	HttpException,
+	InternalServerErrorException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
@@ -23,9 +32,11 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class AnalyticsController {
-
-	constructor(private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	@Get('stats')
 	async getStats(
@@ -96,7 +107,13 @@ export class AnalyticsController {
 
 		try {
 			// Fetch ALL dashboard data in parallel - eliminates 8 separate API calls
-			const [stats, activityResult, propertyPerformance, occupancyTrends, revenueTrends] = await Promise.all([
+			const [
+				stats,
+				activityResult,
+				propertyPerformance,
+				occupancyTrends,
+				revenueTrends
+			] = await Promise.all([
 				this.dashboardService.getStats(user_id, token),
 				this.dashboardService.getActivity(user_id, token),
 				this.dashboardService.getPropertyPerformance(user_id, token),

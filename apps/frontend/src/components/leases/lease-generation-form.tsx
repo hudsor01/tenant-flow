@@ -58,8 +58,7 @@ export function LeaseGenerationForm({
 			security_deposit: 0,
 			security_depositDueDays: 30,
 			maxOccupants: 2,
-			allowedUse:
-				'Residential dwelling purposes only. No business activities.',
+			allowedUse: 'Residential dwelling purposes only. No business activities.',
 			alterationsAllowed: false,
 			alterationsRequireConsent: true,
 			utilitiesIncluded: [] as string[],
@@ -97,7 +96,7 @@ export function LeaseGenerationForm({
 		}
 	})
 
-// Auto-fill form when data is loaded
+	// Auto-fill form when data is loaded
 	const hasAutoFilledRef = useRef(false)
 
 	useEffect(() => {
@@ -107,7 +106,9 @@ export function LeaseGenerationForm({
 				if (value !== undefined) {
 					try {
 						// Type-safe field update without 'as any'
-						const fieldInfo = form.getFieldInfo(key as keyof LeaseGenerationFormData)
+						const fieldInfo = form.getFieldInfo(
+							key as keyof LeaseGenerationFormData
+						)
 						if (fieldInfo?.instance) {
 							fieldInfo.instance.setValue(value)
 						}
@@ -131,7 +132,8 @@ export function LeaseGenerationForm({
 						Missing Required Information
 					</p>
 					<p className="text-muted">
-						Property, unit, and tenant must all be selected to generate a lease agreement.
+						Property, unit, and tenant must all be selected to generate a lease
+						agreement.
 					</p>
 				</div>
 			</div>
@@ -254,7 +256,7 @@ export function LeaseGenerationForm({
 			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Lease Term</h3>
 
-					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
+				<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="commencementDate">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -297,7 +299,7 @@ export function LeaseGenerationForm({
 			<div className="space-y-[var(--spacing-4)]">
 				<h3 className="font-semibold">Financial Terms</h3>
 
-					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
+				<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="rent_amount">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -341,7 +343,7 @@ export function LeaseGenerationForm({
 					</form.Field>
 				</div>
 
-					<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
+				<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 					<form.Field name="rentDueDay">
 						{field => (
 							<div className="space-y-[var(--spacing-2)]">
@@ -395,14 +397,12 @@ export function LeaseGenerationForm({
 					)}
 				</form.Field>
 
-				<form.Subscribe
-					selector={state => [state.values.petsAllowed]}
-				>
+				<form.Subscribe selector={state => [state.values.petsAllowed]}>
 					{([petsAllowed]) => {
 						if (!petsAllowed) return null
 
 						return (
-								<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
+							<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-2)]">
 								<form.Field name="petDeposit">
 									{field => (
 										<div className="space-y-[var(--spacing-2)]">
@@ -411,9 +411,7 @@ export function LeaseGenerationForm({
 												type="number"
 												value={field.state.value}
 												onChange={e =>
-													field.handleChange(
-														Number.parseFloat(e.target.value)
-													)
+													field.handleChange(Number.parseFloat(e.target.value))
 												}
 												placeholder="250"
 											/>
@@ -429,9 +427,7 @@ export function LeaseGenerationForm({
 												type="number"
 												value={field.state.value}
 												onChange={e =>
-													field.handleChange(
-														Number.parseFloat(e.target.value)
-													)
+													field.handleChange(Number.parseFloat(e.target.value))
 												}
 												placeholder="25"
 											/>
@@ -445,7 +441,7 @@ export function LeaseGenerationForm({
 			</div>
 
 			{/* Actions */}
-				<div className="flex justify-end gap-4 pt-[var(--spacing-4)] border-t border-(--color-border)">
+			<div className="flex justify-end gap-4 pt-[var(--spacing-4)] border-t border-(--color-border)">
 				<Button
 					type="submit"
 					disabled={generateLease.isPending || !form.state.isValid}

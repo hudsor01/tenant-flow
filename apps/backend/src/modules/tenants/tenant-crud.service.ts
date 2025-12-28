@@ -18,7 +18,12 @@
  * Manages: Create, Update, MarkAsMovedOut (soft delete), HardDelete (7+ years only)
  */
 
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException,
+	UnauthorizedException
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	CreateTenantRequest,
@@ -86,7 +91,9 @@ export class TenantCrudService {
 		}
 
 		if (!createRequest.stripe_customer_id?.trim()) {
-			this.logger.warn('Create tenant requested without stripe_customer_id', { user_id })
+			this.logger.warn('Create tenant requested without stripe_customer_id', {
+				user_id
+			})
 			throw new BadRequestException('Stripe customer ID is required')
 		}
 
@@ -107,7 +114,8 @@ export class TenantCrudService {
 				identity_verified: false,
 				emergency_contact_name: createRequest.emergency_contact_name || null,
 				emergency_contact_phone: createRequest.emergency_contact_phone || null,
-				emergency_contact_relationship: createRequest.emergency_contact_relationship || null
+				emergency_contact_relationship:
+					createRequest.emergency_contact_relationship || null
 			}
 
 			const { data, error } = await client
@@ -141,7 +149,11 @@ export class TenantCrudService {
 
 			return tenant
 		} catch (error) {
-			if (error instanceof BadRequestException || error instanceof UnauthorizedException) throw error
+			if (
+				error instanceof BadRequestException ||
+				error instanceof UnauthorizedException
+			)
+				throw error
 			this.logger.error('Error creating tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				user_id
@@ -178,7 +190,10 @@ export class TenantCrudService {
 			const client = this.requireUserClient(token)
 
 			// Verify tenant exists and belongs to user
-			const existingTenant = await this.tenantQueryService.findOne(tenant_id, token)
+			const existingTenant = await this.tenantQueryService.findOne(
+				tenant_id,
+				token
+			)
 			if (!existingTenant) {
 				throw new NotFoundException(`Tenant ${tenant_id} not found`)
 			}
@@ -188,7 +203,9 @@ export class TenantCrudService {
 			}
 
 			// Build update data - only update fields that exist in tenants table
-			const updateData: Partial<Database['public']['Tables']['tenants']['Update']> = {}
+			const updateData: Partial<
+				Database['public']['Tables']['tenants']['Update']
+			> = {}
 
 			if (updateRequest.date_of_birth !== undefined) {
 				updateData.date_of_birth = updateRequest.date_of_birth || null
@@ -197,13 +214,16 @@ export class TenantCrudService {
 				updateData.ssn_last_four = updateRequest.ssn_last_four || null
 			}
 			if (updateRequest.emergency_contact_name !== undefined) {
-				updateData.emergency_contact_name = updateRequest.emergency_contact_name || null
+				updateData.emergency_contact_name =
+					updateRequest.emergency_contact_name || null
 			}
 			if (updateRequest.emergency_contact_phone !== undefined) {
-				updateData.emergency_contact_phone = updateRequest.emergency_contact_phone || null
+				updateData.emergency_contact_phone =
+					updateRequest.emergency_contact_phone || null
 			}
 			if (updateRequest.emergency_contact_relationship !== undefined) {
-				updateData.emergency_contact_relationship = updateRequest.emergency_contact_relationship || null
+				updateData.emergency_contact_relationship =
+					updateRequest.emergency_contact_relationship || null
 			}
 			if (updateRequest.stripe_customer_id !== undefined) {
 				updateData.stripe_customer_id = updateRequest.stripe_customer_id
@@ -242,9 +262,11 @@ export class TenantCrudService {
 
 			return tenant
 		} catch (error) {
-			if (error instanceof BadRequestException ||
+			if (
+				error instanceof BadRequestException ||
 				error instanceof NotFoundException ||
-				error instanceof UnauthorizedException) {
+				error instanceof UnauthorizedException
+			) {
 				throw error
 			}
 			this.logger.error('Error updating tenant', {
@@ -284,9 +306,11 @@ export class TenantCrudService {
 			this.logger.log('Tenant marked for archival', { tenant_id })
 			return tenant
 		} catch (error) {
-			if (error instanceof BadRequestException ||
+			if (
+				error instanceof BadRequestException ||
 				error instanceof NotFoundException ||
-				error instanceof UnauthorizedException) {
+				error instanceof UnauthorizedException
+			) {
 				throw error
 			}
 			this.logger.error('Error soft deleting tenant', {
@@ -324,9 +348,12 @@ export class TenantCrudService {
 			}
 
 			// Check age (7+ years old)
-			const createdDate = tenant.created_at ? new Date(tenant.created_at) : new Date()
+			const createdDate = tenant.created_at
+				? new Date(tenant.created_at)
+				: new Date()
 			const now = new Date()
-			const ageInYears = (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
+			const ageInYears =
+				(now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 365)
 
 			if (ageInYears < this.MINIMUM_RETENTION_YEARS) {
 				throw new BadRequestException(
@@ -354,9 +381,11 @@ export class TenantCrudService {
 				message: `Tenant ${tenant_id} permanently deleted`
 			}
 		} catch (error) {
-			if (error instanceof BadRequestException ||
+			if (
+				error instanceof BadRequestException ||
 				error instanceof NotFoundException ||
-				error instanceof UnauthorizedException) {
+				error instanceof UnauthorizedException
+			) {
 				throw error
 			}
 			this.logger.error('Error hard deleting tenant', {
@@ -414,7 +443,13 @@ export class TenantCrudService {
 
 		// Step 3: Group updates by identical data payload (for batch efficiency)
 		// This allows multiple tenants with same update data to be updated in ONE query
-		const updateGroups = new Map<string, { ids: string[]; data: Partial<Database['public']['Tables']['tenants']['Update']> }>()
+		const updateGroups = new Map<
+			string,
+			{
+				ids: string[]
+				data: Partial<Database['public']['Tables']['tenants']['Update']>
+			}
+		>()
 
 		for (const { id, data } of validUpdates) {
 			const updateData = this.buildUpdateData(data)
@@ -433,10 +468,7 @@ export class TenantCrudService {
 		const failedUpdates: Array<{ id: string; error: string }> = []
 
 		for (const { ids, data } of updateGroups.values()) {
-			const { error } = await client
-				.from('tenants')
-				.update(data)
-				.in('id', ids) // Batch update all IDs with same data
+			const { error } = await client.from('tenants').update(data).in('id', ids) // Batch update all IDs with same data
 
 			if (error) {
 				ids.forEach(id => failedUpdates.push({ id, error: error.message }))
@@ -446,9 +478,10 @@ export class TenantCrudService {
 		}
 
 		// Step 5: Fetch updated tenants in ONE query for response
-		const updatedMap = successIds.length > 0
-			? await this.tenantDetailService.findByIds(successIds, token)
-			: new Map<string, Tenant>()
+		const updatedMap =
+			successIds.length > 0
+				? await this.tenantDetailService.findByIds(successIds, token)
+				: new Map<string, Tenant>()
 
 		const success = successIds.map(id => ({ id, tenant: updatedMap.get(id)! }))
 		const failed = [
@@ -467,7 +500,9 @@ export class TenantCrudService {
 		for (const { id: tenantId } of success) {
 			const update = updates.find(u => u.id === tenantId)
 			if (update) {
-				const changedFields = Object.keys(update.data).filter(key => update.data[key as keyof UpdateTenantRequest] !== undefined)
+				const changedFields = Object.keys(update.data).filter(
+					key => update.data[key as keyof UpdateTenantRequest] !== undefined
+				)
 				if (changedFields.length > 0) {
 					const sseEvent: TenantUpdatedEvent = {
 						type: SSE_EVENT_TYPES.TENANT_UPDATED,
@@ -488,14 +523,25 @@ export class TenantCrudService {
 	/**
 	 * Build update data object from request, filtering undefined values
 	 */
-	private buildUpdateData(data: UpdateTenantRequest): Partial<Database['public']['Tables']['tenants']['Update']> {
-		const updateData: Partial<Database['public']['Tables']['tenants']['Update']> = {}
-		if (data.date_of_birth !== undefined) updateData.date_of_birth = data.date_of_birth || null
-		if (data.ssn_last_four !== undefined) updateData.ssn_last_four = data.ssn_last_four || null
-		if (data.emergency_contact_name !== undefined) updateData.emergency_contact_name = data.emergency_contact_name || null
-		if (data.emergency_contact_phone !== undefined) updateData.emergency_contact_phone = data.emergency_contact_phone || null
-		if (data.emergency_contact_relationship !== undefined) updateData.emergency_contact_relationship = data.emergency_contact_relationship || null
-		if (data.stripe_customer_id !== undefined) updateData.stripe_customer_id = data.stripe_customer_id
+	private buildUpdateData(
+		data: UpdateTenantRequest
+	): Partial<Database['public']['Tables']['tenants']['Update']> {
+		const updateData: Partial<
+			Database['public']['Tables']['tenants']['Update']
+		> = {}
+		if (data.date_of_birth !== undefined)
+			updateData.date_of_birth = data.date_of_birth || null
+		if (data.ssn_last_four !== undefined)
+			updateData.ssn_last_four = data.ssn_last_four || null
+		if (data.emergency_contact_name !== undefined)
+			updateData.emergency_contact_name = data.emergency_contact_name || null
+		if (data.emergency_contact_phone !== undefined)
+			updateData.emergency_contact_phone = data.emergency_contact_phone || null
+		if (data.emergency_contact_relationship !== undefined)
+			updateData.emergency_contact_relationship =
+				data.emergency_contact_relationship || null
+		if (data.stripe_customer_id !== undefined)
+			updateData.stripe_customer_id = data.stripe_customer_id
 		return updateData
 	}
 
@@ -528,10 +574,16 @@ export class TenantCrudService {
 			return { success: [], failed: [] }
 		}
 
-		this.logger.log('Bulk deleting tenants', { user_id, count: tenant_ids.length })
+		this.logger.log('Bulk deleting tenants', {
+			user_id,
+			count: tenant_ids.length
+		})
 
 		// Batch verify existence in ONE query (RLS filters unauthorized)
-		const tenantMap = await this.tenantDetailService.findByIds(tenant_ids, token)
+		const tenantMap = await this.tenantDetailService.findByIds(
+			tenant_ids,
+			token
+		)
 
 		// Partition IDs into found vs not-found
 		const validIds = tenant_ids.filter(id => tenantMap.has(id))

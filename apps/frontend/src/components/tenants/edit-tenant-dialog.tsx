@@ -23,7 +23,11 @@ interface EditTenantDialogProps {
 	onOpenChange: (open: boolean) => void
 }
 
-export function EditTenantDialog({ tenant, open, onOpenChange }: EditTenantDialogProps) {
+export function EditTenantDialog({
+	tenant,
+	open,
+	onOpenChange
+}: EditTenantDialogProps) {
 	const updateMutation = useUpdateTenantMutation()
 
 	// Form state for edit dialog - only tenant-specific fields

@@ -26,7 +26,11 @@ export default function EditPropertyModal({
 	params: Promise<{ id: string }>
 }) {
 	const { id } = use(params)
-	const { data: property, isLoading, error } = useQuery(propertyQueries.detail(id))
+	const {
+		data: property,
+		isLoading,
+		error
+	} = useQuery(propertyQueries.detail(id))
 
 	if (error) {
 		notFound()
@@ -37,7 +41,11 @@ export default function EditPropertyModal({
 			{isLoading ? (
 				<Skeleton className="h-96 w-full rounded-xl" />
 			) : property ? (
-				<PropertyForm mode="edit" property={property} showSuccessState={false} />
+				<PropertyForm
+					mode="edit"
+					property={property}
+					showSuccessState={false}
+				/>
 			) : null}
 		</RouteModal>
 	)

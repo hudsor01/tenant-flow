@@ -64,7 +64,9 @@ describe('SseService', () => {
 			payload: { status: 'paid' }
 		})
 
-		expect(events.map(event => event.type)).toContain(SSE_EVENT_TYPES.PAYMENT_STATUS_UPDATED)
+		expect(events.map(event => event.type)).toContain(
+			SSE_EVENT_TYPES.PAYMENT_STATUS_UPDATED
+		)
 		subscription.unsubscribe()
 		service.onModuleDestroy()
 	})
@@ -85,8 +87,12 @@ describe('SseService', () => {
 			payload: { value: 'multi' }
 		})
 
-		expect(eventsA.map(event => event.type)).toContain(SSE_EVENT_TYPES.TENANT_UPDATED)
-		expect(eventsB.map(event => event.type)).toContain(SSE_EVENT_TYPES.TENANT_UPDATED)
+		expect(eventsA.map(event => event.type)).toContain(
+			SSE_EVENT_TYPES.TENANT_UPDATED
+		)
+		expect(eventsB.map(event => event.type)).toContain(
+			SSE_EVENT_TYPES.TENANT_UPDATED
+		)
 
 		service.unsubscribe('session-a')
 		expect(() => service.unsubscribe('session-a')).not.toThrow()
@@ -101,11 +107,15 @@ describe('SseService', () => {
 		const service = new SseService(logger)
 
 		const events: SseEvent[] = []
-		const subscription = service.subscribe('user-7', 'session-7').subscribe(event => events.push(event))
+		const subscription = service
+			.subscribe('user-7', 'session-7')
+			.subscribe(event => events.push(event))
 
 		jest.advanceTimersByTime(30_000)
 
-		const heartbeat = events.find(event => event.type === SSE_EVENT_TYPES.HEARTBEAT)
+		const heartbeat = events.find(
+			event => event.type === SSE_EVENT_TYPES.HEARTBEAT
+		)
 		expect(heartbeat?.payload).toEqual(
 			expect.objectContaining({
 				serverTime: expect.any(String)
@@ -148,7 +158,9 @@ describe('SseService', () => {
 
 		expect(service.isUserConnected('user-1')).toBe(false)
 
-		const subscription = service.subscribe('user-1', 'session-1').subscribe(() => {})
+		const subscription = service
+			.subscribe('user-1', 'session-1')
+			.subscribe(() => {})
 		expect(service.isUserConnected('user-1')).toBe(true)
 
 		service.unsubscribe('session-1')
@@ -163,8 +175,12 @@ describe('SseService', () => {
 
 		const eventsA: SseEvent[] = []
 		const eventsB: SseEvent[] = []
-		const subA = service.subscribe('user-1', 'session-1').subscribe(event => eventsA.push(event))
-		const subB = service.subscribe('user-2', 'session-2').subscribe(event => eventsB.push(event))
+		const subA = service
+			.subscribe('user-1', 'session-1')
+			.subscribe(event => eventsA.push(event))
+		const subB = service
+			.subscribe('user-2', 'session-2')
+			.subscribe(event => eventsB.push(event))
 
 		await service.broadcastToAll({
 			type: SSE_EVENT_TYPES.CONNECTED,
@@ -172,8 +188,12 @@ describe('SseService', () => {
 			payload: { broadcast: true }
 		})
 
-		expect(eventsA.map(event => event.type)).toContain(SSE_EVENT_TYPES.CONNECTED)
-		expect(eventsB.map(event => event.type)).toContain(SSE_EVENT_TYPES.CONNECTED)
+		expect(eventsA.map(event => event.type)).toContain(
+			SSE_EVENT_TYPES.CONNECTED
+		)
+		expect(eventsB.map(event => event.type)).toContain(
+			SSE_EVENT_TYPES.CONNECTED
+		)
 
 		subA.unsubscribe()
 		subB.unsubscribe()

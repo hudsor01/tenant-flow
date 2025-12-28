@@ -1,7 +1,6 @@
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 
 export default async function NewMaintenanceRequestPage() {
-
 	return (
 		<div className="mx-auto w-full max-w-4xl space-y-10">
 			<div className="space-y-2">

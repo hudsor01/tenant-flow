@@ -74,8 +74,10 @@ interface MaintenanceSummary {
  */
 @Controller('tenant-portal')
 export class TenantPortalController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Tenant dashboard - combines lease, payments, and maintenance summaries
@@ -100,9 +102,7 @@ export class TenantPortalController {
 		])
 
 		const upcomingPayment = payments.find(
-			payment =>
-				(payment.status === 'pending') &&
-				payment.due_date
+			payment => payment.status === 'pending' && payment.due_date
 		)
 
 		return {
@@ -118,10 +118,7 @@ export class TenantPortalController {
 				recent: payments.slice(0, 5),
 				upcoming: upcomingPayment ?? null,
 				totalPaidUsd: payments
-					.filter(
-						payment =>
-							payment.status === 'succeeded'
-					)
+					.filter(payment => payment.status === 'succeeded')
 					.reduce((acc, payment) => acc + payment.amount / 100, 0)
 			}
 		}

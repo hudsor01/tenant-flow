@@ -17,18 +17,37 @@ import type { LeaseWizardData } from '@repo/shared/validation/lease-wizard.schem
 // Manual cleanup() calls in loops are required for property-based iterations.
 
 describe('Property 9: ReviewStep Data Completeness', () => {
-
 	/**
 	 * Property 9a: For any valid lease data, property and tenant names must be displayed.
 	 */
 	it('should display property, unit, and tenant names when provided', () => {
 		// Use distinct, realistic test cases to avoid DOM element collision issues
 		const testCases = [
-			{ propertyName: 'Sunset Apartments', unitNumber: 'A101', tenantName: 'John Smith' },
-			{ propertyName: 'Oak Grove Estates', unitNumber: '2B', tenantName: 'Maria Garcia' },
-			{ propertyName: 'Downtown Lofts', unitNumber: '305', tenantName: 'Robert Johnson' },
-			{ propertyName: 'Riverside Condos', unitNumber: 'PH1', tenantName: 'Emily Chen' },
-			{ propertyName: 'Highland Park Homes', unitNumber: '12', tenantName: 'Michael Brown' }
+			{
+				propertyName: 'Sunset Apartments',
+				unitNumber: 'A101',
+				tenantName: 'John Smith'
+			},
+			{
+				propertyName: 'Oak Grove Estates',
+				unitNumber: '2B',
+				tenantName: 'Maria Garcia'
+			},
+			{
+				propertyName: 'Downtown Lofts',
+				unitNumber: '305',
+				tenantName: 'Robert Johnson'
+			},
+			{
+				propertyName: 'Riverside Condos',
+				unitNumber: 'PH1',
+				tenantName: 'Emily Chen'
+			},
+			{
+				propertyName: 'Highland Park Homes',
+				unitNumber: '12',
+				tenantName: 'Michael Brown'
+			}
 		]
 
 		for (const { propertyName, unitNumber, tenantName } of testCases) {
@@ -89,16 +108,22 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 					// This avoids "multiple elements found" errors when same values appear elsewhere
 					// Use getAllByText and take the last element to handle any DOM cleanup timing issues
 					const financialHeadings = screen.getAllByText('Financial Terms')
-					const financialSection = financialHeadings[financialHeadings.length - 1]!.closest('div')!.parentElement!
+					const financialSection =
+						financialHeadings[financialHeadings.length - 1]!.closest(
+							'div'
+						)!.parentElement!
 					const financialQueries = within(financialSection)
 
 					// PROPERTY ASSERTION: Rent amount should be displayed correctly in Financial Terms
-					expect(financialQueries.getByText(formatCurrency(rent_amount))).toBeInTheDocument()
+					expect(
+						financialQueries.getByText(formatCurrency(rent_amount))
+					).toBeInTheDocument()
 
 					// PROPERTY ASSERTION: Security deposit should be displayed correctly
 					// Use getAllByText since security_deposit=0 ($0.00) may match '-' placeholder elsewhere
 					const securityDepositText = formatCurrency(security_deposit)
-					const securityMatches = financialQueries.getAllByText(securityDepositText)
+					const securityMatches =
+						financialQueries.getAllByText(securityDepositText)
 					expect(securityMatches.length).toBeGreaterThanOrEqual(1)
 
 					// PROPERTY ASSERTION: Late fee should be displayed if provided
@@ -123,10 +148,18 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 			fc.asyncProperty(
 				fc.record({
 					start_date: fc
-						.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2026-12-31') })
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2026-12-31')
+						})
 						.map(d => d.toISOString().split('T')[0]!),
 					end_date: fc
-						.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2027-12-31') })
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2027-12-31')
+						})
 						.map(d => d.toISOString().split('T')[0]!)
 				}),
 				async ({ start_date, end_date }) => {
@@ -147,7 +180,7 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 						})
 
 					// PROPERTY ASSERTION: Start date should be formatted
-				// Use getAllByText since start_date and end_date may format to the same string
+					// Use getAllByText since start_date and end_date may format to the same string
 					const startDateMatches = screen.getAllByText(formatDate(start_date))
 					expect(startDateMatches.length).toBeGreaterThanOrEqual(1)
 
@@ -281,10 +314,14 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 
 					if (lead_paint_disclosure_acknowledged) {
 						// PROPERTY ASSERTION: Acknowledged badge should appear
-						expect(screen.getByText('Disclosure Acknowledged')).toBeInTheDocument()
+						expect(
+							screen.getByText('Disclosure Acknowledged')
+						).toBeInTheDocument()
 					} else {
 						// PROPERTY ASSERTION: Required badge should appear
-						expect(screen.getByText('Acknowledgment Required')).toBeInTheDocument()
+						expect(
+							screen.getByText('Acknowledgment Required')
+						).toBeInTheDocument()
 					}
 
 					cleanup()

@@ -8,13 +8,17 @@ const logger = createLogger({ component: 'PortalError' })
 
 export default function PortalError({
 	error,
-	reset,
+	reset
 }: {
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
 	useEffect(() => {
-		logger.error('Portal error occurred', { metadata: { digest: error.digest } }, error)
+		logger.error(
+			'Portal error occurred',
+			{ metadata: { digest: error.digest } },
+			error
+		)
 	}, [error])
 
 	return (

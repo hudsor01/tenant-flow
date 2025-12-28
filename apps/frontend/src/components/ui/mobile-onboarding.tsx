@@ -1,12 +1,7 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { cn } from '#lib/utils'
 import { Building2, Users, Wrench } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -29,7 +24,8 @@ const STEPS = [
 	{
 		icon: Wrench,
 		title: 'Handle Maintenance',
-		description: 'Assign vendors, update statuses, and notify tenants instantly.',
+		description:
+			'Assign vendors, update statuses, and notify tenants instantly.',
 		color: 'text-warning'
 	}
 ]
@@ -71,7 +67,12 @@ export function MobileOnboarding() {
 		<div className="fixed inset-0 z-60 flex-center bg-background/95 px-4 py-6 md:hidden">
 			<Card className="w-full max-w-sm rounded-3xl">
 				<CardHeader className="text-center space-y-4">
-					<div className={cn('mx-auto rounded-full bg-primary/10 p-4', currentStep.color)}>
+					<div
+						className={cn(
+							'mx-auto rounded-full bg-primary/10 p-4',
+							currentStep.color
+						)}
+					>
 						<Icon className="size-8" aria-hidden />
 					</div>
 					<CardTitle className="typography-h4">{currentStep.title}</CardTitle>

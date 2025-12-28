@@ -88,7 +88,9 @@ test.describe('API Data Flow Integration', () => {
 							}
 							return result
 						} catch (error) {
-	window.apiHookData.errors.push(error instanceof Error ? error.message : String(error))
+							window.apiHookData.errors.push(
+								error instanceof Error ? error.message : String(error)
+							)
 							throw error
 						}
 					}

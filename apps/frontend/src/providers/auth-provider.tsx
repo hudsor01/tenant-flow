@@ -38,47 +38,23 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 		}
 		listenerSetupRef.current = true
 
-		// Debug logging for auth provider initialization
-		logger.info('Setting up auth listener', { action: 'setup' })
-
 		const {
 			data: { subscription }
 		} = supabaseClient.auth.onAuthStateChange(
 			(event: AuthChangeEvent, session: Session | null) => {
-				// Debug logging for auth events
-				const logContext: Record<string, unknown> = {
-					action: 'authStateChange',
-					metadata: { event, hasSession: !!session }
-				}
-				if (session?.user?.id) {
-					logContext.user_id = session.user.id
-				}
-				logger.info('State change event', logContext)
-
 				// Official Supabase pattern: handle auth state changes
 				if (event === 'SIGNED_OUT') {
 					queryClient.setQueryData(authQueryKeys.session, null)
 					queryClient.setQueryData(authQueryKeys.user, null)
-					// Only clear auth-related data, not all data
 					queryClient.removeQueries({ queryKey: ['auth'] })
 				} else if (session) {
 					queryClient.setQueryData(authQueryKeys.session, session)
 					queryClient.setQueryData(authQueryKeys.user, session.user)
 				}
-
-				// Log auth events for debugging
-				if (process.env.NODE_ENV === 'development') {
-					logger.info('Auth state changed', {
-						action: 'auth_state_change',
-						metadata: { event, user_id: session?.user?.id }
-					})
-				}
 			}
 		)
 
 		return () => {
-			// Debug logging for cleanup
-			logger.info('Cleaning up auth listener', { action: 'cleanup' })
 			subscription.unsubscribe()
 			listenerSetupRef.current = false
 		}
@@ -88,16 +64,12 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	const { data: session, isLoading: isSessionLoading } = useQuery({
 		queryKey: authQueryKeys.session,
 		queryFn: async () => {
-			logger.info('Fetching session', { action: 'fetchSession' })
 			const {
 				data: { session },
 				error
 			} = await supabaseClient.auth.getSession()
 			if (error) {
-				logger.error('Failed to get auth session', {
-					action: 'get_session_error',
-					metadata: { error: error.message }
-				})
+				logger.error('Failed to get auth session', { error: error.message })
 				return null
 			}
 			return session

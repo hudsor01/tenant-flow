@@ -279,8 +279,8 @@ export function InvitationsTableClient() {
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
-			},
+				pageSize: 10
+			}
 		}
 	})
 

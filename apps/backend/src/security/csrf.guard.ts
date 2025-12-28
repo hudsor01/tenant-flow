@@ -1,6 +1,4 @@
-import type {
-	CanActivate,
-	ExecutionContext} from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, SetMetadata, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request } from 'express'
@@ -9,9 +7,11 @@ import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class CsrfGuard implements CanActivate {
-
-	constructor(private reflector: Reflector,
-		private readonly appConfigService: AppConfigService, private readonly logger: AppLogger) {}
+	constructor(
+		private reflector: Reflector,
+		private readonly appConfigService: AppConfigService,
+		private readonly logger: AppLogger
+	) {}
 
 	canActivate(context: ExecutionContext): boolean {
 		// Check if route is exempt from CSRF protection
@@ -58,14 +58,17 @@ export class CsrfGuard implements CanActivate {
 
 		// Require either CSRF token or valid origin/referer
 		if (!csrfToken && !isValidOrigin) {
-			this.logger.warn('CSRF protection triggered: Invalid origin or missing token', {
-				method,
-				origin,
-				referer,
-				hasToken: !!csrfToken,
-				userAgent: request.headers['user-agent'],
-				ip: request.ip
-			})
+			this.logger.warn(
+				'CSRF protection triggered: Invalid origin or missing token',
+				{
+					method,
+					origin,
+					referer,
+					hasToken: !!csrfToken,
+					userAgent: request.headers['user-agent'],
+					ip: request.ip
+				}
+			)
 			throw new UnauthorizedException(
 				'CSRF protection: Invalid origin or missing token'
 			)

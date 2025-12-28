@@ -55,7 +55,10 @@ describe('MaintenanceController', () => {
 			controllers: [MaintenanceController],
 			providers: [
 				{ provide: MaintenanceService, useValue: mockService },
-				{ provide: MaintenanceReportingService, useValue: mockReportingService },
+				{
+					provide: MaintenanceReportingService,
+					useValue: mockReportingService
+				},
 				{ provide: MaintenanceWorkflowService, useValue: mockWorkflowService },
 				{ provide: SupabaseService, useValue: mockSupabaseService },
 				{
@@ -69,8 +72,12 @@ describe('MaintenanceController', () => {
 
 		controller = module.get<MaintenanceController>(MaintenanceController)
 		service = module.get(MaintenanceService) as jest.Mocked<MaintenanceService>
-		reportingService = module.get(MaintenanceReportingService) as jest.Mocked<MaintenanceReportingService>
-		workflowService = module.get(MaintenanceWorkflowService) as jest.Mocked<MaintenanceWorkflowService>
+		reportingService = module.get(
+			MaintenanceReportingService
+		) as jest.Mocked<MaintenanceReportingService>
+		workflowService = module.get(
+			MaintenanceWorkflowService
+		) as jest.Mocked<MaintenanceWorkflowService>
 	})
 
 	it('returns maintenance requests (findAll)', async () => {
@@ -85,10 +92,7 @@ describe('MaintenanceController', () => {
 			offset: 0,
 			hasMore: false
 		})
-		expect(service.findAll).toHaveBeenCalledWith(
-			mockToken,
-			expect.any(Object)
-		)
+		expect(service.findAll).toHaveBeenCalledWith(mockToken, expect.any(Object))
 	})
 
 	it('returns single maintenance request (findOne)', async () => {
@@ -100,9 +104,9 @@ describe('MaintenanceController', () => {
 
 	it('throws NotFoundException when findOne not found', async () => {
 		service.findOne.mockImplementation(() => Promise.resolve(null))
-		await expect(
-			controller.findOne(randomUUID(), mockToken)
-		).rejects.toThrow(NotFoundException)
+		await expect(controller.findOne(randomUUID(), mockToken)).rejects.toThrow(
+			NotFoundException
+		)
 	})
 
 	it('creates maintenance request (create)', async () => {
@@ -121,7 +125,10 @@ describe('MaintenanceController', () => {
 	})
 
 	it('updates maintenance request (update)', async () => {
-		const updated = { ...createMockMaintenanceRequest(), description: 'Updated description' }
+		const updated = {
+			...createMockMaintenanceRequest(),
+			description: 'Updated description'
+		}
 		service.update.mockResolvedValue(updated)
 		const result = await controller.update(
 			createMockMaintenanceRequest().id,

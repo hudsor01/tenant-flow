@@ -9,7 +9,11 @@ import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
 import { createClient } from '#utils/supabase/client'
-import type { Property, PropertyStats, PropertyPerformance } from '@repo/shared/types/core'
+import type {
+	Property,
+	PropertyStats,
+	PropertyPerformance
+} from '@repo/shared/types/core'
 import type { Tables } from '@repo/shared/types/supabase'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 
@@ -18,7 +22,13 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
  */
 export interface PropertyFilters {
 	status?: 'active' | 'SOLD' | 'inactive'
-	property_type?: 'SINGLE_FAMILY' | 'MULTI_FAMILY' | 'APARTMENT' | 'CONDO' | 'TOWNHOUSE' | 'COMMERCIAL'
+	property_type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
 	search?: string
 	limit?: number
 	offset?: number
@@ -50,14 +60,19 @@ export const propertyQueries = {
 			queryFn: async () => {
 				const searchParams = new URLSearchParams()
 				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.property_type) searchParams.append('property_type', filters.property_type)
+				if (filters?.property_type)
+					searchParams.append('property_type', filters.property_type)
 				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
 				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<Property>>(`/api/v1/properties${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<Property>>(
+					`/api/v1/properties${params ? `?${params}` : ''}`
+				)
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	/**
@@ -67,7 +82,7 @@ export const propertyQueries = {
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'with-units'] as const,
 			queryFn: () => apiRequest<Property[]>('/api/v1/properties/with-units'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	/**
@@ -86,7 +101,7 @@ export const propertyQueries = {
 			queryKey: [...propertyQueries.details(), id],
 			queryFn: () => apiRequest<Property>(`/api/v1/properties/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	/**
@@ -100,7 +115,7 @@ export const propertyQueries = {
 			queryKey: [...propertyQueries.all(), 'stats'],
 			queryFn: () => apiRequest<PropertyStats>('/api/v1/properties/stats'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000, // Keep 30 minutes for stats
+			gcTime: 30 * 60 * 1000 // Keep 30 minutes for stats
 		}),
 
 	/**
@@ -113,8 +128,9 @@ export const propertyQueries = {
 	performance: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'performance'],
-			queryFn: () => apiRequest<PropertyPerformance[]>('/api/v1/property-performance'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			queryFn: () =>
+				apiRequest<PropertyPerformance[]>('/api/v1/property-performance'),
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	analytics: {
@@ -122,20 +138,24 @@ export const propertyQueries = {
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
 				queryFn: () => apiRequest('/api/v1/properties/analytics/occupancy'),
-				...QUERY_CACHE_TIMES.ANALYTICS,
+				...QUERY_CACHE_TIMES.ANALYTICS
 			}),
 		financial: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
 				queryFn: () => apiRequest('/api/v1/properties/analytics/financial'),
-				...QUERY_CACHE_TIMES.ANALYTICS,
+				...QUERY_CACHE_TIMES.ANALYTICS
 			}),
 		maintenance: () =>
 			queryOptions({
-				queryKey: [...propertyQueries.all(), 'analytics', 'maintenance'] as const,
+				queryKey: [
+					...propertyQueries.all(),
+					'analytics',
+					'maintenance'
+				] as const,
 				queryFn: () => apiRequest('/api/v1/properties/analytics/maintenance'),
-				...QUERY_CACHE_TIMES.ANALYTICS,
-			}),
+				...QUERY_CACHE_TIMES.ANALYTICS
+			})
 	},
 
 	/**
@@ -171,13 +191,15 @@ export const propertyQueries = {
 						return image
 					}
 					// Construct full URL from relative path
-					const { data: { publicUrl } } = supabase.storage
+					const {
+						data: { publicUrl }
+					} = supabase.storage
 						.from('property-images')
 						.getPublicUrl(image.image_url)
 					return { ...image, image_url: publicUrl }
 				})
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id,
-		}),
+			enabled: !!property_id
+		})
 }

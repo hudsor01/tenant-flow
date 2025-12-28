@@ -9,10 +9,7 @@
  * - Security event logging and alerting
  */
 
-import type {
-	NestMiddleware,
-	OnModuleDestroy
-} from '@nestjs/common';
+import type { NestMiddleware, OnModuleDestroy } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { Request, Response } from 'express'
 import { AppLogger } from '../../logger/app-logger.service'

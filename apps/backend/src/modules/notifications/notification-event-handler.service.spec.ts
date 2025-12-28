@@ -44,7 +44,7 @@ describe('NotificationEventHandlerService', () => {
 		} as unknown as jest.Mocked<SupabaseService>
 
 		mockFailedNotifications = {
-			retryWithBackoff: jest.fn().mockImplementation(async (fn) => fn())
+			retryWithBackoff: jest.fn().mockImplementation(async fn => fn())
 		} as unknown as jest.Mocked<FailedNotificationsService>
 
 		mockEmailQueue = {
@@ -55,7 +55,10 @@ describe('NotificationEventHandlerService', () => {
 			providers: [
 				NotificationEventHandlerService,
 				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: FailedNotificationsService, useValue: mockFailedNotifications },
+				{
+					provide: FailedNotificationsService,
+					useValue: mockFailedNotifications
+				},
 				{ provide: getQueueToken('emails'), useValue: mockEmailQueue },
 				{
 					provide: AppLogger,
@@ -66,7 +69,9 @@ describe('NotificationEventHandlerService', () => {
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<NotificationEventHandlerService>(NotificationEventHandlerService)
+		service = module.get<NotificationEventHandlerService>(
+			NotificationEventHandlerService
+		)
 	})
 
 	describe('handleMaintenanceUpdated', () => {
@@ -214,7 +219,11 @@ describe('NotificationEventHandlerService', () => {
 									data: {
 										id: 'tenant-123',
 										user_id: 'user-abc',
-										user: { first_name: 'John', last_name: 'Doe', email: 'john@test.com' }
+										user: {
+											first_name: 'John',
+											last_name: 'Doe',
+											email: 'john@test.com'
+										}
 									},
 									error: null
 								})

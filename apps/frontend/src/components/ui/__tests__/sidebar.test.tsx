@@ -25,7 +25,7 @@ Object.defineProperty(window, 'matchMedia', {
 		onchange: null,
 		addEventListener: vi.fn(),
 		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
+		dispatchEvent: vi.fn()
 	}))
 })
 
@@ -91,7 +91,9 @@ describe('SidebarProvider', () => {
 		})
 
 		it('should handle multiple cookies correctly', () => {
-			mockCookie.mockReturnValue('other_cookie=value; sidebar_state=false; another=value')
+			mockCookie.mockReturnValue(
+				'other_cookie=value; sidebar_state=false; another=value'
+			)
 
 			render(
 				<SidebarProvider>
@@ -133,7 +135,9 @@ describe('SidebarProvider', () => {
 
 			// Verify cookie was set with security attributes
 			expect(mockCookie).toHaveBeenCalledWith(
-				expect.stringContaining('sidebar_state=false; path=/; max-age=604800; SameSite=Lax; Secure')
+				expect.stringContaining(
+					'sidebar_state=false; path=/; max-age=604800; SameSite=Lax; Secure'
+				)
 			)
 		})
 
@@ -159,11 +163,17 @@ describe('SidebarProvider', () => {
 			})
 
 			// Should have been called with secure attributes both times
-			expect(mockCookie).toHaveBeenNthCalledWith(1,
-				expect.stringContaining('sidebar_state=false; path=/; max-age=604800; SameSite=Lax; Secure')
+			expect(mockCookie).toHaveBeenNthCalledWith(
+				1,
+				expect.stringContaining(
+					'sidebar_state=false; path=/; max-age=604800; SameSite=Lax; Secure'
+				)
 			)
-			expect(mockCookie).toHaveBeenNthCalledWith(2,
-				expect.stringContaining('sidebar_state=true; path=/; max-age=604800; SameSite=Lax; Secure')
+			expect(mockCookie).toHaveBeenNthCalledWith(
+				2,
+				expect.stringContaining(
+					'sidebar_state=true; path=/; max-age=604800; SameSite=Lax; Secure'
+				)
 			)
 		})
 	})

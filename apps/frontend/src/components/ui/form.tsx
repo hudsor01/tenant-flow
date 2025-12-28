@@ -158,11 +158,7 @@ function FieldError({
 	}
 
 	return (
-		<scn.FieldError
-			id={formMessageId}
-			className={className}
-			{...props}
-		>
+		<scn.FieldError id={formMessageId} className={className} {...props}>
 			{body}
 		</scn.FieldError>
 	)

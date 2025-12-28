@@ -120,7 +120,7 @@ export const useLayoutStore = create<LayoutState>((set, _get) => ({
 
 	resetPanelSizes: () => set({ panelSizes: DEFAULT_PANEL_SIZES }),
 
-	saveGridLayout: (layout) =>
+	saveGridLayout: layout =>
 		set(state => ({
 			gridLayouts: {
 				...state.gridLayouts,
@@ -128,15 +128,16 @@ export const useLayoutStore = create<LayoutState>((set, _get) => ({
 			}
 		})),
 
-	setActiveGridLayout: (layoutId) => set({ activeGridLayout: layoutId }),
+	setActiveGridLayout: layoutId => set({ activeGridLayout: layoutId }),
 
-	deleteGridLayout: (layoutId) =>
+	deleteGridLayout: layoutId =>
 		set(state => {
 			const newLayouts = { ...state.gridLayouts }
 			delete newLayouts[layoutId]
 			return {
 				gridLayouts: newLayouts,
-				activeGridLayout: state.activeGridLayout === layoutId ? null : state.activeGridLayout
+				activeGridLayout:
+					state.activeGridLayout === layoutId ? null : state.activeGridLayout
 			}
 		}),
 

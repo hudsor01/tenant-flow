@@ -1,7 +1,11 @@
 /**
  * Lease Generation Form - Step 2: Financial Terms
  */
-import type { ReactFormExtendedApi, FormValidateOrFn, FormAsyncValidateOrFn } from '@tanstack/react-form'
+import type {
+	ReactFormExtendedApi,
+	FormValidateOrFn,
+	FormAsyncValidateOrFn
+} from '@tanstack/react-form'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { Input } from '#components/ui/input'
 import { FieldLabel } from '#components/ui/field'
@@ -29,9 +33,7 @@ export function FinancialStep({ form }: FinancialStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">
-					Rent & Deposits
-				</h3>
+				<h3 className="typography-large mb-4">Rent & Deposits</h3>
 				<div className="grid grid-cols-2 gap-4">
 					<form.Field name="rent_amount">
 						{field => (

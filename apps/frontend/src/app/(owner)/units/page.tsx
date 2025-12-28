@@ -37,9 +37,11 @@ export default function UnitsPage() {
 	const deleteUnitMutation = useDeleteUnitMutation()
 
 	// Fetch all units (filtering handled by DataTable)
-	const { data: unitsResponse, isLoading, error } = useQuery(
-		unitQueries.list({ limit: 1000 })
-	)
+	const {
+		data: unitsResponse,
+		isLoading,
+		error
+	} = useQuery(unitQueries.list({ limit: 1000 }))
 
 	const units = unitsResponse?.data ?? []
 
@@ -264,12 +266,16 @@ export default function UnitsPage() {
 			)}
 
 			{/* Delete Confirmation Dialog */}
-			<AlertDialog open={!!deleteunit_id} onOpenChange={() => setDeleteunit_id(null)}>
+			<AlertDialog
+				open={!!deleteunit_id}
+				onOpenChange={() => setDeleteunit_id(null)}
+			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete unit</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this unit? This action cannot be undone.
+							Are you sure you want to delete this unit? This action cannot be
+							undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

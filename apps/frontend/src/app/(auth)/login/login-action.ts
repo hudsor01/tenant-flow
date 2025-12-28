@@ -63,20 +63,24 @@ export async function loginAction(
 
 	// Get user role from JWT (custom access token hook sets in app_metadata)
 	// SECURITY: Never fall back to user_metadata - it's user-editable!
-	const appMetadata = data.user.app_metadata as SupabaseJwtPayload['app_metadata']
+	const appMetadata = data.user
+		.app_metadata as SupabaseJwtPayload['app_metadata']
 	const userType = appMetadata?.user_type
 
 	if (!userType) {
 		// No role assigned - log out and show error
 		await supabase.auth.signOut()
-		return { success: false, error: 'Account setup incomplete. Please contact support.' }
+		return {
+			success: false,
+			error: 'Account setup incomplete. Please contact support.'
+		}
 	}
 
 	// Redirect based on role - DIRECT to destination (no intermediate redirect)
 	if (userType === 'OWNER') {
-		redirect('/dashboard')  // Owner dashboard (direct, avoids login → / → /dashboard timeout)
+		redirect('/dashboard') // Owner dashboard (direct, avoids login → / → /dashboard timeout)
 	} else if (userType === 'TENANT') {
-		redirect('/tenant')  // Tenant portal
+		redirect('/tenant') // Tenant portal
 	} else {
 		// Unknown role - log out and show error
 		await supabase.auth.signOut()

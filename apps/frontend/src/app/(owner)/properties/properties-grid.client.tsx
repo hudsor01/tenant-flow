@@ -35,7 +35,10 @@ interface PropertiesGridClientProps {
 	trendMap?: Map<string, number> | undefined
 }
 
-export function PropertiesGridClient({ data, trendMap }: PropertiesGridClientProps) {
+export function PropertiesGridClient({
+	data,
+	trendMap
+}: PropertiesGridClientProps) {
 	const router = useRouter()
 	const [isPending, startTransition] = useTransition()
 	const [optimisticProperties, removeOptimisticProperty] = useOptimistic(

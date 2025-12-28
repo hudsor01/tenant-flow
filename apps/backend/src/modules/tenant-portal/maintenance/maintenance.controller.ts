@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	InternalServerErrorException,
+	Post,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -15,7 +26,15 @@ const MaintenanceRequestCreateSchema = z.object({
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['low', 'medium', 'high', 'urgent']),
 	category: z
-		.enum(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'])
+		.enum([
+			'PLUMBING',
+			'ELECTRICAL',
+			'HVAC',
+			'APPLIANCES',
+			'SAFETY',
+			'GENERAL',
+			'OTHER'
+		])
 		.optional(),
 	allowEntry: z.boolean().default(true),
 	photos: z.array(z.string().url()).max(6).optional()
@@ -40,8 +59,10 @@ type MaintenanceRequestRow =
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantMaintenanceController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get maintenance request history
@@ -94,13 +115,13 @@ export class TenantMaintenanceController {
 			throw new BadRequestException('Unable to find property owner for unit')
 		}
 
-			const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
-				{
-					title: body.title,
-					description: body.description,
-					priority: body.priority,
-					status: 'open',
-					requested_by: user.id,
+		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
+			{
+				title: body.title,
+				description: body.description,
+				priority: body.priority,
+				status: 'open',
+				requested_by: user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id,
 				owner_user_id: unit.property.owner_user_id

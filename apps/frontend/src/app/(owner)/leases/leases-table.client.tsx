@@ -1,7 +1,13 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import {
@@ -29,7 +35,11 @@ import { useDataTable } from '#hooks/use-data-table'
 export function LeasesTable() {
 	// PERFORMANCE FIX: Single query now includes tenant, unit, and property relations
 	// Eliminates N+1 query problem (3 requests → 1 request, 200-400ms savings)
-	const { data: leasesResponse, isLoading, isError } = useQuery(leaseQueries.list())
+	const {
+		data: leasesResponse,
+		isLoading,
+		isError
+	} = useQuery(leaseQueries.list())
 
 	const leases = leasesResponse?.data ?? []
 	const removeLease = useDeleteLeaseMutation()
@@ -52,7 +62,11 @@ export function LeasesTable() {
 						</Button>
 						<AlertDialog>
 							<AlertDialogTrigger asChild>
-								<Button size="icon-sm" variant="ghost" className="text-destructive hover:text-destructive">
+								<Button
+									size="icon-sm"
+									variant="ghost"
+									className="text-destructive hover:text-destructive"
+								>
 									<Trash2 className="size-4" />
 									<span className="sr-only">Delete lease</span>
 								</Button>
@@ -61,7 +75,8 @@ export function LeasesTable() {
 								<AlertDialogHeader>
 									<AlertDialogTitle>Delete lease</AlertDialogTitle>
 									<AlertDialogDescription>
-										This action cannot be undone. This will cancel the lease and remove associated billing schedules.
+										This action cannot be undone. This will cancel the lease and
+										remove associated billing schedules.
 									</AlertDialogDescription>
 								</AlertDialogHeader>
 								<AlertDialogFooter>
@@ -91,9 +106,9 @@ export function LeasesTable() {
 		initialState: {
 			pagination: {
 				pageIndex: 0,
-				pageSize: 10,
-			},
-		},
+				pageSize: 10
+			}
+		}
 	})
 
 	if (isLoading) {
@@ -104,10 +119,14 @@ export function LeasesTable() {
 						<FileText className="size-5" />
 						Leases
 					</CardTitle>
-					<CardDescription>Track lease terms, tenant assignments, and rent amounts.</CardDescription>
+					<CardDescription>
+						Track lease terms, tenant assignments, and rent amounts.
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<div className="animate-pulse text-muted-foreground">Loading leases...</div>
+					<div className="animate-pulse text-muted-foreground">
+						Loading leases...
+					</div>
 				</CardContent>
 			</Card>
 		)
@@ -121,7 +140,9 @@ export function LeasesTable() {
 						<FileText className="size-5" />
 						Leases
 					</CardTitle>
-					<CardDescription>Track lease terms, tenant assignments, and rent amounts.</CardDescription>
+					<CardDescription>
+						Track lease terms, tenant assignments, and rent amounts.
+					</CardDescription>
 				</CardHeader>
 				<CardContent>
 					<div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
@@ -140,7 +161,9 @@ export function LeasesTable() {
 						<FileText className="size-5" />
 						Leases
 					</CardTitle>
-					<CardDescription>Track lease terms, tenant assignments, and rent amounts.</CardDescription>
+					<CardDescription>
+						Track lease terms, tenant assignments, and rent amounts.
+					</CardDescription>
 				</div>
 				<Button asChild>
 					<Link href="/leases/new">

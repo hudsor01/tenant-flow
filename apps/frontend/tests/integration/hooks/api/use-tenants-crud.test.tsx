@@ -12,7 +12,11 @@
  */
 
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery
+} from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
 import type { ReactNode } from 'react'
 import {

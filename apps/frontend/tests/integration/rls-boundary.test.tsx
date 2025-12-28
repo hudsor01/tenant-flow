@@ -22,10 +22,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import type { Property } from '@repo/shared/types/core'
 import type { PropertyCreate } from '@repo/shared/validation/properties'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import {
-	createSupabaseTestClient,
-	ensureEnvVars
-} from '../utils/env'
+import { createSupabaseTestClient, ensureEnvVars } from '../utils/env'
 
 const logger = createLogger({ component: 'RlsBoundaryTest' })
 const shouldRunIntegrationTests =
@@ -258,7 +255,9 @@ describe.skip('RLS Boundary Tests', () => {
 				})
 			} catch (error) {
 				logger.warn('Failed to cleanup ownerA property', {
-					metadata: { error: error instanceof Error ? error.message : String(error) }
+					metadata: {
+						error: error instanceof Error ? error.message : String(error)
+					}
 				})
 			}
 		}
@@ -270,7 +269,9 @@ describe.skip('RLS Boundary Tests', () => {
 				})
 			} catch (error) {
 				logger.warn('Failed to cleanup ownerB property', {
-					metadata: { error: error instanceof Error ? error.message : String(error) }
+					metadata: {
+						error: error instanceof Error ? error.message : String(error)
+					}
 				})
 			}
 		}
@@ -340,18 +341,26 @@ describe.skip('RLS Boundary Tests', () => {
 		})
 
 		it('tenant cannot update properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${ownerAproperty_id}`, {
-				method: 'PUT',
-				body: JSON.stringify({
-					name: 'Unauthorized Update'
-				})
-			})
+			await expectForbidden(
+				tenantA,
+				`/api/v1/properties/${ownerAproperty_id}`,
+				{
+					method: 'PUT',
+					body: JSON.stringify({
+						name: 'Unauthorized Update'
+					})
+				}
+			)
 		})
 
 		it('tenant cannot delete properties', async () => {
-			await expectForbidden(tenantA, `/api/v1/properties/${ownerAproperty_id}`, {
-				method: 'DELETE'
-			})
+			await expectForbidden(
+				tenantA,
+				`/api/v1/properties/${ownerAproperty_id}`,
+				{
+					method: 'DELETE'
+				}
+			)
 		})
 
 		it('tenant cannot access owner dashboard endpoints', async () => {

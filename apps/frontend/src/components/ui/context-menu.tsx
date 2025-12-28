@@ -16,25 +16,19 @@ function ContextMenu({
 function ContextMenuTrigger({
 	...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
-	return (
-		<ContextMenuPrimitive.Trigger {...props} />
-	)
+	return <ContextMenuPrimitive.Trigger {...props} />
 }
 
 function ContextMenuGroup({
 	...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
-	return (
-		<ContextMenuPrimitive.Group {...props} />
-	)
+	return <ContextMenuPrimitive.Group {...props} />
 }
 
 function ContextMenuPortal({
 	...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
-	return (
-		<ContextMenuPrimitive.Portal {...props} />
-	)
+	return <ContextMenuPrimitive.Portal {...props} />
 }
 
 function ContextMenuSub({
@@ -46,11 +40,7 @@ function ContextMenuSub({
 function ContextMenuRadioGroup({
 	...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
-	return (
-		<ContextMenuPrimitive.RadioGroup
-			{...props}
-		/>
-	)
+	return <ContextMenuPrimitive.RadioGroup {...props} />
 }
 
 function ContextMenuSubTrigger({

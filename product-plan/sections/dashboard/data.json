@@ -1,0 +1,160 @@
+{
+	"metrics": {
+		"totalRevenue": 4875000,
+		"revenueChange": 8.5,
+		"occupancyRate": 94.2,
+		"occupancyChange": 2.1,
+		"totalProperties": 8,
+		"totalUnits": 52,
+		"occupiedUnits": 49,
+		"activeLeases": 49,
+		"expiringLeases": 4,
+		"openMaintenanceRequests": 7,
+		"collectionRate": 97.3
+	},
+	"revenueTrend": [
+		{ "month": "Jul", "revenue": 28500000 },
+		{ "month": "Aug", "revenue": 35200000 },
+		{ "month": "Sep", "revenue": 31800000 },
+		{ "month": "Oct", "revenue": 42100000 },
+		{ "month": "Nov", "revenue": 39500000 },
+		{ "month": "Dec", "revenue": 48750000 }
+	],
+	"propertyPerformance": [
+		{
+			"id": "prop-001",
+			"name": "Riverside Apartments",
+			"address": "1234 River Rd, Austin, TX",
+			"totalUnits": 12,
+			"occupiedUnits": 12,
+			"occupancyRate": 100,
+			"monthlyRevenue": 1845000,
+			"openMaintenance": 2
+		},
+		{
+			"id": "prop-002",
+			"name": "Oak Grove Townhomes",
+			"address": "567 Oak St, Austin, TX",
+			"totalUnits": 8,
+			"occupiedUnits": 7,
+			"occupancyRate": 87.5,
+			"monthlyRevenue": 1120000,
+			"openMaintenance": 1
+		},
+		{
+			"id": "prop-003",
+			"name": "Downtown Lofts",
+			"address": "890 Main St, Austin, TX",
+			"totalUnits": 16,
+			"occupiedUnits": 15,
+			"occupancyRate": 93.75,
+			"monthlyRevenue": 2640000,
+			"openMaintenance": 3
+		},
+		{
+			"id": "prop-004",
+			"name": "Sunset Gardens",
+			"address": "456 Sunset Blvd, Austin, TX",
+			"totalUnits": 10,
+			"occupiedUnits": 10,
+			"occupancyRate": 100,
+			"monthlyRevenue": 1550000,
+			"openMaintenance": 1
+		},
+		{
+			"id": "prop-005",
+			"name": "Lakeside Commons",
+			"address": "321 Lake Dr, Austin, TX",
+			"totalUnits": 6,
+			"occupiedUnits": 5,
+			"occupancyRate": 83.33,
+			"monthlyRevenue": 875000,
+			"openMaintenance": 0
+		}
+	],
+	"activities": [
+		{
+			"id": "act-001",
+			"type": "payment",
+			"title": "Rent Payment Received",
+			"description": "Sarah Chen paid $1,850 for Unit 4A at Riverside Apartments",
+			"timestamp": "2025-12-24T14:32:00Z",
+			"entityId": "pay-001",
+			"status": "success"
+		},
+		{
+			"id": "act-002",
+			"type": "maintenance",
+			"title": "Maintenance Request Submitted",
+			"description": "Water heater issue reported at Downtown Lofts Unit 8B",
+			"timestamp": "2025-12-24T11:15:00Z",
+			"entityId": "maint-001",
+			"status": "warning"
+		},
+		{
+			"id": "act-003",
+			"type": "lease",
+			"title": "Lease Signed",
+			"description": "Michael Torres signed lease for Oak Grove Unit 3",
+			"timestamp": "2025-12-23T16:45:00Z",
+			"entityId": "lease-001",
+			"status": "success"
+		},
+		{
+			"id": "act-004",
+			"type": "payment",
+			"title": "Payment Failed",
+			"description": "Payment declined for James Wilson at Sunset Gardens Unit 2",
+			"timestamp": "2025-12-23T09:00:00Z",
+			"entityId": "pay-002",
+			"status": "error"
+		},
+		{
+			"id": "act-005",
+			"type": "tenant",
+			"title": "Tenant Invitation Accepted",
+			"description": "Emily Rodriguez accepted invitation and created account",
+			"timestamp": "2025-12-22T18:20:00Z",
+			"entityId": "tenant-001",
+			"status": "info"
+		}
+	],
+	"expiringLeases": [
+		{
+			"id": "lease-exp-001",
+			"tenantName": "David Kim",
+			"propertyName": "Downtown Lofts",
+			"unitNumber": "12C",
+			"endDate": "2025-01-15",
+			"daysUntilExpiry": 22,
+			"rentAmount": 195000
+		},
+		{
+			"id": "lease-exp-002",
+			"tenantName": "Amanda Foster",
+			"propertyName": "Riverside Apartments",
+			"unitNumber": "7B",
+			"endDate": "2025-01-20",
+			"daysUntilExpiry": 27,
+			"rentAmount": 165000
+		},
+		{
+			"id": "lease-exp-003",
+			"tenantName": "Robert Chang",
+			"propertyName": "Sunset Gardens",
+			"unitNumber": "5",
+			"endDate": "2025-01-08",
+			"daysUntilExpiry": 15,
+			"rentAmount": 155000
+		},
+		{
+			"id": "lease-exp-004",
+			"tenantName": "Lisa Patel",
+			"propertyName": "Oak Grove Townhomes",
+			"unitNumber": "6",
+			"endDate": "2025-01-31",
+			"daysUntilExpiry": 38,
+			"rentAmount": 175000
+		}
+	]
+}

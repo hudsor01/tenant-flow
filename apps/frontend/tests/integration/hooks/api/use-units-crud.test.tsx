@@ -12,7 +12,11 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery
+} from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
 import type { ReactNode } from 'react'
 import {
@@ -87,10 +91,9 @@ describeIfReady('Units CRUD Integration Tests', () => {
 			})
 
 			it('supports status filtering', async () => {
-				const { result } = renderHook(
-					() => useUnitList({ status: 'vacant' }),
-					{ wrapper: createWrapper() }
-				)
+				const { result } = renderHook(() => useUnitList({ status: 'vacant' }), {
+					wrapper: createWrapper()
+				})
 
 				await waitFor(() => {
 					expect(result.current.isSuccess).toBe(true)

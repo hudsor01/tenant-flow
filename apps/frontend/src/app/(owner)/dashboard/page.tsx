@@ -4,7 +4,7 @@ import { Suspense, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Dashboard } from '#components/dashboard/dashboard'
-import { OwnerOnboardingTour } from '#components/tours'
+import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	useDashboardStats,
@@ -149,7 +149,8 @@ function DashboardContent() {
 			totalRevenue: (stats.revenue?.monthly ?? 0) * 100, // Convert to cents
 			revenueChange: statsData.metricTrends?.monthlyRevenue?.percentChange ?? 0,
 			occupancyRate: stats.units?.occupancyRate ?? 0,
-			occupancyChange: statsData.metricTrends?.occupancyRate?.percentChange ?? 0,
+			occupancyChange:
+				statsData.metricTrends?.occupancyRate?.percentChange ?? 0,
 			totalProperties: stats.properties?.total ?? 0,
 			totalUnits: stats.units?.total ?? 0,
 			occupiedUnits: stats.units?.occupied ?? 0,

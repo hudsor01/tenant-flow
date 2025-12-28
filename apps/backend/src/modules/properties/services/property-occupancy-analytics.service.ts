@@ -1,7 +1,4 @@
-import {
-	BadRequestException,
-	Injectable
-} from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
@@ -65,7 +62,10 @@ export class PropertyOccupancyAnalyticsService {
 
 		// SECURITY: Verify property ownership before proceeding
 		if (query.property_id) {
-			const { data: property } = await getPropertyForUser(req, query.property_id)
+			const { data: property } = await getPropertyForUser(
+				req,
+				query.property_id
+			)
 			if (!property) {
 				this.logger.warn('[ANALYTICS:OCCUPANCY:SECURITY] Property not found', {
 					user_id,
@@ -116,7 +116,7 @@ export class PropertyOccupancyAnalyticsService {
 		}
 
 		// Process each property's occupancy data
-		const result = (properties ?? []).map((property) =>
+		const result = (properties ?? []).map(property =>
 			this.processOccupancyData(property as QueryProperty, period)
 		)
 
@@ -136,19 +136,23 @@ export class PropertyOccupancyAnalyticsService {
 	/**
 	 * Process property data to calculate occupancy metrics
 	 */
-	processOccupancyData(property: QueryProperty, period: string): PropertyOccupancyData {
+	processOccupancyData(
+		property: QueryProperty,
+		period: string
+	): PropertyOccupancyData {
 		const units = property.units || []
 		const totalUnits = units.length
-		const occupiedUnits = units.filter((unit) => {
+		const occupiedUnits = units.filter(unit => {
 			const activeLease = unit.leases?.find(
-				(lease) =>
+				lease =>
 					lease.lease_status === 'active' &&
 					new Date(lease.start_date) <= new Date() &&
 					new Date(lease.end_date) >= new Date()
 			)
 			return activeLease
 		}).length
-		const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
+		const occupancyRate =
+			totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
 		const vacantUnits = totalUnits - occupiedUnits
 
 		return {

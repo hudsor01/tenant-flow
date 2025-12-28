@@ -58,11 +58,12 @@ module.exports = {
 	 * @param {string} uuid - The UUID string to validate
 	 * @returns {boolean} True if valid UUID format, false otherwise
 	 */
-	validate: (uuid) => {
+	validate: uuid => {
 		if (typeof uuid !== 'string') return false
 		// UUID regex pattern: xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
 		// M = version (1-5), N = variant (8, 9, a, b)
-		const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+		const uuidRegex =
+			/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 		return uuidRegex.test(uuid)
 	},
 
@@ -72,12 +73,12 @@ module.exports = {
 	 * @param {string} uuid - The UUID string to parse
 	 * @returns {number} The version number (1-5), or 0 if invalid UUID
 	 */
-	version: (uuid) => {
+	version: uuid => {
 		if (typeof uuid !== 'string') return 0
 		// Version is at position 14 (0-indexed): xxxxxxxx-xxxx-Mxxx-Nxxx-xxxxxxxxxxxx
 		//                                         0       9    14
 		const versionChar = uuid.charAt(14)
 		const version = parseInt(versionChar, 10)
-		return (version >= 1 && version <= 5) ? version : 0
+		return version >= 1 && version <= 5 ? version : 0
 	}
 }

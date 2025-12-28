@@ -20,7 +20,6 @@ import {
 	AlertTriangle,
 	Mail,
 	Download,
-	BarChart3,
 	Eye,
 	Pencil,
 	Trash2,
@@ -33,21 +32,13 @@ import {
 	Phone,
 	MapPin,
 	CreditCard,
-	FileText
+	FileText,
+	Search
 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { NumberTicker } from '#components/ui/number-ticker'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
 import { BorderBeam } from '#components/ui/border-beam'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
 import {
 	Sheet,
 	SheetContent,
@@ -60,7 +51,12 @@ import {
 // TYPES
 // ============================================================================
 
-export type LeaseStatus = 'draft' | 'pending_signature' | 'active' | 'ended' | 'terminated'
+export type LeaseStatus =
+	| 'draft'
+	| 'pending_signature'
+	| 'active'
+	| 'ended'
+	| 'terminated'
 
 export interface TenantItem {
 	id: string
@@ -79,15 +75,17 @@ export interface TenantDetail extends TenantItem {
 	emergencyContactPhone: string | undefined
 	emergencyContactRelationship: string | undefined
 	identityVerified: boolean
-	currentLease: {
-		id: string
-		propertyName: string
-		unitNumber: string
-		startDate: string
-		endDate: string | null
-		rentAmount: number
-		autopayEnabled: boolean
-	} | undefined
+	currentLease:
+		| {
+				id: string
+				propertyName: string
+				unitNumber: string
+				startDate: string
+				endDate: string | null
+				rentAmount: number
+				autopayEnabled: boolean
+		  }
+		| undefined
 	paymentHistory?: Array<{
 		id: string
 		amount: number
@@ -143,7 +141,12 @@ function formatDate(dateString: string): string {
 	})
 }
 
-type PaymentStatus = 'pending' | 'processing' | 'succeeded' | 'failed' | 'canceled'
+type PaymentStatus =
+	| 'pending'
+	| 'processing'
+	| 'succeeded'
+	| 'failed'
+	| 'canceled'
 
 function PaymentStatusIcon({ status }: { status: PaymentStatus }) {
 	switch (status) {
@@ -205,22 +208,26 @@ function SortableHeader({
 // STATUS SELECT
 // ============================================================================
 
-function StatusBadge({ status }: { status: LeaseStatus | undefined }) {
+function getStatusBadge(status: LeaseStatus | undefined) {
 	const config: Record<LeaseStatus, { className: string; label: string }> = {
 		draft: {
-			className: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			label: 'Draft'
 		},
 		pending_signature: {
-			className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+			className:
+				'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
 			label: 'Pending'
 		},
 		active: {
-			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+			className:
+				'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
 			label: 'Active'
 		},
 		ended: {
-			className: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			label: 'Ended'
 		},
 		terminated: {
@@ -232,7 +239,9 @@ function StatusBadge({ status }: { status: LeaseStatus | undefined }) {
 	const statusConfig = config[status ?? 'draft'] ?? config.draft
 
 	return (
-		<span className={`inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium ${statusConfig.className}`}>
+		<span
+			className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${statusConfig.className}`}
+		>
 			{statusConfig.label}
 		</span>
 	)
@@ -322,9 +331,11 @@ function TenantTable({
 
 	const totalPages = Math.ceil(sortedTenants.length / pageSize)
 
-	const allSelected = paginatedTenants.length > 0 &&
+	const allSelected =
+		paginatedTenants.length > 0 &&
 		paginatedTenants.every(t => selectedIds.has(t.id))
-	const someSelected = paginatedTenants.some(t => selectedIds.has(t.id)) && !allSelected
+	const someSelected =
+		paginatedTenants.some(t => selectedIds.has(t.id)) && !allSelected
 
 	const handleSelectAll = () => {
 		if (allSelected) {
@@ -348,18 +359,20 @@ function TenantTable({
 		<div className="w-full">
 			<div className="overflow-x-auto">
 				<table className="w-full">
-					<thead className="border-b border-border bg-muted/50">
+					<thead className="border-b border-border bg-muted/30">
 						<tr>
-							<th className="w-10 px-4 py-3">
+							<th className="w-12 px-4 py-3">
 								<Checkbox
-									checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+									checked={
+										allSelected ? true : someSelected ? 'indeterminate' : false
+									}
 									onCheckedChange={handleSelectAll}
 									aria-label="Select all"
 								/>
 							</th>
 							<th className="px-4 py-3 text-left">
 								<SortableHeader
-									title="Name"
+									title="Tenant"
 									field="fullName"
 									currentSort={sortField}
 									currentDirection={sortDirection}
@@ -367,16 +380,9 @@ function TenantTable({
 								/>
 							</th>
 							<th className="px-4 py-3 text-left hidden md:table-cell">
-								<SortableHeader
-									title="Email"
-									field="email"
-									currentSort={sortField}
-									currentDirection={sortDirection}
-									onSort={handleSort}
-								/>
-							</th>
-							<th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground hidden lg:table-cell">
-								Phone
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Contact
+								</span>
 							</th>
 							<th className="px-4 py-3 text-left hidden lg:table-cell">
 								<SortableHeader
@@ -396,14 +402,16 @@ function TenantTable({
 									onSort={handleSort}
 								/>
 							</th>
-							<th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground hidden xl:table-cell">
-								Lease
+							<th className="px-4 py-3 text-left hidden xl:table-cell">
+								<span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+									Lease
+								</span>
 							</th>
-							<th className="w-36 px-4 py-3"></th>
+							<th className="w-20 px-4 py-3"></th>
 						</tr>
 					</thead>
 					<tbody className="divide-y divide-border">
-						{paginatedTenants.map((tenant) => (
+						{paginatedTenants.map(tenant => (
 							<tr
 								key={tenant.id}
 								className={`hover:bg-muted/50 transition-colors ${
@@ -424,75 +432,81 @@ function TenantTable({
 									>
 										{tenant.fullName}
 									</button>
-									<p className="text-sm text-muted-foreground md:hidden truncate">{tenant.email}</p>
+									<p className="text-sm text-muted-foreground truncate md:hidden">
+										{tenant.email}
+									</p>
 								</td>
 								<td className="px-4 py-3 hidden md:table-cell">
-									<span className="text-sm text-muted-foreground">{tenant.email}</span>
-								</td>
-								<td className="px-4 py-3 hidden lg:table-cell">
-									<span className="text-sm text-muted-foreground">
-										{tenant.phone || '—'}
-									</span>
+									<a
+										href={`mailto:${tenant.email}`}
+										className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors"
+									>
+										{tenant.email}
+									</a>
+									{tenant.phone && (
+										<p className="text-sm text-muted-foreground">
+											{tenant.phone}
+										</p>
+									)}
 								</td>
 								<td className="px-4 py-3 hidden lg:table-cell">
 									{tenant.currentProperty ? (
 										<div className="text-left">
-											<p className="text-sm text-foreground">{tenant.currentProperty}</p>
+											<p className="text-sm text-foreground">
+												{tenant.currentProperty}
+											</p>
 											{tenant.currentUnit && (
-												<p className="text-xs text-muted-foreground">Unit {tenant.currentUnit}</p>
+												<p className="text-xs text-muted-foreground">
+													Unit {tenant.currentUnit}
+												</p>
 											)}
 										</div>
 									) : (
-										<span className="text-sm text-muted-foreground">—</span>
+										<span className="text-sm text-muted-foreground">-</span>
 									)}
 								</td>
 								<td className="px-4 py-3">
-									<StatusBadge status={tenant.leaseStatus} />
+									{getStatusBadge(tenant.leaseStatus)}
 								</td>
 								<td className="px-4 py-3 hidden xl:table-cell">
 									{tenant.leaseId && onViewLease ? (
-										<Button
-											variant="ghost"
-											size="sm"
+										<button
 											onClick={() => onViewLease(tenant.leaseId!)}
-											className="h-auto py-1 px-2 text-primary"
+											className="text-sm text-primary hover:underline flex items-center gap-1"
 										>
-											<FileText className="mr-1 h-3.5 w-3.5" />
+											<FileText className="w-3.5 h-3.5" />
 											View
-										</Button>
+										</button>
 									) : (
-										<span className="text-sm text-muted-foreground">—</span>
+										<span className="text-sm text-muted-foreground">-</span>
 									)}
 								</td>
 								<td className="px-4 py-3">
 									<div className="flex items-center justify-end gap-1">
-										<Button
-											variant="ghost"
-											size="icon"
+										<button
 											onClick={() => onView(tenant.id)}
-											className="min-h-11 min-w-11"
+											className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+											title="View tenant"
+											aria-label="View tenant"
 										>
-											<Eye className="h-4 w-4" />
-											<span className="sr-only">View</span>
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
+											<Eye className="w-4 h-4" />
+										</button>
+										<button
 											onClick={() => onEdit(tenant.id)}
-											className="min-h-11 min-w-11"
+											className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+											title="Edit tenant"
+											aria-label="Edit tenant"
 										>
-											<Pencil className="h-4 w-4" />
-											<span className="sr-only">Edit</span>
-										</Button>
-										<Button
-											variant="ghost"
-											size="icon"
+											<Pencil className="w-4 h-4" />
+										</button>
+										<button
 											onClick={() => onDelete(tenant.id)}
-											className="min-h-11 min-w-11 text-destructive hover:text-destructive hover:bg-destructive/10"
+											className="p-2 rounded-sm hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+											title="Delete tenant"
+											aria-label="Delete tenant"
 										>
-											<Trash2 className="h-4 w-4" />
-											<span className="sr-only">Delete</span>
-										</Button>
+											<Trash2 className="w-4 h-4" />
+										</button>
 									</div>
 								</td>
 							</tr>
@@ -503,28 +517,43 @@ function TenantTable({
 
 			{totalPages > 1 && (
 				<div className="flex items-center justify-between px-4 py-3 border-t border-border">
-					<p className="text-sm text-muted-foreground">
-						Showing {pageIndex * pageSize + 1} to {Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of {sortedTenants.length}
-					</p>
+					<span className="text-sm text-muted-foreground">
+						Showing {pageIndex * pageSize + 1}-
+						{Math.min((pageIndex + 1) * pageSize, sortedTenants.length)} of{' '}
+						{sortedTenants.length}
+					</span>
 					<div className="flex items-center gap-1">
-						<Button
-							variant="outline"
-							size="sm"
+						<button
 							onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
 							disabled={pageIndex === 0}
+							className="p-2 rounded-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+							aria-label="Previous page"
 						>
-							<ChevronLeft className="h-4 w-4" />
-							Previous
-						</Button>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setPageIndex(Math.min(totalPages - 1, pageIndex + 1))}
+							<ChevronLeft className="w-4 h-4" />
+						</button>
+						{Array.from({ length: totalPages }, (_, i) => i).map(page => (
+							<button
+								key={page}
+								onClick={() => setPageIndex(page)}
+								className={`min-w-8 h-8 px-2 text-sm font-medium rounded-sm transition-colors ${
+									page === pageIndex
+										? 'bg-primary text-primary-foreground'
+										: 'hover:bg-muted text-muted-foreground'
+								}`}
+							>
+								{page + 1}
+							</button>
+						))}
+						<button
+							onClick={() =>
+								setPageIndex(Math.min(totalPages - 1, pageIndex + 1))
+							}
 							disabled={pageIndex >= totalPages - 1}
+							className="p-2 rounded-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+							aria-label="Next page"
 						>
-							Next
-							<ChevronRight className="h-4 w-4" />
-						</Button>
+							<ChevronRight className="w-4 h-4" />
+						</button>
 					</div>
 				</div>
 			)}
@@ -575,19 +604,28 @@ function TenantGrid({
 					<BlurFade key={tenant.id} delay={0.05 + idx * 0.03} inView>
 						<div
 							className={`bg-card border rounded-lg p-4 transition-all hover:shadow-md relative overflow-hidden ${
-								isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border'
+								isSelected
+									? 'border-primary ring-2 ring-primary/20'
+									: 'border-border'
 							}`}
 						>
 							{isActive && (
-								<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary)/0.5)" colorTo="transparent" />
+								<BorderBeam
+									size={100}
+									duration={12}
+									colorFrom="hsl(var(--primary)/0.5)"
+									colorTo="transparent"
+								/>
 							)}
 
 							{/* Header */}
 							<div className="flex items-start justify-between mb-3">
 								<div className="flex items-center gap-3">
-									<Checkbox
+									<input
+										type="checkbox"
 										checked={isSelected}
-										onCheckedChange={() => toggleSelect(tenant.id)}
+										onChange={() => toggleSelect(tenant.id)}
+										className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 									/>
 									<button
 										onClick={() => onView(tenant.id)}
@@ -639,33 +677,30 @@ function TenantGrid({
 
 							{/* Actions */}
 							<div className="flex items-center justify-end gap-1 pt-3 border-t border-border">
-								<Button
-									variant="ghost"
-									size="icon"
+								<button
 									onClick={() => onView(tenant.id)}
-									className="min-h-11 min-w-11"
+									className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+									title="View"
+									aria-label="View tenant"
 								>
 									<Eye className="w-4 h-4" />
-									<span className="sr-only">View</span>
-								</Button>
-								<Button
-									variant="ghost"
-									size="icon"
+								</button>
+								<button
 									onClick={() => onEdit(tenant.id)}
-									className="min-h-11 min-w-11"
+									className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+									title="Edit"
+									aria-label="Edit tenant"
 								>
 									<Pencil className="w-4 h-4" />
-									<span className="sr-only">Edit</span>
-								</Button>
-								<Button
-									variant="ghost"
-									size="icon"
+								</button>
+								<button
 									onClick={() => onDelete(tenant.id)}
-									className="min-h-11 min-w-11 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+									className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+									title="Delete"
+									aria-label="Delete tenant"
 								>
 									<Trash2 className="w-4 h-4" />
-									<span className="sr-only">Delete</span>
-								</Button>
+								</button>
 							</div>
 						</div>
 					</BlurFade>
@@ -684,6 +719,7 @@ interface TenantActionBarProps {
 	isVisible: boolean
 	onDelete: () => void
 	onExport: () => void
+	onMessageAll?: () => void
 	onClose: () => void
 }
 
@@ -692,6 +728,7 @@ function TenantActionBar({
 	isVisible,
 	onDelete,
 	onExport,
+	onMessageAll,
 	onClose
 }: TenantActionBarProps) {
 	const [mounted, setMounted] = React.useState(false)
@@ -726,6 +763,12 @@ function TenantActionBar({
 					<Download className="h-4 w-4 mr-1" />
 					Export
 				</Button>
+				{onMessageAll && (
+					<Button variant="outline" size="sm" onClick={onMessageAll}>
+						<Mail className="h-4 w-4 mr-1" />
+						Message All
+					</Button>
+				)}
 				<Button
 					variant="outline"
 					size="sm"
@@ -800,7 +843,9 @@ function TenantDetailSheet({
 									<Mail className="w-4 h-4 text-primary" />
 								</div>
 								<div className="text-left">
-									<p className="text-sm font-medium text-foreground">{tenant.email}</p>
+									<p className="text-sm font-medium text-foreground">
+										{tenant.email}
+									</p>
 									<p className="text-xs text-muted-foreground">Email</p>
 								</div>
 							</button>
@@ -813,7 +858,9 @@ function TenantDetailSheet({
 										<Phone className="w-4 h-4 text-primary" />
 									</div>
 									<div className="text-left">
-										<p className="text-sm font-medium text-foreground">{tenant.phone}</p>
+										<p className="text-sm font-medium text-foreground">
+											{tenant.phone}
+										</p>
 										<p className="text-xs text-muted-foreground">Phone</p>
 									</div>
 								</button>
@@ -847,7 +894,10 @@ function TenantDetailSheet({
 										{formatCurrency(tenant.currentLease.rentAmount)}/mo
 									</span>
 									<span className="text-muted-foreground">
-										{formatDate(tenant.currentLease.startDate)} — {tenant.currentLease.endDate ? formatDate(tenant.currentLease.endDate) : 'Ongoing'}
+										{formatDate(tenant.currentLease.startDate)} —{' '}
+										{tenant.currentLease.endDate
+											? formatDate(tenant.currentLease.endDate)
+											: 'Ongoing'}
 									</span>
 								</div>
 								{tenant.currentLease.autopayEnabled && (
@@ -867,12 +917,18 @@ function TenantDetailSheet({
 								Emergency Contact
 							</h3>
 							<div className="p-4 rounded-lg bg-muted/50 border border-border">
-								<p className="font-medium text-foreground">{tenant.emergencyContactName}</p>
+								<p className="font-medium text-foreground">
+									{tenant.emergencyContactName}
+								</p>
 								{tenant.emergencyContactRelationship && (
-									<p className="text-sm text-muted-foreground">{tenant.emergencyContactRelationship}</p>
+									<p className="text-sm text-muted-foreground">
+										{tenant.emergencyContactRelationship}
+									</p>
 								)}
 								{tenant.emergencyContactPhone && (
-									<p className="text-sm text-muted-foreground mt-1">{tenant.emergencyContactPhone}</p>
+									<p className="text-sm text-muted-foreground mt-1">
+										{tenant.emergencyContactPhone}
+									</p>
 								)}
 							</div>
 						</section>
@@ -895,7 +951,7 @@ function TenantDetailSheet({
 								)}
 							</div>
 							<div className="space-y-2">
-								{tenant.paymentHistory.slice(0, 3).map((payment) => (
+								{tenant.paymentHistory.slice(0, 3).map(payment => (
 									<div
 										key={payment.id}
 										className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
@@ -927,7 +983,7 @@ function TenantDetailSheet({
 								Lease History
 							</h3>
 							<div className="space-y-2">
-								{tenant.leaseHistory.map((lease) => (
+								{tenant.leaseHistory.map(lease => (
 									<button
 										key={lease.id}
 										onClick={() => onViewLease(lease.id)}
@@ -938,7 +994,8 @@ function TenantDetailSheet({
 												{lease.propertyName} - Unit {lease.unitNumber}
 											</p>
 											<p className="text-xs text-muted-foreground">
-												{formatDate(lease.startDate)} — {formatDate(lease.endDate)}
+												{formatDate(lease.startDate)} —{' '}
+												{formatDate(lease.endDate)}
 											</p>
 										</div>
 										<span className="text-xs text-muted-foreground capitalize px-2 py-1 bg-muted rounded">
@@ -958,11 +1015,15 @@ function TenantDetailSheet({
 						<div className="grid grid-cols-2 gap-4 text-sm">
 							<div>
 								<p className="text-muted-foreground">Member since</p>
-								<p className="font-medium text-foreground">{formatDate(tenant.createdAt)}</p>
+								<p className="font-medium text-foreground">
+									{formatDate(tenant.createdAt)}
+								</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Total paid</p>
-								<p className="font-medium text-foreground">{formatCurrency(tenant.totalPaid)}</p>
+								<p className="font-medium text-foreground">
+									{formatCurrency(tenant.totalPaid)}
+								</p>
 							</div>
 							<div>
 								<p className="text-muted-foreground">Identity</p>
@@ -982,7 +1043,11 @@ function TenantDetailSheet({
 
 				{/* Footer */}
 				<div className="mt-6 flex gap-3">
-					<Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+					<Button
+						variant="outline"
+						onClick={() => onOpenChange(false)}
+						className="flex-1"
+					>
 						Close
 					</Button>
 					<Button onClick={() => onEdit(tenant.id)} className="flex-1">
@@ -1024,14 +1089,19 @@ export function Tenants({
 	// Calculate stats
 	const totalTenants = tenants.length
 	const activeTenants = tenants.filter(t => t.leaseStatus === 'active').length
-	const pendingTenants = tenants.filter(t => t.leaseStatus === 'pending_signature').length
+	const pendingTenants = tenants.filter(
+		t => t.leaseStatus === 'pending_signature'
+	).length
 	const endedTenants = tenants.filter(t => t.leaseStatus === 'ended').length
 
 	// Filter tenants
 	const filteredTenants = tenants.filter(t => {
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
-			if (!t.fullName.toLowerCase().includes(query) && !t.email.toLowerCase().includes(query)) {
+			if (
+				!t.fullName.toLowerCase().includes(query) &&
+				!t.email.toLowerCase().includes(query)
+			) {
 				return false
 			}
 		}
@@ -1082,7 +1152,7 @@ export function Tenants({
 			<div className="p-6 lg:p-8 bg-background min-h-full">
 				<BlurFade delay={0.1} inView>
 					<div className="max-w-md mx-auto text-center py-16">
-						<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
+						<div className="w-16 h-16 rounded-sm bg-primary/10 flex items-center justify-center mx-auto mb-6">
 							<Users className="w-8 h-8 text-primary" />
 						</div>
 						<h2 className="text-xl font-semibold text-foreground mb-3">
@@ -1091,10 +1161,13 @@ export function Tenants({
 						<p className="text-muted-foreground mb-6">
 							Invite your first tenant to get started with lease management.
 						</p>
-						<Button onClick={onInviteTenant} size="lg">
-							<UserPlus className="w-5 h-5 mr-2" />
+						<button
+							onClick={onInviteTenant}
+							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<UserPlus className="w-5 h-5" />
 							Invite Your First Tenant
-						</Button>
+						</button>
 					</div>
 				</BlurFade>
 			</div>
@@ -1112,171 +1185,156 @@ export function Tenants({
 							Manage tenants and send invitations
 						</p>
 					</div>
-					<Button onClick={onInviteTenant}>
-						<UserPlus className="w-4 h-4 mr-2" />
-						Invite Tenant
-					</Button>
+					<div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+						<button
+							onClick={onInviteTenant}
+							className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<UserPlus className="w-4 h-4" />
+							Invite Tenant
+						</button>
+						<button
+							type="button"
+							onClick={onMessageAll}
+							disabled={!onMessageAll}
+							className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border bg-card hover:bg-muted/50 text-foreground font-medium rounded-md transition-colors disabled:opacity-50 disabled:pointer-events-none"
+						>
+							Message All
+						</button>
+						<button
+							type="button"
+							onClick={onExport}
+							disabled={!onExport}
+							className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border bg-card hover:bg-muted/50 text-foreground font-medium rounded-md transition-colors disabled:opacity-50 disabled:pointer-events-none"
+						>
+							Export
+						</button>
+						<button
+							type="button"
+							disabled
+							className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-border bg-card text-foreground font-medium rounded-md opacity-60 cursor-not-allowed"
+							title="Coming soon"
+						>
+							Analytics
+						</button>
+					</div>
 				</div>
 			</BlurFade>
 
-			{/* Stats Row - Premium Stat Components */}
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+			{/* Stats Row */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 				<BlurFade delay={0.2} inView>
-					<Stat className="relative overflow-hidden">
-						<BorderBeam size={80} duration={10} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
-						<StatLabel>Total Tenants</StatLabel>
-						<StatValue className="flex items-baseline">
-							<NumberTicker value={totalTenants} duration={1000} />
-						</StatValue>
-						<StatIndicator variant="icon" color="primary">
-							<Users />
-						</StatIndicator>
-						<StatDescription>in your portfolio</StatDescription>
-					</Stat>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Total Tenants</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">{totalTenants}</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Users className="w-4 h-4 text-primary" />
+							</div>
+						</div>
+					</div>
 				</BlurFade>
-
 				<BlurFade delay={0.3} inView>
-					<Stat className="relative overflow-hidden">
-						<StatLabel>Active</StatLabel>
-						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
-							<NumberTicker value={activeTenants} duration={1000} />
-						</StatValue>
-						<StatIndicator variant="icon" color="success">
-							<Check />
-						</StatIndicator>
-						<StatDescription>current leases</StatDescription>
-					</Stat>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Active</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{activeTenants}
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Check className="w-4 h-4 text-primary" />
+							</div>
+						</div>
+					</div>
 				</BlurFade>
-
 				<BlurFade delay={0.4} inView>
-					<Stat className="relative overflow-hidden">
-						{pendingTenants > 0 && (
-							<BorderBeam size={80} duration={6} colorFrom="hsl(45 93% 47%)" colorTo="hsl(45 93% 47% / 0.3)" />
-						)}
-						<StatLabel>Pending</StatLabel>
-						<StatValue className="flex items-baseline text-amber-600 dark:text-amber-400">
-							<NumberTicker value={pendingTenants} duration={1000} />
-						</StatValue>
-						<StatIndicator variant="icon" color="warning">
-							<Clock />
-						</StatIndicator>
-						<StatDescription>awaiting signature</StatDescription>
-					</Stat>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Pending</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{pendingTenants}
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<Clock className="w-4 h-4 text-primary" />
+							</div>
+						</div>
+					</div>
 				</BlurFade>
-
 				<BlurFade delay={0.5} inView>
-					<Stat>
-						<StatLabel>Ended</StatLabel>
-						<StatValue className="flex items-baseline">
-							<NumberTicker value={endedTenants} duration={1000} />
-						</StatValue>
-						<StatIndicator variant="icon" color="default">
-							<AlertCircle />
-						</StatIndicator>
-						<StatDescription>past tenants</StatDescription>
-					</Stat>
+					<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+						<div className="flex items-center justify-between mb-2">
+							<p className="text-sm text-muted-foreground">Ended</p>
+						</div>
+						<div className="flex items-end justify-between">
+							<p className="text-2xl font-bold text-foreground">
+								{endedTenants}
+							</p>
+							<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+								<AlertCircle className="w-4 h-4 text-primary" />
+							</div>
+						</div>
+					</div>
 				</BlurFade>
-			</div>
-
-			{/* Quick Actions */}
-			<div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2">
-				<button
-					onClick={onInviteTenant}
-					className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-				>
-					<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-						<UserPlus className="w-4 h-4" />
-					</div>
-					<div className="text-left">
-						<div className="text-sm font-medium">Invite Tenant</div>
-						<div className="text-xs text-muted-foreground">Send invitation</div>
-					</div>
-				</button>
-				<button
-					onClick={onMessageAll}
-					className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-				>
-					<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-						<Mail className="w-4 h-4" />
-					</div>
-					<div className="text-left">
-						<div className="text-sm font-medium">Message All</div>
-						<div className="text-xs text-muted-foreground">Bulk email</div>
-					</div>
-				</button>
-				<button
-					onClick={onExport}
-					className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-				>
-					<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-						<Download className="w-4 h-4" />
-					</div>
-					<div className="text-left">
-						<div className="text-sm font-medium">Export</div>
-						<div className="text-xs text-muted-foreground">Download data</div>
-					</div>
-				</button>
-				<button
-					className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-				>
-					<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-						<BarChart3 className="w-4 h-4" />
-					</div>
-					<div className="text-left">
-						<div className="text-sm font-medium">Analytics</div>
-						<div className="text-xs text-muted-foreground">View insights</div>
-					</div>
-				</button>
 			</div>
 
 			{/* View Toggle & Filters */}
 			<BlurFade delay={0.6} inView>
-				<div className="bg-card border border-border rounded-lg overflow-hidden">
-					{/* Toolbar */}
+				<div className="bg-card border border-border rounded-sm overflow-hidden">
+					{/* Toolbar: Search LEFT, Filters RIGHT */}
 					<div className="px-4 py-3 border-b border-border flex items-center gap-3">
-						{/* LEFT: Search + Filters */}
+						{/* LEFT: Search */}
 						<div className="relative w-64">
+							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
 							<input
 								type="text"
 								placeholder="Search tenants..."
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="w-full pl-3 pr-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all h-9"
+								onChange={e => setSearchQuery(e.target.value)}
+								className="w-full pl-9 pr-3 py-2 text-sm bg-background border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
 							/>
 						</div>
 
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="w-[140px] h-9">
-								<SelectValue placeholder="All Statuses" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Statuses</SelectItem>
-								<SelectItem value="active">Active</SelectItem>
-								<SelectItem value="pending_signature">Pending</SelectItem>
-								<SelectItem value="ended">Ended</SelectItem>
-								<SelectItem value="terminated">Terminated</SelectItem>
-							</SelectContent>
-						</Select>
-
-						{(searchQuery || statusFilter !== 'all') && (
-							<button
-								onClick={clearFilters}
-								className="text-sm text-muted-foreground hover:text-foreground"
-							>
-								Clear
-							</button>
-						)}
-
-						{/* RIGHT: Count + View Toggle */}
+						{/* RIGHT: Filter */}
 						<div className="flex items-center gap-3 ml-auto">
+							{(searchQuery || statusFilter !== 'all') && (
+								<button
+									onClick={clearFilters}
+									className="text-sm text-muted-foreground hover:text-foreground"
+								>
+									Clear
+								</button>
+							)}
+
+							<div className="relative">
+								<select
+									value={statusFilter}
+									onChange={e => setStatusFilter(e.target.value)}
+									className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
+								>
+									<option value="all">All Statuses</option>
+									<option value="active">Active</option>
+									<option value="pending_signature">Pending</option>
+									<option value="ended">Ended</option>
+									<option value="terminated">Terminated</option>
+								</select>
+								<ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+							</div>
+
 							<span className="text-sm text-muted-foreground hidden sm:block tabular-nums">
-								{filteredTenants.length} {filteredTenants.length === 1 ? 'tenant' : 'tenants'}
+								{filteredTenants.length}{' '}
+								{filteredTenants.length === 1 ? 'tenant' : 'tenants'}
 							</span>
 
-							<div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+							<div className="flex items-center gap-1 p-1 bg-muted rounded-sm">
 								<button
 									onClick={() => setViewMode('table')}
-									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-sm transition-colors ${
 										viewMode === 'table'
 											? 'bg-background text-foreground shadow-sm'
 											: 'text-muted-foreground hover:text-foreground'
@@ -1287,7 +1345,7 @@ export function Tenants({
 								</button>
 								<button
 									onClick={() => setViewMode('grid')}
-									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+									className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-sm transition-colors ${
 										viewMode === 'grid'
 											? 'bg-background text-foreground shadow-sm'
 											: 'text-muted-foreground hover:text-foreground'
@@ -1309,8 +1367,8 @@ export function Tenants({
 							onSelectAll={handleSelectAll}
 							onDeselectAll={handleDeselectAll}
 							onView={handleViewTenant}
-							onEdit={(id) => onEditTenant?.(id)}
-							onDelete={(id) => onDeleteTenant?.(id)}
+							onEdit={id => onEditTenant?.(id)}
+							onDelete={id => onDeleteTenant?.(id)}
 							onViewLease={onViewLease}
 						/>
 					) : (
@@ -1319,8 +1377,8 @@ export function Tenants({
 							selectedIds={selectedIds}
 							onSelectChange={handleSelectChange}
 							onView={handleViewTenant}
-							onEdit={(id) => onEditTenant?.(id)}
-							onDelete={(id) => onDeleteTenant?.(id)}
+							onEdit={id => onEditTenant?.(id)}
+							onDelete={id => onDeleteTenant?.(id)}
 							onContact={(id, method) => onContactTenant?.(id, method)}
 						/>
 					)}
@@ -1328,7 +1386,9 @@ export function Tenants({
 					{/* No results */}
 					{filteredTenants.length === 0 && tenants.length > 0 && (
 						<div className="text-center py-12">
-							<p className="text-muted-foreground">No tenants match your filters</p>
+							<p className="text-muted-foreground">
+								No tenants match your filters
+							</p>
 							<button
 								onClick={clearFilters}
 								className="mt-3 text-sm text-primary hover:underline"
@@ -1346,6 +1406,7 @@ export function Tenants({
 				isVisible={selectedIds.size > 0}
 				onDelete={handleBulkDelete}
 				onExport={handleBulkExport}
+				{...(onMessageAll ? { onMessageAll } : {})}
 				onClose={handleDeselectAll}
 			/>
 
@@ -1354,9 +1415,9 @@ export function Tenants({
 				tenant={selectedTenant ?? null}
 				isOpen={isDetailSheetOpen}
 				onOpenChange={setIsDetailSheetOpen}
-				onEdit={(id) => onEditTenant?.(id)}
+				onEdit={id => onEditTenant?.(id)}
 				onContact={(id, method) => onContactTenant?.(id, method)}
-				onViewLease={(id) => onViewLease?.(id)}
+				onViewLease={id => onViewLease?.(id)}
 			/>
 		</div>
 	)

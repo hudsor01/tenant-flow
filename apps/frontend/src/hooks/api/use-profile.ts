@@ -8,7 +8,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import {
 	profileQueries,
 	profileKeys,
@@ -63,7 +66,7 @@ export function useUpdateProfile() {
 				body: JSON.stringify(input)
 			}),
 
-		onMutate: async (newData) => {
+		onMutate: async newData => {
 			// Cancel outgoing refetches
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
 
@@ -158,7 +161,7 @@ export function useUploadAvatar() {
 			handleMutationError(err, 'Upload avatar')
 		},
 
-		onSuccess: (data) => {
+		onSuccess: data => {
 			// Update cache with new avatar URL
 			const currentProfile = queryClient.getQueryData<UserProfile>(
 				profileKeys.detail()
@@ -245,7 +248,7 @@ export function useUpdatePhone() {
 				body: JSON.stringify(input)
 			}),
 
-		onMutate: async (newData) => {
+		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
 
 			const previousProfile = queryClient.getQueryData<UserProfile>(
@@ -275,7 +278,10 @@ export function useUpdatePhone() {
 		},
 
 		onSuccess: () => {
-			handleMutationSuccess('Update phone', 'Your phone number has been updated')
+			handleMutationSuccess(
+				'Update phone',
+				'Your phone number has been updated'
+			)
 		},
 
 		onSettled: () => {
@@ -300,7 +306,7 @@ export function useUpdateProfileEmergencyContact() {
 				}
 			),
 
-		onMutate: async (newData) => {
+		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
 
 			const previousProfile = queryClient.getQueryData<UserProfile>(

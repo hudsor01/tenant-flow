@@ -8,7 +8,8 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 type QueryClientLike = { clear: () => void }
 type WindowWithQueryClient = Window & { __QUERY_CLIENT__?: QueryClientLike }
-type MutableGlobal = typeof globalThis & Record<string, unknown> & { gc?: () => void }
+type MutableGlobal = typeof globalThis &
+	Record<string, unknown> & { gc?: () => void }
 
 const testPropertyPatterns = [
 	'Test Property',
@@ -49,7 +50,9 @@ async function resolveBaseURL(config: FullConfig): Promise<string> {
 	if (configuredBaseURL) return configuredBaseURL
 	if (envBaseURL) return envBaseURL
 
-	throw new Error('PLAYWRIGHT_TEST_BASE_URL environment variable is required for TanStack global teardown')
+	throw new Error(
+		'PLAYWRIGHT_TEST_BASE_URL environment variable is required for TanStack global teardown'
+	)
 }
 
 async function safeStep(label: string, step: () => Promise<void>) {
@@ -81,8 +84,7 @@ async function globalTeardown(config: FullConfig) {
 
 		await safeStep('cleanup test properties', async () => {
 			await page.evaluate(patterns => {
-				patterns.forEach(() => {
-				})
+				patterns.forEach(() => {})
 			}, testPropertyPatterns)
 		})
 
@@ -150,7 +152,9 @@ async function globalTeardown(config: FullConfig) {
 				mutableGlobal.gc()
 			}
 
-			const globalKeys = Object.keys(mutableGlobal).filter(key => key.startsWith('test_'))
+			const globalKeys = Object.keys(mutableGlobal).filter(key =>
+				key.startsWith('test_')
+			)
 			globalKeys.forEach(key => delete mutableGlobal[key])
 		})
 	}

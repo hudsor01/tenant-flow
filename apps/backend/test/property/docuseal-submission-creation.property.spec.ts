@@ -94,12 +94,12 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 		}
 
 		mockDocuSealService = {
-		isEnabled: jest.fn().mockReturnValue(true), // DocuSeal is enabled for this property test
-		createLeaseSubmission: jest.fn(),
-		createSubmissionFromPdf: jest.fn(),
-		getSubmitterSigningUrl: jest.fn(),
-		archiveSubmission: jest.fn()
-	}
+			isEnabled: jest.fn().mockReturnValue(true), // DocuSeal is enabled for this property test
+			createLeaseSubmission: jest.fn(),
+			createSubmissionFromPdf: jest.fn(),
+			getSubmitterSigningUrl: jest.fn(),
+			archiveSubmission: jest.fn()
+		}
 
 		mockLeaseSubscriptionService = {
 			activateLease: jest.fn().mockResolvedValue(undefined)
@@ -137,23 +137,34 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 				fields: {},
 				missing: { isComplete: true, fields: [] }
 			}),
-			mergeMissingFields: jest.fn((autoFilled, manual) => ({ ...autoFilled, ...manual })),
-			validateMissingFields: jest.fn().mockReturnValue({ isValid: true, errors: [] })
+			mergeMissingFields: jest.fn((autoFilled, manual) => ({
+				...autoFilled,
+				...manual
+			})),
+			validateMissingFields: jest
+				.fn()
+				.mockReturnValue({ isValid: true, errors: [] })
 		}
 
 		mockPdfGenerator = {
 			generatePdf: jest.fn().mockResolvedValue(Buffer.from('pdf-content')),
-			generateFilledPdf: jest.fn().mockResolvedValue(Buffer.from('filled-pdf-content'))
+			generateFilledPdf: jest
+				.fn()
+				.mockResolvedValue(Buffer.from('filled-pdf-content'))
 		}
 
 		mockPdfStorage = {
-		uploadPdf: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf'),
-		getSignedUrl: jest.fn().mockResolvedValue('https://storage.example.com/lease.pdf?signed=true'),
-		uploadLeasePdf: jest.fn().mockResolvedValue({
-			publicUrl: 'https://storage.example.com/lease.pdf',
-			path: 'leases/test-lease.pdf'
-		})
-	}
+			uploadPdf: jest
+				.fn()
+				.mockResolvedValue('https://storage.example.com/lease.pdf'),
+			getSignedUrl: jest
+				.fn()
+				.mockResolvedValue('https://storage.example.com/lease.pdf?signed=true'),
+			uploadLeasePdf: jest.fn().mockResolvedValue({
+				publicUrl: 'https://storage.example.com/lease.pdf',
+				path: 'leases/test-lease.pdf'
+			})
+		}
 
 		mockSupabaseService = {
 			getAdminClient: jest.fn(() => ({
@@ -241,13 +252,13 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					capturedLeaseUpdate = null
 
 					// Mock DocuSeal to return a submission with the generated ID
-				mockDocuSealService.createSubmissionFromPdf = jest
-					.fn()
-					.mockResolvedValue({
-						id: leaseData.docusealSubmissionId,
-						status: 'pending',
-						submitters: []
-					})
+					mockDocuSealService.createSubmissionFromPdf = jest
+						.fn()
+						.mockResolvedValue({
+							id: leaseData.docusealSubmissionId,
+							status: 'pending',
+							submitters: []
+						})
 
 					// Track user query count to return different data for owner vs tenant
 					let userQueryCount = 0
@@ -319,19 +330,19 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					// PROPERTY ASSERTIONS:
 
 					// 1. DocuSeal submission must be created from PDF (Requirement 6.2)
-				expect(
-					mockDocuSealService.createSubmissionFromPdf
-				).toHaveBeenCalledTimes(1)
-				expect(
-					mockDocuSealService.createSubmissionFromPdf
-				).toHaveBeenCalledWith(
-					expect.objectContaining({
-						leaseId: leaseData.leaseId,
-						pdfUrl: expect.stringContaining('storage.example.com'),
-						ownerEmail: leaseData.ownerEmail,
-						tenantEmail: leaseData.tenantEmail
-					})
-				)
+					expect(
+						mockDocuSealService.createSubmissionFromPdf
+					).toHaveBeenCalledTimes(1)
+					expect(
+						mockDocuSealService.createSubmissionFromPdf
+					).toHaveBeenCalledWith(
+						expect.objectContaining({
+							leaseId: leaseData.leaseId,
+							pdfUrl: expect.stringContaining('storage.example.com'),
+							ownerEmail: leaseData.ownerEmail,
+							tenantEmail: leaseData.tenantEmail
+						})
+					)
 
 					// 2. Lease status must be updated to 'pending_signature' (Requirement 6.3)
 					expect(capturedLeaseUpdate).not.toBeNull()

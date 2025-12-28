@@ -1,7 +1,8 @@
 import type {
 	NestInterceptor,
 	ExecutionContext,
-	CallHandler} from '@nestjs/common';
+	CallHandler
+} from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
@@ -25,8 +26,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
  */
 @Injectable()
 export class OwnerContextInterceptor implements NestInterceptor {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -64,7 +64,7 @@ export class OwnerContextInterceptor implements NestInterceptor {
 						status: 'success'
 					})
 				},
-				error: (error) => {
+				error: error => {
 					const duration = Date.now() - startTime
 					this.logger.error('Owner dashboard error', {
 						owner_id,

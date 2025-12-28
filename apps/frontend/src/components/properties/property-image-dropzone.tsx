@@ -17,14 +17,23 @@
 import { useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSupabaseUpload } from '#hooks/use-supabase-upload'
-import { Dropzone, DropzoneContent, DropzoneEmptyState } from '#components/ui/dropzone'
+import {
+	Dropzone,
+	DropzoneContent,
+	DropzoneEmptyState
+} from '#components/ui/dropzone'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'PropertyImageDropzone' })
 
 // Allowed image MIME types for property images
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+const ALLOWED_MIME_TYPES = [
+	'image/jpeg',
+	'image/png',
+	'image/webp',
+	'image/gif'
+]
 
 // Default upload configuration
 const DEFAULT_MAX_FILES = 10

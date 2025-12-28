@@ -35,7 +35,10 @@ export default function BlogArticlePage() {
 					</header>
 					<div className="space-y-4">
 						{[1, 2, 3, 4, 5].map(i => (
-							<div key={i} className="h-4 bg-muted rounded w-full animate-pulse" />
+							<div
+								key={i}
+								className="h-4 bg-muted rounded w-full animate-pulse"
+							/>
 						))}
 					</div>
 				</article>
@@ -66,51 +69,52 @@ export default function BlogArticlePage() {
 
 	return (
 		<PageLayout>
-				{/* Back to Blog */}
-				<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
-					<Link
-						href="/blog"
-						className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200"
-					>
-						<ArrowLeft className="size-4 mr-2" />
-						Back to Blog
-					</Link>
-				</div>
+			{/* Back to Blog */}
+			<div className="container mx-auto px-6 page-content pb-8 max-w-4xl">
+				<Link
+					href="/blog"
+					className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-200"
+				>
+					<ArrowLeft className="size-4 mr-2" />
+					Back to Blog
+				</Link>
+			</div>
 
-				{/* Article Header */}
-				<article className="container mx-auto px-6 pb-16 max-w-4xl">
-					<header className="mb-12">
-						<h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-							{post.title}
-						</h1>
+			{/* Article Header */}
+			<article className="container mx-auto px-6 pb-16 max-w-4xl">
+				<header className="mb-12">
+					<h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+						{post.title}
+					</h1>
 
-						<p className="text-xl text-muted-foreground leading-relaxed mb-8">
-							{post.excerpt}
-						</p>
+					<p className="text-xl text-muted-foreground leading-relaxed mb-8">
+						{post.excerpt}
+					</p>
 
-						<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
-							<div className="flex items-center gap-2">
-								<User className="size-4" />
-								<span>TenantFlow Team</span>
-							</div>
-							<div className="flex items-center gap-2">
-								<Clock className="size-4" />
-								<span>{post.reading_time} min read</span>
-							</div>
-							<div>
-								{post.published_at
-									? new Date(post.published_at).toLocaleDateString('en-US', {
+					<div className="flex items-center gap-6 text-muted border-t border-b border-border py-4">
+						<div className="flex items-center gap-2">
+							<User className="size-4" />
+							<span>TenantFlow Team</span>
+						</div>
+						<div className="flex items-center gap-2">
+							<Clock className="size-4" />
+							<span>{post.reading_time} min read</span>
+						</div>
+						<div>
+							{post.published_at
+								? new Date(post.published_at).toLocaleDateString('en-US', {
 										month: 'long',
 										day: 'numeric',
 										year: 'numeric'
 									})
-									: ''}
-							</div>
+								: ''}
 						</div>
-					</header>
+					</div>
+				</header>
 
-					{/* Article Content */}
-					<div className="prose prose-lg prose-slate dark:prose-invert max-w-none
+				{/* Article Content */}
+				<div
+					className="prose prose-lg prose-slate dark:prose-invert max-w-none
 						[&>h1]:text-4xl [&>h1]:font-bold [&>h1]:mt-12 [&>h1]:mb-6 [&>h1]:text-foreground
 						[&>h2]:text-3xl [&>h2]:font-bold [&>h2]:mt-10 [&>h2]:mb-5 [&>h2]:text-foreground
 						[&>h3]:text-2xl [&>h3]:font-semibold [&>h3]:mt-8 [&>h3]:mb-4 [&>h3]:text-foreground
@@ -122,31 +126,32 @@ export default function BlogArticlePage() {
 						[&>pre]:bg-muted [&>pre]:p-6 [&>pre]:rounded-lg [&>pre]:overflow-x-auto [&>pre]:my-8
 						[&>code]:bg-muted [&>code]:px-2 [&>code]:py-1 [&>code]:rounded [&>code]:text-sm [&>code]:text-foreground
 						[&>a]:text-primary [&>a]:underline [&>a]:hover:text-primary/80
-						[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg">
-						<ReactMarkdown
-							remarkPlugins={[remarkGfm]}
-							rehypePlugins={[rehypeRaw, rehypeSanitize]}
-						>
-							{markdownContent}
-						</ReactMarkdown>
-					</div>
+						[&>img]:rounded-lg [&>img]:my-8 [&>img]:shadow-lg"
+				>
+					<ReactMarkdown
+						remarkPlugins={[remarkGfm]}
+						rehypePlugins={[rehypeRaw, rehypeSanitize]}
+					>
+						{markdownContent}
+					</ReactMarkdown>
+				</div>
 
-					{/* CTA Section */}
-					<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
-						<h3 className="typography-h3 text-foreground mb-4">
-							Ready to transform your property management?
-						</h3>
-						<p className="text-muted-foreground mb-6">
-							Join 10,000+ property managers using TenantFlow
-						</p>
-						<Button size="lg" className="px-8" asChild>
-							<Link href="/login">
-								Start Free Trial
-								<ArrowRight className="size-5 ml-2" />
-							</Link>
-						</Button>
-					</div>
-				</article>
+				{/* CTA Section */}
+				<div className="mt-16 p-8 bg-linear-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl text-center">
+					<h3 className="typography-h3 text-foreground mb-4">
+						Ready to transform your property management?
+					</h3>
+					<p className="text-muted-foreground mb-6">
+						Join 10,000+ property managers using TenantFlow
+					</p>
+					<Button size="lg" className="px-8" asChild>
+						<Link href="/login">
+							Start Free Trial
+							<ArrowRight className="size-5 ml-2" />
+						</Link>
+					</Button>
+				</div>
+			</article>
 		</PageLayout>
 	)
 }

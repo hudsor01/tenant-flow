@@ -10,8 +10,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 type TenantRow = Pick<
 	Database['public']['Tables']['tenants']['Row'],
-	| 'id'
-	| 'user_id'
+	'id' | 'user_id'
 >
 
 /**
@@ -26,8 +25,10 @@ type TenantRow = Pick<
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantSettingsController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get tenant profile and settings
@@ -60,8 +61,7 @@ export class TenantSettingsController {
 				first_name: userResult.data?.first_name ?? null,
 				last_name: userResult.data?.last_name ?? null,
 				email: userResult.data?.email ?? user.email ?? null,
-				phone: userResult.data?.phone ?? null,
-
+				phone: userResult.data?.phone ?? null
 			}
 		}
 	}
@@ -85,6 +85,6 @@ export class TenantSettingsController {
 			throw new Error('Failed to load profile')
 		}
 
-			return data as TenantRow
+		return data as TenantRow
 	}
 }

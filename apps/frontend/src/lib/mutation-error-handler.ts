@@ -56,11 +56,7 @@ function extractErrorMessage(error: unknown): string {
 	}
 
 	// HTTP error with payload
-	if (
-		typeof error === 'object' &&
-		error !== null &&
-		'payload' in error
-	) {
+	if (typeof error === 'object' && error !== null && 'payload' in error) {
 		const payload = (error as ErrorWithStatus).payload
 		if (
 			typeof payload === 'object' &&
@@ -97,7 +93,7 @@ function getErrorStatus(error: unknown): number | undefined {
 
 /**
  * Handle mutation errors with consistent logging and user feedback
- * 
+ *
  * @param error - The error from mutation onError callback
  * @param context - Human-readable context (e.g., "Create tenant", "Update property")
  * @param customMessage - Optional custom message to show to user instead of error message
@@ -122,15 +118,17 @@ export function handleMutationError(
 
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message
-	
+
 	// Customize toast based on status code
 	if (status === 409) {
 		toast.error('Conflict', {
-			description: displayMessage || 'This item already exists or has been modified'
+			description:
+				displayMessage || 'This item already exists or has been modified'
 		})
 	} else if (status === 403) {
 		toast.error('Access Denied', {
-			description: displayMessage || 'You do not have permission to perform this action'
+			description:
+				displayMessage || 'You do not have permission to perform this action'
 		})
 	} else if (status === 404) {
 		toast.error('Not Found', {
@@ -147,14 +145,11 @@ export function handleMutationError(
 
 /**
  * Handle mutation success with consistent logging and user feedback
- * 
+ *
  * @param context - Human-readable context (e.g., "Create tenant", "Update property")
  * @param message - Optional custom success message
  */
-export function handleMutationSuccess(
-	context: string,
-	message?: string
-): void {
+export function handleMutationSuccess(context: string, message?: string): void {
 	logger.info(`${context} succeeded`, {
 		action: context.toLowerCase().replace(/\s+/g, '_'),
 		metadata: { success: true }

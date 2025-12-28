@@ -118,7 +118,8 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 			return chartData
 		}
 
-		const months = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
+		const months =
+			timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
 		return chartData.slice(-months)
 	}, [chartData, timeRange])
 
@@ -145,7 +146,10 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 					</Select>
 				</div>
 			)}
-			<ChartContainer className="aspect-auto h-80 w-full" config={revenueExpenseConfig}>
+			<ChartContainer
+				className="aspect-auto h-80 w-full"
+				config={revenueExpenseConfig}
+			>
 				<AreaChart data={filteredData}>
 					<defs>
 						<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -198,7 +202,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 						cursor={false}
 						content={
 							<ChartTooltipContent
-								labelFormatter={(value) => value}
+								labelFormatter={value => value}
 								indicator="dot"
 							/>
 						}
@@ -290,7 +294,8 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 			return chartData
 		}
 
-		const periods = timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
+		const periods =
+			timeRange === '3m' ? 3 : timeRange === '6m' ? 6 : chartData.length
 		return chartData.slice(-periods)
 	}, [chartData, timeRange])
 
@@ -318,7 +323,10 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 					</Select>
 				</div>
 			)}
-			<ChartContainer className="aspect-auto h-80 w-full" config={billingTimelineConfig}>
+			<ChartContainer
+				className="aspect-auto h-80 w-full"
+				config={billingTimelineConfig}
+			>
 				<LineChart data={filteredData}>
 					<CartesianGrid vertical={false} />
 					<XAxis
@@ -333,7 +341,7 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 						cursor={false}
 						content={
 							<ChartTooltipContent
-								labelFormatter={(value) => value}
+								labelFormatter={value => value}
 								indicator="line"
 							/>
 						}

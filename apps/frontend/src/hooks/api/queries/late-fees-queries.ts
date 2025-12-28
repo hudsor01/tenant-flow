@@ -60,7 +60,8 @@ export const lateFeesQueries = {
 	config: (lease_id: string) =>
 		queryOptions({
 			queryKey: [...lateFeesQueries.all(), 'config', lease_id],
-			queryFn: () => apiRequest<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
+			queryFn: () =>
+				apiRequest<LateFeeConfig>(`/api/v1/late-fees/lease/${lease_id}/config`),
 			enabled: !!lease_id,
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
@@ -71,7 +72,10 @@ export const lateFeesQueries = {
 	overdue: (lease_id: string) =>
 		queryOptions({
 			queryKey: [...lateFeesQueries.all(), 'overdue', lease_id],
-			queryFn: () => apiRequest<{ payments: OverduePayment[]; gracePeriod: number }>(`/api/v1/late-fees/lease/${lease_id}/overdue`),
+			queryFn: () =>
+				apiRequest<{ payments: OverduePayment[]; gracePeriod: number }>(
+					`/api/v1/late-fees/lease/${lease_id}/overdue`
+				),
 			enabled: !!lease_id,
 			staleTime: 60 * 1000 // 1 minute
 		})

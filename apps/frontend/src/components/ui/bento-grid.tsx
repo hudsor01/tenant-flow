@@ -59,9 +59,7 @@ const BentoCard = ({
 		)}
 	>
 		{/* Background content - positioned absolutely */}
-		<div className="absolute inset-0 overflow-hidden">
-			{background}
-		</div>
+		<div className="absolute inset-0 overflow-hidden">{background}</div>
 
 		{/* Gradient overlay for text readability - stronger fade at bottom */}
 		<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-card from-25% via-card/80 via-45% to-transparent to-70%" />
@@ -71,9 +69,7 @@ const BentoCard = ({
 			<div className="icon-container-sm icon-container-primary w-fit mb-2">
 				<Icon className="size-4" />
 			</div>
-			<h3 className="text-base font-semibold text-foreground mb-0.5">
-				{name}
-			</h3>
+			<h3 className="text-base font-semibold text-foreground mb-0.5">{name}</h3>
 			<p className="text-muted-foreground text-xs leading-relaxed line-clamp-2">
 				{description}
 			</p>

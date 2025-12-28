@@ -39,7 +39,11 @@ export function TenantMaintenanceRequestDetails({ id }: { id: string }) {
 	} = useQuery(maintenanceQueries.detail(id))
 
 	const errorMessage =
-		error instanceof Error ? error.message : error ? 'Failed to load request' : null
+		error instanceof Error
+			? error.message
+			: error
+				? 'Failed to load request'
+				: null
 
 	return (
 		<div className="space-y-4">
@@ -54,7 +58,9 @@ export function TenantMaintenanceRequestDetails({ id }: { id: string }) {
 
 			<CardLayout
 				title={request?.title || 'Maintenance request'}
-				{...(request?.unit_id ? { description: `Unit ${request.unit_id}` } : {})}
+				{...(request?.unit_id
+					? { description: `Unit ${request.unit_id}` }
+					: {})}
 				isLoading={isLoading}
 				error={errorMessage}
 				className="border shadow-sm"

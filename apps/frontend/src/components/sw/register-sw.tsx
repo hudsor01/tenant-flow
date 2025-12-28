@@ -55,7 +55,10 @@ export default function RegisterServiceWorker() {
 				// ignore refresh failures in uncommon scenarios
 			}
 		}
-		navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange)
+		navigator.serviceWorker.addEventListener(
+			'controllerchange',
+			handleControllerChange
+		)
 
 		// Periodically message SW to trim caches (best-effort)
 		const trimInterval = setInterval(
@@ -76,7 +79,10 @@ export default function RegisterServiceWorker() {
 
 		return () => {
 			clearInterval(trimInterval)
-			navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange)
+			navigator.serviceWorker.removeEventListener(
+				'controllerchange',
+				handleControllerChange
+			)
 		}
 	}, [router])
 

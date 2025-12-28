@@ -20,12 +20,10 @@ import { StripeTenantController } from './stripe-tenant.controller'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { WebhookProcessor } from './webhook-processor.service'
 import { StripeWebhookQueueProcessor } from './stripe-webhook.queue'
-import {
-	SubscriptionWebhookHandler,
-	PaymentWebhookHandler,
-	CheckoutWebhookHandler,
-	ConnectWebhookHandler
-} from './handlers'
+import { SubscriptionWebhookHandler } from './handlers/subscription-webhook.handler'
+import { PaymentWebhookHandler } from './handlers/payment-webhook.handler'
+import { CheckoutWebhookHandler } from './handlers/checkout-webhook.handler'
+import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
 import { UsersModule } from '../users/users.module'
 import { BillingService } from './billing.service'
 import { StripeSharedService } from './stripe-shared.service'

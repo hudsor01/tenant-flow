@@ -1,4 +1,11 @@
-import { BadRequestException, Controller, Get, Query, Req, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Controller,
+	Get,
+	Query,
+	Req,
+	UnauthorizedException
+} from '@nestjs/common'
 import type {
 	MaintenanceCostSummary,
 	MaintenanceMetrics,
@@ -16,8 +23,10 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Controller('maintenance/analytics')
 export class MaintenanceAnalyticsController {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get maintenance metrics via existing optimized analytics service
@@ -451,7 +460,10 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private calculatePropertyAggregates(
-		requests: Array<{ request: MaintenanceRequest; property_id: string | null }>,
+		requests: Array<{
+			request: MaintenanceRequest
+			property_id: string | null
+		}>,
 		unitToProperty: Map<string, string>,
 		propertyNames: Map<string, string>
 	) {

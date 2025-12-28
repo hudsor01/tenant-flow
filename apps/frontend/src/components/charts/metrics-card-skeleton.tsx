@@ -10,9 +10,9 @@ export function MetricsCardSkeleton({ className }: MetricsCardSkeletonProps) {
 	return (
 		<Card
 			className={cn(
-			'dashboard-metric-card border-l-[3px] transition-all duration-200 min-h-30 p-6 border-l-muted-foreground bg-muted',
-			className
-		)}
+				'dashboard-metric-card border-l-[3px] transition-all duration-200 min-h-30 p-6 border-l-muted-foreground bg-muted',
+				className
+			)}
 		>
 			<CardHeader className="p-0 gap-4">
 				<div className="flex-between gap-3">

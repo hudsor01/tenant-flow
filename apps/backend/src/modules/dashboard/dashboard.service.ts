@@ -31,8 +31,7 @@ import {
 import { SupabaseService } from '../../database/supabase.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
 import { RedisCacheService } from '../../cache/cache.service'
-import type {
-	activitySchema} from '@repo/shared/validation/dashboard';
+import type { activitySchema } from '@repo/shared/validation/dashboard'
 import {
 	billingInsightsSchema,
 	dashboardActivityResponseSchema
@@ -44,10 +43,12 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class DashboardService {
-
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
-		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get comprehensive dashboard statistics
@@ -116,7 +117,10 @@ export class DashboardService {
 
 		// Check cache first (CLAUDE.md: Real-time 3min TTL)
 		const cacheKey = RedisCacheService.getUserKey(user_id, 'dashboard:activity')
-		const cached = await this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(cacheKey)
+		const cached =
+			await this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(
+				cacheKey
+			)
 		if (cached) {
 			this.logger.debug('Dashboard activity cache hit', { user_id })
 			return cached
@@ -196,10 +200,13 @@ export class DashboardService {
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
 		if (!user_id) {
 			this.logger.warn('getBillingInsights called without user_id')
-			throw new ValidationException('User ID is required to retrieve billing insights')
+			throw new ValidationException(
+				'User ID is required to retrieve billing insights'
+			)
 		}
 		try {
-			const result = await this.dashboardAnalyticsService.getBillingInsights(user_id)
+			const result =
+				await this.dashboardAnalyticsService.getBillingInsights(user_id)
 			const parsed = billingInsightsSchema.safeParse(result)
 			if (parsed.success) {
 				return parsed.data

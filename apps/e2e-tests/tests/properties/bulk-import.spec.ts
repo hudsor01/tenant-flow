@@ -22,17 +22,24 @@ test.describe('Property Bulk Import', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Get initial property count
-		const initialCount = await page.locator('[data-testid="property-card"]').count()
+		const initialCount = await page
+			.locator('[data-testid="property-card"]')
+			.count()
 
 		// Click bulk import button
 		await page.getByRole('button', { name: /bulk import/i }).click()
 
 		// Wait for modal to open
 		await expect(page.getByRole('dialog')).toBeVisible()
-		await expect(page.getByRole('heading', { name: /import properties/i })).toBeVisible()
+		await expect(
+			page.getByRole('heading', { name: /import properties/i })
+		).toBeVisible()
 
 		// Upload CSV file
-		const csvPath = path.join(__dirname, '../../../frontend/test-bulk-import.csv')
+		const csvPath = path.join(
+			__dirname,
+			'../../../frontend/test-bulk-import.csv'
+		)
 		const fileInput = page.locator('input[type="file"]')
 		await fileInput.setInputFiles(csvPath)
 
@@ -124,14 +131,19 @@ test.describe('Property Bulk Import', () => {
 		await page.goto('/properties')
 		await page.getByRole('button', { name: /bulk import/i }).click()
 
-		const csvPath = path.join(__dirname, '../../../frontend/test-bulk-import.csv')
+		const csvPath = path.join(
+			__dirname,
+			'../../../frontend/test-bulk-import.csv'
+		)
 		const fileInput = page.locator('input[type="file"]')
 		await fileInput.setInputFiles(csvPath)
 
 		await page.getByRole('button', { name: /import properties/i }).click()
 
 		// Should show summary
-		await expect(page.getByText(/imported: \d+/i)).toBeVisible({ timeout: 10000 })
+		await expect(page.getByText(/imported: \d+/i)).toBeVisible({
+			timeout: 10000
+		})
 		await expect(page.getByText(/failed: \d+/i)).toBeVisible()
 	})
 })

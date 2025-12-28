@@ -8,15 +8,22 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken: () => (target: object, propertyKey: string, parameterIndex: number) => {
-		// Store metadata for the decorator
-		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
-		existingParams.push(parameterIndex)
-		Reflect.defineMetadata('custom:jwt-token-params', existingParams, target, propertyKey)
-	}
+	JwtToken:
+		() => (target: object, propertyKey: string, parameterIndex: number) => {
+			// Store metadata for the decorator
+			const existingParams =
+				Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) ||
+				[]
+			existingParams.push(parameterIndex)
+			Reflect.defineMetadata(
+				'custom:jwt-token-params',
+				existingParams,
+				target,
+				propertyKey
+			)
+		}
 }))
 
 describe('BalanceSheetController', () => {
@@ -93,7 +100,10 @@ describe('BalanceSheetController', () => {
 
 	describe('GET /financials/balance-sheet', () => {
 		it('should return balance sheet with provided date', async () => {
-			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
+			const result = await controller.getBalanceSheet(
+				'mock-jwt-token',
+				'2024-10-31'
+			)
 
 			expect(result).toEqual({
 				success: true,
@@ -129,7 +139,10 @@ describe('BalanceSheetController', () => {
 		})
 
 		it('should verify balance check equals assets = liabilities + equity', async () => {
-			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
+			const result = await controller.getBalanceSheet(
+				'mock-jwt-token',
+				'2024-10-31'
+			)
 
 			const { assets, liabilities, equity } = result.data
 			const leftSide = assets.totalAssets
@@ -160,7 +173,10 @@ describe('BalanceSheetController', () => {
 
 			service.generateBalanceSheet.mockResolvedValueOnce(unbalancedSheet)
 
-			const result = await controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
+			const result = await controller.getBalanceSheet(
+				'mock-jwt-token',
+				'2024-10-31'
+			)
 
 			expect(result.data.balanceCheck).toBe(false)
 		})

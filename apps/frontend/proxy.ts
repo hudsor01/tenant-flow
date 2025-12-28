@@ -45,7 +45,7 @@ const protectedTenantRoutes = ['/tenant']
  * - '/tenant' should NOT match '/tenants' (different route)
  */
 function matchesProtectedRoute(path: string, routes: string[]): boolean {
-	return routes.some((route) => {
+	return routes.some(route => {
 		// Exact match
 		if (path === route) return true
 		// Starts with route followed by '/' (sub-route)
@@ -60,33 +60,42 @@ export async function proxy(request: NextRequest) {
 	})
 
 	// Validate Supabase config
-	if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+	if (
+		!process.env.NEXT_PUBLIC_SUPABASE_URL ||
+		!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	) {
 		// Missing configuration - return response without auth check
 		return supabaseResponse
 	}
 
 	// Create Supabase client with cookie handling for token refresh
-	const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
-		cookies: {
-			getAll() {
-				return request.cookies.getAll()
-			},
-			setAll(cookiesToSet) {
-				// Update request cookies
-				cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+	const supabase = createServerClient(
+		process.env.NEXT_PUBLIC_SUPABASE_URL,
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		{
+			cookies: {
+				getAll() {
+					return request.cookies.getAll()
+				},
+				setAll(cookiesToSet) {
+					// Update request cookies
+					cookiesToSet.forEach(({ name, value }) =>
+						request.cookies.set(name, value)
+					)
 
-				// Create new response with updated cookies
-				supabaseResponse = NextResponse.next({
-					request
-				})
+					// Create new response with updated cookies
+					supabaseResponse = NextResponse.next({
+						request
+					})
 
-				// Set cookies on response
-				cookiesToSet.forEach(({ name, value, options }) =>
-					supabaseResponse.cookies.set(name, value, options)
-				)
+					// Set cookies on response
+					cookiesToSet.forEach(({ name, value, options }) =>
+						supabaseResponse.cookies.set(name, value, options)
+					)
+				}
 			}
 		}
-	})
+	)
 
 	/**
 	 * CRITICAL SECURITY: Use getClaims() not getUser()
@@ -180,13 +189,13 @@ export async function proxy(request: NextRequest) {
 	// Add pathname to headers for layouts (for redirectTo parameter)
 	supabaseResponse.headers.set('x-pathname', path)
 
-/**
- * IMPORTANT: Return supabaseResponse
- *
- * This response contains updated session cookies from Supabase.
- * Returning a different response will break session management.
- */
-return supabaseResponse
+	/**
+	 * IMPORTANT: Return supabaseResponse
+	 *
+	 * This response contains updated session cookies from Supabase.
+	 * Returning a different response will break session management.
+	 */
+	return supabaseResponse
 }
 
 /**

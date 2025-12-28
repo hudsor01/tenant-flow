@@ -1,4 +1,4 @@
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import { StripeSync } from '@supabase/stripe-sync-engine'
 import { AppConfigService } from '../../config/app-config.service'
@@ -19,7 +19,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class StripeSyncService implements OnModuleDestroy {
 	private stripeSync: StripeSync | null = null
 
-	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger
+	) {
 		// Stripe Sync Engine is started lazily on first use
 		// to avoid blocking app startup
 	}
@@ -32,8 +35,8 @@ export class StripeSyncService implements OnModuleDestroy {
 		if (this.stripeSync) {
 			try {
 				// Close the Stripe Sync Engine connection pool
-			;(this.stripeSync as unknown as { close?: () => void }).close?.()
-			this.logger.log('Stripe Sync Engine connection pool closed')
+				;(this.stripeSync as unknown as { close?: () => void }).close?.()
+				this.logger.log('Stripe Sync Engine connection pool closed')
 			} catch (error) {
 				this.logger.error('Error closing Stripe Sync Engine', {
 					error: error instanceof Error ? error.message : String(error)
@@ -49,7 +52,8 @@ export class StripeSyncService implements OnModuleDestroy {
 
 		// Initialize Stripe Sync Engine per official documentation
 		// https://supabase.com/blog/stripe-engine-as-sync-library
-		const databaseUrl = this.config.getDirectUrl() || this.config.getDatabaseUrl()
+		const databaseUrl =
+			this.config.getDirectUrl() || this.config.getDatabaseUrl()
 		const stripeSecretKey = this.config.getStripeSecretKey()
 		const stripeWebhookSecret = this.config.getStripeWebhookSecret()
 
@@ -140,7 +144,8 @@ export class StripeSyncService implements OnModuleDestroy {
 	} {
 		try {
 			// Check required environment variables
-			const databaseUrl = this.config.getDirectUrl() || this.config.getDatabaseUrl()
+			const databaseUrl =
+				this.config.getDirectUrl() || this.config.getDatabaseUrl()
 			const stripeSecretKey = this.config.getStripeSecretKey()
 			const stripeWebhookSecret = this.config.getStripeWebhookSecret()
 

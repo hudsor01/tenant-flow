@@ -82,6 +82,8 @@ export function OwnerOnboardingTour({
 			} catch (error) {
 				logger.error('Failed to load tour progress', { error })
 				if (!isActive) return
+				// Only show tour if explicitly forced - don't show on API failure
+				// This prevents broken tours from blocking the UI
 				if (forceShow) {
 					timer = setTimeout(() => setOpen(true), TOUR_AUTO_START_DELAY_MS)
 				}

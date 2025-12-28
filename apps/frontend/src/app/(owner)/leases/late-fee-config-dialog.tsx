@@ -1,6 +1,14 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '#components/ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogBody,
+	DialogFooter
+} from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -22,7 +30,6 @@ interface LateFeeConfigDialogProps {
 }
 
 import { formatCurrency } from '#lib/formatters/currency'
-
 
 export function LateFeeConfigDialog({
 	open,
@@ -119,7 +126,8 @@ export function LateFeeConfigDialog({
 											<div className="flex justify-between text-xs text-label-tertiary">
 												<span>0 days</span>
 												<span className="font-semibold text-label-primary">
-													{gracePeriodDays} {gracePeriodDays === 1 ? 'day' : 'days'}
+													{gracePeriodDays}{' '}
+													{gracePeriodDays === 1 ? 'day' : 'days'}
 												</span>
 												<span>30 days</span>
 											</div>
@@ -128,9 +136,10 @@ export function LateFeeConfigDialog({
 									<div className="flex items-start gap-2 rounded-lg bg-fill-tertiary p-3">
 										<Info className="size-4 text-accent-main shrink-0 mt-0.5" />
 										<p className="text-xs text-label-secondary">
-											Late fees will be applied to payments that are overdue by more
-											than {gracePeriodDays}{' '}
-											{gracePeriodDays === 1 ? 'day' : 'days'} after the due date.
+											Late fees will be applied to payments that are overdue by
+											more than {gracePeriodDays}{' '}
+											{gracePeriodDays === 1 ? 'day' : 'days'} after the due
+											date.
 										</p>
 									</div>
 								</div>
@@ -157,7 +166,9 @@ export function LateFeeConfigDialog({
 													max="500"
 													step="1"
 													value={flatFeeAmount}
-													onChange={e => setFlatFeeAmount(Number(e.target.value))}
+													onChange={e =>
+														setFlatFeeAmount(Number(e.target.value))
+													}
 													className="pl-7"
 												/>
 											</div>

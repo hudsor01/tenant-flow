@@ -25,7 +25,12 @@ interface RenewLeaseDialogProps {
 	onSuccess?: () => void
 }
 
-export function RenewLeaseDialog({ open, onOpenChange, lease, onSuccess }: RenewLeaseDialogProps) {
+export function RenewLeaseDialog({
+	open,
+	onOpenChange,
+	lease,
+	onSuccess
+}: RenewLeaseDialogProps) {
 	const [newEndDate, setNewEndDate] = useState('')
 
 	const renewLeaseMutation = useRenewLeaseMutation()

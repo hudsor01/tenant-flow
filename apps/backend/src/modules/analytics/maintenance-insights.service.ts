@@ -15,8 +15,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class MaintenanceInsightsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	private buildUserPayload(
 		user_id: string,

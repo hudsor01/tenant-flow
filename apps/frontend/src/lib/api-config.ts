@@ -13,13 +13,14 @@ const DEV_API_URL = 'http://localhost:4650'
  * Falls back to localhost in development, throws in production if not set
  */
 export function getApiBaseUrl(): string {
-	const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ||
+	const baseUrl =
+		process.env.NEXT_PUBLIC_API_BASE_URL ||
 		(process.env.NODE_ENV === 'production' ? undefined : DEV_API_URL)
 
 	if (!baseUrl) {
 		throw new Error(
 			'NEXT_PUBLIC_API_BASE_URL environment variable is required in production. ' +
-			'Set it in your deployment environment.'
+				'Set it in your deployment environment.'
 		)
 	}
 

@@ -9,7 +9,11 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery
+} from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
 import { useAllMaintenanceRequests } from '#hooks/api/use-maintenance'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'

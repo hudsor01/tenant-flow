@@ -60,7 +60,9 @@ export function usePrefetchSubscriptionPaymentHistory() {
 	const queryClient = useQueryClient()
 
 	return (subscriptionId: string) => {
-		queryClient.prefetchQuery(paymentHistoryQueries.bySubscription(subscriptionId))
+		queryClient.prefetchQuery(
+			paymentHistoryQueries.bySubscription(subscriptionId)
+		)
 	}
 }
 
@@ -82,6 +84,8 @@ export function usePrefetchSubscriptionFailedAttempts() {
 	const queryClient = useQueryClient()
 
 	return (subscriptionId: string) => {
-		queryClient.prefetchQuery(paymentHistoryQueries.failedBySubscription(subscriptionId))
+		queryClient.prefetchQuery(
+			paymentHistoryQueries.failedBySubscription(subscriptionId)
+		)
 	}
 }

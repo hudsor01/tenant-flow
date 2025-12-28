@@ -7,14 +7,20 @@ import {
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 import type { TimeSeriesDataPoint } from '@repo/shared/types/stats'
 
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'var(--chart-1)'
+		color: 'var(--color-chart-1)'
 	}
 } satisfies ChartConfig
 
@@ -30,7 +36,10 @@ interface RevenueChartSectionProps {
  * - Gradient fill with proper opacity stops
  * - Improved tooltip formatting
  */
-export function RevenueChartSection({ data, isLoading }: RevenueChartSectionProps) {
+export function RevenueChartSection({
+	data,
+	isLoading
+}: RevenueChartSectionProps) {
 	if (isLoading) {
 		return (
 			<Card className="flex-1">
@@ -73,11 +82,23 @@ export function RevenueChartSection({ data, isLoading }: RevenueChartSectionProp
 					>
 						<defs>
 							<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
-								<stop offset="5%" stopColor="var(--color-revenue)" stopOpacity={0.8} />
-								<stop offset="95%" stopColor="var(--color-revenue)" stopOpacity={0.1} />
+								<stop
+									offset="5%"
+									stopColor="var(--color-revenue)"
+									stopOpacity={0.8}
+								/>
+								<stop
+									offset="95%"
+									stopColor="var(--color-revenue)"
+									stopOpacity={0.1}
+								/>
 							</linearGradient>
 						</defs>
-						<CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+						<CartesianGrid
+							vertical={false}
+							strokeDasharray="3 3"
+							className="stroke-border/50"
+						/>
 						<XAxis
 							dataKey="month"
 							tickLine={false}
@@ -89,15 +110,18 @@ export function RevenueChartSection({ data, isLoading }: RevenueChartSectionProp
 							tickLine={false}
 							axisLine={false}
 							tickMargin={8}
-							tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+							tickFormatter={value => `$${(value / 1000).toFixed(0)}k`}
 							className="text-xs text-muted-foreground"
 						/>
 						<ChartTooltip
 							cursor={false}
 							content={
 								<ChartTooltipContent
-									labelFormatter={(value) => value}
-									formatter={(value) => [`$${Number(value).toLocaleString()}`, 'Revenue']}
+									labelFormatter={value => value}
+									formatter={value => [
+										`$${Number(value).toLocaleString()}`,
+										'Revenue'
+									]}
 								/>
 							}
 						/>

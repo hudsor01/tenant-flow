@@ -13,9 +13,8 @@ export class FinancialAnalyticsController {
 	async getFinancialMetrics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialMetrics(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getFinancialMetrics(userId)
 
 		return {
 			success: true,
@@ -29,9 +28,8 @@ export class FinancialAnalyticsController {
 	async getFinancialBreakdown(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialBreakdown(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getFinancialBreakdown(userId)
 
 		return {
 			success: true,
@@ -45,9 +43,8 @@ export class FinancialAnalyticsController {
 	async getNetOperatingIncome(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getNetOperatingIncome(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getNetOperatingIncome(userId)
 
 		return {
 			success: true,
@@ -61,9 +58,8 @@ export class FinancialAnalyticsController {
 	async getFinancialOverview(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialOverview(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getFinancialOverview(userId)
 
 		return {
 			success: true,
@@ -77,9 +73,7 @@ export class FinancialAnalyticsController {
 	async getBillingInsights(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getBillingInsights(
-			userId
-		)
+		const data = await this.financialAnalyticsService.getBillingInsights(userId)
 
 		return {
 			success: true,
@@ -107,9 +101,8 @@ export class FinancialAnalyticsController {
 	async getInvoiceStatistics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getInvoiceStatistics(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getInvoiceStatistics(userId)
 
 		return {
 			success: true,
@@ -137,9 +130,8 @@ export class FinancialAnalyticsController {
 	async getLeaseFinancialSummary(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getLeaseFinancialSummary(
-			userId
-		)
+		const data =
+			await this.financialAnalyticsService.getLeaseFinancialSummary(userId)
 
 		return {
 			success: true,
@@ -171,9 +163,7 @@ export class FinancialAnalyticsController {
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
 		const data =
-			await this.financialAnalyticsService.getFinancialAnalyticsPageData(
-				userId
-			)
+			await this.financialAnalyticsService.getFinancialAnalyticsPageData(userId)
 
 		return {
 			success: true,

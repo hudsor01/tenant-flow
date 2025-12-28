@@ -8,14 +8,35 @@
  * - Direct PostgreSQL RPC calls
  */
 
-import { BadRequestException, Body, Controller, DefaultValuePipe, Delete, Get, NotFoundException, Param, ParseIntPipe, ParseUUIDPipe, Post, Put, Query, Request, UnauthorizedException, UploadedFile, UseInterceptors } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	DefaultValuePipe,
+	Delete,
+	Get,
+	NotFoundException,
+	Param,
+	ParseIntPipe,
+	ParseUUIDPipe,
+	Post,
+	Put,
+	Query,
+	Request,
+	UnauthorizedException,
+	UploadedFile,
+	UseInterceptors
+} from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 // Property types now imported from backend schemas, not shared package
 // Validation schemas/types are imported where needed; avoid unused type imports
-import { BUSINESS_ERROR_CODES, ERROR_TYPES } from '@repo/shared/constants/error-codes'
+import {
+	BUSINESS_ERROR_CODES,
+	ERROR_TYPES
+} from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
@@ -31,11 +52,13 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Controller('properties')
 export class PropertiesController {
-
-	constructor(private readonly propertiesService: PropertiesService,
+	constructor(
+		private readonly propertiesService: PropertiesService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
 		private readonly propertyAnalyticsService: PropertyAnalyticsService,
-		private readonly dashboardService: DashboardService, private readonly logger: AppLogger) {}
+		private readonly dashboardService: DashboardService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get all properties for authenticated user
@@ -77,7 +100,10 @@ export class PropertiesController {
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
-		const dashboardStats = await this.dashboardService.getStats(undefined, token)
+		const dashboardStats = await this.dashboardService.getStats(
+			undefined,
+			token
+		)
 		return dashboardStats.properties
 	}
 
@@ -187,7 +213,11 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertyBulkImportService.bulkImport(token, req.user.id, file.buffer)
+		return this.propertyBulkImportService.bulkImport(
+			token,
+			req.user.id,
+			file.buffer
+		)
 	}
 
 	/**
@@ -201,7 +231,12 @@ export class PropertiesController {
 		@Request() req: AuthenticatedRequest,
 		@Body('version') expectedVersion?: number
 	) {
-		const property = await this.propertiesService.update(req, id, dto, expectedVersion)
+		const property = await this.propertiesService.update(
+			req,
+			id,
+			dto,
+			expectedVersion
+		)
 		if (!property) {
 			throw new NotFoundException({
 				code: BUSINESS_ERROR_CODES.PROPERTY_NOT_FOUND,

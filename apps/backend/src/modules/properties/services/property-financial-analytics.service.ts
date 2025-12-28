@@ -1,7 +1,4 @@
-import {
-	BadRequestException,
-	Injectable
-} from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
 import { getTokenFromRequest } from '../../../database/auth-token.utils'
@@ -65,7 +62,9 @@ export class PropertyFinancialAnalyticsService {
 
 		// Validate timeframe using constant
 		if (
-			!VALID_TIMEFRAMES.includes(query.timeframe as (typeof VALID_TIMEFRAMES)[number])
+			!VALID_TIMEFRAMES.includes(
+				query.timeframe as (typeof VALID_TIMEFRAMES)[number]
+			)
 		) {
 			this.logger.warn('[ANALYTICS:FINANCIAL:VALIDATION] Invalid timeframe', {
 				user_id,
@@ -81,7 +80,10 @@ export class PropertyFinancialAnalyticsService {
 
 		// SECURITY: Verify property ownership before proceeding
 		if (query.property_id) {
-			const { data: property } = await getPropertyForUser(req, query.property_id)
+			const { data: property } = await getPropertyForUser(
+				req,
+				query.property_id
+			)
 			if (!property) {
 				this.logger.warn('[ANALYTICS:FINANCIAL:SECURITY] Property not found', {
 					user_id,
@@ -144,7 +146,7 @@ export class PropertyFinancialAnalyticsService {
 		}
 
 		// Process each property's financial data
-		const result = (properties ?? []).map((property) =>
+		const result = (properties ?? []).map(property =>
 			this.processFinancialData(
 				property as DetailedQueryProperty,
 				start,
@@ -182,7 +184,7 @@ export class PropertyFinancialAnalyticsService {
 		units.forEach((unit: DetailedQueryUnit) => {
 			// Revenue from payments
 			unit.leases?.forEach((lease: DetailedQueryLease) => {
-				lease.rent_payments?.forEach((payment) => {
+				lease.rent_payments?.forEach(payment => {
 					if (
 						payment.status === 'succeeded' &&
 						payment.paid_date &&
@@ -195,7 +197,7 @@ export class PropertyFinancialAnalyticsService {
 			})
 
 			// Expenses from maintenance
-			unit.maintenance_requests?.forEach((req) => {
+			unit.maintenance_requests?.forEach(req => {
 				if (
 					req.completed_at &&
 					new Date(req.completed_at) >= start &&
@@ -203,7 +205,7 @@ export class PropertyFinancialAnalyticsService {
 				) {
 					totalExpenses += req.actual_cost || req.estimated_cost || 0
 				}
-				req.expenses?.forEach((exp) => {
+				req.expenses?.forEach(exp => {
 					if (
 						exp.expense_date &&
 						new Date(exp.expense_date) >= start &&

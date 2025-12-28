@@ -27,9 +27,26 @@ export interface LeaseFormFieldsValues {
 /**
  * Type for form API that works with any form extending LeaseFormFieldsValues.
  * Uses `any` for validator types to accept forms with different validation configs.
+ * This is type-safe for form data (T) while remaining compatible with any validator configuration.
+ * The eslint-disable is intentional - validator type flexibility is required for this shared component.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LeaseFormApi<T extends LeaseFormFieldsValues = LeaseFormFieldsValues> = ReactFormExtendedApi<T, any, any, any, any, any, any, any, any, any, any, any>
+/* eslint-disable @typescript-eslint/no-explicit-any -- Form validators need flexibility for different form configurations */
+type LeaseFormApi<T extends LeaseFormFieldsValues = LeaseFormFieldsValues> =
+	ReactFormExtendedApi<
+		T,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any,
+		any
+	>
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 interface LeaseFormFieldsProps<T extends LeaseFormFieldsValues> {
 	form: LeaseFormApi<T>
@@ -67,7 +84,9 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 						<FieldLabel htmlFor="unit_id">Unit *</FieldLabel>
 						<Select
 							value={field.state.value as string}
-							onValueChange={value => (field.handleChange as (v: string) => void)(value)}
+							onValueChange={value =>
+								(field.handleChange as (v: string) => void)(value)
+							}
 							disabled={unitSelectDisabled}
 						>
 							<SelectTrigger id="unit_id">
@@ -97,10 +116,14 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 			<form.Field name="primary_tenant_id">
 				{field => (
 					<Field>
-						<FieldLabel htmlFor="primary_tenant_id">Primary Tenant *</FieldLabel>
+						<FieldLabel htmlFor="primary_tenant_id">
+							Primary Tenant *
+						</FieldLabel>
 						<Select
 							value={field.state.value as string}
-							onValueChange={value => (field.handleChange as (v: string) => void)(value)}
+							onValueChange={value =>
+								(field.handleChange as (v: string) => void)(value)
+							}
 						>
 							<SelectTrigger id="primary_tenant_id">
 								<SelectValue placeholder="Select tenant" />
@@ -149,7 +172,9 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 								id="start_date"
 								type="date"
 								value={field.state.value as string}
-								onChange={e => (field.handleChange as (v: string) => void)(e.target.value)}
+								onChange={e =>
+									(field.handleChange as (v: string) => void)(e.target.value)
+								}
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{field.state.meta.errors[0]}</FieldError>
@@ -166,7 +191,9 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 								id="end_date"
 								type="date"
 								value={field.state.value as string}
-								onChange={e => (field.handleChange as (v: string) => void)(e.target.value)}
+								onChange={e =>
+									(field.handleChange as (v: string) => void)(e.target.value)
+								}
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{field.state.meta.errors[0]}</FieldError>
@@ -187,7 +214,11 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 								inputMode="decimal"
 								placeholder="1500.00"
 								value={centsToDisplay(field.state.value as number)}
-								onChange={e => (field.handleChange as (v: number) => void)(parseCents(e.target.value))}
+								onChange={e =>
+									(field.handleChange as (v: number) => void)(
+										parseCents(e.target.value)
+									)
+								}
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{field.state.meta.errors[0]}</FieldError>
@@ -208,7 +239,11 @@ export function LeaseFormFields<T extends LeaseFormFieldsValues>({
 								inputMode="decimal"
 								placeholder="1500.00"
 								value={centsToDisplay(field.state.value as number)}
-								onChange={e => (field.handleChange as (v: number) => void)(parseCents(e.target.value))}
+								onChange={e =>
+									(field.handleChange as (v: number) => void)(
+										parseCents(e.target.value)
+									)
+								}
 							/>
 							{field.state.meta.errors.length > 0 && (
 								<FieldError>{field.state.meta.errors[0]}</FieldError>

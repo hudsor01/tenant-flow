@@ -17,7 +17,6 @@ import { SupabaseService } from '../../src/database/supabase.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
 
-
 // Skip if not running integration tests
 const runIntegrationTests = process.env.RUN_INTEGRATION_TESTS === 'true'
 const describeIf = runIntegrationTests ? describe : describe.skip
@@ -38,8 +37,11 @@ describeIf('DocuSealWebhookService Integration', () => {
 
 	beforeAll(async () => {
 		// Create real Supabase client for local testing
-		const supabaseUrl = process.env.TEST_SUPABASE_URL || 'http://127.0.0.1:54321'
-		const supabaseKey = process.env.TEST_SUPABASE_SECRET_KEY || 'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz'
+		const supabaseUrl =
+			process.env.TEST_SUPABASE_URL || 'http://127.0.0.1:54321'
+		const supabaseKey =
+			process.env.TEST_SUPABASE_SECRET_KEY ||
+			'sb_secret_N7UND0UgjKTVK-Uodkm0Hg_xSvEMPvz'
 
 		supabaseAdmin = createClient(supabaseUrl, supabaseKey, {
 			auth: { persistSession: false }
@@ -90,30 +92,30 @@ describeIf('DocuSealWebhookService Integration', () => {
 			throw new Error('Failed to create test user')
 		}
 
-			// 2. Create user in public.users table (required FK for stripe_connected_accounts)
-		const { error: userError } = await supabaseAdmin
-			.from('users')
-			.insert({
-				id: testUserId,
-				email: testEmail,
-				full_name: 'Integration Test User',
-				user_type: 'OWNER'
-			})
-		if (userError) throw new Error(`Failed to create public user: ${userError.message}`)
+		// 2. Create user in public.users table (required FK for stripe_connected_accounts)
+		const { error: userError } = await supabaseAdmin.from('users').insert({
+			id: testUserId,
+			email: testEmail,
+			full_name: 'Integration Test User',
+			user_type: 'OWNER'
+		})
+		if (userError)
+			throw new Error(`Failed to create public user: ${userError.message}`)
 
-			// 4. Create stripe connected account record for owner
-			const { data: owner, error: ownerError } = await supabaseAdmin
-				.from('stripe_connected_accounts')
-				.insert({
-					user_id: testUserId,
-					business_name: 'Integration Test LLC',
-					business_type: 'llc',
-					stripe_account_id: `acct_test_${Date.now()}`
-				})
+		// 4. Create stripe connected account record for owner
+		const { data: owner, error: ownerError } = await supabaseAdmin
+			.from('stripe_connected_accounts')
+			.insert({
+				user_id: testUserId,
+				business_name: 'Integration Test LLC',
+				business_type: 'llc',
+				stripe_account_id: `acct_test_${Date.now()}`
+			})
 			.select('id')
 			.single()
 
-		if (ownerError) throw new Error(`Failed to create owner: ${ownerError.message}`)
+		if (ownerError)
+			throw new Error(`Failed to create owner: ${ownerError.message}`)
 		testOwnerId = owner.id
 
 		// 5. Create property
@@ -131,7 +133,8 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.select('id')
 			.single()
 
-		if (propError) throw new Error(`Failed to create property: ${propError.message}`)
+		if (propError)
+			throw new Error(`Failed to create property: ${propError.message}`)
 		testPropertyId = property.id
 
 		// 6. Create unit
@@ -149,7 +152,8 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.select('id')
 			.single()
 
-		if (unitError) throw new Error(`Failed to create unit: ${unitError.message}`)
+		if (unitError)
+			throw new Error(`Failed to create unit: ${unitError.message}`)
 		testUnitId = unit.id
 
 		// 7. Create tenant (needs public.users entry first)
@@ -171,7 +175,10 @@ describeIf('DocuSealWebhookService Integration', () => {
 				full_name: 'Integration Test Tenant',
 				user_type: 'TENANT'
 			})
-		if (tenantUserError) throw new Error(`Failed to create tenant public user: ${tenantUserError.message}`)
+		if (tenantUserError)
+			throw new Error(
+				`Failed to create tenant public user: ${tenantUserError.message}`
+			)
 
 		const { data: tenant, error: tenantError } = await supabaseAdmin
 			.from('tenants')
@@ -181,7 +188,8 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.select('id')
 			.single()
 
-		if (tenantError) throw new Error(`Failed to create tenant: ${tenantError.message}`)
+		if (tenantError)
+			throw new Error(`Failed to create tenant: ${tenantError.message}`)
 		testTenantId = tenant.id
 
 		// 8. Create lease
@@ -201,14 +209,18 @@ describeIf('DocuSealWebhookService Integration', () => {
 			.select('id')
 			.single()
 
-		if (leaseError) throw new Error(`Failed to create lease: ${leaseError.message}`)
+		if (leaseError)
+			throw new Error(`Failed to create lease: ${leaseError.message}`)
 		testLeaseId = lease.id
 	})
 
 	afterEach(async () => {
 		// Clean up in reverse order of foreign keys
 		if (testLeaseId) {
-			await supabaseAdmin.from('documents').delete().eq('entity_id', testLeaseId)
+			await supabaseAdmin
+				.from('documents')
+				.delete()
+				.eq('entity_id', testLeaseId)
 			await supabaseAdmin.from('leases').delete().eq('id', testLeaseId)
 		}
 		if (testTenantId) {
@@ -220,9 +232,12 @@ describeIf('DocuSealWebhookService Integration', () => {
 		if (testPropertyId) {
 			await supabaseAdmin.from('properties').delete().eq('id', testPropertyId)
 		}
-			if (testOwnerId) {
-				await supabaseAdmin.from('stripe_connected_accounts').delete().eq('id', testOwnerId)
-			}
+		if (testOwnerId) {
+			await supabaseAdmin
+				.from('stripe_connected_accounts')
+				.delete()
+				.eq('id', testOwnerId)
+		}
 		// Clean up auth users
 		if (testUserId) {
 			await supabaseAdmin.auth.admin.deleteUser(testUserId)
@@ -303,8 +318,16 @@ describeIf('DocuSealWebhookService Integration', () => {
 				status: 'completed',
 				completed_at: '2025-01-15T12:00:00Z',
 				submitters: [
-					{ email: 'owner@test.com', role: 'Property Owner', completed_at: '2025-01-15T10:00:00Z' },
-					{ email: 'tenant@test.com', role: 'Tenant', completed_at: '2025-01-15T11:00:00Z' }
+					{
+						email: 'owner@test.com',
+						role: 'Property Owner',
+						completed_at: '2025-01-15T10:00:00Z'
+					},
+					{
+						email: 'tenant@test.com',
+						role: 'Tenant',
+						completed_at: '2025-01-15T11:00:00Z'
+					}
 				],
 				documents: [{ name: 'lease-agreement.pdf', url: docUrl }],
 				metadata: { lease_id: testLeaseId! }

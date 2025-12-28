@@ -75,7 +75,10 @@ describe('FinancialAnalyticsService', () => {
 		})
 
 		it('should return default metrics when RPC returns null', async () => {
-			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
+				data: null,
+				error: null
+			})
 
 			const result = await service.getFinancialMetrics(testUserId)
 
@@ -116,7 +119,10 @@ describe('FinancialAnalyticsService', () => {
 		})
 
 		it('should return empty array when no data', async () => {
-			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
+				data: null,
+				error: null
+			})
 
 			const result = await service.getNetOperatingIncome(testUserId)
 
@@ -127,7 +133,10 @@ describe('FinancialAnalyticsService', () => {
 	describe('getFinancialAnalyticsPageData', () => {
 		it('should aggregate all financial data in parallel', async () => {
 			// Mock all RPC calls returning empty/default data
-			mockSupabaseService.rpcWithCache!.mockResolvedValue({ data: null, error: null })
+			mockSupabaseService.rpcWithCache!.mockResolvedValue({
+				data: null,
+				error: null
+			})
 
 			const result = await service.getFinancialAnalyticsPageData(testUserId)
 

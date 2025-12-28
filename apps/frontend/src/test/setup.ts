@@ -19,20 +19,31 @@ import { join } from 'node:path'
 import { server } from '../../tests/integration/mocks/server'
 
 // Set up required environment variables for tests
-process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+process.env.NEXT_PUBLIC_APP_URL =
+	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:4600'
-process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
-process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
-process.env.NEXT_PUBLIC_JWT_ALGORITHM = process.env.NEXT_PUBLIC_JWT_ALGORITHM || 'ES256'
+process.env.NEXT_PUBLIC_SUPABASE_URL =
+	process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
+process.env.NEXT_PUBLIC_JWT_ALGORITHM =
+	process.env.NEXT_PUBLIC_JWT_ALGORITHM || 'ES256'
 
 // Additional environment variables for server-side validation (optional in tests)
-process.env.STRIPE_STARTER_MONTHLY_PRICE_ID = process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
-process.env.STRIPE_STARTER_ANNUAL_PRICE_ID = process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
-process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID = process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
-process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID = process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
-process.env.STRIPE_MAX_MONTHLY_PRICE_ID = process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
-process.env.STRIPE_MAX_ANNUAL_PRICE_ID = process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
+process.env.STRIPE_STARTER_MONTHLY_PRICE_ID =
+	process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
+process.env.STRIPE_STARTER_ANNUAL_PRICE_ID =
+	process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
+process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID =
+	process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
+process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID =
+	process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
+process.env.STRIPE_MAX_MONTHLY_PRICE_ID =
+	process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
+process.env.STRIPE_MAX_ANNUAL_PRICE_ID =
+	process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
 
 const logger = createLogger({ component: 'TestSetup' })
 
@@ -58,7 +69,9 @@ beforeAll(async () => {
 
 	// Read session tokens from temp file created by global setup
 	if (!existsSync(SESSION_FILE)) {
-		logger.warn('No session file from global setup - skipping integration tests')
+		logger.warn(
+			'No session file from global setup - skipping integration tests'
+		)
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
 		return
 	}
@@ -91,9 +104,12 @@ beforeAll(async () => {
 		testState.backendAvailable = true
 		testState.authenticated = true
 		process.env.SKIP_INTEGRATION_TESTS = 'false'
-		logger.info('Integration test session restored', { user_id: data.user?.id || 'unknown' })
+		logger.info('Integration test session restored', {
+			user_id: data.user?.id || 'unknown'
+		})
 	} catch (error) {
-		const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+		const errorMessage =
+			error instanceof Error ? error.message : 'Unknown error'
 		logger.warn('Integration test setup failed', { error: errorMessage })
 		testState.backendAvailable = false
 		process.env.SKIP_INTEGRATION_TESTS = 'true'
@@ -111,8 +127,8 @@ Object.defineProperty(window, 'matchMedia', {
 		removeListener: vi.fn(), // deprecated
 		addEventListener: vi.fn(),
 		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
-	})),
+		dispatchEvent: vi.fn()
+	}))
 })
 
 // Mock ResizeObserver for components that use it
@@ -123,7 +139,7 @@ class ResizeObserverMock {
 }
 Object.defineProperty(window, 'ResizeObserver', {
 	writable: true,
-	value: ResizeObserverMock,
+	value: ResizeObserverMock
 })
 
 // Mock IntersectionObserver for components that use it (blur-fade, lazy loading, etc.)
@@ -161,7 +177,7 @@ class IntersectionObserverMock {
 }
 Object.defineProperty(window, 'IntersectionObserver', {
 	writable: true,
-	value: IntersectionObserverMock,
+	value: IntersectionObserverMock
 })
 
 // Mock Next.js router hooks (still needed for component rendering)

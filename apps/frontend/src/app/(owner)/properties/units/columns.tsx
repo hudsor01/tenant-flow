@@ -51,7 +51,11 @@ import { cn } from '#lib/utils'
 import { buttonVariants } from '#components/ui/button'
 import { cardVariants } from '#components/ui/card'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { UnitStats, UnitRowWithRelations as UnitRow, UnitStatus } from '@repo/shared/types/core'
+import type {
+	UnitStats,
+	UnitRowWithRelations as UnitRow,
+	UnitStatus
+} from '@repo/shared/types/core'
 import type { ColumnDef } from '@tanstack/react-table'
 import {
 	AlertTriangle,
@@ -127,7 +131,10 @@ const statusConfig: Record<
 function UnitStatsDisplay({
 	stats,
 	className
-}: { stats: UnitStats; className?: string }) {
+}: {
+	stats: UnitStats
+	className?: string
+}) {
 	return (
 		<div className={cn('flex gap-2', className)}>
 			<input
@@ -156,7 +163,10 @@ function UnitStatsDisplay({
 function UnitStatusBadge({
 	status,
 	className
-}: { status: UnitStatus; className?: string }) {
+}: {
+	status: UnitStatus
+	className?: string
+}) {
 	const config = statusConfig[status]
 	const IconComponent = config.icon
 
@@ -370,7 +380,9 @@ function UnitActions({ unit }: UnitActionsProps) {
 			</Dialog>
 
 			<AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-				<AlertDialogContent className={cn(cardVariants({ variant: 'elevated' }), 'max-w-md')}>
+				<AlertDialogContent
+					className={cn(cardVariants({ variant: 'elevated' }), 'max-w-md')}
+				>
 					<AlertDialogHeader className="space-y-4">
 						<div className="mx-auto flex size-12 items-center justify-center rounded-full bg-destructive/10">
 							<TrashIcon className="size-6 text-destructive" />
@@ -408,7 +420,10 @@ function UnitActions({ unit }: UnitActionsProps) {
 						<AlertDialogAction
 							onClick={handleDelete}
 							disabled={isDeleting || !canDelete}
-							className={cn(buttonVariants({ variant: 'destructive' }), 'flex-1')}
+							className={cn(
+								buttonVariants({ variant: 'destructive' }),
+								'flex-1'
+							)}
 						>
 							{isDeleting ? (
 								<div className="flex items-center gap-2">
@@ -446,7 +461,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		meta: {
 			label: 'Unit',
 			variant: 'text',
-			placeholder: 'Search units...',
+			placeholder: 'Search units...'
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
@@ -476,7 +491,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		meta: {
 			label: 'Bedrooms',
 			variant: 'range',
-			range: [0, 10],
+			range: [0, 10]
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
@@ -498,7 +513,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 		meta: {
 			label: 'Bathrooms',
 			variant: 'range',
-			range: [0, 10],
+			range: [0, 10]
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
@@ -538,7 +553,7 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 			label: 'Rent',
 			variant: 'range',
 			range: [0, 10000],
-			unit: '$',
+			unit: '$'
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {
@@ -570,8 +585,8 @@ export const unitColumns: ColumnDef<UnitRow>[] = [
 				{ label: 'Occupied', value: 'occupied' },
 				{ label: 'Vacant', value: 'available' },
 				{ label: 'Maintenance', value: 'maintenance' },
-				{ label: 'Reserved', value: 'reserved' },
-			],
+				{ label: 'Reserved', value: 'reserved' }
+			]
 		},
 		enableColumnFilter: true,
 		cell: ({ row }) => {

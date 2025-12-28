@@ -25,7 +25,6 @@ import {
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 
-
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyType } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
@@ -84,7 +83,10 @@ export function PropertyForm({
 	// Sync server-fetched property into TanStack Query cache (edit mode only)
 	useEffect(() => {
 		if (mode === 'edit' && property) {
-			queryClient.setQueryData(propertyQueries.detail(property.id).queryKey, property)
+			queryClient.setQueryData(
+				propertyQueries.detail(property.id).queryKey,
+				property
+			)
 		}
 	}, [mode, property, queryClient])
 
@@ -92,7 +94,8 @@ export function PropertyForm({
 	const form = useForm({
 		defaultValues: {
 			name: property?.name ?? '',
-			property_type: (property?.property_type ?? 'SINGLE_FAMILY') as PropertyType,
+			property_type: (property?.property_type ??
+				'SINGLE_FAMILY') as PropertyType,
 			address_line1: property?.address_line1 ?? '',
 			address_line2: property?.address_line2 ?? '',
 			city: property?.city ?? '',
@@ -118,7 +121,9 @@ export function PropertyForm({
 						property_type: value.property_type,
 						property_owner_id: user.id,
 						status: 'active' as const,
-						...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+						...(value.address_line2
+							? { address_line2: value.address_line2 }
+							: {})
 					}
 					logger.info('Creating property', {
 						action: 'formSubmission',
@@ -146,7 +151,9 @@ export function PropertyForm({
 						postal_code: value.postal_code,
 						country: value.country,
 						property_type: value.property_type,
-						...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+						...(value.address_line2
+							? { address_line2: value.address_line2 }
+							: {})
 					}
 					logger.info('Updating property', {
 						action: 'formSubmission',
@@ -168,7 +175,10 @@ export function PropertyForm({
 
 				onSuccess?.()
 			} catch (error) {
-				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} property`)
+				handleMutationError(
+					error,
+					`${mode === 'create' ? 'Create' : 'Update'} property`
+				)
 			}
 		},
 		validators: {
@@ -259,12 +269,12 @@ export function PropertyForm({
 									</SelectTrigger>
 									<SelectContent>
 										<SelectItem value="SINGLE_FAMILY">Single Family</SelectItem>
-				<SelectItem value="MULTI_UNIT">Multi Family</SelectItem>
-				<SelectItem value="APARTMENT">Apartment</SelectItem>
-				<SelectItem value="COMMERCIAL">Commercial</SelectItem>
-				<SelectItem value="CONDO">Condo</SelectItem>
-				<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
-				<SelectItem value="OTHER">Other</SelectItem>
+										<SelectItem value="MULTI_UNIT">Multi Family</SelectItem>
+										<SelectItem value="APARTMENT">Apartment</SelectItem>
+										<SelectItem value="COMMERCIAL">Commercial</SelectItem>
+										<SelectItem value="CONDO">Condo</SelectItem>
+										<SelectItem value="TOWNHOUSE">Townhouse</SelectItem>
+										<SelectItem value="OTHER">Other</SelectItem>
 									</SelectContent>
 								</Select>
 							</Field>
@@ -296,7 +306,9 @@ export function PropertyForm({
 					<form.Field name="address_line2">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="address_line2">Address Line 2 (Optional)</FieldLabel>
+								<FieldLabel htmlFor="address_line2">
+									Address Line 2 (Optional)
+								</FieldLabel>
 								<Input
 									id="address_line2"
 									name="address_line2"
@@ -413,7 +425,8 @@ export function PropertyForm({
 					<div className="space-y-4 border rounded-lg p-6">
 						<h3 className="typography-large">Property Images</h3>
 						<p className="text-muted">
-							Manage your property photos. First uploaded image appears on property card.
+							Manage your property photos. First uploaded image appears on
+							property card.
 						</p>
 
 						{/* Gallery - view existing images */}
@@ -431,7 +444,8 @@ export function PropertyForm({
 				{mode === 'create' && (
 					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
 						<p className="text-sm text-blue-800">
-							Save property first to upload images. Images help attract tenants and showcase your property.
+							Save property first to upload images. Images help attract tenants
+							and showcase your property.
 						</p>
 					</div>
 				)}

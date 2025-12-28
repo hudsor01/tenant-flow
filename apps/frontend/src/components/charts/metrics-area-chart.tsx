@@ -61,7 +61,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 								style={{ backgroundColor: TENANTFLOW_CHART_COLORS.occupancy }}
 							/>
 							<span className="text-muted-foreground">Occupancy:</span>
-							<span className="font-medium">{occupancyValue.value.toFixed(1)}%</span>
+							<span className="font-medium">
+								{occupancyValue.value.toFixed(1)}%
+							</span>
 						</div>
 					)}
 					{revenueValue && revenueValue.value !== null && (
@@ -72,7 +74,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 							/>
 							<span className="text-muted-foreground">Revenue:</span>
 							<span className="font-medium">
-								${(revenueValue.value / 100).toLocaleString('en-US', {
+								$
+								{(revenueValue.value / 100).toLocaleString('en-US', {
 									minimumFractionDigits: 2,
 									maximumFractionDigits: 2
 								})}

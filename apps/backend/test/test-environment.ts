@@ -135,13 +135,9 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
 	const serviceuser_typeKey =
-		process.env.TEST_SB_SECRET_KEY ??
-		process.env.SB_SECRET_KEY ??
-		null
+		process.env.TEST_SB_SECRET_KEY ?? process.env.SB_SECRET_KEY ?? null
 	const jwtSecret =
-		process.env.TEST_JWT_SECRET ??
-		process.env.JWT_SECRET ??
-		null
+		process.env.TEST_JWT_SECRET ?? process.env.JWT_SECRET ?? null
 
 	// If running in CI and vars are missing, fall back to safe mocks to keep tests deterministic
 	if (process.env.GITHUB_ACTIONS) {
@@ -152,7 +148,8 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 			return {
 				url: url ?? 'https://mock-supabase-project.supabase.co',
 				publishableKey: publishableKey ?? 'mock_anon_key_for_ci',
-				serviceuser_typeKey: serviceuser_typeKey ?? 'mock_service_user_type_key_for_ci',
+				serviceuser_typeKey:
+					serviceuser_typeKey ?? 'mock_service_user_type_key_for_ci',
 				jwtSecret: jwtSecret ?? 'mock_jwt_secret_for_ci'
 			}
 		}
@@ -252,9 +249,15 @@ export function getTestStripeConfig(): TestEnvironmentConfig['stripe'] {
 	}
 
 	return {
-		secretKey: process.env.TEST_STRIPE_SECRET_KEY || 'test_stripe_secret_key_placeholder_not_a_real_key',
-		webhookSecret: process.env.TEST_STRIPE_WEBHOOK_SECRET || 'test_webhook_secret_placeholder',
-		publishableKey: process.env.TEST_STRIPE_PUBLISHABLE_KEY || 'test_publishable_key_placeholder'
+		secretKey:
+			process.env.TEST_STRIPE_SECRET_KEY ||
+			'test_stripe_secret_key_placeholder_not_a_real_key',
+		webhookSecret:
+			process.env.TEST_STRIPE_WEBHOOK_SECRET ||
+			'test_webhook_secret_placeholder',
+		publishableKey:
+			process.env.TEST_STRIPE_PUBLISHABLE_KEY ||
+			'test_publishable_key_placeholder'
 	}
 }
 

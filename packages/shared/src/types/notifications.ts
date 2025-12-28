@@ -82,8 +82,6 @@ export interface Message {
 	id?: string
 }
 
-
-
 export interface UseOptions {
 	autoConnect?: boolean
 	reconnectAttempts?: number
@@ -103,8 +101,9 @@ export interface NotificationPreferences {
 	}
 }
 
-export type NotificationPreferencesWithVersion = NotificationPreferences & { version?: number }
-
+export type NotificationPreferencesWithVersion = NotificationPreferences & {
+	version?: number
+}
 
 // Notification priority constants
 export const NOTIFICATION_PRIORITY = {

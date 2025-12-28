@@ -49,7 +49,9 @@ export const useViewPreferences = () => {
 /**
  * Hook for specific entity view preferences
  */
-export const useEntityViewPreference = <K extends keyof ViewPreferences>(entity: K) => {
+export const useEntityViewPreference = <K extends keyof ViewPreferences>(
+	entity: K
+) => {
 	const { viewPreferences, setViewPreference } = usePreferences()
 	const currentView = viewPreferences[entity]
 

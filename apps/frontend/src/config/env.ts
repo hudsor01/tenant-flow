@@ -11,7 +11,13 @@
 
 // Re-export everything from server env for backward compatibility
 // This maintains the existing API where `env` is used in Server Components
-export { serverEnv as env, isProduction, isDevelopment, isTest, isIntegrationTest } from './env.server'
+export {
+	serverEnv as env,
+	isProduction,
+	isDevelopment,
+	isTest,
+	isIntegrationTest
+} from './env.server'
 
 // Also export client env for explicit usage
 export { clientEnv } from './env.client'

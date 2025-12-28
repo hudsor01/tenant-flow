@@ -21,7 +21,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { authQueries, authKeys } from './queries/auth-queries'
 
 // Create browser client for authentication
@@ -64,7 +67,9 @@ export function useAuthCacheUtils() {
 		// Clear auth data and all dependent queries
 		clearAuthData: () => {
 			// Get current user ID before clearing
-			const currentUserId = queryClient.getQueryData<SupabaseUser>(authKeys.user())?.id
+			const currentUserId = queryClient.getQueryData<SupabaseUser>(
+				authKeys.user()
+			)?.id
 
 			// Set auth data to null
 			queryClient.setQueryData(authKeys.session(), null)
@@ -106,8 +111,8 @@ export function useAuthCacheUtils() {
 		// Refresh auth state after critical operations
 		refreshAuthState: async () => {
 			await Promise.all([
-			queryClient.invalidateQueries({ queryKey: authKeys.session() }),
-			queryClient.invalidateQueries({ queryKey: authKeys.user() })
+				queryClient.invalidateQueries({ queryKey: authKeys.session() }),
+				queryClient.invalidateQueries({ queryKey: authKeys.user() })
 			])
 		}
 	}
@@ -292,7 +297,11 @@ export function useSupabasePasswordReset() {
 			})
 			if (error) throw error
 		},
-		onSuccess: () => handleMutationSuccess('Password reset', 'Please check your email for instructions'),
+		onSuccess: () =>
+			handleMutationSuccess(
+				'Password reset',
+				'Please check your email for instructions'
+			),
 		onError: (error: Error) => handleMutationError(error, 'Password reset')
 	})
 }
@@ -364,7 +373,10 @@ export function useChangePassword() {
 			return data
 		},
 		onSuccess: () => {
-			handleMutationSuccess('Change password', 'Your password has been updated successfully')
+			handleMutationSuccess(
+				'Change password',
+				'Your password has been updated successfully'
+			)
 		},
 		onError: (error: Error) => {
 			handleMutationError(error, 'Change password')
@@ -397,7 +409,7 @@ export function usePrefetchUser() {
 		queryClient.prefetchQuery({
 			queryKey: authKeys.me,
 			queryFn: () => apiRequest<User>('/api/v1/users/me'),
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }

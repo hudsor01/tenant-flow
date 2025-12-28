@@ -3,13 +3,17 @@
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
 import { Badge } from '#components/ui/badge'
+import { BlurFade } from '#components/ui/blur-fade'
+import { NumberTicker } from '#components/ui/number-ticker'
+import { BorderBeam } from '#components/ui/border-beam'
 import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatTrend,
+	StatDescription
+} from '#components/ui/stat'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
 import { useDataTable } from '#hooks/use-data-table'
@@ -22,7 +26,11 @@ import {
 	EmptyTitle,
 	EmptyDescription
 } from '#components/ui/empty'
-import { formatCurrency, formatNumber, formatPercentage } from '#lib/formatters/currency'
+import {
+	formatCurrency,
+	formatNumber,
+	formatPercentage
+} from '#lib/formatters/currency'
 import type {
 	PropertyPerformanceSummary,
 	PropertyPerformanceEntry,
@@ -34,10 +42,21 @@ import {
 	PropertyOccupancyChart,
 	VisitorAnalyticsChart
 } from './property-charts'
-import { Building2 } from 'lucide-react'
+import {
+	Building2,
+	TrendingUp,
+	DollarSign,
+	BarChart3,
+	Users,
+	Home
+} from 'lucide-react'
 import { useMemo } from 'react'
 
-function TopPropertiesTable({ properties }: { properties: PropertyPerformanceEntry[] }) {
+function TopPropertiesTable({
+	properties
+}: {
+	properties: PropertyPerformanceEntry[]
+}) {
 	const columns: ColumnDef<PropertyPerformanceEntry>[] = useMemo(
 		() => [
 			{
@@ -148,7 +167,9 @@ function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 					placeholder: 'Search status...'
 				},
 				enableColumnFilter: true,
-				cell: ({ row }) => <Badge variant="outline">{row.original.status}</Badge>
+				cell: ({ row }) => (
+					<Badge variant="outline">{row.original.status}</Badge>
+				)
 			},
 			{
 				accessorKey: 'bedrooms',
@@ -160,9 +181,10 @@ function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 				enableColumnFilter: true,
 				cell: ({ row }) => (
 					<div className="text-right">
-						{row.original.bedrooms !== null && row.original.bedrooms !== undefined
+						{row.original.bedrooms !== null &&
+						row.original.bedrooms !== undefined
 							? formatNumber(row.original.bedrooms)
-							: '—'}
+							: '-'}
 					</div>
 				)
 			},
@@ -176,9 +198,10 @@ function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 				enableColumnFilter: true,
 				cell: ({ row }) => (
 					<div className="text-right">
-						{row.original.bathrooms !== null && row.original.bathrooms !== undefined
+						{row.original.bathrooms !== null &&
+						row.original.bathrooms !== undefined
 							? formatNumber(row.original.bathrooms)
-							: '—'}
+							: '-'}
 					</div>
 				)
 			},
@@ -194,7 +217,7 @@ function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 					<div className="text-right">
 						{row.original.rent !== null && row.original.rent !== undefined
 							? formatCurrency(row.original.rent)
-							: '—'}
+							: '-'}
 					</div>
 				)
 			}
@@ -232,89 +255,47 @@ function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
 
 function PropertyPerformanceSkeleton() {
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<section className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1>Property Performance</h1>
-						<p className="text-muted-foreground">
-							Monitor occupancy, revenue, and demand signals across your portfolio.
-						</p>
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			<div className="flex flex-col gap-2 mb-6">
+				<Skeleton className="h-7 w-48" />
+				<Skeleton className="h-5 w-96" />
+			</div>
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+				{Array.from({ length: 4 }).map((_, i) => (
+					<div key={i} className="rounded-sm border bg-card p-4 shadow-sm">
+						<Skeleton className="h-4 w-24 mb-2" />
+						<Skeleton className="h-8 w-20 mb-2" />
+						<Skeleton className="h-4 w-32" />
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+				))}
+			</div>
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+				<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+					<Skeleton className="h-5 w-48 mb-2" />
+					<Skeleton className="h-4 w-64 mb-6" />
+					<Skeleton className="h-64 w-full" />
+				</div>
+				<div className="bg-card border border-border rounded-lg p-6">
+					<Skeleton className="h-5 w-32 mb-2" />
+					<Skeleton className="h-4 w-40 mb-6" />
+					<div className="space-y-3">
 						{Array.from({ length: 4 }).map((_, i) => (
-							<Card key={i}>
-								<CardHeader>
-									<Skeleton className="h-4 w-24" />
-									<Skeleton className="h-3 w-32" />
-								</CardHeader>
-								<CardContent className="pt-0">
-									<Skeleton className="h-8 w-20" />
-								</CardContent>
-							</Card>
+							<Skeleton key={i} className="h-10 w-full" />
 						))}
 					</div>
 				</div>
-			</section>
-			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-						<Card className="xl:col-span-2">
-							<CardHeader>
-								<Skeleton className="h-5 w-48" />
-								<Skeleton className="h-4 w-64" />
-							</CardHeader>
-							<CardContent>
-								<Skeleton className="h-64 w-full" />
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<Skeleton className="h-5 w-32" />
-								<Skeleton className="h-4 w-40" />
-							</CardHeader>
-							<CardContent className="space-y-4 pt-0">
-								{Array.from({ length: 4 }).map((_, i) => (
-									<Skeleton key={i} className="h-10 w-full" />
-								))}
-							</CardContent>
-						</Card>
-					</div>
-				</div>
-			</section>
+			</div>
 		</div>
 	)
 }
 
 export default function PropertyPerformancePage() {
-	const { data, isLoading, isError } = useQuery(analyticsQueries.propertyPerformancePageData())
+	const { data, isLoading } = useQuery(
+		analyticsQueries.propertyPerformancePageData()
+	)
 
 	if (isLoading) {
 		return <PropertyPerformanceSkeleton />
-	}
-
-	if (isError) {
-		return (
-			<div className="@container/main flex min-h-screen w-full flex-col">
-				<section className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-						<div className="flex flex-col gap-2">
-							<h1>Property Performance</h1>
-							<p className="text-muted-foreground">
-								Monitor occupancy, revenue, and demand signals across your portfolio.
-							</p>
-						</div>
-						<Card className="border-destructive bg-destructive/10">
-							<CardContent className="p-4">
-								<p className="text-sm text-destructive">
-									Unable to load property performance data. Please try again later.
-								</p>
-							</CardContent>
-						</Card>
-					</div>
-				</section>
-			</div>
-		)
 	}
 
 	// Type assertions for property performance data
@@ -333,51 +314,18 @@ export default function PropertyPerformancePage() {
 	}) as VisitorAnalyticsResponse
 
 	// Show empty state when no meaningful data exists
-	const hasData = metrics.totalProperties > 0 ||
+	const hasData =
+		metrics.totalProperties > 0 ||
 		metrics.totalUnits > 0 ||
 		performance.length > 0 ||
 		units.length > 0
 
 	if (!hasData) {
 		return (
-			<div className="@container/main flex min-h-screen w-full flex-col">
-				<section className="border-b bg-background p-6 border-(--color-fill-tertiary)">
-					<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-						<div className="flex flex-col gap-2">
-							<h1>Property Performance</h1>
-							<p className="text-muted-foreground">
-								Monitor occupancy, revenue, and demand signals across your portfolio.
-							</p>
-						</div>
-					</div>
-				</section>
-				<section className="flex-1 p-6">
-					<div className="mx-auto max-w-400 px-4 lg:px-6">
-						<Empty className="min-h-96 border">
-							<EmptyHeader>
-								<EmptyMedia variant="icon">
-									<Building2 />
-								</EmptyMedia>
-								<EmptyTitle>No property performance data yet</EmptyTitle>
-								<EmptyDescription>
-									Add properties and units to start tracking performance metrics across your portfolio.
-								</EmptyDescription>
-							</EmptyHeader>
-						</Empty>
-					</div>
-				</section>
-			</div>
-		)
-	}
-
-	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<section
-				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
-			>
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="flex flex-col gap-2">
-						<h1>
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				<BlurFade delay={0.1} inView>
+					<div className="flex flex-col gap-2 mb-6">
+						<h1 className="text-2xl font-semibold text-foreground">
 							Property Performance
 						</h1>
 						<p className="text-muted-foreground">
@@ -385,143 +333,226 @@ export default function PropertyPerformancePage() {
 							portfolio.
 						</p>
 					</div>
-					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-						<Card>
-							<CardHeader>
-								<CardTitle>Total properties</CardTitle>
-								<CardDescription>Tracked in this workspace</CardDescription>
-							</CardHeader>
-							<CardContent className="pt-0">
-								<p className="typography-h2 tabular-nums">
-									{formatNumber(metrics.totalProperties)}
-								</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>Average occupancy</CardTitle>
-								<CardDescription>Portfolio-wide</CardDescription>
-							</CardHeader>
-							<CardContent className="flex items-end justify-between pt-0">
-								<p className="typography-h2 tabular-nums">
-									{formatPercentage(metrics.averageOccupancy)}
-								</p>
-								<Badge variant="outline" className="text-xs">
-									{formatNumber(metrics.occupiedUnits)} of{' '}
-									{formatNumber(metrics.totalUnits)} units occupied
-								</Badge>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>Best performer</CardTitle>
-								<CardDescription>Highest occupancy rate</CardDescription>
-							</CardHeader>
-							<CardContent className="pt-0">
-								<p className="typography-h2 tabular-nums">
-									{metrics.bestPerformer ?? '—'}
-								</p>
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>Monthly revenue</CardTitle>
-								<CardDescription>Combined across properties</CardDescription>
-							</CardHeader>
-							<CardContent className="pt-0">
-								<p className="typography-h2 tabular-nums">
-									{formatCurrency(metrics.totalRevenue)}
-								</p>
-							</CardContent>
-						</Card>
-					</div>
-				</div>
-			</section>
+				</BlurFade>
+				<BlurFade delay={0.2} inView>
+					<Empty className="min-h-96 border rounded-lg">
+						<EmptyHeader>
+							<EmptyMedia variant="icon">
+								<Building2 />
+							</EmptyMedia>
+							<EmptyTitle>No property performance data yet</EmptyTitle>
+							<EmptyDescription>
+								Add properties and units to start tracking performance metrics
+								across your portfolio.
+							</EmptyDescription>
+						</EmptyHeader>
+					</Empty>
+				</BlurFade>
+			</div>
+		)
+	}
 
-			<section className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto flex max-w-400 flex-col gap-6 px-4 lg:px-6">
-					<div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-						<Card className="xl:col-span-2">
-							<CardHeader>
-								<CardTitle>Occupancy & revenue by property</CardTitle>
-								<CardDescription>
+	return (
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			{/* Header */}
+			<BlurFade delay={0.1} inView>
+				<div className="flex flex-col gap-2 mb-6">
+					<h1 className="text-2xl font-semibold text-foreground">
+						Property Performance
+					</h1>
+					<p className="text-muted-foreground">
+						Monitor occupancy, revenue, and demand signals across your
+						portfolio.
+					</p>
+				</div>
+			</BlurFade>
+
+			{/* Overview Stats */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+				<BlurFade delay={0.2} inView>
+					<Stat className="relative overflow-hidden">
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="hsl(var(--primary))"
+							colorTo="hsl(var(--primary)/0.3)"
+						/>
+						<StatLabel>Total properties</StatLabel>
+						<StatValue className="flex items-baseline">
+							<NumberTicker value={metrics.totalProperties} duration={1500} />
+						</StatValue>
+						<StatIndicator variant="icon" color="primary">
+							<Building2 />
+						</StatIndicator>
+						<StatDescription>Tracked in workspace</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.3} inView>
+					<Stat className="relative overflow-hidden">
+						<BorderBeam
+							size={100}
+							duration={12}
+							colorFrom="hsl(142 76% 36%)"
+							colorTo="hsl(142 76% 36% / 0.3)"
+						/>
+						<StatLabel>Average occupancy</StatLabel>
+						<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
+							<NumberTicker
+								value={metrics.averageOccupancy}
+								duration={1500}
+								decimalPlaces={1}
+							/>
+							<span className="text-lg">%</span>
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<TrendingUp />
+						</StatIndicator>
+						<StatTrend trend="neutral">
+							<span className="text-muted-foreground">
+								{formatNumber(metrics.occupiedUnits)} of{' '}
+								{formatNumber(metrics.totalUnits)} occupied
+							</span>
+						</StatTrend>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.4} inView>
+					<Stat className="relative overflow-hidden">
+						<StatLabel>Best performer</StatLabel>
+						<StatValue className="flex items-baseline text-base font-semibold truncate">
+							{metrics.bestPerformer ?? '-'}
+						</StatValue>
+						<StatIndicator variant="icon" color="info">
+							<Home />
+						</StatIndicator>
+						<StatDescription>Highest occupancy rate</StatDescription>
+					</Stat>
+				</BlurFade>
+
+				<BlurFade delay={0.5} inView>
+					<Stat className="relative overflow-hidden">
+						<StatLabel>Monthly revenue</StatLabel>
+						<StatValue className="flex items-baseline gap-0.5">
+							<span className="text-lg">$</span>
+							<NumberTicker
+								value={metrics.totalRevenue / 100}
+								duration={1500}
+							/>
+						</StatValue>
+						<StatIndicator variant="icon" color="success">
+							<DollarSign />
+						</StatIndicator>
+						<StatDescription>Combined across properties</StatDescription>
+					</Stat>
+				</BlurFade>
+			</div>
+
+			{/* Charts Row */}
+			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+				<BlurFade delay={0.6} inView>
+					<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
+						<div className="flex items-center justify-between mb-6">
+							<div>
+								<h3 className="font-medium text-foreground">
+									Occupancy & revenue by property
+								</h3>
+								<p className="text-sm text-muted-foreground">
 									Compare current performance across the portfolio
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<PropertyOccupancyChart data={performance} />
-							</CardContent>
-						</Card>
-						<Card>
-							<CardHeader>
-								<CardTitle>Portfolio KPIs</CardTitle>
-								<CardDescription>
+								</p>
+							</div>
+							<BarChart3 className="w-5 h-5 text-muted-foreground" />
+						</div>
+						<PropertyOccupancyChart data={performance} />
+					</div>
+				</BlurFade>
+
+				<BlurFade delay={0.7} inView>
+					<div className="bg-card border border-border rounded-lg p-6">
+						<div className="flex items-center justify-between mb-6">
+							<div>
+								<h3 className="font-medium text-foreground">Portfolio KPIs</h3>
+								<p className="text-sm text-muted-foreground">
 									Highlights from unit-level statistics
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-4 pt-0">
-								{unitStats.slice(0, 6).map(stat => (
-									<div
-										key={stat.label}
-										className="flex-between rounded-lg border px-3 py-2 text-sm"
-									>
-										<span className="text-muted-foreground">{stat.label}</span>
-										<span className="font-medium tabular-nums">
-											{formatNumber(stat.value)}
-											{stat.trend !== null && stat.trend !== undefined && (
-												<Badge
-													variant={stat.trend >= 0 ? 'outline' : 'destructive'}
-													className="ml-2"
-												>
-													{formatPercentage(Math.abs(stat.trend))}
-												</Badge>
-											)}
-										</span>
-									</div>
-								))}
-							</CardContent>
-						</Card>
+								</p>
+							</div>
+							<TrendingUp className="w-5 h-5 text-muted-foreground" />
+						</div>
+						<div className="space-y-3">
+							{unitStats.slice(0, 6).map(stat => (
+								<div
+									key={stat.label}
+									className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+								>
+									<span className="text-muted-foreground">{stat.label}</span>
+									<span className="font-medium tabular-nums">
+										{formatNumber(stat.value)}
+										{stat.trend !== null && stat.trend !== undefined && (
+											<Badge
+												variant={stat.trend >= 0 ? 'outline' : 'destructive'}
+												className="ml-2"
+											>
+												{formatPercentage(Math.abs(stat.trend))}
+											</Badge>
+										)}
+									</span>
+								</div>
+							))}
+						</div>
 					</div>
+				</BlurFade>
+			</div>
 
-					<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-						<Card>
-							<CardHeader>
-								<CardTitle>Visitor analytics</CardTitle>
-								<CardDescription>
+			{/* Second Charts Row */}
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+				<BlurFade delay={0.8} inView>
+					<div className="bg-card border border-border rounded-lg p-6">
+						<div className="flex items-center justify-between mb-6">
+							<div>
+								<h3 className="font-medium text-foreground">
+									Visitor analytics
+								</h3>
+								<p className="text-sm text-muted-foreground">
 									How prospective tenants engage with listings
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<VisitorAnalyticsChart data={visitorAnalytics} />
-							</CardContent>
-						</Card>
-
-						<Card>
-							<CardHeader>
-								<CardTitle>Top properties</CardTitle>
-								<CardDescription>
-									Key metrics for high-performing assets
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="space-y-3 pt-0">
-								<TopPropertiesTable properties={performance} />
-							</CardContent>
-						</Card>
+								</p>
+							</div>
+							<Users className="w-5 h-5 text-muted-foreground" />
+						</div>
+						<VisitorAnalyticsChart data={visitorAnalytics} />
 					</div>
+				</BlurFade>
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Active units</CardTitle>
-							<CardDescription>
+				<BlurFade delay={0.9} inView>
+					<div className="bg-card border border-border rounded-lg p-6">
+						<div className="flex items-center justify-between mb-6">
+							<div>
+								<h3 className="font-medium text-foreground">Top properties</h3>
+								<p className="text-sm text-muted-foreground">
+									Key metrics for high-performing assets
+								</p>
+							</div>
+							<Building2 className="w-5 h-5 text-muted-foreground" />
+						</div>
+						<TopPropertiesTable properties={performance} />
+					</div>
+				</BlurFade>
+			</div>
+
+			{/* Active Units Table */}
+			<BlurFade delay={1.0} inView>
+				<div className="bg-card border border-border rounded-lg p-6">
+					<div className="flex items-center justify-between mb-6">
+						<div>
+							<h3 className="font-medium text-foreground">Active units</h3>
+							<p className="text-sm text-muted-foreground">
 								Recently updated unit information
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="pt-0">
-							<ActiveUnitsTable units={units} />
-						</CardContent>
-					</Card>
+							</p>
+						</div>
+						<Home className="w-5 h-5 text-muted-foreground" />
+					</div>
+					<ActiveUnitsTable units={units} />
 				</div>
-			</section>
+			</BlurFade>
 		</div>
 	)
 }

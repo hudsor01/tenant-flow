@@ -1,7 +1,11 @@
 /**
  * Lease Generation Form - Step 1: Basic Information
  */
-import type { ReactFormExtendedApi, FormValidateOrFn, FormAsyncValidateOrFn } from '@tanstack/react-form'
+import type {
+	ReactFormExtendedApi,
+	FormValidateOrFn,
+	FormAsyncValidateOrFn
+} from '@tanstack/react-form'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { Input } from '#components/ui/input'
 import { FieldLabel } from '#components/ui/field'
@@ -29,9 +33,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">
-					Agreement Information
-				</h3>
+				<h3 className="typography-large mb-4">Agreement Information</h3>
 				<div className="space-y-4">
 					<form.Field name="agreementDate">
 						{field => (
@@ -89,9 +91,7 @@ export function BasicInfoStep({ form }: BasicInfoStepProps) {
 			</div>
 
 			<div>
-				<h3 className="typography-large mb-4">
-					Tenant & Property
-				</h3>
+				<h3 className="typography-large mb-4">Tenant & Property</h3>
 				<div className="space-y-4">
 					<form.Field name="tenantName">
 						{field => (

@@ -9,7 +9,11 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery
+} from '@tanstack/react-query'
 import { describe, it, expect, afterEach } from 'vitest'
 import { createClient } from '#utils/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
@@ -50,10 +54,15 @@ describeIfReady('Rent Payments Integration Tests', () => {
 						queryKey: rentPaymentKeys.list(),
 						queryFn: async () => {
 							const supabase = createClient()
-							const { data: { session } } = await supabase.auth.getSession()
-							const res = await fetch(`${getApiBaseUrl()}/api/v1/rent-payments`, {
-								headers: { Authorization: `Bearer ${session?.access_token}` }
-							})
+							const {
+								data: { session }
+							} = await supabase.auth.getSession()
+							const res = await fetch(
+								`${getApiBaseUrl()}/api/v1/rent-payments`,
+								{
+									headers: { Authorization: `Bearer ${session?.access_token}` }
+								}
+							)
 							if (!res.ok) throw new Error(`API Error: ${res.status}`)
 							return res.json() as Promise<{ data: unknown[]; total: number }>
 						}

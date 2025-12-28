@@ -13,10 +13,12 @@ function ThemeAwareComponent({ children }: { children: React.ReactNode }) {
 	return (
 		<div
 			className="bg-card text-card-foreground border border-border rounded-lg p-4"
-			style={{
-				'--custom-color': 'var(--color-primary)',
-				'--custom-spacing': 'var(--spacing-4)'
-			} as React.CSSProperties}
+			style={
+				{
+					'--custom-color': 'var(--color-primary)',
+					'--custom-spacing': 'var(--spacing-4)'
+				} as React.CSSProperties
+			}
 			data-testid="theme-aware-component"
 		>
 			{children}
@@ -66,11 +68,20 @@ describe('CSS Variables Integration', () => {
 			const component = screen.getByTestId('theme-aware-component')
 
 			// Should use semantic color classes
-			expect(component).toHaveClass('bg-card', 'text-card-foreground', 'border', 'border-border')
+			expect(component).toHaveClass(
+				'bg-card',
+				'text-card-foreground',
+				'border',
+				'border-border'
+			)
 
 			// Should use CSS variables for custom properties
-			expect(component.style.getPropertyValue('--custom-color')).toBe('var(--color-primary)')
-			expect(component.style.getPropertyValue('--custom-spacing')).toBe('var(--spacing-4)')
+			expect(component.style.getPropertyValue('--custom-color')).toBe(
+				'var(--color-primary)'
+			)
+			expect(component.style.getPropertyValue('--custom-spacing')).toBe(
+				'var(--spacing-4)'
+			)
 		})
 
 		it('should avoid inline style values', () => {
@@ -107,7 +118,9 @@ describe('CSS Variables Integration', () => {
 			const component = screen.getByTestId('mixed-styled-component')
 
 			// Should use some CSS variables
-			expect(component.style.getPropertyValue('padding')).toBe('var(--spacing-4)')
+			expect(component.style.getPropertyValue('padding')).toBe(
+				'var(--spacing-4)'
+			)
 
 			// Should have some inline values (to identify for refactoring)
 			expect(component.style.getPropertyValue('border-radius')).toBe('8px')
@@ -124,8 +137,8 @@ describe('CSS Variables Integration', () => {
 
 			// Inline styles should be minimal
 			const styleKeys = Object.keys(component.style)
-			const nonEmptyStyles = styleKeys.filter(key =>
-				component.style.getPropertyValue(key) !== ''
+			const nonEmptyStyles = styleKeys.filter(
+				key => component.style.getPropertyValue(key) !== ''
 			)
 
 			// Should have very few inline styles when using theme layer
@@ -158,7 +171,9 @@ describe('CSS Variables Integration', () => {
 	describe('Responsive Variables', () => {
 		it('should support responsive spacing variables', () => {
 			const rootStyles = window.getComputedStyle(document.documentElement)
-			const containerPadding = rootStyles.getPropertyValue('--layout-container-padding-x')
+			const containerPadding = rootStyles.getPropertyValue(
+				'--layout-container-padding-x'
+			)
 
 			// Should use clamp for responsive padding
 			expect(containerPadding).toMatch(/clamp\(/)

@@ -89,7 +89,7 @@ vi.mock('@tanstack/react-query', async () => {
 	const actual = await vi.importActual('@tanstack/react-query')
 	return {
 		...actual,
-		useQuery: vi.fn((options) => {
+		useQuery: vi.fn(options => {
 			const queryKey = options.queryKey || []
 
 			// Mock lease detail query
@@ -197,8 +197,12 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /details/i })).toBeInTheDocument()
-				expect(screen.getByRole('tab', { name: /timeline/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /details/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /timeline/i })
+				).toBeInTheDocument()
 				expect(screen.getByRole('tab', { name: /terms/i })).toBeInTheDocument()
 			})
 		})
@@ -217,7 +221,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /timeline/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /timeline/i })
+				).toBeInTheDocument()
 			})
 
 			await user.click(screen.getByRole('tab', { name: /timeline/i }))
@@ -249,7 +255,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /timeline/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /timeline/i })
+				).toBeInTheDocument()
 			})
 
 			await user.click(screen.getByRole('tab', { name: /timeline/i }))
@@ -264,7 +272,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /timeline/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /timeline/i })
+				).toBeInTheDocument()
 			})
 
 			await user.click(screen.getByRole('tab', { name: /timeline/i }))
@@ -280,7 +290,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /timeline/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /timeline/i })
+				).toBeInTheDocument()
 			})
 
 			await user.click(screen.getByRole('tab', { name: /timeline/i }))
@@ -375,8 +387,12 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('link', { name: /view payments/i })).toBeInTheDocument()
-				expect(screen.getByRole('link', { name: /maintenance requests/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('link', { name: /view payments/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('link', { name: /maintenance requests/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -384,7 +400,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('link', { name: /view tenant profile/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('link', { name: /view tenant profile/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -392,7 +410,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('link', { name: /view unit details/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('link', { name: /view unit details/i })
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -402,7 +422,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('link', { name: /edit lease/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('link', { name: /edit lease/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -422,7 +444,9 @@ describe('LeaseDetails', () => {
 			render(<LeaseDetails id="lease-test-123" />)
 
 			await waitFor(() => {
-				expect(screen.getByRole('tab', { name: /details/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('tab', { name: /details/i })
+				).toBeInTheDocument()
 			})
 
 			// Tab to focus on tabs

@@ -76,7 +76,8 @@ export class PaymentAnalyticsService {
 		// Get all rent payments for the current month
 		const { data: payments, error } = await client
 			.from('rent_payments')
-			.select(`
+			.select(
+				`
 				id,
 				amount,
 				status,
@@ -84,12 +85,15 @@ export class PaymentAnalyticsService {
 				paid_date,
 				created_at,
 				lease_id
-			`)
+			`
+			)
 			.gte('due_date', startOfMonth.toISOString())
 			.lte('due_date', endOfMonth.toISOString())
 
 		if (error) {
-			this.logger.error('Failed to fetch payment analytics', { error: error.message })
+			this.logger.error('Failed to fetch payment analytics', {
+				error: error.message
+			})
 			return this.getEmptyAnalytics()
 		}
 
@@ -117,14 +121,16 @@ export class PaymentAnalyticsService {
 
 		// Average payment time (days from due date to paid date)
 		const paidWithDates = succeeded.filter(p => p.paid_date && p.due_date)
-		const avgPaymentTime = paidWithDates.length > 0
-			? paidWithDates.reduce((sum, p) => {
-				const dueDate = new Date(p.due_date!)
-				const paidDate = new Date(p.paid_date!)
-				const days = (paidDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
-				return sum + days
-			}, 0) / paidWithDates.length
-			: 0
+		const avgPaymentTime =
+			paidWithDates.length > 0
+				? paidWithDates.reduce((sum, p) => {
+						const dueDate = new Date(p.due_date!)
+						const paidDate = new Date(p.paid_date!)
+						const days =
+							(paidDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+						return sum + days
+					}, 0) / paidWithDates.length
+				: 0
 
 		// On-time payment rate (paid on or before due date)
 		const onTimePayments = paidWithDates.filter(p => {
@@ -132,9 +138,10 @@ export class PaymentAnalyticsService {
 			const paidDate = new Date(p.paid_date!)
 			return paidDate <= dueDate
 		})
-		const onTimePaymentRate = paidWithDates.length > 0
-			? (onTimePayments.length / paidWithDates.length) * 100
-			: 0
+		const onTimePaymentRate =
+			paidWithDates.length > 0
+				? (onTimePayments.length / paidWithDates.length) * 100
+				: 0
 
 		// Get monthly trend (last 4 months)
 		const monthlyTrend = await this.getMonthlyTrend(token, 4)
@@ -153,15 +160,26 @@ export class PaymentAnalyticsService {
 	/**
 	 * Get monthly payment trends
 	 */
-	async getMonthlyTrend(token: string, months: number = 4): Promise<MonthlyPaymentTrend[]> {
+	async getMonthlyTrend(
+		token: string,
+		months: number = 4
+	): Promise<MonthlyPaymentTrend[]> {
 		const client = this.supabase.getUserClient(token)
 		const trends: MonthlyPaymentTrend[] = []
 		const now = new Date()
 
 		for (let i = months - 1; i >= 0; i--) {
 			const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
-			const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1)
-			const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+			const startOfMonth = new Date(
+				monthDate.getFullYear(),
+				monthDate.getMonth(),
+				1
+			)
+			const endOfMonth = new Date(
+				monthDate.getFullYear(),
+				monthDate.getMonth() + 1,
+				0
+			)
 
 			const { data: payments, error } = await client
 				.from('rent_payments')
@@ -170,19 +188,30 @@ export class PaymentAnalyticsService {
 				.lte('due_date', endOfMonth.toISOString())
 
 			if (error) {
-				this.logger.warn('Failed to fetch monthly trend data', { month: monthDate.toISOString(), error: error.message })
+				this.logger.warn('Failed to fetch monthly trend data', {
+					month: monthDate.toISOString(),
+					error: error.message
+				})
 				continue
 			}
 
 			const paymentsList = payments || []
-			const monthName = monthDate.toLocaleDateString('en-US', { month: 'short' })
+			const monthName = monthDate.toLocaleDateString('en-US', {
+				month: 'short'
+			})
 
 			trends.push({
 				month: monthName,
 				monthNumber: monthDate.getMonth() + 1,
-				collected: paymentsList.filter(p => p.status === 'succeeded').reduce((sum, p) => sum + p.amount, 0),
-				pending: paymentsList.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0),
-				failed: paymentsList.filter(p => p.status === 'failed').reduce((sum, p) => sum + p.amount, 0)
+				collected: paymentsList
+					.filter(p => p.status === 'succeeded')
+					.reduce((sum, p) => sum + p.amount, 0),
+				pending: paymentsList
+					.filter(p => p.status === 'pending')
+					.reduce((sum, p) => sum + p.amount, 0),
+				failed: paymentsList
+					.filter(p => p.status === 'failed')
+					.reduce((sum, p) => sum + p.amount, 0)
 			})
 		}
 
@@ -200,7 +229,8 @@ export class PaymentAnalyticsService {
 		// Get active leases with tenant and property info
 		const { data: leases, error } = await client
 			.from('leases')
-			.select(`
+			.select(
+				`
 				id,
 				rent_amount,
 				start_date,
@@ -228,11 +258,14 @@ export class PaymentAnalyticsService {
 						email
 					)
 				)
-			`)
+			`
+			)
 			.eq('lease_status', 'active')
 
 		if (error) {
-			this.logger.error('Failed to fetch upcoming payments', { error: error.message })
+			this.logger.error('Failed to fetch upcoming payments', {
+				error: error.message
+			})
 			return []
 		}
 
@@ -244,7 +277,12 @@ export class PaymentAnalyticsService {
 				id: string
 				user_id: string
 				stripe_customer_id: string | null
-				users: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null
+				users: {
+					id: string
+					first_name: string | null
+					last_name: string | null
+					email: string | null
+				} | null
 			}
 
 			if (!tenants?.users) continue
@@ -267,9 +305,10 @@ export class PaymentAnalyticsService {
 
 			if (nextDueDate > thirtyDaysFromNow) continue
 
-			const tenantName = tenants.users.first_name && tenants.users.last_name
-				? `${tenants.users.first_name} ${tenants.users.last_name}`
-				: tenants.users.email || 'Unknown'
+			const tenantName =
+				tenants.users.first_name && tenants.users.last_name
+					? `${tenants.users.first_name} ${tenants.users.last_name}`
+					: tenants.users.email || 'Unknown'
 
 			upcomingPayments.push({
 				id: lease.id,
@@ -284,7 +323,9 @@ export class PaymentAnalyticsService {
 			})
 		}
 
-		return upcomingPayments.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+		return upcomingPayments.sort(
+			(a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+		)
 	}
 
 	/**
@@ -296,7 +337,8 @@ export class PaymentAnalyticsService {
 
 		const { data: payments, error } = await client
 			.from('rent_payments')
-			.select(`
+			.select(
+				`
 				id,
 				amount,
 				due_date,
@@ -326,13 +368,16 @@ export class PaymentAnalyticsService {
 						email
 					)
 				)
-			`)
+			`
+			)
 			.in('status', ['pending', 'failed'] as PaymentStatus[])
 			.lt('due_date', now.toISOString())
 			.order('due_date', { ascending: true })
 
 		if (error) {
-			this.logger.error('Failed to fetch overdue payments', { error: error.message })
+			this.logger.error('Failed to fetch overdue payments', {
+				error: error.message
+			})
 			return []
 		}
 
@@ -340,7 +385,12 @@ export class PaymentAnalyticsService {
 			const tenants = payment.tenants as unknown as {
 				id: string
 				user_id: string
-				users: { id: string; first_name: string | null; last_name: string | null; email: string | null } | null
+				users: {
+					id: string
+					first_name: string | null
+					last_name: string | null
+					email: string | null
+				} | null
 			}
 
 			const leases = payment.leases as unknown as {
@@ -355,11 +405,14 @@ export class PaymentAnalyticsService {
 			}
 
 			const dueDate = new Date(payment.due_date)
-			const daysOverdue = Math.floor((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))
+			const daysOverdue = Math.floor(
+				(now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+			)
 
-			const tenantName = tenants?.users?.first_name && tenants?.users?.last_name
-				? `${tenants.users.first_name} ${tenants.users.last_name}`
-				: tenants?.users?.email || 'Unknown'
+			const tenantName =
+				tenants?.users?.first_name && tenants?.users?.last_name
+					? `${tenants.users.first_name} ${tenants.users.last_name}`
+					: tenants?.users?.email || 'Unknown'
 
 			return {
 				id: payment.id,
@@ -388,7 +441,8 @@ export class PaymentAnalyticsService {
 
 		let query = client
 			.from('rent_payments')
-			.select(`
+			.select(
+				`
 				id,
 				amount,
 				status,
@@ -414,7 +468,8 @@ export class PaymentAnalyticsService {
 						email
 					)
 				)
-			`)
+			`
+			)
 			.order('due_date', { ascending: false })
 
 		if (filters?.status && filters.status !== 'all') {
@@ -454,7 +509,11 @@ export class PaymentAnalyticsService {
 
 		const rows = (payments || []).map(payment => {
 			const tenants = payment.tenants as unknown as {
-				users: { first_name: string | null; last_name: string | null; email: string | null } | null
+				users: {
+					first_name: string | null
+					last_name: string | null
+					email: string | null
+				} | null
 			}
 
 			const leases = payment.leases as unknown as {
@@ -464,9 +523,10 @@ export class PaymentAnalyticsService {
 				} | null
 			}
 
-			const tenantName = tenants?.users?.first_name && tenants?.users?.last_name
-				? `${tenants.users.first_name} ${tenants.users.last_name}`
-				: tenants?.users?.email || 'Unknown'
+			const tenantName =
+				tenants?.users?.first_name && tenants?.users?.last_name
+					? `${tenants.users.first_name} ${tenants.users.last_name}`
+					: tenants?.users?.email || 'Unknown'
 
 			return [
 				payment.id,
@@ -486,7 +546,9 @@ export class PaymentAnalyticsService {
 
 		const csvContent = [
 			headers.join(','),
-			...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+			...rows.map(row =>
+				row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+			)
 		].join('\n')
 
 		return csvContent

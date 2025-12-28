@@ -24,7 +24,14 @@ export function MaintenanceSortableCard({
 	columnId,
 	onView
 }: MaintenanceSortableCardProps) {
-	const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging
+	} = useSortable({
 		id: request.id,
 		data: {
 			type: 'maintenance-request',
@@ -41,7 +48,11 @@ export function MaintenanceSortableCard({
 
 	return (
 		<div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-			<MaintenanceCard request={request} isDragging={isDragging} onView={onView} />
+			<MaintenanceCard
+				request={request}
+				isDragging={isDragging}
+				onView={onView}
+			/>
 		</div>
 	)
 }

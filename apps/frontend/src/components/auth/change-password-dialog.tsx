@@ -21,7 +21,10 @@ interface ChangePasswordDialogProps {
 	onOpenChange: (open: boolean) => void
 }
 
-export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialogProps) {
+export function ChangePasswordDialog({
+	open,
+	onOpenChange
+}: ChangePasswordDialogProps) {
 	const changePassword = useChangePassword()
 
 	const [formData, setFormData] = useState({
@@ -219,8 +222,8 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 								</button>
 							</div>
 							<p className="text-caption mt-[var(--spacing-1)]">
-								Must be at least 8 characters with uppercase, lowercase,
-								number, and special character
+								Must be at least 8 characters with uppercase, lowercase, number,
+								and special character
 							</p>
 						</Field>
 
@@ -266,7 +269,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 									Please fix the following errors:
 								</p>
 								<ul className="list-[disc] list-inside space-y-1 text-xs text-destructive">
-									{validationErrors.map((error) => (
+									{validationErrors.map(error => (
 										<li key={error}>{error}</li>
 									))}
 								</ul>
@@ -283,10 +286,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: ChangePasswordDialo
 						>
 							Cancel
 						</Button>
-						<Button
-							type="submit"
-							disabled={changePassword.isPending}
-						>
+						<Button type="submit" disabled={changePassword.isPending}>
 							{changePassword.isPending ? 'Changing...' : 'Change Password'}
 						</Button>
 					</DialogFooter>

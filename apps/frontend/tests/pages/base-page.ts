@@ -30,9 +30,9 @@ export class BasePage {
 	 */
 	async screenshot(name?: string): Promise<Buffer> {
 		const screenshotName = name || `screenshot-${Date.now()}`
-		return await this.page.screenshot({ 
+		return await this.page.screenshot({
 			path: `test-results/${screenshotName}.png`,
-			fullPage: true 
+			fullPage: true
 		})
 	}
 

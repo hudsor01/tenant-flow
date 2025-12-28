@@ -2,7 +2,13 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 import { Badge } from '#components/ui/badge'
 import { formatCurrency } from '#lib/formatters/currency'
@@ -45,26 +51,26 @@ interface MaintenanceStats {
 }
 
 const COLORS = {
-	open: 'var(--chart-1)',
-	inProgress: 'var(--chart-2)',
-	completed: 'var(--chart-3)',
-	low: 'var(--chart-4)',
-	medium: 'var(--chart-5)',
-	high: 'var(--destructive)',
-	emergency: 'var(--destructive)'
+	open: 'var(--color-chart-1)',
+	inProgress: 'var(--color-chart-2)',
+	completed: 'var(--color-chart-3)',
+	low: 'var(--color-chart-4)',
+	medium: 'var(--color-chart-5)',
+	high: 'var(--color-destructive)',
+	emergency: 'var(--color-destructive)'
 }
 
 export function MaintenanceAnalytics() {
 	const { data: stats, isLoading } = useQuery({
 		...maintenanceQueries.stats(),
-		select: (data) => data as MaintenanceStats
+		select: data => data as MaintenanceStats
 	})
 
 	if (isLoading) {
 		return (
 			<div className="space-y-6">
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-					{[1, 2, 3, 4].map((i) => (
+					{[1, 2, 3, 4].map(i => (
 						<Skeleton key={i} className="h-32" />
 					))}
 				</div>
@@ -96,11 +102,16 @@ export function MaintenanceAnalytics() {
 		{ name: 'Low', value: stats.byPriority.low, color: COLORS.low },
 		{ name: 'Medium', value: stats.byPriority.medium, color: COLORS.medium },
 		{ name: 'High', value: stats.byPriority.high, color: COLORS.high },
-		{ name: 'Emergency', value: stats.byPriority.emergency, color: COLORS.emergency }
+		{
+			name: 'Emergency',
+			value: stats.byPriority.emergency,
+			color: COLORS.emergency
+		}
 	]
 
 	// Calculate completion rate
-	const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+	const completionRate =
+		stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
 	const avgResolutionHours = stats.avgResolutionTime || 0
 
 	return (
@@ -110,7 +121,9 @@ export function MaintenanceAnalytics() {
 				{/* Total Requests */}
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<CardTitle className="text-sm font-medium">Total Requests</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Total Requests
+						</CardTitle>
 						<Wrench className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -133,7 +146,9 @@ export function MaintenanceAnalytics() {
 							{stats.open > 5 ? (
 								<>
 									<TrendingUp className="size-3 text-destructive" />
-									<span className="text-xs text-destructive">Needs attention</span>
+									<span className="text-xs text-destructive">
+										Needs attention
+									</span>
 								</>
 							) : (
 								<span className="text-xs text-muted-foreground">
@@ -147,11 +162,15 @@ export function MaintenanceAnalytics() {
 				{/* Completion Rate */}
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between pb-2">
-						<CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Completion Rate
+						</CardTitle>
 						<CheckCircle className="size-4 text-green-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">{completionRate.toFixed(1)}%</div>
+						<div className="text-2xl font-bold">
+							{completionRate.toFixed(1)}%
+						</div>
 						<div className="flex items-center gap-1 mt-1">
 							{completionRate >= 80 ? (
 								<>
@@ -159,11 +178,15 @@ export function MaintenanceAnalytics() {
 									<span className="text-xs text-green-500">Excellent</span>
 								</>
 							) : completionRate >= 60 ? (
-								<span className="text-xs text-muted-foreground">Good progress</span>
+								<span className="text-xs text-muted-foreground">
+									Good progress
+								</span>
 							) : (
 								<>
 									<TrendingDown className="size-3 text-orange-500" />
-									<span className="text-xs text-orange-500">Needs improvement</span>
+									<span className="text-xs text-orange-500">
+										Needs improvement
+									</span>
 								</>
 							)}
 						</div>
@@ -181,7 +204,10 @@ export function MaintenanceAnalytics() {
 							{formatCurrency(stats.totalCost)}
 						</div>
 						<p className="text-xs text-muted-foreground mt-1">
-							{formatCurrency(stats.total > 0 ? stats.totalCost / stats.total : 0)} avg per request
+							{formatCurrency(
+								stats.total > 0 ? stats.totalCost / stats.total : 0
+							)}{' '}
+							avg per request
 						</p>
 					</CardContent>
 				</Card>
@@ -295,8 +321,11 @@ export function MaintenanceAnalytics() {
 								{avgResolutionHours.toFixed(1)}h
 							</p>
 							<p className="text-xs text-muted-foreground mt-1">
-								{avgResolutionHours < 24 ? 'Within 1 day' :
-									avgResolutionHours < 72 ? 'Within 3 days' : 'More than 3 days'}
+								{avgResolutionHours < 24
+									? 'Within 1 day'
+									: avgResolutionHours < 72
+										? 'Within 3 days'
+										: 'More than 3 days'}
 							</p>
 						</div>
 

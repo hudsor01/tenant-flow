@@ -8,13 +8,17 @@ const logger = createLogger({ component: 'DashboardError' })
 
 export default function DashboardError({
 	error,
-	reset,
+	reset
 }: {
 	error: Error & { digest?: string }
 	reset: () => void
 }) {
 	useEffect(() => {
-		logger.error('Dashboard error occurred', { metadata: { digest: error.digest } }, error)
+		logger.error(
+			'Dashboard error occurred',
+			{ metadata: { digest: error.digest } },
+			error
+		)
 	}, [error])
 
 	return (

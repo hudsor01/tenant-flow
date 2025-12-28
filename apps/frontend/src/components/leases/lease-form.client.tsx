@@ -23,7 +23,11 @@ import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { LeaseStatus, Property, LeaseWithExtras } from '@repo/shared/types/core'
+import type {
+	LeaseStatus,
+	Property,
+	LeaseWithExtras
+} from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
@@ -72,7 +76,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 		rent_amount: z.number().min(0, 'Rent amount must be positive'),
 		security_deposit: z.number().min(0, 'Security deposit must be positive'),
 		rent_currency: z.string().min(1, 'Currency is required'),
-		payment_day: z.number().min(1).max(31, 'Payment day must be between 1 and 31'),
+		payment_day: z
+			.number()
+			.min(1)
+			.max(31, 'Payment day must be between 1 and 31'),
 		lease_status: z.string().min(1, 'Lease status is required')
 	})
 
@@ -124,7 +131,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					stack: error instanceof Error ? error.stack : undefined
 				})
 
-				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} lease`)
+				handleMutationError(
+					error,
+					`${mode === 'create' ? 'Create' : 'Update'} lease`
+				)
 			}
 		},
 		validators: {
@@ -171,100 +181,91 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 					form.handleSubmit()
 				}}
 			>
-			<div className="space-y-6">
-				{/* Property Selection (for filtering units, not stored in lease) */}
-				<div className="grid gap-4 md:grid-cols-2">
-					<Field>
-						<FieldLabel htmlFor="property-select">Property *</FieldLabel>
-						<Select
-							value={selectedPropertyId}
-							onValueChange={value => {
-								setSelectedPropertyId(value)
-								form.setFieldValue('unit_id', '')
-							}}
-							disabled={propertiesIsError}
-						>
-							<SelectTrigger id="property-select">
-								<SelectValue placeholder="Select property" />
-							</SelectTrigger>
-							<SelectContent>
-								{propertiesIsLoading ? (
-									<div className="flex-center p-4">
-										<LoadingSpinner size="sm" />
-									</div>
-								) : (properties ?? []).length === 0 ? (
-									<div className="flex-center p-4 text-muted">
-										No properties available
-									</div>
-								) : (
-									(properties ?? []).map((property: Property) => (
-										<SelectItem key={property.id} value={property.id}>
-											{property.name}
-										</SelectItem>
-									))
-								)}
-							</SelectContent>
-						</Select>
-					</Field>
-
-					{propertiesIsError && (
-						<p className="text-sm text-destructive mt-2">
-							Failed to load properties{propertiesError ? `: ${propertiesError.message}` : ''}.
-							Please refresh to retry.
-						</p>
-					)}
-				</div>
-
-				<LeaseFormFields
-					form={form}
-					units={units ?? []}
-					tenants={tenants}
-					unitSelectDisabled={!selectedPropertyId || unitsIsError}
-				/>
-
-				{unitsIsError && (
-					<p className="text-sm text-destructive mt-2">
-						Failed to load units for the selected property.
-						{unitsError ? ` ${unitsError.message}` : ''} Please retry.
-					</p>
-				)}
-
-				<form.Field name="lease_status">
-					{field => (
+				<div className="space-y-6">
+					{/* Property Selection (for filtering units, not stored in lease) */}
+					<div className="grid gap-4 md:grid-cols-2">
 						<Field>
-							<FieldLabel htmlFor="lease_status">Status *</FieldLabel>
-							<Select value={field.state.value} onValueChange={(value: string) => field.handleChange(value as LeaseStatus)}>
-								<SelectTrigger id="lease_status">
-									<SelectValue />
+							<FieldLabel htmlFor="property-select">Property *</FieldLabel>
+							<Select
+								value={selectedPropertyId}
+								onValueChange={value => {
+									setSelectedPropertyId(value)
+									form.setFieldValue('unit_id', '')
+								}}
+								disabled={propertiesIsError}
+							>
+								<SelectTrigger id="property-select">
+									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-					<SelectItem value={LEASE_STATUS.DRAFT}>{LEASE_STATUS_LABELS.DRAFT}</SelectItem>
-					<SelectItem value={LEASE_STATUS.ACTIVE}>{LEASE_STATUS_LABELS.ACTIVE}</SelectItem>
-					<SelectItem value={LEASE_STATUS.EXPIRED}>{LEASE_STATUS_LABELS.EXPIRED}</SelectItem>
-					<SelectItem value={LEASE_STATUS.TERMINATED}>{LEASE_STATUS_LABELS.TERMINATED}</SelectItem>
-				</SelectContent>
+									{propertiesIsLoading ? (
+										<div className="flex-center p-4">
+											<LoadingSpinner size="sm" />
+										</div>
+									) : (properties ?? []).length === 0 ? (
+										<div className="flex-center p-4 text-muted">
+											No properties available
+										</div>
+									) : (
+										(properties ?? []).map((property: Property) => (
+											<SelectItem key={property.id} value={property.id}>
+												{property.name}
+											</SelectItem>
+										))
+									)}
+								</SelectContent>
 							</Select>
-							{field.state.meta.errors.length > 0 && (
-								<FieldError>{field.state.meta.errors[0]}</FieldError>
-							)}
 						</Field>
-					)}
-				</form.Field>
 
-				<div className="grid gap-4 md:grid-cols-2">
-					<form.Field name="rent_currency">
+						{propertiesIsError && (
+							<p className="text-sm text-destructive mt-2">
+								Failed to load properties
+								{propertiesError ? `: ${propertiesError.message}` : ''}. Please
+								refresh to retry.
+							</p>
+						)}
+					</div>
+
+					<LeaseFormFields
+						form={form}
+						units={units ?? []}
+						tenants={tenants}
+						unitSelectDisabled={!selectedPropertyId || unitsIsError}
+					/>
+
+					{unitsIsError && (
+						<p className="text-sm text-destructive mt-2">
+							Failed to load units for the selected property.
+							{unitsError ? ` ${unitsError.message}` : ''} Please retry.
+						</p>
+					)}
+
+					<form.Field name="lease_status">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="rent_currency">Currency *</FieldLabel>
-								<Select value={field.state.value} onValueChange={field.handleChange}>
-									<SelectTrigger id="rent_currency">
+								<FieldLabel htmlFor="lease_status">Status *</FieldLabel>
+								<Select
+									value={field.state.value}
+									onValueChange={(value: string) =>
+										field.handleChange(value as LeaseStatus)
+									}
+								>
+									<SelectTrigger id="lease_status">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="USD">USD ($)</SelectItem>
-										<SelectItem value="EUR">EUR (€)</SelectItem>
-										<SelectItem value="GBP">GBP (£)</SelectItem>
-										<SelectItem value="CAD">CAD (C$)</SelectItem>
+										<SelectItem value={LEASE_STATUS.DRAFT}>
+											{LEASE_STATUS_LABELS.DRAFT}
+										</SelectItem>
+										<SelectItem value={LEASE_STATUS.ACTIVE}>
+											{LEASE_STATUS_LABELS.ACTIVE}
+										</SelectItem>
+										<SelectItem value={LEASE_STATUS.EXPIRED}>
+											{LEASE_STATUS_LABELS.EXPIRED}
+										</SelectItem>
+										<SelectItem value={LEASE_STATUS.TERMINATED}>
+											{LEASE_STATUS_LABELS.TERMINATED}
+										</SelectItem>
 									</SelectContent>
 								</Select>
 								{field.state.meta.errors.length > 0 && (
@@ -274,50 +275,76 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						)}
 					</form.Field>
 
-					<form.Field name="payment_day">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="payment_day">Payment Day *</FieldLabel>
-								<Input
-									id="payment_day"
-									type="number"
-									min="1"
-									max="31"
-									value={field.state.value}
-									onChange={e => {
-										const v = e.target.value
-										field.handleChange(v === '' ? 1 : parseInt(v))
-									}}
-								/>
-								{field.state.meta.errors.length > 0 && (
-									<FieldError>{field.state.meta.errors[0]}</FieldError>
-								)}
-							</Field>
-						)}
-					</form.Field>
-				</div>
+					<div className="grid gap-4 md:grid-cols-2">
+						<form.Field name="rent_currency">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="rent_currency">Currency *</FieldLabel>
+									<Select
+										value={field.state.value}
+										onValueChange={field.handleChange}
+									>
+										<SelectTrigger id="rent_currency">
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="USD">USD ($)</SelectItem>
+											<SelectItem value="EUR">EUR (€)</SelectItem>
+											<SelectItem value="GBP">GBP (£)</SelectItem>
+											<SelectItem value="CAD">CAD (C$)</SelectItem>
+										</SelectContent>
+									</Select>
+									{field.state.meta.errors.length > 0 && (
+										<FieldError>{field.state.meta.errors[0]}</FieldError>
+									)}
+								</Field>
+							)}
+						</form.Field>
 
-				<div className="flex justify-end gap-3">
-					<Button
-						type="button"
-						variant="outline"
-						onClick={() => router.back()}
-						disabled={isSubmitting}
-					>
-						Cancel
-					</Button>
-					<Button type="submit" disabled={isSubmitting}>
-						{isSubmitting
-							? mode === 'create'
-								? 'Creating...'
-								: 'Saving...'
-							: mode === 'create'
-								? 'Create Lease'
-								: 'Save Changes'}
-					</Button>
+						<form.Field name="payment_day">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="payment_day">Payment Day *</FieldLabel>
+									<Input
+										id="payment_day"
+										type="number"
+										min="1"
+										max="31"
+										value={field.state.value}
+										onChange={e => {
+											const v = e.target.value
+											field.handleChange(v === '' ? 1 : parseInt(v))
+										}}
+									/>
+									{field.state.meta.errors.length > 0 && (
+										<FieldError>{field.state.meta.errors[0]}</FieldError>
+									)}
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<div className="flex justify-end gap-3">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => router.back()}
+							disabled={isSubmitting}
+						>
+							Cancel
+						</Button>
+						<Button type="submit" disabled={isSubmitting}>
+							{isSubmitting
+								? mode === 'create'
+									? 'Creating...'
+									: 'Saving...'
+								: mode === 'create'
+									? 'Create Lease'
+									: 'Save Changes'}
+						</Button>
+					</div>
 				</div>
-			</div>
-		</form>
+			</form>
 		</ErrorBoundary>
 	)
 }

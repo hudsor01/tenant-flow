@@ -80,7 +80,10 @@ export const formatDate = (
 
 export const formatRelativeDate = (
 	value: DateInput,
-	{ baseDate = new Date(), addSuffix = true }: { baseDate?: Date; addSuffix?: boolean } = {}
+	{
+		baseDate = new Date(),
+		addSuffix = true
+	}: { baseDate?: Date; addSuffix?: boolean } = {}
 ): string => {
 	const date = toDate(value)
 	if (!date) return ''

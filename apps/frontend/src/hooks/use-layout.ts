@@ -26,14 +26,27 @@ export const usePanelSizes = () => {
  * Hook for grid layout management
  */
 export const useGridLayout = () => {
-	const { gridLayouts, activeGridLayout, saveGridLayout, setActiveGridLayout, deleteGridLayout } = useLayoutStore()
-	return { gridLayouts, activeGridLayout, saveGridLayout, setActiveGridLayout, deleteGridLayout }
+	const {
+		gridLayouts,
+		activeGridLayout,
+		saveGridLayout,
+		setActiveGridLayout,
+		deleteGridLayout
+	} = useLayoutStore()
+	return {
+		gridLayouts,
+		activeGridLayout,
+		saveGridLayout,
+		setActiveGridLayout,
+		deleteGridLayout
+	}
 }
 
 /**
  * Hook for view preferences
  */
 export const useViewPreferences = () => {
-	const { viewPreferences, setViewPreference, resetToDefaults } = useLayoutStore()
+	const { viewPreferences, setViewPreference, resetToDefaults } =
+		useLayoutStore()
 	return { viewPreferences, setViewPreference, resetToDefaults }
 }

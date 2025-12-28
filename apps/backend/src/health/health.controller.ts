@@ -5,7 +5,7 @@
 
 import { Controller, Get, SetMetadata } from '@nestjs/common'
 import { SkipThrottle, Throttle } from '@nestjs/throttler'
-import { HealthCheckService } from '@nestjs/terminus';
+import { HealthCheckService } from '@nestjs/terminus'
 import { HealthCheck } from '@nestjs/terminus'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { createThrottleDefaults } from '../config/throttle.config'
@@ -26,14 +26,16 @@ const HEALTH_THROTTLE = createThrottleDefaults({
 @Throttle({ default: HEALTH_THROTTLE })
 @Controller(['health', 'auth'])
 export class HealthController {
-
-	constructor(private readonly healthService: HealthService,
+	constructor(
+		private readonly healthService: HealthService,
 		private readonly metricsService: MetricsService,
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,
 		private readonly bullmq: BullMqHealthIndicator,
-		private readonly stripeSyncService: StripeSyncService, private readonly logger: AppLogger) {}
+		private readonly stripeSyncService: StripeSyncService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Simple ping endpoint for lightweight health checks

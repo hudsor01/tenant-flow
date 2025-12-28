@@ -1,4 +1,17 @@
-import { BadRequestException, Body, Controller, Get, Header, Param, Post, Query, Request, Res, UseGuards, ParseUUIDPipe } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	Header,
+	Param,
+	Post,
+	Query,
+	Request,
+	Res,
+	UseGuards,
+	ParseUUIDPipe
+} from '@nestjs/common'
 import { Response } from 'express'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
@@ -10,7 +23,6 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Controller('rent-payments')
 export class RentPaymentsController {
-
 	constructor(
 		private readonly rentPaymentsService: RentPaymentsService,
 		private readonly paymentAnalyticsService: PaymentAnalyticsService,
@@ -24,7 +36,8 @@ export class RentPaymentsController {
 	@Get('analytics')
 	async getPaymentAnalytics(@JwtToken() token: string) {
 		this.logger.log('Getting payment analytics for authenticated user')
-		const analytics = await this.paymentAnalyticsService.getPaymentAnalytics(token)
+		const analytics =
+			await this.paymentAnalyticsService.getPaymentAnalytics(token)
 		return { success: true, analytics }
 	}
 
@@ -35,7 +48,8 @@ export class RentPaymentsController {
 	@Get('upcoming')
 	async getUpcomingPayments(@JwtToken() token: string) {
 		this.logger.log('Getting upcoming payments for authenticated user')
-		const payments = await this.paymentAnalyticsService.getUpcomingPayments(token)
+		const payments =
+			await this.paymentAnalyticsService.getUpcomingPayments(token)
 		return { success: true, payments }
 	}
 
@@ -46,7 +60,8 @@ export class RentPaymentsController {
 	@Get('overdue')
 	async getOverduePayments(@JwtToken() token: string) {
 		this.logger.log('Getting overdue payments for authenticated user')
-		const payments = await this.paymentAnalyticsService.getOverduePayments(token)
+		const payments =
+			await this.paymentAnalyticsService.getOverduePayments(token)
 		return { success: true, payments }
 	}
 
@@ -65,12 +80,16 @@ export class RentPaymentsController {
 		@Res() res?: Response
 	) {
 		this.logger.log('Exporting payments to CSV')
-		const filters: { status?: string; startDate?: string; endDate?: string } = {}
+		const filters: { status?: string; startDate?: string; endDate?: string } =
+			{}
 		if (status) filters.status = status
 		if (startDate) filters.startDate = startDate
 		if (endDate) filters.endDate = endDate
 
-		const csv = await this.paymentAnalyticsService.exportPaymentsCSV(token, filters)
+		const csv = await this.paymentAnalyticsService.exportPaymentsCSV(
+			token,
+			filters
+		)
 
 		if (res) {
 			res.send(csv)
@@ -84,7 +103,8 @@ export class RentPaymentsController {
 	 */
 	@Post('manual')
 	async recordManualPayment(
-		@Body() body: {
+		@Body()
+		body: {
 			lease_id: string
 			tenant_id: string
 			amount: number
@@ -97,7 +117,13 @@ export class RentPaymentsController {
 		this.logger.log(`Recording manual payment for lease ${body.lease_id}`)
 
 		// Validate required fields
-		if (!body.lease_id || !body.tenant_id || !body.amount || !body.payment_method || !body.paid_date) {
+		if (
+			!body.lease_id ||
+			!body.tenant_id ||
+			!body.amount ||
+			!body.payment_method ||
+			!body.paid_date
+		) {
 			throw new BadRequestException('Missing required fields')
 		}
 

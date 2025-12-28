@@ -1,0 +1,94 @@
+{
+	"user": {
+		"id": "user-001",
+		"email": "owner@tenantflow.com",
+		"fullName": "Alex Thompson",
+		"avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100",
+		"userType": "owner",
+		"twoFactorEnabled": true,
+		"emailVerified": true,
+		"lastPasswordChange": "2024-10-15T14:30:00Z"
+	},
+	"preferences": {
+		"theme": "system",
+		"language": "en",
+		"timezone": "America/Chicago",
+		"notificationsEnabled": true,
+		"emailNotifications": {
+			"paymentReceived": true,
+			"paymentFailed": true,
+			"leaseExpiring": true,
+			"maintenanceUpdates": true,
+			"newTenantSignup": true,
+			"weeklyReport": true
+		},
+		"pushNotifications": {
+			"paymentReceived": true,
+			"paymentFailed": true,
+			"leaseExpiring": false,
+			"maintenanceUpdates": true,
+			"newTenantSignup": false,
+			"weeklyReport": false
+		}
+	},
+	"stripeConnect": {
+		"accountId": "acct_1234567890",
+		"status": "active",
+		"chargesEnabled": true,
+		"payoutsEnabled": true,
+		"onboardingStatus": "completed",
+		"completionPercentage": 100,
+		"requirementsDue": [],
+		"businessName": "Thompson Property Management",
+		"businessType": "individual"
+	},
+	"subscription": {
+		"id": "sub_abc123",
+		"status": "active",
+		"planName": "Professional",
+		"planPrice": 4900,
+		"billingInterval": "month",
+		"currentPeriodStart": "2024-12-01T00:00:00Z",
+		"currentPeriodEnd": "2025-01-01T00:00:00Z",
+		"paymentMethodLast4": "4242",
+		"paymentMethodBrand": "visa",
+		"billingHistory": [
+			{
+				"id": "inv-001",
+				"amount": 4900,
+				"status": "succeeded",
+				"date": "2024-12-01T00:00:00Z",
+				"invoiceUrl": "/invoices/inv-001.pdf"
+			},
+			{
+				"id": "inv-002",
+				"amount": 4900,
+				"status": "succeeded",
+				"date": "2024-11-01T00:00:00Z",
+				"invoiceUrl": "/invoices/inv-002.pdf"
+			},
+			{
+				"id": "inv-003",
+				"amount": 4900,
+				"status": "succeeded",
+				"date": "2024-10-01T00:00:00Z",
+				"invoiceUrl": "/invoices/inv-003.pdf"
+			},
+			{
+				"id": "inv-004",
+				"amount": 4900,
+				"status": "succeeded",
+				"date": "2024-09-01T00:00:00Z",
+				"invoiceUrl": "/invoices/inv-004.pdf"
+			}
+		]
+	},
+	"companyProfile": {
+		"businessName": "Thompson Property Management",
+		"logoUrl": "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200",
+		"contactEmail": "contact@thompsonpm.com",
+		"contactPhone": "(512) 555-1000",
+		"website": "https://thompsonpm.com",
+		"address": "100 Business Park Dr, Austin, TX 78701"
+	}
+}

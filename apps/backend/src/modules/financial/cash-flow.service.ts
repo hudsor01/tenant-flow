@@ -48,8 +48,10 @@ export interface CashFlowData {
 
 @Injectable()
 export class CashFlowService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate cash flow statement for a given period
@@ -143,7 +145,9 @@ export class CashFlowService {
 		)
 
 		const rentalPaymentsReceived = payments
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const operatingExpensesPaid = expenses.reduce(
@@ -175,8 +179,7 @@ export class CashFlowService {
 		const netInvestingCash = propertyAcquisitions + propertyImprovements
 		const netFinancingCash =
 			loanProceeds + ownerContributions - mortgagePayments - ownerDistributions
-		const netCashFlow =
-			netOperatingCash + netInvestingCash + netFinancingCash
+		const netCashFlow = netOperatingCash + netInvestingCash + netFinancingCash
 
 		const beginningCash = this.calculateBeginningCash(ledger, range.start)
 		const endingCash = beginningCash + netCashFlow
@@ -210,7 +213,9 @@ export class CashFlowService {
 				const dueDate = parseDate(payment.due_date)
 				return dueDate ? dueDate < start : false
 			})
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const expensesBefore = ledger.expenses

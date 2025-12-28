@@ -2,10 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Unit } from '@repo/shared/types/core'
-import type {
-	UnitInput,
-	UnitUpdate
-} from '@repo/shared/validation/units'
+import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import { CurrentUserProvider } from '../../shared/providers/current-user.provider'
 import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
@@ -13,7 +10,6 @@ import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
-
 
 // Mock the services
 jest.mock('./units.service', () => {
@@ -113,9 +109,7 @@ describe('UnitsController', () => {
 			const mockUnits = [createMockUnit({ id: 'unit-1' })]
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
-			const result = await controller.findAll(
-			'mock-jwt-token',
-			{
+			const result = await controller.findAll('mock-jwt-token', {
 				property_id: null,
 				status: undefined,
 				search: undefined,
@@ -123,8 +117,7 @@ describe('UnitsController', () => {
 				offset: 0,
 				sortBy: 'created_at',
 				sortOrder: 'desc'
-			}
-		)
+			})
 
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
 			// Controller wraps service response in PaginatedResponse format
@@ -138,16 +131,14 @@ describe('UnitsController', () => {
 		})
 
 		it('should validate status parameter', async () => {
-		// Note: In practice, ZodValidationPipe would handle this validation
-		// For unit tests, we mock the service to throw for invalid input
-		mockUnitsServiceInstance.findAll.mockRejectedValueOnce(
-			new BadRequestException('Invalid unit status')
-		)
+			// Note: In practice, ZodValidationPipe would handle this validation
+			// For unit tests, we mock the service to throw for invalid input
+			mockUnitsServiceInstance.findAll.mockRejectedValueOnce(
+				new BadRequestException('Invalid unit status')
+			)
 
-		await expect(
-			controller.findAll(
-				createMockRequest({ user: mockUser }),
-				{
+			await expect(
+				controller.findAll(createMockRequest({ user: mockUser }), {
 					property_id: null,
 					status: 'INVALID_STATUS' as unknown as UnitUpdate['status'],
 					search: undefined,
@@ -155,18 +146,15 @@ describe('UnitsController', () => {
 					offset: 0,
 					sortBy: 'created_at',
 					sortOrder: 'desc'
-				}
-			)
-		).rejects.toThrow(BadRequestException)
-	})
+				})
+			).rejects.toThrow(BadRequestException)
+		})
 
 		it('should accept uppercase unit status and normalize to lowercase', async () => {
 			const mockUnits = [createMockUnit({ status: 'occupied' })]
 			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
 
-			const result = await controller.findAll(
-			'mock-jwt-token',
-			{
+			const result = await controller.findAll('mock-jwt-token', {
 				property_id: null,
 				status: 'OCCUPIED' as unknown as UnitUpdate['status'], // Uppercase input to test normalization
 				search: undefined,
@@ -174,8 +162,7 @@ describe('UnitsController', () => {
 				offset: 0,
 				sortBy: 'created_at',
 				sortOrder: 'desc'
-			}
-		)
+			})
 
 			// Verify service was called and status was normalized
 			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
@@ -201,14 +188,18 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats('mock-jwt-token')
-			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith('mock-jwt-token')
+			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith(
+				'mock-jwt-token'
+			)
 			expect(result).toEqual(mockStats)
 		})
 	})
 
 	describe('findByProperty', () => {
 		it('should return units for a specific property', async () => {
-			const mockUnits = [createMockUnit({ id: 'unit-1', property_id: 'property-123' })]
+			const mockUnits = [
+				createMockUnit({ id: 'unit-1', property_id: 'property-123' })
+			]
 
 			mockUnitsServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
@@ -225,16 +216,13 @@ describe('UnitsController', () => {
 		})
 	})
 
-		describe('findOne', () => {
-			it('should return a unit by ID', async () => {
-				const mockUnit = createMockUnit({ id: 'unit-1' })
+	describe('findOne', () => {
+		it('should return a unit by ID', async () => {
+			const mockUnit = createMockUnit({ id: 'unit-1' })
 
-				mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
+			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
 
-			const result = await controller.findOne(
-				'mock-jwt-token',
-				'unit-1'
-			)
+			const result = await controller.findOne('mock-jwt-token', 'unit-1')
 			expect(mockUnitsServiceInstance.findOne).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				'unit-1'
@@ -242,14 +230,13 @@ describe('UnitsController', () => {
 			expect(result).toEqual(mockUnit)
 		})
 
-			it('should throw NotFoundException when unit not found', async () => {
-				mockUnitsServiceInstance.findOne.mockImplementation(() => Promise.reject(new NotFoundException()))
+		it('should throw NotFoundException when unit not found', async () => {
+			mockUnitsServiceInstance.findOne.mockImplementation(() =>
+				Promise.reject(new NotFoundException())
+			)
 
-				await expect(
-					controller.findOne(
-						'mock-jwt-token',
-						'non-existent'
-				)
+			await expect(
+				controller.findOne('mock-jwt-token', 'non-existent')
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -260,10 +247,7 @@ describe('UnitsController', () => {
 
 			mockUnitsServiceInstance.create.mockResolvedValue(mockUnit)
 
-			const result = await controller.create(
-				'mock-jwt-token',
-				validUnitInput
-			)
+			const result = await controller.create('mock-jwt-token', validUnitInput)
 			expect(mockUnitsServiceInstance.create).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				validUnitInput
@@ -300,10 +284,7 @@ describe('UnitsController', () => {
 		it('should delete a unit', async () => {
 			mockUnitsServiceInstance.remove.mockResolvedValue(undefined)
 
-			const result = await controller.remove(
-				'mock-jwt-token',
-				'unit-1'
-			)
+			const result = await controller.remove('mock-jwt-token', 'unit-1')
 
 			expect(mockUnitsServiceInstance.remove).toHaveBeenCalledWith(
 				'mock-jwt-token',

@@ -39,15 +39,16 @@ export function useUpdateOwnerNotificationSettings() {
 		onMutate: async updates => {
 			await queryClient.cancelQueries({ queryKey: notificationSettingsKey })
 
-			const previous =
-				queryClient.getQueryData<OwnerNotificationSettings>(
-					notificationSettingsKey
-				)
+			const previous = queryClient.getQueryData<OwnerNotificationSettings>(
+				notificationSettingsKey
+			)
 
 			if (previous) {
 				queryClient.setQueryData<OwnerNotificationSettings>(
 					notificationSettingsKey,
-					(old: OwnerNotificationSettings | undefined): OwnerNotificationSettings | undefined => {
+					(
+						old: OwnerNotificationSettings | undefined
+					): OwnerNotificationSettings | undefined => {
 						if (!old) return undefined
 
 						// Destructure categories out of updates to avoid Partial<> type conflict
@@ -58,7 +59,9 @@ export function useUpdateOwnerNotificationSettings() {
 							...restUpdates,
 							categories: updatedCategories
 								? {
-										maintenance: updatedCategories.maintenance ?? old.categories.maintenance,
+										maintenance:
+											updatedCategories.maintenance ??
+											old.categories.maintenance,
 										leases: updatedCategories.leases ?? old.categories.leases,
 										general: updatedCategories.general ?? old.categories.general
 									}

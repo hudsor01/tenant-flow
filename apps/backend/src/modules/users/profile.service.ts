@@ -67,7 +67,9 @@ export class ProfileService {
 		// Fetch base user data
 		const { data: user, error: userError } = await client
 			.from('users')
-			.select('id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at')
+			.select(
+				'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at'
+			)
 			.eq('id', user_id)
 			.single()
 
@@ -100,13 +102,15 @@ export class ProfileService {
 		if (user.user_type === 'tenant') {
 			const { data: tenant } = await client
 				.from('tenants')
-				.select(`
+				.select(
+					`
 					date_of_birth,
 					emergency_contact_name,
 					emergency_contact_phone,
 					emergency_contact_relationship,
 					identity_verified
-				`)
+				`
+				)
 				.eq('user_id', user_id)
 				.single()
 

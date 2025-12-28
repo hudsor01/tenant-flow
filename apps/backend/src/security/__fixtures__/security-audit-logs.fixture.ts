@@ -1,6 +1,4 @@
-import {
-	SecurityEventType
-} from '@repo/shared/types/security'
+import { SecurityEventType } from '@repo/shared/types/security'
 
 export const securityAuditLogFixture = [
 	{

@@ -1,7 +1,11 @@
 /**
  * Lease Generation Form - Step 3: Terms & Conditions
  */
-import type { ReactFormExtendedApi, FormValidateOrFn, FormAsyncValidateOrFn } from '@tanstack/react-form'
+import type {
+	ReactFormExtendedApi,
+	FormValidateOrFn,
+	FormAsyncValidateOrFn
+} from '@tanstack/react-form'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { Input } from '#components/ui/input'
 import { FieldLabel } from '#components/ui/field'
@@ -31,9 +35,7 @@ export function TermsStep({ form }: TermsStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">
-					Occupancy & Usage
-				</h3>
+				<h3 className="typography-large mb-4">Occupancy & Usage</h3>
 				<div className="space-y-4">
 					<form.Field name="maxOccupants">
 						{field => (
@@ -83,9 +85,7 @@ export function TermsStep({ form }: TermsStepProps) {
 			</div>
 
 			<div>
-				<h3 className="typography-large mb-4">
-					Alterations & Modifications
-				</h3>
+				<h3 className="typography-large mb-4">Alterations & Modifications</h3>
 				<div className="space-y-4">
 					<form.Field name="alterationsAllowed">
 						{field => (

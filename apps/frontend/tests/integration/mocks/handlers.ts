@@ -190,10 +190,11 @@ const samplePropertyPerformance = [
 
 const sampleOccupancyAnalytics = {
 	overall_occupancy: 80,
-	by_property: [
-		{ property_id: 'prop-1', name: 'Sunset Apartments', rate: 85 }
-	],
-	trend: [{ month: 'Jan', rate: 78 }, { month: 'Feb', rate: 80 }]
+	by_property: [{ property_id: 'prop-1', name: 'Sunset Apartments', rate: 85 }],
+	trend: [
+		{ month: 'Jan', rate: 78 },
+		{ month: 'Feb', rate: 80 }
+	]
 }
 
 const sampleFinancialAnalytics = {
@@ -239,9 +240,10 @@ export const handlers = [
 		let properties = [sampleProperty, sampleProperty2]
 
 		if (search) {
-			properties = properties.filter(p =>
-				p.name.toLowerCase().includes(search.toLowerCase()) ||
-				p.address_line1.toLowerCase().includes(search.toLowerCase())
+			properties = properties.filter(
+				p =>
+					p.name.toLowerCase().includes(search.toLowerCase()) ||
+					p.address_line1.toLowerCase().includes(search.toLowerCase())
 			)
 		}
 
@@ -306,7 +308,7 @@ export const handlers = [
 
 	// POST /api/v1/properties - Create property
 	http.post(`${BASE_URL}/api/v1/properties`, async ({ request }) => {
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const newProperty = {
 			...sampleProperty,
 			id: `prop-${Date.now()}`,
@@ -320,7 +322,7 @@ export const handlers = [
 	// PUT /api/v1/properties/:id - Update property
 	http.put(`${BASE_URL}/api/v1/properties/:id`, async ({ params, request }) => {
 		const { id } = params
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 
 		// Simulate version conflict
 		if (body.version && body.version < 1) {
@@ -353,14 +355,17 @@ export const handlers = [
 	}),
 
 	// PUT /api/v1/properties/:id/mark-sold
-	http.put(`${BASE_URL}/api/v1/properties/:id/mark-sold`, async ({ params, request }) => {
-		const { id } = params
-		const body = await request.json() as Record<string, unknown>
-		return HttpResponse.json({
-			success: true,
-			message: `Property ${id} marked as sold`
-		})
-	}),
+	http.put(
+		`${BASE_URL}/api/v1/properties/:id/mark-sold`,
+		async ({ params, request }) => {
+			const { id } = params
+			const body = (await request.json()) as Record<string, unknown>
+			return HttpResponse.json({
+				success: true,
+				message: `Property ${id} marked as sold`
+			})
+		}
+	),
 
 	// ============================================
 	// UNITS ENDPOINTS
@@ -412,7 +417,7 @@ export const handlers = [
 
 	// POST /api/v1/units
 	http.post(`${BASE_URL}/api/v1/units`, async ({ request }) => {
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const newUnit = {
 			...sampleUnit,
 			id: `unit-${Date.now()}`,
@@ -426,7 +431,7 @@ export const handlers = [
 	// PUT /api/v1/units/:id
 	http.put(`${BASE_URL}/api/v1/units/:id`, async ({ params, request }) => {
 		const { id } = params
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const updatedUnit = {
 			...sampleUnit,
 			id,
@@ -460,10 +465,11 @@ export const handlers = [
 		let tenants = [sampleTenant]
 
 		if (search) {
-			tenants = tenants.filter(t =>
-				t.first_name?.toLowerCase().includes(search.toLowerCase()) ||
-				t.last_name?.toLowerCase().includes(search.toLowerCase()) ||
-				t.email?.toLowerCase().includes(search.toLowerCase())
+			tenants = tenants.filter(
+				t =>
+					t.first_name?.toLowerCase().includes(search.toLowerCase()) ||
+					t.last_name?.toLowerCase().includes(search.toLowerCase()) ||
+					t.email?.toLowerCase().includes(search.toLowerCase())
 			)
 		}
 
@@ -496,7 +502,7 @@ export const handlers = [
 
 	// POST /api/v1/tenants
 	http.post(`${BASE_URL}/api/v1/tenants`, async ({ request }) => {
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const newTenant = {
 			...sampleTenant,
 			id: `tenant-${Date.now()}`,
@@ -510,7 +516,7 @@ export const handlers = [
 	// PUT /api/v1/tenants/:id
 	http.put(`${BASE_URL}/api/v1/tenants/:id`, async ({ params, request }) => {
 		const { id } = params
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const updatedTenant = {
 			...sampleTenant,
 			id,
@@ -625,7 +631,7 @@ export const handlers = [
 
 	// POST /api/v1/leases
 	http.post(`${BASE_URL}/api/v1/leases`, async ({ request }) => {
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const newLease = {
 			...sampleLease,
 			id: `lease-${Date.now()}`,
@@ -639,7 +645,7 @@ export const handlers = [
 	// PUT /api/v1/leases/:id
 	http.put(`${BASE_URL}/api/v1/leases/:id`, async ({ params, request }) => {
 		const { id } = params
-		const body = await request.json() as Record<string, unknown>
+		const body = (await request.json()) as Record<string, unknown>
 		const updatedLease = {
 			...sampleLease,
 			id,

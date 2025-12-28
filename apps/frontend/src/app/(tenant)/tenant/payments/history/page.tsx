@@ -14,7 +14,10 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryCard } from '#components/payments/payment-history-card'
-import { PaymentHistoryItem, usePaymentHistory } from '#hooks/api/use-payment-history'
+import {
+	PaymentHistoryItem,
+	usePaymentHistory
+} from '#hooks/api/use-payment-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useMediaQuery } from '#hooks/use-media-query'
 import { formatCurrency } from '#lib/formatters/currency'
@@ -53,7 +56,7 @@ export default function TenantPaymentHistoryPage() {
 		<div className="space-y-8">
 			<div className="flex-between">
 				<div>
-					<h1 className="typography-h2 tracking-tight">Payment History</h1>
+					<h1 className="typography-h1">Payment History</h1>
 					<p className="text-muted-foreground">
 						View all your rent payments and download receipts
 					</p>
@@ -75,9 +78,7 @@ export default function TenantPaymentHistoryPage() {
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-32" />
 							) : (
-								<p className="typography-h3">
-									{formatCurrency(totalPaid)}
-								</p>
+								<p className="typography-h3">{formatCurrency(totalPaid)}</p>
 							)}
 							<p className="text-muted mt-1">All time</p>
 						</div>
@@ -91,9 +92,7 @@ export default function TenantPaymentHistoryPage() {
 							{paymentsLoading ? (
 								<Skeleton className="h-8 w-24" />
 							) : lastPayment ? (
-								<p className="typography-h3">
-									{lastPayment.formattedDate}
-								</p>
+								<p className="typography-h3">{lastPayment.formattedDate}</p>
 							) : (
 								<p className="text-muted-foreground">No payments yet</p>
 							)}
@@ -113,107 +112,107 @@ export default function TenantPaymentHistoryPage() {
 				</CardLayout>
 			</div>
 
-		{/* Payment History Table */}
-		<CardLayout
-			title="All Payments"
-			description="Complete payment history for your tenancy"
-		>
-			{paymentsLoading && (
-				<div className="space-y-2 p-4">
-					<Skeleton className="h-16 w-full" />
-					<Skeleton className="h-16 w-full" />
-					<Skeleton className="h-16 w-full" />
-				</div>
-			)}
-
-			{!paymentsLoading && hasPayments && (
-				isMobile ? (
-					<div className="space-y-3">
-						{payments.map((payment: PaymentHistoryItem) => (
-							<PaymentHistoryCard
-								key={payment.id}
-								payment={payment}
-								statusClass={getStatusBadgeClass(payment.status)}
-							/>
-						))}
+			{/* Payment History Table */}
+			<CardLayout
+				title="All Payments"
+				description="Complete payment history for your tenancy"
+			>
+				{paymentsLoading && (
+					<div className="space-y-2 p-4">
+						<Skeleton className="h-16 w-full" />
+						<Skeleton className="h-16 w-full" />
+						<Skeleton className="h-16 w-full" />
 					</div>
-				) : (
-					<div
-						data-testid="payment-history-table"
-						data-overflow-guard="true"
-						className="overflow-x-auto"
-					>
-						<div className="min-w-[720px] space-y-1">
-							<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
-								<div>Date</div>
-								<div>Amount</div>
-								<div>Method</div>
-								<div>Status</div>
-								<div className="text-right">Receipt</div>
-							</div>
+				)}
 
+				{!paymentsLoading &&
+					hasPayments &&
+					(isMobile ? (
+						<div className="space-y-3">
 							{payments.map((payment: PaymentHistoryItem) => (
-								<div
+								<PaymentHistoryCard
 									key={payment.id}
-									data-testid="payment-history-row"
-									className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
-								>
-									<div className="space-y-1">
-										<p className="font-medium">{payment.formattedDate}</p>
-										<p className="text-muted">
-											{payment.description || 'Monthly Rent'}
-										</p>
-									</div>
-									<div>
-										<p className="font-semibold">{payment.formattedAmount}</p>
-									</div>
-									<div>
-										<div className="flex items-center gap-2">
-											<CreditCard className="size-4 text-muted-foreground" />
-											<span className="text-sm">Credit Card</span>
-										</div>
-									</div>
-									<div>
-										<Badge
-											variant="outline"
-											className={getStatusBadgeClass(payment.status)}
-										>
-											{payment.status === 'succeeded'
-												? 'Paid'
-												: payment.status.charAt(0).toUpperCase() +
-													payment.status.slice(1)}
-										</Badge>
-									</div>
-									<div className="text-right">
-										<Button
-											variant="ghost"
-											size="sm"
-											aria-label={`Download receipt for ${payment.formattedDate}`}
-											className="gap-2"
-										>
-											<Download className="size-4" />
-											<span className="sr-only">Download receipt</span>
-										</Button>
-									</div>
-								</div>
+									payment={payment}
+									statusClass={getStatusBadgeClass(payment.status)}
+								/>
 							))}
 						</div>
-					</div>
-				)
-			)}
+					) : (
+						<div
+							data-testid="payment-history-table"
+							data-overflow-guard="true"
+							className="overflow-x-auto"
+						>
+							<div className="min-w-[720px] space-y-1">
+								<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+									<div>Date</div>
+									<div>Amount</div>
+									<div>Method</div>
+									<div>Status</div>
+									<div className="text-right">Receipt</div>
+								</div>
 
-			{/* Empty State */}
-			{!paymentsLoading && !hasPayments && (
-				<div className="text-center section-spacing-compact">
-					<p className="text-muted-foreground">No payment history yet</p>
-					<Link href="/tenant/payments">
-						<Button variant="outline" className="mt-4">
-							Make Your First Payment
-						</Button>
-					</Link>
-				</div>
-			)}
-		</CardLayout>
+								{payments.map((payment: PaymentHistoryItem) => (
+									<div
+										key={payment.id}
+										data-testid="payment-history-row"
+										className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
+									>
+										<div className="space-y-1">
+											<p className="font-medium">{payment.formattedDate}</p>
+											<p className="text-muted">
+												{payment.description || 'Monthly Rent'}
+											</p>
+										</div>
+										<div>
+											<p className="font-semibold">{payment.formattedAmount}</p>
+										</div>
+										<div>
+											<div className="flex items-center gap-2">
+												<CreditCard className="size-4 text-muted-foreground" />
+												<span className="text-sm">Credit Card</span>
+											</div>
+										</div>
+										<div>
+											<Badge
+												variant="outline"
+												className={getStatusBadgeClass(payment.status)}
+											>
+												{payment.status === 'succeeded'
+													? 'Paid'
+													: payment.status.charAt(0).toUpperCase() +
+														payment.status.slice(1)}
+											</Badge>
+										</div>
+										<div className="text-right">
+											<Button
+												variant="ghost"
+												size="sm"
+												aria-label={`Download receipt for ${payment.formattedDate}`}
+												className="gap-2"
+											>
+												<Download className="size-4" />
+												<span className="sr-only">Download receipt</span>
+											</Button>
+										</div>
+									</div>
+								))}
+							</div>
+						</div>
+					))}
+
+				{/* Empty State */}
+				{!paymentsLoading && !hasPayments && (
+					<div className="text-center section-spacing-compact">
+						<p className="text-muted-foreground">No payment history yet</p>
+						<Link href="/tenant/payments">
+							<Button variant="outline" className="mt-4">
+								Make Your First Payment
+							</Button>
+						</Link>
+					</div>
+				)}
+			</CardLayout>
 
 			{/* Payment Methods */}
 			<CardLayout

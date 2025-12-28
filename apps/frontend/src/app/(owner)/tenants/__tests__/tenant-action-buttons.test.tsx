@@ -118,9 +118,15 @@ describe('TenantActionButtons', () => {
 
 			// Menu items should be visible
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /edit tenant/i })).toBeInTheDocument()
-				expect(screen.getByRole('menuitem', { name: /send invitation/i })).toBeInTheDocument()
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /edit tenant/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /send invitation/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -134,7 +140,9 @@ describe('TenantActionButtons', () => {
 
 			// Click Edit Tenant
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /edit tenant/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /edit tenant/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /edit tenant/i }))
 
@@ -156,7 +164,9 @@ describe('TenantActionButtons', () => {
 
 			// Click Delete menu item
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -177,13 +187,17 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
 			// Check dialog buttons
 			await waitFor(() => {
-				expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('button', { name: /cancel/i })
+				).toBeInTheDocument()
 				// Delete button inside dialog (not menuitem)
 				const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
 				expect(deleteButtons.length).toBeGreaterThan(0)
@@ -198,7 +212,9 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -218,7 +234,9 @@ describe('TenantActionButtons', () => {
 			// Should be able to open dropdown again (UI not frozen)
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -231,7 +249,9 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -241,9 +261,11 @@ describe('TenantActionButtons', () => {
 			})
 
 			// The Delete button should NOT be disabled initially
-			const alertDialogDeleteButtons = screen.getAllByRole('button', { name: /delete/i })
-			const dialogDeleteButton = alertDialogDeleteButtons.find(
-				btn => btn.closest('[role="alertdialog"]')
+			const alertDialogDeleteButtons = screen.getAllByRole('button', {
+				name: /delete/i
+			})
+			const dialogDeleteButton = alertDialogDeleteButtons.find(btn =>
+				btn.closest('[role="alertdialog"]')
 			)
 			expect(dialogDeleteButton).not.toBeDisabled()
 		})
@@ -276,7 +298,9 @@ describe('TenantActionButtons', () => {
 			await user.keyboard('{Enter}')
 
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /edit tenant/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /edit tenant/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -288,7 +312,9 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -314,7 +340,9 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -358,7 +386,9 @@ describe('TenantActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 

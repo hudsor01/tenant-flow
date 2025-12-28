@@ -1,11 +1,20 @@
-import { Controller, Get, Query, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Query,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import { ReportsService } from './reports.service'
 import type { MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
-import { TimeSeriesQueryDto, MetricTrendQueryDto } from './dto/reports-query.dto'
+import {
+	TimeSeriesQueryDto,
+	MetricTrendQueryDto
+} from './dto/reports-query.dto'
 import { AppLogger } from '../../../logger/app-logger.service'
 
 /**
@@ -20,8 +29,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class ReportsController {
-
-	constructor(private readonly reportsService: ReportsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly reportsService: ReportsService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get time series data for a metric

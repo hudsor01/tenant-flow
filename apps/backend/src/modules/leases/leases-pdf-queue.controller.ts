@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Param, ParseUUIDPipe, Query, NotFoundException } from '@nestjs/common'
+import {
+	Controller,
+	Post,
+	Get,
+	Param,
+	ParseUUIDPipe,
+	Query,
+	NotFoundException
+} from '@nestjs/common'
 import { InjectQueue } from '@nestjs/bullmq'
 import { Queue } from 'bullmq'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
@@ -61,13 +69,19 @@ export class LeasesPdfQueueController {
 				leaseId,
 				jobId,
 				status: state,
-				...(state === 'completed' && result?.pdfUrl && { downloadUrl: result.pdfUrl }),
+				...(state === 'completed' &&
+					result?.pdfUrl && { downloadUrl: result.pdfUrl }),
 				...(state === 'failed' && { error: job.failedReason })
 			}
 		}
 
 		// Otherwise, find the latest job for this lease
-		const jobs = await this.pdfQueue.getJobs(['completed', 'active', 'waiting', 'failed'])
+		const jobs = await this.pdfQueue.getJobs([
+			'completed',
+			'active',
+			'waiting',
+			'failed'
+		])
 		const leaseJobs = jobs
 			.filter(j => j.data?.leaseId === leaseId)
 			.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
@@ -88,7 +102,8 @@ export class LeasesPdfQueueController {
 			leaseId,
 			jobId: latestJob.id,
 			status: state,
-			...(state === 'completed' && result?.pdfUrl && { downloadUrl: result.pdfUrl }),
+			...(state === 'completed' &&
+				result?.pdfUrl && { downloadUrl: result.pdfUrl }),
 			...(state === 'failed' && { error: latestJob.failedReason })
 		}
 	}

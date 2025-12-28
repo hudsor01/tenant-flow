@@ -18,7 +18,13 @@ import {
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
+import {
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatDescription
+} from '#components/ui/stat'
 import { useCashFlow } from '#hooks/api/use-financial-statements'
 import { formatCents } from '#lib/formatters/currency'
 
@@ -38,7 +44,7 @@ export default function CashFlowPage() {
 			}
 		} else if (period === 'quarterly') {
 			const currentQuarter = Math.floor(currentDate.getMonth() / 3)
-			const startMonth = (currentQuarter * 3) + 1
+			const startMonth = currentQuarter * 3 + 1
 			const endMonth = startMonth + 2
 			return {
 				start_date: `${selectedYear}-${String(startMonth).padStart(2, '0')}-01`,
@@ -61,26 +67,59 @@ export default function CashFlowPage() {
 	const inflowItems = React.useMemo(() => {
 		if (!cashFlowData) return []
 		const items = [
-			{ category: 'Rental Payments Received', amount: cashFlowData.operatingActivities.rentalPaymentsReceived },
-			{ category: 'Loan Proceeds', amount: cashFlowData.financingActivities.loanProceeds },
-			{ category: 'Owner Contributions', amount: cashFlowData.financingActivities.ownerContributions }
+			{
+				category: 'Rental Payments Received',
+				amount: cashFlowData.operatingActivities.rentalPaymentsReceived
+			},
+			{
+				category: 'Loan Proceeds',
+				amount: cashFlowData.financingActivities.loanProceeds
+			},
+			{
+				category: 'Owner Contributions',
+				amount: cashFlowData.financingActivities.ownerContributions
+			}
 		].filter(i => i.amount > 0)
 		const total = items.reduce((sum, i) => sum + i.amount, 0)
-		return items.map(i => ({ ...i, percentage: total > 0 ? (i.amount / total) * 100 : 0 }))
+		return items.map(i => ({
+			...i,
+			percentage: total > 0 ? (i.amount / total) * 100 : 0
+		}))
 	}, [cashFlowData])
 
 	const outflowItems = React.useMemo(() => {
 		if (!cashFlowData) return []
 		const items = [
-			{ category: 'Operating Expenses Paid', amount: Math.abs(cashFlowData.operatingActivities.operatingExpensesPaid) },
-			{ category: 'Maintenance Paid', amount: Math.abs(cashFlowData.operatingActivities.maintenancePaid) },
-			{ category: 'Property Acquisitions', amount: Math.abs(cashFlowData.investingActivities.propertyAcquisitions) },
-			{ category: 'Property Improvements', amount: Math.abs(cashFlowData.investingActivities.propertyImprovements) },
-			{ category: 'Mortgage Payments', amount: Math.abs(cashFlowData.financingActivities.mortgagePayments) },
-			{ category: 'Owner Distributions', amount: Math.abs(cashFlowData.financingActivities.ownerDistributions) }
+			{
+				category: 'Operating Expenses Paid',
+				amount: Math.abs(cashFlowData.operatingActivities.operatingExpensesPaid)
+			},
+			{
+				category: 'Maintenance Paid',
+				amount: Math.abs(cashFlowData.operatingActivities.maintenancePaid)
+			},
+			{
+				category: 'Property Acquisitions',
+				amount: Math.abs(cashFlowData.investingActivities.propertyAcquisitions)
+			},
+			{
+				category: 'Property Improvements',
+				amount: Math.abs(cashFlowData.investingActivities.propertyImprovements)
+			},
+			{
+				category: 'Mortgage Payments',
+				amount: Math.abs(cashFlowData.financingActivities.mortgagePayments)
+			},
+			{
+				category: 'Owner Distributions',
+				amount: Math.abs(cashFlowData.financingActivities.ownerDistributions)
+			}
 		].filter(i => i.amount > 0)
 		const total = items.reduce((sum, i) => sum + i.amount, 0)
-		return items.map(i => ({ ...i, percentage: total > 0 ? (i.amount / total) * 100 : 0 }))
+		return items.map(i => ({
+			...i,
+			percentage: total > 0 ? (i.amount / total) * 100 : 0
+		}))
 	}, [cashFlowData])
 
 	const totalInflows = inflowItems.reduce((sum, i) => sum + i.amount, 0)
@@ -152,8 +191,10 @@ export default function CashFlowPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Cash Flow</h1>
-						<p className="text-muted-foreground">Track money coming in and going out.</p>
+						<h1 className="typography-h1">Cash Flow</h1>
+						<p className="text-muted-foreground">
+							Track money coming in and going out.
+						</p>
 					</div>
 					<div className="flex gap-2">
 						<Select value={period} onValueChange={setPeriod}>
@@ -189,20 +230,33 @@ export default function CashFlowPage() {
 				<div className="bg-card border border-border rounded-lg p-6 mb-8">
 					<div className="flex flex-col md:flex-row items-center justify-between gap-6">
 						<div className="flex-1 text-center">
-							<p className="text-sm text-muted-foreground mb-1">Opening Balance</p>
-							<p className="text-2xl font-semibold tabular-nums">{formatCents(openingBalance * 100)}</p>
-						</div>
-						<ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
-						<div className="flex-1 text-center">
-							<p className="text-sm text-muted-foreground mb-1">Net Cash Flow</p>
-							<p className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-								{netCashFlow >= 0 ? '+' : ''}{formatCents(netCashFlow * 100)}
+							<p className="text-sm text-muted-foreground mb-1">
+								Opening Balance
+							</p>
+							<p className="text-2xl font-semibold tabular-nums">
+								{formatCents(openingBalance * 100)}
 							</p>
 						</div>
 						<ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
 						<div className="flex-1 text-center">
-							<p className="text-sm text-muted-foreground mb-1">Closing Balance</p>
-							<p className="text-2xl font-semibold tabular-nums">{formatCents(closingBalance * 100)}</p>
+							<p className="text-sm text-muted-foreground mb-1">
+								Net Cash Flow
+							</p>
+							<p
+								className={`text-2xl font-semibold tabular-nums ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}
+							>
+								{netCashFlow >= 0 ? '+' : ''}
+								{formatCents(netCashFlow * 100)}
+							</p>
+						</div>
+						<ArrowRight className="w-6 h-6 text-muted-foreground hidden md:block" />
+						<div className="flex-1 text-center">
+							<p className="text-sm text-muted-foreground mb-1">
+								Closing Balance
+							</p>
+							<p className="text-2xl font-semibold tabular-nums">
+								{formatCents(closingBalance * 100)}
+							</p>
 						</div>
 					</div>
 				</div>
@@ -212,7 +266,12 @@ export default function CashFlowPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.2} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="hsl(142 76% 36%)"
+							colorTo="hsl(142 76% 36% / 0.3)"
+						/>
 						<StatLabel>Total Inflows</StatLabel>
 						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
 							${Math.floor(totalInflows).toLocaleString()}
@@ -220,9 +279,7 @@ export default function CashFlowPage() {
 						<StatIndicator variant="icon" color="success">
 							<ArrowUpCircle />
 						</StatIndicator>
-						<StatDescription>
-							money received
-						</StatDescription>
+						<StatDescription>money received</StatDescription>
 					</Stat>
 				</BlurFade>
 
@@ -235,129 +292,174 @@ export default function CashFlowPage() {
 						<StatIndicator variant="icon" color="destructive">
 							<ArrowDownCircle />
 						</StatIndicator>
-						<StatDescription>
-							money spent
-						</StatDescription>
+						<StatDescription>money spent</StatDescription>
 					</Stat>
 				</BlurFade>
 
 				<BlurFade delay={0.3} inView>
 					<Stat className="relative overflow-hidden">
 						{netCashFlow > 0 && (
-							<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
+							<BorderBeam
+								size={100}
+								duration={12}
+								colorFrom="hsl(var(--primary))"
+								colorTo="hsl(var(--primary)/0.3)"
+							/>
 						)}
 						<StatLabel>Net Cash Flow</StatLabel>
-						<StatValue className={`flex items-baseline ${netCashFlow >= 0 ? '' : 'text-destructive'}`}>
-							{netCashFlow >= 0 ? '+' : '-'}${Math.abs(Math.floor(netCashFlow)).toLocaleString()}
+						<StatValue
+							className={`flex items-baseline ${netCashFlow >= 0 ? '' : 'text-destructive'}`}
+						>
+							{netCashFlow >= 0 ? '+' : '-'}$
+							{Math.abs(Math.floor(netCashFlow)).toLocaleString()}
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />
 						</StatIndicator>
-						<StatDescription>
-							net change
-						</StatDescription>
+						<StatDescription>net change</StatDescription>
 					</Stat>
 				</BlurFade>
 			</div>
 
 			{/* Inflows & Outflows Breakdown */}
 			<BlurFade delay={0.35} inView>
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-				{/* Cash Inflows */}
-				<div className="bg-card border border-border rounded-lg p-6">
-					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowUpCircle className="w-4 h-4 text-emerald-600" />
-						Cash Inflows
-					</h3>
-					<div className="space-y-4">
-						{inflowItems.map((item) => (
-							<div key={item.category}>
-								<div className="flex items-center justify-between mb-1">
-									<span className="text-sm text-foreground">{item.category}</span>
-									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">{item.percentage.toFixed(1)}%</span>
-										<span className="text-sm font-medium text-emerald-600 tabular-nums">{formatCents(item.amount * 100)}</span>
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+					{/* Cash Inflows */}
+					<div className="bg-card border border-border rounded-lg p-6">
+						<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+							<ArrowUpCircle className="w-4 h-4 text-emerald-600" />
+							Cash Inflows
+						</h3>
+						<div className="space-y-4">
+							{inflowItems.map(item => (
+								<div key={item.category}>
+									<div className="flex items-center justify-between mb-1">
+										<span className="text-sm text-foreground">
+											{item.category}
+										</span>
+										<div className="flex items-center gap-3">
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+											<span className="text-sm font-medium text-emerald-600 tabular-nums">
+												{formatCents(item.amount * 100)}
+											</span>
+										</div>
+									</div>
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+							))}
+							{inflowItems.length === 0 && (
+								<p className="text-sm text-muted-foreground text-center py-4">
+									No inflows for this period
+								</p>
+							)}
+							<div className="flex items-center justify-between pt-4 border-t border-border">
+								<span className="text-sm font-medium text-foreground">
+									Total Inflows
+								</span>
+								<span className="text-sm font-semibold text-emerald-600 tabular-nums">
+									{formatCents(totalInflows * 100)}
+								</span>
 							</div>
-						))}
-						{inflowItems.length === 0 && (
-							<p className="text-sm text-muted-foreground text-center py-4">No inflows for this period</p>
-						)}
-						<div className="flex items-center justify-between pt-4 border-t border-border">
-							<span className="text-sm font-medium text-foreground">Total Inflows</span>
-							<span className="text-sm font-semibold text-emerald-600 tabular-nums">{formatCents(totalInflows * 100)}</span>
 						</div>
 					</div>
-				</div>
 
-				{/* Cash Outflows */}
-				<div className="bg-card border border-border rounded-lg p-6">
-					<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
-						<ArrowDownCircle className="w-4 h-4 text-red-600" />
-						Cash Outflows
-					</h3>
-					<div className="space-y-4">
-						{outflowItems.map((item) => (
-							<div key={item.category}>
-								<div className="flex items-center justify-between mb-1">
-									<span className="text-sm text-foreground">{item.category}</span>
-									<div className="flex items-center gap-3">
-										<span className="text-sm text-muted-foreground">{item.percentage.toFixed(1)}%</span>
-										<span className="text-sm font-medium text-red-600 tabular-nums">{formatCents(item.amount * 100)}</span>
+					{/* Cash Outflows */}
+					<div className="bg-card border border-border rounded-lg p-6">
+						<h3 className="font-medium text-foreground mb-4 flex items-center gap-2">
+							<ArrowDownCircle className="w-4 h-4 text-red-600" />
+							Cash Outflows
+						</h3>
+						<div className="space-y-4">
+							{outflowItems.map(item => (
+								<div key={item.category}>
+									<div className="flex items-center justify-between mb-1">
+										<span className="text-sm text-foreground">
+											{item.category}
+										</span>
+										<div className="flex items-center gap-3">
+											<span className="text-sm text-muted-foreground">
+												{item.percentage.toFixed(1)}%
+											</span>
+											<span className="text-sm font-medium text-red-600 tabular-nums">
+												{formatCents(item.amount * 100)}
+											</span>
+										</div>
+									</div>
+									<div className="h-2 bg-muted rounded-full overflow-hidden">
+										<div
+											className="h-full bg-red-500 rounded-full transition-all duration-500"
+											style={{ width: `${item.percentage}%` }}
+										/>
 									</div>
 								</div>
-								<div className="h-2 bg-muted rounded-full overflow-hidden">
-									<div
-										className="h-full bg-red-500 rounded-full transition-all duration-500"
-										style={{ width: `${item.percentage}%` }}
-									/>
-								</div>
+							))}
+							{outflowItems.length === 0 && (
+								<p className="text-sm text-muted-foreground text-center py-4">
+									No outflows for this period
+								</p>
+							)}
+							<div className="flex items-center justify-between pt-4 border-t border-border">
+								<span className="text-sm font-medium text-foreground">
+									Total Outflows
+								</span>
+								<span className="text-sm font-semibold text-red-600 tabular-nums">
+									{formatCents(totalOutflows * 100)}
+								</span>
 							</div>
-						))}
-						{outflowItems.length === 0 && (
-							<p className="text-sm text-muted-foreground text-center py-4">No outflows for this period</p>
-						)}
-						<div className="flex items-center justify-between pt-4 border-t border-border">
-							<span className="text-sm font-medium text-foreground">Total Outflows</span>
-							<span className="text-sm font-semibold text-red-600 tabular-nums">{formatCents(totalOutflows * 100)}</span>
 						</div>
 					</div>
 				</div>
-			</div>
 			</BlurFade>
 
 			{/* Activity Breakdown by Category */}
 			<BlurFade delay={0.4} inView>
-			<div className="bg-card border border-border rounded-lg p-6">
-				<h3 className="font-medium text-foreground mb-4">Cash Flow by Activity</h3>
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					<div className="text-center p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
-						<p className="text-2xl font-semibold text-emerald-600 tabular-nums">
-							{formatCents((cashFlowData?.operatingActivities.netOperatingCash || 0) * 100)}
-						</p>
-						<p className="text-sm text-muted-foreground mt-1">Operating Activities</p>
-					</div>
-					<div className="text-center p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
-						<p className="text-2xl font-semibold text-red-600 tabular-nums">
-							{formatCents((cashFlowData?.investingActivities.netInvestingCash || 0) * 100)}
-						</p>
-						<p className="text-sm text-muted-foreground mt-1">Investing Activities</p>
-					</div>
-					<div className="text-center p-4 bg-primary/5 rounded-lg">
-						<p className="text-2xl font-semibold text-foreground tabular-nums">
-							{formatCents((cashFlowData?.financingActivities.netFinancingCash || 0) * 100)}
-						</p>
-						<p className="text-sm text-muted-foreground mt-1">Financing Activities</p>
+				<div className="bg-card border border-border rounded-lg p-6">
+					<h3 className="font-medium text-foreground mb-4">
+						Cash Flow by Activity
+					</h3>
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+						<div className="text-center p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+							<p className="text-2xl font-semibold text-emerald-600 tabular-nums">
+								{formatCents(
+									(cashFlowData?.operatingActivities.netOperatingCash || 0) *
+										100
+								)}
+							</p>
+							<p className="text-sm text-muted-foreground mt-1">
+								Operating Activities
+							</p>
+						</div>
+						<div className="text-center p-4 bg-red-50 dark:bg-red-950/30 rounded-lg">
+							<p className="text-2xl font-semibold text-red-600 tabular-nums">
+								{formatCents(
+									(cashFlowData?.investingActivities.netInvestingCash || 0) *
+										100
+								)}
+							</p>
+							<p className="text-sm text-muted-foreground mt-1">
+								Investing Activities
+							</p>
+						</div>
+						<div className="text-center p-4 bg-primary/5 rounded-lg">
+							<p className="text-2xl font-semibold text-foreground tabular-nums">
+								{formatCents(
+									(cashFlowData?.financingActivities.netFinancingCash || 0) *
+										100
+								)}
+							</p>
+							<p className="text-sm text-muted-foreground mt-1">
+								Financing Activities
+							</p>
+						</div>
 					</div>
 				</div>
-			</div>
 			</BlurFade>
 		</div>
 	)

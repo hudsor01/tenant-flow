@@ -63,8 +63,13 @@ export function PropertyTableRow({ property }: PropertyTableRowProps) {
 			{/* Property Info */}
 			<div className="flex-1 min-w-0">
 				<div className="flex items-center gap-2">
-					<h3 className="font-medium truncate">{property.name ?? 'Unnamed Property'}</h3>
-					<Badge variant={isActive ? 'default' : 'secondary'} className="text-xs">
+					<h3 className="font-medium truncate">
+						{property.name ?? 'Unnamed Property'}
+					</h3>
+					<Badge
+						variant={isActive ? 'default' : 'secondary'}
+						className="text-xs"
+					>
 						{property.status}
 					</Badge>
 				</div>
@@ -80,7 +85,9 @@ export function PropertyTableRow({ property }: PropertyTableRowProps) {
 					<p className="text-xs text-muted-foreground">Units</p>
 				</div>
 				<div className="text-center min-w-[80px]">
-					<p className="font-medium">{formatPropertyType(property.property_type)}</p>
+					<p className="font-medium">
+						{formatPropertyType(property.property_type)}
+					</p>
 					<p className="text-xs text-muted-foreground">Type</p>
 				</div>
 			</div>

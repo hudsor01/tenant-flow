@@ -130,7 +130,10 @@ class RateLimiter {
 	private maxRequests: number
 	private windowMs: number
 
-	constructor(maxRequests: number = DEFAULT_MAX_REQUESTS, windowMs: number = DEFAULT_WINDOW_MS) {
+	constructor(
+		maxRequests: number = DEFAULT_MAX_REQUESTS,
+		windowMs: number = DEFAULT_WINDOW_MS
+	) {
 		this.maxRequests = maxRequests
 		this.windowMs = windowMs
 	}
@@ -149,7 +152,10 @@ class RateLimiter {
 }
 
 // Global rate limiter for checkout requests
-export const checkoutRateLimiter = new RateLimiter(CHECKOUT_MAX_REQUESTS, DEFAULT_WINDOW_MS)
+export const checkoutRateLimiter = new RateLimiter(
+	CHECKOUT_MAX_REQUESTS,
+	DEFAULT_WINDOW_MS
+)
 
 /**
  * Validate authentication token format

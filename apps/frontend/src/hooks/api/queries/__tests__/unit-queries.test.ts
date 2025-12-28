@@ -87,7 +87,12 @@ describe('unitQueries', () => {
 
 		it('should generate listByProperty key', () => {
 			const options = unitQueries.listByProperty('prop-123')
-			expect(options.queryKey).toEqual(['units', 'list', 'by-property', 'prop-123'])
+			expect(options.queryKey).toEqual([
+				'units',
+				'list',
+				'by-property',
+				'prop-123'
+			])
 		})
 
 		it('should generate byProperty key', () => {
@@ -171,7 +176,9 @@ describe('unitQueries', () => {
 
 	describe('detail query', () => {
 		it('should call fetch with unit ID in endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ id: 'unit-123', unit_number: '101' }))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ id: 'unit-123', unit_number: '101' })
+			)
 
 			const options = unitQueries.detail('unit-123')
 			await options.queryFn!({} as never)
@@ -219,12 +226,14 @@ describe('unitQueries', () => {
 
 	describe('stats query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
+			mockFetch.mockResolvedValue(
+				createMockResponse({
 					total: 50,
 					vacant: 10,
 					occupied: 35,
 					maintenance: 5
-				}))
+				})
+			)
 
 			const options = unitQueries.stats()
 			await options.queryFn!({} as never)

@@ -4,1969 +4,1964 @@
  * ==========================================
  */
 
-import { z } from "zod";
-import { type Json } from "./../types/supabase";
+import { z } from 'zod'
+import { type Json } from './../types/supabase'
 
 export const publicInvitationTypeSchema = z.union([
-  z.literal("platform_access"),
-  z.literal("lease_signing"),
-]);
+	z.literal('platform_access'),
+	z.literal('lease_signing')
+])
 
 export const publicSignatureMethodSchema = z.union([
-  z.literal("in_app"),
-  z.literal("docuseal"),
-]);
+	z.literal('in_app'),
+	z.literal('docuseal')
+])
 
 export const publicStripeSubscriptionStatusSchema = z.union([
-  z.literal("none"),
-  z.literal("pending"),
-  z.literal("active"),
-  z.literal("failed"),
-]);
+	z.literal('none'),
+	z.literal('pending'),
+	z.literal('active'),
+	z.literal('failed')
+])
 
 export const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
-  z
-    .union([
-      z.string(),
-      z.number(),
-      z.boolean(),
-      z.record(z.string(), z.union([jsonSchema, z.undefined()])),
-      z.array(jsonSchema),
-    ])
-    .nullable(),
-);
+	z
+		.union([
+			z.string(),
+			z.number(),
+			z.boolean(),
+			z.record(z.string(), z.union([jsonSchema, z.undefined()])),
+			z.array(jsonSchema)
+		])
+		.nullable()
+)
 
 export const publicActivityRowSchema = z.object({
-  activity_type: z.string(),
-  created_at: z.string().nullable(),
-  description: z.string().nullable(),
-  entity_id: z.string().nullable(),
-  entity_type: z.string().nullable(),
-  id: z.string(),
-  title: z.string(),
-  user_id: z.string().nullable(),
-});
+	activity_type: z.string(),
+	created_at: z.string().nullable(),
+	description: z.string().nullable(),
+	entity_id: z.string().nullable(),
+	entity_type: z.string().nullable(),
+	id: z.string(),
+	title: z.string(),
+	user_id: z.string().nullable()
+})
 
 export const publicActivityInsertSchema = z.object({
-  activity_type: z.string(),
-  created_at: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  id: z.string().optional(),
-  title: z.string(),
-  user_id: z.string().optional().nullable(),
-});
+	activity_type: z.string(),
+	created_at: z.string().optional().nullable(),
+	description: z.string().optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	id: z.string().optional(),
+	title: z.string(),
+	user_id: z.string().optional().nullable()
+})
 
 export const publicActivityUpdateSchema = z.object({
-  activity_type: z.string().optional(),
-  created_at: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  id: z.string().optional(),
-  title: z.string().optional(),
-  user_id: z.string().optional().nullable(),
-});
+	activity_type: z.string().optional(),
+	created_at: z.string().optional().nullable(),
+	description: z.string().optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	id: z.string().optional(),
+	title: z.string().optional(),
+	user_id: z.string().optional().nullable()
+})
 
 export const publicActivityRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("activity_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('activity_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicDocumentsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  document_type: z.string(),
-  entity_id: z.string(),
-  entity_type: z.string(),
-  file_path: z.string(),
-  file_size: z.number().nullable(),
-  id: z.string(),
-  storage_url: z.string(),
-});
+	created_at: z.string().nullable(),
+	document_type: z.string(),
+	entity_id: z.string(),
+	entity_type: z.string(),
+	file_path: z.string(),
+	file_size: z.number().nullable(),
+	id: z.string(),
+	storage_url: z.string()
+})
 
 export const publicDocumentsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  document_type: z.string(),
-  entity_id: z.string(),
-  entity_type: z.string(),
-  file_path: z.string(),
-  file_size: z.number().optional().nullable(),
-  id: z.string().optional(),
-  storage_url: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	document_type: z.string(),
+	entity_id: z.string(),
+	entity_type: z.string(),
+	file_path: z.string(),
+	file_size: z.number().optional().nullable(),
+	id: z.string().optional(),
+	storage_url: z.string()
+})
 
 export const publicDocumentsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  document_type: z.string().optional(),
-  entity_id: z.string().optional(),
-  entity_type: z.string().optional(),
-  file_path: z.string().optional(),
-  file_size: z.number().optional().nullable(),
-  id: z.string().optional(),
-  storage_url: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	document_type: z.string().optional(),
+	entity_id: z.string().optional(),
+	entity_type: z.string().optional(),
+	file_path: z.string().optional(),
+	file_size: z.number().optional().nullable(),
+	id: z.string().optional(),
+	storage_url: z.string().optional()
+})
 
 export const publicExpensesRowSchema = z.object({
-  amount: z.number(),
-  created_at: z.string().nullable(),
-  expense_date: z.string(),
-  id: z.string(),
-  maintenance_request_id: z.string(),
-  updated_at: z.string().nullable(),
-  vendor_name: z.string().nullable(),
-});
+	amount: z.number(),
+	created_at: z.string().nullable(),
+	expense_date: z.string(),
+	id: z.string(),
+	maintenance_request_id: z.string(),
+	updated_at: z.string().nullable(),
+	vendor_name: z.string().nullable()
+})
 
 export const publicExpensesInsertSchema = z.object({
-  amount: z.number(),
-  created_at: z.string().optional().nullable(),
-  expense_date: z.string(),
-  id: z.string().optional(),
-  maintenance_request_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-  vendor_name: z.string().optional().nullable(),
-});
+	amount: z.number(),
+	created_at: z.string().optional().nullable(),
+	expense_date: z.string(),
+	id: z.string().optional(),
+	maintenance_request_id: z.string(),
+	updated_at: z.string().optional().nullable(),
+	vendor_name: z.string().optional().nullable()
+})
 
 export const publicExpensesUpdateSchema = z.object({
-  amount: z.number().optional(),
-  created_at: z.string().optional().nullable(),
-  expense_date: z.string().optional(),
-  id: z.string().optional(),
-  maintenance_request_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-  vendor_name: z.string().optional().nullable(),
-});
+	amount: z.number().optional(),
+	created_at: z.string().optional().nullable(),
+	expense_date: z.string().optional(),
+	id: z.string().optional(),
+	maintenance_request_id: z.string().optional(),
+	updated_at: z.string().optional().nullable(),
+	vendor_name: z.string().optional().nullable()
+})
 
 export const publicExpensesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("expenses_maintenance_request_id_fkey"),
-    columns: z.tuple([z.literal("maintenance_request_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("maintenance_requests"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('expenses_maintenance_request_id_fkey'),
+		columns: z.tuple([z.literal('maintenance_request_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('maintenance_requests'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicLeaseTenantsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  id: z.string(),
-  is_primary: z.boolean().nullable(),
-  lease_id: z.string(),
-  responsibility_percentage: z.number(),
-  tenant_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	id: z.string(),
+	is_primary: z.boolean().nullable(),
+	lease_id: z.string(),
+	responsibility_percentage: z.number(),
+	tenant_id: z.string()
+})
 
 export const publicLeaseTenantsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_primary: z.boolean().optional().nullable(),
-  lease_id: z.string(),
-  responsibility_percentage: z.number().optional(),
-  tenant_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_primary: z.boolean().optional().nullable(),
+	lease_id: z.string(),
+	responsibility_percentage: z.number().optional(),
+	tenant_id: z.string()
+})
 
 export const publicLeaseTenantsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_primary: z.boolean().optional().nullable(),
-  lease_id: z.string().optional(),
-  responsibility_percentage: z.number().optional(),
-  tenant_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_primary: z.boolean().optional().nullable(),
+	lease_id: z.string().optional(),
+	responsibility_percentage: z.number().optional(),
+	tenant_id: z.string().optional()
+})
 
 export const publicLeaseTenantsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("lease_tenants_lease_id_fkey"),
-    columns: z.tuple([z.literal("lease_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("leases"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("lease_tenants_tenant_id_fkey"),
-    columns: z.tuple([z.literal("tenant_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("tenants"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('lease_tenants_lease_id_fkey'),
+		columns: z.tuple([z.literal('lease_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('leases'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('lease_tenants_tenant_id_fkey'),
+		columns: z.tuple([z.literal('tenant_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('tenants'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicLeasesRowSchema = z.object({
-  auto_pay_enabled: z.boolean().nullable(),
-  created_at: z.string().nullable(),
-  docuseal_submission_id: z.string().nullable(),
-  end_date: z.string(),
-  governing_state: z.string().nullable(),
-  grace_period_days: z.number().nullable(),
-  id: z.string(),
-  late_fee_amount: z.number().nullable(),
-  late_fee_days: z.number().nullable(),
-  lead_paint_disclosure_acknowledged: z.boolean().nullable(),
-  lease_status: z.string(),
-  max_occupants: z.number().nullable(),
-  owner_signature_ip: z.string().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.nullable(),
-  owner_signed_at: z.string().nullable(),
-  payment_day: z.number(),
-  pet_deposit: z.number().nullable(),
-  pet_rent: z.number().nullable(),
-  pets_allowed: z.boolean().nullable(),
-  primary_tenant_id: z.string(),
-  property_built_before_1978: z.boolean().nullable(),
-  property_owner_id: z.string().nullable(),
-  property_rules: z.string().nullable(),
-  rent_amount: z.number(),
-  rent_currency: z.string(),
-  security_deposit: z.number(),
-  sent_for_signature_at: z.string().nullable(),
-  start_date: z.string(),
-  stripe_subscription_id: z.string().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema,
-  subscription_failure_reason: z.string().nullable(),
-  subscription_last_attempt_at: z.string().nullable(),
-  subscription_retry_count: z.number().nullable(),
-  tenant_responsible_utilities: z.array(z.string()).nullable(),
-  tenant_signature_ip: z.string().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.nullable(),
-  tenant_signed_at: z.string().nullable(),
-  unit_id: z.string(),
-  updated_at: z.string().nullable(),
-  utilities_included: z.array(z.string()).nullable(),
-});
+	auto_pay_enabled: z.boolean().nullable(),
+	created_at: z.string().nullable(),
+	docuseal_submission_id: z.string().nullable(),
+	end_date: z.string(),
+	governing_state: z.string().nullable(),
+	grace_period_days: z.number().nullable(),
+	id: z.string(),
+	late_fee_amount: z.number().nullable(),
+	late_fee_days: z.number().nullable(),
+	lead_paint_disclosure_acknowledged: z.boolean().nullable(),
+	lease_status: z.string(),
+	max_occupants: z.number().nullable(),
+	owner_signature_ip: z.string().nullable(),
+	owner_signature_method: publicSignatureMethodSchema.nullable(),
+	owner_signed_at: z.string().nullable(),
+	payment_day: z.number(),
+	pet_deposit: z.number().nullable(),
+	pet_rent: z.number().nullable(),
+	pets_allowed: z.boolean().nullable(),
+	primary_tenant_id: z.string(),
+	property_built_before_1978: z.boolean().nullable(),
+	property_owner_id: z.string().nullable(),
+	property_rules: z.string().nullable(),
+	rent_amount: z.number(),
+	rent_currency: z.string(),
+	security_deposit: z.number(),
+	sent_for_signature_at: z.string().nullable(),
+	start_date: z.string(),
+	stripe_subscription_id: z.string().nullable(),
+	stripe_subscription_status: publicStripeSubscriptionStatusSchema,
+	subscription_failure_reason: z.string().nullable(),
+	subscription_last_attempt_at: z.string().nullable(),
+	subscription_retry_count: z.number().nullable(),
+	tenant_responsible_utilities: z.array(z.string()).nullable(),
+	tenant_signature_ip: z.string().nullable(),
+	tenant_signature_method: publicSignatureMethodSchema.nullable(),
+	tenant_signed_at: z.string().nullable(),
+	unit_id: z.string(),
+	updated_at: z.string().nullable(),
+	utilities_included: z.array(z.string()).nullable()
+})
 
 export const publicLeasesInsertSchema = z.object({
-  auto_pay_enabled: z.boolean().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  docuseal_submission_id: z.string().optional().nullable(),
-  end_date: z.string(),
-  governing_state: z.string().optional().nullable(),
-  grace_period_days: z.number().optional().nullable(),
-  id: z.string().optional(),
-  late_fee_amount: z.number().optional().nullable(),
-  late_fee_days: z.number().optional().nullable(),
-  lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
-  lease_status: z.string().optional(),
-  max_occupants: z.number().optional().nullable(),
-  owner_signature_ip: z.string().optional().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
-  owner_signed_at: z.string().optional().nullable(),
-  payment_day: z.number().optional(),
-  pet_deposit: z.number().optional().nullable(),
-  pet_rent: z.number().optional().nullable(),
-  pets_allowed: z.boolean().optional().nullable(),
-  primary_tenant_id: z.string(),
-  property_built_before_1978: z.boolean().optional().nullable(),
-  property_owner_id: z.string().optional().nullable(),
-  property_rules: z.string().optional().nullable(),
-  rent_amount: z.number(),
-  rent_currency: z.string().optional(),
-  security_deposit: z.number(),
-  sent_for_signature_at: z.string().optional().nullable(),
-  start_date: z.string(),
-  stripe_subscription_id: z.string().optional().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
-  subscription_failure_reason: z.string().optional().nullable(),
-  subscription_last_attempt_at: z.string().optional().nullable(),
-  subscription_retry_count: z.number().optional().nullable(),
-  tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
-  tenant_signature_ip: z.string().optional().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
-  tenant_signed_at: z.string().optional().nullable(),
-  unit_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-  utilities_included: z.array(z.string()).optional().nullable(),
-});
+	auto_pay_enabled: z.boolean().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	docuseal_submission_id: z.string().optional().nullable(),
+	end_date: z.string(),
+	governing_state: z.string().optional().nullable(),
+	grace_period_days: z.number().optional().nullable(),
+	id: z.string().optional(),
+	late_fee_amount: z.number().optional().nullable(),
+	late_fee_days: z.number().optional().nullable(),
+	lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
+	lease_status: z.string().optional(),
+	max_occupants: z.number().optional().nullable(),
+	owner_signature_ip: z.string().optional().nullable(),
+	owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
+	owner_signed_at: z.string().optional().nullable(),
+	payment_day: z.number().optional(),
+	pet_deposit: z.number().optional().nullable(),
+	pet_rent: z.number().optional().nullable(),
+	pets_allowed: z.boolean().optional().nullable(),
+	primary_tenant_id: z.string(),
+	property_built_before_1978: z.boolean().optional().nullable(),
+	property_owner_id: z.string().optional().nullable(),
+	property_rules: z.string().optional().nullable(),
+	rent_amount: z.number(),
+	rent_currency: z.string().optional(),
+	security_deposit: z.number(),
+	sent_for_signature_at: z.string().optional().nullable(),
+	start_date: z.string(),
+	stripe_subscription_id: z.string().optional().nullable(),
+	stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
+	subscription_failure_reason: z.string().optional().nullable(),
+	subscription_last_attempt_at: z.string().optional().nullable(),
+	subscription_retry_count: z.number().optional().nullable(),
+	tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
+	tenant_signature_ip: z.string().optional().nullable(),
+	tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
+	tenant_signed_at: z.string().optional().nullable(),
+	unit_id: z.string(),
+	updated_at: z.string().optional().nullable(),
+	utilities_included: z.array(z.string()).optional().nullable()
+})
 
 export const publicLeasesUpdateSchema = z.object({
-  auto_pay_enabled: z.boolean().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  docuseal_submission_id: z.string().optional().nullable(),
-  end_date: z.string().optional(),
-  governing_state: z.string().optional().nullable(),
-  grace_period_days: z.number().optional().nullable(),
-  id: z.string().optional(),
-  late_fee_amount: z.number().optional().nullable(),
-  late_fee_days: z.number().optional().nullable(),
-  lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
-  lease_status: z.string().optional(),
-  max_occupants: z.number().optional().nullable(),
-  owner_signature_ip: z.string().optional().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
-  owner_signed_at: z.string().optional().nullable(),
-  payment_day: z.number().optional(),
-  pet_deposit: z.number().optional().nullable(),
-  pet_rent: z.number().optional().nullable(),
-  pets_allowed: z.boolean().optional().nullable(),
-  primary_tenant_id: z.string().optional(),
-  property_built_before_1978: z.boolean().optional().nullable(),
-  property_owner_id: z.string().optional().nullable(),
-  property_rules: z.string().optional().nullable(),
-  rent_amount: z.number().optional(),
-  rent_currency: z.string().optional(),
-  security_deposit: z.number().optional(),
-  sent_for_signature_at: z.string().optional().nullable(),
-  start_date: z.string().optional(),
-  stripe_subscription_id: z.string().optional().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
-  subscription_failure_reason: z.string().optional().nullable(),
-  subscription_last_attempt_at: z.string().optional().nullable(),
-  subscription_retry_count: z.number().optional().nullable(),
-  tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
-  tenant_signature_ip: z.string().optional().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
-  tenant_signed_at: z.string().optional().nullable(),
-  unit_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-  utilities_included: z.array(z.string()).optional().nullable(),
-});
+	auto_pay_enabled: z.boolean().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	docuseal_submission_id: z.string().optional().nullable(),
+	end_date: z.string().optional(),
+	governing_state: z.string().optional().nullable(),
+	grace_period_days: z.number().optional().nullable(),
+	id: z.string().optional(),
+	late_fee_amount: z.number().optional().nullable(),
+	late_fee_days: z.number().optional().nullable(),
+	lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
+	lease_status: z.string().optional(),
+	max_occupants: z.number().optional().nullable(),
+	owner_signature_ip: z.string().optional().nullable(),
+	owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
+	owner_signed_at: z.string().optional().nullable(),
+	payment_day: z.number().optional(),
+	pet_deposit: z.number().optional().nullable(),
+	pet_rent: z.number().optional().nullable(),
+	pets_allowed: z.boolean().optional().nullable(),
+	primary_tenant_id: z.string().optional(),
+	property_built_before_1978: z.boolean().optional().nullable(),
+	property_owner_id: z.string().optional().nullable(),
+	property_rules: z.string().optional().nullable(),
+	rent_amount: z.number().optional(),
+	rent_currency: z.string().optional(),
+	security_deposit: z.number().optional(),
+	sent_for_signature_at: z.string().optional().nullable(),
+	start_date: z.string().optional(),
+	stripe_subscription_id: z.string().optional().nullable(),
+	stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
+	subscription_failure_reason: z.string().optional().nullable(),
+	subscription_last_attempt_at: z.string().optional().nullable(),
+	subscription_retry_count: z.number().optional().nullable(),
+	tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
+	tenant_signature_ip: z.string().optional().nullable(),
+	tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
+	tenant_signed_at: z.string().optional().nullable(),
+	unit_id: z.string().optional(),
+	updated_at: z.string().optional().nullable(),
+	utilities_included: z.array(z.string()).optional().nullable()
+})
 
 export const publicLeasesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("leases_primary_tenant_id_fkey"),
-    columns: z.tuple([z.literal("primary_tenant_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("tenants"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("leases_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("leases_unit_id_fkey"),
-    columns: z.tuple([z.literal("unit_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("units"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('leases_primary_tenant_id_fkey'),
+		columns: z.tuple([z.literal('primary_tenant_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('tenants'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('leases_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('leases_unit_id_fkey'),
+		columns: z.tuple([z.literal('unit_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('units'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicMaintenanceRequestsRowSchema = z.object({
-  actual_cost: z.number().nullable(),
-  assigned_to: z.string().nullable(),
-  completed_at: z.string().nullable(),
-  created_at: z.string().nullable(),
-  description: z.string(),
-  estimated_cost: z.number().nullable(),
-  id: z.string(),
-  inspection_date: z.string().nullable(),
-  inspection_findings: z.string().nullable(),
-  inspector_id: z.string().nullable(),
-  priority: z.string(),
-  property_owner_id: z.string().nullable(),
-  requested_by: z.string().nullable(),
-  scheduled_date: z.string().nullable(),
-  status: z.string(),
-  tenant_id: z.string(),
-  title: z.string(),
-  unit_id: z.string(),
-  updated_at: z.string().nullable(),
-});
+	actual_cost: z.number().nullable(),
+	assigned_to: z.string().nullable(),
+	completed_at: z.string().nullable(),
+	created_at: z.string().nullable(),
+	description: z.string(),
+	estimated_cost: z.number().nullable(),
+	id: z.string(),
+	inspection_date: z.string().nullable(),
+	inspection_findings: z.string().nullable(),
+	inspector_id: z.string().nullable(),
+	priority: z.string(),
+	property_owner_id: z.string().nullable(),
+	requested_by: z.string().nullable(),
+	scheduled_date: z.string().nullable(),
+	status: z.string(),
+	tenant_id: z.string(),
+	title: z.string(),
+	unit_id: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicMaintenanceRequestsInsertSchema = z.object({
-  actual_cost: z.number().optional().nullable(),
-  assigned_to: z.string().optional().nullable(),
-  completed_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  description: z.string(),
-  estimated_cost: z.number().optional().nullable(),
-  id: z.string().optional(),
-  inspection_date: z.string().optional().nullable(),
-  inspection_findings: z.string().optional().nullable(),
-  inspector_id: z.string().optional().nullable(),
-  priority: z.string().optional(),
-  property_owner_id: z.string().optional().nullable(),
-  requested_by: z.string().optional().nullable(),
-  scheduled_date: z.string().optional().nullable(),
-  status: z.string().optional(),
-  tenant_id: z.string(),
-  title: z.string().optional(),
-  unit_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	actual_cost: z.number().optional().nullable(),
+	assigned_to: z.string().optional().nullable(),
+	completed_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	description: z.string(),
+	estimated_cost: z.number().optional().nullable(),
+	id: z.string().optional(),
+	inspection_date: z.string().optional().nullable(),
+	inspection_findings: z.string().optional().nullable(),
+	inspector_id: z.string().optional().nullable(),
+	priority: z.string().optional(),
+	property_owner_id: z.string().optional().nullable(),
+	requested_by: z.string().optional().nullable(),
+	scheduled_date: z.string().optional().nullable(),
+	status: z.string().optional(),
+	tenant_id: z.string(),
+	title: z.string().optional(),
+	unit_id: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicMaintenanceRequestsUpdateSchema = z.object({
-  actual_cost: z.number().optional().nullable(),
-  assigned_to: z.string().optional().nullable(),
-  completed_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  description: z.string().optional(),
-  estimated_cost: z.number().optional().nullable(),
-  id: z.string().optional(),
-  inspection_date: z.string().optional().nullable(),
-  inspection_findings: z.string().optional().nullable(),
-  inspector_id: z.string().optional().nullable(),
-  priority: z.string().optional(),
-  property_owner_id: z.string().optional().nullable(),
-  requested_by: z.string().optional().nullable(),
-  scheduled_date: z.string().optional().nullable(),
-  status: z.string().optional(),
-  tenant_id: z.string().optional(),
-  title: z.string().optional(),
-  unit_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	actual_cost: z.number().optional().nullable(),
+	assigned_to: z.string().optional().nullable(),
+	completed_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	description: z.string().optional(),
+	estimated_cost: z.number().optional().nullable(),
+	id: z.string().optional(),
+	inspection_date: z.string().optional().nullable(),
+	inspection_findings: z.string().optional().nullable(),
+	inspector_id: z.string().optional().nullable(),
+	priority: z.string().optional(),
+	property_owner_id: z.string().optional().nullable(),
+	requested_by: z.string().optional().nullable(),
+	scheduled_date: z.string().optional().nullable(),
+	status: z.string().optional(),
+	tenant_id: z.string().optional(),
+	title: z.string().optional(),
+	unit_id: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicMaintenanceRequestsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("maintenance_requests_assigned_to_fkey"),
-    columns: z.tuple([z.literal("assigned_to")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("maintenance_requests_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("maintenance_requests_requested_by_fkey"),
-    columns: z.tuple([z.literal("requested_by")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("maintenance_requests_tenant_id_fkey"),
-    columns: z.tuple([z.literal("tenant_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("tenants"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("maintenance_requests_unit_id_fkey"),
-    columns: z.tuple([z.literal("unit_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("units"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('maintenance_requests_assigned_to_fkey'),
+		columns: z.tuple([z.literal('assigned_to')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('maintenance_requests_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('maintenance_requests_requested_by_fkey'),
+		columns: z.tuple([z.literal('requested_by')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('maintenance_requests_tenant_id_fkey'),
+		columns: z.tuple([z.literal('tenant_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('tenants'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('maintenance_requests_unit_id_fkey'),
+		columns: z.tuple([z.literal('unit_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('units'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicNotificationLogsRowSchema = z.object({
-  attempt_count: z.number().nullable(),
-  created_at: z.string().nullable(),
-  delivery_channel: z.string().nullable(),
-  id: z.string(),
-  last_error: z.string().nullable(),
-  notification_id: z.string(),
-  sent_at: z.string().nullable(),
-  status: z.string(),
-  updated_at: z.string().nullable(),
-});
+	attempt_count: z.number().nullable(),
+	created_at: z.string().nullable(),
+	delivery_channel: z.string().nullable(),
+	id: z.string(),
+	last_error: z.string().nullable(),
+	notification_id: z.string(),
+	sent_at: z.string().nullable(),
+	status: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicNotificationLogsInsertSchema = z.object({
-  attempt_count: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  delivery_channel: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_error: z.string().optional().nullable(),
-  notification_id: z.string(),
-  sent_at: z.string().optional().nullable(),
-  status: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	attempt_count: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	delivery_channel: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_error: z.string().optional().nullable(),
+	notification_id: z.string(),
+	sent_at: z.string().optional().nullable(),
+	status: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicNotificationLogsUpdateSchema = z.object({
-  attempt_count: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  delivery_channel: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_error: z.string().optional().nullable(),
-  notification_id: z.string().optional(),
-  sent_at: z.string().optional().nullable(),
-  status: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	attempt_count: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	delivery_channel: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_error: z.string().optional().nullable(),
+	notification_id: z.string().optional(),
+	sent_at: z.string().optional().nullable(),
+	status: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicNotificationLogsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("notification_logs_notification_id_fkey"),
-    columns: z.tuple([z.literal("notification_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("notifications"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('notification_logs_notification_id_fkey'),
+		columns: z.tuple([z.literal('notification_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('notifications'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicNotificationsRowSchema = z.object({
-  action_url: z.string().nullable(),
-  created_at: z.string().nullable(),
-  entity_id: z.string().nullable(),
-  entity_type: z.string().nullable(),
-  id: z.string(),
-  is_read: z.boolean().nullable(),
-  message: z.string().nullable(),
-  notification_type: z.string(),
-  read_at: z.string().nullable(),
-  title: z.string(),
-  user_id: z.string(),
-});
+	action_url: z.string().nullable(),
+	created_at: z.string().nullable(),
+	entity_id: z.string().nullable(),
+	entity_type: z.string().nullable(),
+	id: z.string(),
+	is_read: z.boolean().nullable(),
+	message: z.string().nullable(),
+	notification_type: z.string(),
+	read_at: z.string().nullable(),
+	title: z.string(),
+	user_id: z.string()
+})
 
 export const publicNotificationsInsertSchema = z.object({
-  action_url: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_read: z.boolean().optional().nullable(),
-  message: z.string().optional().nullable(),
-  notification_type: z.string(),
-  read_at: z.string().optional().nullable(),
-  title: z.string(),
-  user_id: z.string(),
-});
+	action_url: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_read: z.boolean().optional().nullable(),
+	message: z.string().optional().nullable(),
+	notification_type: z.string(),
+	read_at: z.string().optional().nullable(),
+	title: z.string(),
+	user_id: z.string()
+})
 
 export const publicNotificationsUpdateSchema = z.object({
-  action_url: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_read: z.boolean().optional().nullable(),
-  message: z.string().optional().nullable(),
-  notification_type: z.string().optional(),
-  read_at: z.string().optional().nullable(),
-  title: z.string().optional(),
-  user_id: z.string().optional(),
-});
+	action_url: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_read: z.boolean().optional().nullable(),
+	message: z.string().optional().nullable(),
+	notification_type: z.string().optional(),
+	read_at: z.string().optional().nullable(),
+	title: z.string().optional(),
+	user_id: z.string().optional()
+})
 
 export const publicNotificationsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("notifications_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('notifications_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicPaymentMethodsRowSchema = z.object({
-  bank_name: z.string().nullable(),
-  brand: z.string().nullable(),
-  created_at: z.string().nullable(),
-  exp_month: z.number().nullable(),
-  exp_year: z.number().nullable(),
-  id: z.string(),
-  is_default: z.boolean().nullable(),
-  last_four: z.string().nullable(),
-  stripe_payment_method_id: z.string(),
-  tenant_id: z.string(),
-  type: z.string(),
-  updated_at: z.string().nullable(),
-});
+	bank_name: z.string().nullable(),
+	brand: z.string().nullable(),
+	created_at: z.string().nullable(),
+	exp_month: z.number().nullable(),
+	exp_year: z.number().nullable(),
+	id: z.string(),
+	is_default: z.boolean().nullable(),
+	last_four: z.string().nullable(),
+	stripe_payment_method_id: z.string(),
+	tenant_id: z.string(),
+	type: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicPaymentMethodsInsertSchema = z.object({
-  bank_name: z.string().optional().nullable(),
-  brand: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  exp_month: z.number().optional().nullable(),
-  exp_year: z.number().optional().nullable(),
-  id: z.string().optional(),
-  is_default: z.boolean().optional().nullable(),
-  last_four: z.string().optional().nullable(),
-  stripe_payment_method_id: z.string(),
-  tenant_id: z.string(),
-  type: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	bank_name: z.string().optional().nullable(),
+	brand: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	exp_month: z.number().optional().nullable(),
+	exp_year: z.number().optional().nullable(),
+	id: z.string().optional(),
+	is_default: z.boolean().optional().nullable(),
+	last_four: z.string().optional().nullable(),
+	stripe_payment_method_id: z.string(),
+	tenant_id: z.string(),
+	type: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentMethodsUpdateSchema = z.object({
-  bank_name: z.string().optional().nullable(),
-  brand: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  exp_month: z.number().optional().nullable(),
-  exp_year: z.number().optional().nullable(),
-  id: z.string().optional(),
-  is_default: z.boolean().optional().nullable(),
-  last_four: z.string().optional().nullable(),
-  stripe_payment_method_id: z.string().optional(),
-  tenant_id: z.string().optional(),
-  type: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	bank_name: z.string().optional().nullable(),
+	brand: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	exp_month: z.number().optional().nullable(),
+	exp_year: z.number().optional().nullable(),
+	id: z.string().optional(),
+	is_default: z.boolean().optional().nullable(),
+	last_four: z.string().optional().nullable(),
+	stripe_payment_method_id: z.string().optional(),
+	tenant_id: z.string().optional(),
+	type: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentMethodsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("payment_methods_tenant_id_fkey"),
-    columns: z.tuple([z.literal("tenant_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("tenants"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('payment_methods_tenant_id_fkey'),
+		columns: z.tuple([z.literal('tenant_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('tenants'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicPaymentSchedulesRowSchema = z.object({
-  created_at: z.string().nullable(),
-  frequency: z.string(),
-  id: z.string(),
-  is_active: z.boolean().nullable(),
-  lease_id: z.string(),
-  next_payment_date: z.string(),
-  updated_at: z.string().nullable(),
-});
+	created_at: z.string().nullable(),
+	frequency: z.string(),
+	id: z.string(),
+	is_active: z.boolean().nullable(),
+	lease_id: z.string(),
+	next_payment_date: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicPaymentSchedulesInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  frequency: z.string().optional(),
-  id: z.string().optional(),
-  is_active: z.boolean().optional().nullable(),
-  lease_id: z.string(),
-  next_payment_date: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	created_at: z.string().optional().nullable(),
+	frequency: z.string().optional(),
+	id: z.string().optional(),
+	is_active: z.boolean().optional().nullable(),
+	lease_id: z.string(),
+	next_payment_date: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentSchedulesUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  frequency: z.string().optional(),
-  id: z.string().optional(),
-  is_active: z.boolean().optional().nullable(),
-  lease_id: z.string().optional(),
-  next_payment_date: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	created_at: z.string().optional().nullable(),
+	frequency: z.string().optional(),
+	id: z.string().optional(),
+	is_active: z.boolean().optional().nullable(),
+	lease_id: z.string().optional(),
+	next_payment_date: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentSchedulesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("payment_schedules_lease_id_fkey"),
-    columns: z.tuple([z.literal("lease_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("leases"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('payment_schedules_lease_id_fkey'),
+		columns: z.tuple([z.literal('lease_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('leases'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicPaymentTransactionsRowSchema = z.object({
-  amount: z.number(),
-  attempted_at: z.string().nullable(),
-  created_at: z.string().nullable(),
-  failure_reason: z.string().nullable(),
-  id: z.string(),
-  last_attempted_at: z.string().nullable(),
-  payment_method_id: z.string().nullable(),
-  rent_payment_id: z.string(),
-  retry_count: z.number().nullable(),
-  status: z.string(),
-  stripe_payment_intent_id: z.string(),
-  updated_at: z.string().nullable(),
-});
+	amount: z.number(),
+	attempted_at: z.string().nullable(),
+	created_at: z.string().nullable(),
+	failure_reason: z.string().nullable(),
+	id: z.string(),
+	last_attempted_at: z.string().nullable(),
+	payment_method_id: z.string().nullable(),
+	rent_payment_id: z.string(),
+	retry_count: z.number().nullable(),
+	status: z.string(),
+	stripe_payment_intent_id: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicPaymentTransactionsInsertSchema = z.object({
-  amount: z.number(),
-  attempted_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  failure_reason: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_attempted_at: z.string().optional().nullable(),
-  payment_method_id: z.string().optional().nullable(),
-  rent_payment_id: z.string(),
-  retry_count: z.number().optional().nullable(),
-  status: z.string(),
-  stripe_payment_intent_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number(),
+	attempted_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	failure_reason: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_attempted_at: z.string().optional().nullable(),
+	payment_method_id: z.string().optional().nullable(),
+	rent_payment_id: z.string(),
+	retry_count: z.number().optional().nullable(),
+	status: z.string(),
+	stripe_payment_intent_id: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentTransactionsUpdateSchema = z.object({
-  amount: z.number().optional(),
-  attempted_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  failure_reason: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_attempted_at: z.string().optional().nullable(),
-  payment_method_id: z.string().optional().nullable(),
-  rent_payment_id: z.string().optional(),
-  retry_count: z.number().optional().nullable(),
-  status: z.string().optional(),
-  stripe_payment_intent_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number().optional(),
+	attempted_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	failure_reason: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_attempted_at: z.string().optional().nullable(),
+	payment_method_id: z.string().optional().nullable(),
+	rent_payment_id: z.string().optional(),
+	retry_count: z.number().optional().nullable(),
+	status: z.string().optional(),
+	stripe_payment_intent_id: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPaymentTransactionsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("payment_transactions_payment_method_id_fkey"),
-    columns: z.tuple([z.literal("payment_method_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("payment_methods"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("payment_transactions_rent_payment_id_fkey"),
-    columns: z.tuple([z.literal("rent_payment_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("rent_payments"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('payment_transactions_payment_method_id_fkey'),
+		columns: z.tuple([z.literal('payment_method_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('payment_methods'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('payment_transactions_rent_payment_id_fkey'),
+		columns: z.tuple([z.literal('rent_payment_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('rent_payments'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicProcessedInternalEventsRowSchema = z.object({
-  created_at: z.string(),
-  event_name: z.string(),
-  id: z.string(),
-  idempotency_key: z.string(),
-  payload_hash: z.string(),
-  processed_at: z.string().nullable(),
-  status: z.string().nullable(),
-});
+	created_at: z.string(),
+	event_name: z.string(),
+	id: z.string(),
+	idempotency_key: z.string(),
+	payload_hash: z.string(),
+	processed_at: z.string().nullable(),
+	status: z.string().nullable()
+})
 
 export const publicProcessedInternalEventsInsertSchema = z.object({
-  created_at: z.string().optional(),
-  event_name: z.string(),
-  id: z.string().optional(),
-  idempotency_key: z.string(),
-  payload_hash: z.string(),
-  processed_at: z.string().optional().nullable(),
-  status: z.string().optional().nullable(),
-});
+	created_at: z.string().optional(),
+	event_name: z.string(),
+	id: z.string().optional(),
+	idempotency_key: z.string(),
+	payload_hash: z.string(),
+	processed_at: z.string().optional().nullable(),
+	status: z.string().optional().nullable()
+})
 
 export const publicProcessedInternalEventsUpdateSchema = z.object({
-  created_at: z.string().optional(),
-  event_name: z.string().optional(),
-  id: z.string().optional(),
-  idempotency_key: z.string().optional(),
-  payload_hash: z.string().optional(),
-  processed_at: z.string().optional().nullable(),
-  status: z.string().optional().nullable(),
-});
+	created_at: z.string().optional(),
+	event_name: z.string().optional(),
+	id: z.string().optional(),
+	idempotency_key: z.string().optional(),
+	payload_hash: z.string().optional(),
+	processed_at: z.string().optional().nullable(),
+	status: z.string().optional().nullable()
+})
 
 export const publicPropertiesRowSchema = z.object({
-  address_line1: z.string(),
-  address_line2: z.string().nullable(),
-  city: z.string(),
-  country: z.string(),
-  created_at: z.string().nullable(),
-  date_sold: z.string().nullable(),
-  id: z.string(),
-  name: z.string(),
-  postal_code: z.string(),
-  property_owner_id: z.string(),
-  property_type: z.string(),
-  sale_price: z.number().nullable(),
-  state: z.string(),
-  status: z.string(),
-  updated_at: z.string().nullable(),
-});
+	address_line1: z.string(),
+	address_line2: z.string().nullable(),
+	city: z.string(),
+	country: z.string(),
+	created_at: z.string().nullable(),
+	date_sold: z.string().nullable(),
+	id: z.string(),
+	name: z.string(),
+	postal_code: z.string(),
+	property_owner_id: z.string(),
+	property_type: z.string(),
+	sale_price: z.number().nullable(),
+	state: z.string(),
+	status: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicPropertiesInsertSchema = z.object({
-  address_line1: z.string(),
-  address_line2: z.string().optional().nullable(),
-  city: z.string(),
-  country: z.string().optional(),
-  created_at: z.string().optional().nullable(),
-  date_sold: z.string().optional().nullable(),
-  id: z.string().optional(),
-  name: z.string(),
-  postal_code: z.string(),
-  property_owner_id: z.string(),
-  property_type: z.string(),
-  sale_price: z.number().optional().nullable(),
-  state: z.string(),
-  status: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	address_line1: z.string(),
+	address_line2: z.string().optional().nullable(),
+	city: z.string(),
+	country: z.string().optional(),
+	created_at: z.string().optional().nullable(),
+	date_sold: z.string().optional().nullable(),
+	id: z.string().optional(),
+	name: z.string(),
+	postal_code: z.string(),
+	property_owner_id: z.string(),
+	property_type: z.string(),
+	sale_price: z.number().optional().nullable(),
+	state: z.string(),
+	status: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPropertiesUpdateSchema = z.object({
-  address_line1: z.string().optional(),
-  address_line2: z.string().optional().nullable(),
-  city: z.string().optional(),
-  country: z.string().optional(),
-  created_at: z.string().optional().nullable(),
-  date_sold: z.string().optional().nullable(),
-  id: z.string().optional(),
-  name: z.string().optional(),
-  postal_code: z.string().optional(),
-  property_owner_id: z.string().optional(),
-  property_type: z.string().optional(),
-  sale_price: z.number().optional().nullable(),
-  state: z.string().optional(),
-  status: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	address_line1: z.string().optional(),
+	address_line2: z.string().optional().nullable(),
+	city: z.string().optional(),
+	country: z.string().optional(),
+	created_at: z.string().optional().nullable(),
+	date_sold: z.string().optional().nullable(),
+	id: z.string().optional(),
+	name: z.string().optional(),
+	postal_code: z.string().optional(),
+	property_owner_id: z.string().optional(),
+	property_type: z.string().optional(),
+	sale_price: z.number().optional().nullable(),
+	state: z.string().optional(),
+	status: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicPropertiesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("properties_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('properties_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicPropertyImagesRowSchema = z.object({
-  created_at: z.string().nullable(),
-  display_order: z.number().nullable(),
-  id: z.string(),
-  image_url: z.string(),
-  property_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	display_order: z.number().nullable(),
+	id: z.string(),
+	image_url: z.string(),
+	property_id: z.string()
+})
 
 export const publicPropertyImagesInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  display_order: z.number().optional().nullable(),
-  id: z.string().optional(),
-  image_url: z.string(),
-  property_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	display_order: z.number().optional().nullable(),
+	id: z.string().optional(),
+	image_url: z.string(),
+	property_id: z.string()
+})
 
 export const publicPropertyImagesUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  display_order: z.number().optional().nullable(),
-  id: z.string().optional(),
-  image_url: z.string().optional(),
-  property_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	display_order: z.number().optional().nullable(),
+	id: z.string().optional(),
+	image_url: z.string().optional(),
+	property_id: z.string().optional()
+})
 
 export const publicPropertyImagesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("property_images_property_id_fkey"),
-    columns: z.tuple([z.literal("property_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("properties"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('property_images_property_id_fkey'),
+		columns: z.tuple([z.literal('property_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('properties'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicPropertyOwnersRowSchema = z.object({
-  business_name: z.string().nullable(),
-  business_type: z.string(),
-  charges_enabled: z.boolean().nullable(),
-  completion_percentage: z.number().nullable(),
-  created_at: z.string().nullable(),
-  current_step: z.string().nullable(),
-  default_platform_fee_percent: z.number().nullable(),
-  id: z.string(),
-  onboarding_completed_at: z.string().nullable(),
-  onboarding_started_at: z.string().nullable(),
-  onboarding_status: z.string().nullable(),
-  payouts_enabled: z.boolean().nullable(),
-  requirements_due: z.array(z.string()).nullable(),
-  stripe_account_id: z.string(),
-  tax_id: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  user_id: z.string(),
-});
+	business_name: z.string().nullable(),
+	business_type: z.string(),
+	charges_enabled: z.boolean().nullable(),
+	completion_percentage: z.number().nullable(),
+	created_at: z.string().nullable(),
+	current_step: z.string().nullable(),
+	default_platform_fee_percent: z.number().nullable(),
+	id: z.string(),
+	onboarding_completed_at: z.string().nullable(),
+	onboarding_started_at: z.string().nullable(),
+	onboarding_status: z.string().nullable(),
+	payouts_enabled: z.boolean().nullable(),
+	requirements_due: z.array(z.string()).nullable(),
+	stripe_account_id: z.string(),
+	tax_id: z.string().nullable(),
+	updated_at: z.string().nullable(),
+	user_id: z.string()
+})
 
 export const publicPropertyOwnersInsertSchema = z.object({
-  business_name: z.string().optional().nullable(),
-  business_type: z.string(),
-  charges_enabled: z.boolean().optional().nullable(),
-  completion_percentage: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  current_step: z.string().optional().nullable(),
-  default_platform_fee_percent: z.number().optional().nullable(),
-  id: z.string().optional(),
-  onboarding_completed_at: z.string().optional().nullable(),
-  onboarding_started_at: z.string().optional().nullable(),
-  onboarding_status: z.string().optional().nullable(),
-  payouts_enabled: z.boolean().optional().nullable(),
-  requirements_due: z.array(z.string()).optional().nullable(),
-  stripe_account_id: z.string(),
-  tax_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string(),
-});
+	business_name: z.string().optional().nullable(),
+	business_type: z.string(),
+	charges_enabled: z.boolean().optional().nullable(),
+	completion_percentage: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	current_step: z.string().optional().nullable(),
+	default_platform_fee_percent: z.number().optional().nullable(),
+	id: z.string().optional(),
+	onboarding_completed_at: z.string().optional().nullable(),
+	onboarding_started_at: z.string().optional().nullable(),
+	onboarding_status: z.string().optional().nullable(),
+	payouts_enabled: z.boolean().optional().nullable(),
+	requirements_due: z.array(z.string()).optional().nullable(),
+	stripe_account_id: z.string(),
+	tax_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string()
+})
 
 export const publicPropertyOwnersUpdateSchema = z.object({
-  business_name: z.string().optional().nullable(),
-  business_type: z.string().optional(),
-  charges_enabled: z.boolean().optional().nullable(),
-  completion_percentage: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  current_step: z.string().optional().nullable(),
-  default_platform_fee_percent: z.number().optional().nullable(),
-  id: z.string().optional(),
-  onboarding_completed_at: z.string().optional().nullable(),
-  onboarding_started_at: z.string().optional().nullable(),
-  onboarding_status: z.string().optional().nullable(),
-  payouts_enabled: z.boolean().optional().nullable(),
-  requirements_due: z.array(z.string()).optional().nullable(),
-  stripe_account_id: z.string().optional(),
-  tax_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string().optional(),
-});
+	business_name: z.string().optional().nullable(),
+	business_type: z.string().optional(),
+	charges_enabled: z.boolean().optional().nullable(),
+	completion_percentage: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	current_step: z.string().optional().nullable(),
+	default_platform_fee_percent: z.number().optional().nullable(),
+	id: z.string().optional(),
+	onboarding_completed_at: z.string().optional().nullable(),
+	onboarding_started_at: z.string().optional().nullable(),
+	onboarding_status: z.string().optional().nullable(),
+	payouts_enabled: z.boolean().optional().nullable(),
+	requirements_due: z.array(z.string()).optional().nullable(),
+	stripe_account_id: z.string().optional(),
+	tax_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string().optional()
+})
 
 export const publicPropertyOwnersRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("property_owners_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(true),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('property_owners_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(true),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicRentDueRowSchema = z.object({
-  amount: z.number(),
-  created_at: z.string().nullable(),
-  due_date: z.string(),
-  id: z.string(),
-  lease_id: z.string().nullable(),
-  status: z.string().nullable(),
-  unit_id: z.string(),
-  updated_at: z.string().nullable(),
-});
+	amount: z.number(),
+	created_at: z.string().nullable(),
+	due_date: z.string(),
+	id: z.string(),
+	lease_id: z.string().nullable(),
+	status: z.string().nullable(),
+	unit_id: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicRentDueInsertSchema = z.object({
-  amount: z.number(),
-  created_at: z.string().optional().nullable(),
-  due_date: z.string(),
-  id: z.string().optional(),
-  lease_id: z.string().optional().nullable(),
-  status: z.string().optional().nullable(),
-  unit_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number(),
+	created_at: z.string().optional().nullable(),
+	due_date: z.string(),
+	id: z.string().optional(),
+	lease_id: z.string().optional().nullable(),
+	status: z.string().optional().nullable(),
+	unit_id: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicRentDueUpdateSchema = z.object({
-  amount: z.number().optional(),
-  created_at: z.string().optional().nullable(),
-  due_date: z.string().optional(),
-  id: z.string().optional(),
-  lease_id: z.string().optional().nullable(),
-  status: z.string().optional().nullable(),
-  unit_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number().optional(),
+	created_at: z.string().optional().nullable(),
+	due_date: z.string().optional(),
+	id: z.string().optional(),
+	lease_id: z.string().optional().nullable(),
+	status: z.string().optional().nullable(),
+	unit_id: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicRentDueRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("rent_due_unit_id_fkey"),
-    columns: z.tuple([z.literal("unit_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("units"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('rent_due_unit_id_fkey'),
+		columns: z.tuple([z.literal('unit_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('units'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicRentPaymentsRowSchema = z.object({
-  amount: z.number(),
-  application_fee_amount: z.number(),
-  created_at: z.string().nullable(),
-  currency: z.string(),
-  due_date: z.string(),
-  id: z.string(),
-  late_fee_amount: z.number().nullable(),
-  lease_id: z.string(),
-  paid_date: z.string().nullable(),
-  payment_method_type: z.string(),
-  period_end: z.string(),
-  period_start: z.string(),
-  status: z.string(),
-  stripe_payment_intent_id: z.string(),
-  tenant_id: z.string(),
-  updated_at: z.string().nullable(),
-});
+	amount: z.number(),
+	application_fee_amount: z.number(),
+	created_at: z.string().nullable(),
+	currency: z.string(),
+	due_date: z.string(),
+	id: z.string(),
+	late_fee_amount: z.number().nullable(),
+	lease_id: z.string(),
+	paid_date: z.string().nullable(),
+	payment_method_type: z.string(),
+	period_end: z.string(),
+	period_start: z.string(),
+	status: z.string(),
+	stripe_payment_intent_id: z.string(),
+	tenant_id: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicRentPaymentsInsertSchema = z.object({
-  amount: z.number(),
-  application_fee_amount: z.number(),
-  created_at: z.string().optional().nullable(),
-  currency: z.string().optional(),
-  due_date: z.string(),
-  id: z.string().optional(),
-  late_fee_amount: z.number().optional().nullable(),
-  lease_id: z.string(),
-  paid_date: z.string().optional().nullable(),
-  payment_method_type: z.string(),
-  period_end: z.string(),
-  period_start: z.string(),
-  status: z.string(),
-  stripe_payment_intent_id: z.string(),
-  tenant_id: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number(),
+	application_fee_amount: z.number(),
+	created_at: z.string().optional().nullable(),
+	currency: z.string().optional(),
+	due_date: z.string(),
+	id: z.string().optional(),
+	late_fee_amount: z.number().optional().nullable(),
+	lease_id: z.string(),
+	paid_date: z.string().optional().nullable(),
+	payment_method_type: z.string(),
+	period_end: z.string(),
+	period_start: z.string(),
+	status: z.string(),
+	stripe_payment_intent_id: z.string(),
+	tenant_id: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicRentPaymentsUpdateSchema = z.object({
-  amount: z.number().optional(),
-  application_fee_amount: z.number().optional(),
-  created_at: z.string().optional().nullable(),
-  currency: z.string().optional(),
-  due_date: z.string().optional(),
-  id: z.string().optional(),
-  late_fee_amount: z.number().optional().nullable(),
-  lease_id: z.string().optional(),
-  paid_date: z.string().optional().nullable(),
-  payment_method_type: z.string().optional(),
-  period_end: z.string().optional(),
-  period_start: z.string().optional(),
-  status: z.string().optional(),
-  stripe_payment_intent_id: z.string().optional(),
-  tenant_id: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	amount: z.number().optional(),
+	application_fee_amount: z.number().optional(),
+	created_at: z.string().optional().nullable(),
+	currency: z.string().optional(),
+	due_date: z.string().optional(),
+	id: z.string().optional(),
+	late_fee_amount: z.number().optional().nullable(),
+	lease_id: z.string().optional(),
+	paid_date: z.string().optional().nullable(),
+	payment_method_type: z.string().optional(),
+	period_end: z.string().optional(),
+	period_start: z.string().optional(),
+	status: z.string().optional(),
+	stripe_payment_intent_id: z.string().optional(),
+	tenant_id: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicRentPaymentsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("rent_payments_lease_id_fkey"),
-    columns: z.tuple([z.literal("lease_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("leases"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("rent_payments_tenant_id_fkey"),
-    columns: z.tuple([z.literal("tenant_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("tenants"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('rent_payments_lease_id_fkey'),
+		columns: z.tuple([z.literal('lease_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('leases'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('rent_payments_tenant_id_fkey'),
+		columns: z.tuple([z.literal('tenant_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('tenants'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicReportRunsRowSchema = z.object({
-  completed_at: z.string().nullable(),
-  created_at: z.string().nullable(),
-  error_message: z.string().nullable(),
-  execution_status: z.string(),
-  execution_time_ms: z.number().nullable(),
-  file_path: z.string().nullable(),
-  file_size: z.number().nullable(),
-  id: z.string(),
-  report_id: z.string(),
-  started_at: z.string().nullable(),
-});
+	completed_at: z.string().nullable(),
+	created_at: z.string().nullable(),
+	error_message: z.string().nullable(),
+	execution_status: z.string(),
+	execution_time_ms: z.number().nullable(),
+	file_path: z.string().nullable(),
+	file_size: z.number().nullable(),
+	id: z.string(),
+	report_id: z.string(),
+	started_at: z.string().nullable()
+})
 
 export const publicReportRunsInsertSchema = z.object({
-  completed_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  error_message: z.string().optional().nullable(),
-  execution_status: z.string(),
-  execution_time_ms: z.number().optional().nullable(),
-  file_path: z.string().optional().nullable(),
-  file_size: z.number().optional().nullable(),
-  id: z.string().optional(),
-  report_id: z.string(),
-  started_at: z.string().optional().nullable(),
-});
+	completed_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	error_message: z.string().optional().nullable(),
+	execution_status: z.string(),
+	execution_time_ms: z.number().optional().nullable(),
+	file_path: z.string().optional().nullable(),
+	file_size: z.number().optional().nullable(),
+	id: z.string().optional(),
+	report_id: z.string(),
+	started_at: z.string().optional().nullable()
+})
 
 export const publicReportRunsUpdateSchema = z.object({
-  completed_at: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  error_message: z.string().optional().nullable(),
-  execution_status: z.string().optional(),
-  execution_time_ms: z.number().optional().nullable(),
-  file_path: z.string().optional().nullable(),
-  file_size: z.number().optional().nullable(),
-  id: z.string().optional(),
-  report_id: z.string().optional(),
-  started_at: z.string().optional().nullable(),
-});
+	completed_at: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	error_message: z.string().optional().nullable(),
+	execution_status: z.string().optional(),
+	execution_time_ms: z.number().optional().nullable(),
+	file_path: z.string().optional().nullable(),
+	file_size: z.number().optional().nullable(),
+	id: z.string().optional(),
+	report_id: z.string().optional(),
+	started_at: z.string().optional().nullable()
+})
 
 export const publicReportRunsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("report_runs_report_id_fkey"),
-    columns: z.tuple([z.literal("report_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("reports"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('report_runs_report_id_fkey'),
+		columns: z.tuple([z.literal('report_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('reports'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicReportsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  description: z.string().nullable(),
-  id: z.string(),
-  is_active: z.boolean().nullable(),
-  next_run_at: z.string().nullable(),
-  property_owner_id: z.string(),
-  report_type: z.string(),
-  schedule_cron: z.string().nullable(),
-  title: z.string(),
-  updated_at: z.string().nullable(),
-});
+	created_at: z.string().nullable(),
+	description: z.string().nullable(),
+	id: z.string(),
+	is_active: z.boolean().nullable(),
+	next_run_at: z.string().nullable(),
+	property_owner_id: z.string(),
+	report_type: z.string(),
+	schedule_cron: z.string().nullable(),
+	title: z.string(),
+	updated_at: z.string().nullable()
+})
 
 export const publicReportsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_active: z.boolean().optional().nullable(),
-  next_run_at: z.string().optional().nullable(),
-  property_owner_id: z.string(),
-  report_type: z.string(),
-  schedule_cron: z.string().optional().nullable(),
-  title: z.string(),
-  updated_at: z.string().optional().nullable(),
-});
+	created_at: z.string().optional().nullable(),
+	description: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_active: z.boolean().optional().nullable(),
+	next_run_at: z.string().optional().nullable(),
+	property_owner_id: z.string(),
+	report_type: z.string(),
+	schedule_cron: z.string().optional().nullable(),
+	title: z.string(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicReportsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  description: z.string().optional().nullable(),
-  id: z.string().optional(),
-  is_active: z.boolean().optional().nullable(),
-  next_run_at: z.string().optional().nullable(),
-  property_owner_id: z.string().optional(),
-  report_type: z.string().optional(),
-  schedule_cron: z.string().optional().nullable(),
-  title: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-});
+	created_at: z.string().optional().nullable(),
+	description: z.string().optional().nullable(),
+	id: z.string().optional(),
+	is_active: z.boolean().optional().nullable(),
+	next_run_at: z.string().optional().nullable(),
+	property_owner_id: z.string().optional(),
+	report_type: z.string().optional(),
+	schedule_cron: z.string().optional().nullable(),
+	title: z.string().optional(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicReportsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("reports_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('reports_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicSecurityAuditLogRowSchema = z.object({
-  created_at: z.string().nullable(),
-  details: jsonSchema.nullable(),
-  entity_id: z.string().nullable(),
-  entity_type: z.string().nullable(),
-  event_type: z.string(),
-  id: z.string(),
-  user_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	details: jsonSchema.nullable(),
+	entity_id: z.string().nullable(),
+	entity_type: z.string().nullable(),
+	event_type: z.string(),
+	id: z.string(),
+	user_id: z.string()
+})
 
 export const publicSecurityAuditLogInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  details: jsonSchema.optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  event_type: z.string(),
-  id: z.string().optional(),
-  user_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	details: jsonSchema.optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	event_type: z.string(),
+	id: z.string().optional(),
+	user_id: z.string()
+})
 
 export const publicSecurityAuditLogUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  details: jsonSchema.optional().nullable(),
-  entity_id: z.string().optional().nullable(),
-  entity_type: z.string().optional().nullable(),
-  event_type: z.string().optional(),
-  id: z.string().optional(),
-  user_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	details: jsonSchema.optional().nullable(),
+	entity_id: z.string().optional().nullable(),
+	entity_type: z.string().optional().nullable(),
+	event_type: z.string().optional(),
+	id: z.string().optional(),
+	user_id: z.string().optional()
+})
 
 export const publicSecurityAuditLogRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("security_audit_log_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('security_audit_log_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicSubscriptionsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  current_period_end: z.string().nullable(),
-  current_period_start: z.string().nullable(),
-  id: z.string(),
-  status: z.string(),
-  stripe_customer_id: z.string().nullable(),
-  stripe_price_id: z.string().nullable(),
-  stripe_subscription_id: z.string().nullable(),
-  trial_end: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	current_period_end: z.string().nullable(),
+	current_period_start: z.string().nullable(),
+	id: z.string(),
+	status: z.string(),
+	stripe_customer_id: z.string().nullable(),
+	stripe_price_id: z.string().nullable(),
+	stripe_subscription_id: z.string().nullable(),
+	trial_end: z.string().nullable(),
+	updated_at: z.string().nullable(),
+	user_id: z.string()
+})
 
 export const publicSubscriptionsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  current_period_end: z.string().optional().nullable(),
-  current_period_start: z.string().optional().nullable(),
-  id: z.string().optional(),
-  status: z.string(),
-  stripe_customer_id: z.string().optional().nullable(),
-  stripe_price_id: z.string().optional().nullable(),
-  stripe_subscription_id: z.string().optional().nullable(),
-  trial_end: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	current_period_end: z.string().optional().nullable(),
+	current_period_start: z.string().optional().nullable(),
+	id: z.string().optional(),
+	status: z.string(),
+	stripe_customer_id: z.string().optional().nullable(),
+	stripe_price_id: z.string().optional().nullable(),
+	stripe_subscription_id: z.string().optional().nullable(),
+	trial_end: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string()
+})
 
 export const publicSubscriptionsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  current_period_end: z.string().optional().nullable(),
-  current_period_start: z.string().optional().nullable(),
-  id: z.string().optional(),
-  status: z.string().optional(),
-  stripe_customer_id: z.string().optional().nullable(),
-  stripe_price_id: z.string().optional().nullable(),
-  stripe_subscription_id: z.string().optional().nullable(),
-  trial_end: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	current_period_end: z.string().optional().nullable(),
+	current_period_start: z.string().optional().nullable(),
+	id: z.string().optional(),
+	status: z.string().optional(),
+	stripe_customer_id: z.string().optional().nullable(),
+	stripe_price_id: z.string().optional().nullable(),
+	stripe_subscription_id: z.string().optional().nullable(),
+	trial_end: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string().optional()
+})
 
 export const publicSubscriptionsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("subscriptions_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(true),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('subscriptions_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(true),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicTenantInvitationsRowSchema = z.object({
-  accepted_at: z.string().nullable(),
-  accepted_by_user_id: z.string().nullable(),
-  created_at: z.string().nullable(),
-  email: z.string(),
-  expires_at: z.string(),
-  id: z.string(),
-  invitation_code: z.string(),
-  invitation_url: z.string(),
-  lease_id: z.string().nullable(),
-  property_id: z.string().nullable(),
-  property_owner_id: z.string(),
-  status: z.string(),
-  type: z.string().nullable(),
-  unit_id: z.string().nullable(),
-});
+	accepted_at: z.string().nullable(),
+	accepted_by_user_id: z.string().nullable(),
+	created_at: z.string().nullable(),
+	email: z.string(),
+	expires_at: z.string(),
+	id: z.string(),
+	invitation_code: z.string(),
+	invitation_url: z.string(),
+	lease_id: z.string().nullable(),
+	property_id: z.string().nullable(),
+	property_owner_id: z.string(),
+	status: z.string(),
+	type: z.string().nullable(),
+	unit_id: z.string().nullable()
+})
 
 export const publicTenantInvitationsInsertSchema = z.object({
-  accepted_at: z.string().optional().nullable(),
-  accepted_by_user_id: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  email: z.string(),
-  expires_at: z.string(),
-  id: z.string().optional(),
-  invitation_code: z.string(),
-  invitation_url: z.string(),
-  lease_id: z.string().optional().nullable(),
-  property_id: z.string().optional().nullable(),
-  property_owner_id: z.string(),
-  status: z.string().optional(),
-  type: z.string().optional().nullable(),
-  unit_id: z.string().optional().nullable(),
-});
+	accepted_at: z.string().optional().nullable(),
+	accepted_by_user_id: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	email: z.string(),
+	expires_at: z.string(),
+	id: z.string().optional(),
+	invitation_code: z.string(),
+	invitation_url: z.string(),
+	lease_id: z.string().optional().nullable(),
+	property_id: z.string().optional().nullable(),
+	property_owner_id: z.string(),
+	status: z.string().optional(),
+	type: z.string().optional().nullable(),
+	unit_id: z.string().optional().nullable()
+})
 
 export const publicTenantInvitationsUpdateSchema = z.object({
-  accepted_at: z.string().optional().nullable(),
-  accepted_by_user_id: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  email: z.string().optional(),
-  expires_at: z.string().optional(),
-  id: z.string().optional(),
-  invitation_code: z.string().optional(),
-  invitation_url: z.string().optional(),
-  lease_id: z.string().optional().nullable(),
-  property_id: z.string().optional().nullable(),
-  property_owner_id: z.string().optional(),
-  status: z.string().optional(),
-  type: z.string().optional().nullable(),
-  unit_id: z.string().optional().nullable(),
-});
+	accepted_at: z.string().optional().nullable(),
+	accepted_by_user_id: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	email: z.string().optional(),
+	expires_at: z.string().optional(),
+	id: z.string().optional(),
+	invitation_code: z.string().optional(),
+	invitation_url: z.string().optional(),
+	lease_id: z.string().optional().nullable(),
+	property_id: z.string().optional().nullable(),
+	property_owner_id: z.string().optional(),
+	status: z.string().optional(),
+	type: z.string().optional().nullable(),
+	unit_id: z.string().optional().nullable()
+})
 
 export const publicTenantInvitationsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("tenant_invitations_accepted_by_user_id_fkey"),
-    columns: z.tuple([z.literal("accepted_by_user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("tenant_invitations_lease_id_fkey"),
-    columns: z.tuple([z.literal("lease_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("leases"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("tenant_invitations_property_id_fkey"),
-    columns: z.tuple([z.literal("property_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("properties"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("tenant_invitations_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("tenant_invitations_unit_id_fkey"),
-    columns: z.tuple([z.literal("unit_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("units"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('tenant_invitations_accepted_by_user_id_fkey'),
+		columns: z.tuple([z.literal('accepted_by_user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('tenant_invitations_lease_id_fkey'),
+		columns: z.tuple([z.literal('lease_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('leases'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('tenant_invitations_property_id_fkey'),
+		columns: z.tuple([z.literal('property_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('properties'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('tenant_invitations_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('tenant_invitations_unit_id_fkey'),
+		columns: z.tuple([z.literal('unit_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('units'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicTenantsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  date_of_birth: z.string().nullable(),
-  emergency_contact_name: z.string().nullable(),
-  emergency_contact_phone: z.string().nullable(),
-  emergency_contact_relationship: z.string().nullable(),
-  id: z.string(),
-  identity_verified: z.boolean().nullable(),
-  ssn_last_four: z.string().nullable(),
-  stripe_customer_id: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	date_of_birth: z.string().nullable(),
+	emergency_contact_name: z.string().nullable(),
+	emergency_contact_phone: z.string().nullable(),
+	emergency_contact_relationship: z.string().nullable(),
+	id: z.string(),
+	identity_verified: z.boolean().nullable(),
+	ssn_last_four: z.string().nullable(),
+	stripe_customer_id: z.string().nullable(),
+	updated_at: z.string().nullable(),
+	user_id: z.string()
+})
 
 export const publicTenantsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  date_of_birth: z.string().optional().nullable(),
-  emergency_contact_name: z.string().optional().nullable(),
-  emergency_contact_phone: z.string().optional().nullable(),
-  emergency_contact_relationship: z.string().optional().nullable(),
-  id: z.string().optional(),
-  identity_verified: z.boolean().optional().nullable(),
-  ssn_last_four: z.string().optional().nullable(),
-  stripe_customer_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	date_of_birth: z.string().optional().nullable(),
+	emergency_contact_name: z.string().optional().nullable(),
+	emergency_contact_phone: z.string().optional().nullable(),
+	emergency_contact_relationship: z.string().optional().nullable(),
+	id: z.string().optional(),
+	identity_verified: z.boolean().optional().nullable(),
+	ssn_last_four: z.string().optional().nullable(),
+	stripe_customer_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string()
+})
 
 export const publicTenantsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  date_of_birth: z.string().optional().nullable(),
-  emergency_contact_name: z.string().optional().nullable(),
-  emergency_contact_phone: z.string().optional().nullable(),
-  emergency_contact_relationship: z.string().optional().nullable(),
-  id: z.string().optional(),
-  identity_verified: z.boolean().optional().nullable(),
-  ssn_last_four: z.string().optional().nullable(),
-  stripe_customer_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	date_of_birth: z.string().optional().nullable(),
+	emergency_contact_name: z.string().optional().nullable(),
+	emergency_contact_phone: z.string().optional().nullable(),
+	emergency_contact_relationship: z.string().optional().nullable(),
+	id: z.string().optional(),
+	identity_verified: z.boolean().optional().nullable(),
+	ssn_last_four: z.string().optional().nullable(),
+	stripe_customer_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string().optional()
+})
 
 export const publicTenantsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("tenants_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(true),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('tenants_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(true),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicUnitsRowSchema = z.object({
-  bathrooms: z.number().nullable(),
-  bedrooms: z.number().nullable(),
-  created_at: z.string().nullable(),
-  id: z.string(),
-  property_id: z.string(),
-  property_owner_id: z.string().nullable(),
-  rent_amount: z.number(),
-  rent_currency: z.string(),
-  rent_period: z.string(),
-  square_feet: z.number().nullable(),
-  status: z.string(),
-  unit_number: z.string().nullable(),
-  updated_at: z.string().nullable(),
-});
+	bathrooms: z.number().nullable(),
+	bedrooms: z.number().nullable(),
+	created_at: z.string().nullable(),
+	id: z.string(),
+	property_id: z.string(),
+	property_owner_id: z.string().nullable(),
+	rent_amount: z.number(),
+	rent_currency: z.string(),
+	rent_period: z.string(),
+	square_feet: z.number().nullable(),
+	status: z.string(),
+	unit_number: z.string().nullable(),
+	updated_at: z.string().nullable()
+})
 
 export const publicUnitsInsertSchema = z.object({
-  bathrooms: z.number().optional().nullable(),
-  bedrooms: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  property_id: z.string(),
-  property_owner_id: z.string().optional().nullable(),
-  rent_amount: z.number(),
-  rent_currency: z.string().optional(),
-  rent_period: z.string().optional(),
-  square_feet: z.number().optional().nullable(),
-  status: z.string().optional(),
-  unit_number: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-});
+	bathrooms: z.number().optional().nullable(),
+	bedrooms: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	property_id: z.string(),
+	property_owner_id: z.string().optional().nullable(),
+	rent_amount: z.number(),
+	rent_currency: z.string().optional(),
+	rent_period: z.string().optional(),
+	square_feet: z.number().optional().nullable(),
+	status: z.string().optional(),
+	unit_number: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicUnitsUpdateSchema = z.object({
-  bathrooms: z.number().optional().nullable(),
-  bedrooms: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  property_id: z.string().optional(),
-  property_owner_id: z.string().optional().nullable(),
-  rent_amount: z.number().optional(),
-  rent_currency: z.string().optional(),
-  rent_period: z.string().optional(),
-  square_feet: z.number().optional().nullable(),
-  status: z.string().optional(),
-  unit_number: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-});
+	bathrooms: z.number().optional().nullable(),
+	bedrooms: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	property_id: z.string().optional(),
+	property_owner_id: z.string().optional().nullable(),
+	rent_amount: z.number().optional(),
+	rent_currency: z.string().optional(),
+	rent_period: z.string().optional(),
+	square_feet: z.number().optional().nullable(),
+	status: z.string().optional(),
+	unit_number: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable()
+})
 
 export const publicUnitsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("units_property_id_fkey"),
-    columns: z.tuple([z.literal("property_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("properties"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-  z.object({
-    foreignKeyName: z.literal("units_property_owner_id_fkey"),
-    columns: z.tuple([z.literal("property_owner_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("property_owners"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('units_property_id_fkey'),
+		columns: z.tuple([z.literal('property_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('properties'),
+		referencedColumns: z.tuple([z.literal('id')])
+	}),
+	z.object({
+		foreignKeyName: z.literal('units_property_owner_id_fkey'),
+		columns: z.tuple([z.literal('property_owner_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('property_owners'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicUserAccessLogRowSchema = z.object({
-  accessed_at: z.string().nullable(),
-  endpoint: z.string().nullable(),
-  id: z.string(),
-  ip_address: z.string().nullable(),
-  method: z.string().nullable(),
-  status_code: z.number().nullable(),
-  user_agent: z.string().nullable(),
-  user_id: z.string(),
-});
+	accessed_at: z.string().nullable(),
+	endpoint: z.string().nullable(),
+	id: z.string(),
+	ip_address: z.string().nullable(),
+	method: z.string().nullable(),
+	status_code: z.number().nullable(),
+	user_agent: z.string().nullable(),
+	user_id: z.string()
+})
 
 export const publicUserAccessLogInsertSchema = z.object({
-  accessed_at: z.string().optional().nullable(),
-  endpoint: z.string().optional().nullable(),
-  id: z.string().optional(),
-  ip_address: z.string().optional().nullable(),
-  method: z.string().optional().nullable(),
-  status_code: z.number().optional().nullable(),
-  user_agent: z.string().optional().nullable(),
-  user_id: z.string(),
-});
+	accessed_at: z.string().optional().nullable(),
+	endpoint: z.string().optional().nullable(),
+	id: z.string().optional(),
+	ip_address: z.string().optional().nullable(),
+	method: z.string().optional().nullable(),
+	status_code: z.number().optional().nullable(),
+	user_agent: z.string().optional().nullable(),
+	user_id: z.string()
+})
 
 export const publicUserAccessLogUpdateSchema = z.object({
-  accessed_at: z.string().optional().nullable(),
-  endpoint: z.string().optional().nullable(),
-  id: z.string().optional(),
-  ip_address: z.string().optional().nullable(),
-  method: z.string().optional().nullable(),
-  status_code: z.number().optional().nullable(),
-  user_agent: z.string().optional().nullable(),
-  user_id: z.string().optional(),
-});
+	accessed_at: z.string().optional().nullable(),
+	endpoint: z.string().optional().nullable(),
+	id: z.string().optional(),
+	ip_address: z.string().optional().nullable(),
+	method: z.string().optional().nullable(),
+	status_code: z.number().optional().nullable(),
+	user_agent: z.string().optional().nullable(),
+	user_id: z.string().optional()
+})
 
 export const publicUserAccessLogRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("user_access_log_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('user_access_log_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicUserFeatureAccessRowSchema = z.object({
-  access_level: z.string().nullable(),
-  created_at: z.string().nullable(),
-  feature_name: z.string(),
-  granted_at: z.string().nullable(),
-  id: z.string(),
-  user_id: z.string(),
-});
+	access_level: z.string().nullable(),
+	created_at: z.string().nullable(),
+	feature_name: z.string(),
+	granted_at: z.string().nullable(),
+	id: z.string(),
+	user_id: z.string()
+})
 
 export const publicUserFeatureAccessInsertSchema = z.object({
-  access_level: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  feature_name: z.string(),
-  granted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  user_id: z.string(),
-});
+	access_level: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	feature_name: z.string(),
+	granted_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	user_id: z.string()
+})
 
 export const publicUserFeatureAccessUpdateSchema = z.object({
-  access_level: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  feature_name: z.string().optional(),
-  granted_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  user_id: z.string().optional(),
-});
+	access_level: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	feature_name: z.string().optional(),
+	granted_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	user_id: z.string().optional()
+})
 
 export const publicUserFeatureAccessRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("user_feature_access_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('user_feature_access_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicUserPreferencesRowSchema = z.object({
-  created_at: z.string().nullable(),
-  id: z.string(),
-  language: z.string().nullable(),
-  notifications_enabled: z.boolean().nullable(),
-  theme: z.string().nullable(),
-  timezone: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	id: z.string(),
+	language: z.string().nullable(),
+	notifications_enabled: z.boolean().nullable(),
+	theme: z.string().nullable(),
+	timezone: z.string().nullable(),
+	updated_at: z.string().nullable(),
+	user_id: z.string()
+})
 
 export const publicUserPreferencesInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  language: z.string().optional().nullable(),
-  notifications_enabled: z.boolean().optional().nullable(),
-  theme: z.string().optional().nullable(),
-  timezone: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	language: z.string().optional().nullable(),
+	notifications_enabled: z.boolean().optional().nullable(),
+	theme: z.string().optional().nullable(),
+	timezone: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string()
+})
 
 export const publicUserPreferencesUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  id: z.string().optional(),
-  language: z.string().optional().nullable(),
-  notifications_enabled: z.boolean().optional().nullable(),
-  theme: z.string().optional().nullable(),
-  timezone: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	id: z.string().optional(),
+	language: z.string().optional().nullable(),
+	notifications_enabled: z.boolean().optional().nullable(),
+	theme: z.string().optional().nullable(),
+	timezone: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_id: z.string().optional()
+})
 
 export const publicUserPreferencesRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("user_preferences_user_id_fkey"),
-    columns: z.tuple([z.literal("user_id")]),
-    isOneToOne: z.literal(true),
-    referencedRelation: z.literal("users"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('user_preferences_user_id_fkey'),
+		columns: z.tuple([z.literal('user_id')]),
+		isOneToOne: z.literal(true),
+		referencedRelation: z.literal('users'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicUsersRowSchema = z.object({
-  avatar_url: z.string().nullable(),
-  created_at: z.string().nullable(),
-  email: z.string(),
-  first_name: z.string().nullable(),
-  full_name: z.string(),
-  id: z.string(),
-  identity_verification_data: jsonSchema.nullable(),
-  identity_verification_error: z.string().nullable(),
-  identity_verification_session_id: z.string().nullable(),
-  identity_verification_status: z.string().nullable(),
-  identity_verified_at: z.string().nullable(),
-  last_name: z.string().nullable(),
-  onboarding_completed_at: z.string().nullable(),
-  onboarding_status: z.string().nullable(),
-  phone: z.string().nullable(),
-  status: z.string(),
-  stripe_customer_id: z.string().nullable(),
-  updated_at: z.string().nullable(),
-  user_type: z.string(),
-});
+	avatar_url: z.string().nullable(),
+	created_at: z.string().nullable(),
+	email: z.string(),
+	first_name: z.string().nullable(),
+	full_name: z.string(),
+	id: z.string(),
+	identity_verification_data: jsonSchema.nullable(),
+	identity_verification_error: z.string().nullable(),
+	identity_verification_session_id: z.string().nullable(),
+	identity_verification_status: z.string().nullable(),
+	identity_verified_at: z.string().nullable(),
+	last_name: z.string().nullable(),
+	onboarding_completed_at: z.string().nullable(),
+	onboarding_status: z.string().nullable(),
+	phone: z.string().nullable(),
+	status: z.string(),
+	stripe_customer_id: z.string().nullable(),
+	updated_at: z.string().nullable(),
+	user_type: z.string()
+})
 
 export const publicUsersInsertSchema = z.object({
-  avatar_url: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  email: z.string(),
-  first_name: z.string().optional().nullable(),
-  full_name: z.string(),
-  id: z.string().optional(),
-  identity_verification_data: jsonSchema.optional().nullable(),
-  identity_verification_error: z.string().optional().nullable(),
-  identity_verification_session_id: z.string().optional().nullable(),
-  identity_verification_status: z.string().optional().nullable(),
-  identity_verified_at: z.string().optional().nullable(),
-  last_name: z.string().optional().nullable(),
-  onboarding_completed_at: z.string().optional().nullable(),
-  onboarding_status: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  status: z.string().optional(),
-  stripe_customer_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_type: z.string(),
-});
+	avatar_url: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	email: z.string(),
+	first_name: z.string().optional().nullable(),
+	full_name: z.string(),
+	id: z.string().optional(),
+	identity_verification_data: jsonSchema.optional().nullable(),
+	identity_verification_error: z.string().optional().nullable(),
+	identity_verification_session_id: z.string().optional().nullable(),
+	identity_verification_status: z.string().optional().nullable(),
+	identity_verified_at: z.string().optional().nullable(),
+	last_name: z.string().optional().nullable(),
+	onboarding_completed_at: z.string().optional().nullable(),
+	onboarding_status: z.string().optional().nullable(),
+	phone: z.string().optional().nullable(),
+	status: z.string().optional(),
+	stripe_customer_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_type: z.string()
+})
 
 export const publicUsersUpdateSchema = z.object({
-  avatar_url: z.string().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  email: z.string().optional(),
-  first_name: z.string().optional().nullable(),
-  full_name: z.string().optional(),
-  id: z.string().optional(),
-  identity_verification_data: jsonSchema.optional().nullable(),
-  identity_verification_error: z.string().optional().nullable(),
-  identity_verification_session_id: z.string().optional().nullable(),
-  identity_verification_status: z.string().optional().nullable(),
-  identity_verified_at: z.string().optional().nullable(),
-  last_name: z.string().optional().nullable(),
-  onboarding_completed_at: z.string().optional().nullable(),
-  onboarding_status: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  status: z.string().optional(),
-  stripe_customer_id: z.string().optional().nullable(),
-  updated_at: z.string().optional().nullable(),
-  user_type: z.string().optional(),
-});
+	avatar_url: z.string().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	email: z.string().optional(),
+	first_name: z.string().optional().nullable(),
+	full_name: z.string().optional(),
+	id: z.string().optional(),
+	identity_verification_data: jsonSchema.optional().nullable(),
+	identity_verification_error: z.string().optional().nullable(),
+	identity_verification_session_id: z.string().optional().nullable(),
+	identity_verification_status: z.string().optional().nullable(),
+	identity_verified_at: z.string().optional().nullable(),
+	last_name: z.string().optional().nullable(),
+	onboarding_completed_at: z.string().optional().nullable(),
+	onboarding_status: z.string().optional().nullable(),
+	phone: z.string().optional().nullable(),
+	status: z.string().optional(),
+	stripe_customer_id: z.string().optional().nullable(),
+	updated_at: z.string().optional().nullable(),
+	user_type: z.string().optional()
+})
 
 export const publicWebhookAttemptsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  failure_reason: z.string().nullable(),
-  id: z.string(),
-  last_attempted_at: z.string().nullable(),
-  retry_count: z.number().nullable(),
-  status: z.string(),
-  updated_at: z.string().nullable(),
-  webhook_event_id: z.string(),
-});
+	created_at: z.string().nullable(),
+	failure_reason: z.string().nullable(),
+	id: z.string(),
+	last_attempted_at: z.string().nullable(),
+	retry_count: z.number().nullable(),
+	status: z.string(),
+	updated_at: z.string().nullable(),
+	webhook_event_id: z.string()
+})
 
 export const publicWebhookAttemptsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  failure_reason: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_attempted_at: z.string().optional().nullable(),
-  retry_count: z.number().optional().nullable(),
-  status: z.string(),
-  updated_at: z.string().optional().nullable(),
-  webhook_event_id: z.string(),
-});
+	created_at: z.string().optional().nullable(),
+	failure_reason: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_attempted_at: z.string().optional().nullable(),
+	retry_count: z.number().optional().nullable(),
+	status: z.string(),
+	updated_at: z.string().optional().nullable(),
+	webhook_event_id: z.string()
+})
 
 export const publicWebhookAttemptsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  failure_reason: z.string().optional().nullable(),
-  id: z.string().optional(),
-  last_attempted_at: z.string().optional().nullable(),
-  retry_count: z.number().optional().nullable(),
-  status: z.string().optional(),
-  updated_at: z.string().optional().nullable(),
-  webhook_event_id: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	failure_reason: z.string().optional().nullable(),
+	id: z.string().optional(),
+	last_attempted_at: z.string().optional().nullable(),
+	retry_count: z.number().optional().nullable(),
+	status: z.string().optional(),
+	updated_at: z.string().optional().nullable(),
+	webhook_event_id: z.string().optional()
+})
 
 export const publicWebhookAttemptsRelationshipsSchema = z.tuple([
-  z.object({
-    foreignKeyName: z.literal("webhook_attempts_webhook_event_id_fkey"),
-    columns: z.tuple([z.literal("webhook_event_id")]),
-    isOneToOne: z.literal(false),
-    referencedRelation: z.literal("webhook_events"),
-    referencedColumns: z.tuple([z.literal("id")]),
-  }),
-]);
+	z.object({
+		foreignKeyName: z.literal('webhook_attempts_webhook_event_id_fkey'),
+		columns: z.tuple([z.literal('webhook_event_id')]),
+		isOneToOne: z.literal(false),
+		referencedRelation: z.literal('webhook_events'),
+		referencedColumns: z.tuple([z.literal('id')])
+	})
+])
 
 export const publicWebhookEventsRowSchema = z.object({
-  created_at: z.string().nullable(),
-  event_type: z.string(),
-  external_id: z.string().nullable(),
-  id: z.string(),
-  processed_at: z.string().nullable(),
-  raw_payload: jsonSchema,
-  webhook_source: z.string(),
-});
+	created_at: z.string().nullable(),
+	event_type: z.string(),
+	external_id: z.string().nullable(),
+	id: z.string(),
+	processed_at: z.string().nullable(),
+	raw_payload: jsonSchema,
+	webhook_source: z.string()
+})
 
 export const publicWebhookEventsInsertSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  event_type: z.string(),
-  external_id: z.string().optional().nullable(),
-  id: z.string().optional(),
-  processed_at: z.string().optional().nullable(),
-  raw_payload: jsonSchema,
-  webhook_source: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	event_type: z.string(),
+	external_id: z.string().optional().nullable(),
+	id: z.string().optional(),
+	processed_at: z.string().optional().nullable(),
+	raw_payload: jsonSchema,
+	webhook_source: z.string().optional()
+})
 
 export const publicWebhookEventsUpdateSchema = z.object({
-  created_at: z.string().optional().nullable(),
-  event_type: z.string().optional(),
-  external_id: z.string().optional().nullable(),
-  id: z.string().optional(),
-  processed_at: z.string().optional().nullable(),
-  raw_payload: jsonSchema.optional(),
-  webhook_source: z.string().optional(),
-});
+	created_at: z.string().optional().nullable(),
+	event_type: z.string().optional(),
+	external_id: z.string().optional().nullable(),
+	id: z.string().optional(),
+	processed_at: z.string().optional().nullable(),
+	raw_payload: jsonSchema.optional(),
+	webhook_source: z.string().optional()
+})
 
 export const publicWebhookMetricsRowSchema = z.object({
-  average_latency_ms: z.number().nullable(),
-  created_at: z.string().nullable(),
-  date: z.string(),
-  event_type: z.string(),
-  id: z.string(),
-  total_failed: z.number().nullable(),
-  total_processed: z.number().nullable(),
-  total_received: z.number().nullable(),
-});
+	average_latency_ms: z.number().nullable(),
+	created_at: z.string().nullable(),
+	date: z.string(),
+	event_type: z.string(),
+	id: z.string(),
+	total_failed: z.number().nullable(),
+	total_processed: z.number().nullable(),
+	total_received: z.number().nullable()
+})
 
 export const publicWebhookMetricsInsertSchema = z.object({
-  average_latency_ms: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  date: z.string(),
-  event_type: z.string(),
-  id: z.string().optional(),
-  total_failed: z.number().optional().nullable(),
-  total_processed: z.number().optional().nullable(),
-  total_received: z.number().optional().nullable(),
-});
+	average_latency_ms: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	date: z.string(),
+	event_type: z.string(),
+	id: z.string().optional(),
+	total_failed: z.number().optional().nullable(),
+	total_processed: z.number().optional().nullable(),
+	total_received: z.number().optional().nullable()
+})
 
 export const publicWebhookMetricsUpdateSchema = z.object({
-  average_latency_ms: z.number().optional().nullable(),
-  created_at: z.string().optional().nullable(),
-  date: z.string().optional(),
-  event_type: z.string().optional(),
-  id: z.string().optional(),
-  total_failed: z.number().optional().nullable(),
-  total_processed: z.number().optional().nullable(),
-  total_received: z.number().optional().nullable(),
-});
+	average_latency_ms: z.number().optional().nullable(),
+	created_at: z.string().optional().nullable(),
+	date: z.string().optional(),
+	event_type: z.string().optional(),
+	id: z.string().optional(),
+	total_failed: z.number().optional().nullable(),
+	total_processed: z.number().optional().nullable(),
+	total_received: z.number().optional().nullable()
+})
 
 export const publicAcquireInternalEventLockArgsSchema = z.object({
-  p_event_name: z.string(),
-  p_idempotency_key: z.string(),
-  p_payload_hash: z.string(),
-});
+	p_event_name: z.string(),
+	p_idempotency_key: z.string(),
+	p_payload_hash: z.string()
+})
 
 export const publicAcquireInternalEventLockReturnsSchema = z.array(
-  z.object({
-    lock_acquired: z.boolean(),
-  }),
-);
+	z.object({
+		lock_acquired: z.boolean()
+	})
+)
 
 export const publicAcquireWebhookEventLockWithIdArgsSchema = z.object({
-  p_event_type: z.string(),
-  p_external_id: z.string(),
-  p_raw_payload: jsonSchema.optional(),
-  p_webhook_source: z.string(),
-});
+	p_event_type: z.string(),
+	p_external_id: z.string(),
+	p_raw_payload: jsonSchema.optional(),
+	p_webhook_source: z.string()
+})
 
 export const publicAcquireWebhookEventLockWithIdReturnsSchema = z.array(
-  z.object({
-    lock_acquired: z.boolean(),
-    webhook_event_id: z.string(),
-  }),
-);
+	z.object({
+		lock_acquired: z.boolean(),
+		webhook_event_id: z.string()
+	})
+)
 
 export const publicActivateLeaseWithPendingSubscriptionArgsSchema = z.object({
-  p_lease_id: z.string(),
-});
+	p_lease_id: z.string()
+})
 
 export const publicActivateLeaseWithPendingSubscriptionReturnsSchema = z.array(
-  z.object({
-    error_message: z.string(),
-    success: z.boolean(),
-  }),
-);
+	z.object({
+		error_message: z.string(),
+		success: z.boolean()
+	})
+)
 
 export const publicCheckUserFeatureAccessArgsSchema = z.object({
-  p_feature: z.string(),
-  p_user_id: z.string(),
-});
+	p_feature: z.string(),
+	p_user_id: z.string()
+})
 
-export const publicCheckUserFeatureAccessReturnsSchema = z.boolean();
+export const publicCheckUserFeatureAccessReturnsSchema = z.boolean()
 
 export const publicCleanupOldInternalEventsArgsSchema = z.object({
-  days_to_keep: z.number().optional(),
-});
+	days_to_keep: z.number().optional()
+})
 
-export const publicCleanupOldInternalEventsReturnsSchema = z.number();
+export const publicCleanupOldInternalEventsReturnsSchema = z.number()
 
 export const publicCustomAccessTokenHookArgsSchema = z.object({
-  event: jsonSchema,
-});
+	event: jsonSchema
+})
 
-export const publicCustomAccessTokenHookReturnsSchema = jsonSchema;
+export const publicCustomAccessTokenHookReturnsSchema = jsonSchema
 
 export const publicGetBillingInsightsArgsSchema = z.object({
-  end_date_param: z.string().optional(),
-  owner_id_param: z.string(),
-  start_date_param: z.string().optional(),
-});
+	end_date_param: z.string().optional(),
+	owner_id_param: z.string(),
+	start_date_param: z.string().optional()
+})
 
-export const publicGetBillingInsightsReturnsSchema = jsonSchema;
+export const publicGetBillingInsightsReturnsSchema = jsonSchema
 
-export const publicGetCurrentPropertyOwnerIdArgsSchema = z.never();
+export const publicGetCurrentPropertyOwnerIdArgsSchema = z.never()
 
-export const publicGetCurrentPropertyOwnerIdReturnsSchema = z.string();
+export const publicGetCurrentPropertyOwnerIdReturnsSchema = z.string()
 
-export const publicGetCurrentTenantIdArgsSchema = z.never();
+export const publicGetCurrentTenantIdArgsSchema = z.never()
 
-export const publicGetCurrentTenantIdReturnsSchema = z.string();
+export const publicGetCurrentTenantIdReturnsSchema = z.string()
 
-export const publicGetCurrentUserTypeArgsSchema = z.never();
+export const publicGetCurrentUserTypeArgsSchema = z.never()
 
-export const publicGetCurrentUserTypeReturnsSchema = z.string();
+export const publicGetCurrentUserTypeReturnsSchema = z.string()
 
 export const publicGetDashboardStatsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
-export const publicGetDashboardStatsReturnsSchema = jsonSchema;
+export const publicGetDashboardStatsReturnsSchema = jsonSchema
 
 export const publicGetDashboardTimeSeriesArgsSchema = z.object({
-  p_days: z.number().optional(),
-  p_metric_name: z.string(),
-  p_user_id: z.string(),
-});
+	p_days: z.number().optional(),
+	p_metric_name: z.string(),
+	p_user_id: z.string()
+})
 
-export const publicGetDashboardTimeSeriesReturnsSchema = jsonSchema;
+export const publicGetDashboardTimeSeriesReturnsSchema = jsonSchema
 
 export const publicGetMaintenanceAnalyticsArgsSchema = z.object({
-  user_id: z.string(),
-});
+	user_id: z.string()
+})
 
-export const publicGetMaintenanceAnalyticsReturnsSchema = jsonSchema;
+export const publicGetMaintenanceAnalyticsReturnsSchema = jsonSchema
 
 export const publicGetMetricTrendArgsSchema = z.object({
-  p_metric_name: z.string(),
-  p_period: z.string().optional(),
-  p_user_id: z.string(),
-});
+	p_metric_name: z.string(),
+	p_period: z.string().optional(),
+	p_user_id: z.string()
+})
 
-export const publicGetMetricTrendReturnsSchema = jsonSchema;
+export const publicGetMetricTrendReturnsSchema = jsonSchema
 
 export const publicGetOccupancyTrendsOptimizedArgsSchema = z.object({
-  p_months: z.number().optional(),
-  p_user_id: z.string(),
-});
+	p_months: z.number().optional(),
+	p_user_id: z.string()
+})
 
-export const publicGetOccupancyTrendsOptimizedReturnsSchema = jsonSchema;
+export const publicGetOccupancyTrendsOptimizedReturnsSchema = jsonSchema
 
-export const publicGetOwnerLeaseTenantIdsArgsSchema = z.never();
+export const publicGetOwnerLeaseTenantIdsArgsSchema = z.never()
 
-export const publicGetOwnerLeaseTenantIdsReturnsSchema = z.array(z.string());
+export const publicGetOwnerLeaseTenantIdsReturnsSchema = z.array(z.string())
 
 export const publicGetPropertyPerformanceCachedArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
-export const publicGetPropertyPerformanceCachedReturnsSchema = jsonSchema;
+export const publicGetPropertyPerformanceCachedReturnsSchema = jsonSchema
 
 export const publicGetPropertyPerformanceTrendsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
-export const publicGetPropertyPerformanceTrendsReturnsSchema = jsonSchema;
+export const publicGetPropertyPerformanceTrendsReturnsSchema = jsonSchema
 
 export const publicGetRevenueTrendsOptimizedArgsSchema = z.object({
-  p_months: z.number().optional(),
-  p_user_id: z.string(),
-});
+	p_months: z.number().optional(),
+	p_user_id: z.string()
+})
 
-export const publicGetRevenueTrendsOptimizedReturnsSchema = jsonSchema;
+export const publicGetRevenueTrendsOptimizedReturnsSchema = jsonSchema
 
-export const publicGetTenantLeaseIdsArgsSchema = z.never();
+export const publicGetTenantLeaseIdsArgsSchema = z.never()
 
-export const publicGetTenantLeaseIdsReturnsSchema = z.array(z.string());
+export const publicGetTenantLeaseIdsReturnsSchema = z.array(z.string())
 
-export const publicGetTenantPropertyIdsArgsSchema = z.never();
+export const publicGetTenantPropertyIdsArgsSchema = z.never()
 
-export const publicGetTenantPropertyIdsReturnsSchema = z.array(z.string());
+export const publicGetTenantPropertyIdsReturnsSchema = z.array(z.string())
 
-export const publicGetTenantUnitIdsArgsSchema = z.never();
+export const publicGetTenantUnitIdsArgsSchema = z.never()
 
-export const publicGetTenantUnitIdsReturnsSchema = z.array(z.string());
+export const publicGetTenantUnitIdsReturnsSchema = z.array(z.string())
 
 export const publicGetTenantsByOwnerArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
-export const publicGetTenantsByOwnerReturnsSchema = z.array(z.string());
+export const publicGetTenantsByOwnerReturnsSchema = z.array(z.string())
 
 export const publicGetTenantsWithLeaseByOwnerArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
-export const publicGetTenantsWithLeaseByOwnerReturnsSchema = z.array(
-  z.string(),
-);
+export const publicGetTenantsWithLeaseByOwnerReturnsSchema = z.array(z.string())
 
 export const publicGetUserDashboardActivitiesArgsSchema = z.object({
-  p_limit: z.number().optional(),
-  p_offset: z.number().optional(),
-  p_user_id: z.string(),
-});
+	p_limit: z.number().optional(),
+	p_offset: z.number().optional(),
+	p_user_id: z.string()
+})
 
 export const publicGetUserDashboardActivitiesReturnsSchema = z.array(
-  z.object({
-    activity_type: z.string(),
-    created_at: z.string(),
-    description: z.string(),
-    entity_id: z.string(),
-    entity_type: z.string(),
-    id: z.string(),
-    title: z.string(),
-    user_id: z.string(),
-  }),
-);
+	z.object({
+		activity_type: z.string(),
+		created_at: z.string(),
+		description: z.string(),
+		entity_id: z.string(),
+		entity_type: z.string(),
+		id: z.string(),
+		title: z.string(),
+		user_id: z.string()
+	})
+)
 
 export const publicGetUserPlanLimitsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
+	p_user_id: z.string()
+})
 
 export const publicGetUserPlanLimitsReturnsSchema = z.array(
-  z.object({
-    has_api_access: z.boolean(),
-    has_white_label: z.boolean(),
-    property_limit: z.number(),
-    storage_gb: z.number(),
-    support_level: z.string(),
-    unit_limit: z.number(),
-    user_limit: z.number(),
-  }),
-);
+	z.object({
+		has_api_access: z.boolean(),
+		has_white_label: z.boolean(),
+		property_limit: z.number(),
+		storage_gb: z.number(),
+		support_level: z.string(),
+		unit_limit: z.number(),
+		user_limit: z.number()
+	})
+)
 
-export const publicHealthCheckArgsSchema = z.never();
+export const publicHealthCheckArgsSchema = z.never()
 
-export const publicHealthCheckReturnsSchema = jsonSchema;
+export const publicHealthCheckReturnsSchema = jsonSchema
 
 export const publicParseAddressArgsSchema = z.object({
-  "": z.string(),
-});
+	'': z.string()
+})
 
-export const publicParseAddressReturnsSchema = z.record(
-  z.string(),
-  z.unknown(),
-);
+export const publicParseAddressReturnsSchema = z.record(z.string(), z.unknown())
 
 export const publicRecordProcessedStripeEventLockArgsSchema = z.object({
-  p_stripe_event_id: z.string(),
-});
+	p_stripe_event_id: z.string()
+})
 
 export const publicRecordProcessedStripeEventLockReturnsSchema = z.array(
-  z.object({
-    success: z.boolean(),
-  }),
-);
+	z.object({
+		success: z.boolean()
+	})
+)
 
 export const publicSignLeaseAndCheckActivationArgsSchema = z.object({
-  p_lease_id: z.string(),
-  p_signature_ip: z.string(),
-  p_signature_method: publicSignatureMethodSchema.optional(),
-  p_signed_at: z.string(),
-  p_signer_type: z.string(),
-});
+	p_lease_id: z.string(),
+	p_signature_ip: z.string(),
+	p_signature_method: publicSignatureMethodSchema.optional(),
+	p_signed_at: z.string(),
+	p_signer_type: z.string()
+})
 
 export const publicSignLeaseAndCheckActivationReturnsSchema = z.array(
-  z.object({
-    both_signed: z.boolean(),
-    error_message: z.string(),
-    success: z.boolean(),
-  }),
-);
+	z.object({
+		both_signed: z.boolean(),
+		error_message: z.string(),
+		success: z.boolean()
+	})
+)
 
-export const publicUserIsTenantArgsSchema = z.never();
+export const publicUserIsTenantArgsSchema = z.never()
 
-export const publicUserIsTenantReturnsSchema = z.boolean();
+export const publicUserIsTenantReturnsSchema = z.boolean()
 
 export const publicStdaddrSchema = z.object({
-  building: z.string().nullable(),
-  house_num: z.string().nullable(),
-  predir: z.string().nullable(),
-  qual: z.string().nullable(),
-  pretype: z.string().nullable(),
-  name: z.string().nullable(),
-  suftype: z.string().nullable(),
-  sufdir: z.string().nullable(),
-  ruralroute: z.string().nullable(),
-  extra: z.string().nullable(),
-  city: z.string().nullable(),
-  state: z.string().nullable(),
-  country: z.string().nullable(),
-  postcode: z.string().nullable(),
-  box: z.string().nullable(),
-  unit: z.string().nullable(),
-});
+	building: z.string().nullable(),
+	house_num: z.string().nullable(),
+	predir: z.string().nullable(),
+	qual: z.string().nullable(),
+	pretype: z.string().nullable(),
+	name: z.string().nullable(),
+	suftype: z.string().nullable(),
+	sufdir: z.string().nullable(),
+	ruralroute: z.string().nullable(),
+	extra: z.string().nullable(),
+	city: z.string().nullable(),
+	state: z.string().nullable(),
+	country: z.string().nullable(),
+	postcode: z.string().nullable(),
+	box: z.string().nullable(),
+	unit: z.string().nullable()
+})

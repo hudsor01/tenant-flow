@@ -26,7 +26,7 @@ interface PerformanceMetrics {
 // Helper to collect Core Web Vitals
 async function collectWebVitals(page: any): Promise<PerformanceMetrics> {
 	return await page.evaluate(() => {
-		return new Promise<PerformanceMetrics>((resolve) => {
+		return new Promise<PerformanceMetrics>(resolve => {
 			const metrics: PerformanceMetrics = {
 				lcp: null,
 				fid: null,
@@ -44,7 +44,9 @@ async function collectWebVitals(page: any): Promise<PerformanceMetrics> {
 			}
 
 			const paintEntries = performance.getEntriesByType('paint')
-			const fcpEntry = paintEntries.find((entry) => entry.name === 'first-contentful-paint')
+			const fcpEntry = paintEntries.find(
+				entry => entry.name === 'first-contentful-paint'
+			)
 			if (fcpEntry) {
 				metrics.fcp = fcpEntry.startTime
 			}
@@ -83,22 +85,33 @@ test.describe('Homepage Performance', () => {
 
 		// FCP: < 1.8s is good
 		if (metrics.fcp !== null) {
-			expect(metrics.fcp, 'First Contentful Paint should be < 1800ms').toBeLessThan(1800)
+			expect(
+				metrics.fcp,
+				'First Contentful Paint should be < 1800ms'
+			).toBeLessThan(1800)
 		}
 
 		// TTFB: < 600ms is good
 		if (metrics.ttfb !== null) {
-			expect(metrics.ttfb, 'Time to First Byte should be < 600ms').toBeLessThan(600)
+			expect(metrics.ttfb, 'Time to First Byte should be < 600ms').toBeLessThan(
+				600
+			)
 		}
 
 		// LCP: < 2.5s is good
 		if (metrics.lcp !== null) {
-			expect(metrics.lcp, 'Largest Contentful Paint should be < 2500ms').toBeLessThan(2500)
+			expect(
+				metrics.lcp,
+				'Largest Contentful Paint should be < 2500ms'
+			).toBeLessThan(2500)
 		}
 
 		// CLS: < 0.1 is good
 		if (metrics.cls !== null) {
-			expect(metrics.cls, 'Cumulative Layout Shift should be < 0.1').toBeLessThan(0.1)
+			expect(
+				metrics.cls,
+				'Cumulative Layout Shift should be < 0.1'
+			).toBeLessThan(0.1)
 		}
 	})
 
@@ -119,22 +132,27 @@ test.describe('Homepage Performance', () => {
 
 		// Check for render-blocking resources
 		const resourceTimings = await page.evaluate(() => {
-			const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+			const resources = performance.getEntriesByType(
+				'resource'
+			) as PerformanceResourceTiming[]
 			return resources
-				.filter((r) => r.initiatorType === 'link' || r.initiatorType === 'script')
-				.map((r) => ({
+				.filter(r => r.initiatorType === 'link' || r.initiatorType === 'script')
+				.map(r => ({
 					name: r.name,
 					duration: r.duration,
 					renderBlocking: (r as any).renderBlockingStatus || 'non-blocking'
 				}))
 		})
 
-		const renderBlockingResources = resourceTimings.filter((r) => r.renderBlocking === 'blocking')
+		const renderBlockingResources = resourceTimings.filter(
+			r => r.renderBlocking === 'blocking'
+		)
 
 		// Should have minimal render-blocking resources
-		expect(renderBlockingResources.length, 'Should have minimal render-blocking resources').toBeLessThan(
-			5
-		)
+		expect(
+			renderBlockingResources.length,
+			'Should have minimal render-blocking resources'
+		).toBeLessThan(5)
 	})
 })
 
@@ -150,7 +168,9 @@ test.describe('Dashboard Performance', () => {
 		const loadTime = Date.now() - startTime
 
 		// Dashboard should load within 4 seconds
-		expect(loadTime, 'Dashboard should load within 4 seconds').toBeLessThan(4000)
+		expect(loadTime, 'Dashboard should load within 4 seconds').toBeLessThan(
+			4000
+		)
 
 		const metrics = await collectWebVitals(page)
 
@@ -184,7 +204,7 @@ test.describe('Image Optimization', () => {
 		// Get all images
 		const images = await page.evaluate(() => {
 			const imgs = Array.from(document.querySelectorAll('img'))
-			return imgs.map((img) => ({
+			return imgs.map(img => ({
 				src: img.src,
 				width: img.naturalWidth,
 				height: img.naturalHeight,
@@ -206,7 +226,10 @@ test.describe('Image Optimization', () => {
 			if (img.width > 0 && img.displayWidth > 0) {
 				const sizeRatio = img.width / img.displayWidth
 				// Allow some tolerance (2x for retina displays)
-				expect(sizeRatio, `Image ${img.src} should not be excessively oversized`).toBeLessThan(3)
+				expect(
+					sizeRatio,
+					`Image ${img.src} should not be excessively oversized`
+				).toBeLessThan(3)
 			}
 		}
 	})
@@ -219,8 +242,10 @@ test.describe('Font Loading Performance', () => {
 
 		// Check font loading strategy
 		const fonts = await page.evaluate(() => {
-			const fontLinks = Array.from(document.querySelectorAll('link[rel="preload"][as="font"]'))
-			return fontLinks.map((link) => ({
+			const fontLinks = Array.from(
+				document.querySelectorAll('link[rel="preload"][as="font"]')
+			)
+			return fontLinks.map(link => ({
 				href: (link as HTMLLinkElement).href,
 				crossOrigin: (link as HTMLLinkElement).crossOrigin
 			}))
@@ -243,10 +268,12 @@ test.describe('JavaScript Bundle Performance', () => {
 
 		// Get all JavaScript resources
 		const jsResources = await page.evaluate(() => {
-			const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
+			const resources = performance.getEntriesByType(
+				'resource'
+			) as PerformanceResourceTiming[]
 			return resources
-				.filter((r) => r.initiatorType === 'script' && r.name.includes('.js'))
-				.map((r) => ({
+				.filter(r => r.initiatorType === 'script' && r.name.includes('.js'))
+				.map(r => ({
 					name: r.name,
 					size: r.transferSize,
 					duration: r.duration
@@ -256,7 +283,9 @@ test.describe('JavaScript Bundle Performance', () => {
 		const totalJsSize = jsResources.reduce((acc, r) => acc + r.size, 0)
 
 		// Total JS size should be reasonable (< 500KB gzipped for initial load)
-		expect(totalJsSize, 'Total JavaScript size should be < 500KB').toBeLessThan(500 * 1024)
+		expect(totalJsSize, 'Total JavaScript size should be < 500KB').toBeLessThan(
+			500 * 1024
+		)
 	})
 
 	test('should use code splitting', async ({ page }) => {
@@ -265,12 +294,19 @@ test.describe('JavaScript Bundle Performance', () => {
 
 		// Get JavaScript chunks
 		const jsChunks = await page.evaluate(() => {
-			const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-			return resources.filter((r) => r.name.includes('/_next/static/chunks/')).map((r) => r.name)
+			const resources = performance.getEntriesByType(
+				'resource'
+			) as PerformanceResourceTiming[]
+			return resources
+				.filter(r => r.name.includes('/_next/static/chunks/'))
+				.map(r => r.name)
 		})
 
 		// Should have multiple chunks (indicates code splitting)
-		expect(jsChunks.length, 'Should have multiple JS chunks for code splitting').toBeGreaterThan(3)
+		expect(
+			jsChunks.length,
+			'Should have multiple JS chunks for code splitting'
+		).toBeGreaterThan(3)
 	})
 })
 
@@ -282,8 +318,10 @@ test.describe('Caching Performance', () => {
 
 		// Get resource timings for first visit
 		const firstVisitResources = await page.evaluate(() => {
-			const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-			return resources.map((r) => ({
+			const resources = performance.getEntriesByType(
+				'resource'
+			) as PerformanceResourceTiming[]
+			return resources.map(r => ({
 				name: r.name,
 				duration: r.duration
 			}))
@@ -294,8 +332,10 @@ test.describe('Caching Performance', () => {
 
 		// Get resource timings for second visit
 		const secondVisitResources = await page.evaluate(() => {
-			const resources = performance.getEntriesByType('resource') as PerformanceResourceTiming[]
-			return resources.map((r) => ({
+			const resources = performance.getEntriesByType(
+				'resource'
+			) as PerformanceResourceTiming[]
+			return resources.map(r => ({
 				name: r.name,
 				duration: r.duration
 			}))
@@ -303,9 +343,11 @@ test.describe('Caching Performance', () => {
 
 		// Second visit should have some cached resources (faster load times)
 		const avgFirstVisit =
-			firstVisitResources.reduce((acc, r) => acc + r.duration, 0) / firstVisitResources.length
+			firstVisitResources.reduce((acc, r) => acc + r.duration, 0) /
+			firstVisitResources.length
 		const avgSecondVisit =
-			secondVisitResources.reduce((acc, r) => acc + r.duration, 0) / secondVisitResources.length
+			secondVisitResources.reduce((acc, r) => acc + r.duration, 0) /
+			secondVisitResources.length
 
 		// Second visit should be faster (or at least not significantly slower)
 		expect(
@@ -333,7 +375,8 @@ test.describe('Network Performance', () => {
 		const response = await request.get('https://tenantflow.app')
 
 		// Check protocol (should be h2 or h3)
-		const protocol = response.headers()['x-protocol'] || response.headers()[':protocol']
+		const protocol =
+			response.headers()['x-protocol'] || response.headers()[':protocol']
 
 		// Modern deployment should use HTTP/2 or better
 		if (protocol) {

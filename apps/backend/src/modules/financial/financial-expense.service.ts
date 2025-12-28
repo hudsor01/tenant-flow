@@ -11,8 +11,10 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class FinancialExpenseService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get expense summary for a given year
@@ -28,10 +30,17 @@ export class FinancialExpenseService {
 		year: number
 	}> {
 		const targetYear = year || new Date().getFullYear()
-		this.logger.log('Getting expense summary', { targetYear, propertyCount: property_ids.length })
+		this.logger.log('Getting expense summary', {
+			targetYear,
+			propertyCount: property_ids.length
+		})
 
 		const { start_date, end_date } = this.calculateYearRange(targetYear)
-		const expenses = await this.fetchExpenses(property_ids, start_date, end_date)
+		const expenses = await this.fetchExpenses(
+			property_ids,
+			start_date,
+			end_date
+		)
 
 		const totalExpenses = expenses.reduce(
 			(sum, expense) => sum + (expense.amount ?? 0),
@@ -40,7 +49,7 @@ export class FinancialExpenseService {
 
 		// NOTE: expenses table does NOT have a category column
 		const expensesByCategory: Record<string, number> = {
-			'Uncategorized': totalExpenses
+			Uncategorized: totalExpenses
 		}
 
 		return {
@@ -66,9 +75,7 @@ export class FinancialExpenseService {
 		}
 
 		try {
-			let query = this.supabaseService
-				.getAdminClient()
-				.from('expenses')
+			let query = this.supabaseService.getAdminClient().from('expenses')
 				.select(`
 					*,
 					maintenance_requests!inner (
@@ -124,7 +131,8 @@ export class FinancialExpenseService {
 					amount: row.amount,
 					expense_date: row.expense_date,
 					created_at: row.created_at ?? new Date().toISOString(),
-					updated_at: row.updated_at ?? row.created_at ?? new Date().toISOString()
+					updated_at:
+						row.updated_at ?? row.created_at ?? new Date().toISOString()
 				})
 			) as ExpenseRecord[]
 		} catch (error) {

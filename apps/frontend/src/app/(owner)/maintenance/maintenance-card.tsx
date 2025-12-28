@@ -2,7 +2,10 @@
 
 import { Clock, MapPin, MoreHorizontal, User } from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenanceRequest, MaintenancePriority } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenancePriority
+} from '@repo/shared/types/core'
 import { BorderBeam } from '#components/ui/border-beam'
 
 // Extended type with optional relations for display
@@ -27,17 +30,18 @@ function getAgingDisplay(timestamp: string | null | undefined) {
 	if (days <= 3) {
 		return {
 			label: days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`,
-			className: 'bg-green-500/10 text-green-600 dark:text-green-400'
+			className: 'bg-success/10 text-success'
 		}
 	} else if (days <= 7) {
 		return {
 			label: `${days} days`,
-			className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+			className: 'bg-warning/10 text-warning'
 		}
 	} else if (days <= 14) {
 		return {
 			label: `${days} days`,
-			className: 'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
+			className:
+				'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400'
 		}
 	} else {
 		return {
@@ -53,7 +57,7 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 		low: 'bg-muted text-muted-foreground',
 		medium: 'bg-primary/10 text-primary',
 		normal: 'bg-primary/10 text-primary',
-		high: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
+		high: 'bg-warning/10 text-warning',
 		urgent: 'bg-destructive/10 text-destructive'
 	}
 
@@ -72,7 +76,11 @@ interface MaintenanceCardProps {
 	onView?: ((id: string) => void) | undefined
 }
 
-export function MaintenanceCard({ request, isDragging, onView }: MaintenanceCardProps) {
+export function MaintenanceCard({
+	request,
+	isDragging,
+	onView
+}: MaintenanceCardProps) {
 	const aging = getAgingDisplay(request.created_at)
 	const isUrgent = request.priority?.toLowerCase() === 'urgent'
 	const propertyName = request.property?.name ?? 'Unknown Property'
@@ -144,7 +152,9 @@ export function MaintenanceCard({ request, isDragging, onView }: MaintenanceCard
 					<div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
 						<User className="w-2.5 h-2.5 text-primary" />
 					</div>
-					<span className="text-xs text-muted-foreground truncate">{tenantName}</span>
+					<span className="text-xs text-muted-foreground truncate">
+						{tenantName}
+					</span>
 				</div>
 			)}
 		</div>

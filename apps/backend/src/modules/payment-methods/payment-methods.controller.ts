@@ -30,7 +30,9 @@ export class PaymentMethodsController {
 	async listPaymentMethods(
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
-	): Promise<{ paymentMethods: Database['public']['Tables']['payment_methods']['Row'][] }> {
+	): Promise<{
+		paymentMethods: Database['public']['Tables']['payment_methods']['Row'][]
+	}> {
 		const user_id = req.user!.id
 
 		const paymentMethods = await this.paymentMethodsService.listPaymentMethods(
@@ -53,7 +55,10 @@ export class PaymentMethodsController {
 	) {
 		const user_id = req.user!.id
 
-		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+		if (
+			!paymentMethodId ||
+			(!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))
+		) {
 			throw new BadRequestException('Invalid payment method ID format')
 		}
 
@@ -76,7 +81,10 @@ export class PaymentMethodsController {
 	) {
 		const user_id = req.user!.id
 
-		if (!paymentMethodId || (!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))) {
+		if (
+			!paymentMethodId ||
+			(!paymentMethodId.startsWith('pm_') && !paymentMethodId.startsWith('sm_'))
+		) {
 			throw new BadRequestException('Invalid payment method ID format')
 		}
 

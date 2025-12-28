@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	InternalServerErrorException,
+	Post,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
@@ -28,8 +39,10 @@ class PayRentDto extends createZodDto(PayRentSchema) {}
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantPaymentsController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get payment history and upcoming payments
@@ -40,7 +53,10 @@ export class TenantPaymentsController {
 	async getPayments(
 		@JwtToken() token: string,
 		@User() user: AuthUser
-	): Promise<{ payments: Array<Record<string, unknown>>; methodsEndpoint: string }> {
+	): Promise<{
+		payments: Array<Record<string, unknown>>
+		methodsEndpoint: string
+	}> {
 		const tenant = await this.resolveTenant(token, user)
 		const payments = await this.fetchPayments(token, tenant.id)
 
@@ -183,7 +199,9 @@ export class TenantPaymentsController {
 			.single()
 
 		if (paymentError) {
-			this.logger.error('Failed to record payment', { error: paymentError.message })
+			this.logger.error('Failed to record payment', {
+				error: paymentError.message
+			})
 			throw new InternalServerErrorException('Failed to process payment')
 		}
 

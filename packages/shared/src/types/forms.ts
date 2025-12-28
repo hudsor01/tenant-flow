@@ -12,14 +12,14 @@ import type { Database } from './supabase.js'
  * while still providing a canonical, reusable type to replace ad-hoc casts.
  */
 export type FormFieldApi<TValue = unknown> = {
-  state: {
-    value: TValue
-    meta: {
-      errors?: unknown[]
-    }
-  }
-  handleChange: (value: TValue | ((prev: TValue) => TValue)) => void
-  handleBlur: () => void
+	state: {
+		value: TValue
+		meta: {
+			errors?: unknown[]
+		}
+	}
+	handleChange: (value: TValue | ((prev: TValue) => TValue)) => void
+	handleBlur: () => void
 }
 
 export interface FormState<T> {

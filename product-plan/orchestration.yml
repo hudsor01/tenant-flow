@@ -1,0 +1,252 @@
+# TenantFlow Implementation Orchestration
+# Defines task groups, dependencies, and execution strategy
+
+name: tenantflow-implementation
+version: '1.0'
+
+# Execution configuration
+config:
+  max_parallel_agents: 3
+  checkpoint_on_phase_complete: true
+  rollback_on_failure: true
+
+# Task groups organized by execution phase
+phases:
+  - name: phase-1-foundation
+    description: Core infrastructure and authentication
+    execution: sequential
+    tasks:
+      - id: foundation
+        name: Foundation Setup
+        prompt: prompts/finalized/01-foundation-prompt.md
+        agent_type: full-stack
+        estimated_duration: 4h
+        dependencies: []
+        outputs:
+          - database schema
+          - RLS policies
+          - auth system
+          - base API routes
+
+  - name: phase-2-shell
+    description: Application shell and navigation
+    execution: sequential
+    tasks:
+      - id: shell
+        name: Application Shell
+        prompt: prompts/finalized/02-shell-prompt.md
+        agent_type: react-ui-specialist
+        estimated_duration: 3h
+        dependencies:
+          - foundation
+        outputs:
+          - AppShell component
+          - sidebar navigation
+          - user menu
+          - responsive layout
+
+  - name: phase-3-core-views
+    description: Dashboard and Properties (parallel)
+    execution: parallel
+    tasks:
+      - id: dashboard
+        name: Owner Dashboard
+        prompt: prompts/finalized/03-dashboard-prompt.md
+        agent_type: react-ui-specialist
+        estimated_duration: 3h
+        dependencies:
+          - shell
+        outputs:
+          - KPI cards
+          - revenue charts
+          - activity feed
+          - quick actions
+
+      - id: properties
+        name: Properties & Units
+        prompt: prompts/finalized/04-properties-and-units-prompt.md
+        agent_type: full-stack
+        estimated_duration: 4h
+        dependencies:
+          - shell
+        outputs:
+          - property CRUD
+          - unit management
+          - image upload
+          - property metrics
+
+  - name: phase-4-tenants
+    description: Tenant management
+    execution: sequential
+    tasks:
+      - id: tenants
+        name: Tenant Management
+        prompt: prompts/finalized/05-tenants-prompt.md
+        agent_type: full-stack
+        estimated_duration: 3h
+        dependencies:
+          - properties
+        outputs:
+          - tenant list
+          - invitation flow
+          - tenant profiles
+          - status workflow
+
+  - name: phase-5-leases
+    description: Lease lifecycle management
+    execution: sequential
+    tasks:
+      - id: leases
+        name: Lease Management
+        prompt: prompts/finalized/06-leases-prompt.md
+        agent_type: full-stack
+        estimated_duration: 4h
+        dependencies:
+          - tenants
+        outputs:
+          - lease wizard
+          - document generation
+          - signature integration
+          - renewal process
+
+  - name: phase-6-transactions
+    description: Payments and Maintenance (parallel)
+    execution: parallel
+    tasks:
+      - id: payments
+        name: Rent Payments
+        prompt: prompts/finalized/07-payments-prompt.md
+        agent_type: stripe-supabase-fullstack-engineer
+        estimated_duration: 5h
+        dependencies:
+          - leases
+        outputs:
+          - Stripe Connect
+          - payment methods
+          - autopay
+          - late fees
+
+      - id: maintenance
+        name: Maintenance Requests
+        prompt: prompts/finalized/09-maintenance-prompt.md
+        agent_type: full-stack
+        estimated_duration: 3h
+        dependencies:
+          - leases
+        outputs:
+          - request tracking
+          - Kanban board
+          - expense tracking
+          - analytics
+
+  - name: phase-7-financials
+    description: Financial reporting
+    execution: sequential
+    tasks:
+      - id: financials
+        name: Financial Reports
+        prompt: prompts/finalized/08-financials-prompt.md
+        agent_type: full-stack
+        estimated_duration: 3h
+        dependencies:
+          - payments
+        outputs:
+          - revenue dashboard
+          - income statement
+          - payout management
+          - tax documents
+
+  - name: phase-8-final
+    description: Portal, Settings, Profiles (parallel)
+    execution: parallel
+    tasks:
+      - id: tenant-portal
+        name: Tenant Portal
+        prompt: prompts/finalized/10-tenant-portal-prompt.md
+        agent_type: react-ui-specialist
+        estimated_duration: 4h
+        dependencies:
+          - payments
+          - maintenance
+        outputs:
+          - tenant layout
+          - payment UI
+          - maintenance submission
+          - document access
+
+      - id: settings
+        name: Account Settings
+        prompt: prompts/finalized/11-settings-prompt.md
+        agent_type: full-stack
+        estimated_duration: 3h
+        dependencies:
+          - foundation
+        outputs:
+          - account settings
+          - 2FA setup
+          - Stripe onboarding
+          - billing management
+
+      - id: profiles
+        name: User Profiles
+        prompt: prompts/finalized/12-profiles-prompt.md
+        agent_type: full-stack
+        estimated_duration: 2h
+        dependencies:
+          - foundation
+        outputs:
+          - profile view
+          - avatar upload
+          - password change
+          - role-specific fields
+
+# Standards to apply
+standards:
+  global:
+    - coding-style
+    - conventions
+    - tech-stack
+  frontend:
+    - css
+    - responsive
+  backend:
+    - api-design
+    - security
+  database:
+    - rls-policies
+    - sql-migration-rules
+
+# Verification checkpoints
+checkpoints:
+  after_phase_1:
+    - verify: auth login/logout works
+    - verify: RLS policies block unauthorized access
+    - verify: TypeScript compiles without errors
+
+  after_phase_2:
+    - verify: navigation works on all breakpoints
+    - verify: theme toggle persists
+    - verify: mobile layout renders correctly
+
+  after_phase_3:
+    - verify: dashboard loads with real data
+    - verify: property CRUD operations work
+    - verify: image upload stores to Supabase
+
+  after_phase_5:
+    - verify: lease wizard completes full flow
+    - verify: document generation produces PDF
+    - verify: status transitions work correctly
+
+  after_phase_6:
+    - verify: Stripe payment succeeds in test mode
+    - verify: autopay schedules correctly
+    - verify: maintenance requests update in real-time
+
+  final:
+    - verify: all unit tests pass
+    - verify: all integration tests pass
+    - verify: TypeScript strict mode passes
+    - verify: ESLint passes with no errors
+    - verify: mobile responsive on all pages
+    - verify: light/dark mode works throughout

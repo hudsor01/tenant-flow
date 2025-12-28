@@ -1,16 +1,23 @@
 import { apiRequest } from '#lib/api-request'
-import { useMutation, useQuery, useQueryClient, type QueryKey } from '@tanstack/react-query'
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	type QueryKey
+} from '@tanstack/react-query'
 import type {
 	SendPaymentReminderRequest,
 	SendPaymentReminderResponse
 } from '@repo/shared/types/api-contracts'
-import { tenantPaymentQueries, tenantPaymentKeys } from './queries/tenant-payment-queries'
+import {
+	tenantPaymentQueries,
+	tenantPaymentKeys
+} from './queries/tenant-payment-queries'
 
 interface PaymentQueryOptions {
 	limit?: number
 	enabled?: boolean
 }
-
 
 export function useOwnerTenantPayments(
 	tenant_id: string,
@@ -33,10 +40,13 @@ export function useSendTenantPaymentReminder() {
 
 	return useMutation({
 		mutationFn: async ({ request }: SendReminderVariables) => {
-			return apiRequest<SendPaymentReminderResponse>('/api/v1/tenants/payments/reminders', {
-				method: 'POST',
-				body: JSON.stringify(request)
-			})
+			return apiRequest<SendPaymentReminderResponse>(
+				'/api/v1/tenants/payments/reminders',
+				{
+					method: 'POST',
+					body: JSON.stringify(request)
+				}
+			)
 		},
 		onSuccess: (_data, variables) => {
 			if (variables?.ownerQueryKey) {

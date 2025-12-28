@@ -3,7 +3,13 @@
 import * as React from 'react'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { Input } from '#components/ui/input'
 import { Textarea } from '#components/ui/textarea'
 import { Skeleton } from '#components/ui/skeleton'
@@ -52,7 +58,11 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import type { MaintenanceStatus, MaintenancePriority, ExpenseRecord } from '@repo/shared/types/core'
+import type {
+	MaintenanceStatus,
+	MaintenancePriority,
+	ExpenseRecord
+} from '@repo/shared/types/core'
 
 interface MaintenanceDetailsProps {
 	id: string
@@ -61,7 +71,10 @@ interface MaintenanceDetailsProps {
 const logger = createLogger({ component: 'MaintenanceDetails' })
 
 // Status configuration
-const STATUS_CONFIG: Record<MaintenanceStatus, { label: string; className: string; icon: React.ReactNode }> = {
+const STATUS_CONFIG: Record<
+	MaintenanceStatus,
+	{ label: string; className: string; icon: React.ReactNode }
+> = {
 	open: {
 		label: 'Open',
 		className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
@@ -90,18 +103,30 @@ const STATUS_CONFIG: Record<MaintenanceStatus, { label: string; className: strin
 }
 
 // Priority configuration
-const PRIORITY_CONFIG: Record<MaintenancePriority, { label: string; className: string }> = {
+const PRIORITY_CONFIG: Record<
+	MaintenancePriority,
+	{ label: string; className: string }
+> = {
 	low: { label: 'Low', className: 'bg-muted text-muted-foreground' },
 	normal: { label: 'Normal', className: 'bg-primary/10 text-primary' },
 	medium: { label: 'Medium', className: 'bg-primary/10 text-primary' },
-	high: { label: 'High', className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+	high: {
+		label: 'High',
+		className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400'
+	},
 	urgent: { label: 'Urgent', className: 'bg-destructive/10 text-destructive' }
 }
 
 // Timeline event type
 interface TimelineEvent {
 	id: string
-	type: 'created' | 'status_change' | 'scheduled' | 'expense_added' | 'photo_added' | 'completed'
+	type:
+		| 'created'
+		| 'status_change'
+		| 'scheduled'
+		| 'expense_added'
+		| 'photo_added'
+		| 'completed'
 	title: string
 	description?: string
 	timestamp: string
@@ -142,7 +167,8 @@ function generateTimeline(request: {
 			type: 'status_change',
 			title: 'Work Started',
 			description: 'Maintenance work has begun',
-			timestamp: request.scheduled_date ?? request.created_at ?? new Date().toISOString()
+			timestamp:
+				request.scheduled_date ?? request.created_at ?? new Date().toISOString()
 		})
 	}
 
@@ -156,7 +182,9 @@ function generateTimeline(request: {
 		})
 	}
 
-	return events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+	return events.sort(
+		(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+	)
 }
 
 // Expense form dialog
@@ -171,7 +199,9 @@ function AddExpenseDialog({
 	const [isSubmitting, setIsSubmitting] = React.useState(false)
 	const [vendorName, setVendorName] = React.useState('')
 	const [amount, setAmount] = React.useState('')
-	const [expenseDate, setExpenseDate] = React.useState(new Date().toISOString().split('T')[0])
+	const [expenseDate, setExpenseDate] = React.useState(
+		new Date().toISOString().split('T')[0]
+	)
 	const [description, setDescription] = React.useState('')
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -270,7 +300,11 @@ function AddExpenseDialog({
 						/>
 					</Field>
 					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting}>
@@ -346,7 +380,11 @@ function ScheduleDialog({
 						/>
 					</Field>
 					<DialogFooter>
-						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => setOpen(false)}
+						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={updateMutation.isPending}>
@@ -379,7 +417,8 @@ function StatusSelect({
 				id: maintenanceId,
 				data: {
 					status: newStatus,
-					completed_at: newStatus === 'completed' ? new Date().toISOString() : undefined
+					completed_at:
+						newStatus === 'completed' ? new Date().toISOString() : undefined
 				}
 			})
 			onSuccess()
@@ -389,7 +428,10 @@ function StatusSelect({
 	}
 
 	return (
-		<Select value={currentStatus} onValueChange={(v) => handleStatusChange(v as MaintenanceStatus)}>
+		<Select
+			value={currentStatus}
+			onValueChange={v => handleStatusChange(v as MaintenanceStatus)}
+		>
 			<SelectTrigger className="w-40" aria-label="Change status">
 				<SelectValue />
 			</SelectTrigger>
@@ -407,14 +449,19 @@ function StatusSelect({
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { data: request, isLoading, isError } = useQuery(maintenanceQueries.detail(id))
+	const {
+		data: request,
+		isLoading,
+		isError
+	} = useQuery(maintenanceQueries.detail(id))
 	const { data: propertiesResponse } = useQuery(propertyQueries.list())
 	const { data: unitsResponse } = useQuery(unitQueries.list())
 
 	// Fetch expenses for this maintenance request
 	const { data: expensesData } = useQuery({
 		queryKey: ['maintenance', id, 'expenses'],
-		queryFn: () => apiRequest<ExpenseRecord[]>(`/api/v1/maintenance/${id}/expenses`),
+		queryFn: () =>
+			apiRequest<ExpenseRecord[]>(`/api/v1/maintenance/${id}/expenses`),
 		enabled: !!id
 	})
 
@@ -426,7 +473,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const property = properties.find(p => p.id === unit?.property_id)
 
 	const handleRefresh = () => {
-		queryClient.invalidateQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
+		queryClient.invalidateQueries({
+			queryKey: maintenanceQueries.detail(id).queryKey
+		})
 		queryClient.invalidateQueries({ queryKey: ['maintenance', id, 'expenses'] })
 	}
 
@@ -453,7 +502,9 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 			}))
 		}
 
-		const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+		const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+			type: 'application/json'
+		})
 		const url = URL.createObjectURL(blob)
 		const a = document.createElement('a')
 		a.href = url
@@ -489,7 +540,11 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					<p className="text-sm text-destructive">
 						Something went wrong while loading this maintenance request.
 					</p>
-					<Button variant="outline" className="mt-4" onClick={() => router.back()}>
+					<Button
+						variant="outline"
+						className="mt-4"
+						onClick={() => router.back()}
+					>
 						Go Back
 					</Button>
 				</CardContent>
@@ -497,8 +552,11 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 		)
 	}
 
-	const statusConfig = STATUS_CONFIG[request.status as MaintenanceStatus] ?? STATUS_CONFIG.open
-	const priorityConfig = PRIORITY_CONFIG[request.priority as MaintenancePriority] ?? PRIORITY_CONFIG.normal
+	const statusConfig =
+		STATUS_CONFIG[request.status as MaintenanceStatus] ?? STATUS_CONFIG.open
+	const priorityConfig =
+		PRIORITY_CONFIG[request.priority as MaintenancePriority] ??
+		PRIORITY_CONFIG.normal
 	const timeline = generateTimeline(request)
 	const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount ?? 0), 0)
 
@@ -583,12 +641,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 								</div>
 								<p className="mt-1 font-medium">
 									{request.scheduled_date
-										? new Date(request.scheduled_date).toLocaleDateString('en-US', {
-												weekday: 'long',
-												year: 'numeric',
-												month: 'long',
-												day: 'numeric'
-											})
+										? new Date(request.scheduled_date).toLocaleDateString(
+												'en-US',
+												{
+													weekday: 'long',
+													year: 'numeric',
+													month: 'long',
+													day: 'numeric'
+												}
+											)
 										: 'Not scheduled'}
 								</p>
 							</div>
@@ -653,7 +714,7 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{expenses.map((expense) => (
+								{expenses.map(expense => (
 									<div
 										key={expense.id}
 										className="flex items-center justify-between p-3 rounded-lg border bg-muted/20"
@@ -689,11 +750,14 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 					<CardHeader className="flex-row items-center justify-between">
 						<div>
 							<CardTitle className="text-base">Photos</CardTitle>
-							<CardDescription>
-								Document the issue with photos
-							</CardDescription>
+							<CardDescription>Document the issue with photos</CardDescription>
 						</div>
-						<Button variant="outline" size="sm" className="gap-1.5" onClick={() => toast.info('Photo upload coming soon')}>
+						<Button
+							variant="outline"
+							size="sm"
+							className="gap-1.5"
+							onClick={() => toast.info('Photo upload coming soon')}
+						>
 							<Upload className="size-4" />
 							Upload Photo
 						</Button>
@@ -752,13 +816,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 							<div className="relative">
 								<div className="absolute left-3 top-0 bottom-0 w-px bg-border" />
 								<div className="space-y-4">
-									{timeline.map((event) => (
+									{timeline.map(event => (
 										<div key={event.id} className="relative pl-8">
-											<div className={`absolute left-0 size-6 rounded-full flex items-center justify-center ${
-												event.type === 'completed'
-													? 'bg-green-500/10 text-green-600'
-													: 'bg-primary/10 text-primary'
-											}`}>
+											<div
+												className={`absolute left-0 size-6 rounded-full flex items-center justify-center ${
+													event.type === 'completed'
+														? 'bg-green-500/10 text-green-600'
+														: 'bg-primary/10 text-primary'
+												}`}
+											>
 												{event.type === 'completed' ? (
 													<CheckCircle className="size-3.5" />
 												) : event.type === 'scheduled' ? (

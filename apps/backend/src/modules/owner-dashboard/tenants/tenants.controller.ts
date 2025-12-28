@@ -1,4 +1,12 @@
-import { Controller, Get, Query, Req, UnauthorizedException, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Query,
+	Req,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
@@ -21,9 +29,11 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class TenantsController {
-
-	constructor(private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	@Get('occupancy-trends')
 	async getOccupancyTrends(

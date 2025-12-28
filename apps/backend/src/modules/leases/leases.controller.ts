@@ -60,10 +60,7 @@ export class LeasesController {
 	) {}
 
 	@Get()
-	async findAll(
-		@JwtToken() token: string,
-		@Query() query: FindAllLeasesDto
-	) {
+	async findAll(@JwtToken() token: string, @Query() query: FindAllLeasesDto) {
 		// DTO validation handles all parameter validation via Zod schema
 		// RLS PATTERN: Pass JWT token to service for RLS-protected queries
 		const data = await this.leasesService.findAll(token, { ...query })
@@ -310,7 +307,8 @@ export class LeasesController {
 		} = { token }
 
 		if (body?.message !== undefined) options.message = body.message
-		if (body?.missingFields !== undefined) options.missingFields = body.missingFields
+		if (body?.missingFields !== undefined)
+			options.missingFields = body.missingFields
 
 		await this.signatureService.sendForSignature(req.user.id, id, options)
 		return { success: true }
@@ -486,7 +484,10 @@ export class LeasesController {
 		})
 
 		// Set security headers for PDF preview
-		res.setHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none';")
+		res.setHeader(
+			'Content-Security-Policy',
+			"default-src 'none'; frame-ancestors 'none';"
+		)
 		res.setHeader('X-Content-Type-Options', 'nosniff')
 		res.setHeader('X-Frame-Options', 'DENY')
 
@@ -527,10 +528,14 @@ export class LeasesController {
 
 		// Generate filled PDF with state-specific template
 		const state = leaseData?.lease?.governing_state ?? 'TX'
-		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, id, {
-			state,
-			validateTemplate: true
-		})
+		const pdfBuffer = await this.pdfGenerator.generateFilledPdf(
+			completeFields,
+			id,
+			{
+				state,
+				validateTemplate: true
+			}
+		)
 
 		return {
 			lease_id: id,

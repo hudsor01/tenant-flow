@@ -79,9 +79,14 @@ describe('Settings Page with Payment Comparison', () => {
 
 		renderWithProviders(<SettingsPage />)
 		// Wait for async rendering
-		await vi.waitFor(() => {
-			expect(screen.getByRole('heading', { name: 'Add Payment Method' })).toBeInTheDocument()
-		}, { timeout: 5000 })
+		await vi.waitFor(
+			() => {
+				expect(
+					screen.getByRole('heading', { name: 'Add Payment Method' })
+				).toBeInTheDocument()
+			},
+			{ timeout: 5000 }
+		)
 
 		// Should show both payment option headings (already verified in waitFor above)
 		expect(
@@ -98,9 +103,14 @@ describe('Settings Page with Payment Comparison', () => {
 		renderWithProviders(<SettingsPage />)
 
 		// Wait for async rendering
-		await vi.waitFor(() => {
-			expect(screen.getByText(/save a card or bank account/i)).toBeInTheDocument()
-		}, { timeout: 5000 })
+		await vi.waitFor(
+			() => {
+				expect(
+					screen.getByText(/save a card or bank account/i)
+				).toBeInTheDocument()
+			},
+			{ timeout: 5000 }
+		)
 
 		// Check for descriptive text
 		expect(screen.getByText(/direct bank connection/i)).toBeInTheDocument()
@@ -112,9 +122,12 @@ describe('Settings Page with Payment Comparison', () => {
 		renderWithProviders(<SettingsPage />)
 
 		// Wait for async rendering
-		await vi.waitFor(() => {
-			expect(screen.getAllByRole('status').length).toBeGreaterThan(0)
-		}, { timeout: 5000 })
+		await vi.waitFor(
+			() => {
+				expect(screen.getAllByRole('status').length).toBeGreaterThan(0)
+			},
+			{ timeout: 5000 }
+		)
 
 		// Find the recommended badge
 		const badges = screen.getAllByRole('status')

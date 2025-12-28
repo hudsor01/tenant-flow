@@ -72,7 +72,9 @@ export class NotificationSettingsController {
 		return this.supabase.getUserClient(token) as unknown as SupabaseClient
 	}
 
-	private mapRowToPreferences(row: NotificationSettingsRow): NotificationPreferences {
+	private mapRowToPreferences(
+		row: NotificationSettingsRow
+	): NotificationPreferences {
 		return {
 			email: row.email ?? DEFAULT_SETTINGS.email,
 			sms: row.sms ?? DEFAULT_SETTINGS.sms,
@@ -98,14 +100,25 @@ export class NotificationSettingsController {
 		if (typeof payload.push === 'boolean') update.push = payload.push
 		if (typeof payload.inApp === 'boolean') update.in_app = payload.inApp
 
-		const categories = payload.categories as { maintenance?: boolean; leases?: boolean; general?: boolean } | undefined
-		if (categories?.maintenance !== undefined && typeof categories.maintenance === 'boolean') {
+		const categories = payload.categories as
+			| { maintenance?: boolean; leases?: boolean; general?: boolean }
+			| undefined
+		if (
+			categories?.maintenance !== undefined &&
+			typeof categories.maintenance === 'boolean'
+		) {
 			update.maintenance = categories.maintenance
 		}
-		if (categories?.leases !== undefined && typeof categories.leases === 'boolean') {
+		if (
+			categories?.leases !== undefined &&
+			typeof categories.leases === 'boolean'
+		) {
 			update.leases = categories.leases
 		}
-		if (categories?.general !== undefined && typeof categories.general === 'boolean') {
+		if (
+			categories?.general !== undefined &&
+			typeof categories.general === 'boolean'
+		) {
 			update.general = categories.general
 		}
 
@@ -151,17 +164,19 @@ export class NotificationSettingsController {
 			throw new BadRequestException(insertError.message)
 		}
 
-		return (inserted?.[0] as NotificationSettingsRow) ?? {
-			id: '',
-			user_id: userId,
-			email: DEFAULT_SETTINGS.email,
-			sms: DEFAULT_SETTINGS.sms,
-			push: DEFAULT_SETTINGS.push,
-			in_app: DEFAULT_SETTINGS.inApp,
-			maintenance: DEFAULT_SETTINGS.categories.maintenance,
-			leases: DEFAULT_SETTINGS.categories.leases,
-			general: DEFAULT_SETTINGS.categories.general
-		}
+		return (
+			(inserted?.[0] as NotificationSettingsRow) ?? {
+				id: '',
+				user_id: userId,
+				email: DEFAULT_SETTINGS.email,
+				sms: DEFAULT_SETTINGS.sms,
+				push: DEFAULT_SETTINGS.push,
+				in_app: DEFAULT_SETTINGS.inApp,
+				maintenance: DEFAULT_SETTINGS.categories.maintenance,
+				leases: DEFAULT_SETTINGS.categories.leases,
+				general: DEFAULT_SETTINGS.categories.general
+			}
+		)
 	}
 
 	@Get()
@@ -204,7 +219,8 @@ export class NotificationSettingsController {
 			throw new BadRequestException(error.message)
 		}
 
-		const updatedRow = (data?.[0] as NotificationSettingsRow | undefined) ?? null
+		const updatedRow =
+			(data?.[0] as NotificationSettingsRow | undefined) ?? null
 		if (!updatedRow) {
 			throw new BadRequestException('Unable to update notification settings')
 		}

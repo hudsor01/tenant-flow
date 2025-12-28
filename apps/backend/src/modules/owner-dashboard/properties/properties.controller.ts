@@ -1,4 +1,11 @@
-import { Controller, Get, Req, UnauthorizedException, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Req,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { user_id } from '../../../shared/decorators/user.decorator'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
@@ -21,9 +28,11 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class PropertiesController {
-
-	constructor(private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	@Get('performance')
 	async getPropertyPerformance(

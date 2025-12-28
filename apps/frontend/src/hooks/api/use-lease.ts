@@ -13,10 +13,7 @@ import { apiRequest } from '#lib/api-request'
 
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { useMemo } from 'react'
-import type {
-	LeaseCreate,
-	LeaseUpdate
-} from '@repo/shared/validation/leases'
+import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
 import type { Lease, LeaseWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -282,7 +279,10 @@ export function useUpdateLease() {
 			// Optimistically update detail cache (use incrementVersion helper)
 			queryClient.setQueryData<LeaseWithVersion>(
 				leaseQueries.detail(id).queryKey,
-				old => (old ? incrementVersion(old, data as Partial<LeaseWithVersion>) : undefined)
+				old =>
+					old
+						? incrementVersion(old, data as Partial<LeaseWithVersion>)
+						: undefined
 			)
 
 			// Optimistically update list caches
@@ -296,7 +296,9 @@ export function useUpdateLease() {
 				return {
 					...old,
 					data: old.data.map(lease =>
-						lease.id === id ? incrementVersion(lease, data as Partial<LeaseWithVersion>) : lease
+						lease.id === id
+							? incrementVersion(lease, data as Partial<LeaseWithVersion>)
+							: lease
 					)
 				}
 			})
@@ -693,7 +695,6 @@ export function useSignLeaseAsTenant() {
 		}
 	})
 }
-
 
 /**
  * Cancel a pending signature request - reverts lease to draft status

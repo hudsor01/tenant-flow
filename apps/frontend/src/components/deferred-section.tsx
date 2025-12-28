@@ -1,6 +1,13 @@
 'use client'
 
-import { Activity, Suspense, useRef, useState, useEffect, type ReactNode } from 'react'
+import {
+	Activity,
+	Suspense,
+	useRef,
+	useState,
+	useEffect,
+	type ReactNode
+} from 'react'
 
 interface DeferredSectionProps {
 	children: ReactNode
@@ -43,7 +50,7 @@ export function DeferredSection({
 		if (!element) return
 
 		const observer = new IntersectionObserver(
-			(entries) => {
+			entries => {
 				const entry = entries[0]
 				if (!entry) return
 				if (entry.isIntersecting) {
@@ -64,11 +71,7 @@ export function DeferredSection({
 
 	// Priority content: Just Suspense, no Activity wrapper
 	if (priority) {
-		return (
-			<Suspense fallback={fallback}>
-				{children}
-			</Suspense>
-		)
+		return <Suspense fallback={fallback}>{children}</Suspense>
 	}
 
 	// Deferred content: Activity + Suspense
@@ -97,7 +100,7 @@ export function useInViewport(
 		if (!element) return
 
 		const observer = new IntersectionObserver(
-			(entries) => {
+			entries => {
 				const entry = entries[0]
 				if (entry) setIsInViewport(entry.isIntersecting)
 			},

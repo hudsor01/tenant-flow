@@ -14,13 +14,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
-import {
-	Calendar,
-	DollarSign,
-	Eye,
-	MapPin,
-	Wrench
-} from 'lucide-react'
+import { Calendar, DollarSign, Eye, MapPin, Wrench } from 'lucide-react'
 import { useState } from 'react'
 
 interface MaintenanceActionButtonsProps {
@@ -151,9 +145,7 @@ export function MaintenanceActionButtons({
 									</div>
 									<div>
 										<p className="typography-small">Unit</p>
-										<p className="text-muted">
-											Unit {maintenance.unit_id}
-										</p>
+										<p className="text-muted">Unit {maintenance.unit_id}</p>
 									</div>
 								</div>
 							)}
@@ -171,30 +163,30 @@ export function MaintenanceActionButtons({
 								</div>
 							</div>
 						)}
-						</div>
+					</div>
 
-						{/* Dates */}
-						<div className="flex items-center gap-2">
-							<Calendar className="size-4 text-muted-foreground" />
-							<div>
-								<p className="typography-small">Created</p>
-								<p className="text-muted">
-									{maintenance.created_at
-										? new Date(maintenance.created_at).toLocaleDateString()
-										: 'No date'}
-								</p>
-							</div>
+					{/* Dates */}
+					<div className="flex items-center gap-2">
+						<Calendar className="size-4 text-muted-foreground" />
+						<div>
+							<p className="typography-small">Created</p>
+							<p className="text-muted">
+								{maintenance.created_at
+									? new Date(maintenance.created_at).toLocaleDateString()
+									: 'No date'}
+							</p>
 						</div>
+					</div>
 
-						{/* Action Buttons */}
-						<div className="flex justify-end pt-4 border-t">
-							<ButtonGroup>
-								<Button variant="outline" onClick={() => setViewOpen(false)}>
-									Close
-								</Button>
-								<EditMaintenanceButton maintenance={maintenance} />
-								<StatusUpdateButton maintenance={maintenance} />
-							</ButtonGroup>
+					{/* Action Buttons */}
+					<div className="flex justify-end pt-4 border-t">
+						<ButtonGroup>
+							<Button variant="outline" onClick={() => setViewOpen(false)}>
+								Close
+							</Button>
+							<EditMaintenanceButton maintenance={maintenance} />
+							<StatusUpdateButton maintenance={maintenance} />
+						</ButtonGroup>
 					</div>
 				</DialogContent>
 			</Dialog>

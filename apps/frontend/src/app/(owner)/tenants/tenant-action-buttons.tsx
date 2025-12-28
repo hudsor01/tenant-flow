@@ -79,7 +79,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 				}
 			)
 			queryClient.invalidateQueries({ queryKey: ['tenant-stats'] })
-			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
+			queryClient.invalidateQueries({
+				queryKey: ownerDashboardKeys.analytics.stats()
+			})
 			queryClient.invalidateQueries({ queryKey: ['properties'] })
 			queryClient.invalidateQueries({ queryKey: ['leases'] })
 			toast.success('Tenant deleted successfully')
@@ -91,10 +93,13 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 
 	const inviteMutation = useMutation({
 		mutationFn: async () =>
-			apiRequest<{ success: boolean }>(`/api/v1/tenants/${tenant.id}/resend-invitation`, {
-				method: 'POST',
-				body: JSON.stringify({})
-			}),
+			apiRequest<{ success: boolean }>(
+				`/api/v1/tenants/${tenant.id}/resend-invitation`,
+				{
+					method: 'POST',
+					body: JSON.stringify({})
+				}
+			),
 		onSuccess: () => {
 			toast.success('Invitation sent successfully')
 		},
@@ -119,7 +124,10 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 		},
 		onSuccess: (updated: TenantWithLeaseInfo) => {
 			// Update single tenant cache and the tenants list without refetch
-			queryClient.setQueryData(tenantQueries.detail(tenant.id).queryKey, updated as never)
+			queryClient.setQueryData(
+				tenantQueries.detail(tenant.id).queryKey,
+				updated as never
+			)
 			queryClient.setQueryData(
 				tenantQueries.lists(),
 				(old: TenantWithLeaseInfo[] | undefined) => {
@@ -216,8 +224,9 @@ export function TenantActionButtons({ tenant }: TenantActionButtonsProps) {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete {tenant.first_name} {tenant.last_name}?
-							This action cannot be undone and will remove all associated data.
+							Are you sure you want to delete {tenant.first_name}{' '}
+							{tenant.last_name}? This action cannot be undone and will remove
+							all associated data.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

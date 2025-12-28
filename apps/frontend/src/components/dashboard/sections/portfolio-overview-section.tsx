@@ -56,18 +56,23 @@ interface PortfolioOverviewSectionProps {
  * - Improved sort indicators
  */
 
-export function PortfolioOverviewSection({ properties = [], isLoading }: PortfolioOverviewSectionProps) {
+export function PortfolioOverviewSection({
+	properties = [],
+	isLoading
+}: PortfolioOverviewSectionProps) {
 	const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table')
 	const [searchQuery, setSearchQuery] = React.useState('')
 	const [statusFilter, setStatusFilter] = React.useState<string>('all')
 	const [sortField, setSortField] = React.useState<string>('property')
-	const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc')
+	const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
+		'asc'
+	)
 	const [currentPage, setCurrentPage] = React.useState(1)
 	const itemsPerPage = 10
 
 	// Transform properties into portfolio rows
 	const portfolioData: PortfolioRow[] = React.useMemo(() => {
-		return properties.map((prop) => {
+		return properties.map(prop => {
 			const totalUnits = prop.totalUnits ?? 0
 			const occupiedUnits = prop.occupiedUnits ?? 0
 			const occupancyRate = prop.occupancyRate ?? 0
@@ -78,7 +83,11 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 				address: prop.address_line1 || '',
 				units: { occupied: occupiedUnits, total: totalUnits },
 				tenant: occupiedUnits > 0 ? `${occupiedUnits} tenants` : null,
-				leaseStatus: (occupancyRate === 100 ? 'active' : occupancyRate >= 80 ? 'expiring' : 'vacant') as LeaseStatus,
+				leaseStatus: (occupancyRate === 100
+					? 'active'
+					: occupancyRate >= 80
+						? 'expiring'
+						: 'vacant') as LeaseStatus,
 				rent: prop.monthlyRevenue ?? 0
 			}
 		})
@@ -87,10 +96,13 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 	// Filter and sort data
 	const filteredData = React.useMemo(() => {
 		return portfolioData
-			.filter((row) => {
+			.filter(row => {
 				if (searchQuery) {
 					const query = searchQuery.toLowerCase()
-					if (!row.property.toLowerCase().includes(query) && !row.address.toLowerCase().includes(query)) {
+					if (
+						!row.property.toLowerCase().includes(query) &&
+						!row.address.toLowerCase().includes(query)
+					) {
 						return false
 					}
 				}
@@ -156,9 +168,12 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 
 	const getStatusBadge = (status: LeaseStatus) => {
 		const styles = {
-			active: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-			expiring: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-			vacant: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
+			active:
+				'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+			expiring:
+				'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+			vacant:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
 		}
 		const labels = {
 			active: 'Active',
@@ -166,7 +181,9 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 			vacant: 'Vacant'
 		}
 		return (
-			<span className={`text-xs font-medium px-2 py-0.5 rounded ${styles[status]}`}>
+			<span
+				className={`text-xs font-medium px-2 py-0.5 rounded ${styles[status]}`}
+			>
 				{labels[status]}
 			</span>
 		)
@@ -201,7 +218,7 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 					<Input
 						placeholder="Search properties..."
 						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
+						onChange={e => setSearchQuery(e.target.value)}
 						className="pl-9 h-9"
 					/>
 				</div>
@@ -290,19 +307,26 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{paginatedData.map((row) => (
+						{paginatedData.map(row => (
 							<TableRow key={row.id} className="group">
 								<TableCell>
-									<Link href={`/properties/${row.id}`} className="hover:underline">
+									<Link
+										href={`/properties/${row.id}`}
+										className="hover:underline"
+									>
 										<div className="font-medium">{row.property}</div>
-										<div className="text-xs text-muted-foreground">{row.address}</div>
+										<div className="text-xs text-muted-foreground">
+											{row.address}
+										</div>
 									</Link>
 								</TableCell>
 								<TableCell>
 									<span className="tabular-nums">
 										{row.units.occupied}/{row.units.total}
 									</span>
-									<span className="ml-1 text-xs text-muted-foreground">occupied</span>
+									<span className="ml-1 text-xs text-muted-foreground">
+										occupied
+									</span>
 								</TableCell>
 								<TableCell className="hidden md:table-cell">
 									{getStatusBadge(row.leaseStatus)}
@@ -318,7 +342,7 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 				/* Grid View - Using @container queries for responsive layout */
 				<div className="@container p-4">
 					<div className="grid gap-4 grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-3 @xl:grid-cols-4">
-						{paginatedData.map((row) => (
+						{paginatedData.map(row => (
 							<Link
 								key={row.id}
 								href={`/properties/${row.id}`}
@@ -326,27 +350,45 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 							>
 								<div className="flex items-start justify-between gap-2 mb-3">
 									<div className="min-w-0">
-										<div className="font-medium text-foreground truncate">{row.property}</div>
-										<div className="text-xs text-muted-foreground truncate">{row.address}</div>
+										<div className="font-medium text-foreground truncate">
+											{row.property}
+										</div>
+										<div className="text-xs text-muted-foreground truncate">
+											{row.address}
+										</div>
 									</div>
 									{getStatusBadge(row.leaseStatus)}
 								</div>
 								<div className="grid grid-cols-2 gap-3 text-sm">
 									<div>
-										<div className="text-muted-foreground text-xs font-medium">Units</div>
-										<div className="tabular-nums text-foreground">{row.units.occupied}/{row.units.total}</div>
+										<div className="text-muted-foreground text-xs font-medium">
+											Units
+										</div>
+										<div className="tabular-nums text-foreground">
+											{row.units.occupied}/{row.units.total}
+										</div>
 									</div>
 									<div>
-										<div className="text-muted-foreground text-xs font-medium">Rent</div>
-										<div className="tabular-nums text-foreground">{formatCents(row.rent)}</div>
+										<div className="text-muted-foreground text-xs font-medium">
+											Rent
+										</div>
+										<div className="tabular-nums text-foreground">
+											{formatCents(row.rent)}
+										</div>
 									</div>
 									<div>
-										<div className="text-muted-foreground text-xs font-medium">Tenants</div>
+										<div className="text-muted-foreground text-xs font-medium">
+											Tenants
+										</div>
 										<div className="text-foreground">{row.tenant || '—'}</div>
 									</div>
 									<div>
-										<div className="text-muted-foreground text-xs font-medium">Status</div>
-										<div className="text-foreground capitalize">{row.leaseStatus}</div>
+										<div className="text-muted-foreground text-xs font-medium">
+											Status
+										</div>
+										<div className="text-foreground capitalize">
+											{row.leaseStatus}
+										</div>
 									</div>
 								</div>
 							</Link>
@@ -359,7 +401,9 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 			{filteredData.length > 0 && totalPages > 1 && (
 				<div className="px-4 py-3 border-t border-border flex items-center justify-between">
 					<span className="text-sm text-muted-foreground">
-						Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filteredData.length)} of {filteredData.length}
+						Showing {(currentPage - 1) * itemsPerPage + 1}–
+						{Math.min(currentPage * itemsPerPage, filteredData.length)} of{' '}
+						{filteredData.length}
 					</span>
 					<div className="flex items-center gap-1">
 						<button
@@ -369,7 +413,10 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 						>
 							<ChevronLeft className="w-4 h-4" />
 						</button>
-						{Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((page) => (
+						{Array.from(
+							{ length: Math.min(totalPages, 5) },
+							(_, i) => i + 1
+						).map(page => (
 							<button
 								key={page}
 								onClick={() => setCurrentPage(page)}
@@ -396,7 +443,9 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 			{/* Empty state */}
 			{filteredData.length === 0 && portfolioData.length > 0 && (
 				<div className="text-center py-12">
-					<p className="text-muted-foreground">No properties match your filters</p>
+					<p className="text-muted-foreground">
+						No properties match your filters
+					</p>
 					<button
 						onClick={clearFilters}
 						className="mt-3 text-sm text-primary hover:underline"
@@ -409,7 +458,10 @@ export function PortfolioOverviewSection({ properties = [], isLoading }: Portfol
 			{portfolioData.length === 0 && (
 				<div className="text-center py-12">
 					<p className="text-muted-foreground">No properties yet</p>
-					<Link href="/properties/new" className="mt-3 text-sm text-primary hover:underline block">
+					<Link
+						href="/properties/new"
+						className="mt-3 text-sm text-primary hover:underline block"
+					>
 						Add your first property
 					</Link>
 				</div>

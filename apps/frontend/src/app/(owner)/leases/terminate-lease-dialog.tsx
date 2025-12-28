@@ -1,6 +1,15 @@
 'use client'
 
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '#components/ui/dialog'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/dialog'
 import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
@@ -39,7 +48,8 @@ export function TerminateLeaseDialog({
 				<AlertDialogHeader>
 					<AlertDialogTitle>Terminate Lease</AlertDialogTitle>
 					<AlertDialogDescription>
-						This action will terminate the lease early and mark it as TERMINATED. This action cannot be undone.
+						This action will terminate the lease early and mark it as
+						TERMINATED. This action cannot be undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<div className="space-y-6">

@@ -13,9 +13,8 @@ export class MaintenanceInsightsController {
 	async getMaintenanceMetrics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.maintenanceInsightsService.getMaintenanceMetrics(
-			userId
-		)
+		const data =
+			await this.maintenanceInsightsService.getMaintenanceMetrics(userId)
 
 		return {
 			success: true,
@@ -29,9 +28,8 @@ export class MaintenanceInsightsController {
 	async getMaintenanceAnalytics(
 		@user_id() userId: string
 	): Promise<ControllerApiResponse> {
-		const data = await this.maintenanceInsightsService.getMaintenanceAnalytics(
-			userId
-		)
+		const data =
+			await this.maintenanceInsightsService.getMaintenanceAnalytics(userId)
 
 		return {
 			success: true,

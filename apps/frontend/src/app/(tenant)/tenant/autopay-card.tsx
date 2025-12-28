@@ -15,14 +15,17 @@ export function TenantAutopayCard() {
 	const autopay = useTenantAutopayStatus()
 	const setup = useTenantPortalSetupAutopay()
 	const cancel = useTenantPortalCancelAutopay()
-	const { data: paymentMethods = [], isFetched: methodsFetched } = usePaymentMethods()
+	const { data: paymentMethods = [], isFetched: methodsFetched } =
+		usePaymentMethods()
 
 	const lease_id = autopay.data?.lease_id ?? null
 	const tenant_id = autopay.data?.tenant_id ?? null
 	const enabled = autopay.data?.autopayEnabled ?? false
 
 	// Format next payment date from Stripe subscription's current_period_end
-	const formatNextPaymentDate = (isoDate: string | null | undefined): string => {
+	const formatNextPaymentDate = (
+		isoDate: string | null | undefined
+	): string => {
 		if (!isoDate) return 'Coming soon'
 		try {
 			return new Date(isoDate).toLocaleDateString(undefined, {
@@ -37,7 +40,8 @@ export function TenantAutopayCard() {
 
 	const nextPaymentDate = formatNextPaymentDate(autopay.data?.nextPaymentDate)
 
-	const defaultMethod = paymentMethods.find(method => method.isDefault) ?? paymentMethods[0]
+	const defaultMethod =
+		paymentMethods.find(method => method.isDefault) ?? paymentMethods[0]
 	const canEnable = Boolean(defaultMethod)
 
 	if (!tenant_id || !lease_id) {
@@ -46,10 +50,13 @@ export function TenantAutopayCard() {
 
 	const handleToggle = () => {
 		if (enabled) {
-			cancel.mutate({ tenant_id, lease_id }, {
-				onSuccess: () => toast.success('Autopay cancelled'),
-				onError: () => toast.error('Could not cancel autopay')
-			})
+			cancel.mutate(
+				{ tenant_id, lease_id },
+				{
+					onSuccess: () => toast.success('Autopay cancelled'),
+					onError: () => toast.error('Could not cancel autopay')
+				}
+			)
 			return
 		}
 
@@ -58,10 +65,17 @@ export function TenantAutopayCard() {
 			return
 		}
 
-		setup.mutate({ tenant_id, lease_id, paymentMethodId: defaultMethod!.stripePaymentMethodId }, {
-			onSuccess: () => toast.success('Autopay enabled'),
-			onError: () => toast.error('Failed to start autopay')
-		})
+		setup.mutate(
+			{
+				tenant_id,
+				lease_id,
+				paymentMethodId: defaultMethod!.stripePaymentMethodId
+			},
+			{
+				onSuccess: () => toast.success('Autopay enabled'),
+				onError: () => toast.error('Failed to start autopay')
+			}
+		)
 	}
 
 	const description = enabled
@@ -77,7 +91,9 @@ export function TenantAutopayCard() {
 			<div className="flex items-center gap-3">
 				<Button
 					onClick={handleToggle}
-					disabled={setup.isPending || cancel.isPending || (!canEnable && !enabled)}
+					disabled={
+						setup.isPending || cancel.isPending || (!canEnable && !enabled)
+					}
 				>
 					{setup.isPending || cancel.isPending ? (
 						<>

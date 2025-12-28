@@ -29,9 +29,13 @@ vi.mock('sonner', () => ({
 
 // Mock next/link
 vi.mock('next/link', () => ({
-	default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-		<a href={href}>{children}</a>
-	)
+	default: ({
+		children,
+		href
+	}: {
+		children: React.ReactNode
+		href: string
+	}) => <a href={href}>{children}</a>
 }))
 
 const MOCK_COLUMNS: ColumnDef<TenantWithLeaseInfo>[] = [
@@ -178,13 +182,16 @@ describe('TenantsTableClient', () => {
 	describe('Rendering', () => {
 		test('renders tenant list with correct data', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
-		expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
-		expect(screen.getByText('sarah.johnson@email.com')).toBeInTheDocument()
-		expect(screen.getByText('Michael Chen')).toBeInTheDocument()
-		expect(screen.getByText('michael.chen@email.com')).toBeInTheDocument()
+			expect(screen.getByText('Sarah Johnson')).toBeInTheDocument()
+			expect(screen.getByText('sarah.johnson@email.com')).toBeInTheDocument()
+			expect(screen.getByText('Michael Chen')).toBeInTheDocument()
+			expect(screen.getByText('michael.chen@email.com')).toBeInTheDocument()
 		})
 
 		test('shows empty state when no tenants', () => {
@@ -198,7 +205,10 @@ describe('TenantsTableClient', () => {
 
 		test('renders action buttons for each tenant', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			// Should have View, Edit, Delete for each tenant
@@ -213,7 +223,10 @@ describe('TenantsTableClient', () => {
 
 		test('view button links to tenant detail page', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const viewButtons = screen.getAllByRole('link', { name: /view/i })
@@ -224,7 +237,10 @@ describe('TenantsTableClient', () => {
 
 		test('edit button links to tenant edit page', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const editButtons = screen.getAllByRole('link', { name: /edit/i })
@@ -238,7 +254,10 @@ describe('TenantsTableClient', () => {
 		test('opens confirmation dialog when delete button clicked', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
@@ -248,29 +267,37 @@ describe('TenantsTableClient', () => {
 			await waitFor(() => {
 				expect(screen.getByText(/delete tenant/i)).toBeInTheDocument()
 				expect(screen.getByText(/permanently delete/i)).toBeInTheDocument()
-		// Look for Sarah Johnson in the dialog content (appears in both table and dialog)
-		expect(screen.getAllByText('Sarah Johnson').length).toBeGreaterThan(0)
+				// Look for Sarah Johnson in the dialog content (appears in both table and dialog)
+				expect(screen.getAllByText('Sarah Johnson').length).toBeGreaterThan(0)
 			})
 		})
 
 		test('shows cancel button in delete dialog', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
 			await user.click(deleteButtons[0]!)
 
 			await waitFor(() => {
-				expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('button', { name: /cancel/i })
+				).toBeInTheDocument()
 			})
 		})
 
 		test('closes dialog when cancel clicked', async () => {
 			const user = userEvent.setup()
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
@@ -293,7 +320,10 @@ describe('TenantsTableClient', () => {
 	describe('Table Features', () => {
 		test('displays all column headers', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			expect(screen.getByText('Name')).toBeInTheDocument()
@@ -303,7 +333,10 @@ describe('TenantsTableClient', () => {
 
 		test('renders multiple rows correctly', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			// Should show both tenants
@@ -315,7 +348,10 @@ describe('TenantsTableClient', () => {
 	describe('Accessibility', () => {
 		test('delete buttons have accessible labels', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
@@ -328,7 +364,10 @@ describe('TenantsTableClient', () => {
 
 		test('action buttons are keyboard accessible', () => {
 			renderWithQueryClient(
-				<TenantsTableClient columns={MOCK_COLUMNS} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			const viewButtons = screen.getAllByRole('link', { name: /view/i })
@@ -386,14 +425,14 @@ describe('TenantsTableClient', () => {
 				leaseEnd: null
 			}
 
-            renderWithQueryClient(
-                <TenantsTableClient
-                    columns={MOCK_COLUMNS}
-                    initialTenants={[tenantWithoutLease]}
-                />
-            )
+			renderWithQueryClient(
+				<TenantsTableClient
+					columns={MOCK_COLUMNS}
+					initialTenants={[tenantWithoutLease]}
+				/>
+			)
 
-            expect(screen.getByText('Emily Rodriguez')).toBeInTheDocument()
+			expect(screen.getByText('Emily Rodriguez')).toBeInTheDocument()
 		})
 
 		test('renders correctly with custom columns', () => {
@@ -405,7 +444,10 @@ describe('TenantsTableClient', () => {
 			]
 
 			renderWithQueryClient(
-				<TenantsTableClient columns={customColumns} initialTenants={MOCK_TENANTS} />
+				<TenantsTableClient
+					columns={customColumns}
+					initialTenants={MOCK_TENANTS}
+				/>
 			)
 
 			expect(screen.getByText('Tenant Name')).toBeInTheDocument()

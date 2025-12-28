@@ -76,7 +76,7 @@ export function AsyncTimeout(timeoutMs: number, timeoutMessage?: string) {
 			...args: unknown[]
 		): Promise<unknown> {
 			let timeoutId: NodeJS.Timeout
-			
+
 			const timeoutPromise = new Promise((_, reject) => {
 				timeoutId = setTimeout(() => {
 					const className = target.constructor?.name || 'Unknown'
@@ -87,11 +87,12 @@ export function AsyncTimeout(timeoutMs: number, timeoutMessage?: string) {
 				}, timeoutMs)
 			})
 
-			return Promise.race([method.apply(this, args), timeoutPromise])
-				.finally(() => {
+			return Promise.race([method.apply(this, args), timeoutPromise]).finally(
+				() => {
 					// Clear timeout to prevent memory leak and unhandled rejection
 					clearTimeout(timeoutId)
-				})
+				}
+			)
 		}
 
 		return descriptor

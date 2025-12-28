@@ -44,7 +44,9 @@ export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 	const queryClient = useQueryClient()
 
 	// Use regular query with loading state
-	const { data: tenant, isPending: isLoading } = useQuery(tenantQueries.withLease(tenant_id))
+	const { data: tenant, isPending: isLoading } = useQuery(
+		tenantQueries.withLease(tenant_id)
+	)
 
 	const refresh = useCallback(async () => {
 		await queryClient.refetchQueries({
@@ -58,21 +60,18 @@ export function TenantProvider({ children, tenant_id }: TenantProviderProps) {
 		})
 	}, [queryClient, tenant_id])
 
-	const value: TenantContextValue = useMemo(
-		() => {
-			const obj: TenantContextValue = {
-				tenant_id,
-				refresh,
-				isLoading,
-				invalidate
-			}
-			if (tenant !== undefined) {
-				obj.tenant = tenant
-			}
-			return obj
-		},
-		[tenant, tenant_id, refresh, invalidate, isLoading]
-	)
+	const value: TenantContextValue = useMemo(() => {
+		const obj: TenantContextValue = {
+			tenant_id,
+			refresh,
+			isLoading,
+			invalidate
+		}
+		if (tenant !== undefined) {
+			obj.tenant = tenant
+		}
+		return obj
+	}, [tenant, tenant_id, refresh, invalidate, isLoading])
 
 	return (
 		<TenantContext.Provider value={value}>{children}</TenantContext.Provider>

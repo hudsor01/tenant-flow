@@ -94,7 +94,11 @@ export function createMockToast(): MockToast {
  *   })
  * })
  */
-export function setupCommonMocks(): { router: MockRouter; toast: MockToast; reset: () => void } {
+export function setupCommonMocks(): {
+	router: MockRouter
+	toast: MockToast
+	reset: () => void
+} {
 	const router = createMockRouter()
 	const toast = createMockToast()
 

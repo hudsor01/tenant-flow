@@ -85,7 +85,13 @@ const createMockFinancialData = (): FinancialAnalyticsPageData => ({
 		{ status: 'pending', count: 2, amount: 5000 }
 	],
 	monthlyMetrics: [
-		{ month: 'Jan', revenue: 10000, expenses: 4000, netIncome: 6000, cashFlow: 5500 }
+		{
+			month: 'Jan',
+			revenue: 10000,
+			expenses: 4000,
+			netIncome: 6000,
+			cashFlow: 5500
+		}
 	],
 	leaseAnalytics: [
 		{
@@ -379,7 +385,9 @@ describe('analyticsQueries', () => {
 
 		it('should provide default values for missing fields', async () => {
 			// API returns partial data
-			mockFetch.mockResolvedValue(createMockResponse({ metrics: null, trends: null }))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ metrics: null, trends: null })
+			)
 
 			const options = analyticsQueries.occupancyPageData()
 			const result = await options.queryFn!({} as never)
@@ -520,7 +528,9 @@ describe('analyticsQueries', () => {
 
 	describe('error handling', () => {
 		it('should propagate fetch errors for financial data', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ error: 'Server error' }, false, 500))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ error: 'Server error' }, false, 500)
+			)
 
 			const options = analyticsQueries.financialPageData()
 
@@ -528,7 +538,9 @@ describe('analyticsQueries', () => {
 		})
 
 		it('should propagate fetch errors for lease data', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ error: 'Server error' }, false, 500))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ error: 'Server error' }, false, 500)
+			)
 
 			const options = analyticsQueries.leasePageData()
 
@@ -536,7 +548,9 @@ describe('analyticsQueries', () => {
 		})
 
 		it('should propagate fetch errors for maintenance data', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ error: 'Server error' }, false, 500))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ error: 'Server error' }, false, 500)
+			)
 
 			const options = analyticsQueries.maintenancePageData()
 
@@ -548,7 +562,9 @@ describe('analyticsQueries', () => {
 
 			const options = analyticsQueries.financialPageData()
 
-			await expect(options.queryFn!({} as never)).rejects.toThrow('Network error')
+			await expect(options.queryFn!({} as never)).rejects.toThrow(
+				'Network error'
+			)
 		})
 	})
 })

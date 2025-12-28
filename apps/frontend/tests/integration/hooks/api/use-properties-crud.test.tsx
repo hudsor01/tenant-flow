@@ -12,7 +12,11 @@
  */
 
 import { renderHook, waitFor, act } from '@testing-library/react'
-import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
+import {
+	QueryClient,
+	QueryClientProvider,
+	useQuery
+} from '@tanstack/react-query'
 import { describe, it, expect, afterEach, beforeEach } from 'vitest'
 import type { ReactNode } from 'react'
 import {
@@ -445,10 +449,9 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 				createdPropertyIds.push(createdProperty!.id)
 
 				// Now update the property
-				const { result: updateResult } = renderHook(
-					() => useUpdateProperty(),
-					{ wrapper }
-				)
+				const { result: updateResult } = renderHook(() => useUpdateProperty(), {
+					wrapper
+				})
 
 				let updatedProperty: unknown
 
@@ -490,10 +493,9 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 				expect(createdProperty?.id).toBeDefined()
 
 				// Now delete the property
-				const { result: deleteResult } = renderHook(
-					() => useDeleteProperty(),
-					{ wrapper }
-				)
+				const { result: deleteResult } = renderHook(() => useDeleteProperty(), {
+					wrapper
+				})
 
 				let deleteResponse: unknown
 
@@ -552,10 +554,9 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 				createdPropertyIds.push(createdProperty!.id)
 
 				// Now mark as sold
-				const { result: soldResult } = renderHook(
-					() => useMarkPropertySold(),
-					{ wrapper }
-				)
+				const { result: soldResult } = renderHook(() => useMarkPropertySold(), {
+					wrapper
+				})
 
 				let soldResponse: unknown
 
@@ -642,10 +643,9 @@ describeIfReady('Properties CRUD Integration Tests', () => {
 
 			// Cleanup
 			if (createdProperty?.id) {
-				const { result: deleteResult } = renderHook(
-					() => useDeleteProperty(),
-					{ wrapper }
-				)
+				const { result: deleteResult } = renderHook(() => useDeleteProperty(), {
+					wrapper
+				})
 				await act(async () => {
 					await deleteResult.current.mutateAsync(createdProperty!.id)
 				})

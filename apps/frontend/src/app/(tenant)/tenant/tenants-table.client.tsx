@@ -54,22 +54,27 @@ export function TenantsTable({
 	// TanStack Query mutation for delete with optimistic updates
 	const { mutate: deleteTenant, isPending: isDeleting } = useMutation({
 		mutationFn: deleteTenantAction,
-		onMutate: async (tenant_id) => {
+		onMutate: async tenant_id => {
 			// Cancel any outgoing refetches
-			await queryClient.cancelQueries({ queryKey: tenantQueries.list().queryKey })
+			await queryClient.cancelQueries({
+				queryKey: tenantQueries.list().queryKey
+			})
 
 			// Snapshot the previous value
-			const previousTenants = queryClient.getQueryData<PaginatedResponse<TenantWithLeaseInfo>>(
-				tenantQueries.list().queryKey
-			)
+			const previousTenants = queryClient.getQueryData<
+				PaginatedResponse<TenantWithLeaseInfo>
+			>(tenantQueries.list().queryKey)
 
 			// Optimistically update to the new value
 			queryClient.setQueryData<PaginatedResponse<TenantWithLeaseInfo>>(
 				tenantQueries.list().queryKey,
-				(old) => old ? {
-					...old,
-					data: old.data.filter((t) => t.id !== tenant_id)
-				} : old
+				old =>
+					old
+						? {
+								...old,
+								data: old.data.filter(t => t.id !== tenant_id)
+							}
+						: old
 			)
 
 			return { previousTenants }
@@ -77,7 +82,10 @@ export function TenantsTable({
 		onError: (error, tenant_id, context) => {
 			// Rollback on error
 			if (context?.previousTenants) {
-				queryClient.setQueryData(tenantQueries.list().queryKey, context.previousTenants)
+				queryClient.setQueryData(
+					tenantQueries.list().queryKey,
+					context.previousTenants
+				)
 			}
 			toast.error('Failed to delete tenant')
 			logger.error('Failed to delete tenant', { action: 'deleteTenant' }, error)
@@ -112,7 +120,7 @@ export function TenantsTable({
 			{
 				id: 'property',
 				header: 'Property',
-				accessorFn: (row) => row.property?.name,
+				accessorFn: row => row.property?.name,
 				meta: {
 					label: 'Property',
 					variant: 'text',
@@ -257,9 +265,9 @@ export function TenantsTable({
 									<AlertDialogHeader>
 										<AlertDialogTitle>Delete tenant</AlertDialogTitle>
 										<AlertDialogDescription>
-											This action cannot be undone. This will permanently
-											delete <strong>{tenant.name}</strong> and remove
-											associated leases and payment history.
+											This action cannot be undone. This will permanently delete{' '}
+											<strong>{tenant.name}</strong> and remove associated
+											leases and payment history.
 										</AlertDialogDescription>
 									</AlertDialogHeader>
 									<AlertDialogFooter>

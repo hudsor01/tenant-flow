@@ -314,13 +314,8 @@ function ParticlesComponent({
 			{...props}
 			// Accessibility improvements
 			aria-hidden="true"
-
 		>
-			<canvas
-				ref={canvasRef}
-				className="block size-full"
-				aria-hidden="true"
-			/>
+			<canvas ref={canvasRef} className="block size-full" aria-hidden="true" />
 		</div>
 	)
 }

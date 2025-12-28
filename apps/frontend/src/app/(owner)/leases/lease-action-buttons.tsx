@@ -20,7 +20,14 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody } from '#components/ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogBody
+} from '#components/ui/dialog'
 import type { Lease } from '@repo/shared/types/core'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -64,7 +71,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	})
 
 	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
-	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
+	const isPendingSignature =
+		lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
 	const ownerHasSigned = !!lease.owner_signed_at
 
 	const handleSignAsOwner = async () => {
@@ -77,7 +85,10 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 	}
 
 	const getStatusBadge = (status: string) => {
-		const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+		const variants: Record<
+			string,
+			'default' | 'secondary' | 'destructive' | 'outline'
+		> = {
 			active: 'default',
 			EXPIRED: 'destructive',
 			TERMINATED: 'secondary',
@@ -89,7 +100,11 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 			pending_signature: 'Pending Signature'
 		}
 
-		return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>
+		return (
+			<Badge variant={variants[status] || 'outline'}>
+				{labels[status] || status}
+			</Badge>
+		)
 	}
 
 	return (
@@ -180,8 +195,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Lease</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this lease? This action cannot be undone
-							and will remove all associated payment records.
+							Are you sure you want to delete this lease? This action cannot be
+							undone and will remove all associated payment records.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

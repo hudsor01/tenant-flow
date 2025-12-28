@@ -104,12 +104,22 @@ describe('tenantQueries', () => {
 
 		it('should generate polling key', () => {
 			const options = tenantQueries.polling('tenant-123')
-			expect(options.queryKey).toEqual(['tenants', 'detail', 'tenant-123', 'polling'])
+			expect(options.queryKey).toEqual([
+				'tenants',
+				'detail',
+				'tenant-123',
+				'polling'
+			])
 		})
 
 		it('should generate notification preferences key', () => {
 			const options = tenantQueries.notificationPreferences('tenant-123')
-			expect(options.queryKey).toEqual(['tenants', 'detail', 'tenant-123', 'notification-preferences'])
+			expect(options.queryKey).toEqual([
+				'tenants',
+				'detail',
+				'tenant-123',
+				'notification-preferences'
+			])
 		})
 
 		it('should generate invitation list key', () => {
@@ -169,7 +179,9 @@ describe('tenantQueries', () => {
 
 	describe('detail query', () => {
 		it('should call fetch with tenant ID in endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({ id: 'tenant-123', first_name: 'John' }))
+			mockFetch.mockResolvedValue(
+				createMockResponse({ id: 'tenant-123', first_name: 'John' })
+			)
 
 			const options = tenantQueries.detail('tenant-123')
 			await options.queryFn!({} as never)
@@ -193,11 +205,13 @@ describe('tenantQueries', () => {
 
 	describe('withLease query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
-				id: 'tenant-123',
-				first_name: 'John',
-				lease: { id: 'lease-1' }
-			}))
+			mockFetch.mockResolvedValue(
+				createMockResponse({
+					id: 'tenant-123',
+					first_name: 'John',
+					lease: { id: 'lease-1' }
+				})
+			)
 
 			const options = tenantQueries.withLease('tenant-123')
 			await options.queryFn!({} as never)
@@ -221,11 +235,13 @@ describe('tenantQueries', () => {
 
 	describe('stats query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
+			mockFetch.mockResolvedValue(
+				createMockResponse({
 					total: 50,
 					active: 45,
 					inactive: 5
-				}))
+				})
+			)
 
 			const options = tenantQueries.stats()
 			await options.queryFn!({} as never)
@@ -312,12 +328,14 @@ describe('tenantQueries', () => {
 
 	describe('notification preferences query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
+			mockFetch.mockResolvedValue(
+				createMockResponse({
 					emailNotifications: true,
 					smsNotifications: false,
 					maintenanceUpdates: true,
 					paymentReminders: true
-				}))
+				})
+			)
 
 			const options = tenantQueries.notificationPreferences('tenant-123')
 			await options.queryFn!({} as never)

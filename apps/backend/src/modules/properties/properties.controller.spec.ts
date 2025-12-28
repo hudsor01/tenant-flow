@@ -18,7 +18,6 @@ import { DashboardService } from '../dashboard/dashboard.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
 	return {
@@ -46,21 +45,21 @@ describe('PropertiesController', () => {
 	const mockUser = createMockUser({ id: 'user-123' })
 
 	const createMockProperty = (overrides: Partial<Property> = {}): Property => ({
-	id: 'property-default',
-	name: 'Test Property',
-	address_line1: '123 Main St',
-	address_line2: null,
-	city: 'New York',
-	state: 'NY',
-	postal_code: '10001',
-	country: 'US',
-	property_type: 'SINGLE_FAMILY',
-	status: 'active',
-	owner_user_id: mockUser.id,
-	date_sold: null,
-	sale_price: null,
-	created_at: new Date().toISOString(),
-	updated_at: new Date().toISOString(),
+		id: 'property-default',
+		name: 'Test Property',
+		address_line1: '123 Main St',
+		address_line2: null,
+		city: 'New York',
+		state: 'NY',
+		postal_code: '10001',
+		country: 'US',
+		property_type: 'SINGLE_FAMILY',
+		status: 'active',
+		owner_user_id: mockUser.id,
+		date_sold: null,
+		sale_price: null,
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
 		...overrides
 	})
 
@@ -83,15 +82,15 @@ describe('PropertiesController', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
 			providers: [
-			PropertiesService,
-			{ provide: PropertyBulkImportService, useValue: {} },
-			{ provide: PropertyAnalyticsService, useValue: {} },
-			{ provide: DashboardService, useValue: {} },
+				PropertiesService,
+				{ provide: PropertyBulkImportService, useValue: {} },
+				{ provide: PropertyAnalyticsService, useValue: {} },
+				{ provide: DashboardService, useValue: {} },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
 				}
-		]
+			]
 		}).compile()
 
 		controller = module.get<PropertiesController>(PropertiesController)
@@ -170,10 +169,7 @@ describe('PropertiesController', () => {
 			mockPropertiesServiceInstance.findOne.mockResolvedValue(mockProperty)
 
 			const mockRequest = createMockRequest({ user: mockUser })
-			const result = await controller.findOne(
-				'property-1',
-				mockRequest
-			)
+			const result = await controller.findOne('property-1', mockRequest)
 			expect(mockPropertiesServiceInstance.findOne).toHaveBeenCalledWith(
 				mockRequest,
 				'property-1'
@@ -242,13 +238,13 @@ describe('PropertiesController', () => {
 
 	describe('remove', () => {
 		it('should delete a property', async () => {
-			mockPropertiesServiceInstance.remove.mockResolvedValue({ success: true, message: 'Property deleted successfully' })
+			mockPropertiesServiceInstance.remove.mockResolvedValue({
+				success: true,
+				message: 'Property deleted successfully'
+			})
 
 			const mockRequest = createMockRequest({ user: mockUser })
-			const result = await controller.remove(
-				'property-1',
-				mockRequest
-			)
+			const result = await controller.remove('property-1', mockRequest)
 
 			expect(mockPropertiesServiceInstance.remove).toHaveBeenCalledWith(
 				mockRequest,
@@ -260,7 +256,10 @@ describe('PropertiesController', () => {
 
 	describe('markPropertyAsSold', () => {
 		it('should mark property as sold with date and sale price', async () => {
-			const mockResponse = { success: true, message: 'Property marked as sold successfully' }
+			const mockResponse = {
+				success: true,
+				message: 'Property marked as sold successfully'
+			}
 			mockPropertiesServiceInstance.markAsSold.mockResolvedValue(mockResponse)
 
 			const result = await controller.markPropertyAsSold(
@@ -277,7 +276,7 @@ describe('PropertiesController', () => {
 			expect(result.success).toBe(true)
 		})
 
-	// NOTE: Input validation tests are not needed for unit tests
+		// NOTE: Input validation tests are not needed for unit tests
 		// Validation is handled by ZodValidationPipe globally configured in app.module.ts
 		// The pipe validates DTOs BEFORE requests reach the controller
 		// See apps/backend/src/modules/pdf/pdf.controller.integration.spec.ts for validation testing pattern

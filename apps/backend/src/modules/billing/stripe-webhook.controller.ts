@@ -6,7 +6,14 @@
  */
 
 import { InjectQueue } from '@nestjs/bullmq'
-import { BadRequestException, Controller, Headers, InternalServerErrorException, Post, Req } from '@nestjs/common'
+import {
+	BadRequestException,
+	Controller,
+	Headers,
+	InternalServerErrorException,
+	Post,
+	Req
+} from '@nestjs/common'
 import type { RawBodyRequest } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import type { Queue } from 'bullmq'
@@ -77,7 +84,10 @@ export class StripeWebhookController {
 			throw new BadRequestException('Invalid webhook signature')
 		}
 
-		this.logger.log('Stripe webhook received', { type: event.type, id: event.id })
+		this.logger.log('Stripe webhook received', {
+			type: event.type,
+			id: event.id
+		})
 
 		try {
 			await this.webhookQueue.add(
@@ -101,4 +111,3 @@ export class StripeWebhookController {
 		}
 	}
 }
-

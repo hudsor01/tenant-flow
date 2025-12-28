@@ -27,7 +27,13 @@ import { unitQueries } from '#hooks/api/queries/unit-queries'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
 import type { UnitInput } from '@repo/shared/validation/units'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from '@tanstack/react-table'
+import {
+	getCoreRowModel,
+	getFilteredRowModel,
+	getPaginationRowModel,
+	getSortedRowModel,
+	useReactTable
+} from '@tanstack/react-table'
 import { DoorOpen, Plus } from 'lucide-react'
 import { useRef } from 'react'
 import { toast } from 'sonner'
@@ -48,10 +54,12 @@ const ChartAreaInteractive = dynamic(
 
 export default function UnitsPage() {
 	// Use modern hook with pagination
-	const { data: unitsResponse, isLoading } = useQuery(unitQueries.list({
-		limit: 100,
-		offset: 0
-	}))
+	const { data: unitsResponse, isLoading } = useQuery(
+		unitQueries.list({
+			limit: 100,
+			offset: 0
+		})
+	)
 
 	const { data: propertiesResponse } = useQuery(propertyQueries.list())
 
@@ -78,9 +86,9 @@ export default function UnitsPage() {
 		getSortedRowModel: getSortedRowModel(),
 		initialState: {
 			pagination: {
-				pageSize: 25,
-			},
-		},
+				pageSize: 25
+			}
+		}
 	})
 
 	return (
@@ -89,22 +97,16 @@ export default function UnitsPage() {
 			<div className="grid grid-cols-1 gap-4 px-4 lg:px-6 md:grid-cols-4">
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">
-							Total Units
-						</h3>
+						<h3 className="text-muted font-medium">Total Units</h3>
 						<div className="size-2 rounded-full bg-chart-4" />
 					</div>
 					<div className="typography-h3">{totalUnits}</div>
-					<p className="text-caption mt-1">
-						Across all properties
-					</p>
+					<p className="text-caption mt-1">Across all properties</p>
 				</div>
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">
-							Occupied
-						</h3>
+						<h3 className="text-muted font-medium">Occupied</h3>
 						<div className="size-2 rounded-full bg-chart-1" />
 					</div>
 					<div className="typography-h3">{occupiedCount}</div>
@@ -115,9 +117,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">
-							Vacant
-						</h3>
+						<h3 className="text-muted font-medium">Vacant</h3>
 						<div className="size-2 rounded-full bg-chart-7" />
 					</div>
 					<div className="typography-h3">{vacantCount}</div>
@@ -126,9 +126,7 @@ export default function UnitsPage() {
 
 				<div className="p-4 rounded-lg border bg-card shadow-sm">
 					<div className="flex-between mb-2">
-						<h3 className="text-muted font-medium">
-							Maintenance
-						</h3>
+						<h3 className="text-muted font-medium">Maintenance</h3>
 						<div className="size-2 rounded-full bg-chart-5" />
 					</div>
 					<div className="typography-h3">{maintenanceCount}</div>
@@ -219,9 +217,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-lg">
 				<DialogHeader>
-					<DialogTitle className="text-foreground">
-						Add New Unit
-					</DialogTitle>
+					<DialogTitle className="text-foreground">Add New Unit</DialogTitle>
 				</DialogHeader>
 				<form
 					className="grid gap-4"
@@ -247,7 +243,7 @@ function NewUnitButton({ properties }: NewUnitButtonProps) {
 									<SelectValue placeholder="Select property" />
 								</SelectTrigger>
 								<SelectContent>
-									{properties?.map((property) => (
+									{properties?.map(property => (
 										<SelectItem key={property.id} value={property.id}>
 											{property.name}
 										</SelectItem>

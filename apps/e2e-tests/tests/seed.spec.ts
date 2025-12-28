@@ -18,14 +18,14 @@ test.describe('TenantFlow Seed - App Patterns', () => {
 	test('form interaction pattern', async ({ page }) => {
 		// Example of filling forms with our data-testid pattern
 		await page.goto('/tenants')
-		
+
 		// Our app uses data-testid attributes for test stability
 		// Click buttons by role when possible
 		// Use data-testid for inputs and complex components
-		
+
 		// Example button click
 		const addButton = page.getByRole('button', { name: /add tenant/i })
-		if (await addButton.count() > 0) {
+		if ((await addButton.count()) > 0) {
 			await addButton.click()
 		}
 	})

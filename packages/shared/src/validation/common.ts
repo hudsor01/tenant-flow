@@ -7,41 +7,72 @@ import { z } from 'zod'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 /** Email validation schema */
-export const emailSchema = z.string().email({ message: 'Please enter a valid email address' })
+export const emailSchema = z
+	.string()
+	.email({ message: 'Please enter a valid email address' })
 
 /** Required non-empty string schema */
 export const requiredString = z.string().min(1, 'This field is required')
 
 /** Non-empty string schema with trimming */
-export const nonEmptyStringSchema = z.string().trim().min(1, 'This field cannot be empty')
+export const nonEmptyStringSchema = z
+	.string()
+	.trim()
+	.min(1, 'This field cannot be empty')
 
 /** Required title schema (1-200 characters) */
-export const requiredTitle = z.string().trim().min(1, 'Title is required').max(VALIDATION_LIMITS.TITLE_MAX_LENGTH, `Title cannot exceed ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} characters`)
+export const requiredTitle = z
+	.string()
+	.trim()
+	.min(1, 'Title is required')
+	.max(
+		VALIDATION_LIMITS.TITLE_MAX_LENGTH,
+		`Title cannot exceed ${VALIDATION_LIMITS.TITLE_MAX_LENGTH} characters`
+	)
 
 /** Required description schema (1-2000 characters) */
-export const requiredDescription = z.string().trim().min(1, 'Description is required').max(VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH, `Description cannot exceed ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters`)
+export const requiredDescription = z
+	.string()
+	.trim()
+	.min(1, 'Description is required')
+	.max(
+		VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH,
+		`Description cannot exceed ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters`
+	)
 
 /** UUID validation schema */
 export const uuidSchema = z.string().uuid('Invalid UUID format')
 
 /** URL validation schema with custom validator */
-export const urlSchema = z.string().url({ message: 'Invalid URL format' }).refine(
-	(url) => isValidUrl(url),
-	{ message: 'URL must use http/https protocol' }
-)
+export const urlSchema = z
+	.string()
+	.url({ message: 'Invalid URL format' })
+	.refine(url => isValidUrl(url), {
+		message: 'URL must use http/https protocol'
+	})
 
 /** Non-negative number schema (>= 0) */
-export const nonNegativeNumberSchema = z.number().min(0, 'Value must be non-negative')
+export const nonNegativeNumberSchema = z
+	.number()
+	.min(0, 'Value must be non-negative')
 
 /** Positive number schema (> 0) */
-export const positiveNumberSchema = z.number().positive('Value must be positive')
+export const positiveNumberSchema = z
+	.number()
+	.positive('Value must be positive')
 
 /** Phone number validation schema */
 export const phoneSchema = z
 	.string()
-	.regex(/^[\d+()-\s]+$/, 'Phone number can only contain digits, +, (), -, and spaces')
+	.regex(
+		/^[\d+()-\s]+$/,
+		'Phone number can only contain digits, +, (), -, and spaces'
+	)
 	.min(10, 'Phone number must be at least 10 characters')
-	.max(VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH, `Phone number cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH} characters`)
+	.max(
+		VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH,
+		`Phone number cannot exceed ${VALIDATION_LIMITS.CONTACT_FORM_PHONE_MAX_LENGTH} characters`
+	)
 
 /**
  * Validate email format
@@ -65,7 +96,7 @@ export function isValidUrl(url: string): boolean {
 
 		// Prevent localhost in production
 		if (
-			process.env["NODE_ENV"] === 'production' &&
+			process.env['NODE_ENV'] === 'production' &&
 			(parsedUrl.hostname === 'localhost' || parsedUrl.hostname === '127.0.0.1')
 		) {
 			return false
@@ -81,6 +112,7 @@ export function isValidUrl(url: string): boolean {
  * Validate UUID format
  */
 export function isValidUUID(uuid: string): boolean {
-	const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+	const uuidRegex =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 	return uuidRegex.test(uuid)
 }

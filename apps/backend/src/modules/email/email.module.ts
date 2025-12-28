@@ -30,13 +30,13 @@ const WORKERS_ENABLED =
 			}
 		})
 	],
-		providers: [
-			EmailService,
-			EmailRendererService,
-			EmailSenderService,
-			EmailTemplateService,
-			...(WORKERS_ENABLED ? [EmailProcessor] : [])
-		],
-		exports: [EmailService, BullModule]
+	providers: [
+		EmailService,
+		EmailRendererService,
+		EmailSenderService,
+		EmailTemplateService,
+		...(WORKERS_ENABLED ? [EmailProcessor] : [])
+	],
+	exports: [EmailService, BullModule]
 })
 export class EmailModule {}

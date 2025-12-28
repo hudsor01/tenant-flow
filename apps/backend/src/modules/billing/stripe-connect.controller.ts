@@ -1,11 +1,21 @@
-import { Body, Controller, Post, Get, Request, BadRequestException, InternalServerErrorException, NotFoundException, Query, Param } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Post,
+	Get,
+	Request,
+	BadRequestException,
+	InternalServerErrorException,
+	NotFoundException,
+	Query,
+	Param
+} from '@nestjs/common'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '@repo/shared/types/auth'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { validateLimit } from '../../shared/utils/pagination.utils'
-
 
 /**
  * Stripe-supported countries for Express accounts
@@ -69,9 +79,11 @@ function isValidStripeCountry(country: string | undefined): boolean {
  */
 @Controller('stripe/connect')
 export class StripeConnectController {
-
-	constructor(private readonly stripeConnectService: StripeConnectService,
-		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Retrieves the Stripe Connect account ID for the authenticated user
@@ -103,11 +115,15 @@ export class StripeConnectController {
 				code: error.code,
 				userId
 			})
-			throw new InternalServerErrorException('Failed to retrieve payment account. Please try again or contact support if this persists.')
+			throw new InternalServerErrorException(
+				'Failed to retrieve payment account. Please try again or contact support if this persists.'
+			)
 		}
 
 		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+			throw new BadRequestException(
+				'No Stripe Connect account found. Please complete onboarding first.'
+			)
 		}
 
 		return propertyOwner.stripe_account_id
@@ -241,7 +257,9 @@ export class StripeConnectController {
 			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
 				.from('stripe_connected_accounts')
-				.select('stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.select(
+					'stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
 				.eq('user_id', user_id)
 				.single()
 
@@ -273,11 +291,14 @@ export class StripeConnectController {
 			const { data: updatedOwner } = await this.supabaseService
 				.getAdminClient()
 				.from('stripe_connected_accounts')
-				.select('charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.select(
+					'charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
 				.eq('user_id', user_id)
 				.single()
 
-			const isOnboardingComplete = updatedOwner?.onboarding_status === 'complete'
+			const isOnboardingComplete =
+				updatedOwner?.onboarding_status === 'complete'
 
 			return {
 				hasConnectedAccount: true,
@@ -358,7 +379,6 @@ export class StripeConnectController {
 		}
 	}
 
-
 	/**
 	 * Get connected account balance
 	 * GET /api/v1/stripe/connect/balance
@@ -367,9 +387,10 @@ export class StripeConnectController {
 	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const balance = await this.stripeConnectService.getConnectedAccountBalance(
-			stripeAccountId
-		)
+		const balance =
+			await this.stripeConnectService.getConnectedAccountBalance(
+				stripeAccountId
+			)
 
 		return {
 			success: true,

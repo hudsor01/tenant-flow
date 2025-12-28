@@ -57,7 +57,7 @@ export class TenantListService {
 	/**
 	 * Get a user-scoped Supabase client that respects RLS policies.
 	 * Throws UnauthorizedException if no token is provided.
-	 * 
+	 *
 	 * @param token - JWT token from authenticated request
 	 * @returns User-scoped Supabase client with RLS enforced
 	 */
@@ -537,7 +537,8 @@ export class TenantListService {
 			// Evidence: https://supabase.com/docs/guides/database/joins-and-nesting
 			const { data: invitationData, error: queryError } = await client
 				.from('tenant_invitations')
-				.select(`
+				.select(
+					`
 					accepted_by_user_id,
 					tenant:tenants!accepted_by_user_id(
 						id,
@@ -553,7 +554,8 @@ export class TenantListService {
 							lease:leases!inner(id, lease_status)
 						)
 					)
-				`)
+				`
+				)
 				.eq('property_id', propertyId)
 				.not('accepted_at', 'is', null)
 				.not('accepted_by_user_id', 'is', null)
@@ -568,7 +570,9 @@ export class TenantListService {
 			}
 
 			if (!invitationData?.length) {
-				this.logger.log('No accepted invitations found for property', { propertyId })
+				this.logger.log('No accepted invitations found for property', {
+					propertyId
+				})
 				return []
 			}
 
@@ -608,9 +612,10 @@ export class TenantListService {
 				if (tenantMap.has(tenant.id)) continue
 
 				// Check if tenant has active lease (one property per tenant rule)
-				const hasActiveLease = tenant.lease_tenants?.some(
-					lt => lt.lease?.lease_status === 'active'
-				) ?? false
+				const hasActiveLease =
+					tenant.lease_tenants?.some(
+						lt => lt.lease?.lease_status === 'active'
+					) ?? false
 
 				// Only include tenants without active leases
 				if (!hasActiveLease) {
@@ -619,7 +624,8 @@ export class TenantListService {
 						user_id: tenant.user_id,
 						emergency_contact_name: tenant.emergency_contact_name,
 						emergency_contact_phone: tenant.emergency_contact_phone,
-						emergency_contact_relationship: tenant.emergency_contact_relationship,
+						emergency_contact_relationship:
+							tenant.emergency_contact_relationship,
 						identity_verified: tenant.identity_verified,
 						created_at: tenant.created_at,
 						updated_at: tenant.updated_at

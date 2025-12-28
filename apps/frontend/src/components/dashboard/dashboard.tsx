@@ -1,12 +1,5 @@
 'use client'
 
-/**
- * Dashboard Component - Design-OS UI
- *
- * Pure UI component that receives all data via props.
- * Wired to production API via the page component.
- */
-
 import * as React from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import {
@@ -110,7 +103,7 @@ type PortfolioRow = {
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'var(--chart-1)'
+		color: 'var(--color-chart-1)'
 	}
 } satisfies ChartConfig
 
@@ -602,7 +595,9 @@ export function Dashboard({
 									</div>
 									<div>
 										<div className="text-muted-foreground text-xs">Rent</div>
-										<div className="tabular-nums">{formatCurrency(row.rent)}</div>
+										<div className="tabular-nums">
+											{formatCurrency(row.rent)}
+										</div>
 									</div>
 									<div>
 										<div className="text-muted-foreground text-xs">Tenants</div>

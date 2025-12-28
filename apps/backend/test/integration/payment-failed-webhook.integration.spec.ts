@@ -28,17 +28,28 @@ describe('payment_intent.payment_failed integration', () => {
 			update: jest.Mock
 			eq: jest.Mock
 			maybeSingle: jest.Mock
-		} = { mode: 'select', error: null, select: jest.fn(), update: jest.fn(), eq: jest.fn(), maybeSingle: jest.fn() }
+		} = {
+			mode: 'select',
+			error: null,
+			select: jest.fn(),
+			update: jest.fn(),
+			eq: jest.fn(),
+			maybeSingle: jest.fn()
+		}
 		rentPaymentsBuilder.select = jest.fn(() => rentPaymentsBuilder)
 		rentPaymentsBuilder.update = jest.fn(() => {
 			rentPaymentsBuilder.mode = 'update'
 			return rentPaymentsBuilder
 		})
 		rentPaymentsBuilder.eq = jest.fn(() => {
-			if (rentPaymentsBuilder.mode === 'update') return Promise.resolve({ error: null })
+			if (rentPaymentsBuilder.mode === 'update')
+				return Promise.resolve({ error: null })
 			return rentPaymentsBuilder
 		})
-		rentPaymentsBuilder.maybeSingle = jest.fn(async () => ({ data: rentPayment, error: null }))
+		rentPaymentsBuilder.maybeSingle = jest.fn(async () => ({
+			data: rentPayment,
+			error: null
+		}))
 
 		const tenantsBuilder: {
 			select: jest.Mock
@@ -117,11 +128,17 @@ describe('payment_intent.payment_failed integration', () => {
 			providers: [
 				WebhookProcessor,
 				PaymentWebhookHandler,
-				{ provide: SupabaseService, useValue: { getAdminClient: () => supabaseClient } },
+				{
+					provide: SupabaseService,
+					useValue: { getAdminClient: () => supabaseClient }
+				},
 				{ provide: EmailService, useValue: emailService },
 				{ provide: SseService, useValue: mockSseService },
 				{ provide: getQueueToken('emails'), useValue: mockEmailQueue },
-				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
+				{
+					provide: SubscriptionWebhookHandler,
+					useValue: mockSubscriptionHandler
+				},
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
 				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler },
 				{ provide: AppLogger, useValue: mockAppLogger }

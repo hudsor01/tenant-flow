@@ -77,7 +77,9 @@ export class StripeTenantController {
 		body: { tenant_id: string; paymentMethodId: string; setAsDefault?: boolean }
 	) {
 		if (!body.tenant_id || !body.paymentMethodId) {
-			throw new BadRequestException('tenant_id and paymentMethodId are required')
+			throw new BadRequestException(
+				'tenant_id and paymentMethodId are required'
+			)
 		}
 
 		const params: {
@@ -143,7 +145,9 @@ export class StripeTenantController {
 		@Body() body: { tenant_id: string; paymentMethodId: string }
 	) {
 		if (!body.tenant_id || !body.paymentMethodId) {
-			throw new BadRequestException('tenant_id and paymentMethodId are required')
+			throw new BadRequestException(
+				'tenant_id and paymentMethodId are required'
+			)
 		}
 
 		await this.stripeTenantService.setDefaultPaymentMethod(
@@ -166,7 +170,9 @@ export class StripeTenantController {
 		@Body() body: { tenant_id: string; paymentMethodId: string }
 	) {
 		if (!body.tenant_id || !body.paymentMethodId) {
-			throw new BadRequestException('tenant_id and paymentMethodId are required')
+			throw new BadRequestException(
+				'tenant_id and paymentMethodId are required'
+			)
 		}
 
 		await this.stripeTenantService.detachPaymentMethod(
@@ -219,7 +225,6 @@ export class StripeTenantController {
 		}
 	}
 
-
 	/**
 	 * Pay rent using saved payment method
 	 * Creates PaymentIntent with destination charges to property owner's Connect account
@@ -228,14 +233,17 @@ export class StripeTenantController {
 	@Post('pay-rent')
 	async payRent(
 		@Request() _req: AuthenticatedRequest,
-		@Body() body: { 
+		@Body()
+		body: {
 			lease_id: string
 			payment_method_id: string
 			tenant_id: string
 		}
 	) {
 		if (!body.lease_id || !body.payment_method_id || !body.tenant_id) {
-			throw new BadRequestException('lease_id, payment_method_id, and tenant_id are required')
+			throw new BadRequestException(
+				'lease_id, payment_method_id, and tenant_id are required'
+			)
 		}
 
 		// Get tenant's Stripe customer ID
@@ -249,11 +257,13 @@ export class StripeTenantController {
 			)
 		}
 
-		const paymentIntent = await this.stripeOwnerService.createRentPaymentIntent({
-			leaseId: body.lease_id,
-			paymentMethodId: body.payment_method_id,
-			tenantStripeCustomerId: customer.id
-		})
+		const paymentIntent = await this.stripeOwnerService.createRentPaymentIntent(
+			{
+				leaseId: body.lease_id,
+				paymentMethodId: body.payment_method_id,
+				tenantStripeCustomerId: customer.id
+			}
+		)
 
 		return {
 			success: true,

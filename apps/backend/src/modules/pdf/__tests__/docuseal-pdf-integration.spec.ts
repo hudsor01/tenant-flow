@@ -137,7 +137,9 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 					provide: AppConfigService,
 					useValue: {
 						isDocuSealEnabled: jest.fn().mockReturnValue(true),
-						getDocuSealApiUrl: jest.fn().mockReturnValue('https://test.docuseal.com/api'),
+						getDocuSealApiUrl: jest
+							.fn()
+							.mockReturnValue('https://test.docuseal.com/api'),
 						getDocuSealApiKey: jest.fn().mockReturnValue('test-api-key')
 					}
 				},
@@ -157,10 +159,14 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 		}).compile()
 
 		pdfMapper = module.get<LeasePdfMapperService>(LeasePdfMapperService)
-		pdfGenerator = module.get<LeasePdfGeneratorService>(LeasePdfGeneratorService)
+		pdfGenerator = module.get<LeasePdfGeneratorService>(
+			LeasePdfGeneratorService
+		)
 		pdfStorage = module.get<PdfStorageService>(PdfStorageService)
 		docuSealService = module.get<DocuSealService>(DocuSealService)
-		leaseSignatureService = module.get<LeaseSignatureService>(LeaseSignatureService)
+		leaseSignatureService = module.get<LeaseSignatureService>(
+			LeaseSignatureService
+		)
 		leasesService = module.get<LeasesService>(LeasesService)
 		supabaseService = module.get<SupabaseService>(SupabaseService)
 		logger = module.get<AppLogger>(AppLogger)
@@ -215,7 +221,8 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 		})
 
 		it('should merge auto-filled and user-provided fields', () => {
-			const { fields: autoFilled } = pdfMapper.mapLeaseToPdfFields(mockLeaseData)
+			const { fields: autoFilled } =
+				pdfMapper.mapLeaseToPdfFields(mockLeaseData)
 			const userProvided = {
 				immediate_family_members: 'None',
 				landlord_notice_address: '456 Notice Ave, Austin, TX 78702'
@@ -225,7 +232,9 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 
 			expect(complete.landlord_name).toBe('John Doe')
 			expect(complete.immediate_family_members).toBe('None')
-			expect(complete.landlord_notice_address).toBe('456 Notice Ave, Austin, TX 78702')
+			expect(complete.landlord_notice_address).toBe(
+				'456 Notice Ave, Austin, TX 78702'
+			)
 		})
 	})
 
@@ -271,9 +280,14 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 				bucket: 'lease-documents'
 			}
 
-			;(pdfStorage.uploadLeasePdf as jest.Mock).mockResolvedValue(mockUploadResult)
+			;(pdfStorage.uploadLeasePdf as jest.Mock).mockResolvedValue(
+				mockUploadResult
+			)
 
-			const result = await pdfStorage.uploadLeasePdf('test-lease-id', mockPdfBuffer)
+			const result = await pdfStorage.uploadLeasePdf(
+				'test-lease-id',
+				mockPdfBuffer
+			)
 
 			expect(result.publicUrl).toContain('storage.supabase.com')
 			expect(result.path).toContain('leases/test-lease-id')
@@ -297,10 +311,15 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 				})
 
 			// First call should fail, but service should retry
-			await expect(pdfStorage.uploadLeasePdf('test-lease-id', mockPdfBuffer)).rejects.toThrow()
+			await expect(
+				pdfStorage.uploadLeasePdf('test-lease-id', mockPdfBuffer)
+			).rejects.toThrow()
 
 			// Second call should succeed (retry)
-			const result = await pdfStorage.uploadLeasePdf('test-lease-id', mockPdfBuffer)
+			const result = await pdfStorage.uploadLeasePdf(
+				'test-lease-id',
+				mockPdfBuffer
+			)
 			expect(result.publicUrl).toBeTruthy()
 		})
 	})
@@ -397,7 +416,9 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 			;(leasesService.getLeaseDataForPdf as jest.Mock).mockResolvedValue(
 				mockLeaseData
 			)
-			;(pdfStorage.uploadLeasePdf as jest.Mock).mockResolvedValue(mockUploadResult)
+			;(pdfStorage.uploadLeasePdf as jest.Mock).mockResolvedValue(
+				mockUploadResult
+			)
 			;(docuSealService.createSubmissionFromPdf as jest.Mock).mockResolvedValue(
 				mockSubmission
 			)
@@ -508,7 +529,11 @@ describe('DocuSeal PDF Integration (E2E)', () => {
 				landlord_notice_address: '456 Notice Ave, Austin, TX 78702'
 			})
 
-			await pdfGenerator.generateFilledPdf(complete, mockLeaseData.lease.id, 'TX')
+			await pdfGenerator.generateFilledPdf(
+				complete,
+				mockLeaseData.lease.id,
+				'TX'
+			)
 
 			// Verify logger was called (implementation logs at each step)
 			expect(logger.log).toHaveBeenCalled()

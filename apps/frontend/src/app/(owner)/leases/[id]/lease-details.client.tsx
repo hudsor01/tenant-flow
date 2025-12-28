@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { Button } from '#components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '#components/ui/card'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+	CardDescription
+} from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { Skeleton } from '#components/ui/skeleton'
 import {
@@ -59,7 +65,15 @@ const logger = createLogger({ component: 'LeaseDetails' })
 /** Timeline event for lease history display */
 interface TimelineEvent {
 	id: string
-	type: 'created' | 'sent_for_signature' | 'owner_signed' | 'tenant_signed' | 'activated' | 'renewed' | 'terminated' | 'ended'
+	type:
+		| 'created'
+		| 'sent_for_signature'
+		| 'owner_signed'
+		| 'tenant_signed'
+		| 'activated'
+		| 'renewed'
+		| 'terminated'
+		| 'ended'
 	title: string
 	description: string
 	timestamp: string
@@ -119,11 +133,17 @@ function generateTimelineEvents(lease: Lease): TimelineEvent[] {
 	}
 
 	// Activated (when both signed and status is active)
-	if (lease.lease_status === 'active' && lease.owner_signed_at && lease.tenant_signed_at) {
-		const activatedAt = new Date(Math.max(
-			new Date(lease.owner_signed_at).getTime(),
-			new Date(lease.tenant_signed_at).getTime()
-		)).toISOString()
+	if (
+		lease.lease_status === 'active' &&
+		lease.owner_signed_at &&
+		lease.tenant_signed_at
+	) {
+		const activatedAt = new Date(
+			Math.max(
+				new Date(lease.owner_signed_at).getTime(),
+				new Date(lease.tenant_signed_at).getTime()
+			)
+		).toISOString()
 		events.push({
 			id: 'activated',
 			type: 'activated',
@@ -156,7 +176,9 @@ function generateTimelineEvents(lease: Lease): TimelineEvent[] {
 	}
 
 	// Sort by timestamp (newest first)
-	return events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+	return events.sort(
+		(a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+	)
 }
 
 /** Get icon for timeline event type */
@@ -193,19 +215,23 @@ function getTimelineColor(type: TimelineEvent['type']) {
 function getStatusBadge(status: string) {
 	const config: Record<string, { className: string; label: string }> = {
 		draft: {
-			className: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			label: 'Draft'
 		},
 		pending_signature: {
-			className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+			className:
+				'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
 			label: 'Pending Signature'
 		},
 		active: {
-			className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+			className:
+				'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
 			label: 'Active'
 		},
 		ended: {
-			className: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			label: 'Ended'
 		},
 		terminated: {
@@ -214,11 +240,19 @@ function getStatusBadge(status: string) {
 		}
 	}
 
-	const defaultConfig = { className: 'bg-stone-100 text-stone-600', label: status }
+	const defaultConfig = {
+		className: 'bg-stone-100 text-stone-600',
+		label: status
+	}
 	const statusConfig = config[status] ?? defaultConfig
 
 	return (
-		<span className={cn('inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium', statusConfig.className)}>
+		<span
+			className={cn(
+				'inline-flex items-center px-2.5 py-1 rounded-sm text-xs font-medium',
+				statusConfig.className
+			)}
+		>
 			{statusConfig.label}
 		</span>
 	)
@@ -290,9 +324,12 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 			<Card className="border-destructive/50 bg-destructive/10">
 				<CardContent className="p-6 text-center">
 					<AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-3" />
-					<h3 className="text-lg font-semibold text-destructive mb-2">Unable to load lease</h3>
+					<h3 className="text-lg font-semibold text-destructive mb-2">
+						Unable to load lease
+					</h3>
 					<p className="text-muted-foreground">
-						Something went wrong while loading this lease. Please refresh and try again.
+						Something went wrong while loading this lease. Please refresh and
+						try again.
 					</p>
 				</CardContent>
 			</Card>
@@ -300,7 +337,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 	}
 
 	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
-	const isPendingSignature = lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
+	const isPendingSignature =
+		lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
 	const isActive = lease.lease_status === LEASE_STATUS.ACTIVE
 
 	const tenantFullName =
@@ -338,7 +376,8 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 
 	const timelineEvents = generateTimelineEvents(lease)
 	const daysUntilExpiry = getDaysUntilExpiry(lease.end_date)
-	const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 30
+	const isExpiringSoon =
+		daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 30
 
 	return (
 		<div className="space-y-6">
@@ -350,7 +389,10 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 					</h2>
 					{getStatusBadge(lease.lease_status)}
 					{isExpiringSoon && (
-						<Badge variant="outline" className="border-orange-500 text-orange-600 dark:text-orange-400">
+						<Badge
+							variant="outline"
+							className="border-orange-500 text-orange-600 dark:text-orange-400"
+						>
 							<AlertTriangle className="w-3 h-3 mr-1" />
 							Expires in {daysUntilExpiry} days
 						</Badge>
@@ -373,7 +415,10 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 								action="resend"
 								variant="outline"
 							/>
-							<AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+							<AlertDialog
+								open={cancelDialogOpen}
+								onOpenChange={setCancelDialogOpen}
+							>
 								<AlertDialogTrigger asChild>
 									<Button variant="outline" size="sm">
 										Cancel Request
@@ -381,7 +426,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 								</AlertDialogTrigger>
 								<AlertDialogContent>
 									<AlertDialogHeader>
-										<AlertDialogTitle>Cancel Signature Request?</AlertDialogTitle>
+										<AlertDialogTitle>
+											Cancel Signature Request?
+										</AlertDialogTitle>
 										<AlertDialogDescription>
 											This will revert the lease to draft status. Any pending
 											signatures will be lost and you will need to send a new
@@ -453,7 +500,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									Payment Day
 								</div>
 								<p className="text-xl font-semibold">
-									{lease.payment_day ? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month` : 'N/A'}
+									{lease.payment_day
+										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
+										: 'N/A'}
 								</p>
 							</CardContent>
 						</Card>
@@ -464,7 +513,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									Grace Period
 								</div>
 								<p className="text-xl font-semibold">
-									{lease.grace_period_days ? `${lease.grace_period_days} days` : 'None'}
+									{lease.grace_period_days
+										? `${lease.grace_period_days} days`
+										: 'None'}
 								</p>
 							</CardContent>
 						</Card>
@@ -490,19 +541,23 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 											<Calendar className="w-8 h-8 text-primary" />
 											<div>
 												<p className="font-medium">
-													{formatDate(lease.start_date)} - {formatDate(lease.end_date)}
+													{formatDate(lease.start_date)} -{' '}
+													{formatDate(lease.end_date)}
 												</p>
 												{daysUntilExpiry !== null && (
-													<p className={cn(
-														"text-sm",
-														isExpiringSoon ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"
-													)}>
+													<p
+														className={cn(
+															'text-sm',
+															isExpiringSoon
+																? 'text-orange-600 dark:text-orange-400'
+																: 'text-muted-foreground'
+														)}
+													>
 														{daysUntilExpiry > 0
 															? `${daysUntilExpiry} days remaining`
 															: daysUntilExpiry === 0
 																? 'Expires today'
-																: 'Expired'
-														}
+																: 'Expired'}
 													</p>
 												)}
 											</div>
@@ -523,7 +578,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 													<p className="font-medium">
 														{tenantFullName || 'Unknown'}
 													</p>
-													<p className="text-sm text-muted-foreground">{tenant.email}</p>
+													<p className="text-sm text-muted-foreground">
+														{tenant.email}
+													</p>
 												</div>
 											</div>
 										) : (
@@ -547,7 +604,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 													<p className="font-medium">Unit {unit.unit_number}</p>
 													<p className="text-sm text-muted-foreground">
 														{unit.bedrooms} bed, {unit.bathrooms} bath
-														{unit.square_feet ? ` | ${unit.square_feet.toLocaleString()} sq ft` : ''}
+														{unit.square_feet
+															? ` | ${unit.square_feet.toLocaleString()} sq ft`
+															: ''}
 													</p>
 												</div>
 											</div>
@@ -581,12 +640,17 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 													const colorClass = getTimelineColor(event.type)
 
 													return (
-														<div key={event.id} className="relative flex gap-4 pl-2">
+														<div
+															key={event.id}
+															className="relative flex gap-4 pl-2"
+														>
 															{/* Icon */}
-															<div className={cn(
-																'relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0',
-																colorClass
-															)}>
+															<div
+																className={cn(
+																	'relative z-10 flex items-center justify-center w-8 h-8 rounded-full shrink-0',
+																	colorClass
+																)}
+															>
 																<Icon className="w-4 h-4" />
 															</div>
 
@@ -642,12 +706,13 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 										</h3>
 										<div className="grid gap-3 sm:grid-cols-2">
 											<div className="p-3 rounded-lg border">
-												<p className="text-sm text-muted-foreground">Late Fee</p>
+												<p className="text-sm text-muted-foreground">
+													Late Fee
+												</p>
 												<p className="font-medium">
 													{lease.late_fee_amount
 														? `${formatCurrency(lease.late_fee_amount)} after ${lease.late_fee_days || 0} days`
-														: 'None'
-													}
+														: 'None'}
 												</p>
 											</div>
 											<div className="p-3 rounded-lg border">
@@ -657,20 +722,29 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 												</p>
 											</div>
 											<div className="p-3 rounded-lg border">
-												<p className="text-sm text-muted-foreground">Currency</p>
-												<p className="font-medium">{lease.rent_currency || 'USD'}</p>
+												<p className="text-sm text-muted-foreground">
+													Currency
+												</p>
+												<p className="font-medium">
+													{lease.rent_currency || 'USD'}
+												</p>
 											</div>
 											<div className="p-3 rounded-lg border">
-												<p className="text-sm text-muted-foreground">Stripe Subscription</p>
+												<p className="text-sm text-muted-foreground">
+													Stripe Subscription
+												</p>
 												<p className="font-medium capitalize">
-													{lease.stripe_subscription_status === 'none' ? 'Not Set Up' : lease.stripe_subscription_status}
+													{lease.stripe_subscription_status === 'none'
+														? 'Not Set Up'
+														: lease.stripe_subscription_status}
 												</p>
 											</div>
 										</div>
 									</section>
 
 									{/* Property Rules */}
-									{(lease.pets_allowed !== null || lease.max_occupants !== null) && (
+									{(lease.pets_allowed !== null ||
+										lease.max_occupants !== null) && (
 										<section>
 											<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 												Property Rules
@@ -678,7 +752,9 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 											<div className="grid gap-3 sm:grid-cols-2">
 												{lease.max_occupants !== null && (
 													<div className="p-3 rounded-lg border">
-														<p className="text-sm text-muted-foreground">Max Occupants</p>
+														<p className="text-sm text-muted-foreground">
+															Max Occupants
+														</p>
 														<p className="font-medium">{lease.max_occupants}</p>
 													</div>
 												)}
@@ -687,7 +763,10 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 													<p className="font-medium">
 														{lease.pets_allowed ? 'Allowed' : 'Not Allowed'}
 														{lease.pets_allowed && lease.pet_deposit && (
-															<span className="text-muted-foreground"> (${lease.pet_deposit} deposit)</span>
+															<span className="text-muted-foreground">
+																{' '}
+																(${lease.pet_deposit} deposit)
+															</span>
 														)}
 													</p>
 												</div>
@@ -696,36 +775,53 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									)}
 
 									{/* Utilities */}
-									{(lease.utilities_included?.length || lease.tenant_responsible_utilities?.length) && (
+									{(lease.utilities_included?.length ||
+										lease.tenant_responsible_utilities?.length) && (
 										<section>
 											<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
 												Utilities
 											</h3>
 											<div className="space-y-3">
-												{lease.utilities_included && lease.utilities_included.length > 0 && (
-													<div className="p-3 rounded-lg border">
-														<p className="text-sm text-muted-foreground mb-1">Included in Rent</p>
-														<div className="flex flex-wrap gap-1">
-															{lease.utilities_included.map(util => (
-																<Badge key={util} variant="secondary" className="capitalize">
-																	{util}
-																</Badge>
-															))}
+												{lease.utilities_included &&
+													lease.utilities_included.length > 0 && (
+														<div className="p-3 rounded-lg border">
+															<p className="text-sm text-muted-foreground mb-1">
+																Included in Rent
+															</p>
+															<div className="flex flex-wrap gap-1">
+																{lease.utilities_included.map(util => (
+																	<Badge
+																		key={util}
+																		variant="secondary"
+																		className="capitalize"
+																	>
+																		{util}
+																	</Badge>
+																))}
+															</div>
 														</div>
-													</div>
-												)}
-												{lease.tenant_responsible_utilities && lease.tenant_responsible_utilities.length > 0 && (
-													<div className="p-3 rounded-lg border">
-														<p className="text-sm text-muted-foreground mb-1">Tenant Responsible</p>
-														<div className="flex flex-wrap gap-1">
-															{lease.tenant_responsible_utilities.map(util => (
-																<Badge key={util} variant="outline" className="capitalize">
-																	{util}
-																</Badge>
-															))}
+													)}
+												{lease.tenant_responsible_utilities &&
+													lease.tenant_responsible_utilities.length > 0 && (
+														<div className="p-3 rounded-lg border">
+															<p className="text-sm text-muted-foreground mb-1">
+																Tenant Responsible
+															</p>
+															<div className="flex flex-wrap gap-1">
+																{lease.tenant_responsible_utilities.map(
+																	util => (
+																		<Badge
+																			key={util}
+																			variant="outline"
+																			className="capitalize"
+																		>
+																			{util}
+																		</Badge>
+																	)
+																)}
+															</div>
 														</div>
-													</div>
-												)}
+													)}
 											</div>
 										</section>
 									)}
@@ -744,8 +840,7 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 													Property built before 1978.
 													{lease.lead_paint_disclosure_acknowledged
 														? ' Disclosure acknowledged by tenant.'
-														: ' Acknowledgment pending.'
-													}
+														: ' Acknowledgment pending.'}
 												</p>
 											</div>
 										</section>
@@ -771,13 +866,21 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 						<CardContent className="space-y-2">
 							{isActive && (
 								<>
-									<Button variant="outline" className="w-full justify-start" asChild>
+									<Button
+										variant="outline"
+										className="w-full justify-start"
+										asChild
+									>
 										<Link href={`/rent-collection?lease_id=${lease.id}`}>
 											<DollarSign className="w-4 h-4 mr-2" />
 											View Payments
 										</Link>
 									</Button>
-									<Button variant="outline" className="w-full justify-start" asChild>
+									<Button
+										variant="outline"
+										className="w-full justify-start"
+										asChild
+									>
 										<Link href={`/maintenance?unit_id=${lease.unit_id}`}>
 											<Home className="w-4 h-4 mr-2" />
 											Maintenance Requests
@@ -785,15 +888,25 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 									</Button>
 								</>
 							)}
-							<Button variant="outline" className="w-full justify-start" asChild>
+							<Button
+								variant="outline"
+								className="w-full justify-start"
+								asChild
+							>
 								<Link href={`/tenants/${lease.primary_tenant_id}`}>
 									<User className="w-4 h-4 mr-2" />
 									View Tenant Profile
 								</Link>
 							</Button>
 							{unit && (
-								<Button variant="outline" className="w-full justify-start" asChild>
-									<Link href={`/properties/${unit.property_id}/units/${unit.id}`}>
+								<Button
+									variant="outline"
+									className="w-full justify-start"
+									asChild
+								>
+									<Link
+										href={`/properties/${unit.property_id}/units/${unit.id}`}
+									>
 										<Building className="w-4 h-4 mr-2" />
 										View Unit Details
 									</Link>
@@ -811,8 +924,16 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 							<CardContent>
 								<div className="space-y-2">
 									<div className="flex items-center justify-between">
-										<span className="text-sm text-muted-foreground">Status</span>
-										<Badge variant={lease.stripe_subscription_status === 'active' ? 'default' : 'secondary'}>
+										<span className="text-sm text-muted-foreground">
+											Status
+										</span>
+										<Badge
+											variant={
+												lease.stripe_subscription_status === 'active'
+													? 'default'
+													: 'secondary'
+											}
+										>
 											{lease.stripe_subscription_status}
 										</Badge>
 									</div>

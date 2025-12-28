@@ -176,10 +176,11 @@ describeOrSkip('Authentication Security Tests', () => {
 			// Act: Make limit + 10 requests rapidly
 			const requests = Array(limit + 10)
 				.fill(null)
-				.map(() =>
-					request(app.getHttpServer())
-						.get(endpoint)
-						.set('X-Forwarded-For', '192.168.1.100') // Consistent IP
+				.map(
+					() =>
+						request(app.getHttpServer())
+							.get(endpoint)
+							.set('X-Forwarded-For', '192.168.1.100') // Consistent IP
 				)
 
 			const responses = await Promise.all(requests)
@@ -223,7 +224,9 @@ describeOrSkip('Authentication Security Tests', () => {
 			const ip1Requests = Array(10)
 				.fill(null)
 				.map(() =>
-					request(app.getHttpServer()).get(endpoint).set('X-Forwarded-For', '192.168.1.200')
+					request(app.getHttpServer())
+						.get(endpoint)
+						.set('X-Forwarded-For', '192.168.1.200')
 				)
 
 			await Promise.all(ip1Requests)
@@ -232,7 +235,9 @@ describeOrSkip('Authentication Security Tests', () => {
 			const ip2Requests = Array(10)
 				.fill(null)
 				.map(() =>
-					request(app.getHttpServer()).get(endpoint).set('X-Forwarded-For', '192.168.1.201')
+					request(app.getHttpServer())
+						.get(endpoint)
+						.set('X-Forwarded-For', '192.168.1.201')
 				)
 
 			const ip2Responses = await Promise.all(ip2Requests)
@@ -248,7 +253,7 @@ describeOrSkip('Authentication Security Tests', () => {
 			// Arrange: Common SQL injection payloads
 			const sqlInjectionPayloads = [
 				"1' OR '1'='1",
-				"1; DROP TABLE leases;--",
+				'1; DROP TABLE leases;--',
 				"1' UNION SELECT * FROM users--",
 				"admin'--",
 				"1' AND 1=1--",
@@ -347,7 +352,9 @@ describeOrSkip('Authentication Security Tests', () => {
 			// Assert: CSP header should be set (in production)
 			if (process.env.NODE_ENV === 'production') {
 				expect(response.headers['content-security-policy']).toBeDefined()
-				expect(response.headers['content-security-policy']).toMatch(/script-src/)
+				expect(response.headers['content-security-policy']).toMatch(
+					/script-src/
+				)
 			}
 		})
 
@@ -448,7 +455,9 @@ describeOrSkip('Authentication Security Tests', () => {
 
 			// Assert: Should have HSTS header
 			expect(response.headers['strict-transport-security']).toBeDefined()
-			expect(response.headers['strict-transport-security']).toMatch(/max-age=\d+/)
+			expect(response.headers['strict-transport-security']).toMatch(
+				/max-age=\d+/
+			)
 		})
 
 		it('should set HSTS header with long max-age', async () => {
@@ -462,7 +471,8 @@ describeOrSkip('Authentication Security Tests', () => {
 
 			// Assert: max-age should be at least 1 year (31536000 seconds)
 			if (response.headers['strict-transport-security']) {
-				const maxAge = response.headers['strict-transport-security'].match(/max-age=(\d+)/)
+				const maxAge =
+					response.headers['strict-transport-security'].match(/max-age=(\d+)/)
 				if (maxAge) {
 					expect(parseInt(maxAge[1])).toBeGreaterThanOrEqual(31536000)
 				}
@@ -545,7 +555,9 @@ describeOrSkip('Authentication Security Tests', () => {
 
 				// Assert: New access token should be valid
 				expect(refreshData?.session?.access_token).toBeDefined()
-				expect(refreshData?.session?.access_token).not.toBe(data?.session?.access_token)
+				expect(refreshData?.session?.access_token).not.toBe(
+					data?.session?.access_token
+				)
 			}
 		})
 	})

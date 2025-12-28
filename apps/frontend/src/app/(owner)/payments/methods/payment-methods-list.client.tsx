@@ -123,7 +123,8 @@ export function PaymentMethodsList() {
 							size="sm"
 							onClick={() =>
 								setDefault.mutate(method.id, {
-									onSuccess: () => toast.success('Default payment method updated'),
+									onSuccess: () =>
+										toast.success('Default payment method updated'),
 									onError: () => toast.error('Failed to set default method')
 								})
 							}
@@ -154,8 +155,8 @@ export function PaymentMethodsList() {
 									<AlertDialogHeader>
 										<AlertDialogTitle>Remove payment method</AlertDialogTitle>
 										<AlertDialogDescription>
-											This payment method will be removed and can no longer be used
-											for rent.
+											This payment method will be removed and can no longer be
+											used for rent.
 										</AlertDialogDescription>
 									</AlertDialogHeader>
 									<AlertDialogFooter>
@@ -163,7 +164,8 @@ export function PaymentMethodsList() {
 										<AlertDialogAction
 											onClick={() =>
 												deleteMethod.mutate(method.id, {
-													onSuccess: () => toast.success('Payment method removed'),
+													onSuccess: () =>
+														toast.success('Payment method removed'),
 													onError: () =>
 														toast.error('Failed to remove payment method')
 												})

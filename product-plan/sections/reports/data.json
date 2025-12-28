@@ -1,0 +1,155 @@
+{
+	"reportTypes": [
+		{
+			"id": "financial-summary",
+			"name": "Financial Summary",
+			"description": "Overview of revenue, expenses, and net income",
+			"icon": "DollarSign",
+			"category": "financial",
+			"formats": ["pdf", "csv", "xlsx"],
+			"frequency": ["monthly", "quarterly", "yearly"]
+		},
+		{
+			"id": "rent-roll",
+			"name": "Rent Roll",
+			"description": "Complete listing of all units with rent and tenant details",
+			"icon": "FileText",
+			"category": "operations",
+			"formats": ["pdf", "csv", "xlsx"],
+			"frequency": ["current", "monthly"]
+		},
+		{
+			"id": "occupancy-report",
+			"name": "Occupancy Report",
+			"description": "Historical and current occupancy rates by property",
+			"icon": "Building2",
+			"category": "operations",
+			"formats": ["pdf", "csv"],
+			"frequency": ["monthly", "quarterly", "yearly"]
+		},
+		{
+			"id": "maintenance-summary",
+			"name": "Maintenance Summary",
+			"description": "Maintenance requests, costs, and vendor performance",
+			"icon": "Wrench",
+			"category": "operations",
+			"formats": ["pdf", "csv"],
+			"frequency": ["monthly", "quarterly"]
+		},
+		{
+			"id": "lease-expiry",
+			"name": "Lease Expiry Report",
+			"description": "Upcoming lease expirations for renewal planning",
+			"icon": "Calendar",
+			"category": "operations",
+			"formats": ["pdf", "csv", "xlsx"],
+			"frequency": ["current", "30-days", "60-days", "90-days"]
+		},
+		{
+			"id": "income-statement",
+			"name": "Income Statement",
+			"description": "Detailed profit and loss statement",
+			"icon": "TrendingUp",
+			"category": "financial",
+			"formats": ["pdf", "xlsx"],
+			"frequency": ["monthly", "quarterly", "yearly"]
+		},
+		{
+			"id": "tax-summary",
+			"name": "Tax Summary",
+			"description": "Tax-relevant income and expense categories",
+			"icon": "Receipt",
+			"category": "financial",
+			"formats": ["pdf", "xlsx"],
+			"frequency": ["yearly"]
+		},
+		{
+			"id": "tenant-ledger",
+			"name": "Tenant Ledger",
+			"description": "Payment history and balance for individual tenants",
+			"icon": "Users",
+			"category": "operations",
+			"formats": ["pdf", "csv"],
+			"frequency": ["current", "monthly", "yearly"]
+		}
+	],
+	"recentReports": [
+		{
+			"id": "report-001",
+			"name": "Financial Summary - December 2024",
+			"type": "financial-summary",
+			"generatedAt": "2024-12-20T10:30:00Z",
+			"format": "pdf",
+			"size": 245000,
+			"status": "completed"
+		},
+		{
+			"id": "report-002",
+			"name": "Rent Roll - Q4 2024",
+			"type": "rent-roll",
+			"generatedAt": "2024-12-15T14:15:00Z",
+			"format": "xlsx",
+			"size": 128000,
+			"status": "completed"
+		},
+		{
+			"id": "report-003",
+			"name": "Occupancy Report - November 2024",
+			"type": "occupancy-report",
+			"generatedAt": "2024-12-01T09:00:00Z",
+			"format": "pdf",
+			"size": 180000,
+			"status": "completed"
+		},
+		{
+			"id": "report-004",
+			"name": "Maintenance Summary - Q4 2024",
+			"type": "maintenance-summary",
+			"generatedAt": "2024-12-18T11:45:00Z",
+			"format": "csv",
+			"size": 45000,
+			"status": "completed"
+		}
+	],
+	"scheduledReports": [
+		{
+			"id": "sched-001",
+			"name": "Monthly Financial Summary",
+			"type": "financial-summary",
+			"schedule": "monthly",
+			"nextRun": "2025-01-01T06:00:00Z",
+			"recipients": ["alex@tenantflow.io"],
+			"format": "pdf",
+			"enabled": true
+		},
+		{
+			"id": "sched-002",
+			"name": "Weekly Rent Roll",
+			"type": "rent-roll",
+			"schedule": "weekly",
+			"nextRun": "2024-12-30T06:00:00Z",
+			"recipients": ["alex@tenantflow.io", "accounting@tenantflow.io"],
+			"format": "xlsx",
+			"enabled": true
+		}
+	],
+	"filters": {
+		"properties": [
+			{ "id": "all", "name": "All Properties" },
+			{ "id": "prop-001", "name": "Riverside Apartments" },
+			{ "id": "prop-002", "name": "Oak Grove Townhomes" },
+			{ "id": "prop-003", "name": "Downtown Lofts" },
+			{ "id": "prop-004", "name": "Sunset Gardens" },
+			{ "id": "prop-005", "name": "Lakeside Commons" }
+		],
+		"dateRanges": [
+			{ "id": "this-month", "name": "This Month" },
+			{ "id": "last-month", "name": "Last Month" },
+			{ "id": "this-quarter", "name": "This Quarter" },
+			{ "id": "last-quarter", "name": "Last Quarter" },
+			{ "id": "this-year", "name": "This Year" },
+			{ "id": "last-year", "name": "Last Year" },
+			{ "id": "custom", "name": "Custom Range" }
+		]
+	}
+}

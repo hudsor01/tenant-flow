@@ -5,14 +5,27 @@
 
 // Import constants from the single source of truth
 import type { USER_user_type } from '../constants/auth.js'
+import type { SubscriptionStatus as SubscriptionStatusType } from '../constants/status-types.js'
 import type { Database } from './supabase.js'
 import type { AuthError as BaseAuthError } from './errors.js'
+import type {
+	ContactFormData as ContactFormDataType,
+	ForgotPasswordFormData as ForgotPasswordFormDataType,
+	LoginFormData as LoginFormDataType,
+	ProfileFormData as ProfileFormDataType,
+	ResetPasswordFormData as ResetPasswordFormDataType,
+	SignupFormData as SignupFormDataType,
+	UpdatePasswordFormData as UpdatePasswordFormDataType
+} from './forms.js'
+import type {
+	Session as SupabaseSession,
+	User as SupabaseAuthUserType
+} from '@supabase/supabase-js'
 
 // Use Supabase User type directly - matches what we get from auth
 // This is the authenticated user from Supabase Auth (auth.users table)
 // NOT the public.users profile table (use core.User for that)
-import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
-export type { User as SupabaseAuthUser } from '@supabase/supabase-js'
+export type SupabaseAuthUser = SupabaseAuthUserType
 // Canonical backend/frontend auth user alias
 export type AuthUser = SupabaseAuthUser
 
@@ -20,8 +33,7 @@ export type AuthUser = SupabaseAuthUser
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
 
 // SubscriptionStatus for Stripe subscription states
-import type { SubscriptionStatus } from '../constants/status-types.js'
-export type { SubscriptionStatus }
+export type SubscriptionStatus = SubscriptionStatusType
 
 export function hasOrganizationId(
 	user: SupabaseAuthUser
@@ -33,16 +45,14 @@ export function hasOrganizationId(
 	)
 }
 
-// Re-export Form types from forms.ts
-export type {
-	LoginFormData,
-	SignupFormData,
-	ForgotPasswordFormData,
-	ResetPasswordFormData,
-	UpdatePasswordFormData,
-	ProfileFormData,
-	ContactFormData
-} from './forms.js'
+// Form types from forms.ts
+export type LoginFormData = LoginFormDataType
+export type SignupFormData = SignupFormDataType
+export type ForgotPasswordFormData = ForgotPasswordFormDataType
+export type ResetPasswordFormData = ResetPasswordFormDataType
+export type UpdatePasswordFormData = UpdatePasswordFormDataType
+export type ProfileFormData = ProfileFormDataType
+export type ContactFormData = ContactFormDataType
 
 // Auth request/response types for API - now consolidated in api-contracts.ts
 // See api-contracts.ts for: LoginInput, RegisterInput, RefreshTokenInput, etc.
@@ -93,9 +103,7 @@ export type AuthErrorCode =
 export type AuthError = BaseAuthError
 
 // Use Supabase Session type directly - no custom interface needed
-import type { Session } from '@supabase/supabase-js'
-export type AuthSession = Session
-
+export type AuthSession = SupabaseSession
 
 export interface SupabaseJwtPayload {
 	sub: string // Supabase user ID
@@ -131,7 +139,6 @@ export interface JwtPayload {
 	exp?: number
 }
 
-
 // Backend auth request/response schemas - consolidated in api-contracts.ts
 // See api-contracts.ts for: LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput
 
@@ -152,7 +159,6 @@ export interface RequestWithUser {
 	route?: { path?: string }
 	method?: string
 }
-
 
 // Permission and role enums (consolidated from security.ts)
 
@@ -178,4 +184,3 @@ export const Permission = {
 } as const
 
 export type PermissionValue = (typeof Permission)[keyof typeof Permission]
-

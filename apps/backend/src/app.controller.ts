@@ -44,7 +44,7 @@ export class AppController {
 
 		// Process all queries in parallel for maximum performance
 		const results = await Promise.allSettled(
-			queries.map(async (query) => {
+			queries.map(async query => {
 				try {
 					const result = await this.processBatchQuery(query, headers, baseUrl)
 					return {
@@ -70,7 +70,10 @@ export class AppController {
 				return {
 					id: queries[index]?.id || 'unknown',
 					status: 500,
-					error: result.reason instanceof Error ? result.reason.message : 'Batch query failed'
+					error:
+						result.reason instanceof Error
+							? result.reason.message
+							: 'Batch query failed'
 				}
 			}
 		})
@@ -89,13 +92,25 @@ export class AppController {
 		}
 
 		// Remove hop-by-hop headers that shouldn't be forwarded
-		const hopByHopHeaders = ['host', 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade']
+		const hopByHopHeaders = [
+			'host',
+			'connection',
+			'keep-alive',
+			'proxy-authenticate',
+			'proxy-authorization',
+			'te',
+			'trailers',
+			'transfer-encoding',
+			'upgrade'
+		]
 		hopByHopHeaders.forEach(header => {
 			delete requestHeaders[header]
 		})
 
 		// Construct full URL
-		const fullUrl = query.url.startsWith('http') ? query.url : `${baseUrl}${query.url}`
+		const fullUrl = query.url.startsWith('http')
+			? query.url
+			: `${baseUrl}${query.url}`
 
 		try {
 			// Make internal HTTP request to the actual API endpoint

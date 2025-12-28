@@ -43,9 +43,7 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 			try {
 				const parts = accessToken.split('.')
 				if (parts.length === 3 && parts[1]) {
-					const payload = JSON.parse(
-						atob(parts[1])
-					) as Record<string, unknown>
+					const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>
 					setUserType((payload.user_user_type as string) || 'TENANT')
 				}
 			} catch {
@@ -84,11 +82,7 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 
 		// Redirect to pricing if payment is required but not complete
 		// Also redirect if subscription check failed (fail-closed security)
-		if (
-			!hasValidSubscription ||
-			!hasStripeCustomer ||
-			subscriptionError
-		) {
+		if (!hasValidSubscription || !hasStripeCustomer || subscriptionError) {
 			const currentPath =
 				typeof window !== 'undefined' ? window.location.pathname : '/'
 			const pricingUrl = `/pricing?required=true&redirectTo=${encodeURIComponent(currentPath)}`
@@ -97,7 +91,14 @@ export function PaymentGateWrapper({ children }: PaymentGateWrapperProps) {
 		}
 
 		setIsValidating(false)
-	}, [session, requiresPayment, isCheckingSubscription, subscriptionData, subscriptionError, router])
+	}, [
+		session,
+		requiresPayment,
+		isCheckingSubscription,
+		subscriptionData,
+		subscriptionError,
+		router
+	])
 
 	// Show nothing while validating payment status
 	if (isValidating) {

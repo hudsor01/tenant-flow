@@ -4,7 +4,6 @@ import { MaintenanceInsightsService } from './maintenance-insights.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('MaintenanceInsightsController', () => {
 	let controller: MaintenanceInsightsController
 	let service: Record<string, jest.Mock>

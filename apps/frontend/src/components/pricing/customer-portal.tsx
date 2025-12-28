@@ -254,9 +254,7 @@ export function CustomerPortalCard({
 				<div className="flex-between mb-[var(--spacing-6)]">
 					<div className="flex items-center gap-4">
 						<div
-							className={cn(
-								'p-4 rounded-2xl gradient-background shadow-lg'
-							)}
+							className={cn('p-4 rounded-2xl gradient-background shadow-lg')}
 						>
 							<Settings className="size-8 text-primary-foreground" />
 						</div>
@@ -287,10 +285,11 @@ export function CustomerPortalCard({
 							{currentPlan}
 						</Badge>
 						<div className="flex items-center gap-[var(--spacing-2)] mt-2">
-							<div className="size-2 bg-primary rounded-full animate-pulse" aria-hidden="true" />
-							<span className="text-caption font-medium">
-								Active Plan
-							</span>
+							<div
+								className="size-2 bg-primary rounded-full animate-pulse"
+								aria-hidden="true"
+							/>
+							<span className="text-caption font-medium">Active Plan</span>
 						</div>
 					</div>
 				</div>
@@ -319,64 +318,74 @@ export function CustomerPortalCard({
 									Updated 2 hours ago
 								</Badge>
 							</div>
-								<div className={'portal-feature-grid'}>
+							<div className={'portal-feature-grid'}>
 								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'}>
+									<div
+										className={
+											'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'
+										}
+									>
 										<FileText className="size-5 text-accent" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.properties}
 									</p>
-									<p className="text-caption font-medium">
-										Properties
-									</p>
+									<p className="text-caption font-medium">Properties</p>
 								</div>
 								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
+									<div
+										className={
+											'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'
+										}
+									>
 										<Users className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-foreground tabular-nums">
 										{usageStats.tenants}
 									</p>
-									<p className="text-caption font-medium">
-										Tenants
-									</p>
+									<p className="text-caption font-medium">Tenants</p>
 								</div>
 								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
+									<div
+										className={
+											'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'
+										}
+									>
 										<Zap className="size-5 text-primary" />
 									</div>
 									<p className="text-2xl font-black text-primary tabular-nums">
 										{usageStats.uptime}
 									</p>
-									<p className="text-caption font-medium">
-										Uptime
-									</p>
+									<p className="text-caption font-medium">Uptime</p>
 								</div>
 								{usageStats.monthlyRevenue && (
 									<div className={cardVariants({ variant: 'portalFeature' })}>
-										<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
+										<div
+											className={
+												'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'
+											}
+										>
 											<TrendingUp className="size-5 text-primary" />
 										</div>
 										<p className="text-2xl font-black text-primary tabular-nums">
 											${usageStats.monthlyRevenue.toLocaleString()}
 										</p>
-										<p className="text-caption font-medium">
-											Revenue
-										</p>
+										<p className="text-caption font-medium">Revenue</p>
 									</div>
 								)}
 								{usageStats.activeLeases && (
 									<div className={cardVariants({ variant: 'portalFeature' })}>
-										<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'}>
+										<div
+											className={
+												'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'
+											}
+										>
 											<FileText className="size-5 text-accent" />
 										</div>
 										<p className="text-2xl font-black text-accent tabular-nums">
 											{usageStats.activeLeases}
 										</p>
-										<p className="text-caption font-medium">
-											Active Leases
-										</p>
+										<p className="text-caption font-medium">Active Leases</p>
 									</div>
 								)}
 							</div>
@@ -499,7 +508,7 @@ export function CustomerPortalCard({
 					{/* Enhanced Feature Grid */}
 					<div
 						className={cn(
-						'grid gap-4 [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
+							'grid gap-4 [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
 							'animate-in fade-in-0 duration-300'
 						)}
 					>
@@ -512,9 +521,7 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Payment Management
 									</h5>
-									<p className="text-muted">
-										Update cards & billing info
-									</p>
+									<p className="text-muted">Update cards & billing info</p>
 								</div>
 							</div>
 							<div className="flex-between">
@@ -534,9 +541,7 @@ export function CustomerPortalCard({
 									<h5 className="font-bold text-foreground">
 										Invoices & Receipts
 									</h5>
-									<p className="text-muted">
-										Download & track payments
-									</p>
+									<p className="text-muted">Download & track payments</p>
 								</div>
 							</div>
 							<div className="flex-between">
@@ -554,9 +559,7 @@ export function CustomerPortalCard({
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Usage Reports</h5>
-									<p className="text-muted">
-										Analytics & insights
-									</p>
+									<p className="text-muted">Analytics & insights</p>
 								</div>
 							</div>
 							<div className="flex-between">
@@ -574,9 +577,7 @@ export function CustomerPortalCard({
 								</div>
 								<div>
 									<h5 className="font-bold text-foreground">Plan Management</h5>
-									<p className="text-muted">
-										Upgrade, downgrade or cancel
-									</p>
+									<p className="text-muted">Upgrade, downgrade or cancel</p>
 								</div>
 							</div>
 							<div className="flex-between">
@@ -589,7 +590,12 @@ export function CustomerPortalCard({
 					</div>
 
 					{/* Enhanced Primary Action */}
-					<div className={cn('pt-[var(--spacing-4)]', 'animate-in slide-in-from-bottom-2 duration-300')}>
+					<div
+						className={cn(
+							'pt-[var(--spacing-4)]',
+							'animate-in slide-in-from-bottom-2 duration-300'
+						)}
+					>
 						<CustomerPortalButton
 							className={cn(
 								'w-full h-16 text-lg font-bold shadow-xl hover:shadow-2xl',
@@ -618,9 +624,7 @@ export function CustomerPortalCard({
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Bank-Level Security</p>
-							<p className="text-caption">
-								256-bit SSL encryption
-							</p>
+							<p className="text-caption">256-bit SSL encryption</p>
 						</div>
 					</div>
 					<div className={'trust-signal-item'}>
@@ -629,9 +633,7 @@ export function CustomerPortalCard({
 						</div>
 						<div>
 							<p className="font-bold text-foreground">Powered by Stripe</p>
-							<p className="text-caption">
-								Trusted by millions
-							</p>
+							<p className="text-caption">Trusted by millions</p>
 						</div>
 					</div>
 					<div className={'trust-signal-item'}>

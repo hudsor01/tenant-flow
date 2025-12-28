@@ -58,7 +58,8 @@ export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
 	const [emergency_contactEditing, setEmergencyContactEditing] = useState(false)
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-	const [showChangePasswordDialog, setShowChangePasswordDialog] = useState(false)
+	const [showChangePasswordDialog, setShowChangePasswordDialog] =
+		useState(false)
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const updateProfile = useSupabaseUpdateProfile()
 
@@ -221,12 +222,12 @@ export default function TenantProfilePage() {
 
 		try {
 			await deleteEmergencyContact.mutateAsync()
-		setEmergencyContactForm({
-			contactName: '',
-			relationship: '',
-			phoneNumber: '',
-			email: ''
-		})
+			setEmergencyContactForm({
+				contactName: '',
+				relationship: '',
+				phoneNumber: '',
+				email: ''
+			})
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
 		} catch (error) {
@@ -258,7 +259,7 @@ export default function TenantProfilePage() {
 	return (
 		<div className="max-w-4xl mx-auto space-y-8">
 			<div>
-				<h1 className="typography-h2 tracking-tight">My Profile</h1>
+				<h1 className="typography-h1">My Profile</h1>
 				<p className="text-muted-foreground">
 					Manage your contact information and account settings
 				</p>
@@ -354,8 +355,10 @@ export default function TenantProfilePage() {
 										// Reset form
 										if (user) {
 											setFormData({
-												first_name: (user.user_metadata?.first_name || '') as string,
-												last_name: (user.user_metadata?.last_name || '') as string,
+												first_name: (user.user_metadata?.first_name ||
+													'') as string,
+												last_name: (user.user_metadata?.last_name ||
+													'') as string,
 												email: (user.email || '') as string,
 												phone: (user.user_metadata?.phone || '') as string
 											})

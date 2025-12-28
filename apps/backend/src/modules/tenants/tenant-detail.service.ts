@@ -4,15 +4,25 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common'
-import type { Tenant, TenantWithLeaseInfo, Lease } from '@repo/shared/types/core'
+import {
+	Injectable,
+	NotFoundException,
+	UnauthorizedException
+} from '@nestjs/common'
+import type {
+	Tenant,
+	TenantWithLeaseInfo,
+	Lease
+} from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantDetailService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get user-scoped Supabase client with RLS enforcement
@@ -29,7 +39,10 @@ export class TenantDetailService {
 	 * Batch fetch tenants by IDs - O(1) query instead of O(N)
 	 * RLS automatically filters to only tenants the user can access
 	 */
-	async findByIds(tenantIds: string[], token: string): Promise<Map<string, Tenant>> {
+	async findByIds(
+		tenantIds: string[],
+		token: string
+	): Promise<Map<string, Tenant>> {
 		if (tenantIds.length === 0) return new Map()
 
 		const client = this.requireUserClient(token)
@@ -41,7 +54,9 @@ export class TenantDetailService {
 			.in('id', tenantIds)
 
 		if (error) {
-			this.logger.error('Failed to batch fetch tenants', { error: error.message })
+			this.logger.error('Failed to batch fetch tenants', {
+				error: error.message
+			})
 			throw new NotFoundException('Failed to fetch tenants')
 		}
 
@@ -71,7 +86,11 @@ export class TenantDetailService {
 
 			return data as Tenant
 		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
+			if (
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException
+			)
+				throw error
 			this.logger.error('Error finding tenant', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantId
@@ -83,12 +102,15 @@ export class TenantDetailService {
 	/**
 	 * Get tenant with all lease details
 	 */
-	async findOneWithLease(tenantId: string, token: string): Promise<TenantWithLeaseInfo> {
+	async findOneWithLease(
+		tenantId: string,
+		token: string
+	): Promise<TenantWithLeaseInfo> {
 		if (!tenantId) throw new Error('Tenant ID required')
 
 		try {
 			const client = this.requireUserClient(token)
-			
+
 			// Get tenant base data
 			const tenant = await this.findOne(tenantId, token)
 
@@ -140,15 +162,18 @@ export class TenantDetailService {
 			}
 
 			const leaseInfo =
-				((leaseData as unknown) as { lease?: Lease }[] | null)?.[0]?.lease ||
-				null
+				(leaseData as unknown as { lease?: Lease }[] | null)?.[0]?.lease || null
 
 			return {
 				...tenant,
 				lease: leaseInfo
 			} as unknown as TenantWithLeaseInfo
 		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
+			if (
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException
+			)
+				throw error
 			this.logger.error('Error finding tenant with leases', {
 				error: error instanceof Error ? error.message : String(error),
 				tenantId
@@ -160,7 +185,10 @@ export class TenantDetailService {
 	/**
 	 * Get tenant by auth user ID
 	 */
-	async getTenantByAuthUserId(authUserId: string, token: string): Promise<Tenant> {
+	async getTenantByAuthUserId(
+		authUserId: string,
+		token: string
+	): Promise<Tenant> {
 		if (!authUserId) throw new Error('Auth user ID required')
 
 		try {
@@ -179,7 +207,11 @@ export class TenantDetailService {
 
 			return data as Tenant
 		} catch (error) {
-			if (error instanceof NotFoundException || error instanceof UnauthorizedException) throw error
+			if (
+				error instanceof NotFoundException ||
+				error instanceof UnauthorizedException
+			)
+				throw error
 			this.logger.error('Error finding tenant by auth user', {
 				error: error instanceof Error ? error.message : String(error),
 				authUserId

@@ -1,7 +1,11 @@
-import type {
-	CanActivate,
-	ExecutionContext} from '@nestjs/common';
-import { ForbiddenException, Injectable, ServiceUnavailableException, SetMetadata, UnauthorizedException } from '@nestjs/common'
+import type { CanActivate, ExecutionContext } from '@nestjs/common'
+import {
+	ForbiddenException,
+	Injectable,
+	ServiceUnavailableException,
+	SetMetadata,
+	UnauthorizedException
+} from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 
 import type { AuthenticatedRequest } from '../types/express-request.types'
@@ -14,9 +18,11 @@ export const SkipSubscriptionCheck = () =>
 
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
-
-	constructor(private readonly supabaseService: SupabaseService,
-		private readonly reflector: Reflector, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly reflector: Reflector,
+		private readonly logger: AppLogger
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
@@ -41,7 +47,7 @@ export class SubscriptionGuard implements CanActivate {
 		}
 
 		// Tenant-facing routes are covered by invite-only access and do not require payment
-		const userType = (user.app_metadata?.user_type) as string | undefined
+		const userType = user.app_metadata?.user_type as string | undefined
 		if (userType === 'TENANT') {
 			return true
 		}

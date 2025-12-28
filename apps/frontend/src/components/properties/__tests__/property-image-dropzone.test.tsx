@@ -70,7 +70,9 @@ function createWrapper() {
 	// Mock the invalidateQueries method
 	queryClient.invalidateQueries = mockInvalidateQueries
 	return function Wrapper({ children }: { children: React.ReactNode }) {
-		return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		return (
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		)
 	}
 }
 
@@ -85,40 +87,36 @@ describe('PropertyImageDropzone Component', () => {
 
 	describe('Rendering', () => {
 		it('renders dropzone with empty state', () => {
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show upload instructions
 			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
 		})
 
 		it('renders with correct bucket configuration', () => {
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Verify the hook was called with correct bucket
 			expect(capturedOptions?.bucketName).toBe('property-images')
 		})
 
 		it('uses property ID as path for uploads', () => {
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Verify useSupabaseUpload was called with correct path
 			expect(capturedOptions?.path).toBe(testPropertyId)
 		})
 
 		it('shows file size limit info', () => {
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Should display max file size (formatBytes uses 1000 divisor)
 			expect(screen.getByText(/maximum file size/i)).toBeInTheDocument()
@@ -127,10 +125,9 @@ describe('PropertyImageDropzone Component', () => {
 
 	describe('File Selection', () => {
 		it('accepts image files via drag and drop area', () => {
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Find the dropzone area
 			const dropzone = screen.getByText(/drag and drop/i).closest('div')
@@ -150,10 +147,9 @@ describe('PropertyImageDropzone Component', () => {
 				files: [mockFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText('test-image.jpg')).toBeInTheDocument()
 		})
@@ -172,14 +168,15 @@ describe('PropertyImageDropzone Component', () => {
 				files: [mockFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Find remove button (X icon button)
 			const buttons = screen.getAllByRole('button')
-			const removeButton = buttons.find(btn => btn.querySelector('svg.lucide-x'))
+			const removeButton = buttons.find(btn =>
+				btn.querySelector('svg.lucide-x')
+			)
 
 			if (removeButton) {
 				await user.click(removeButton)
@@ -195,17 +192,18 @@ describe('PropertyImageDropzone Component', () => {
 				size: 20 * 1024 * 1024, // 20MB
 				type: 'image/jpeg',
 				preview: 'blob:test',
-				errors: [{ code: 'file-too-large', message: 'File is larger than 10 MB' }]
+				errors: [
+					{ code: 'file-too-large', message: 'File is larger than 10 MB' }
+				]
 			}
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [oversizedFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/file is larger than/i)).toBeInTheDocument()
 		})
@@ -216,17 +214,18 @@ describe('PropertyImageDropzone Component', () => {
 				size: 1024 * 1024,
 				type: 'application/pdf',
 				preview: 'blob:test',
-				errors: [{ code: 'file-invalid-type', message: 'File type not accepted' }]
+				errors: [
+					{ code: 'file-invalid-type', message: 'File type not accepted' }
+				]
 			}
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [invalidFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/file type not accepted/i)).toBeInTheDocument()
 		})
@@ -245,10 +244,9 @@ describe('PropertyImageDropzone Component', () => {
 				maxFiles: 10
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show too many files error
 			expect(screen.getByText(/you may upload only up to/i)).toBeInTheDocument()
@@ -269,12 +267,13 @@ describe('PropertyImageDropzone Component', () => {
 				files: [mockFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
-			expect(screen.getByRole('button', { name: /upload/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /upload/i })
+			).toBeInTheDocument()
 		})
 
 		it('calls onUpload when upload button is clicked', async () => {
@@ -291,10 +290,9 @@ describe('PropertyImageDropzone Component', () => {
 				files: [mockFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			const uploadButton = screen.getByRole('button', { name: /upload/i })
 			await user.click(uploadButton)
@@ -316,10 +314,9 @@ describe('PropertyImageDropzone Component', () => {
 				loading: true
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			const uploadButton = screen.getByRole('button', { name: /upload/i })
 			expect(uploadButton).toBeDisabled()
@@ -339,10 +336,9 @@ describe('PropertyImageDropzone Component', () => {
 				loading: true
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Check for uploading text within the upload button
 			const uploadButton = screen.getByRole('button', { name: /uploading/i })
@@ -366,10 +362,9 @@ describe('PropertyImageDropzone Component', () => {
 				isSuccess: true
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/successfully uploaded/i)).toBeInTheDocument()
 		})
@@ -414,13 +409,14 @@ describe('PropertyImageDropzone Component', () => {
 
 			mockUploadReturn = createMockUploadReturn({
 				files: [mockFile],
-				errors: [{ name: 'test-image.jpg', message: 'Upload failed: Network error' }]
+				errors: [
+					{ name: 'test-image.jpg', message: 'Upload failed: Network error' }
+				]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			expect(screen.getByText(/failed to upload/i)).toBeInTheDocument()
 		})
@@ -440,10 +436,9 @@ describe('PropertyImageDropzone Component', () => {
 				errors: [{ name: 'test-image.jpg', message: 'Upload failed' }]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Upload button should still be available for retry
 			const uploadButton = screen.getByRole('button', { name: /upload/i })
@@ -460,10 +455,9 @@ describe('PropertyImageDropzone Component', () => {
 				isDragAccept: true
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// The component should render without errors
 			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
@@ -475,10 +469,9 @@ describe('PropertyImageDropzone Component', () => {
 				isDragReject: true
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// The component should render without errors
 			expect(screen.getByText(/drag and drop/i)).toBeInTheDocument()
@@ -499,14 +492,16 @@ describe('PropertyImageDropzone Component', () => {
 				files: [mockFile]
 			})
 
-			render(
-				<PropertyImageDropzone propertyId={testPropertyId} />,
-				{ wrapper: createWrapper() }
-			)
+			render(<PropertyImageDropzone propertyId={testPropertyId} />, {
+				wrapper: createWrapper()
+			})
 
 			// Should show preview image
 			const preview = screen.getByRole('img', { hidden: true })
-			expect(preview).toHaveAttribute('src', 'blob:http://localhost/test-preview')
+			expect(preview).toHaveAttribute(
+				'src',
+				'blob:http://localhost/test-preview'
+			)
 		})
 	})
 

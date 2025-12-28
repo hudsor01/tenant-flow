@@ -40,8 +40,15 @@ export const tenantPaymentQueries = {
 	 */
 	ownerPayments: (tenant_id: string, filters?: TenantPaymentFilters) =>
 		queryOptions({
-			queryKey: [...tenantPaymentQueries.owner(), tenant_id, filters?.limit ?? 20],
-			queryFn: () => apiRequest<TenantPaymentHistoryResponse>(`/api/v1/tenants/${tenant_id}/payments?limit=${filters?.limit ?? 20}`),
+			queryKey: [
+				...tenantPaymentQueries.owner(),
+				tenant_id,
+				filters?.limit ?? 20
+			],
+			queryFn: () =>
+				apiRequest<TenantPaymentHistoryResponse>(
+					`/api/v1/tenants/${tenant_id}/payments?limit=${filters?.limit ?? 20}`
+				),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: filters?.enabled ?? Boolean(tenant_id)
 		}),
@@ -60,7 +67,10 @@ export const tenantPaymentQueries = {
 	selfPayments: (filters?: TenantPaymentFilters) =>
 		queryOptions({
 			queryKey: [...tenantPaymentQueries.self(), filters?.limit ?? 20],
-			queryFn: () => apiRequest<TenantPaymentHistoryResponse>(`/api/v1/tenants/me/payments?limit=${filters?.limit ?? 20}`),
+			queryFn: () =>
+				apiRequest<TenantPaymentHistoryResponse>(
+					`/api/v1/tenants/me/payments?limit=${filters?.limit ?? 20}`
+				),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: filters?.enabled ?? true
 		})
@@ -68,6 +78,7 @@ export const tenantPaymentQueries = {
 
 // Re-export keys for backward compatibility
 export const tenantPaymentKeys = {
-	owner: (tenant_id: string) => [...tenantPaymentQueries.owner(), tenant_id] as const,
+	owner: (tenant_id: string) =>
+		[...tenantPaymentQueries.owner(), tenant_id] as const,
 	self: () => tenantPaymentQueries.self()
 }

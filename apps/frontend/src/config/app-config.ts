@@ -9,13 +9,14 @@ const DEV_APP_URL = 'http://localhost:3000'
 const DEV_API_URL = 'http://localhost:4600'
 
 function getEnvVar(key: string, devDefault: string): string {
-	const value = process.env[key] ||
+	const value =
+		process.env[key] ||
 		(process.env.NODE_ENV === 'production' ? undefined : devDefault)
 
 	if (!value) {
 		throw new Error(
 			`${key} environment variable is required in production. ` +
-			'Set it in your deployment environment.'
+				'Set it in your deployment environment.'
 		)
 	}
 	return value

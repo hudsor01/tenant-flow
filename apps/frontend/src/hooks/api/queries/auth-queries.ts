@@ -57,7 +57,7 @@ export const authQueries = {
 			queryKey: authKeys.session(),
 			queryFn: () => apiRequest<AuthSession>('/api/v1/auth/session'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			retry: false, // Auth failures shouldn't retry
+			retry: false // Auth failures shouldn't retry
 		}),
 
 	/**

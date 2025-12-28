@@ -7,6 +7,10 @@ import { apiRequest } from '#lib/api-request'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import type {
+	RentPayment,
+	TenantPaymentStatusResponse
+} from '@repo/shared/types/api-contracts'
 
 /**
  * Query keys for rent payments endpoints
@@ -63,37 +67,39 @@ export function useCreateRentPayment() {
 			await queryClient.cancelQueries({ queryKey: rentPaymentKeys.list() })
 
 			// Snapshot previous state
-			const previousList = queryClient.getQueryData<
-				import('@repo/shared/types/core').RentPayment[] | undefined
-			>(rentPaymentKeys.list())
+			const previousList = queryClient.getQueryData<RentPayment[] | undefined>(
+				rentPaymentKeys.list()
+			)
 
 			// Create optimistic payment entry (partial - will be replaced by server response)
 			const tempId = `temp-${Date.now()}`
-			const optimisticPayment = {
-		id: tempId,
-		version: 1,
-		amount: newPayment.amount,
-		status: 'pending',
-		tenant_id: newPayment.tenant_id,
-		lease_id: newPayment.lease_id,
-		stripe_payment_intent_id: '',
-		application_fee_amount: 0,
-		late_fee_amount: null,
-		payment_method_type: 'stripe',
-		period_start: new Date().toISOString().split('T')[0],
-		period_end: new Date().toISOString().split('T')[0],
-		due_date: new Date().toISOString().split('T')[0],
-		paid_date: null,
-		currency: 'USD',
-		created_at: new Date().toISOString(),
-		updated_at: null
-	} as unknown as import('@repo/shared/types/core').RentPayment
+			const today = new Date().toISOString().split('T')[0] ?? ''
+			const optimisticPayment: RentPayment = {
+				id: tempId,
+				amount: newPayment.amount,
+				status: 'pending',
+				tenant_id: newPayment.tenant_id,
+				lease_id: newPayment.lease_id,
+				stripe_payment_intent_id: '',
+				application_fee_amount: 0,
+				late_fee_amount: null,
+				payment_method_type: 'stripe',
+				period_start: today,
+				period_end: today,
+				due_date: today,
+				paid_date: null,
+				currency: 'USD',
+				created_at: new Date().toISOString(),
+				updated_at: null
+			}
 
 			// Optimistically update cache
-			queryClient.setQueryData<
-				import('@repo/shared/types/core').RentPayment[] | undefined
-			>(rentPaymentKeys.list(), old =>
-				old ? [optimisticPayment, ...old] : [optimisticPayment]
+			queryClient.setQueryData<RentPayment[] | undefined>(
+				rentPaymentKeys.list(),
+				old =>
+					old
+						? [optimisticPayment as RentPayment, ...old]
+						: [optimisticPayment as RentPayment]
 			)
 
 			return { previousList, tempId }
@@ -116,7 +122,9 @@ export function useCreateRentPayment() {
 									? (res.payment as unknown as import('@repo/shared/types/core').RentPayment)
 									: p
 							)
-						: [res.payment as unknown as import('@repo/shared/types/core').RentPayment]
+						: [
+								res.payment as unknown as import('@repo/shared/types/core').RentPayment
+							]
 				)
 			}
 		},

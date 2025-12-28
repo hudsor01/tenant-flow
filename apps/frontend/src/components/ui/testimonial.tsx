@@ -15,16 +15,16 @@ function ClientFeedback() {
 			>
 				<article className={'max-w-screen-md mx-auto text-center space-y-2 '}>
 					<TimelineContent
-						className={'xl:text-4xl text-3xl  font-medium'}
+						className="typography-display"
 						animationNum={0}
-							timelineRef={testimonialRef}
+						timelineRef={testimonialRef}
 					>
 						<h1>Trusted by Property Managers and Real Estate Professionals</h1>
 					</TimelineContent>
 					<TimelineContent
-						className={'mx-auto text-muted-foreground'}
+						className="mx-auto typography-lead"
 						animationNum={1}
-							timelineRef={testimonialRef}
+						timelineRef={testimonialRef}
 					>
 						<p>
 							See how TenantFlow has transformed property management for our
@@ -36,7 +36,7 @@ function ClientFeedback() {
 					<div className="md:flex lg:flex-col lg:space-y-2 h-full lg:gap-0 gap-2 ">
 						<TimelineContent
 							animationNum={0}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className=" lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -56,9 +56,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
-										<h2 className=" font-semibold lg:text-xl text-sm">
-											Sarah Martinez
-										</h2>
+										<h2 className="typography-h3">Sarah Martinez</h2>
 										<p className="text-muted-foreground">
 											Property Manager, SunSet Apartments
 										</p>
@@ -77,7 +75,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={1}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className="lg:flex-[3] flex-[4] lg:h-fit  lg:shrink-0 flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -96,7 +94,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
-										<h2 className=" font-semibold text-xl">Michael Chen</h2>
+										<h2 className="typography-h3">Michael Chen</h2>
 										<p className="text-primary-foreground/80">
 											Real Estate Investor
 										</p>
@@ -117,7 +115,7 @@ function ClientFeedback() {
 					<div className="lg:h-full  md:flex lg:flex-col h-fit lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={2}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -136,9 +134,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
-										<h2 className=" font-semibold lg:text-xl text-lg">
-											Jessica Thompson
-										</h2>
+										<h2 className="typography-h3">Jessica Thompson</h2>
 										<p className="lg:text-base text-muted">
 											CEO, Prime Properties
 										</p>
@@ -157,7 +153,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={3}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -176,12 +172,8 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
-										<h2 className=" font-semibold lg:text-xl text-lg">
-											David Park
-										</h2>
-										<p className="lg:text-base text-muted">
-											Portfolio Manager
-										</p>
+										<h2 className="typography-h3">David Park</h2>
+										<p className="lg:text-base text-muted">Portfolio Manager</p>
 									</div>
 									<Image
 										src="https://images.unsplash.com/photo-1615109398623-88346a601842?q=80&w=687&auto=format&fit=crop"
@@ -197,7 +189,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={4}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className="flex flex-col justify-between relative bg-card text-card-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -216,9 +208,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between items-end pt-5">
 									<div>
-										<h2 className=" font-semibold lg:text-xl text-lg">
-											Amanda Rodriguez
-										</h2>
+										<h2 className="typography-h3">Amanda Rodriguez</h2>
 										<p className="lg:text-base text-muted">
 											Regional Property Director
 										</p>
@@ -239,7 +229,7 @@ function ClientFeedback() {
 					<div className="h-full md:flex lg:flex-col lg:space-y-2 lg:gap-0 gap-2">
 						<TimelineContent
 							animationNum={5}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className=" lg:flex-[3] flex-[4] flex flex-col justify-between relative bg-accent text-primary-foreground overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -257,7 +247,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
-										<h2 className=" font-semibold text-xl">Robert Kim</h2>
+										<h2 className="typography-h3">Robert Kim</h2>
 										<p className="text-primary-foreground/80">
 											Founder, Urban Rentals
 										</p>
@@ -276,7 +266,7 @@ function ClientFeedback() {
 						</TimelineContent>
 						<TimelineContent
 							animationNum={6}
-									timelineRef={testimonialRef}
+							timelineRef={testimonialRef}
 							className="lg:flex-[7] flex-[6] flex flex-col justify-between relative bg-primary/5 overflow-hidden rounded border border-border p-5 group"
 						>
 							<BorderBeam
@@ -296,7 +286,7 @@ function ClientFeedback() {
 								</p>
 								<div className="flex justify-between pt-5">
 									<div>
-										<h2 className=" font-semibold text-xl">Lisa Walsh</h2>
+										<h2 className="typography-h3">Lisa Walsh</h2>
 										<p className="text-muted-foreground">
 											Operations Manager, Metro Properties
 										</p>

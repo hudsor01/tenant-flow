@@ -111,7 +111,9 @@ describe('PropertyForm', () => {
 
 			expect(screen.getByLabelText(/property name/i)).toHaveValue('')
 			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('')
-			expect(screen.getByRole('button', { name: /create property/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /create property/i })
+			).toBeInTheDocument()
 		})
 
 		test('shows all required fields marked with asterisk', () => {
@@ -128,13 +130,17 @@ describe('PropertyForm', () => {
 		test('shows image upload section in create mode', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
-			expect(screen.getByText(/save property first to upload images/i)).toBeInTheDocument()
+			expect(
+				screen.getByText(/save property first to upload images/i)
+			).toBeInTheDocument()
 		})
 
 		test('displays correct button text in create mode', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
-			const submitButton = screen.getByRole('button', { name: /create property/i })
+			const submitButton = screen.getByRole('button', {
+				name: /create property/i
+			})
 			expect(submitButton).toBeInTheDocument()
 			expect(submitButton).not.toBeDisabled()
 		})
@@ -146,7 +152,9 @@ describe('PropertyForm', () => {
 				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />
 			)
 
-			expect(screen.getByLabelText(/property name/i)).toHaveValue('Sunset Apartments')
+			expect(screen.getByLabelText(/property name/i)).toHaveValue(
+				'Sunset Apartments'
+			)
 			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('123 Main St')
 			expect(screen.getByLabelText(/city/i)).toHaveValue('San Francisco')
 			expect(screen.getByLabelText(/state/i)).toHaveValue('CA')
@@ -166,20 +174,22 @@ describe('PropertyForm', () => {
 				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />
 			)
 
-			const submitButton = screen.getByRole('button', { name: /update property/i })
+			const submitButton = screen.getByRole('button', {
+				name: /update property/i
+			})
 			expect(submitButton).toBeInTheDocument()
 			expect(submitButton).not.toBeDisabled()
 		})
 
 		test('populates property type select with correct value', () => {
-		renderWithQueryClient(
-			<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />
-		)
+			renderWithQueryClient(
+				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} />
+			)
 
-		// Verify Property Type label exists and form is rendered
-		expect(screen.getByText(/property type \*/i)).toBeInTheDocument()
-		// The form should be rendered in edit mode successfully
-	})
+			// Verify Property Type label exists and form is rendered
+			expect(screen.getByText(/property type \*/i)).toBeInTheDocument()
+			// The form should be rendered in edit mode successfully
+		})
 	})
 
 	describe('Form Validation', () => {
@@ -235,7 +245,9 @@ describe('PropertyForm', () => {
 			await user.type(screen.getByLabelText(/state/i), 'CA')
 			await user.type(screen.getByLabelText(/zip code/i), '94601')
 
-			expect(screen.getByLabelText(/property name/i)).toHaveValue('Test Property')
+			expect(screen.getByLabelText(/property name/i)).toHaveValue(
+				'Test Property'
+			)
 			expect(screen.getByLabelText(/^Address \*$/i)).toHaveValue('456 Oak Ave')
 			expect(screen.getByLabelText(/city/i)).toHaveValue('Oakland')
 			expect(screen.getByLabelText(/state/i)).toHaveValue('CA')
@@ -266,30 +278,45 @@ describe('PropertyForm', () => {
 
 	describe('Accessibility', () => {
 		test('all form fields have proper labels', () => {
-		renderWithQueryClient(<PropertyForm mode="create" />)
+			renderWithQueryClient(<PropertyForm mode="create" />)
 
-		// Text inputs can be queried by label
-		expect(screen.getByLabelText(/property name/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/^Address \*$/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/city/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/state/i)).toBeInTheDocument()
-		expect(screen.getByLabelText(/zip code/i)).toBeInTheDocument()
-		// Country is a select field and may not have a standard label query
-	// Verify country label exists via text query instead
-	expect(screen.getByText(/country \*/i)).toBeInTheDocument()
+			// Text inputs can be queried by label
+			expect(screen.getByLabelText(/property name/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/^Address \*$/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/city/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/state/i)).toBeInTheDocument()
+			expect(screen.getByLabelText(/zip code/i)).toBeInTheDocument()
+			// Country is a select field and may not have a standard label query
+			// Verify country label exists via text query instead
+			expect(screen.getByText(/country \*/i)).toBeInTheDocument()
 
-		// Verify property type label exists (accessibility)
-		expect(screen.getByText(/property type \*/i)).toBeInTheDocument()
-	})
+			// Verify property type label exists (accessibility)
+			expect(screen.getByText(/property type \*/i)).toBeInTheDocument()
+		})
 
 		test('form inputs have appropriate autocomplete attributes', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
-			expect(screen.getByLabelText(/property name/i)).toHaveAttribute('autocomplete', 'organization')
-			expect(screen.getByLabelText(/^Address \*$/i)).toHaveAttribute('autocomplete', 'street-address')
-			expect(screen.getByLabelText(/city/i)).toHaveAttribute('autocomplete', 'address-level2')
-			expect(screen.getByLabelText(/state/i)).toHaveAttribute('autocomplete', 'address-level1')
-			expect(screen.getByLabelText(/zip code/i)).toHaveAttribute('autocomplete', 'postal-code')
+			expect(screen.getByLabelText(/property name/i)).toHaveAttribute(
+				'autocomplete',
+				'organization'
+			)
+			expect(screen.getByLabelText(/^Address \*$/i)).toHaveAttribute(
+				'autocomplete',
+				'street-address'
+			)
+			expect(screen.getByLabelText(/city/i)).toHaveAttribute(
+				'autocomplete',
+				'address-level2'
+			)
+			expect(screen.getByLabelText(/state/i)).toHaveAttribute(
+				'autocomplete',
+				'address-level1'
+			)
+			expect(screen.getByLabelText(/zip code/i)).toHaveAttribute(
+				'autocomplete',
+				'postal-code'
+			)
 		})
 	})
 
@@ -309,9 +336,13 @@ describe('PropertyForm', () => {
 		})
 
 		test('accepts onSuccess callback prop', async () => {
-		const onSuccess = vi.fn()
+			const onSuccess = vi.fn()
 			renderWithQueryClient(
-				<PropertyForm mode="edit" property={DEFAULT_PROPERTY} onSuccess={onSuccess} />
+				<PropertyForm
+					mode="edit"
+					property={DEFAULT_PROPERTY}
+					onSuccess={onSuccess}
+				/>
 			)
 
 			// Note: Full form submission testing would require mocking the mutation

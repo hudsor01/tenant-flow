@@ -66,7 +66,9 @@ describe('AcceptInvitePage', () => {
 			render(<AcceptInvitePage />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/no invitation code provided/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/no invitation code provided/i)
+				).toBeInTheDocument()
 			})
 		})
 
@@ -80,7 +82,9 @@ describe('AcceptInvitePage', () => {
 			render(<AcceptInvitePage />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/invalid or has already been used/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/invalid or has already been used/i)
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -89,20 +93,25 @@ describe('AcceptInvitePage', () => {
 		it('should display invitation details for valid token', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({
-					valid: true,
-					email: 'tenant@example.com',
-					property_owner_name: 'Test Property Management',
-					property_name: 'Sunset Apartments',
-					unit_number: '101',
-					expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-				})
+				json: () =>
+					Promise.resolve({
+						valid: true,
+						email: 'tenant@example.com',
+						property_owner_name: 'Test Property Management',
+						property_name: 'Sunset Apartments',
+						unit_number: '101',
+						expires_at: new Date(
+							Date.now() + 7 * 24 * 60 * 60 * 1000
+						).toISOString()
+					})
 			})
 
 			render(<AcceptInvitePage />)
 
 			await waitFor(() => {
-				expect(screen.getByText(/test property management/i)).toBeInTheDocument()
+				expect(
+					screen.getByText(/test property management/i)
+				).toBeInTheDocument()
 			})
 
 			expect(screen.getByText(/sunset apartments/i)).toBeInTheDocument()
@@ -112,11 +121,12 @@ describe('AcceptInvitePage', () => {
 		it('should show signup form for valid token', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({
-					valid: true,
-					email: 'tenant@example.com',
-					property_owner_name: 'Test LLC'
-				})
+				json: () =>
+					Promise.resolve({
+						valid: true,
+						email: 'tenant@example.com',
+						property_owner_name: 'Test LLC'
+					})
 			})
 
 			render(<AcceptInvitePage />)
@@ -127,23 +137,28 @@ describe('AcceptInvitePage', () => {
 
 			expect(screen.getByLabelText(/create password/i)).toBeInTheDocument()
 			expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /create account/i })
+			).toBeInTheDocument()
 		})
 
 		it('should pre-fill and disable email from invitation', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({
-					valid: true,
-					email: 'prefilled@example.com',
-					property_owner_name: 'Test LLC'
-				})
+				json: () =>
+					Promise.resolve({
+						valid: true,
+						email: 'prefilled@example.com',
+						property_owner_name: 'Test LLC'
+					})
 			})
 
 			render(<AcceptInvitePage />)
 
 			await waitFor(() => {
-				const emailInput = screen.getByLabelText(/email address/i) as HTMLInputElement
+				const emailInput = screen.getByLabelText(
+					/email address/i
+				) as HTMLInputElement
 				expect(emailInput.value).toBe('prefilled@example.com')
 				expect(emailInput).toBeDisabled()
 			})
@@ -152,12 +167,13 @@ describe('AcceptInvitePage', () => {
 		it('should handle platform-only invitation (no property details)', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({
-					valid: true,
-					email: 'tenant@example.com',
-					property_owner_name: 'Test LLC'
-					// No property_name, unit_number
-				})
+				json: () =>
+					Promise.resolve({
+						valid: true,
+						email: 'tenant@example.com',
+						property_owner_name: 'Test LLC'
+						// No property_name, unit_number
+					})
 			})
 
 			render(<AcceptInvitePage />)
@@ -176,11 +192,12 @@ describe('AcceptInvitePage', () => {
 			mockGet.mockReturnValue('my-test-token')
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
-				json: () => Promise.resolve({
-					valid: true,
-					email: 'tenant@example.com',
-					property_owner_name: 'Test LLC'
-				})
+				json: () =>
+					Promise.resolve({
+						valid: true,
+						email: 'tenant@example.com',
+						property_owner_name: 'Test LLC'
+					})
 			})
 
 			render(<AcceptInvitePage />)

@@ -98,7 +98,8 @@ export class TenantsController {
 		const token = req.headers.authorization?.replace('Bearer ', '') ?? undefined
 		const filters: Record<string, unknown> = { token }
 		if (search !== undefined) filters.search = search
-		if (invitationStatus !== undefined) filters.invitationStatus = invitationStatus
+		if (invitationStatus !== undefined)
+			filters.invitationStatus = invitationStatus
 		if (propertyId !== undefined) filters.property_id = propertyId
 		if (limit !== undefined) filters.limit = limit
 		if (offset !== undefined) filters.offset = offset
@@ -106,8 +107,15 @@ export class TenantsController {
 		// If property_id is provided, filter tenants by property
 		// Otherwise, return all tenants with lease info
 		const data = propertyId
-			? await this.queryService.findByProperty(user_id, propertyId, filters as ListFilters)
-			: await this.queryService.findAllWithLeaseInfo(user_id, filters as Omit<ListFilters, 'status'>)
+			? await this.queryService.findByProperty(
+					user_id,
+					propertyId,
+					filters as ListFilters
+				)
+			: await this.queryService.findAllWithLeaseInfo(
+					user_id,
+					filters as Omit<ListFilters, 'status'>
+				)
 
 		// Return PaginatedResponse format expected by frontend
 		return {
@@ -165,10 +173,7 @@ export class TenantsController {
 		@Param('id', ParseUUIDPipe) id: string,
 		@JwtToken() token: string
 	) {
-		const tenantWithLease = await this.queryService.findOneWithLease(
-			id,
-			token
-		)
+		const tenantWithLease = await this.queryService.findOneWithLease(id, token)
 		if (!tenantWithLease) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -193,7 +198,10 @@ export class TenantsController {
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
-		const payments = await this.queryService.getTenantPaymentHistory(id, normalizedLimit)
+		const payments = await this.queryService.getTenantPaymentHistory(
+			id,
+			normalizedLimit
+		)
 		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 
@@ -211,14 +219,14 @@ export class TenantsController {
 	}
 
 	@Post()
-	async create(@Body() dto: CreateTenantDto, @Req() req: AuthenticatedRequest, @JwtToken() token: string) {
+	async create(
+		@Body() dto: CreateTenantDto,
+		@Req() req: AuthenticatedRequest,
+		@JwtToken() token: string
+	) {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
-		const tenant = await this.crudService.create(
-			user_id,
-			dto,
-			token
-		)
+		const tenant = await this.crudService.create(user_id, dto, token)
 
 		// NOTE: Auto-invitation removed - requires full lease data (property_id, unit_id)
 		// Use POST /tenants/invite-with-lease endpoint instead to invite tenants with complete lease information
@@ -236,12 +244,7 @@ export class TenantsController {
 		// Use Supabase's native auth.getUser() pattern with Zod validation
 		const user_id = req.user.id
 
-		const tenant = await this.crudService.update(
-			user_id,
-			id,
-			dto,
-			token
-		)
+		const tenant = await this.crudService.update(user_id, id, dto, token)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -258,10 +261,8 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const preferences = await this.notificationPreferencesService.getPreferences(
-			user_id,
-			id
-		)
+		const preferences =
+			await this.notificationPreferencesService.getPreferences(user_id, id)
 		if (!preferences) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -333,7 +334,9 @@ export class TenantsController {
 		}
 
 		if (body.updates.length > 100) {
-			throw new BadRequestException('Cannot update more than 100 tenants at once')
+			throw new BadRequestException(
+				'Cannot update more than 100 tenants at once'
+			)
 		}
 
 		const user_id = req.user.id
@@ -360,7 +363,9 @@ export class TenantsController {
 		}
 
 		if (body.ids.length > 100) {
-			throw new BadRequestException('Cannot delete more than 100 tenants at once')
+			throw new BadRequestException(
+				'Cannot delete more than 100 tenants at once'
+			)
 		}
 
 		const user_id = req.user.id
@@ -399,7 +404,8 @@ export class TenantsController {
 			last_name: body.tenantData.last_name
 		}
 		if (body.tenantData.phone) request.phone = body.tenantData.phone
-		if (body.leaseData?.property_id) request.property_id = body.leaseData.property_id
+		if (body.leaseData?.property_id)
+			request.property_id = body.leaseData.property_id
 		if (body.leaseData?.unit_id) request.unit_id = body.leaseData.unit_id
 
 		return this.platformInvitationService.inviteToPlatform(user_id, request)
@@ -449,7 +455,9 @@ export class TenantsController {
 		if (!body.authuser_id) {
 			throw new BadRequestException('authuser_id is required')
 		}
-		return this.invitationTokenService.activateTenantFromAuthUser(body.authuser_id)
+		return this.invitationTokenService.activateTenantFromAuthUser(
+			body.authuser_id
+		)
 	}
 
 	// ========================================
@@ -466,10 +474,8 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const emergency_contact = await this.emergencyContactService.getEmergencyContact(
-			user_id,
-			id
-		)
+		const emergency_contact =
+			await this.emergencyContactService.getEmergencyContact(user_id, id)
 
 		// Return null if not found (not an error - just no contact yet)
 		return emergency_contact
@@ -492,11 +498,12 @@ export class TenantsController {
 			relationship: dto.relationship,
 			phone_number: dto.phoneNumber
 		}
-		const emergency_contact = await this.emergencyContactService.createEmergencyContact(
-			user_id,
-			id,
-			serviceDto
-		)
+		const emergency_contact =
+			await this.emergencyContactService.createEmergencyContact(
+				user_id,
+				id,
+				serviceDto
+			)
 
 		if (!emergency_contact) {
 			throw new BadRequestException('Failed to create emergency contact')
@@ -524,17 +531,20 @@ export class TenantsController {
 			phoneNumber?: string
 			email?: string | null
 		} = {}
-		if (dto.contactName !== undefined) updated_data.contactName = dto.contactName
+		if (dto.contactName !== undefined)
+			updated_data.contactName = dto.contactName
 		if (dto.relationship !== undefined)
 			updated_data.relationship = dto.relationship
-		if (dto.phoneNumber !== undefined) updated_data.phoneNumber = dto.phoneNumber
+		if (dto.phoneNumber !== undefined)
+			updated_data.phoneNumber = dto.phoneNumber
 		if (dto.email !== undefined) updated_data.email = dto.email ?? null
 
-		const emergency_contact = await this.emergencyContactService.updateEmergencyContact(
-			user_id,
-			id,
-			updated_data
-		)
+		const emergency_contact =
+			await this.emergencyContactService.updateEmergencyContact(
+				user_id,
+				id,
+				updated_data
+			)
 
 		if (!emergency_contact) {
 			throw new NotFoundException('Emergency contact not found')
@@ -552,7 +562,10 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		const deleted = await this.emergencyContactService.deleteEmergencyContact(user_id, id)
+		const deleted = await this.emergencyContactService.deleteEmergencyContact(
+			user_id,
+			id
+		)
 
 		if (!deleted) {
 			throw new NotFoundException('Emergency contact not found')
@@ -572,7 +585,10 @@ export class TenantsController {
 
 		// Get the tenant for this user first
 		const tenant = await this.queryService.getTenantByAuthUserId(user_id, token)
-		const payments = await this.queryService.getTenantPaymentHistory(tenant.id, normalizedLimit)
+		const payments = await this.queryService.getTenantPaymentHistory(
+			tenant.id,
+			normalizedLimit
+		)
 		return { payments } as unknown as TenantPaymentHistoryResponse
 	}
 

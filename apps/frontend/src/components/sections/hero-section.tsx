@@ -6,7 +6,6 @@ import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
-
 export function HeroSection({
 	trustBadge,
 	title,
@@ -25,7 +24,10 @@ export function HeroSection({
 			{trustBadge && (
 				<div className="pb-8 text-center">
 					<div className="inline-flex-center px-6 py-3 rounded-full border border-primary/25 bg-primary/10">
-						<div className="size-2 bg-success rounded-full mr-3 animate-pulse" aria-hidden="true" />
+						<div
+							className="size-2 bg-success rounded-full mr-3 animate-pulse"
+							aria-hidden="true"
+						/>
 						<span className="text-muted-foreground font-medium text-sm">
 							{trustBadge}
 						</span>
@@ -80,9 +82,7 @@ export function HeroSection({
 							</div>
 
 							{trustSignals && (
-								<p className="text-muted font-medium">
-									{trustSignals}
-								</p>
+								<p className="text-muted font-medium">{trustSignals}</p>
 							)}
 						</div>
 

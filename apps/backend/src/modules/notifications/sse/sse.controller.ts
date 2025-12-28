@@ -73,9 +73,10 @@ export class SseController {
 		}
 
 		// Validate JWT and get user
-		const { data: { user }, error } = await this.supabaseService
-			.getAdminClient()
-			.auth.getUser(token)
+		const {
+			data: { user },
+			error
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
 
 		if (error || !user) {
 			this.logger.warn('SSE connection with invalid token', {
@@ -118,12 +119,14 @@ export class SseController {
 
 		// Transform SseEvent to NestJS MessageEvent format
 		return eventStream.pipe(
-			map((event: SseEvent): MessageEvent => ({
-				type: event.type,
-				data: JSON.stringify(event),
-				id: event.correlationId ?? randomUUID(),
-				retry: 5000 // Retry connection after 5 seconds on disconnect
-			})),
+			map(
+				(event: SseEvent): MessageEvent => ({
+					type: event.type,
+					data: JSON.stringify(event),
+					id: event.correlationId ?? randomUUID(),
+					retry: 5000 // Retry connection after 5 seconds on disconnect
+				})
+			),
 			finalize(() => {
 				// Cleanup on stream completion
 				this.sseService.unsubscribe(sessionId)

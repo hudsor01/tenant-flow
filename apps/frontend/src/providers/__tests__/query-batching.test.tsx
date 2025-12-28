@@ -19,8 +19,8 @@ describe('QueryProvider Batching Configuration', () => {
 				queries: {
 					staleTime: 5 * 60 * 1000,
 					gcTime: 10 * 60 * 1000,
-					retry: (failureCount) => failureCount < 3,
-					retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+					retry: failureCount => failureCount < 3,
+					retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
 					refetchOnWindowFocus: 'always',
 					refetchOnReconnect: 'always',
 					refetchOnMount: true,

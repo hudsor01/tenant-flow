@@ -7,7 +7,15 @@
 
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogBody, DialogFooter } from '#components/ui/dialog'
+import {
+	Dialog,
+	DialogContent,
+	DialogHeader,
+	DialogTitle,
+	DialogDescription,
+	DialogBody,
+	DialogFooter
+} from '#components/ui/dialog'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
@@ -265,7 +273,9 @@ export function RenewLeaseDialog({
 												</div>
 												<div className="space-y-1 text-sm">
 													<div className="flex justify-between">
-														<span className="text-label-secondary">Current:</span>
+														<span className="text-label-secondary">
+															Current:
+														</span>
 														<span className="font-medium text-label-primary">
 															{formatCurrency(currentRent)}/mo
 														</span>
@@ -277,7 +287,9 @@ export function RenewLeaseDialog({
 														</span>
 													</div>
 													<div className="flex justify-between pt-1 mt-1 border-t border-separator">
-														<span className="text-label-secondary">Change:</span>
+														<span className="text-label-secondary">
+															Change:
+														</span>
 														<span
 															className={`font-semibold ${
 																rentIncreaseAmount >= 0

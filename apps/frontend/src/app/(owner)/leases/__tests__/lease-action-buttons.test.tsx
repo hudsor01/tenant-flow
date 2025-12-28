@@ -61,9 +61,14 @@ vi.mock('#hooks/api/use-lease', () => ({
 	useSendLeaseForSignature: () => mockSendForSignature,
 	useResendSignatureRequest: () => mockResendSignature,
 	useSignLeaseAsOwner: () => mockSignAsOwner,
-	useDeleteLease: (options?: { onSuccess?: () => void; onError?: (error: Error) => void }) => {
+	useDeleteLease: (options?: {
+		onSuccess?: () => void
+		onError?: (error: Error) => void
+	}) => {
 		mockDeleteLease.mutate.mockImplementation(() => options?.onSuccess?.())
-		mockDeleteLease.mutateAsync.mockImplementation(async () => options?.onSuccess?.())
+		mockDeleteLease.mutateAsync.mockImplementation(async () =>
+			options?.onSuccess?.()
+		)
 		return mockDeleteLease
 	}
 }))
@@ -139,7 +144,11 @@ describe('LeaseActionButtons', () => {
 		})
 
 		test('renders status badge', () => {
-			render(<LeaseActionButtons lease={createMockLease({ lease_status: 'active' })} />)
+			render(
+				<LeaseActionButtons
+					lease={createMockLease({ lease_status: 'active' })}
+				/>
+			)
 
 			expect(screen.getByText('active')).toBeInTheDocument()
 		})
@@ -147,11 +156,17 @@ describe('LeaseActionButtons', () => {
 
 	describe('Dropdown Menu - Status Conditional Items', () => {
 		test('shows Send for Signature for draft leases', async () => {
-			render(<LeaseActionButtons lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })} />)
+			render(
+				<LeaseActionButtons
+					lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })}
+				/>
+			)
 
 			// Send for Signature is now a separate button, not in the dropdown
 			await waitFor(() => {
-				expect(screen.getByTestId('send-for-signature-button')).toBeInTheDocument()
+				expect(
+					screen.getByTestId('send-for-signature-button')
+				).toBeInTheDocument()
 			})
 		})
 
@@ -168,11 +183,15 @@ describe('LeaseActionButtons', () => {
 
 			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			const dropdownTrigger = buttons.find(
+				btn => btn.getAttribute('aria-haspopup') === 'menu'
+			)!
 			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /sign as owner/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /sign as owner/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -189,41 +208,65 @@ describe('LeaseActionButtons', () => {
 
 			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			const dropdownTrigger = buttons.find(
+				btn => btn.getAttribute('aria-haspopup') === 'menu'
+			)!
 			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
-				expect(screen.queryByRole('menuitem', { name: /sign as owner/i })).not.toBeInTheDocument()
+				expect(
+					screen.queryByRole('menuitem', { name: /sign as owner/i })
+				).not.toBeInTheDocument()
 			})
 		})
 
 		test('shows active lease actions (Pay Rent, Renew, Terminate) for active leases', async () => {
 			const user = userEvent.setup()
-			render(<LeaseActionButtons lease={createMockLease({ lease_status: 'active' })} />)
+			render(
+				<LeaseActionButtons
+					lease={createMockLease({ lease_status: 'active' })}
+				/>
+			)
 
 			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			const dropdownTrigger = buttons.find(
+				btn => btn.getAttribute('aria-haspopup') === 'menu'
+			)!
 			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /pay rent/i })).toBeInTheDocument()
-				expect(screen.getByRole('menuitem', { name: /renew lease/i })).toBeInTheDocument()
-				expect(screen.getByRole('menuitem', { name: /terminate lease/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /pay rent/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /renew lease/i })
+				).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /terminate lease/i })
+				).toBeInTheDocument()
 			})
 		})
 
 		test('always shows Delete menu item regardless of status', async () => {
 			const user = userEvent.setup()
-			render(<LeaseActionButtons lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })} />)
+			render(
+				<LeaseActionButtons
+					lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })}
+				/>
+			)
 
 			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			const dropdownTrigger = buttons.find(
+				btn => btn.getAttribute('aria-haspopup') === 'menu'
+			)!
 			await user.click(dropdownTrigger)
 
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -235,12 +278,16 @@ describe('LeaseActionButtons', () => {
 
 			// Open dropdown - find the dropdown trigger with aria-haspopup="menu"
 			const buttons = screen.getAllByRole('button')
-			const dropdownTrigger = buttons.find(btn => btn.getAttribute('aria-haspopup') === 'menu')!
+			const dropdownTrigger = buttons.find(
+				btn => btn.getAttribute('aria-haspopup') === 'menu'
+			)!
 			await user.click(dropdownTrigger)
 
 			// Click Delete menu item
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -261,13 +308,17 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
 			// Check dialog buttons
 			await waitFor(() => {
-				expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('button', { name: /cancel/i })
+				).toBeInTheDocument()
 				const deleteButtons = screen.getAllByRole('button', { name: /delete/i })
 				expect(deleteButtons.length).toBeGreaterThan(0)
 			})
@@ -281,7 +332,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -301,7 +354,9 @@ describe('LeaseActionButtons', () => {
 			// Should be able to open dropdown again (UI not frozen)
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -313,7 +368,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -363,7 +420,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /pay rent/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /pay rent/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /pay rent/i }))
 
@@ -381,7 +440,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /renew lease/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /renew lease/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /renew lease/i }))
 
@@ -399,9 +460,13 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /terminate lease/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /terminate lease/i })
+				).toBeInTheDocument()
 			})
-			await user.click(screen.getByRole('menuitem', { name: /terminate lease/i }))
+			await user.click(
+				screen.getByRole('menuitem', { name: /terminate lease/i })
+			)
 
 			// Terminate dialog should open (AlertDialog has role="alertdialog")
 			await waitFor(() => {
@@ -420,7 +485,9 @@ describe('LeaseActionButtons', () => {
 			await user.keyboard('{Enter}')
 
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 		})
 
@@ -432,7 +499,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -458,7 +527,9 @@ describe('LeaseActionButtons', () => {
 			const buttons = screen.getAllByRole('button')
 			await user.click(buttons[1]!)
 			await waitFor(() => {
-				expect(screen.getByRole('menuitem', { name: /delete/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('menuitem', { name: /delete/i })
+				).toBeInTheDocument()
 			})
 			await user.click(screen.getByRole('menuitem', { name: /delete/i }))
 
@@ -474,14 +545,22 @@ describe('LeaseActionButtons', () => {
 	describe('Status Badge Display', () => {
 		test('displays "Pending Signature" label for pending_signature status', () => {
 			render(
-				<LeaseActionButtons lease={createMockLease({ lease_status: LEASE_STATUS.PENDING_SIGNATURE })} />
+				<LeaseActionButtons
+					lease={createMockLease({
+						lease_status: LEASE_STATUS.PENDING_SIGNATURE
+					})}
+				/>
 			)
 
 			expect(screen.getByText('Pending Signature')).toBeInTheDocument()
 		})
 
 		test('displays raw status for unrecognized statuses', () => {
-			render(<LeaseActionButtons lease={createMockLease({ lease_status: 'active' })} />)
+			render(
+				<LeaseActionButtons
+					lease={createMockLease({ lease_status: 'active' })}
+				/>
+			)
 
 			expect(screen.getByText('active')).toBeInTheDocument()
 		})

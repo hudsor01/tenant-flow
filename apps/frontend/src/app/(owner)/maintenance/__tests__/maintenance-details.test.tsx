@@ -76,7 +76,9 @@ describe('MaintenanceDetails', () => {
 			// Wait for error state
 			await waitFor(
 				() => {
-					expect(screen.getByText(/unable to load request/i)).toBeInTheDocument()
+					expect(
+						screen.getByText(/unable to load request/i)
+					).toBeInTheDocument()
 				},
 				{ timeout: 5000 }
 			)
@@ -91,7 +93,9 @@ describe('MaintenanceDetails', () => {
 			// Wait for error state
 			await waitFor(
 				() => {
-					expect(screen.getByRole('button', { name: /go back/i })).toBeInTheDocument()
+					expect(
+						screen.getByRole('button', { name: /go back/i })
+					).toBeInTheDocument()
 				},
 				{ timeout: 5000 }
 			)
@@ -148,7 +152,8 @@ describe('MaintenanceDetails Timeline', () => {
 			]
 
 			const sorted = events.sort(
-				(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+				(a, b) =>
+					new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
 			)
 
 			expect(sorted[0]!.type).toBe('created')
@@ -174,11 +179,7 @@ describe('MaintenanceDetails Expenses', () => {
 		})
 
 		test('total expenses calculation is correct', () => {
-			const expenses = [
-				{ amount: 150.0 },
-				{ amount: 75.5 },
-				{ amount: 200.0 }
-			]
+			const expenses = [{ amount: 150.0 }, { amount: 75.5 }, { amount: 200.0 }]
 
 			const total = expenses.reduce((sum, e) => sum + e.amount, 0)
 			expect(total).toBe(425.5)
@@ -189,11 +190,23 @@ describe('MaintenanceDetails Expenses', () => {
 describe('MaintenanceDetails Status Management', () => {
 	describe('Status Configuration', () => {
 		test('all status types have configuration', () => {
-			const statuses = ['open', 'in_progress', 'completed', 'on_hold', 'cancelled']
+			const statuses = [
+				'open',
+				'in_progress',
+				'completed',
+				'on_hold',
+				'cancelled'
+			]
 
 			// Each status should be recognized
 			statuses.forEach(status => {
-				expect(['open', 'in_progress', 'completed', 'on_hold', 'cancelled']).toContain(status)
+				expect([
+					'open',
+					'in_progress',
+					'completed',
+					'on_hold',
+					'cancelled'
+				]).toContain(status)
 			})
 		})
 
@@ -215,7 +228,9 @@ describe('MaintenanceDetails Priority Configuration', () => {
 			const priorities = ['low', 'normal', 'medium', 'high', 'urgent']
 
 			priorities.forEach(priority => {
-				expect(['low', 'normal', 'medium', 'high', 'urgent']).toContain(priority)
+				expect(['low', 'normal', 'medium', 'high', 'urgent']).toContain(
+					priority
+				)
 			})
 		})
 
@@ -255,9 +270,7 @@ describe('MaintenanceDetails Export', () => {
 
 		test('export includes expenses array', () => {
 			const exportData = {
-				expenses: [
-					{ vendor: 'ABC Plumbing', amount: 150, date: '2024-01-20' }
-				]
+				expenses: [{ vendor: 'ABC Plumbing', amount: 150, date: '2024-01-20' }]
 			}
 
 			expect(Array.isArray(exportData.expenses)).toBe(true)

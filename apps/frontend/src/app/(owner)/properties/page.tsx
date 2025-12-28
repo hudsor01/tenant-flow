@@ -2,7 +2,12 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useQueries, useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+	useQuery,
+	useQueries,
+	useMutation,
+	useQueryClient
+} from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
@@ -23,7 +28,9 @@ import {
 /**
  * Map API property type to design-os PropertyType
  */
-function mapPropertyType(apiType: string | null | undefined): DesignPropertyType {
+function mapPropertyType(
+	apiType: string | null | undefined
+): DesignPropertyType {
 	const typeMap: Record<string, DesignPropertyType> = {
 		single_family: 'single_family',
 		multi_family: 'multi_family',
@@ -41,17 +48,20 @@ function mapPropertyType(apiType: string | null | undefined): DesignPropertyType
  */
 function transformToPropertyItem(
 	property: ApiProperty,
-	units: Unit[] = [],
+	units: Unit[] | undefined,
 	imageUrl: string | undefined
 ): PropertyItem {
-	const totalUnits = units.length || 1
-	const occupiedUnits = units.filter(u => u.status === 'occupied').length
-	const availableUnits = units.filter(u => u.status === 'available').length
-	const maintenanceUnits = units.filter(u => u.status === 'maintenance').length
+	const safeUnits = Array.isArray(units) ? units : []
+	const totalUnits = safeUnits.length || 1
+	const occupiedUnits = safeUnits.filter(u => u.status === 'occupied').length
+	const availableUnits = safeUnits.filter(u => u.status === 'available').length
+	const maintenanceUnits = safeUnits.filter(
+		u => u.status === 'maintenance'
+	).length
 	const occupancyRate = totalUnits > 0 ? (occupiedUnits / totalUnits) * 100 : 0
-	const monthlyRevenue = units
+	const monthlyRevenue = safeUnits
 		.filter(u => u.status === 'occupied')
-		.reduce((sum, u) => sum + ((u.rent_amount ?? 0) * 100), 0) // Convert to cents
+		.reduce((sum, u) => sum + (u.rent_amount ?? 0) * 100, 0) // Convert to cents
 
 	return {
 		id: property.id,
@@ -62,7 +72,12 @@ function transformToPropertyItem(
 		state: property.state,
 		postalCode: property.postal_code,
 		propertyType: mapPropertyType(property.property_type),
-		status: property.status === 'active' ? 'active' : property.status === 'inactive' ? 'inactive' : 'active',
+		status:
+			property.status === 'active'
+				? 'active'
+				: property.status === 'inactive'
+					? 'inactive'
+					: 'active',
 		imageUrl,
 		totalUnits,
 		occupiedUnits,
@@ -80,10 +95,20 @@ function calculateSummary(properties: PropertyItem[]): PropertySummary {
 	const totalProperties = properties.length
 	const totalUnits = properties.reduce((sum, p) => sum + p.totalUnits, 0)
 	const occupiedUnits = properties.reduce((sum, p) => sum + p.occupiedUnits, 0)
-	const availableUnits = properties.reduce((sum, p) => sum + p.availableUnits, 0)
-	const maintenanceUnits = properties.reduce((sum, p) => sum + p.maintenanceUnits, 0)
-	const overallOccupancyRate = totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
-	const totalMonthlyRevenue = properties.reduce((sum, p) => sum + p.monthlyRevenue, 0)
+	const availableUnits = properties.reduce(
+		(sum, p) => sum + p.availableUnits,
+		0
+	)
+	const maintenanceUnits = properties.reduce(
+		(sum, p) => sum + p.maintenanceUnits,
+		0
+	)
+	const overallOccupancyRate =
+		totalUnits > 0 ? Math.round((occupiedUnits / totalUnits) * 100) : 0
+	const totalMonthlyRevenue = properties.reduce(
+		(sum, p) => sum + p.monthlyRevenue,
+		0
+	)
 
 	return {
 		totalProperties,
@@ -135,7 +160,9 @@ export default function PropertiesPage() {
 	const queryClient = useQueryClient()
 
 	// Fetch properties
-	const { data: propertiesResponse, isLoading } = useQuery(propertyQueries.list())
+	const { data: propertiesResponse, isLoading } = useQuery(
+		propertyQueries.list()
+	)
 	const rawProperties = React.useMemo(
 		() => propertiesResponse?.data ?? [],
 		[propertiesResponse?.data]
@@ -183,17 +210,25 @@ export default function PropertiesPage() {
 
 	// Transform to design-os format
 	const properties = React.useMemo(
-		() => rawProperties.map(p => transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id])),
+		() =>
+			rawProperties.map(p =>
+				transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id])
+			),
 		[rawProperties, unitsMap, imagesMap]
 	)
 
 	// Calculate summary
-	const summary = React.useMemo(() => calculateSummary(properties), [properties])
+	const summary = React.useMemo(
+		() => calculateSummary(properties),
+		[properties]
+	)
 
 	// Delete mutation
 	const { mutate: deleteProperty } = useMutation({
 		mutationFn: async (propertyId: string) =>
-			apiRequest<void>(`/api/v1/properties/${propertyId}`, { method: 'DELETE' }),
+			apiRequest<void>(`/api/v1/properties/${propertyId}`, {
+				method: 'DELETE'
+			}),
 		onSuccess: () => {
 			toast.success('Property deleted')
 			queryClient.invalidateQueries({ queryKey: ['properties'] })
@@ -208,18 +243,27 @@ export default function PropertiesPage() {
 		router.push('/properties/new')
 	}, [router])
 
-	const handlePropertyClick = React.useCallback((propertyId: string) => {
-		router.push(`/properties/${propertyId}`)
-	}, [router])
+	const handlePropertyClick = React.useCallback(
+		(propertyId: string) => {
+			router.push(`/properties/${propertyId}`)
+		},
+		[router]
+	)
 
-	const handlePropertyEdit = React.useCallback((propertyId: string) => {
-		router.push(`/properties/${propertyId}/edit`)
-	}, [router])
+	const handlePropertyEdit = React.useCallback(
+		(propertyId: string) => {
+			router.push(`/properties/${propertyId}/edit`)
+		},
+		[router]
+	)
 
-	const handlePropertyDelete = React.useCallback((propertyId: string) => {
-		// TODO: Add confirmation dialog
-		deleteProperty(propertyId)
-	}, [deleteProperty])
+	const handlePropertyDelete = React.useCallback(
+		(propertyId: string) => {
+			// TODO: Add confirmation dialog
+			deleteProperty(propertyId)
+		},
+		[deleteProperty]
+	)
 
 	const handleBulkImport = React.useCallback(() => {
 		toast.info('Bulk import coming soon')

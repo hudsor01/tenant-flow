@@ -145,8 +145,8 @@ export default function SearchPage() {
 							<div>
 								<strong>Lease Search:</strong>
 								<p className="text-muted-foreground mt-1">
-									Use status filters like &quot;active&quot;, &quot;expired&quot;, or search by date
-									ranges
+									Use status filters like &quot;active&quot;,
+									&quot;expired&quot;, or search by date ranges
 								</p>
 							</div>
 							<div>

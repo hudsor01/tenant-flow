@@ -15,7 +15,12 @@
  * - Production mirror: Matches controller interface exactly
  */
 
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { Unit, UnitStats, UnitStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { RedisCacheService } from '../../cache/cache.service'
@@ -30,9 +35,11 @@ import { VALID_UNIT_STATUSES } from '../../schemas/units.schema'
 
 @Injectable()
 export class UnitsService {
-
-	constructor(private readonly supabase: SupabaseService,
-		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly cache: RedisCacheService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get all units for a user via direct Supabase query
@@ -75,10 +82,7 @@ export class UnitsService {
 					statusInput as UnitStatus
 				)
 				if (isValidStatus) {
-					queryBuilder = queryBuilder.eq(
-						'status',
-						statusInput as UnitStatus
-					)
+					queryBuilder = queryBuilder.eq('status', statusInput as UnitStatus)
 				}
 			}
 
@@ -160,11 +164,17 @@ export class UnitsService {
 
 			const occupiedCount = units.filter(u => u.status === 'occupied').length
 			const vacantCount = units.filter(u => u.status === 'available').length
-			const maintenanceCount = units.filter(u => u.status === 'maintenance').length
+			const maintenanceCount = units.filter(
+				u => u.status === 'maintenance'
+			).length
 
-			const totalRent = units.reduce((sum, unit) => sum + (unit.rent_amount || 0), 0)
+			const totalRent = units.reduce(
+				(sum, unit) => sum + (unit.rent_amount || 0),
+				0
+			)
 			const averageRent = totalCount > 0 ? totalRent / totalCount : 0
-			const occupancyRate = totalCount > 0 ? Math.round((occupiedCount / totalCount) * 100) : 0
+			const occupancyRate =
+				totalCount > 0 ? Math.round((occupiedCount / totalCount) * 100) : 0
 
 			return {
 				total: totalCount,
@@ -248,7 +258,9 @@ export class UnitsService {
 				this.logger.warn('Find one unit called with missing parameters', {
 					unit_id
 				})
-				throw new BadRequestException('Authentication token and unit ID are required')
+				throw new BadRequestException(
+					'Authentication token and unit ID are required'
+				)
 			}
 
 			this.logger.log('Finding one unit via RLS-protected query', { unit_id })
@@ -277,7 +289,10 @@ export class UnitsService {
 				error: error instanceof Error ? error.message : String(error),
 				unit_id
 			})
-			if (error instanceof BadRequestException || error instanceof NotFoundException) {
+			if (
+				error instanceof BadRequestException ||
+				error instanceof NotFoundException
+			) {
 				throw error
 			}
 			throw new BadRequestException(
@@ -378,7 +393,9 @@ export class UnitsService {
 				this.logger.warn('Update unit called with missing parameters', {
 					unit_id
 				})
-				throw new BadRequestException('Authentication token and unit ID are required')
+				throw new BadRequestException(
+					'Authentication token and unit ID are required'
+				)
 			}
 
 			this.logger.log('Updating unit via RLS-protected query', {
@@ -399,7 +416,9 @@ export class UnitsService {
 				...(updateRequest.square_feet !== undefined && {
 					square_feet: updateRequest.square_feet
 				}),
-				...(updateRequest.rent !== undefined && { rent_amount: updateRequest.rent }),
+				...(updateRequest.rent !== undefined && {
+					rent_amount: updateRequest.rent
+				}),
 				...(updateRequest.status !== undefined && {
 					status: updateRequest.status
 				}),
@@ -450,7 +469,10 @@ export class UnitsService {
 			// Invalidate dependent caches so lease auto-fill returns fresh unit data
 			void this.cache.invalidateByEntity('units', unit_id)
 			if (updatedUnit.property_id) {
-				void this.cache.invalidateByEntity('properties', updatedUnit.property_id)
+				void this.cache.invalidateByEntity(
+					'properties',
+					updatedUnit.property_id
+				)
 			}
 
 			return updatedUnit
@@ -520,7 +542,10 @@ export class UnitsService {
 			// Invalidate caches tied to this unit/property so data disappears immediately
 			void this.cache.invalidateByEntity('units', unit_id)
 			if (existingUnit?.property_id) {
-				void this.cache.invalidateByEntity('properties', existingUnit.property_id)
+				void this.cache.invalidateByEntity(
+					'properties',
+					existingUnit.property_id
+				)
 			}
 		} catch (error) {
 			this.logger.error('Units service failed to remove unit', {

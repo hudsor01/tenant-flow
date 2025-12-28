@@ -59,7 +59,7 @@ vi.mock('next/navigation', () => ({
 	usePathname: vi.fn(() => '/tenant')
 }))
 
-vi.mock('#components/tours', () => ({
+vi.mock('#components/tours/tenant-onboarding-tour', () => ({
 	TenantOnboardingTour: () => null,
 	TenantTourTrigger: () => <button type="button">Take a Tour</button>
 }))

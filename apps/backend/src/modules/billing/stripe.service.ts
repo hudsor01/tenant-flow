@@ -22,525 +22,519 @@ import { RedisCacheService } from '../../cache/cache.service'
  */
 @Injectable()
 export class StripeService {
-  private stripe: Stripe
+	private stripe: Stripe
 
-  // Stripe API pagination defaults
-  private readonly STRIPE_DEFAULT_LIMIT = 100 // Maximum items per page for Stripe API
-  private readonly STRIPE_MAX_TOTAL_ITEMS = 1000 // Maximum total items to prevent unbounded pagination
-  private readonly SUBSCRIPTIONS_CACHE_TTL_MS = 90_000
-  private readonly INVOICES_CACHE_TTL_MS = 45_000
+	// Stripe API pagination defaults
+	private readonly STRIPE_DEFAULT_LIMIT = 100 // Maximum items per page for Stripe API
+	private readonly STRIPE_MAX_TOTAL_ITEMS = 1000 // Maximum total items to prevent unbounded pagination
+	private readonly SUBSCRIPTIONS_CACHE_TTL_MS = 90_000
+	private readonly INVOICES_CACHE_TTL_MS = 45_000
 
-  constructor(
-    private readonly stripeClientService: StripeClientService,
-    private readonly logger: AppLogger,
-    private readonly cache: RedisCacheService
-  ) {
-    this.stripe = this.stripeClientService.getClient()
-    this.logger.log('Stripe SDK initialized')
-  }
+	constructor(
+		private readonly stripeClientService: StripeClientService,
+		private readonly logger: AppLogger,
+		private readonly cache: RedisCacheService
+	) {
+		this.stripe = this.stripeClientService.getClient()
+		this.logger.log('Stripe SDK initialized')
+	}
 
-  /**
-   * Get the Stripe instance for direct API access
-   */
-  getStripe(): Stripe {
-    return this.stripe
-  }
+	/**
+	 * Get the Stripe instance for direct API access
+	 */
+	getStripe(): Stripe {
+		return this.stripe
+	}
 
-  /**
-   * List subscriptions with optional customer filter
-   */
-  async listSubscriptions(params?: {
-    customer?: string
-    status?: Stripe.SubscriptionListParams.Status
-    limit?: number
-  }): Promise<Stripe.Subscription[]> {
-    // PERFORMANCE: Cache subscriptions per customer, status, and limit
-    const cacheKey = this.buildCacheKey('subscriptions', {
-      customer: params?.customer ?? null,
-      status: params?.status ?? null,
-      limit: params?.limit ?? 10
-    })
+	/**
+	 * List subscriptions with optional customer filter
+	 */
+	async listSubscriptions(params?: {
+		customer?: string
+		status?: Stripe.SubscriptionListParams.Status
+		limit?: number
+	}): Promise<Stripe.Subscription[]> {
+		// PERFORMANCE: Cache subscriptions per customer, status, and limit
+		const cacheKey = this.buildCacheKey('subscriptions', {
+			customer: params?.customer ?? null,
+			status: params?.status ?? null,
+			limit: params?.limit ?? 10
+		})
 
-    const cached = await this.getCachedValue<Stripe.Subscription[]>(cacheKey)
-    if (cached) {
-      this.logger.debug('Returning cached subscriptions', { cacheKey })
-      return cached
-    }
+		const cached = await this.getCachedValue<Stripe.Subscription[]>(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached subscriptions', { cacheKey })
+			return cached
+		}
 
-    try {
-      const requestParams: Stripe.SubscriptionListParams = {
-        limit: params?.limit ?? 10,
-        expand: ['data.customer', 'data.items']
-      }
-      if (params?.customer) {
-        requestParams.customer = params.customer
-      }
-      if (params?.status) {
-        requestParams.status = params.status
-      }
-      const subscriptions = await this.stripe.subscriptions.list(requestParams)
+		try {
+			const requestParams: Stripe.SubscriptionListParams = {
+				limit: params?.limit ?? 10,
+				expand: ['data.customer', 'data.items']
+			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.status) {
+				requestParams.status = params.status
+			}
+			const subscriptions = await this.stripe.subscriptions.list(requestParams)
 
-      // Cache for 90s (subscriptions change frequently)
-      await this.setCachedValue(
-        cacheKey,
-        subscriptions.data,
-        this.SUBSCRIPTIONS_CACHE_TTL_MS
-      )
+			// Cache for 90s (subscriptions change frequently)
+			await this.setCachedValue(
+				cacheKey,
+				subscriptions.data,
+				this.SUBSCRIPTIONS_CACHE_TTL_MS
+			)
 
-      return subscriptions.data
-    } catch (error) {
-      this.logger.error('Failed to list subscriptions', { error })
-      throw error
-    }
-  }
+			return subscriptions.data
+		} catch (error) {
+			this.logger.error('Failed to list subscriptions', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Get ALL subscriptions with complete pagination
-   */
-  async getAllSubscriptions(params?: {
-    customer?: string
-    status?: Stripe.SubscriptionListParams.Status
-  }): Promise<Stripe.Subscription[]> {
-    try {
-      const allSubscriptions: Stripe.Subscription[] = []
-      let hasMore = true
-      let startingAfter: string | undefined
+	/**
+	 * Get ALL subscriptions with complete pagination
+	 */
+	async getAllSubscriptions(params?: {
+		customer?: string
+		status?: Stripe.SubscriptionListParams.Status
+	}): Promise<Stripe.Subscription[]> {
+		try {
+			const allSubscriptions: Stripe.Subscription[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
 
-      while (hasMore && allSubscriptions.length < this.STRIPE_MAX_TOTAL_ITEMS) {
-        const requestParams: Stripe.SubscriptionListParams = {
-          limit: this.STRIPE_DEFAULT_LIMIT,
-          expand: ['data.customer', 'data.items']
-        }
-        if (params?.customer) {
-          requestParams.customer = params.customer
-        }
-        if (params?.status) {
-          requestParams.status = params.status
-        }
-        if (startingAfter) {
-          requestParams.starting_after = startingAfter
-        }
+			while (hasMore && allSubscriptions.length < this.STRIPE_MAX_TOTAL_ITEMS) {
+				const requestParams: Stripe.SubscriptionListParams = {
+					limit: this.STRIPE_DEFAULT_LIMIT,
+					expand: ['data.customer', 'data.items']
+				}
+				if (params?.customer) {
+					requestParams.customer = params.customer
+				}
+				if (params?.status) {
+					requestParams.status = params.status
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
 
-        const subscriptions =
-          await this.stripe.subscriptions.list(requestParams)
+				const subscriptions =
+					await this.stripe.subscriptions.list(requestParams)
 
-        allSubscriptions.push(...subscriptions.data)
-        hasMore = subscriptions.has_more
+				allSubscriptions.push(...subscriptions.data)
+				hasMore = subscriptions.has_more
 
-        if (hasMore && subscriptions.data.length > 0) {
-          startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
-        }
-      }
+				if (hasMore && subscriptions.data.length > 0) {
+					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
+				}
+			}
 
-      if (allSubscriptions.length >= this.STRIPE_MAX_TOTAL_ITEMS) {
-        this.logger.warn(
-          `getAllSubscriptions hit max limit of ${this.STRIPE_MAX_TOTAL_ITEMS} items. Consider using listSubscriptions with pagination instead.`
-        )
-      }
+			if (allSubscriptions.length >= this.STRIPE_MAX_TOTAL_ITEMS) {
+				this.logger.warn(
+					`getAllSubscriptions hit max limit of ${this.STRIPE_MAX_TOTAL_ITEMS} items. Consider using listSubscriptions with pagination instead.`
+				)
+			}
 
-      this.logger.log(`Fetched ${allSubscriptions.length} total subscriptions`)
-      return allSubscriptions
-    } catch (error) {
-      this.logger.error('Failed to get all subscriptions', { error })
-      throw error
-    }
-  }
+			this.logger.log(`Fetched ${allSubscriptions.length} total subscriptions`)
+			return allSubscriptions
+		} catch (error) {
+			this.logger.error('Failed to get all subscriptions', { error })
+			throw error
+		}
+	}
 
-  /**
-   * List invoices with optional filters
-   */
-  async listInvoices(params?: {
-    customer?: string
-    subscription?: string
-    status?: string
-    created?: { gte?: number; lte?: number }
-    limit?: number
-  }): Promise<Stripe.Invoice[]> {
-    // PERFORMANCE: Cache invoices per customer, subscription, status, created date, and limit
-    const cacheKey = this.buildCacheKey('invoices', {
-      customer: params?.customer ?? null,
-      subscription: params?.subscription ?? null,
-      status: params?.status ?? null,
-      limit: params?.limit ?? 10,
-      created: params?.created ?? null
-    })
+	/**
+	 * List invoices with optional filters
+	 */
+	async listInvoices(params?: {
+		customer?: string
+		subscription?: string
+		status?: string
+		created?: { gte?: number; lte?: number }
+		limit?: number
+	}): Promise<Stripe.Invoice[]> {
+		// PERFORMANCE: Cache invoices per customer, subscription, status, created date, and limit
+		const cacheKey = this.buildCacheKey('invoices', {
+			customer: params?.customer ?? null,
+			subscription: params?.subscription ?? null,
+			status: params?.status ?? null,
+			limit: params?.limit ?? 10,
+			created: params?.created ?? null
+		})
 
-    const cached = await this.getCachedValue<Stripe.Invoice[]>(cacheKey)
-    if (cached) {
-      this.logger.debug('Returning cached invoices', { cacheKey })
-      return cached
-    }
+		const cached = await this.getCachedValue<Stripe.Invoice[]>(cacheKey)
+		if (cached) {
+			this.logger.debug('Returning cached invoices', { cacheKey })
+			return cached
+		}
 
-    try {
-      const requestParams: Stripe.InvoiceListParams = {
-        limit: params?.limit ?? 10,
-        expand: ['data.subscription', 'data.customer']
-      }
-      if (params?.customer) {
-        requestParams.customer = params.customer
-      }
-      if (params?.subscription) {
-        requestParams.subscription = params.subscription
-      }
-      if (params?.status) {
-        requestParams.status = params.status as Stripe.InvoiceListParams.Status
-      }
-      if (params?.created) {
-        requestParams.created = params.created
-      }
-      const invoices = await this.stripe.invoices.list(requestParams)
+		try {
+			const requestParams: Stripe.InvoiceListParams = {
+				limit: params?.limit ?? 10,
+				expand: ['data.subscription', 'data.customer']
+			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.subscription) {
+				requestParams.subscription = params.subscription
+			}
+			if (params?.status) {
+				requestParams.status = params.status as Stripe.InvoiceListParams.Status
+			}
+			if (params?.created) {
+				requestParams.created = params.created
+			}
+			const invoices = await this.stripe.invoices.list(requestParams)
 
-      // Cache for 45s (invoices can update frequently)
-      await this.setCachedValue(
-        cacheKey,
-        invoices.data,
-        this.INVOICES_CACHE_TTL_MS
-      )
+			// Cache for 45s (invoices can update frequently)
+			await this.setCachedValue(
+				cacheKey,
+				invoices.data,
+				this.INVOICES_CACHE_TTL_MS
+			)
 
-      return invoices.data
-    } catch (error) {
-      this.logger.error('Failed to list invoices', { error })
-      throw error
-    }
-  }
+			return invoices.data
+		} catch (error) {
+			this.logger.error('Failed to list invoices', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Get ALL invoices with complete pagination
-   */
-  async getAllInvoices(params?: {
-    customer?: string
-    subscription?: string
-    status?: string
-    created?: { gte?: number; lte?: number }
-  }): Promise<Stripe.Invoice[]> {
-    try {
-      const allInvoices: Stripe.Invoice[] = []
-      let hasMore = true
-      let startingAfter: string | undefined
+	/**
+	 * Get ALL invoices with complete pagination
+	 */
+	async getAllInvoices(params?: {
+		customer?: string
+		subscription?: string
+		status?: string
+		created?: { gte?: number; lte?: number }
+	}): Promise<Stripe.Invoice[]> {
+		try {
+			const allInvoices: Stripe.Invoice[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
 
-      while (hasMore) {
-        const requestParams: Stripe.InvoiceListParams = {
-          limit: this.STRIPE_DEFAULT_LIMIT,
-          expand: ['data.subscription', 'data.customer']
-        }
-        if (params?.customer) {
-          requestParams.customer = params.customer
-        }
-        if (params?.subscription) {
-          requestParams.subscription = params.subscription
-        }
-        if (params?.status) {
-          requestParams.status =
-            params.status as Stripe.InvoiceListParams.Status
-        }
-        if (params?.created) {
-          requestParams.created = params.created
-        }
-        if (startingAfter) {
-          requestParams.starting_after = startingAfter
-        }
+			while (hasMore) {
+				const requestParams: Stripe.InvoiceListParams = {
+					limit: this.STRIPE_DEFAULT_LIMIT,
+					expand: ['data.subscription', 'data.customer']
+				}
+				if (params?.customer) {
+					requestParams.customer = params.customer
+				}
+				if (params?.subscription) {
+					requestParams.subscription = params.subscription
+				}
+				if (params?.status) {
+					requestParams.status =
+						params.status as Stripe.InvoiceListParams.Status
+				}
+				if (params?.created) {
+					requestParams.created = params.created
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
 
-        const invoices = await this.stripe.invoices.list(requestParams)
+				const invoices = await this.stripe.invoices.list(requestParams)
 
-        allInvoices.push(...invoices.data)
-        hasMore = invoices.has_more
+				allInvoices.push(...invoices.data)
+				hasMore = invoices.has_more
 
-        if (hasMore && invoices.data.length > 0) {
-          startingAfter = invoices.data[invoices.data.length - 1]?.id
-        }
-      }
+				if (hasMore && invoices.data.length > 0) {
+					startingAfter = invoices.data[invoices.data.length - 1]?.id
+				}
+			}
 
-      this.logger.log(`Fetched ${allInvoices.length} total invoices`)
-      return allInvoices
-    } catch (error) {
-      this.logger.error('Failed to get all invoices', { error })
-      throw error
-    }
-  }
+			this.logger.log(`Fetched ${allInvoices.length} total invoices`)
+			return allInvoices
+		} catch (error) {
+			this.logger.error('Failed to get all invoices', { error })
+			throw error
+		}
+	}
 
-  /**
-   * List customers with optional filters
-   */
-  async listCustomers(params?: {
-    email?: string
-    limit?: number
-  }): Promise<Stripe.Customer[]> {
-    try {
-      const requestParams: Stripe.CustomerListParams = {
-        limit: params?.limit ?? 10,
-        expand: ['data.subscriptions']
-      }
-      if (params?.email) {
-        requestParams.email = params.email
-      }
-      const customers = await this.stripe.customers.list(requestParams)
-      // Filter out deleted customers
-      return customers.data.filter(c => !('deleted' in c))
-    } catch (error) {
-      this.logger.error('Failed to list customers', { error })
-      throw error
-    }
-  }
+	/**
+	 * List customers with optional filters
+	 */
+	async listCustomers(params?: {
+		email?: string
+		limit?: number
+	}): Promise<Stripe.Customer[]> {
+		try {
+			const requestParams: Stripe.CustomerListParams = {
+				limit: params?.limit ?? 10,
+				expand: ['data.subscriptions']
+			}
+			if (params?.email) {
+				requestParams.email = params.email
+			}
+			const customers = await this.stripe.customers.list(requestParams)
+			// Filter out deleted customers
+			return customers.data.filter(c => !('deleted' in c))
+		} catch (error) {
+			this.logger.error('Failed to list customers', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Get ALL customers with complete pagination
-   */
-  async getAllCustomers(params?: {
-    email?: string
-  }): Promise<Stripe.Customer[]> {
-    try {
-      const allCustomers: Stripe.Customer[] = []
-      let hasMore = true
-      let startingAfter: string | undefined
+	/**
+	 * Get ALL customers with complete pagination
+	 */
+	async getAllCustomers(params?: {
+		email?: string
+	}): Promise<Stripe.Customer[]> {
+		try {
+			const allCustomers: Stripe.Customer[] = []
+			let hasMore = true
+			let startingAfter: string | undefined
 
-      while (hasMore) {
-        const requestParams: Stripe.CustomerListParams = {
-          limit: this.STRIPE_DEFAULT_LIMIT,
-          expand: ['data.subscriptions']
-        }
-        if (params?.email) {
-          requestParams.email = params.email
-        }
-        if (startingAfter) {
-          requestParams.starting_after = startingAfter
-        }
-        const customers = await this.stripe.customers.list(requestParams)
+			while (hasMore) {
+				const requestParams: Stripe.CustomerListParams = {
+					limit: this.STRIPE_DEFAULT_LIMIT,
+					expand: ['data.subscriptions']
+				}
+				if (params?.email) {
+					requestParams.email = params.email
+				}
+				if (startingAfter) {
+					requestParams.starting_after = startingAfter
+				}
+				const customers = await this.stripe.customers.list(requestParams)
 
-        // Filter out deleted customers
-        const activeCustomers = customers.data.filter(c => !('deleted' in c))
-        allCustomers.push(...activeCustomers)
-        hasMore = customers.has_more
+				// Filter out deleted customers
+				const activeCustomers = customers.data.filter(c => !('deleted' in c))
+				allCustomers.push(...activeCustomers)
+				hasMore = customers.has_more
 
-        if (hasMore && customers.data.length > 0) {
-          startingAfter = customers.data[customers.data.length - 1]?.id
-        }
-      }
+				if (hasMore && customers.data.length > 0) {
+					startingAfter = customers.data[customers.data.length - 1]?.id
+				}
+			}
 
-      this.logger.log(`Fetched ${allCustomers.length} total customers`)
-      return allCustomers
-    } catch (error) {
-      this.logger.error('Failed to get all customers', { error })
-      throw error
-    }
-  }
+			this.logger.log(`Fetched ${allCustomers.length} total customers`)
+			return allCustomers
+		} catch (error) {
+			this.logger.error('Failed to get all customers', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Get a specific customer
-   */
-  async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
-    try {
-      const customer = await this.stripe.customers.retrieve(customerId, {
-        expand: ['subscriptions']
-      })
-      if ('deleted' in customer) {
-        return null
-      }
-      return customer
-    } catch (error) {
-      this.logger.error('Failed to get customer', { error, customerId })
-      return null
-    }
-  }
+	/**
+	 * Get a specific customer
+	 */
+	async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
+		try {
+			const customer = await this.stripe.customers.retrieve(customerId, {
+				expand: ['subscriptions']
+			})
+			if ('deleted' in customer) {
+				return null
+			}
+			return customer
+		} catch (error) {
+			this.logger.error('Failed to get customer', { error, customerId })
+			return null
+		}
+	}
 
-  /**
-   * Search for resources using Stripe's search API
-   */
-  async searchSubscriptions(query: string): Promise<Stripe.Subscription[]> {
-    try {
-      const result = await this.stripe.subscriptions.search({
-        query,
-        limit: this.STRIPE_DEFAULT_LIMIT,
-        expand: ['data.customer']
-      })
-      return result.data
-    } catch (error) {
-      this.logger.error('Failed to search subscriptions', { error, query })
-      throw error
-    }
-  }
+	/**
+	 * Search for resources using Stripe's search API
+	 */
+	async searchSubscriptions(query: string): Promise<Stripe.Subscription[]> {
+		try {
+			const result = await this.stripe.subscriptions.search({
+				query,
+				limit: this.STRIPE_DEFAULT_LIMIT,
+				expand: ['data.customer']
+			})
+			return result.data
+		} catch (error) {
+			this.logger.error('Failed to search subscriptions', { error, query })
+			throw error
+		}
+	}
 
-  /**
-   * Create a Payment Intent for one-time payments
-   * Follows official Stripe Payment Intent patterns
-   * Uses idempotency key to prevent duplicate charges on retries
-   */
-  async createPaymentIntent(
-    params: Stripe.PaymentIntentCreateParams,
-    idempotencyKey?: string
-  ): Promise<Stripe.PaymentIntent> {
-    try {
-      const requestOptions = idempotencyKey
-        ? { idempotencyKey }
-        : undefined
+	/**
+	 * Create a Payment Intent for one-time payments
+	 * Follows official Stripe Payment Intent patterns
+	 * Uses idempotency key to prevent duplicate charges on retries
+	 */
+	async createPaymentIntent(
+		params: Stripe.PaymentIntentCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.PaymentIntent> {
+		try {
+			const requestOptions = idempotencyKey ? { idempotencyKey } : undefined
 
-      const paymentIntent = await this.stripe.paymentIntents.create(
-        params,
-        requestOptions
-      )
+			const paymentIntent = await this.stripe.paymentIntents.create(
+				params,
+				requestOptions
+			)
 
-      this.logger.log('Payment intent created', { id: paymentIntent.id })
-      return paymentIntent
-    } catch (error) {
-      this.logger.error('Failed to create payment intent', { error })
-      throw error
-    }
-  }
+			this.logger.log('Payment intent created', { id: paymentIntent.id })
+			return paymentIntent
+		} catch (error) {
+			this.logger.error('Failed to create payment intent', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Create a Customer for recurring payments
-   * Follows official Stripe customer creation patterns
-   */
-  async createCustomer(
-    params: Stripe.CustomerCreateParams,
-    idempotencyKey?: string
-  ): Promise<Stripe.Customer> {
-    try {
-      const requestOptions = idempotencyKey
-        ? { idempotencyKey }
-        : undefined
+	/**
+	 * Create a Customer for recurring payments
+	 * Follows official Stripe customer creation patterns
+	 */
+	async createCustomer(
+		params: Stripe.CustomerCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Customer> {
+		try {
+			const requestOptions = idempotencyKey ? { idempotencyKey } : undefined
 
-      const customer = await this.stripe.customers.create(
-        params,
-        requestOptions
-      )
+			const customer = await this.stripe.customers.create(
+				params,
+				requestOptions
+			)
 
-      this.logger.log('Customer created', { id: customer.id })
-      return customer
-    } catch (error) {
-      this.logger.error('Failed to create customer', { error })
-      throw error
-    }
-  }
+			this.logger.log('Customer created', { id: customer.id })
+			return customer
+		} catch (error) {
+			this.logger.error('Failed to create customer', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Create a Subscription for recurring payments
-   * Implements official Stripe subscription patterns with proper error handling
-   */
-  async createSubscription(
-    params: Stripe.SubscriptionCreateParams,
-    idempotencyKey?: string
-  ): Promise<Stripe.Subscription> {
-    try {
-      const requestOptions = idempotencyKey
-        ? { idempotencyKey }
-        : undefined
+	/**
+	 * Create a Subscription for recurring payments
+	 * Implements official Stripe subscription patterns with proper error handling
+	 */
+	async createSubscription(
+		params: Stripe.SubscriptionCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Subscription> {
+		try {
+			const requestOptions = idempotencyKey ? { idempotencyKey } : undefined
 
-      const subscription = await this.stripe.subscriptions.create(
-        params,
-        requestOptions
-      )
+			const subscription = await this.stripe.subscriptions.create(
+				params,
+				requestOptions
+			)
 
-      this.logger.log('Subscription created', { id: subscription.id })
-      return subscription
-    } catch (error) {
-      this.logger.error('Failed to create subscription', { error })
-      throw error
-    }
-  }
+			this.logger.log('Subscription created', { id: subscription.id })
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to create subscription', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Update a Subscription
-   * Handles plan changes with proper proration and billing cycle management
-   */
-  async updateSubscription(
-    subscriptionId: string,
-    params: Stripe.SubscriptionUpdateParams,
-    idempotencyKey?: string
-  ): Promise<Stripe.Subscription> {
-    try {
-      const requestOptions = idempotencyKey
-        ? { idempotencyKey }
-        : undefined
+	/**
+	 * Update a Subscription
+	 * Handles plan changes with proper proration and billing cycle management
+	 */
+	async updateSubscription(
+		subscriptionId: string,
+		params: Stripe.SubscriptionUpdateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Subscription> {
+		try {
+			const requestOptions = idempotencyKey ? { idempotencyKey } : undefined
 
-      const subscription = await this.stripe.subscriptions.update(
-        subscriptionId,
-        params,
-        requestOptions
-      )
+			const subscription = await this.stripe.subscriptions.update(
+				subscriptionId,
+				params,
+				requestOptions
+			)
 
-      this.logger.log('Subscription updated', { id: subscription.id })
-      return subscription
-    } catch (error) {
-      this.logger.error('Failed to update subscription', { error })
-      throw error
-    }
-  }
+			this.logger.log('Subscription updated', { id: subscription.id })
+			return subscription
+		} catch (error) {
+			this.logger.error('Failed to update subscription', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Create a Checkout Session for payment collection
-   * Implements official Stripe Checkout patterns
-   */
-  async createCheckoutSession(
-    params: Stripe.Checkout.SessionCreateParams,
-    idempotencyKey?: string
-  ): Promise<Stripe.Checkout.Session> {
-    try {
-      const requestOptions = idempotencyKey
-        ? { idempotencyKey }
-        : undefined
+	/**
+	 * Create a Checkout Session for payment collection
+	 * Implements official Stripe Checkout patterns
+	 */
+	async createCheckoutSession(
+		params: Stripe.Checkout.SessionCreateParams,
+		idempotencyKey?: string
+	): Promise<Stripe.Checkout.Session> {
+		try {
+			const requestOptions = idempotencyKey ? { idempotencyKey } : undefined
 
-      const session = await this.stripe.checkout.sessions.create(
-        params,
-        requestOptions
-      )
+			const session = await this.stripe.checkout.sessions.create(
+				params,
+				requestOptions
+			)
 
-      this.logger.log('Checkout session created', { id: session.id })
-      return session
-    } catch (error) {
-      this.logger.error('Failed to create checkout session', { error })
-      throw error
-    }
-  }
+			this.logger.log('Checkout session created', { id: session.id })
+			return session
+		} catch (error) {
+			this.logger.error('Failed to create checkout session', { error })
+			throw error
+		}
+	}
 
-  /**
-   * Get a specific charge
-   * Used for retrieving charge details and failure messages
-   */
-  async getCharge(chargeId: string): Promise<Stripe.Charge | null> {
-    try {
-      const charge = await this.stripe.charges.retrieve(chargeId)
-      return charge
-    } catch (error) {
-      this.logger.error('Failed to get charge', { error, chargeId })
-      return null
-    }
-  }
+	/**
+	 * Get a specific charge
+	 * Used for retrieving charge details and failure messages
+	 */
+	async getCharge(chargeId: string): Promise<Stripe.Charge | null> {
+		try {
+			const charge = await this.stripe.charges.retrieve(chargeId)
+			return charge
+		} catch (error) {
+			this.logger.error('Failed to get charge', { error, chargeId })
+			return null
+		}
+	}
 
-  private buildCacheKey(prefix: string, params: unknown): string {
-    const hash = this.hashParams(params)
-    return `stripe:${prefix}:${hash}`
-  }
+	private buildCacheKey(prefix: string, params: unknown): string {
+		const hash = this.hashParams(params)
+		return `stripe:${prefix}:${hash}`
+	}
 
-  private hashParams(params: unknown): string {
-    const stable = this.stableStringify(params)
-    return createHash('md5').update(stable).digest('hex')
-  }
+	private hashParams(params: unknown): string {
+		const stable = this.stableStringify(params)
+		return createHash('md5').update(stable).digest('hex')
+	}
 
-  private stableStringify(value: unknown): string {
-    if (value === null || typeof value !== 'object') {
-      return JSON.stringify(value)
-    }
+	private stableStringify(value: unknown): string {
+		if (value === null || typeof value !== 'object') {
+			return JSON.stringify(value)
+		}
 
-    if (Array.isArray(value)) {
-      return `[${value.map(item => this.stableStringify(item)).join(',')}]`
-    }
+		if (Array.isArray(value)) {
+			return `[${value.map(item => this.stableStringify(item)).join(',')}]`
+		}
 
-    const record = value as Record<string, unknown>
-    const keys = Object.keys(record).sort()
-    return `{${keys
-      .map(key => `${JSON.stringify(key)}:${this.stableStringify(record[key])}`)
-      .join(',')}}`
-  }
+		const record = value as Record<string, unknown>
+		const keys = Object.keys(record).sort()
+		return `{${keys
+			.map(key => `${JSON.stringify(key)}:${this.stableStringify(record[key])}`)
+			.join(',')}}`
+	}
 
-  private async getCachedValue<T>(cacheKey: string): Promise<T | null> {
-    return this.cache.get<T>(cacheKey)
-  }
+	private async getCachedValue<T>(cacheKey: string): Promise<T | null> {
+		return this.cache.get<T>(cacheKey)
+	}
 
-  private async setCachedValue<T>(
-    cacheKey: string,
-    value: T,
-    ttlMs: number
-  ): Promise<void> {
-    await this.cache.set(cacheKey, value, { ttlMs, tier: 'short', tags: ['stripe'] })
-  }
+	private async setCachedValue<T>(
+		cacheKey: string,
+		value: T,
+		ttlMs: number
+	): Promise<void> {
+		await this.cache.set(cacheKey, value, {
+			ttlMs,
+			tier: 'short',
+			tags: ['stripe']
+		})
+	}
 }

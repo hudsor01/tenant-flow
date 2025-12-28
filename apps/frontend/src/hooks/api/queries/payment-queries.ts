@@ -16,7 +16,8 @@ export const paymentKeys = {
 	analytics: () => [...paymentKeys.all, 'analytics'] as const,
 	upcoming: () => [...paymentKeys.all, 'upcoming'] as const,
 	overdue: () => [...paymentKeys.all, 'overdue'] as const,
-	list: (filters?: PaymentFilters) => [...paymentKeys.all, 'list', filters] as const,
+	list: (filters?: PaymentFilters) =>
+		[...paymentKeys.all, 'list', filters] as const,
 	detail: (id: string) => [...paymentKeys.all, 'detail', id] as const
 }
 
@@ -105,9 +106,10 @@ export const paymentQueries = {
 		queryOptions({
 			queryKey: paymentKeys.analytics(),
 			queryFn: async (): Promise<PaymentAnalytics> => {
-				const response = await apiRequest<{ success: boolean; analytics: PaymentAnalytics }>(
-					'/api/v1/rent-payments/analytics'
-				)
+				const response = await apiRequest<{
+					success: boolean
+					analytics: PaymentAnalytics
+				}>('/api/v1/rent-payments/analytics')
 				return response.analytics
 			},
 			staleTime: 60 * 1000 // 1 minute
@@ -120,9 +122,10 @@ export const paymentQueries = {
 		queryOptions({
 			queryKey: paymentKeys.upcoming(),
 			queryFn: async (): Promise<UpcomingPayment[]> => {
-				const response = await apiRequest<{ success: boolean; payments: UpcomingPayment[] }>(
-					'/api/v1/rent-payments/upcoming'
-				)
+				const response = await apiRequest<{
+					success: boolean
+					payments: UpcomingPayment[]
+				}>('/api/v1/rent-payments/upcoming')
 				return response.payments
 			},
 			staleTime: 60 * 1000 // 1 minute
@@ -135,9 +138,10 @@ export const paymentQueries = {
 		queryOptions({
 			queryKey: paymentKeys.overdue(),
 			queryFn: async (): Promise<OverduePayment[]> => {
-				const response = await apiRequest<{ success: boolean; payments: OverduePayment[] }>(
-					'/api/v1/rent-payments/overdue'
-				)
+				const response = await apiRequest<{
+					success: boolean
+					payments: OverduePayment[]
+				}>('/api/v1/rent-payments/overdue')
 				return response.payments
 			},
 			staleTime: 30 * 1000 // 30 seconds
@@ -147,7 +151,9 @@ export const paymentQueries = {
 /**
  * Export payments as CSV
  */
-export async function exportPaymentsCSV(filters?: PaymentFilters): Promise<Blob> {
+export async function exportPaymentsCSV(
+	filters?: PaymentFilters
+): Promise<Blob> {
 	const params = new URLSearchParams()
 	if (filters?.status) params.append('status', filters.status)
 	if (filters?.startDate) params.append('startDate', filters.startDate)
@@ -163,9 +169,14 @@ export async function exportPaymentsCSV(filters?: PaymentFilters): Promise<Blob>
 /**
  * Record a manual payment
  */
-export async function recordManualPayment(data: ManualPaymentInput): Promise<{ success: boolean; payment: unknown }> {
-	return apiRequest<{ success: boolean; payment: unknown }>('/api/v1/rent-payments/manual', {
-		method: 'POST',
-		body: JSON.stringify(data)
-	})
+export async function recordManualPayment(
+	data: ManualPaymentInput
+): Promise<{ success: boolean; payment: unknown }> {
+	return apiRequest<{ success: boolean; payment: unknown }>(
+		'/api/v1/rent-payments/manual',
+		{
+			method: 'POST',
+			body: JSON.stringify(data)
+		}
+	)
 }

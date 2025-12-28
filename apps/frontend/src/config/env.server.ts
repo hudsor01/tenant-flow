@@ -13,9 +13,7 @@ const serverEnvSchema = z.object({
 		.default('development'),
 
 	// Supabase Server
-	JWT_ALGORITHM: z
-		.enum(['ES256', 'RS256', 'HS256'])
-		.default('ES256'),
+	JWT_ALGORITHM: z.enum(['ES256', 'RS256', 'HS256']).default('ES256'),
 	JWT_SECRET: z
 		.string()
 		.min(32, 'JWT secret must be at least 32 characters')
@@ -36,7 +34,10 @@ const serverEnvSchema = z.object({
 	// Testing
 	E2E_OWNER_EMAIL: z.string().email().optional(),
 	E2E_OWNER_PASSWORD: z.string().optional(),
-	RUN_INTEGRATION_TESTS: z.string().optional().transform(v => v === 'true'),
+	RUN_INTEGRATION_TESTS: z
+		.string()
+		.optional()
+		.transform(v => v === 'true')
 })
 
 // Parse at module load - will throw if invalid (fail-fast)

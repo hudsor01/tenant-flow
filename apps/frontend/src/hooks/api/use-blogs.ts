@@ -30,7 +30,7 @@ export function useBlogs() {
 
 			return data || []
 		},
-		staleTime: 5 * 60 * 1000, // 5 minutes - blogs don't change frequently
+		staleTime: 5 * 60 * 1000 // 5 minutes - blogs don't change frequently
 	})
 }
 
@@ -61,7 +61,7 @@ export function useBlogBySlug(slug: string) {
 			return data
 		},
 		staleTime: 5 * 60 * 1000, // 5 minutes
-		enabled: !!slug, // Only run query if slug is provided
+		enabled: !!slug // Only run query if slug is provided
 	})
 }
 
@@ -88,7 +88,7 @@ export function useBlogsByCategory(category: string) {
 			return data || []
 		},
 		staleTime: 5 * 60 * 1000,
-		enabled: !!category,
+		enabled: !!category
 	})
 }
 
@@ -114,6 +114,6 @@ export function useFeaturedBlogs(limit: number = 3) {
 
 			return data || []
 		},
-		staleTime: 5 * 60 * 1000,
+		staleTime: 5 * 60 * 1000
 	})
 }

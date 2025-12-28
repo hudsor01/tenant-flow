@@ -57,13 +57,13 @@ export function InviteTenantDialog({
 			if (property_id) params.property_id = property_id
 			if (lease_id) params.lease_id = lease_id
 
-			const invitationResponse = await apiRequest<{ success: boolean; message?: string }>(
-				`/api/v1/tenants/${tenant_id}/send-invitation-v2`,
-				{
-					method: 'POST',
-					body: JSON.stringify(params)
-				}
-			)
+			const invitationResponse = await apiRequest<{
+				success: boolean
+				message?: string
+			}>(`/api/v1/tenants/${tenant_id}/send-invitation-v2`, {
+				method: 'POST',
+				body: JSON.stringify(params)
+			})
 
 			const logContext: Record<string, unknown> = {
 				tenant_id,
@@ -122,9 +122,7 @@ export function InviteTenantDialog({
 			<Dialog open={open} onOpenChange={setOpen}>
 				<DialogContent intent="create" className="sm:max-w-lg">
 					<DialogHeader>
-						<DialogTitle>
-							Invite {tenantName} to Tenant Portal
-						</DialogTitle>
+						<DialogTitle>Invite {tenantName} to Tenant Portal</DialogTitle>
 						<DialogDescription>
 							Send an email invitation to {tenantEmail}. They'll receive a link
 							to:

@@ -1,0 +1,124 @@
+{
+	"overview": {
+		"totalProperties": 5,
+		"totalUnits": 35,
+		"occupancyRate": 91.4,
+		"occupancyChange": 2.3,
+		"activeTenants": 32,
+		"tenantsChange": 5,
+		"monthlyRevenue": 4875000,
+		"revenueChange": 8.5,
+		"openMaintenance": 5,
+		"maintenanceChange": -2,
+		"leaseRenewalRate": 78,
+		"renewalChange": 4.2,
+		"averageRent": 195000,
+		"rentChange": 3.1
+	},
+	"occupancyTrend": [
+		{ "month": "Jul", "rate": 85, "occupied": 30, "total": 35 },
+		{ "month": "Aug", "rate": 86, "occupied": 30, "total": 35 },
+		{ "month": "Sep", "rate": 88, "occupied": 31, "total": 35 },
+		{ "month": "Oct", "rate": 89, "occupied": 31, "total": 35 },
+		{ "month": "Nov", "rate": 91, "occupied": 32, "total": 35 },
+		{ "month": "Dec", "rate": 91, "occupied": 32, "total": 35 }
+	],
+	"revenueTrend": [
+		{ "month": "Jul", "collected": 4125000, "projected": 4200000 },
+		{ "month": "Aug", "collected": 4280000, "projected": 4350000 },
+		{ "month": "Sep", "collected": 4450000, "projected": 4500000 },
+		{ "month": "Oct", "collected": 4620000, "projected": 4650000 },
+		{ "month": "Nov", "collected": 4750000, "projected": 4800000 },
+		{ "month": "Dec", "collected": 4875000, "projected": 4950000 }
+	],
+	"propertyPerformance": [
+		{
+			"id": "prop-001",
+			"name": "Riverside Apartments",
+			"occupancy": 100,
+			"revenue": 1107000,
+			"maintenance": 2,
+			"rating": 4.8
+		},
+		{
+			"id": "prop-002",
+			"name": "Oak Grove Townhomes",
+			"occupancy": 87.5,
+			"revenue": 672000,
+			"maintenance": 0,
+			"rating": 4.5
+		},
+		{
+			"id": "prop-003",
+			"name": "Downtown Lofts",
+			"occupancy": 93.75,
+			"revenue": 1584000,
+			"maintenance": 2,
+			"rating": 4.6
+		},
+		{
+			"id": "prop-004",
+			"name": "Sunset Gardens",
+			"occupancy": 100,
+			"revenue": 930000,
+			"maintenance": 1,
+			"rating": 4.9
+		},
+		{
+			"id": "prop-005",
+			"name": "Lakeside Commons",
+			"occupancy": 83.33,
+			"revenue": 525000,
+			"maintenance": 0,
+			"rating": 4.3
+		}
+	],
+	"maintenanceTrend": [
+		{ "month": "Jul", "opened": 15, "completed": 12, "avgDays": 4.2 },
+		{ "month": "Aug", "opened": 12, "completed": 14, "avgDays": 3.8 },
+		{ "month": "Sep", "opened": 10, "completed": 11, "avgDays": 3.5 },
+		{ "month": "Oct", "opened": 8, "completed": 10, "avgDays": 3.2 },
+		{ "month": "Nov", "opened": 9, "completed": 8, "avgDays": 3.4 },
+		{ "month": "Dec", "opened": 7, "completed": 8, "avgDays": 3.2 }
+	],
+	"maintenanceByCategory": [
+		{ "category": "Plumbing", "count": 18, "percentage": 28, "avgCost": 45000 },
+		{ "category": "HVAC", "count": 15, "percentage": 23, "avgCost": 85000 },
+		{
+			"category": "Electrical",
+			"count": 12,
+			"percentage": 19,
+			"avgCost": 35000
+		},
+		{
+			"category": "Appliances",
+			"count": 10,
+			"percentage": 15,
+			"avgCost": 65000
+		},
+		{ "category": "Other", "count": 10, "percentage": 15, "avgCost": 25000 }
+	],
+	"leaseExpiries": [
+		{ "month": "Jan", "count": 3, "value": 555000 },
+		{ "month": "Feb", "count": 2, "value": 410000 },
+		{ "month": "Mar", "count": 4, "value": 780000 },
+		{ "month": "Apr", "count": 2, "value": 390000 },
+		{ "month": "May", "count": 3, "value": 585000 },
+		{ "month": "Jun", "count": 5, "value": 975000 }
+	],
+	"tenantMetrics": {
+		"totalTenants": 32,
+		"newThisMonth": 2,
+		"endingThisMonth": 1,
+		"avgTenure": 14.5,
+		"onTimePaymentRate": 94.5,
+		"autopayAdoption": 68,
+		"satisfactionScore": 4.6
+	},
+	"revenueByUnitType": [
+		{ "type": "Studio", "units": 4, "revenue": 480000, "percentage": 10 },
+		{ "type": "1 Bedroom", "units": 12, "revenue": 1560000, "percentage": 32 },
+		{ "type": "2 Bedroom", "units": 14, "revenue": 2100000, "percentage": 43 },
+		{ "type": "3 Bedroom", "units": 5, "revenue": 735000, "percentage": 15 }
+	]
+}

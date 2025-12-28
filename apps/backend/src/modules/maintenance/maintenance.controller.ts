@@ -27,7 +27,10 @@ import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import { CreateMaintenanceDto } from './dto/create-maintenance.dto'
 import { UpdateMaintenanceDto } from './dto/update-maintenance.dto'
-import type { MaintenanceRequestCreate, MaintenanceRequestUpdate } from '@repo/shared/validation/maintenance'
+import type {
+	MaintenanceRequestCreate,
+	MaintenanceRequestUpdate
+} from '@repo/shared/validation/maintenance'
 import { isValidUUID } from '@repo/shared/validation/common'
 
 @Controller('maintenance')
@@ -228,7 +231,11 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@user_id() user_id: string
 	) {
-		return this.maintenanceService.create(token, user_id, dto as MaintenanceRequestCreate)
+		return this.maintenanceService.create(
+			token,
+			user_id,
+			dto as MaintenanceRequestCreate
+		)
 	}
 
 	/**
@@ -242,7 +249,12 @@ export class MaintenanceController {
 		@JwtToken() token: string,
 		@Body('version') expectedVersion?: number
 	) {
-		const maintenance = await this.maintenanceService.update(token, id, dto as MaintenanceRequestUpdate, expectedVersion)
+		const maintenance = await this.maintenanceService.update(
+			token,
+			id,
+			dto as MaintenanceRequestUpdate,
+			expectedVersion
+		)
 		if (!maintenance) {
 			throw new NotFoundException('Maintenance request not found')
 		}

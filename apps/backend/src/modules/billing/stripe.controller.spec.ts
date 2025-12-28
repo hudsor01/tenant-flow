@@ -24,7 +24,6 @@ import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock services
 const mockStripeService = {
 	createPaymentIntent: jest.fn(),
@@ -115,9 +114,16 @@ describe('StripeController', () => {
 				billingService.findSubscriptionByStripeId.mockResolvedValue({
 					customer: 'tenant-123'
 				} as BillingSubscription)
-				stripeService.updateSubscription.mockResolvedValue(mockSubscription as UpdateSubscriptionResponse)
+				stripeService.updateSubscription.mockResolvedValue(
+					mockSubscription as UpdateSubscriptionResponse
+				)
 
-				await controller.updateSubscription(validUUID, mockReq as Request, mockRes as Response, {})
+				await controller.updateSubscription(
+					validUUID,
+					mockReq as Request,
+					mockRes as Response,
+					{}
+				)
 
 				expect(mockRes.status).toHaveBeenCalledWith(200)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -155,9 +161,15 @@ describe('StripeController', () => {
 				}
 
 				stripeSharedService.generateIdempotencyKey.mockReturnValue('key-123')
-				stripeService.createSubscription.mockResolvedValue(mockSubscription as CreateSubscriptionResponse)
+				stripeService.createSubscription.mockResolvedValue(
+					mockSubscription as CreateSubscriptionResponse
+				)
 
-				await controller.createSubscription(mockReq as Request, mockRes as Response, body)
+				await controller.createSubscription(
+					mockReq as Request,
+					mockRes as Response,
+					body
+				)
 
 				expect(mockRes.status).toHaveBeenCalledWith(201)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -182,7 +194,11 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as Request, mockRes as Response, body)
+					controller.createSubscription(
+						mockReq as Request,
+						mockRes as Response,
+						body
+					)
 				).rejects.toThrow(BadRequestException)
 			})
 
@@ -200,7 +216,11 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as Request, mockRes as Response, body)
+					controller.createSubscription(
+						mockReq as Request,
+						mockRes as Response,
+						body
+					)
 				).rejects.toThrow(BadRequestException)
 			})
 		})

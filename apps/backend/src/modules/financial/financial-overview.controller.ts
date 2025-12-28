@@ -67,26 +67,38 @@ export class FinancialOverviewController {
 		// Transform to frontend format
 		const data = {
 			overview: {
-				total_revenue: (overview as Record<string, Record<string, number>>)?.summary?.totalRevenue ?? 0,
-				total_expenses: (overview as Record<string, Record<string, number>>)?.summary?.totalExpenses ?? 0,
-				net_income: (overview as Record<string, Record<string, number>>)?.summary?.netIncome ?? 0,
+				total_revenue:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.totalRevenue ?? 0,
+				total_expenses:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.totalExpenses ?? 0,
+				net_income:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.netIncome ?? 0,
 				accounts_receivable: 0, // TODO: Calculate from pending payments
 				accounts_payable: 0 // TODO: Calculate from pending expenses
 			},
 			highlights: [
 				{
 					label: 'Monthly Revenue',
-					value: ((overview as Record<string, Record<string, number>>)?.summary?.totalRevenue ?? 0) / 12,
+					value:
+						((overview as Record<string, Record<string, number>>)?.summary
+							?.totalRevenue ?? 0) / 12,
 					trend: null
 				},
 				{
 					label: 'Operating Margin',
-					value: (overview as Record<string, Record<string, number>>)?.summary?.roi ?? 0,
+					value:
+						(overview as Record<string, Record<string, number>>)?.summary
+							?.roi ?? 0,
 					trend: null
 				},
 				{
 					label: 'Occupancy Rate',
-					value: (overview as Record<string, Record<string, number>>)?.summary?.occupancyRate ?? 0,
+					value:
+						(overview as Record<string, Record<string, number>>)?.summary
+							?.occupancyRate ?? 0,
 					trend: null
 				}
 			]
@@ -110,9 +122,13 @@ export class FinancialOverviewController {
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 
-		const trends = await this.financialService.getRevenueTrends(token, targetYear)
+		const trends = await this.financialService.getRevenueTrends(
+			token,
+			targetYear
+		)
 
 		// Transform to expected format
 		const data = trends.map(t => ({
@@ -141,9 +157,13 @@ export class FinancialOverviewController {
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 
-		const summary = await this.financialService.getExpenseSummary(token, targetYear)
+		const summary = await this.financialService.getExpenseSummary(
+			token,
+			targetYear
+		)
 
 		return {
 			success: true,
@@ -169,9 +189,14 @@ export class FinancialOverviewController {
 		const client = this.supabase.getUserClient(token)
 
 		// Get user's properties
-		const { data: properties } = await client.from('properties').select('id, name')
+		const { data: properties } = await client
+			.from('properties')
+			.select('id, name')
 		const propertyMap = new Map(
-			(properties ?? []).map((p: { id: string; name: string }) => [p.id, p.name])
+			(properties ?? []).map((p: { id: string; name: string }) => [
+				p.id,
+				p.name
+			])
 		)
 		const propertyIds = Array.from(propertyMap.keys())
 
@@ -185,9 +210,7 @@ export class FinancialOverviewController {
 		}
 
 		// Build query - expenses are linked to maintenance_requests which have category
-		let query = client
-			.from('expenses')
-			.select(`
+		let query = client.from('expenses').select(`
 				id,
 				amount,
 				expense_date,
@@ -212,7 +235,9 @@ export class FinancialOverviewController {
 			query = query.lte('expense_date', endDate)
 		}
 
-		const { data: expenses, error } = await query.order('expense_date', { ascending: false })
+		const { data: expenses, error } = await query.order('expense_date', {
+			ascending: false
+		})
 
 		if (error) {
 			this.logger.error('Failed to fetch expenses', { error: error.message })
@@ -220,30 +245,37 @@ export class FinancialOverviewController {
 		}
 
 		// Transform to include property name and category from maintenance_request
-		const transformedExpenses = (expenses ?? []).map((expense: Record<string, unknown>) => {
-			const maintenanceRequest = expense.maintenance_requests as Record<string, unknown> | null
-			const unit = maintenanceRequest?.units as Record<string, string> | null
-			const property_id = unit?.property_id
-			const property_name = property_id ? propertyMap.get(property_id) : null
+		const transformedExpenses = (expenses ?? []).map(
+			(expense: Record<string, unknown>) => {
+				const maintenanceRequest = expense.maintenance_requests as Record<
+					string,
+					unknown
+				> | null
+				const unit = maintenanceRequest?.units as Record<string, string> | null
+				const property_id = unit?.property_id
+				const property_name = property_id ? propertyMap.get(property_id) : null
 
-			return {
-				id: expense.id,
-				description: (maintenanceRequest?.description as string) ?? '',
-				amount: expense.amount,
-				expense_date: expense.expense_date,
-				vendor_name: expense.vendor_name,
-				maintenance_request_id: expense.maintenance_request_id,
-				created_at: expense.created_at,
-				category: maintenanceRequest?.category ?? 'other',
-				property_id,
-				property_name
+				return {
+					id: expense.id,
+					description: (maintenanceRequest?.description as string) ?? '',
+					amount: expense.amount,
+					expense_date: expense.expense_date,
+					vendor_name: expense.vendor_name,
+					maintenance_request_id: expense.maintenance_request_id,
+					created_at: expense.created_at,
+					category: maintenanceRequest?.category ?? 'other',
+					property_id,
+					property_name
+				}
 			}
-		})
+		)
 
 		// Filter by property if specified
 		let filteredExpenses = transformedExpenses
 		if (propertyId) {
-			filteredExpenses = transformedExpenses.filter(e => e.property_id === propertyId)
+			filteredExpenses = transformedExpenses.filter(
+				e => e.property_id === propertyId
+			)
 		}
 
 		// Filter by category if specified

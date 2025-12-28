@@ -97,18 +97,18 @@ describe('ImageLightbox Component', () => {
 		})
 
 		it('renders dialog when open', () => {
-		render(
-			<ImageLightboxWithState
-				images={MOCK_IMAGES}
-				open={true}
-				onClose={() => {}}
-			/>
-		)
+			render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={() => {}}
+				/>
+			)
 
-		// Dialog should be rendered
-		const dialog = screen.getByRole('dialog')
-		expect(dialog).toBeInTheDocument()
-	})
+			// Dialog should be rendered
+			const dialog = screen.getByRole('dialog')
+			expect(dialog).toBeInTheDocument()
+		})
 
 		it('displays current image when open', () => {
 			render(
@@ -123,7 +123,9 @@ describe('ImageLightbox Component', () => {
 			const image = screen.getByAltText(/property image 1/i)
 			expect(image).toBeInTheDocument()
 			expect(image).toHaveAttribute('src')
-			expect(image.getAttribute('src')).toContain(encodeURIComponent(PRIMARY_IMAGE.image_url))
+			expect(image.getAttribute('src')).toContain(
+				encodeURIComponent(PRIMARY_IMAGE.image_url)
+			)
 		})
 
 		it('displays image counter', () => {
@@ -140,18 +142,18 @@ describe('ImageLightbox Component', () => {
 		})
 
 		it('displays close button', () => {
-		render(
-			<ImageLightboxWithState
-				images={MOCK_IMAGES}
-				open={true}
-				onClose={() => {}}
-			/>
-		)
+			render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={() => {}}
+				/>
+			)
 
-		// Close button should exist (may be multiple due to Radix UI)
-		const closeButtons = screen.getAllByRole('button')
-		expect(closeButtons.length).toBeGreaterThan(0)
-	})
+			// Close button should exist (may be multiple due to Radix UI)
+			const closeButtons = screen.getAllByRole('button')
+			expect(closeButtons.length).toBeGreaterThan(0)
+		})
 	})
 
 	describe('Navigation', () => {
@@ -164,8 +166,12 @@ describe('ImageLightbox Component', () => {
 				/>
 			)
 
-			expect(screen.getByRole('button', { name: /previous image/i })).toBeInTheDocument()
-			expect(screen.getByRole('button', { name: /next image/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /previous image/i })
+			).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /next image/i })
+			).toBeInTheDocument()
 		})
 
 		it('hides navigation buttons for single image', () => {
@@ -177,8 +183,12 @@ describe('ImageLightbox Component', () => {
 				/>
 			)
 
-			expect(screen.queryByRole('button', { name: /previous image/i })).not.toBeInTheDocument()
-			expect(screen.queryByRole('button', { name: /next image/i })).not.toBeInTheDocument()
+			expect(
+				screen.queryByRole('button', { name: /previous image/i })
+			).not.toBeInTheDocument()
+			expect(
+				screen.queryByRole('button', { name: /next image/i })
+			).not.toBeInTheDocument()
 		})
 
 		it('navigates to next image when next button clicked', async () => {
@@ -350,46 +360,46 @@ describe('ImageLightbox Component', () => {
 
 	describe('Close Button', () => {
 		it('calls onClose when close button clicked', async () => {
-		const user = userEvent.setup()
-		const onClose = vi.fn()
-		render(
-			<ImageLightboxWithState
-				images={MOCK_IMAGES}
-				open={true}
-				onClose={onClose}
-			/>
-		)
+			const user = userEvent.setup()
+			const onClose = vi.fn()
+			render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={onClose}
+				/>
+			)
 
-		// Find and click first button (likely close button)
-		const buttons = screen.getAllByRole('button')
-		if (buttons.length > 0) {
-			const firstButton = buttons[0]
-			if (!firstButton) return
-			await user.click(firstButton)
-			expect(onClose).toHaveBeenCalled()
-		}
-	})
+			// Find and click first button (likely close button)
+			const buttons = screen.getAllByRole('button')
+			if (buttons.length > 0) {
+				const firstButton = buttons[0]
+				if (!firstButton) return
+				await user.click(firstButton)
+				expect(onClose).toHaveBeenCalled()
+			}
+		})
 
 		it('closes on backdrop click', async () => {
-		const user = userEvent.setup()
-		const onClose = vi.fn()
-		render(
-			<ImageLightboxWithState
-				images={MOCK_IMAGES}
-				open={true}
-				onClose={onClose}
-			/>
-		)
+			const user = userEvent.setup()
+			const onClose = vi.fn()
+			render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={onClose}
+				/>
+			)
 
-		// Try to click first button (close button)
-		const buttons = screen.getAllByRole('button')
-		if (buttons.length > 0) {
-			const firstButton = buttons[0]
-			if (!firstButton) return
-			await user.click(firstButton)
-			expect(onClose).toHaveBeenCalled()
-		}
-	})
+			// Try to click first button (close button)
+			const buttons = screen.getAllByRole('button')
+			if (buttons.length > 0) {
+				const firstButton = buttons[0]
+				if (!firstButton) return
+				await user.click(firstButton)
+				expect(onClose).toHaveBeenCalled()
+			}
+		})
 	})
 
 	describe('Image Updates', () => {
@@ -429,18 +439,16 @@ describe('ImageLightbox Component', () => {
 
 			const image = screen.getByAltText(/property image 2/i)
 			expect(image).toHaveAttribute('src')
-			expect(image.getAttribute('src')).toContain(encodeURIComponent(SECOND_IMAGE.image_url))
+			expect(image.getAttribute('src')).toContain(
+				encodeURIComponent(SECOND_IMAGE.image_url)
+			)
 		})
 	})
 
 	describe('Edge Cases', () => {
 		it('returns null for empty images array', () => {
 			const { container } = render(
-				<ImageLightboxWithState
-					images={[]}
-					open={true}
-					onClose={() => {}}
-				/>
+				<ImageLightboxWithState images={[]} open={true} onClose={() => {}} />
 			)
 
 			// Should not render dialog
@@ -449,35 +457,39 @@ describe('ImageLightbox Component', () => {
 		})
 
 		it('handles single image correctly', () => {
-		const singleImage = MOCK_IMAGES[0]!
-		render(
-			<ImageLightboxWithState
-				images={[singleImage]}
-				open={true}
-				onClose={() => {}}
-			/>
-		)
+			const singleImage = MOCK_IMAGES[0]!
+			render(
+				<ImageLightboxWithState
+					images={[singleImage]}
+					open={true}
+					onClose={() => {}}
+				/>
+			)
 
-		// Counter is only shown when images.length > 1
-		expect(screen.queryByText(/1 \/ 1/)).not.toBeInTheDocument()
-		expect(screen.queryByRole('button', { name: /previous image/i })).not.toBeInTheDocument()
-		expect(screen.queryByRole('button', { name: /next image/i })).not.toBeInTheDocument()
-	})
+			// Counter is only shown when images.length > 1
+			expect(screen.queryByText(/1 \/ 1/)).not.toBeInTheDocument()
+			expect(
+				screen.queryByRole('button', { name: /previous image/i })
+			).not.toBeInTheDocument()
+			expect(
+				screen.queryByRole('button', { name: /next image/i })
+			).not.toBeInTheDocument()
+		})
 
-	it('handles out-of-bounds initialIndex gracefully', () => {
-		// Test with initialIndex beyond array bounds
-		const { container } = render(
-			<ImageLightboxWithState
-				images={MOCK_IMAGES}
-				open={true}
-				onClose={() => {}}
-				initialIndex={999} // Out of bounds
-			/>
-		)
+		it('handles out-of-bounds initialIndex gracefully', () => {
+			// Test with initialIndex beyond array bounds
+			const { container } = render(
+				<ImageLightboxWithState
+					images={MOCK_IMAGES}
+					open={true}
+					onClose={() => {}}
+					initialIndex={999} // Out of bounds
+				/>
+			)
 
-		// Component returns null when currentImage is undefined (out of bounds)
-		const dialog = container.querySelector('[role="dialog"]')
-		expect(dialog).not.toBeInTheDocument()
+			// Component returns null when currentImage is undefined (out of bounds)
+			const dialog = container.querySelector('[role="dialog"]')
+			expect(dialog).not.toBeInTheDocument()
 		})
 	})
 
@@ -491,8 +503,12 @@ describe('ImageLightbox Component', () => {
 				/>
 			)
 
-			expect(screen.getByRole('button', { name: /previous image/i })).toHaveAttribute('aria-label')
-			expect(screen.getByRole('button', { name: /next image/i })).toHaveAttribute('aria-label')
+			expect(
+				screen.getByRole('button', { name: /previous image/i })
+			).toHaveAttribute('aria-label')
+			expect(
+				screen.getByRole('button', { name: /next image/i })
+			).toHaveAttribute('aria-label')
 		})
 
 		it('has proper alt text for images', () => {

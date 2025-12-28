@@ -1,4 +1,11 @@
-import { Controller, Get, InternalServerErrorException, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	InternalServerErrorException,
+	NotFoundException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
 import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
 import { User } from '../../../shared/decorators/user.decorator'
 import type { AuthUser } from '@repo/shared/types/auth'
@@ -19,8 +26,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantLeasesController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get active lease with unit/property metadata
@@ -154,9 +163,7 @@ export class TenantLeasesController {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('rent_payments')
-			.select(
-				'id, amount, status, paid_date, due_date, created_at'
-			)
+			.select('id, amount, status, paid_date, due_date, created_at')
 			.eq('tenant_id', tenant_id)
 			.order('created_at', { ascending: false })
 			.limit(50)

@@ -19,11 +19,7 @@ import { StripeModule } from '../billing/stripe.module'
  * Note: Bull Board dashboard configured in app.module.ts
  */
 @Module({
-	imports: [
-		SupabaseModule,
-		EmailModule,
-		StripeModule
-	],
+	imports: [SupabaseModule, EmailModule, StripeModule],
 	controllers: [AdminUsersController, AdminSystemController],
 	providers: [AdminService],
 	exports: [AdminService]

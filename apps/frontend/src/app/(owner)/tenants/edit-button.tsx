@@ -99,8 +99,6 @@ export function TenantEditViewButtons({
 						}}
 						className="space-y-4"
 					>
-
-
 						<form.Field name="emergency_contact_name">
 							{(field: FormFieldApi<string>) => {
 								const f = field
@@ -171,9 +169,7 @@ export function TenantEditViewButtons({
 									<Phone className="size-4 text-muted-foreground" />
 									<div>
 										<p className="font-medium">{tenant.phone}</p>
-										<p className="text-muted">
-											Phone Number
-										</p>
+										<p className="text-muted">Phone Number</p>
 									</div>
 								</div>
 							)}
@@ -211,7 +207,8 @@ export function TenantEditViewButtons({
 									</div>
 									<span className="text-muted">
 										$
-										{tenant.currentLease?.rent_amount?.toLocaleString?.() ?? '0'}
+										{tenant.currentLease?.rent_amount?.toLocaleString?.() ??
+											'0'}
 									</span>
 								</div>
 							)}
@@ -233,9 +230,7 @@ export function TenantEditViewButtons({
 									<User className="size-4 text-muted-foreground" />
 									<span className="typography-small">Status</span>
 								</div>
-								<Badge
-								className="bg-(--chart-1) text-[var(--color-primary-foreground)]"
-							>
+								<Badge className="bg-chart-1 text-primary-foreground">
 									Active
 								</Badge>
 							</div>

@@ -1,4 +1,10 @@
-import { Controller, Get, Query, Req, UnauthorizedException } from '@nestjs/common'
+import {
+	Controller,
+	Get,
+	Query,
+	Req,
+	UnauthorizedException
+} from '@nestjs/common'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import { SupabaseService } from '../../database/supabase.service'
@@ -14,9 +20,11 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Controller('financial/analytics')
 export class FinancialAnalyticsPublicController {
-
-	constructor(private readonly financialService: FinancialService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly financialService: FinancialService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	private getToken(req: Request): string {
 		const token = this.supabase.getTokenFromRequest(req)
@@ -35,7 +43,8 @@ export class FinancialAnalyticsPublicController {
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 		const data = await this.financialService.getRevenueTrends(token, targetYear)
 
 		return {
@@ -52,7 +61,8 @@ export class FinancialAnalyticsPublicController {
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 		const data = await this.financialService.getExpenseBreakdown(
 			token,
 			targetYear
@@ -72,7 +82,8 @@ export class FinancialAnalyticsPublicController {
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 
 		const [trends, overview, noi] = await Promise.all([
 			this.financialService.getRevenueTrends(token, targetYear),
@@ -95,7 +106,12 @@ export class FinancialAnalyticsPublicController {
 		const propertyCount =
 			typeof propertyCountCandidate === 'number'
 				? propertyCountCandidate
-				: ((await this.supabase.getUserClient(token).from('properties').select('id')).data?.length ?? 0)
+				: ((
+						await this.supabase
+							.getUserClient(token)
+							.from('properties')
+							.select('id')
+					).data?.length ?? 0)
 
 		const occupancyRateCandidate = o.summary?.occupancyRate
 		const occupancyRate =
@@ -105,7 +121,9 @@ export class FinancialAnalyticsPublicController {
 			.filter(item => typeof item.roi === 'number')
 			.map(item => item.roi as number)
 		const avgRoi = roiValues.length
-			? Math.round(roiValues.reduce((sum, value) => sum + value, 0) / roiValues.length)
+			? Math.round(
+					roiValues.reduce((sum, value) => sum + value, 0) / roiValues.length
+				)
 			: 0
 
 		return {
