@@ -145,17 +145,6 @@ export function useTenantOperations() {
 }
 
 /**
- * Hook for tenant data with polling fallback
- * @deprecated Prefer using useTenant() with SSE enabled at app level.
- */
-export function useTenantPolling(id: string, interval: number = 5 * 60 * 1000) {
-	return useQuery({
-		...tenantQueries.polling(id),
-		refetchInterval: interval
-	})
-}
-
-/**
  * Hook for prefetching tenant data before navigation
  */
 export function usePrefetchTenant() {

@@ -7,7 +7,9 @@ import {
 	CreditCard,
 	Download,
 	ChevronDown,
-	ChevronRight
+	ChevronRight,
+	Check,
+	X
 } from 'lucide-react'
 import {
 	Select,
@@ -348,8 +350,8 @@ export default function BalanceSheetPage() {
 						<BorderBeam
 							size={100}
 							duration={10}
-							colorFrom="hsl(142 76% 36%)"
-							colorTo="hsl(142 76% 36% / 0.3)"
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
 						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
@@ -415,9 +417,15 @@ export default function BalanceSheetPage() {
 							Equity ({formatCents(totalEquity * 100)})
 						</span>
 						{isBalanced ? (
-							<span className="text-emerald-600 font-medium">✓ Balanced</span>
+							<span className="text-emerald-600 font-medium inline-flex items-center gap-1">
+								<Check className="size-4" aria-hidden="true" />
+								Balanced
+							</span>
 						) : (
-							<span className="text-red-600 font-medium">✗ Unbalanced</span>
+							<span className="text-red-600 font-medium inline-flex items-center gap-1">
+								<X className="size-4" aria-hidden="true" />
+								Unbalanced
+							</span>
 						)}
 					</div>
 				</div>

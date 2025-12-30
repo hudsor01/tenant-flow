@@ -10,6 +10,10 @@
 			"types": "./dist/types/*.d.ts",
 			"default": "./dist/types/*.js"
 		},
+		"./types/sections/*": {
+			"types": "./dist/types/sections/*.d.ts",
+			"default": "./dist/types/sections/*.js"
+		},
 		"./constants/*": {
 			"types": "./dist/constants/*.d.ts",
 			"default": "./dist/constants/*.js"

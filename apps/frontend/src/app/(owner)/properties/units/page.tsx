@@ -24,7 +24,7 @@ import { unitColumns, type UnitRow } from './columns'
 import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
 import { propertyQueries } from '#hooks/api/queries/property-queries'
 import { unitQueries } from '#hooks/api/queries/unit-queries'
-import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
+import { ownerDashboardKeys } from '#hooks/api/queries/owner-dashboard-queries'
 import type { UnitInput } from '@repo/shared/validation/units'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {

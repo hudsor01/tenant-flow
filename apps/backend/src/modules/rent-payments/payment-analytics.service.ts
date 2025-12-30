@@ -12,6 +12,11 @@ import { Injectable } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import type { PaymentStatus } from '@repo/shared/types/core'
+import type {
+	LeaseWithTenantAndUnit,
+	OverduePaymentResult,
+	PaymentForExport
+} from '@repo/shared/types/query-results'
 
 export interface PaymentAnalytics {
 	totalCollected: number
@@ -272,18 +277,9 @@ export class PaymentAnalyticsService {
 		const upcomingPayments: UpcomingPayment[] = []
 
 		for (const lease of leases || []) {
-			// Check if there's a payment method configured
-			const tenants = lease.tenants as unknown as {
-				id: string
-				user_id: string
-				stripe_customer_id: string | null
-				users: {
-					id: string
-					first_name: string | null
-					last_name: string | null
-					email: string | null
-				} | null
-			}
+			// Cast to typed result once at the top
+			const typedLease = lease as LeaseWithTenantAndUnit
+			const tenants = typedLease.tenants
 
 			if (!tenants?.users) continue
 
@@ -293,12 +289,7 @@ export class PaymentAnalyticsService {
 				.eq('tenant_id', tenants.id)
 				.limit(1)
 
-			const units = lease.units as unknown as {
-				id: string
-				unit_number: string | null
-				property_id: string
-				properties: { id: string; name: string } | null
-			}
+			const units = typedLease.units
 
 			// Calculate next due date (1st of next month for simplicity)
 			const nextDueDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
@@ -381,28 +372,8 @@ export class PaymentAnalyticsService {
 			return []
 		}
 
-		return (payments || []).map(payment => {
-			const tenants = payment.tenants as unknown as {
-				id: string
-				user_id: string
-				users: {
-					id: string
-					first_name: string | null
-					last_name: string | null
-					email: string | null
-				} | null
-			}
-
-			const leases = payment.leases as unknown as {
-				id: string
-				unit_id: string
-				units: {
-					id: string
-					unit_number: string | null
-					property_id: string
-					properties: { id: string; name: string } | null
-				} | null
-			}
+		return (payments as OverduePaymentResult[] || []).map(payment => {
+			const { tenants, leases } = payment
 
 			const dueDate = new Date(payment.due_date)
 			const daysOverdue = Math.floor(
@@ -507,21 +478,8 @@ export class PaymentAnalyticsService {
 			'Payment Method'
 		]
 
-		const rows = (payments || []).map(payment => {
-			const tenants = payment.tenants as unknown as {
-				users: {
-					first_name: string | null
-					last_name: string | null
-					email: string | null
-				} | null
-			}
-
-			const leases = payment.leases as unknown as {
-				units: {
-					unit_number: string | null
-					properties: { name: string } | null
-				} | null
-			}
+		const rows = (payments as PaymentForExport[] || []).map(payment => {
+			const { tenants, leases } = payment
 
 			const tenantName =
 				tenants?.users?.first_name && tenants?.users?.last_name

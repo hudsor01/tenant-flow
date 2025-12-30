@@ -25,14 +25,17 @@ import { UpdateUnitDto } from './dto/update-unit.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UnitsService } from './units.service'
+import { UnitStatsService } from './services/unit-stats.service'
+import { UnitQueryService } from './services/unit-query.service'
 import { FindAllUnitsDto } from './dto/find-all-units.dto'
 
 @Controller('units')
 export class UnitsController {
-	// Logger available if needed for debugging
-	// private readonly logger = new Logger(UnitsController.name)
-
-	constructor(private readonly unitsService: UnitsService) {}
+	constructor(
+		private readonly unitsService: UnitsService,
+		private readonly unitStatsService: UnitStatsService,
+		private readonly unitQueryService: UnitQueryService
+	) {}
 
 	/**
 	 * Get all units for the authenticated user
@@ -49,7 +52,7 @@ export class UnitsController {
 			status: query.status?.toLowerCase() as typeof query.status
 		}
 
-		const data = await this.unitsService.findAll(token, normalizedQuery)
+		const data = await this.unitQueryService.findAll(token, normalizedQuery)
 
 		// Return PaginatedResponse format expected by frontend
 		return {
@@ -67,7 +70,7 @@ export class UnitsController {
 	 */
 	@Get('stats')
 	async getStats(@JwtToken() token: string) {
-		return this.unitsService.getStats(token)
+		return this.unitStatsService.getStats(token)
 	}
 
 	/**
@@ -79,7 +82,7 @@ export class UnitsController {
 		@JwtToken() token: string,
 		@Param('property_id', ParseUUIDPipe) property_id: string
 	) {
-		return this.unitsService.findByProperty(token, property_id)
+		return this.unitQueryService.findByProperty(token, property_id)
 	}
 
 	/**
@@ -91,7 +94,7 @@ export class UnitsController {
 		@JwtToken() token: string,
 		@Param('id', ParseUUIDPipe) id: string
 	) {
-		const unit = await this.unitsService.findOne(token, id)
+		const unit = await this.unitQueryService.findOne(token, id)
 		if (!unit) {
 			throw new NotFoundException('Unit not found')
 		}

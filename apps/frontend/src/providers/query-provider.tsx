@@ -46,14 +46,6 @@ export function QueryProvider({
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({
-				// Enable request batching to reduce network round trips
-				// @ts-expect-error batcher is not in types but available in runtime
-				batcher: {
-					// Batch window: collect queries for 10ms before sending
-					batchWindowMs: 10,
-					// Maximum batch size: 10 queries per batch
-					maxBatchSize: 10
-				},
 				defaultOptions: {
 					queries: {
 						// Structural sharing for automatic re-render optimization

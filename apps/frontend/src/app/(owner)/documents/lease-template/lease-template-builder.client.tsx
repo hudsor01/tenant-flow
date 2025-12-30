@@ -1,22 +1,13 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-//
-// File Size Issue:
-//    Current: ~761 lines
-//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
-//
-// Recommended Refactoring Strategy:
-//    - Extract PreviewPanel into: `./components/lease-preview-panel.tsx`
-//    - Extract ClauseEditor into: `./components/clause-editor.tsx`
-//    - Extract StateSelector into: `./components/state-selector.tsx`
-//    - Extract form state logic into: `#hooks/use-lease-template-form.ts`
-//    - Keep LeaseTemplateBuilder as orchestration component
-//
-// See: CLAUDE.md section "KISS (Keep It Simple)"
+/**
+ * Lease Template Builder - Dynamic Lease Agreement Generator
+ * 
+ * This client component provides an interactive lease template builder
+ * with clause selection, state-specific rules, and PDF generation.
+ */
 
 'use client'
 
 import * as React from 'react'
-import DOMPurify from 'dompurify'
 import {
 	leaseTemplateSchema,
 	renderLeaseHtmlBody,
@@ -36,9 +27,6 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Button } from '#components/ui/button'
-import { Badge } from '#components/ui/badge'
-import { Checkbox } from '#components/ui/checkbox'
-import { Input } from '#components/ui/input'
 import {
 	Select,
 	SelectContent,
@@ -46,69 +34,27 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger
-} from '#components/ui/tooltip'
+import { TooltipProvider } from '#components/ui/tooltip'
 import { toast } from 'sonner'
-import { BookOpen, Download, FileText, Info, RefreshCw } from 'lucide-react'
-import { cn } from '#lib/utils'
+import { BookOpen, FileText, RefreshCw } from 'lucide-react'
 import { API_BASE_URL } from '#lib/api-config'
 
+// Import extracted components
+import { PreviewPanel } from './components/preview-panel'
+import { PdfPreviewPanel } from './components/pdf-preview-panel'
+import { ClauseSelector } from './components/clause-selector'
+import {
+	ConfigurationPanel,
+	type LeaseBuilderInputs
+} from './components/configuration-panel'
+import { StateRuleSummary } from './components/state-rule-summary'
+
 const ALL_US_STATES: USState[] = [
-	'AL',
-	'AK',
-	'AZ',
-	'AR',
-	'CA',
-	'CO',
-	'CT',
-	'DE',
-	'FL',
-	'GA',
-	'HI',
-	'ID',
-	'IL',
-	'IN',
-	'IA',
-	'KS',
-	'KY',
-	'LA',
-	'ME',
-	'MD',
-	'MA',
-	'MI',
-	'MN',
-	'MS',
-	'MO',
-	'MT',
-	'NE',
-	'NV',
-	'NH',
-	'NJ',
-	'NM',
-	'NY',
-	'NC',
-	'ND',
-	'OH',
-	'OK',
-	'OR',
-	'PA',
-	'RI',
-	'SC',
-	'SD',
-	'TN',
-	'TX',
-	'UT',
-	'VT',
-	'VA',
-	'WA',
-	'WV',
-	'WI',
-	'WY',
-	'DC'
+	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+	'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+	'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+	'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+	'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
 ]
 
 const stateSelectOptions = ALL_US_STATES.map(code => ({
@@ -138,7 +84,7 @@ export function LeaseTemplateBuilder() {
 	const [pdfPreview, setPdfPreview] = React.useState<string | null>(null)
 	const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false)
 
-	const [builderInputs, setBuilderInputs] = React.useState({
+	const [builderInputs, setBuilderInputs] = React.useState<LeaseBuilderInputs>({
 		ownerName: 'Property Management LLC',
 		ownerAddress: '456 Business Ave, Suite 400, San Francisco, CA 94108',
 		tenantNames: 'John Doe; Jane Doe',
@@ -207,7 +153,6 @@ export function LeaseTemplateBuilder() {
 	const handlePreviewPdf = React.useCallback(async () => {
 		setIsGeneratingPdf(true)
 		try {
-			// Call backend PDF service with correct /api/v1/ prefix
 			const response = await fetch(
 				`${API_BASE_URL}/api/v1/pdf/lease/template/preview`,
 				{
@@ -348,427 +293,5 @@ export function LeaseTemplateBuilder() {
 				</Card>
 			</div>
 		</TooltipProvider>
-	)
-}
-
-function ConfigurationPanel(props: {
-	builderInputs: {
-		ownerName: string
-		ownerAddress: string
-		tenantNames: string
-		propertyAddress: string
-		rent_amount: string
-		security_deposit: string
-		rentDueDay: string
-		leasestart_date: string
-		leaseEndDate: string
-		late_fee_amount: string
-		gracePeriodDays: string
-	}
-	onChange: React.Dispatch<
-		React.SetStateAction<{
-			ownerName: string
-			ownerAddress: string
-			tenantNames: string
-			propertyAddress: string
-			rent_amount: string
-			security_deposit: string
-			rentDueDay: string
-			leasestart_date: string
-			leaseEndDate: string
-			late_fee_amount: string
-			gracePeriodDays: string
-		}>
-	>
-	includeStateDisclosures: boolean
-	onToggleStateDisclosures: () => void
-	includeFederalDisclosures: boolean
-	onToggleFederalDisclosures: () => void
-}) {
-	const {
-		builderInputs,
-		onChange,
-		includeStateDisclosures,
-		onToggleStateDisclosures,
-		includeFederalDisclosures,
-		onToggleFederalDisclosures
-	} = props
-
-	return (
-		<Card className="shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-base">Lease Details</CardTitle>
-				<CardDescription>
-					Provide base information to personalize the clause text.
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-3 text-sm">
-				<LabeledInput
-					label="owner"
-					value={builderInputs.ownerName}
-					onChange={event =>
-						onChange(prev => ({ ...prev, ownerName: event.target.value }))
-					}
-				/>
-				<LabeledInput
-					label="owner address"
-					value={builderInputs.ownerAddress}
-					onChange={event =>
-						onChange(prev => ({ ...prev, ownerAddress: event.target.value }))
-					}
-				/>
-				<LabeledInput
-					label="Tenant names"
-					helpText="Separate multiple tenants with semicolons"
-					value={builderInputs.tenantNames}
-					onChange={event =>
-						onChange(prev => ({ ...prev, tenantNames: event.target.value }))
-					}
-				/>
-				<LabeledInput
-					label="Premises address"
-					value={builderInputs.propertyAddress}
-					onChange={event =>
-						onChange(prev => ({ ...prev, propertyAddress: event.target.value }))
-					}
-				/>
-				<div className="grid grid-cols-2 gap-3">
-					<LabeledInput
-						label="Rent (USD)"
-						value={builderInputs.rent_amount}
-						onChange={event =>
-							onChange(prev => ({ ...prev, rent_amount: event.target.value }))
-						}
-					/>
-					<LabeledInput
-						label="Deposit (USD)"
-						value={builderInputs.security_deposit}
-						onChange={event =>
-							onChange(prev => ({
-								...prev,
-								security_deposit: event.target.value
-							}))
-						}
-					/>
-				</div>
-				<div className="grid grid-cols-2 gap-3">
-					<LabeledInput
-						label="Rent due day"
-						type="number"
-						value={builderInputs.rentDueDay}
-						onChange={event =>
-							onChange(prev => ({ ...prev, rentDueDay: event.target.value }))
-						}
-					/>
-					<LabeledInput
-						label="Grace period (days)"
-						type="number"
-						value={builderInputs.gracePeriodDays}
-						onChange={event =>
-							onChange(prev => ({
-								...prev,
-								gracePeriodDays: event.target.value
-							}))
-						}
-					/>
-				</div>
-				<div className="grid grid-cols-2 gap-3">
-					<LabeledInput
-						label="Lease start"
-						type="date"
-						value={builderInputs.leasestart_date}
-						onChange={event =>
-							onChange(prev => ({
-								...prev,
-								leasestart_date: event.target.value
-							}))
-						}
-					/>
-					<LabeledInput
-						label="Lease end"
-						type="date"
-						value={builderInputs.leaseEndDate}
-						onChange={event =>
-							onChange(prev => ({ ...prev, leaseEndDate: event.target.value }))
-						}
-					/>
-				</div>
-				<LabeledInput
-					label="Late fee (USD)"
-					value={builderInputs.late_fee_amount}
-					onChange={event =>
-						onChange(prev => ({ ...prev, late_fee_amount: event.target.value }))
-					}
-				/>
-
-				<div className="flex flex-col gap-2 pt-4">
-					<label
-						htmlFor="include-state-disclosures"
-						className="flex items-center gap-2 typography-small"
-					>
-						<Checkbox
-							id="include-state-disclosures"
-							checked={includeStateDisclosures}
-							onCheckedChange={onToggleStateDisclosures}
-						/>
-						Include state disclosures
-					</label>
-					<label
-						htmlFor="include-federal-disclosures"
-						className="flex items-center gap-2 typography-small"
-					>
-						<Checkbox
-							id="include-federal-disclosures"
-							checked={includeFederalDisclosures}
-							onCheckedChange={onToggleFederalDisclosures}
-						/>
-						Include federal notices
-					</label>
-				</div>
-			</CardContent>
-		</Card>
-	)
-}
-
-function LabeledInput(
-	props: React.InputHTMLAttributes<HTMLInputElement> & {
-		label: string
-		helpText?: string
-	}
-) {
-	const { label, helpText, ...inputProps } = props
-	const id = React.useId()
-	return (
-		<div className="space-y-1 text-xs">
-			<label htmlFor={id} className="font-medium text-muted-foreground">
-				{label}
-			</label>
-			<Input
-				id={id}
-				{...inputProps}
-				className={cn('h-9 text-sm', inputProps.className)}
-			/>
-			{helpText ? <p className="text-muted-foreground/80">{helpText}</p> : null}
-		</div>
-	)
-}
-
-function ClauseSelector(props: {
-	selectedClauses: string[]
-	onToggleClause: (id: string) => void
-	recommendedClauses: Set<string>
-	state: USState
-}) {
-	const { selectedClauses, onToggleClause, recommendedClauses, state } = props
-
-	return (
-		<Card className="shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-base">Clause Library</CardTitle>
-				<CardDescription>
-					Choose the clauses to include. Recommended clauses for {state} are
-					highlighted.
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-5">
-				{leaseTemplateSchema.sections.map(section => (
-					<div key={section.id} className="space-y-3">
-						<div>
-							<h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-								{section.title}
-							</h3>
-							<p className="text-caption">{section.description}</p>
-						</div>
-						<div className="space-y-2">
-							{section.clauses.map(clause => {
-								const selected = selectedClauses.includes(clause.id)
-								const recommended = recommendedClauses.has(clause.id)
-								return (
-									<div
-										key={clause.id}
-										className={cn(
-											'rounded-lg border p-3 transition-colors',
-											selected ? 'border-primary bg-primary/5' : 'border-border'
-										)}
-									>
-										<div className="flex items-start justify-between gap-2">
-											<label
-												className="flex flex-1 cursor-pointer items-start gap-3 text-sm"
-												htmlFor={clause.id}
-											>
-												<Checkbox
-													id={clause.id}
-													checked={selected}
-													onCheckedChange={() => onToggleClause(clause.id)}
-												/>
-												<span>
-													<span className="font-medium text-foreground flex items-center gap-2">
-														{clause.title}
-														{recommended && (
-															<Badge variant="secondary">Recommended</Badge>
-														)}
-													</span>
-													<span className="text-caption">
-														{clause.description}
-													</span>
-												</span>
-											</label>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<button
-														type="button"
-														className="text-muted-foreground"
-													>
-														<Info className="size-4" />
-													</button>
-												</TooltipTrigger>
-												<TooltipContent className="max-w-xs text-xs">
-													{clause.tooltip}
-												</TooltipContent>
-											</Tooltip>
-										</div>
-									</div>
-								)
-							})}
-						</div>
-					</div>
-				))}
-			</CardContent>
-		</Card>
-	)
-}
-
-function PreviewPanel({ html }: { html: string }) {
-	// Sanitize HTML to prevent XSS attacks
-	const sanitizedHtml = React.useMemo(() => {
-		if (typeof window === 'undefined') return html
-		return DOMPurify.sanitize(html, {
-			ALLOWED_TAGS: [
-				'p',
-				'div',
-				'span',
-				'br',
-				'strong',
-				'em',
-				'u',
-				'h1',
-				'h2',
-				'h3',
-				'h4',
-				'h5',
-				'h6',
-				'ul',
-				'ol',
-				'li',
-				'table',
-				'thead',
-				'tbody',
-				'tr',
-				'th',
-				'td'
-			],
-			ALLOWED_ATTR: ['class', 'style'],
-			ADD_ATTR: [], // Explicitly block all attributes except allowed
-			ALLOW_DATA_ATTR: false, // Block data-* attributes
-			FORBID_TAGS: ['script', 'iframe', 'embed', 'object', 'form'], // Explicitly block dangerous tags
-			FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'] // Block event handlers
-		})
-	}, [html])
-
-	return (
-		<Card className="shadow-sm">
-			<CardHeader>
-				<CardTitle className="flex items-center gap-2 text-base">
-					<FileText className="size-4 text-primary" /> HTML Preview
-				</CardTitle>
-				<CardDescription>
-					Rendered lease agreement using the selected clauses.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<div
-					className="prose max-w-none rounded-lg border bg-white p-6 text-sm shadow-inner"
-					dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
-				/>
-			</CardContent>
-		</Card>
-	)
-}
-
-function PdfPreviewPanel(props: {
-	isGenerating: boolean
-	dataUrl: string | null
-	onGenerate: () => void
-}) {
-	const { isGenerating, dataUrl, onGenerate } = props
-	return (
-		<Card className="shadow-sm">
-			<CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-				<div>
-					<CardTitle className="flex items-center gap-2 text-base">
-						<Download className="size-4 text-primary" /> PDF Preview
-					</CardTitle>
-					<CardDescription>
-						Generate a printable PDF using the current selections.
-					</CardDescription>
-				</div>
-				<Button
-					onClick={onGenerate}
-					disabled={isGenerating}
-					variant="default"
-					size="sm"
-				>
-					{isGenerating ? (
-						<span className="flex items-center gap-2">
-							<RefreshCw className="size-4 animate-spin" /> Generating…
-						</span>
-					) : (
-						<>
-							<Download className="mr-1 size-4" /> Render PDF
-						</>
-					)}
-				</Button>
-			</CardHeader>
-			<CardContent>
-				{dataUrl ? (
-					<div className="h-[480px] w-full overflow-hidden rounded-lg border">
-						<iframe
-							src={dataUrl}
-							title="Lease PDF Preview"
-							className="h-full w-full"
-						/>
-					</div>
-				) : (
-					<p className="text-muted">
-						Generate a preview to view the PDF in-line. You can download it
-						directly from the preview frame.
-					</p>
-				)}
-			</CardContent>
-		</Card>
-	)
-}
-
-function StateRuleSummary({ state }: { state: USState }) {
-	const rules = leaseTemplateSchema.stateRules[state]
-	if (!rules) return null
-	return (
-		<Card className="shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-base">
-					{rules.stateName} Highlights
-				</CardTitle>
-				<CardDescription>
-					Automatic notes drawn from TenantFlow’s compliance library.
-				</CardDescription>
-			</CardHeader>
-			<CardContent className="space-y-2 text-xs">
-				<ul className="list-disc space-y-2 pl-4">
-					{rules.notices.map(notice => (
-						<li key={notice}>{notice}</li>
-					))}
-				</ul>
-			</CardContent>
-		</Card>
 	)
 }

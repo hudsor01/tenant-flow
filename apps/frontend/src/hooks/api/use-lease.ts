@@ -27,9 +27,6 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import { leaseQueries } from './queries/lease-queries'
 import { maintenanceQueries } from './queries/maintenance-queries'
 
-// Re-export query factory
-export { leaseQueries } from './queries/lease-queries'
-
 /**
  * Hook to fetch lease by ID
  */

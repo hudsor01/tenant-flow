@@ -1,13 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~624 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract ProfileFormSection into: `./components/profile-form-section.tsx`
-// 2. Extract EmergencyContactSection into: `./components/emergency-contact-section.tsx`
-// 3. Extract NotificationPreferencesSection into: `./components/notification-preferences-section.tsx`
-// 4. Extract form validation/submission logic into: `#hooks/use-tenant-profile-form.ts`
-// 5. Keep TenantProfilePage as orchestration component
-// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
-
 /**
  * Tenant Profile
  *
@@ -38,9 +28,9 @@ import { Field, FieldLabel } from '#components/ui/field'
 import { ToggleSwitch } from '#components/ui/toggle-switch'
 import { useSupabaseUpdateProfile } from '#hooks/api/use-auth'
 import {
-	useNotificationPreferences,
-	useUpdateNotificationPreferences
-} from '#hooks/api/use-notification-preferences'
+	useTenantNotificationPreferences,
+	useUpdateTenantNotificationPreferences
+} from '#hooks/api/use-tenant-notification-preferences'
 import {
 	useEmergencyContact,
 	useCreateEmergencyContact,
@@ -66,8 +56,8 @@ export default function TenantProfilePage() {
 	// Notification preferences (get tenant ID from user)
 	const tenant_id = user?.id || ''
 	const { data: notificationPrefs, isLoading: prefsLoading } =
-		useNotificationPreferences(tenant_id)
-	const updatePreferences = useUpdateNotificationPreferences(tenant_id)
+		useTenantNotificationPreferences(tenant_id)
+	const updatePreferences = useUpdateTenantNotificationPreferences(tenant_id)
 
 	// Emergency contact
 	const { data: emergency_contact, isLoading: emergency_contactLoading } =

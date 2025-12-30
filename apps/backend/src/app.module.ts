@@ -1,3 +1,10 @@
+/**
+ * @todo DOCS-002: Add README.md to each backend module.
+ *       25/28 modules lack documentation.
+ *       Include: architecture, API endpoints, dependencies.
+ *       See TODO.md for details.
+ */
+
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'

@@ -1,3 +1,9 @@
+/**
+ * @todo DOCS-001: Add OpenAPI/Swagger documentation using @nestjs/swagger.
+ *       61 controllers need API documentation with decorators.
+ *       See TODO.md for details.
+ */
+
 import { ClassSerializerInterceptor, RequestMethod } from '@nestjs/common'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { Reflector } from '@nestjs/core'

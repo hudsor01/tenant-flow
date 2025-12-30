@@ -1,23 +1,7 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
-//
-// 1. KISS Principle violation - File Size
-//    Current: ~735 lines
-//    Maximum: 300 lines per CLAUDE.md "Small, Focused Modules"
-//    Recommended refactoring:
-//    - Extract FeatureCard components into: `./components/feature-card.tsx`
-//    - Extract HeroSection into: `./components/features-hero.tsx`
-//    - Extract feature data/constants into: `./features-data.ts`
-//    - Extract CTASection into: `./components/features-cta.tsx`
-//    - Keep FeaturesPage as orchestration component
-//
-// 2. Inline Style violation - Line ~85
-//    Current:  `style={{ width: '93%' }}`
-//    Required: Use Tailwind arbitrary value: `className="w-[93%]"`
-//    Reason: Static percentage should use Tailwind, not inline styles.
-//    Note: Dynamic values like `style={{ width: `${percentage}%` }}` are acceptable
-//          when the value is computed at runtime.
-//
-// See: CLAUDE.md sections "KISS (Keep It Simple)" and "No inline styles"
+// NOTE: This file is ~735 lines. Consider future refactoring per CLAUDE.md "KISS Principle":
+// - Extract FeatureCard components into: `./components/feature-card.tsx`
+// - Extract HeroSection into: `./components/features-hero.tsx`
+// - Extract feature data/constants into: `./features-data.ts`
 
 'use client'
 
@@ -99,10 +83,7 @@ const RentCollection = () => (
 					<span className="text-foreground font-medium">$48,250 / $52,000</span>
 				</div>
 				<div className="h-2 bg-muted rounded-full overflow-hidden">
-					<div
-						className="h-full bg-success rounded-full"
-						style={{ width: '93%' }}
-					/>
+					<div className="h-full bg-success rounded-full w-[93%]" />
 				</div>
 			</div>
 			{/* Recent payments */}

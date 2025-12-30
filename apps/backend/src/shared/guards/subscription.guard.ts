@@ -52,7 +52,8 @@ export class SubscriptionGuard implements CanActivate {
 			return true
 		}
 
-		const featureAccessResult = await this.supabaseService.rpcWithRetries(
+		// Trust the RPC for subscription verification - no fallback to avoid N+1 queries
+		const { data, error } = await this.supabaseService.rpcWithRetries(
 			'check_user_feature_access',
 			{
 				p_user_id: user.id,
@@ -61,46 +62,19 @@ export class SubscriptionGuard implements CanActivate {
 			2
 		)
 
-		let hasAccess = this.normalizeBoolean(featureAccessResult.data)
-		const rpcFailed = !!featureAccessResult.error
-
-		if (rpcFailed) {
-			this.logger.error('Subscription RPC failed, using fallback', {
+		if (error) {
+			this.logger.error('Subscription RPC failed', {
 				user_id: user.id,
-				error: featureAccessResult.error?.message
+				error: error.message
+			})
+			throw new ServiceUnavailableException({
+				code: 'SERVICE_UNAVAILABLE',
+				message:
+					'Unable to verify subscription status. Please try again later.'
 			})
 		}
 
-		// Fallback to direct user profile check if RPC failed OR indicates no access
-		if (rpcFailed || !hasAccess) {
-			const { data: profile, error } = await this.supabaseService
-				.getAdminClient()
-				.from('users')
-				.select('stripe_customer_id')
-				.eq('id', user.id) // user.id is now database users.id (not supabaseId)
-				.single<{ stripe_customer_id: string | null }>()
-
-			if (error) {
-				this.logger.error(
-					'Failed to load user profile for subscription check',
-					{
-						user_id: user.id,
-						error: error.message
-					}
-				)
-				// If we can't verify subscription status due to infrastructure error, return service unavailable
-				throw new ServiceUnavailableException({
-					code: 'SERVICE_UNAVAILABLE',
-					message:
-						'Unable to verify subscription status due to a temporary service issue. Please try again later.'
-				})
-			}
-
-			if (profile) {
-				// User has a Stripe customer ID, which indicates an active subscription
-				hasAccess = !!profile.stripe_customer_id
-			}
-		}
+		const hasAccess = this.normalizeBoolean(data)
 
 		if (!hasAccess) {
 			this.logger.warn('Access denied: Active subscription required', {

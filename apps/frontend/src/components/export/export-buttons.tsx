@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 
 import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { API_BASE_URL } from '#lib/api-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 

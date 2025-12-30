@@ -3,6 +3,8 @@ import { Test } from '@nestjs/testing'
 import { Logger } from '@nestjs/common'
 
 import { TenantPaymentService } from './tenant-payment.service'
+import { TenantPaymentQueryService } from './tenant-payment-query.service'
+import { TenantPaymentMapperService } from './tenant-payment-mapper.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -13,6 +15,8 @@ describe('TenantPaymentService', () => {
 	let service: TenantPaymentService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 	let mockLogger: jest.Mocked<AppLogger>
+	let mockQueryService: Partial<TenantPaymentQueryService>
+	let mockMapperService: Partial<TenantPaymentMapperService>
 
 	// Helper to create a flexible Supabase query chain
 	const createMockChain = (
@@ -102,6 +106,31 @@ describe('TenantPaymentService', () => {
 			getAdminClient: jest.fn(() => createMockClient())
 		} as jest.Mocked<SupabaseService>
 
+		mockQueryService = {
+			getTenantByAuthUserId: jest.fn().mockResolvedValue({ id: 'tenant-1' }),
+			ensureTenantOwnedByUser: jest.fn().mockResolvedValue(undefined),
+			getOwnerPropertyIds: jest.fn().mockResolvedValue(['property-1']),
+			getTenantIdsForOwner: jest.fn().mockResolvedValue(['tenant-1', 'tenant-2']),
+			queryTenantPayments: jest.fn().mockResolvedValue([])
+		}
+
+		mockMapperService = {
+			mapStripePaymentIntentToRecord: jest.fn().mockImplementation(intent => ({
+				id: intent.id,
+				amount: intent.amount ?? 0,
+				currency: intent.currency ?? 'usd',
+				status: intent.status ?? 'unknown',
+				created_at: new Date((intent.created ?? 0) * 1000).toISOString()
+			})),
+			mapPaymentIntentToRecord: jest.fn().mockImplementation(intent => ({
+				id: intent.id ?? `pi_${Date.now()}`,
+				amount: intent.amount ?? 0,
+				status: intent.status ?? 'pending'
+			})),
+			isLateFeeRecord: jest.fn().mockReturnValue(false),
+			hasLateFeeFlag: jest.fn().mockReturnValue(false)
+		}
+
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				TenantPaymentService,
@@ -110,6 +139,14 @@ describe('TenantPaymentService', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: TenantPaymentQueryService,
+					useValue: mockQueryService
+				},
+				{
+					provide: TenantPaymentMapperService,
+					useValue: mockMapperService
 				}
 			]
 		}).compile()
@@ -269,21 +306,8 @@ describe('TenantPaymentService', () => {
 		})
 
 		it('should handle owner with no tenants', async () => {
-			let callCount = 0
-			mockSupabaseService.getAdminClient = jest.fn(() =>
-				createMockClient(
-					jest.fn(() => {
-						callCount++
-						if (callCount === 1) {
-							return createMockChain([{ id: 'property-1' }], null)
-						}
-						if (callCount === 2) {
-							return createMockChain([{ id: 'unit-1' }], null)
-						}
-						return createMockChain([], null)
-					})
-				)
-			)
+			// Override the query service mock to return empty tenants
+			;(mockQueryService.getTenantIdsForOwner as jest.Mock).mockResolvedValueOnce([])
 
 			const result = await service.getOwnerPaymentSummary('owner-1')
 
@@ -343,7 +367,6 @@ describe('TenantPaymentService', () => {
 
 	describe('getTenantPaymentHistoryForTenant', () => {
 		it('should return payment history for tenant portal view', async () => {
-			const mockTenant = { id: 'tenant-1', user_id: 'auth-user-1' }
 			const mockPayments = [
 				{
 					id: 'pi_1',
@@ -354,17 +377,11 @@ describe('TenantPaymentService', () => {
 				}
 			]
 
-			let callCount = 0
+			// The service uses mockQueryService.getTenantByAuthUserId (already mocked)
+			// and then calls fetchPaymentIntents which queries stripe schema
+			const mockChain = createMockChain(mockPayments, null)
 			mockSupabaseService.getAdminClient = jest.fn(() =>
-				createMockClient(
-					jest.fn((table: string) => {
-						callCount++
-						if (table === 'tenants' || callCount === 1) {
-							return createMockChain(mockTenant, null)
-						}
-						return createMockChain(mockPayments, null)
-					})
-				)
+				createMockClient(jest.fn(() => mockChain))
 			)
 
 			const result =
@@ -372,6 +389,7 @@ describe('TenantPaymentService', () => {
 
 			expect(result).toBeDefined()
 			expect(result.payments).toBeDefined()
+			expect(Array.isArray(result.payments)).toBe(true)
 		})
 	})
 })

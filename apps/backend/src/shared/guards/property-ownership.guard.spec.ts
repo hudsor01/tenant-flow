@@ -417,7 +417,7 @@ describe('PropertyOwnershipGuard', () => {
 
 					expect(result).toBe(true)
 					expect(mockLogger.warn).toHaveBeenCalledWith(
-						'PropertyOwnershipGuard: No resource IDs found in request',
+						'PropertyOwnershipGuard: No property_id found in request',
 						expect.objectContaining({
 							user_id: userId,
 							body: '{}',
@@ -618,11 +618,9 @@ describe('PropertyOwnershipGuard', () => {
 			expect(mockClient.eq).toHaveBeenCalledWith('id', propertyId)
 		})
 
-		it('should cache different resource types independently', async () => {
+		it('should cache property verification result', async () => {
 			const userId = 'user-abc'
 			const propertyId = 'property-def'
-			const leaseId = 'lease-ghi'
-			const tenantId = 'tenant-jkl'
 
 			// Track cache keys
 			const cacheKeys: string[] = []
@@ -631,7 +629,7 @@ describe('PropertyOwnershipGuard', () => {
 				return await factory()
 			})
 
-			// Mock Supabase queries for all resource types
+			// Mock Supabase queries for property
 			const mockClient = {
 				from: jest.fn().mockReturnThis(),
 				select: jest.fn().mockReturnThis(),
@@ -645,13 +643,11 @@ describe('PropertyOwnershipGuard', () => {
 				mockClient as ReturnType<SupabaseService['getAdminClient']>
 			)
 
-			// Request with all three resource types
+			// Request with property_id
 			const context = createContext({
 				user: { id: userId } as AuthenticatedRequest['user'],
 				body: {
-					property_id: propertyId,
-					lease_id: leaseId,
-					tenant_id: tenantId
+					property_id: propertyId
 				},
 				params: {},
 				query: {}
@@ -659,11 +655,9 @@ describe('PropertyOwnershipGuard', () => {
 
 			await guard.canActivate(context)
 
-			// Verify each resource type has its own cache key
+			// Verify property cache key is used
 			expect(cacheKeys).toContain(`property:${propertyId}:owner:${userId}`)
-			expect(cacheKeys).toContain(`lease:${leaseId}:owner:${userId}`)
-			expect(cacheKeys).toContain(`tenant:${tenantId}:owner:${userId}`)
-			expect(cacheKeys).toHaveLength(3)
+			expect(cacheKeys).toHaveLength(1)
 		})
 
 		it('should cache results per user (different users have different cache entries)', async () => {

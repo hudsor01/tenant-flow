@@ -77,6 +77,32 @@ describe('FinancialOverviewController', () => {
 				}
 			})
 
+			// Mock getUserClient for pending payments and maintenance_requests queries
+			const mockClient = {
+				from: jest.fn((table: string) => {
+					if (table === 'rent_payments') {
+						return {
+							select: jest.fn().mockReturnValue({
+								eq: jest.fn().mockResolvedValue({
+									data: [{ amount: 1000 }, { amount: 500 }],
+									error: null
+								})
+							})
+						}
+					}
+					// maintenance_requests query uses .in() for status filtering
+					return {
+						select: jest.fn().mockReturnValue({
+							in: jest.fn().mockResolvedValue({
+								data: [{ estimated_cost: 200, actual_cost: 250 }],
+								error: null
+							})
+						})
+					}
+				})
+			}
+			supabaseService.getUserClient.mockReturnValue(mockClient as never)
+
 			const result = await controller.getOverview(mockRequest)
 
 			expect(result.success).toBe(true)
@@ -104,6 +130,32 @@ describe('FinancialOverviewController', () => {
 					occupancyRate: 90
 				}
 			})
+
+			// Mock getUserClient for pending payments and maintenance_requests queries
+			const mockClient = {
+				from: jest.fn((table: string) => {
+					if (table === 'rent_payments') {
+						return {
+							select: jest.fn().mockReturnValue({
+								eq: jest.fn().mockResolvedValue({
+									data: [],
+									error: null
+								})
+							})
+						}
+					}
+					// maintenance_requests query uses .in() for status filtering
+					return {
+						select: jest.fn().mockReturnValue({
+							in: jest.fn().mockResolvedValue({
+								data: [],
+								error: null
+							})
+						})
+					}
+				})
+			}
+			supabaseService.getUserClient.mockReturnValue(mockClient as never)
 
 			const result = await controller.getOverview(mockRequest)
 

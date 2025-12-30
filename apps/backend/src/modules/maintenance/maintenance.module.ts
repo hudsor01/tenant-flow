@@ -6,6 +6,8 @@ import { MaintenanceController } from './maintenance.controller'
 import { MaintenanceService } from './maintenance.service'
 import { MaintenanceReportingService } from './maintenance-reporting.service'
 import { MaintenanceWorkflowService } from './maintenance-workflow.service'
+import { MaintenanceAssignmentService } from './maintenance-assignment.service'
+import { MaintenanceStatusService } from './maintenance-status.service'
 
 @Module({
 	imports: [SupabaseModule, AnalyticsModule],
@@ -13,12 +15,16 @@ import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 	providers: [
 		MaintenanceService,
 		MaintenanceReportingService,
-		MaintenanceWorkflowService
+		MaintenanceWorkflowService,
+		MaintenanceAssignmentService,
+		MaintenanceStatusService
 	],
 	exports: [
 		MaintenanceService,
 		MaintenanceReportingService,
-		MaintenanceWorkflowService
+		MaintenanceWorkflowService,
+		MaintenanceAssignmentService,
+		MaintenanceStatusService
 	]
 })
 export class MaintenanceModule {}

@@ -30,7 +30,7 @@ import {
 	useFinancialChartData,
 	type FinancialTimeRange
 } from '#hooks/api/use-owner-dashboard'
-import { useIsMobile } from '#hooks/use-mobile'
+import { useMediaQuery } from '#hooks/use-media-query'
 import { cn } from '#lib/utils'
 
 export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
@@ -52,7 +52,7 @@ export function ChartAreaInteractive({
 	className?: string
 } = {}) {
 	const [timeRange, setTimeRange] = React.useState<FinancialTimeRange>('6m')
-	const isMobile = useIsMobile()
+	const isMobile = useMediaQuery('(max-width: 767px)')
 
 	// Fetch financial data with TanStack Query
 	const { data: chartData, isLoading, error } = useFinancialChartData(timeRange)

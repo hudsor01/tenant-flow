@@ -200,8 +200,8 @@ export default function AnalyticsPage() {
 						<BorderBeam
 							size={100}
 							duration={12}
-							colorFrom="hsl(142 76% 36%)"
-							colorTo="hsl(142 76% 36% / 0.3)"
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
 						/>
 						<StatLabel>Monthly Revenue</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
@@ -233,8 +233,8 @@ export default function AnalyticsPage() {
 							<BorderBeam
 								size={80}
 								duration={6}
-								colorFrom="hsl(45 93% 47%)"
-								colorTo="hsl(45 93% 47% / 0.3)"
+								colorFrom="var(--color-warning)"
+								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 							/>
 						)}
 						<StatLabel>Open Maintenance</StatLabel>

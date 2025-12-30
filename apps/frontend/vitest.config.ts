@@ -1,3 +1,10 @@
+/**
+ * @todo TEST-002: Restore deleted frontend test coverage.
+ *       70+ test files were removed without replacement.
+ *       Priority: financial RLS tests, critical service tests.
+ *       See TODO.md for details.
+ */
+
 import { defineConfig } from 'vitest/config'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -37,23 +44,19 @@ export default defineConfig({
 		}
 	},
 	plugins: [
-		tsconfigPaths({
+		(tsconfigPaths({
 			ignoreConfigErrors: true
-		}),
-		react()
+		}) as unknown as any),
+		(react() as unknown as any)
 	],
 	test: {
 		name: 'frontend',
 		environment: 'jsdom',
-		watch: process.env.CI ? false : undefined,
+		watch: process.env.CI ? false : true,
 		globals: true,
 		setupFiles: ['./src/test/unit-setup.ts'],
 		pool: 'vmThreads',
-		poolOptions: {
-			vmThreads: {
-				singleThread: true
-			}
-		},
+		// poolOptions removed to match InlineConfig types for current Vitest version
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
@@ -90,9 +93,7 @@ export default defineConfig({
 			'playwright/**',
 			'tests/tanstack/tanstack-test-results/**' // Exclude test result HTML files
 		],
-		deps: {
-			inline: ['@reduxjs/toolkit', 'recharts']
-		},
+		// Remove deprecated deps.inline; rely on default dependency handling
 		testTimeout: 10000,
 		hookTimeout: 10000
 	}

@@ -1,21 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
-//
-// 1. KISS Principle violation - File Size
-//    Current: ~561 lines
-//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
-//    Recommended refactoring:
-//    - Extract status update logic into: `./maintenance-status.service.ts`
-//    - Extract assignment logic into: `./maintenance-assignment.service.ts`
-//    - Extract analytics/stats into: `./maintenance-stats.service.ts`
-//    - Keep core CRUD operations in this service
-//
-// 2. Sequential Query Anti-Pattern - update() method (lines ~442-458)
-//    Issue: Makes 2 separate queries (units, then properties) that could be 1 joined query
-//    Current: `client.from('units')...` then `client.from('properties')...`
-//    Fix: Use single query with join: `.select('unit_number, property:property_id(name)')`
-//
-// See: CLAUDE.md section "KISS (Keep It Simple)"
-
 /**
  * Maintenance Service - Ultra-Native NestJS Implementation
  * Direct Supabase access, no repository abstractions
@@ -44,26 +26,18 @@ import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 import { AppLogger } from '../../logger/app-logger.service'
+import { MaintenanceAssignmentService } from './maintenance-assignment.service'
+import { MaintenanceStatusService } from './maintenance-status.service'
 
 @Injectable()
 export class MaintenanceService {
-	// Reverse map for converting database priority values to enum values for events
-	private readonly reversePriorityMap: Record<
-		string,
-		'low' | 'medium' | 'high' | 'urgent'
-	> = {
-		low: 'low',
-		normal: 'medium',
-		high: 'high',
-		urgent: 'urgent'
-	}
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly assignmentService: MaintenanceAssignmentService,
+		private readonly statusService: MaintenanceStatusService
 	) {}
 
 	/**
@@ -409,21 +383,6 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
-			// Map status and priority to lowercase
-			const priorityMap: Record<string, MaintenancePriority> = {
-				LOW: 'low',
-				MEDIUM: 'normal',
-				HIGH: 'high',
-				URGENT: 'urgent'
-			}
-
-			const statusMap: Record<string, MaintenanceStatus> = {
-				PENDING: 'open',
-				IN_PROGRESS: 'in_progress',
-				COMPLETED: 'completed',
-				CANCELLED: 'cancelled'
-			}
-
 			const updated_data: Database['public']['Tables']['maintenance_requests']['Update'] =
 				{
 					updated_at: new Date().toISOString()
@@ -434,17 +393,10 @@ export class MaintenanceService {
 
 			if (updateRequest.description !== undefined)
 				updated_data.description = updateRequest.description
-			if (updateRequest.priority !== undefined)
-				updated_data.priority = priorityMap[updateRequest.priority] ?? 'normal'
-			if (updateRequest.status !== undefined)
-				updated_data.status = statusMap[updateRequest.status] ?? 'open'
+			this.statusService.applyStatusUpdates(updateRequest, updated_data)
+			this.assignmentService.applyAssignmentUpdates(updateRequest, updated_data)
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completed_at !== undefined)
-				updated_data.completed_at = updateRequest.completed_at
-					? new Date(updateRequest.completed_at).toISOString()
-					: null
-
 			// Optimistic locking: Add version check
 			const query = client
 				.from('maintenance_requests')
@@ -477,101 +429,8 @@ export class MaintenanceService {
 
 			const updated = data as MaintenanceRequest
 
-			// Emit maintenance updated event with inline context
 			if (updated) {
-				// ⚠️ SEQUENTIAL QUERY ANTI-PATTERN - INEFFICIENT DATABASE ACCESS
-				// ═══════════════════════════════════════════════════════════════════════════
-				//
-				// PROBLEM: Two sequential database queries where one joined query would suffice.
-				// This doubles the network latency and database load for every maintenance update.
-				//
-				// CURRENT BEHAVIOR (2 sequential queries):
-				//   Query 1: SELECT unit_number, property_id FROM units WHERE id = ?
-				//   Query 2: SELECT name FROM properties WHERE id = ? (conditional)
-				//   Total: 2 round trips, 2 query executions
-				//
-				// RECOMMENDED FIX (1 joined query):
-				//   const { data: unit } = await client
-				//     .from('units')
-				//     .select('unit_number, property:property_id(name)')
-				//     .eq('id', updated.unit_id)
-				//     .single()
-				//   // Access: unit.unit_number, unit.property?.name
-				//   Total: 1 round trip, 1 query execution
-				//
-				// WHY THIS MATTERS:
-				//   - Each maintenance update triggers these queries
-				//   - High-traffic systems may have 100s of updates/hour
-				//   - Database connection time is ~1-5ms per query (adds up!)
-				//   - Supabase has query limits on free/pro tiers
-				//
-				// ADDITIONAL ISSUE - ERROR HANDLING GAP:
-				//   If Query 1 succeeds but Query 2 fails, we still emit the event with
-				//   'Unknown Property' - this could cause confusing notifications.
-				//   A single joined query fails atomically, making error handling cleaner.
-				//
-				// ═══════════════════════════════════════════════════════════════════════════
-				// Query 1: Get unit data
-				const { data: unit } = await client
-					.from('units')
-					.select('unit_number, property_id')
-					.eq('id', updated.unit_id)
-					.single()
-
-				let propertyName = 'Unknown Property'
-				const unitNumber = unit?.unit_number || 'Unknown Unit'
-
-				// Query 2: Get property name (should be joined above)
-				if (unit?.property_id) {
-					const { data: property } = await client
-						.from('properties')
-						.select('name')
-						.eq('id', unit.property_id)
-						.single()
-					propertyName = property?.name || 'Unknown Property'
-				}
-
-				const title =
-					updated.title || updated.description || 'Maintenance Request'
-				const priority = this.reversePriorityMap[updated.priority] || 'medium'
-				const tenantUserId = updated.requested_by
-				const ownerUserId = updated.owner_user_id
-
-				// Notify tenant (requester) if different from owner.
-				if (tenantUserId && tenantUserId !== ownerUserId) {
-					this.eventEmitter.emit(
-						'maintenance.updated',
-						new MaintenanceUpdatedEvent(
-							tenantUserId,
-							updated.id,
-							title,
-							updated.status,
-							priority,
-							propertyName,
-							unitNumber,
-							updated.description ?? '',
-							`/tenant/maintenance/request/${updated.id}`
-						)
-					)
-				}
-
-				// Always notify owner.
-				if (ownerUserId) {
-					this.eventEmitter.emit(
-						'maintenance.updated',
-						new MaintenanceUpdatedEvent(
-							ownerUserId,
-							updated.id,
-							title,
-							updated.status,
-							priority,
-							propertyName,
-							unitNumber,
-							updated.description ?? '',
-							`/maintenance/${updated.id}`
-						)
-					)
-				}
+				await this.statusService.emitUpdatedEvents(client, updated)
 			}
 
 			return updated

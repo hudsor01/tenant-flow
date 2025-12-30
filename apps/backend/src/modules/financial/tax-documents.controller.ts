@@ -3,12 +3,15 @@ import {
 	Controller,
 	Get,
 	Query,
-	UnauthorizedException
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { TaxDocumentsService } from './tax-documents.service'
 
 @Controller('financials/tax-documents')
+@UseGuards(JwtAuthGuard)
 export class TaxDocumentsController {
 	constructor(private readonly taxDocumentsService: TaxDocumentsService) {}
 

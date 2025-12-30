@@ -5,16 +5,30 @@ import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
-import { tenantPaymentQueries } from '#hooks/api/queries/tenant-payment-queries'
+import { tenantPaymentQueries } from '#hooks/api/use-rent-payments'
+import {
+	useCancelInvitation,
+	useResendInvitation
+} from '#hooks/api/mutations/tenant-mutations'
 import { apiRequest } from '#lib/api-request'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
 import {
-	Tenants,
-	type TenantItem,
-	type TenantDetail,
-	type LeaseStatus
-} from '#components/tenants/tenants'
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/alert-dialog'
+import { Tenants } from '#components/tenants/tenants'
+import type {
+	TenantItem,
+	TenantDetail,
+	LeaseStatus
+} from '@repo/shared/types/sections/tenants'
 
 // ============================================================================
 // DATA TRANSFORMATION
@@ -67,11 +81,11 @@ function transformToTenantItem(
 		id: tenant.id,
 		fullName: displayName,
 		email: tenant.email ?? '',
-		phone: tenant.phone ?? undefined,
-		currentProperty: tenant.property?.name ?? undefined,
-		currentUnit: tenant.unit?.unit_number ?? undefined,
-		leaseStatus,
-		leaseId: tenant.currentLease?.id ?? undefined,
+		...(tenant.phone ? { phone: tenant.phone } : {}),
+		...(tenant.property?.name ? { currentProperty: tenant.property.name } : {}),
+		...(tenant.unit?.unit_number ? { currentUnit: tenant.unit.unit_number } : {}),
+		...(leaseStatus ? { leaseStatus } : {}),
+		...(tenant.currentLease?.id ? { leaseId: tenant.currentLease.id } : {}),
 		totalPaid: totalPaidByTenant?.get(tenant.id) ?? 0
 	}
 }
@@ -88,25 +102,26 @@ function transformToTenantDetail(
 
 	return {
 		...base,
-		emergencyContactName: tenant.emergency_contact_name ?? undefined,
-		emergencyContactPhone: tenant.emergency_contact_phone ?? undefined,
-		emergencyContactRelationship:
-			tenant.emergency_contact_relationship ?? undefined,
+		...(tenant.emergency_contact_name ? { emergencyContactName: tenant.emergency_contact_name } : {}),
+		...(tenant.emergency_contact_phone ? { emergencyContactPhone: tenant.emergency_contact_phone } : {}),
+		...(tenant.emergency_contact_relationship ? { emergencyContactRelationship: tenant.emergency_contact_relationship } : {}),
 		identityVerified: tenant.identity_verified ?? false,
 		createdAt: tenant.created_at ?? new Date().toISOString(),
 		updatedAt: tenant.updated_at ?? new Date().toISOString(),
 		...(paymentHistory ? { paymentHistory } : {}),
-		currentLease: tenant.currentLease
+		...(tenant.currentLease
 			? {
-					id: tenant.currentLease.id,
-					propertyName: tenant.property?.name ?? '',
-					unitNumber: tenant.unit?.unit_number ?? '',
-					startDate: tenant.currentLease.start_date,
-					endDate: tenant.currentLease.end_date,
-					rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
-					autopayEnabled: false // TODO: Add to API
+					currentLease: {
+						id: tenant.currentLease.id,
+						propertyName: tenant.property?.name ?? '',
+						unitNumber: tenant.unit?.unit_number ?? '',
+						startDate: tenant.currentLease.start_date,
+						endDate: tenant.currentLease.end_date,
+						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
+						autopayEnabled: tenant.autopay_enabled ?? false
+					}
 				}
-			: undefined
+			: {})
 	}
 }
 
@@ -153,6 +168,7 @@ export default function TenantsPage() {
 	const [selectedTenantId, setSelectedTenantId] = React.useState<string | null>(
 		null
 	)
+	const [tenantToDelete, setTenantToDelete] = React.useState<string | null>(null)
 
 	// Fetch tenants list
 	const { data: tenantsResponse, isLoading } = useQuery(tenantQueries.list())
@@ -227,6 +243,9 @@ export default function TenantsPage() {
 		}
 	})
 
+	const { mutate: resendInvitation } = useResendInvitation()
+	const { mutate: cancelInvitation } = useCancelInvitation()
+
 	// Callbacks
 	const handleInviteTenant = React.useCallback(() => {
 		router.push('/tenants/new')
@@ -243,13 +262,13 @@ export default function TenantsPage() {
 		[router]
 	)
 
-	const handleDeleteTenant = React.useCallback(
-		(tenantId: string) => {
-			// TODO: Add confirmation dialog
-			deleteTenant(tenantId)
-		},
-		[deleteTenant]
-	)
+
+	const confirmDeleteTenant = React.useCallback(() => {
+		if (tenantToDelete) {
+			deleteTenant(tenantToDelete)
+			setTenantToDelete(null)
+		}
+	}, [tenantToDelete, deleteTenant])
 
 	const handleContactTenant = React.useCallback(
 		(tenantId: string, method: 'email' | 'phone') => {
@@ -272,30 +291,67 @@ export default function TenantsPage() {
 		[router]
 	)
 
-	const handleExport = React.useCallback(() => {
-		toast.info('Export functionality coming soon')
-	}, [])
+	const handleViewPaymentHistory = React.useCallback(
+		(tenantId: string) => {
+			router.push(`/tenants/${tenantId}/payments`)
+		},
+		[router]
+	)
 
-	const handleMessageAll = React.useCallback(() => {
-		toast.info('Bulk messaging coming soon')
-	}, [])
+	const handleResendInvitation = React.useCallback((invitationId: string) => {
+		toast.info('Resending invitation...')
+		resendInvitation(invitationId)
+	}, [resendInvitation])
+
+	const handleCancelInvitation = React.useCallback((invitationId: string) => {
+		toast.info('Cancelling invitation...')
+		cancelInvitation(invitationId)
+	}, [cancelInvitation])
 
 	if (isLoading) {
 		return <TenantsLoadingSkeleton />
 	}
 
 	return (
-		<Tenants
-			tenants={tenants}
-			selectedTenant={selectedTenant}
-			onInviteTenant={handleInviteTenant}
-			onViewTenant={handleViewTenant}
-			onEditTenant={handleEditTenant}
-			onDeleteTenant={handleDeleteTenant}
-			onContactTenant={handleContactTenant}
-			onViewLease={handleViewLease}
-			onExport={handleExport}
-			onMessageAll={handleMessageAll}
-		/>
+		<>
+			<Tenants
+				tenants={tenants}
+				invitations={[]}
+				selectedTenant={selectedTenant}
+				onInviteTenant={handleInviteTenant}
+				onResendInvitation={handleResendInvitation}
+				onCancelInvitation={handleCancelInvitation}
+				onViewTenant={handleViewTenant}
+				onEditTenant={handleEditTenant}
+				onContactTenant={handleContactTenant}
+				onViewLease={handleViewLease}
+				onViewPaymentHistory={handleViewPaymentHistory}
+			/>
+
+			<AlertDialog
+				open={tenantToDelete !== null}
+				onOpenChange={open => !open && setTenantToDelete(null)}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Delete Tenant</AlertDialogTitle>
+						<AlertDialogDescription>
+							This will mark the tenant as inactive and remove them from active
+							listings. Their data will be retained for legal compliance. Are you
+							sure you want to continue?
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={confirmDeleteTenant}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Delete
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	)
 }

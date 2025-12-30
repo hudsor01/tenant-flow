@@ -45,22 +45,17 @@
 		"db:push": "doppler run -- supabase db push",
 		"db:pull": "doppler run -- supabase db pull",
 		"db:reset": "doppler run -- supabase db reset",
+		"db:types": "doppler run -- supabase gen types typescript --project-id bshjmbshupiibfiewpxb > packages/shared/src/types/supabase.ts && pnpm --filter @repo/shared generate:schemas",
 		"clean": "turbo run clean",
 		"workspace:info": "pnpm list -r --depth -1",
-		"validate": "pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && pnpm test:unit && doppler run -- pnpm test:integration && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
-		"validate:quick": "pnpm typecheck && pnpm lint && pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
-		"validate:clean": "pnpm typecheck && pnpm lint && pnpm --filter @repo/backend test:unit && echo '✅ CLEAN VALIDATION PASSED'",
-		"audit:routes": "tsx scripts/audit-api-routes.ts",
+		"validate": "pnpm db:types && pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && pnpm test:unit && doppler run -- pnpm test:integration && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
+		"validate:quick": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
+		"validate:clean": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm --filter @repo/backend test:unit && echo '✅ CLEAN VALIDATION PASSED'",
 		"stripe:migrate": "doppler run -- pnpm --filter @repo/backend stripe:migrate"
 	},
 	"commitlint": {
 		"extends": [
 			"@commitlint/config-conventional"
-		]
-	},
-	"msw": {
-		"workerDirectory": [
-			"../frontend/public"
 		]
 	},
 	"pnpm": {
@@ -95,7 +90,6 @@
 		"@playwright/test": "1.57.0",
 		"eslint": "catalog:default",
 		"globals": "16.5.0",
-		"knip": "5.73.4",
 		"playwright": "1.57.0",
 		"turbo": "2.6.3",
 		"vercel": "49.1.2"

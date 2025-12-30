@@ -1,13 +1,5 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~469 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract property stats/analytics into: `./property-stats.service.ts`
-// 2. Extract bulk operations into: `./property-bulk.service.ts`
-// 3. Keep core CRUD operations in this service
-
 import type {
 	Property,
-	PropertyStatus,
 	PropertyInsert,
 	PropertyUpdate
 } from '@repo/shared/types/api-contracts'
@@ -21,44 +13,23 @@ import type { CreatePropertyDto, UpdatePropertyDto } from './property.schemas'
 import type { PropertyType } from '@repo/shared/types/core'
 
 import { SupabaseService } from '../../database/supabase.service'
-import { RedisCacheService } from '../../cache/cache.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { SagaBuilder } from '../../shared/patterns/saga.pattern'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { getTokenFromRequest } from '../../database/auth-token.utils'
 import { VALID_PROPERTY_TYPES } from './utils/csv-normalizer'
 import { AppLogger } from '../../logger/app-logger.service'
+import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
 
 @Injectable()
 export class PropertiesService {
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly cache: RedisCacheService,
+		private readonly cacheInvalidation: PropertyCacheInvalidationService,
 		private readonly logger: AppLogger
 	) {}
-
-	/**
-	 * Invalidate all property-related caches for a user/owner
-	 * Uses RedisCacheService surgical invalidation
-	 */
-	private invalidatePropertyCaches(
-		owner_user_id: string,
-		property_id?: string
-	): void {
-		// Invalidate specific property if ID provided
-		if (property_id) {
-			void this.cache.invalidateByEntity('properties', property_id)
-		}
-		// Invalidate user's property list cache
-		void this.cache.invalidate(`properties:owner:${owner_user_id}`)
-		this.logger.debug('Invalidated property caches', {
-			owner_user_id,
-			property_id
-		})
-	}
 
 	async findAll(
 		userToken: string,
@@ -173,7 +144,7 @@ export class PropertiesService {
 			)
 		}
 
-		this.invalidatePropertyCaches(user_id, data.id)
+		this.cacheInvalidation.invalidatePropertyCaches(user_id, data.id)
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id
@@ -254,104 +225,9 @@ export class PropertiesService {
 
 		// Invalidate caches using the current user's ID
 		const user_id = req.user.id
-		this.invalidatePropertyCaches(user_id, property_id)
+		this.cacheInvalidation.invalidatePropertyCaches(user_id, property_id)
 
 		return data as Property
-	}
-
-	async remove(
-		req: AuthenticatedRequest,
-		property_id: string
-	): Promise<{ success: boolean; message: string }> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
-		const client = this.supabase.getUserClient(token)
-		const user_id = req.user.id
-
-		const existing = await this.findOne(req, property_id)
-		if (!existing)
-			throw new BadRequestException('Property not found or access denied')
-
-		const result = await new SagaBuilder(this.logger)
-			.addStep({
-				name: 'Mark property as INACTIVE in database',
-				execute: async () => {
-					const { data, error } = await client
-						.from('properties')
-						.update({
-							status: 'inactive' as PropertyStatus,
-							updated_at: new Date().toISOString()
-						})
-						.eq('id', property_id)
-						.select()
-						.single()
-
-					if (error) {
-						this.logger.error('Failed to mark property as inactive', {
-							error,
-							user_id,
-							property_id
-						})
-						throw new BadRequestException('Failed to delete property')
-					}
-
-					this.logger.log('Marked property as INACTIVE', { property_id })
-					return { previousStatus: existing.status, data }
-				},
-				compensate: async (result: { previousStatus: PropertyStatus }) => {
-					const { error } = await client
-						.from('properties')
-						.update({
-							status: result.previousStatus,
-							updated_at: new Date().toISOString()
-						})
-						.eq('id', property_id)
-
-					if (error) {
-						this.logger.error(
-							'Failed to restore property status during compensation',
-							{
-								error,
-								property_id,
-								previousStatus: result.previousStatus
-							}
-						)
-						throw error
-					}
-
-					this.logger.log('Restored property status during compensation', {
-						property_id,
-						status: result.previousStatus
-					})
-				}
-			})
-			.execute()
-
-		if (!result.success) {
-			this.logger.error('Property deletion saga failed', {
-				error: result.error?.message,
-				property_id,
-				completedSteps: result.completedSteps,
-				compensatedSteps: result.compensatedSteps
-			})
-			throw new BadRequestException(
-				result.error?.message || 'Failed to delete property'
-			)
-		}
-
-		this.logger.log('Property deletion saga completed successfully', {
-			property_id,
-			completedSteps: result.completedSteps
-		})
-
-		// Invalidate caches using the current user's ID
-		this.invalidatePropertyCaches(user_id, property_id)
-
-		return { success: true, message: 'Property deleted successfully' }
 	}
 
 	async findAllWithUnits(
@@ -403,57 +279,6 @@ export class PropertiesService {
 			total: count || 0,
 			limit,
 			offset
-		}
-	}
-
-	async markAsSold(
-		req: AuthenticatedRequest,
-		property_id: string,
-		dateSold: Date,
-		salePrice: number
-	): Promise<{ success: boolean; message: string }> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
-		const client = this.supabase.getUserClient(token)
-
-		const property = await this.findOne(req, property_id)
-		if (!property) {
-			throw new BadRequestException('Property not found or access denied')
-		}
-
-		const { error } = await client
-			.from('properties')
-			.update({
-				status: 'sold',
-				date_sold: dateSold.toISOString().split('T')[0] as string, // Convert to YYYY-MM-DD format for date type
-				sale_price: salePrice,
-				updated_at: new Date().toISOString()
-			})
-			.eq('id', property_id)
-
-		if (error) {
-			this.logger.error('Failed to mark property as sold', {
-				error,
-				property_id
-			})
-			throw new BadRequestException(
-				'Failed to mark property as sold: ' + error.message
-			)
-		}
-
-		this.logger.log('Property marked as sold', {
-			property_id,
-			salePrice,
-			dateSold: dateSold.toISOString()
-		})
-
-		return {
-			success: true,
-			message: `Property marked as sold for $${salePrice.toLocaleString()}. Records will be retained for 7 years as required.`
 		}
 	}
 

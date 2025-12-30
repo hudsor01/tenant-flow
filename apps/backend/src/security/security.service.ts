@@ -6,7 +6,7 @@ import {
 	EmailMetadataSchema
 } from '@repo/shared/validation/emails.schemas'
 import { SupabaseService } from '../database/supabase.service'
-import type { Json } from '@repo/shared/src/types/supabase.js'
+import type { Json } from '@repo/shared/types/supabase'
 import { AppLogger } from '../logger/app-logger.service'
 
 export interface SanitizationOptions {

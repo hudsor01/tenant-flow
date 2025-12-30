@@ -2,17 +2,10 @@
  * Security-related types shared between frontend and backend
  */
 
-// User user_types are consolidated in auth.ts - import from there
-// This ensures single source of truth and prevents duplication
 import { USER_user_type as USER_user_typeValue } from '../constants/auth.js'
-import type {
-	PermissionValue,
-	SecureUserMetadata as SecureUserMetadataType,
-	SupabaseAuthUser as SupabaseAuthUserType
-} from './auth.js'
+import type { SupabaseAuthUser as SupabaseAuthUserType } from './auth.js'
 
 export const USER_user_type = USER_user_typeValue
-export type Permission = PermissionValue
 export type SupabaseAuthUser = SupabaseAuthUserType
 
 /**
@@ -178,11 +171,6 @@ export interface CSPDirectives {
 	'upgrade-insecure-requests'?: boolean
 	'block-all-mixed-content'?: boolean
 }
-
-/**
- * Type-safe user metadata for profiles - alias from auth.ts (primary source)
- */
-export type SecureUserMetadata = SecureUserMetadataType
 
 /**
  * Security event metadata with typed fields

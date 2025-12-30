@@ -1,17 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-//
-// File Size Issue:
-//    Current: ~599 lines
-//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
-//
-// Recommended Refactoring Strategy:
-//    - Extract stats calculations into: `./dashboard-stats.service.ts`
-//    - Extract trends/analytics into: `./dashboard-trends.service.ts`
-//    - Extract property performance into: `./dashboard-performance.service.ts`
-//    - Keep core dashboard aggregation in this service
-//
-// See: CLAUDE.md section "KISS (Keep It Simple)"
-
 import { Injectable } from '@nestjs/common'
 import type {
 	DashboardStats,
@@ -25,29 +11,20 @@ import type {
 	RevenueTrendResponse
 } from '@repo/shared/types/database-rpc'
 import {
-	EMPTY_DASHBOARD_STATS,
-	EMPTY_MAINTENANCE_ANALYTICS
-} from '@repo/shared/constants/empty-states'
-import { SupabaseService } from '../../database/supabase.service'
-import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
-import { RedisCacheService } from '../../cache/cache.service'
-import type { activitySchema } from '@repo/shared/validation/dashboard'
-import {
 	billingInsightsSchema,
 	dashboardActivityResponseSchema
 } from '@repo/shared/validation/dashboard'
 import type { z } from 'zod'
-import { ValidationException } from '../../shared/exceptions/validation.exception'
-import type { Database } from '@repo/shared/types/supabase'
-import { AppLogger } from '../../logger/app-logger.service'
+import { DashboardStatsService } from './dashboard-stats.service'
+import { DashboardTrendsService } from './dashboard-trends.service'
+import { DashboardPerformanceService } from './dashboard-performance.service'
 
 @Injectable()
 export class DashboardService {
 	constructor(
-		private readonly supabase: SupabaseService,
-		private readonly dashboardAnalyticsService: DashboardAnalyticsService,
-		private readonly cache: RedisCacheService,
-		private readonly logger: AppLogger
+		private readonly statsService: DashboardStatsService,
+		private readonly trendsService: DashboardTrendsService,
+		private readonly performanceService: DashboardPerformanceService
 	) {}
 
 	/**
@@ -55,47 +32,7 @@ export class DashboardService {
 	 * Uses repository pattern for clean separation of concerns
 	 */
 	async getStats(user_id?: string, token?: string): Promise<DashboardStats> {
-		if (!user_id) {
-			this.logger.warn('Dashboard stats requested without user_id')
-			return { ...EMPTY_DASHBOARD_STATS }
-		}
-
-		// Check cache first (CLAUDE.md: Stats 1min TTL)
-		const cacheKey = RedisCacheService.getUserKey(user_id, 'dashboard:stats')
-		const cached = await this.cache.get<DashboardStats>(cacheKey)
-		if (cached) {
-			this.logger.debug('Dashboard stats cache hit', { user_id })
-			return cached
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService which uses optimized RPC functions
-			// This reduces this method from 586 lines to 14 lines (CLAUDE.md compliant)
-			const stats = await this.dashboardAnalyticsService.getDashboardStats(
-				user_id,
-				token
-			)
-
-			// Cache the result
-			await this.cache.set(cacheKey, stats, {
-				tier: 'short',
-				tags: [`user:${user_id}`, 'dashboard']
-			})
-
-			this.logger.log('Dashboard stats retrieved successfully', {
-				user_id,
-				propertiesTotal: stats.properties.total,
-				tenantsTotal: stats.tenants.total
-			})
-
-			return stats
-		} catch (error) {
-			this.logger.error('Failed to get dashboard stats', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return { ...EMPTY_DASHBOARD_STATS }
-		}
+		return this.statsService.getStats(user_id, token)
 	}
 
 	/**
@@ -106,91 +43,8 @@ export class DashboardService {
 		user_id: string,
 		token: string
 	): Promise<z.infer<typeof dashboardActivityResponseSchema>> {
-		if (!user_id) {
-			this.logger.warn('Activity requested without user_id')
-			return { activities: [] }
-		}
-		if (!token) {
-			this.logger.warn('Activity requested without token')
-			return { activities: [] }
-		}
-
-		// Check cache first (CLAUDE.md: Real-time 3min TTL)
-		const cacheKey = RedisCacheService.getUserKey(user_id, 'dashboard:activity')
-		const cached =
-			await this.cache.get<z.infer<typeof dashboardActivityResponseSchema>>(
-				cacheKey
-			)
-		if (cached) {
-			this.logger.debug('Dashboard activity cache hit', { user_id })
-			return cached
-		}
-
-		try {
-			// Use optimized RPC function - eliminates N+1 query pattern
-			const { data, error } = await this.supabase
-				.getAdminClient()
-				.rpc('get_user_dashboard_activities', {
-					p_user_id: user_id,
-					p_limit: 20
-				})
-
-			if (error) {
-				this.logger.error('Failed to fetch activities', {
-					error: error.message,
-					user_id
-				})
-				return { activities: [] }
-			}
-
-			const normalizedActivities = (data ?? []).map(activity =>
-				this.normalizeActivity(activity)
-			)
-
-			// Validate response with dashboardActivityResponseSchema (pass data directly to safeParse)
-			const validation = dashboardActivityResponseSchema.safeParse({
-				activities: normalizedActivities
-			})
-			let result: z.infer<typeof dashboardActivityResponseSchema>
-
-			if (validation.success) {
-				result = validation.data
-			} else {
-				this.logger.warn('Some activities failed validation', {
-					user_id,
-					validationErrors: validation.error.format()
-				})
-				// Optionally filter valid activities only
-				const validActivities = normalizedActivities.filter(
-					(activity: unknown) =>
-						dashboardActivityResponseSchema.shape.activities.element.safeParse(
-							activity
-						).success
-				) as z.infer<typeof dashboardActivityResponseSchema>['activities']
-				result = { activities: validActivities }
-			}
-
-			// Cache the validated result
-			await this.cache.set(cacheKey, result, {
-				tier: 'short',
-				tags: [`user:${user_id}`, 'dashboard']
-			})
-
-			return result
-		} catch (error) {
-			this.logger.error('Failed to get activity', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return { activities: [] }
-		}
+		return this.trendsService.getActivity(user_id, token)
 	}
-
-	// OLD N+1 METHODS REMOVED - Now using optimized RPC function get_user_dashboard_activities()
-	// Removed: getproperty_ids, fetchAllActivities, getunit_ids, fetchLeaseActivities,
-	// fetchPaymentActivities, fetchMaintenanceActivities, fetchUnitActivities,
-	// getTimestampSafe, sortAndLimitActivities
-	// Performance improvement: 5 queries → 1 query (4x faster)
 
 	/**
 	 * Get billing insights - MRR, churn rate, annual revenue
@@ -198,36 +52,7 @@ export class DashboardService {
 	async getBillingInsights(
 		user_id?: string
 	): Promise<z.infer<typeof billingInsightsSchema> | null> {
-		if (!user_id) {
-			this.logger.warn('getBillingInsights called without user_id')
-			throw new ValidationException(
-				'User ID is required to retrieve billing insights'
-			)
-		}
-		try {
-			const result =
-				await this.dashboardAnalyticsService.getBillingInsights(user_id)
-			const parsed = billingInsightsSchema.safeParse(result)
-			if (parsed.success) {
-				return parsed.data
-			}
-			this.logger.error('Billing insights validation failed', {
-				user_id,
-				validationErrors: parsed.error.format()
-			})
-			throw new ValidationException('Billing insights validation failed', {
-				errors: parsed.error.format()
-			})
-		} catch (error) {
-			this.logger.error('Failed to get billing insights', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			if (error instanceof ValidationException) {
-				throw error
-			}
-			throw new ValidationException('Failed to retrieve billing insights')
-		}
+		return this.trendsService.getBillingInsights(user_id)
 	}
 
 	/**
@@ -238,42 +63,7 @@ export class DashboardService {
 		user_id: string,
 		token: string
 	): Promise<boolean> {
-		if (!token) {
-			this.logger.warn(
-				'Billing insights availability check requested without token'
-			)
-			return false
-		}
-
-		try {
-			const client = this.supabase.getUserClient(token)
-
-			// Check if billing insights are available by checking if there's billing data for the user
-			// RLS will automatically filter to user's data
-			const { count, error } = await client
-				.from('rent_payments')
-				.select('*', { count: 'exact', head: true })
-				.limit(1)
-
-			if (error) {
-				this.logger.error('Error checking billing insights availability', {
-					error: error.message,
-					user_id
-				})
-				return false
-			}
-
-			return count !== null && count > 0
-		} catch (error) {
-			this.logger.error(
-				'Dashboard service failed to check billing insights availability',
-				{
-					error: error instanceof Error ? error.message : String(error),
-					user_id
-				}
-			)
-			return false
-		}
+		return this.trendsService.isBillingInsightsAvailable(user_id, token)
 	}
 
 	/**
@@ -284,25 +74,7 @@ export class DashboardService {
 		user_id?: string,
 		token?: string
 	): Promise<PropertyPerformance[]> {
-		if (!user_id) {
-			this.logger.warn('Property performance requested without user_id')
-			return []
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService which uses optimized RPC
-			// Reduces method from 165 lines to 15 lines (CLAUDE.md compliant)
-			return await this.dashboardAnalyticsService.getPropertyPerformance(
-				user_id,
-				token
-			)
-		} catch (error) {
-			this.logger.error('Failed to get property performance', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return []
-		}
+		return this.performanceService.getPropertyPerformance(user_id, token)
 	}
 
 	/**
@@ -310,68 +82,7 @@ export class DashboardService {
 	 * Production implementation using real system data
 	 */
 	async getUptime(): Promise<SystemUptime> {
-		try {
-			const client = this.supabase.getAdminClient()
-			const startTime = Date.now()
-
-			const { error: dbError } = await client
-				.from('properties')
-				.select('id')
-				.limit(1)
-
-			const responseTime = Date.now() - startTime
-			const isDatabaseUp = !dbError
-
-			return this.calculateUptimeMetrics(isDatabaseUp, responseTime)
-		} catch (error) {
-			this.logger.error('Failed to get uptime metrics', {
-				error: error instanceof Error ? error.message : String(error)
-			})
-			return this.getDefaultUptimeMetrics()
-		}
-	}
-
-	private calculateUptimeMetrics(
-		isDatabaseUp: boolean,
-		responseTime: number
-	): SystemUptime {
-		const uptimePercentage = isDatabaseUp ? 99.95 : 95.0
-		const slaTarget = 99.5
-
-		const slaStatus = this.determineSlaStatus(uptimePercentage)
-
-		return {
-			uptime: `${uptimePercentage}%`,
-			uptimePercentage,
-			sla: `${slaTarget}%`,
-			slaStatus,
-			status: isDatabaseUp ? 'operational' : 'degraded',
-			lastIncident: null,
-			responseTime,
-			timestamp: new Date().toISOString()
-		}
-	}
-
-	private determineSlaStatus(
-		uptimePercentage: number
-	): SystemUptime['slaStatus'] {
-		if (uptimePercentage >= 99.9) return 'excellent'
-		if (uptimePercentage >= 99.5) return 'good'
-		if (uptimePercentage >= 98.0) return 'acceptable'
-		return 'poor'
-	}
-
-	private getDefaultUptimeMetrics(): SystemUptime {
-		return {
-			uptime: '95.0%',
-			uptimePercentage: 95.0,
-			sla: '99.5%',
-			slaStatus: 'acceptable',
-			status: 'degraded',
-			lastIncident: new Date().toISOString(),
-			responseTime: 0,
-			timestamp: new Date().toISOString()
-		}
+		return this.statsService.getUptime()
 	}
 
 	/**
@@ -382,39 +93,7 @@ export class DashboardService {
 		user_id: string,
 		token?: string
 	): Promise<DashboardMetricsResponse> {
-		try {
-			this.logger.log('Fetching dashboard metrics via repository', { user_id })
-
-			// Use existing getStats method as foundation
-			const stats = await this.getStats(user_id, token)
-
-			// Return metrics format expected by frontend
-			return {
-				totalProperties: stats.properties.total,
-				totalUnits: stats.units.total,
-				totalTenants: stats.tenants.total,
-				totalLeases: stats.leases.total,
-				occupancyRate: stats.units.occupancyRate,
-				monthlyRevenue: stats.revenue.monthly,
-				maintenanceRequests: stats.maintenance.total,
-				timestamp: new Date().toISOString()
-			}
-		} catch (error) {
-			this.logger.error('Dashboard service failed to get metrics', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return {
-				totalProperties: 0,
-				totalUnits: 0,
-				totalTenants: 0,
-				totalLeases: 0,
-				occupancyRate: 0,
-				monthlyRevenue: 0,
-				maintenanceRequests: 0,
-				timestamp: new Date().toISOString()
-			}
-		}
+		return this.statsService.getMetrics(user_id, token)
 	}
 
 	/**
@@ -425,66 +104,7 @@ export class DashboardService {
 		user_id: string,
 		token?: string
 	): Promise<DashboardSummaryResponse> {
-		try {
-			this.logger.log('Fetching dashboard summary via repository', { user_id })
-
-			// Combine multiple repository calls for comprehensive summary
-			const [stats, activity, propertyPerformance] = await Promise.all([
-				this.getStats(user_id, token),
-				token
-					? this.getActivity(user_id, token)
-					: Promise.resolve({ activities: [] }),
-				this.getPropertyPerformance(user_id, token)
-			])
-
-			return {
-				overview: {
-					properties: stats.properties.total,
-					units: stats.units.total,
-					tenants: stats.tenants.active,
-					occupancyRate: stats.units.occupancyRate
-				},
-				revenue: {
-					monthly: stats.revenue.monthly,
-					yearly: stats.revenue.yearly,
-					growth: stats.revenue.growth
-				},
-				maintenance: {
-					open: stats.maintenance.open,
-					inProgress: stats.maintenance.inProgress,
-					avgResolutionTime: stats.maintenance.avgResolutionTime
-				},
-				recentActivity: activity.activities.slice(0, 5),
-				topPerformingProperties: propertyPerformance.slice(0, 3),
-				timestamp: new Date().toISOString()
-			}
-		} catch (error) {
-			this.logger.error('Dashboard service failed to get summary', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return {
-				overview: {
-					properties: 0,
-					units: 0,
-					tenants: 0,
-					occupancyRate: 0
-				},
-				revenue: {
-					monthly: 0,
-					yearly: 0,
-					growth: 0
-				},
-				maintenance: {
-					open: 0,
-					inProgress: 0,
-					avgResolutionTime: 0
-				},
-				recentActivity: [],
-				topPerformingProperties: [],
-				timestamp: new Date().toISOString()
-			}
-		}
+		return this.statsService.getSummary(user_id, token)
 	}
 
 	/**
@@ -495,24 +115,7 @@ export class DashboardService {
 		token?: string,
 		months?: number
 	): Promise<OccupancyTrendResponse[]> {
-		if (!user_id) {
-			return []
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getOccupancyTrends(
-				user_id,
-				token,
-				months
-			)
-		} catch (error) {
-			this.logger.error('Failed to get occupancy trends', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return []
-		}
+		return this.trendsService.getOccupancyTrends(user_id, token, months)
 	}
 
 	/**
@@ -523,32 +126,14 @@ export class DashboardService {
 		token?: string,
 		months?: number
 	): Promise<RevenueTrendResponse[]> {
-		if (!user_id) {
-			return []
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getRevenueTrends(
-				user_id,
-				token,
-				months
-			)
-		} catch (error) {
-			this.logger.error('Failed to get revenue trends', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return []
-		}
+		return this.trendsService.getRevenueTrends(user_id, token, months)
 	}
 
 	/**
 	 * Get maintenance analytics using optimized RPC function
 	 */
 	async getMaintenanceAnalytics(
-		user_id?: string,
-		_token?: string
+		user_id?: string
 	): Promise<{
 		avgResolutionTime: number
 		completionRate: number
@@ -559,62 +144,6 @@ export class DashboardService {
 			avgResolutionDays: number
 		}[]
 	}> {
-		if (!user_id) {
-			return EMPTY_MAINTENANCE_ANALYTICS
-		}
-
-		try {
-			// Delegate to DashboardAnalyticsService
-			return await this.dashboardAnalyticsService.getMaintenanceAnalytics(
-				user_id
-			)
-		} catch (error) {
-			this.logger.error('Failed to get maintenance analytics', {
-				error: error instanceof Error ? error.message : String(error),
-				user_id
-			})
-			return EMPTY_MAINTENANCE_ANALYTICS
-		}
-	}
-
-	private normalizeActivity(
-		activity: Database['public']['Functions']['get_user_dashboard_activities']['Returns'][number]
-	) {
-		const normalizedType = this.mapActivityType(activity.activity_type)
-		return {
-			id: activity.id,
-			activity_type: normalizedType,
-			entity_id: activity.entity_id,
-			property_id: null,
-			tenant_id: null,
-			unit_id: null,
-			owner_id: activity.user_id ?? null,
-			status: null,
-			priority: null,
-			action: activity.title ?? 'view',
-			amount: null,
-			activity_timestamp: activity.created_at,
-			details: {
-				entity_type: activity.entity_type,
-				description: activity.description
-			}
-		}
-	}
-
-	private mapActivityType(
-		type: string | null | undefined
-	): z.infer<typeof activitySchema>['activity_type'] {
-		switch (type?.toLowerCase()) {
-			case 'lease':
-			case 'leases':
-				return 'leases'
-			case 'payment':
-			case 'payments':
-				return 'payment'
-			case 'maintenance':
-				return 'maintenance'
-			default:
-				return 'units'
-		}
+		return this.trendsService.getMaintenanceAnalytics(user_id)
 	}
 }

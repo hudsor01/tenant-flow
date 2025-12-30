@@ -3,9 +3,16 @@
 import { Suspense, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
-import { Dashboard } from '#components/dashboard/dashboard'
+import { Dashboard } from '#components/dashboard/Dashboard'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { Skeleton } from '#components/ui/skeleton'
+import {
+	Empty,
+	EmptyMedia,
+	EmptyTitle,
+	EmptyDescription,
+	EmptyContent
+} from '#components/ui/empty'
 import {
 	useDashboardStats,
 	useDashboardCharts,
@@ -17,10 +24,11 @@ import '../dashboard.css'
 
 /**
  * Dashboard Loading Skeleton
+ * Tour target included so tour can initialize while content loads
  */
 function DashboardLoadingSkeleton() {
 	return (
-		<div className="flex flex-1 flex-col gap-6 p-6">
+		<div data-testid="dashboard-stats" className="flex flex-1 flex-col gap-6 p-6">
 			{/* Header skeleton */}
 			<div>
 				<Skeleton className="h-8 w-48" />
@@ -87,29 +95,30 @@ function DashboardLoadingSkeleton() {
 
 /**
  * Dashboard Empty State
+ * Tour targets are included so onboarding tour works for new users
  */
 function DashboardEmptyState() {
 	return (
-		<div className="p-6 lg:p-8 min-h-full">
-			<div className="max-w-md mx-auto text-center py-16">
-				<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-					<Home className="w-8 h-8 text-primary" />
-				</div>
-				<h1 className="text-xl font-semibold text-foreground mb-3">
-					Welcome to TenantFlow
-				</h1>
-				<p className="text-muted-foreground mb-8">
+		<div data-testid="dashboard-stats" data-tour="quick-actions">
+			<Empty>
+				<EmptyMedia variant="icon">
+					<Home className="w-8 h-8" />
+				</EmptyMedia>
+				<EmptyTitle>Welcome to TenantFlow</EmptyTitle>
+				<EmptyDescription>
 					Get started by adding your first property, then invite tenants and
 					create leases to begin tracking your portfolio.
-				</p>
-				<Link
-					href="/properties/new"
-					className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
-				>
-					<Home className="w-5 h-5" />
-					Add Your First Property
-				</Link>
-			</div>
+				</EmptyDescription>
+				<EmptyContent>
+					<Link
+						href="/properties/new"
+						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+					>
+						<Home className="w-5 h-5" />
+						Add Your First Property
+					</Link>
+				</EmptyContent>
+			</Empty>
 		</div>
 	)
 }

@@ -216,8 +216,8 @@ export default function FinancialsPage() {
 							<BorderBeam
 								size={100}
 								duration={10}
-								colorFrom="hsl(142 76% 36%)"
-								colorTo="hsl(142 76% 36% / 0.3)"
+								colorFrom="var(--color-success)"
+								colorTo="oklch(from var(--color-success) l c h / 0.3)"
 							/>
 						)}
 						<StatLabel>Total Revenue</StatLabel>
@@ -293,8 +293,8 @@ export default function FinancialsPage() {
 							<BorderBeam
 								size={100}
 								duration={8}
-								colorFrom="hsl(45 93% 47%)"
-								colorTo="hsl(45 93% 47% / 0.3)"
+								colorFrom="var(--color-warning)"
+								colorTo="oklch(from var(--color-warning) l c h / 0.3)"
 							/>
 						)}
 						<StatLabel>Outstanding</StatLabel>

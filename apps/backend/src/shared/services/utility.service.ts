@@ -1,17 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-//
-// File Size Issue:
-//    Current: ~540 lines
-//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
-//
-// Recommended Refactoring Strategy:
-//    - Extract search logic into: `./search.service.ts`
-//    - Extract file utilities into: `./file-utility.service.ts`
-//    - Extract data transformation utilities into: `./data-utility.service.ts`
-//    - Keep core utility orchestration in this service
-//
-// See: CLAUDE.md section "KISS (Keep It Simple)"
-
 /**
  * Utility Service - Direct Supabase Implementation
 

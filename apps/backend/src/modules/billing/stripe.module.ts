@@ -11,6 +11,9 @@ import { StripeOwnerService } from './stripe-owner.service'
 import { StripeWebhookService } from './stripe-webhook.service'
 import { StripeController } from './stripe.controller'
 import { StripeService } from './stripe.service'
+import { StripeCustomerService } from './stripe-customer.service'
+import { StripeSubscriptionService } from './stripe-subscription.service'
+import { StripePaymentMethodService } from './stripe-payment-method.service'
 import { StripeConnectService } from './stripe-connect.service'
 import { ConnectSetupService } from './connect-setup.service'
 import { ConnectBillingService } from './connect-billing.service'
@@ -27,6 +30,8 @@ import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
 import { UsersModule } from '../users/users.module'
 import { BillingService } from './billing.service'
 import { StripeSharedService } from './stripe-shared.service'
+import { StripeSubscriptionController } from './stripe-subscription.controller'
+import { StripePaymentMethodsController } from './stripe-payment-methods.controller'
 
 const WORKERS_ENABLED =
 	process.env.BULLMQ_WORKERS_ENABLED !== 'false' &&
@@ -41,6 +46,10 @@ const WORKERS_ENABLED =
  * - Subscription billing with flexible pricing models
  * - Stripe Connect for multi-tenant payments
  * - Type-safe DTOs with comprehensive validation
+ *
+ * @todo ARCH-003: Split this god module (17 providers, 6 controllers) into sub-modules.
+ *       Suggested: CustomerModule, SubscriptionModule, WebhookModule, ConnectModule.
+ *       See TODO.md for details.
  */
 @Module({
 	imports: [
@@ -70,6 +79,9 @@ const WORKERS_ENABLED =
 	],
 	providers: [
 		StripeService,
+		StripeCustomerService,
+		StripeSubscriptionService,
+		StripePaymentMethodService,
 		StripeSharedService,
 		BillingService,
 		StripeSyncService,
@@ -92,7 +104,9 @@ const WORKERS_ENABLED =
 		StripeController,
 		StripeConnectController,
 		StripeTenantController,
-		StripeWebhookController
+		StripeWebhookController,
+		StripeSubscriptionController,
+		StripePaymentMethodsController
 	],
 	exports: [
 		StripeService,

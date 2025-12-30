@@ -48,9 +48,7 @@ export class FinancialAnalyticsService {
 	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			const res = result as {
 				data?: T
 				error?: { message?: string } | null

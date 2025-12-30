@@ -15,7 +15,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { Button } from '#components/ui/button'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { useForm } from '@tanstack/react-form'
 import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'

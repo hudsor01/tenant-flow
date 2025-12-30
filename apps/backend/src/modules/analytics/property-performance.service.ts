@@ -77,9 +77,7 @@ export class PropertyPerformanceService {
 	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			// result may be an object with data/error similar to client.rpc
 			const res = result as {
 				data?: T
@@ -109,7 +107,7 @@ export class PropertyPerformanceService {
 		const result = await this.supabase.rpcWithCache(
 			'get_property_performance_with_trends',
 			{ p_user_id: user_id, p_timeframe: '30d', p_limit: 100 },
-			{ cacheTier: 'short', source: 'service' }
+			{ cacheTier: 'short',  }
 		)
 
 		if (!result || (result as { error?: unknown }).error) {

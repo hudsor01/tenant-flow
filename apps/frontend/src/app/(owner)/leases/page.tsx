@@ -1,6 +1,15 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+/**
+ * @todo REACT-001: Consolidate 12+ useState calls to Zustand store or useReducer.
+ *       Current pattern causes excessive re-renders on filter changes.
+ *       See TODO.md for details.
+ *
+ * @todo PERF-002: Replace limit: 1000 with server-side pagination and infinite scroll.
+ *       Current approach fetches all data at once. See TODO.md for details.
+ */
+
+import { useState, useEffect, useMemo, Suspense } from 'react'
 import {
 	FileText,
 	Search,
@@ -19,13 +28,18 @@ import {
 } from 'lucide-react'
 import { useLeaseList } from '#hooks/api/use-lease'
 import { useDeleteLeaseMutation } from '#hooks/api/mutations/lease-mutations'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Skeleton } from '#components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { RenewLeaseDialog } from '#components/leases/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#components/leases/terminate-lease-dialog'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'
 import { BlurFade } from '#components/ui/blur-fade'
+import {
+	LeaseInsightsSection,
+	LeaseInsightsSkeleton
+} from '#components/analytics/lease-insights-section'
 import type {
 	Lease,
 	Tenant,
@@ -236,6 +250,9 @@ function LeasesPageSkeleton() {
 
 export default function LeasesPage() {
 	const router = useRouter()
+	const searchParams = useSearchParams()
+	const tabFromUrl = searchParams.get('tab') ?? 'overview'
+	const [activeTab, setActiveTab] = useState(tabFromUrl)
 	const [searchQuery, setSearchQuery] = useState('')
 	const [statusFilter, setStatusFilter] = useState('all')
 	const [sortField, setSortField] = useState<SortField>('endDate')
@@ -249,6 +266,20 @@ export default function LeasesPage() {
 	const [showRenewDialog, setShowRenewDialog] = useState(false)
 	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+	// Update URL when tab changes
+	const handleTabChange = (value: string) => {
+		setActiveTab(value)
+		const params = new URLSearchParams(searchParams.toString())
+		if (value === 'overview') {
+			params.delete('tab')
+		} else {
+			params.set('tab', value)
+		}
+		router.replace(`/leases${params.toString() ? `?${params.toString()}` : ''}`, {
+			scroll: false
+		})
+	}
 
 	const {
 		data: leasesResponse,
@@ -475,7 +506,7 @@ export default function LeasesPage() {
 				</div>
 			</BlurFade>
 
-			{/* Stats Row */}
+			{/* Stats Row - Always visible */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
 					<div className="flex items-center justify-between mb-2">
@@ -523,11 +554,19 @@ export default function LeasesPage() {
 				</div>
 			</div>
 
-			{/* Table Card */}
-			<BlurFade delay={0.6} inView>
-				<div className="bg-card border border-border rounded-sm overflow-hidden">
-					{/* Toolbar */}
-					<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
+			{/* Tabbed Content */}
+			<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+				<TabsList className="mb-4">
+					<TabsTrigger value="overview">Overview</TabsTrigger>
+					<TabsTrigger value="insights">Insights</TabsTrigger>
+				</TabsList>
+
+				<TabsContent value="overview">
+					{/* Table Card */}
+					<BlurFade delay={0.6} inView>
+						<div className="bg-card border border-border rounded-sm overflow-hidden">
+							{/* Toolbar */}
+							<div className="px-4 py-3 border-b border-border flex flex-col sm:flex-row sm:items-center gap-3">
 						{/* Left: Search */}
 						<div className="relative flex-1 max-w-sm">
 							<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
@@ -761,8 +800,16 @@ export default function LeasesPage() {
 							</button>
 						</div>
 					)}
-				</div>
-			</BlurFade>
+						</div>
+					</BlurFade>
+				</TabsContent>
+
+				<TabsContent value="insights">
+					<Suspense fallback={<LeaseInsightsSkeleton />}>
+						<LeaseInsightsSection />
+					</Suspense>
+				</TabsContent>
+			</Tabs>
 
 			{/* Dialogs */}
 			{selectedLease && (

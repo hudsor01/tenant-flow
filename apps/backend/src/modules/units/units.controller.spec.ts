@@ -8,6 +8,8 @@ import { createMockRequest } from '../../shared/test-utils/types'
 import { createMockUser } from '../../test-utils/mocks'
 import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
+import { UnitStatsService } from './services/unit-stats.service'
+import { UnitQueryService } from './services/unit-query.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -16,12 +18,28 @@ jest.mock('./units.service', () => {
 	return {
 		UnitsService: jest.fn().mockImplementation(() => ({
 			findAll: jest.fn(),
-			getStats: jest.fn(),
-			findByProperty: jest.fn(),
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn()
+		}))
+	}
+})
+
+jest.mock('./services/unit-stats.service', () => {
+	return {
+		UnitStatsService: jest.fn().mockImplementation(() => ({
+			getStats: jest.fn()
+		}))
+	}
+})
+
+jest.mock('./services/unit-query.service', () => {
+	return {
+		UnitQueryService: jest.fn().mockImplementation(() => ({
+			findAll: jest.fn(),
+			findOne: jest.fn(),
+			findByProperty: jest.fn()
 		}))
 	}
 })
@@ -37,6 +55,8 @@ jest.mock('../../database/supabase.service', () => {
 describe('UnitsController', () => {
 	let controller: UnitsController
 	let mockUnitsServiceInstance: jest.Mocked<UnitsService>
+	let mockStatsServiceInstance: jest.Mocked<UnitStatsService>
+	let mockQueryServiceInstance: jest.Mocked<UnitQueryService>
 	let mockCurrentUserProvider: jest.Mocked<CurrentUserProvider>
 
 	const mockUser = createMockUser({ id: 'user-123' })
@@ -86,6 +106,8 @@ describe('UnitsController', () => {
 			controllers: [UnitsController],
 			providers: [
 				UnitsService,
+				UnitStatsService,
+				UnitQueryService,
 				{ provide: CurrentUserProvider, useValue: mockCurrentUserProvider },
 				{
 					provide: AppLogger,
@@ -98,6 +120,12 @@ describe('UnitsController', () => {
 		mockUnitsServiceInstance = module.get(
 			UnitsService
 		) as jest.Mocked<UnitsService>
+		mockStatsServiceInstance = module.get(
+			UnitStatsService
+		) as jest.Mocked<UnitStatsService>
+		mockQueryServiceInstance = module.get(
+			UnitQueryService
+		) as jest.Mocked<UnitQueryService>
 	})
 
 	it('should be defined', () => {
@@ -107,7 +135,7 @@ describe('UnitsController', () => {
 	describe('findAll', () => {
 		it('should return units with default parameters', async () => {
 			const mockUnits = [createMockUnit({ id: 'unit-1' })]
-			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
+			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll('mock-jwt-token', {
 				property_id: null,
@@ -119,7 +147,7 @@ describe('UnitsController', () => {
 				sortOrder: 'desc'
 			})
 
-			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
+			expect(mockQueryServiceInstance.findAll).toHaveBeenCalled()
 			// Controller wraps service response in PaginatedResponse format
 			expect(result).toEqual({
 				data: mockUnits,
@@ -133,7 +161,7 @@ describe('UnitsController', () => {
 		it('should validate status parameter', async () => {
 			// Note: In practice, ZodValidationPipe would handle this validation
 			// For unit tests, we mock the service to throw for invalid input
-			mockUnitsServiceInstance.findAll.mockRejectedValueOnce(
+			mockQueryServiceInstance.findAll.mockRejectedValueOnce(
 				new BadRequestException('Invalid unit status')
 			)
 
@@ -152,7 +180,7 @@ describe('UnitsController', () => {
 
 		it('should accept uppercase unit status and normalize to lowercase', async () => {
 			const mockUnits = [createMockUnit({ status: 'occupied' })]
-			mockUnitsServiceInstance.findAll.mockResolvedValue(mockUnits)
+			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
 
 			const result = await controller.findAll('mock-jwt-token', {
 				property_id: null,
@@ -165,7 +193,7 @@ describe('UnitsController', () => {
 			})
 
 			// Verify service was called and status was normalized
-			expect(mockUnitsServiceInstance.findAll).toHaveBeenCalled()
+			expect(mockQueryServiceInstance.findAll).toHaveBeenCalled()
 			expect(result).toEqual({
 				data: mockUnits,
 				total: mockUnits.length,
@@ -185,10 +213,10 @@ describe('UnitsController', () => {
 				maintenanceUnits: 2
 			}
 
-			mockUnitsServiceInstance.getStats.mockResolvedValue(mockStats)
+			mockStatsServiceInstance.getStats.mockResolvedValue(mockStats)
 
 			const result = await controller.getStats('mock-jwt-token')
-			expect(mockUnitsServiceInstance.getStats).toHaveBeenCalledWith(
+			expect(mockStatsServiceInstance.getStats).toHaveBeenCalledWith(
 				'mock-jwt-token'
 			)
 			expect(result).toEqual(mockStats)
@@ -201,14 +229,14 @@ describe('UnitsController', () => {
 				createMockUnit({ id: 'unit-1', property_id: 'property-123' })
 			]
 
-			mockUnitsServiceInstance.findByProperty.mockResolvedValue(mockUnits)
+			mockQueryServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
 			const result = await controller.findByProperty(
 				'mock-jwt-token',
 				'property-123'
 			)
 
-			expect(mockUnitsServiceInstance.findByProperty).toHaveBeenCalledWith(
+			expect(mockQueryServiceInstance.findByProperty).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				'property-123'
 			)
@@ -220,10 +248,10 @@ describe('UnitsController', () => {
 		it('should return a unit by ID', async () => {
 			const mockUnit = createMockUnit({ id: 'unit-1' })
 
-			mockUnitsServiceInstance.findOne.mockResolvedValue(mockUnit)
+			mockQueryServiceInstance.findOne.mockResolvedValue(mockUnit)
 
 			const result = await controller.findOne('mock-jwt-token', 'unit-1')
-			expect(mockUnitsServiceInstance.findOne).toHaveBeenCalledWith(
+			expect(mockQueryServiceInstance.findOne).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				'unit-1'
 			)
@@ -231,7 +259,7 @@ describe('UnitsController', () => {
 		})
 
 		it('should throw NotFoundException when unit not found', async () => {
-			mockUnitsServiceInstance.findOne.mockImplementation(() =>
+			mockQueryServiceInstance.findOne.mockImplementation(() =>
 				Promise.reject(new NotFoundException())
 			)
 

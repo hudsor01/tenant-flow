@@ -48,10 +48,7 @@ export class MaintenanceController {
 
 		this.logger.log('Getting maintenance analytics', { user_id })
 
-		const data = await this.dashboardService.getMaintenanceAnalytics(
-			user_id,
-			token
-		)
+		const data = await this.dashboardService.getMaintenanceAnalytics(user_id)
 
 		return {
 			success: true,

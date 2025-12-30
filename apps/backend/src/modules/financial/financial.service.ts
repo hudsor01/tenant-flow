@@ -17,6 +17,10 @@ import { AppLogger } from '../../logger/app-logger.service'
  *
  * Orchestrates financial data aggregation across properties, units, and leases.
  * Delegates expense and revenue calculations to focused services.
+ *
+ * @todo SEC-003: Add Zod validation schemas for all financial DTOs and query parameters.
+ *       Currently accepts unvalidated query parameters.
+ *       See TODO.md for details.
  */
 @Injectable()
 export class FinancialService {
@@ -36,7 +40,7 @@ export class FinancialService {
 	): Promise<Record<string, unknown>> {
 		try {
 			const property_ids = await this.getUserPropertyIds(token)
-			return this.expenseService.getExpenseSummary(property_ids, year)
+			return this.expenseService.getExpenseSummary(property_ids, year, token)
 		} catch (error) {
 			this.logger.error('Failed to get expense summary', {
 				error: error instanceof Error ? error.message : String(error),
@@ -108,7 +112,8 @@ export class FinancialService {
 			const expenses = await this.expenseService.fetchExpenses(
 				property_ids,
 				new Date(targetYear, 0, 1),
-				new Date(targetYear + 1, 0, 1)
+				new Date(targetYear + 1, 0, 1),
+				token
 			)
 			const totalExpenses = expenses.reduce(
 				(sum, exp) => sum + (exp.amount || 0),

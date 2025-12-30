@@ -200,212 +200,6 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 		})
 	})
 
-	describe('verifyLeaseOwnership', () => {
-		it('should query leases using owner_user_id schema', async () => {
-			const userId = 'user-123'
-			const leaseId = 'lease-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: {
-					owner_user_id: userId
-				},
-				error: null
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { lease_id: leaseId },
-				params: {},
-				query: {}
-			})
-
-			await guard.canActivate(context)
-
-			// Verify correct query structure with owner_user_id (not owner_id)
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('leases')
-			expect(mockSupabaseClient.select).toHaveBeenCalledWith('owner_user_id')
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('id', leaseId)
-			expect(mockSupabaseClient.single).toHaveBeenCalled()
-		})
-
-		it('should return true when user owns the lease', async () => {
-			const userId = 'user-123'
-			const leaseId = 'lease-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: {
-					owner_user_id: userId
-				},
-				error: null
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { lease_id: leaseId },
-				params: {},
-				query: {}
-			})
-
-			const result = await guard.canActivate(context)
-
-			expect(result).toBe(true)
-			expect(mockLogger.debug).toHaveBeenCalledWith(
-				'PropertyOwnershipGuard: verifyLeaseOwnership result',
-				expect.objectContaining({
-					user_id: userId,
-					lease_id: leaseId,
-					isOwner: true
-				})
-			)
-		})
-
-		it('should handle database errors gracefully', async () => {
-			const userId = 'user-123'
-			const leaseId = 'lease-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: null,
-				error: { message: 'Query failed' }
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { lease_id: leaseId },
-				params: {},
-				query: {}
-			})
-
-			await expect(guard.canActivate(context)).rejects.toThrow(
-				ForbiddenException
-			)
-
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				'PropertyOwnershipGuard: Database error in verifyLeaseOwnership',
-				expect.objectContaining({
-					user_id: userId,
-					lease_id: leaseId,
-					error: 'Query failed'
-				})
-			)
-		})
-	})
-
-	describe('verifyTenantOwnership', () => {
-		it('should query leases by primary_tenant_id using owner_user_id schema', async () => {
-			const userId = 'user-123'
-			const tenantId = 'tenant-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: {
-					owner_user_id: userId
-				},
-				error: null
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { tenant_id: tenantId },
-				params: {},
-				query: {}
-			})
-
-			await guard.canActivate(context)
-
-			// Verify correct query structure with primary_tenant_id (not tenant_id)
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith('leases')
-			expect(mockSupabaseClient.select).toHaveBeenCalledWith('owner_user_id')
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
-				'primary_tenant_id',
-				tenantId
-			)
-			expect(mockSupabaseClient.single).toHaveBeenCalled()
-		})
-
-		it('should return true when user owns the tenant', async () => {
-			const userId = 'user-123'
-			const tenantId = 'tenant-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: {
-					owner_user_id: userId
-				},
-				error: null
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { tenant_id: tenantId },
-				params: {},
-				query: {}
-			})
-
-			const result = await guard.canActivate(context)
-
-			expect(result).toBe(true)
-			expect(mockLogger.debug).toHaveBeenCalledWith(
-				'PropertyOwnershipGuard: verifyTenantOwnership result',
-				expect.objectContaining({
-					user_id: userId,
-					tenant_id: tenantId,
-					isOwner: true
-				})
-			)
-		})
-
-		it('should handle database errors gracefully', async () => {
-			const userId = 'user-123'
-			const tenantId = 'tenant-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: null,
-				error: { message: 'Tenant not found' }
-			})
-
-			mockAuthCache.getOrSet.mockImplementation(async (key, factory) => {
-				return await factory()
-			})
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { tenant_id: tenantId },
-				params: {},
-				query: {}
-			})
-
-			await expect(guard.canActivate(context)).rejects.toThrow(
-				ForbiddenException
-			)
-
-			expect(mockLogger.error).toHaveBeenCalledWith(
-				'PropertyOwnershipGuard: Database error in verifyTenantOwnership',
-				expect.objectContaining({
-					user_id: userId,
-					tenant_id: tenantId,
-					error: 'Tenant not found'
-				})
-			)
-		})
-	})
 
 	describe('Resource ID Extraction', () => {
 		it('should extract property_id from nested leaseData structure', async () => {
@@ -446,38 +240,6 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 			)
 		})
 
-		it('should extract lease_id from nested leaseData structure', async () => {
-			const userId = 'user-123'
-			const leaseId = 'lease-456'
-
-			mockSupabaseClient.single.mockResolvedValue({
-				data: {
-					owner_user_id: userId
-				},
-				error: null
-			})
-
-			mockAuthCache.getOrSet.mockResolvedValue(true)
-
-			const context = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: {
-					leaseData: {
-						lease_id: leaseId
-					}
-				},
-				params: {},
-				query: {}
-			})
-
-			const result = await guard.canActivate(context)
-
-			expect(result).toBe(true)
-			expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
-				`lease:${leaseId}:owner:${userId}`,
-				expect.any(Function)
-			)
-		})
 	})
 
 	describe('Error Handling', () => {
@@ -599,11 +361,9 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 			)
 		})
 
-		it('should use correct cache keys for different resource types', async () => {
+		it('should use correct cache key for property verification', async () => {
 			const userId = 'user-123'
 			const propertyId = 'property-456'
-			const leaseId = 'lease-789'
-			const tenantId = 'tenant-012'
 
 			mockSupabaseClient.single.mockResolvedValue({
 				data: {
@@ -628,40 +388,6 @@ describe('PropertyOwnershipGuard - Unit Tests', () => {
 
 			expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
 				`property:${propertyId}:owner:${userId}`,
-				expect.any(Function)
-			)
-
-			mockAuthCache.getOrSet.mockClear()
-
-			// Test lease cache key
-			const leaseContext = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { lease_id: leaseId },
-				params: {},
-				query: {}
-			})
-
-			await guard.canActivate(leaseContext)
-
-			expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
-				`lease:${leaseId}:owner:${userId}`,
-				expect.any(Function)
-			)
-
-			mockAuthCache.getOrSet.mockClear()
-
-			// Test tenant cache key
-			const tenantContext = createContext({
-				user: { id: userId } as AuthenticatedRequest['user'],
-				body: { tenant_id: tenantId },
-				params: {},
-				query: {}
-			})
-
-			await guard.canActivate(tenantContext)
-
-			expect(mockAuthCache.getOrSet).toHaveBeenCalledWith(
-				`tenant:${tenantId}:owner:${userId}`,
 				expect.any(Function)
 			)
 		})

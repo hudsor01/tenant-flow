@@ -15,10 +15,12 @@ import {
 	Query,
 	Req,
 	UnauthorizedException,
-	ParseUUIDPipe
+	ParseUUIDPipe,
+	UseGuards
 } from '@nestjs/common'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialService } from './financial.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -35,6 +37,7 @@ interface CreateExpenseDto {
  * Provides unified financial dashboard data.
  */
 @Controller('financials')
+@UseGuards(JwtAuthGuard)
 export class FinancialOverviewController {
 	constructor(
 		private readonly financialService: FinancialService,
@@ -60,9 +63,46 @@ export class FinancialOverviewController {
 	@Get('overview')
 	async getOverview(@Req() req: Request): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
+		const client = this.supabase.getUserClient(token)
 
 		// Get financial overview
-		const overview = await this.financialService.getOverview(token)
+		const [overview, pendingPaymentsResult, pendingExpensesResult] =
+			await Promise.all([
+			this.financialService.getOverview(token),
+			client.from('rent_payments').select('amount').eq('status', 'pending'),
+			client
+				.from('maintenance_requests')
+				.select('estimated_cost, actual_cost')
+				.in('status', ['open', 'in_progress', 'on_hold'])
+		])
+		const { data: pendingPayments, error: pendingPaymentsError } =
+			pendingPaymentsResult
+		if (pendingPaymentsError) {
+			this.logger.warn('Failed to load pending payments for receivables', {
+				error: pendingPaymentsError.message
+			})
+		}
+		const accountsReceivable = pendingPaymentsError
+			? 0
+			: (pendingPayments ?? []).reduce(
+					(sum, payment) => sum + (payment.amount ?? 0),
+					0
+				)
+		const { data: pendingExpenses, error: pendingExpensesError } =
+			pendingExpensesResult
+		if (pendingExpensesError) {
+			this.logger.warn('Failed to load pending expenses for payables', {
+				error: pendingExpensesError.message
+			})
+		}
+		const accountsPayable = pendingExpensesError
+			? 0
+			: (pendingExpenses ?? []).reduce(
+					(sum, expense) =>
+						sum +
+						((expense.actual_cost ?? expense.estimated_cost) ?? 0),
+					0
+				)
 
 		// Transform to frontend format
 		const data = {
@@ -76,8 +116,8 @@ export class FinancialOverviewController {
 				net_income:
 					(overview as Record<string, Record<string, number>>)?.summary
 						?.netIncome ?? 0,
-				accounts_receivable: 0, // TODO: Calculate from pending payments
-				accounts_payable: 0 // TODO: Calculate from pending expenses
+				accounts_receivable: accountsReceivable,
+				accounts_payable: accountsPayable
 			},
 			highlights: [
 				{

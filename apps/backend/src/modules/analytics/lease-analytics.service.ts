@@ -42,9 +42,7 @@ export class LeaseAnalyticsService {
 	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			const res = result as {
 				data?: T | null
 				error?: { message?: string } | null

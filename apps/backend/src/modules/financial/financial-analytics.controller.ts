@@ -3,10 +3,12 @@ import {
 	Get,
 	Query,
 	Req,
-	UnauthorizedException
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialService } from './financial.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -19,6 +21,7 @@ import { AppLogger } from '../../logger/app-logger.service'
  * hooks and UI components can consume live data again.
  */
 @Controller('financial/analytics')
+@UseGuards(JwtAuthGuard)
 export class FinancialAnalyticsPublicController {
 	constructor(
 		private readonly financialService: FinancialService,

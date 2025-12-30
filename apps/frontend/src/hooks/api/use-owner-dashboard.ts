@@ -22,7 +22,7 @@ import {
 } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { Activity } from '@repo/shared/types/activity'
+// Activity type not required in unified fetch; use ActivityItem from core
 import type {
 	DashboardStats,
 	ActivityItem,
@@ -39,6 +39,154 @@ import {
 	ownerDashboardQueries
 } from './queries/owner-dashboard-queries'
 
+// Unified dashboard query key (single source of truth)
+const DASHBOARD_QUERY_KEY = ownerDashboardKeys.analytics.pageData()
+
+// Fetcher for unified dashboard payload
+const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
+	const response = await apiRequest<{
+		stats: DashboardStats
+		activity: ActivityItem[]
+		metricTrends?: {
+			occupancyRate: MetricTrend | null
+			activeTenants: MetricTrend | null
+			monthlyRevenue: MetricTrend | null
+			openMaintenance: MetricTrend | null
+		}
+		timeSeries?: {
+			occupancyRate: TimeSeriesDataPoint[]
+			monthlyRevenue: TimeSeriesDataPoint[]
+		}
+		propertyPerformance?: PropertyPerformance[]
+	}>("/api/v1/owner/analytics/dashboard")
+
+	return {
+		stats: response.stats,
+		activity: response.activity ?? [],
+		metricTrends: response.metricTrends ?? {
+			occupancyRate: null,
+			activeTenants: null,
+			monthlyRevenue: null,
+			openMaintenance: null
+		},
+		timeSeries: response.timeSeries ?? {
+			occupancyRate: [],
+			monthlyRevenue: []
+		},
+		propertyPerformance: response.propertyPerformance ?? []
+	}
+}
+
+// Base query options reused across hooks
+const DASHBOARD_BASE_QUERY_OPTIONS = {
+	queryKey: DASHBOARD_QUERY_KEY,
+	queryFn: fetchOwnerDashboardData,
+	...QUERY_CACHE_TIMES.STATS,
+	refetchIntervalInBackground: false,
+	refetchOnWindowFocus: false,
+	retry: 2,
+	retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 5000),
+	structuralSharing: true
+} as const
+
+// Ensure unified data exists in cache and return it
+const ensureDashboardData = (queryClient: ReturnType<typeof useQueryClient>) =>
+	queryClient.ensureQueryData<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
+
+// Unified hook to get full dashboard data (for SSR or rare full-load cases)
+export function useOwnerDashboardData() {
+	return useQuery<OwnerDashboardData>(DASHBOARD_BASE_QUERY_OPTIONS)
+}
+
+// Stats hooks (derive from unified payload)
+export function useDashboardStatsSuspense() {
+	const queryClient = useQueryClient()
+	return useSuspenseQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: ownerDashboardKeys.analytics.stats(),
+		queryFn: async (): Promise<DashboardStatsData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { stats: data.stats, metricTrends: data.metricTrends }
+		},
+		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
+		gcTime: QUERY_CACHE_TIMES.STATS.gcTime
+	})
+}
+
+export function useDashboardStats() {
+	const queryClient = useQueryClient()
+	return useQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: ownerDashboardKeys.analytics.stats(),
+		queryFn: async (): Promise<DashboardStatsData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { stats: data.stats, metricTrends: data.metricTrends }
+		},
+		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
+		gcTime: QUERY_CACHE_TIMES.STATS.gcTime,
+		refetchOnWindowFocus: false
+	})
+}
+
+// Charts hooks (deferred)
+export function useDashboardChartsSuspense() {
+	const queryClient = useQueryClient()
+	return useSuspenseQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
+		queryFn: async (): Promise<DashboardChartsData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { timeSeries: data.timeSeries }
+		},
+		staleTime: QUERY_CACHE_TIMES.DETAIL.staleTime,
+		gcTime: QUERY_CACHE_TIMES.DETAIL.gcTime
+	})
+}
+
+export function useDashboardCharts() {
+	const queryClient = useQueryClient()
+	return useQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
+		queryFn: async (): Promise<DashboardChartsData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { timeSeries: data.timeSeries }
+		},
+		staleTime: QUERY_CACHE_TIMES.DETAIL.staleTime,
+		gcTime: QUERY_CACHE_TIMES.DETAIL.gcTime,
+		refetchOnWindowFocus: false
+	})
+}
+
+// Activity hooks (deferred)
+export function useDashboardActivitySuspense() {
+	const queryClient = useQueryClient()
+	return useSuspenseQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: ownerDashboardKeys.analytics.activity(),
+		queryFn: async (): Promise<DashboardActivityData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { activities: data.activity }
+		},
+		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
+		gcTime: QUERY_CACHE_TIMES.STATS.gcTime
+	})
+}
+
+export function useDashboardActivity() {
+	const queryClient = useQueryClient()
+	return useQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
+		queryKey: ownerDashboardKeys.analytics.activity(),
+		queryFn: async (): Promise<DashboardActivityData> => {
+			const data = await ensureDashboardData(queryClient)
+			return { activities: data.activity }
+		},
+		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
+		gcTime: QUERY_CACHE_TIMES.STATS.gcTime,
+		refetchOnWindowFocus: false
+	})
+}
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -64,181 +212,11 @@ export interface DashboardActivityData {
 	activities: ActivityItem[]
 }
 
-// ============================================================================
-// CRITICAL PATH: Stats (Above-fold, loads first)
-// ============================================================================
+// (legacy direct stats hooks removed; unified hooks defined below)
 
-/**
- * Dashboard stats - CRITICAL PATH
- * Uses useSuspenseQuery for Suspense integration
- * This is the first thing users see - must load fast
- */
-export function useDashboardStatsSuspense() {
-	return useSuspenseQuery({
-		queryKey: ownerDashboardKeys.analytics.stats(),
-		queryFn: async (): Promise<DashboardStatsData> => {
-			const response = await apiRequest<{
-				success: boolean
-				data: DashboardStats
-				message?: string
-			}>('/api/v1/owner/analytics/stats')
+// (legacy direct charts hooks removed; unified hooks defined below)
 
-			// Backend returns { success, data, message } - extract data
-			const stats = response.data
-
-			return {
-				stats,
-				metricTrends: {
-					occupancyRate: null,
-					activeTenants: null,
-					monthlyRevenue: null,
-					openMaintenance: null
-				}
-			}
-		},
-		staleTime: 60 * 1000, // 1 minute - stats change frequently
-		gcTime: 5 * 60 * 1000
-	})
-}
-
-/**
- * Dashboard stats - Non-suspense version for conditional rendering
- */
-export function useDashboardStats() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.analytics.stats(),
-		queryFn: async (): Promise<DashboardStatsData> => {
-			const response = await apiRequest<{
-				success: boolean
-				data: DashboardStats
-				message?: string
-			}>('/api/v1/owner/analytics/stats')
-
-			// Backend returns { success, data, message } - extract data
-			const stats = response.data
-
-			return {
-				stats,
-				metricTrends: {
-					occupancyRate: null,
-					activeTenants: null,
-					monthlyRevenue: null,
-					openMaintenance: null
-				}
-			}
-		},
-		...QUERY_CACHE_TIMES.STATS,
-		refetchOnWindowFocus: true
-	})
-}
-
-// ============================================================================
-// DEFERRED: Charts (Below-fold, loads on viewport)
-// ============================================================================
-
-/**
- * Dashboard charts - DEFERRED
- * Time series data for occupancy and revenue charts
- */
-export function useDashboardChartsSuspense() {
-	return useSuspenseQuery({
-		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
-		queryFn: async (): Promise<DashboardChartsData> => {
-			const response = await apiRequest<{
-				occupancyTrends: Array<{ month: string; occupancy_rate: number }>
-				revenueTrends: Array<{ month: string; revenue: number }>
-			}>('/api/v1/owner/analytics/trends')
-
-			return {
-				timeSeries: {
-					occupancyRate: (response.occupancyTrends ?? []).map(t => ({
-						date: t.month,
-						value: t.occupancy_rate
-					})),
-					monthlyRevenue: (response.revenueTrends ?? []).map(t => ({
-						date: t.month,
-						value: t.revenue
-					}))
-				}
-			}
-		},
-		staleTime: 5 * 60 * 1000, // 5 minutes - trends don't change often
-		gcTime: 10 * 60 * 1000
-	})
-}
-
-/**
- * Dashboard charts - Non-suspense version
- */
-export function useDashboardCharts() {
-	return useQuery({
-		queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
-		queryFn: async (): Promise<DashboardChartsData> => {
-			const response = await apiRequest<{
-				occupancyTrends: Array<{ month: string; occupancy_rate: number }>
-				revenueTrends: Array<{ month: string; revenue: number }>
-			}>('/api/v1/owner/analytics/trends')
-
-			return {
-				timeSeries: {
-					occupancyRate: (response.occupancyTrends ?? []).map(t => ({
-						date: t.month,
-						value: t.occupancy_rate
-					})),
-					monthlyRevenue: (response.revenueTrends ?? []).map(t => ({
-						date: t.month,
-						value: t.revenue
-					}))
-				}
-			}
-		},
-		...QUERY_CACHE_TIMES.DETAIL,
-		refetchOnWindowFocus: false
-	})
-}
-
-// ============================================================================
-// DEFERRED: Activity Feed
-// ============================================================================
-
-/**
- * Dashboard activity - DEFERRED
- * Recent activity feed
- */
-export function useDashboardActivitySuspense() {
-	return useSuspenseQuery({
-		queryKey: ownerDashboardKeys.analytics.activity(),
-		queryFn: async (): Promise<DashboardActivityData> => {
-			const response = await apiRequest<{ activities: Activity[] }>(
-				'/api/v1/owner/analytics/activity'
-			)
-			return {
-				activities: response.activities ?? []
-			}
-		},
-		staleTime: 2 * 60 * 1000, // 2 minutes
-		gcTime: 5 * 60 * 1000
-	})
-}
-
-/**
- * Dashboard activity - Non-suspense version
- */
-export function useDashboardActivity() {
-	return useQuery({
-		queryKey: ownerDashboardKeys.analytics.activity(),
-		queryFn: async (): Promise<DashboardActivityData> => {
-			const response = await apiRequest<{ activities: Activity[] }>(
-				'/api/v1/owner/analytics/activity'
-			)
-			return {
-				activities: response.activities ?? []
-			}
-		},
-		...QUERY_CACHE_TIMES.STATS,
-		refetchOnWindowFocus: true
-	})
-}
+// (legacy direct activity hooks removed; unified hooks defined below)
 
 // ============================================================================
 // DEFERRED: Property Performance
@@ -301,55 +279,7 @@ type OwnerDashboardData = {
 	propertyPerformance: PropertyPerformance[]
 }
 
-/**
- * Unified dashboard data hook (Legacy)
- * Fetches ALL dashboard data in a SINGLE API request
- * Use individual hooks for React 19.2 progressive loading
- */
-export function useOwnerDashboardData() {
-	return useQuery<OwnerDashboardData>({
-		queryKey: [...ownerDashboardKeys.all, 'unified-dashboard'],
-		queryFn: async () => {
-			const response = await apiRequest<{
-				stats: DashboardStats
-				activity: ActivityItem[]
-				propertyPerformance: PropertyPerformance[]
-				metricTrends: {
-					occupancyRate: MetricTrend | null
-					activeTenants: MetricTrend | null
-					monthlyRevenue: MetricTrend | null
-					openMaintenance: MetricTrend | null
-				}
-				timeSeries: {
-					occupancyRate: TimeSeriesDataPoint[]
-					monthlyRevenue: TimeSeriesDataPoint[]
-				}
-			}>('/api/v1/owner/analytics/page-data')
-
-			return {
-				stats: response.stats,
-				activity: response.activity ?? [],
-				metricTrends: response.metricTrends ?? {
-					occupancyRate: null,
-					activeTenants: null,
-					monthlyRevenue: null,
-					openMaintenance: null
-				},
-				timeSeries: response.timeSeries ?? {
-					occupancyRate: [],
-					monthlyRevenue: []
-				},
-				propertyPerformance: response.propertyPerformance ?? []
-			}
-		},
-		...QUERY_CACHE_TIMES.STATS,
-		refetchIntervalInBackground: false,
-		refetchOnWindowFocus: true,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
-		structuralSharing: true
-	})
-}
+// unified hook implementation declared above; keep type only here
 
 // ============================================================================
 // PREFETCH HOOKS
@@ -363,26 +293,8 @@ export function usePrefetchDashboard() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		// Prefetch stats (critical)
-		queryClient.prefetchQuery({
-			queryKey: ownerDashboardKeys.analytics.stats(),
-			queryFn: () => apiRequest('/api/v1/owner/analytics/stats'),
-			staleTime: 60 * 1000
-		})
-
-		// Prefetch charts (deferred)
-		queryClient.prefetchQuery({
-			queryKey: [...ownerDashboardKeys.analytics.all(), 'charts'],
-			queryFn: () => apiRequest('/api/v1/owner/analytics/trends'),
-			staleTime: 5 * 60 * 1000
-		})
-
-		// Prefetch activity (deferred)
-		queryClient.prefetchQuery({
-			queryKey: ownerDashboardKeys.analytics.activity(),
-			queryFn: () => apiRequest('/api/v1/owner/analytics/activity'),
-			staleTime: 2 * 60 * 1000
-		})
+		// Prefetch unified dashboard payload (rest derives from this)
+		queryClient.prefetchQuery(DASHBOARD_BASE_QUERY_OPTIONS)
 	}
 }
 
@@ -473,6 +385,3 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		structuralSharing: true
 	})
 }
-
-// Re-export query keys
-export { ownerDashboardKeys } from './queries/owner-dashboard-queries'

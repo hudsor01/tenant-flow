@@ -6,7 +6,7 @@
  */
 
 import { render, screen } from '#test/utils/test-render'
-import { LeaseForm } from '../lease-form.client'
+import { LeaseForm } from '../lease-form'
 import type { Lease } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'

@@ -16,17 +16,25 @@ type RpcFunctionArgs<T extends RpcFunctionName> =
 
 type RpcAttemptResult<T> = {
 	data: T | null
-	error: { message?: string } | null | undefined
+	error: { message: string } | null
 	attempts: number
 }
 
-type RpcCacheOptions = {
+type RpcOptions = {
+	/** Maximum retry attempts (default: 3) */
+	maxAttempts?: number
+	/** Backoff delay in ms (default: 500) */
+	backoffMs?: number
+	/** Request timeout in ms (default: 10000) */
+	timeoutMs?: number
+	/** Enable caching */
 	cache?: boolean
+	/** Custom cache key (auto-generated if not provided) */
 	cacheKey?: string
+	/** Cache tier: 'short' | 'medium' | 'long' */
 	cacheTier?: CacheTier
+	/** Custom cache TTL in ms */
 	cacheTtlMs?: number
-	client?: SupabaseClient<Database>
-	source?: 'admin' | 'user' | 'service'
 }
 
 type RpcBuilder<T> = Promise<{
@@ -46,220 +54,207 @@ export class SupabaseRpcService {
 		private readonly instrumentation: SupabaseInstrumentationService
 	) {}
 
-	async rpcWithRetries<T extends RpcFunctionName>(
+	/**
+	 * Execute an RPC call with automatic retries, caching, and instrumentation
+	 */
+	async rpc<T extends RpcFunctionName>(
 		client: SupabaseClient<Database>,
 		fn: T,
 		args: RpcFunctionArgs<T>,
-		maxAttempts?: number,
-		backoffMs?: number,
-		timeoutMs?: number,
-		options?: RpcCacheOptions
+		options?: RpcOptions
 	): Promise<RpcAttemptResult<Database['public']['Functions'][T]['Returns']>>
-	async rpcWithRetries<T = unknown>(
+	async rpc<T = unknown>(
 		client: SupabaseClient<Database>,
 		fn: string,
 		args: Record<string, unknown>,
-		maxAttempts?: number,
-		backoffMs?: number,
-		timeoutMs?: number,
-		options?: RpcCacheOptions
+		options?: RpcOptions
 	): Promise<RpcAttemptResult<T>>
-	async rpcWithRetries<T = unknown>(
+	async rpc<T = unknown>(
 		client: SupabaseClient<Database>,
 		fn: string,
 		args: Record<string, unknown>,
-		maxAttempts = RPC_MAX_RETRIES,
-		backoffMs = RPC_BACKOFF_MS,
-		timeoutMs = RPC_TIMEOUT_MS,
-		options?: RpcCacheOptions
+		options: RpcOptions = {}
 	): Promise<RpcAttemptResult<T>> {
-		const cacheEnabled = !!options?.cache && this.cacheService.isEnabled()
+		const {
+			maxAttempts = RPC_MAX_RETRIES,
+			backoffMs = RPC_BACKOFF_MS,
+			timeoutMs = RPC_TIMEOUT_MS,
+			cache = false,
+			cacheKey: customCacheKey,
+			cacheTier,
+			cacheTtlMs
+		} = options
+
+		const cacheEnabled = cache && this.cacheService.isEnabled()
 		const cacheKey = cacheEnabled
-			? this.cacheService.buildRpcCacheKey(fn, args, options?.cacheKey)
+			? this.cacheService.buildRpcCacheKey(fn, args, customCacheKey)
 			: null
 		const startTime = Date.now()
 		let lastErr: unknown = null
 		let attemptCount = 0
 
+		// Check cache first
 		if (cacheEnabled && cacheKey) {
 			const cached = await this.cacheService.get<T>(cacheKey)
 			if (cached !== null) {
 				this.instrumentation.recordRpcCacheHit(fn)
 				this.instrumentation.recordRpcCall(fn, 0, 'cache')
-				return { data: cached as T | null, error: null, attempts: 0 }
+				return { data: cached, error: null, attempts: 0 }
 			}
 			this.instrumentation.recordRpcCacheMiss(fn)
 		}
 
-		const isTransientMessage = (msg: string | undefined): boolean => {
-			if (!msg) return false
-			const m = msg.toLowerCase()
-			return (
-				m.includes('network') ||
-				m.includes('timeout') ||
-				m.includes('temporar') ||
-				m.includes('unavailable') ||
-				m.includes('try again') ||
-				m.includes('rate limit') ||
-				m.includes('429') ||
-				m.includes('503') ||
-				m.includes('econnreset') ||
-				m.includes('econnrefused') ||
-				m.includes('etimedout') ||
-				m.includes('connection reset')
-			)
-		}
-
+		// Retry loop
 		for (let i = 0; i < maxAttempts; i++) {
 			attemptCount = i + 1
 			const ac = new AbortController()
-			let timer: NodeJS.Timeout | undefined
-			if (typeof timeoutMs === 'number' && timeoutMs > 0) {
-				timer = setTimeout(() => ac.abort(), timeoutMs)
-			}
+			const timer =
+				timeoutMs > 0 ? setTimeout(() => ac.abort(), timeoutMs) : undefined
 
 			try {
 				const rpcBuilder = client.rpc(
 					fn as RpcFunctionName,
 					args as RpcFunctionArgs<RpcFunctionName>
 				) as unknown as RpcBuilder<T>
+
 				const result = rpcBuilder?.abortSignal
 					? await rpcBuilder.abortSignal(ac.signal)
 					: await rpcBuilder
 
 				if (timer) clearTimeout(timer)
 
-				const maybeErrorMsg =
-					result.error?.message ??
-					(result.error ? String(result.error) : undefined)
+				// Handle RPC error response
 				if (result.error) {
-					this.logger.debug(
-						`Supabase RPC returned error for ${fn}: ${maybeErrorMsg}`
-					)
-					if (isTransientMessage(maybeErrorMsg)) {
+					const errorMsg = result.error.message ?? String(result.error)
+					this.logger.debug(`Supabase RPC error for ${fn}: ${errorMsg}`)
+
+					if (this.isTransientError(errorMsg)) {
 						lastErr = result.error
-						const delay = backoffMs * Math.pow(2, i)
-						const jitter = Math.floor(Math.random() * Math.min(1000, delay))
-						await new Promise(r => setTimeout(r, delay + jitter))
+						await this.backoff(backoffMs, i)
 						continue
 					}
-					this.instrumentation.trackQuery('rpc', fn)
-					this.instrumentation.recordRpcCall(
-						fn,
-						Date.now() - startTime,
-						'error'
-					)
+
+					this.recordRpcMetrics(fn, startTime, 'error')
 					return {
 						data: result.data ?? null,
-						error: result.error ?? null,
+						error: { message: errorMsg },
 						attempts: attemptCount
 					}
 				}
 
-				this.instrumentation.trackQuery('rpc', fn)
-				this.instrumentation.recordRpcCall(
-					fn,
-					Date.now() - startTime,
-					'success'
-				)
-				if (
-					cacheEnabled &&
-					cacheKey &&
-					result.data !== null &&
-					result.error === null
-				) {
-					const cacheOptions =
-						options?.cacheTier || typeof options?.cacheTtlMs === 'number'
-							? {
-									...(options?.cacheTier ? { tier: options.cacheTier } : {}),
-									...(typeof options?.cacheTtlMs === 'number'
-										? { ttlMs: options.cacheTtlMs }
-										: {})
-								}
-							: undefined
-					await this.cacheService.set(cacheKey, result.data, cacheOptions)
+				// Success - cache and return
+				this.recordRpcMetrics(fn, startTime, 'success')
+
+				if (cacheEnabled && cacheKey && result.data !== null) {
+					await this.cacheService.set(cacheKey, result.data, {
+						...(cacheTier && { tier: cacheTier }),
+						...(cacheTtlMs && { ttlMs: cacheTtlMs })
+					})
 				}
-				return {
-					data: result.data ?? null,
-					error: result.error ?? null,
-					attempts: attemptCount
-				}
-			} catch (errUnknown) {
+
+				return { data: result.data ?? null, error: null, attempts: attemptCount }
+			} catch (err) {
 				if (timer) clearTimeout(timer)
-				lastErr = errUnknown
-				const msg =
-					errUnknown instanceof Error ? errUnknown.message : String(errUnknown)
-				this.logger.debug(
-					`Supabase RPC attempt ${attemptCount} failed for ${fn}: ${msg}`
-				)
+				lastErr = err
+				const msg = err instanceof Error ? err.message : String(err)
+				this.logger.debug(`Supabase RPC attempt ${attemptCount} failed: ${msg}`)
 
 				const isAbort =
-					typeof errUnknown === 'object' &&
-					errUnknown !== null &&
-					'name' in errUnknown &&
-					(errUnknown as { name?: string }).name === 'AbortError'
+					typeof err === 'object' &&
+					err !== null &&
+					(err as { name?: string }).name === 'AbortError'
 
-				if (isAbort || isTransientMessage(msg)) {
-					const delay = backoffMs * Math.pow(2, i)
-					const jitter = Math.floor(Math.random() * Math.min(1000, delay))
-					await new Promise(r => setTimeout(r, delay + jitter))
+				if (isAbort || this.isTransientError(msg)) {
+					await this.backoff(backoffMs, i)
 					continue
 				}
-
 				break
 			}
 		}
 
+		// All retries exhausted
 		const finalMessage =
-			lastErr instanceof Error
-				? lastErr.message
-				: String(lastErr ?? 'Unknown error')
-		this.instrumentation.trackQuery('rpc', fn)
-		this.instrumentation.recordRpcCall(fn, Date.now() - startTime, 'error')
-		return {
-			data: null,
-			error: { message: finalMessage },
-			attempts: attemptCount
-		}
+			lastErr instanceof Error ? lastErr.message : String(lastErr ?? 'Unknown')
+		this.recordRpcMetrics(fn, startTime, 'error')
+		return { data: null, error: { message: finalMessage }, attempts: attemptCount }
 	}
 
+	/**
+	 * Convenience method for RPC with caching enabled
+	 */
 	async rpcWithCache<T extends RpcFunctionName>(
 		client: SupabaseClient<Database>,
 		fn: T,
 		args: RpcFunctionArgs<T>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	): Promise<RpcAttemptResult<Database['public']['Functions'][T]['Returns']>>
 	async rpcWithCache<T = unknown>(
 		client: SupabaseClient<Database>,
 		fn: string,
 		args: Record<string, unknown>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	): Promise<RpcAttemptResult<T>>
 	async rpcWithCache<T = unknown>(
 		client: SupabaseClient<Database>,
 		fn: string,
 		args: Record<string, unknown>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	): Promise<RpcAttemptResult<T>> {
-		return this.rpcWithRetries<T>(
-			client,
-			fn,
-			args,
-			RPC_MAX_RETRIES,
-			RPC_BACKOFF_MS,
-			RPC_TIMEOUT_MS,
-			{
-				...options,
-				cache: true,
-				source: options?.source ?? 'service'
-			}
+		return this.rpc<T>(client, fn, args, { ...options, cache: true })
+	}
+
+	/**
+	 * @deprecated Use rpc() instead. Will be removed in next major version.
+	 */
+	async rpcWithRetries<T = unknown>(
+		client: SupabaseClient<Database>,
+		fn: string,
+		args: Record<string, unknown>,
+		maxAttempts?: number,
+		backoffMs?: number,
+		timeoutMs?: number,
+		options?: { cache?: boolean; cacheKey?: string; cacheTier?: CacheTier; cacheTtlMs?: number }
+	): Promise<RpcAttemptResult<T>> {
+		return this.rpc<T>(client, fn, args, {
+			...(maxAttempts !== undefined && { maxAttempts }),
+			...(backoffMs !== undefined && { backoffMs }),
+			...(timeoutMs !== undefined && { timeoutMs }),
+			...options
+		})
+	}
+
+	private isTransientError(msg: string): boolean {
+		const m = msg.toLowerCase()
+		return (
+			m.includes('network') ||
+			m.includes('timeout') ||
+			m.includes('temporar') ||
+			m.includes('unavailable') ||
+			m.includes('try again') ||
+			m.includes('rate limit') ||
+			m.includes('429') ||
+			m.includes('503') ||
+			m.includes('econnreset') ||
+			m.includes('econnrefused') ||
+			m.includes('etimedout') ||
+			m.includes('connection reset')
 		)
+	}
+
+	private async backoff(baseMs: number, attempt: number): Promise<void> {
+		const delay = baseMs * Math.pow(2, attempt)
+		const jitter = Math.floor(Math.random() * Math.min(1000, delay))
+		await new Promise(r => setTimeout(r, delay + jitter))
+	}
+
+	private recordRpcMetrics(
+		fn: string,
+		startTime: number,
+		status: 'success' | 'error' | 'cache'
+	): void {
+		this.instrumentation.trackQuery('rpc', fn)
+		this.instrumentation.recordRpcCall(fn, Date.now() - startTime, status)
 	}
 }
 
-export type {
-	RpcAttemptResult,
-	RpcCacheOptions,
-	RpcFunctionArgs,
-	RpcFunctionName
-}
+export type { RpcAttemptResult, RpcOptions, RpcFunctionArgs, RpcFunctionName }

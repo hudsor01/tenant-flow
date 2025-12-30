@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing'
-import { ForbiddenException } from '@nestjs/common'
+import { ForbiddenException, ServiceUnavailableException } from '@nestjs/common'
 import type { ExecutionContext } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { createMockUser } from '../../test-utils/mocks'
@@ -23,8 +23,7 @@ describe('SubscriptionGuard', () => {
 		}
 
 		const mockSupabaseService = {
-			rpcWithRetries: jest.fn(),
-			getAdminClient: jest.fn()
+			rpcWithRetries: jest.fn()
 		}
 
 		const module = await Test.createTestingModule({
@@ -112,7 +111,11 @@ describe('SubscriptionGuard', () => {
 		)
 
 		expect(result).toBe(true)
-		expect(supabaseService.getAdminClient).not.toHaveBeenCalled()
+		expect(supabaseService.rpcWithRetries).toHaveBeenCalledWith(
+			'check_user_feature_access',
+			{ p_user_id: 'owner-1', p_feature: 'basic_properties' },
+			2
+		)
 	})
 
 	it('bypasses guard when SkipSubscriptionCheck metadata is present', async () => {
@@ -144,21 +147,6 @@ describe('SubscriptionGuard', () => {
 			error: null
 		})
 
-		const queryBuilder = {
-			select: jest.fn().mockReturnThis(),
-			eq: jest.fn().mockReturnThis(),
-			single: jest.fn().mockResolvedValue({
-				data: {
-					stripe_customer_id: null
-				},
-				error: null
-			})
-		}
-
-		supabaseService.getAdminClient.mockReturnValue({
-			from: jest.fn().mockReturnValue(queryBuilder)
-		} as ReturnType<SupabaseService['getAdminClient']>)
-
 		await expect(
 			guard.canActivate(
 				createContext({
@@ -172,6 +160,47 @@ describe('SubscriptionGuard', () => {
 			)
 		).rejects.toThrow(ForbiddenException)
 
-		expect(queryBuilder.select).toHaveBeenCalledWith('stripe_customer_id')
+		expect(supabaseService.rpcWithRetries).toHaveBeenCalledWith(
+			'check_user_feature_access',
+			{ p_user_id: 'owner-3', p_feature: 'basic_properties' },
+			2
+		)
+	})
+
+	it('throws ServiceUnavailableException when RPC fails', async () => {
+		mockMetadata()
+		supabaseService.rpcWithRetries.mockResolvedValue({
+			data: null,
+			error: { message: 'Database connection failed' }
+		})
+
+		await expect(
+			guard.canActivate(
+				createContext({
+					user: createMockUser({
+						id: 'owner-4',
+						email: 'owner@example.com',
+						app_metadata: { user_type: 'OWNER' }
+					})
+				})
+			)
+		).rejects.toThrow(ServiceUnavailableException)
+	})
+
+	it('allows access for public routes', async () => {
+		mockMetadata({ isPublic: true })
+
+		const result = await guard.canActivate(
+			createContext({
+				user: createMockUser({
+					id: 'owner-5',
+					email: 'owner@example.com',
+					app_metadata: { user_type: 'OWNER' }
+				})
+			})
+		)
+
+		expect(result).toBe(true)
+		expect(supabaseService.rpcWithRetries).not.toHaveBeenCalled()
 	})
 })

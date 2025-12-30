@@ -3,13 +3,16 @@ import {
 	Controller,
 	Get,
 	Query,
-	UnauthorizedException
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { CashFlowService } from './cash-flow.service'
 import type { CashFlowData } from './cash-flow.service'
 
 @Controller('financials/cash-flow')
+@UseGuards(JwtAuthGuard)
 export class CashFlowController {
 	constructor(private readonly cashFlowService: CashFlowService) {}
 

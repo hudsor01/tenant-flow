@@ -267,6 +267,7 @@ export interface TenantWithLeaseInfo {
 	identity_verified: boolean | null
 	ssn_last_four: string | null
 	stripe_customer_id: string | null
+	autopay_enabled?: boolean | null
 	updated_at: string | null
 	name?: string
 	email?: string

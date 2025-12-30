@@ -26,7 +26,7 @@ import {
 	type ReactNode
 } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 import type { SseEvent, SseEventType } from '@repo/shared/events/sse-events'
 import { isSseEvent, SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'

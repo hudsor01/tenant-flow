@@ -29,6 +29,7 @@ function createMockProperty(overrides?: Partial<Property>): Property {
 }
 import { PropertiesService } from './properties.service'
 import { DashboardAnalyticsService } from '../analytics/dashboard-analytics.service'
+import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
 
 // Helper function to create mock Request objects
 function createMockRequest(
@@ -135,6 +136,13 @@ describe('PropertiesService', () => {
 						invalidate: jest.fn().mockReturnValue(0),
 						invalidateByEntity: jest.fn().mockReturnValue(0),
 						invalidateByUser: jest.fn().mockReturnValue(0)
+					}
+				},
+				{
+					provide: PropertyCacheInvalidationService,
+					useValue: {
+						invalidatePropertyCaches: jest.fn(),
+						invalidateUnitCaches: jest.fn()
 					}
 				},
 				{
@@ -449,35 +457,9 @@ describe('PropertiesService', () => {
 		})
 	})
 
-	describe('remove', () => {
-		it('should soft delete a property by marking it inactive', async () => {
-			const mockExisting = createMockProperty({ id: 'prop-1' })
+	// Note: 'remove' method tests moved to property-lifecycle.service.spec.ts
+	// The remove method was extracted to PropertyLifecycleService
 
-			jest.spyOn(service, 'findOne').mockResolvedValue(mockExisting)
-
-			const mockQueryBuilder = {
-				update: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				select: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValue({ data: mockExisting, error: null })
-			}
-
-			mockUserClient.from.mockReturnValue(mockQueryBuilder)
-
-			const result = await service.remove(
-				createMockRequest('user-123'),
-				'prop-1'
-			)
-
-			expect(result).toEqual({
-				success: true,
-				message: 'Property deleted successfully'
-			})
-			expect(mockQueryBuilder.update).toHaveBeenCalledWith(
-				expect.objectContaining({ status: 'inactive' })
-			)
-		})
-	})
 
 	describe('findAllWithUnits', () => {
 		it('should return properties with units and apply search filter', async () => {

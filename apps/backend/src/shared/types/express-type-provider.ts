@@ -1,20 +1,7 @@
 /**
  * Type provider utilities for Express JSON Schema validation
- * Moved large interfaces to @repo/shared for centralization
  */
 
-import type {
-	ExpressTypeProvider,
-	JSONSchema as JSONSchemaType
-} from '@repo/shared/types/backend-domain'
+import type { JSONSchema as JSONSchemaType } from '@repo/shared/types/backend-domain'
 
 export type JSONSchema = JSONSchemaType
-
-export const defaultTypeProvider: ExpressTypeProvider = {
-	output: {},
-	input: {},
-	serializer: {
-		fromArray: (array: unknown[]) => array,
-		fromObject: (object: Record<string, unknown>) => object
-	}
-}

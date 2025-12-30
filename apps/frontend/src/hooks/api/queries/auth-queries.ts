@@ -8,7 +8,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import type { AuthSession } from '@repo/shared/types/auth'
 
 /**

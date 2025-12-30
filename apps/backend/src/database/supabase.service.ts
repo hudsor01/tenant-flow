@@ -9,13 +9,7 @@ import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Request } from 'express'
-import {
-	SUPABASE_ADMIN_CLIENT,
-	RPC_MAX_RETRIES,
-	RPC_BACKOFF_MS,
-	RPC_TIMEOUT_MS,
-	SUPABASE_ERROR_CODES
-} from './supabase.constants'
+import { SUPABASE_ADMIN_CLIENT, SUPABASE_ERROR_CODES } from './supabase.constants'
 import {
 	SupabaseAuthTokenResolver,
 	type ResolvedSupabaseToken
@@ -29,7 +23,7 @@ import { AppLogger } from '../logger/app-logger.service'
 import { MetricsService } from '../modules/metrics/metrics.service'
 import {
 	SupabaseRpcService,
-	type RpcCacheOptions,
+	type RpcOptions,
 	type RpcFunctionArgs,
 	type RpcFunctionName
 } from './supabase-rpc.service'
@@ -127,13 +121,16 @@ export class SupabaseService implements OnModuleDestroy {
 		return this.instrumentation.instrumentClient(this.adminClient, 'admin')
 	}
 
+	/**
+	 * @deprecated Use rpc() instead. Will be removed in next major version.
+	 */
 	async rpcWithRetries<T extends RpcFunctionName>(
 		fn: T,
 		args: RpcFunctionArgs<T>,
 		maxAttempts?: number,
 		backoffMs?: number,
 		timeoutMs?: number,
-		options?: RpcCacheOptions
+		options?: Omit<RpcOptions, 'maxAttempts' | 'backoffMs' | 'timeoutMs'>
 	): Promise<{
 		data: unknown
 		error?: { message?: string } | null | undefined
@@ -145,7 +142,7 @@ export class SupabaseService implements OnModuleDestroy {
 		maxAttempts?: number,
 		backoffMs?: number,
 		timeoutMs?: number,
-		options?: RpcCacheOptions
+		options?: Omit<RpcOptions, 'maxAttempts' | 'backoffMs' | 'timeoutMs'>
 	): Promise<{
 		data: unknown
 		error?: { message?: string } | null | undefined
@@ -157,23 +154,20 @@ export class SupabaseService implements OnModuleDestroy {
 		maxAttempts?: number,
 		backoffMs?: number,
 		timeoutMs?: number,
-		options?: RpcCacheOptions
+		options?: Omit<RpcOptions, 'maxAttempts' | 'backoffMs' | 'timeoutMs'>
 	) {
-		return this.rpcService.rpcWithRetries(
-			options?.client ?? this.adminClient,
-			fn,
-			args,
-			maxAttempts ?? RPC_MAX_RETRIES,
-			backoffMs ?? RPC_BACKOFF_MS,
-			timeoutMs ?? RPC_TIMEOUT_MS,
-			options
-		)
+		return this.rpcService.rpc(this.adminClient, fn, args, {
+			...(maxAttempts !== undefined && { maxAttempts }),
+			...(backoffMs !== undefined && { backoffMs }),
+			...(timeoutMs !== undefined && { timeoutMs }),
+			...options
+		})
 	}
 
 	async rpcWithCache<T extends RpcFunctionName>(
 		fn: T,
 		args: RpcFunctionArgs<T>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	): Promise<{
 		data: unknown
 		error?: { message?: string } | null | undefined
@@ -182,7 +176,7 @@ export class SupabaseService implements OnModuleDestroy {
 	async rpcWithCache(
 		fn: string,
 		args: Record<string, unknown>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	): Promise<{
 		data: unknown
 		error?: { message?: string } | null | undefined
@@ -191,14 +185,9 @@ export class SupabaseService implements OnModuleDestroy {
 	async rpcWithCache(
 		fn: string,
 		args: Record<string, unknown>,
-		options?: Omit<RpcCacheOptions, 'cache'>
+		options?: Omit<RpcOptions, 'cache'>
 	) {
-		return this.rpcService.rpcWithCache(
-			options?.client ?? this.adminClient,
-			fn,
-			args,
-			options
-		)
+		return this.rpcService.rpcWithCache(this.adminClient, fn, args, options)
 	}
 
 	getUserClient(userToken: string): SupabaseClient<Database> {

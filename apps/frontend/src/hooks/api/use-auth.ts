@@ -11,7 +11,7 @@
  * Single source of truth for all authentication operations
  */
 
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { apiRequest } from '#lib/api-request'
 
 import { logger } from '@repo/shared/lib/frontend-logger'

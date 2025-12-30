@@ -53,11 +53,11 @@ export class BalanceSheetService {
 	): Promise<BalanceSheetData> {
 		const client = this.supabaseService.getUserClient(token)
 
-		// Get user ID from token
+		// Get user ID from token (uses getUserClient internally for auth validation)
 		const {
 			data: { user },
 			error: authError
-		} = await this.supabaseService.getAdminClient().auth.getUser(token)
+		} = await this.supabaseService.getUserClient(token).auth.getUser()
 
 		if (authError || !user) {
 			throw new Error('Failed to authenticate user from token')

@@ -50,7 +50,8 @@ export class FinancialRevenueService {
 		const expenses = await this.expenseService.fetchExpenses(
 			property_ids,
 			yearStart,
-			yearEnd
+			yearEnd,
+			token
 		)
 
 		const revenueByMonth = this.calculateMonthlyRevenue(
@@ -163,7 +164,7 @@ export class FinancialRevenueService {
 		}
 
 		// Query 4: Get ALL expenses for ALL properties at once (batch query)
-		const expenses = await this.expenseService.fetchExpenses(property_ids)
+		const expenses = await this.expenseService.fetchExpenses(property_ids, undefined, undefined, token)
 		const expensesByProperty = new Map<string, number>()
 		for (const exp of expenses) {
 			const propertyId = (exp as { property_id?: string }).property_id

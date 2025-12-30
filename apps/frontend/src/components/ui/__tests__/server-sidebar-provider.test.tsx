@@ -16,7 +16,8 @@ vi.mock('next/headers', () => ({
 }))
 
 // Mock the SidebarProvider to avoid client-side rendering issues
-vi.mock('#components/ui/sidebar', () => {
+// Note: The actual component imports from #components/ui/sidebar/context
+vi.mock('#components/ui/sidebar/context', () => {
 	interface MockSidebarProviderProps extends HTMLAttributes<HTMLDivElement> {
 		defaultOpen?: boolean
 		open?: boolean

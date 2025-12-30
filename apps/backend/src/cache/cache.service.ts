@@ -1,6 +1,11 @@
 /**
  * Unified Redis Cache Service
  * Consolidates cache layers into a single Redis-backed cache with TTL tiers.
+ *
+ * @todo PERF-003: Optimize cache TTL settings.
+ *       - STATS TTL too short (3 min) - should be 5 min
+ *       - REALTIME uses polling (30s) - consider SSE/WebSocket
+ *       See TODO.md for details.
  */
 
 import type { OnModuleDestroy } from '@nestjs/common'

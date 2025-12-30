@@ -9,14 +9,14 @@
  * - 7.2: Clear setup/manage autopay CTA
  */
 
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '#test/utils/test-render'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock the hooks
+// Mock the hooks - must mock the correct module path
 const mockUseTenantPaymentsHistory = vi.fn()
 const mockUseTenantAutopayStatus = vi.fn()
 
-vi.mock('#hooks/api/use-tenant-payments', () => ({
+vi.mock('#hooks/api/use-rent-payments', () => ({
 	useTenantPaymentsHistory: () => mockUseTenantPaymentsHistory()
 }))
 

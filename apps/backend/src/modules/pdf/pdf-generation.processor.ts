@@ -4,7 +4,7 @@ import { Job } from 'bullmq'
 import { LeasePdfGeneratorService } from './lease-pdf-generator.service'
 import { LeasePdfMapperService } from './lease-pdf-mapper.service'
 import { PdfStorageService } from './pdf-storage.service'
-import { LeasesService } from '../leases/leases.service'
+import { LeaseQueryService } from '../leases/lease-query.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SseService } from '../notifications/sse/sse.service'
 import type { PdfGenerationCompletedEvent } from '@repo/shared/events/sse-events'
@@ -26,7 +26,7 @@ export class PdfGenerationProcessor extends WorkerHost {
 		private readonly pdfGeneratorService: LeasePdfGeneratorService,
 		private readonly pdfMapperService: LeasePdfMapperService,
 		private readonly pdfStorageService: PdfStorageService,
-		private readonly leasesService: LeasesService,
+		private readonly leaseQueryService: LeaseQueryService,
 		private readonly logger: AppLogger,
 		private readonly sseService: SseService
 	) {
@@ -49,7 +49,7 @@ export class PdfGenerationProcessor extends WorkerHost {
 
 		try {
 			// 1. Fetch lease data
-			const leaseData = await this.leasesService.getLeaseDataForPdf(
+			const leaseData = await this.leaseQueryService.getLeaseDataForPdf(
 				token,
 				leaseId
 			)

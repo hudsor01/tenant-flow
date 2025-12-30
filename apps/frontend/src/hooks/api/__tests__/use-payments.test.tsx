@@ -11,7 +11,7 @@ import {
 	useOverduePayments,
 	useRecordManualPayment,
 	useExportPayments
-} from '../use-payments'
+} from '../use-rent-collection'
 import * as apiRequest from '#lib/api-request'
 import type { ReactNode } from 'react'
 

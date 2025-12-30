@@ -184,6 +184,20 @@ export class AnalyticsController {
 	}
 
 	/**
+	 * Alias endpoint for unified dashboard payload
+	 * Path: /owner/analytics/dashboard
+	 * Keeps backwards compatibility with page-data while enabling
+	 * a clearer "dashboard" route for frontend aggregation.
+	 */
+	@Get('dashboard')
+	async getDashboard(
+		@Req() req: AuthenticatedRequest,
+		@user_id() user_id: string
+	) {
+		return this.getPageData(req, user_id)
+	}
+
+	/**
 	 * Trends endpoint for charts - DEFERRED data
 	 * Fetches occupancy and revenue trends for dashboard charts
 	 * Optimized for viewport-based loading with React 19.2 Activity

@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Image from 'next/image'

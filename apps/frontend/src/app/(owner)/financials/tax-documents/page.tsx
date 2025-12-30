@@ -169,8 +169,38 @@ export default function TaxDocumentsPage() {
 	const filedCount = documents.filter(d => d.status === 'filed').length
 
 	const handleDownload = (documentId: string) => {
-		// TODO: [PROD] Implement actual download functionality
-		logger.debug('Downloading document', { documentId })
+		const doc = documents.find(document => document.id === documentId)
+		if (!doc?.downloadUrl) {
+			logger.error('Missing download URL for tax document', {
+				metadata: { documentId }
+			})
+			return
+		}
+
+		try {
+			const url = new URL(doc.downloadUrl, window.location.origin)
+			if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+				logger.error('Invalid download URL protocol', {
+					metadata: { documentId, protocol: url.protocol }
+				})
+				return
+			}
+
+			const anchor = document.createElement('a')
+			anchor.href = url.href
+			anchor.download = doc.name || 'tax-document'
+			document.body.appendChild(anchor)
+			anchor.click()
+			document.body.removeChild(anchor)
+			logger.debug('Downloading document', { documentId, url: url.href })
+		} catch (error) {
+			logger.error('Failed to download tax document', {
+				metadata: {
+					documentId,
+					error: error instanceof Error ? error.message : String(error)
+				}
+			})
+		}
 	}
 
 	if (isLoading) {

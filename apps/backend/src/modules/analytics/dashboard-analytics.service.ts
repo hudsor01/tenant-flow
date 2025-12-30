@@ -45,9 +45,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	): Promise<T> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			const res = result as { data?: T; error?: { message?: string } | null }
 
 			if (res.error) {
@@ -134,12 +132,15 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.callRpc<
 				Array<{
 					property_id: string
-					current_month_revenue: number
-					previous_month_revenue: number
-					trend: 'up' | 'down' | 'stable'
+					total_revenue: number
+					previous_revenue: number
 					trend_percentage: number
+					timeframe: string
 				}>
-			>('get_property_performance_trends', { p_user_id: user_id })
+			>('get_property_performance_with_trends', {
+				p_user_id: user_id,
+				p_timeframe: '30d'
+			})
 		])
 
 		// Create a map of property trends for O(1) lookup
@@ -149,6 +150,13 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 		return rawProperties.map(item => {
 			const trendData = trendsMap.get(item.property_id)
+			const currentRevenue = trendData?.total_revenue ?? 0
+			const previousRevenue = trendData?.previous_revenue ?? 0
+			const trend = currentRevenue > previousRevenue
+				? ('up' as const)
+				: currentRevenue < previousRevenue
+					? ('down' as const)
+					: ('stable' as const)
 
 			return {
 				property: item.property_name,
@@ -163,7 +171,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				potentialRevenue: item.potential_revenue,
 				property_type: item.property_type,
 				status: item.status as 'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL',
-				trend: trendData?.trend ?? ('stable' as const),
+				trend,
 				trendPercentage: trendData?.trend_percentage ?? 0
 			}
 		})

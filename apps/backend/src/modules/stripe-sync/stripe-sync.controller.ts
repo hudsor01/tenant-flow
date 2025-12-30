@@ -1,8 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - Commented-out code violation
-// Lines 189-191, 200-202, 207-209: Commented-out accessControlService calls should be DELETED
-// Per CLAUDE.md: "No commented-out code - Delete it, don't comment it"
-// If this functionality is needed later, retrieve it from git history
-
 /**
  * Stripe Sync Engine Webhook Controller
  *
@@ -186,38 +181,22 @@ export class StripeSyncController {
 				await this.invalidatePricingCache(event.type)
 			}
 
-			// Handle subscription access control
+			// Handle subscription status logging (access control handled via RLS)
 			switch (event.type) {
 				case 'customer.subscription.created':
 				case 'customer.subscription.updated': {
 					const subscription = event.data.object as Stripe.Subscription
-					// Grant access if subscription is active or trialing
-					if (
-						subscription.status === 'active' ||
-						subscription.status === 'trialing'
-					) {
-						// Access control removed - service deleted in refactoring
-						// await this.accessControlService.grantSubscriptionAccess(
-						//	subscription
-						// )
-					}
-					// Revoke access if subscription is canceled
-					else if (
-						subscription.status === 'canceled' ||
-						subscription.status === 'past_due' ||
-						subscription.status === 'unpaid'
-					) {
-						// Access control removed - service deleted in refactoring
-						// await this.accessControlService.revokeSubscriptionAccess(
-						//	subscription
-						// )
-					}
+					this.logger.log('Subscription status update', {
+						subscription_id: subscription.id,
+						status: subscription.status
+					})
 					break
 				}
 				case 'customer.subscription.deleted': {
-					// const subscription = event.data.object as Stripe.Subscription
-					// Access control removed - service deleted in refactoring
-					// await this.accessControlService.revokeSubscriptionAccess(subscription)
+					const subscription = event.data.object as Stripe.Subscription
+					this.logger.log('Subscription deleted', {
+						subscription_id: subscription.id
+					})
 					break
 				}
 			}

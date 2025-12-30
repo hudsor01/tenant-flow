@@ -8,7 +8,7 @@
 
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { PaymentHistoryItem } from '#hooks/api/use-payment-history'
+import type { BillingHistoryItem } from '#hooks/api/use-billing-history'
 import type {
 	PaymentMethodResponse,
 	MaintenanceRequest
@@ -16,7 +16,7 @@ import type {
 import TenantPaymentHistoryPage from '../payments/history/page'
 import TenantMaintenancePage from '../maintenance/page'
 
-const mockPayments: PaymentHistoryItem[] = [
+const mockPayments: BillingHistoryItem[] = [
 	{
 		id: 'pay_1',
 		subscriptionId: 'sub_1',
@@ -109,8 +109,9 @@ function mockViewport(isMobile: boolean) {
 }
 
 // Mock data hooks before importing pages
-vi.mock('#hooks/api/use-payment-history', () => ({
-	usePaymentHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
+// The page uses useBillingHistory, not usePaymentHistory
+vi.mock('#hooks/api/use-billing-history', () => ({
+	useBillingHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
 }))
 
 vi.mock('#hooks/api/use-payment-methods', () => ({

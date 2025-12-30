@@ -13,7 +13,8 @@ import {
 	ParseUUIDPipe
 } from '@nestjs/common'
 import { Response } from 'express'
-import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
+import { LeaseOwnershipGuard } from '../../shared/guards/lease-ownership.guard'
+import { TenantOwnershipGuard } from '../../shared/guards/tenant-ownership.guard'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { RentPaymentsService } from './rent-payments.service'
 import { PaymentAnalyticsService } from './payment-analytics.service'
@@ -397,7 +398,7 @@ export class RentPaymentsController {
 	 * GET /api/v1/rent-payments/autopay/status/:tenant_id/:lease_id
 	 */
 	@Get('autopay/status/:tenant_id/:lease_id')
-	@UseGuards(PropertyOwnershipGuard)
+	@UseGuards(LeaseOwnershipGuard)
 	async getAutopayStatus(
 		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string,
@@ -431,7 +432,7 @@ export class RentPaymentsController {
 	 * RLS COMPLIANT: Uses @JwtToken decorator
 	 */
 	@Get('status/:tenant_id')
-	@UseGuards(PropertyOwnershipGuard)
+	@UseGuards(TenantOwnershipGuard)
 	async getCurrentPaymentStatus(
 		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
 		@Request() req: AuthenticatedRequest

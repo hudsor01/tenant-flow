@@ -6,7 +6,7 @@
 
 import { act, render, screen } from '#test/utils/test-render'
 import { vi } from 'vitest'
-import { SidebarProvider, useSidebar } from '#components/ui/sidebar'
+import { SidebarProvider, useSidebar } from '#components/ui/sidebar/context'
 
 // Mock document.cookie
 const mockCookie = vi.fn()

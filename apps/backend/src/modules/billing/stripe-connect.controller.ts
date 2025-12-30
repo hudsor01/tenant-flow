@@ -11,7 +11,7 @@ import {
 	Param
 } from '@nestjs/common'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
-import type { AuthenticatedRequest } from '@repo/shared/types/auth'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'

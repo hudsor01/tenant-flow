@@ -31,7 +31,6 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
 		"test:unit": "vitest --run",
-		"test:integration": "doppler run -- bash -c 'RUN_INTEGRATION_TESTS=true vitest --config vitest.integration.config.js --run'",
 		"generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
 	},
 	"dependencies": {
@@ -150,7 +149,6 @@
 		"jest-axe": "10.0.0",
 		"jsdom": "27.2.0",
 		"json-schema-to-zod": "2.7.0",
-		"msw": "2.12.4",
 		"postcss": "8.5.6",
 		"prettier": "catalog:",
 		"prettier-plugin-tailwindcss": "0.7.2",

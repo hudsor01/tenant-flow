@@ -15,9 +15,9 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryCard } from '#components/payments/payment-history-card'
 import {
-	PaymentHistoryItem,
-	usePaymentHistory
-} from '#hooks/api/use-payment-history'
+	type BillingHistoryItem,
+	useBillingHistory
+} from '#hooks/api/use-billing-history'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useMediaQuery } from '#hooks/use-media-query'
 import { formatCurrency } from '#lib/formatters/currency'
@@ -26,7 +26,7 @@ import Link from 'next/link'
 
 export default function TenantPaymentHistoryPage() {
 	const { data: payments = [], isLoading: paymentsLoading } =
-		usePaymentHistory()
+		useBillingHistory()
 	const { data: paymentMethods = [], isLoading: methodsLoading } =
 		usePaymentMethods()
 	const isMobile = useMediaQuery('(max-width: 768px)')
@@ -129,7 +129,7 @@ export default function TenantPaymentHistoryPage() {
 					hasPayments &&
 					(isMobile ? (
 						<div className="space-y-3">
-							{payments.map((payment: PaymentHistoryItem) => (
+							{payments.map((payment: BillingHistoryItem) => (
 								<PaymentHistoryCard
 									key={payment.id}
 									payment={payment}
@@ -152,7 +152,7 @@ export default function TenantPaymentHistoryPage() {
 									<div className="text-right">Receipt</div>
 								</div>
 
-								{payments.map((payment: PaymentHistoryItem) => (
+								{payments.map((payment: BillingHistoryItem) => (
 									<div
 										key={payment.id}
 										data-testid="payment-history-row"

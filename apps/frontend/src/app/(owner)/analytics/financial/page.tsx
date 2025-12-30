@@ -341,8 +341,8 @@ export default function FinancialAnalyticsPage() {
 							<BorderBeam
 								size={100}
 								duration={10}
-								colorFrom="hsl(142 76% 36%)"
-								colorTo="hsl(142 76% 36% / 0.3)"
+								colorFrom="var(--color-success)"
+								colorTo="oklch(from var(--color-success) l c h / 0.3)"
 							/>
 							<StatLabel>Total Revenue</StatLabel>
 							<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">

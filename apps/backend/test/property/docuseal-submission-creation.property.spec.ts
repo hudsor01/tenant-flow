@@ -19,7 +19,7 @@ import { LeaseSignatureService } from '../../src/modules/leases/lease-signature.
 import { SupabaseService } from '../../src/database/supabase.service'
 import { DocuSealService } from '../../src/modules/docuseal/docuseal.service'
 import { LeaseSubscriptionService } from '../../src/modules/leases/lease-subscription.service'
-import { LeasesService } from '../../src/modules/leases/leases.service'
+import { LeaseQueryService } from '../../src/modules/leases/lease-query.service'
 import { LeasePdfMapperService } from '../../src/modules/pdf/lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../../src/modules/pdf/lease-pdf-generator.service'
 import { PdfStorageService } from '../../src/modules/pdf/pdf-storage.service'
@@ -35,7 +35,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 	let mockLeaseSubscriptionService: jest.Mocked<
 		Partial<LeaseSubscriptionService>
 	>
-	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockLeaseQueryService: jest.Mocked<LeaseQueryService>
 	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
 	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
 	let mockPdfStorage: jest.Mocked<PdfStorageService>
@@ -105,7 +105,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 			activateLease: jest.fn().mockResolvedValue(undefined)
 		}
 
-		mockLeasesService = {
+		mockLeaseQueryService = {
 			findOne: jest.fn(),
 			getLeaseDataForPdf: jest.fn().mockResolvedValue({
 				id: 'lease-123',
@@ -184,7 +184,7 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 					provide: LeaseSubscriptionService,
 					useValue: mockLeaseSubscriptionService
 				},
-				{ provide: LeasesService, useValue: mockLeasesService },
+				{ provide: LeaseQueryService, useValue: mockLeaseQueryService },
 				{ provide: LeasePdfMapperService, useValue: mockPdfMapper },
 				{ provide: LeasePdfGeneratorService, useValue: mockPdfGenerator },
 				{ provide: PdfStorageService, useValue: mockPdfStorage },
@@ -295,7 +295,13 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 							if (table === 'tenants') {
 								return createMockChain({
 									id: leaseData.tenantId,
-									user_id: leaseData.tenantUserId
+									user_id: leaseData.tenantUserId,
+									// Include nested user data for join query
+									user: {
+										email: leaseData.tenantEmail,
+										first_name: leaseData.tenantFirstName,
+										last_name: leaseData.tenantLastName
+									}
 								})
 							}
 							if (table === 'users') {
@@ -433,7 +439,13 @@ describe('Property 11: DocuSeal Submission Creation', () => {
 							if (table === 'tenants') {
 								return createMockChain({
 									id: leaseData.tenantId,
-									user_id: leaseData.tenantUserId
+									user_id: leaseData.tenantUserId,
+									// Include nested user data for join query
+									user: {
+										email: leaseData.tenantEmail,
+										first_name: leaseData.tenantFirstName,
+										last_name: leaseData.tenantLastName
+									}
 								})
 							}
 							if (table === 'users') {

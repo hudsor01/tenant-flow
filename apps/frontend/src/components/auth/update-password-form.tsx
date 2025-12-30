@@ -18,7 +18,7 @@ import {
 } from '#components/ui/input-group'
 import { cn } from '#lib/utils'
 import { cardVariants } from '#components/ui/card'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import {
 	AlertTriangle,

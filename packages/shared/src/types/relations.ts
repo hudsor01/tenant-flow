@@ -13,7 +13,6 @@ import type {
 	TenantWithLeaseInfoWithVersion as TenantWithLeaseInfoWithVersionType,
 	UnitWithVersion as UnitWithVersionType
 } from './core.js'
-import type { PropertyFormData as PropertyFormDataType } from './forms.js'
 
 // Define types properly from Database schema
 type Property = Database['public']['Tables']['properties']['Row']
@@ -277,8 +276,6 @@ export interface PropertySummary {
 	monthlyRevenue?: number
 }
 
-// Property form data alias
-export type PropertyFormData = PropertyFormDataType
 
 /**
  * PropertyStatsExtended - Property statistics for dashboard

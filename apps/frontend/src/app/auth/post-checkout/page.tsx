@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { Mail } from 'lucide-react'
 
 /**

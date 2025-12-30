@@ -10,8 +10,8 @@ import {
 	Request,
 	UseGuards
 } from '@nestjs/common'
-import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import type { AuthenticatedRequest } from '@repo/shared/types/auth'
+import { TenantOwnershipGuard } from '../../shared/guards/tenant-ownership.guard'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeOwnerService } from './stripe-owner.service'
 import { AppConfigService } from '../../config/app-config.service'
@@ -35,7 +35,7 @@ export class StripeTenantController {
 	 * POST /api/v1/stripe/tenant/create-customer
 	 */
 	@Post('create-customer')
-	@UseGuards(PropertyOwnershipGuard)
+	@UseGuards(TenantOwnershipGuard)
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
 		@Body()

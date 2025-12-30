@@ -1,11 +1,14 @@
 /**
- * Properties Controller - Ultra-Native Implementation
-
+ * Properties Controller - Core CRUD Operations
+ *
  * Uses:
  * - Zod DTOs via nestjs-zod + createZodDto pattern
  * - Built-in NestJS pipes for validation
  * - Native exception handling
  * - Direct PostgreSQL RPC calls
+ *
+ * Related Controllers (extracted for CLAUDE.md compliance):
+ * - PropertyAnalyticsController: Analytics endpoints (/properties/analytics/*)
  */
 
 import {
@@ -31,15 +34,13 @@ import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-// Property types now imported from backend schemas, not shared package
-// Validation schemas/types are imported where needed; avoid unused type imports
 import {
 	BUSINESS_ERROR_CODES,
 	ERROR_TYPES
 } from '@repo/shared/constants/error-codes'
 import { PropertiesService } from './properties.service'
+import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
-import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
@@ -47,20 +48,22 @@ import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { AppLogger } from '../../logger/app-logger.service'
 
-/**
- * No base classes, no abstraction, just clean endpoints
- */
 @Controller('properties')
 export class PropertiesController {
 	constructor(
 		private readonly propertiesService: PropertiesService,
+		private readonly propertyLifecycleService: PropertyLifecycleService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
-		private readonly propertyAnalyticsService: PropertyAnalyticsService,
 		private readonly dashboardService: DashboardService,
 		private readonly logger: AppLogger
 	) {}
 
+	// ========================================
+	// Query Endpoints
+	// ========================================
+
 	/**
+	 * GET /properties
 	 * Get all properties for authenticated user
 	 * Built-in pipes handle all validation
 	 */
@@ -70,20 +73,17 @@ export class PropertiesController {
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@JwtToken() token: string // Extract JWT token for user-scoped client
+		@JwtToken() token: string
 	) {
-		// Clamp limit/offset to safe bounds
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
 
-		// Pass JWT token to service for RLS-enforced queries
 		const data = await this.propertiesService.findAll(token, {
 			search,
 			limit: safeLimit,
 			offset: safeOffset
 		})
 
-		// Return PaginatedResponse format expected by frontend
 		return {
 			data,
 			total: data.length,
@@ -94,6 +94,7 @@ export class PropertiesController {
 	}
 
 	/**
+	 * GET /properties/stats
 	 * Get property statistics
 	 * Returns aggregated property stats from dashboard service
 	 * MUST BE BEFORE /:id route to avoid route conflict
@@ -108,6 +109,7 @@ export class PropertiesController {
 	}
 
 	/**
+	 * GET /properties/with-units
 	 * Get all properties with their units
 	 * Returns properties with units for frontend stat calculations
 	 * MUST BE BEFORE /:id route to avoid route conflict
@@ -129,6 +131,7 @@ export class PropertiesController {
 	}
 
 	/**
+	 * GET /properties/:id
 	 * Get single property by ID
 	 * ParseUUIDPipe validates the ID format
 	 */
@@ -141,9 +144,13 @@ export class PropertiesController {
 		return this.propertiesService.findOne(req, id)
 	}
 
+	// ========================================
+	// CRUD Endpoints
+	// ========================================
+
 	/**
+	 * POST /properties
 	 * Create new property
-	 * October 2025: Zod schema validation with shared validation rules
 	 */
 	@Post()
 	async create(
@@ -154,6 +161,7 @@ export class PropertiesController {
 	}
 
 	/**
+	 * POST /properties/bulk-import
 	 * Bulk import properties from CSV file
 	 * Ephemeral processing: parse → validate → insert → discard file
 	 */
@@ -169,17 +177,12 @@ export class PropertiesController {
 		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		// Debug logging for file upload issues
 		this.logger.log('Bulk import request received', {
 			hasFile: !!file,
 			fileName: file?.originalname,
 			fileSize: file?.size,
 			mimetype: file?.mimetype,
-			user_id: req.user?.id,
-			user_id_type: typeof req.user?.id,
-			user_email: req.user?.email,
-			hasUser: !!req.user,
-			userKeys: req.user ? Object.keys(req.user) : []
+			user_id: req.user?.id
 		})
 
 		if (!file) {
@@ -189,13 +192,12 @@ export class PropertiesController {
 			})
 		}
 
-		// Validate file type (CSV only) - be more permissive for different browser behaviors
 		const allowedMimeTypes = [
 			'text/csv',
 			'application/csv',
 			'text/plain',
-			'application/octet-stream', // Some browsers send CSV as binary
-			'application/vnd.ms-excel' // Excel CSV format
+			'application/octet-stream',
+			'application/vnd.ms-excel'
 		]
 		const isValidType =
 			allowedMimeTypes.includes(file.mimetype) ||
@@ -221,8 +223,8 @@ export class PropertiesController {
 	}
 
 	/**
+	 * PUT /properties/:id
 	 * Update existing property
-	 * Combination of UUID validation and JSON Schema
 	 */
 	@Put(':id')
 	async update(
@@ -247,123 +249,26 @@ export class PropertiesController {
 	}
 
 	/**
+	 * DELETE /properties/:id
 	 * Delete property
-	 * Simple and direct with built-in validation
 	 */
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Request() req: AuthenticatedRequest
 	) {
-		await this.propertiesService.remove(req, id)
+		await this.propertyLifecycleService.remove(req, id)
 		return { message: 'Property deleted successfully' }
 	}
 
-	/**
-	 * Get per-property analytics and performance metrics
-	 * Returns detailed metrics for each property
-	 */
-	@Get('analytics/performance')
-	async getPropertyPerformanceAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('property_id', new ParseUUIDPipe({ optional: true }))
-		property_id?: string,
-		@Query('timeframe', new DefaultValuePipe('30d')) timeframe?: string,
-		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit?: number
-	) {
-		// Validate timeframe
-		if (!['7d', '30d', '90d', '1y'].includes(timeframe ?? '30d')) {
-			throw new BadRequestException({
-				code: ERROR_TYPES.VALIDATION_ERROR,
-				message: 'Invalid timeframe. Must be one of: 7d, 30d, 90d, 1y'
-			})
-		}
-
-		return this.propertyAnalyticsService.getPropertyPerformanceAnalytics(req, {
-			...(property_id ? { property_id } : {}),
-			timeframe: timeframe ?? '30d',
-			...(limit !== undefined ? { limit } : {})
-		})
-	}
+	// ========================================
+	// Lifecycle Endpoints
+	// ========================================
 
 	/**
-	 * Get property occupancy trends and analytics
-	 * Tracks occupancy rates over time per property
+	 * PUT /properties/:id/mark-sold
+	 * Mark property as sold
 	 */
-	@Get('analytics/occupancy')
-	async getPropertyOccupancyAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('property_id', new ParseUUIDPipe({ optional: true }))
-		property_id?: string,
-		@Query('period', new DefaultValuePipe('monthly')) period?: string
-	) {
-		// Validate period
-		if (
-			!['daily', 'weekly', 'monthly', 'yearly'].includes(period ?? 'monthly')
-		) {
-			throw new BadRequestException({
-				code: ERROR_TYPES.VALIDATION_ERROR,
-				message:
-					'Invalid period. Must be one of: daily, weekly, monthly, yearly'
-			})
-		}
-
-		return this.propertyAnalyticsService.getPropertyOccupancyAnalytics(req, {
-			...(property_id ? { property_id } : {}),
-			period: period ?? 'monthly'
-		})
-	}
-
-	/**
-	 * Get property financial analytics
-	 * Revenue, expenses, and profitability per property
-	 */
-	@Get('analytics/financial')
-	async getPropertyFinancialAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('property_id', new ParseUUIDPipe({ optional: true }))
-		property_id?: string,
-		@Query('timeframe', new DefaultValuePipe('12m')) timeframe?: string
-	) {
-		// Validate timeframe
-		if (!['3m', '6m', '12m', '24m'].includes(timeframe ?? '12m')) {
-			throw new BadRequestException({
-				code: ERROR_TYPES.VALIDATION_ERROR,
-				message: 'Invalid timeframe. Must be one of: 3m, 6m, 12m, 24m'
-			})
-		}
-
-		return this.propertyAnalyticsService.getPropertyFinancialAnalytics(req, {
-			...(property_id ? { property_id } : {}),
-			timeframe: timeframe ?? '12m'
-		})
-	}
-
-	/**
-	 * Get property maintenance analytics
-	 * Maintenance costs, frequency, and trends per property
-	 */
-	@Get('analytics/maintenance')
-	async getPropertyMaintenanceAnalytics(
-		@Request() req: AuthenticatedRequest,
-		@Query('property_id', new ParseUUIDPipe({ optional: true }))
-		property_id?: string,
-		@Query('timeframe', new DefaultValuePipe('6m')) timeframe?: string
-	) {
-		// Validate timeframe
-		if (!['1m', '3m', '6m', '12m'].includes(timeframe ?? '6m')) {
-			throw new BadRequestException({
-				code: ERROR_TYPES.VALIDATION_ERROR,
-				message: 'Invalid timeframe. Must be one of: 1m, 3m, 6m, 12m'
-			})
-		}
-
-		return this.propertyAnalyticsService.getPropertyMaintenanceAnalytics(req, {
-			...(property_id ? { property_id } : {}),
-			timeframe: timeframe ?? '6m'
-		})
-	}
-
 	@Put(':id/mark-sold')
 	async markPropertyAsSold(
 		@Param('id', ParseUUIDPipe) property_id: string,
@@ -377,7 +282,7 @@ export class PropertiesController {
 			})
 		}
 
-		return this.propertiesService.markAsSold(
+		return this.propertyLifecycleService.markAsSold(
 			req,
 			property_id,
 			new Date(dto.sale_date),

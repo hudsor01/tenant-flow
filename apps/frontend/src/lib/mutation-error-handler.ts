@@ -4,7 +4,6 @@
  * Provides consistent error handling across all mutations:
  * - Structured logging with context
  * - User-friendly toast notifications
- * - Type-safe error extraction
  *
  * Usage:
  * ```typescript
@@ -20,59 +19,19 @@ import { toast } from 'sonner'
 
 const logger = createLogger({ component: 'MutationErrorHandler' })
 
-interface ErrorWithMessage {
-	message: string
-}
-
-interface ErrorWithStatus {
-	status?: number
-	payload?: unknown
-}
-
-/**
- * Type guard to check if error has a message property
- */
-function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
-	return (
-		typeof error === 'object' &&
-		error !== null &&
-		'message' in error &&
-		typeof (error as ErrorWithMessage).message === 'string'
-	)
-}
-
 /**
  * Extract user-friendly error message from various error types
  */
 function extractErrorMessage(error: unknown): string {
-	// Standard Error object
-	if (error instanceof Error) {
-		return error.message
-	}
+	if (error instanceof Error) return error.message
+	if (typeof error === 'string') return error
 
-	// Error with message property
-	if (isErrorWithMessage(error)) {
-		return error.message
-	}
+	// Handle objects with message property (including nested payload.message)
+	const obj = error as Record<string, unknown> | null
+	const message =
+		obj?.message ?? (obj?.payload as Record<string, unknown>)?.message
+	if (typeof message === 'string') return message
 
-	// HTTP error with payload
-	if (typeof error === 'object' && error !== null && 'payload' in error) {
-		const payload = (error as ErrorWithStatus).payload
-		if (
-			typeof payload === 'object' &&
-			payload !== null &&
-			'message' in payload
-		) {
-			return String((payload as { message: unknown }).message)
-		}
-	}
-
-	// String error
-	if (typeof error === 'string') {
-		return error
-	}
-
-	// Unknown error type
 	return 'An unexpected error occurred'
 }
 
@@ -80,15 +39,8 @@ function extractErrorMessage(error: unknown): string {
  * Get HTTP status code from error if available
  */
 function getErrorStatus(error: unknown): number | undefined {
-	if (
-		typeof error === 'object' &&
-		error !== null &&
-		'status' in error &&
-		typeof (error as ErrorWithStatus).status === 'number'
-	) {
-		return (error as ErrorWithStatus).status
-	}
-	return undefined
+	const status = (error as Record<string, unknown>)?.status
+	return typeof status === 'number' ? status : undefined
 }
 
 /**

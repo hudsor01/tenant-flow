@@ -1,4 +1,4 @@
-import { LeaseForm } from '#components/leases/lease-form.client'
+import { LeaseForm } from '#components/leases/lease-form.jsx'
 import { RouteModal } from '#components/ui/route-modal'
 
 /**

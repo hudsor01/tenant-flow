@@ -5,6 +5,7 @@ import type { FilterItemSchema } from '#lib/parsers'
 declare module '@tanstack/react-table' {
 	interface TableMeta<TData extends RowData> {
 		queryKeys?: QueryKeys
+		readOnly?: boolean
 		// Phantom field to satisfy linter - this type is required by module augmentation
 		_phantom?: TData
 	}

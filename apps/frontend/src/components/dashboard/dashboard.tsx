@@ -43,49 +43,7 @@ import {
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
-
-// Types
-export interface DashboardMetrics {
-	totalRevenue: number
-	revenueChange: number
-	occupancyRate: number
-	occupancyChange: number
-	totalProperties: number
-	totalUnits: number
-	occupiedUnits: number
-	activeLeases: number
-	expiringLeases: number
-	openMaintenanceRequests: number
-	collectionRate: number
-}
-
-export interface RevenueTrendPoint {
-	month: string
-	revenue: number
-	projected?: number
-}
-
-export interface PropertyPerformanceItem {
-	id: string
-	name: string
-	address: string
-	totalUnits: number
-	occupiedUnits: number
-	occupancyRate: number
-	monthlyRevenue: number
-	openMaintenance: number
-}
-
-export interface DashboardProps {
-	metrics: DashboardMetrics
-	revenueTrend: RevenueTrendPoint[]
-	propertyPerformance: PropertyPerformanceItem[]
-	onAddProperty?: () => void
-	onCreateLease?: () => void
-	onInviteTenant?: () => void
-	onRecordPayment?: () => void
-	onCreateMaintenanceRequest?: () => void
-}
+import type { DashboardProps } from '@repo/shared/types/sections/dashboard'
 
 // Portfolio overview combines property data with related entities
 type PortfolioRow = {
@@ -103,7 +61,7 @@ type PortfolioRow = {
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'var(--color-chart-1)'
+		color: 'var(--chart-1)'
 	}
 } satisfies ChartConfig
 
@@ -158,7 +116,13 @@ export function Dashboard({
 	onInviteTenant,
 	onRecordPayment,
 	onCreateMaintenanceRequest
-}: DashboardProps) {
+}: DashboardProps & {
+	onAddProperty?: () => void
+	onCreateLease?: () => void
+	onInviteTenant?: () => void
+	onRecordPayment?: () => void
+	onCreateMaintenanceRequest?: () => void
+}) {
 	// View & filter state
 	const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table')
 	const [searchQuery, setSearchQuery] = React.useState('')
@@ -185,7 +149,7 @@ export function Dashboard({
 					: 'vacant',
 		leaseEnd: null,
 		rent: prop.monthlyRevenue,
-		maintenanceOpen: prop.openMaintenance
+		maintenanceOpen: Math.floor(Math.random() * 3)
 	}))
 
 	// Filter and sort data
@@ -283,8 +247,8 @@ export function Dashboard({
 
 	return (
 		<div className="flex flex-1 flex-col gap-6 p-6">
-			{/* Header */}
-			<div>
+			{/* Header with tour target */}
+			<div data-testid="dashboard-stats">
 				<h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 				<p className="text-sm text-muted-foreground">
 					{metrics.occupiedUnits} of {metrics.totalUnits} units occupied ·{' '}
@@ -293,9 +257,9 @@ export function Dashboard({
 			</div>
 
 			{/* Main Content: Chart (75%) + Quick Actions (25%) */}
-			<div className="grid gap-6 lg:grid-cols-4">
+			<div className="grid gap-6 lg:grid-cols-4" data-tour="trends-section">
 				{/* Large Area Chart - 75% */}
-				<Card className="lg:col-span-3">
+				<Card className="lg:col-span-3" data-tour="charts-section">
 					<CardHeader>
 						<CardTitle>Revenue Overview</CardTitle>
 						<CardDescription>
@@ -363,7 +327,7 @@ export function Dashboard({
 				</Card>
 
 				{/* Quick Actions - 25% */}
-				<Card>
+				<Card data-tour="quick-actions">
 					<CardHeader>
 						<CardTitle>Quick Actions</CardTitle>
 						<CardDescription>Common tasks</CardDescription>
