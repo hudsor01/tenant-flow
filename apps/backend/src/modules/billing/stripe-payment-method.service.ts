@@ -76,4 +76,48 @@ export class StripePaymentMethodService {
 			return null
 		}
 	}
+
+
+	/**
+	 * List payment methods for a customer
+	 */
+	async listPaymentMethods(
+		customerId: string,
+		type?: 'card' | 'us_bank_account'
+	): Promise<Stripe.PaymentMethod[]> {
+		try {
+			const params: Stripe.PaymentMethodListParams = {
+				customer: customerId,
+				limit: 10
+			}
+			if (type) {
+				params.type = type
+			}
+
+			const paymentMethods = await this.stripe.paymentMethods.list(params)
+			return paymentMethods.data
+		} catch (error) {
+			this.logger.error('Failed to list payment methods', {
+				error,
+				customerId
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Detach a payment method from a customer
+	 */
+	async detachPaymentMethod(paymentMethodId: string): Promise<void> {
+		try {
+			await this.stripe.paymentMethods.detach(paymentMethodId)
+			this.logger.log('Payment method detached', { paymentMethodId })
+		} catch (error) {
+			this.logger.error('Failed to detach payment method', {
+				error,
+				paymentMethodId
+			})
+			throw error
+		}
+	}
 }

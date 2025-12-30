@@ -1,6 +1,8 @@
 import {
 	Controller,
+	Delete,
 	Get,
+	Param,
 	Post,
 	Body,
 	Req,
@@ -10,14 +12,22 @@ import {
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import type { Response } from 'express'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
+import { StripePaymentMethodService } from './stripe-payment-method.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { user_id } from '../../shared/decorators/user.decorator'
 import { STRIPE_API_THROTTLE, TenantAuthenticatedRequest } from './stripe.controller.shared'
 import { z } from 'zod'
 import type Stripe from 'stripe'
@@ -39,11 +49,14 @@ const CreateCustomerRequestSchema = z.object({
 /**
  * Stripe payment methods and billing portal controller
  */
+@ApiTags('Stripe')
+@ApiBearerAuth('supabase-auth')
 @Controller('stripe')
 export class StripePaymentMethodsController {
 	constructor(
 		private readonly stripeService: StripeService,
 		private readonly stripeSharedService: StripeSharedService,
+		private readonly stripePaymentMethodService: StripePaymentMethodService,
 		private readonly billingService: BillingService,
 		private readonly securityService: SecurityService,
 		private readonly supabase: SupabaseService
@@ -52,6 +65,11 @@ export class StripePaymentMethodsController {
 	/**
 	 * Create a Payment Intent for one-time payments
 	 */
+	@ApiOperation({ summary: 'Create payment intent', description: 'Create a Stripe Payment Intent for one-time payments' })
+	@ApiBody({ schema: { type: 'object', properties: { amount: { type: 'number', description: 'Amount in cents' }, currency: { type: 'string', minLength: 3, maxLength: 3 }, description: { type: 'string' } }, required: ['amount', 'currency'] } })
+	@ApiResponse({ status: 201, description: 'Payment intent created' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('payment-intents')
 	async createPaymentIntent(
 		@Req() req: TenantAuthenticatedRequest,
@@ -120,6 +138,11 @@ export class StripePaymentMethodsController {
 	/**
 	 * Create a Customer for recurring payments
 	 */
+	@ApiOperation({ summary: 'Create customer', description: 'Create a Stripe Customer for recurring payments' })
+	@ApiBody({ schema: { type: 'object', properties: { email: { type: 'string', format: 'email' }, name: { type: 'string' } }, required: ['email'] } })
+	@ApiResponse({ status: 201, description: 'Customer created' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('customers')
 	async createCustomer(
 		@Req() req: TenantAuthenticatedRequest,
@@ -195,12 +218,14 @@ export class StripePaymentMethodsController {
 	 * - Logs audit events for security monitoring
 	 * - Fails closed on any error (denies access)
 	 */
+	@ApiOperation({ summary: 'Create billing portal session', description: 'Create a Stripe Billing Portal session for self-service billing management' })
+	@ApiResponse({ status: 200, description: 'Portal session URL returned' })
+	@ApiResponse({ status: 401, description: 'Unauthorized or customer verification failed' })
+	@ApiResponse({ status: 404, description: 'User or customer not found' })
 	@Post('create-billing-portal-session')
 	@Throttle({ default: STRIPE_API_THROTTLE })
-	async createBillingPortalSession(
-		@user_id() userId: string,
-		@Req() req: TenantAuthenticatedRequest
-	) {
+	async createBillingPortalSession(@Req() req: TenantAuthenticatedRequest) {
+		const userId = req.user.id
 		try {
 			// Extract user token for RLS-enforced database queries
 			const userToken = this.supabase.getTokenFromRequest(req)
@@ -333,12 +358,13 @@ export class StripePaymentMethodsController {
 	 * Get user's billing invoices from Stripe
 	 * Returns paginated list of invoices for the authenticated user's Stripe customer
 	 */
+	@ApiOperation({ summary: 'Get invoices', description: 'Get paginated list of billing invoices for the authenticated user' })
+	@ApiResponse({ status: 200, description: 'Invoices retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'User not found' })
 	@Get('invoices')
 	@Throttle({ default: STRIPE_API_THROTTLE })
-	async getInvoices(
-		@user_id() userId: string,
-		@Req() req: TenantAuthenticatedRequest
-	): Promise<{
+	async getInvoices(@Req() req: TenantAuthenticatedRequest): Promise<{
 		invoices: Array<{
 			id: string
 			amount_paid: number
@@ -350,6 +376,7 @@ export class StripePaymentMethodsController {
 			description: string | null
 		}>
 	}> {
+		const userId = req.user.id
 		// Get user token for RLS-enforced database queries
 		const userToken = this.supabase.getTokenFromRequest(req)
 		if (!userToken) {
@@ -392,5 +419,166 @@ export class StripePaymentMethodsController {
 		}))
 
 		return { invoices }
+	}
+
+	/**
+	 * Get tenant's payment methods from Stripe
+	 * Returns payment methods attached to the tenant's Stripe customer
+	 */
+	@ApiOperation({ summary: 'Get tenant payment methods', description: 'Get all payment methods attached to the tenant\'s Stripe customer' })
+	@ApiResponse({ status: 200, description: 'Payment methods retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
+	@Get('tenant-payment-methods')
+	@Throttle({ default: STRIPE_API_THROTTLE })
+	async getTenantPaymentMethods(@Req() req: TenantAuthenticatedRequest): Promise<{
+		payment_methods: Array<{
+			id: string
+			tenantId: string
+			stripePaymentMethodId: string
+			type: 'card' | 'us_bank_account'
+			last4: string | null
+			brand: string | null
+			bankName: string | null
+			isDefault: boolean
+			createdAt: string
+		}>
+	}> {
+		const userId = req.user.id
+		// Get user token for RLS-enforced database queries
+		const userToken = this.supabase.getTokenFromRequest(req)
+		if (!userToken) {
+			throw new UnauthorizedException('Valid authentication token required')
+		}
+
+		// Get tenant record for this user
+		const { data: tenant, error: tenantError } = await this.supabase
+			.getUserClient(userToken)
+			.from('tenants')
+			.select('id, stripe_customer_id')
+			.eq('user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			throw new NotFoundException('Tenant record not found')
+		}
+
+		if (!tenant.stripe_customer_id) {
+			// Tenant doesn't have a Stripe customer yet - return empty list
+			return { payment_methods: [] }
+		}
+
+		// Fetch payment methods from Stripe (both cards and bank accounts)
+		const [cardMethods, bankMethods] = await Promise.all([
+			this.stripePaymentMethodService.listPaymentMethods(
+				tenant.stripe_customer_id,
+				'card'
+			),
+			this.stripePaymentMethodService.listPaymentMethods(
+				tenant.stripe_customer_id,
+				'us_bank_account'
+			)
+		])
+
+		// Get customer default payment method
+		const customer = await this.stripeService.getCustomer(
+			tenant.stripe_customer_id
+		)
+		const defaultPaymentMethodId =
+			typeof customer?.invoice_settings?.default_payment_method === 'string'
+				? customer.invoice_settings.default_payment_method
+				: customer?.invoice_settings?.default_payment_method?.id
+
+		// Map to response format
+		const paymentMethods = [
+			...cardMethods.map(pm => ({
+				id: pm.id,
+				tenantId: tenant.id,
+				stripePaymentMethodId: pm.id,
+				type: 'card' as const,
+				last4: pm.card?.last4 ?? null,
+				brand: pm.card?.brand ?? null,
+				bankName: null,
+				isDefault: pm.id === defaultPaymentMethodId,
+				createdAt: new Date(pm.created * 1000).toISOString()
+			})),
+			...bankMethods.map(pm => ({
+				id: pm.id,
+				tenantId: tenant.id,
+				stripePaymentMethodId: pm.id,
+				type: 'us_bank_account' as const,
+				last4: pm.us_bank_account?.last4 ?? null,
+				brand: null,
+				bankName: pm.us_bank_account?.bank_name ?? null,
+				isDefault: pm.id === defaultPaymentMethodId,
+				createdAt: new Date(pm.created * 1000).toISOString()
+			}))
+		]
+
+		return { payment_methods: paymentMethods }
+	}
+
+	/**
+	 * Delete a tenant's payment method from Stripe
+	 * Detaches the payment method from the customer
+	 */
+	@ApiOperation({ summary: 'Delete tenant payment method', description: 'Detach a payment method from the tenant\'s Stripe customer' })
+	@ApiParam({ name: 'paymentMethodId', type: String, description: 'Stripe payment method ID' })
+	@ApiResponse({ status: 200, description: 'Payment method removed' })
+	@ApiResponse({ status: 400, description: 'No Stripe customer found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized or payment method does not belong to tenant' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
+	@Delete('tenant-payment-methods/:paymentMethodId')
+	@Throttle({ default: STRIPE_API_THROTTLE })
+	async deleteTenantPaymentMethod(
+		@Param('paymentMethodId') paymentMethodId: string,
+		@Req() req: TenantAuthenticatedRequest
+	): Promise<{ success: boolean; message: string }> {
+		const userId = req.user.id
+		// Get user token for RLS-enforced database queries
+		const userToken = this.supabase.getTokenFromRequest(req)
+		if (!userToken) {
+			throw new UnauthorizedException('Valid authentication token required')
+		}
+
+		// Get tenant record for this user
+		const { data: tenant, error: tenantError } = await this.supabase
+			.getUserClient(userToken)
+			.from('tenants')
+			.select('id, stripe_customer_id')
+			.eq('user_id', userId)
+			.single()
+
+		if (tenantError || !tenant) {
+			throw new NotFoundException('Tenant record not found')
+		}
+
+		if (!tenant.stripe_customer_id) {
+			throw new BadRequestException('No Stripe customer found for tenant')
+		}
+
+		// Verify the payment method belongs to this customer
+		const stripe = this.stripeService.getStripe()
+		const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
+
+		if (paymentMethod.customer !== tenant.stripe_customer_id) {
+			throw new UnauthorizedException(
+				'Payment method does not belong to this tenant'
+			)
+		}
+
+		// Detach the payment method
+		await this.stripePaymentMethodService.detachPaymentMethod(paymentMethodId)
+
+		// Log audit event
+		await this.securityService.logAuditEvent({
+			user_id: userId,
+			action: 'delete_payment_method',
+			entity_type: 'payment_method',
+			entity_id: paymentMethodId,
+			details: { tenant_id: tenant.id }
+		})
+
+		return { success: true, message: 'Payment method removed successfully' }
 	}
 }

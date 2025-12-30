@@ -15,6 +15,12 @@ import {
 	Req,
 	SetMetadata
 } from '@nestjs/common'
+import {
+	ApiHeader,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { RedisCacheService } from '../../cache/cache.service'
 import type { Request } from 'express'
 import { Throttle } from '@nestjs/throttler'
@@ -62,6 +68,7 @@ const STRIPE_SYNC_THROTTLE = createThrottleDefaults({
 	defaultLimit: 30
 })
 
+@ApiTags('Stripe Webhooks')
 @Controller('webhooks')
 export class StripeSyncController {
 	constructor(
@@ -463,6 +470,18 @@ export class StripeSyncController {
 	 * Endpoint: POST /webhooks/stripe-sync
 	 * Security: Validates Stripe signature
 	 */
+	@ApiOperation({
+		summary: 'Stripe sync webhook',
+		description:
+			'Stripe webhook endpoint for syncing data to stripe.* tables. Validates Stripe signature for security.'
+	})
+	@ApiHeader({
+		name: 'stripe-signature',
+		required: true,
+		description: 'Stripe webhook signature for payload verification'
+	})
+	@ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+	@ApiResponse({ status: 400, description: 'Missing or invalid signature' })
 	@SetMetadata('isPublic', true) // Stripe webhooks don't use JWT auth
 	@Throttle({ default: STRIPE_SYNC_THROTTLE })
 	@Post('stripe-sync')

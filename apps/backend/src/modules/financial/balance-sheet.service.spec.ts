@@ -170,6 +170,7 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(mockLedgerData)
 
 			const result = await service.generateBalanceSheet(
+				'mock-token',
 				'user-123',
 				'2024-10-31'
 			)
@@ -197,6 +198,7 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(createEmptyLedger())
 
 			const result = await service.generateBalanceSheet(
+				'mock-token',
 				'user-123',
 				'2024-10-31'
 			)
@@ -323,6 +325,7 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(mockLedgerData)
 
 			const result = await service.generateBalanceSheet(
+				'mock-token',
 				'user-123',
 				'2024-10-31'
 			)
@@ -343,7 +346,9 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(createEmptyLedger())
 
 			const asOfDate = '2024-10-31'
-			const result = await service.generateBalanceSheet('user-123', asOfDate)
+			const result = await service.generateBalanceSheet(
+				'mock-token',
+				'user-123', asOfDate)
 
 			expect(result.period.start_date).toBe(asOfDate)
 			expect(result.period.end_date).toBe(asOfDate)
@@ -356,6 +361,7 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(createEmptyLedger())
 
 			const result = await service.generateBalanceSheet(
+				'mock-token',
 				'user-123',
 				'2024-10-31'
 			)
@@ -611,6 +617,7 @@ describe('BalanceSheetService', () => {
 				.mockResolvedValue(mockLedgerData)
 
 			const result = await service.generateBalanceSheet(
+				'mock-token',
 				'user-123',
 				'2024-10-31'
 			)

@@ -112,7 +112,6 @@ export class TenantLeaseQueryService {
 				emergency_contact_phone,
 				emergency_contact_relationship,
 				identity_verified,
-				autopay_enabled,
 				created_at,
 				updated_at,
 				user:users!tenants_user_id_fkey(
@@ -221,7 +220,6 @@ export class TenantLeaseQueryService {
 					emergency_contact_phone,
 					emergency_contact_relationship,
 					identity_verified,
-					autopay_enabled,
 					created_at,
 					updated_at,
 					user:users!tenants_user_id_fkey(
@@ -259,7 +257,6 @@ export class TenantLeaseQueryService {
 			`
 			)
 			.in('tenant_id', tenantIds as string[])
-			.eq('lease.lease_status', 'active')
 			.not('tenant_id', 'is', null)
 
 		if (filters.search) {
@@ -306,7 +303,6 @@ export class TenantLeaseQueryService {
 				emergency_contact_phone: tenant.emergency_contact_phone,
 				emergency_contact_relationship: tenant.emergency_contact_relationship,
 				identity_verified: tenant.identity_verified,
-				autopay_enabled: tenant.autopay_enabled,
 				created_at: tenant.created_at,
 				updated_at: tenant.updated_at,
 				date_of_birth: null,
@@ -456,7 +452,6 @@ export class TenantLeaseQueryService {
 			emergency_contact_phone: string | null
 			emergency_contact_relationship: string | null
 			identity_verified: boolean
-			autopay_enabled: boolean | null
 			created_at: string
 			updated_at: string
 			user: RawUser | null
@@ -488,7 +483,6 @@ export class TenantLeaseQueryService {
 				emergency_contact_phone: row.emergency_contact_phone,
 				emergency_contact_relationship: row.emergency_contact_relationship,
 				identity_verified: row.identity_verified,
-				autopay_enabled: row.autopay_enabled,
 				created_at: row.created_at,
 				updated_at: row.updated_at,
 				date_of_birth: null,

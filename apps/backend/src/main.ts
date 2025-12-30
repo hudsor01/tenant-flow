@@ -1,10 +1,5 @@
-/**
- * @todo DOCS-001: Add OpenAPI/Swagger documentation using @nestjs/swagger.
- *       61 controllers need API documentation with decorators.
- *       See TODO.md for details.
- */
-
 import { ClassSerializerInterceptor, RequestMethod } from '@nestjs/common'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { Reflector } from '@nestjs/core'
 import { NestFactory } from '@nestjs/core'
@@ -110,6 +105,44 @@ async function bootstrap() {
 
 	// Enable graceful shutdown
 	app.enableShutdownHooks()
+
+	// Swagger/OpenAPI documentation
+	const swaggerConfig = new DocumentBuilder()
+		.setTitle('TenantFlow API')
+		.setDescription('Property management platform API documentation')
+		.setVersion('1.0')
+		.addBearerAuth(
+			{
+				type: 'http',
+				scheme: 'bearer',
+				bearerFormat: 'JWT',
+				description: 'Enter your Supabase JWT token'
+			},
+			'supabase-auth'
+		)
+		.addTag('Properties', 'Property management endpoints')
+		.addTag('Units', 'Unit management endpoints')
+		.addTag('Tenants', 'Tenant management endpoints')
+		.addTag('Leases', 'Lease management endpoints')
+		.addTag('Maintenance', 'Maintenance request endpoints')
+		.addTag('Payments', 'Rent payment endpoints')
+		.addTag('Billing', 'Stripe billing endpoints')
+		.addTag('Analytics', 'Analytics and reporting endpoints')
+		.addTag('Dashboard', 'Dashboard data endpoints')
+		.addTag('Auth', 'Authentication endpoints')
+		.addTag('Health', 'Health check endpoints')
+		.build()
+
+	const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig)
+	SwaggerModule.setup('docs', app, swaggerDocument, {
+		swaggerOptions: {
+			persistAuthorization: true,
+			docExpansion: 'none',
+			filter: true,
+			showRequestDuration: true
+		}
+	})
+	logger.log('Swagger documentation available at /docs', 'Bootstrap')
 
 	// Start server
 	await app.listen(port, '0.0.0.0')

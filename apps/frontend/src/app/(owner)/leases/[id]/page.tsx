@@ -1,4 +1,4 @@
-import { LeaseDetails } from './lease-details.client'
+import { LeaseDetails } from '#components/leases/detail/lease-details.client'
 
 export default async function LeaseDetailPage({
 	params

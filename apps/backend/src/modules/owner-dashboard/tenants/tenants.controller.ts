@@ -7,7 +7,14 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -24,6 +31,8 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - Occupancy trends
  * - Tenant statistics
  */
+@ApiTags('Owner Dashboard')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
@@ -35,12 +44,16 @@ export class TenantsController {
 		private readonly logger: AppLogger
 	) {}
 
+	@ApiOperation({ summary: 'Get occupancy trends', description: 'Get occupancy trends over time for property owner' })
+	@ApiQuery({ name: 'months', required: false, type: Number, description: 'Number of months (default: 12)' })
+	@ApiResponse({ status: 200, description: 'Occupancy trends retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('occupancy-trends')
 	async getOccupancyTrends(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -50,12 +63,12 @@ export class TenantsController {
 		const monthsNum = parseInt(months, 10) || 12
 
 		this.logger.log('Getting occupancy trends', {
-			user_id,
+			userId,
 			months: monthsNum
 		})
 
 		const data = await this.dashboardService.getOccupancyTrends(
-			user_id,
+			userId,
 			token,
 			monthsNum
 		)

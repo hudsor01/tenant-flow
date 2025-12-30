@@ -2236,6 +2236,7 @@ export type Database = {
         Args: { _bucket: number; _quryid: number }
         Returns: Record<string, unknown>[]
       }
+      is_admin: { Args: never; Returns: boolean }
       ledger_aggregation: { Args: never; Returns: Json }
       link_stripe_customer_to_user: {
         Args: { p_email: string; p_stripe_customer_id: string }

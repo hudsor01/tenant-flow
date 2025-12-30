@@ -22,13 +22,23 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Post,
-	Req
+	Req,
+	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseSignatureService } from './lease-signature.service'
 
+@ApiTags('Leases')
+@ApiBearerAuth('supabase-auth')
 @Controller('leases')
 export class LeaseSignatureController {
 	constructor(private readonly signatureService: LeaseSignatureService) {}
@@ -37,12 +47,18 @@ export class LeaseSignatureController {
 	 * Owner sends lease for signature (draft -> pending_signature)
 	 * Generates PDF and creates e-signature request if DocuSeal is configured
 	 */
+	@ApiOperation({ summary: 'Send lease for signature', description: 'Generate PDF and create e-signature request via DocuSeal' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiBody({ schema: { type: 'object', properties: { message: { type: 'string', description: 'Custom message for signers' }, missingFields: { type: 'object', properties: { immediate_family_members: { type: 'string' }, landlord_notice_address: { type: 'string' } } } } } })
+	@ApiResponse({ status: 200, description: 'Lease sent for signature successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error or lease not in draft status' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Post(':id/send-for-signature')
 	@Throttle({ default: { limit: 10, ttl: 3600000 } }) // 10 sends per hour
 	async sendForSignature(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
 		@Body()
 		body?: {
 			message?: string
@@ -52,6 +68,10 @@ export class LeaseSignatureController {
 			}
 		}
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const options: {
 			token: string
 			message?: string
@@ -72,6 +92,12 @@ export class LeaseSignatureController {
 	/**
 	 * Owner signs the lease
 	 */
+	@ApiOperation({ summary: 'Sign lease as owner', description: 'Owner signs the lease agreement' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Owner signature recorded successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not in pending_signature status' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Post(':id/sign/owner')
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 signature attempts per hour
 	async signAsOwner(
@@ -86,6 +112,12 @@ export class LeaseSignatureController {
 	/**
 	 * Tenant signs the lease
 	 */
+	@ApiOperation({ summary: 'Sign lease as tenant', description: 'Tenant signs the lease agreement' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant signature recorded successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not in pending_signature status' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Post(':id/sign/tenant')
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 signature attempts per hour
 	async signAsTenant(
@@ -104,6 +136,11 @@ export class LeaseSignatureController {
 	 * Note: SSE provides real-time updates. This endpoint is now
 	 * a fallback for missed events or initial page load only.
 	 */
+	@ApiOperation({ summary: 'Get signature status', description: 'Get current signature status for a lease (fallback for SSE)' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Signature status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Get(':id/signature-status')
 	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute (fallback only, SSE is primary)
 	@Header('Cache-Control', 'private, max-age=30') // 30s cache for CDN/browser
@@ -118,6 +155,11 @@ export class LeaseSignatureController {
 	 * Get DocuSeal signing URL for the current user
 	 * Returns embed URL for e-signature if DocuSeal submission exists
 	 */
+	@ApiOperation({ summary: 'Get signing URL', description: 'Get DocuSeal embed URL for e-signature' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Signing URL retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease or DocuSeal submission not found' })
 	@Get(':id/signing-url')
 	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
 	async getSigningUrl(
@@ -135,6 +177,12 @@ export class LeaseSignatureController {
 	 * Cancel/revoke signature request
 	 * Reverts lease to draft status and archives DocuSeal submission
 	 */
+	@ApiOperation({ summary: 'Cancel signature request', description: 'Revoke signature request and revert lease to draft status' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Signature request cancelled successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not in pending_signature status' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Post(':id/cancel-signature')
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 cancellations per hour
 	async cancelSignatureRequest(
@@ -145,6 +193,13 @@ export class LeaseSignatureController {
 		return { success: true }
 	}
 
+	@ApiOperation({ summary: 'Resend signature request', description: 'Resend e-signature notification to pending signers' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiBody({ schema: { type: 'object', properties: { message: { type: 'string', description: 'Custom message for signers' } } } })
+	@ApiResponse({ status: 200, description: 'Signature request resent successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not in pending_signature status' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
 	@Post(':id/resend-signature')
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 resends per hour
 	async resendSignatureRequest(
@@ -165,6 +220,12 @@ export class LeaseSignatureController {
 	 * Get signed document URL for download
 	 * Only available for active leases with completed signatures
 	 */
+	@ApiOperation({ summary: 'Get signed document', description: 'Get download URL for the signed lease document' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Signed document URL retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Lease signatures not complete' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Lease or signed document not found' })
 	@Get(':id/signed-document')
 	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
 	async getSignedDocument(

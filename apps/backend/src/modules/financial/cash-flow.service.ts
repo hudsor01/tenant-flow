@@ -56,24 +56,17 @@ export class CashFlowService {
 	/**
 	 * Generate cash flow statement for a given period
 	 * Uses direct Supabase queries aggregated within the service
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateCashFlowStatement(
 		token: string,
+		user_id: string,
 		start_date: string,
 		end_date: string,
 		includePreviousPeriod = true
 	): Promise<CashFlowData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		// Get user ID from token (uses getUserClient internally for auth validation)
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getUserClient(token).auth.getUser()
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(
 			`Generating cash flow statement (${start_date} to ${end_date})`
@@ -124,7 +117,7 @@ export class CashFlowService {
 		} catch (error) {
 			this.logger.error('Failed to generate cash flow statement', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				start_date,
 				end_date
 			})

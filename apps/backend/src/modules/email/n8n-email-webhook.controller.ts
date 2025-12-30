@@ -18,8 +18,20 @@ import {
 	HttpCode,
 	HttpStatus,
 	Post,
+	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBody,
+	ApiHeader,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { timingSafeEqual } from 'crypto'
+
+// Bypass global JwtAuthGuard - N8N webhooks use secret-based auth
+const Public = () => SetMetadata('isPublic', true)
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { AppLogger } from '../../logger/app-logger.service'
 import { EmailService } from './email.service'
@@ -85,7 +97,9 @@ interface ContactFormPayload {
 	contactFormData: ContactFormRequest
 }
 
+@ApiTags('N8N Webhooks')
 @Controller('webhooks/n8n/email')
+@Public()
 export class N8nEmailWebhookController {
 	private readonly webhookSecret: string | undefined
 
@@ -97,19 +111,56 @@ export class N8nEmailWebhookController {
 	}
 
 	private validateWebhookSecret(secret: string | undefined): void {
-		// Skip validation if no secret is configured (development mode)
+		// FAIL CLOSED - reject if secret not configured (security requirement)
 		if (!this.webhookSecret) {
-			this.logger.warn(
-				'N8N_WEBHOOK_SECRET not configured - webhook authentication disabled'
+			this.logger.error(
+				'N8N_WEBHOOK_SECRET not configured - rejecting webhook request'
 			)
-			return
+			throw new UnauthorizedException('Webhook authentication not configured')
 		}
 
-		if (secret !== this.webhookSecret) {
+		if (!secret) {
+			throw new UnauthorizedException('Missing x-n8n-webhook-secret header')
+		}
+
+		// Timing-safe comparison to prevent timing attacks
+		const receivedBuffer = Buffer.from(secret)
+		const expectedBuffer = Buffer.from(this.webhookSecret)
+		const isValid =
+			receivedBuffer.length === expectedBuffer.length &&
+			timingSafeEqual(receivedBuffer, expectedBuffer)
+
+		if (!isValid) {
 			throw new UnauthorizedException('Invalid webhook secret')
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send payment success email',
+		description:
+			'N8N webhook to trigger payment success email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Payment success details',
+		schema: {
+			type: 'object',
+			required: ['customerEmail', 'amount', 'currency'],
+			properties: {
+				customerEmail: { type: 'string', format: 'email' },
+				amount: { type: 'number' },
+				currency: { type: 'string' },
+				invoiceUrl: { type: 'string', nullable: true },
+				invoicePdf: { type: 'string', nullable: true }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('payment-success')
 	@HttpCode(HttpStatus.OK)
 	async handlePaymentSuccess(
@@ -133,6 +184,33 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send payment failed email',
+		description:
+			'N8N webhook to trigger payment failed email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Payment failed details',
+		schema: {
+			type: 'object',
+			required: ['customerEmail', 'amount', 'currency', 'attemptCount', 'isLastAttempt'],
+			properties: {
+				customerEmail: { type: 'string', format: 'email' },
+				amount: { type: 'number' },
+				currency: { type: 'string' },
+				attemptCount: { type: 'number' },
+				invoiceUrl: { type: 'string', nullable: true },
+				isLastAttempt: { type: 'boolean' }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('payment-failed')
 	@HttpCode(HttpStatus.OK)
 	async handlePaymentFailed(
@@ -156,6 +234,47 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send payment reminder email',
+		description:
+			'N8N webhook to trigger payment reminder email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Payment reminder details',
+		schema: {
+			type: 'object',
+			required: [
+				'tenantName',
+				'tenantEmail',
+				'propertyName',
+				'amount',
+				'currency',
+				'dueDate',
+				'daysUntilDue',
+				'paymentUrl',
+				'autopayEnabled'
+			],
+			properties: {
+				tenantName: { type: 'string' },
+				tenantEmail: { type: 'string', format: 'email' },
+				propertyName: { type: 'string' },
+				unitNumber: { type: 'string' },
+				amount: { type: 'number' },
+				currency: { type: 'string' },
+				dueDate: { type: 'string', format: 'date' },
+				daysUntilDue: { type: 'number' },
+				paymentUrl: { type: 'string' },
+				autopayEnabled: { type: 'boolean' }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('payment-reminder')
 	@HttpCode(HttpStatus.OK)
 	async handlePaymentReminder(
@@ -182,6 +301,31 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send subscription canceled email',
+		description:
+			'N8N webhook to trigger subscription canceled email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Subscription canceled details',
+		schema: {
+			type: 'object',
+			required: ['customerEmail', 'subscriptionId', 'cancelAtPeriodEnd'],
+			properties: {
+				customerEmail: { type: 'string', format: 'email' },
+				subscriptionId: { type: 'string' },
+				cancelAtPeriodEnd: { type: 'boolean' },
+				currentPeriodEnd: { type: 'string', format: 'date-time', nullable: true }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('subscription-canceled')
 	@HttpCode(HttpStatus.OK)
 	async handleSubscriptionCanceled(
@@ -216,6 +360,33 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send tenant invitation email',
+		description:
+			'N8N webhook to trigger tenant invitation email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Tenant invitation details',
+		schema: {
+			type: 'object',
+			required: ['tenantEmail', 'invitationUrl', 'expiresAt'],
+			properties: {
+				tenantEmail: { type: 'string', format: 'email' },
+				invitationUrl: { type: 'string', format: 'uri' },
+				propertyName: { type: 'string' },
+				unitNumber: { type: 'string' },
+				ownerName: { type: 'string' },
+				expiresAt: { type: 'string', format: 'date-time' }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('tenant-invitation')
 	@HttpCode(HttpStatus.OK)
 	async handleTenantInvitation(
@@ -242,6 +413,34 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send lease signature request email',
+		description:
+			'N8N webhook to trigger lease signature request email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Lease signature request details',
+		schema: {
+			type: 'object',
+			required: ['tenantEmail', 'tenantName', 'signUrl'],
+			properties: {
+				tenantEmail: { type: 'string', format: 'email' },
+				tenantName: { type: 'string' },
+				propertyName: { type: 'string' },
+				unitNumber: { type: 'string' },
+				ownerName: { type: 'string' },
+				message: { type: 'string' },
+				signUrl: { type: 'string', format: 'uri' }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('lease-signature')
 	@HttpCode(HttpStatus.OK)
 	async handleLeaseSignature(
@@ -268,6 +467,36 @@ export class N8nEmailWebhookController {
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Send contact form submission email',
+		description:
+			'N8N webhook to trigger contact form submission email. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Contact form submission data',
+		schema: {
+			type: 'object',
+			required: ['contactFormData'],
+			properties: {
+				contactFormData: {
+					type: 'object',
+					properties: {
+						name: { type: 'string' },
+						email: { type: 'string', format: 'email' },
+						message: { type: 'string' },
+						subject: { type: 'string' }
+					}
+				}
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Email sent successfully' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post('contact-form')
 	@HttpCode(HttpStatus.OK)
 	async handleContactForm(

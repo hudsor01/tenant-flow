@@ -41,7 +41,7 @@ export default function UnitsPage() {
 		data: unitsResponse,
 		isLoading,
 		error
-	} = useQuery(unitQueries.list({ limit: 1000 }))
+	} = useQuery(unitQueries.list({ limit: 100 }))
 
 	const units = unitsResponse?.data ?? []
 

@@ -29,22 +29,15 @@ export class TaxDocumentsService {
 	/**
 	 * Generate tax documents for a given year
 	 * Aggregates deductible expenses and depreciation for tax preparation
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateTaxDocuments(
 		token: string,
+		user_id: string,
 		taxYear: number
 	): Promise<TaxDocumentsData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		// Get user ID from token (uses getUserClient internally for auth validation)
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getUserClient(token).auth.getUser()
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(`Generating tax documents for tax year ${taxYear}`)
 
@@ -120,7 +113,7 @@ export class TaxDocumentsService {
 		} catch (error) {
 			this.logger.error('Failed to generate tax documents', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				taxYear
 			})
 			throw error instanceof Error

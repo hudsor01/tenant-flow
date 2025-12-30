@@ -32,7 +32,7 @@ const mockSupabaseEq = vi.fn()
 const mockSupabaseOrder = vi.fn()
 const mockGetSession = vi.fn()
 
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: mockSupabaseFrom,
 		auth: {

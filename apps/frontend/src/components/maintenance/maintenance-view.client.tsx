@@ -35,9 +35,9 @@ import {
 	StatDescription
 } from '#components/ui/stat'
 import { usePreferencesStore } from '#providers/preferences-provider'
-import { MaintenanceKanban } from './maintenance-kanban.client'
-import { MaintenanceTableClient } from './maintenance-table.client'
-import { columns } from './columns'
+import { MaintenanceKanban } from './kanban/maintenance-kanban.client'
+import { MaintenanceTableClient } from './table/maintenance-table.client'
+import { columns } from './table/columns'
 import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
 import { useQuery } from '@tanstack/react-query'
 import type { MaintenanceRequest } from '@repo/shared/types/core'

@@ -118,7 +118,7 @@ function transformToTenantDetail(
 						startDate: tenant.currentLease.start_date,
 						endDate: tenant.currentLease.end_date,
 						rentAmount: (tenant.currentLease.rent_amount ?? 0) * 100, // Convert to cents
-						autopayEnabled: tenant.autopay_enabled ?? false
+						autopayEnabled: tenant.currentLease.auto_pay_enabled ?? false
 					}
 				}
 			: {})

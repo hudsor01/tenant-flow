@@ -10,6 +10,11 @@ describe('PropertyPerformanceController', () => {
 
 	const TEST_USER_ID = 'user-42'
 
+	// Mock authenticated request
+	const mockRequest = {
+		user: { id: TEST_USER_ID, email: 'test@example.com' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 	beforeEach(async () => {
 		service = {
 			getPropertyPerformance: jest.fn(),
@@ -40,7 +45,7 @@ describe('PropertyPerformanceController', () => {
 		const payload = [{ property_id: 'prop-1' }]
 		service.getPropertyPerformance!.mockResolvedValue(payload)
 
-		const response = await controller.getPropertyPerformance(TEST_USER_ID)
+		const response = await controller.getPropertyPerformance(mockRequest)
 
 		expect(service.getPropertyPerformance).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -55,7 +60,7 @@ describe('PropertyPerformanceController', () => {
 		const units = [{ unit_id: 'unit-9' }]
 		service.getPropertyUnits!.mockResolvedValue(units)
 
-		const response = await controller.getPropertyUnits(TEST_USER_ID)
+		const response = await controller.getPropertyUnits(mockRequest)
 
 		expect(service.getPropertyUnits).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -70,7 +75,7 @@ describe('PropertyPerformanceController', () => {
 		const stats = [{ label: 'Vacant Units', value: 2 }]
 		service.getUnitStatistics!.mockResolvedValue(stats)
 
-		const response = await controller.getUnitStatistics(TEST_USER_ID)
+		const response = await controller.getUnitStatistics(mockRequest)
 
 		expect(service.getUnitStatistics).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -85,7 +90,7 @@ describe('PropertyPerformanceController', () => {
 		const visitorAnalytics = { summary: { totalVisits: 100 }, timeline: [] }
 		service.getVisitorAnalytics!.mockResolvedValue(visitorAnalytics)
 
-		const response = await controller.getVisitorAnalytics(TEST_USER_ID)
+		const response = await controller.getVisitorAnalytics(mockRequest)
 
 		expect(service.getVisitorAnalytics).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -101,7 +106,7 @@ describe('PropertyPerformanceController', () => {
 		service.getPropertyPerformancePageData!.mockResolvedValue(pageData)
 
 		const response =
-			await controller.getPropertyPerformancePageData(TEST_USER_ID)
+			await controller.getPropertyPerformancePageData(mockRequest)
 
 		expect(service.getPropertyPerformancePageData).toHaveBeenCalledWith(
 			TEST_USER_ID

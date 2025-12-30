@@ -3,26 +3,43 @@ import {
 	Controller,
 	Get,
 	Query,
+	Request,
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { CashFlowService } from './cash-flow.service'
 import type { CashFlowData } from './cash-flow.service'
 
+@ApiTags('Financials')
+@ApiBearerAuth('supabase-auth')
 @Controller('financials/cash-flow')
 @UseGuards(JwtAuthGuard)
 export class CashFlowController {
 	constructor(private readonly cashFlowService: CashFlowService) {}
 
+	@ApiOperation({ summary: 'Get cash flow statement', description: 'Generate cash flow statement for a date range' })
+	@ApiQuery({ name: 'start_date', required: false, description: 'Start date (YYYY-MM-DD format, defaults to first of current month)' })
+	@ApiQuery({ name: 'end_date', required: false, description: 'End date (YYYY-MM-DD format, defaults to today)' })
+	@ApiResponse({ status: 200, description: 'Cash flow statement generated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid date format' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async getCashFlowStatement(
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Query('start_date') start_date?: string,
 		@Query('end_date') end_date?: string
 	): Promise<{ success: boolean; data: CashFlowData }> {
-		if (!token) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token || !req.user?.id) {
 			throw new UnauthorizedException('Authentication token is required')
 		}
 
@@ -48,6 +65,7 @@ export class CashFlowController {
 
 		const data = await this.cashFlowService.generateCashFlowStatement(
 			token,
+			req.user.id,
 			finalStartDate,
 			finalEndDate
 		)

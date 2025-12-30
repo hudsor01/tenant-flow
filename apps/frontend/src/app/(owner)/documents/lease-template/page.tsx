@@ -6,7 +6,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { FileText } from 'lucide-react'
-import { LeaseTemplateBuilder } from './lease-template-builder.client'
+import { LeaseTemplateBuilder } from '#components/leases/template/lease-template-builder.client'
 
 export default function LeaseTemplatePage() {
 	return (

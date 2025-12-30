@@ -22,10 +22,6 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { Button } from '#components/ui/button'
-import { CardLayout } from '#components/ui/card-layout'
-import { Field, FieldLabel } from '#components/ui/field'
-import { ToggleSwitch } from '#components/ui/toggle-switch'
 import { useSupabaseUpdateProfile } from '#hooks/api/use-auth'
 import {
 	useTenantNotificationPreferences,
@@ -40,9 +36,12 @@ import {
 import { useCurrentUser } from '#hooks/use-current-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { emailSchema } from '@repo/shared/validation/common'
-import { Bell, Mail, Phone, Shield } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { PersonalInformationSection } from '#components/profiles/tenant/personal-information-section'
+import { EmergencyContactSection } from '#components/profiles/tenant/emergency-contact-section'
+import { NotificationPreferencesSection } from '#components/profiles/tenant/notification-preferences-section'
+import { AccountSecuritySection } from '#components/profiles/tenant/account-security-section'
 
 export default function TenantProfilePage() {
 	const [isEditing, setIsEditing] = useState(false)
@@ -148,6 +147,18 @@ export default function TenantProfilePage() {
 		setFormData(prev => ({ ...prev, [field]: value }))
 	}
 
+	const handleCancelEdit = () => {
+		setIsEditing(false)
+		if (user) {
+			setFormData({
+				first_name: (user.user_metadata?.first_name || '') as string,
+				last_name: (user.user_metadata?.last_name || '') as string,
+				email: (user.email || '') as string,
+				phone: (user.user_metadata?.phone || '') as string
+			})
+		}
+	}
+
 	const isLoading = authLoading || updateProfile.isPending
 
 	const handleTogglePreference = async (key: string, value: boolean) => {
@@ -180,7 +191,6 @@ export default function TenantProfilePage() {
 
 		try {
 			if (emergency_contact) {
-				// Update existing contact
 				await updateEmergencyContact.mutateAsync({
 					contactName: emergency_contactForm.contactName,
 					relationship: emergency_contactForm.relationship,
@@ -188,7 +198,6 @@ export default function TenantProfilePage() {
 					email: emergency_contactForm.email || null
 				})
 			} else {
-				// Create new contact
 				await createEmergencyContact.mutateAsync({
 					contactName: emergency_contactForm.contactName,
 					relationship: emergency_contactForm.relationship,
@@ -202,7 +211,7 @@ export default function TenantProfilePage() {
 		}
 	}
 
-	const handleDeleteEmergencyContact = async () => {
+	const handleDeleteEmergencyContact = () => {
 		if (!emergency_contact) return
 		setDeleteDialogOpen(true)
 	}
@@ -227,7 +236,6 @@ export default function TenantProfilePage() {
 
 	const handleCancelEmergencyContactEdit = () => {
 		if (emergency_contact) {
-			// Reset to existing data
 			setEmergencyContactForm({
 				contactName: emergency_contact.contactName,
 				relationship: emergency_contact.relationship,
@@ -235,7 +243,6 @@ export default function TenantProfilePage() {
 				email: emergency_contact.email || ''
 			})
 		} else {
-			// Clear form
 			setEmergencyContactForm({
 				contactName: '',
 				relationship: '',
@@ -255,356 +262,48 @@ export default function TenantProfilePage() {
 				</p>
 			</div>
 
-			{/* Personal Information */}
-			<CardLayout
-				title="Personal Information"
-				description="Your basic contact details"
-			>
-				<form onSubmit={handleSave} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
-						<Field>
-							<FieldLabel>First Name *</FieldLabel>
-							<input
-								type="text"
-								className="input w-full"
-								value={formData.first_name}
-								onChange={e => handleChange('first_name', e.target.value)}
-								disabled={!isEditing || isLoading}
-								required
-							/>
-						</Field>
+			<PersonalInformationSection
+				formData={formData}
+				isEditing={isEditing}
+				isLoading={isLoading}
+				onEditToggle={setIsEditing}
+				onChange={handleChange}
+				onSave={handleSave}
+				onCancel={handleCancelEdit}
+			/>
 
-						<Field>
-							<FieldLabel>Last Name *</FieldLabel>
-							<input
-								type="text"
-								className="input w-full"
-								value={formData.last_name}
-								onChange={e => handleChange('last_name', e.target.value)}
-								disabled={!isEditing || isLoading}
-								required
-							/>
-						</Field>
-					</div>
+			<EmergencyContactSection
+				formData={emergency_contactForm}
+				hasExistingContact={!!emergency_contact}
+				isEditing={emergency_contactEditing}
+				isLoading={emergency_contactLoading || deleteEmergencyContact.isPending}
+				isSaving={
+					createEmergencyContact.isPending || updateEmergencyContact.isPending
+				}
+				onEditToggle={setEmergencyContactEditing}
+				onChange={handleEmergencyContactChange}
+				onSave={handleSaveEmergencyContact}
+				onCancel={handleCancelEmergencyContactEdit}
+				onDelete={handleDeleteEmergencyContact}
+			/>
 
-					<Field>
-						<FieldLabel>
-							<div className="flex items-center gap-2">
-								<Mail className="size-4" />
-								<span>Email Address *</span>
-							</div>
-						</FieldLabel>
-						<input
-							type="email"
-							className="input w-full"
-							value={formData.email}
-							disabled
-							required
-						/>
-						<p className="text-muted mt-1">
-							Email cannot be changed. Contact support if needed.
-						</p>
-					</Field>
+			<NotificationPreferencesSection
+				preferences={notificationPrefs}
+				isLoading={prefsLoading}
+				isSaving={updatePreferences.isPending}
+				onToggle={handleTogglePreference}
+			/>
 
-					<Field>
-						<FieldLabel>
-							<div className="flex items-center gap-2">
-								<Phone className="size-4" />
-								<span>Phone Number</span>
-							</div>
-						</FieldLabel>
-						<input
-							type="tel"
-							className="input w-full"
-							placeholder="(555) 123-4567"
-							value={formData.phone}
-							onChange={e => handleChange('phone', e.target.value)}
-							disabled={!isEditing || isLoading}
-						/>
-					</Field>
+			<AccountSecuritySection
+				lastSignInAt={user?.last_sign_in_at}
+				onChangePassword={() => setShowChangePasswordDialog(true)}
+			/>
 
-					<div className="flex gap-4 pt-4">
-						{!isEditing ? (
-							<Button
-								type="button"
-								onClick={() => setIsEditing(true)}
-								disabled={isLoading}
-							>
-								Edit Profile
-							</Button>
-						) : (
-							<>
-								<Button type="submit" disabled={isLoading}>
-									{isLoading ? 'Saving...' : 'Save Changes'}
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => {
-										setIsEditing(false)
-										// Reset form
-										if (user) {
-											setFormData({
-												first_name: (user.user_metadata?.first_name ||
-													'') as string,
-												last_name: (user.user_metadata?.last_name ||
-													'') as string,
-												email: (user.email || '') as string,
-												phone: (user.user_metadata?.phone || '') as string
-											})
-										}
-									}}
-									disabled={isLoading}
-								>
-									Cancel
-								</Button>
-							</>
-						)}
-					</div>
-				</form>
-			</CardLayout>
-
-			{/* Emergency Contact */}
-			<CardLayout
-				title="Emergency Contact"
-				description="Someone we can contact in case of emergency"
-			>
-				<form onSubmit={handleSaveEmergencyContact} className="space-y-6">
-					<div className="grid gap-6 md:grid-cols-2">
-						<Field>
-							<FieldLabel>Contact Name *</FieldLabel>
-							<input
-								type="text"
-								className="input w-full"
-								placeholder="Full name"
-								value={emergency_contactForm.contactName}
-								onChange={e =>
-									handleEmergencyContactChange('contactName', e.target.value)
-								}
-								disabled={
-									!emergency_contactEditing ||
-									emergency_contactLoading ||
-									createEmergencyContact.isPending ||
-									updateEmergencyContact.isPending
-								}
-								required
-							/>
-						</Field>
-
-						<Field>
-							<FieldLabel>Relationship *</FieldLabel>
-							<input
-								type="text"
-								className="input w-full"
-								placeholder="e.g., Spouse, Parent"
-								value={emergency_contactForm.relationship}
-								onChange={e =>
-									handleEmergencyContactChange('relationship', e.target.value)
-								}
-								disabled={
-									!emergency_contactEditing ||
-									emergency_contactLoading ||
-									createEmergencyContact.isPending ||
-									updateEmergencyContact.isPending
-								}
-								required
-							/>
-						</Field>
-					</div>
-
-					<Field>
-						<FieldLabel>
-							<div className="flex items-center gap-2">
-								<Phone className="size-4" />
-								<span>Phone Number *</span>
-							</div>
-						</FieldLabel>
-						<input
-							type="tel"
-							className="input w-full"
-							placeholder="(555) 123-4567"
-							value={emergency_contactForm.phoneNumber}
-							onChange={e =>
-								handleEmergencyContactChange('phoneNumber', e.target.value)
-							}
-							disabled={
-								!emergency_contactEditing ||
-								emergency_contactLoading ||
-								createEmergencyContact.isPending ||
-								updateEmergencyContact.isPending
-							}
-							required
-						/>
-					</Field>
-
-					<Field>
-						<FieldLabel>
-							<div className="flex items-center gap-2">
-								<Mail className="size-4" />
-								<span>Email (optional)</span>
-							</div>
-						</FieldLabel>
-						<input
-							type="email"
-							className="input w-full"
-							placeholder="emergency@example.com"
-							value={emergency_contactForm.email}
-							onChange={e =>
-								handleEmergencyContactChange('email', e.target.value)
-							}
-							disabled={
-								!emergency_contactEditing ||
-								emergency_contactLoading ||
-								createEmergencyContact.isPending ||
-								updateEmergencyContact.isPending
-							}
-						/>
-					</Field>
-
-					{!emergency_contact && !emergency_contactEditing && (
-						<p className="text-muted text-center py-4">
-							No emergency contact on file
-						</p>
-					)}
-
-					<div className="flex gap-4">
-						{!emergency_contactEditing ? (
-							<>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={() => setEmergencyContactEditing(true)}
-									disabled={emergency_contactLoading}
-								>
-									{emergency_contact
-										? 'Edit Emergency Contact'
-										: 'Add Emergency Contact'}
-								</Button>
-								{emergency_contact && (
-									<Button
-										type="button"
-										variant="outline"
-										onClick={handleDeleteEmergencyContact}
-										disabled={
-											emergency_contactLoading ||
-											deleteEmergencyContact.isPending
-										}
-									>
-										Remove Contact
-									</Button>
-								)}
-							</>
-						) : (
-							<>
-								<Button
-									type="submit"
-									disabled={
-										emergency_contactLoading ||
-										createEmergencyContact.isPending ||
-										updateEmergencyContact.isPending
-									}
-								>
-									{createEmergencyContact.isPending ||
-									updateEmergencyContact.isPending
-										? 'Saving...'
-										: 'Save Contact'}
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									onClick={handleCancelEmergencyContactEdit}
-									disabled={
-										emergency_contactLoading ||
-										createEmergencyContact.isPending ||
-										updateEmergencyContact.isPending
-									}
-								>
-									Cancel
-								</Button>
-							</>
-						)}
-					</div>
-				</form>
-			</CardLayout>
-
-			{/* Notification Preferences */}
-			<CardLayout
-				title="Notification Preferences"
-				description="Choose how you want to be notified"
-			>
-				<div className="space-y-4">
-					<ToggleSwitch
-						icon={Bell}
-						label="Rent Reminders"
-						description="Get notified before rent is due"
-						checked={notificationPrefs?.rentReminders ?? true}
-						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked =>
-							handleTogglePreference('rentReminders', checked)
-						}
-					/>
-
-					<ToggleSwitch
-						icon={Bell}
-						label="Maintenance Updates"
-						description="Updates on your maintenance requests"
-						checked={notificationPrefs?.maintenanceUpdates ?? true}
-						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked =>
-							handleTogglePreference('maintenanceUpdates', checked)
-						}
-					/>
-
-					<ToggleSwitch
-						icon={Bell}
-						label="Property Notices"
-						description="Important announcements and updates"
-						checked={notificationPrefs?.propertyNotices ?? true}
-						disabled={prefsLoading || updatePreferences.isPending}
-						onChange={checked =>
-							handleTogglePreference('propertyNotices', checked)
-						}
-					/>
-				</div>
-			</CardLayout>
-
-			{/* Account Security */}
-			<CardLayout
-				title="Account Security"
-				description="Manage your password and security settings"
-			>
-				<div className="space-y-4">
-					<div className="flex-between p-4 border rounded-lg">
-						<div className="flex items-center gap-3">
-							<Shield className="size-5 text-accent-main" />
-							<div>
-								<p className="font-medium">Password</p>
-								<p className="text-muted">
-									Last changed:{' '}
-									{user?.last_sign_in_at
-										? new Date(user.last_sign_in_at).toLocaleDateString()
-										: 'Never'}
-								</p>
-							</div>
-						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setShowChangePasswordDialog(true)}
-						>
-							Change Password
-						</Button>
-					</div>
-				</div>
-			</CardLayout>
-
-			{/* Password Change Dialog */}
 			<ChangePasswordDialog
 				open={showChangePasswordDialog}
 				onOpenChange={setShowChangePasswordDialog}
 			/>
 
-			{/* Delete Emergency Contact Confirmation Dialog */}
 			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
 				<AlertDialogContent>
 					<AlertDialogHeader>

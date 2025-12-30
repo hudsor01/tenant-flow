@@ -6,6 +6,13 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type {
 	MaintenanceCostSummary,
 	MaintenanceMetrics,
@@ -21,6 +28,8 @@ import { AppLogger } from '../../logger/app-logger.service'
  * Maintenance Analytics Controller - Ultra-Native Implementation
  * Direct Supabase queries, no repository dependencies
  */
+@ApiTags('Maintenance')
+@ApiBearerAuth('supabase-auth')
 @Controller('maintenance/analytics')
 export class MaintenanceAnalyticsController {
 	constructor(
@@ -32,6 +41,12 @@ export class MaintenanceAnalyticsController {
 	 * Get maintenance metrics via existing optimized analytics service
 	 * Delegates to DashboardAnalyticsService.getMaintenanceAnalytics()
 	 */
+	@ApiOperation({ summary: 'Get maintenance metrics', description: 'Retrieve aggregate maintenance metrics (costs, counts, resolution times)' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'timeframe', required: false, type: 'string', description: 'Time range (e.g., 30d, 90d, 12m)' })
+	@ApiResponse({ status: 200, description: 'Maintenance metrics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid property ID' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('metrics')
 	async getMaintenanceMetrics(
 		@Req() req: Request,
@@ -82,6 +97,12 @@ export class MaintenanceAnalyticsController {
 	 * Get maintenance cost summary via existing optimized analytics service
 	 * Delegates to DashboardAnalyticsService.getMaintenanceAnalytics()
 	 */
+	@ApiOperation({ summary: 'Get cost summary', description: 'Retrieve maintenance cost summary (total, average, by priority)' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'timeframe', required: false, type: 'string', description: 'Time range (e.g., 30d, 90d, 12m)' })
+	@ApiResponse({ status: 200, description: 'Cost summary retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid property ID' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('cost-summary')
 	async getCostSummary(
 		@Req() req: Request,
@@ -129,6 +150,13 @@ export class MaintenanceAnalyticsController {
 	 * Get maintenance performance analytics via existing optimized analytics service
 	 * Simple delegation pattern - property name lookups are no longer required for analytics
 	 */
+	@ApiOperation({ summary: 'Get performance analytics', description: 'Retrieve maintenance performance by property (requests, resolution, costs)' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'period', required: false, type: 'string', description: 'Aggregation period (monthly, quarterly)' })
+	@ApiQuery({ name: 'timeframe', required: false, type: 'string', description: 'Time range (e.g., 90d, 6m, 12m)' })
+	@ApiResponse({ status: 200, description: 'Performance analytics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid property ID' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('performance')
 	async getPerformanceAnalytics(
 		@Req() req: Request,

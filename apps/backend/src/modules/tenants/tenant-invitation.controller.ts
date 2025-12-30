@@ -24,6 +24,15 @@ import {
 	SetMetadata,
 	UseGuards
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -32,6 +41,8 @@ import { TenantQueryService } from './tenant-query.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 
+@ApiTags('Tenant Invitations')
+@ApiBearerAuth('supabase-auth')
 @Controller('tenants')
 export class TenantInvitationController {
 	constructor(
@@ -44,6 +55,12 @@ export class TenantInvitationController {
 	 * GET /tenants/invitations
 	 * List all invitations for the current owner
 	 */
+	@ApiOperation({ summary: 'List invitations', description: 'Get all invitations for the current owner' })
+	@ApiQuery({ name: 'status', required: false, enum: ['sent', 'accepted', 'expired', 'cancelled'], description: 'Filter by invitation status' })
+	@ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page' })
+	@ApiResponse({ status: 200, description: 'Invitations retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('invitations')
 	async getInvitations(
 		@Req() req: AuthenticatedRequest,
@@ -63,6 +80,11 @@ export class TenantInvitationController {
 	 * POST /tenants/invitations/:id/cancel
 	 * Cancel a pending invitation
 	 */
+	@ApiOperation({ summary: 'Cancel invitation', description: 'Cancel a pending invitation' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Invitation ID' })
+	@ApiResponse({ status: 200, description: 'Invitation cancelled successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Invitation not found' })
 	@Post('invitations/:id/cancel')
 	async cancelInvitation(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -83,6 +105,12 @@ export class TenantInvitationController {
 	 * - Lease creation is a SEPARATE workflow after tenant accepts
 	 * - Stripe subscription created only when BOTH parties sign the lease
 	 */
+	@ApiOperation({ summary: 'Invite tenant', description: 'Invite a tenant to the platform (no lease created)' })
+	@ApiBody({ type: InviteWithLeaseDto })
+	@ApiResponse({ status: 201, description: 'Invitation sent successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 429, description: 'Rate limit exceeded (5 invitations per hour)' })
 	@Post('invite')
 	@UseGuards(PropertyOwnershipGuard)
 	@Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 invitations per hour
@@ -117,6 +145,12 @@ export class TenantInvitationController {
 	 * POST /tenants/:id/resend-invitation
 	 * Resend invitation email to a tenant
 	 */
+	@ApiOperation({ summary: 'Resend invitation', description: 'Resend invitation email to a tenant' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiResponse({ status: 200, description: 'Invitation resent successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
+	@ApiResponse({ status: 429, description: 'Rate limit exceeded (1 resend per 15 minutes)' })
 	@Post(':id/resend-invitation')
 	@Throttle({ default: { limit: 1, ttl: 900000 } }) // 1 resend per 15 minutes
 	async resendInvitation(
@@ -133,6 +167,10 @@ export class TenantInvitationController {
 	 * Validate invitation token (public endpoint - no auth required)
 	 * Used by tenant invitation landing page
 	 */
+	@ApiOperation({ summary: 'Validate invitation token', description: 'Validate an invitation token (public endpoint)' })
+	@ApiParam({ name: 'token', type: 'string', description: 'Invitation token' })
+	@ApiResponse({ status: 200, description: 'Token validated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid or expired token' })
 	@Get('invitation/:token')
 	@SetMetadata('isPublic', true)
 	async validateInvitation(@Param('token') token: string) {
@@ -143,6 +181,11 @@ export class TenantInvitationController {
 	 * POST /tenants/invitation/:token/accept
 	 * Accept an invitation token (public endpoint)
 	 */
+	@ApiOperation({ summary: 'Accept invitation', description: 'Accept an invitation token (public endpoint)' })
+	@ApiParam({ name: 'token', type: 'string', description: 'Invitation token' })
+	@ApiBody({ schema: { type: 'object', properties: { authuser_id: { type: 'string', format: 'uuid' } }, required: ['authuser_id'] } })
+	@ApiResponse({ status: 200, description: 'Invitation accepted successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid token or authuser_id required' })
 	@Post('invitation/:token/accept')
 	@SetMetadata('isPublic', true)
 	async acceptInvitation(
@@ -161,6 +204,10 @@ export class TenantInvitationController {
 	 * Called from frontend after successful invitation acceptance
 	 * Public endpoint - authenticated via Supabase Auth session
 	 */
+	@ApiOperation({ summary: 'Activate tenant', description: 'Activate tenant from Supabase Auth user (public endpoint)' })
+	@ApiBody({ schema: { type: 'object', properties: { authuser_id: { type: 'string', format: 'uuid' } }, required: ['authuser_id'] } })
+	@ApiResponse({ status: 200, description: 'Tenant activated successfully' })
+	@ApiResponse({ status: 400, description: 'authuser_id required' })
 	@Post('activate')
 	@SetMetadata('isPublic', true)
 	async activateTenant(@Body() body: { authuser_id: string }) {

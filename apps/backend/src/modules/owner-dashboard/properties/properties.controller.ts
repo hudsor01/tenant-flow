@@ -6,7 +6,13 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -23,6 +29,8 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - Property performance metrics
  * - Portfolio statistics
  */
+@ApiTags('Owner Dashboard - Properties')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
@@ -34,11 +42,14 @@ export class PropertiesController {
 		private readonly logger: AppLogger
 	) {}
 
+	@ApiOperation({ summary: 'Get property performance', description: 'Retrieve property performance metrics and statistics' })
+	@ApiResponse({ status: 200, description: 'Property performance retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('performance')
 	async getPropertyPerformance(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {

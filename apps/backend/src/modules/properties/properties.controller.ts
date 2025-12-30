@@ -1,16 +1,3 @@
-/**
- * Properties Controller - Core CRUD Operations
- *
- * Uses:
- * - Zod DTOs via nestjs-zod + createZodDto pattern
- * - Built-in NestJS pipes for validation
- * - Native exception handling
- * - Direct PostgreSQL RPC calls
- *
- * Related Controllers (extracted for CLAUDE.md compliance):
- * - PropertyAnalyticsController: Analytics endpoints (/properties/analytics/*)
- */
-
 import {
 	BadRequestException,
 	Body,
@@ -30,6 +17,16 @@ import {
 	UploadedFile,
 	UseInterceptors
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiConsumes,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { memoryStorage } from 'multer'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
@@ -45,9 +42,10 @@ import { DashboardService } from '../dashboard/dashboard.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
 import { AppLogger } from '../../logger/app-logger.service'
 
+@ApiTags('Properties')
+@ApiBearerAuth('supabase-auth')
 @Controller('properties')
 export class PropertiesController {
 	constructor(
@@ -62,19 +60,24 @@ export class PropertiesController {
 	// Query Endpoints
 	// ========================================
 
-	/**
-	 * GET /properties
-	 * Get all properties for authenticated user
-	 * Built-in pipes handle all validation
-	 */
+	@ApiOperation({ summary: 'List all properties', description: 'Get all properties for the authenticated user with pagination' })
+	@ApiQuery({ name: 'search', required: false, description: 'Search term for filtering properties' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
+	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
+	@ApiResponse({ status: 200, description: 'List of properties with pagination info' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@SkipSubscriptionCheck()
 	@Get()
 	async findAll(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@JwtToken() token: string
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const safeLimit = Math.max(1, Math.min(limit, 50))
 		const safeOffset = Math.max(0, offset)
 
@@ -93,14 +96,15 @@ export class PropertiesController {
 		}
 	}
 
-	/**
-	 * GET /properties/stats
-	 * Get property statistics
-	 * Returns aggregated property stats from dashboard service
-	 * MUST BE BEFORE /:id route to avoid route conflict
-	 */
+	@ApiOperation({ summary: 'Get property statistics', description: 'Returns aggregated property stats (total, occupied, vacant, etc.)' })
+	@ApiResponse({ status: 200, description: 'Property statistics' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('stats')
-	async getStats(@JwtToken() token: string) {
+	async getStats(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const dashboardStats = await this.dashboardService.getStats(
 			undefined,
 			token
@@ -108,12 +112,12 @@ export class PropertiesController {
 		return dashboardStats.properties
 	}
 
-	/**
-	 * GET /properties/with-units
-	 * Get all properties with their units
-	 * Returns properties with units for frontend stat calculations
-	 * MUST BE BEFORE /:id route to avoid route conflict
-	 */
+	@ApiOperation({ summary: 'List properties with units', description: 'Get all properties with their associated units for stat calculations' })
+	@ApiQuery({ name: 'search', required: false, description: 'Search term for filtering' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
+	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
+	@ApiResponse({ status: 200, description: 'List of properties with their units' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('with-units')
 	async findAllWithUnits(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
@@ -130,11 +134,11 @@ export class PropertiesController {
 		})
 	}
 
-	/**
-	 * GET /properties/:id
-	 * Get single property by ID
-	 * ParseUUIDPipe validates the ID format
-	 */
+	@ApiOperation({ summary: 'Get property by ID', description: 'Get a single property by its UUID' })
+	@ApiParam({ name: 'id', type: String, description: 'Property UUID' })
+	@ApiResponse({ status: 200, description: 'Property details' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
 	@Get(':id')
 	@SkipSubscriptionCheck()
 	async findOne(
@@ -148,10 +152,11 @@ export class PropertiesController {
 	// CRUD Endpoints
 	// ========================================
 
-	/**
-	 * POST /properties
-	 * Create new property
-	 */
+	@ApiOperation({ summary: 'Create property', description: 'Create a new property' })
+	@ApiBody({ type: CreatePropertyDto })
+	@ApiResponse({ status: 201, description: 'Property created successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post()
 	async create(
 		@Body() dto: CreatePropertyDto,
@@ -160,11 +165,24 @@ export class PropertiesController {
 		return this.propertiesService.create(req, dto)
 	}
 
-	/**
-	 * POST /properties/bulk-import
-	 * Bulk import properties from CSV file
-	 * Ephemeral processing: parse → validate → insert → discard file
-	 */
+	@ApiOperation({ summary: 'Bulk import properties', description: 'Import multiple properties from a CSV file. Maximum file size: 5MB' })
+	@ApiConsumes('multipart/form-data')
+	@ApiBody({
+		description: 'CSV file with property data',
+		schema: {
+			type: 'object',
+			properties: {
+				file: {
+					type: 'string',
+					format: 'binary',
+					description: 'CSV file containing property data'
+				}
+			}
+		}
+	})
+	@ApiResponse({ status: 201, description: 'Properties imported successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid file type or validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('bulk-import')
 	@UseInterceptors(
 		FileInterceptor('file', {
@@ -174,9 +192,12 @@ export class PropertiesController {
 	)
 	async bulkImport(
 		@UploadedFile() file: Express.Multer.File,
-		@JwtToken() token: string,
 		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Bulk import request received', {
 			hasFile: !!file,
 			fileName: file?.originalname,
@@ -222,10 +243,13 @@ export class PropertiesController {
 		)
 	}
 
-	/**
-	 * PUT /properties/:id
-	 * Update existing property
-	 */
+	@ApiOperation({ summary: 'Update property', description: 'Update an existing property by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Property UUID' })
+	@ApiBody({ type: UpdatePropertyDto })
+	@ApiResponse({ status: 200, description: 'Property updated successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -248,10 +272,11 @@ export class PropertiesController {
 		return property
 	}
 
-	/**
-	 * DELETE /properties/:id
-	 * Delete property
-	 */
+	@ApiOperation({ summary: 'Delete property', description: 'Delete a property by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Property UUID' })
+	@ApiResponse({ status: 200, description: 'Property deleted successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -265,10 +290,13 @@ export class PropertiesController {
 	// Lifecycle Endpoints
 	// ========================================
 
-	/**
-	 * PUT /properties/:id/mark-sold
-	 * Mark property as sold
-	 */
+	@ApiOperation({ summary: 'Mark property as sold', description: 'Mark a property as sold with sale date and price' })
+	@ApiParam({ name: 'id', type: String, description: 'Property UUID' })
+	@ApiBody({ type: MarkPropertyAsSoldDto })
+	@ApiResponse({ status: 200, description: 'Property marked as sold successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Property not found' })
 	@Put(':id/mark-sold')
 	async markPropertyAsSold(
 		@Param('id', ParseUUIDPipe) property_id: string,

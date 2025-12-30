@@ -15,6 +15,15 @@ import {
 	InternalServerErrorException,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiProduces,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Response } from 'express'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
@@ -40,6 +49,8 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
  * - RolesGuard: Restricts lease generation to OWNER and MANAGER roles
  * - PropertyOwnershipGuard: Verifies user owns the property (applied to specific routes)
  */
+@ApiTags('Lease PDF Generation')
+@ApiBearerAuth('supabase-auth')
 @Controller('leases')
 @UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
@@ -97,6 +108,24 @@ export class LeaseGenerationController {
 	 *
 	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 */
+	@ApiOperation({
+		summary: 'Generate lease PDF preview',
+		description:
+			'Generate a Texas Residential Lease Agreement PDF from form data. Returns PDF for in-browser preview (not downloaded).'
+	})
+	@ApiBody({ type: LeaseGenerationDto })
+	@ApiProduces('application/pdf')
+	@ApiResponse({
+		status: 200,
+		description: 'PDF generated successfully for preview'
+	})
+	@ApiResponse({ status: 400, description: 'Invalid lease form data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({ status: 500, description: 'Failed to generate PDF' })
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('generate')
 	@HttpCode(HttpStatus.OK)
@@ -132,6 +161,24 @@ export class LeaseGenerationController {
 	 * Forces download instead of preview
 	 * NO DATABASE STORAGE - user action in their hands
 	 */
+	@ApiOperation({
+		summary: 'Download lease PDF',
+		description:
+			'Generate and download a Texas Residential Lease Agreement PDF. Forces browser download (attachment disposition).'
+	})
+	@ApiBody({ type: LeaseGenerationDto })
+	@ApiProduces('application/pdf')
+	@ApiResponse({
+		status: 200,
+		description: 'PDF downloaded successfully'
+	})
+	@ApiResponse({ status: 400, description: 'Invalid lease form data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({ status: 500, description: 'Failed to download PDF' })
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('download')
 	@HttpCode(HttpStatus.OK)
@@ -166,6 +213,32 @@ export class LeaseGenerationController {
 	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 * Uses a single optimized query with joins instead of multiple queries
 	 */
+	@ApiOperation({
+		summary: 'Auto-fill lease form data',
+		description:
+			'Fetch property, unit, and tenant data to auto-fill the lease generation form. Returns default values for Texas lease agreement.'
+	})
+	@ApiParam({
+		name: 'property_id',
+		type: String,
+		description: 'Property UUID'
+	})
+	@ApiParam({ name: 'unit_id', type: String, description: 'Unit UUID' })
+	@ApiParam({ name: 'tenant_id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({
+		status: 200,
+		description: 'Auto-fill data retrieved successfully'
+	})
+	@ApiResponse({ status: 400, description: 'Unit does not belong to property' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({
+		status: 404,
+		description: 'Property, unit, or tenant not found'
+	})
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:property_id/:unit_id/:tenant_id')
 	async autoFillLease(

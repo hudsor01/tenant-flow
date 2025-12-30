@@ -247,13 +247,13 @@ describe('PropertiesService', () => {
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
-			const result = await service.findAll('mock-jwt-token', {
-				search: null,
-				limit: 10,
-				offset: 0
-			})
-
-			expect(result).toEqual([])
+			await expect(
+				service.findAll('mock-jwt-token', {
+					search: null,
+					limit: 10,
+					offset: 0
+				})
+			).rejects.toThrow('Failed to fetch properties')
 		})
 	})
 

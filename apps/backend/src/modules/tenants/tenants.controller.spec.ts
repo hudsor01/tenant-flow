@@ -10,8 +10,13 @@ import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
-// Test constants
-const MOCK_JWT_TOKEN = 'test-token'
+// Helper to create mock request with auth headers
+function createMockAuthRequest(userId: string = 'user-1'): AuthenticatedRequest {
+	return {
+		user: { id: userId },
+		headers: { authorization: 'Bearer test-token' }
+	} as unknown as AuthenticatedRequest
+}
 
 describe('TenantsController', () => {
 	type TenantControllerRequest = AuthenticatedRequest
@@ -86,10 +91,7 @@ describe('TenantsController', () => {
 	describe('Query Endpoints', () => {
 		describe('findAll', () => {
 			it('should return all tenants with lease info in PaginatedResponse format', async () => {
-				const mockReq = {
-					user: { id: 'user-1' },
-					headers: { authorization: 'Bearer test-token' }
-				} as TenantControllerRequest
+				const mockReq = createMockAuthRequest()
 				const mockTenants = [{ id: 'tenant-1', first_name: 'John' }]
 				mockQueryService.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
 
@@ -105,13 +107,11 @@ describe('TenantsController', () => {
 
 		describe('getStats', () => {
 			it('should return tenant statistics', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const mockStats = { total: 10, active: 8 }
 				mockQueryService.getStats.mockResolvedValue(mockStats)
 
-				const result = await controller.getStats(
-					mockReq as TenantControllerRequest
-				)
+				const result = await controller.getStats(mockReq)
 
 				expect(result).toEqual(mockStats)
 			})
@@ -119,13 +119,11 @@ describe('TenantsController', () => {
 
 		describe('getSummary', () => {
 			it('should return tenant summary', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const mockSummary = { totalTenants: 10 }
 				mockQueryService.getSummary.mockResolvedValue(mockSummary)
 
-				const result = await controller.getSummary(
-					mockReq as TenantControllerRequest
-				)
+				const result = await controller.getSummary(mockReq)
 
 				expect(result).toEqual(mockSummary)
 			})
@@ -133,6 +131,7 @@ describe('TenantsController', () => {
 
 		describe('findOne', () => {
 			it('should return a single tenant', async () => {
+				const mockReq = createMockAuthRequest()
 				const mockTenant = {
 					id: 'tenant-1',
 					first_name: 'John',
@@ -140,18 +139,19 @@ describe('TenantsController', () => {
 				}
 				mockQueryService.findOne.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOne('tenant-1', MOCK_JWT_TOKEN)
+				const result = await controller.findOne('tenant-1', mockReq)
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOne).toHaveBeenCalledWith(
 					'tenant-1',
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
 
 		describe('findOneWithLease', () => {
 			it('should return tenant with lease info', async () => {
+				const mockReq = createMockAuthRequest()
 				const mockTenant = {
 					id: 'tenant-1',
 					first_name: 'John',
@@ -159,15 +159,12 @@ describe('TenantsController', () => {
 				}
 				mockQueryService.findOneWithLease.mockResolvedValue(mockTenant)
 
-				const result = await controller.findOneWithLease(
-					'tenant-1',
-					MOCK_JWT_TOKEN
-				)
+				const result = await controller.findOneWithLease('tenant-1', mockReq)
 
 				expect(result).toEqual(mockTenant)
 				expect(mockQueryService.findOneWithLease).toHaveBeenCalledWith(
 					'tenant-1',
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
@@ -176,7 +173,7 @@ describe('TenantsController', () => {
 	describe('CRUD Endpoints', () => {
 		describe('create', () => {
 			it('should create a new tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const createDto = {
 					email: 'tenant@example.com',
 					first_name: 'John',
@@ -189,22 +186,21 @@ describe('TenantsController', () => {
 
 				const result = await controller.create(
 					createDto as CreateTenantBody,
-					mockReq as TenantControllerRequest,
-					MOCK_JWT_TOKEN
+					mockReq
 				)
 
 				expect(result).toEqual(mockTenant)
 				expect(mockCrudService.create).toHaveBeenCalledWith(
 					'user-1',
 					createDto,
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
 
 		describe('update', () => {
 			it('should update a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const updateDto = { first_name: 'Jane' }
 				const mockTenant = { id: 'tenant-1', first_name: 'Jane' }
 				mockCrudService.update.mockResolvedValue(mockTenant)
@@ -212,8 +208,7 @@ describe('TenantsController', () => {
 				const result = await controller.update(
 					'tenant-1',
 					updateDto as UpdateTenantBody,
-					mockReq as TenantControllerRequest,
-					MOCK_JWT_TOKEN
+					mockReq
 				)
 
 				expect(result).toEqual(mockTenant)
@@ -221,45 +216,37 @@ describe('TenantsController', () => {
 					'user-1',
 					'tenant-1',
 					updateDto,
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
 
 		describe('remove', () => {
 			it('should soft delete a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				mockCrudService.softDelete.mockResolvedValue(undefined)
 
-				await controller.remove(
-					'tenant-1',
-					mockReq as TenantControllerRequest,
-					MOCK_JWT_TOKEN
-				)
+				await controller.remove('tenant-1', mockReq)
 
 				expect(mockCrudService.softDelete).toHaveBeenCalledWith(
 					'user-1',
 					'tenant-1',
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
 
 		describe('hardDelete', () => {
 			it('should permanently delete a tenant', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				mockCrudService.hardDelete.mockResolvedValue(undefined)
 
-				await controller.hardDelete(
-					'tenant-1',
-					mockReq as TenantControllerRequest,
-					MOCK_JWT_TOKEN
-				)
+				await controller.hardDelete('tenant-1', mockReq)
 
 				expect(mockCrudService.hardDelete).toHaveBeenCalledWith(
 					'user-1',
 					'tenant-1',
-					MOCK_JWT_TOKEN
+					'test-token'
 				)
 			})
 		})
@@ -268,7 +255,7 @@ describe('TenantsController', () => {
 	describe('Notification Preferences Endpoints', () => {
 		describe('getNotificationPreferences', () => {
 			it('should get notification preferences', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const mockPrefs = { email_enabled: true, sms_enabled: false }
 				mockNotificationPreferencesService.getPreferences.mockResolvedValue(
 					mockPrefs
@@ -276,7 +263,7 @@ describe('TenantsController', () => {
 
 				const result = await controller.getNotificationPreferences(
 					'tenant-1',
-					mockReq as TenantControllerRequest
+					mockReq
 				)
 
 				expect(result).toEqual(mockPrefs)
@@ -288,7 +275,7 @@ describe('TenantsController', () => {
 
 		describe('updateNotificationPreferences', () => {
 			it('should update notification preferences', async () => {
-				const mockReq = { user: { id: 'user-1' } }
+				const mockReq = createMockAuthRequest()
 				const updateDto = { email_enabled: false }
 				const mockPrefs = { email_enabled: false, sms_enabled: false }
 				mockNotificationPreferencesService.updatePreferences.mockResolvedValue(
@@ -298,7 +285,7 @@ describe('TenantsController', () => {
 				const result = await controller.updateNotificationPreferences(
 					'tenant-1',
 					updateDto as UpdateTenantBody,
-					mockReq as TenantControllerRequest
+					mockReq
 				)
 
 				expect(result).toEqual(mockPrefs)

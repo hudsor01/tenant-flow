@@ -46,22 +46,15 @@ export class BalanceSheetService {
 	/**
 	 * Generate balance sheet for a given date
 	 * Aggregates assets, liabilities, and equity
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateBalanceSheet(
 		token: string,
+		user_id: string,
 		asOfDate: string
 	): Promise<BalanceSheetData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		// Get user ID from token (uses getUserClient internally for auth validation)
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getUserClient(token).auth.getUser()
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(`Generating balance sheet as of ${asOfDate}`)
 
@@ -161,7 +154,7 @@ export class BalanceSheetService {
 		} catch (error) {
 			this.logger.error('Failed to generate balance sheet snapshot', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				asOfDate
 			})
 			throw error instanceof Error

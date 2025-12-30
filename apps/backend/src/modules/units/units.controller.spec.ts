@@ -137,7 +137,7 @@ describe('UnitsController', () => {
 			const mockUnits = [createMockUnit({ id: 'unit-1' })]
 			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
 
-			const result = await controller.findAll('mock-jwt-token', {
+			const result = await controller.findAll(createMockRequest({ user: mockUser }), {
 				property_id: null,
 				status: undefined,
 				search: undefined,
@@ -182,7 +182,7 @@ describe('UnitsController', () => {
 			const mockUnits = [createMockUnit({ status: 'occupied' })]
 			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
 
-			const result = await controller.findAll('mock-jwt-token', {
+			const result = await controller.findAll(createMockRequest({ user: mockUser }), {
 				property_id: null,
 				status: 'OCCUPIED' as unknown as UnitUpdate['status'], // Uppercase input to test normalization
 				search: undefined,
@@ -215,9 +215,9 @@ describe('UnitsController', () => {
 
 			mockStatsServiceInstance.getStats.mockResolvedValue(mockStats)
 
-			const result = await controller.getStats('mock-jwt-token')
+			const result = await controller.getStats(createMockRequest({ user: mockUser }))
 			expect(mockStatsServiceInstance.getStats).toHaveBeenCalledWith(
-				'mock-jwt-token'
+				expect.any(String) // token extracted from request
 			)
 			expect(result).toEqual(mockStats)
 		})
@@ -232,12 +232,12 @@ describe('UnitsController', () => {
 			mockQueryServiceInstance.findByProperty.mockResolvedValue(mockUnits)
 
 			const result = await controller.findByProperty(
-				'mock-jwt-token',
-				'property-123'
+				'property-123',
+				createMockRequest({ user: mockUser })
 			)
 
 			expect(mockQueryServiceInstance.findByProperty).toHaveBeenCalledWith(
-				'mock-jwt-token',
+				expect.any(String), // token extracted from request
 				'property-123'
 			)
 			expect(result).toEqual(mockUnits)
@@ -250,9 +250,9 @@ describe('UnitsController', () => {
 
 			mockQueryServiceInstance.findOne.mockResolvedValue(mockUnit)
 
-			const result = await controller.findOne('mock-jwt-token', 'unit-1')
+			const result = await controller.findOne('unit-1', createMockRequest({ user: mockUser }))
 			expect(mockQueryServiceInstance.findOne).toHaveBeenCalledWith(
-				'mock-jwt-token',
+				expect.any(String), // token extracted from request
 				'unit-1'
 			)
 			expect(result).toEqual(mockUnit)
@@ -264,7 +264,7 @@ describe('UnitsController', () => {
 			)
 
 			await expect(
-				controller.findOne('mock-jwt-token', 'non-existent')
+				controller.findOne('non-existent', createMockRequest({ user: mockUser }))
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -275,9 +275,9 @@ describe('UnitsController', () => {
 
 			mockUnitsServiceInstance.create.mockResolvedValue(mockUnit)
 
-			const result = await controller.create('mock-jwt-token', validUnitInput)
+			const result = await controller.create(validUnitInput, createMockRequest({ user: mockUser }))
 			expect(mockUnitsServiceInstance.create).toHaveBeenCalledWith(
-				'mock-jwt-token',
+				expect.any(String), // token extracted from request
 				validUnitInput
 			)
 			expect(result).toEqual(mockUnit)
@@ -294,12 +294,12 @@ describe('UnitsController', () => {
 			mockUnitsServiceInstance.update.mockResolvedValue(mockUnit)
 
 			const result = await controller.update(
-				'mock-jwt-token',
 				'unit-1',
-				validUnitUpdate
+				validUnitUpdate,
+				createMockRequest({ user: mockUser })
 			)
 			expect(mockUnitsServiceInstance.update).toHaveBeenCalledWith(
-				'mock-jwt-token',
+				expect.any(String), // token extracted from request
 				'unit-1',
 				validUnitUpdate,
 				undefined // expectedVersion for optimistic locking
@@ -312,10 +312,10 @@ describe('UnitsController', () => {
 		it('should delete a unit', async () => {
 			mockUnitsServiceInstance.remove.mockResolvedValue(undefined)
 
-			const result = await controller.remove('mock-jwt-token', 'unit-1')
+			const result = await controller.remove('unit-1', createMockRequest({ user: mockUser }))
 
 			expect(mockUnitsServiceInstance.remove).toHaveBeenCalledWith(
-				'mock-jwt-token',
+				expect.any(String), // token extracted from request
 				'unit-1'
 			)
 			expect(result.message).toBe('Unit deleted successfully')

@@ -26,7 +26,7 @@ vi.mock('#lib/api-config', () => ({
 
 // Mock Supabase client
 const mockGetSession = vi.fn()
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		auth: {
 			getSession: mockGetSession

@@ -20,10 +20,19 @@ import {
 	Query,
 	Request
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { ERROR_TYPES } from '@repo/shared/constants/error-codes'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 
+@ApiTags('Properties')
+@ApiBearerAuth('supabase-auth')
 @Controller('properties/analytics')
 export class PropertyAnalyticsController {
 	constructor(
@@ -35,6 +44,13 @@ export class PropertyAnalyticsController {
 	 * Get per-property analytics and performance metrics
 	 * Returns detailed metrics for each property
 	 */
+	@ApiOperation({ summary: 'Get performance analytics', description: 'Retrieve per-property analytics and performance metrics' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'timeframe', required: false, enum: ['7d', '30d', '90d', '1y'], description: 'Time range for analytics' })
+	@ApiQuery({ name: 'limit', required: false, type: 'number', description: 'Maximum number of results' })
+	@ApiResponse({ status: 200, description: 'Performance analytics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid timeframe parameter' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('performance')
 	async getPropertyPerformanceAnalytics(
 		@Request() req: AuthenticatedRequest,
@@ -63,6 +79,12 @@ export class PropertyAnalyticsController {
 	 * Get property occupancy trends and analytics
 	 * Tracks occupancy rates over time per property
 	 */
+	@ApiOperation({ summary: 'Get occupancy analytics', description: 'Retrieve property occupancy trends and rates over time' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'period', required: false, enum: ['daily', 'weekly', 'monthly', 'yearly'], description: 'Aggregation period' })
+	@ApiResponse({ status: 200, description: 'Occupancy analytics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid period parameter' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('occupancy')
 	async getPropertyOccupancyAnalytics(
 		@Request() req: AuthenticatedRequest,
@@ -92,6 +114,12 @@ export class PropertyAnalyticsController {
 	 * Get property financial analytics
 	 * Revenue, expenses, and profitability per property
 	 */
+	@ApiOperation({ summary: 'Get financial analytics', description: 'Retrieve property revenue, expenses, and profitability metrics' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'timeframe', required: false, enum: ['3m', '6m', '12m', '24m'], description: 'Time range for analytics' })
+	@ApiResponse({ status: 200, description: 'Financial analytics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid timeframe parameter' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial')
 	async getPropertyFinancialAnalytics(
 		@Request() req: AuthenticatedRequest,
@@ -118,6 +146,12 @@ export class PropertyAnalyticsController {
 	 * Get property maintenance analytics
 	 * Maintenance costs, frequency, and trends per property
 	 */
+	@ApiOperation({ summary: 'Get maintenance analytics', description: 'Retrieve property maintenance costs, frequency, and trends' })
+	@ApiQuery({ name: 'property_id', required: false, type: 'string', format: 'uuid', description: 'Filter by property ID' })
+	@ApiQuery({ name: 'timeframe', required: false, enum: ['1m', '3m', '6m', '12m'], description: 'Time range for analytics' })
+	@ApiResponse({ status: 200, description: 'Maintenance analytics retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid timeframe parameter' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('maintenance')
 	async getPropertyMaintenanceAnalytics(
 		@Request() req: AuthenticatedRequest,

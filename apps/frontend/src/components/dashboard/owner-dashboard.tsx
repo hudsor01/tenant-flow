@@ -2,7 +2,7 @@
 
 import { useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Dashboard } from './Dashboard'
+import { Dashboard } from './dashboard'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
@@ -204,7 +204,7 @@ export function OwnerDashboard() {
 	}, [router])
 
 	const onRecordPayment = useCallback(() => {
-		router.push('/payments/new')
+		router.push('/rent-collection')
 	}, [router])
 
 	const onCreateMaintenanceRequest = useCallback(() => {

@@ -30,6 +30,12 @@ describe('BalanceSheetController', () => {
 	let controller: BalanceSheetController
 	let service: jest.Mocked<BalanceSheetService>
 
+	// Mock authenticated request with authorization header
+	const mockRequest = {
+		user: { id: 'test-user-id', email: 'test@example.com' },
+		headers: { authorization: 'Bearer mock-jwt-token' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 	const mockBalanceSheet: BalanceSheetData = {
 		period: {
 			start_date: '2024-10-31',
@@ -100,10 +106,7 @@ describe('BalanceSheetController', () => {
 
 	describe('GET /financials/balance-sheet', () => {
 		it('should return balance sheet with provided date', async () => {
-			const result = await controller.getBalanceSheet(
-				'mock-jwt-token',
-				'2024-10-31'
-			)
+			const result = await controller.getBalanceSheet(mockRequest, '2024-10-31')
 
 			expect(result).toEqual({
 				success: true,
@@ -111,6 +114,7 @@ describe('BalanceSheetController', () => {
 			})
 			expect(service.generateBalanceSheet).toHaveBeenCalledWith(
 				'mock-jwt-token',
+				'test-user-id',
 				'2024-10-31'
 			)
 		})
@@ -118,31 +122,34 @@ describe('BalanceSheetController', () => {
 		it('should use current date as default when no date provided', async () => {
 			const expectedDate = new Date().toISOString().split('T')[0] as string
 
-			await controller.getBalanceSheet('mock-jwt-token')
+			await controller.getBalanceSheet(mockRequest)
 
 			expect(service.generateBalanceSheet).toHaveBeenCalledWith(
 				'mock-jwt-token',
+				'test-user-id',
 				expectedDate
 			)
 		})
 
 		it('should throw UnauthorizedException when token is missing', async () => {
+			const noTokenRequest = {
+				user: { id: 'test-user-id' },
+				headers: {}
+			} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 			await expect(
-				controller.getBalanceSheet('', '2024-10-31')
+				controller.getBalanceSheet(noTokenRequest, '2024-10-31')
 			).rejects.toThrow('Authentication token is required')
 		})
 
 		it('should throw BadRequestException for invalid date format', async () => {
 			await expect(
-				controller.getBalanceSheet('mock-jwt-token', 'invalid-date')
+				controller.getBalanceSheet(mockRequest, 'invalid-date')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should verify balance check equals assets = liabilities + equity', async () => {
-			const result = await controller.getBalanceSheet(
-				'mock-jwt-token',
-				'2024-10-31'
-			)
+			const result = await controller.getBalanceSheet(mockRequest, '2024-10-31')
 
 			const { assets, liabilities, equity } = result.data
 			const leftSide = assets.totalAssets
@@ -157,7 +164,7 @@ describe('BalanceSheetController', () => {
 			)
 
 			await expect(
-				controller.getBalanceSheet('mock-jwt-token', '2024-10-31')
+				controller.getBalanceSheet(mockRequest, '2024-10-31')
 			).rejects.toThrow('Database error')
 		})
 
@@ -173,10 +180,7 @@ describe('BalanceSheetController', () => {
 
 			service.generateBalanceSheet.mockResolvedValueOnce(unbalancedSheet)
 
-			const result = await controller.getBalanceSheet(
-				'mock-jwt-token',
-				'2024-10-31'
-			)
+			const result = await controller.getBalanceSheet(mockRequest, '2024-10-31')
 
 			expect(result.data.balanceCheck).toBe(false)
 		})

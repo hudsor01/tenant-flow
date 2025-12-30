@@ -1,4 +1,4 @@
-import { MaintenanceDetails } from './maintenance-details.client'
+import { MaintenanceDetails } from '#components/maintenance/detail/maintenance-details.client'
 import { Suspense } from 'react'
 import { Skeleton } from '#components/ui/skeleton'
 

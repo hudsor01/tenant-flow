@@ -5,11 +5,21 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Query,
-	NotFoundException
+	NotFoundException,
+	Request,
+	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { InjectQueue } from '@nestjs/bullmq'
 import { Queue } from 'bullmq'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 /**
  * Lease PDF Queue Controller
@@ -17,6 +27,8 @@ import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
  * Handles async PDF generation via background queue
  * to avoid blocking HTTP requests
  */
+@ApiTags('Leases')
+@ApiBearerAuth('supabase-auth')
 @Controller('leases')
 export class LeasesPdfQueueController {
 	constructor(@InjectQueue('pdf-generation') private pdfQueue: Queue) {}
@@ -27,11 +39,19 @@ export class LeasesPdfQueueController {
 	 *
 	 * POST /api/v1/leases/:id/queue-pdf
 	 */
+	@ApiOperation({ summary: 'Queue PDF generation', description: 'Queue async PDF generation and return job ID for status polling' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 201, description: 'PDF generation queued successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post(':id/queue-pdf')
 	async queuePdfGeneration(
 		@Param('id', ParseUUIDPipe) leaseId: string,
-		@JwtToken() token: string
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const job = await this.pdfQueue.add('generate-lease-pdf', {
 			leaseId,
 			token
@@ -50,6 +70,12 @@ export class LeasesPdfQueueController {
 	 *
 	 * GET /api/v1/leases/:id/pdf-status?jobId=xxx
 	 */
+	@ApiOperation({ summary: 'Get PDF generation status', description: 'Check status of async PDF generation job (fallback for SSE)' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiQuery({ name: 'jobId', required: false, type: String, description: 'Specific job ID to check (optional, defaults to latest)' })
+	@ApiResponse({ status: 200, description: 'PDF generation status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Job not found' })
 	@Get(':id/pdf-status')
 	async getPdfStatus(
 		@Param('id', ParseUUIDPipe) leaseId: string,

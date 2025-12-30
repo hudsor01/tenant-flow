@@ -31,60 +31,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-
-interface ReportType {
-	id: string
-	name: string
-	description: string
-	icon: string
-	category: 'financial' | 'operations'
-	formats: ('pdf' | 'csv' | 'xlsx')[]
-	frequency: string[]
-}
-
-interface RecentReport {
-	id: string
-	name: string
-	type: string
-	generatedAt: string
-	format: 'pdf' | 'csv' | 'xlsx'
-	size: number
-	status: 'pending' | 'generating' | 'completed' | 'failed'
-}
-
-interface ScheduledReport {
-	id: string
-	name: string
-	type: string
-	schedule: 'daily' | 'weekly' | 'monthly' | 'quarterly'
-	nextRun: string
-	recipients: string[]
-	format: 'pdf' | 'csv' | 'xlsx'
-	enabled: boolean
-}
-
-interface PropertyFilter {
-	id: string
-	name: string
-}
-
-interface DateRangeFilter {
-	id: string
-	name: string
-}
-
-interface ReportsDashboardProps {
-	reportTypes: ReportType[]
-	recentReports: RecentReport[]
-	scheduledReports: ScheduledReport[]
-	properties: PropertyFilter[]
-	dateRanges: DateRangeFilter[]
-	onGenerateReport?: (typeId: string) => void
-	onDownloadReport?: (reportId: string) => void
-	onDeleteReport?: (reportId: string) => void
-	onToggleSchedule?: (scheduleId: string, enabled: boolean) => void
-	onEditSchedule?: (scheduleId: string) => void
-}
+import type { ReportsDashboardProps } from './types'
 
 const iconMap: Record<string, React.ReactNode> = {
 	DollarSign: <DollarSign className="w-6 h-6" />,

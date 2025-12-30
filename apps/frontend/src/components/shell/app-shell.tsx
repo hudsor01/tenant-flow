@@ -27,8 +27,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { MainNav } from './MainNav'
-import { QuickActionsDock } from './QuickActionsDock'
+import { MainNav } from './main-nav'
+import { QuickActionsDock } from './quick-actions-dock'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { useSupabaseUser, useSignOut } from '#hooks/api/use-auth'
 import { usePropertyList } from '#hooks/api/use-properties'
@@ -152,9 +152,9 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 
 	const commandActions = useMemo(
 		() => [
-			{ label: 'Notifications', href: '/dashboard/settings?tab=notifications', icon: Bell },
-			{ label: 'Settings', href: '/dashboard/settings', icon: Settings },
-			{ label: 'Profile Settings', href: '/dashboard/settings?tab=profile', icon: Settings },
+			{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
+			{ label: 'Settings', href: '/settings', icon: Settings },
+			{ label: 'Profile', href: '/profile', icon: Settings },
 			{ label: 'Help & Support', href: '/help', icon: HelpCircle },
 			{ label: 'Documentation', href: '/docs', icon: BookOpen },
 			{ label: 'Send Feedback', href: '/feedback', icon: MessageSquare }
@@ -307,10 +307,10 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 									</DropdownMenuTrigger>
 									<DropdownMenuContent align="end" className="w-48">
 										<DropdownMenuItem asChild>
-											<Link href="/dashboard/settings">Settings</Link>
+											<Link href="/settings">Settings</Link>
 										</DropdownMenuItem>
 										<DropdownMenuItem asChild>
-											<Link href="/dashboard/settings?tab=profile">Profile</Link>
+											<Link href="/profile">Profile</Link>
 										</DropdownMenuItem>
 										<DropdownMenuSeparator />
 										<DropdownMenuItem onClick={() => signOutMutation.mutate()}>

@@ -1110,12 +1110,13 @@ export const publicRentPaymentsRowSchema = z.object({
   id: z.string(),
   late_fee_amount: z.number().nullable(),
   lease_id: z.string(),
+  notes: z.string().nullable(),
   paid_date: z.string().nullable(),
   payment_method_type: z.string(),
   period_end: z.string(),
   period_start: z.string(),
   status: publicPaymentStatusSchema,
-  stripe_payment_intent_id: z.string(),
+  stripe_payment_intent_id: z.string().nullable(),
   tenant_id: z.string(),
   updated_at: z.string().nullable(),
 });
@@ -1129,12 +1130,13 @@ export const publicRentPaymentsInsertSchema = z.object({
   id: z.string().optional(),
   late_fee_amount: z.number().optional().nullable(),
   lease_id: z.string(),
+  notes: z.string().optional().nullable(),
   paid_date: z.string().optional().nullable(),
   payment_method_type: z.string(),
   period_end: z.string(),
   period_start: z.string(),
   status: publicPaymentStatusSchema,
-  stripe_payment_intent_id: z.string(),
+  stripe_payment_intent_id: z.string().optional().nullable(),
   tenant_id: z.string(),
   updated_at: z.string().optional().nullable(),
 });
@@ -1148,12 +1150,13 @@ export const publicRentPaymentsUpdateSchema = z.object({
   id: z.string().optional(),
   late_fee_amount: z.number().optional().nullable(),
   lease_id: z.string().optional(),
+  notes: z.string().optional().nullable(),
   paid_date: z.string().optional().nullable(),
   payment_method_type: z.string().optional(),
   period_end: z.string().optional(),
   period_start: z.string().optional(),
   status: publicPaymentStatusSchema.optional(),
-  stripe_payment_intent_id: z.string().optional(),
+  stripe_payment_intent_id: z.string().optional().nullable(),
   tenant_id: z.string().optional(),
   updated_at: z.string().optional().nullable(),
 });
@@ -2563,6 +2566,12 @@ export const publicGetUserPlanLimitsReturnsSchema = z.array(
   }),
 );
 
+export const publicGetUserProfileArgsSchema = z.object({
+  p_user_id: z.string(),
+});
+
+export const publicGetUserProfileReturnsSchema = jsonSchema;
+
 export const publicGetUserSessionsArgsSchema = z.object({
   p_user_id: z.string(),
 });
@@ -2590,6 +2599,10 @@ export const publicHistogramArgsSchema = z.object({
 export const publicHistogramReturnsSchema = z.array(
   z.record(z.string(), z.unknown()),
 );
+
+export const publicIsAdminArgsSchema = z.never();
+
+export const publicIsAdminReturnsSchema = z.boolean();
 
 export const publicLedgerAggregationArgsSchema = z.never();
 

@@ -45,7 +45,7 @@ export interface ReportsDashboardProps {
 	scheduledReports: ScheduledReport[]
 	properties: PropertyFilter[]
 	dateRanges: DateRangeFilter[]
-	onGenerateReport?: (typeId: string, options: ReportGenerationOptions) => void
+	onGenerateReport?: (typeId: string) => void
 	onDownloadReport?: (reportId: string) => void
 	onDeleteReport?: (reportId: string) => void
 	onToggleSchedule?: (scheduleId: string, enabled: boolean) => void

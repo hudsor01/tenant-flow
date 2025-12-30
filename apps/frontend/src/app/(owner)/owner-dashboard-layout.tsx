@@ -1,4 +1,4 @@
-import { AppShell } from '#components/shell/AppShell'
+import { AppShell } from '#components/shell/app-shell'
 import type { ReactNode } from 'react'
 
 /**

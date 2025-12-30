@@ -1,6 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+/**
+ * Uses Zustand store for state management (useLeasesStore).
+ * See stores/leases-store.ts for state structure.
+ */
+
 import {
 	FileText,
 	Search,
@@ -19,6 +23,8 @@ import type {
 	LeaseListProps,
 	LeaseStatus
 } from '@repo/shared/types/sections/leases'
+import { useLeasesStore } from '#stores/leases-store'
+import type { SortField } from '#components/leases/table/lease-utils'
 import { BlurFade } from '#components/ui/blur-fade'
 
 function getStatusBadge(status: LeaseStatus) {
@@ -60,28 +66,30 @@ function getStatusBadge(status: LeaseStatus) {
 	)
 }
 
-type SortField =
-	| 'tenant'
-	| 'property'
-	| 'startDate'
-	| 'endDate'
-	| 'rent'
-	| 'status'
-type SortDirection = 'asc' | 'desc'
-
 export function LeaseList({
 	leases,
 	onView,
 	onCreate,
 	onFilterChange
 }: LeaseListProps) {
-	const [searchQuery, setSearchQuery] = useState('')
-	const [statusFilter, setStatusFilter] = useState('all')
-	const [sortField, setSortField] = useState<SortField>('endDate')
-	const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
-	const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set())
-	const [currentPage, setCurrentPage] = useState(1)
-	const itemsPerPage = 10
+	// Get state and actions from Zustand store
+	const {
+		searchQuery,
+		setSearchQuery,
+		statusFilter,
+		setStatusFilter,
+		clearFilters,
+		sortField,
+		sortDirection,
+		toggleSort,
+		selectedRows,
+		toggleSelectAll,
+		toggleSelect,
+		clearSelection,
+		currentPage,
+		setCurrentPage,
+		itemsPerPage
+	} = useLeasesStore()
 
 	// Calculate summary stats
 	const totalLeases = leases.length
@@ -144,36 +152,10 @@ export function LeaseList({
 		currentPage * itemsPerPage
 	)
 
-	// Reset page when filters change
-	useEffect(() => {
-		setCurrentPage(1)
-	}, [searchQuery, statusFilter])
+	// Note: useEffect for pagination reset removed - handled by store actions
 
 	const handleSort = (field: SortField) => {
-		if (sortField === field) {
-			setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-		} else {
-			setSortField(field)
-			setSortDirection('asc')
-		}
-	}
-
-	const toggleSelectAll = () => {
-		if (selectedRows.size === sortedLeases.length) {
-			setSelectedRows(new Set())
-		} else {
-			setSelectedRows(new Set(sortedLeases.map(l => l.id)))
-		}
-	}
-
-	const toggleSelect = (id: string) => {
-		const newSelected = new Set(selectedRows)
-		if (newSelected.has(id)) {
-			newSelected.delete(id)
-		} else {
-			newSelected.add(id)
-		}
-		setSelectedRows(newSelected)
+		toggleSort(field)
 	}
 
 	const SortHeader = ({
@@ -318,10 +300,7 @@ export function LeaseList({
 						<div className="flex items-center gap-2 sm:ml-auto">
 							{(searchQuery || statusFilter !== 'all') && (
 								<button
-									onClick={() => {
-										setSearchQuery('')
-										setStatusFilter('all')
-									}}
+									onClick={clearFilters}
 									className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
 								>
 									Clear
@@ -331,7 +310,7 @@ export function LeaseList({
 								<select
 									value={statusFilter}
 									onChange={e => {
-										setStatusFilter(e.target.value)
+										setStatusFilter(e.target.value as typeof statusFilter)
 										onFilterChange?.(e.target.value as LeaseStatus | 'all')
 									}}
 									className="appearance-none pl-3 pr-8 py-2 text-sm bg-background border border-border rounded-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all"
@@ -359,7 +338,7 @@ export function LeaseList({
 									Export
 								</button>
 								<button
-									onClick={() => setSelectedRows(new Set())}
+									onClick={clearSelection}
 									className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
 								>
 									Clear
@@ -380,7 +359,7 @@ export function LeaseList({
 												selectedRows.size === sortedLeases.length &&
 												sortedLeases.length > 0
 											}
-											onChange={toggleSelectAll}
+											onChange={() => toggleSelectAll(sortedLeases.map(l => l.id))}
 											className="w-4 h-4 rounded border-border text-primary focus:ring-primary focus:ring-offset-0"
 										/>
 									</th>
@@ -480,7 +459,7 @@ export function LeaseList({
 							</span>
 							<div className="flex items-center gap-1">
 								<button
-									onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+									onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
 									disabled={currentPage === 1}
 									className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
@@ -491,7 +470,7 @@ export function LeaseList({
 								</span>
 								<button
 									onClick={() =>
-										setCurrentPage(p => Math.min(totalPages, p + 1))
+										setCurrentPage(Math.min(totalPages, currentPage + 1))
 									}
 									disabled={currentPage === totalPages}
 									className="p-2 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -510,10 +489,7 @@ export function LeaseList({
 								No leases match your filters
 							</p>
 							<button
-								onClick={() => {
-									setSearchQuery('')
-									setStatusFilter('all')
-								}}
+								onClick={clearFilters}
 								className="mt-3 text-sm text-primary hover:underline"
 							>
 								Clear filters

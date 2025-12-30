@@ -20,9 +20,18 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Query,
-	Req
+	Request,
+	UnauthorizedException
 } from '@nestjs/common'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type {
 	OwnerPaymentSummaryResponse,
@@ -31,6 +40,8 @@ import type {
 import { TenantQueryService } from './tenant-query.service'
 import { TenantPaymentService } from './tenant-payment.service'
 
+@ApiTags('Tenant Payments')
+@ApiBearerAuth('supabase-auth')
 @Controller('tenants')
 export class TenantPaymentController {
 	constructor(
@@ -43,12 +54,19 @@ export class TenantPaymentController {
 	 * Get payment history for the currently authenticated tenant
 	 * Used by tenant portal
 	 */
+	@ApiOperation({ summary: 'Get my payments', description: 'Get payment history for the currently authenticated tenant' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-100)' })
+	@ApiResponse({ status: 200, description: 'Payment history retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('me/payments')
 	async getMyPayments(
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const user_id = req.user.id
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 
@@ -66,9 +84,12 @@ export class TenantPaymentController {
 	 * Get payment summary for property owner
 	 * Returns aggregate stats across all owned properties
 	 */
+	@ApiOperation({ summary: 'Get payment summary', description: 'Get aggregate payment summary for property owner' })
+	@ApiResponse({ status: 200, description: 'Payment summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('payments/summary')
 	async getPaymentSummary(
-		@Req() req: AuthenticatedRequest
+		@Request() req: AuthenticatedRequest
 	): Promise<OwnerPaymentSummaryResponse> {
 		// Defensive: Return empty response if no auth (e.g., SSR hydration)
 		if (!req.user?.id) {
@@ -82,6 +103,11 @@ export class TenantPaymentController {
 	 * Get payment history for a specific tenant
 	 * Used by property owners viewing tenant details
 	 */
+	@ApiOperation({ summary: 'Get tenant payments', description: 'Get payment history for a specific tenant' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-100)' })
+	@ApiResponse({ status: 200, description: 'Payment history retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/payments')
 	async getPayments(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -99,9 +125,14 @@ export class TenantPaymentController {
 	 * POST /tenants/payments/reminders
 	 * Send payment reminder to a tenant
 	 */
+	@ApiOperation({ summary: 'Send payment reminder', description: 'Send payment reminder to a tenant' })
+	@ApiBody({ schema: { type: 'object', properties: { tenant_id: { type: 'string', format: 'uuid' }, note: { type: 'string' } }, required: ['tenant_id'] } })
+	@ApiResponse({ status: 200, description: 'Reminder sent successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Post('payments/reminders')
 	async sendPaymentReminder(
-		@Req() req: AuthenticatedRequest,
+		@Request() req: AuthenticatedRequest,
 		@Body() body: { tenant_id: string; note?: string }
 	) {
 		const user_id = req.user.id

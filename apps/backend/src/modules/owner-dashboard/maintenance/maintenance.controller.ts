@@ -6,7 +6,13 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -24,6 +30,8 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - Cost analysis
  * - Response time metrics
  */
+@ApiTags('Owner Dashboard - Maintenance')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
@@ -35,11 +43,14 @@ export class MaintenanceController {
 		private readonly logger: AppLogger
 	) {}
 
+	@ApiOperation({ summary: 'Get maintenance analytics', description: 'Retrieve maintenance request statistics and metrics' })
+	@ApiResponse({ status: 200, description: 'Maintenance analytics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('analytics')
 	async getMaintenanceAnalytics(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {

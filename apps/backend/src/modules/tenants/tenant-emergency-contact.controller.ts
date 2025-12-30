@@ -23,6 +23,13 @@ import {
 	Put,
 	Req
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import type {
@@ -30,6 +37,8 @@ import type {
 	UpdateEmergencyContactDto
 } from './dto/emergency-contact.dto'
 
+@ApiTags('Tenant Emergency Contacts')
+@ApiBearerAuth('supabase-auth')
 @Controller('tenants')
 export class TenantEmergencyContactController {
 	constructor(
@@ -41,6 +50,10 @@ export class TenantEmergencyContactController {
 	 * Get emergency contact for a tenant
 	 * Returns null if no emergency contact exists
 	 */
+	@ApiOperation({ summary: 'Get emergency contact', description: 'Get emergency contact for a tenant (returns null if none exists)' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiResponse({ status: 200, description: 'Emergency contact retrieved (or null)' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/emergency-contact')
 	async getEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -59,6 +72,11 @@ export class TenantEmergencyContactController {
 	 * Create emergency contact for a tenant
 	 * Enforces one-to-one relationship (unique constraint on tenant_id)
 	 */
+	@ApiOperation({ summary: 'Create emergency contact', description: 'Create emergency contact for a tenant (one per tenant)' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiResponse({ status: 201, description: 'Emergency contact created successfully' })
+	@ApiResponse({ status: 400, description: 'Failed to create or already exists' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post(':id/emergency-contact')
 	async createEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -91,6 +109,11 @@ export class TenantEmergencyContactController {
 	 * Update emergency contact for a tenant
 	 * Partial update - only provided fields will be updated
 	 */
+	@ApiOperation({ summary: 'Update emergency contact', description: 'Update emergency contact for a tenant (partial update)' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiResponse({ status: 200, description: 'Emergency contact updated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Emergency contact not found' })
 	@Put(':id/emergency-contact')
 	async updateEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -132,6 +155,11 @@ export class TenantEmergencyContactController {
 	 * DELETE /tenants/:id/emergency-contact
 	 * Delete emergency contact for a tenant
 	 */
+	@ApiOperation({ summary: 'Delete emergency contact', description: 'Delete emergency contact for a tenant' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Tenant ID' })
+	@ApiResponse({ status: 200, description: 'Emergency contact deleted successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Emergency contact not found' })
 	@Delete(':id/emergency-contact')
 	async deleteEmergencyContact(
 		@Param('id', ParseUUIDPipe) id: string,

@@ -1,5 +1,5 @@
 import { Providers } from '#components/providers'
-import SeoJsonLd from '#components/seo/SeoJsonLd'
+import SeoJsonLd from '#components/seo/seo-json-ld'
 import RegisterServiceWorker from '#components/sw/register-sw'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { generateSiteMetadata } from '#lib/generate-metadata'

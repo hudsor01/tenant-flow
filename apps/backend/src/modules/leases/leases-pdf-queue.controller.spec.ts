@@ -14,6 +14,12 @@ describe('LeasesPdfQueueController (TDD)', () => {
 	let controller: LeasesPdfQueueController
 	let mockPdfQueue: jest.Mocked<Queue>
 
+	// Mock authenticated request with authorization header
+	const mockRequest = {
+		user: { id: 'test-user-id', email: 'test@example.com' },
+		headers: { authorization: 'Bearer test-jwt-token' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 	beforeEach(async () => {
 		mockPdfQueue = {
 			add: jest.fn(),
@@ -38,13 +44,12 @@ describe('LeasesPdfQueueController (TDD)', () => {
 		it('should queue PDF generation job and return immediately', async () => {
 			// Arrange
 			const leaseId = '123e4567-e89b-12d3-a456-426614174000'
-			const token = 'test-jwt-token'
 			const jobId = 'job-123'
 
 			mockPdfQueue.add.mockResolvedValue({ id: jobId } as unknown as Job)
 
 			// Act
-			const result = await controller.queuePdfGeneration(leaseId, token)
+			const result = await controller.queuePdfGeneration(leaseId, mockRequest)
 
 			// Assert
 			expect(result).toEqual({
@@ -55,21 +60,20 @@ describe('LeasesPdfQueueController (TDD)', () => {
 
 			expect(mockPdfQueue.add).toHaveBeenCalledWith('generate-lease-pdf', {
 				leaseId,
-				token
+				token: 'test-jwt-token'
 			})
 		})
 
 		it('should throw error if queue fails', async () => {
 			// Arrange
 			const leaseId = '123e4567-e89b-12d3-a456-426614174000'
-			const token = 'test-jwt-token'
 			const error = new Error('Queue connection failed')
 
 			mockPdfQueue.add.mockRejectedValue(error)
 
 			// Act & Assert
 			await expect(
-				controller.queuePdfGeneration(leaseId, token)
+				controller.queuePdfGeneration(leaseId, mockRequest)
 			).rejects.toThrow('Queue connection failed')
 		})
 	})

@@ -5,9 +5,11 @@
  *       CLAUDE.md limit is 300 lines per component.
  *       Suggested split: TenantList, TenantFilters, TenantStats.
  *       See TODO.md for details.
+ *
+ * Uses Zustand store for state management (useTenantsStore).
+ * See stores/tenants-store.ts for state structure.
  */
 
-import { useState } from 'react'
 import {
 	Users,
 	UserPlus,
@@ -24,11 +26,15 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	TenantsProps
 } from '@repo/shared/types/sections/tenants'
-import { TenantTable } from './TenantTable'
-import { TenantGrid } from './TenantGrid'
-import { TenantDetailSheet } from './TenantDetailSheet'
-import { TenantActionBar } from './TenantActionBar'
-import { InviteTenantModal } from './InviteTenantModal'
+import {
+	useTenantsStore,
+	type TenantStatusFilter
+} from '#stores/tenants-store'
+import { TenantTable } from './tenant-table'
+import { TenantGrid } from './tenant-grid'
+import { TenantDetailSheet } from './tenant-detail-sheet'
+import { TenantActionBar } from './tenant-action-bar'
+import { InviteTenantModal } from './invite-tenant-modal'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import {
@@ -58,17 +64,27 @@ export function Tenants({
 	onViewPaymentHistory
 }: TenantsProps) {
 	const logger = createLogger({ component: 'Tenants' })
-	// View state
-	const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
-	const [searchQuery, setSearchQuery] = useState('')
-	const [statusFilter, setStatusFilter] = useState<string>('all')
 
-	// Selection state for bulk actions
-	const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-
-	// Modal states
-	const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
-	const [isDetailSheetOpen, setIsDetailSheetOpen] = useState(false)
+	// Get state and actions from Zustand store
+	const {
+		viewMode,
+		setViewMode,
+		searchQuery,
+		setSearchQuery,
+		statusFilter,
+		setStatusFilter,
+		clearFilters,
+		selectedIds,
+		setSelectedIds,
+		selectAll,
+		clearSelection,
+		isInviteModalOpen,
+		openInviteModal,
+		closeInviteModal,
+		isDetailSheetOpen,
+		openDetailSheet,
+		setDetailSheetOpen
+	} = useTenantsStore()
 
 	// Calculate summary stats
 	const totalTenants = tenants.length
@@ -97,32 +113,32 @@ export function Tenants({
 
 	// Selection handlers
 	const handleSelectChange = (ids: string[]) => {
-		setSelectedIds(new Set(ids))
+		setSelectedIds(ids)
 	}
 
 	const handleSelectAll = () => {
-		setSelectedIds(new Set(filteredTenants.map(t => t.id)))
+		selectAll(filteredTenants.map(t => t.id))
 	}
 
 	const handleDeselectAll = () => {
-		setSelectedIds(new Set())
+		clearSelection()
 	}
 
 	// Bulk action handlers
 	const handleBulkDelete = () => {
 		logger.info('Bulk delete initiated', { selectedIds: Array.from(selectedIds) })
-		setSelectedIds(new Set())
+		clearSelection()
 	}
 
 	const handleBulkExport = () => {
 		logger.info('Bulk export initiated', { selectedIds: Array.from(selectedIds) })
-		setSelectedIds(new Set())
+		clearSelection()
 	}
 
 	// View tenant detail
 	const handleViewTenant = (tenantId: string) => {
 		onViewTenant(tenantId)
-		setIsDetailSheetOpen(true)
+		openDetailSheet()
 	}
 
 	// Empty state
@@ -141,7 +157,7 @@ export function Tenants({
 							Invite your first tenant to get started with lease management.
 						</p>
 						<button
-							onClick={() => setIsInviteModalOpen(true)}
+							onClick={openInviteModal}
 							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 						>
 							<UserPlus className="w-5 h-5" />
@@ -152,7 +168,7 @@ export function Tenants({
 
 				<InviteTenantModal
 					isOpen={isInviteModalOpen}
-					onClose={() => setIsInviteModalOpen(false)}
+					onClose={closeInviteModal}
 					onSubmit={onInviteTenant}
 				/>
 			</div>
@@ -171,7 +187,7 @@ export function Tenants({
 						</p>
 					</div>
 					<button
-						onClick={() => setIsInviteModalOpen(true)}
+						onClick={openInviteModal}
 						className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
 					>
 						<UserPlus className="w-4 h-4" />
@@ -252,7 +268,7 @@ export function Tenants({
 			{/* Quick Actions */}
 			<div className="flex items-center gap-3 mb-6">
 				<button
-					onClick={() => setIsInviteModalOpen(true)}
+					onClick={openInviteModal}
 					className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors"
 				>
 					<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
@@ -310,7 +326,7 @@ export function Tenants({
 
 						<select
 							value={statusFilter}
-							onChange={e => setStatusFilter(e.target.value)}
+							onChange={e => setStatusFilter(e.target.value as TenantStatusFilter)}
 							className="appearance-none px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer transition-all h-9"
 						>
 							<option value="all">All Statuses</option>
@@ -386,10 +402,7 @@ export function Tenants({
 								No tenants match your filters
 							</p>
 							<button
-								onClick={() => {
-									setSearchQuery('')
-									setStatusFilter('all')
-								}}
+								onClick={clearFilters}
 								className="mt-3 text-sm text-primary hover:underline"
 							>
 								Clear filters
@@ -412,7 +425,7 @@ export function Tenants({
 			<TenantDetailSheet
 				tenant={selectedTenant ?? null}
 				isOpen={isDetailSheetOpen}
-				onOpenChange={setIsDetailSheetOpen}
+				onOpenChange={setDetailSheetOpen}
 				onEdit={onEditTenant}
 				onContact={onContactTenant}
 				onViewLease={onViewLease}
@@ -422,7 +435,7 @@ export function Tenants({
 			{/* Invite Modal */}
 			<InviteTenantModal
 				isOpen={isInviteModalOpen}
-				onClose={() => setIsInviteModalOpen(false)}
+				onClose={closeInviteModal}
 				onSubmit={onInviteTenant}
 			/>
 		</div>

@@ -51,7 +51,7 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: mockSupabaseFrom,
 		auth: {

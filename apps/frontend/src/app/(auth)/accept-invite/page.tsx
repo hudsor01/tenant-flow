@@ -32,10 +32,10 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
-import { LoadingState } from './components/loading-state'
-import { ErrorState, type PageState } from './components/error-state'
-import { SuccessState } from './components/success-state'
-import { InviteHeroSection } from './components/invite-hero-section'
+import { LoadingState } from '#components/auth/accept-invite/loading-state'
+import { ErrorState, type PageState } from '#components/auth/accept-invite/error-state'
+import { SuccessState } from '#components/auth/accept-invite/success-state'
+import { InviteHeroSection } from '#components/auth/accept-invite/invite-hero-section'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 

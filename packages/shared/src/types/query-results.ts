@@ -181,7 +181,6 @@ export interface TenantWithUserDetails {
 	emergency_contact_phone: string | null
 	emergency_contact_relationship: string | null
 	identity_verified: boolean | null
-	autopay_enabled: boolean | null
 	created_at: string | null
 	updated_at: string | null
 	user: {

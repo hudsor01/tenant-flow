@@ -1,4 +1,9 @@
 import { All, Controller, GoneException, Param } from '@nestjs/common'
+import {
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 /**
@@ -7,10 +12,13 @@ import { AppLogger } from '../../logger/app-logger.service'
  * All legacy routes are removed. Consumers must call the new /owner
  * layer remains to avoid stale or inconsistent behavior.
  */
+@ApiTags('Legacy')
 @Controller('manage')
 export class DashboardController {
 	constructor(private readonly logger: AppLogger) {}
 
+	@ApiOperation({ summary: 'Legacy route handler', description: 'All /manage routes have been deprecated. Use /owner routes instead.' })
+	@ApiResponse({ status: 410, description: 'Legacy routes removed - use /owner endpoints' })
 	@All('*path')
 	handleLegacyRoute(@Param('path') path = ''): never {
 		const normalizedPath = path ? `/${path.replace(/\/?$/, '')}` : '/'

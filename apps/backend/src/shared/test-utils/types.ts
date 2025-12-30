@@ -78,6 +78,12 @@ export function createMockRequest(
 	return {
 		url: '/',
 		method: 'GET',
+		// Provide default headers with authorization token for controller tests
+		// that extract token from req.headers.authorization
+		headers: {
+			authorization: 'Bearer test-jwt-token',
+			...overrides.headers
+		},
 		// Provide a sensible default user for controller unit tests that
 		// previously relied on global auth middleware. This prevents
 		// `req.user` from being undefined in many controller tests.

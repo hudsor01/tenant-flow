@@ -17,16 +17,29 @@ import {
 	Param,
 	ParseUUIDPipe,
 	Post,
-	Res
+	Request,
+	Res,
+	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiProduces,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Response } from 'express'
 import { Throttle } from '@nestjs/throttler'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseQueryService } from './lease-query.service'
 import { SubmitMissingLeaseFieldsDto } from './dto/submit-missing-lease-fields.dto'
 import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
 import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 
+@ApiTags('Leases')
+@ApiBearerAuth('supabase-auth')
 @Controller('leases')
 export class LeasePdfController {
 	constructor(
@@ -39,12 +52,21 @@ export class LeasePdfController {
 	 * Get missing fields required for Texas lease PDF generation
 	 * Returns which fields need to be filled by user (not auto-filled from DB)
 	 */
+	@ApiOperation({ summary: 'Get PDF missing fields', description: 'Get fields that need to be filled for lease PDF generation' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Missing fields retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not found or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/pdf/missing-fields')
 	@Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 requests per minute
 	async getPdfMissingFields(
 		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		// Get complete lease data
 		const leaseData = await this.queryService.getLeaseDataForPdf(token, id)
 
@@ -70,13 +92,23 @@ export class LeasePdfController {
 	 * Preview filled Texas lease PDF as an inline PDF (no storage, no DocuSeal)
 	 * Uses auto-filled DB data; missing fields render as empty/defaults.
 	 */
+	@ApiOperation({ summary: 'Preview lease PDF', description: 'Preview filled lease PDF with auto-filled DB data' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiProduces('application/pdf')
+	@ApiResponse({ status: 200, description: 'PDF preview generated successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not found or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/pdf/preview')
 	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 previews per minute
 	async previewFilledPdf(
 		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Res() res: Response
 	): Promise<void> {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const leaseData = await this.queryService.getLeaseDataForPdf(token, id)
 
 		if (!leaseData?.lease) {
@@ -110,13 +142,23 @@ export class LeasePdfController {
 	 * Submit missing fields and generate filled Texas lease PDF
 	 * Returns PDF buffer for download or DocuSeal upload
 	 */
+	@ApiOperation({ summary: 'Generate lease PDF', description: 'Submit missing fields and generate filled lease PDF' })
+	@ApiParam({ name: 'id', type: String, description: 'Lease UUID' })
+	@ApiBody({ type: SubmitMissingLeaseFieldsDto })
+	@ApiResponse({ status: 200, description: 'PDF generated successfully' })
+	@ApiResponse({ status: 400, description: 'Lease not found or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post(':id/pdf/generate')
 	@Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 PDF generations per minute
 	async generateFilledPdf(
 		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Body() missingFieldsDto: SubmitMissingLeaseFieldsDto
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		// Get complete lease data
 		const leaseData = await this.queryService.getLeaseDataForPdf(token, id)
 

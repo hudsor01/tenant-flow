@@ -121,10 +121,10 @@ export function usePreferencesStore<T>(
 
 /**
  * Hook to access data density preference
+ * Uses separate selectors to avoid object reference instability
  */
 export function useDataDensity() {
-	return usePreferencesStore(state => ({
-		dataDensity: state.dataDensity,
-		setDataDensity: state.setDataDensity
-	}))
+	const dataDensity = usePreferencesStore(state => state.dataDensity)
+	const setDataDensity = usePreferencesStore(state => state.setDataDensity)
+	return { dataDensity, setDataDensity }
 }

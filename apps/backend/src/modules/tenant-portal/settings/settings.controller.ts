@@ -1,7 +1,18 @@
-import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
-import type { AuthUser } from '@repo/shared/types/auth'
+import {
+	Controller,
+	Get,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -21,6 +32,8 @@ type TenantRow = Pick<
  *
  * Routes: /tenant/settings/*
  */
+@ApiTags('Tenant Portal - Settings')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
@@ -35,8 +48,17 @@ export class TenantSettingsController {
 	 *
 	 * @returns Tenant profile information
 	 */
+	@ApiOperation({ summary: 'Get settings', description: 'Get tenant profile and account settings' })
+	@ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get()
-	async getSettings(@JwtToken() token: string, @User() user: AuthUser) {
+	async getSettings(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user = req.user
 		const [tenant, userResult] = await Promise.all([
 			this.fetchTenantProfile(token, user.id),
 			this.supabase

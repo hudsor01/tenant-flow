@@ -267,7 +267,6 @@ export interface TenantWithLeaseInfo {
 	identity_verified: boolean | null
 	ssn_last_four: string | null
 	stripe_customer_id: string | null
-	autopay_enabled?: boolean | null
 	updated_at: string | null
 	name?: string
 	email?: string
@@ -283,6 +282,7 @@ export interface TenantWithLeaseInfo {
 		status: string
 		primary_tenant_id: string
 		unit_id: string
+		auto_pay_enabled?: boolean
 	} | null
 	leases?: Array<{
 		id: string

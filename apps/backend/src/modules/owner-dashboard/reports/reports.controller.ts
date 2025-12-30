@@ -2,10 +2,17 @@ import {
 	Controller,
 	Get,
 	Query,
+	Request,
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { ReportsService } from './reports.service'
 import type { MetricTrend, TimeSeriesDataPoint } from './reports.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
@@ -24,6 +31,8 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - Metric trends (current vs previous period comparison)
  * - Time series data for charts
  */
+@ApiTags('Owner Dashboard - Reports')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
@@ -39,16 +48,20 @@ export class ReportsController {
 	 * @param metric - The metric to retrieve (occupancy_rate, monthly_revenue, etc.)
 	 * @param days - Number of days of data (default 30)
 	 */
+	@ApiOperation({ summary: 'Get time series data', description: 'Retrieve time series data for a specific metric' })
+	@ApiResponse({ status: 200, description: 'Time series data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('time-series')
 	async getTimeSeries(
-		@user_id() user_id: string,
+		@Request() req: AuthenticatedRequest,
 		@Query() query: TimeSeriesQueryDto
 	): Promise<TimeSeriesDataPoint[]> {
+		const userId = req.user.id
 		const { metric, days } = query
 
-		this.logger.log('Getting time series data', { user_id, metric, days })
+		this.logger.log('Getting time series data', { userId, metric, days })
 
-		return this.reportsService.getTimeSeries(user_id, metric, days)
+		return this.reportsService.getTimeSeries(userId, metric, days)
 	}
 
 	/**
@@ -56,19 +69,23 @@ export class ReportsController {
 	 * @param metric - The metric to retrieve
 	 * @param period - The period to compare (day, week, month, year)
 	 */
+	@ApiOperation({ summary: 'Get metric trend', description: 'Retrieve trend data comparing current vs previous period' })
+	@ApiResponse({ status: 200, description: 'Metric trend retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('metric-trend')
 	async getMetricTrend(
-		@user_id() user_id: string,
+		@Request() req: AuthenticatedRequest,
 		@Query() query: MetricTrendQueryDto
 	): Promise<MetricTrend> {
+		const userId = req.user.id
 		const { metric, period } = query
 
 		this.logger.log('Getting metric trend', {
-			user_id,
+			userId,
 			metric,
 			period
 		})
 
-		return this.reportsService.getMetricTrend(user_id, metric, period)
+		return this.reportsService.getMetricTrend(userId, metric, period)
 	}
 }

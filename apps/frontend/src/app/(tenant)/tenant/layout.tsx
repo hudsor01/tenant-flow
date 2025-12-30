@@ -1,4 +1,4 @@
-import { TenantShell } from '#components/shell/TenantShell'
+import { TenantShell } from '#components/shell/tenant-shell'
 import type { ReactNode } from 'react'
 
 /**

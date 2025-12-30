@@ -6,6 +6,13 @@ import {
 	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
@@ -20,6 +27,8 @@ import { AppLogger } from '../../logger/app-logger.service'
  * FinancialService but expose them under /financial/analytics so the frontend
  * hooks and UI components can consume live data again.
  */
+@ApiTags('Financial Analytics')
+@ApiBearerAuth('supabase-auth')
 @Controller('financial/analytics')
 @UseGuards(JwtAuthGuard)
 export class FinancialAnalyticsPublicController {
@@ -40,6 +49,10 @@ export class FinancialAnalyticsPublicController {
 		return token
 	}
 
+	@ApiOperation({ summary: 'Get revenue trends', description: 'Returns monthly revenue trends for the specified year' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for revenue trends (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Revenue trends retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: Request,
@@ -58,6 +71,10 @@ export class FinancialAnalyticsPublicController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get expense breakdown', description: 'Returns expense breakdown by category for the specified year' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for expense breakdown (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Expense breakdown retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expense-breakdown')
 	async getExpenseBreakdown(
 		@Req() req: Request,
@@ -79,6 +96,10 @@ export class FinancialAnalyticsPublicController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get dashboard metrics', description: 'Returns aggregated financial metrics for the dashboard' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for metrics (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Dashboard metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('dashboard-metrics')
 	async getDashboardMetrics(
 		@Req() req: Request,

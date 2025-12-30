@@ -15,11 +15,20 @@ import {
 	Post,
 	Req
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesService } from './late-fees.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
+@ApiTags('Late Fees')
+@ApiBearerAuth('supabase-auth')
 @Controller('late-fees')
 export class LateFeesController {
 	constructor(
@@ -182,6 +191,11 @@ export class LateFeesController {
 	/**
 	 * Calculate late fee for a specific payment
 	 */
+	@ApiOperation({ summary: 'Calculate late fee', description: 'Calculate late fee for a specific payment based on rent amount and days late' })
+	@ApiBody({ schema: { type: 'object', required: ['rent_amount', 'daysLate'], properties: { rent_amount: { type: 'number', description: 'Rent amount in dollars' }, daysLate: { type: 'number', description: 'Number of days late' }, lease_id: { type: 'string', format: 'uuid', description: 'Lease UUID (optional)' } } } })
+	@ApiResponse({ status: 201, description: 'Late fee calculated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('calculate')
 	async calculateLateFee(
 		@Req() req: AuthenticatedRequest,

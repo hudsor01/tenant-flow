@@ -23,6 +23,12 @@ describe('LeasesController', () => {
 
 	const generateUUID = () => randomUUID()
 
+	// Mock authenticated request with authorization header
+	const mockRequest = {
+		user: { id: 'test-user-id', email: 'test@example.com' },
+		headers: { authorization: 'Bearer mock-jwt-token' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 	const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 		id: generateUUID(),
 		primary_tenant_id: generateUUID(),
@@ -143,7 +149,7 @@ describe('LeasesController', () => {
 			})
 
 			const result = await controller.findAll(
-				'mock-jwt-token', // JWT token
+				mockRequest,
 				{
 					tenant_id: undefined,
 					unit_id: undefined,
@@ -183,7 +189,7 @@ describe('LeasesController', () => {
 			})
 
 			const result = await controller.findAll(
-				'mock-jwt-token', // JWT token
+				mockRequest,
 				{
 					tenant_id,
 					unit_id,
@@ -217,7 +223,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.findAll('mock-jwt-token', {
+				controller.findAll(mockRequest, {
 					tenant_id: 'invalid-uuid'
 				} as FindAllLeasesDto)
 			).rejects.toThrow(BadRequestException)
@@ -231,7 +237,7 @@ describe('LeasesController', () => {
 			)
 
 			await expect(
-				controller.findAll('mock-jwt-token', {
+				controller.findAll(mockRequest, {
 					tenant_id: undefined,
 					unit_id: undefined,
 					property_id: undefined,
@@ -249,7 +255,7 @@ describe('LeasesController', () => {
 				offset: 0
 			})
 
-			const result = await controller.findAll('mock-jwt-token', {
+			const result = await controller.findAll(mockRequest, {
 				tenant_id: undefined,
 				unit_id: undefined,
 				property_id: undefined,
@@ -266,7 +272,7 @@ describe('LeasesController', () => {
 			const mockLease = createMockLease({ id: lease_id })
 			mockLeaseQueryService.findOne.mockResolvedValue(mockLease)
 
-			const result = await controller.findOne(lease_id, 'mock-jwt-token')
+			const result = await controller.findOne(lease_id, mockRequest)
 
 			expect(mockLeaseQueryService.findOne).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -280,7 +286,7 @@ describe('LeasesController', () => {
 			mockLeaseQueryService.findOne.mockResolvedValue(null)
 
 			await expect(
-				controller.findOne(lease_id, 'mock-jwt-token')
+				controller.findOne(lease_id, mockRequest)
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -303,7 +309,7 @@ describe('LeasesController', () => {
 			const mockLease = createMockLease()
 			mockLeasesService.create.mockResolvedValue(mockLease)
 
-			const result = await controller.create(createRequest, 'mock-jwt-token')
+			const result = await controller.create(createRequest, mockRequest)
 
 			expect(mockLeasesService.create).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -327,7 +333,7 @@ describe('LeasesController', () => {
 			const result = await controller.update(
 				lease_id,
 				updateRequest,
-				'mock-jwt-token'
+				mockRequest
 			)
 
 			expect(mockLeasesService.update).toHaveBeenCalledWith(
@@ -344,7 +350,7 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			mockLeasesService.remove.mockResolvedValue(undefined)
 
-			await controller.remove(lease_id, 'mock-jwt-token')
+			await controller.remove(lease_id, mockRequest)
 
 			expect(mockLeasesService.remove).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -363,7 +369,7 @@ describe('LeasesController', () => {
 			const result = await controller.renew(
 				lease_id,
 				end_date,
-				'mock-jwt-token'
+				mockRequest
 			)
 
 			expect(mockLifecycleService.renew).toHaveBeenCalledWith(
@@ -384,7 +390,7 @@ describe('LeasesController', () => {
 
 			const result = await controller.terminate(
 				lease_id,
-				'mock-jwt-token',
+				mockRequest,
 				reason
 			)
 

@@ -28,13 +28,13 @@ import {
 import { formatCents } from '#lib/formatters/currency'
 import { toast } from 'sonner'
 
-import { RecordPaymentDialog } from './components/record-payment-dialog'
-import { StatsSection } from './components/stats-section'
-import { OverduePaymentsAlert } from './components/overdue-payments-alert'
-import { FailedPaymentsAlert } from './components/failed-payments-alert'
-import { SubscriptionsTab } from './components/subscriptions-tab'
-import { UpcomingPaymentsTab } from './components/upcoming-payments-tab'
-import { PaymentHistoryTab } from './components/payment-history-tab'
+import { RecordPaymentDialog } from '#components/payments/rent-collection/record-payment-dialog'
+import { StatsSection } from '#components/payments/rent-collection/stats-section'
+import { OverduePaymentsAlert } from '#components/payments/rent-collection/overdue-payments-alert'
+import { FailedPaymentsAlert } from '#components/payments/rent-collection/failed-payments-alert'
+import { SubscriptionsTab } from '#components/payments/rent-collection/subscriptions-tab'
+import { UpcomingPaymentsTab } from '#components/payments/rent-collection/upcoming-payments-tab'
+import { PaymentHistoryTab } from '#components/payments/rent-collection/payment-history-tab'
 
 export default function RentCollectionPage() {
 	const { data: subscriptions, isLoading } = useSubscriptions()

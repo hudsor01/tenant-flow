@@ -68,6 +68,9 @@ export interface PropertySummary {
 	totalMonthlyRevenue: number
 }
 
+/** Alias for PropertySummary for backward compatibility */
+export type PropertiesSummary = PropertySummary
+
 /**
  * PropertyItem - Simplified property type for list/grid views
  * Contains only the fields needed for property cards and tables

@@ -92,10 +92,10 @@ describe('PaymentReminderService', () => {
 					rent_amount: 150000,
 					primary_tenant_id: 'tenant-1',
 					unit_id: 'unit-1',
+					auto_pay_enabled: false,
 					tenant: {
 						id: 'tenant-1',
 						user_id: 'user-1',
-						autopay_enabled: false,
 						users: null
 					},
 					unit: {

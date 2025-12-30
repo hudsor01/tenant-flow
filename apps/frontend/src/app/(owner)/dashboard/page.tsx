@@ -3,7 +3,7 @@
 import { Suspense, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
-import { Dashboard } from '#components/dashboard/Dashboard'
+import { Dashboard } from '#components/dashboard/dashboard'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
 import { Skeleton } from '#components/ui/skeleton'
 import {
@@ -210,7 +210,7 @@ function DashboardContent() {
 	}, [router])
 
 	const onRecordPayment = useCallback(() => {
-		router.push('/payments/new')
+		router.push('/rent-collection')
 	}, [router])
 
 	const onCreateMaintenanceRequest = useCallback(() => {

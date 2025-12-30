@@ -34,7 +34,10 @@ export function useSubscriptions() {
 	return useQuery({
 		queryKey: subscriptionsKeys.list(),
 		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
-			return apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions')
+			const response = await apiRequest<{
+				subscriptions: RentSubscriptionResponse[]
+			}>('/api/v1/subscriptions')
+			return response.subscriptions
 		},
 		staleTime: 30 * 1000 // 30 seconds
 	})

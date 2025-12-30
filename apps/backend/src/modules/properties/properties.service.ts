@@ -7,6 +7,7 @@ import {
 	BadRequestException,
 	ConflictException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException
 } from '@nestjs/common'
 import type { CreatePropertyDto, UpdatePropertyDto } from './property.schemas'
@@ -56,7 +57,7 @@ export class PropertiesService {
 
 		if (error) {
 			this.logger.error('Failed to fetch properties', { error })
-			return []
+			throw new InternalServerErrorException('Failed to fetch properties')
 		}
 
 		return (data || []) as Property[]

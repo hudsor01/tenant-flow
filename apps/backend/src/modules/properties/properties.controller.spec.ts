@@ -122,11 +122,12 @@ describe('PropertiesController', () => {
 			const mockProperties = [createMockProperty({ id: 'property-1' })]
 			mockPropertiesServiceInstance.findAll.mockResolvedValue(mockProperties)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findAll(
 				null, // search
 				10, // limit
 				0, // offset
-				'mock-jwt-token' // JWT token
+				mockRequest
 			)
 
 			expect(mockPropertiesServiceInstance.findAll).toHaveBeenCalled()

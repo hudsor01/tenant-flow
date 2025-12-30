@@ -17,8 +17,8 @@ import { AlertTriangle, CheckCircle, Clock, Pause, XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { BlurFade } from '#components/ui/blur-fade'
-import { MaintenanceCard } from './maintenance-card'
-import { MaintenanceSortableCard } from './maintenance-sortable-card'
+import { MaintenanceCard } from '../cards/maintenance-card'
+import { MaintenanceSortableCard } from '../cards/maintenance-sortable-card'
 import type {
 	MaintenanceRequest,
 	MaintenanceStatus

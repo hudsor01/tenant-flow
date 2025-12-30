@@ -7,7 +7,14 @@ import {
 	UseGuards,
 	UseInterceptors
 } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -25,6 +32,8 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - Revenue trends
  * - Financial health checks
  */
+@ApiTags('Owner Dashboard - Financial')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
@@ -36,11 +45,14 @@ export class FinancialController {
 		private readonly logger: AppLogger
 	) {}
 
+	@ApiOperation({ summary: 'Get billing insights', description: 'Retrieve billing insights from Stripe Sync Engine' })
+	@ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('billing/insights')
 	async getBillingInsights(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -59,11 +71,14 @@ export class FinancialController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Check billing insights availability', description: 'Check if billing insights are available for the user' })
+	@ApiResponse({ status: 200, description: 'Availability status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('billing/insights/available')
 	async checkBillingInsightsAvailability(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -87,11 +102,14 @@ export class FinancialController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get billing health', description: 'Check billing system health and available capabilities' })
+	@ApiResponse({ status: 200, description: 'Billing health status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('billing/health')
 	async getBillingHealth(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -127,12 +145,16 @@ export class FinancialController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get revenue trends', description: 'Retrieve revenue trends over specified months' })
+	@ApiQuery({ name: 'months', required: false, type: Number, description: 'Number of months (default: 12)' })
+	@ApiResponse({ status: 200, description: 'Revenue trends retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('revenue-trends')
 	async getRevenueTrends(
 		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string,
 		@Query('months') months: string = '12'
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {

@@ -7,6 +7,13 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
@@ -58,6 +65,8 @@ const DEFAULT_SETTINGS: NotificationPreferences = {
 	}
 }
 
+@ApiTags('Notification Settings')
+@ApiBearerAuth('supabase-auth')
 @Controller('notification-settings')
 export class NotificationSettingsController {
 	constructor(private readonly supabase: SupabaseService) {}
@@ -179,6 +188,9 @@ export class NotificationSettingsController {
 		)
 	}
 
+	@ApiOperation({ summary: 'Get notification settings', description: 'Get notification preferences for current user' })
+	@ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async getSettings(@Req() req: AuthenticatedRequest) {
 		const userId = req.user?.id
@@ -189,6 +201,11 @@ export class NotificationSettingsController {
 		return this.mapRowToPreferences(row)
 	}
 
+	@ApiOperation({ summary: 'Update notification settings', description: 'Update notification preferences for current user' })
+	@ApiBody({ schema: { type: 'object', properties: { email: { type: 'boolean' }, sms: { type: 'boolean' }, push: { type: 'boolean' }, inApp: { type: 'boolean' }, categories: { type: 'object', properties: { maintenance: { type: 'boolean' }, leases: { type: 'boolean' }, general: { type: 'boolean' } } } } } })
+	@ApiResponse({ status: 200, description: 'Settings updated successfully' })
+	@ApiResponse({ status: 400, description: 'No valid settings provided' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Put()
 	async updateSettings(
 		@Body() body: Partial<NotificationPreferences>,

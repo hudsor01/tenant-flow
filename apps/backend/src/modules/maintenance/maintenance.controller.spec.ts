@@ -26,6 +26,12 @@ describe('MaintenanceController', () => {
 	const mockUser = createMockUser()
 	const mockToken = 'mock-jwt-token'
 
+	// Mock authenticated request with authorization header
+	const mockAuthRequest = {
+		user: mockUser,
+		headers: { authorization: `Bearer ${mockToken}` }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
 	beforeEach(async () => {
 		const mockService = {
 			findAll: jest.fn(),
@@ -83,7 +89,7 @@ describe('MaintenanceController', () => {
 	it('returns maintenance requests (findAll)', async () => {
 		const requests = [createMockMaintenanceRequest()]
 		service.findAll.mockResolvedValue(requests)
-		const result = await controller.findAll(mockToken)
+		const result = await controller.findAll(mockAuthRequest)
 		// Controller wraps service response in PaginatedResponse format
 		expect(result).toEqual({
 			data: requests,
@@ -96,15 +102,15 @@ describe('MaintenanceController', () => {
 	})
 
 	it('returns single maintenance request (findOne)', async () => {
-		const mockRequest = createMockMaintenanceRequest()
-		service.findOne.mockResolvedValue(mockRequest)
-		const result = await controller.findOne(mockRequest.id, mockToken)
-		expect(result).toEqual(mockRequest)
+		const mockMaintenanceReq = createMockMaintenanceRequest()
+		service.findOne.mockResolvedValue(mockMaintenanceReq)
+		const result = await controller.findOne(mockMaintenanceReq.id, mockAuthRequest)
+		expect(result).toEqual(mockMaintenanceReq)
 	})
 
 	it('throws NotFoundException when findOne not found', async () => {
 		service.findOne.mockImplementation(() => Promise.resolve(null))
-		await expect(controller.findOne(randomUUID(), mockToken)).rejects.toThrow(
+		await expect(controller.findOne(randomUUID(), mockAuthRequest)).rejects.toThrow(
 			NotFoundException
 		)
 	})
@@ -120,7 +126,7 @@ describe('MaintenanceController', () => {
 		}
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.create.mockResolvedValue(mockMaintenanceRequest)
-		const result = await controller.create(created_ata, mockToken, mockUser.id)
+		const result = await controller.create(created_ata, mockAuthRequest)
 		expect(result).toEqual(mockMaintenanceRequest)
 	})
 
@@ -133,7 +139,7 @@ describe('MaintenanceController', () => {
 		const result = await controller.update(
 			createMockMaintenanceRequest().id,
 			{ description: 'Updated description' },
-			mockToken
+			mockAuthRequest
 		)
 		expect(result).toEqual(updated)
 	})
@@ -141,14 +147,14 @@ describe('MaintenanceController', () => {
 	it('throws NotFoundException when update not found', async () => {
 		service.update.mockImplementation(() => Promise.resolve(null))
 		await expect(
-			controller.update(randomUUID(), {}, mockToken)
+			controller.update(randomUUID(), {}, mockAuthRequest)
 		).rejects.toThrow(NotFoundException)
 	})
 
 	it('removes maintenance request (remove)', async () => {
 		const mockMaintenanceRequest = createMockMaintenanceRequest()
 		service.remove.mockResolvedValue(undefined)
-		await controller.remove(mockMaintenanceRequest.id, mockToken)
+		await controller.remove(mockMaintenanceRequest.id, mockAuthRequest)
 		expect(service.remove).toHaveBeenCalledWith(
 			mockToken,
 			mockMaintenanceRequest.id
@@ -166,7 +172,7 @@ describe('MaintenanceController', () => {
 			byPriority: { low: 2, medium: 4, high: 3, emergency: 1 }
 		}
 		reportingService.getStats.mockResolvedValue(stats)
-		const result = await controller.getStats(mockToken)
+		const result = await controller.getStats(mockAuthRequest)
 		expect(result).toEqual(stats)
 	})
 
@@ -178,7 +184,7 @@ describe('MaintenanceController', () => {
 			}
 		]
 		reportingService.getUrgent.mockResolvedValue(urgent)
-		const urgentResult = await controller.getUrgent(mockToken)
+		const urgentResult = await controller.getUrgent(mockAuthRequest)
 		expect(urgentResult).toEqual(urgent)
 
 		const overdue = [
@@ -188,7 +194,7 @@ describe('MaintenanceController', () => {
 			}
 		]
 		reportingService.getOverdue.mockResolvedValue(overdue)
-		const overdueResult = await controller.getOverdue(mockToken)
+		const overdueResult = await controller.getOverdue(mockAuthRequest)
 		expect(overdueResult).toEqual(overdue)
 	})
 
@@ -201,7 +207,7 @@ describe('MaintenanceController', () => {
 		workflowService.complete.mockResolvedValue(completed)
 		const result = await controller.complete(
 			mockMaintenanceRequest.id,
-			mockToken,
+			mockAuthRequest,
 			500,
 			'Fixed'
 		)
@@ -218,7 +224,7 @@ describe('MaintenanceController', () => {
 		await expect(
 			controller.complete(
 				createMockMaintenanceRequest().id,
-				mockToken,
+				mockAuthRequest,
 				-1,
 				undefined
 			)
@@ -226,7 +232,7 @@ describe('MaintenanceController', () => {
 		await expect(
 			controller.complete(
 				createMockMaintenanceRequest().id,
-				mockToken,
+				mockAuthRequest,
 				1_000_000,
 				undefined
 			)
@@ -241,7 +247,7 @@ describe('MaintenanceController', () => {
 		workflowService.cancel.mockResolvedValue(cancelled)
 		const result = await controller.cancel(
 			createMockMaintenanceRequest().id,
-			mockToken,
+			mockAuthRequest,
 			undefined
 		)
 		expect(result).toEqual(cancelled)

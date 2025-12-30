@@ -182,7 +182,7 @@ describe('TaxDocumentsService', () => {
 
 	describe('generateTaxDocuments', () => {
 		it('should generate tax documents with valid data', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			expect(result).toBeDefined()
 			expect(result.taxYear).toBe(2024)
@@ -200,7 +200,7 @@ describe('TaxDocumentsService', () => {
 		})
 
 		it('should calculate residential property depreciation correctly (27.5 years)', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			const property = result.propertyDepreciation[0]
 			expect(property).toBeDefined()
@@ -305,7 +305,7 @@ describe('TaxDocumentsService', () => {
 				return mockQuery
 			})
 
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			const property = result.propertyDepreciation[0]
 			expect(property).toBeDefined()
@@ -339,14 +339,14 @@ describe('TaxDocumentsService', () => {
 				.spyOn(FinancialLedgerHelpers, 'loadLedgerData')
 				.mockResolvedValue(customLedger)
 
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			// Mortgage interest = 30% of total expenses (30000 * 0.3 = 9000)
 			expect(result.incomeBreakdown.mortgageInterest).toBe(9000)
 		})
 
 		it('should calculate taxable income correctly', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			// Calculations based on default table data:
 			// Gross Income = 60000 (rent payments)
@@ -398,7 +398,7 @@ describe('TaxDocumentsService', () => {
 				error: null
 			})
 
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			// All expense categories should be marked as deductible
 			result.expenseCategories.forEach(expense => {
@@ -413,7 +413,7 @@ describe('TaxDocumentsService', () => {
 		})
 
 		it('should handle array vs single object response for expenses', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			// Service always returns 3 expense categories: Maintenance, Operations, Fees
 			expect(result.expenseCategories.length).toBe(3)
@@ -426,7 +426,7 @@ describe('TaxDocumentsService', () => {
 		})
 
 		it('should calculate totals correctly', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			// Total income = gross rental income
 			expect(result.totals.totalIncome).toBe(60000)
@@ -444,7 +444,7 @@ describe('TaxDocumentsService', () => {
 		})
 
 		it('should populate Schedule E correctly', async () => {
-			const result = await service.generateTaxDocuments('user-123', 2024)
+			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
 			const scheduleE = result.schedule.scheduleE
 			expect(scheduleE.grossRentalIncome).toBe(60000)

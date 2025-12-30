@@ -2,6 +2,30 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { hasEnvVars } from '../utils'
 
+// Marketing/public pages that authenticated users should be redirected away from
+const MARKETING_ROUTES = new Set([
+	'/',
+	'/about',
+	'/blog',
+	'/contact',
+	'/faq',
+	'/features',
+	'/help',
+	'/pricing',
+	'/privacy',
+	'/resources',
+	'/search',
+	'/terms'
+])
+
+function isMarketingRoute(pathname: string): boolean {
+	// Check exact match first
+	if (MARKETING_ROUTES.has(pathname)) return true
+	// Check if it's a sub-route of marketing pages (e.g., /blog/post-slug)
+	const basePath = '/' + pathname.split('/')[1]
+	return MARKETING_ROUTES.has(basePath)
+}
+
 export async function updateSession(request: NextRequest) {
 	let supabaseResponse = NextResponse.next({
 		request
@@ -46,14 +70,25 @@ export async function updateSession(request: NextRequest) {
 	// with the Supabase client, your users may be randomly logged out.
 	const { data } = await supabase.auth.getClaims()
 	const user = data?.claims
+	const pathname = request.nextUrl.pathname
 
+	// Redirect authenticated users from marketing pages to their dashboard
+	if (user && isMarketingRoute(pathname)) {
+		const url = request.nextUrl.clone()
+		const userType = (user as Record<string, unknown>).app_metadata as
+			| { user_type?: string }
+			| undefined
+		url.pathname = userType?.user_type === 'TENANT' ? '/tenant' : '/dashboard'
+		return NextResponse.redirect(url)
+	}
+
+	// Redirect unauthenticated users from protected routes to login
 	if (
-		request.nextUrl.pathname !== '/' &&
 		!user &&
-		!request.nextUrl.pathname.startsWith('/login') &&
-		!request.nextUrl.pathname.startsWith('/auth')
+		!isMarketingRoute(pathname) &&
+		!pathname.startsWith('/login') &&
+		!pathname.startsWith('/auth')
 	) {
-		// no user, potentially respond by redirecting the user to the login page
 		const url = request.nextUrl.clone()
 		url.pathname = '/auth/login'
 		return NextResponse.redirect(url)

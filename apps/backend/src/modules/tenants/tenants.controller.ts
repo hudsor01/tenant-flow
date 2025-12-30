@@ -26,9 +26,18 @@ import {
 	Post,
 	Put,
 	Query,
-	Req
+	Req,
+	UnauthorizedException
 } from '@nestjs/common'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type { ListFilters, LeaseHistoryItem } from './tenant-query.service'
 import { TenantQueryService } from './tenant-query.service'
@@ -39,6 +48,8 @@ import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
 
+@ApiTags('Tenants')
+@ApiBearerAuth('supabase-auth')
 @Controller('tenants')
 export class TenantsController {
 	constructor(
@@ -52,6 +63,14 @@ export class TenantsController {
 	// Query Endpoints
 	// ========================================
 
+	@ApiOperation({ summary: 'List all tenants', description: 'Get all tenants with filtering and pagination' })
+	@ApiQuery({ name: 'search', required: false, description: 'Search by name or email' })
+	@ApiQuery({ name: 'invitationStatus', required: false, enum: ['pending', 'sent', 'accepted', 'expired', 'cancelled'], description: 'Filter by invitation status' })
+	@ApiQuery({ name: 'property_id', required: false, description: 'Filter by property UUID' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
+	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
+	@ApiResponse({ status: 200, description: 'List of tenants' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async findAll(
 		@Req() req: AuthenticatedRequest,
@@ -101,23 +120,38 @@ export class TenantsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get tenant statistics', description: 'Returns aggregated tenant stats' })
+	@ApiResponse({ status: 200, description: 'Tenant statistics' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user.id
 		return this.queryService.getStats(user_id)
 	}
 
+	@ApiOperation({ summary: 'Get tenant summary', description: 'Returns tenant summary data' })
+	@ApiResponse({ status: 200, description: 'Tenant summary' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('summary')
 	async getSummary(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user.id
 		return this.queryService.getSummary(user_id)
 	}
 
+	@ApiOperation({ summary: 'Get tenant with lease info', description: 'Get a tenant with their current lease information' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant with lease info' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Get(':id/with-lease')
 	async findOneWithLease(
 		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const tenantWithLease = await this.queryService.findOneWithLease(id, token)
 		if (!tenantWithLease) {
 			throw new NotFoundException('Tenant not found')
@@ -125,11 +159,20 @@ export class TenantsController {
 		return tenantWithLease
 	}
 
+	@ApiOperation({ summary: 'Get tenant by ID', description: 'Get a single tenant by their UUID' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant details' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Get(':id')
 	async findOne(
 		@Param('id', ParseUUIDPipe) id: string,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const tenant = await this.queryService.findOne(id, token)
 		if (!tenant) {
 			throw new NotFoundException('Tenant not found')
@@ -137,6 +180,10 @@ export class TenantsController {
 		return tenant
 	}
 
+	@ApiOperation({ summary: 'Get tenant lease history', description: 'Get all leases for a tenant' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant lease history' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/leases')
 	async getLeaseHistory(
 		@Param('id', ParseUUIDPipe) id: string
@@ -149,24 +196,42 @@ export class TenantsController {
 	// CRUD Endpoints
 	// ========================================
 
+	@ApiOperation({ summary: 'Create tenant', description: 'Create a new tenant' })
+	@ApiBody({ type: CreateTenantDto })
+	@ApiResponse({ status: 201, description: 'Tenant created successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post()
 	async create(
 		@Body() dto: CreateTenantDto,
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const user_id = req.user.id
 		const tenant = await this.crudService.create(user_id, dto, token)
 		return tenant
 	}
 
+	@ApiOperation({ summary: 'Update tenant', description: 'Update an existing tenant by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiBody({ type: UpdateTenantDto })
+	@ApiResponse({ status: 200, description: 'Tenant updated successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Put(':id')
 	async update(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Body() dto: UpdateTenantDto,
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const user_id = req.user.id
 		const tenant = await this.crudService.update(user_id, id, dto, token)
 		if (!tenant) {
@@ -175,23 +240,39 @@ export class TenantsController {
 		return tenant
 	}
 
+	@ApiOperation({ summary: 'Hard delete tenant', description: 'Permanently delete a tenant and all associated data' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant permanently deleted' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Delete(':id/hard-delete')
 	async hardDelete(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const user_id = req.user.id
 		await this.crudService.hardDelete(user_id, id, token)
 		return { message: 'Tenant permanently deleted' }
 	}
 
+	@ApiOperation({ summary: 'Delete tenant', description: 'Soft delete a tenant' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Tenant deleted' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Delete(':id')
 	async remove(
 		@Param('id', ParseUUIDPipe) id: string,
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const user_id = req.user.id
 		await this.crudService.softDelete(user_id, id, token)
 	}
@@ -200,12 +281,20 @@ export class TenantsController {
 	// Bulk Operations
 	// ========================================
 
+	@ApiOperation({ summary: 'Bulk update tenants', description: 'Update multiple tenants at once (max 100)' })
+	@ApiBody({ description: 'Array of tenant updates', schema: { type: 'object', properties: { updates: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, data: { type: 'object' } } } } } } })
+	@ApiResponse({ status: 200, description: 'Tenants updated successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('bulk-update')
 	async bulkUpdate(
 		@Body() body: { updates: Array<{ id: string; data: UpdateTenantDto }> },
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		if (!body.updates || !Array.isArray(body.updates)) {
 			throw new BadRequestException('updates array is required')
 		}
@@ -224,12 +313,20 @@ export class TenantsController {
 		return this.bulkOperationsService.bulkUpdate(user_id, body.updates, token)
 	}
 
+	@ApiOperation({ summary: 'Bulk delete tenants', description: 'Delete multiple tenants at once (max 100)' })
+	@ApiBody({ description: 'Array of tenant IDs to delete', schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } } } })
+	@ApiResponse({ status: 200, description: 'Tenants deleted successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Delete('bulk-delete')
 	async bulkDelete(
 		@Body() body: { ids: string[] },
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		if (!body.ids || !Array.isArray(body.ids)) {
 			throw new BadRequestException('ids array is required')
 		}
@@ -252,6 +349,11 @@ export class TenantsController {
 	// Notification Preferences
 	// ========================================
 
+	@ApiOperation({ summary: 'Get notification preferences', description: 'Get notification preferences for a tenant' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Notification preferences' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Get(':id/notification-preferences')
 	async getNotificationPreferences(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -266,6 +368,13 @@ export class TenantsController {
 		return preferences
 	}
 
+	@ApiOperation({ summary: 'Update notification preferences', description: 'Update notification preferences for a tenant' })
+	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
+	@ApiBody({ type: UpdateNotificationPreferencesDto })
+	@ApiResponse({ status: 200, description: 'Notification preferences updated' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Tenant not found' })
 	@Put(':id/notification-preferences')
 	async updateNotificationPreferences(
 		@Param('id', ParseUUIDPipe) id: string,

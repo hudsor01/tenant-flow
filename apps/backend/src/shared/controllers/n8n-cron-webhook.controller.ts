@@ -24,10 +24,21 @@ import {
 	HttpStatus,
 	Inject,
 	Post,
+	SetMetadata,
 	UnauthorizedException,
 	forwardRef
 } from '@nestjs/common'
+import {
+	ApiHeader,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { timingSafeEqual } from 'crypto'
 import { AppLogger } from '../../logger/app-logger.service'
+
+// Bypass global JwtAuthGuard - N8N webhooks use secret-based auth
+const Public = () => SetMetadata('isPublic', true)
 import { EventIdempotencyService } from '../services/event-idempotency.service'
 
 // Forward references for lazy loading - these services are in different modules
@@ -38,7 +49,9 @@ interface CronJobResult {
 	stats?: Record<string, unknown>
 }
 
+@ApiTags('N8N Webhooks')
 @Controller('webhooks/n8n/cron')
+@Public()
 export class N8nCronWebhookController {
 	private readonly webhookSecret: string | undefined
 
@@ -51,15 +64,26 @@ export class N8nCronWebhookController {
 	}
 
 	private validateWebhookSecret(secret: string | undefined): void {
-		// Skip validation if no secret is configured (development mode)
+		// FAIL CLOSED - reject if secret not configured (security requirement)
 		if (!this.webhookSecret) {
-			this.logger.warn(
-				'N8N_WEBHOOK_SECRET not configured - webhook authentication disabled'
+			this.logger.error(
+				'N8N_WEBHOOK_SECRET not configured - rejecting webhook request'
 			)
-			return
+			throw new UnauthorizedException('Webhook authentication not configured')
 		}
 
-		if (secret !== this.webhookSecret) {
+		if (!secret) {
+			throw new UnauthorizedException('Missing x-n8n-webhook-secret header')
+		}
+
+		// Timing-safe comparison to prevent timing attacks
+		const receivedBuffer = Buffer.from(secret)
+		const expectedBuffer = Buffer.from(this.webhookSecret)
+		const isValid =
+			receivedBuffer.length === expectedBuffer.length &&
+			timingSafeEqual(receivedBuffer, expectedBuffer)
+
+		if (!isValid) {
 			throw new UnauthorizedException('Invalid webhook secret')
 		}
 	}
@@ -68,6 +92,30 @@ export class N8nCronWebhookController {
 	 * Cleanup old internal events
 	 * Recommended schedule: Daily at midnight
 	 */
+	@ApiOperation({
+		summary: 'Cleanup old webhook events',
+		description:
+			'N8N cron webhook to cleanup old internal events and webhook records. Removes processed events older than retention period. Recommended schedule: Daily at midnight. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Event cleanup completed successfully',
+		schema: {
+			type: 'object',
+			properties: {
+				success: { type: 'boolean' },
+				message: { type: 'string' },
+				stats: { type: 'object' }
+			}
+		}
+	})
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
+	@ApiResponse({ status: 500, description: 'Event cleanup failed' })
 	@Post('cleanup-events')
 	@HttpCode(HttpStatus.OK)
 	async handleCleanupEvents(

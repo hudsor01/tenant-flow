@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Menu, X, Bell, MoreVertical, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { TenantNav } from './TenantNav'
+import { TenantNav } from './tenant-nav'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { useSupabaseUser, useSignOut } from '#hooks/api/use-auth'
 import {

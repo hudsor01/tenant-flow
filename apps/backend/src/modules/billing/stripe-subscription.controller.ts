@@ -13,6 +13,14 @@ import {
 	UnauthorizedException,
 	ParseUUIDPipe
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import type { Response } from 'express'
 import { StripeService } from './stripe.service'
@@ -20,7 +28,7 @@ import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
 import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { user_id } from '../../shared/decorators/user.decorator'
+
 import { STRIPE_API_THROTTLE, TenantAuthenticatedRequest } from './stripe.controller.shared'
 import { z } from 'zod'
 import type Stripe from 'stripe'
@@ -44,6 +52,8 @@ const UpdateSubscriptionRequestSchema = z.object({
 /**
  * Stripe subscription controller
  */
+@ApiTags('Stripe')
+@ApiBearerAuth('supabase-auth')
 @Controller('stripe')
 export class StripeSubscriptionController {
 	constructor(
@@ -58,6 +68,11 @@ export class StripeSubscriptionController {
 	 * Create a Subscription for recurring payments
 	 * Note: Subscription data is automatically synced to stripe schema by Stripe Sync Engine
 	 */
+	@ApiOperation({ summary: 'Create subscription', description: 'Create a Stripe subscription for recurring payments' })
+	@ApiBody({ schema: { type: 'object', properties: { customer: { type: 'string', format: 'uuid' }, items: { type: 'array', items: { type: 'object', properties: { price: { type: 'string' } } } } }, required: ['customer', 'items'] } })
+	@ApiResponse({ status: 201, description: 'Subscription created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('subscriptions')
 	async createSubscription(
 		@Req() req: TenantAuthenticatedRequest,
@@ -127,6 +142,13 @@ export class StripeSubscriptionController {
 	 * Update a Subscription
 	 * Note: Changes are automatically synced to stripe schema by Stripe Sync Engine via webhook
 	 */
+	@ApiOperation({ summary: 'Update subscription', description: 'Update an existing Stripe subscription' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Subscription ID' })
+	@ApiBody({ schema: { type: 'object', properties: { items: { type: 'array', items: { type: 'object', properties: { price: { type: 'string' } } } }, proration_behavior: { type: 'string', enum: ['create_prorations', 'none', 'always_invoice'] } } } })
+	@ApiResponse({ status: 200, description: 'Subscription updated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Patch('subscriptions/:id')
 	async updateSubscription(
 		@Param('id', ParseUUIDPipe) subscriptionId: string,
@@ -206,12 +228,14 @@ export class StripeSubscriptionController {
 	 * CRITICAL: Never cache this endpoint - always verify against Stripe to prevent access after cancellation
 	 * Returns null status if subscription not found (user gets denied access)
 	 */
+	@ApiOperation({ summary: 'Get subscription status', description: 'Get real-time subscription status for the authenticated user from Stripe' })
+	@ApiResponse({ status: 200, description: 'Subscription status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('subscription-status')
 	@Throttle({ default: STRIPE_API_THROTTLE })
-	async getSubscriptionStatus(
-		@user_id() userId: string,
-		@Req() req: TenantAuthenticatedRequest
-	) {
+	async getSubscriptionStatus(@Req() req: TenantAuthenticatedRequest) {
+		const userId = req.user.id
+
 		// Extract user token for RLS-enforced database queries
 		const userToken = this.supabase.getTokenFromRequest(req)
 		if (!userToken) {

@@ -205,6 +205,57 @@ export type UserProfileUpdate = z.infer<typeof userProfileUpdateSchema>
 export type UserPreferences = z.infer<typeof userPreferencesSchema>
 export type UserPreferencesUpdate = z.infer<typeof userPreferencesUpdateSchema>
 
+// Tour progress schema (for onboarding tours)
+export const tourStatusSchema = z.enum([
+	'not_started',
+	'in_progress',
+	'completed',
+	'skipped'
+])
+
+export const updateTourProgressSchema = z.object({
+	status: tourStatusSchema.optional(),
+	current_step: z.number().int().min(0).optional()
+})
+
+// Phone update schema
+export const updatePhoneSchema = z.object({
+	phone: z
+		.string()
+		.regex(
+			/^[\d+()-\s]+$/,
+			'Phone number can only contain digits, +, (), -, and spaces'
+		)
+		.min(10, 'Phone number must be at least 10 characters')
+		.max(20, 'Phone number cannot exceed 20 characters')
+		.nullable()
+})
+
+// Emergency contact schema
+export const updateEmergencyContactSchema = z.object({
+	name: z
+		.string()
+		.min(1, 'Emergency contact name is required')
+		.max(100, 'Name cannot exceed 100 characters'),
+	phone: z
+		.string()
+		.regex(
+			/^[\d+()-\s]+$/,
+			'Phone number can only contain digits, +, (), -, and spaces'
+		)
+		.min(10, 'Phone number must be at least 10 characters')
+		.max(20, 'Phone number cannot exceed 20 characters'),
+	relationship: z
+		.string()
+		.min(1, 'Relationship is required')
+		.max(50, 'Relationship cannot exceed 50 characters')
+})
+
+export type TourStatus = z.infer<typeof tourStatusSchema>
+export type UpdateTourProgress = z.infer<typeof updateTourProgressSchema>
+export type UpdatePhone = z.infer<typeof updatePhoneSchema>
+export type UpdateEmergencyContact = z.infer<typeof updateEmergencyContactSchema>
+
 // Frontend-specific form schemas
 export const userFormSchema = z.object({
 	email: requiredString,
@@ -217,10 +268,26 @@ export const userFormSchema = z.object({
 	status: userStatusSchema.optional()
 })
 
-export const userRegistrationFormSchema = userRegistrationSchema.extend({
+// NOTE: userRegistrationSchema has .refine() so we can't use .extend() in Zod 4
+// Create a standalone form schema instead
+export const userRegistrationFormSchema = z.object({
 	email: z.string().email('Please enter a valid email address'),
 	full_name: z.string().min(2, 'Full name is required'),
-	phone: z.string().optional()
+	phone: z.string().optional(),
+	password: z
+		.string()
+		.min(
+			VALIDATION_LIMITS.PASSWORD_MIN_LENGTH,
+			`Password must be at least ${VALIDATION_LIMITS.PASSWORD_MIN_LENGTH} characters`
+		)
+		.regex(
+			/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+			'Password must contain uppercase, lowercase, and number'
+		),
+	confirmPassword: z.string()
+}).refine(data => data.password === data.confirmPassword, {
+	message: "Passwords don't match",
+	path: ['confirmPassword']
 })
 
 // Transform functions for form data

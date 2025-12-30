@@ -18,6 +18,15 @@ import {
 	ParseUUIDPipe,
 	UseGuards
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
@@ -36,6 +45,8 @@ interface CreateExpenseDto {
  * Financial Overview endpoints at /financials/*
  * Provides unified financial dashboard data.
  */
+@ApiTags('Financials')
+@ApiBearerAuth('supabase-auth')
 @Controller('financials')
 @UseGuards(JwtAuthGuard)
 export class FinancialOverviewController {
@@ -56,10 +67,9 @@ export class FinancialOverviewController {
 		return token
 	}
 
-	/**
-	 * GET /financials/overview
-	 * Returns aggregated financial overview for dashboard
-	 */
+	@ApiOperation({ summary: 'Get financial overview', description: 'Returns aggregated financial overview for dashboard including revenue, expenses, receivables' })
+	@ApiResponse({ status: 200, description: 'Financial overview retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('overview')
 	async getOverview(@Req() req: Request): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
@@ -152,10 +162,10 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/monthly-metrics
-	 * Returns monthly financial metrics for charts
-	 */
+	@ApiOperation({ summary: 'Get monthly metrics', description: 'Returns monthly financial metrics for charts' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for metrics (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Monthly metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('monthly-metrics')
 	async getMonthlyMetrics(
 		@Req() req: Request,
@@ -187,10 +197,10 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/expense-summary
-	 * Returns expense breakdown with category summary
-	 */
+	@ApiOperation({ summary: 'Get expense summary', description: 'Returns expense breakdown with category summary' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for summary (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Expense summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expense-summary')
 	async getExpenseSummary(
 		@Req() req: Request,
@@ -213,10 +223,13 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/expenses
-	 * Returns list of expenses with optional filters
-	 */
+	@ApiOperation({ summary: 'Get expenses', description: 'Returns list of expenses with optional filters' })
+	@ApiQuery({ name: 'property_id', required: false, description: 'Filter by property UUID' })
+	@ApiQuery({ name: 'start_date', required: false, description: 'Filter expenses from date (YYYY-MM-DD)' })
+	@ApiQuery({ name: 'end_date', required: false, description: 'Filter expenses to date (YYYY-MM-DD)' })
+	@ApiQuery({ name: 'category', required: false, description: 'Filter by expense category' })
+	@ApiResponse({ status: 200, description: 'Expenses retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expenses')
 	async getExpenses(
 		@Req() req: Request,
@@ -331,10 +344,11 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * POST /financials/expenses
-	 * Create a new expense record
-	 */
+	@ApiOperation({ summary: 'Create expense', description: 'Create a new expense record linked to a maintenance request' })
+	@ApiBody({ schema: { type: 'object', properties: { amount: { type: 'number' }, expense_date: { type: 'string', format: 'date' }, maintenance_request_id: { type: 'string', format: 'uuid' }, vendor_name: { type: 'string' } }, required: ['amount', 'expense_date', 'maintenance_request_id'] } })
+	@ApiResponse({ status: 201, description: 'Expense created successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('expenses')
 	async createExpense(
 		@Req() req: Request,
@@ -368,10 +382,11 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * DELETE /financials/expenses/:id
-	 * Delete an expense record
-	 */
+	@ApiOperation({ summary: 'Delete expense', description: 'Delete an expense record by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Expense UUID' })
+	@ApiResponse({ status: 200, description: 'Expense deleted successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Expense not found' })
 	@Delete('expenses/:id')
 	async deleteExpense(
 		@Req() req: Request,

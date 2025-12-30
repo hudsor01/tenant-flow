@@ -18,8 +18,20 @@ import {
 	HttpCode,
 	HttpStatus,
 	Post,
+	SetMetadata,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBody,
+	ApiHeader,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { timingSafeEqual } from 'crypto'
+
+// Bypass global JwtAuthGuard - N8N webhooks use secret-based auth
+const Public = () => SetMetadata('isPublic', true)
 import { AppLogger } from '../../logger/app-logger.service'
 import { LeasePdfGeneratorService } from './lease-pdf-generator.service'
 import { LeasePdfMapperService } from './lease-pdf-mapper.service'
@@ -40,7 +52,9 @@ interface GenerateLeasePdfResponse {
 	message: string
 }
 
+@ApiTags('N8N Webhooks')
 @Controller('webhooks/n8n/pdf')
+@Public()
 export class N8nPdfWebhookController {
 	private readonly webhookSecret: string | undefined
 
@@ -56,19 +70,65 @@ export class N8nPdfWebhookController {
 	}
 
 	private validateWebhookSecret(secret: string | undefined): void {
-		// Skip validation if no secret is configured (development mode)
+		// FAIL CLOSED - reject if secret not configured (security requirement)
 		if (!this.webhookSecret) {
-			this.logger.warn(
-				'N8N_WEBHOOK_SECRET not configured - webhook authentication disabled'
+			this.logger.error(
+				'N8N_WEBHOOK_SECRET not configured - rejecting webhook request'
 			)
-			return
+			throw new UnauthorizedException('Webhook authentication not configured')
 		}
 
-		if (secret !== this.webhookSecret) {
+		if (!secret) {
+			throw new UnauthorizedException('Missing x-n8n-webhook-secret header')
+		}
+
+		// Timing-safe comparison to prevent timing attacks
+		const receivedBuffer = Buffer.from(secret)
+		const expectedBuffer = Buffer.from(this.webhookSecret)
+		const isValid =
+			receivedBuffer.length === expectedBuffer.length &&
+			timingSafeEqual(receivedBuffer, expectedBuffer)
+
+		if (!isValid) {
 			throw new UnauthorizedException('Invalid webhook secret')
 		}
 	}
 
+	@ApiOperation({
+		summary: 'Generate lease PDF',
+		description:
+			'N8N webhook to trigger lease PDF generation. Generates PDF, uploads to storage, and broadcasts SSE event to owner. Authenticated via x-n8n-webhook-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-n8n-webhook-secret',
+		required: true,
+		description: 'N8N shared secret for authentication'
+	})
+	@ApiBody({
+		description: 'Lease PDF generation request',
+		schema: {
+			type: 'object',
+			required: ['leaseId', 'token'],
+			properties: {
+				leaseId: { type: 'string', format: 'uuid', description: 'UUID of the lease' },
+				token: { type: 'string', description: 'JWT token for user authentication' }
+			}
+		}
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'PDF generated successfully',
+		schema: {
+			type: 'object',
+			properties: {
+				success: { type: 'boolean' },
+				pdfUrl: { type: 'string', format: 'uri' },
+				message: { type: 'string' }
+			}
+		}
+	})
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
+	@ApiResponse({ status: 500, description: 'PDF generation failed' })
 	@Post('generate-lease')
 	@HttpCode(HttpStatus.OK)
 	async handleGenerateLeasePdf(

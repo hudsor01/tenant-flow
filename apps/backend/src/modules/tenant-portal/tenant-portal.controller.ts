@@ -1,6 +1,17 @@
-import { Controller, Get, InternalServerErrorException } from '@nestjs/common'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { User } from '../../shared/decorators/user.decorator'
+import {
+	Controller,
+	Get,
+	InternalServerErrorException,
+	Request,
+	UnauthorizedException
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
@@ -72,6 +83,8 @@ interface MaintenanceSummary {
  * - Application Layer: JWT validation via decorators
  * - Database Layer: RLS policies enforce auth.uid() = tenant_id
  */
+@ApiTags('Tenant Portal')
+@ApiBearerAuth('supabase-auth')
 @Controller('tenant-portal')
 export class TenantPortalController {
 	constructor(
@@ -85,8 +98,17 @@ export class TenantPortalController {
 	 * This is the orchestration endpoint that aggregates data from multiple domains.
 	 * Individual domain endpoints are available at /tenants/* routes.
 	 */
+	@ApiOperation({ summary: 'Get tenant dashboard', description: 'Retrieve aggregated dashboard data including lease, payments, and maintenance summaries' })
+	@ApiResponse({ status: 200, description: 'Dashboard data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 500, description: 'Failed to fetch dashboard data' })
 	@Get('dashboard')
-	async getDashboard(@JwtToken() token: string, @User() user: AuthUser) {
+	async getDashboard(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user = req.user
 		const tenant = await this.resolveTenant(user)
 
 		const [lease, maintenanceSummary, payments, userData] = await Promise.all([
