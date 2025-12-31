@@ -262,7 +262,7 @@ describe('AppShell', () => {
 			const { container } = render(<AppShell>Content</AppShell>)
 
 			// Find the link with Bell icon
-			const notificationsLink = container.querySelector('a[href="/dashboard/settings?tab=notifications"]')
+			const notificationsLink = container.querySelector('a[href="/settings?tab=notifications"]')
 			expect(notificationsLink).toBeInTheDocument()
 		})
 	})

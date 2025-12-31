@@ -19,8 +19,8 @@ import {
 	useCreateUnitMutation,
 	useUpdateUnitMutation
 } from '#hooks/api/mutations/unit-mutations'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
+import { unitQueries } from '#hooks/api/use-unit'
 import type { Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -28,7 +28,6 @@ import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
-import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import {
 	isConflictError,
@@ -362,18 +361,10 @@ export function UnitForm({
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value={UNIT_STATUS.AVAILABLE}>
-										{UNIT_STATUS_LABELS.AVAILABLE}
-									</SelectItem>
-									<SelectItem value={UNIT_STATUS.OCCUPIED}>
-										{UNIT_STATUS_LABELS.OCCUPIED}
-									</SelectItem>
-									<SelectItem value={UNIT_STATUS.MAINTENANCE}>
-										{UNIT_STATUS_LABELS.MAINTENANCE}
-									</SelectItem>
-									<SelectItem value={UNIT_STATUS.RESERVED}>
-										{UNIT_STATUS_LABELS.RESERVED}
-									</SelectItem>
+									<SelectItem value="available">Vacant</SelectItem>
+									<SelectItem value="occupied">Occupied</SelectItem>
+									<SelectItem value="maintenance">Maintenance</SelectItem>
+									<SelectItem value="reserved">Reserved</SelectItem>
 								</SelectContent>
 							</Select>
 						</Field>

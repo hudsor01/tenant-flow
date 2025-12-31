@@ -59,7 +59,7 @@ function getPayoutStatusBadge(status: string) {
 					In Transit
 				</span>
 			)
-		case 'canceled':
+		case 'cancelled':
 		case 'failed':
 			return (
 				<span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
@@ -133,7 +133,7 @@ export default function PayoutsPage() {
 						{ label: 'Paid', value: 'paid' },
 						{ label: 'Pending', value: 'pending' },
 						{ label: 'In Transit', value: 'in_transit' },
-						{ label: 'Canceled', value: 'canceled' },
+						{ label: 'Canceled', value: 'cancelled' },
 						{ label: 'Failed', value: 'failed' }
 					]
 				},

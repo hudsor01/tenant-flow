@@ -77,7 +77,7 @@ export function generateTimeline(request: {
 	created_at: string | null
 	scheduled_date: string | null
 	completed_at: string | null
-	status: MaintenanceStatus
+	status: string
 }): TimelineEvent[] {
 	const events: TimelineEvent[] = []
 

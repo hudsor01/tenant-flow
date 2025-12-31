@@ -275,7 +275,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 					{/* Right side - notifications, user */}
 					<div className="flex items-center gap-1">
 						<Link
-							href="/dashboard/settings?tab=notifications"
+							href="/settings?tab=notifications"
 							className="p-2 rounded-md hover:bg-muted transition-colors"
 						>
 							<Bell className="w-5 h-5 text-muted-foreground" />

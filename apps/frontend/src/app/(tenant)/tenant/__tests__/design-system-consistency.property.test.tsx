@@ -46,10 +46,7 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantLeaseDocuments: vi.fn(() => ({
 		data: { documents: [] },
 		isLoading: false
-	}))
-}))
-
-vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
+	})),
 	tenantPortalQueries: {
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],

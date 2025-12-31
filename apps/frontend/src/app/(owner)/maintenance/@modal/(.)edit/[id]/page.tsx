@@ -4,7 +4,7 @@ import { use } from 'react'
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 import { RouteModal } from '#components/ui/route-modal'
 import { Skeleton } from '#components/ui/skeleton'
-import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { maintenanceQueries } from '#hooks/api/use-maintenance'
 import { useQuery } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 
