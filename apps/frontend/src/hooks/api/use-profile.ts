@@ -1,32 +1,127 @@
 /**
- * Profile Hooks
+ * Profile Hooks & Query Options
+ * TanStack Query hooks for user profile management with colocated query options
  *
- * TanStack Query hooks for user profile management.
  * Supports profile viewing, editing, avatar upload, and role-specific fields.
+ *
+ * React 19 + TanStack Query v5 patterns
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient
+} from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import {
-	profileQueries,
-	profileKeys,
-	type UserProfile,
-	type UpdateProfileInput,
-	type UpdatePhoneInput,
-	type UpdateEmergencyContactInput,
-	type AvatarUploadResponse
-} from './queries/profile-queries'
-
-// Note: Import profile types directly from './queries/profile-queries'
-// No re-exports per CLAUDE.md rules
 
 // ============================================================================
-// Query Hooks
+// TYPES
+// ============================================================================
+
+/**
+ * User profile entity
+ */
+export interface UserProfile {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	full_name: string
+	phone: string | null
+	avatar_url: string | null
+	user_type: 'owner' | 'tenant' | 'manager' | 'admin'
+	status: string
+	created_at: string
+	updated_at: string | null
+	tenant_profile?: TenantProfile
+	owner_profile?: OwnerProfile
+}
+
+export interface TenantProfile {
+	date_of_birth: string | null
+	emergency_contact_name: string | null
+	emergency_contact_phone: string | null
+	emergency_contact_relationship: string | null
+	identity_verified: boolean | null
+	current_lease?: {
+		property_name: string
+		unit_number: string
+		move_in_date: string
+	} | null
+}
+
+export interface OwnerProfile {
+	stripe_connected: boolean
+	properties_count: number
+	units_count: number
+}
+
+export interface UpdateProfileInput {
+	first_name: string
+	last_name: string
+	email: string
+	phone?: string | null
+}
+
+export interface UpdatePhoneInput {
+	phone: string | null
+}
+
+export interface UpdateEmergencyContactInput {
+	name: string
+	phone: string
+	relationship: string
+}
+
+export interface AvatarUploadResponse {
+	avatar_url: string
+}
+
+// ============================================================================
+// QUERY KEYS
+// ============================================================================
+
+/**
+ * Profile query keys for cache management
+ */
+export const profileKeys = {
+	all: ['profile'] as const,
+	detail: () => [...profileKeys.all, 'detail'] as const
+}
+
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Profile query factory
+ */
+export const profileQueries = {
+	/**
+	 * Base key for all profile queries
+	 */
+	all: () => ['profile'] as const,
+
+	/**
+	 * Fetch current user's profile with role-specific data
+	 */
+	detail: () =>
+		queryOptions({
+			queryKey: profileKeys.detail(),
+			queryFn: () => apiRequest<UserProfile>('/api/v1/users/profile'),
+			...QUERY_CACHE_TIMES.DETAIL
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
 // ============================================================================
 
 /**
@@ -42,7 +137,7 @@ export function useProfile() {
 }
 
 // ============================================================================
-// Mutation Hooks
+// MUTATION HOOKS
 // ============================================================================
 
 /**
@@ -406,7 +501,7 @@ export function useRemoveProfileEmergencyContact() {
 }
 
 // ============================================================================
-// Prefetch Hooks
+// PREFETCH HOOKS
 // ============================================================================
 
 /**

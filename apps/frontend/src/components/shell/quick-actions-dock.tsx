@@ -20,7 +20,7 @@ const defaultActions: QuickAction[] = [
 	{ id: 'new-lease', label: 'New Lease', icon: FileText, href: '/leases/new' },
 	{ id: 'maintenance', label: 'Maintenance', icon: Wrench, href: '/maintenance/new' },
 	{ id: 'record-payment', label: 'Record Payment', icon: DollarSign, href: '/rent-collection' },
-	{ id: 'notifications', label: 'Notifications', icon: Bell, href: '/dashboard/settings?tab=notifications' }
+	{ id: 'notifications', label: 'Notifications', icon: Bell, href: '/settings?tab=notifications' }
 ]
 
 export function QuickActionsDock({
