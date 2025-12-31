@@ -6,8 +6,7 @@ import {
 	Param,
 	Post,
 	Req,
-	Res,
-	UnauthorizedException
+	Res
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -18,10 +17,14 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
-import type { Response, Request } from 'express'
+import type { Response } from 'express'
 import { PDFGeneratorService } from './pdf-generator.service'
-import { SupabaseService } from '../../database/supabase.service'
 import { DocumentTemplateStorageService } from '../documents/document-template-storage.service'
+import {
+	DocumentTemplatePayloadDto,
+	TemplateDefinitionDto
+} from './dto/document-template.dto'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 const TEMPLATE_MAP: Record<string, { name: string; title: string }> = {
 	'property-inspection': {
@@ -42,14 +45,11 @@ const TEMPLATE_MAP: Record<string, { name: string; title: string }> = {
 	}
 }
 
-interface DocumentTemplatePayload {
-	templateTitle?: string
-	state?: string
-	branding?: Record<string, unknown>
-	customFields?: Array<{ label: string; value: string }>
-	clauses?: Array<{ text: string }>
-	data?: Record<string, unknown>
-}
+/** Default color used when branding color is invalid or missing */
+const DEFAULT_BRAND_COLOR = '#1f3b66'
+
+/** Regex to validate safe CSS color values */
+const SAFE_COLOR_PATTERN = /^(oklch\([0-9.\s/]+\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+)$/
 
 @ApiTags('Document Templates')
 @ApiBearerAuth('supabase-auth')
@@ -57,7 +57,6 @@ interface DocumentTemplatePayload {
 export class DocumentTemplateController {
 	constructor(
 		private readonly pdfGenerator: PDFGeneratorService,
-		private readonly supabase: SupabaseService,
 		private readonly storage: DocumentTemplateStorageService
 	) {}
 
@@ -70,15 +69,13 @@ export class DocumentTemplateController {
 		required: true,
 		enum: Object.keys(TEMPLATE_MAP)
 	})
-	@ApiBody({
-		schema: { type: 'object', additionalProperties: true }
-	})
+	@ApiBody({ type: DocumentTemplatePayloadDto })
 	@ApiProduces('application/pdf')
 	@ApiResponse({ status: 200, description: 'Template preview PDF generated' })
 	@Post(':template/preview')
 	async previewTemplate(
 		@Param('template') template: string,
-		@Body() body: DocumentTemplatePayload,
+		@Body() body: DocumentTemplatePayloadDto,
 		@Res() res: Response
 	): Promise<void> {
 		const templateConfig = TEMPLATE_MAP[template]
@@ -110,24 +107,17 @@ export class DocumentTemplateController {
 		required: true,
 		enum: Object.keys(TEMPLATE_MAP)
 	})
-	@ApiBody({
-		schema: { type: 'object', additionalProperties: true }
-	})
+	@ApiBody({ type: DocumentTemplatePayloadDto })
 	@ApiResponse({ status: 200, description: 'Template PDF uploaded' })
 	@Post(':template/export')
 	async exportTemplate(
-		@Req() req: Request,
+		@Req() req: AuthenticatedRequest,
 		@Param('template') template: string,
-		@Body() body: DocumentTemplatePayload
+		@Body() body: DocumentTemplatePayloadDto
 	) {
 		const templateConfig = TEMPLATE_MAP[template]
 		if (!templateConfig) {
 			throw new BadRequestException('Unsupported template type')
-		}
-
-		const user = await this.supabase.getUser(req)
-		if (!user) {
-			throw new UnauthorizedException('Authorization token required')
 		}
 
 		const payload = this.buildTemplatePayload(templateConfig.title, body)
@@ -137,7 +127,7 @@ export class DocumentTemplateController {
 		)
 
 		const uploadResult = await this.storage.uploadTemplatePdf(
-			user.id,
+			req.user.id,
 			templateConfig.name,
 			pdfBuffer
 		)
@@ -157,7 +147,7 @@ export class DocumentTemplateController {
 	@ApiResponse({ status: 200, description: 'Template definition fetched' })
 	@Get(':template/definition')
 	async getTemplateDefinition(
-		@Req() req: Request,
+		@Req() req: AuthenticatedRequest,
 		@Param('template') template: string
 	) {
 		const templateConfig = TEMPLATE_MAP[template]
@@ -165,13 +155,8 @@ export class DocumentTemplateController {
 			throw new BadRequestException('Unsupported template type')
 		}
 
-		const user = await this.supabase.getUser(req)
-		if (!user) {
-			throw new UnauthorizedException('Authorization token required')
-		}
-
 		const definition = await this.storage.getTemplateDefinition(
-			user.id,
+			req.user.id,
 			templateConfig.name
 		)
 
@@ -185,27 +170,22 @@ export class DocumentTemplateController {
 		description: 'Persist form builder fields for a template.'
 	})
 	@ApiParam({ name: 'template', required: true, enum: Object.keys(TEMPLATE_MAP) })
-	@ApiBody({ schema: { type: 'object', properties: { fields: { type: 'array' } } } })
+	@ApiBody({ type: TemplateDefinitionDto })
 	@ApiResponse({ status: 200, description: 'Template definition saved' })
 	@Post(':template/definition')
 	async saveTemplateDefinition(
-		@Req() req: Request,
+		@Req() req: AuthenticatedRequest,
 		@Param('template') template: string,
-		@Body() body: { fields?: unknown[] }
+		@Body() body: TemplateDefinitionDto
 	) {
 		const templateConfig = TEMPLATE_MAP[template]
 		if (!templateConfig) {
 			throw new BadRequestException('Unsupported template type')
 		}
 
-		const user = await this.supabase.getUser(req)
-		if (!user) {
-			throw new UnauthorizedException('Authorization token required')
-		}
-
-		const fields = Array.isArray(body?.fields) ? body.fields : []
+		const fields = body.fields ?? []
 		const uploadResult = await this.storage.uploadTemplateDefinition(
-			user.id,
+			req.user.id,
 			templateConfig.name,
 			{ fields }
 		)
@@ -216,15 +196,32 @@ export class DocumentTemplateController {
 		}
 	}
 
+	/**
+	 * Sanitize branding data to prevent CSS injection
+	 */
+	private sanitizeBranding(
+		branding?: DocumentTemplatePayloadDto['branding']
+	): Record<string, unknown> {
+		const rawColor = branding?.primaryColor
+		const isSafeColor =
+			typeof rawColor === 'string' && SAFE_COLOR_PATTERN.test(rawColor)
+
+		return {
+			companyName: String(branding?.companyName ?? '').slice(0, 200),
+			logoUrl: branding?.logoUrl ?? null,
+			primaryColor: isSafeColor ? rawColor : DEFAULT_BRAND_COLOR
+		}
+	}
+
 	private buildTemplatePayload(
 		fallbackTitle: string,
-		body: DocumentTemplatePayload
+		body: DocumentTemplatePayloadDto
 	): Record<string, unknown> {
 		return {
 			templateTitle: body.templateTitle || fallbackTitle,
 			generatedAt: new Date().toISOString().split('T')[0],
 			state: body.state || 'CA',
-			branding: body.branding || {},
+			branding: this.sanitizeBranding(body.branding),
 			customFields: body.customFields || [],
 			clauses: body.clauses || [],
 			...(body.data || {})

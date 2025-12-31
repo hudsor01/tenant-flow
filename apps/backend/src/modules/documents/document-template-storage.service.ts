@@ -10,6 +10,14 @@ import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { CompressionService } from './compression.service'
 
+/** Cache control durations in seconds */
+const CACHE_CONTROL = {
+	/** 1 hour cache for PDF files */
+	PDF: '3600',
+	/** 1 minute cache for JSON definitions (allows quick updates) */
+	JSON: '60'
+} as const
+
 export interface UploadDocumentTemplateResult {
 	publicUrl: string
 	path: string
@@ -54,7 +62,7 @@ export class DocumentTemplateStorageService {
 				.from(this.BUCKET_NAME)
 				.upload(filePath, uploadBuffer, {
 					contentType: 'application/pdf',
-					cacheControl: '3600',
+					cacheControl: CACHE_CONTROL.PDF,
 					upsert: true
 				})
 
@@ -98,7 +106,7 @@ export class DocumentTemplateStorageService {
 				.from(this.BUCKET_NAME)
 				.upload(filePath, payload, {
 					contentType: 'application/json',
-					cacheControl: '60',
+					cacheControl: CACHE_CONTROL.JSON,
 					upsert: true
 				})
 

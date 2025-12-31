@@ -4,7 +4,14 @@ import * as React from 'react'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
+import { toast } from 'sonner'
 import type { BrandingInfo } from './template-types'
+
+/** Maximum logo file size (500KB) */
+const MAX_LOGO_SIZE = 500 * 1024
+
+/** Allowed logo file types */
+const ALLOWED_LOGO_TYPES = ['image/png', 'image/jpeg', 'image/svg+xml']
 
 interface BrandingEditorProps {
 	branding: BrandingInfo
@@ -16,6 +23,18 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 		(event: React.ChangeEvent<HTMLInputElement>) => {
 			const file = event.target.files?.[0]
 			if (!file) return
+
+			if (file.size > MAX_LOGO_SIZE) {
+				toast.error('Logo must be under 500KB')
+				event.target.value = ''
+				return
+			}
+
+			if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+				toast.error('Logo must be PNG, JPEG, or SVG')
+				event.target.value = ''
+				return
+			}
 
 			const reader = new FileReader()
 			reader.onload = () => {
@@ -71,7 +90,7 @@ export function BrandingEditor({ branding, onChange }: BrandingEditorProps) {
 					<Input
 						id="logo-upload"
 						type="file"
-						accept="image/*"
+						accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml"
 						onChange={handleLogoUpload}
 					/>
 					{branding.logoUrl ? (
