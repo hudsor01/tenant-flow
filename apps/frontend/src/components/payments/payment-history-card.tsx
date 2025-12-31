@@ -19,7 +19,7 @@ function getStatusBadgeClass(status: string) {
 		case 'pending':
 			return 'bg-warning/10 text-warning-foreground border-warning/20'
 		case 'failed':
-		case 'canceled':
+		case 'cancelled':
 			return 'bg-destructive/10 text-destructive-foreground border-destructive/20'
 		default:
 			return 'bg-muted text-muted-foreground border-border'

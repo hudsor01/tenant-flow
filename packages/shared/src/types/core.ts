@@ -30,21 +30,77 @@ import type { ExpenseSummaryResponse as ExpenseSummaryResponseType } from './ana
 export type ActivityItem = ActivityItemType
 
 // ============================================================================
-// DB ENUM TYPE EXPORTS - Direct references to supabase.ts
+// DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
+// These are manually defined to match database CHECK constraints.
+// When adding/removing values, update both here AND the database constraint.
 // ============================================================================
 
-export type LeaseStatus = Database['public']['Enums']['lease_status']
-export type UnitStatus = Database['public']['Enums']['unit_status']
-export type PaymentStatus = Database['public']['Enums']['payment_status']
+export type LeaseStatus =
+	| 'draft'
+	| 'pending_signature'
+	| 'active'
+	| 'ended'
+	| 'terminated'
+
+export type UnitStatus = 'available' | 'occupied' | 'maintenance' | 'reserved'
+
+export type PaymentStatus =
+	| 'pending'
+	| 'processing'
+	| 'succeeded'
+	| 'failed'
+	| 'cancelled'
+	| 'requires_action'
+
 export type MaintenanceStatus =
-	Database['public']['Enums']['maintenance_status']
-export type MaintenancePriority =
-	Database['public']['Enums']['maintenance_priority']
-export type PropertyStatus = Database['public']['Enums']['property_status']
-export type NotificationType = Database['public']['Enums']['notification_type']
-export type InvitationType = Database['public']['Enums']['invitation_type']
-export type StripeSubscriptionStatus =
-	Database['public']['Enums']['stripe_subscription_status']
+	| 'open'
+	| 'in_progress'
+	| 'completed'
+	| 'cancelled'
+	| 'on_hold'
+
+export type MaintenancePriority = 'low' | 'normal' | 'medium' | 'high' | 'urgent'
+
+export type PropertyStatus = 'active' | 'inactive' | 'sold'
+
+export type NotificationType = 'maintenance' | 'lease' | 'payment' | 'system'
+
+export type InvitationType = 'platform_access' | 'lease_signing'
+
+export type StripeSubscriptionStatus = 'none' | 'pending' | 'active' | 'failed'
+
+export type SignatureMethod = 'in_app' | 'docuseal'
+
+export type SecurityEventSeverity =
+	| 'debug'
+	| 'info'
+	| 'warning'
+	| 'error'
+	| 'critical'
+
+export type SecurityEventType =
+	| 'auth.login'
+	| 'auth.logout'
+	| 'auth.failed_login'
+	| 'auth.password_change'
+	| 'auth.password_reset'
+	| 'user.created'
+	| 'user.updated'
+	| 'user.deleted'
+	| 'property.created'
+	| 'property.updated'
+	| 'property.deleted'
+	| 'lease.created'
+	| 'lease.updated'
+	| 'lease.deleted'
+	| 'lease.signed'
+	| 'payment.created'
+	| 'payment.failed'
+	| 'subscription.created'
+	| 'subscription.canceled'
+	| 'admin.action'
+	| 'system.error'
+	| 'system.warning'
 
 // Import app-only types that are NOT DB enums
 import type {

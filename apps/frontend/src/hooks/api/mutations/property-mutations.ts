@@ -15,8 +15,8 @@ import type {
 	PropertyUpdate
 } from '@repo/shared/validation/properties'
 import type { Property } from '@repo/shared/types/core'
-import { propertyQueries } from '../queries/property-queries'
-import { unitQueries } from '../queries/unit-queries'
+import { propertyQueries } from '../use-properties'
+import { unitQueries } from '../use-unit'
 import { createCrudMutations } from '../crud-mutations'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 

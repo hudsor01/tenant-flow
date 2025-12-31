@@ -18,10 +18,10 @@ import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation
 } from '#hooks/api/mutations/lease-mutations'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
-import { tenantQueries } from '#hooks/api/queries/tenant-queries'
-import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
+import { unitQueries } from '#hooks/api/use-unit'
+import { tenantQueries } from '#hooks/api/use-tenant'
+import { leaseQueries } from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	LeaseStatus,
@@ -30,7 +30,6 @@ import type {
 } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { LEASE_STATUS, LEASE_STATUS_LABELS } from '#lib/constants/status-values'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
@@ -94,7 +93,7 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 			security_deposit: lease?.security_deposit ?? 0,
 			rent_currency: lease?.rent_currency ?? 'USD',
 			payment_day: lease?.payment_day ?? 1,
-			lease_status: (lease?.lease_status ?? LEASE_STATUS.DRAFT) as LeaseStatus
+			lease_status: (lease?.lease_status ?? 'draft') as LeaseStatus
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -391,18 +390,10 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={LEASE_STATUS.DRAFT}>
-											{LEASE_STATUS_LABELS.DRAFT}
-										</SelectItem>
-										<SelectItem value={LEASE_STATUS.ACTIVE}>
-											{LEASE_STATUS_LABELS.ACTIVE}
-										</SelectItem>
-										<SelectItem value={LEASE_STATUS.EXPIRED}>
-											{LEASE_STATUS_LABELS.EXPIRED}
-										</SelectItem>
-										<SelectItem value={LEASE_STATUS.TERMINATED}>
-											{LEASE_STATUS_LABELS.TERMINATED}
-										</SelectItem>
+										<SelectItem value="draft">Draft</SelectItem>
+										<SelectItem value="active">Active</SelectItem>
+										<SelectItem value="ended">Ended</SelectItem>
+										<SelectItem value="terminated">Terminated</SelectItem>
 									</SelectContent>
 								</Select>
 								{field.state.meta.errors.length > 0 && (

@@ -35,10 +35,7 @@ const mockUseQuery = vi.fn()
 
 vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantPortalDashboard: () => mockUseTenantPortalDashboard(),
-	useTenantLeaseDocuments: () => mockUseTenantLeaseDocuments()
-}))
-
-vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
+	useTenantLeaseDocuments: () => mockUseTenantLeaseDocuments(),
 	tenantPortalQueries: {
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],

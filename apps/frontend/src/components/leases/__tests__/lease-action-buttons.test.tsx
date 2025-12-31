@@ -25,7 +25,6 @@ import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { LeaseActionButtons } from '../lease-action-buttons'
 import type { Lease } from '@repo/shared/types/core'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 import { toast } from 'sonner'
 
 vi.mock('sonner', () => ({
@@ -71,6 +70,16 @@ vi.mock('#hooks/api/use-lease', () => ({
 			options?.onSuccess?.()
 		)
 		return mockDeleteLease
+	}
+}))
+
+// Mock use-tenant to provide tenantQueries (needed by lease-mutations)
+vi.mock('#hooks/api/use-tenant', () => ({
+	tenantQueries: {
+		all: () => ['tenants'],
+		lists: () => ['tenants', 'list'],
+		list: () => ({ queryKey: ['tenants', 'list'] }),
+		detail: (id: string) => ({ queryKey: ['tenants', 'detail', id] })
 	}
 }))
 
@@ -159,7 +168,7 @@ describe('LeaseActionButtons', () => {
 		test('shows Send for Signature for draft leases', async () => {
 			render(
 				<LeaseActionButtons
-					lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })}
+					lease={createMockLease({ lease_status: 'draft' })}
 				/>
 			)
 
@@ -176,7 +185,7 @@ describe('LeaseActionButtons', () => {
 			render(
 				<LeaseActionButtons
 					lease={createMockLease({
-						lease_status: LEASE_STATUS.PENDING_SIGNATURE,
+						lease_status: 'pending_signature',
 						owner_signed_at: null
 					})}
 				/>
@@ -201,7 +210,7 @@ describe('LeaseActionButtons', () => {
 			render(
 				<LeaseActionButtons
 					lease={createMockLease({
-						lease_status: LEASE_STATUS.PENDING_SIGNATURE,
+						lease_status: 'pending_signature',
 						owner_signed_at: '2024-06-01T00:00:00Z'
 					})}
 				/>
@@ -253,7 +262,7 @@ describe('LeaseActionButtons', () => {
 			const user = userEvent.setup()
 			render(
 				<LeaseActionButtons
-					lease={createMockLease({ lease_status: LEASE_STATUS.DRAFT })}
+					lease={createMockLease({ lease_status: 'draft' })}
 				/>
 			)
 
@@ -548,7 +557,7 @@ describe('LeaseActionButtons', () => {
 			render(
 				<LeaseActionButtons
 					lease={createMockLease({
-						lease_status: LEASE_STATUS.PENDING_SIGNATURE
+						lease_status: 'pending_signature'
 					})}
 				/>
 			)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { maintenanceQueries } from '#hooks/api/use-maintenance'
 import {
 	Card,
 	CardContent,
