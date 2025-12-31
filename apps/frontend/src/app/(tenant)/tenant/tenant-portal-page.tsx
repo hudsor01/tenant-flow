@@ -13,11 +13,10 @@ import {
 	useTenantPortalDashboard,
 	useTenantLeaseDocuments
 } from '#hooks/api/use-tenant-portal'
-import { tenantPortalQueries } from '#hooks/api/queries/tenant-portal-queries'
+import { tenantPortalQueries } from '#hooks/api/use-tenant-portal'
 import { useQuery } from '@tanstack/react-query'
 import { PenLine } from 'lucide-react'
 import Link from 'next/link'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 
 /**
  * Tenant Portal Dashboard
@@ -52,7 +51,7 @@ export default function TenantDashboardPage() {
 
 	// Check if lease needs tenant signature
 	const needsSignature =
-		activeLease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE &&
+		activeLease?.lease_status === 'pending_signature' &&
 		!activeLease?.tenant_signed_at
 
 	// Calculate rent status for display

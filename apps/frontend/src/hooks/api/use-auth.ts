@@ -1,34 +1,147 @@
 'use client'
 
 /**
- * Consolidated Auth Hooks
+ * Auth Hooks & Query Options
+ * TanStack Query hooks for authentication with colocated query options
  *
  * Combines functionality from:
- * - use-auth.ts (cache utils, sign out)
- * - use-current-user.ts (user with Stripe customer ID)
- * - use-supabase-auth.ts (Supabase auth operations)
+ * - Auth cache utilities
+ * - User with Stripe customer ID queries
+ * - Supabase auth operations
  *
- * Single source of truth for all authentication operations
+ * React 19 + TanStack Query v5 patterns
  */
+
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 import { createClient } from '#lib/supabase/client'
 import { apiRequest } from '#lib/api-request'
-
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
-import type { LoginCredentials, SignupFormData } from '@repo/shared/types/auth'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import type { LoginCredentials, SignupFormData, AuthSession } from '@repo/shared/types/auth'
 import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { authQueries, authKeys, type AuthUser } from './queries/auth-queries'
 
 // Create browser client for authentication
 const supabase = createClient()
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * User type with Stripe integration (from database)
+ */
+export interface AuthUser {
+	id: string
+	email: string
+	stripe_customer_id: string | null
+}
+
+// ============================================================================
+// QUERY KEYS
+// ============================================================================
+
+/**
+ * Query keys for auth operations
+ * Hierarchical pattern for selective cache invalidation
+ */
+export const authKeys = {
+	all: ['auth'] as const,
+	session: () => [...authKeys.all, 'session'] as const,
+	user: () => [...authKeys.all, 'user'] as const,
+	// User with Stripe data from database
+	me: ['user', 'me'] as const,
+	// Supabase auth-specific keys
+	supabase: {
+		all: ['supabase-auth'] as const,
+		user: () => ['supabase-auth', 'user'] as const,
+		session: () => ['supabase-auth', 'session'] as const
+	}
+}
+
+export const supabaseAuthKeys = authKeys.supabase
+
+// Legacy alias for backward compatibility
+export const authQueryKeys = authKeys
+
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Auth query factory
+ */
+export const authQueries = {
+	/**
+	 * Base key for all auth queries
+	 */
+	all: () => ['auth'] as const,
+
+	/**
+	 * Auth session query
+	 */
+	session: () =>
+		queryOptions({
+			queryKey: authKeys.session(),
+			queryFn: () => apiRequest<AuthSession>('/api/v1/auth/session'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			retry: false // Auth failures shouldn't retry
+		}),
+
+	/**
+	 * User with Stripe customer ID from database
+	 */
+	user: () =>
+		queryOptions({
+			queryKey: authKeys.me,
+			queryFn: () => apiRequest<AuthUser>('/api/v1/users/me'),
+			retry: 1,
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	/**
+	 * Supabase auth user (direct Supabase call - no NestJS)
+	 */
+	supabaseUser: () =>
+		queryOptions({
+			queryKey: authKeys.supabase.user(),
+			queryFn: async () => {
+				const supabase = createClient()
+				const {
+					data: { user },
+					error
+				} = await supabase.auth.getUser()
+				if (error) throw error
+				return user
+			},
+			retry: 1,
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	/**
+	 * Supabase auth session (direct Supabase call - no NestJS)
+	 */
+	supabaseSession: () =>
+		queryOptions({
+			queryKey: authKeys.supabase.session(),
+			queryFn: async () => {
+				const supabase = createClient()
+				const {
+					data: { session },
+					error
+				} = await supabase.auth.getSession()
+				if (error) throw error
+				return session
+			},
+			...QUERY_CACHE_TIMES.DETAIL
+		})
+}
 
 // ============================================================================
 // CACHE UTILITIES
@@ -143,12 +256,6 @@ export function useCurrentUser() {
  * - id: Auth user ID
  * - email: Auth user email
  * - stripe_customer_id: Stripe customer ID (null if none)
- *
- * @example
- * const { data: user } = useUser()
- * if (user?.stripe_customer_id) {
- *   // Show Customer Portal
- * }
  */
 export function useUser() {
 	return useQuery(authQueries.user())
@@ -160,16 +267,14 @@ export function useUser() {
  * Returns the authenticated user from Supabase auth.
  * Use this when you only need auth user data (id, email, metadata).
  * For user data with Stripe info, use useUser() instead.
- *
- * @example
- * const { data: user } = useSupabaseUser()
- * if (user?.id) {
- *   // User is authenticated
- * }
  */
 export function useSupabaseUser() {
 	return useQuery(authQueries.supabaseUser())
 }
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Sign out mutation with comprehensive cache clearing
@@ -397,11 +502,7 @@ export function usePrefetchUser() {
 	const queryClient = useQueryClient()
 
 	return () => {
-		queryClient.prefetchQuery({
-			queryKey: authKeys.me,
-			queryFn: () => apiRequest<AuthUser>('/api/v1/users/me'),
-			...QUERY_CACHE_TIMES.DETAIL
-		})
+		queryClient.prefetchQuery(authQueries.user())
 	}
 }
 
