@@ -27,7 +27,13 @@ export const reportsKeys = {
 	revenue: (months: number) =>
 		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
 	paymentAnalytics: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'analytics', 'payments', start_date, end_date] as const,
+		[
+			...reportsKeys.all,
+			'analytics',
+			'payments',
+			start_date,
+			end_date
+		] as const,
 	occupancyMetrics: () =>
 		[...reportsKeys.all, 'analytics', 'occupancy'] as const,
 	financial: (start_date?: string, end_date?: string) =>
@@ -47,13 +53,19 @@ export const reportsQueries = {
 	list: (offset: number, limit: number = 20) =>
 		queryOptions({
 			queryKey: reportsKeys.list(offset, limit),
-			queryFn: () => apiRequest<ListReportsResponse>(`/api/v1/reports?limit=${limit}&offset=${offset}`)
+			queryFn: () =>
+				apiRequest<ListReportsResponse>(
+					`/api/v1/reports?limit=${limit}&offset=${offset}`
+				)
 		}),
 
 	monthlyRevenue: (months: number = 12) =>
 		queryOptions({
 			queryKey: reportsKeys.revenue(months),
-			queryFn: () => apiRequest<RevenueData[]>(`/api/v1/reports/analytics/revenue/monthly?months=${months}`)
+			queryFn: () =>
+				apiRequest<RevenueData[]>(
+					`/api/v1/reports/analytics/revenue/monthly?months=${months}`
+				)
 		}),
 
 	paymentAnalytics: (start_date?: string, end_date?: string) =>
@@ -64,14 +76,17 @@ export const reportsQueries = {
 				if (start_date) params.append('start_date', start_date)
 				if (end_date) params.append('end_date', end_date)
 				const queryString = params.toString() ? `?${params.toString()}` : ''
-				return apiRequest<PaymentAnalytics>(`/api/v1/reports/analytics/payments${queryString}`)
+				return apiRequest<PaymentAnalytics>(
+					`/api/v1/reports/analytics/payments${queryString}`
+				)
 			}
 		}),
 
 	occupancyMetrics: () =>
 		queryOptions({
 			queryKey: reportsKeys.occupancyMetrics(),
-			queryFn: () => apiRequest<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
+			queryFn: () =>
+				apiRequest<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
 		}),
 
 	financial: (start_date?: string, end_date?: string) =>

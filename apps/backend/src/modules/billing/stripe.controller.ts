@@ -1,642 +1,760 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~568 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract subscription endpoints into: `./stripe-subscription.controller.ts`
-// 2. Extract payment method endpoints into: `./stripe-payment-methods.controller.ts`
-// 3. Extract webhook endpoints into: `./stripe-webhooks.controller.ts`
-// 4. Keep StripeController as base with common routes only
-// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
-
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Body,
-  Param,
-  Req,
-  Res,
-  HttpStatus,
-  BadRequestException,
-  NotFoundException,
-  UnauthorizedException,
-  ParseUUIDPipe
+	Body,
+	Controller,
+	Get,
+	Param,
+	Post,
+	Query,
+	Request,
+	BadRequestException,
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
-import type { Response } from 'express'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
-import { BillingService } from './billing.service'
-import { SecurityService } from '../../security/security.service'
-import { SupabaseService } from '../../database/supabase.service'
-import { user_id as UserId } from '../../shared/decorators/user.decorator'
-import { createThrottleDefaults } from '../../config/throttle.config'
-import { z } from 'zod'
+import { AppLogger } from '../../logger/app-logger.service'
+import { STRIPE_API_THROTTLE } from './stripe.controller.shared'
 import type Stripe from 'stripe'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { Database } from '@repo/shared/src/types/supabase.js'
-import { uuidSchema } from '@repo/shared/validation/common'
-
-// Extended request interface for tenant context
-interface TenantAuthenticatedRequest extends AuthenticatedRequest {
-  tenant?: Database['public']['Tables']['tenants']['Row']
-}
 
 /**
- * Rate limiting for Stripe API endpoints
- * Subscription status checks are cached client-side (5min), so limit server calls
+ * Stripe Controller
+ *
+ * Provides generic Stripe operations not covered by specialized controllers:
+ * - Account & balance info
+ * - Charges & refunds
+ * - Checkout sessions
+ * - Invoice operations
+ *
+ * For specialized operations, use:
+ * - /stripe/connect - Connected account management
+ * - /stripe/tenant - Tenant payment operations
+ * - /stripe/subscriptions - Subscription management
  */
-const STRIPE_API_THROTTLE = createThrottleDefaults({
-  envTtlKey: 'STRIPE_API_THROTTLE_TTL',
-  envLimitKey: 'STRIPE_API_THROTTLE_LIMIT',
-  defaultTtl: 60000, // 60 seconds
-  defaultLimit: 20 // 20 requests per minute (generous for cached frontend queries)
-})
-
-/**
- * Validation Schemas
- */
-const CreatePaymentIntentRequestSchema = z.object({
-  amount: z.number().positive(),
-  currency: z.string().min(3).max(3),
-  description: z.string().optional()
-})
-
-const CreateCustomerRequestSchema = z.object({
-  email: z.string().email(),
-  name: z.string().optional()
-})
-
-const CreateSubscriptionRequestSchema = z.object({
-  customer: uuidSchema,
-  items: z.array(z.object({ price: z.string() }))
-})
-
-const UpdateSubscriptionRequestSchema = z.object({
-  items: z.array(z.object({ price: z.string() })).optional(),
-  proration_behavior: z.enum(['create_prorations', 'none', 'always_invoice']).optional()
-})
-
-/**
- * Production-ready Stripe integration controller
- * Handles Stripe API interactions with proper validation and error handling
- */
+@ApiTags('Stripe')
+@ApiBearerAuth('supabase-auth')
 @Controller('stripe')
+@Throttle({ default: STRIPE_API_THROTTLE })
 export class StripeController {
-  constructor(
-    private readonly stripeService: StripeService,
-    private readonly stripeSharedService: StripeSharedService,
-    private readonly billingService: BillingService,
-    private readonly securityService: SecurityService,
-    private readonly supabase: SupabaseService
-  ) {}
+	constructor(
+		private readonly stripeService: StripeService,
+		private readonly stripeSharedService: StripeSharedService,
+		private readonly logger: AppLogger
+	) {}
 
-  /**
-   * Create a Payment Intent for one-time payments
-   */
-  /**
-   * Create a Payment Intent for one-time payments
-   */
-  @Post('payment-intents')
-  async createPaymentIntent(
-    @Req() req: TenantAuthenticatedRequest,
-    @Res() res: Response,
-    @Body() body: unknown
-  ) {
-    try {
-      const validatedBody = CreatePaymentIntentRequestSchema.parse(body)
-      const userId = req.user?.id
-      const tenantId = req.tenant?.id
+	// ============================================
+	// Account & Balance Operations
+	// ============================================
 
-      if (!userId || !tenantId) {
-        throw new UnauthorizedException('User and tenant required')
-      }
+	@ApiOperation({
+		summary: 'Get platform account info',
+		description: 'Retrieve Stripe account information for the platform'
+	})
+	@ApiResponse({ status: 200, description: 'Account info retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 500, description: 'Failed to retrieve account info' })
+	@Get('account')
+	async getAccount(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      // Generate idempotency key
-      const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
-        'pi',
-        userId,
-        `${validatedBody.amount}_${validatedBody.currency}`
-      )
+		try {
+			const stripe = this.stripeService.getStripe()
+			const account = await stripe.accounts.retrieve()
+			return {
+				id: account.id,
+				business_profile: account.business_profile,
+				capabilities: account.capabilities,
+				charges_enabled: account.charges_enabled,
+				payouts_enabled: account.payouts_enabled,
+				country: account.country,
+				default_currency: account.default_currency
+			}
+		} catch (error) {
+			this.logger.error('Failed to get Stripe account', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      // Build payment intent params - only include defined properties
-      const piParams: Stripe.PaymentIntentCreateParams = {
-        amount: validatedBody.amount,
-        currency: validatedBody.currency
-      }
-      if (validatedBody.description) {
-        piParams.description = validatedBody.description
-      }
+	@ApiOperation({
+		summary: 'Get platform account balance',
+		description: 'Retrieve current balance for the platform Stripe account'
+	})
+	@ApiResponse({ status: 200, description: 'Balance retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 500, description: 'Failed to retrieve balance' })
+	@Get('account/balance')
+	async getAccountBalance(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      const paymentIntent = await this.stripeService.createPaymentIntent(
-        piParams,
-        idempotencyKey
-      )
+		try {
+			const stripe = this.stripeService.getStripe()
+			const balance = await stripe.balance.retrieve()
+			return balance
+		} catch (error) {
+			this.logger.error('Failed to get Stripe balance', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      // Log audit event
-      await this.securityService.logAuditEvent({
-        user_id: userId,
-        action: 'create_payment_intent',
-        entity_type: 'payment_intent',
-        entity_id: paymentIntent.id,
-        details: {
-          amount: validatedBody.amount,
-          currency: validatedBody.currency
-        }
-      })
+	// ============================================
+	// Charges Operations
+	// ============================================
 
-      res.status(HttpStatus.CREATED).json({
-        success: true,
-        data: paymentIntent
-      })
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new BadRequestException('Invalid request data')
-      }
-      if (error instanceof Error && 'type' in error) {
-        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
-      }
-      throw error
-    }
-  }
+	@ApiOperation({
+		summary: 'List charges',
+		description: 'List charges for the authenticated user with optional filtering'
+	})
+	@ApiQuery({
+		name: 'customer',
+		required: false,
+		type: String,
+		description: 'Filter by Stripe customer ID'
+	})
+	@ApiQuery({
+		name: 'limit',
+		required: false,
+		type: Number,
+		description: 'Number of charges to return (1-100)'
+	})
+	@ApiResponse({ status: 200, description: 'Charges retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('charges')
+	async listCharges(
+		@Request() req: AuthenticatedRequest,
+		@Query('customer') customer?: string,
+		@Query('limit') limit?: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-  /**
-   * Create a Customer for recurring payments
-   */
-  /**
-   * Create a Customer for recurring payments
-   */
-  @Post('customers')
-  async createCustomer(
-    @Req() req: TenantAuthenticatedRequest,
-    @Res() res: Response,
-    @Body() body: unknown
-  ) {
-    try {
-      const validatedBody = CreateCustomerRequestSchema.parse(body)
-      const userId = req.user?.id
-      const tenantId = req.tenant?.id
+		try {
+			const stripe = this.stripeService.getStripe()
+			const params: Stripe.ChargeListParams = {
+				limit: limit ? Math.min(parseInt(limit, 10), 100) : 10
+			}
+			if (customer) {
+				params.customer = customer
+			}
 
-      if (!userId || !tenantId) {
-        throw new UnauthorizedException('User and tenant required')
-      }
+			const charges = await stripe.charges.list(params)
+			return { charges: charges.data, has_more: charges.has_more }
+		} catch (error) {
+			this.logger.error('Failed to list charges', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      // Generate idempotency key
-      const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
-        'cus',
-        userId,
-        validatedBody.email
-      )
+	@ApiOperation({
+		summary: 'Get charge details',
+		description: 'Retrieve details for a specific charge'
+	})
+	@ApiParam({ name: 'id', type: String, description: 'Stripe charge ID (ch_*)' })
+	@ApiResponse({ status: 200, description: 'Charge retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Charge not found' })
+	@Get('charges/:id')
+	async getCharge(
+		@Request() req: AuthenticatedRequest,
+		@Param('id') chargeId: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      // Build customer params - only include defined properties
-      const cusParams: Stripe.CustomerCreateParams = {
-        email: validatedBody.email
-      }
-      if (validatedBody.name) {
-        cusParams.name = validatedBody.name
-      }
+		if (!chargeId || !chargeId.startsWith('ch_')) {
+			throw new BadRequestException('Invalid charge ID format')
+		}
 
-      const customer = await this.stripeService.createCustomer(
-        cusParams,
-        idempotencyKey
-      )
+		const charge = await this.stripeService.getCharge(chargeId)
+		if (!charge) {
+			throw new NotFoundException('Charge not found')
+		}
+		return charge
+	}
 
-      // Link customer to tenant
-      await this.billingService.linkCustomerToTenant(customer.id, tenantId)
+	// ============================================
+	// Refunds Operations
+	// ============================================
 
-      // Log audit event
-      await this.securityService.logAuditEvent({
-        user_id: userId,
-        action: 'create_customer',
-        entity_type: 'customer',
-        entity_id: customer.id,
-        details: { email: validatedBody.email }
-      })
+	@ApiOperation({
+		summary: 'Create refund',
+		description: 'Create a refund for a charge or payment intent'
+	})
+	@ApiBody({
+		schema: {
+			type: 'object',
+			required: ['charge'],
+			properties: {
+				charge: {
+					type: 'string',
+					description: 'Stripe charge ID (ch_*) or payment intent ID (pi_*)'
+				},
+				amount: {
+					type: 'integer',
+					description: 'Amount to refund in cents (omit for full refund)'
+				},
+				reason: {
+					type: 'string',
+					enum: ['duplicate', 'fraudulent', 'requested_by_customer'],
+					description: 'Reason for refund'
+				}
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Refund created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid refund request' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('refunds')
+	async createRefund(
+		@Request() req: AuthenticatedRequest,
+		@Body()
+		body: {
+			charge?: string
+			payment_intent?: string
+			amount?: number
+			reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer'
+		}
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      res.status(HttpStatus.CREATED).json({
-        success: true,
-        data: customer
-      })
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new BadRequestException('Invalid request data')
-      }
-      if (error instanceof Error && 'type' in error) {
-        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
-      }
-      throw error
-    }
-  }
+		if (!body.charge && !body.payment_intent) {
+			throw new BadRequestException('Either charge or payment_intent is required')
+		}
 
-  /**
-   * Create a Subscription for recurring payments
-   */
-  /**
-   * Create a Subscription for recurring payments
-   * Note: Subscription data is automatically synced to stripe schema by Stripe Sync Engine
-   */
-  /**
-   * Create a Subscription for recurring payments
-   * Note: Subscription data is automatically synced to stripe schema by Stripe Sync Engine
-   */
-  @Post('subscriptions')
-  async createSubscription(
-    @Req() req: TenantAuthenticatedRequest,
-    @Res() res: Response,
-    @Body() body: unknown
-  ) {
-    try {
-      const validatedBody = CreateSubscriptionRequestSchema.parse(body)
-      const userId = req.user?.id
-      const tenantId = req.tenant?.id
+		const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
+			'refund',
+			req.user.id,
+			body.charge || body.payment_intent
+		)
 
-      if (!userId || !tenantId) {
-        throw new UnauthorizedException('User and tenant required')
-      }
+		try {
+			const stripe = this.stripeService.getStripe()
+			const params: Stripe.RefundCreateParams = {}
 
-      if (!validatedBody.customer || !validatedBody.items?.length) {
-        throw new BadRequestException('Customer and items are required')
-      }
+			if (body.charge) {
+				params.charge = body.charge
+			}
+			if (body.payment_intent) {
+				params.payment_intent = body.payment_intent
+			}
+			if (body.amount) {
+				params.amount = body.amount
+			}
+			if (body.reason) {
+				params.reason = body.reason
+			}
 
-      // Generate idempotency key
-      const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
-        'sub',
-        userId,
-        validatedBody.customer
-      )
+			const refund = await stripe.refunds.create(params, {
+				idempotencyKey
+			})
 
-      const subscription = await this.stripeService.createSubscription(
-        {
-          customer: validatedBody.customer,
-          items: validatedBody.items
-        },
-        idempotencyKey
-      )
+			this.logger.log('Refund created', {
+				refund_id: refund.id,
+				user_id: req.user.id
+			})
 
-      // Log audit event - Stripe Sync Engine will sync subscription data via webhook
-      await this.securityService.logAuditEvent({
-        user_id: userId,
-        action: 'create_subscription',
-        entity_type: 'subscription',
-        entity_id: subscription.id,
-        details: {
-          customer_id: typeof subscription.customer === 'string' ? subscription.customer : subscription.customer.id
-        }
-      })
+			return refund
+		} catch (error) {
+			this.logger.error('Failed to create refund', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      res.status(HttpStatus.CREATED).json({
-        success: true,
-        data: subscription
-      })
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new BadRequestException('Invalid request data')
-      }
-      if (error instanceof Error && 'type' in error) {
-        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
-      }
-      throw error
-    }
-  }
+	@ApiOperation({
+		summary: 'List refunds',
+		description: 'List refunds with optional filtering'
+	})
+	@ApiQuery({
+		name: 'charge',
+		required: false,
+		type: String,
+		description: 'Filter by charge ID'
+	})
+	@ApiQuery({
+		name: 'payment_intent',
+		required: false,
+		type: String,
+		description: 'Filter by payment intent ID'
+	})
+	@ApiQuery({
+		name: 'limit',
+		required: false,
+		type: Number,
+		description: 'Number of refunds to return (1-100)'
+	})
+	@ApiResponse({ status: 200, description: 'Refunds retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('refunds')
+	async listRefunds(
+		@Request() req: AuthenticatedRequest,
+		@Query('charge') charge?: string,
+		@Query('payment_intent') paymentIntent?: string,
+		@Query('limit') limit?: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-  /**
-   * Update a Subscription
-   */
-  /**
-   * Update a Subscription
-   * Note: Changes are automatically synced to stripe schema by Stripe Sync Engine via webhook
-   */
-  /**
-   * Update a Subscription
-   * Note: Changes are automatically synced to stripe schema by Stripe Sync Engine via webhook
-   */
-  @Patch('subscriptions/:id')
-  async updateSubscription(
-    @Param('id', ParseUUIDPipe) subscriptionId: string,
-    @Req() req: TenantAuthenticatedRequest,
-    @Res() res: Response,
-    @Body() body: unknown
-  ) {
-    try {
-      const validatedBody = UpdateSubscriptionRequestSchema.parse(body)
-      const userId = req.user?.id
-      const tenantId = req.tenant?.id
+		try {
+			const stripe = this.stripeService.getStripe()
+			const params: Stripe.RefundListParams = {
+				limit: limit ? Math.min(parseInt(limit, 10), 100) : 10
+			}
+			if (charge) {
+				params.charge = charge
+			}
+			if (paymentIntent) {
+				params.payment_intent = paymentIntent
+			}
 
-      if (!userId || !tenantId) {
-        throw new UnauthorizedException('User and tenant required')
-      }
+			const refunds = await stripe.refunds.list(params)
+			return { refunds: refunds.data, has_more: refunds.has_more }
+		} catch (error) {
+			this.logger.error('Failed to list refunds', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      if (!subscriptionId) {
-        throw new BadRequestException('Subscription ID is required')
-      }
+	// ============================================
+	// Checkout Session Operations
+	// ============================================
 
-      // Verify subscription belongs to tenant
-      const subscriptionRecord = await this.billingService.findSubscriptionByStripeId(subscriptionId)
-      if (!subscriptionRecord || subscriptionRecord.customer !== tenantId) {
-        throw new NotFoundException('Subscription not found')
-      }
+	@ApiOperation({
+		summary: 'Create checkout session',
+		description: 'Create a Stripe Checkout session for payment collection'
+	})
+	@ApiBody({
+		schema: {
+			type: 'object',
+			required: ['success_url', 'cancel_url', 'line_items'],
+			properties: {
+				success_url: { type: 'string', description: 'URL to redirect on success' },
+				cancel_url: { type: 'string', description: 'URL to redirect on cancel' },
+				mode: {
+					type: 'string',
+					enum: ['payment', 'subscription', 'setup'],
+					description: 'Checkout mode'
+				},
+				line_items: {
+					type: 'array',
+					description: 'Line items for checkout',
+					items: {
+						type: 'object',
+						properties: {
+							price: { type: 'string', description: 'Stripe price ID' },
+							quantity: { type: 'integer', description: 'Quantity' }
+						}
+					}
+				},
+				customer_email: { type: 'string', description: 'Pre-fill customer email' }
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Checkout session created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid checkout request' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('checkout-sessions')
+	async createCheckoutSession(
+		@Request() req: AuthenticatedRequest,
+		@Body()
+		body: {
+			success_url: string
+			cancel_url: string
+			mode?: 'payment' | 'subscription' | 'setup'
+			line_items?: Stripe.Checkout.SessionCreateParams.LineItem[]
+			customer_email?: string
+			customer?: string
+			metadata?: Record<string, string>
+		}
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      // Generate idempotency key
-      const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
-        'sub_update',
-        userId,
-        subscriptionId
-      )
+		if (!body.success_url || !body.cancel_url) {
+			throw new BadRequestException('success_url and cancel_url are required')
+		}
 
-      const updateParams: Stripe.SubscriptionUpdateParams = {}
-      if (validatedBody.items) {
-        updateParams.items = validatedBody.items
-      }
-      if (validatedBody.proration_behavior) {
-        updateParams.proration_behavior = validatedBody.proration_behavior
-      }
+		const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
+			'checkout',
+			req.user.id,
+			`${body.mode || 'payment'}_${Date.now()}`
+		)
 
-      const updatedSubscription = await this.stripeService.updateSubscription(
-        subscriptionId,
-        updateParams,
-        idempotencyKey
-      )
+		try {
+			const params: Stripe.Checkout.SessionCreateParams = {
+				success_url: body.success_url,
+				cancel_url: body.cancel_url,
+				mode: body.mode || 'payment',
+				metadata: {
+					...body.metadata,
+					user_id: req.user.id
+				}
+			}
 
-      // Log audit event - Stripe Sync Engine will sync changes via webhook
-      await this.securityService.logAuditEvent({
-        user_id: userId,
-        action: 'update_subscription',
-        entity_type: 'subscription',
-        entity_id: updatedSubscription.id
-      })
+			// Only add optional properties if they're defined (exactOptionalPropertyTypes)
+			if (body.line_items) {
+				params.line_items = body.line_items
+			}
+			if (body.customer_email) {
+				params.customer_email = body.customer_email
+			}
+			if (body.customer) {
+				params.customer = body.customer
+			}
 
-      res.status(HttpStatus.OK).json({
-        success: true,
-        data: updatedSubscription
-      })
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        throw new BadRequestException('Invalid request data')
-      }
-      if (error instanceof Error && 'type' in error) {
-        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
-      }
-      throw error
-    }
-  }
+			const session = await this.stripeService.createCheckoutSession(
+				params,
+				idempotencyKey
+			)
 
-  /**
-   * Get current subscription status for the authenticated user
-   * Verifies subscription status in real-time against Stripe
-   * CRITICAL: Never cache this endpoint - always verify against Stripe to prevent access after cancellation
-   * Returns null status if subscription not found (user gets denied access)
-   */
-  /**
-   * Get current subscription status for the authenticated user
-   * Verifies subscription status in real-time against Stripe
-   * 
-   * SECURITY: FAIL-CLOSED BEHAVIOR
-   * - Database error → throws exception → access denied
-   * - Stripe API error → throws exception → access denied
-   * - No subscription found → returns null status → frontend denies access
-   * - Invalid/expired token → auth guard rejects → access denied
-   * 
-   * This ensures users cannot access paid features if:
-   * - Their subscription was cancelled (real-time Stripe check)
-   * - Infrastructure is degraded (fails safely)
-   * - Database queries fail (fails safely)
-   */
-  @Get('subscription-status')
-  @Throttle({ default: STRIPE_API_THROTTLE })
-  async getSubscriptionStatus(
-    @UserId() userId: string,
-    @Req() req: TenantAuthenticatedRequest
-  ) {
-    // Extract user token for RLS-enforced database queries
-    const userToken = this.supabase.getTokenFromRequest(req)
-    if (!userToken) {
-      throw new UnauthorizedException('Valid authentication token required')
-    }
+			this.logger.log('Checkout session created', {
+				session_id: session.id,
+				user_id: req.user.id
+			})
 
-    // Query via BillingService with RLS enforcement
-    // Throws on database errors (fail-closed), returns null if no subscription
-    const subscription = await this.billingService.findSubscriptionByUserId(
-      userId,
-      userToken
-    )
+			return {
+				id: session.id,
+				url: session.url,
+				status: session.status
+			}
+		} catch (error) {
+			this.logger.error('Failed to create checkout session', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-    // No subscription found - return null to deny access via frontend
-    if (!subscription || !subscription.stripe_subscription_id) {
-      return {
-        subscriptionStatus: null,
-        stripeCustomerId: subscription?.stripe_customer_id || null
-      }
-    }
+	@ApiOperation({
+		summary: 'Get checkout session',
+		description: 'Retrieve a checkout session by ID'
+	})
+	@ApiParam({
+		name: 'id',
+		type: String,
+		description: 'Stripe checkout session ID (cs_*)'
+	})
+	@ApiResponse({ status: 200, description: 'Checkout session retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Checkout session not found' })
+	@Get('checkout-sessions/:id')
+	async getCheckoutSession(
+		@Request() req: AuthenticatedRequest,
+		@Param('id') sessionId: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-    // Verify real-time status with Stripe
-    // Throws on failure (fail-closed security - deny access on any error)
-    const stripe = this.stripeService.getStripe()
-    const stripeSubscription = await stripe.subscriptions.retrieve(
-      subscription.stripe_subscription_id
-    )
+		if (!sessionId || !sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid checkout session ID format')
+		}
 
-    return {
-      subscriptionStatus: stripeSubscription.status,
-      stripeCustomerId: subscription.stripe_customer_id
-    }
-  }
+		try {
+			const stripe = this.stripeService.getStripe()
+			const session = await stripe.checkout.sessions.retrieve(sessionId)
+			return session
+		} catch (error) {
+			this.logger.error('Failed to get checkout session', { error, sessionId })
+			if (error instanceof Error && 'type' in error) {
+				const stripeError = error as Stripe.errors.StripeError
+				if (stripeError.type === 'StripeInvalidRequestError') {
+					throw new NotFoundException('Checkout session not found')
+				}
+				this.stripeSharedService.handleStripeError(stripeError)
+			}
+			throw error
+		}
+	}
 
-  /**
-   * Create Stripe Customer Portal session
-   * Allows users to manage their payment methods, view invoices, and update subscriptions
-   *
-   * SECURITY:
-   * - Verifies user owns the Stripe customer record
-   * - Validates return URL to prevent open redirects
-   * - Rate limited to prevent abuse
-   * - Logs audit events for security monitoring
-   * - Fails closed on any error (denies access)
-   */
-  @Post('create-billing-portal-session')
-  @Throttle({ default: STRIPE_API_THROTTLE })
-  async createBillingPortalSession(
-    @UserId() userId: string,
-    @Req() req: TenantAuthenticatedRequest
-  ) {
-    try {
-      // Extract user token for RLS-enforced database queries
-      const userToken = this.supabase.getTokenFromRequest(req)
-      if (!userToken) {
-        throw new UnauthorizedException('Valid authentication token required')
-      }
+	@ApiOperation({
+		summary: 'Expire checkout session',
+		description: 'Expire a checkout session to prevent further use'
+	})
+	@ApiParam({
+		name: 'id',
+		type: String,
+		description: 'Stripe checkout session ID (cs_*)'
+	})
+	@ApiResponse({ status: 200, description: 'Checkout session expired successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid session ID or session cannot be expired' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('checkout-sessions/:id/expire')
+	async expireCheckoutSession(
+		@Request() req: AuthenticatedRequest,
+		@Param('id') sessionId: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      // Get user's email for customer lookup
-      const { data: userData, error: userError } = await this.supabase
-        .getUserClient(userToken)
-        .from('users')
-        .select('email, stripe_customer_id')
-        .eq('id', userId)
-        .single()
+		if (!sessionId || !sessionId.startsWith('cs_')) {
+			throw new BadRequestException('Invalid checkout session ID format')
+		}
 
-      if (userError || !userData) {
-        // Log to user_errors table
-        await this.supabase.getAdminClient().rpc('log_user_error', {
-          p_error_type: 'application',
-          p_error_code: 'BILLING_PORTAL_USER_NOT_FOUND',
-          p_error_message: 'User record not found for billing portal',
-          p_context: { userId, error: userError?.message }
-        })
-        throw new NotFoundException('User record not found')
-      }
+		try {
+			const stripe = this.stripeService.getStripe()
+			const session = await stripe.checkout.sessions.expire(sessionId)
 
-      // Verify user has a Stripe customer ID
-      if (!userData.stripe_customer_id) {
-        // Log to user_errors table
-        await this.supabase.getAdminClient().rpc('log_user_error', {
-          p_error_type: 'application',
-          p_error_code: 'BILLING_PORTAL_NO_CUSTOMER',
-          p_error_message: 'No Stripe customer found for user',
-          p_context: { userId, email: userData.email }
-        })
-        throw new NotFoundException('No Stripe customer found. Please contact support.')
-      }
+			this.logger.log('Checkout session expired', {
+				session_id: session.id,
+				user_id: req.user.id
+			})
 
-      // Verify customer ownership (prevent lateral access)
-      const stripe = this.stripeService.getStripe()
-      const customer = await stripe.customers.retrieve(userData.stripe_customer_id)
+			return { id: session.id, status: session.status }
+		} catch (error) {
+			this.logger.error('Failed to expire checkout session', { error, sessionId })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-      if ('deleted' in customer || customer.email !== userData.email) {
-        // Customer mismatch - possible security issue
-        await this.securityService.logAuditEvent({
-          user_id: userId,
-          action: 'billing_portal_customer_mismatch',
-          entity_type: 'stripe_customer',
-          entity_id: userData.stripe_customer_id,
-          details: {
-            severity: 'high',
-            customer_email: 'email' in customer ? customer.email : null,
-            user_email: userData.email
-          }
-        })
-        throw new UnauthorizedException('Customer verification failed')
-      }
+	// ============================================
+	// Invoice Operations
+	// ============================================
 
-      // Validate return URL (prevent open redirect attacks)
-      const frontendUrl = process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL
-      if (!frontendUrl) {
-        throw new Error('FRONTEND_URL or NEXT_PUBLIC_APP_URL environment variable not configured')
-      }
-      const returnUrl = `${frontendUrl}/settings/billing`
+	@ApiOperation({
+		summary: 'Create invoice',
+		description: 'Create a new invoice for a customer'
+	})
+	@ApiBody({
+		schema: {
+			type: 'object',
+			required: ['customer'],
+			properties: {
+				customer: { type: 'string', description: 'Stripe customer ID' },
+				description: { type: 'string', description: 'Invoice description' },
+				auto_advance: {
+					type: 'boolean',
+					description: 'Auto-finalize invoice (default: true)'
+				},
+				collection_method: {
+					type: 'string',
+					enum: ['charge_automatically', 'send_invoice'],
+					description: 'How to collect payment'
+				},
+				days_until_due: {
+					type: 'integer',
+					description: 'Days until invoice is due (for send_invoice)'
+				}
+			}
+		}
+	})
+	@ApiResponse({ status: 200, description: 'Invoice created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid invoice request' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('invoices')
+	async createInvoice(
+		@Request() req: AuthenticatedRequest,
+		@Body()
+		body: {
+			customer: string
+			description?: string
+			auto_advance?: boolean
+			collection_method?: 'charge_automatically' | 'send_invoice'
+			days_until_due?: number
+			metadata?: Record<string, string>
+		}
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-      // Create billing portal session
-      const session = await stripe.billingPortal.sessions.create({
-        customer: userData.stripe_customer_id,
-        return_url: returnUrl
-      })
+		if (!body.customer) {
+			throw new BadRequestException('Customer ID is required')
+		}
 
-      // Log successful portal session creation
-      await this.securityService.logAuditEvent({
-        user_id: userId,
-        action: 'billing_portal_created',
-        entity_type: 'billing_portal_session',
-        entity_id: session.id,
-        details: {
-          customer_id: userData.stripe_customer_id,
-          return_url: returnUrl
-        }
-      })
+		const idempotencyKey = this.stripeSharedService.generateIdempotencyKey(
+			'invoice',
+			req.user.id,
+			`${body.customer}_${Date.now()}`
+		)
 
-      return {
-        url: session.url
-      }
-    } catch (error) {
-      // Log error for monitoring
-      if (error instanceof Error) {
-        await this.supabase.getAdminClient().rpc('log_user_error', {
-          p_error_type: 'application',
-          p_error_code: 'BILLING_PORTAL_ERROR',
-          p_error_message: error.message,
-          ...(error.stack && { p_error_stack: error.stack }),
-          p_context: {
-            userId,
-            error_name: error.name
-          }
-        })
-      }
+		try {
+			const stripe = this.stripeService.getStripe()
 
-      // Re-throw for NestJS error handling
-      if (error instanceof UnauthorizedException ||
-          error instanceof NotFoundException ||
-          error instanceof BadRequestException) {
-        throw error
-      }
+			const invoiceParams: Stripe.InvoiceCreateParams = {
+				customer: body.customer,
+				auto_advance: body.auto_advance ?? true,
+				collection_method: body.collection_method || 'charge_automatically',
+				metadata: {
+					...body.metadata,
+					created_by: req.user.id
+				}
+			}
 
-      // Handle Stripe errors
-      if (error instanceof Error && 'type' in error) {
-        this.stripeSharedService.handleStripeError(error as Stripe.errors.StripeError)
-      }
+			// Only add optional properties if they're defined (exactOptionalPropertyTypes)
+			if (body.description) {
+				invoiceParams.description = body.description
+			}
+			if (body.days_until_due !== undefined) {
+				invoiceParams.days_until_due = body.days_until_due
+			}
 
-      throw error
-    }
-  }
+			const invoice = await stripe.invoices.create(invoiceParams, {
+				idempotencyKey
+			})
 
-  /**
-   * Get user's billing invoices from Stripe
-   * Returns paginated list of invoices for the authenticated user's Stripe customer
-   */
-  @Get('invoices')
-  @Throttle({ default: STRIPE_API_THROTTLE })
-  async getInvoices(
-    @UserId() userId: string,
-    @Req() req: TenantAuthenticatedRequest
-  ): Promise<{
-    invoices: Array<{
-      id: string
-      amount_paid: number
-      status: string
-      created: number
-      invoice_pdf: string | null
-      hosted_invoice_url: string | null
-      currency: string
-      description: string | null
-    }>
-  }> {
-    // Get user token for RLS-enforced database queries
-    const userToken = this.supabase.getTokenFromRequest(req)
-    if (!userToken) {
-      throw new UnauthorizedException('Valid authentication token required')
-    }
+			this.logger.log('Invoice created', {
+				invoice_id: invoice.id,
+				user_id: req.user.id
+			})
 
-    // Get user's Stripe customer ID
-    const { data: userData, error: userError } = await this.supabase
-      .getUserClient(userToken)
-      .from('users')
-      .select('stripe_customer_id')
-      .eq('id', userId)
-      .single()
+			return invoice
+		} catch (error) {
+			this.logger.error('Failed to create invoice', { error })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 
-    if (userError || !userData) {
-      throw new NotFoundException('User record not found')
-    }
+	@ApiOperation({
+		summary: 'Send invoice',
+		description: 'Send an invoice to the customer via email'
+	})
+	@ApiParam({ name: 'id', type: String, description: 'Stripe invoice ID (in_*)' })
+	@ApiResponse({ status: 200, description: 'Invoice sent successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid invoice ID or invoice cannot be sent' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('invoices/:id/send')
+	async sendInvoice(
+		@Request() req: AuthenticatedRequest,
+		@Param('id') invoiceId: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
-    if (!userData.stripe_customer_id) {
-      // User doesn't have a Stripe customer yet - return empty list
-      return { invoices: [] }
-    }
+		if (!invoiceId || !invoiceId.startsWith('in_')) {
+			throw new BadRequestException('Invalid invoice ID format')
+		}
 
-    // Fetch invoices from Stripe
-    const stripeInvoices = await this.stripeService.listInvoices({
-      customer: userData.stripe_customer_id,
-      limit: 10
-    })
+		try {
+			const stripe = this.stripeService.getStripe()
+			const invoice = await stripe.invoices.sendInvoice(invoiceId)
 
-    // Map to response format, coercing undefined to null for type safety
-    const invoices = stripeInvoices.map(invoice => ({
-      id: invoice.id,
-      amount_paid: invoice.amount_paid,
-      status: invoice.status ?? 'unknown',
-      created: invoice.created,
-      invoice_pdf: invoice.invoice_pdf ?? null,
-      hosted_invoice_url: invoice.hosted_invoice_url ?? null,
-      currency: invoice.currency,
-      description: invoice.description
-    }))
+			this.logger.log('Invoice sent', {
+				invoice_id: invoice.id,
+				user_id: req.user.id
+			})
 
-    return { invoices }
-  }
+			return { id: invoice.id, status: invoice.status }
+		} catch (error) {
+			this.logger.error('Failed to send invoice', { error, invoiceId })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
+
+	@ApiOperation({
+		summary: 'Void invoice',
+		description: 'Void an invoice to mark it as cancelled'
+	})
+	@ApiParam({ name: 'id', type: String, description: 'Stripe invoice ID (in_*)' })
+	@ApiResponse({ status: 200, description: 'Invoice voided successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid invoice ID or invoice cannot be voided' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('invoices/:id/void')
+	async voidInvoice(
+		@Request() req: AuthenticatedRequest,
+		@Param('id') invoiceId: string
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+
+		if (!invoiceId || !invoiceId.startsWith('in_')) {
+			throw new BadRequestException('Invalid invoice ID format')
+		}
+
+		try {
+			const stripe = this.stripeService.getStripe()
+			const invoice = await stripe.invoices.voidInvoice(invoiceId)
+
+			this.logger.log('Invoice voided', {
+				invoice_id: invoice.id,
+				user_id: req.user.id
+			})
+
+			return { id: invoice.id, status: invoice.status }
+		} catch (error) {
+			this.logger.error('Failed to void invoice', { error, invoiceId })
+			if (error instanceof Error && 'type' in error) {
+				this.stripeSharedService.handleStripeError(
+					error as Stripe.errors.StripeError
+				)
+			}
+			throw error
+		}
+	}
 }

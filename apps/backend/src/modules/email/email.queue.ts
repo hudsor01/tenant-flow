@@ -131,7 +131,9 @@ export class EmailProcessor extends WorkerHost {
 						tenantName: data.tenantName,
 						tenantEmail: data.tenantEmail,
 						propertyName: data.propertyName,
-						...(data.unitNumber !== undefined && { unitNumber: data.unitNumber }),
+						...(data.unitNumber !== undefined && {
+							unitNumber: data.unitNumber
+						}),
 						amount: data.amount,
 						currency: data.currency,
 						dueDate: data.dueDate,
@@ -146,7 +148,9 @@ export class EmailProcessor extends WorkerHost {
 						customerEmail: data.customerEmail,
 						subscriptionId: data.subscriptionId,
 						cancelAtPeriodEnd: data.cancelAtPeriodEnd,
-						currentPeriodEnd: data.currentPeriodEnd ? new Date(data.currentPeriodEnd) : null
+						currentPeriodEnd: data.currentPeriodEnd
+							? new Date(data.currentPeriodEnd)
+							: null
 					})
 					break
 
@@ -158,8 +162,12 @@ export class EmailProcessor extends WorkerHost {
 					await this.emailService.sendTenantInvitationEmail({
 						tenantEmail: data.tenantEmail,
 						invitationUrl: data.invitationUrl,
-						...(data.propertyName !== undefined && { propertyName: data.propertyName }),
-						...(data.unitNumber !== undefined && { unitNumber: data.unitNumber }),
+						...(data.propertyName !== undefined && {
+							propertyName: data.propertyName
+						}),
+						...(data.unitNumber !== undefined && {
+							unitNumber: data.unitNumber
+						}),
 						...(data.ownerName !== undefined && { ownerName: data.ownerName }),
 						expiresAt: data.expiresAt
 					})
@@ -169,8 +177,12 @@ export class EmailProcessor extends WorkerHost {
 					await this.emailService.sendLeaseSentForSignatureEmail({
 						tenantEmail: data.tenantEmail,
 						tenantName: data.tenantName,
-						...(data.propertyName !== undefined && { propertyName: data.propertyName }),
-						...(data.unitNumber !== undefined && { unitNumber: data.unitNumber }),
+						...(data.propertyName !== undefined && {
+							propertyName: data.propertyName
+						}),
+						...(data.unitNumber !== undefined && {
+							unitNumber: data.unitNumber
+						}),
 						...(data.ownerName !== undefined && { ownerName: data.ownerName }),
 						...(data.message !== undefined && { message: data.message }),
 						signUrl: data.signUrl

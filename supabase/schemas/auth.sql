@@ -2,10 +2,6 @@
 -- PostgreSQL database dump
 --
 
-
--- Dumped from database version 17.6
--- Dumped by pg_dump version 18.1
-
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -129,7 +125,7 @@ CREATE TYPE auth.one_time_token_type AS ENUM (
 CREATE FUNCTION auth.email() RETURNS text
     LANGUAGE sql STABLE
     AS $$
-  select 
+  select
   coalesce(
     nullif(current_setting('request.jwt.claim.email', true), ''),
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'email')
@@ -151,7 +147,7 @@ COMMENT ON FUNCTION auth.email() IS 'Deprecated. Use auth.jwt() -> ''email'' ins
 CREATE FUNCTION auth.jwt() RETURNS jsonb
     LANGUAGE sql STABLE
     AS $$
-  select 
+  select
     coalesce(
         nullif(current_setting('request.jwt.claim', true), ''),
         nullif(current_setting('request.jwt.claims', true), '')
@@ -166,7 +162,7 @@ $$;
 CREATE FUNCTION auth.role() RETURNS text
     LANGUAGE sql STABLE
     AS $$
-  select 
+  select
   coalesce(
     nullif(current_setting('request.jwt.claim.role', true), ''),
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role')
@@ -188,7 +184,7 @@ COMMENT ON FUNCTION auth.role() IS 'Deprecated. Use auth.jwt() -> ''role'' inste
 CREATE FUNCTION auth.uid() RETURNS uuid
     LANGUAGE sql STABLE
     AS $$
-  select 
+  select
   coalesce(
     nullif(current_setting('request.jwt.claim.sub', true), ''),
     (nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
@@ -1525,4 +1521,3 @@ ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
 --
 
 \unrestrict JnCblsYygrvBRrVLgqlug9jPhJG6gZCedS9sewL4HRoMnJYe88s3zD1RKSt4svp
-

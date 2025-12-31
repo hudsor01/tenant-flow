@@ -16,6 +16,14 @@ import {
 	Request,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type {
 	CreateSubscriptionRequest,
 	RentSubscriptionResponse,
@@ -31,6 +39,8 @@ interface AuthenticatedRequest extends ExpressRequest {
 	}
 }
 
+@ApiTags('Subscriptions')
+@ApiBearerAuth('supabase-auth')
 @Controller('subscriptions')
 export class SubscriptionsController {
 	constructor(private readonly subscriptionsService: SubscriptionsService) {}
@@ -39,11 +49,15 @@ export class SubscriptionsController {
 	 * Create a new rent subscription
 	 * POST /subscriptions
 	 */
+	@ApiOperation({ summary: 'Create subscription', description: 'Create a new rent subscription for autopay' })
+	@ApiBody({ description: 'Subscription creation request' })
+	@ApiResponse({ status: 201, description: 'Subscription created successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post()
 	async createSubscription(
-			@Request() req: AuthenticatedRequest,
-			@Body() request: CreateSubscriptionRequest
-		): Promise<RentSubscriptionResponse> {
+		@Request() req: AuthenticatedRequest,
+		@Body() request: CreateSubscriptionRequest
+	): Promise<RentSubscriptionResponse> {
 		const user_id = req.user?.id
 		if (!user_id) {
 			throw new UnauthorizedException()
@@ -56,6 +70,9 @@ export class SubscriptionsController {
 	 * List all subscriptions for current user
 	 * GET /api/v1/subscriptions
 	 */
+	@ApiOperation({ summary: 'List subscriptions', description: 'List all rent subscriptions for the authenticated user' })
+	@ApiResponse({ status: 200, description: 'Subscriptions retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async listSubscriptions(
 		@Request() req: AuthenticatedRequest
@@ -74,6 +91,11 @@ export class SubscriptionsController {
 	 * Get subscription by ID
 	 * GET /api/v1/subscriptions/:id
 	 */
+	@ApiOperation({ summary: 'Get subscription', description: 'Get a subscription by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Get(':id')
 	async getSubscription(
 		@Request() req: AuthenticatedRequest,
@@ -91,6 +113,12 @@ export class SubscriptionsController {
 	 * Update subscription
 	 * PATCH /api/v1/subscriptions/:id
 	 */
+	@ApiOperation({ summary: 'Update subscription', description: 'Update a subscription by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Subscription UUID' })
+	@ApiBody({ description: 'Subscription update request' })
+	@ApiResponse({ status: 200, description: 'Subscription updated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Patch(':id')
 	async updateSubscription(
 		@Request() req: AuthenticatedRequest,
@@ -109,6 +137,11 @@ export class SubscriptionsController {
 	 * Pause subscription
 	 * POST /api/v1/subscriptions/:id/pause
 	 */
+	@ApiOperation({ summary: 'Pause subscription', description: 'Pause a subscription by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription paused successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Post(':id/pause')
 	async pauseSubscription(
 		@Request() req: AuthenticatedRequest,
@@ -126,6 +159,11 @@ export class SubscriptionsController {
 	 * Resume subscription
 	 * POST /api/v1/subscriptions/:id/resume
 	 */
+	@ApiOperation({ summary: 'Resume subscription', description: 'Resume a paused subscription by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription resumed successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Post(':id/resume')
 	async resumeSubscription(
 		@Request() req: AuthenticatedRequest,
@@ -143,6 +181,11 @@ export class SubscriptionsController {
 	 * Cancel subscription
 	 * POST /api/v1/subscriptions/:id/cancel
 	 */
+	@ApiOperation({ summary: 'Cancel subscription', description: 'Cancel a subscription by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription cancelled successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Subscription not found' })
 	@Post(':id/cancel')
 	async cancelSubscription(
 		@Request() req: AuthenticatedRequest,

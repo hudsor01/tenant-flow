@@ -7,7 +7,6 @@ import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('JwtAuthGuard', () => {
 	type SupabaseUser = Awaited<ReturnType<SupabaseService['getUser']>>
 

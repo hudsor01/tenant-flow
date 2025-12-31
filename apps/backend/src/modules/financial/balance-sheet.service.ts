@@ -38,28 +38,23 @@ interface NOIResponse {
 
 @Injectable()
 export class BalanceSheetService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate balance sheet for a given date
 	 * Aggregates assets, liabilities, and equity
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateBalanceSheet(
 		token: string,
+		user_id: string,
 		asOfDate: string
 	): Promise<BalanceSheetData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		// Get user ID from token
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getAdminClient().auth.getUser(token)
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(`Generating balance sheet as of ${asOfDate}`)
 
@@ -80,9 +75,7 @@ export class BalanceSheetService {
 			// ASSETS
 			// Current Assets
 			const cash = safeNumber(overview?.cash_balance)
-			const accountsReceivable = safeNumber(
-				lease?.total_outstanding_balance
-			)
+			const accountsReceivable = safeNumber(lease?.total_outstanding_balance)
 			const security_deposits = safeNumber(lease?.total_deposits)
 			const currentAssetsTotal = cash + accountsReceivable + security_deposits
 
@@ -106,7 +99,8 @@ export class BalanceSheetService {
 			const mortgagesPayable = safeNumber(overview?.mortgages_payable)
 			const longTermLiabilitiesTotal = mortgagesPayable
 
-			const totalLiabilities = currentLiabilitiesTotal + longTermLiabilitiesTotal
+			const totalLiabilities =
+				currentLiabilitiesTotal + longTermLiabilitiesTotal
 
 			// EQUITY
 			const ownerCapital = safeNumber(overview?.owner_capital)
@@ -160,7 +154,7 @@ export class BalanceSheetService {
 		} catch (error) {
 			this.logger.error('Failed to generate balance sheet snapshot', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				asOfDate
 			})
 			throw error instanceof Error
@@ -178,7 +172,9 @@ export class BalanceSheetService {
 		)
 		const deposits = this.sumSecurityDeposits(ledger.leases)
 		const paidRent = relevantPayments
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 		const outstandingRent = relevantPayments
 			.filter(payment => payment.status !== 'succeeded')
@@ -229,10 +225,7 @@ export class BalanceSheetService {
 	}
 
 	private sumSecurityDeposits(leases: LedgerData['leases']): number {
-		return leases.reduce(
-			(sum, lease) => sum + (lease.security_deposit ?? 0),
-			0
-		)
+		return leases.reduce((sum, lease) => sum + (lease.security_deposit ?? 0), 0)
 	}
 
 	private calculateCurrentPeriodIncomeFromLedger(
@@ -243,7 +236,9 @@ export class BalanceSheetService {
 		const { start, end } = this.getMonthBounds(asOf)
 		const revenue = payments
 			.filter(payment => this.isWithin(payment.due_date, start, end))
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 		const periodExpenses = expenses
 			.filter(expense =>
@@ -255,9 +250,19 @@ export class BalanceSheetService {
 	}
 
 	private getMonthBounds(date: Date) {
-		const start = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1))
+		const start = new Date(
+			Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)
+		)
 		const end = new Date(
-			Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999)
+			Date.UTC(
+				date.getUTCFullYear(),
+				date.getUTCMonth() + 1,
+				0,
+				23,
+				59,
+				59,
+				999
+			)
 		)
 		return { start, end }
 	}
@@ -268,7 +273,7 @@ export class BalanceSheetService {
 	): boolean {
 		const parsed = parseDate(value)
 		if (!parsed) {
-		 return false
+			return false
 		}
 		return parsed.getTime() <= target.getTime()
 	}
@@ -282,7 +287,9 @@ export class BalanceSheetService {
 		if (!parsed) {
 			return false
 		}
-		return parsed.getTime() >= start.getTime() && parsed.getTime() <= end.getTime()
+		return (
+			parsed.getTime() >= start.getTime() && parsed.getTime() <= end.getTime()
+		)
 	}
 
 	private subtractMonths(reference: Date, months: number) {

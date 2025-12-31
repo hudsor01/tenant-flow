@@ -27,7 +27,10 @@ export default async function EditTenantModal({
 		}
 
 		return (
-			<RouteModal intent="edit" className="max-w-3xl max-h-[90vh] overflow-y-auto">
+			<RouteModal
+				intent="edit"
+				className="max-w-3xl max-h-[90vh] overflow-y-auto"
+			>
 				<TenantEditForm id={id.trim()} />
 			</RouteModal>
 		)

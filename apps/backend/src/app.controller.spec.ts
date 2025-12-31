@@ -9,7 +9,6 @@ import { AppService } from './app.service'
 import { SilentLogger } from './__test__/silent-logger'
 import { AppLogger } from './logger/app-logger.service'
 
-
 // Mock the AppService
 jest.mock('./app.service', () => {
 	return {
@@ -58,7 +57,7 @@ describe('AppController', () => {
 		} as Pick<Request, 'protocol' | 'get'>
 
 		const mockHeaders = {
-			'authorization': 'Bearer token123',
+			authorization: 'Bearer token123',
 			'content-type': 'application/json'
 		}
 
@@ -98,7 +97,11 @@ describe('AppController', () => {
 				.mockReturnValueOnce(of(mockResponse1))
 				.mockReturnValueOnce(of(mockResponse2))
 
-			const result = await controller.batchQueries(queries, mockHeaders, mockReq as Request)
+			const result = await controller.batchQueries(
+				queries,
+				mockHeaders,
+				mockReq as Request
+			)
 
 			expect(result).toHaveLength(2)
 			expect(result[0]).toEqual({
@@ -141,7 +144,11 @@ describe('AppController', () => {
 				.mockReturnValueOnce(of(mockResponse1))
 				.mockReturnValueOnce(throwError(() => new Error('Endpoint not found')))
 
-			const result = await controller.batchQueries(queries, mockHeaders, mockReq as Request)
+			const result = await controller.batchQueries(
+				queries,
+				mockHeaders,
+				mockReq as Request
+			)
 
 			expect(result).toHaveLength(2)
 			expect(result[0]).toEqual({
@@ -157,7 +164,11 @@ describe('AppController', () => {
 		})
 
 		it('should handle empty query array', async () => {
-			const result = await controller.batchQueries([], mockHeaders, mockReq as Request)
+			const result = await controller.batchQueries(
+				[],
+				mockHeaders,
+				mockReq as Request
+			)
 
 			expect(result).toEqual([])
 			expect(mockHttpService.request).not.toHaveBeenCalled()
@@ -189,7 +200,7 @@ describe('AppController', () => {
 				method: 'GET',
 				url: 'http://localhost:3000/api/properties',
 				headers: expect.objectContaining({
-					'authorization': 'Bearer token123',
+					authorization: 'Bearer token123',
 					'content-type': 'application/json',
 					'x-custom': 'custom-value'
 				}),
@@ -208,9 +219,9 @@ describe('AppController', () => {
 
 			const headersWithHopByHop = {
 				...mockHeaders,
-				'connection': 'keep-alive',
-				'host': 'example.com',
-				'upgrade': 'websocket'
+				connection: 'keep-alive',
+				host: 'example.com',
+				upgrade: 'websocket'
 			}
 
 			const mockResponse: AxiosResponse = {
@@ -223,7 +234,11 @@ describe('AppController', () => {
 
 			mockHttpService.request.mockReturnValue(of(mockResponse))
 
-			await controller.batchQueries(queries, headersWithHopByHop, mockReq as Request)
+			await controller.batchQueries(
+				queries,
+				headersWithHopByHop,
+				mockReq as Request
+			)
 
 			const calledHeaders = mockHttpService.request.mock.calls[0][0].headers
 			expect(calledHeaders).not.toHaveProperty('connection')
@@ -252,7 +267,11 @@ describe('AppController', () => {
 
 			mockHttpService.request.mockReturnValue(of(mockResponse))
 
-			const result = await controller.batchQueries(queries, mockHeaders, mockReq as Request)
+			const result = await controller.batchQueries(
+				queries,
+				mockHeaders,
+				mockReq as Request
+			)
 
 			expect(result[0]).toEqual({
 				id: 'query1',

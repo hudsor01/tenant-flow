@@ -26,7 +26,11 @@ export type LeaseMissingFields = z.infer<typeof leaseMissingFieldsSchema>
 // Form schema for frontend (string inputs that will be validated)
 export const leaseMissingFieldsFormSchema = z.object({
 	immediate_family_members: z.string().optional().default(''),
-	landlord_notice_address: z.string().min(1, 'Landlord notice address is required')
+	landlord_notice_address: z
+		.string()
+		.min(1, 'Landlord notice address is required')
 })
 
-export type LeaseMissingFieldsForm = z.infer<typeof leaseMissingFieldsFormSchema>
+export type LeaseMissingFieldsForm = z.infer<
+	typeof leaseMissingFieldsFormSchema
+>

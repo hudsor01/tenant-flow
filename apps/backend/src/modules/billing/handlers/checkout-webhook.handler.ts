@@ -19,10 +19,14 @@ import {
 
 @Injectable()
 export class CheckoutWebhookHandler {
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
-
-	async handleCheckoutCompleted(session: Stripe.Checkout.Session): Promise<void> {
+	async handleCheckoutCompleted(
+		session: Stripe.Checkout.Session
+	): Promise<void> {
 		try {
 			this.logger.log('Checkout session completed', {
 				sessionId: session.id,
@@ -57,16 +61,19 @@ export class CheckoutWebhookHandler {
 				throw new Error('Checkout session not synced - retry')
 			}
 
-			const stripeCustomerId = typeof session.customer === 'string'
-				? session.customer
-				: session.customer?.id
+			const stripeCustomerId =
+				typeof session.customer === 'string'
+					? session.customer
+					: session.customer?.id
 
 			if (!stripeCustomerId) {
-				this.logger.error('No customer ID in checkout session', { sessionId: session.id })
+				this.logger.error('No customer ID in checkout session', {
+					sessionId: session.id
+				})
 				return
 			}
 
-			const { data: stripeCustomer, error: customerError} = (await stripeClient
+			const { data: stripeCustomer, error: customerError } = (await stripeClient
 				.schema('stripe')
 				.from('customers')
 				.select('id, email, name')
@@ -124,20 +131,22 @@ export class CheckoutWebhookHandler {
 				return
 			}
 
-			const customerName = stripeCustomer.name || customerEmail.split('@')[0] || 'Owner'
+			const customerName =
+				stripeCustomer.name || customerEmail.split('@')[0] || 'Owner'
 
-			const { data: authUser, error: authError } = await client.auth.admin.createUser({
-				email: customerEmail.toLowerCase(),
-				email_confirm: true,
-				user_metadata: {
-					full_name: customerName,
-					stripe_customer_id: stripeCustomerId,
-					onboarding_source: 'stripe_checkout'
-				},
-				app_metadata: {
-					user_type: 'OWNER'
-				}
-			})
+			const { data: authUser, error: authError } =
+				await client.auth.admin.createUser({
+					email: customerEmail.toLowerCase(),
+					email_confirm: true,
+					user_metadata: {
+						full_name: customerName,
+						stripe_customer_id: stripeCustomerId,
+						onboarding_source: 'stripe_checkout'
+					},
+					app_metadata: {
+						user_type: 'OWNER'
+					}
+				})
 
 			if (authError || !authUser.user) {
 				this.logger.error('Failed to create Supabase auth user', {
@@ -154,20 +163,18 @@ export class CheckoutWebhookHandler {
 			})
 
 			// Idempotent upsert - handles webhook retries safely
-			const { error: usersError } = await client
-				.from('users')
-				.upsert(
-					{
-						id: authUser.user.id,
-						email: customerEmail.toLowerCase(),
-						full_name: customerName,
-						user_type: 'OWNER',
-						stripe_customer_id: stripeCustomerId,
-						status: 'active',
-						created_at: new Date().toISOString()
-					},
-					{ onConflict: 'email', ignoreDuplicates: true }
-				)
+			const { error: usersError } = await client.from('users').upsert(
+				{
+					id: authUser.user.id,
+					email: customerEmail.toLowerCase(),
+					full_name: customerName,
+					user_type: 'OWNER',
+					stripe_customer_id: stripeCustomerId,
+					status: 'active',
+					created_at: new Date().toISOString()
+				},
+				{ onConflict: 'email', ignoreDuplicates: true }
+			)
 
 			if (usersError) {
 				this.logger.error('Failed to upsert users table row', {
@@ -186,9 +193,10 @@ export class CheckoutWebhookHandler {
 				sessionId: session.id
 			})
 
-			const stripeSubscriptionId = typeof session.subscription === 'string'
-				? session.subscription
-				: session.subscription?.id
+			const stripeSubscriptionId =
+				typeof session.subscription === 'string'
+					? session.subscription
+					: session.subscription?.id
 
 			if (stripeSubscriptionId) {
 				const { data: subscription } = (await stripeClient
@@ -208,7 +216,9 @@ export class CheckoutWebhookHandler {
 						status: subscription.status
 					})
 				} else {
-					this.logger.warn('Subscription not synced yet', { stripeSubscriptionId })
+					this.logger.warn('Subscription not synced yet', {
+						stripeSubscriptionId
+					})
 				}
 			}
 		} catch (error) {

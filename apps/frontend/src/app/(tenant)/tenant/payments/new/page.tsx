@@ -22,16 +22,14 @@ import {
 } from '#components/ui/select'
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
-import {
-	AlertTriangle,
-	CheckCircle2,
-	CreditCard,
-	Loader2
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCents } from '@repo/shared/lib/format'
 import { apiRequest } from '#lib/api-request'
-import { tenantPortalQueries, type PayRentRequest } from '#hooks/api/queries/tenant-portal-queries'
+import {
+	tenantPortalQueries,
+	type PayRentRequest
+} from '#hooks/api/queries/tenant-portal-queries'
 
 interface PaymentMethod {
 	id: string
@@ -61,7 +59,9 @@ export default function PayRentPage() {
 	const { data: methodsData, isLoading: isLoadingMethods } = useQuery({
 		queryKey: ['payment-methods'],
 		queryFn: async () =>
-			apiRequest<{ methods: PaymentMethod[] }>('/api/v1/stripe/tenant-payment-methods')
+			apiRequest<{ methods: PaymentMethod[] }>(
+				'/api/v1/stripe/tenant-payment-methods'
+			)
 	})
 
 	// Pay rent mutation
@@ -76,7 +76,7 @@ export default function PayRentPage() {
 			queryClient.invalidateQueries({ queryKey: tenantPortalQueries.all() })
 			router.push('/tenant/payments/history')
 		},
-		onError: (error) => {
+		onError: error => {
 			toast.error(error instanceof Error ? error.message : 'Payment failed')
 		}
 	})
@@ -121,7 +121,8 @@ export default function PayRentPage() {
 							Unable to Load Payment Details
 						</CardTitle>
 						<CardDescription>
-							There was an error loading your payment information. Please try again later.
+							There was an error loading your payment information. Please try
+							again later.
 						</CardDescription>
 					</CardHeader>
 				</Card>
@@ -144,7 +145,10 @@ export default function PayRentPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardFooter className="justify-center">
-						<Button variant="outline" onClick={() => router.push('/tenant/payments/history')}>
+						<Button
+							variant="outline"
+							onClick={() => router.push('/tenant/payments/history')}
+						>
 							View Payment History
 						</Button>
 					</CardFooter>
@@ -166,16 +170,23 @@ export default function PayRentPage() {
 					{/* Payment Breakdown */}
 					<div className="rounded-lg border p-4 space-y-3">
 						<h3 className="font-semibold">Payment Breakdown</h3>
-						{amountDue?.breakdown.map((item) => (
-							<div key={item.description} className="flex justify-between text-sm">
-								<span className="text-muted-foreground">{item.description}</span>
+						{amountDue?.breakdown.map(item => (
+							<div
+								key={item.description}
+								className="flex justify-between text-sm"
+							>
+								<span className="text-muted-foreground">
+									{item.description}
+								</span>
 								<span>{formatCents(item.amount_cents)}</span>
 							</div>
 						))}
 						<Separator />
 						<div className="flex justify-between font-semibold">
 							<span>Total Due</span>
-							<span className="text-lg">{formatCents(amountDue?.total_due_cents ?? 0)}</span>
+							<span className="text-lg">
+								{formatCents(amountDue?.total_due_cents ?? 0)}
+							</span>
 						</div>
 					</div>
 
@@ -184,10 +195,13 @@ export default function PayRentPage() {
 						<div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
 							<div className="flex items-center gap-2 text-warning">
 								<AlertTriangle className="size-4" />
-								<span className="font-medium">Payment is {amountDue.days_late} days late</span>
+								<span className="font-medium">
+									Payment is {amountDue.days_late} days late
+								</span>
 							</div>
 							<p className="mt-1 text-sm text-warning">
-								A late fee of {formatCents(amountDue.late_fee_cents)} has been added to your payment.
+								A late fee of {formatCents(amountDue.late_fee_cents)} has been
+								added to your payment.
 							</p>
 						</div>
 					)}
@@ -200,13 +214,13 @@ export default function PayRentPage() {
 						) : paymentMethods.length === 0 ? (
 							<div className="rounded-lg border border-dashed p-4 text-center">
 								<CreditCard className="mx-auto size-8 text-muted-foreground" />
-								<p className="mt-2 text-muted">
-									No payment methods on file
-								</p>
+								<p className="mt-2 text-muted">No payment methods on file</p>
 								<Button
 									variant="link"
 									size="sm"
-									onClick={() => router.push('/tenant/settings/payment-methods')}
+									onClick={() =>
+										router.push('/tenant/settings/payment-methods')
+									}
 								>
 									Add a payment method
 								</Button>
@@ -217,7 +231,7 @@ export default function PayRentPage() {
 									<SelectValue placeholder="Select a payment method" />
 								</SelectTrigger>
 								<SelectContent>
-									{paymentMethods.map((method) => (
+									{paymentMethods.map(method => (
 										<SelectItem key={method.id} value={method.id}>
 											<div className="flex items-center gap-2">
 												<CreditCard className="size-4" />
@@ -253,7 +267,8 @@ export default function PayRentPage() {
 						)}
 					</Button>
 					<p className="text-xs text-center text-muted-foreground">
-						By clicking Pay, you authorize this payment to your property manager.
+						By clicking Pay, you authorize this payment to your property
+						manager.
 					</p>
 				</CardFooter>
 			</Card>

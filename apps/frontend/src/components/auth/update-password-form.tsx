@@ -18,7 +18,7 @@ import {
 } from '#components/ui/input-group'
 import { cn } from '#lib/utils'
 import { cardVariants } from '#components/ui/card'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import {
 	AlertTriangle,
@@ -72,7 +72,10 @@ export function UpdatePasswordForm({
 
 	return (
 		<div
-			className={cn('form-container max-w-md mx-auto animate-fade-in', className)}
+			className={cn(
+				'form-container max-w-md mx-auto animate-fade-in',
+				className
+			)}
 			{...props}
 		>
 			<Card
@@ -85,8 +88,8 @@ export function UpdatePasswordForm({
 					<div className="mx-auto bg-[color-mix(in oklch,var(--color-primary) 10%,transparent)] p-[var(--spacing-3)] rounded-full w-fit">
 						<Lock className="size-[var(--spacing-6)] text-primary" />
 					</div>
-				<div className="space-y-[var(--spacing-2)]">
-					<CardTitle className="text-section-title">
+					<div className="space-y-[var(--spacing-2)]">
+						<CardTitle className="text-section-title">
 							Reset Your Password
 						</CardTitle>
 						<CardDescription className="leading-relaxed">
@@ -95,7 +98,10 @@ export function UpdatePasswordForm({
 					</div>
 				</CardHeader>
 				<CardContent className="space-y-[var(--spacing-6)] animate-slide-in-bottom">
-					<form onSubmit={handleUpdatePassword} className="space-y-[var(--spacing-6)]">
+					<form
+						onSubmit={handleUpdatePassword}
+						className="space-y-[var(--spacing-6)]"
+					>
 						<div className="space-y-[var(--spacing-4)]">
 							{/* New Password Field with PasswordStrength */}
 							<Field>
@@ -151,18 +157,22 @@ export function UpdatePasswordForm({
 										</button>
 									</InputGroupAddon>
 								</InputGroup>
-								{confirmPassword.length > 0 && password.length > 0 && password !== confirmPassword && (
-						<p className="text-xs text-destructive flex items-center gap-[var(--spacing-1)]">
-										<AlertTriangle className="size-[var(--spacing-3)]" />
-										Passwords do not match
-									</p>
-								)}
-								{confirmPassword.length > 0 && password.length > 0 && password === confirmPassword && (
-						<p className="text-xs text-primary flex items-center gap-[var(--spacing-1)]">
-										<CheckCircle2 className="size-[var(--spacing-3)]" />
-										Passwords match
-									</p>
-								)}
+								{confirmPassword.length > 0 &&
+									password.length > 0 &&
+									password !== confirmPassword && (
+										<p className="text-xs text-destructive flex items-center gap-[var(--spacing-1)]">
+											<AlertTriangle className="size-[var(--spacing-3)]" />
+											Passwords do not match
+										</p>
+									)}
+								{confirmPassword.length > 0 &&
+									password.length > 0 &&
+									password === confirmPassword && (
+										<p className="text-xs text-primary flex items-center gap-[var(--spacing-1)]">
+											<CheckCircle2 className="size-[var(--spacing-3)]" />
+											Passwords match
+										</p>
+									)}
 							</Field>
 						</div>
 
@@ -206,8 +216,8 @@ export function UpdatePasswordForm({
 						</Button>
 					</form>
 
-				<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
-					<p className="text-caption">
+					<div className="text-center pt-[var(--spacing-4)] border-t border-(--color-border)">
+						<p className="text-caption">
 							Your password will be encrypted and stored securely
 						</p>
 					</div>

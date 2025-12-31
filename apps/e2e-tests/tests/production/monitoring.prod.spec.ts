@@ -13,7 +13,8 @@
 import { test, expect } from '@playwright/test'
 
 const PROD_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
+const API_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.tenantflow.app'
 
 test.describe('Production Health Checks', () => {
 	test('frontend health check should respond', async ({ request }) => {
@@ -127,7 +128,8 @@ test.describe('Performance Monitoring', () => {
 
 		// Calculate metrics
 		const pageLoadTime = timing.loadEventEnd - timing.navigationStart
-		const domContentLoaded = timing.domContentLoadedEventEnd - timing.navigationStart
+		const domContentLoaded =
+			timing.domContentLoadedEventEnd - timing.navigationStart
 		const timeToInteractive = timing.domInteractive - timing.navigationStart
 
 		// Performance assertions (reasonable thresholds for production)
@@ -178,7 +180,9 @@ test.describe('SSL/TLS Security', () => {
 
 test.describe('Error Handling', () => {
 	test('404 page should render correctly', async ({ page }) => {
-		const response = await page.goto(`${PROD_URL}/this-page-does-not-exist-12345`)
+		const response = await page.goto(
+			`${PROD_URL}/this-page-does-not-exist-12345`
+		)
 
 		expect(response?.status()).toBe(404)
 
@@ -189,7 +193,9 @@ test.describe('Error Handling', () => {
 	})
 
 	test('API returns proper error format', async ({ request }) => {
-		const response = await request.get(`${API_URL}/api/v1/invalid-endpoint-12345`)
+		const response = await request.get(
+			`${API_URL}/api/v1/invalid-endpoint-12345`
+		)
 
 		expect(response.status()).toBe(404)
 
@@ -234,9 +240,9 @@ test.describe('Rate Limiting', () => {
 		const responses = await Promise.all(requests)
 
 		// At least some should be rate-limited (429) or all should succeed (200)
-		const statusCodes = responses.map((r) => r.status())
-		const hasRateLimiting = statusCodes.some((code) => code === 429)
-		const allSuccessful = statusCodes.every((code) => code === 200)
+		const statusCodes = responses.map(r => r.status())
+		const hasRateLimiting = statusCodes.some(code => code === 429)
+		const allSuccessful = statusCodes.every(code => code === 200)
 
 		expect(hasRateLimiting || allSuccessful).toBeTruthy()
 	})
@@ -258,7 +264,7 @@ test.describe('Static Asset Delivery', () => {
 		// Check if custom fonts are loaded
 		const fontFaces = await page.evaluate<string[]>(() => {
 			const fonts = Array.from(document.fonts as unknown as Iterable<FontFace>)
-			return fonts.map((font) => font.family)
+			return fonts.map(font => font.family)
 		})
 
 		expect(fontFaces.length).toBeGreaterThan(0)
@@ -269,7 +275,7 @@ test.describe('Browser Console Errors', () => {
 	test('homepage should have no console errors', async ({ page }) => {
 		const consoleErrors: string[] = []
 
-		page.on('console', (msg) => {
+		page.on('console', msg => {
 			if (msg.type() === 'error') {
 				consoleErrors.push(msg.text())
 			}
@@ -280,7 +286,7 @@ test.describe('Browser Console Errors', () => {
 
 		// Allow some third-party errors but flag unexpected ones
 		const criticalErrors = consoleErrors.filter(
-			(err) =>
+			err =>
 				!err.includes('third-party') &&
 				!err.includes('analytics') &&
 				!err.includes('gtag')

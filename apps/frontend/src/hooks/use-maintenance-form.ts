@@ -5,7 +5,10 @@ import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest, MaintenancePriority } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenancePriority
+} from '@repo/shared/types/core'
 import type { MaintenanceUpdateMutationVariables } from '#hooks/api/mutations/maintenance-mutations'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })
@@ -27,8 +30,18 @@ type CreateMutationVariables = MaintenanceRequestCreate
 export interface UseMaintenanceFormOptions {
 	mode: 'create' | 'edit'
 	defaultValues?: Partial<MaintenanceFormData>
-	createMutation?: UseMutationResult<MaintenanceRequest, Error, CreateMutationVariables, unknown>
-	updateMutation?: UseMutationResult<MaintenanceRequest, Error, MaintenanceUpdateMutationVariables, unknown>
+	createMutation?: UseMutationResult<
+		MaintenanceRequest,
+		Error,
+		CreateMutationVariables,
+		unknown
+	>
+	updateMutation?: UseMutationResult<
+		MaintenanceRequest,
+		Error,
+		MaintenanceUpdateMutationVariables,
+		unknown
+	>
 	requestId?: string
 	version?: number
 	onSuccess?: (data: MaintenanceRequest) => void

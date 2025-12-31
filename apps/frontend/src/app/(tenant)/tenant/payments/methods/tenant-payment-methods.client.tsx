@@ -208,7 +208,8 @@ export function TenantPaymentMethods() {
 							size="sm"
 							onClick={() =>
 								setDefault.mutate(method.id, {
-									onSuccess: () => toast.success('Default payment method updated'),
+									onSuccess: () =>
+										toast.success('Default payment method updated'),
 									onError: () => toast.error('Failed to set default method')
 								})
 							}
@@ -247,7 +248,8 @@ export function TenantPaymentMethods() {
 										<AlertDialogAction
 											onClick={() =>
 												deleteMethod.mutate(method.id, {
-													onSuccess: () => toast.success('Payment method removed'),
+													onSuccess: () =>
+														toast.success('Payment method removed'),
 													onError: () =>
 														toast.error('Failed to remove payment method')
 												})

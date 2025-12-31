@@ -239,17 +239,11 @@ export class AppConfigService {
 	}
 
 	getRedisHost(): string | undefined {
-		return (
-			this.get('REDIS_HOST') ||
-			this.get('REDISHOST')
-		)
+		return this.get('REDIS_HOST') || this.get('REDISHOST')
 	}
 
 	getRedisPort(): string | undefined {
-		return (
-			this.get('REDIS_PORT') ||
-			this.get('REDISPORT')
-		)
+		return this.get('REDIS_PORT') || this.get('REDISPORT')
 	}
 
 	getRedisUsername(): string | undefined {
@@ -257,10 +251,7 @@ export class AppConfigService {
 	}
 
 	getRedisPassword(): string | undefined {
-		return (
-			this.get('REDIS_PASSWORD') ||
-			this.get('REDISPASSWORD')
-		)
+		return this.get('REDIS_PASSWORD') || this.get('REDISPASSWORD')
 	}
 
 	getRedisDb(): string | undefined {

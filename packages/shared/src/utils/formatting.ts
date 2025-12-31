@@ -1,9 +1,15 @@
 /**
  * Formatting utilities
- * Re-exports commonly used formatting functions
+ * Commonly used formatting functions
  */
 
-export { formatCurrency, formatCurrencyChange } from './currency'
+import {
+	formatCurrency as formatCurrencyValue,
+	formatCurrencyChange as formatCurrencyChangeValue
+} from './currency'
+
+export const formatCurrency = formatCurrencyValue
+export const formatCurrencyChange = formatCurrencyChangeValue
 
 /**
  * Simple date formatting for shared package usage

@@ -13,12 +13,7 @@ import {
 	useCreateIdentityVerificationSession,
 	useIdentityVerificationStatus
 } from '#hooks/api/use-identity-verification'
-import {
-	AlertTriangle,
-	CheckCircle,
-	ShieldCheck,
-	XCircle
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle, ShieldCheck, XCircle } from 'lucide-react'
 
 const logger = createLogger({ component: 'IdentityVerificationCard' })
 
@@ -45,7 +40,8 @@ const statusMap: Record<
 	},
 	requires_input: {
 		title: 'More information needed',
-		description: 'Stripe requires additional documents before completing verification.',
+		description:
+			'Stripe requires additional documents before completing verification.',
 		icon: AlertTriangle,
 		btnLabel: 'Resume verification'
 	},
@@ -69,7 +65,8 @@ const statusMap: Record<
 	},
 	redacted: {
 		title: 'Verification redacted',
-		description: 'Stripe redacted the session. Please begin a new verification attempt.',
+		description:
+			'Stripe redacted the session. Please begin a new verification attempt.',
 		icon: AlertTriangle,
 		btnLabel: 'Start verification'
 	}
@@ -100,9 +97,7 @@ export function IdentityVerificationCard() {
 				throw new Error('Stripe SDK failed to initialize')
 			}
 
-			const { error } = await stripe.verifyIdentity(
-				response.data.clientSecret
-			)
+			const { error } = await stripe.verifyIdentity(response.data.clientSecret)
 
 			if (error) {
 				throw error
@@ -117,8 +112,8 @@ export function IdentityVerificationCard() {
 				typeof error === 'string'
 					? error
 					: error instanceof Error
-					? error.message
-					: 'Unable to launch identity verification'
+						? error.message
+						: 'Unable to launch identity verification'
 			)
 		}
 	}, [sessionMutation])
@@ -127,7 +122,11 @@ export function IdentityVerificationCard() {
 		status === 'verified' || sessionMutation.isPending || statusQuery.isLoading
 
 	const iconColor =
-		status === 'verified' ? 'text-success' : status === 'requires_input' ? 'text-warning' : 'text-muted-foreground'
+		status === 'verified'
+			? 'text-success'
+			: status === 'requires_input'
+				? 'text-warning'
+				: 'text-muted-foreground'
 
 	return (
 		<CardLayout

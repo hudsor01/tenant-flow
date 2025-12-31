@@ -7,7 +7,10 @@ import { Skeleton } from '#components/ui/skeleton'
 import { cn } from '#lib/utils'
 import { useLeaseSignatureStatus } from '#hooks/api/use-lease'
 import type { SignatureStatus } from '#hooks/api/queries/lease-queries'
-import { LEASE_SIGNATURE_ERROR_MESSAGES, LEASE_SIGNATURE_ERROR_CODES } from '@repo/shared/constants/lease-signature-errors'
+import {
+	LEASE_SIGNATURE_ERROR_MESSAGES,
+	LEASE_SIGNATURE_ERROR_CODES
+} from '@repo/shared/constants/lease-signature-errors'
 
 interface LeaseSignatureStatusProps {
 	leaseId: string
@@ -32,11 +35,20 @@ export function LeaseSignatureStatus({
 
 	if (error) {
 		return (
-			<Card className={cn('border-destructive/50', className)} data-testid="signature-status-error">
+			<Card
+				className={cn('border-destructive/50', className)}
+				data-testid="signature-status-error"
+			>
 				<CardContent className="py-4">
 					<div className="flex items-center gap-2 text-destructive">
 						<AlertCircle className="h-4 w-4" />
-						<span className="text-sm">{LEASE_SIGNATURE_ERROR_MESSAGES[LEASE_SIGNATURE_ERROR_CODES.FRONTEND_LOAD_FAILED]}</span>
+						<span className="text-sm">
+							{
+								LEASE_SIGNATURE_ERROR_MESSAGES[
+									LEASE_SIGNATURE_ERROR_CODES.FRONTEND_LOAD_FAILED
+								]
+							}
+						</span>
 					</div>
 				</CardContent>
 			</Card>
@@ -48,7 +60,9 @@ export function LeaseSignatureStatus({
 	}
 
 	if (compact) {
-		return <CompactSignatureStatus status={status} className={className ?? ''} />
+		return (
+			<CompactSignatureStatus status={status} className={className ?? ''} />
+		)
 	}
 
 	return <FullSignatureStatus status={status} className={className ?? ''} />
@@ -148,9 +162,7 @@ function FullSignatureStatus({
 					<span className="text-muted">Overall Status</span>
 					<Badge
 						variant={status.both_signed ? 'default' : 'secondary'}
-						className={cn(
-							status.both_signed && 'bg-success hover:bg-success'
-						)}
+						className={cn(status.both_signed && 'bg-success hover:bg-success')}
 					>
 						{getStatusText()}
 					</Badge>
@@ -195,11 +207,12 @@ function SignatureBadge({
 	return (
 		<Badge
 			variant={signed ? 'default' : 'outline'}
-			className={cn(
-				'gap-1',
-				signed && 'bg-success hover:bg-success'
-			)}
-			title={signedAt ? `Signed on ${new Date(signedAt).toLocaleString()}` : undefined}
+			className={cn('gap-1', signed && 'bg-success hover:bg-success')}
+			title={
+				signedAt
+					? `Signed on ${new Date(signedAt).toLocaleString()}`
+					: undefined
+			}
 		>
 			{signed ? (
 				<CheckCircle2 className="h-3 w-3" />

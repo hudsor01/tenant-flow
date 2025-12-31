@@ -23,8 +23,10 @@ export interface TimeSeriesDataPoint {
  */
 @Injectable()
 export class ReportsService {
-
-	constructor(private readonly dashboardAnalytics: DashboardAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardAnalytics: DashboardAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get metric trend comparing current period to previous period
@@ -104,14 +106,19 @@ export class ReportsService {
 		user_id: string,
 		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
-		const trends = await this.dashboardAnalytics.getOccupancyTrends(user_id, undefined, 2)
+		const trends = await this.dashboardAnalytics.getOccupancyTrends(
+			user_id,
+			undefined,
+			2
+		)
 
 		if (trends.length === 0) {
 			return this.emptyTrend()
 		}
 
 		const current = trends[0]?.occupancy_rate ?? 0
-		const previous = trends.length > 1 ? trends[1]?.occupancy_rate ?? null : null
+		const previous =
+			trends.length > 1 ? (trends[1]?.occupancy_rate ?? null) : null
 
 		return this.calculateTrend(current, previous)
 	}
@@ -134,14 +141,18 @@ export class ReportsService {
 		user_id: string,
 		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
-		const trends = await this.dashboardAnalytics.getRevenueTrends(user_id, undefined, 2)
+		const trends = await this.dashboardAnalytics.getRevenueTrends(
+			user_id,
+			undefined,
+			2
+		)
 
 		if (trends.length === 0) {
 			return this.emptyTrend()
 		}
 
 		const current = trends[0]?.revenue ?? 0
-		const previous = trends.length > 1 ? trends[1]?.revenue ?? null : null
+		const previous = trends.length > 1 ? (trends[1]?.revenue ?? null) : null
 
 		return this.calculateTrend(current, previous)
 	}
@@ -151,14 +162,15 @@ export class ReportsService {
 		_period: PeriodTypeValue
 	): Promise<MetricTrend> {
 		const stats = await this.dashboardAnalytics.getDashboardStats(user_id)
-		const analytics = await this.dashboardAnalytics.getMaintenanceAnalytics(user_id)
+		const analytics =
+			await this.dashboardAnalytics.getMaintenanceAnalytics(user_id)
 
 		const current = stats.maintenance?.open ?? 0
 
 		// Use trends over time if available for previous value
 		const trendsOverTime = analytics.trendsOverTime ?? []
 		const previous =
-			trendsOverTime.length > 1 ? trendsOverTime[1]?.completed ?? null : null
+			trendsOverTime.length > 1 ? (trendsOverTime[1]?.completed ?? null) : null
 
 		return this.calculateTrend(current, previous)
 	}
@@ -218,7 +230,8 @@ export class ReportsService {
 		user_id: string,
 		_months: number
 	): Promise<TimeSeriesDataPoint[]> {
-		const analytics = await this.dashboardAnalytics.getMaintenanceAnalytics(user_id)
+		const analytics =
+			await this.dashboardAnalytics.getMaintenanceAnalytics(user_id)
 
 		const trendsOverTime = analytics.trendsOverTime ?? []
 
@@ -228,7 +241,10 @@ export class ReportsService {
 		}))
 	}
 
-	private calculateTrend(current: number, previous: number | null): MetricTrend {
+	private calculateTrend(
+		current: number,
+		previous: number | null
+	): MetricTrend {
 		if (previous === null || previous === 0) {
 			return {
 				current,

@@ -17,14 +17,21 @@ export default function EditMaintenanceModal({
 	params: Promise<{ id: string }>
 }) {
 	const { id } = use(params)
-	const { data: request, isLoading, error } = useQuery(maintenanceQueries.detail(id))
+	const {
+		data: request,
+		isLoading,
+		error
+	} = useQuery(maintenanceQueries.detail(id))
 
 	if (error) {
 		notFound()
 	}
 
 	return (
-		<RouteModal intent="edit" className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal
+			intent="edit"
+			className="max-w-3xl max-h-[90vh] overflow-y-auto"
+		>
 			{isLoading ? (
 				<Skeleton className="h-96 w-full rounded-xl" />
 			) : request ? (

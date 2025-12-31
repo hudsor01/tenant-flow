@@ -21,19 +21,17 @@ export interface CrudMutationsConfig<TCreateInput, TUpdateInput, TEntity> {
 	entity: TEntity
 }
 
-
-export function createCrudMutations<
-	TCreateInput,
-	TUpdateInput,
-	TEntity
->({
+export function createCrudMutations<TCreateInput, TUpdateInput, TEntity>({
 	entityName,
 	createEndpoint,
 	updateEndpoint,
 	deleteEndpoint,
 	listQueryKey,
 	detailQueryKey
-}: Omit<CrudMutationsConfig<TCreateInput, TUpdateInput, TEntity>, 'createInput' | 'updateInput' | 'entity'>) {
+}: Omit<
+	CrudMutationsConfig<TCreateInput, TUpdateInput, TEntity>,
+	'createInput' | 'updateInput' | 'entity'
+>) {
 	/**
 	 * Create entity mutation
 	 */
@@ -46,11 +44,11 @@ export function createCrudMutations<
 					method: 'POST',
 					body: JSON.stringify(data)
 				}),
-			onSuccess: (_newEntity) => {
+			onSuccess: _newEntity => {
 				queryClient.invalidateQueries({ queryKey: listQueryKey() })
 				toast.success(`${entityName} created successfully`)
 			},
-			onError: (error) => {
+			onError: error => {
 				handleMutationError(error, `Create ${entityName.toLowerCase()}`)
 			}
 		})
@@ -73,7 +71,7 @@ export function createCrudMutations<
 				queryClient.invalidateQueries({ queryKey: listQueryKey() })
 				toast.success(`${entityName} updated successfully`)
 			},
-			onError: (error) => {
+			onError: error => {
 				handleMutationError(error, `Update ${entityName.toLowerCase()}`)
 			}
 		})
@@ -95,7 +93,7 @@ export function createCrudMutations<
 				queryClient.invalidateQueries({ queryKey: listQueryKey() })
 				toast.success(`${entityName} deleted successfully`)
 			},
-			onError: (error) => {
+			onError: error => {
 				handleMutationError(error, `Delete ${entityName.toLowerCase()}`)
 			}
 		})

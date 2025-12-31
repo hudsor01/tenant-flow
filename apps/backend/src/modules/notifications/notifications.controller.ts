@@ -15,6 +15,15 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
@@ -24,6 +33,8 @@ import type { AuthenticatedRequest } from '../../shared/types/express-request.ty
  * No service layer wrapper - direct database operations
  * Uses request-scoped CurrentUserProvider for auth (eliminates duplicate getUser calls)
  */
+@ApiTags('Notifications')
+@ApiBearerAuth('supabase-auth')
 @Controller('notifications')
 export class NotificationsController {
 	constructor(private readonly supabase: SupabaseService) {}
@@ -41,6 +52,12 @@ export class NotificationsController {
 		return this.supabase.getUserClient(token)
 	}
 
+	@ApiOperation({ summary: 'Get notifications', description: 'Get paginated list of notifications for current user' })
+	@ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Results per page (max 100)' })
+	@ApiQuery({ name: 'unreadOnly', required: false, type: Boolean, description: 'Filter to unread only' })
+	@ApiResponse({ status: 200, description: 'Notifications retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async getNotifications(
 		@Req() req: AuthenticatedRequest,
@@ -55,7 +72,7 @@ export class NotificationsController {
 		const pageSize = Math.min(Math.max(limit, 1), 100)
 		const from = (currentPage - 1) * pageSize
 		const to = from + pageSize - 1
-		
+
 		const client = this.getUserClientFromRequest(req)
 		let query = client
 			.from('notifications')
@@ -78,6 +95,9 @@ export class NotificationsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Mark all as read', description: 'Mark all notifications as read for current user' })
+	@ApiResponse({ status: 200, description: 'Notifications marked as read' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Put('read-all')
 	async markAllRead(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user?.id
@@ -95,6 +115,11 @@ export class NotificationsController {
 		return { updated: data?.length ?? 0 }
 	}
 
+	@ApiOperation({ summary: 'Mark selected as read', description: 'Mark specific notifications as read' })
+	@ApiBody({ schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } }, required: ['ids'] } })
+	@ApiResponse({ status: 200, description: 'Notifications marked as read' })
+	@ApiResponse({ status: 400, description: 'ids array is required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Put('bulk-read')
 	async markSelectedRead(
 		@Req() req: AuthenticatedRequest,
@@ -123,6 +148,11 @@ export class NotificationsController {
 		return { updated: data?.length ?? 0 }
 	}
 
+	@ApiOperation({ summary: 'Create notification', description: 'Create a new notification' })
+	@ApiBody({ schema: { type: 'object', properties: { user_id: { type: 'string' }, title: { type: 'string' }, content: { type: 'string' }, type: { type: 'string', enum: ['maintenance', 'lease', 'payment', 'system'] }, priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] }, actionUrl: { type: 'string' } }, required: ['user_id', 'title', 'content', 'type', 'priority'] } })
+	@ApiResponse({ status: 201, description: 'Notification created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post()
 	async createNotification(
 		@Req() req: AuthenticatedRequest,
@@ -154,6 +184,11 @@ export class NotificationsController {
 		return { notification: data }
 	}
 
+	@ApiOperation({ summary: 'Mark as read', description: 'Mark a specific notification as read' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Notification ID' })
+	@ApiResponse({ status: 200, description: 'Notification marked as read' })
+	@ApiResponse({ status: 400, description: 'Invalid notification ID' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Put(':id/read')
 	async markAsRead(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -161,7 +196,7 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		
+
 		const client = this.getUserClientFromRequest(req)
 		const { error } = await client
 			.from('notifications')
@@ -173,6 +208,11 @@ export class NotificationsController {
 		return { success: true }
 	}
 
+	@ApiOperation({ summary: 'Delete notification', description: 'Delete a specific notification' })
+	@ApiParam({ name: 'id', type: 'string', format: 'uuid', description: 'Notification ID' })
+	@ApiResponse({ status: 200, description: 'Notification deleted successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid notification ID' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Delete(':id')
 	async deleteNotification(
 		@Param('id', ParseUUIDPipe) id: string,
@@ -180,7 +220,7 @@ export class NotificationsController {
 	) {
 		const user_id = req.user?.id
 		if (!user_id) throw new UnauthorizedException()
-		
+
 		const client = this.getUserClientFromRequest(req)
 		const { error } = await client
 			.from('notifications')
@@ -192,6 +232,11 @@ export class NotificationsController {
 		return { success: true }
 	}
 
+	@ApiOperation({ summary: 'Create maintenance notification', description: 'Create a notification for maintenance request update' })
+	@ApiBody({ schema: { type: 'object', properties: { user_id: { type: 'string' }, maintenanceId: { type: 'string' }, propertyName: { type: 'string' }, unit_number: { type: 'string' } }, required: ['user_id', 'maintenanceId', 'propertyName', 'unit_number'] } })
+	@ApiResponse({ status: 201, description: 'Maintenance notification created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('maintenance')
 	async createMaintenanceNotification(
 		@Req() req: AuthenticatedRequest,
@@ -223,6 +268,10 @@ export class NotificationsController {
 		return { notification: data }
 	}
 
+	@ApiOperation({ summary: 'Get priority info', description: 'Get color and label information for a priority level' })
+	@ApiParam({ name: 'priority', type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'EMERGENCY'], description: 'Priority level' })
+	@ApiResponse({ status: 200, description: 'Priority info retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid priority' })
 	@Get('priority-info/:priority')
 	async getPriorityInfo(@Param('priority') priority: string) {
 		// Use semantic color references from design system

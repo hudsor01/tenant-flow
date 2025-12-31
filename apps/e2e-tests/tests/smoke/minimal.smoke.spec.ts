@@ -26,8 +26,13 @@ test.describe('Minimal Smoke Test', () => {
 
 		if (currentURL.includes('/login')) {
 			// Take screenshot for debugging
-			await page.screenshot({ path: '/tmp/smoke-auth-failed.png', fullPage: true })
-			throw new Error(`Authentication failed - redirected to login. StorageState may not be working.`)
+			await page.screenshot({
+				path: '/tmp/smoke-auth-failed.png',
+				fullPage: true
+			})
+			throw new Error(
+				`Authentication failed - redirected to login. StorageState may not be working.`
+			)
 		}
 
 		// Verify we're on the dashboard

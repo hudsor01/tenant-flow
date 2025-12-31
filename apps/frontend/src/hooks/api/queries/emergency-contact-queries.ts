@@ -53,7 +53,10 @@ export const emergencyContactQueries = {
 	contact: (tenant_id: string) =>
 		queryOptions({
 			queryKey: [...emergencyContactQueries.all(), tenant_id],
-			queryFn: () => apiRequest<EmergencyContact | null>(`/api/v1/tenants/${tenant_id}/emergency-contact`),
+			queryFn: () =>
+				apiRequest<EmergencyContact | null>(
+					`/api/v1/tenants/${tenant_id}/emergency-contact`
+				),
 			enabled: !!tenant_id,
 			...QUERY_CACHE_TIMES.DETAIL,
 			retry: 2

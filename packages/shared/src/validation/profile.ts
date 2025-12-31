@@ -1,3 +1,10 @@
+/**
+ * Profile Validation Schemas
+ *
+ * Zod 4 Best Practices:
+ * - Use top-level validators: z.email(), z.uuid(), z.url()
+ */
+
 import { z } from 'zod'
 
 export const updateProfileSchema = z.object({
@@ -11,7 +18,7 @@ export const updateProfileSchema = z.object({
 		.trim()
 		.min(1, 'Last name is required')
 		.max(50, 'Last name must be 50 characters or less'),
-	email: z.string().email('Valid email address is required'),
+	email: z.email({ message: 'Valid email address is required' }),
 	phone: z
 		.string()
 		.trim()

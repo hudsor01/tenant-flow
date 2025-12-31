@@ -1,6 +1,6 @@
 /**
- * Optimized Next.js 15 specific ESLint configuration for a Monorepo
- * ESLint v9 flat config format with React 19.1.1 optimization
+ * Optimized Next.js 16 specific ESLint configuration for a Monorepo
+ * ESLint v9 flat config format with React 19.2 optimization
  * Tailored for Turborepo with NestJS/Express backend, Stripe, and Supabase.
  */
 
@@ -174,7 +174,7 @@ export const nextJsConfig = [
 		files: [
 			'**/app/api/**/*.ts',
 			'**/app/**/route.ts',
-			'**/middleware.ts',
+			'**/proxy.ts',
 			'**/instrumentation.ts'
 		],
 		rules: {

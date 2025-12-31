@@ -36,9 +36,7 @@ export function FaqsAccordion({
 			{(title || description || category) && (
 				<div className="text-center mb-12">
 					{category && (
-						<h2 className="typography-h2 mb-8 text-foreground">
-							{category}
-						</h2>
+						<h2 className="typography-h2 mb-8 text-foreground">{category}</h2>
 					)}
 					{title && !category && (
 						<h2 className="text-foreground mb-4 typography-h2 lg:text-4xl">
@@ -92,8 +90,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 				</h3>
 				<ChevronDown
 					className={cn(
-						"size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]",
-						isOpen && "rotate-180"
+						'size-5 text-muted-foreground shrink-0 transition-transform [transition-duration:var(--duration-fast)]',
+						isOpen && 'rotate-180'
 					)}
 				/>
 			</button>
@@ -101,8 +99,8 @@ function FaqItem({ faq, isOpen, onToggle }: FaqItemProps) {
 			<div
 				ref={contentRef}
 				className={cn(
-					"grid transition-all [transition-duration:var(--duration-normal)] ease-in-out",
-					isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+					'grid transition-all [transition-duration:var(--duration-normal)] ease-in-out',
+					isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
 				)}
 			>
 				<div className="overflow-hidden">

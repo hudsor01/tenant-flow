@@ -4,7 +4,6 @@ dockerfilePath = "./Dockerfile"
 watchPatterns = [
   "apps/backend/**",
   "packages/shared/**",
-  "packages/database/**",
   "packages/**",
   "package.json",
   "pnpm-lock.yaml",

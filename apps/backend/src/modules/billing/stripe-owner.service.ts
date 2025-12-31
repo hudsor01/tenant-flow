@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type Stripe from 'stripe'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
@@ -53,8 +58,11 @@ export class StripeOwnerService {
 		}
 	}
 
-	constructor(private readonly stripeClientService: StripeClientService,
-		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly stripeClientService: StripeClientService,
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -102,7 +110,8 @@ export class StripeOwnerService {
 		}
 
 		const resolvedEmail = params.email ?? owner.email ?? undefined
-		const resolvedName = params.name ?? owner.full_name ?? this.buildOwnerName(owner)
+		const resolvedName =
+			params.name ?? owner.full_name ?? this.buildOwnerName(owner)
 
 		// Validate that an email is present before creating Stripe customer
 		if (!resolvedEmail) {
@@ -192,7 +201,6 @@ export class StripeOwnerService {
 		return { customer, status: 'created' }
 	}
 
-
 	/**
 	 * Create a PaymentIntent for rent payment with destination charges
 	 * Routes payment to property owner's Stripe Connect account with platform application fee
@@ -209,7 +217,8 @@ export class StripeOwnerService {
 		// Get lease with property owner's Connect account
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select(`
+			.select(
+				`
 				id,
 				rent_amount,
 				rent_currency,
@@ -220,7 +229,8 @@ export class StripeOwnerService {
 					default_platform_fee_percent,
 					charges_enabled
 				)
-			`)
+			`
+			)
 			.eq('id', leaseId)
 			.single()
 
@@ -232,11 +242,12 @@ export class StripeOwnerService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		const stripeConnectedAccount = lease.stripe_connected_accounts as unknown as {
-			stripe_account_id: string | null
-			default_platform_fee_percent: number
-			charges_enabled: boolean
-		}
+		const stripeConnectedAccount =
+			lease.stripe_connected_accounts as unknown as {
+				stripe_account_id: string | null
+				default_platform_fee_percent: number
+				charges_enabled: boolean
+			}
 
 		// Validate property owner has completed Stripe Connect onboarding
 		if (!stripeConnectedAccount.stripe_account_id) {
@@ -261,7 +272,8 @@ export class StripeOwnerService {
 		}
 
 		// Calculate application fee (platform revenue) - default 1%
-		const platformFeePercent = stripeConnectedAccount.default_platform_fee_percent ?? 1.0
+		const platformFeePercent =
+			stripeConnectedAccount.default_platform_fee_percent ?? 1.0
 		const applicationFeeAmount = Math.round(
 			lease.rent_amount * (platformFeePercent / 100)
 		)
@@ -311,23 +323,26 @@ export class StripeOwnerService {
 
 		// Record rent payment in database using idempotent RPC
 		// Note: upsert_rent_payment is service_role-only, not in public types
-		const { data: upsertResult, error: upsertError } = await (client.rpc as CallableFunction)(
-			'upsert_rent_payment',
-			{
-				p_lease_id: leaseId,
-				p_tenant_id: lease.primary_tenant_id,
-				p_amount: lease.rent_amount,
-				p_currency: lease.rent_currency || 'usd',
-				p_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
-				p_due_date: dueDateStr,
-				p_paid_date: paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
-				p_period_start: periodStartStr,
-				p_period_end: periodEndStr,
-				p_payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
-				p_stripe_payment_intent_id: paymentIntent.id,
-				p_application_fee_amount: applicationFeeAmount
-			}
-		) as { data: { id: string; was_inserted: boolean }[] | null; error: Error | null }
+		const { data: upsertResult, error: upsertError } = (await (
+			client.rpc as CallableFunction
+		)('upsert_rent_payment', {
+			p_lease_id: leaseId,
+			p_tenant_id: lease.primary_tenant_id,
+			p_amount: lease.rent_amount,
+			p_currency: lease.rent_currency || 'usd',
+			p_status: paymentIntent.status === 'succeeded' ? 'succeeded' : 'pending',
+			p_due_date: dueDateStr,
+			p_paid_date:
+				paymentIntent.status === 'succeeded' ? new Date().toISOString() : null,
+			p_period_start: periodStartStr,
+			p_period_end: periodEndStr,
+			p_payment_method_type: paymentIntent.payment_method_types?.[0] || 'card',
+			p_stripe_payment_intent_id: paymentIntent.id,
+			p_application_fee_amount: applicationFeeAmount
+		})) as {
+			data: { id: string; was_inserted: boolean }[] | null
+			error: Error | null
+		}
 
 		if (upsertError) {
 			this.logger.error('Failed to record rent payment in database', {

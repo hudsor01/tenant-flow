@@ -27,7 +27,12 @@ import { ServicesModule } from './services/services.module'
 @Global()
 @Module({
 	imports: [AuthModule, ServicesModule],
-	providers: [Reflector, CurrentUserProvider, StripeClientService, AppConfigService],
+	providers: [
+		Reflector,
+		CurrentUserProvider,
+		StripeClientService,
+		AppConfigService
+	],
 	exports: [
 		Reflector,
 		AuthModule,

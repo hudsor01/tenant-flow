@@ -10,10 +10,6 @@ import type { ReactNode } from 'react'
  * - (tenant)/layout.tsx → passthrough (this file)
  * - (tenant)/tenant/layout.tsx → TenantSidebar, SiteHeader, TenantGuard
  */
-export default function TenantLayout({
-	children
-}: {
-	children: ReactNode
-}) {
+export default function TenantLayout({ children }: { children: ReactNode }) {
 	return <>{children}</>
 }

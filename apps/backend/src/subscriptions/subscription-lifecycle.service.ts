@@ -4,7 +4,11 @@
  * Extracted from SubscriptionsService for SRP compliance
  */
 
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable
+} from '@nestjs/common'
 import type { SubscriptionActionResponse } from '@repo/shared/types/api-contracts'
 import type { Database } from '@repo/shared/types/supabase'
 import Stripe from 'stripe'
@@ -20,10 +24,13 @@ type LeaseRow = Database['public']['Tables']['leases']['Row']
 export class SubscriptionLifecycleService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly cache: SubscriptionCacheService,
-		private readonly queryService: SubscriptionQueryService, private readonly logger: AppLogger) {
+		private readonly queryService: SubscriptionQueryService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -66,9 +73,12 @@ export class SubscriptionLifecycleService {
 
 		return {
 			success: true,
-			subscription: await this.queryService.mapLeaseContextToResponse(leaseContext, {
-				stripeSubscription
-			}),
+			subscription: await this.queryService.mapLeaseContextToResponse(
+				leaseContext,
+				{
+					stripeSubscription
+				}
+			),
 			message: 'Subscription paused successfully'
 		}
 	}
@@ -112,9 +122,12 @@ export class SubscriptionLifecycleService {
 
 		return {
 			success: true,
-			subscription: await this.queryService.mapLeaseContextToResponse(leaseContext, {
-				stripeSubscription
-			}),
+			subscription: await this.queryService.mapLeaseContextToResponse(
+				leaseContext,
+				{
+					stripeSubscription
+				}
+			),
 			message: 'Subscription resumed successfully'
 		}
 	}
@@ -160,18 +173,26 @@ export class SubscriptionLifecycleService {
 
 		return {
 			success: true,
-			subscription: await this.queryService.mapLeaseContextToResponse(leaseContext, {
-				stripeSubscription
-			}),
+			subscription: await this.queryService.mapLeaseContextToResponse(
+				leaseContext,
+				{
+					stripeSubscription
+				}
+			),
 			message: 'Subscription will be canceled at the end of the current period'
 		}
 	}
 
 	// Private helper methods
 
-	private assertTenantUser(requestingUserId: string, tenantUserId: string): void {
+	private assertTenantUser(
+		requestingUserId: string,
+		tenantUserId: string
+	): void {
 		if (requestingUserId !== tenantUserId) {
-			throw new ForbiddenException('You do not have access to this subscription')
+			throw new ForbiddenException(
+				'You do not have access to this subscription'
+			)
 		}
 	}
 

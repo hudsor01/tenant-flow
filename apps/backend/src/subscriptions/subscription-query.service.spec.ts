@@ -20,7 +20,8 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PropertyOwnerRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 
 type LeaseContextResponse = Awaited<
@@ -97,7 +98,9 @@ describe('SubscriptionQueryService', () => {
 		status: 'active',
 		customer: 'cus_test123',
 		current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
-		items: { data: [{ id: 'si_test', price: { id: 'price_test', currency: 'usd' } }] },
+		items: {
+			data: [{ id: 'si_test', price: { id: 'price_test', currency: 'usd' } }]
+		},
 		pause_collection: null,
 		canceled_at: null
 	}
@@ -179,7 +182,10 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' })) // payment_methods (default)
 				.mockReturnValueOnce(createQueryBuilder({ id: 'pm-123' })) // payment_methods (fallback)
 
-			const result = await service.getSubscription(mockLeaseId, mockTenantUserId)
+			const result = await service.getSubscription(
+				mockLeaseId,
+				mockTenantUserId
+			)
 
 			expect(result).toBeDefined()
 			expect(result.id).toBe(mockLeaseId)
@@ -208,7 +214,10 @@ describe('SubscriptionQueryService', () => {
 		})
 
 		it('should throw NotFoundException when lease has no subscription', async () => {
-			const leaseWithoutSubscription = { ...mockLease, stripe_subscription_id: null }
+			const leaseWithoutSubscription = {
+				...mockLease,
+				stripe_subscription_id: null
+			}
 			const mockClient = mockSupabaseService.getAdminClient()
 
 			;(mockClient.from as jest.Mock)
@@ -219,8 +228,9 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder(mockProperty))
 				.mockReturnValueOnce(createQueryBuilder(mockOwner))
 
-			await expect(service.getSubscription(mockLeaseId, mockTenantUserId))
-				.rejects.toThrow(NotFoundException)
+			await expect(
+				service.getSubscription(mockLeaseId, mockTenantUserId)
+			).rejects.toThrow(NotFoundException)
 		})
 
 		it('should throw ForbiddenException for unauthorized user', async () => {
@@ -235,16 +245,20 @@ describe('SubscriptionQueryService', () => {
 				.mockReturnValueOnce(createQueryBuilder(mockProperty))
 				.mockReturnValueOnce(createQueryBuilder(mockOwner))
 
-			await expect(service.getSubscription(mockLeaseId, unauthorizedUserId))
-				.rejects.toThrow(ForbiddenException)
+			await expect(
+				service.getSubscription(mockLeaseId, unauthorizedUserId)
+			).rejects.toThrow(ForbiddenException)
 		})
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValueOnce(createQueryBuilder(null, true))
+			;(mockClient.from as jest.Mock).mockReturnValueOnce(
+				createQueryBuilder(null, true)
+			)
 
-			await expect(service.getSubscription('nonexistent-lease', mockUserId))
-				.rejects.toThrow(NotFoundException)
+			await expect(
+				service.getSubscription('nonexistent-lease', mockUserId)
+			).rejects.toThrow(NotFoundException)
 		})
 	})
 
@@ -263,8 +277,12 @@ describe('SubscriptionQueryService', () => {
 
 		it('should call findTenantByUserId and findOwnerByUserId', async () => {
 			// Spy on the internal methods to verify they are called
-			const findTenantSpy = jest.spyOn(service, 'findTenantByUserId').mockResolvedValue(null)
-			const findOwnerSpy = jest.spyOn(service, 'findOwnerByUserId').mockResolvedValue(null)
+			const findTenantSpy = jest
+				.spyOn(service, 'findTenantByUserId')
+				.mockResolvedValue(null)
+			const findOwnerSpy = jest
+				.spyOn(service, 'findOwnerByUserId')
+				.mockResolvedValue(null)
 
 			const result = await service.listSubscriptions('some-user')
 
@@ -291,7 +309,9 @@ describe('SubscriptionQueryService', () => {
 				owner: mockOwner
 			}
 
-			jest.spyOn(service, 'loadLeaseContext').mockResolvedValue(mockLeaseContext)
+			jest
+				.spyOn(service, 'loadLeaseContext')
+				.mockResolvedValue(mockLeaseContext)
 
 			// Mock the admin client for getLeasesForTenant
 			const mockClient = mockSupabaseService.getAdminClient()
@@ -312,7 +332,9 @@ describe('SubscriptionQueryService', () => {
 				updatedAt: '2025-01-01T00:00:00Z'
 			} as LeaseContextResponse
 
-			jest.spyOn(service, 'mapLeaseContextToResponse').mockResolvedValue(mockResponse)
+			jest
+				.spyOn(service, 'mapLeaseContextToResponse')
+				.mockResolvedValue(mockResponse)
 
 			const result = await service.listSubscriptions(mockTenantUserId)
 
@@ -348,10 +370,13 @@ describe('SubscriptionQueryService', () => {
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValueOnce(createQueryBuilder(null, true))
+			;(mockClient.from as jest.Mock).mockReturnValueOnce(
+				createQueryBuilder(null, true)
+			)
 
-			await expect(service.loadLeaseContext('nonexistent'))
-				.rejects.toThrow(NotFoundException)
+			await expect(service.loadLeaseContext('nonexistent')).rejects.toThrow(
+				NotFoundException
+			)
 		})
 	})
 
@@ -423,7 +448,9 @@ describe('SubscriptionQueryService', () => {
 			} as PaymentMethodRow
 
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValueOnce(createQueryBuilder(mockPaymentMethod))
+			;(mockClient.from as jest.Mock).mockReturnValueOnce(
+				createQueryBuilder(mockPaymentMethod)
+			)
 
 			const result = await service.getPaymentMethod('pm-123')
 
@@ -432,10 +459,13 @@ describe('SubscriptionQueryService', () => {
 
 		it('should throw NotFoundException when payment method not found', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValueOnce(createQueryBuilder(null, true))
+			;(mockClient.from as jest.Mock).mockReturnValueOnce(
+				createQueryBuilder(null, true)
+			)
 
-			await expect(service.getPaymentMethod('nonexistent'))
-				.rejects.toThrow(NotFoundException)
+			await expect(service.getPaymentMethod('nonexistent')).rejects.toThrow(
+				NotFoundException
+			)
 		})
 	})
 })

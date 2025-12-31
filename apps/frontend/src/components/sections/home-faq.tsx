@@ -14,27 +14,33 @@ interface HomeFaqProps {
 const homeFaqs = [
 	{
 		question: 'How long does it take to get started?',
-		answer: 'Most property managers are up and running within an hour. You can import your properties via CSV, invite tenants, and start collecting rent the same day. Our intuitive interface requires no training.'
+		answer:
+			'Most property managers are up and running within an hour. You can import your properties via CSV, invite tenants, and start collecting rent the same day. Our intuitive interface requires no training.'
 	},
 	{
 		question: 'What if I have fewer than 10 units?',
-		answer: "TenantFlow is perfect for portfolios of any size. Our Starter plan is designed specifically for smaller landlords managing 1-25 units, giving you all the core features without enterprise complexity or pricing."
+		answer:
+			'TenantFlow is perfect for portfolios of any size. Our Starter plan is designed specifically for smaller landlords managing 1-25 units, giving you all the core features without enterprise complexity or pricing.'
 	},
 	{
 		question: 'Is my data secure?',
-		answer: 'Absolutely. We use bank-level encryption (AES-256), are SOC 2 compliant, and host on enterprise-grade infrastructure. Your data is backed up daily and you own it completely - export anytime.'
+		answer:
+			'Absolutely. We use bank-level encryption (AES-256), are SOC 2 compliant, and host on enterprise-grade infrastructure. Your data is backed up daily and you own it completely - export anytime.'
 	},
 	{
 		question: 'How does rent collection work?',
-		answer: 'Tenants pay via ACH bank transfer or card through their self-service portal. Funds are deposited directly to your bank account within 2-3 business days. We handle late fee calculations automatically.'
+		answer:
+			'Tenants pay via ACH bank transfer or card through their self-service portal. Funds are deposited directly to your bank account within 2-3 business days. We handle late fee calculations automatically.'
 	},
 	{
 		question: 'Can I switch from my current software?',
-		answer: 'Yes! We offer free migration assistance. Our team will help import your properties, tenants, and lease data. Most migrations are completed within 48 hours with zero downtime.'
+		answer:
+			'Yes! We offer free migration assistance. Our team will help import your properties, tenants, and lease data. Most migrations are completed within 48 hours with zero downtime.'
 	},
 	{
 		question: "What's included in the free trial?",
-		answer: "Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation - simply don't subscribe."
+		answer:
+			"Everything. You get full access to all features for 14 days with no credit card required. If you decide TenantFlow isn't right for you, there's no obligation - simply don't subscribe."
 	}
 ]
 
@@ -67,7 +73,8 @@ export function HomeFaq({ className }: HomeFaqProps) {
 							Still have questions?
 						</h3>
 						<p className="text-muted-foreground mb-6">
-							Our team is here to help you make the right decision for your properties.
+							Our team is here to help you make the right decision for your
+							properties.
 						</p>
 						<div className="flex flex-col sm:flex-row gap-4 justify-center">
 							<Button asChild>
@@ -77,9 +84,7 @@ export function HomeFaq({ className }: HomeFaqProps) {
 								</Link>
 							</Button>
 							<Button variant="outline" asChild>
-								<Link href="/faq">
-									View All FAQs
-								</Link>
+								<Link href="/faq">View All FAQs</Link>
 							</Button>
 						</div>
 					</div>

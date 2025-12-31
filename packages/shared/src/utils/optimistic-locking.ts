@@ -70,12 +70,8 @@ export function withVersion<T extends object>(
  * 1. Increment a version number: incrementVersion(5) => 6
  * 2. Merge data with an object and increment its version: incrementVersion(obj, newData) => { ...obj, ...newData, version: obj.version + 1 }
  */
-export function incrementVersion(
-	version: number
-): number
-export function incrementVersion(
-	version: null | undefined
-): number
+export function incrementVersion(version: number): number
+export function incrementVersion(version: null | undefined): number
 export function incrementVersion<T extends { version?: number }>(
 	obj: T
 ): T & { version: number }
@@ -88,7 +84,11 @@ export function incrementVersion<T extends { version?: number }>(
 	newData?: Partial<T>
 ): T | number {
 	// If called with two arguments, merge data and increment version
-	if (newData !== undefined && typeof objectOrVersion === 'object' && objectOrVersion !== null) {
+	if (
+		newData !== undefined &&
+		typeof objectOrVersion === 'object' &&
+		objectOrVersion !== null
+	) {
 		const currentVersion = objectOrVersion.version ?? 0
 		return {
 			...objectOrVersion,

@@ -1,6 +1,19 @@
-import { Controller, Get, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
+import {
+	Controller,
+	Get,
+	NotFoundException,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -16,11 +29,12 @@ import { RentPaymentAutopayService } from '../../rent-payments/rent-payment-auto
  *
  * Routes: /tenant/autopay/*
  */
+@ApiTags('Tenant Portal - Autopay')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantAutopayController {
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger,
@@ -33,8 +47,17 @@ export class TenantAutopayController {
 	 * Returns subscription details including next payment date from Stripe.
 	 * The nextPaymentDate is derived from Stripe's current_period_end timestamp.
 	 */
+	@ApiOperation({ summary: 'Get autopay status', description: 'Get autopay/subscription status for active lease including next payment date' })
+	@ApiResponse({ status: 200, description: 'Autopay status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 404, description: 'Tenant account not found' })
 	@Get()
-	async getAutopayStatus(@JwtToken() token: string, @User() user: AuthUser) {
+	async getAutopayStatus(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user = req.user
 		const tenant = await this.resolveTenant(token, user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 

@@ -24,9 +24,6 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 		MaintenanceOperationsTemplate,
 		TaxPreparationTemplate
 	],
-	exports: [
-		ExportService,
-		ReportsService
-	]
+	exports: [ExportService, ReportsService]
 })
 export class ReportsModule {}

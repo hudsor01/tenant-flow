@@ -127,7 +127,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
+			propertiesService.create.mockResolvedValue(
+				mockCreatedProperty as PropertyRow
+			)
 
 			const validBody = {
 				name: 'Test Property',
@@ -135,7 +137,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'APARTMENT',
+				property_type: 'APARTMENT'
 			}
 
 			const response = await request(app.getHttpServer())
@@ -174,7 +176,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
+			propertiesService.create.mockResolvedValue(
+				mockCreatedProperty as PropertyRow
+			)
 
 			// Send values with leading/trailing whitespace
 			const bodyWithWhitespace = {
@@ -183,7 +187,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: '  Dallas  ',
 				state: 'TX', // State should NOT be trimmed - it must be exactly 2 uppercase letters
 				postal_code: '75201',
-				property_type: 'SINGLE_FAMILY',
+				property_type: 'SINGLE_FAMILY'
 			}
 
 			await request(app.getHttpServer())
@@ -307,7 +311,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				updated_at: new Date().toISOString()
 			}
 
-			propertiesService.create.mockResolvedValue(mockCreatedProperty as PropertyRow)
+			propertiesService.create.mockResolvedValue(
+				mockCreatedProperty as PropertyRow
+			)
 
 			const validBody = {
 				name: 'ZIP+4 Property',
@@ -315,7 +321,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'San Antonio',
 				state: 'TX',
 				postal_code: '78205-1234', // ZIP+4 format
-				property_type: 'CONDO',
+				property_type: 'CONDO'
 			}
 
 			await request(app.getHttpServer())
@@ -337,7 +343,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				status: 'active'
 			}
 
-			propertiesService.update.mockResolvedValue(mockUpdatedProperty as PropertyRow)
+			propertiesService.update.mockResolvedValue(
+				mockUpdatedProperty as PropertyRow
+			)
 
 			const updateBody = {
 				name: 'Updated Property',
@@ -352,7 +360,7 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			if (response.status !== HttpStatus.OK) {
 				throw new Error(
 					`Expected 200 but got ${response.status}. ` +
-					`Body: ${JSON.stringify(response.body, null, 2)}`
+						`Body: ${JSON.stringify(response.body, null, 2)}`
 				)
 			}
 
@@ -383,7 +391,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				name: 'Partially Updated Property'
 			}
 
-			propertiesService.update.mockResolvedValue(mockUpdatedProperty as PropertyRow)
+			propertiesService.update.mockResolvedValue(
+				mockUpdatedProperty as PropertyRow
+			)
 
 			const partialBody = {
 				name: 'Partially Updated Property'

@@ -73,7 +73,10 @@ export function QuickActionsSkeleton() {
 			<Skeleton className="h-6 w-28 mb-4" />
 			<div className="space-y-2">
 				{[...Array(4)].map((_, i) => (
-					<div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-border">
+					<div
+						key={i}
+						className="flex items-center gap-3 p-3 rounded-lg border border-border"
+					>
 						<Skeleton className="w-9 h-9 rounded-lg" />
 						<div className="flex-1">
 							<Skeleton className="h-4 w-24 mb-1" />
@@ -93,7 +96,10 @@ export function ActivitySkeleton() {
 			<Skeleton className="h-6 w-32 mb-4" />
 			<div className="space-y-3">
 				{[...Array(5)].map((_, i) => (
-					<div key={i} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
+					<div
+						key={i}
+						className="flex items-start gap-3 py-2 border-b border-border last:border-0"
+					>
 						<Skeleton className="w-8 h-8 rounded-full" />
 						<div className="flex-1">
 							<Skeleton className="h-4 w-48 mb-1" />
@@ -122,7 +128,10 @@ export function PropertyTableSkeleton() {
 				</div>
 				{/* Table rows */}
 				{[...Array(5)].map((_, i) => (
-					<div key={i} className="grid grid-cols-5 gap-4 py-3 border-b border-border last:border-0">
+					<div
+						key={i}
+						className="grid grid-cols-5 gap-4 py-3 border-b border-border last:border-0"
+					>
 						<Skeleton className="h-4 w-32" />
 						<Skeleton className="h-4 w-12" />
 						<Skeleton className="h-4 w-12" />

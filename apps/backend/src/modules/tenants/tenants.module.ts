@@ -3,11 +3,17 @@ import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
 import { StripeModule } from '../billing/stripe.module'
 import { SseModule } from '../notifications/sse/sse.module'
+
+// Controllers (decomposed for CLAUDE.md compliance)
 import { TenantsController } from './tenants.controller'
+import { TenantInvitationController } from './tenant-invitation.controller'
+import { TenantEmergencyContactController } from './tenant-emergency-contact.controller'
+import { TenantPaymentController } from './tenant-payment.controller'
 
 // Query services (decomposed from TenantQueryService)
 import { TenantDetailService } from './tenant-detail.service'
 import { TenantListService } from './tenant-list.service'
+import { TenantLeaseQueryService } from './tenant-lease-query.service'
 import { TenantStatsService } from './tenant-stats.service'
 import { TenantRelationService } from './tenant-relation.service'
 import { TenantInvitationQueryService } from './tenant-invitation-query.service'
@@ -15,9 +21,12 @@ import { TenantInvitationQueryService } from './tenant-invitation-query.service'
 // Coordinator and other specialized services
 import { TenantQueryService } from './tenant-query.service'
 import { TenantCrudService } from './tenant-crud.service'
+import { TenantBulkOperationsService } from './tenant-bulk-operations.service'
 import { TenantEmergencyContactService } from './tenant-emergency-contact.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { TenantPaymentService } from './tenant-payment.service'
+import { TenantPaymentQueryService } from './tenant-payment-query.service'
+import { TenantPaymentMapperService } from './tenant-payment-mapper.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 
@@ -49,11 +58,17 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
  */
 @Module({
 	imports: [SupabaseModule, EmailModule, StripeModule, SseModule],
-	controllers: [TenantsController],
+	controllers: [
+		TenantsController,
+		TenantInvitationController,
+		TenantEmergencyContactController,
+		TenantPaymentController
+	],
 	providers: [
 		// Query services (decomposed)
 		TenantDetailService,
 		TenantListService,
+		TenantLeaseQueryService,
 		TenantStatsService,
 		TenantRelationService,
 		TenantInvitationQueryService,
@@ -61,9 +76,12 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 		TenantQueryService,
 		// Other services
 		TenantCrudService,
+		TenantBulkOperationsService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
+		TenantPaymentQueryService,
+		TenantPaymentMapperService,
 		TenantPlatformInvitationService,
 		TenantInvitationTokenService
 	],
@@ -71,6 +89,7 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 		// Export query services for direct use if needed
 		TenantDetailService,
 		TenantListService,
+		TenantLeaseQueryService,
 		TenantStatsService,
 		TenantRelationService,
 		TenantInvitationQueryService,
@@ -78,9 +97,12 @@ import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 		TenantQueryService,
 		// Export other services
 		TenantCrudService,
+		TenantBulkOperationsService,
 		TenantEmergencyContactService,
 		TenantNotificationPreferencesService,
 		TenantPaymentService,
+		TenantPaymentQueryService,
+		TenantPaymentMapperService,
 		TenantPlatformInvitationService,
 		TenantInvitationTokenService
 	]

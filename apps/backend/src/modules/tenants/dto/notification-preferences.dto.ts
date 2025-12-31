@@ -13,9 +13,7 @@ export const NotificationPreferencesSchema = z.object({
 	propertyNotices: z
 		.boolean()
 		.describe('Receive important property announcements'),
-	emailNotifications: z
-		.boolean()
-		.describe('Receive notifications via email'),
+	emailNotifications: z.boolean().describe('Receive notifications via email'),
 	smsNotifications: z.boolean().describe('Receive notifications via SMS')
 })
 

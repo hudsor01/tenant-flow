@@ -85,7 +85,12 @@ test.describe('Properties Endpoints Contract', () => {
 				})
 
 				// Validate enum values
-				expect(['RESIDENTIAL', 'COMMERCIAL', 'MULTI_FAMILY', 'INDUSTRIAL']).toContain(property.property_type)
+				expect([
+					'RESIDENTIAL',
+					'COMMERCIAL',
+					'MULTI_FAMILY',
+					'INDUSTRIAL'
+				]).toContain(property.property_type)
 				expect(['active', 'inactive', 'maintenance']).toContain(property.status)
 			}
 		}
@@ -161,7 +166,9 @@ test.describe('Tenants Endpoints Contract', () => {
 				})
 
 				// Validate tenant status enum
-				expect(['active', 'inactive', 'pending', 'EVICTED']).toContain(tenant.status)
+				expect(['active', 'inactive', 'pending', 'EVICTED']).toContain(
+					tenant.status
+				)
 
 				// Validate email format
 				expect(tenant.email).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)
@@ -169,7 +176,9 @@ test.describe('Tenants Endpoints Contract', () => {
 		}
 	})
 
-	test('POST /api/v1/tenants should validate required fields', async ({ request }) => {
+	test('POST /api/v1/tenants should validate required fields', async ({
+		request
+	}) => {
 		const invalidTenant = {
 			// Missing required fields
 			first_name: 'Test'
@@ -229,7 +238,9 @@ test.describe('Leases Endpoints Contract', () => {
 				})
 
 				// Validate lease status enum
-				expect(['draft', 'active', 'expired', 'terminated']).toContain(lease.lease_status)
+				expect(['draft', 'active', 'expired', 'terminated']).toContain(
+					lease.lease_status
+				)
 
 				// Validate date format (ISO 8601)
 				expect(lease.start_date).toMatch(/^\d{4}-\d{2}-\d{2}/)
@@ -257,11 +268,14 @@ test.describe('Leases Endpoints Contract', () => {
 				const lease_id = leases[0].id
 
 				// Get specific lease
-				const response = await request.get(`${API_URL}/api/v1/leases/${lease_id}`, {
-					headers: {
-						Authorization: `Bearer ${process.env.TEST_AUTH_TOKEN}`
+				const response = await request.get(
+					`${API_URL}/api/v1/leases/${lease_id}`,
+					{
+						headers: {
+							Authorization: `Bearer ${process.env.TEST_AUTH_TOKEN}`
+						}
 					}
-				})
+				)
 
 				expect([200, 401, 404]).toContain(response.status())
 
@@ -315,7 +329,12 @@ test.describe('Units Endpoints Contract', () => {
 				})
 
 				// Validate unit status enum
-				expect(['AVAILABLE', 'occupied', 'maintenance', 'UNAVAILABLE']).toContain(unit.status)
+				expect([
+					'AVAILABLE',
+					'occupied',
+					'maintenance',
+					'UNAVAILABLE'
+				]).toContain(unit.status)
 
 				// Validate numeric values are reasonable
 				expect(unit.bedrooms).toBeGreaterThanOrEqual(0)
@@ -358,15 +377,24 @@ test.describe('Maintenance Endpoints Contract', () => {
 				})
 
 				// Validate priority enum
-				expect(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).toContain(maintenance.priority)
+				expect(['LOW', 'MEDIUM', 'HIGH', 'URGENT']).toContain(
+					maintenance.priority
+				)
 
 				// Validate status enum
-				expect(['pending', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).toContain(maintenance.status)
+				expect(['pending', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).toContain(
+					maintenance.status
+				)
 
 				// Validate category enum
-				expect(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCE', 'GENERAL', 'OTHER']).toContain(
-					maintenance.category
-				)
+				expect([
+					'PLUMBING',
+					'ELECTRICAL',
+					'HVAC',
+					'APPLIANCE',
+					'GENERAL',
+					'OTHER'
+				]).toContain(maintenance.category)
 			}
 		}
 	})
@@ -374,7 +402,9 @@ test.describe('Maintenance Endpoints Contract', () => {
 
 test.describe('Error Response Contract', () => {
 	test('404 errors should follow standard format', async ({ request }) => {
-		const response = await request.get(`${API_URL}/api/v1/nonexistent-endpoint-12345`)
+		const response = await request.get(
+			`${API_URL}/api/v1/nonexistent-endpoint-12345`
+		)
 
 		expect(response.status()).toBe(404)
 
@@ -428,11 +458,14 @@ test.describe('Pagination Contract', () => {
 	test.use({ storageState: 'playwright/.auth/user.json' })
 
 	test('paginated endpoints should include metadata', async ({ request }) => {
-		const response = await request.get(`${API_URL}/api/v1/properties?limit=10&offset=0`, {
-			headers: {
-				Authorization: `Bearer ${process.env.TEST_AUTH_TOKEN}`
+		const response = await request.get(
+			`${API_URL}/api/v1/properties?limit=10&offset=0`,
+			{
+				headers: {
+					Authorization: `Bearer ${process.env.TEST_AUTH_TOKEN}`
+				}
 			}
-		})
+		)
 
 		expect([200, 401]).toContain(response.status())
 

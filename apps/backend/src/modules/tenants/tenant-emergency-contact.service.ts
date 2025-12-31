@@ -8,7 +8,12 @@
  * - emergency_contact_relationship
  */
 
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -83,9 +88,11 @@ export class TenantEmergencyContactService {
 
 			return mapEmergencyContactToResponse(data)
 		} catch (error) {
-			if (error instanceof ForbiddenException ||
+			if (
+				error instanceof ForbiddenException ||
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error getting emergency contact', {
@@ -145,9 +152,11 @@ export class TenantEmergencyContactService {
 
 			return mapEmergencyContactToResponse(data)
 		} catch (error) {
-			if (error instanceof ForbiddenException ||
+			if (
+				error instanceof ForbiddenException ||
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error creating emergency contact', {
@@ -181,12 +190,15 @@ export class TenantEmergencyContactService {
 			}
 
 			// Build update object with only provided fields
-			const updateData: Partial<Database['public']['Tables']['tenants']['Update']> = {}
+			const updateData: Partial<
+				Database['public']['Tables']['tenants']['Update']
+			> = {}
 			if (dto.contact_name !== undefined) {
 				updateData.emergency_contact_name = dto.contact_name?.trim() || null
 			}
 			if (dto.relationship !== undefined) {
-				updateData.emergency_contact_relationship = dto.relationship?.trim() || null
+				updateData.emergency_contact_relationship =
+					dto.relationship?.trim() || null
 			}
 			if (dto.phone_number !== undefined) {
 				updateData.emergency_contact_phone = dto.phone_number?.trim() || null
@@ -210,9 +222,11 @@ export class TenantEmergencyContactService {
 
 			return mapEmergencyContactToResponse(data)
 		} catch (error) {
-			if (error instanceof ForbiddenException ||
+			if (
+				error instanceof ForbiddenException ||
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error updating emergency contact', {
@@ -254,9 +268,11 @@ export class TenantEmergencyContactService {
 
 			return { success: true }
 		} catch (error) {
-			if (error instanceof ForbiddenException ||
+			if (
+				error instanceof ForbiddenException ||
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error deleting emergency contact', {

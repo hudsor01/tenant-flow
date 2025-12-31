@@ -111,7 +111,9 @@ const mockData = {
 	}),
 	timeSeries: () => ({
 		data: Array.from({ length: 30 }, (_, i) => ({
-			date: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+			date: new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0],
 			value: 80 + Math.random() * 10
 		}))
 	}),
@@ -144,14 +146,14 @@ const mockData = {
 // Route handlers
 const handlers: Record<string, (route: Route) => Promise<void>> = {
 	// Properties
-	'GET /api/v1/properties': async (route) => {
+	'GET /api/v1/properties': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.properties())
 		})
 	},
-	'GET /api/v1/properties/stats': async (route) => {
+	'GET /api/v1/properties/stats': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -160,28 +162,28 @@ const handlers: Record<string, (route: Route) => Promise<void>> = {
 	},
 
 	// Tenants
-	'GET /api/v1/tenants': async (route) => {
+	'GET /api/v1/tenants': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.tenants())
 		})
 	},
-	'GET /api/v1/tenants/stats': async (route) => {
+	'GET /api/v1/tenants/stats': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.tenantStats())
 		})
 	},
-	'GET /api/v1/tenants/payments/summary': async (route) => {
+	'GET /api/v1/tenants/payments/summary': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.paymentSummary())
 		})
 	},
-	'GET /api/v1/tenants/invitations': async (route) => {
+	'GET /api/v1/tenants/invitations': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -190,7 +192,7 @@ const handlers: Record<string, (route: Route) => Promise<void>> = {
 	},
 
 	// Leases
-	'GET /api/v1/leases': async (route) => {
+	'GET /api/v1/leases': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -199,7 +201,7 @@ const handlers: Record<string, (route: Route) => Promise<void>> = {
 	},
 
 	// Maintenance
-	'GET /api/v1/maintenance': async (route) => {
+	'GET /api/v1/maintenance': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -208,35 +210,35 @@ const handlers: Record<string, (route: Route) => Promise<void>> = {
 	},
 
 	// Analytics & Reports
-	'GET /api/v1/owner/analytics/page-data': async (route) => {
+	'GET /api/v1/owner/analytics/page-data': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.analytics())
 		})
 	},
-	'GET /api/v1/owner/analytics/activity': async (route) => {
+	'GET /api/v1/owner/analytics/activity': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.activity())
 		})
 	},
-	'GET /api/v1/owner/properties/performance': async (route) => {
+	'GET /api/v1/owner/properties/performance': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.performance())
 		})
 	},
-	'GET /api/v1/owner/reports/metric-trend': async (route) => {
+	'GET /api/v1/owner/reports/metric-trend': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
 			body: JSON.stringify(mockData.metricTrend())
 		})
 	},
-	'GET /api/v1/owner/reports/time-series': async (route) => {
+	'GET /api/v1/owner/reports/time-series': async route => {
 		await route.fulfill({
 			status: 200,
 			contentType: 'application/json',
@@ -250,7 +252,7 @@ const handlers: Record<string, (route: Route) => Promise<void>> = {
  * Call this in test.beforeEach() to mock all API calls
  */
 export async function setupApiMocks(page: Page): Promise<void> {
-	await page.route(API_PATTERN, async (route) => {
+	await page.route(API_PATTERN, async route => {
 		const url = new URL(route.request().url())
 		const method = route.request().method()
 		const pathname = url.pathname
@@ -282,13 +284,13 @@ export async function setupSelectiveMocks(
 	page: Page,
 	endpoints: string[]
 ): Promise<void> {
-	await page.route(API_PATTERN, async (route) => {
+	await page.route(API_PATTERN, async route => {
 		const url = new URL(route.request().url())
 		const method = route.request().method()
 		const pathname = url.pathname
 		const handlerKey = `${method} ${pathname}`
 
-		if (endpoints.some((ep) => pathname.includes(ep))) {
+		if (endpoints.some(ep => pathname.includes(ep))) {
 			const handler = handlers[handlerKey]
 			if (handler) {
 				await handler(route)

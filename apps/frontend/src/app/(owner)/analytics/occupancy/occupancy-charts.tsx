@@ -90,9 +90,7 @@ export function VacancySummaryList({ entries }: VacancyListProps) {
 					<div className="flex flex-col">
 						<span className="font-medium">{entry.propertyName}</span>
 						{entry.notes ? (
-							<span className="text-caption">
-								{entry.notes}
-							</span>
+							<span className="text-caption">{entry.notes}</span>
 						) : null}
 					</div>
 					<div className="flex items-center gap-4">

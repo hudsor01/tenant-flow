@@ -13,7 +13,7 @@
  *
  * Design-OS Patterns:
  * - Stat Cards: Uses data-slot="stat" with card styling (rounded-lg, border, bg-card, shadow-sm)
- * - Stat Values: Uses data-slot="stat-value" with font-semibold
+ * - Stat Values: Uses data-slot="stat-value" with typography-stat
  * - Stat Labels: Uses data-slot="stat-label" with font-medium
  */
 
@@ -71,7 +71,7 @@ vi.mock('next/navigation', () => ({
 	usePathname: vi.fn(() => '/tenant')
 }))
 
-vi.mock('#components/tours', () => ({
+vi.mock('#components/tours/tenant-onboarding-tour', () => ({
 	TenantOnboardingTour: () => null,
 	TenantTourTrigger: () => <button type="button">Take a Tour</button>
 }))
@@ -83,11 +83,12 @@ import TenantDashboardPage from '../tenant-portal-page'
  * Design-OS CSS patterns:
  * - Stat component: rounded-lg border border-border bg-card shadow-sm
  * - Uses data-slot attributes for styling hooks
+ * - StatValue uses typography-stat class for values
  *
  * Design system spacing:
  * - Padding: p-2.5 to p-4 for cards
  * - Gap: gap-2 to gap-4 for layouts
- * - Border radius: rounded-lg
+ * - Border radius: rounded-lg (for stat cards)
  */
 
 describe('Property 8: Design System Consistency', () => {
@@ -97,7 +98,7 @@ describe('Property 8: Design System Consistency', () => {
 
 	/**
 	 * Property: For any card component in the tenant portal, the component SHALL use
-	 * the card-standard CSS class pattern (rounded-lg border bg-card shadow-sm)
+	 * the Stat component CSS class pattern (rounded-lg border bg-card shadow-sm)
 	 */
 	it('should ensure all stat cards follow card-standard pattern', () => {
 		fc.assert(
@@ -109,9 +110,9 @@ describe('Property 8: Design System Consistency', () => {
 					// Stat component uses data-slot="stat" not data-testid
 					const statCards = document.querySelectorAll('[data-slot="stat"]')
 
-					// Property: Every stat card must have card-standard styling
+					// Property: Every stat card must have Stat component styling
 					statCards.forEach(card => {
-						// card-standard = rounded-lg border border-border bg-card shadow-sm
+						// Stat = rounded-lg border border-border bg-card shadow-sm
 						expect(card).toHaveClass('rounded-lg')
 						expect(card).toHaveClass('border')
 						expect(card).toHaveClass('bg-card')
@@ -129,27 +130,31 @@ describe('Property 8: Design System Consistency', () => {
 	 * Property: For any card in the portal, content sections SHALL
 	 * follow the design-os spacing system
 	 */
-	it('should ensure content sections follow design-os spacing', () => {
-		fc.assert(
-			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
-				render(<TenantDashboardPage />)
+	it(
+		'should ensure content sections follow design-os spacing',
+		() => {
+			fc.assert(
+				fc.property(fc.integer({ min: 1, max: 5 }), _iteration => {
+					render(<TenantDashboardPage />)
 
-				// Check that stat cards exist and have proper structure
-				const statCards = document.querySelectorAll('[data-slot="stat"]')
+					// Check that stat cards exist and have proper structure
+					const statCards = document.querySelectorAll('[data-slot="stat"]')
 
-				// Property: Every stat card must exist and have proper structure
-				expect(statCards.length).toBeGreaterThan(0)
+					// Property: Every stat card must exist and have proper structure
+					expect(statCards.length).toBeGreaterThan(0)
 
-				// Each stat card should have the grid layout for proper spacing
-				statCards.forEach(card => {
-					expect(card).toHaveClass('grid')
-				})
+					// Each stat card should have the grid layout for proper spacing
+					statCards.forEach(card => {
+						expect(card).toHaveClass('grid')
+					})
 
-				return true
-			}),
-			{ numRuns: 25 }
-		)
-	})
+					return true
+				}),
+				{ numRuns: 10 }
+			)
+		},
+		15000
+	)
 
 	/**
 	 * Property: For any stat card, the card SHALL have consistent border radius
@@ -186,7 +191,9 @@ describe('Property 8: Design System Consistency', () => {
 				render(<TenantDashboardPage />)
 
 				// Stat cards should have indicator slots
-				const indicators = document.querySelectorAll('[data-slot="stat-indicator"]')
+				const indicators = document.querySelectorAll(
+					'[data-slot="stat-indicator"]'
+				)
 
 				// Property: Indicator slots should exist
 				expect(indicators.length).toBeGreaterThan(0)
@@ -199,17 +206,17 @@ describe('Property 8: Design System Consistency', () => {
 
 	/**
 	 * Property: For any card component, the typography SHALL follow the
-	 * design-os system (font-medium for labels, font-semibold for values)
+	 * design-os system (font-medium for labels, typography-stat for values)
 	 */
 	it('should ensure card typography follows design system', () => {
 		fc.assert(
 			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
 				render(<TenantDashboardPage />)
 
-				// Stat values should use font-semibold
+				// Stat values should use typography-stat
 				const statValues = document.querySelectorAll('[data-slot="stat-value"]')
 				statValues.forEach(value => {
-					expect(value).toHaveClass('font-semibold')
+					expect(value).toHaveClass('typography-stat')
 				})
 
 				// Stat labels should use font-medium

@@ -1,4 +1,4 @@
-import type { PipeTransform} from '@nestjs/common';
+import type { PipeTransform } from '@nestjs/common'
 import { Injectable, BadRequestException } from '@nestjs/common'
 
 /**

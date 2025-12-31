@@ -12,8 +12,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class PropertyStatsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Calculate property statistics for a user
@@ -71,7 +73,9 @@ export class PropertyStatsService {
 			.eq('owner_user_id', internaluser_id)
 
 		if (error) {
-			this.logger.error('Failed to fetch property IDs', { error: error.message })
+			this.logger.error('Failed to fetch property IDs', {
+				error: error.message
+			})
 			return []
 		}
 

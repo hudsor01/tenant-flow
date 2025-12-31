@@ -1,12 +1,9 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~617 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract InviteValidation component into: `./components/invite-validation.tsx`
-// 2. Extract RegistrationForm into: `./components/registration-form.tsx`
-// 3. Extract SuccessMessage into: `./components/invite-success.tsx`
-// 4. Extract invite processing logic into: `#hooks/use-accept-invite.ts`
-// 5. Keep AcceptInvitePage as orchestration component
-// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
+/**
+ * Accept Invite Page
+ *
+ * Allows tenants to accept invitations and create their accounts.
+ * Extracted components for maintainability per CLAUDE.md KISS principle.
+ */
 
 'use client'
 
@@ -18,29 +15,27 @@ import {
 	InputGroupAddon,
 	InputGroupInput
 } from '#components/ui/input-group'
-import { Skeleton } from '#components/ui/skeleton'
 import { getFieldErrorMessage } from '#lib/utils/form'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 import { useForm } from '@tanstack/react-form'
 import { z } from 'zod'
 import {
-	CheckCircle2,
 	Eye,
 	EyeOff,
 	Home,
 	Lock,
-	Mail,
-	Building2,
-	AlertCircle,
-	XCircle
+	Mail
 } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-type PageState = 'loading' | 'valid' | 'invalid' | 'expired' | 'error' | 'accepted'
+
+import { LoadingState } from '#components/auth/accept-invite/loading-state'
+import { ErrorState, type PageState } from '#components/auth/accept-invite/error-state'
+import { SuccessState } from '#components/auth/accept-invite/success-state'
+import { InviteHeroSection } from '#components/auth/accept-invite/invite-hero-section'
 
 const logger = createLogger({ component: 'AcceptInvitePage' })
 
@@ -64,8 +59,6 @@ interface InvitationData {
 	property_name?: string
 	unit_number?: string
 }
-
-
 
 function AcceptInviteContent() {
 	const [showPassword, setShowPassword] = useState(false)
@@ -255,62 +248,7 @@ function AcceptInviteContent() {
 	return (
 		<div className="min-h-screen flex bg-background">
 			{/* Image Section - Hidden on mobile */}
-			<div className="relative hidden lg:flex lg:w-1/2 min-h-screen overflow-hidden">
-				<div className="absolute inset-0 transform scale-105">
-					<Image
-						src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=2340&q=80"
-						alt="Modern apartment interior"
-						fill
-						sizes="50vw"
-						className="object-cover"
-						priority
-					/>
-				</div>
-				<div className="absolute inset-0 bg-black/25" />
-
-				<div className="absolute inset-0 flex-center">
-					<div className="relative max-w-lg mx-auto px-8">
-						<div className="absolute inset-0 rounded-3xl bg-card/85 backdrop-blur-sm border border-border/20 shadow-2xl" />
-
-						<div className="relative text-center space-y-6 py-12 px-8">
-							<div className="size-16 mx-auto mb-8">
-								<div className="relative w-full h-full bg-primary rounded-2xl flex-center border border-white/20 shadow-lg">
-									<Building2 className="size-8 text-primary-foreground" />
-								</div>
-							</div>
-
-							<h2 className="text-foreground font-bold text-xl">
-								Welcome to TenantFlow
-							</h2>
-
-							<p className="text-muted-foreground max-w-md mx-auto text-base">
-								Your property manager has invited you to join their platform.
-								Create your account to access your tenant portal.
-							</p>
-
-							<div className="grid grid-cols-3 gap-6 pt-6">
-								{[
-									{ icon: CheckCircle2, label: 'Pay Rent\nOnline' },
-									{ icon: Home, label: 'Submit\nRequests' },
-									{ icon: Lock, label: 'Secure\nPortal' }
-								].map(item => (
-									<div key={item.label} className="text-center">
-										<div className="size-10 mx-auto mb-2 bg-primary/10 rounded-lg flex-center">
-											<item.icon className="size-5 text-primary" />
-										</div>
-										<div
-											className="text-muted-foreground text-xs font-medium"
-											dangerouslySetInnerHTML={{
-												__html: item.label.replace('\n', '<br />')
-											}}
-										/>
-									</div>
-								))}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+			<InviteHeroSection />
 
 			{/* Form Section */}
 			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 min-h-screen">
@@ -525,93 +463,6 @@ function AcceptInviteContent() {
 							Privacy Policy
 						</Link>
 					</div>
-				</div>
-			</div>
-		</div>
-	)
-}
-
-function LoadingState() {
-	return (
-		<div className="min-h-screen flex-center bg-background p-6">
-			<div className="w-full max-w-sm space-y-8 text-center">
-				<div className="size-14 mx-auto">
-					<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm animate-pulse">
-						<Home className="size-7 text-primary-foreground" />
-					</div>
-				</div>
-				<div className="space-y-4">
-					<Skeleton className="h-8 w-48 mx-auto" />
-					<Skeleton className="h-4 w-64 mx-auto" />
-				</div>
-				<div className="space-y-3">
-					<Skeleton className="h-12 w-full" />
-					<Skeleton className="h-12 w-full" />
-					<Skeleton className="h-12 w-full" />
-				</div>
-			</div>
-		</div>
-	)
-}
-
-function ErrorState({ state, message }: { state: PageState; message: string }) {
-	const isExpired = state === 'expired'
-	const Icon = isExpired ? AlertCircle : XCircle
-
-	return (
-		<div className="min-h-screen flex-center bg-background p-6">
-			<div className="w-full max-w-md text-center space-y-6">
-				<div
-					className={`size-20 mx-auto rounded-full flex-center ${isExpired ? 'bg-warning/10' : 'bg-destructive/10'}`}
-				>
-					<Icon
-						className={`size-10 ${isExpired ? 'text-warning' : 'text-destructive'}`}
-					/>
-				</div>
-
-				<div className="space-y-2">
-					<h1 className="typography-h3 text-foreground">
-						{isExpired ? 'Invitation Expired' : 'Invalid Invitation'}
-					</h1>
-					<p className="text-muted-foreground">{message}</p>
-				</div>
-
-				<div className="pt-4 space-y-3">
-					<Button asChild className="w-full">
-						<Link href="/login">Go to Login</Link>
-					</Button>
-					<p className="text-muted">
-						Need help?{' '}
-						<Link href="/contact" className="text-primary hover:underline">
-							Contact Support
-						</Link>
-					</p>
-				</div>
-			</div>
-		</div>
-	)
-}
-
-function SuccessState() {
-	return (
-		<div className="min-h-screen flex-center bg-background p-6">
-			<div className="w-full max-w-md text-center space-y-6">
-				<div className="size-20 mx-auto rounded-full bg-success/10 flex-center">
-					<CheckCircle2 className="size-10 text-success" />
-				</div>
-
-				<div className="space-y-2">
-					<h1 className="typography-h3 text-foreground">
-						Welcome to TenantFlow!
-					</h1>
-					<p className="text-muted-foreground">
-						Your account has been created and verified. Redirecting you to your
-						tenant portal...
-					</p>
-				</div>
-
-				<div className="pt-4">
-					<div className="animate-spin size-6 mx-auto border-2 border-primary border-t-transparent rounded-full" />
 				</div>
 			</div>
 		</div>

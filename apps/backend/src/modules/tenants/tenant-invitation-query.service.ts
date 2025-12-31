@@ -54,8 +54,10 @@ export interface InvitationFilters {
 
 @Injectable()
 export class TenantInvitationQueryService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get paginated tenant invitations for an owner
@@ -69,7 +71,10 @@ export class TenantInvitationQueryService {
 		}
 
 		const page = filters?.page || 1
-		const limit = Math.min(filters?.limit || DEFAULT_INVITATION_LIMIT, MAX_LIMIT)
+		const limit = Math.min(
+			filters?.limit || DEFAULT_INVITATION_LIMIT,
+			MAX_LIMIT
+		)
 		const offset = (page - 1) * limit
 
 		try {
@@ -132,7 +137,7 @@ export class TenantInvitationQueryService {
 
 			// Transform the data to flatten nested relations
 			const rawData = data as unknown as RawInvitationRow[]
-			const invitations: TenantInvitation[] = (rawData || []).map((inv) => ({
+			const invitations: TenantInvitation[] = (rawData || []).map(inv => ({
 				id: inv.id,
 				email: inv.email,
 				unit_id: inv.unit_id,

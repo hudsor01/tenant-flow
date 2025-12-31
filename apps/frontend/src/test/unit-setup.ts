@@ -17,20 +17,32 @@ configure({
 })
 
 // Set up required environment variables for tests
-process.env.NEXT_PUBLIC_APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-process.env.NEXT_PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
-process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
-process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
-process.env.NEXT_PUBLIC_JWT_ALGORITHM = process.env.NEXT_PUBLIC_JWT_ALGORITHM || 'ES256'
+process.env.NEXT_PUBLIC_APP_URL =
+	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+process.env.NEXT_PUBLIC_API_BASE_URL =
+	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+process.env.NEXT_PUBLIC_SUPABASE_URL =
+	process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
+process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
+process.env.NEXT_PUBLIC_JWT_ALGORITHM =
+	process.env.NEXT_PUBLIC_JWT_ALGORITHM || 'ES256'
 
 // Additional environment variables for server-side validation (optional in tests)
-process.env.STRIPE_STARTER_MONTHLY_PRICE_ID = process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
-process.env.STRIPE_STARTER_ANNUAL_PRICE_ID = process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
-process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID = process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
-process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID = process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
-process.env.STRIPE_MAX_MONTHLY_PRICE_ID = process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
-process.env.STRIPE_MAX_ANNUAL_PRICE_ID = process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
+process.env.STRIPE_STARTER_MONTHLY_PRICE_ID =
+	process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
+process.env.STRIPE_STARTER_ANNUAL_PRICE_ID =
+	process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
+process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID =
+	process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
+process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID =
+	process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
+process.env.STRIPE_MAX_MONTHLY_PRICE_ID =
+	process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
+process.env.STRIPE_MAX_ANNUAL_PRICE_ID =
+	process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
 
 // Mark as unit test mode
 process.env.SKIP_INTEGRATION_TESTS = 'true'
@@ -142,7 +154,10 @@ vi.mock('nuqs', async () => {
 		...actual,
 		useQueryState: () => [null, vi.fn()],
 		useQueryStates: (keys: Record<string, unknown>) => {
-			const state = Object.keys(keys).reduce((acc, key) => ({ ...acc, [key]: null }), {})
+			const state = Object.keys(keys).reduce(
+				(acc, key) => ({ ...acc, [key]: null }),
+				{}
+			)
 			return [state, vi.fn()]
 		}
 	}
@@ -152,7 +167,11 @@ vi.mock('nuqs', async () => {
  * Create a mock fetch Response with proper text() and json() methods
  * Required because apiRequest uses res.text() not res.json()
  */
-export function createMockResponse<T>(data: T, ok = true, status = 200): Response {
+export function createMockResponse<T>(
+	data: T,
+	ok = true,
+	status = 200
+): Response {
 	const body = JSON.stringify(data)
 	return {
 		ok,
@@ -161,7 +180,9 @@ export function createMockResponse<T>(data: T, ok = true, status = 200): Respons
 		headers: new Headers({ 'Content-Type': 'application/json' }),
 		text: () => Promise.resolve(body),
 		json: () => Promise.resolve(data),
-		clone: function() { return createMockResponse(data, ok, status) },
+		clone: function () {
+			return createMockResponse(data, ok, status)
+		},
 		body: null,
 		bodyUsed: false,
 		arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),

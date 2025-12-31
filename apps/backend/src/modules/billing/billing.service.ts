@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { SupabaseService } from '../../database/supabase.service'
-import { asStripeSchemaClient, type SupabaseError } from '../../types/stripe-schema'
+import {
+	asStripeSchemaClient,
+	type SupabaseError
+} from '../../types/stripe-schema'
 import { AppLogger } from '../../logger/app-logger.service'
 
 /**
@@ -12,241 +15,260 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class BillingService {
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
-  constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	/**
+	 * Query Stripe customer from synced stripe schema (read-only)
+	 * The Stripe Sync Engine automatically syncs all customers to stripe.customers table
+	 */
+	async getStripeCustomer(
+		stripeCustomerId: string
+	): Promise<Stripe.Customer | null> {
+		const client = this.supabase.getAdminClient()
+		const stripeClient = asStripeSchemaClient(client)
 
-  /**
-   * Query Stripe customer from synced stripe schema (read-only)
-   * The Stripe Sync Engine automatically syncs all customers to stripe.customers table
-   */
-  async getStripeCustomer(
-    stripeCustomerId: string
-  ): Promise<Stripe.Customer | null> {
-    const client = this.supabase.getAdminClient()
-    const stripeClient = asStripeSchemaClient(client)
+		const result: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('customers')
+				.select('*')
+				.eq('id', stripeCustomerId)
+				.single()
 
-    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
-      .schema('stripe')
-      .from('customers')
-      .select('*')
-      .eq('id', stripeCustomerId)
-      .single()
+		if (result.error && result.error.code !== 'PGRST116') {
+			this.logger.error('Failed to get customer:', { error: result.error })
+			throw result.error
+		}
 
-    if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to get customer:', { error: result.error })
-      throw result.error
-    }
+		return result.data as Stripe.Customer | null
+	}
 
-    return result.data as Stripe.Customer | null
-  }
+	/**
+	 * Find Stripe customer by owner ID
+	 * Links owner_id to their Stripe customer via users table
+	 */
+	async findCustomerByOwnerId(
+		ownerId: string
+	): Promise<Stripe.Customer | null> {
+		const { data: user, error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.select('stripe_customer_id')
+			.eq('id', ownerId)
+			.single()
 
-  /**
-   * Find Stripe customer by owner ID
-   * Links owner_id to their Stripe customer via users table
-   */
-  async findCustomerByOwnerId(
-    ownerId: string
-  ): Promise<Stripe.Customer | null> {
-    const { data: user, error } = await this.supabase
-      .getAdminClient()
-      .from('users')
-      .select('stripe_customer_id')
-      .eq('id', ownerId)
-      .single()
+		if (error || !user?.stripe_customer_id) {
+			this.logger.warn('No stripe customer found for owner:', ownerId)
+			return null
+		}
 
-    if (error || !user?.stripe_customer_id) {
-      this.logger.warn('No stripe customer found for owner:', ownerId)
-      return null
-    }
+		return this.getStripeCustomer(user.stripe_customer_id as string)
+	}
 
-    return this.getStripeCustomer(user.stripe_customer_id as string)
-  }
+	/**
+	 * Find Stripe customer by tenant ID
+	 * Links tenant_id to their Stripe customer via tenants table
+	 */
+	async findCustomerByTenantId(
+		tenantId: string
+	): Promise<Stripe.Customer | null> {
+		const { data: tenant, error } = await this.supabase
+			.getAdminClient()
+			.from('tenants')
+			.select('stripe_customer_id')
+			.eq('id', tenantId)
+			.single()
 
-  /**
-   * Find Stripe customer by tenant ID
-   * Links tenant_id to their Stripe customer via tenants table
-   */
-  async findCustomerByTenantId(
-    tenantId: string
-  ): Promise<Stripe.Customer | null> {
-    const { data: tenant, error } = await this.supabase
-      .getAdminClient()
-      .from('tenants')
-      .select('stripe_customer_id')
-      .eq('id', tenantId)
-      .single()
+		if (error || !tenant?.stripe_customer_id) {
+			this.logger.warn('No stripe customer found for tenant:', tenantId)
+			return null
+		}
 
-    if (error || !tenant?.stripe_customer_id) {
-      this.logger.warn('No stripe customer found for tenant:', tenantId)
-      return null
-    }
+		return this.getStripeCustomer(tenant.stripe_customer_id as string)
+	}
 
-    return this.getStripeCustomer(tenant.stripe_customer_id as string)
-  }
+	/**
+	 * Link owner to their Stripe customer
+	 * Stores mapping in users table
+	 */
+	async linkCustomerToOwner(
+		stripeCustomerId: string,
+		ownerId: string
+	): Promise<void> {
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.update({
+				stripe_customer_id: stripeCustomerId,
+				updated_at: new Date().toISOString()
+			})
+			.eq('id', ownerId)
 
-  /**
-   * Link owner to their Stripe customer
-   * Stores mapping in users table
-   */
-  async linkCustomerToOwner(
-    stripeCustomerId: string,
-    ownerId: string
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .getAdminClient()
-      .from('users')
-      .update({
-        stripe_customer_id: stripeCustomerId,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', ownerId)
+		if (error) {
+			this.logger.error('Failed to link customer to owner:', { error })
+			throw error
+		}
+	}
 
-    if (error) {
-      this.logger.error('Failed to link customer to owner:', { error })
-      throw error
-    }
-  }
+	/**
+	 * Link tenant to their Stripe customer
+	 * Stores mapping in tenants table
+	 */
+	async linkCustomerToTenant(
+		stripeCustomerId: string,
+		tenantId: string
+	): Promise<void> {
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('tenants')
+			.update({
+				stripe_customer_id: stripeCustomerId,
+				updated_at: new Date().toISOString()
+			})
+			.eq('id', tenantId)
 
-  /**
-   * Link tenant to their Stripe customer
-   * Stores mapping in tenants table
-   */
-  async linkCustomerToTenant(
-    stripeCustomerId: string,
-    tenantId: string
-  ): Promise<void> {
-    const { error } = await this.supabase
-      .getAdminClient()
-      .from('tenants')
-      .update({
-        stripe_customer_id: stripeCustomerId,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', tenantId)
+		if (error) {
+			this.logger.error('Failed to link customer to tenant:', { error })
+			throw error
+		}
+	}
 
-    if (error) {
-      this.logger.error('Failed to link customer to tenant:', { error })
-      throw error
-    }
-  }
+	/**
+	 * Find subscription by Stripe subscription ID (read-only from stripe schema)
+	 * The Stripe Sync Engine automatically syncs all subscriptions
+	 */
+	async findSubscriptionByStripeId(
+		stripeSubscriptionId: string
+	): Promise<Stripe.Subscription | null> {
+		const client = this.supabase.getAdminClient()
+		const stripeClient = asStripeSchemaClient(client)
 
-  /**
-   * Find subscription by Stripe subscription ID (read-only from stripe schema)
-   * The Stripe Sync Engine automatically syncs all subscriptions
-   */
-  async findSubscriptionByStripeId(
-    stripeSubscriptionId: string
-  ): Promise<Stripe.Subscription | null> {
-    const client = this.supabase.getAdminClient()
-    const stripeClient = asStripeSchemaClient(client)
+		const result: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('subscriptions')
+				.select('*')
+				.eq('id', stripeSubscriptionId)
+				.single()
 
-    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
-      .schema('stripe')
-      .from('subscriptions')
-      .select('*')
-      .eq('id', stripeSubscriptionId)
-      .single()
+		if (result.error && result.error.code !== 'PGRST116') {
+			this.logger.error('Failed to find subscription:', { error: result.error })
+			throw result.error
+		}
 
-    if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to find subscription:', { error: result.error })
-      throw result.error
-    }
+		return result.data as Stripe.Subscription | null
+	}
 
-    return result.data as Stripe.Subscription | null
-  }
+	/**
+	 * Find all subscriptions for a customer (read-only)
+	 * Returns all subscriptions synced by Stripe Sync Engine
+	 */
+	async findSubscriptionsByCustomerId(
+		stripeCustomerId: string
+	): Promise<Stripe.Subscription[]> {
+		const client = this.supabase.getAdminClient()
+		const stripeClient = asStripeSchemaClient(client)
 
-  /**
-   * Find all subscriptions for a customer (read-only)
-   * Returns all subscriptions synced by Stripe Sync Engine
-   */
-  async findSubscriptionsByCustomerId(
-    stripeCustomerId: string
-  ): Promise<Stripe.Subscription[]> {
-    const client = this.supabase.getAdminClient()
-    const stripeClient = asStripeSchemaClient(client)
+		const result: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('subscriptions')
+				.select('*')
+				.eq('customer', stripeCustomerId)
 
-    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
-      .schema('stripe')
-      .from('subscriptions')
-      .select('*')
-      .eq('customer', stripeCustomerId)
+		if (result.error) {
+			this.logger.error('Failed to find subscriptions by customer:', {
+				error: result.error
+			})
+			throw result.error
+		}
 
-    if (result.error) {
-      this.logger.error('Failed to find subscriptions by customer:', { error: result.error })
-      throw result.error
-    }
+		return (result.data as Stripe.Subscription[]) || []
+	}
 
-    return (result.data as Stripe.Subscription[]) || []
-  }
+	/**
+	 * Find active subscription for a user (RLS-enforced query)
+	 * Returns the subscription record from stripe.subscriptions table
+	 * Uses service client with user token to enforce RLS policies
+	 *
+	 * SECURITY: FAIL-CLOSED ERROR HANDLING
+	 * - User not found (PGRST116): Returns null (expected for users without subscriptions)
+	 * - Database error: Throws exception (fail-closed - denies access)
+	 * - RLS denial: Throws exception (fail-closed - denies access)
+	 */
+	async findSubscriptionByUserId(
+		userId: string,
+		userToken: string
+	): Promise<{
+		stripe_subscription_id: string | null
+		stripe_customer_id: string | null
+	} | null> {
+		// Use user client to enforce RLS - only returns subscriptions user has access to
+		const client = this.supabase.getUserClient(userToken)
+		const stripeClient = asStripeSchemaClient(client)
 
-  /**
-   * Find active subscription for a user (RLS-enforced query)
-   * Returns the subscription record from stripe.subscriptions table
-   * Uses service client with user token to enforce RLS policies
-   *
-   * SECURITY: FAIL-CLOSED ERROR HANDLING
-   * - User not found (PGRST116): Returns null (expected for users without subscriptions)
-   * - Database error: Throws exception (fail-closed - denies access)
-   * - RLS denial: Throws exception (fail-closed - denies access)
-   */
-  async findSubscriptionByUserId(
-    userId: string,
-    userToken: string
-  ): Promise<{ stripe_subscription_id: string | null; stripe_customer_id: string | null } | null> {
-    // Use user client to enforce RLS - only returns subscriptions user has access to
-    const client = this.supabase.getUserClient(userToken)
-    const stripeClient = asStripeSchemaClient(client)
+		const { data, error } = (await stripeClient
+			.schema('stripe')
+			.from('subscriptions')
+			.select('id, customer')
+			.order('created', { ascending: false })
+			.limit(1)
+			.single()) as {
+			data: { id: string; customer: string | null } | null
+			error: SupabaseError | null
+		}
 
-    const { data, error } = (await stripeClient
-      .schema('stripe')
-      .from('subscriptions')
-      .select('id, customer')
-      .order('created', { ascending: false })
-      .limit(1)
-      .single()) as { data: { id: string; customer: string | null } | null; error: SupabaseError | null }
+		if (error) {
+			// Not found is expected for users without subscriptions
+			if (error.code === 'PGRST116') {
+				return null
+			}
+			// All other errors throw (fail-closed security)
+			this.logger.error('Failed to find subscription by user ID:', {
+				error,
+				userId
+			})
+			throw error
+		}
 
-    if (error) {
-      // Not found is expected for users without subscriptions
-      if (error.code === 'PGRST116') {
-        return null
-      }
-      // All other errors throw (fail-closed security)
-      this.logger.error('Failed to find subscription by user ID:', { error, userId })
-      throw error
-    }
+		if (!data) {
+			return null
+		}
 
-    if (!data) {
-      return null
-    }
+		return {
+			stripe_subscription_id: data.id ?? null,
+			stripe_customer_id: data.customer ?? null
+		}
+	}
 
-    return {
-      stripe_subscription_id: data.id ?? null,
-      stripe_customer_id: data.customer ?? null
-    }
-  }
+	/**
+	 * Find payment intent by Stripe payment intent ID (read-only)
+	 * The Stripe Sync Engine automatically syncs all payment intents
+	 */
+	async findPaymentIntentByStripeId(
+		stripePaymentIntentId: string
+	): Promise<Stripe.PaymentIntent | null> {
+		const client = this.supabase.getAdminClient()
+		const stripeClient = asStripeSchemaClient(client)
 
-  /**
-   * Find payment intent by Stripe payment intent ID (read-only)
-   * The Stripe Sync Engine automatically syncs all payment intents
-   */
-  async findPaymentIntentByStripeId(
-    stripePaymentIntentId: string
-  ): Promise<Stripe.PaymentIntent | null> {
-    const client = this.supabase.getAdminClient()
-    const stripeClient = asStripeSchemaClient(client)
+		const result: { data: unknown; error: SupabaseError | null } =
+			await stripeClient
+				.schema('stripe')
+				.from('payment_intents')
+				.select('*')
+				.eq('id', stripePaymentIntentId)
+				.single()
 
-    const result: { data: unknown; error: SupabaseError | null } = await stripeClient
-      .schema('stripe')
-      .from('payment_intents')
-      .select('*')
-      .eq('id', stripePaymentIntentId)
-      .single()
+		if (result.error && result.error.code !== 'PGRST116') {
+			this.logger.error('Failed to find payment intent:', {
+				error: result.error
+			})
+			throw result.error
+		}
 
-    if (result.error && result.error.code !== 'PGRST116') {
-      this.logger.error('Failed to find payment intent:', { error: result.error })
-      throw result.error
-    }
-
-    return result.data as Stripe.PaymentIntent | null
-  }
+		return result.data as Stripe.PaymentIntent | null
+	}
 }

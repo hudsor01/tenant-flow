@@ -106,7 +106,8 @@ describe('PdfStorageService', () => {
 
 			const mockPublicUrlResponse = {
 				data: {
-					publicUrl: 'https://supabase.co/storage/v1/object/public/lease-documents/leases/123e4567/lease-123e4567-2025-01-01.pdf'
+					publicUrl:
+						'https://supabase.co/storage/v1/object/public/lease-documents/leases/123e4567/lease-123e4567-2025-01-01.pdf'
 				}
 			}
 
@@ -114,7 +115,9 @@ describe('PdfStorageService', () => {
 			const storageClient = adminClient.storage.from('lease-documents')
 
 			;(storageClient.upload as jest.Mock).mockResolvedValue(mockUploadResponse)
-			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue(mockPublicUrlResponse)
+			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue(
+				mockPublicUrlResponse
+			)
 
 			// Act
 			const result = await service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
@@ -134,7 +137,9 @@ describe('PdfStorageService', () => {
 
 			// Verify upload was called with compressed buffer
 			expect(storageClient.upload).toHaveBeenCalledWith(
-				expect.stringMatching(/^leases\/123e4567-e89b-12d3-a456-426614174000\/lease-123e4567-e89b-12d3-a456-426614174000-.*\.pdf$/),
+				expect.stringMatching(
+					/^leases\/123e4567-e89b-12d3-a456-426614174000\/lease-123e4567-e89b-12d3-a456-426614174000-.*\.pdf$/
+				),
 				mockCompressedBuffer,
 				{
 					contentType: 'application/pdf',
@@ -163,14 +168,19 @@ describe('PdfStorageService', () => {
 			const uploadMock = storageClient.upload as jest.Mock
 
 			uploadMock
-				.mockResolvedValueOnce({ data: null, error: { message: 'Network timeout' } }) // Attempt 1: fail
-				.mockResolvedValueOnce({ data: null, error: { message: 'Network timeout' } }) // Attempt 2: fail
+				.mockResolvedValueOnce({
+					data: null,
+					error: { message: 'Network timeout' }
+				}) // Attempt 1: fail
+				.mockResolvedValueOnce({
+					data: null,
+					error: { message: 'Network timeout' }
+				}) // Attempt 2: fail
 				.mockResolvedValueOnce({
 					// Attempt 3: success
 					data: { path: 'leases/123e4567/lease.pdf' },
 					error: null
 				})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
@@ -219,7 +229,6 @@ describe('PdfStorageService', () => {
 				data: { path: 'leases/123e4567/lease.pdf' },
 				error: null
 			})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
@@ -261,13 +270,13 @@ describe('PdfStorageService', () => {
 				.mockResolvedValue(undefined)
 
 			// Act & Assert
-			await expect(service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)).rejects.toThrow(
-				InternalServerErrorException
-			)
+			await expect(
+				service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
+			).rejects.toThrow(InternalServerErrorException)
 
-			await expect(service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)).rejects.toThrow(
-				'Failed to upload lease PDF: Network error'
-			)
+			await expect(
+				service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
+			).rejects.toThrow('Failed to upload lease PDF: Network error')
 
 			// Verify all 3 retries were attempted
 			expect(storageClient.upload).toHaveBeenCalledTimes(6) // 3 from previous call + 3 from this call
@@ -291,7 +300,6 @@ describe('PdfStorageService', () => {
 				data: { path: 'leases/123e4567/lease.pdf' },
 				error: null
 			})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
@@ -322,7 +330,6 @@ describe('PdfStorageService', () => {
 					error: null
 				}
 			})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
@@ -385,7 +392,6 @@ describe('PdfStorageService', () => {
 				],
 				error: null
 			})
-
 			;(storageClient.remove as jest.Mock).mockResolvedValue({
 				data: [],
 				error: null
@@ -442,7 +448,6 @@ describe('PdfStorageService', () => {
 				],
 				error: null
 			})
-
 			;(storageClient.remove as jest.Mock).mockResolvedValue({
 				data: [],
 				error: null
@@ -470,7 +475,6 @@ describe('PdfStorageService', () => {
 				data: [{ name: 'lease.pdf' }],
 				error: null
 			})
-
 			;(storageClient.remove as jest.Mock).mockResolvedValue({
 				data: null,
 				error: { message: 'Permission denied' }
@@ -519,10 +523,10 @@ describe('PdfStorageService', () => {
 				data: [{ name: 'lease-123e4567-2025-01-01.pdf' }],
 				error: null
 			})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: {
-					publicUrl: 'https://supabase.co/storage/v1/object/public/lease-documents/leases/123e4567/lease.pdf'
+					publicUrl:
+						'https://supabase.co/storage/v1/object/public/lease-documents/leases/123e4567/lease.pdf'
 				}
 			})
 
@@ -559,7 +563,9 @@ describe('PdfStorageService', () => {
 			const adminClient = supabaseService.getAdminClient()
 			const storageClient = adminClient.storage.from('lease-documents')
 
-			;(storageClient.list as jest.Mock).mockRejectedValue(new Error('Network error'))
+			;(storageClient.list as jest.Mock).mockRejectedValue(
+				new Error('Network error')
+			)
 
 			// Act
 			const url = await service.getLeasePdfUrl(mockLeaseId)
@@ -638,7 +644,9 @@ describe('PdfStorageService', () => {
 			// Arrange
 			const adminClient = supabaseService.getAdminClient()
 
-			;(adminClient.storage.listBuckets as jest.Mock).mockRejectedValue(new Error('Network error'))
+			;(adminClient.storage.listBuckets as jest.Mock).mockRejectedValue(
+				new Error('Network error')
+			)
 
 			// Act - should not throw
 			await expect(service.ensureBucketExists()).resolves.not.toThrow()
@@ -659,7 +667,9 @@ describe('PdfStorageService', () => {
 			).generateFileName(mockLeaseId)
 
 			// Assert
-			expect(fileName).toMatch(/^lease-123e4567-e89b-12d3-a456-426614174000-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.pdf$/)
+			expect(fileName).toMatch(
+				/^lease-123e4567-e89b-12d3-a456-426614174000-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z\.pdf$/
+			)
 			expect(fileName).toContain(mockLeaseId)
 			expect(fileName).toContain('.pdf')
 		})
@@ -712,7 +722,6 @@ describe('PdfStorageService', () => {
 				data: { path: 'leases/123e4567/lease.pdf' },
 				error: null
 			})
-
 			;(storageClient.getPublicUrl as jest.Mock).mockReturnValue({
 				data: { publicUrl: 'https://supabase.co/storage/lease.pdf' }
 			})
@@ -730,7 +739,10 @@ describe('PdfStorageService', () => {
 			})
 
 			// Act - Upload
-			const uploadResult = await service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
+			const uploadResult = await service.uploadLeasePdf(
+				mockLeaseId,
+				mockPdfBuffer
+			)
 			expect(uploadResult.publicUrl).toBeDefined()
 
 			// Act - Verify URL
@@ -757,9 +769,9 @@ describe('PdfStorageService', () => {
 			)
 
 			// Act & Assert - should propagate error
-			await expect(service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)).rejects.toThrow(
-				'Compression error'
-			)
+			await expect(
+				service.uploadLeasePdf(mockLeaseId, mockPdfBuffer)
+			).rejects.toThrow('Compression error')
 
 			expect(logger.error).toHaveBeenCalledWith(
 				'Unexpected error uploading lease PDF',

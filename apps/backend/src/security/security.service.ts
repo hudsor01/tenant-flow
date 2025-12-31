@@ -1,9 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
 import { z } from 'zod'
-import { SecureEmailSchema, EmailMetadataSchema } from '@repo/shared/validation/emails.schemas'
+import {
+	SecureEmailSchema,
+	EmailMetadataSchema
+} from '@repo/shared/validation/emails.schemas'
 import { SupabaseService } from '../database/supabase.service'
-import type { Json } from '@repo/shared/src/types/supabase.js'
+import type { Json } from '@repo/shared/types/supabase'
 import { AppLogger } from '../logger/app-logger.service'
 
 export interface SanitizationOptions {
@@ -64,23 +67,23 @@ export interface CharacterClassValidation {
 }
 
 // Zod schemas for input validation
-const SanitizationOptionsSchema = z
-	.object({
-		maxLength: z.number().min(1).max(10000).optional(),
-		allowControlChars: z.boolean().optional(),
-		allowNullBytes: z.boolean().optional(),
-		allowNewlines: z.boolean().optional(),
-		allowApostrophes: z.boolean().optional(),
-		allowUnicode: z.boolean().optional(),
-		forbiddenChars: z.string().optional(),
-		allowedCharClasses: z.array(z.string()).optional()
-	})
-	.strict()
+const SanitizationOptionsSchema = z.strictObject({
+	maxLength: z.number().min(1).max(10000).optional(),
+	allowControlChars: z.boolean().optional(),
+	allowNullBytes: z.boolean().optional(),
+	allowNewlines: z.boolean().optional(),
+	allowApostrophes: z.boolean().optional(),
+	allowUnicode: z.boolean().optional(),
+	forbiddenChars: z.string().optional(),
+	allowedCharClasses: z.array(z.string()).optional()
+})
 
 @Injectable()
 export class SecurityService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Basic input sanitization - removes dangerous characters while preserving valid business data
@@ -350,7 +353,7 @@ export class SecurityService {
 		password: string,
 		hashedPassword: string
 	): Promise<boolean> {
-			return bcrypt.compare(password, hashedPassword)
+		return bcrypt.compare(password, hashedPassword)
 	}
 
 	/**
@@ -363,11 +366,11 @@ export class SecurityService {
 		}
 
 		// Remove CRLF characters that could cause header injection
-	const sanitized = email.replace(/[\r\n]/g, '').trim()
+		const sanitized = email.replace(/[\r\n]/g, '').trim()
 
 		// Validate email format using Zod schema
 		const result = SecureEmailSchema.safeParse(sanitized)
-	if (!result.success) {
+		if (!result.success) {
 			throw new BadRequestException(
 				`Invalid email format: ${result.error.issues.map((e: { message: string }) => e.message).join(', ')}`
 			)
@@ -380,7 +383,9 @@ export class SecurityService {
 	 * Sanitize email metadata to prevent header injection
 	 * Validates and sanitizes all email-related fields
 	 */
-	sanitizeEmailMetadata(metadata: unknown): z.infer<typeof EmailMetadataSchema> {
+	sanitizeEmailMetadata(
+		metadata: unknown
+	): z.infer<typeof EmailMetadataSchema> {
 		const result = EmailMetadataSchema.safeParse(metadata)
 		if (!result.success) {
 			throw new BadRequestException(
@@ -412,11 +417,15 @@ export class SecurityService {
 		}
 
 		if (headers.subject && CRLF_REGEX.test(headers.subject)) {
-			throw new BadRequestException('Subject header contains invalid characters')
+			throw new BadRequestException(
+				'Subject header contains invalid characters'
+			)
 		}
 
 		if (headers.replyTo && CRLF_REGEX.test(headers.replyTo)) {
-			throw new BadRequestException('Reply-To header contains invalid characters')
+			throw new BadRequestException(
+				'Reply-To header contains invalid characters'
+			)
 		}
 	}
 

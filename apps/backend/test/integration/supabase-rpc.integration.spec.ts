@@ -38,7 +38,7 @@ const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
 if (missingEnv.length > 0 && shouldRunIntegration) {
 	throw new Error(
 		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
-		`Set these in Doppler or CI secrets.`
+			`Set these in Doppler or CI secrets.`
 	)
 }
 
@@ -46,7 +46,7 @@ if (missingEnv.length > 0 && shouldRunIntegration) {
 if (missingEnv.length > 0) {
 	process.stderr.write(
 		`WARNING  Skipping Supabase RPC contract tests. Missing env: ${missingEnv.join(', ')}\n` +
-		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n`
+			`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n`
 	)
 }
 
@@ -150,12 +150,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'calculate_maintenance_metrics',
-			{
-				p_user_id: user_id
-			}
-		)
+		const { data, error } = await client.rpc('calculate_maintenance_metrics', {
+			p_user_id: user_id
+		})
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
@@ -184,12 +181,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'get_maintenance_analytics',
-			{
-				user_id: user_id
-			}
-		)
+		const { data, error } = await client.rpc('get_maintenance_analytics', {
+			user_id: user_id
+		})
 
 		expect(error).toBeNull()
 		expect(data).toBeTruthy()
@@ -203,23 +197,16 @@ describeSupabase('Supabase RPC contract tests', () => {
 	})
 
 	test('get_tenants_by_owner returns tenant ID array', async () => {
-		const mockTenantIds = [
-			'tenant-uuid-1',
-			'tenant-uuid-2',
-			'tenant-uuid-3'
-		]
+		const mockTenantIds = ['tenant-uuid-1', 'tenant-uuid-2', 'tenant-uuid-3']
 
 		mockRpc.mockResolvedValueOnce({
 			data: mockTenantIds,
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'get_tenants_by_owner',
-			{
-				p_user_id: user_id
-			}
-		)
+		const { data, error } = await client.rpc('get_tenants_by_owner', {
+			p_user_id: user_id
+		})
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
@@ -239,12 +226,9 @@ describeSupabase('Supabase RPC contract tests', () => {
 			error: null
 		})
 
-		const { data, error } = await client.rpc(
-			'get_tenants_by_owner',
-			{
-				p_user_id: user_id
-			}
-		)
+		const { data, error } = await client.rpc('get_tenants_by_owner', {
+			p_user_id: user_id
+		})
 
 		expect(error).toBeNull()
 		expect(Array.isArray(data)).toBe(true)
@@ -252,10 +236,7 @@ describeSupabase('Supabase RPC contract tests', () => {
 	})
 
 	test('get_tenants_with_lease_by_owner returns tenant ID array for active leases', async () => {
-		const mockTenantIds = [
-			'tenant-uuid-1',
-			'tenant-uuid-2'
-		]
+		const mockTenantIds = ['tenant-uuid-1', 'tenant-uuid-2']
 
 		mockRpc.mockResolvedValueOnce({
 			data: mockTenantIds,

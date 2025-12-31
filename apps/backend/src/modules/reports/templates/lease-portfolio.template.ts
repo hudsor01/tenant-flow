@@ -37,8 +37,10 @@ export interface LeasePortfolioReportData {
 
 @Injectable()
 export class LeasePortfolioTemplate {
-
-	constructor(private readonly leaseService: LeaseAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly leaseService: LeaseAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

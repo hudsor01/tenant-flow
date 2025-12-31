@@ -1,3 +1,10 @@
+/**
+ * @todo DOCS-002: Add README.md to each backend module.
+ *       25/28 modules lack documentation.
+ *       Include: architecture, API endpoints, dependencies.
+ *       See TODO.md for details.
+ */
+
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
@@ -183,14 +190,14 @@ import { DocumentsModule } from './modules/documents/documents.module'
 				const dbNumber = db ? Number(db) : undefined
 
 				return {
-						connection: {
-							host: redisHost || 'localhost',
-							port: Number.isFinite(port) ? port : 6379,
-							...(username && { username }),
-							...(password && { password }),
-							...(Number.isFinite(dbNumber) ? { db: dbNumber as number } : {}),
-							...(tlsEnabled ? { tls: {} } : {})
-						},
+					connection: {
+						host: redisHost || 'localhost',
+						port: Number.isFinite(port) ? port : 6379,
+						...(username && { username }),
+						...(password && { password }),
+						...(Number.isFinite(dbNumber) ? { db: dbNumber as number } : {}),
+						...(tlsEnabled ? { tls: {} } : {})
+					},
 					defaultJobOptions: {
 						attempts: 3,
 						backoff: {
@@ -238,7 +245,7 @@ import { DocumentsModule } from './modules/documents/documents.module'
 		ReportsModule,
 		DocuSealModule,
 		AdminModule,
-		DocumentsModule,
+		DocumentsModule
 	],
 	controllers: [AppController],
 	providers: [

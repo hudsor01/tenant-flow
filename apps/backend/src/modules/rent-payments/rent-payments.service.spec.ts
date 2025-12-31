@@ -23,7 +23,8 @@ type UserRow = Database['public']['Tables']['users']['Row']
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']
-type StripeOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type StripeOwnerRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 
 type PaymentHistoryResponse = Awaited<
 	ReturnType<RentPaymentQueryService['getPaymentHistory']>
@@ -162,12 +163,14 @@ describe('RentPaymentsService (Facade)', () => {
 				mockPayments as SubscriptionPaymentHistoryResponse
 			)
 
-			const result = await service.getSubscriptionPaymentHistory(mockSubscriptionId, mockToken)
-
-			expect(mockQueryService.getSubscriptionPaymentHistory).toHaveBeenCalledWith(
+			const result = await service.getSubscriptionPaymentHistory(
 				mockSubscriptionId,
 				mockToken
 			)
+
+			expect(
+				mockQueryService.getSubscriptionPaymentHistory
+			).toHaveBeenCalledWith(mockSubscriptionId, mockToken)
 			expect(result).toBe(mockPayments)
 		})
 
@@ -179,7 +182,9 @@ describe('RentPaymentsService (Facade)', () => {
 
 			const result = await service.getFailedPaymentAttempts(mockToken)
 
-			expect(mockQueryService.getFailedPaymentAttempts).toHaveBeenCalledWith(mockToken)
+			expect(mockQueryService.getFailedPaymentAttempts).toHaveBeenCalledWith(
+				mockToken
+			)
 			expect(result).toBe(mockPayments)
 		})
 
@@ -189,19 +194,24 @@ describe('RentPaymentsService (Facade)', () => {
 				mockPayments as SubscriptionFailedPaymentResponse
 			)
 
-			const result = await service.getSubscriptionFailedAttempts(mockSubscriptionId, mockToken)
-
-			expect(mockQueryService.getSubscriptionFailedAttempts).toHaveBeenCalledWith(
+			const result = await service.getSubscriptionFailedAttempts(
 				mockSubscriptionId,
 				mockToken
 			)
+
+			expect(
+				mockQueryService.getSubscriptionFailedAttempts
+			).toHaveBeenCalledWith(mockSubscriptionId, mockToken)
 			expect(result).toBe(mockPayments)
 		})
 	})
 
 	describe('Autopay method delegation', () => {
 		it('should delegate setupTenantAutopay to autopay service', async () => {
-			const mockResponse = { subscriptionId: mockSubscriptionId, status: 'active' }
+			const mockResponse = {
+				subscriptionId: mockSubscriptionId,
+				status: 'active'
+			}
 			mockAutopayService.setupTenantAutopay.mockResolvedValue(
 				mockResponse as AutopaySetupResponse
 			)
@@ -209,7 +219,10 @@ describe('RentPaymentsService (Facade)', () => {
 			const params = { tenant_id: mockTenantId, lease_id: mockLeaseId }
 			const result = await service.setupTenantAutopay(params, mockUserId)
 
-			expect(mockAutopayService.setupTenantAutopay).toHaveBeenCalledWith(params, mockUserId)
+			expect(mockAutopayService.setupTenantAutopay).toHaveBeenCalledWith(
+				params,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 
@@ -220,7 +233,10 @@ describe('RentPaymentsService (Facade)', () => {
 			const params = { tenant_id: mockTenantId, lease_id: mockLeaseId }
 			const result = await service.cancelTenantAutopay(params, mockUserId)
 
-			expect(mockAutopayService.cancelTenantAutopay).toHaveBeenCalledWith(params, mockUserId)
+			expect(mockAutopayService.cancelTenantAutopay).toHaveBeenCalledWith(
+				params,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 
@@ -238,7 +254,10 @@ describe('RentPaymentsService (Facade)', () => {
 			const params = { tenant_id: mockTenantId, lease_id: mockLeaseId }
 			const result = await service.getAutopayStatus(params, mockUserId)
 
-			expect(mockAutopayService.getAutopayStatus).toHaveBeenCalledWith(params, mockUserId)
+			expect(mockAutopayService.getAutopayStatus).toHaveBeenCalledWith(
+				params,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -357,7 +376,9 @@ describe('RentPaymentsService (Facade)', () => {
 			)
 
 			expect(result.payment.id).toBe('payment123')
-			expect(mockContextService.getTenantContext).toHaveBeenCalledWith('tenant123')
+			expect(mockContextService.getTenantContext).toHaveBeenCalledWith(
+				'tenant123'
+			)
 			expect(mockContextService.getLeaseContext).toHaveBeenCalledWith(
 				'lease123',
 				'tenant123',

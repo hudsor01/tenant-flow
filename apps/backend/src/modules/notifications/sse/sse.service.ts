@@ -52,6 +52,12 @@ export class SseService implements SseBroadcaster, OnModuleDestroy {
 	private readonly HEARTBEAT_INTERVAL = 30_000
 	private heartbeatTimer: NodeJS.Timeout | null = null
 
+	/** Maximum connections per user (DoS protection) */
+	private readonly MAX_CONNECTIONS_PER_USER = 5
+
+	/** Maximum total connections (memory protection) */
+	private readonly MAX_TOTAL_CONNECTIONS = 1000
+
 	constructor(private readonly logger: AppLogger) {
 		this.startHeartbeat()
 		this.logger.log('SSE Service initialized', { context: 'SseService' })
@@ -65,8 +71,33 @@ export class SseService implements SseBroadcaster, OnModuleDestroy {
 
 	/**
 	 * Subscribe a user to SSE events
+	 * @throws Error if user exceeds connection limit or total connections exceeded
 	 */
 	subscribe(userId: string, sessionId: string): Observable<SseEvent> {
+		// Check total connection limit (memory protection)
+		if (this.connections.size >= this.MAX_TOTAL_CONNECTIONS) {
+			this.logger.warn('SSE max total connections reached', {
+				context: 'SseService',
+				userId,
+				totalConnections: this.connections.size
+			})
+			throw new Error('Server connection limit reached. Please try again later.')
+		}
+
+		// Check per-user connection limit (DoS protection)
+		const userSessionCount = this.userSessions.get(userId)?.size ?? 0
+		if (userSessionCount >= this.MAX_CONNECTIONS_PER_USER) {
+			this.logger.warn('SSE per-user connection limit reached', {
+				context: 'SseService',
+				userId,
+				userConnections: userSessionCount,
+				limit: this.MAX_CONNECTIONS_PER_USER
+			})
+			throw new Error(
+				`Maximum connections (${this.MAX_CONNECTIONS_PER_USER}) per user reached. Close other tabs to connect.`
+			)
+		}
+
 		// Clean up existing connection with same sessionId
 		if (this.connections.has(sessionId)) {
 			this.unsubscribe(sessionId)
@@ -266,8 +297,14 @@ export class SseService implements SseBroadcaster, OnModuleDestroy {
 		}
 	}
 
-	private sendToConnection(connection: SseConnection, event: SseEvent): boolean {
-		if (connection.subject.closed || connection.subject.observers.length === 0) {
+	private sendToConnection(
+		connection: SseConnection,
+		event: SseEvent
+	): boolean {
+		if (
+			connection.subject.closed ||
+			connection.subject.observers.length === 0
+		) {
 			return false
 		}
 

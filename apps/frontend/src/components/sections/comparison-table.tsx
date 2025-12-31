@@ -108,7 +108,8 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 							<span className="hero-highlight">TenantFlow</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							The sweet spot between DIY spreadsheets and overpriced enterprise solutions
+							The sweet spot between DIY spreadsheets and overpriced enterprise
+							solutions
 						</p>
 					</div>
 				</BlurFade>
@@ -125,21 +126,31 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 										<div className="inline-flex flex-col items-center">
 											<div className="relative">
 												<Crown className="absolute -top-4 left-1/2 -translate-x-1/2 size-5 text-accent fill-accent" />
-												<span className="text-lg font-bold text-primary">TenantFlow</span>
+												<span className="text-lg font-bold text-primary">
+													TenantFlow
+												</span>
 											</div>
-											<span className="text-xs text-muted-foreground">Best Value</span>
+											<span className="text-xs text-muted-foreground">
+												Best Value
+											</span>
 										</div>
 									</th>
 									<th className="py-4 px-4 text-center">
 										<div className="flex flex-col items-center">
-											<span className="typography-large text-foreground">Spreadsheets</span>
+											<span className="typography-large text-foreground">
+												Spreadsheets
+											</span>
 											<span className="text-xs text-muted-foreground">DIY</span>
 										</div>
 									</th>
 									<th className="py-4 px-4 text-center">
 										<div className="flex flex-col items-center">
-											<span className="typography-large text-foreground">Enterprise</span>
-											<span className="text-xs text-muted-foreground">Overpriced</span>
+											<span className="typography-large text-foreground">
+												Enterprise
+											</span>
+											<span className="text-xs text-muted-foreground">
+												Overpriced
+											</span>
 										</div>
 									</th>
 								</tr>
@@ -154,7 +165,9 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 										)}
 									>
 										<td className="py-4 px-4">
-											<div className="font-medium text-foreground">{feature.name}</div>
+											<div className="font-medium text-foreground">
+												{feature.name}
+											</div>
 											{feature.description && (
 												<div className="text-xs text-muted-foreground mt-0.5">
 													{feature.description}
@@ -186,11 +199,7 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 				{/* CTA */}
 				<BlurFade delay={0.3} inView>
 					<div className="text-center mt-12">
-						<Button
-							size="lg"
-							className="shadow-lg shadow-primary/20"
-							asChild
-						>
+						<Button size="lg" className="shadow-lg shadow-primary/20" asChild>
 							<Link href="/pricing">
 								See Pricing Details
 								<ArrowRight className="size-5 ml-2" />
@@ -203,13 +212,21 @@ export function ComparisonTable({ className }: ComparisonTableProps) {
 	)
 }
 
-function FeatureCell({ value, highlight }: { value: FeatureValue; highlight?: boolean }) {
+function FeatureCell({
+	value,
+	highlight
+}: {
+	value: FeatureValue
+	highlight?: boolean
+}) {
 	if (typeof value === 'string' && value !== 'partial') {
 		return (
-			<span className={cn(
-				'typography-small',
-				highlight ? 'text-primary' : 'text-foreground'
-			)}>
+			<span
+				className={cn(
+					'typography-small',
+					highlight ? 'text-primary' : 'text-foreground'
+				)}
+			>
 				{value}
 			</span>
 		)
@@ -217,14 +234,15 @@ function FeatureCell({ value, highlight }: { value: FeatureValue; highlight?: bo
 
 	if (value === true) {
 		return (
-			<div className={cn(
-				'size-8 rounded-full flex-center',
-				highlight ? 'bg-primary/10' : 'bg-success/10'
-			)}>
-				<Check className={cn(
-					'size-5',
-					highlight ? 'text-primary' : 'text-success'
-				)} />
+			<div
+				className={cn(
+					'size-8 rounded-full flex-center',
+					highlight ? 'bg-primary/10' : 'bg-success/10'
+				)}
+			>
+				<Check
+					className={cn('size-5', highlight ? 'text-primary' : 'text-success')}
+				/>
 			</div>
 		)
 	}

@@ -6,7 +6,19 @@
  */
 
 import { InjectQueue } from '@nestjs/bullmq'
-import { BadRequestException, Controller, Headers, InternalServerErrorException, Post, Req } from '@nestjs/common'
+import {
+	BadRequestException,
+	Controller,
+	Headers,
+	InternalServerErrorException,
+	Post,
+	Req
+} from '@nestjs/common'
+import {
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { RawBodyRequest } from '@nestjs/common'
 import { Throttle } from '@nestjs/throttler'
 import type { Queue } from 'bullmq'
@@ -26,6 +38,7 @@ const STRIPE_WEBHOOK_THROTTLE = createThrottleDefaults({
 	defaultLimit: 30
 })
 
+@ApiTags('Webhooks')
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
 	constructor(
@@ -42,6 +55,10 @@ export class StripeWebhookController {
 	 * IMPORTANT: Requires raw body for signature verification
 	 * Configure in `main.ts` with `rawBody: true`.
 	 */
+	@ApiOperation({ summary: 'Stripe webhook handler', description: 'Receives and processes Stripe webhook events (public endpoint)' })
+	@ApiResponse({ status: 200, description: 'Webhook received and queued' })
+	@ApiResponse({ status: 400, description: 'Invalid signature or missing body' })
+	@ApiResponse({ status: 500, description: 'Failed to queue webhook' })
 	@Public()
 	@Throttle({ default: STRIPE_WEBHOOK_THROTTLE })
 	@Post()
@@ -77,7 +94,10 @@ export class StripeWebhookController {
 			throw new BadRequestException('Invalid webhook signature')
 		}
 
-		this.logger.log('Stripe webhook received', { type: event.type, id: event.id })
+		this.logger.log('Stripe webhook received', {
+			type: event.type,
+			id: event.id
+		})
 
 		try {
 			await this.webhookQueue.add(
@@ -101,4 +121,3 @@ export class StripeWebhookController {
 		}
 	}
 }
-

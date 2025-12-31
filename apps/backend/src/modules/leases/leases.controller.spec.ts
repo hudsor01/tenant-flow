@@ -1,8 +1,7 @@
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common'
+import { BadRequestException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { Lease } from '@repo/shared/types/core'
-import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { randomUUID } from 'crypto'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -12,25 +11,23 @@ import { createMockEmailService } from '../../test-utils/mocks'
 import { EmailService } from '../email/email.service'
 import { LeasesController } from './leases.controller'
 import { LeasesService } from './leases.service'
-import { LeaseFinancialService } from './lease-financial.service'
+import { LeaseQueryService } from './lease-query.service'
 import { LeaseLifecycleService } from './lease-lifecycle.service'
-import { LeaseSignatureService } from './lease-signature.service'
-import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
-import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
 import type { FindAllLeasesDto } from './dto/find-all-leases.dto'
 
 describe('LeasesController', () => {
 	let controller: LeasesController
 	let mockLeasesService: jest.Mocked<LeasesService>
-	let mockFinancialService: jest.Mocked<LeaseFinancialService>
+	let mockLeaseQueryService: jest.Mocked<LeaseQueryService>
 	let mockLifecycleService: jest.Mocked<LeaseLifecycleService>
-	let mockSignatureService: jest.Mocked<LeaseSignatureService>
-	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
-	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
-
-	type SendForSignatureBody = Parameters<LeasesController['sendForSignature']>[3]
 
 	const generateUUID = () => randomUUID()
+
+	// Mock authenticated request with authorization header
+	const mockRequest = {
+		user: { id: 'test-user-id', email: 'test@example.com' },
+		headers: { authorization: 'Bearer mock-jwt-token' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
 
 	const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 		id: generateUUID(),
@@ -69,41 +66,20 @@ describe('LeasesController', () => {
 
 	beforeEach(async () => {
 		mockLeasesService = {
-			findAll: jest.fn(),
-			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
 			remove: jest.fn()
 		} as unknown as jest.Mocked<LeasesService>
 
-		mockFinancialService = {
-			getStats: jest.fn(),
-			getExpiring: jest.fn(),
-			getAnalytics: jest.fn(),
-			getPaymentHistory: jest.fn()
-		} as unknown as jest.Mocked<LeaseFinancialService>
+		mockLeaseQueryService = {
+			findAll: jest.fn(),
+			findOne: jest.fn()
+		} as unknown as jest.Mocked<LeaseQueryService>
 
 		mockLifecycleService = {
 			renew: jest.fn(),
 			terminate: jest.fn()
 		} as unknown as jest.Mocked<LeaseLifecycleService>
-
-		mockSignatureService = {
-			sendForSignature: jest.fn(),
-			signLeaseAsOwner: jest.fn(),
-			signLeaseAsTenant: jest.fn(),
-			getSignatureStatus: jest.fn(),
-			getSigningUrl: jest.fn(),
-			cancelSignatureRequest: jest.fn()
-		} as unknown as jest.Mocked<LeaseSignatureService>
-
-		mockPdfMapper = {
-			mapToPdfData: jest.fn()
-		}
-
-		mockPdfGenerator = {
-			generatePdf: jest.fn()
-		}
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [LeasesController],
@@ -113,24 +89,12 @@ describe('LeasesController', () => {
 					useValue: mockLeasesService
 				},
 				{
-					provide: LeaseFinancialService,
-					useValue: mockFinancialService
+					provide: LeaseQueryService,
+					useValue: mockLeaseQueryService
 				},
 				{
 					provide: LeaseLifecycleService,
 					useValue: mockLifecycleService
-				},
-				{
-					provide: LeaseSignatureService,
-					useValue: mockSignatureService
-				},
-				{
-					provide: LeasePdfMapperService,
-					useValue: mockPdfMapper
-				},
-				{
-					provide: LeasePdfGeneratorService,
-					useValue: mockPdfGenerator
 				},
 				{
 					provide: SupabaseService,
@@ -177,7 +141,7 @@ describe('LeasesController', () => {
 	describe('findAll', () => {
 		it('should return all leases with default pagination', async () => {
 			const mockLeases = [createMockLease(), createMockLease()]
-			mockLeasesService.findAll.mockResolvedValue({
+			mockLeaseQueryService.findAll.mockResolvedValue({
 				data: mockLeases,
 				total: mockLeases.length,
 				limit: 10,
@@ -185,21 +149,21 @@ describe('LeasesController', () => {
 			})
 
 			const result = await controller.findAll(
-			'mock-jwt-token', // JWT token
-			{
-				tenant_id: undefined,
-				unit_id: undefined,
-				property_id: undefined,
-				status: undefined,
-				limit: 10,
-				offset: 0,
-				sortBy: 'created_at',
-				sortOrder: 'desc'
-			}
-		)
+				mockRequest,
+				{
+					tenant_id: undefined,
+					unit_id: undefined,
+					property_id: undefined,
+					status: undefined,
+					limit: 10,
+					offset: 0,
+					sortBy: 'created_at',
+					sortOrder: 'desc'
+				}
+			)
 
 			// Note: Authentication is handled by @JwtToken() decorator and guards
-			expect(mockLeasesService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
+			expect(mockLeaseQueryService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
 				tenant_id: undefined,
 				unit_id: undefined,
 				property_id: undefined,
@@ -217,7 +181,7 @@ describe('LeasesController', () => {
 			const unit_id = generateUUID()
 			const property_id = generateUUID()
 			const mockLeases = [createMockLease()]
-			mockLeasesService.findAll.mockResolvedValue({
+			mockLeaseQueryService.findAll.mockResolvedValue({
 				data: mockLeases,
 				total: mockLeases.length,
 				limit: 20,
@@ -225,20 +189,20 @@ describe('LeasesController', () => {
 			})
 
 			const result = await controller.findAll(
-			'mock-jwt-token', // JWT token
-			{
-				tenant_id,
-				unit_id,
-				property_id,
-				status: 'active',
-				limit: 20,
-				offset: 10,
-				sortBy: 'start_date',
-				sortOrder: 'asc'
-			}
-		)
+				mockRequest,
+				{
+					tenant_id,
+					unit_id,
+					property_id,
+					status: 'active',
+					limit: 20,
+					offset: 10,
+					sortBy: 'start_date',
+					sortOrder: 'asc'
+				}
+			)
 
-			expect(mockLeasesService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
+			expect(mockLeaseQueryService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
 				tenant_id,
 				unit_id,
 				property_id,
@@ -252,93 +216,53 @@ describe('LeasesController', () => {
 		})
 
 		it('should throw BadRequestException for invalid tenant ID format', async () => {
-		// Note: In practice, ZodValidationPipe would handle this validation
-		// For unit tests, we mock the service to throw for invalid input
-		mockLeasesService.findAll.mockRejectedValueOnce(
-			new BadRequestException('Invalid UUID format')
-		)
+			// Note: In practice, ZodValidationPipe would handle this validation
+			// For unit tests, we mock the service to throw for invalid input
+			mockLeaseQueryService.findAll.mockRejectedValueOnce(
+				new BadRequestException('Invalid UUID format')
+			)
 
-		await expect(
-			controller.findAll('mock-jwt-token', { tenant_id: 'invalid-uuid' } as FindAllLeasesDto)
-		).rejects.toThrow(BadRequestException)
-	})
+			await expect(
+				controller.findAll(mockRequest, {
+					tenant_id: 'invalid-uuid'
+				} as FindAllLeasesDto)
+			).rejects.toThrow(BadRequestException)
+		})
 
 		it('should reject invalid lease status "expired"', async () => {
-		// Note: In practice, ZodValidationPipe would handle this validation
-		// For unit tests, we mock the service to throw for invalid input
-		mockLeasesService.findAll.mockRejectedValueOnce(
-			new BadRequestException('Invalid lease status')
-		)
+			// Note: In practice, ZodValidationPipe would handle this validation
+			// For unit tests, we mock the service to throw for invalid input
+			mockLeaseQueryService.findAll.mockRejectedValueOnce(
+				new BadRequestException('Invalid lease status')
+			)
 
-		await expect(
-			controller.findAll(
-				'mock-jwt-token',
-				{
+			await expect(
+				controller.findAll(mockRequest, {
 					tenant_id: undefined,
 					unit_id: undefined,
 					property_id: undefined,
 					status: 'expired' as unknown as Lease['lease_status'] // Invalid status - should be "ended"
-				}
-			)
-		).rejects.toThrow('Invalid lease status')
-	})
+				})
+			).rejects.toThrow('Invalid lease status')
+		})
 
 		it('should accept valid lease status "ended"', async () => {
 			const mockLeases = [createMockLease({ lease_status: 'ended' })]
-			mockLeasesService.findAll.mockResolvedValue({
+			mockLeaseQueryService.findAll.mockResolvedValue({
 				data: mockLeases,
 				total: 1,
 				limit: 10,
 				offset: 0
 			})
 
-			const result = await controller.findAll(
-			'mock-jwt-token',
-			{
+			const result = await controller.findAll(mockRequest, {
 				tenant_id: undefined,
 				unit_id: undefined,
 				property_id: undefined,
 				status: 'ended'
-			}
-		)
+			})
 
 			expect(result.data).toEqual(mockLeases)
-		})
-	})
-
-	describe('getStats', () => {
-		it('should return lease statistics', async () => {
-			const mockStats = {
-				totalLeases: 25,
-				activeLeases: 20,
-				expiredLeases: 3,
-				terminatedLeases: 2,
-				totalMonthlyRent: 55000,
-				averageRent: 2750,
-				totalsecurity_deposits: 12000,
-				expiringLeases: 5
-			}
-			mockFinancialService.getStats.mockResolvedValue(mockStats)
-
-			const result = await controller.getStats('mock-jwt-token')
-
-			expect(mockFinancialService.getStats).toHaveBeenCalledWith('mock-jwt-token')
-			expect(result).toEqual(mockStats)
-		})
-	})
-
-	describe('getExpiring', () => {
-		it('should return expiring leases with default days', async () => {
-			const mockExpiring = [createMockLease()]
-			mockFinancialService.getExpiring.mockResolvedValue(mockExpiring)
-
-			const result = await controller.getExpiring('mock-jwt-token', 30)
-
-			expect(mockFinancialService.getExpiring).toHaveBeenCalledWith(
-				'mock-jwt-token',
-				30
-			)
-			expect(result).toEqual(mockExpiring)
 		})
 	})
 
@@ -346,11 +270,11 @@ describe('LeasesController', () => {
 		it('should return lease by ID', async () => {
 			const lease_id = generateUUID()
 			const mockLease = createMockLease({ id: lease_id })
-			mockLeasesService.findOne.mockResolvedValue(mockLease)
+			mockLeaseQueryService.findOne.mockResolvedValue(mockLease)
 
-			const result = await controller.findOne(lease_id, 'mock-jwt-token')
+			const result = await controller.findOne(lease_id, mockRequest)
 
-			expect(mockLeasesService.findOne).toHaveBeenCalledWith(
+			expect(mockLeaseQueryService.findOne).toHaveBeenCalledWith(
 				'mock-jwt-token',
 				lease_id
 			)
@@ -359,10 +283,10 @@ describe('LeasesController', () => {
 
 		it('should throw NotFoundException when lease not found', async () => {
 			const lease_id = generateUUID()
-			mockLeasesService.findOne.mockResolvedValue(null)
+			mockLeaseQueryService.findOne.mockResolvedValue(null)
 
 			await expect(
-				controller.findOne(lease_id, 'mock-jwt-token')
+				controller.findOne(lease_id, mockRequest)
 			).rejects.toThrow(NotFoundException)
 		})
 	})
@@ -385,7 +309,7 @@ describe('LeasesController', () => {
 			const mockLease = createMockLease()
 			mockLeasesService.create.mockResolvedValue(mockLease)
 
-			const result = await controller.create(createRequest, 'mock-jwt-token')
+			const result = await controller.create(createRequest, mockRequest)
 
 			expect(mockLeasesService.create).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -409,7 +333,7 @@ describe('LeasesController', () => {
 			const result = await controller.update(
 				lease_id,
 				updateRequest,
-				'mock-jwt-token'
+				mockRequest
 			)
 
 			expect(mockLeasesService.update).toHaveBeenCalledWith(
@@ -426,7 +350,7 @@ describe('LeasesController', () => {
 			const lease_id = generateUUID()
 			mockLeasesService.remove.mockResolvedValue(undefined)
 
-			await controller.remove(lease_id, 'mock-jwt-token')
+			await controller.remove(lease_id, mockRequest)
 
 			expect(mockLeasesService.remove).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -442,7 +366,11 @@ describe('LeasesController', () => {
 			const mockLease = createMockLease({ end_date: end_date })
 			mockLifecycleService.renew.mockResolvedValue(mockLease)
 
-			const result = await controller.renew(lease_id, end_date, 'mock-jwt-token')
+			const result = await controller.renew(
+				lease_id,
+				end_date,
+				mockRequest
+			)
 
 			expect(mockLifecycleService.renew).toHaveBeenCalledWith(
 				'mock-jwt-token',
@@ -462,7 +390,7 @@ describe('LeasesController', () => {
 
 			const result = await controller.terminate(
 				lease_id,
-				'mock-jwt-token',
+				mockRequest,
 				reason
 			)
 
@@ -473,183 +401,6 @@ describe('LeasesController', () => {
 				reason
 			)
 			expect(result).toEqual(mockLease)
-		})
-	})
-
-	// ============================================================
-	// LEASE SIGNATURE WORKFLOW TESTS (TDD)
-	// ============================================================
-
-	describe('Signature Workflow - sendForSignature', () => {
-		const mockRequest = {
-			user: { id: 'owner-123' },
-			ip: '192.168.1.1'
-		}
-
-		it('should send lease for signature', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.sendForSignature.mockResolvedValue(undefined)
-
-			const result = await controller.sendForSignature(
-				lease_id,
-				mockRequest as AuthenticatedRequest,
-				'mock-jwt-token',
-				{ message: 'Please review and sign' }
-			)
-
-			expect(mockSignatureService.sendForSignature).toHaveBeenCalledWith(
-				'owner-123',
-				lease_id,
-				{ token: 'mock-jwt-token', message: 'Please review and sign' }
-			)
-			expect(result).toEqual({ success: true })
-		})
-
-		it('should throw NotFoundException when lease not found', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.sendForSignature.mockRejectedValue(
-				new NotFoundException('Lease not found')
-			)
-
-			await expect(
-				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
-			).rejects.toThrow(NotFoundException)
-		})
-
-		it('should throw BadRequestException when lease is not in draft status', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.sendForSignature.mockRejectedValue(
-				new BadRequestException('Only draft leases can be sent for signature.')
-			)
-
-			await expect(
-				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
-			).rejects.toThrow(BadRequestException)
-		})
-
-		it('should throw ForbiddenException when user is not the owner', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.sendForSignature.mockRejectedValue(
-				new ForbiddenException('You do not own this lease.')
-			)
-
-			await expect(
-				controller.sendForSignature(lease_id, mockRequest as AuthenticatedRequest, 'mock-jwt-token', {} as SendForSignatureBody)
-			).rejects.toThrow(ForbiddenException)
-		})
-	})
-
-	describe('Signature Workflow - signAsOwner', () => {
-		const mockRequest = {
-			user: { id: 'owner-123' },
-			ip: '192.168.1.1'
-		}
-
-		it('should allow owner to sign the lease', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.signLeaseAsOwner.mockResolvedValue(undefined)
-
-			const result = await controller.signAsOwner(lease_id, mockRequest as AuthenticatedRequest)
-
-			expect(mockSignatureService.signLeaseAsOwner).toHaveBeenCalledWith(
-				'owner-123',
-				lease_id,
-				'192.168.1.1'
-			)
-			expect(result).toEqual({ success: true })
-		})
-
-		it('should throw BadRequestException when owner already signed', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.signLeaseAsOwner.mockRejectedValue(
-				new BadRequestException('Owner has already signed this lease.')
-			)
-
-			await expect(
-				controller.signAsOwner(lease_id, mockRequest as AuthenticatedRequest)
-			).rejects.toThrow(BadRequestException)
-		})
-	})
-
-	describe('Signature Workflow - signAsTenant', () => {
-		const mockRequest = {
-			user: { id: 'tenant-user-123' },
-			ip: '10.0.0.1'
-		}
-
-		it('should allow tenant to sign the lease', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.signLeaseAsTenant.mockResolvedValue(undefined)
-
-			const result = await controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
-
-			expect(mockSignatureService.signLeaseAsTenant).toHaveBeenCalledWith(
-				'tenant-user-123',
-				lease_id,
-				'10.0.0.1'
-			)
-			expect(result).toEqual({ success: true })
-		})
-
-		it('should throw ForbiddenException when user is not assigned to lease', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
-				new ForbiddenException('You are not assigned to this lease.')
-			)
-
-			await expect(
-				controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
-			).rejects.toThrow(ForbiddenException)
-		})
-
-		it('should throw BadRequestException when lease is not pending signature', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.signLeaseAsTenant.mockRejectedValue(
-				new BadRequestException('Lease must be pending signature for tenant to sign.')
-			)
-
-			await expect(
-				controller.signAsTenant(lease_id, mockRequest as AuthenticatedRequest)
-			).rejects.toThrow(BadRequestException)
-		})
-	})
-
-	describe('Signature Workflow - getSignatureStatus', () => {
-		const mockUserId = 'owner-123'
-		const mockRequest = {
-			user: { id: mockUserId },
-			ip: '192.168.1.1'
-		}
-
-		it('should return signature status for a lease', async () => {
-			const lease_id = generateUUID()
-			const mockStatus = {
-				lease_id,
-				status: 'pending_signature',
-				owner_signed: true,
-				owner_signed_at: '2025-01-15T10:00:00Z',
-				tenant_signed: false,
-				tenant_signed_at: null,
-				sent_for_signature_at: '2025-01-14T10:00:00Z',
-				both_signed: false
-			}
-			mockSignatureService.getSignatureStatus.mockResolvedValue(mockStatus)
-
-			const result = await controller.getSignatureStatus(lease_id, mockRequest as AuthenticatedRequest)
-
-			expect(mockSignatureService.getSignatureStatus).toHaveBeenCalledWith(lease_id, mockUserId)
-			expect(result).toEqual(mockStatus)
-		})
-
-		it('should throw NotFoundException when lease not found', async () => {
-			const lease_id = generateUUID()
-			mockSignatureService.getSignatureStatus.mockRejectedValue(
-				new NotFoundException('Lease not found.')
-			)
-
-			await expect(
-				controller.getSignatureStatus(lease_id, mockRequest as AuthenticatedRequest)
-			).rejects.toThrow(NotFoundException)
 		})
 	})
 })

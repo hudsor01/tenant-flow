@@ -1,4 +1,29 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post, Req, Res, UseGuards, NotFoundException, BadRequestException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	Param,
+	ParseUUIDPipe,
+	Post,
+	Req,
+	Res,
+	UseGuards,
+	NotFoundException,
+	BadRequestException,
+	InternalServerErrorException,
+	UnauthorizedException
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiProduces,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Response } from 'express'
 import { RolesGuard } from '../../shared/guards/roles.guard'
 import { Roles } from '../../shared/decorators/roles.decorator'
@@ -24,44 +49,55 @@ const MAX_TENANT_NAME_LENGTH = 20 // Max characters for tenant name in filename
  * - RolesGuard: Restricts lease generation to OWNER and MANAGER roles
  * - PropertyOwnershipGuard: Verifies user owns the property (applied to specific routes)
  */
+@ApiTags('Lease PDF Generation')
+@ApiBearerAuth('supabase-auth')
 @Controller('leases')
 @UseGuards(RolesGuard)
 @Roles('TENANT', 'OWNER', 'MANAGER')
 export class LeaseGenerationController {
-
-	constructor(private readonly leasePDF: ReactLeasePDFService,
+	constructor(
+		private readonly leasePDF: ReactLeasePDFService,
 		private readonly supabase: SupabaseService,
-		private readonly cache: RedisCacheService, private readonly logger: AppLogger) {}
+		private readonly cache: RedisCacheService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Sanitize string for use in filename
 	 * Removes special characters and limits length
 	 */
-	private sanitizeForFilename(value: string | undefined, maxLength: number): string {
+	private sanitizeForFilename(
+		value: string | undefined,
+		maxLength: number
+	): string {
 		const fallback = 'file'
 		if (!value?.trim()) return fallback
 
-		return value
-			.trim()
-			.normalize('NFKD') // Unicode normalization to prevent attacks
-			.replace(/[^a-zA-Z0-9]/g, '-')
-			.replace(/-+/g, '-')
-			.replace(/^-|-$/g, '')
-			.slice(0, maxLength) || fallback
+		return (
+			value
+				.trim()
+				.normalize('NFKD') // Unicode normalization to prevent attacks
+				.replace(/[^a-zA-Z0-9]/g, '-')
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '')
+				.slice(0, maxLength) || fallback
+		)
 	}
 
 	/**
 	 * Generate lease filename from DTO data
 	 */
 	private generateLeaseFilename(dto: LeaseGenerationDto): string {
-		const sanitizedAddress = this.sanitizeForFilename(
-			dto.propertyAddress || 'properties',
-			MAX_ADDRESS_LENGTH
-		) || 'properties'
-		const sanitizedTenant = this.sanitizeForFilename(
-			dto.tenantName || 'tenants',
-			MAX_TENANT_NAME_LENGTH
-		) || 'tenants'
+		const sanitizedAddress =
+			this.sanitizeForFilename(
+				dto.propertyAddress || 'properties',
+				MAX_ADDRESS_LENGTH
+			) || 'properties'
+		const sanitizedTenant =
+			this.sanitizeForFilename(
+				dto.tenantName || 'tenants',
+				MAX_TENANT_NAME_LENGTH
+			) || 'tenants'
 		const date = new Date().toISOString().split('T')[0]
 		return `lease-${sanitizedAddress}-${sanitizedTenant}-${date}.pdf`
 	}
@@ -72,6 +108,24 @@ export class LeaseGenerationController {
 	 *
 	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 */
+	@ApiOperation({
+		summary: 'Generate lease PDF preview',
+		description:
+			'Generate a Texas Residential Lease Agreement PDF from form data. Returns PDF for in-browser preview (not downloaded).'
+	})
+	@ApiBody({ type: LeaseGenerationDto })
+	@ApiProduces('application/pdf')
+	@ApiResponse({
+		status: 200,
+		description: 'PDF generated successfully for preview'
+	})
+	@ApiResponse({ status: 400, description: 'Invalid lease form data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({ status: 500, description: 'Failed to generate PDF' })
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('generate')
 	@HttpCode(HttpStatus.OK)
@@ -80,7 +134,9 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(
+				dto as LeaseGenerationFormData
+			)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Preview mode - display in browser (NO DOWNLOAD, NO DATABASE SAVE)
@@ -105,6 +161,24 @@ export class LeaseGenerationController {
 	 * Forces download instead of preview
 	 * NO DATABASE STORAGE - user action in their hands
 	 */
+	@ApiOperation({
+		summary: 'Download lease PDF',
+		description:
+			'Generate and download a Texas Residential Lease Agreement PDF. Forces browser download (attachment disposition).'
+	})
+	@ApiBody({ type: LeaseGenerationDto })
+	@ApiProduces('application/pdf')
+	@ApiResponse({
+		status: 200,
+		description: 'PDF downloaded successfully'
+	})
+	@ApiResponse({ status: 400, description: 'Invalid lease form data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({ status: 500, description: 'Failed to download PDF' })
 	@UseGuards(PropertyOwnershipGuard)
 	@Post('download')
 	@HttpCode(HttpStatus.OK)
@@ -113,7 +187,9 @@ export class LeaseGenerationController {
 		@Res() res: Response
 	): Promise<void> {
 		try {
-			const pdfBuffer = await this.leasePDF.generateLeasePDF(dto as LeaseGenerationFormData)
+			const pdfBuffer = await this.leasePDF.generateLeasePDF(
+				dto as LeaseGenerationFormData
+			)
 			const filename = this.generateLeaseFilename(dto)
 
 			// Force download
@@ -137,6 +213,32 @@ export class LeaseGenerationController {
 	 * Authorization: PropertyOwnershipGuard verifies user owns the property
 	 * Uses a single optimized query with joins instead of multiple queries
 	 */
+	@ApiOperation({
+		summary: 'Auto-fill lease form data',
+		description:
+			'Fetch property, unit, and tenant data to auto-fill the lease generation form. Returns default values for Texas lease agreement.'
+	})
+	@ApiParam({
+		name: 'property_id',
+		type: String,
+		description: 'Property UUID'
+	})
+	@ApiParam({ name: 'unit_id', type: String, description: 'Unit UUID' })
+	@ApiParam({ name: 'tenant_id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({
+		status: 200,
+		description: 'Auto-fill data retrieved successfully'
+	})
+	@ApiResponse({ status: 400, description: 'Unit does not belong to property' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({
+		status: 403,
+		description: 'User does not own the property'
+	})
+	@ApiResponse({
+		status: 404,
+		description: 'Property, unit, or tenant not found'
+	})
 	@UseGuards(PropertyOwnershipGuard)
 	@Get('auto-fill/:property_id/:unit_id/:tenant_id')
 	async autoFillLease(
@@ -152,7 +254,8 @@ export class LeaseGenerationController {
 
 		// Check cache first with parameterized key
 		const cacheKey = `lease-auto-fill:${user_id}:${property_id}:${unit_id}:${tenant_id}`
-		const cached = await this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
+		const cached =
+			await this.cache.get<Partial<LeaseGenerationFormData>>(cacheKey)
 		if (cached) {
 			this.logger.debug(`Cache hit for auto-fill: ${cacheKey}`)
 			return cached
@@ -163,14 +266,16 @@ export class LeaseGenerationController {
 		const { data: property, error: propertyError } = await this.supabase
 			.getAdminClient()
 			.from('properties')
-			.select(`
+			.select(
+				`
 				id,
 				address_line1,
 				city,
 				state,
 				postal_code,
 				owner_user_id
-			`)
+			`
+			)
 			.eq('id', property_id)
 			.single()
 
@@ -255,7 +360,9 @@ export class LeaseGenerationController {
 		// Validate owner user query result
 		if (ownerUserError) {
 			if (ownerUserError.code === 'PGRST116') {
-				throw new NotFoundException(`Owner user not found for property: ${property_id}`)
+				throw new NotFoundException(
+					`Owner user not found for property: ${property_id}`
+				)
 			}
 			throw new InternalServerErrorException(
 				'Failed to fetch owner user data',
@@ -264,7 +371,9 @@ export class LeaseGenerationController {
 		}
 
 		if (!ownerUser) {
-			throw new NotFoundException(`Owner user not found for property: ${property_id}`)
+			throw new NotFoundException(
+				`Owner user not found for property: ${property_id}`
+			)
 		}
 
 		// Auto-fill form data
@@ -274,9 +383,10 @@ export class LeaseGenerationController {
 			property_id: property.id,
 
 			// Property owner info
-			ownerName: ownerUser.first_name && ownerUser.last_name
-				? `${ownerUser.first_name} ${ownerUser.last_name}`
-				: 'Property Owner',
+			ownerName:
+				ownerUser.first_name && ownerUser.last_name
+					? `${ownerUser.first_name} ${ownerUser.last_name}`
+					: 'Property Owner',
 			ownerAddress: `${property.address_line1}, ${property.city}, ${property.state} ${property.postal_code}`,
 
 			// Tenant info (REQUIRED)

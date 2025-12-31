@@ -1,4 +1,4 @@
-import type { CanActivate, ExecutionContext} from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 
@@ -13,17 +13,17 @@ export class RolesGuard implements CanActivate {
 
 	canActivate(context: ExecutionContext): boolean {
 		const requiredRoles = this.reflector.getAllAndOverride<string[]>('roles', [
-			context.getHandler(), 
+			context.getHandler(),
 			context.getClass()
 		])
-		
+
 		if (!requiredRoles) {
 			return true
 		}
 
 		const request = context.switchToHttp().getRequest()
 		const userType = request.user?.app_metadata?.user_type
-		
+
 		if (!userType) {
 			throw new ForbiddenException('Insufficient permissions')
 		}
@@ -36,7 +36,9 @@ export class RolesGuard implements CanActivate {
 		}
 
 		// Case-insensitive role comparison to prevent bugs from inconsistent casing
-		const normalizedRequiredRoles = requiredRoles.map(role => role.toUpperCase())
+		const normalizedRequiredRoles = requiredRoles.map(role =>
+			role.toUpperCase()
+		)
 
 		if (!normalizedRequiredRoles.includes(normalizedUserType)) {
 			throw new ForbiddenException('Insufficient permissions')

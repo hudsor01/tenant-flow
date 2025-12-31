@@ -27,30 +27,3 @@ export interface AuthenticatedRequest extends Request {
 		status?: string
 	}
 }
-
-// Combined authenticated request with raw body support
-// Note: For webhook-only endpoints, use RawBodyRequest<Request> from '@nestjs/common'
-export interface AuthenticatedRawRequest extends AuthenticatedRequest {
-	rawBody?: Buffer
-}
-
-// Organization-scoped request
-export interface OrganizationRequest extends AuthenticatedRequest {
-	organizationId: string
-}
-
-// Request with timing information
-export interface TimedRequest extends Request {
-	startTime: number
-	duration?: number
-}
-
-// Security context for request monitoring
-export interface SecurityContextRequest extends Request {
-	securityContext?: {
-		riskLevel: 'low' | 'medium' | 'high'
-		ipAddress: string
-		userAgent?: string
-		timestamp: Date
-	}
-}

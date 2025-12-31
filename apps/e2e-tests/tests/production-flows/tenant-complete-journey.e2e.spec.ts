@@ -18,7 +18,8 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 	const TENANT_PASSWORD = process.env.E2E_TENANT_PASSWORD || 'TenantPass123!'
 	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+	const API_URL =
+		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 
 	let ownerAuthToken: string
 	let tenantEmail: string
@@ -30,15 +31,19 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 	async function getAuthToken(page: Page): Promise<string> {
 		const token = await page.evaluate(() => {
 			const keys = Object.keys(localStorage)
-			const authKey = keys.find(k => k.includes('supabase') || k.includes('sb-'))
+			const authKey = keys.find(
+				k => k.includes('supabase') || k.includes('sb-')
+			)
 			if (!authKey) return null
 
 			try {
 				const data = JSON.parse(localStorage.getItem(authKey) || '{}')
-				return data?.currentSession?.access_token ||
-					   data?.access_token ||
-					   data?.session?.access_token ||
-					   null
+				return (
+					data?.currentSession?.access_token ||
+					data?.access_token ||
+					data?.session?.access_token ||
+					null
+				)
 			} catch {
 				return null
 			}
@@ -63,26 +68,29 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		ownerAuthToken = await getAuthToken(page)
 
 		// Create a property and unit for the tenant
-		const propertyResponse = await page.request.post(`${API_URL}/api/v1/properties`, {
-			headers: {
-				'Authorization': `Bearer ${ownerAuthToken}`,
-				'Content-Type': 'application/json'
-			},
-			data: {
-				name: `E2E Tenant Test Property ${Date.now()}`,
-				address: '123 Tenant Test St',
-				city: 'Austin',
-				state: 'TX',
-				postal_code: '78701',
-				property_type: 'APARTMENT'
+		const propertyResponse = await page.request.post(
+			`${API_URL}/api/v1/properties`,
+			{
+				headers: {
+					Authorization: `Bearer ${ownerAuthToken}`,
+					'Content-Type': 'application/json'
+				},
+				data: {
+					name: `E2E Tenant Test Property ${Date.now()}`,
+					address: '123 Tenant Test St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78701',
+					property_type: 'APARTMENT'
+				}
 			}
-		})
+		)
 		const property = await propertyResponse.json()
 		propertyId = property.id
 
 		const unitResponse = await page.request.post(`${API_URL}/api/v1/units`, {
 			headers: {
-				'Authorization': `Bearer ${ownerAuthToken}`,
+				Authorization: `Bearer ${ownerAuthToken}`,
 				'Content-Type': 'application/json'
 			},
 			data: {
@@ -116,9 +124,12 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.waitForSelector('text=/Invitation sent|Success/')
 
 		// Get invitation token from API
-		const tenantsResponse = await page.request.get(`${API_URL}/api/v1/tenants`, {
-			headers: { Authorization: `Bearer ${ownerAuthToken}` }
-		})
+		const tenantsResponse = await page.request.get(
+			`${API_URL}/api/v1/tenants`,
+			{
+				headers: { Authorization: `Bearer ${ownerAuthToken}` }
+			}
+		)
 		const tenants = await tenantsResponse.json()
 		const tenant = tenants.find((t: any) => t.email === tenantEmail)
 		invitationToken = tenant.invitation_token
@@ -141,7 +152,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 	})
 
 	test('2. Tenant: Complete signup and accept invitation', async ({ page }) => {
-		await page.goto(`${BASE_URL}/signup?invitation=${invitationToken}&email=${tenantEmail}`)
+		await page.goto(
+			`${BASE_URL}/signup?invitation=${invitationToken}&email=${tenantEmail}`
+		)
 
 		// Fill password fields
 		await page.fill('input[name="password"]', TENANT_PASSWORD)
@@ -177,7 +190,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.waitForURL(`${BASE_URL}/tenant/**`)
 
 		// Verify tenant dashboard loads
-		await expect(page.locator('h1:has-text("Dashboard"), h1:has-text("Portal")')).toBeVisible()
+		await expect(
+			page.locator('h1:has-text("Dashboard"), h1:has-text("Portal")')
+		).toBeVisible()
 	})
 
 	test('4. Tenant: View lease details', async ({ page }) => {
@@ -192,7 +207,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/tenant/lease`)
 
 		// Verify lease information is displayed
-		await expect(page.locator('text=Unit 201, text=Monthly Rent, text=Lease Agreement')).toBeVisible()
+		await expect(
+			page.locator('text=Unit 201, text=Monthly Rent, text=Lease Agreement')
+		).toBeVisible()
 	})
 
 	test('5. Tenant: Submit maintenance request', async ({ page }) => {
@@ -207,11 +224,16 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/tenant/maintenance`)
 
 		// Click "New Request"
-		await page.click('button:has-text("New Request"), button:has-text("Submit Request")')
+		await page.click(
+			'button:has-text("New Request"), button:has-text("Submit Request")'
+		)
 
 		// Fill maintenance request form
 		await page.fill('input[name="title"]', 'Broken AC Unit')
-		await page.fill('textarea[name="description"]', 'The air conditioning unit is not working properly')
+		await page.fill(
+			'textarea[name="description"]',
+			'The air conditioning unit is not working properly'
+		)
 
 		// Select category
 		await page.click('[role="combobox"]')
@@ -237,7 +259,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/tenant/payments`)
 
 		// Look for "Pay Rent" or payment button
-		const payButton = page.locator('button:has-text("Pay Rent"), button:has-text("Make Payment")')
+		const payButton = page.locator(
+			'button:has-text("Pay Rent"), button:has-text("Make Payment")'
+		)
 		if (await payButton.isVisible()) {
 			await payButton.click()
 
@@ -245,7 +269,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 			await expect(page.locator('text=/Payment|Amount|Stripe/')).toBeVisible()
 		} else {
 			// If no payment button, verify payment history page loads
-			await expect(page.locator('h1:has-text("Payments"), text=Payment History')).toBeVisible()
+			await expect(
+				page.locator('h1:has-text("Payments"), text=Payment History')
+			).toBeVisible()
 		}
 	})
 
@@ -261,7 +287,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 		// Verify payment history page loads
-		await expect(page.locator('h1:has-text("Payment History"), h1:has-text("Payments")')).toBeVisible()
+		await expect(
+			page.locator('h1:has-text("Payment History"), h1:has-text("Payments")')
+		).toBeVisible()
 
 		// Verify table or empty state
 		const hasPayments = await page.locator('table tbody tr').count()
@@ -281,7 +309,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/tenant/settings`)
 
 		// Verify profile fields
-		await expect(page.locator('input[name="email"], input[name="first_name"]')).toBeVisible()
+		await expect(
+			page.locator('input[name="email"], input[name="first_name"]')
+		).toBeVisible()
 
 		// Update phone number
 		const phoneInput = page.locator('input[name="phone"]')
@@ -315,7 +345,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 
 		for (const route of routes) {
 			await page.goto(`${BASE_URL}${route.path}`)
-			await page.waitForSelector(`h1:has-text("${route.heading}")`, { timeout: 5000 })
+			await page.waitForSelector(`h1:has-text("${route.heading}")`, {
+				timeout: 5000
+			})
 			expect(page.url()).toContain(route.path)
 		}
 	})
@@ -329,7 +361,9 @@ test.describe('Complete Tenant Journey - Production Flow', () => {
 		await page.waitForURL(`${BASE_URL}/tenant/**`)
 
 		// Click logout
-		const logoutButton = page.locator('button:has-text("Logout"), button:has-text("Sign Out")')
+		const logoutButton = page.locator(
+			'button:has-text("Logout"), button:has-text("Sign Out")'
+		)
 		await logoutButton.click()
 
 		// Verify redirect to login

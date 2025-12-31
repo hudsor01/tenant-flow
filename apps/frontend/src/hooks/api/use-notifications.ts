@@ -5,7 +5,12 @@
  * Uses existing apiRequest helper for Supabase auth token injection.
  */
 
-import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	keepPreviousData
+} from '@tanstack/react-query'
 
 import { apiRequest } from '#lib/api-request'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -26,8 +31,12 @@ interface PaginatedNotifications {
 
 const notificationKeys = {
 	all: ['notifications'] as const,
-	list: (page: number, limit: number, unreadOnly: boolean, queryString?: string) =>
-		['notifications', { page, limit, unreadOnly, queryString }] as const,
+	list: (
+		page: number,
+		limit: number,
+		unreadOnly: boolean,
+		queryString?: string
+	) => ['notifications', { page, limit, unreadOnly, queryString }] as const,
 	unreadCount: ['notifications', 'unread-count'] as const
 }
 
@@ -73,10 +82,9 @@ export function useMarkNotificationRead() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/notifications/${id}/read`,
-				{ method: 'PUT' }
-			),
+			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}/read`, {
+				method: 'PUT'
+			}),
 		onSuccess: (_result, id) => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
@@ -85,7 +93,7 @@ export function useMarkNotificationRead() {
 				`Notification ${id} marked as read`
 			)
 		},
-		onError: (error) => handleMutationError(error, 'Mark notification read')
+		onError: error => handleMutationError(error, 'Mark notification read')
 	})
 }
 
@@ -94,19 +102,15 @@ export function useDeleteNotification() {
 
 	return useMutation({
 		mutationFn: (id: string) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/notifications/${id}`,
-				{ method: 'DELETE' }
-			),
+			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}`, {
+				method: 'DELETE'
+			}),
 		onSuccess: (_result, id) => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
-			handleMutationSuccess(
-				'Delete notification',
-				`Notification ${id} deleted`
-			)
+			handleMutationSuccess('Delete notification', `Notification ${id} deleted`)
 		},
-		onError: (error) => handleMutationError(error, 'Delete notification')
+		onError: error => handleMutationError(error, 'Delete notification')
 	})
 }
 
@@ -118,7 +122,7 @@ export function useMarkAllNotificationsRead() {
 			apiRequest<{ updated: number }>('/api/v1/notifications/read-all', {
 				method: 'PUT'
 			}),
-		onSuccess: (result) => {
+		onSuccess: result => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
 			handleMutationSuccess(
@@ -128,7 +132,7 @@ export function useMarkAllNotificationsRead() {
 					: 'No unread notifications'
 			)
 		},
-		onError: (error) => handleMutationError(error, 'Mark all notifications read')
+		onError: error => handleMutationError(error, 'Mark all notifications read')
 	})
 }
 
@@ -141,7 +145,7 @@ export function useBulkMarkNotificationsRead() {
 				method: 'PUT',
 				body: JSON.stringify({ ids })
 			}),
-		onSuccess: (result) => {
+		onSuccess: result => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
 			handleMutationSuccess(
@@ -151,7 +155,7 @@ export function useBulkMarkNotificationsRead() {
 					: 'No notifications updated'
 			)
 		},
-		onError: (error) =>
+		onError: error =>
 			handleMutationError(error, 'Mark selected notifications read')
 	})
 }
@@ -180,7 +184,7 @@ export function useCreateMaintenanceNotification() {
 				'Maintenance notification sent'
 			)
 		},
-		onError: (error) => handleMutationError(error, 'Create notification')
+		onError: error => handleMutationError(error, 'Create notification')
 	})
 }
 

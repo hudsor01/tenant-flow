@@ -97,14 +97,22 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		// Create tenants
 		const { data: tenant1 } = await adminClient
 			.from('tenants')
-			.insert({ email: 'tenant1@test.com', first_name: 'Tenant', last_name: '1' })
+			.insert({
+				email: 'tenant1@test.com',
+				first_name: 'Tenant',
+				last_name: '1'
+			})
 			.select('id')
 			.single()
 		tenant1Id = tenant1!.id
 
 		const { data: tenant2 } = await adminClient
 			.from('tenants')
-			.insert({ email: 'tenant2@test.com', first_name: 'Tenant', last_name: '2' })
+			.insert({
+				email: 'tenant2@test.com',
+				first_name: 'Tenant',
+				last_name: '2'
+			})
 			.select('id')
 			.single()
 		tenant2Id = tenant2!.id
@@ -219,12 +227,21 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 		// Cleanup test data
 		const adminClient = supabase.getAdminClient()
 
-		await adminClient.from('lease_tenants').delete().in('lease_id', [lease1Id, lease2Id])
+		await adminClient
+			.from('lease_tenants')
+			.delete()
+			.in('lease_id', [lease1Id, lease2Id])
 		await adminClient.from('leases').delete().in('id', [lease1Id, lease2Id])
 		await adminClient.from('units').delete().in('id', [unit1Id, unit2Id])
-		await adminClient.from('properties').delete().in('id', [property1Id, property2Id])
+		await adminClient
+			.from('properties')
+			.delete()
+			.in('id', [property1Id, property2Id])
 		await adminClient.from('tenants').delete().in('id', [tenant1Id, tenant2Id])
-		await adminClient.from('stripe_connected_accounts').delete().in('id', [owner1Id, owner2Id])
+		await adminClient
+			.from('stripe_connected_accounts')
+			.delete()
+			.in('id', [owner1Id, owner2Id])
 	})
 
 	describe('leases_select policy', () => {
@@ -296,7 +313,9 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 			const client = supabase.getUserClient(OWNER_1_TOKEN)
 			const startTime = Date.now()
 
-			const { data, error } = await client.from('leases').select('id, owner_user_id')
+			const { data, error } = await client
+				.from('leases')
+				.select('id, owner_user_id')
 
 			const duration = Date.now() - startTime
 
@@ -366,7 +385,9 @@ describe.skip('RLS Circular Dependency Fix (Integration)', () => {
 			const client = supabase.getUserClient(OWNER_1_TOKEN)
 			const startTime = Date.now()
 
-			const { data, error } = await client.from('lease_tenants').select('lease_id, tenant_id')
+			const { data, error } = await client
+				.from('lease_tenants')
+				.select('lease_id, tenant_id')
 
 			const duration = Date.now() - startTime
 

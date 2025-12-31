@@ -19,7 +19,8 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-owner@tenantflow.app'
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
 	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+	const API_URL =
+		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 	const logger = createLogger({ component: 'CompleteOwnerJourneyE2E' })
 
 	let authToken: string
@@ -32,15 +33,19 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	async function getAuthToken(page: Page): Promise<string> {
 		const token = await page.evaluate(() => {
 			const keys = Object.keys(localStorage)
-			const authKey = keys.find(k => k.includes('supabase') || k.includes('sb-'))
+			const authKey = keys.find(
+				k => k.includes('supabase') || k.includes('sb-')
+			)
 			if (!authKey) return null
 
 			try {
 				const data = JSON.parse(localStorage.getItem(authKey) || '{}')
-				return data?.currentSession?.access_token ||
-					   data?.access_token ||
-					   data?.session?.access_token ||
-					   null
+				return (
+					data?.currentSession?.access_token ||
+					data?.access_token ||
+					data?.session?.access_token ||
+					null
+				)
 			} catch {
 				return null
 			}
@@ -95,7 +100,10 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/dashboard`)
 
 		// Wait for dashboard to load
-		await page.waitForSelector('[data-testid="dashboard-overview"], h1:has-text("Dashboard")', { timeout: 10000 })
+		await page.waitForSelector(
+			'[data-testid="dashboard-overview"], h1:has-text("Dashboard")',
+			{ timeout: 10000 }
+		)
 
 		// Verify key metric cards are visible
 		const metricSelectors = [
@@ -106,7 +114,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		]
 
 		for (const selector of metricSelectors) {
-			await expect(page.locator(selector).first()).toBeVisible({ timeout: 5000 })
+			await expect(page.locator(selector).first()).toBeVisible({
+				timeout: 5000
+			})
 		}
 	})
 
@@ -114,7 +124,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/properties`)
 
 		// Wait for properties page to load
-		await page.waitForSelector('button:has-text("New Property"), h1:has-text("Properties")')
+		await page.waitForSelector(
+			'button:has-text("New Property"), h1:has-text("Properties")'
+		)
 
 		// Click "New Property" button
 		await page.click('button:has-text("New Property")')
@@ -138,7 +150,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 
 		// Select property type
 		await page.click('[role="combobox"]')
-		await page.click(`[role="option"]:has-text("${testProperty.property_type}")`)
+		await page.click(
+			`[role="option"]:has-text("${testProperty.property_type}")`
+		)
 
 		await page.fill('textarea[name="description"]', testProperty.description)
 
@@ -146,7 +160,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.click('button[type="submit"]:has-text("Create Property")')
 
 		// Wait for success toast
-		await expect(page.locator('text=/Property created|Success/')).toBeVisible({ timeout: 5000 })
+		await expect(page.locator('text=/Property created|Success/')).toBeVisible({
+			timeout: 5000
+		})
 
 		// Verify property appears in list
 		await expect(page.locator(`text=${testProperty.name}`)).toBeVisible()
@@ -156,7 +172,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 			headers: { Authorization: `Bearer ${authToken}` }
 		})
 		const properties = await response.json()
-		const createdProperty = properties.find((p: any) => p.name === testProperty.name)
+		const createdProperty = properties.find(
+			(p: any) => p.name === testProperty.name
+		)
 		propertyId = createdProperty.id
 	})
 
@@ -187,13 +205,17 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		})
 
 		// Verify file is selected
-		await expect(page.locator('text=/Selected.*properties\\.csv/')).toBeVisible()
+		await expect(
+			page.locator('text=/Selected.*properties\\.csv/')
+		).toBeVisible()
 
 		// Submit upload
 		await page.click('button:has-text("Import Properties")')
 
 		// Wait for success message
-		await expect(page.locator('text=/Import Complete|imported/')).toBeVisible({ timeout: 15000 })
+		await expect(page.locator('text=/Import Complete|imported/')).toBeVisible({
+			timeout: 15000
+		})
 
 		// Verify imported properties appear
 		await page.waitForTimeout(2000) // Wait for table to update
@@ -222,8 +244,14 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.fill('input[name="unit_number"]', testUnit.unit_number)
 		await page.fill('input[name="bedrooms"]', testUnit.bedrooms.toString())
 		await page.fill('input[name="bathrooms"]', testUnit.bathrooms.toString())
-		await page.fill('input[name="square_feet"]', testUnit.square_feet.toString())
-		await page.fill('input[name="monthly_rent"]', testUnit.monthly_rent.toString())
+		await page.fill(
+			'input[name="square_feet"]',
+			testUnit.square_feet.toString()
+		)
+		await page.fill(
+			'input[name="monthly_rent"]',
+			testUnit.monthly_rent.toString()
+		)
 
 		// Submit form
 		await page.click('button[type="submit"]:has-text("Create Unit")')
@@ -233,9 +261,12 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await expect(page.locator(`text=${testUnit.unit_number}`)).toBeVisible()
 
 		// Get unit ID
-		const response = await page.request.get(`${API_URL}/api/v1/units?property_id=${propertyId}`, {
-			headers: { Authorization: `Bearer ${authToken}` }
-		})
+		const response = await page.request.get(
+			`${API_URL}/api/v1/units?property_id=${propertyId}`,
+			{
+				headers: { Authorization: `Bearer ${authToken}` }
+			}
+		)
 		const units = await response.json()
 		unitId = units[0]?.id
 	})
@@ -287,7 +318,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('7. Leases: Create new lease', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!tenantId || !unitId) {
-			logger.warn(`⚠️  Skipping lease creation: Missing prerequisites (tenantId=${!!tenantId}, unitId=${!!unitId})`)
+			logger.warn(
+				`⚠️  Skipping lease creation: Missing prerequisites (tenantId=${!!tenantId}, unitId=${!!unitId})`
+			)
 			logger.warn('   This test requires tests 3-6 to complete successfully')
 			test.skip()
 			return
@@ -302,9 +335,12 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.click('button:has-text("New Lease")')
 
 		// Fill lease form
-			const today = new Date()
-			const startDate: string = today.toISOString().split('T')[0] ?? ''
-			const endDate: string = new Date(today.setFullYear(today.getFullYear() + 1)).toISOString().split('T')[0] ?? ''
+		const today = new Date()
+		const startDate: string = today.toISOString().split('T')[0] ?? ''
+		const endDate: string =
+			new Date(today.setFullYear(today.getFullYear() + 1))
+				.toISOString()
+				.split('T')[0] ?? ''
 
 		await page.fill('input[name="start_date"]', startDate)
 		await page.fill('input[name="end_date"]', endDate)
@@ -336,7 +372,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('8. Maintenance: Create maintenance request', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!propertyId || !unitId) {
-			logger.warn(`⚠️  Skipping maintenance request: Missing prerequisites (propertyId=${!!propertyId}, unitId=${!!unitId})`)
+			logger.warn(
+				`⚠️  Skipping maintenance request: Missing prerequisites (propertyId=${!!propertyId}, unitId=${!!unitId})`
+			)
 			logger.warn('   This test requires tests 3-5 to complete successfully')
 			test.skip()
 			return
@@ -391,7 +429,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 	test('9. Maintenance: Update request status', async ({ page }) => {
 		// Skip with helpful message if prerequisites not met
 		if (!maintenanceRequestId) {
-			logger.warn(`⚠️  Skipping maintenance status update: Missing maintenance request from test 8`)
+			logger.warn(
+				`⚠️  Skipping maintenance status update: Missing maintenance request from test 8`
+			)
 			logger.warn('   This test requires test 8 to complete successfully')
 			test.skip()
 			return
@@ -416,11 +456,15 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/financial/rent-payments`)
 
 		// Wait for payments page
-		await page.waitForSelector('h1:has-text("Rent Payments"), [data-testid="payments-list"]')
+		await page.waitForSelector(
+			'h1:has-text("Rent Payments"), [data-testid="payments-list"]'
+		)
 
 		// Verify page loads with payment data or empty state
 		const hasPayments = await page.locator('table tbody tr').count()
-		const hasEmptyState = await page.locator('text=No payments found').isVisible()
+		const hasEmptyState = await page
+			.locator('text=No payments found')
+			.isVisible()
 
 		expect(hasPayments > 0 || hasEmptyState).toBeTruthy()
 	})
@@ -432,7 +476,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.waitForSelector('h1:has-text("Reports")')
 
 		// Click "Generate Report" or similar
-		const generateButton = page.locator('button:has-text("Generate"), button:has-text("Create Report")')
+		const generateButton = page.locator(
+			'button:has-text("Generate"), button:has-text("Create Report")'
+		)
 		if (await generateButton.isVisible()) {
 			await generateButton.click()
 
@@ -443,7 +489,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 			await page.click('button:has-text("Generate")')
 
 			// Verify report appears
-			await expect(page.locator('text=/Report generated|Success/')).toBeVisible()
+			await expect(
+				page.locator('text=/Report generated|Success/')
+			).toBeVisible()
 		}
 	})
 
@@ -451,7 +499,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/analytics`)
 
 		// Wait for analytics page
-		await page.waitForSelector('h1:has-text("Analytics"), [data-testid="analytics-dashboard"]')
+		await page.waitForSelector(
+			'h1:has-text("Analytics"), [data-testid="analytics-dashboard"]'
+		)
 
 		// Verify key charts/metrics are visible
 		const metricSelectors = [
@@ -476,7 +526,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/settings`)
 
 		// Wait for settings page
-		await page.waitForSelector('h1:has-text("Settings"), input[name="email"], input[name="name"]')
+		await page.waitForSelector(
+			'h1:has-text("Settings"), input[name="email"], input[name="name"]'
+		)
 
 		// Verify profile fields are visible
 		await expect(page.locator('input[name="email"]')).toBeVisible()
@@ -490,7 +542,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 		await page.goto(`${BASE_URL}/dashboard`)
 
 		// Click logout button (may be in dropdown menu)
-		const logoutButton = page.locator('button:has-text("Logout"), button:has-text("Sign Out"), [data-testid="logout"]')
+		const logoutButton = page.locator(
+			'button:has-text("Logout"), button:has-text("Sign Out"), [data-testid="logout"]'
+		)
 		await logoutButton.click()
 
 		// Verify redirect to login page
@@ -522,7 +576,9 @@ test.describe('Complete Owner Journey - Production Flow', () => {
 
 		for (const route of routes) {
 			await page.goto(`${BASE_URL}${route.path}`)
-			await page.waitForSelector(`h1:has-text("${route.heading}")`, { timeout: 5000 })
+			await page.waitForSelector(`h1:has-text("${route.heading}")`, {
+				timeout: 5000
+			})
 			expect(page.url()).toContain(route.path)
 		}
 	})

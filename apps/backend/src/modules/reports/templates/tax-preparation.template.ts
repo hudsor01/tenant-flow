@@ -47,8 +47,10 @@ export interface TaxPreparationReportData {
 
 @Injectable()
 export class TaxPreparationTemplate {
-
-	constructor(private readonly financialService: FinancialAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly financialService: FinancialAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

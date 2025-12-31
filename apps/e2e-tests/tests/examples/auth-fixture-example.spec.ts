@@ -7,10 +7,13 @@
  * DELETE THIS FILE after verifying the auth optimization works.
  */
 
-import { test, expect } from '../fixtures/auth.fixture'
+import { expect } from '@playwright/test'
+import { test } from '../fixtures/auth.fixture'
 
 test.describe('Auth Fixture Example', () => {
-	test('should navigate to authenticated route', async ({ authenticatedPage }) => {
+	test('should navigate to authenticated route', async ({
+		authenticatedPage
+	}) => {
 		// Page is already authenticated via worker-scoped fixture
 		await authenticatedPage.goto('/')
 
@@ -18,7 +21,9 @@ test.describe('Auth Fixture Example', () => {
 		await expect(authenticatedPage).toHaveURL(/^\/$/)
 	})
 
-	test('should maintain auth across multiple tests', async ({ authenticatedPage }) => {
+	test('should maintain auth across multiple tests', async ({
+		authenticatedPage
+	}) => {
 		// Each test in the worker gets a fresh page with auth loaded
 		await authenticatedPage.goto('/properties')
 
@@ -33,7 +38,9 @@ test.describe('Auth Fixture Example', () => {
 		await authenticatedPage.waitForLoadState('networkidle')
 
 		// Verify authenticated user data is available
-		const userMenuButton = authenticatedPage.locator('[data-testid="user-menu"]')
+		const userMenuButton = authenticatedPage.locator(
+			'[data-testid="user-menu"]'
+		)
 		await expect(userMenuButton).toBeVisible()
 	})
 })
@@ -54,7 +61,8 @@ test.describe('Auth Fixture Example', () => {
  *
  * AFTER (using auth fixture):
  * ```typescript
- * import { test, expect } from '../fixtures/auth.fixture'
+ * import { expect } from '@playwright/test'
+ * import { test } from '../fixtures/auth.fixture'
  *
  * test('my test', async ({ authenticatedPage }) => {
  *   await authenticatedPage.goto('/')

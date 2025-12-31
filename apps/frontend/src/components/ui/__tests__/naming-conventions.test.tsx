@@ -5,7 +5,8 @@
  * Ensures consistent class naming and removal of data-slot attributes
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../button'
 
@@ -76,7 +77,10 @@ describe('Component Naming Conventions', () => {
 			const button = screen.getByRole('button')
 
 			// Should use semantic color tokens
-			expect(button).toHaveClass('bg-destructive', 'text-destructive-foreground')
+			expect(button).toHaveClass(
+				'bg-destructive',
+				'text-destructive-foreground'
+			)
 		})
 
 		it('should use consistent border radius', () => {
@@ -105,7 +109,10 @@ describe('Component Naming Conventions', () => {
 			render(<Button disabled>Disabled Button</Button>)
 			const button = screen.getByRole('button')
 
-			expect(button).toHaveClass('disabled:pointer-events-none', 'disabled:opacity-50')
+			expect(button).toHaveClass(
+				'disabled:pointer-events-none',
+				'disabled:opacity-50'
+			)
 		})
 	})
 

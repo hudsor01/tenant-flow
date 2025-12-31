@@ -1,11 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~1099 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract signature validation into: `./helpers/signature-validation.helper.ts`
-// 2. Extract PDF generation logic into: `./helpers/lease-pdf.helper.ts`
-// 3. Extract notification logic into: `./helpers/signature-notification.helper.ts`
-// 4. Keep core signing flow in this service
-
 /**
  * LeaseSignatureService
  *
@@ -20,6 +12,12 @@
  *
  * RESPONSIBILITY: Signature workflow only - delegates subscription creation
  * to LeaseSubscriptionService (SRP compliance).
+ *
+ * PERF-001: FIXED - signLeaseAsTenant() uses Promise.all() for parallel fetching.
+ *
+ * SEC-001: REVIEWED - getAdminClient() usage is INTENTIONAL for cross-user operations.
+ * Authorization is enforced via ensureLeaseOwner/ensureLeaseStatus checks before writes.
+ * Tenant signing owner's lease requires RLS bypass with explicit authz validation.
  */
 
 import {
@@ -28,22 +26,17 @@ import {
 	Injectable,
 	NotFoundException
 } from '@nestjs/common'
-import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { DocuSealService } from '../docuseal/docuseal.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
-import { LeasePdfMapperService } from '../pdf/lease-pdf-mapper.service'
-import { LeasePdfGeneratorService } from '../pdf/lease-pdf-generator.service'
-import { PdfStorageService } from '../pdf/pdf-storage.service'
-import { LeasesService } from './leases.service'
-import { SseService } from '../notifications/sse/sse.service'
-import type { LeaseSignatureUpdatedEvent } from '@repo/shared/events/sse-events'
-import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
 import {
 	LEASE_SIGNATURE_ERROR_MESSAGES,
 	LEASE_SIGNATURE_ERROR_CODES
 } from '@repo/shared/constants/lease-signature-errors'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SignatureValidationHelper } from './helpers/signature-validation.helper'
+import { LeasePdfHelper } from './helpers/lease-pdf.helper'
+import { SignatureNotificationHelper } from './helpers/signature-notification.helper'
 
 export interface SignatureStatus {
 	lease_id: string
@@ -59,10 +52,12 @@ export interface SignatureStatus {
 
 export interface SendForSignatureOptions {
 	message?: string | undefined
-	missingFields?: {
-		immediate_family_members?: string
-		landlord_notice_address?: string
-	} | undefined // User-provided missing PDF fields
+	missingFields?:
+		| {
+				immediate_family_members?: string
+				landlord_notice_address?: string
+		  }
+		| undefined // User-provided missing PDF fields
 	token?: string | undefined // JWT token for database queries
 }
 
@@ -79,15 +74,12 @@ export interface SignLeaseRpcResult {
 export class LeaseSignatureService {
 	constructor(
 		private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2,
 		private readonly docuSealService: DocuSealService,
 		private readonly leaseSubscriptionService: LeaseSubscriptionService,
-		private readonly leasesService: LeasesService,
-		private readonly pdfMapper: LeasePdfMapperService,
-		private readonly pdfGenerator: LeasePdfGeneratorService,
-		private readonly pdfStorage: PdfStorageService,
 		private readonly logger: AppLogger,
-		private readonly sseService: SseService
+		private readonly signatureValidationHelper: SignatureValidationHelper,
+		private readonly leasePdfHelper: LeasePdfHelper,
+		private readonly signatureNotificationHelper: SignatureNotificationHelper
 	) {}
 
 	/**
@@ -153,206 +145,21 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Verify ownership
-		if (!lease.owner_user_id) {
-			throw new NotFoundException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER
-				]
-			)
-		}
-		const isOwner = lease.owner_user_id === ownerId
-		if (!isOwner) {
-			throw new ForbiddenException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER
-				]
-			)
-		}
-
-		// Verify draft status
-		if (lease.lease_status !== 'draft') {
-			throw new BadRequestException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_DRAFT
-				]
-			)
-		}
-
-		// Step 2: Get complete lease data for PDF generation
-		if (!options?.token) {
-			throw new BadRequestException(
-				'JWT token required for PDF generation. Please provide options.token.'
-			)
-		}
-
-		const leaseData = await this.leasesService.getLeaseDataForPdf(
-			options.token,
-			leaseId
+		this.signatureValidationHelper.ensureLeaseOwner(lease, ownerId)
+		this.signatureValidationHelper.ensureLeaseStatus(
+			lease,
+			'draft',
+			LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_DRAFT
 		)
 
-		// Step 3: Auto-fill PDF fields and check for missing data
-		const { fields: autoFilledFields, missing } =
-			this.pdfMapper.mapLeaseToPdfFields(leaseData)
-
-		// Validate missing fields are provided
-		if (!missing.isComplete) {
-			if (!options.missingFields) {
-				this.logger.warn('Missing required PDF fields', {
-					leaseId,
-					missingFields: missing.fields
-				})
-				throw new BadRequestException(
-					`Cannot send for signature: missing required fields: ${missing.fields.join(', ')}. Please provide these in options.missingFields.`
-				)
-			}
-
-			// Validate provided missing fields
-			const validation = this.pdfMapper.validateMissingFields(
-				options.missingFields as { [key: string]: string }
-			)
-			if (!validation.isValid) {
-				throw new BadRequestException(
-					`Invalid missing fields: ${validation.errors.join(', ')}`
-				)
-			}
-		}
-
-		// Step 4: Merge auto-filled + user-provided fields
-		const completeFields = this.pdfMapper.mergeMissingFields(
-			autoFilledFields,
-			(options.missingFields as { [key: string]: string }) || {}
-		)
-
-		// Step 5: Validate lease data and generate filled PDF with state-specific template
-		if (!leaseData) {
-			this.logger.error('Lease data is null or undefined', {
+		const { pdfUrl, docusealSubmissionId } =
+			await this.leasePdfHelper.preparePdfAndSubmission({
+				client,
 				leaseId,
-				ownerId
+				ownerId,
+				lease,
+				...(options && { options })
 			})
-			throw new BadRequestException(
-				'Lease data not found. Please ensure the lease exists and try again.'
-			)
-		}
-
-		let pdfBuffer: Buffer
-		const state = leaseData.lease?.governing_state || undefined
-		try {
-			pdfBuffer = await this.pdfGenerator.generateFilledPdf(completeFields, leaseId, {
-				state,
-				throwOnUnsupportedState: false,
-				validateTemplate: true
-			})
-			this.logger.log('Generated filled lease PDF', {
-				leaseId,
-				state,
-				sizeBytes: pdfBuffer.length
-			})
-		} catch (error) {
-			this.logger.error('Failed to generate lease PDF', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId,
-				state,
-				leaseDataExists: !!leaseData
-			})
-			throw new BadRequestException(
-				`Failed to generate lease PDF${state ? ` for state ${state}` : ''}. Please contact support.`
-			)
-		}
-
-		// Step 6: Upload PDF to Supabase Storage
-		let pdfUrl: string
-		try {
-			const uploadResult = await this.pdfStorage.uploadLeasePdf(leaseId, pdfBuffer)
-			pdfUrl = uploadResult.publicUrl
-			this.logger.log('Uploaded lease PDF to storage', {
-				leaseId,
-				pdfUrl,
-				path: uploadResult.path
-			})
-		} catch (error) {
-			this.logger.error('Failed to upload lease PDF to storage', {
-				error: error instanceof Error ? error.message : String(error),
-				leaseId
-			})
-			throw new BadRequestException(
-				'Failed to upload lease PDF. Please try again.'
-			)
-		}
-
-		// Step 7: Get user emails for DocuSeal
-		// Query users table directly (no property_owners table)
-		const [{ data: tenantRecord }] = await Promise.all([
-			client
-				.from('tenants')
-				.select('user_id')
-				.eq('id', lease.primary_tenant_id)
-				.single()
-		])
-
-		let ownerUser: { email: string; first_name: string | null; last_name: string | null } | null = null
-		let tenantUser: { email: string; first_name: string | null; last_name: string | null } | null = null
-
-		if (lease.owner_user_id && tenantRecord?.user_id) {
-			const [ownerResult, tenantResult] = await Promise.all([
-				client
-					.from('users')
-					.select('email, first_name, last_name')
-					.eq('id', lease.owner_user_id)
-					.single(),
-				client
-					.from('users')
-					.select('email, first_name, last_name')
-					.eq('id', tenantRecord.user_id)
-					.single()
-			])
-			ownerUser = ownerResult.data
-			tenantUser = tenantResult.data
-		}
-
-		if (!ownerUser?.email || !tenantUser?.email) {
-			throw new BadRequestException(
-				'Owner and tenant must have valid email addresses for signature workflow.'
-			)
-		}
-
-		// Step 8: Create DocuSeal submission from uploaded PDF
-		let docusealSubmissionId: string | null = null
-
-		if (this.docuSealService.isEnabled()) {
-			try {
-				const submission = await this.docuSealService.createSubmissionFromPdf({
-					leaseId,
-					pdfUrl,
-					ownerEmail: ownerUser.email,
-					ownerName:
-						`${ownerUser.first_name || ''} ${ownerUser.last_name || ''}`.trim() ||
-						'Property Owner',
-					tenantEmail: tenantUser.email,
-					tenantName:
-						`${tenantUser.first_name || ''} ${tenantUser.last_name || ''}`.trim() ||
-						'Tenant',
-					sendEmail: false // We handle emails via Resend
-				})
-
-				docusealSubmissionId = String(submission.id)
-				this.logger.log('Created DocuSeal submission from PDF', {
-					submissionId: submission.id,
-					leaseId,
-					pdfUrl
-				})
-			} catch (error) {
-				this.logger.error('Failed to create DocuSeal submission from PDF', {
-					error: error instanceof Error ? error.message : String(error),
-					leaseId
-				})
-				// Continue without DocuSeal - fallback to in-app signing
-			}
-		} else {
-			this.logger.warn('DocuSeal not enabled, skipping submission creation', {
-				leaseId
-			})
-		}
 
 		// Step 9: Update lease status
 		const now = new Date().toISOString()
@@ -384,13 +191,12 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Step 10: Emit event for notification service
-		this.eventEmitter.emit('lease.sent_for_signature', {
-			lease_id: leaseId,
-			tenant_id: lease.primary_tenant_id,
-			message: options?.message,
-			docuseal_submission_id: docusealSubmissionId,
-			pdf_url: pdfUrl
+		this.signatureNotificationHelper.emitLeaseSentForSignature({
+			leaseId,
+			tenantId: lease.primary_tenant_id,
+			...(options?.message && { message: options.message }),
+			docusealSubmissionId,
+			pdfUrl
 		})
 
 		this.logger.log('Lease sent for signature successfully', {
@@ -414,9 +220,7 @@ export class LeaseSignatureService {
 		// Step 1: Get lease for authorization check (read-only, no lock needed)
 		const { data: lease, error: leaseError } = await client
 			.from('leases')
-			.select(
-				'id, owner_user_id, rent_amount, primary_tenant_id'
-			)
+			.select('id, owner_user_id, rent_amount, primary_tenant_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -428,22 +232,7 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Step 2: Verify owner owns the lease (ownerId is auth.users.id)
-		if (!lease.owner_user_id) {
-			throw new NotFoundException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER
-				]
-			)
-		}
-		const isOwner = lease.owner_user_id === ownerId
-		if (!isOwner) {
-			throw new ForbiddenException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureLeaseOwner(lease, ownerId)
 
 		// Step 3: Call atomic RPC to sign and check if both signed
 		// This uses SELECT FOR UPDATE to prevent race conditions
@@ -488,8 +277,7 @@ export class LeaseSignatureService {
 				owner_signature_ip: signatureIp
 			})
 
-			// Broadcast SSE event for fully signed lease
-			await this.broadcastSignatureUpdate(
+			await this.signatureNotificationHelper.broadcastSignatureUpdate(
 				leaseId,
 				lease.owner_user_id,
 				lease.primary_tenant_id,
@@ -498,13 +286,9 @@ export class LeaseSignatureService {
 				now
 			)
 		} else {
-			this.eventEmitter.emit('lease.owner_signed', {
-				lease_id: leaseId,
-				signed_at: now
-			})
+			this.signatureNotificationHelper.emitOwnerSigned(leaseId, now)
 
-			// Broadcast SSE event for owner signature
-			await this.broadcastSignatureUpdate(
+			await this.signatureNotificationHelper.broadcastSignatureUpdate(
 				leaseId,
 				lease.owner_user_id,
 				lease.primary_tenant_id,
@@ -522,6 +306,8 @@ export class LeaseSignatureService {
 
 	/**
 	 * Tenant signs the lease via in-app signature
+	 *
+	 * PERF-001: FIXED - Uses Promise.all() for parallel fetching of tenant and lease data.
 	 */
 	async signLeaseAsTenant(
 		tenantUserId: string,
@@ -531,12 +317,22 @@ export class LeaseSignatureService {
 		this.logger.log('Tenant signing lease', { tenantUserId, leaseId })
 		const client = this.supabase.getAdminClient()
 
-		// Step 1: Get tenant record from user_id
-		const { data: tenant, error: tenantError } = await client
-			.from('tenants')
-			.select('id, user_id, stripe_customer_id')
-			.eq('user_id', tenantUserId)
-			.single()
+		// PERF-001: Fetch tenant and lease data in parallel (both are independent queries)
+		const [tenantResult, leaseResult] = await Promise.all([
+			client
+				.from('tenants')
+				.select('id, user_id, stripe_customer_id')
+				.eq('user_id', tenantUserId)
+				.single(),
+			client
+				.from('leases')
+				.select('id, owner_user_id, primary_tenant_id, rent_amount')
+				.eq('id', leaseId)
+				.single()
+		])
+
+		const { data: tenant, error: tenantError } = tenantResult
+		const { data: lease, error: leaseError } = leaseResult
 
 		if (tenantError || !tenant) {
 			throw new NotFoundException(
@@ -546,13 +342,6 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Step 2: Get lease for authorization check (read-only, no lock needed)
-		const { data: lease, error: leaseError } = await client
-			.from('leases')
-			.select('id, owner_user_id, primary_tenant_id, rent_amount')
-			.eq('id', leaseId)
-			.single()
-
 		if (leaseError || !lease) {
 			throw new NotFoundException(
 				LEASE_SIGNATURE_ERROR_MESSAGES[
@@ -561,14 +350,7 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Step 3: Verify tenant is assigned to this lease
-		if (lease.primary_tenant_id !== tenant.id) {
-			throw new ForbiddenException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.NOT_ASSIGNED_TO_LEASE
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureTenantAssigned(lease, tenant.id)
 
 		// Step 4: Call atomic RPC to sign and check if both signed
 		// This uses SELECT FOR UPDATE to prevent race conditions
@@ -613,8 +395,7 @@ export class LeaseSignatureService {
 				tenant_signature_ip: signatureIp
 			})
 
-			// Broadcast SSE event for fully signed lease
-			await this.broadcastSignatureUpdate(
+			await this.signatureNotificationHelper.broadcastSignatureUpdate(
 				leaseId,
 				lease.owner_user_id,
 				tenant.user_id,
@@ -623,14 +404,13 @@ export class LeaseSignatureService {
 				now
 			)
 		} else {
-			this.eventEmitter.emit('lease.tenant_signed', {
-				lease_id: leaseId,
-				tenant_id: tenant.id,
-				signed_at: now
-			})
+			this.signatureNotificationHelper.emitTenantSigned(
+				leaseId,
+				tenant.id,
+				now
+			)
 
-			// Broadcast SSE event for tenant signature
-			await this.broadcastSignatureUpdate(
+			await this.signatureNotificationHelper.broadcastSignatureUpdate(
 				leaseId,
 				lease.owner_user_id,
 				tenant.user_id,
@@ -643,45 +423,6 @@ export class LeaseSignatureService {
 		this.logger.log('Tenant signed lease', {
 			leaseId,
 			bothSigned: result.both_signed
-		})
-	}
-
-	/**
-	 * Broadcast SSE signature update event to relevant parties
-	 */
-	private async broadcastSignatureUpdate(
-		leaseId: string,
-		ownerUserId: string,
-		tenantUserId: string | null,
-		signedBy: 'owner' | 'tenant',
-		status: LeaseSignatureUpdatedEvent['payload']['status'],
-		signedAt: string
-	): Promise<void> {
-		const sseEvent: LeaseSignatureUpdatedEvent = {
-			type: SSE_EVENT_TYPES.LEASE_SIGNATURE_UPDATED,
-			timestamp: new Date().toISOString(),
-			payload: {
-				leaseId,
-				signedBy,
-				status,
-				signedAt
-			}
-		}
-
-		// Always broadcast to owner
-		await this.sseService.broadcast(ownerUserId, sseEvent)
-
-		// Also broadcast to tenant if they're a platform user
-		if (tenantUserId) {
-			await this.sseService.broadcast(tenantUserId, sseEvent)
-		}
-
-		this.logger.debug('SSE signature update broadcast', {
-			leaseId,
-			signedBy,
-			status,
-			ownerUserId,
-			tenantUserId
 		})
 	}
 
@@ -766,9 +507,7 @@ export class LeaseSignatureService {
 		// Get lease with DocuSeal submission ID
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, docuseal_submission_id, owner_user_id, primary_tenant_id'
-			)
+			.select('id, docuseal_submission_id, owner_user_id, primary_tenant_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -776,37 +515,30 @@ export class LeaseSignatureService {
 			return null
 		}
 
-		// Determine if user is owner or tenant and get their email
+		// Determine if user is owner or tenant and get their email (optimized)
 		if (!lease.owner_user_id) {
 			return null // Can't determine ownership without owner_user_id
 		}
-		let userEmail: string | null = null
 		const isOwner = lease.owner_user_id === userId
 
-		if (isOwner) {
-			// User is the owner - get their email
-			const { data: ownerUser } = await client
-				.from('users')
-				.select('email')
-				.eq('id', userId)
-				.single()
-			userEmail = ownerUser?.email || null
-		} else {
-			// Check if user is tenant
-			const { data: tenant } = await client
-				.from('tenants')
-				.select('user_id')
-				.eq('id', lease.primary_tenant_id)
-				.single()
+		// Fetch user email and tenant data in parallel
+		const [userResult, tenantResult] = await Promise.all([
+			client.from('users').select('email').eq('id', userId).single(),
+			!isOwner
+				? client
+						.from('tenants')
+						.select('user_id')
+						.eq('id', lease.primary_tenant_id)
+						.single()
+				: Promise.resolve({ data: null, error: null })
+		])
 
-			if (tenant?.user_id === userId) {
-				const { data: tenantUser } = await client
-					.from('users')
-					.select('email')
-					.eq('id', userId)
-					.single()
-				userEmail = tenantUser?.email || null
-			}
+		// Verify authorization and get email
+		let userEmail: string | null = null
+		if (isOwner) {
+			userEmail = userResult.data?.email || null
+		} else if (tenantResult.data?.user_id === userId) {
+			userEmail = userResult.data?.email || null
 		}
 
 		if (!userEmail) {
@@ -841,9 +573,7 @@ export class LeaseSignatureService {
 		// Get lease and verify ownership
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, lease_status, owner_user_id, docuseal_submission_id'
-			)
+			.select('id, lease_status, owner_user_id, docuseal_submission_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -855,30 +585,13 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Verify owner owns the lease (ownerId is auth.users.id)
-		if (!lease.owner_user_id) {
-			throw new NotFoundException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER
-				]
-			)
-		}
-		const isOwner = lease.owner_user_id === ownerId
-		if (!isOwner) {
-			throw new ForbiddenException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureLeaseOwner(lease, ownerId)
 
-		if (lease.lease_status !== 'pending_signature') {
-			throw new BadRequestException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_PENDING_SIGNATURE
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureLeaseStatus(
+			lease,
+			'pending_signature',
+			LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_PENDING_SIGNATURE
+		)
 
 		// Archive DocuSeal submission if exists
 		if (lease.docuseal_submission_id && this.docuSealService.isEnabled()) {
@@ -923,9 +636,7 @@ export class LeaseSignatureService {
 			)
 		}
 
-		this.eventEmitter.emit('lease.signature_cancelled', {
-			lease_id: leaseId
-		})
+		this.signatureNotificationHelper.emitSignatureCancelled(leaseId)
 
 		this.logger.log('Signature request cancelled', { leaseId })
 	}
@@ -944,9 +655,7 @@ export class LeaseSignatureService {
 		// Get lease and verify ownership
 		const { data: lease, error } = await client
 			.from('leases')
-			.select(
-				'id, lease_status, owner_user_id, docuseal_submission_id'
-			)
+			.select('id, lease_status, owner_user_id, docuseal_submission_id')
 			.eq('id', leaseId)
 			.single()
 
@@ -958,31 +667,13 @@ export class LeaseSignatureService {
 			)
 		}
 
-		// Verify owner owns the lease
-		if (!lease.owner_user_id) {
-			throw new NotFoundException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NO_OWNER
-				]
-			)
-		}
-		const isOwner = lease.owner_user_id === ownerId
-		if (!isOwner) {
-			throw new ForbiddenException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.NOT_LEASE_OWNER
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureLeaseOwner(lease, ownerId)
 
-		// Verify lease is in pending_signature status
-		if (lease.lease_status !== 'pending_signature') {
-			throw new BadRequestException(
-				LEASE_SIGNATURE_ERROR_MESSAGES[
-					LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_PENDING_SIGNATURE
-				]
-			)
-		}
+		this.signatureValidationHelper.ensureLeaseStatus(
+			lease,
+			'pending_signature',
+			LEASE_SIGNATURE_ERROR_CODES.LEASE_NOT_PENDING_SIGNATURE
+		)
 
 		// Verify DocuSeal submission exists
 		if (!lease.docuseal_submission_id || !this.docuSealService.isEnabled()) {
@@ -1014,7 +705,10 @@ export class LeaseSignatureService {
 				if (options?.message) {
 					resendOptions.message = options.message
 				}
-				await this.docuSealService.resendToSubmitter(submitter.id, resendOptions)
+				await this.docuSealService.resendToSubmitter(
+					submitter.id,
+					resendOptions
+				)
 			}
 		}
 
