@@ -22,7 +22,7 @@ import {
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
 import { useMarkTenantAsMovedOut } from '#hooks/api/use-tenant'
-import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { tenantQueries } from '#hooks/api/use-tenant'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'

@@ -7,7 +7,6 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
-import type { Database } from '@repo/shared/types/supabase'
 import { AdminService } from '../services/admin.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Roles } from '../../../shared/decorators/roles.decorator'
@@ -84,7 +83,7 @@ export class AdminSystemController {
 	@Get('logs')
 	async getLogs(
 		@Query('level')
-		level?: Database['public']['Enums']['security_event_severity'],
+		level?: 'debug' | 'info' | 'warning' | 'error' | 'critical',
 		@Query('limit') limit = '100',
 		@Query('offset') offset = '0'
 	) {

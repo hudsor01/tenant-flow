@@ -45,7 +45,6 @@ import {
 	Trash2,
 	X
 } from 'lucide-react'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 import { useDeleteLease, useSignLeaseAsOwner } from '#hooks/api/use-lease'
 import { toast } from 'sonner'
 
@@ -70,9 +69,8 @@ export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
 		}
 	})
 
-	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
-	const isPendingSignature =
-		lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
+	const isDraft = lease.lease_status === 'draft'
+	const isPendingSignature = lease.lease_status === 'pending_signature'
 	const ownerHasSigned = !!lease.owner_signed_at
 
 	const handleSignAsOwner = async () => {

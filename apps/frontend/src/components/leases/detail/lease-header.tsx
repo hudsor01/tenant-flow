@@ -19,7 +19,6 @@ import Link from 'next/link'
 import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
 import { SignLeaseButton } from '#components/leases/sign-lease-button'
 import { DownloadSignedLeaseButton } from '#components/leases/download-signed-lease-button'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 import { toast } from 'sonner'
 import { cn } from '#lib/utils'
 import type { Lease } from '@repo/shared/types/core'
@@ -46,10 +45,9 @@ export function LeaseHeader({
 }: LeaseHeaderProps) {
 	const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
 
-	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
-	const isPendingSignature =
-		lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
-	const isActive = lease.lease_status === LEASE_STATUS.ACTIVE
+	const isDraft = lease.lease_status === 'draft'
+	const isPendingSignature = lease.lease_status === 'pending_signature'
+	const isActive = lease.lease_status === 'active'
 
 	const daysUntilExpiry = getDaysUntilExpiry(lease.end_date)
 	const isExpiringSoon =

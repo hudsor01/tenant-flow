@@ -14,7 +14,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock the hooks
+// Mock the hooks (colocated pattern)
 vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantPortalDashboard: vi.fn(() => ({
 		data: {
@@ -39,10 +39,7 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantLeaseDocuments: vi.fn(() => ({
 		data: { documents: [] },
 		isLoading: false
-	}))
-}))
-
-vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
+	})),
 	tenantPortalQueries: {
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],

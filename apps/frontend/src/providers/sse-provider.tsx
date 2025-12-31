@@ -132,7 +132,7 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 		const baseUrl = getApiBaseUrl()
 		for (let i = 0; i < MAX_READINESS_CHECKS; i++) {
 			try {
-				const response = await fetch(`${baseUrl}/ready`, {
+				const response = await fetch(`${baseUrl}/health/ready`, {
 					method: 'GET',
 					cache: 'no-store'
 				})

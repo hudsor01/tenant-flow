@@ -237,12 +237,10 @@ export type Database = {
           late_fee_amount: number | null
           late_fee_days: number | null
           lead_paint_disclosure_acknowledged: boolean | null
-          lease_status: Database["public"]["Enums"]["lease_status"]
+          lease_status: string
           max_occupants: number | null
           owner_signature_ip: string | null
-          owner_signature_method:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          owner_signature_method: string | null
           owner_signed_at: string | null
           owner_user_id: string
           payment_day: number
@@ -259,15 +257,13 @@ export type Database = {
           start_date: string
           stripe_connected_account_id: string | null
           stripe_subscription_id: string | null
-          stripe_subscription_status: Database["public"]["Enums"]["stripe_subscription_status"]
+          stripe_subscription_status: string
           subscription_failure_reason: string | null
           subscription_last_attempt_at: string | null
           subscription_retry_count: number | null
           tenant_responsible_utilities: string[] | null
           tenant_signature_ip: string | null
-          tenant_signature_method:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          tenant_signature_method: string | null
           tenant_signed_at: string | null
           unit_id: string
           updated_at: string | null
@@ -284,12 +280,10 @@ export type Database = {
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lead_paint_disclosure_acknowledged?: boolean | null
-          lease_status?: Database["public"]["Enums"]["lease_status"]
+          lease_status?: string
           max_occupants?: number | null
           owner_signature_ip?: string | null
-          owner_signature_method?:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          owner_signature_method?: string | null
           owner_signed_at?: string | null
           owner_user_id: string
           payment_day?: number
@@ -306,15 +300,13 @@ export type Database = {
           start_date: string
           stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
-          stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
+          stripe_subscription_status?: string
           subscription_failure_reason?: string | null
           subscription_last_attempt_at?: string | null
           subscription_retry_count?: number | null
           tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
-          tenant_signature_method?:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          tenant_signature_method?: string | null
           tenant_signed_at?: string | null
           unit_id: string
           updated_at?: string | null
@@ -331,12 +323,10 @@ export type Database = {
           late_fee_amount?: number | null
           late_fee_days?: number | null
           lead_paint_disclosure_acknowledged?: boolean | null
-          lease_status?: Database["public"]["Enums"]["lease_status"]
+          lease_status?: string
           max_occupants?: number | null
           owner_signature_ip?: string | null
-          owner_signature_method?:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          owner_signature_method?: string | null
           owner_signed_at?: string | null
           owner_user_id?: string
           payment_day?: number
@@ -353,15 +343,13 @@ export type Database = {
           start_date?: string
           stripe_connected_account_id?: string | null
           stripe_subscription_id?: string | null
-          stripe_subscription_status?: Database["public"]["Enums"]["stripe_subscription_status"]
+          stripe_subscription_status?: string
           subscription_failure_reason?: string | null
           subscription_last_attempt_at?: string | null
           subscription_retry_count?: number | null
           tenant_responsible_utilities?: string[] | null
           tenant_signature_ip?: string | null
-          tenant_signature_method?:
-            | Database["public"]["Enums"]["signature_method"]
-            | null
+          tenant_signature_method?: string | null
           tenant_signed_at?: string | null
           unit_id?: string
           updated_at?: string | null
@@ -411,10 +399,10 @@ export type Database = {
           inspection_findings: string | null
           inspector_id: string | null
           owner_user_id: string
-          priority: Database["public"]["Enums"]["maintenance_priority"]
+          priority: string
           requested_by: string | null
           scheduled_date: string | null
-          status: Database["public"]["Enums"]["maintenance_status"]
+          status: string
           tenant_id: string
           title: string
           unit_id: string
@@ -432,10 +420,10 @@ export type Database = {
           inspection_findings?: string | null
           inspector_id?: string | null
           owner_user_id: string
-          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          priority?: string
           requested_by?: string | null
           scheduled_date?: string | null
-          status?: Database["public"]["Enums"]["maintenance_status"]
+          status?: string
           tenant_id: string
           title?: string
           unit_id: string
@@ -453,10 +441,10 @@ export type Database = {
           inspection_findings?: string | null
           inspector_id?: string | null
           owner_user_id?: string
-          priority?: Database["public"]["Enums"]["maintenance_priority"]
+          priority?: string
           requested_by?: string | null
           scheduled_date?: string | null
-          status?: Database["public"]["Enums"]["maintenance_status"]
+          status?: string
           tenant_id?: string
           title?: string
           unit_id?: string
@@ -606,7 +594,7 @@ export type Database = {
           id: string
           is_read: boolean | null
           message: string | null
-          notification_type: Database["public"]["Enums"]["notification_type"]
+          notification_type: string
           read_at: string | null
           title: string
           user_id: string
@@ -619,7 +607,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
-          notification_type: Database["public"]["Enums"]["notification_type"]
+          notification_type: string
           read_at?: string | null
           title: string
           user_id: string
@@ -632,7 +620,7 @@ export type Database = {
           id?: string
           is_read?: boolean | null
           message?: string | null
-          notification_type?: Database["public"]["Enums"]["notification_type"]
+          notification_type?: string
           read_at?: string | null
           title?: string
           user_id?: string
@@ -749,7 +737,7 @@ export type Database = {
           payment_method_id: string | null
           rent_payment_id: string
           retry_count: number | null
-          status: Database["public"]["Enums"]["payment_status"]
+          status: string
           stripe_payment_intent_id: string
           updated_at: string | null
         }
@@ -763,7 +751,7 @@ export type Database = {
           payment_method_id?: string | null
           rent_payment_id: string
           retry_count?: number | null
-          status: Database["public"]["Enums"]["payment_status"]
+          status: string
           stripe_payment_intent_id: string
           updated_at?: string | null
         }
@@ -777,7 +765,7 @@ export type Database = {
           payment_method_id?: string | null
           rent_payment_id?: string
           retry_count?: number | null
-          status?: Database["public"]["Enums"]["payment_status"]
+          status?: string
           stripe_payment_intent_id?: string
           updated_at?: string | null
         }
@@ -844,7 +832,7 @@ export type Database = {
           sale_price: number | null
           search_vector: unknown
           state: string
-          status: Database["public"]["Enums"]["property_status"]
+          status: string
           stripe_connected_account_id: string | null
           updated_at: string | null
         }
@@ -863,7 +851,7 @@ export type Database = {
           sale_price?: number | null
           search_vector?: unknown
           state: string
-          status?: Database["public"]["Enums"]["property_status"]
+          status?: string
           stripe_connected_account_id?: string | null
           updated_at?: string | null
         }
@@ -882,7 +870,7 @@ export type Database = {
           sale_price?: number | null
           search_vector?: unknown
           state?: string
-          status?: Database["public"]["Enums"]["property_status"]
+          status?: string
           stripe_connected_account_id?: string | null
           updated_at?: string | null
         }
@@ -991,7 +979,7 @@ export type Database = {
           payment_method_type: string
           period_end: string
           period_start: string
-          status: Database["public"]["Enums"]["payment_status"]
+          status: string
           stripe_payment_intent_id: string | null
           tenant_id: string
           updated_at: string | null
@@ -1010,7 +998,7 @@ export type Database = {
           payment_method_type: string
           period_end: string
           period_start: string
-          status: Database["public"]["Enums"]["payment_status"]
+          status: string
           stripe_payment_intent_id?: string | null
           tenant_id: string
           updated_at?: string | null
@@ -1029,7 +1017,7 @@ export type Database = {
           payment_method_type?: string
           period_end?: string
           period_start?: string
-          status?: Database["public"]["Enums"]["payment_status"]
+          status?: string
           stripe_payment_intent_id?: string | null
           tenant_id?: string
           updated_at?: string | null
@@ -1186,7 +1174,7 @@ export type Database = {
       security_events: {
         Row: {
           created_at: string
-          event_type: Database["public"]["Enums"]["security_event_type"]
+          event_type: string
           id: string
           ip_address: unknown
           message: string
@@ -1194,7 +1182,7 @@ export type Database = {
           request_id: string | null
           resource_id: string | null
           resource_type: string | null
-          severity: Database["public"]["Enums"]["security_event_severity"]
+          severity: string
           tags: string[] | null
           user_agent: string | null
           user_email: string | null
@@ -1203,7 +1191,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          event_type: Database["public"]["Enums"]["security_event_type"]
+          event_type: string
           id?: string
           ip_address?: unknown
           message: string
@@ -1211,7 +1199,7 @@ export type Database = {
           request_id?: string | null
           resource_id?: string | null
           resource_type?: string | null
-          severity?: Database["public"]["Enums"]["security_event_severity"]
+          severity?: string
           tags?: string[] | null
           user_agent?: string | null
           user_email?: string | null
@@ -1220,7 +1208,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          event_type?: Database["public"]["Enums"]["security_event_type"]
+          event_type?: string
           id?: string
           ip_address?: unknown
           message?: string
@@ -1228,7 +1216,7 @@ export type Database = {
           request_id?: string | null
           resource_id?: string | null
           resource_type?: string | null
-          severity?: Database["public"]["Enums"]["security_event_severity"]
+          severity?: string
           tags?: string[] | null
           user_agent?: string | null
           user_email?: string | null
@@ -1454,7 +1442,7 @@ export type Database = {
           rent_currency: string
           rent_period: string
           square_feet: number | null
-          status: Database["public"]["Enums"]["unit_status"]
+          status: string
           unit_number: string | null
           updated_at: string | null
         }
@@ -1469,7 +1457,7 @@ export type Database = {
           rent_currency?: string
           rent_period?: string
           square_feet?: number | null
-          status?: Database["public"]["Enums"]["unit_status"]
+          status?: string
           unit_number?: string | null
           updated_at?: string | null
         }
@@ -1484,7 +1472,7 @@ export type Database = {
           rent_currency?: string
           rent_period?: string
           square_feet?: number | null
-          status?: Database["public"]["Enums"]["unit_status"]
+          status?: string
           unit_number?: string | null
           updated_at?: string | null
         }
@@ -1922,10 +1910,6 @@ export type Database = {
         Args: { p_primary_tenant_id: string; p_unit_id: string }
         Returns: boolean
       }
-      calculate_financial_metrics: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
       calculate_maintenance_metrics: {
         Args: {
           p_user_id?: string
@@ -1948,10 +1932,6 @@ export type Database = {
         }[]
       }
       calculate_monthly_metrics: { Args: { p_user_id: string }; Returns: Json }
-      calculate_net_operating_income: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
       check_user_feature_access: {
         Args: { p_feature: string; p_user_id: string }
         Returns: boolean
@@ -1963,14 +1943,6 @@ export type Database = {
       }
       cleanup_old_security_events: { Args: never; Returns: undefined }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
-      get_billing_insights: {
-        Args: {
-          end_date_param?: string
-          owner_id_param: string
-          start_date_param?: string
-        }
-        Returns: Json
-      }
       get_common_errors: {
         Args: { hours_back?: number; limit_count?: number }
         Returns: {
@@ -1984,24 +1956,6 @@ export type Database = {
       get_current_owner_user_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
-      get_dashboard_stats: {
-        Args: { p_user_id: string }
-        Returns: {
-          leases: Database["public"]["CompositeTypes"]["lease_stats_type"]
-          maintenance: Database["public"]["CompositeTypes"]["maintenance_stats_type"]
-          properties: Database["public"]["CompositeTypes"]["property_stats_type"]
-          revenue: Database["public"]["CompositeTypes"]["revenue_stats_type"]
-          tenants: Database["public"]["CompositeTypes"]["tenant_stats_type"]
-          units: Database["public"]["CompositeTypes"]["unit_stats_type"]
-        }[]
-      }
-      get_dashboard_time_series: {
-        Args: { p_days?: number; p_metric_name: string; p_user_id: string }
-        Returns: {
-          date: string
-          value: number
-        }[]
-      }
       get_error_prone_users: {
         Args: { hours_back?: number; min_errors?: number }
         Returns: {
@@ -2020,7 +1974,6 @@ export type Database = {
         }[]
       }
       get_expense_summary: { Args: { p_user_id: string }; Returns: Json }
-      get_financial_overview: { Args: { p_user_id: string }; Returns: Json }
       get_invoice_statistics: { Args: { p_user_id: string }; Returns: Json }
       get_lead_paint_compliance_report: {
         Args: never
@@ -2031,23 +1984,7 @@ export type Database = {
           total_pre_1978_leases: number
         }[]
       }
-      get_lease_financial_summary: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
-      get_leases_with_financial_analytics: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
-      get_metric_trend: {
-        Args: { p_metric_name: string; p_period?: string; p_user_id: string }
-        Returns: Json
-      }
-      get_occupancy_trends_optimized: {
-        Args: { p_months?: number; p_user_id: string }
-        Returns: Json
-      }
       get_owner_lease_tenant_ids: { Args: never; Returns: string[] }
       get_property_performance_analytics: {
         Args: {
@@ -2066,10 +2003,6 @@ export type Database = {
           total_revenue: number
         }[]
       }
-      get_property_performance_cached: {
-        Args: { p_user_id: string }
-        Returns: Json
-      }
       get_property_performance_trends: {
         Args: { p_user_id: string }
         Returns: Json
@@ -2085,10 +2018,6 @@ export type Database = {
           total_revenue: number
           trend_percentage: number
         }[]
-      }
-      get_revenue_trends_optimized: {
-        Args: { p_months?: number; p_user_id: string }
-        Returns: Json
       }
       get_slow_rls_queries: {
         Args: { min_avg_time_ms?: number }
@@ -2141,7 +2070,6 @@ export type Database = {
           user_limit: number
         }[]
       }
-      get_user_profile: { Args: { p_user_id: string }; Returns: Json }
       get_user_sessions: {
         Args: { p_user_id: string }
         Returns: {
@@ -2191,7 +2119,7 @@ export type Database = {
         Args: {
           p_lease_id: string
           p_signature_ip: string
-          p_signature_method?: Database["public"]["Enums"]["signature_method"]
+          p_signature_method?: string
           p_signed_at: string
           p_signer_type: string
         }
@@ -2204,16 +2132,16 @@ export type Database = {
       upsert_rent_payment: {
         Args: {
           p_amount: number
-          p_application_fee_amount: number
+          p_application_fee_amount?: number
           p_currency: string
           p_due_date: string
           p_lease_id: string
-          p_paid_date: string
-          p_payment_method_type: string
-          p_period_end: string
-          p_period_start: string
+          p_paid_date?: string
+          p_payment_method_type?: string
+          p_period_end?: string
+          p_period_start?: string
           p_status: string
-          p_stripe_payment_intent_id: string
+          p_stripe_payment_intent_id?: string
           p_tenant_id: string
         }
         Returns: {
@@ -2224,62 +2152,7 @@ export type Database = {
       user_is_tenant: { Args: never; Returns: boolean }
     }
     Enums: {
-      invitation_type: "platform_access" | "lease_signing"
-      lease_status:
-        | "draft"
-        | "pending_signature"
-        | "active"
-        | "ended"
-        | "terminated"
-      maintenance_priority: "low" | "normal" | "medium" | "high" | "urgent"
-      maintenance_status:
-        | "open"
-        | "in_progress"
-        | "completed"
-        | "cancelled"
-        | "on_hold"
-      notification_type: "maintenance" | "lease" | "payment" | "system"
-      payment_status:
-        | "pending"
-        | "processing"
-        | "succeeded"
-        | "failed"
-        | "canceled"
-        | "cancelled"
-        | "requires_action"
-      property_status: "active" | "inactive" | "sold"
-      security_event_severity:
-        | "debug"
-        | "info"
-        | "warning"
-        | "error"
-        | "critical"
-      security_event_type:
-        | "auth.login"
-        | "auth.logout"
-        | "auth.failed_login"
-        | "auth.password_change"
-        | "auth.password_reset"
-        | "user.created"
-        | "user.updated"
-        | "user.deleted"
-        | "property.created"
-        | "property.updated"
-        | "property.deleted"
-        | "lease.created"
-        | "lease.updated"
-        | "lease.deleted"
-        | "lease.signed"
-        | "payment.created"
-        | "payment.failed"
-        | "subscription.created"
-        | "subscription.canceled"
-        | "admin.action"
-        | "system.error"
-        | "system.warning"
-      signature_method: "in_app" | "docuseal"
-      stripe_subscription_status: "none" | "pending" | "active" | "failed"
-      unit_status: "available" | "occupied" | "maintenance" | "reserved"
+      [_ in never]: never
     }
     CompositeTypes: {
       lease_stats_type: {
@@ -2463,68 +2336,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      invitation_type: ["platform_access", "lease_signing"],
-      lease_status: [
-        "draft",
-        "pending_signature",
-        "active",
-        "ended",
-        "terminated",
-      ],
-      maintenance_priority: ["low", "normal", "medium", "high", "urgent"],
-      maintenance_status: [
-        "open",
-        "in_progress",
-        "completed",
-        "cancelled",
-        "on_hold",
-      ],
-      notification_type: ["maintenance", "lease", "payment", "system"],
-      payment_status: [
-        "pending",
-        "processing",
-        "succeeded",
-        "failed",
-        "canceled",
-        "cancelled",
-        "requires_action",
-      ],
-      property_status: ["active", "inactive", "sold"],
-      security_event_severity: [
-        "debug",
-        "info",
-        "warning",
-        "error",
-        "critical",
-      ],
-      security_event_type: [
-        "auth.login",
-        "auth.logout",
-        "auth.failed_login",
-        "auth.password_change",
-        "auth.password_reset",
-        "user.created",
-        "user.updated",
-        "user.deleted",
-        "property.created",
-        "property.updated",
-        "property.deleted",
-        "lease.created",
-        "lease.updated",
-        "lease.deleted",
-        "lease.signed",
-        "payment.created",
-        "payment.failed",
-        "subscription.created",
-        "subscription.canceled",
-        "admin.action",
-        "system.error",
-        "system.warning",
-      ],
-      signature_method: ["in_app", "docuseal"],
-      stripe_subscription_status: ["none", "pending", "active", "failed"],
-      unit_status: ["available", "occupied", "maintenance", "reserved"],
-    },
+    Enums: {},
   },
 } as const

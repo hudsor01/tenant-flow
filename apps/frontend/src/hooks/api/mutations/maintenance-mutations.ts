@@ -21,7 +21,7 @@ export interface MaintenanceUpdateMutationVariables {
 	version?: number
 }
 
-import { maintenanceQueries } from '../queries/maintenance-queries'
+import { maintenanceQueries } from '../use-maintenance'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 

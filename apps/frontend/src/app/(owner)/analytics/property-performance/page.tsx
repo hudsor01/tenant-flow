@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
+import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Badge } from '#components/ui/badge'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'

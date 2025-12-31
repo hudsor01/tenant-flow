@@ -25,7 +25,6 @@ import {
 	SheetTitle
 } from '#components/ui/sheet'
 import { useUpdateUnitMutation } from '#hooks/api/mutations/unit-mutations'
-import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
 import type { Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { DollarSign, Loader2 } from 'lucide-react'
@@ -280,18 +279,10 @@ export function EditUnitPanel({
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={UNIT_STATUS.AVAILABLE}>
-											{UNIT_STATUS_LABELS.AVAILABLE}
-										</SelectItem>
-										<SelectItem value={UNIT_STATUS.OCCUPIED}>
-											{UNIT_STATUS_LABELS.OCCUPIED}
-										</SelectItem>
-										<SelectItem value={UNIT_STATUS.MAINTENANCE}>
-											{UNIT_STATUS_LABELS.MAINTENANCE}
-										</SelectItem>
-										<SelectItem value={UNIT_STATUS.RESERVED}>
-											{UNIT_STATUS_LABELS.RESERVED}
-										</SelectItem>
+										<SelectItem value="available">Vacant</SelectItem>
+										<SelectItem value="occupied">Occupied</SelectItem>
+										<SelectItem value="maintenance">Maintenance</SelectItem>
+										<SelectItem value="reserved">Reserved</SelectItem>
 									</SelectContent>
 								</Select>
 							</Field>

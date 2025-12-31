@@ -22,7 +22,7 @@ import {
 	useCreatePropertyMutation,
 	useUpdatePropertyMutation
 } from '#hooks/api/mutations/property-mutations'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'

@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			:root { --brand: {{branding.primaryColor}}; }
+			body {
+				font-family: 'Helvetica', Arial, sans-serif;
+				color: #111827;
+				margin: 0;
+				padding: 32px;
+				line-height: 1.5;
+			}
+			header {
+				border-bottom: 2px solid var(--brand, #1f3b66);
+				padding-bottom: 16px;
+				margin-bottom: 24px;
+			}
+			h1 { margin: 0; font-size: 24px; }
+			.section { margin-bottom: 18px; }
+			.section-title {
+				font-size: 13px;
+				text-transform: uppercase;
+				font-weight: 700;
+				color: #6b7280;
+				margin-bottom: 6px;
+			}
+			.notice-box {
+				border: 1px solid #e5e7eb;
+				border-left: 4px solid var(--brand, #1f3b66);
+				padding: 12px;
+				border-radius: 8px;
+			}
+			.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #fef3c7; color: #92400e; font-size: 12px; }
+			.list { padding-left: 18px; }
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>{{templateTitle}}</h1>
+			<p>{{branding.companyName}}</p>
+			<span class="badge">Issued {{notice.issueDate}}</span>
+		</header>
+
+		<section class="section">
+			<div class="section-title">Recipient</div>
+			<p><strong>{{tenant.name}}</strong></p>
+			<p>{{property.address}}</p>
+		</section>
+
+		<section class="section notice-box">
+			<p><strong>Notice type:</strong> {{notice.type}}</p>
+			<p><strong>Amount due:</strong> {{notice.amountDue}}</p>
+			<p><strong>Cure date:</strong> {{notice.cureDate}}</p>
+			<p>{{notice.details}}</p>
+		</section>
+
+		{{#if customFields}}
+		<section class="section">
+			<div class="section-title">Custom Fields</div>
+			<ul class="list">
+				{{#each customFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if dynamicFields}}
+		<section class="section">
+			<div class="section-title">Additional Fields</div>
+			<ul class="list">
+				{{#each dynamicFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if clauses}}
+		<section class="section">
+			<div class="section-title">State Clauses</div>
+			<ul class="list">
+				{{#each clauses}}
+					<li>{{text}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+	</body>
+</html>

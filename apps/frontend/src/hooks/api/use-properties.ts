@@ -2,15 +2,29 @@
  * Properties Hooks
  * TanStack Query hooks for property management with complete CRUD operations
  * React 19 + TanStack Query v5 patterns with Suspense support
-
- * Expanded from read-only to full CRUD following use-tenant.ts pattern:
+ *
+ * - Query options (propertyQueries) colocated with hooks
  * - Complete CRUD mutations (create, update, delete)
  * - Analytics hooks for performance, occupancy, financial, maintenance
  * - Optimistic updates with rollback
  * - Proper error handling
  */
 
+import { useMemo } from 'react'
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient
+} from '@tanstack/react-query'
+
 import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
@@ -24,21 +38,215 @@ import type {
 	PropertyUpdate
 } from '@repo/shared/validation/properties'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
-import type { Property, PropertyWithVersion } from '@repo/shared/types/core'
-import { useMemo } from 'react'
+import type {
+	Property,
+	PropertyStats,
+	PropertyPerformance,
+	PropertyWithVersion
+} from '@repo/shared/types/core'
+import type { Tables } from '@repo/shared/types/supabase'
 
 import { useUser } from '#hooks/api/use-auth'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import {
-	handleMutationError,
-	handleMutationSuccess
-} from '#lib/mutation-error-handler'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import {
-	propertyQueries,
-	type PropertyFilters
-} from './queries/property-queries'
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Property query filters
+ */
+export interface PropertyFilters {
+	status?: 'active' | 'SOLD' | 'inactive'
+	property_type?:
+		| 'SINGLE_FAMILY'
+		| 'MULTI_FAMILY'
+		| 'APARTMENT'
+		| 'CONDO'
+		| 'TOWNHOUSE'
+		| 'COMMERCIAL'
+	search?: string
+	limit?: number
+	offset?: number
+}
+
+// ============================================================================
+// QUERY OPTIONS
+// ============================================================================
+
+/**
+ * Property query factory
+ * Colocated queryOptions for use with useQuery, useQueries, prefetch
+ */
+export const propertyQueries = {
+	/**
+	 * Base key for all property queries
+	 */
+	all: () => ['properties'] as const,
+
+	/**
+	 * Base key for all property lists
+	 */
+	lists: () => [...propertyQueries.all(), 'list'] as const,
+
+	/**
+	 * Property list with optional filters
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.list({ status: 'active' }))
+	 */
+	list: (filters?: PropertyFilters) =>
+		queryOptions({
+			queryKey: [...propertyQueries.lists(), filters ?? {}],
+			queryFn: async () => {
+				const searchParams = new URLSearchParams()
+				if (filters?.status) searchParams.append('status', filters.status)
+				if (filters?.property_type)
+					searchParams.append('property_type', filters.property_type)
+				if (filters?.search) searchParams.append('search', filters.search)
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
+				const params = searchParams.toString()
+				return apiRequest<PaginatedResponse<Property>>(
+					`/api/v1/properties${params ? `?${params}` : ''}`
+				)
+			},
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	/**
+	 * Properties with units (e.g., management dashboard)
+	 */
+	withUnits: () =>
+		queryOptions({
+			queryKey: [...propertyQueries.all(), 'with-units'] as const,
+			queryFn: () => apiRequest<Property[]>('/api/v1/properties/with-units'),
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	/**
+	 * Base key for all property details
+	 */
+	details: () => [...propertyQueries.all(), 'detail'] as const,
+
+	/**
+	 * Single property by ID
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.detail(property_id))
+	 */
+	detail: (id: string) =>
+		queryOptions({
+			queryKey: [...propertyQueries.details(), id],
+			queryFn: () => apiRequest<Property>(`/api/v1/properties/${id}`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!id
+		}),
+
+	/**
+	 * Property statistics
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.stats())
+	 */
+	stats: () =>
+		queryOptions({
+			queryKey: [...propertyQueries.all(), 'stats'],
+			queryFn: () => apiRequest<PropertyStats>('/api/v1/properties/stats'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000 // Keep 30 minutes for stats
+		}),
+
+	/**
+	 * Property performance metrics
+	 * Used in owner dashboard
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.performance())
+	 */
+	performance: () =>
+		queryOptions({
+			queryKey: [...propertyQueries.all(), 'performance'],
+			queryFn: () =>
+				apiRequest<PropertyPerformance[]>('/api/v1/property-performance'),
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	analytics: {
+		occupancy: () =>
+			queryOptions({
+				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
+				queryFn: () => apiRequest('/api/v1/properties/analytics/occupancy'),
+				...QUERY_CACHE_TIMES.ANALYTICS
+			}),
+		financial: () =>
+			queryOptions({
+				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
+				queryFn: () => apiRequest('/api/v1/properties/analytics/financial'),
+				...QUERY_CACHE_TIMES.ANALYTICS
+			}),
+		maintenance: () =>
+			queryOptions({
+				queryKey: [
+					...propertyQueries.all(),
+					'analytics',
+					'maintenance'
+				] as const,
+				queryFn: () => apiRequest('/api/v1/properties/analytics/maintenance'),
+				...QUERY_CACHE_TIMES.ANALYTICS
+			})
+	},
+
+	/**
+	 * Property images for a specific property
+	 * Uses Supabase client directly with RLS
+	 *
+	 * Note: image_url stores relative path (e.g., "{property_id}/{filename}")
+	 * This query transforms it to full public URL using Supabase storage API
+	 *
+	 * @example
+	 * const { data } = useQuery(propertyQueries.images(property_id))
+	 */
+	images: (property_id: string) =>
+		queryOptions({
+			queryKey: [...propertyQueries.detail(property_id).queryKey, 'images'],
+			queryFn: async () => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('property_images')
+					.select('*')
+					.eq('property_id', property_id)
+					.order('display_order', { ascending: true })
+
+				if (error) throw new Error(error.message)
+
+				// Transform relative paths to full public URLs
+				// image_url may be:
+				// 1. Full URL (legacy): https://...supabase.co/storage/v1/object/public/property-images/...
+				// 2. Relative path (new): {property_id}/{filename}
+				return (data as Tables<'property_images'>[]).map(image => {
+					const isFullUrl = image.image_url.startsWith('http')
+					if (isFullUrl) {
+						return image
+					}
+					// Construct full URL from relative path
+					const {
+						data: { publicUrl }
+					} = supabase.storage
+						.from('property-images')
+						.getPublicUrl(image.image_url)
+					return { ...image, image_url: publicUrl }
+				})
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 /**
  * Hook to fetch property by ID
@@ -118,6 +326,18 @@ export function usePropertyFinancialAnalytics() {
 export function usePropertyMaintenanceAnalytics() {
 	return useQuery(propertyQueries.analytics.maintenance())
 }
+
+/**
+ * Hook to fetch property images
+ * Uses Supabase client directly with RLS
+ */
+export function usePropertyImages(property_id: string) {
+	return useQuery(propertyQueries.images(property_id))
+}
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Mutation hook to create a new property with optimistic updates
@@ -493,6 +713,10 @@ export function useDeleteProperty() {
 	})
 }
 
+// ============================================================================
+// UTILITY HOOKS
+// ============================================================================
+
 /**
  * Hook for prefetching property details (for hover states)
  */
@@ -514,14 +738,6 @@ export function usePrefetchProperty() {
  * Combined hook for all property operations
  * Convenience hook for components that need multiple operations
  */
-/**
- * Hook to fetch property images
- * Uses Supabase client directly with RLS
- */
-export function usePropertyImages(property_id: string) {
-	return useQuery(propertyQueries.images(property_id))
-}
-
 export function usePropertyOperations() {
 	const create = useCreateProperty()
 	const update = useUpdateProperty()

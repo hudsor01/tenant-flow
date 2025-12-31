@@ -24,7 +24,7 @@ import type {
 	MaintenancePriority
 } from '@repo/shared/types/core'
 import { apiRequest } from '#lib/api-request'
-import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { maintenanceQueries } from '#hooks/api/use-maintenance'
 
 // Extended type with optional relations for display
 type MaintenanceRequestWithRelations = MaintenanceRequest & {

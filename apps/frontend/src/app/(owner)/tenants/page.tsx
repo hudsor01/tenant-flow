@@ -4,7 +4,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { tenantQueries } from '#hooks/api/use-tenant'
 import { tenantPaymentQueries } from '#hooks/api/use-rent-payments'
 import {
 	useCancelInvitation,
@@ -45,7 +45,7 @@ function normalizePaymentStatus(status: string | null | undefined): TenantPaymen
 		normalized === 'processing' ||
 		normalized === 'succeeded' ||
 		normalized === 'failed' ||
-		normalized === 'canceled'
+		normalized === 'cancelled'
 	) {
 		return normalized
 	}

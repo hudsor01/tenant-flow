@@ -44,7 +44,7 @@ describe('QuickActionsDock', () => {
 			)
 			expect(screen.getByLabelText('Notifications')).toHaveAttribute(
 				'href',
-				'/dashboard/settings?tab=notifications'
+				'/settings?tab=notifications'
 			)
 		})
 	})

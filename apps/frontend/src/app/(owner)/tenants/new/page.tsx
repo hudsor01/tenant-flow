@@ -9,8 +9,8 @@ import {
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 import { InviteTenantForm } from '#components/tenants/invite-tenant-form'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
-import { unitQueries } from '#hooks/api/queries/unit-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
+import { unitQueries } from '#hooks/api/use-unit'
 import { useQuery } from '@tanstack/react-query'
 
 /**

@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			:root { --brand: {{branding.primaryColor}}; }
+			body {
+				font-family: 'Helvetica', Arial, sans-serif;
+				color: #111827;
+				margin: 0;
+				padding: 32px;
+				line-height: 1.4;
+			}
+			header {
+				border-bottom: 2px solid var(--brand, #1f3b66);
+				padding-bottom: 16px;
+				margin-bottom: 24px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			h1 { margin: 0; font-size: 24px; }
+			.section { margin-bottom: 20px; }
+			.section-title {
+				font-size: 13px;
+				text-transform: uppercase;
+				font-weight: 700;
+				color: #6b7280;
+				margin-bottom: 6px;
+			}
+			.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+			.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #ecfdf3; color: #065f46; font-size: 12px; }
+			.list { padding-left: 18px; }
+		</style>
+	</head>
+	<body>
+		<header>
+			<div>
+				<h1>{{templateTitle}}</h1>
+				<p>{{branding.companyName}}</p>
+				<span class="badge">Generated {{generatedAt}}</span>
+			</div>
+			{{#if branding.logoUrl}}
+				<img src="{{branding.logoUrl}}" alt="Logo" style="height: 48px;" />
+			{{/if}}
+		</header>
+
+		<section class="section">
+			<div class="section-title">Applicant</div>
+			<div class="grid">
+				<div><strong>Name:</strong> {{applicant.name}}</div>
+				<div><strong>Email:</strong> {{applicant.email}}</div>
+				<div><strong>Phone:</strong> {{applicant.phone}}</div>
+				<div><strong>Current address:</strong> {{applicant.currentAddress}}</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-title">Employment</div>
+			<div class="grid">
+				<div><strong>Employer:</strong> {{employment.employer}}</div>
+				<div><strong>Monthly income:</strong> {{employment.monthlyIncome}}</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-title">References</div>
+			<ul class="list">
+				{{#each references}}
+					<li>{{name}} - {{relationship}} {{#if phone}}({{phone}}){{/if}}</li>
+				{{/each}}
+			</ul>
+		</section>
+
+		<section class="section">
+			<div class="section-title">Background Check</div>
+			<p>
+				Consent: {{#if backgroundCheck.consent}}Authorized{{else}}Pending{{/if}}
+				{{#if backgroundCheck.provider}} - Provider: {{backgroundCheck.provider}}{{/if}}
+			</p>
+		</section>
+
+		{{#if notes}}
+		<section class="section">
+			<div class="section-title">Additional Notes</div>
+			<p>{{notes}}</p>
+		</section>
+		{{/if}}
+
+		{{#if customFields}}
+		<section class="section">
+			<div class="section-title">Custom Fields</div>
+			<ul class="list">
+				{{#each customFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if dynamicFields}}
+		<section class="section">
+			<div class="section-title">Additional Fields</div>
+			<ul class="list">
+				{{#each dynamicFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if clauses}}
+		<section class="section">
+			<div class="section-title">State Clauses</div>
+			<ul class="list">
+				{{#each clauses}}
+					<li>{{text}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+	</body>
+</html>

@@ -8,7 +8,7 @@ import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
 import { PropertyForm } from '#components/properties/property-form.client'
 import { MobilePropertyForm } from '#components/properties/property-form.mobile'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
 import { useQuery } from '@tanstack/react-query'
 
 export default function EditPropertyPage({

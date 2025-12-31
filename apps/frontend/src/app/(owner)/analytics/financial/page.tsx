@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
+import { analyticsQueries } from '#hooks/api/use-analytics'
 import { RefreshableAnalytics } from '#app/(owner)/analytics/refreshable-analytics'
 import { ExportButtons } from '#components/export/export-buttons'
 import { Badge } from '#components/ui/badge'

@@ -37,7 +37,7 @@ vi.mock('#hooks/api/mutations/lease-mutations', () => ({
 	})
 }))
 
-vi.mock('#hooks/api/queries/tenant-queries', () => ({
+vi.mock('#hooks/api/use-tenant', () => ({
 	tenantQueries: {
 		list: () => ({
 			queryKey: ['tenants', 'list'],
@@ -52,7 +52,7 @@ vi.mock('#hooks/api/queries/tenant-queries', () => ({
 	}
 }))
 
-vi.mock('#hooks/api/queries/property-queries', () => ({
+vi.mock('#hooks/api/use-properties', () => ({
 	propertyQueries: {
 		list: () => ({
 			queryKey: ['properties', 'list'],
@@ -75,7 +75,7 @@ vi.mock('#hooks/api/queries/property-queries', () => ({
 	}
 }))
 
-vi.mock('#hooks/api/queries/unit-queries', () => ({
+vi.mock('#hooks/api/use-unit', () => ({
 	unitQueries: {
 		listByProperty: (propertyId: string) => ({
 			queryKey: ['units', 'list', 'by-property', propertyId],
@@ -100,7 +100,7 @@ vi.mock('#hooks/api/queries/unit-queries', () => ({
 	}
 }))
 
-vi.mock('#hooks/api/queries/lease-queries', () => ({
+vi.mock('#hooks/api/use-lease', () => ({
 	leaseQueries: {
 		detail: (id: string) => ({
 			queryKey: ['leases', 'detail', id]

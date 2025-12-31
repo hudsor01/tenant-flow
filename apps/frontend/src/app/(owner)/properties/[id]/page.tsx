@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { useQuery } from '@tanstack/react-query'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { PropertyDetails } from '../property-details.client'

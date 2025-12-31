@@ -7,7 +7,6 @@ import { DollarSign, Home, User, Building } from 'lucide-react'
 import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
 import type { Lease } from '@repo/shared/types/core'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 
 interface UnitInfo {
 	id: string
@@ -21,10 +20,9 @@ interface LeaseSidebarProps {
 }
 
 export function LeaseSidebar({ lease, unit }: LeaseSidebarProps) {
-	const isDraft = lease.lease_status === LEASE_STATUS.DRAFT
-	const isPendingSignature =
-		lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE
-	const isActive = lease.lease_status === LEASE_STATUS.ACTIVE
+	const isDraft = lease.lease_status === 'draft'
+	const isPendingSignature = lease.lease_status === 'pending_signature'
+	const isActive = lease.lease_status === 'active'
 
 	return (
 		<div className="space-y-4">

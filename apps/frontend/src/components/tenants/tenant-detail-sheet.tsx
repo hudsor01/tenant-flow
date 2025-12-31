@@ -68,7 +68,7 @@ function PaymentStatusIcon({
 		case 'processing':
 			return <Clock className="w-4 h-4 text-amber-500" />
 		case 'failed':
-		case 'canceled':
+		case 'cancelled':
 			return <AlertTriangle className="w-4 h-4 text-red-500" />
 		default:
 			return null

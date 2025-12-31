@@ -1,10 +1,8 @@
 'use client'
 
 /**
- * Tenant Portal Hooks
- *
- * Modern hooks using /tenant-portal/* endpoints for tenant-facing operations
- * Uses native fetch for NestJS calls.
+ * Tenant Portal Hooks & Query Options
+ * TanStack Query hooks for tenant-facing operations with colocated query options
  *
  * Architecture:
  * - user_type-based access control (TenantAuthGuard)
@@ -18,26 +16,347 @@
  * - /tenant-portal/maintenance/* - Submit and track maintenance requests
  * - /tenant-portal/leases/* - Active lease and documents
  * - /tenant-portal/settings/* - Profile and preferences
+ *
+ * React 19 + TanStack Query v5 patterns
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
-import { handleMutationSuccess } from '#lib/mutation-error-handler'
 import {
-	tenantPortalQueries,
-	tenantPortalKeys,
-	type TenantMaintenanceRequest,
-	type MaintenanceRequestCreate
-} from './queries/tenant-portal-queries'
+	queryOptions,
+	useQuery,
+	useMutation,
+	useQueryClient
+} from '@tanstack/react-query'
+import { apiRequest } from '#lib/api-request'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { handleMutationSuccess } from '#lib/mutation-error-handler'
+import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
+import type {
+	MaintenanceCategory,
+	MaintenancePriority
+} from '@repo/shared/types/core'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Tenant payment entity
+ */
+export interface TenantPayment {
+	id: string
+	amount: number
+	status: string
+	paidAt: string | null
+	dueDate: string
+	created_at: string
+	lease_id: string
+	tenant_id: string
+	stripePaymentIntentId: string | null
+	ownerReceives: number
+	receiptUrl: string | null
+}
+
+export interface TenantAutopayStatus {
+	autopayEnabled: boolean
+	subscriptionId: string | null
+	subscriptionStatus?: string | null
+	lease_id?: string
+	tenant_id?: string
+	rent_amount?: number
+	nextPaymentDate?: string | null
+	message?: string
+}
+
+export interface TenantMaintenanceRequest {
+	id: string
+	title: string
+	description: string | null
+	priority: MaintenancePriority
+	status: string
+	category: MaintenanceCategory | null
+	created_at: string
+	updated_at: string | null
+	completed_at: string | null
+	requestedBy: string
+	unit_id: string
+}
+
+export interface TenantMaintenanceStats {
+	total: number
+	open: number
+	inProgress: number
+	completed: number
+}
+
+export interface TenantLease {
+	id: string
+	start_date: string
+	end_date: string
+	rent_amount: number
+	security_deposit: number | null
+	status: string
+	lease_status: string
+	stripe_subscription_id: string | null
+	lease_document_url: string | null
+	created_at: string
+	// Signature tracking fields
+	owner_signed_at: string | null
+	tenant_signed_at: string | null
+	sent_for_signature_at: string | null
+	unit: {
+		id: string
+		unit_number: string
+		bedrooms: number
+		bathrooms: number
+		property: {
+			id: string
+			name: string
+			address: string
+			city: string
+			state: string
+			postal_code: string
+		}
+	} | null
+	metadata: {
+		documentUrl: string | null
+	}
+}
+
+export interface TenantDocument {
+	id: string
+	type: 'LEASE' | 'RECEIPT'
+	name: string
+	url: string | null
+	created_at: string | null
+}
+
+export interface TenantProfile {
+	id: string
+	first_name: string | null
+	last_name: string | null
+	email: string | null
+	phone: string | null
+}
+
+export interface TenantSettings {
+	profile: TenantProfile
+}
+
+export interface MaintenanceRequestCreate {
+	title: string
+	description: string
+	priority: MaintenancePriority
+	category?: MaintenanceCategory
+	allowEntry: boolean
+	photos?: string[]
+}
+
+/**
+ * Amount due response type
+ */
+export interface AmountDueResponse {
+	base_rent_cents: number
+	late_fee_cents: number
+	total_due_cents: number
+	due_date: string
+	days_late: number
+	grace_period_days: number
+	already_paid: boolean
+	breakdown: Array<{
+		description: string
+		amount_cents: number
+	}>
+}
+
+/**
+ * Pay rent request type
+ */
+export interface PayRentRequest {
+	payment_method_id: string
+	amount_cents: number
+}
+
+/**
+ * Pay rent response type
+ */
+export interface PayRentResponse {
+	success: boolean
+	payment_id: string
+	status: string
+	message: string
+}
 
 // ============================================================================
 // QUERY KEYS
 // ============================================================================
 
-// Query keys are now imported from tenant-portal-queries.ts
+/**
+ * Tenant portal query keys for cache management
+ */
+export const tenantPortalKeys = {
+	all: ['tenant-portal'] as const,
+	dashboard: () => [...tenantPortalKeys.all, 'dashboard'] as const,
+	amountDue: () => [...tenantPortalKeys.all, 'amount-due'] as const,
+	payments: {
+		all: () => [...tenantPortalKeys.all, 'payments'] as const
+	},
+	autopay: {
+		all: () => [...tenantPortalKeys.all, 'autopay'] as const,
+		status: () => [...tenantPortalKeys.all, 'autopay'] as const
+	},
+	maintenance: {
+		all: () => [...tenantPortalKeys.all, 'maintenance'] as const,
+		list: () => [...tenantPortalKeys.all, 'maintenance'] as const
+	},
+	leases: {
+		all: () => [...tenantPortalKeys.all, 'lease'] as const
+	},
+	documents: {
+		all: () => [...tenantPortalKeys.all, 'documents'] as const
+	},
+	settings: {
+		all: () => [...tenantPortalKeys.all, 'settings'] as const
+	}
+}
 
 // ============================================================================
-// PAYMENTS HOOKS (/tenant-portal/payments/*)
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Tenant portal query factory
+ *
+ * Cache Strategy:
+ * - STATS (1 min staleTime): Amount due - needs frequent updates
+ * - LIST (10 min staleTime): Payments, maintenance - moderate freshness
+ * - DETAIL (5 min staleTime): Dashboard, autopay, lease, documents, settings
+ *
+ * Refetch Strategy:
+ * - refetchOnWindowFocus: false - staleTime handles freshness
+ * - refetchInterval: Only for critical real-time data (amount due)
+ * - refetchIntervalInBackground: false - save resources when tab inactive
+ */
+export const tenantPortalQueries = {
+	/**
+	 * Base key for all tenant portal queries
+	 */
+	all: () => ['tenant-portal'] as const,
+
+	/**
+	 * Dashboard data
+	 */
+	dashboard: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.dashboard(),
+			queryFn: () => apiRequest('/api/v1/tenant-portal/dashboard'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false
+		}),
+
+	/**
+	 * Amount due for current period
+	 * Primary: SSE push via 'payment.status_updated' event
+	 * Fallback: 2 min polling for critical payment data
+	 */
+	amountDue: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.amountDue(),
+			queryFn: () =>
+				apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
+			...QUERY_CACHE_TIMES.STATS,
+			refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
+			refetchIntervalInBackground: false,
+			refetchOnWindowFocus: true // Catch missed events on tab focus
+		}),
+
+	/**
+	 * Payment history and upcoming payments
+	 * Primary: SSE push via 'payment.status_updated' event
+	 */
+	payments: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.payments.all(),
+			queryFn: () =>
+				apiRequest<{
+					payments: TenantPayment[]
+					methodsEndpoint: string
+				}>('/api/v1/tenants/payments'),
+			...QUERY_CACHE_TIMES.LIST,
+			// No interval - SSE handles updates, tab focus catches missed events
+			refetchOnWindowFocus: true,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Autopay/subscription status for active lease
+	 */
+	autopay: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.autopay.all(),
+			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenants/autopay'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Maintenance request history with summary stats
+	 */
+	maintenance: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.maintenance.all(),
+			queryFn: () =>
+				apiRequest<{
+					requests: TenantMaintenanceRequest[]
+					summary: TenantMaintenanceStats
+				}>('/api/v1/tenants/maintenance'),
+			...QUERY_CACHE_TIMES.LIST,
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Active lease with unit/property metadata
+	 */
+	lease: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.leases.all(),
+			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenants/leases'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Lease documents (signed agreement, receipts)
+	 */
+	documents: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.documents.all(),
+			queryFn: () =>
+				apiRequest<{ documents: TenantDocument[] }>(
+					'/api/v1/tenants/leases/documents'
+				),
+			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Tenant profile and settings
+	 */
+	settings: () =>
+		queryOptions({
+			queryKey: tenantPortalKeys.settings.all(),
+			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenants/settings'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS - PAYMENTS (/tenant-portal/payments/*)
 // ============================================================================
 
 /**
@@ -48,7 +367,7 @@ export function useTenantPayments() {
 }
 
 // ============================================================================
-// AUTOPAY HOOKS (/tenant-portal/autopay/*)
+// QUERY HOOKS - AUTOPAY (/tenant-portal/autopay/*)
 // ============================================================================
 
 /**
@@ -59,7 +378,7 @@ export function useTenantAutopayStatus() {
 }
 
 // ============================================================================
-// MAINTENANCE HOOKS (/tenant-portal/maintenance/*)
+// QUERY HOOKS - MAINTENANCE (/tenant-portal/maintenance/*)
 // ============================================================================
 
 /**
@@ -68,6 +387,10 @@ export function useTenantAutopayStatus() {
 export function useTenantMaintenance() {
 	return useQuery(tenantPortalQueries.maintenance())
 }
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Create a maintenance request
@@ -92,7 +415,7 @@ export function useMaintenanceRequestCreate() {
 }
 
 // ============================================================================
-// LEASES HOOKS (/tenant-portal/leases/*)
+// QUERY HOOKS - LEASES (/tenant-portal/leases/*)
 // ============================================================================
 
 /**
@@ -146,7 +469,7 @@ export function useTenantLeaseDocuments() {
 }
 
 // ============================================================================
-// SETTINGS HOOKS (/tenant-portal/settings/*)
+// QUERY HOOKS - SETTINGS (/tenant-portal/settings/*)
 // ============================================================================
 
 /**

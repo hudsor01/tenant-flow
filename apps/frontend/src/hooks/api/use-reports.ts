@@ -1,32 +1,194 @@
 /**
- * TanStack Query hooks for reports API
+ * Reports Hooks & Query Options
+ * TanStack Query hooks for reports API with colocated query options
+ *
  * Phase 5: Advanced Features - Custom Reports & Analytics
- * Uses native fetch for NestJS calls.
+ *
+ * React 19 + TanStack Query v5 patterns
  */
 
 import { apiRequest, apiRequestRaw } from '#lib/api-request'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+	queryOptions,
+	useMutation,
+	useQuery,
+	useQueryClient
+} from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { reportsQueries, reportsKeys } from './queries/reports-queries'
 import type {
 	ListReportsResponse,
-	Report as ReportType
+	Report as ReportType,
+	RevenueData,
+	PaymentAnalytics,
+	OccupancyMetrics,
+	FinancialReport,
+	PropertyReport,
+	TenantReport,
+	MaintenanceReport
 } from '@repo/shared/types/reports'
 import type { UseReportsResult } from './types/reports'
 
 // Check test environment directly - T3 Env cannot be imported in client components
 const isTest = process.env.NODE_ENV === 'test'
 
-// Note: Import types directly from '@repo/shared/types/reports'
-// No re-exports per CLAUDE.md rules
-
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
+
+// ============================================================================
+// QUERY KEYS
+// ============================================================================
+
+/**
+ * Query keys for reports
+ */
+export const reportsKeys = {
+	all: ['reports'] as const,
+	lists: () => [...reportsKeys.all, 'list'] as const,
+	list: (offset: number, limit: number) =>
+		[...reportsKeys.lists(), offset, limit] as const,
+	revenue: (months: number) =>
+		[...reportsKeys.all, 'revenue', 'monthly', months] as const,
+	paymentAnalytics: (start_date?: string, end_date?: string) =>
+		[
+			...reportsKeys.all,
+			'analytics',
+			'payments',
+			start_date,
+			end_date
+		] as const,
+	occupancyMetrics: () =>
+		[...reportsKeys.all, 'analytics', 'occupancy'] as const,
+	financial: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'financial', start_date, end_date] as const,
+	properties: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'properties', start_date, end_date] as const,
+	tenants: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'tenants', start_date, end_date] as const,
+	maintenance: (start_date?: string, end_date?: string) =>
+		[...reportsKeys.all, 'maintenance', start_date, end_date] as const
+}
+
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Reports query options factory
+ */
+export const reportsQueries = {
+	/**
+	 * Base key for all reports queries
+	 */
+	all: () => ['reports'] as const,
+
+	list: (offset: number, limit: number = 20) =>
+		queryOptions({
+			queryKey: reportsKeys.list(offset, limit),
+			queryFn: () =>
+				apiRequest<ListReportsResponse>(
+					`/api/v1/reports?limit=${limit}&offset=${offset}`
+				)
+		}),
+
+	monthlyRevenue: (months: number = 12) =>
+		queryOptions({
+			queryKey: reportsKeys.revenue(months),
+			queryFn: () =>
+				apiRequest<RevenueData[]>(
+					`/api/v1/reports/analytics/revenue/monthly?months=${months}`
+				)
+		}),
+
+	paymentAnalytics: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
+			queryFn: () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				return apiRequest<PaymentAnalytics>(
+					`/api/v1/reports/analytics/payments${queryString}`
+				)
+			}
+		}),
+
+	occupancyMetrics: () =>
+		queryOptions({
+			queryKey: reportsKeys.occupancyMetrics(),
+			queryFn: () =>
+				apiRequest<OccupancyMetrics>('/api/v1/reports/analytics/occupancy')
+		}),
+
+	financial: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.financial(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					FinancialReport | { data: FinancialReport }
+				>(`/api/v1/reports/financial${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	properties: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.properties(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					PropertyReport | { data: PropertyReport }
+				>(`/api/v1/reports/properties${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	tenants: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.tenants(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					TenantReport | { data: TenantReport }
+				>(`/api/v1/reports/tenants${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		}),
+
+	maintenance: (start_date?: string, end_date?: string) =>
+		queryOptions({
+			queryKey: reportsKeys.maintenance(start_date, end_date),
+			queryFn: async () => {
+				const params = new URLSearchParams()
+				if (start_date) params.append('start_date', start_date)
+				if (end_date) params.append('end_date', end_date)
+				const queryString = params.toString() ? `?${params.toString()}` : ''
+				const response = await apiRequest<
+					MaintenanceReport | { data: MaintenanceReport }
+				>(`/api/v1/reports/maintenance${queryString}`)
+				return 'data' in response ? response.data : response
+			}
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 export function useReports({
 	offset,
@@ -285,6 +447,10 @@ export function useTenantReport(start_date?: string, end_date?: string) {
 export function useMaintenanceReport(start_date?: string, end_date?: string) {
 	return useQuery(reportsQueries.maintenance(start_date, end_date))
 }
+
+// ============================================================================
+// PREFETCH HOOKS
+// ============================================================================
 
 /**
  * Hook for prefetching reports

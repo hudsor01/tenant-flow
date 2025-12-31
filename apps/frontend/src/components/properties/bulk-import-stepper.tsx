@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import { useState, useCallback, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { propertyQueries } from '#hooks/api/queries/property-queries'
+import { propertyQueries } from '#hooks/api/use-properties'
 import { apiRequestFormData } from '#lib/api-request'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {

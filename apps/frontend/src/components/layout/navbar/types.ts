@@ -41,7 +41,7 @@ export const AUTH_NAV_ITEMS: NavItem[] = [
 			{ name: 'Leases', href: '/leases' },
 			{ name: 'Maintenance', href: '/maintenance' },
 			{ name: 'Reports', href: '/reports' },
-			{ name: 'Settings', href: '/dashboard/settings' }
+			{ name: 'Settings', href: '/settings' }
 		]
 	}
 ]

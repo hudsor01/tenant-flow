@@ -7,110 +7,6 @@
 import { z } from "zod";
 import { type Json } from "./../types/supabase";
 
-export const publicInvitationTypeSchema = z.union([
-  z.literal("platform_access"),
-  z.literal("lease_signing"),
-]);
-
-export const publicLeaseStatusSchema = z.union([
-  z.literal("draft"),
-  z.literal("pending_signature"),
-  z.literal("active"),
-  z.literal("ended"),
-  z.literal("terminated"),
-]);
-
-export const publicMaintenancePrioritySchema = z.union([
-  z.literal("low"),
-  z.literal("normal"),
-  z.literal("medium"),
-  z.literal("high"),
-  z.literal("urgent"),
-]);
-
-export const publicMaintenanceStatusSchema = z.union([
-  z.literal("open"),
-  z.literal("in_progress"),
-  z.literal("completed"),
-  z.literal("cancelled"),
-  z.literal("on_hold"),
-]);
-
-export const publicNotificationTypeSchema = z.union([
-  z.literal("maintenance"),
-  z.literal("lease"),
-  z.literal("payment"),
-  z.literal("system"),
-]);
-
-export const publicPaymentStatusSchema = z.union([
-  z.literal("pending"),
-  z.literal("processing"),
-  z.literal("succeeded"),
-  z.literal("failed"),
-  z.literal("canceled"),
-  z.literal("cancelled"),
-  z.literal("requires_action"),
-]);
-
-export const publicPropertyStatusSchema = z.union([
-  z.literal("active"),
-  z.literal("inactive"),
-  z.literal("sold"),
-]);
-
-export const publicSecurityEventSeveritySchema = z.union([
-  z.literal("debug"),
-  z.literal("info"),
-  z.literal("warning"),
-  z.literal("error"),
-  z.literal("critical"),
-]);
-
-export const publicSecurityEventTypeSchema = z.union([
-  z.literal("auth.login"),
-  z.literal("auth.logout"),
-  z.literal("auth.failed_login"),
-  z.literal("auth.password_change"),
-  z.literal("auth.password_reset"),
-  z.literal("user.created"),
-  z.literal("user.updated"),
-  z.literal("user.deleted"),
-  z.literal("property.created"),
-  z.literal("property.updated"),
-  z.literal("property.deleted"),
-  z.literal("lease.created"),
-  z.literal("lease.updated"),
-  z.literal("lease.deleted"),
-  z.literal("lease.signed"),
-  z.literal("payment.created"),
-  z.literal("payment.failed"),
-  z.literal("subscription.created"),
-  z.literal("subscription.canceled"),
-  z.literal("admin.action"),
-  z.literal("system.error"),
-  z.literal("system.warning"),
-]);
-
-export const publicSignatureMethodSchema = z.union([
-  z.literal("in_app"),
-  z.literal("docuseal"),
-]);
-
-export const publicStripeSubscriptionStatusSchema = z.union([
-  z.literal("none"),
-  z.literal("pending"),
-  z.literal("active"),
-  z.literal("failed"),
-]);
-
-export const publicUnitStatusSchema = z.union([
-  z.literal("available"),
-  z.literal("occupied"),
-  z.literal("maintenance"),
-  z.literal("reserved"),
-]);
-
 export const jsonSchema: z.ZodSchema<Json> = z.lazy(() =>
   z
     .union([
@@ -351,10 +247,10 @@ export const publicLeasesRowSchema = z.object({
   late_fee_amount: z.number().nullable(),
   late_fee_days: z.number().nullable(),
   lead_paint_disclosure_acknowledged: z.boolean().nullable(),
-  lease_status: publicLeaseStatusSchema,
+  lease_status: z.string(),
   max_occupants: z.number().nullable(),
   owner_signature_ip: z.string().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.nullable(),
+  owner_signature_method: z.string().nullable(),
   owner_signed_at: z.string().nullable(),
   owner_user_id: z.string(),
   payment_day: z.number(),
@@ -371,13 +267,13 @@ export const publicLeasesRowSchema = z.object({
   start_date: z.string(),
   stripe_connected_account_id: z.string().nullable(),
   stripe_subscription_id: z.string().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema,
+  stripe_subscription_status: z.string(),
   subscription_failure_reason: z.string().nullable(),
   subscription_last_attempt_at: z.string().nullable(),
   subscription_retry_count: z.number().nullable(),
   tenant_responsible_utilities: z.array(z.string()).nullable(),
   tenant_signature_ip: z.string().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.nullable(),
+  tenant_signature_method: z.string().nullable(),
   tenant_signed_at: z.string().nullable(),
   unit_id: z.string(),
   updated_at: z.string().nullable(),
@@ -395,10 +291,10 @@ export const publicLeasesInsertSchema = z.object({
   late_fee_amount: z.number().optional().nullable(),
   late_fee_days: z.number().optional().nullable(),
   lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
-  lease_status: publicLeaseStatusSchema.optional(),
+  lease_status: z.string().optional(),
   max_occupants: z.number().optional().nullable(),
   owner_signature_ip: z.string().optional().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
+  owner_signature_method: z.string().optional().nullable(),
   owner_signed_at: z.string().optional().nullable(),
   owner_user_id: z.string(),
   payment_day: z.number().optional(),
@@ -415,13 +311,13 @@ export const publicLeasesInsertSchema = z.object({
   start_date: z.string(),
   stripe_connected_account_id: z.string().optional().nullable(),
   stripe_subscription_id: z.string().optional().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
+  stripe_subscription_status: z.string().optional(),
   subscription_failure_reason: z.string().optional().nullable(),
   subscription_last_attempt_at: z.string().optional().nullable(),
   subscription_retry_count: z.number().optional().nullable(),
   tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
   tenant_signature_ip: z.string().optional().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
+  tenant_signature_method: z.string().optional().nullable(),
   tenant_signed_at: z.string().optional().nullable(),
   unit_id: z.string(),
   updated_at: z.string().optional().nullable(),
@@ -439,10 +335,10 @@ export const publicLeasesUpdateSchema = z.object({
   late_fee_amount: z.number().optional().nullable(),
   late_fee_days: z.number().optional().nullable(),
   lead_paint_disclosure_acknowledged: z.boolean().optional().nullable(),
-  lease_status: publicLeaseStatusSchema.optional(),
+  lease_status: z.string().optional(),
   max_occupants: z.number().optional().nullable(),
   owner_signature_ip: z.string().optional().nullable(),
-  owner_signature_method: publicSignatureMethodSchema.optional().nullable(),
+  owner_signature_method: z.string().optional().nullable(),
   owner_signed_at: z.string().optional().nullable(),
   owner_user_id: z.string().optional(),
   payment_day: z.number().optional(),
@@ -459,13 +355,13 @@ export const publicLeasesUpdateSchema = z.object({
   start_date: z.string().optional(),
   stripe_connected_account_id: z.string().optional().nullable(),
   stripe_subscription_id: z.string().optional().nullable(),
-  stripe_subscription_status: publicStripeSubscriptionStatusSchema.optional(),
+  stripe_subscription_status: z.string().optional(),
   subscription_failure_reason: z.string().optional().nullable(),
   subscription_last_attempt_at: z.string().optional().nullable(),
   subscription_retry_count: z.number().optional().nullable(),
   tenant_responsible_utilities: z.array(z.string()).optional().nullable(),
   tenant_signature_ip: z.string().optional().nullable(),
-  tenant_signature_method: publicSignatureMethodSchema.optional().nullable(),
+  tenant_signature_method: z.string().optional().nullable(),
   tenant_signed_at: z.string().optional().nullable(),
   unit_id: z.string().optional(),
   updated_at: z.string().optional().nullable(),
@@ -515,10 +411,10 @@ export const publicMaintenanceRequestsRowSchema = z.object({
   inspection_findings: z.string().nullable(),
   inspector_id: z.string().nullable(),
   owner_user_id: z.string(),
-  priority: publicMaintenancePrioritySchema,
+  priority: z.string(),
   requested_by: z.string().nullable(),
   scheduled_date: z.string().nullable(),
-  status: publicMaintenanceStatusSchema,
+  status: z.string(),
   tenant_id: z.string(),
   title: z.string(),
   unit_id: z.string(),
@@ -537,10 +433,10 @@ export const publicMaintenanceRequestsInsertSchema = z.object({
   inspection_findings: z.string().optional().nullable(),
   inspector_id: z.string().optional().nullable(),
   owner_user_id: z.string(),
-  priority: publicMaintenancePrioritySchema.optional(),
+  priority: z.string().optional(),
   requested_by: z.string().optional().nullable(),
   scheduled_date: z.string().optional().nullable(),
-  status: publicMaintenanceStatusSchema.optional(),
+  status: z.string().optional(),
   tenant_id: z.string(),
   title: z.string().optional(),
   unit_id: z.string(),
@@ -559,10 +455,10 @@ export const publicMaintenanceRequestsUpdateSchema = z.object({
   inspection_findings: z.string().optional().nullable(),
   inspector_id: z.string().optional().nullable(),
   owner_user_id: z.string().optional(),
-  priority: publicMaintenancePrioritySchema.optional(),
+  priority: z.string().optional(),
   requested_by: z.string().optional().nullable(),
   scheduled_date: z.string().optional().nullable(),
-  status: publicMaintenanceStatusSchema.optional(),
+  status: z.string().optional(),
   tenant_id: z.string().optional(),
   title: z.string().optional(),
   unit_id: z.string().optional(),
@@ -716,7 +612,7 @@ export const publicNotificationsRowSchema = z.object({
   id: z.string(),
   is_read: z.boolean().nullable(),
   message: z.string().nullable(),
-  notification_type: publicNotificationTypeSchema,
+  notification_type: z.string(),
   read_at: z.string().nullable(),
   title: z.string(),
   user_id: z.string(),
@@ -730,7 +626,7 @@ export const publicNotificationsInsertSchema = z.object({
   id: z.string().optional(),
   is_read: z.boolean().optional().nullable(),
   message: z.string().optional().nullable(),
-  notification_type: publicNotificationTypeSchema,
+  notification_type: z.string(),
   read_at: z.string().optional().nullable(),
   title: z.string(),
   user_id: z.string(),
@@ -744,7 +640,7 @@ export const publicNotificationsUpdateSchema = z.object({
   id: z.string().optional(),
   is_read: z.boolean().optional().nullable(),
   message: z.string().optional().nullable(),
-  notification_type: publicNotificationTypeSchema.optional(),
+  notification_type: z.string().optional(),
   read_at: z.string().optional().nullable(),
   title: z.string().optional(),
   user_id: z.string().optional(),
@@ -865,7 +761,7 @@ export const publicPaymentTransactionsRowSchema = z.object({
   payment_method_id: z.string().nullable(),
   rent_payment_id: z.string(),
   retry_count: z.number().nullable(),
-  status: publicPaymentStatusSchema,
+  status: z.string(),
   stripe_payment_intent_id: z.string(),
   updated_at: z.string().nullable(),
 });
@@ -880,7 +776,7 @@ export const publicPaymentTransactionsInsertSchema = z.object({
   payment_method_id: z.string().optional().nullable(),
   rent_payment_id: z.string(),
   retry_count: z.number().optional().nullable(),
-  status: publicPaymentStatusSchema,
+  status: z.string(),
   stripe_payment_intent_id: z.string(),
   updated_at: z.string().optional().nullable(),
 });
@@ -895,7 +791,7 @@ export const publicPaymentTransactionsUpdateSchema = z.object({
   payment_method_id: z.string().optional().nullable(),
   rent_payment_id: z.string().optional(),
   retry_count: z.number().optional().nullable(),
-  status: publicPaymentStatusSchema.optional(),
+  status: z.string().optional(),
   stripe_payment_intent_id: z.string().optional(),
   updated_at: z.string().optional().nullable(),
 });
@@ -962,7 +858,7 @@ export const publicPropertiesRowSchema = z.object({
   sale_price: z.number().nullable(),
   search_vector: z.unknown(),
   state: z.string(),
-  status: publicPropertyStatusSchema,
+  status: z.string(),
   stripe_connected_account_id: z.string().nullable(),
   updated_at: z.string().nullable(),
 });
@@ -982,7 +878,7 @@ export const publicPropertiesInsertSchema = z.object({
   sale_price: z.number().optional().nullable(),
   search_vector: z.unknown().optional(),
   state: z.string(),
-  status: publicPropertyStatusSchema.optional(),
+  status: z.string().optional(),
   stripe_connected_account_id: z.string().optional().nullable(),
   updated_at: z.string().optional().nullable(),
 });
@@ -1002,7 +898,7 @@ export const publicPropertiesUpdateSchema = z.object({
   sale_price: z.number().optional().nullable(),
   search_vector: z.unknown().optional(),
   state: z.string().optional(),
-  status: publicPropertyStatusSchema.optional(),
+  status: z.string().optional(),
   stripe_connected_account_id: z.string().optional().nullable(),
   updated_at: z.string().optional().nullable(),
 });
@@ -1115,7 +1011,7 @@ export const publicRentPaymentsRowSchema = z.object({
   payment_method_type: z.string(),
   period_end: z.string(),
   period_start: z.string(),
-  status: publicPaymentStatusSchema,
+  status: z.string(),
   stripe_payment_intent_id: z.string().nullable(),
   tenant_id: z.string(),
   updated_at: z.string().nullable(),
@@ -1135,7 +1031,7 @@ export const publicRentPaymentsInsertSchema = z.object({
   payment_method_type: z.string(),
   period_end: z.string(),
   period_start: z.string(),
-  status: publicPaymentStatusSchema,
+  status: z.string(),
   stripe_payment_intent_id: z.string().optional().nullable(),
   tenant_id: z.string(),
   updated_at: z.string().optional().nullable(),
@@ -1155,7 +1051,7 @@ export const publicRentPaymentsUpdateSchema = z.object({
   payment_method_type: z.string().optional(),
   period_end: z.string().optional(),
   period_start: z.string().optional(),
-  status: publicPaymentStatusSchema.optional(),
+  status: z.string().optional(),
   stripe_payment_intent_id: z.string().optional().nullable(),
   tenant_id: z.string().optional(),
   updated_at: z.string().optional().nullable(),
@@ -1318,7 +1214,7 @@ export const publicSecurityAuditLogRelationshipsSchema = z.tuple([
 
 export const publicSecurityEventsRowSchema = z.object({
   created_at: z.string(),
-  event_type: publicSecurityEventTypeSchema,
+  event_type: z.string(),
   id: z.string(),
   ip_address: z.unknown(),
   message: z.string(),
@@ -1326,7 +1222,7 @@ export const publicSecurityEventsRowSchema = z.object({
   request_id: z.string().nullable(),
   resource_id: z.string().nullable(),
   resource_type: z.string().nullable(),
-  severity: publicSecurityEventSeveritySchema,
+  severity: z.string(),
   tags: z.array(z.string()).nullable(),
   user_agent: z.string().nullable(),
   user_email: z.string().nullable(),
@@ -1336,7 +1232,7 @@ export const publicSecurityEventsRowSchema = z.object({
 
 export const publicSecurityEventsInsertSchema = z.object({
   created_at: z.string().optional(),
-  event_type: publicSecurityEventTypeSchema,
+  event_type: z.string(),
   id: z.string().optional(),
   ip_address: z.unknown().optional(),
   message: z.string(),
@@ -1344,7 +1240,7 @@ export const publicSecurityEventsInsertSchema = z.object({
   request_id: z.string().optional().nullable(),
   resource_id: z.string().optional().nullable(),
   resource_type: z.string().optional().nullable(),
-  severity: publicSecurityEventSeveritySchema.optional(),
+  severity: z.string().optional(),
   tags: z.array(z.string()).optional().nullable(),
   user_agent: z.string().optional().nullable(),
   user_email: z.string().optional().nullable(),
@@ -1354,7 +1250,7 @@ export const publicSecurityEventsInsertSchema = z.object({
 
 export const publicSecurityEventsUpdateSchema = z.object({
   created_at: z.string().optional(),
-  event_type: publicSecurityEventTypeSchema.optional(),
+  event_type: z.string().optional(),
   id: z.string().optional(),
   ip_address: z.unknown().optional(),
   message: z.string().optional(),
@@ -1362,7 +1258,7 @@ export const publicSecurityEventsUpdateSchema = z.object({
   request_id: z.string().optional().nullable(),
   resource_id: z.string().optional().nullable(),
   resource_type: z.string().optional().nullable(),
-  severity: publicSecurityEventSeveritySchema.optional(),
+  severity: z.string().optional(),
   tags: z.array(z.string()).optional().nullable(),
   user_agent: z.string().optional().nullable(),
   user_email: z.string().optional().nullable(),
@@ -1592,7 +1488,7 @@ export const publicUnitsRowSchema = z.object({
   rent_currency: z.string(),
   rent_period: z.string(),
   square_feet: z.number().nullable(),
-  status: publicUnitStatusSchema,
+  status: z.string(),
   unit_number: z.string().nullable(),
   updated_at: z.string().nullable(),
 });
@@ -1608,7 +1504,7 @@ export const publicUnitsInsertSchema = z.object({
   rent_currency: z.string().optional(),
   rent_period: z.string().optional(),
   square_feet: z.number().optional().nullable(),
-  status: publicUnitStatusSchema.optional(),
+  status: z.string().optional(),
   unit_number: z.string().optional().nullable(),
   updated_at: z.string().optional().nullable(),
 });
@@ -1624,7 +1520,7 @@ export const publicUnitsUpdateSchema = z.object({
   rent_currency: z.string().optional(),
   rent_period: z.string().optional(),
   square_feet: z.number().optional().nullable(),
-  status: publicUnitStatusSchema.optional(),
+  status: z.string().optional(),
   unit_number: z.string().optional().nullable(),
   updated_at: z.string().optional().nullable(),
 });
@@ -2079,12 +1975,6 @@ export const publicAssertCanCreateLeaseArgsSchema = z.object({
 
 export const publicAssertCanCreateLeaseReturnsSchema = z.boolean();
 
-export const publicCalculateFinancialMetricsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicCalculateFinancialMetricsReturnsSchema = jsonSchema;
-
 export const publicCalculateMaintenanceMetricsArgsSchema = z.object({
   p_user_id: z.string().optional(),
   uid: z.string().optional(),
@@ -2114,12 +2004,6 @@ export const publicCalculateMonthlyMetricsArgsSchema = z.object({
 
 export const publicCalculateMonthlyMetricsReturnsSchema = jsonSchema;
 
-export const publicCalculateNetOperatingIncomeArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicCalculateNetOperatingIncomeReturnsSchema = jsonSchema;
-
 export const publicCheckUserFeatureAccessArgsSchema = z.object({
   p_feature: z.string(),
   p_user_id: z.string(),
@@ -2147,14 +2031,6 @@ export const publicCustomAccessTokenHookArgsSchema = z.object({
 
 export const publicCustomAccessTokenHookReturnsSchema = jsonSchema;
 
-export const publicGetBillingInsightsArgsSchema = z.object({
-  end_date_param: z.string().optional(),
-  owner_id_param: z.string(),
-  start_date_param: z.string().optional(),
-});
-
-export const publicGetBillingInsightsReturnsSchema = jsonSchema;
-
 export const publicGetCommonErrorsArgsSchema = z.object({
   hours_back: z.number().optional(),
   limit_count: z.number().optional(),
@@ -2181,65 +2057,6 @@ export const publicGetCurrentTenantIdReturnsSchema = z.string();
 export const publicGetCurrentUserTypeArgsSchema = z.never();
 
 export const publicGetCurrentUserTypeReturnsSchema = z.string();
-
-export const publicGetDashboardStatsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicLeaseStatsTypeSchema = z.object({
-  total: z.number().nullable(),
-  active: z.number().nullable(),
-  expired: z.number().nullable(),
-  expiring_soon: z.number().nullable(),
-});
-
-export const publicPropertyStatsTypeSchema = z.object({
-  total: z.number().nullable(),
-  occupied: z.number().nullable(),
-  vacant: z.number().nullable(),
-  occupancy_rate: z.number().nullable(),
-  total_monthly_rent: z.number().nullable(),
-  average_rent: z.number().nullable(),
-});
-
-export const publicRevenueStatsTypeSchema = z.object({
-  monthly: z.number().nullable(),
-  yearly: z.number().nullable(),
-  growth: z.number().nullable(),
-});
-
-export const publicTenantStatsTypeSchema = z.object({
-  total: z.number().nullable(),
-  active: z.number().nullable(),
-  inactive: z.number().nullable(),
-  new_this_month: z.number().nullable(),
-});
-
-export const publicUnitStatsTypeSchema = z.object({
-  total: z.number().nullable(),
-  occupied: z.number().nullable(),
-  vacant: z.number().nullable(),
-  maintenance: z.number().nullable(),
-  average_rent: z.number().nullable(),
-  available: z.number().nullable(),
-  occupancy_rate: z.number().nullable(),
-  occupancy_change: z.number().nullable(),
-  total_potential_rent: z.number().nullable(),
-  total_actual_rent: z.number().nullable(),
-});
-
-export const publicGetDashboardTimeSeriesArgsSchema = z.object({
-  p_days: z.number().optional(),
-  p_metric_name: z.string(),
-  p_user_id: z.string(),
-});
-
-export const publicGetDashboardTimeSeriesReturnsSchema = z.array(
-  z.object({
-    date: z.string(),
-    value: z.number(),
-  }),
-);
 
 export const publicGetErrorProneUsersArgsSchema = z.object({
   hours_back: z.number().optional(),
@@ -2273,12 +2090,6 @@ export const publicGetExpenseSummaryArgsSchema = z.object({
 
 export const publicGetExpenseSummaryReturnsSchema = jsonSchema;
 
-export const publicGetFinancialOverviewArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicGetFinancialOverviewReturnsSchema = jsonSchema;
-
 export const publicGetInvoiceStatisticsArgsSchema = z.object({
   p_user_id: z.string(),
 });
@@ -2296,38 +2107,11 @@ export const publicGetLeadPaintComplianceReportReturnsSchema = z.array(
   }),
 );
 
-export const publicGetLeaseFinancialSummaryArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicGetLeaseFinancialSummaryReturnsSchema = jsonSchema;
-
-export const publicGetLeasesWithFinancialAnalyticsArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicGetLeasesWithFinancialAnalyticsReturnsSchema = jsonSchema;
-
 export const publicGetMaintenanceAnalyticsArgsSchema = z.object({
   user_id: z.string(),
 });
 
 export const publicGetMaintenanceAnalyticsReturnsSchema = jsonSchema;
-
-export const publicGetMetricTrendArgsSchema = z.object({
-  p_metric_name: z.string(),
-  p_period: z.string().optional(),
-  p_user_id: z.string(),
-});
-
-export const publicGetMetricTrendReturnsSchema = jsonSchema;
-
-export const publicGetOccupancyTrendsOptimizedArgsSchema = z.object({
-  p_months: z.number().optional(),
-  p_user_id: z.string(),
-});
-
-export const publicGetOccupancyTrendsOptimizedReturnsSchema = jsonSchema;
 
 export const publicGetOwnerLeaseTenantIdsArgsSchema = z.never();
 
@@ -2352,12 +2136,6 @@ export const publicGetPropertyPerformanceAnalyticsReturnsSchema = z.array(
   }),
 );
 
-export const publicGetPropertyPerformanceCachedArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicGetPropertyPerformanceCachedReturnsSchema = jsonSchema;
-
 export const publicGetPropertyPerformanceTrendsArgsSchema = z.object({
   p_user_id: z.string(),
 });
@@ -2381,13 +2159,6 @@ export const publicGetPropertyPerformanceWithTrendsReturnsSchema = z.array(
     trend_percentage: z.number(),
   }),
 );
-
-export const publicGetRevenueTrendsOptimizedArgsSchema = z.object({
-  p_months: z.number().optional(),
-  p_user_id: z.string(),
-});
-
-export const publicGetRevenueTrendsOptimizedReturnsSchema = jsonSchema;
 
 export const publicGetSlowRlsQueriesArgsSchema = z.object({
   min_avg_time_ms: z.number().optional(),
@@ -2476,12 +2247,6 @@ export const publicGetUserPlanLimitsReturnsSchema = z.array(
   }),
 );
 
-export const publicGetUserProfileArgsSchema = z.object({
-  p_user_id: z.string(),
-});
-
-export const publicGetUserProfileReturnsSchema = jsonSchema;
-
 export const publicGetUserSessionsArgsSchema = z.object({
   p_user_id: z.string(),
 });
@@ -2555,7 +2320,7 @@ export const publicSearchPropertiesReturnsSchema = z.array(
 export const publicSignLeaseAndCheckActivationArgsSchema = z.object({
   p_lease_id: z.string(),
   p_signature_ip: z.string(),
-  p_signature_method: publicSignatureMethodSchema.optional(),
+  p_signature_method: z.string().optional(),
   p_signed_at: z.string(),
   p_signer_type: z.string(),
 });
@@ -2570,16 +2335,16 @@ export const publicSignLeaseAndCheckActivationReturnsSchema = z.array(
 
 export const publicUpsertRentPaymentArgsSchema = z.object({
   p_amount: z.number(),
-  p_application_fee_amount: z.number(),
+  p_application_fee_amount: z.number().optional(),
   p_currency: z.string(),
   p_due_date: z.string(),
   p_lease_id: z.string(),
-  p_paid_date: z.string(),
-  p_payment_method_type: z.string(),
-  p_period_end: z.string(),
-  p_period_start: z.string(),
+  p_paid_date: z.string().optional(),
+  p_payment_method_type: z.string().optional(),
+  p_period_end: z.string().optional(),
+  p_period_start: z.string().optional(),
   p_status: z.string(),
-  p_stripe_payment_intent_id: z.string(),
+  p_stripe_payment_intent_id: z.string().optional(),
   p_tenant_id: z.string(),
 });
 
@@ -2593,6 +2358,13 @@ export const publicUpsertRentPaymentReturnsSchema = z.array(
 export const publicUserIsTenantArgsSchema = z.never();
 
 export const publicUserIsTenantReturnsSchema = z.boolean();
+
+export const publicLeaseStatsTypeSchema = z.object({
+  total: z.number().nullable(),
+  active: z.number().nullable(),
+  expired: z.number().nullable(),
+  expiring_soon: z.number().nullable(),
+});
 
 export const publicMaintenancePriorityTypeSchema = z.object({
   low: z.number().nullable(),
@@ -2611,18 +2383,42 @@ export const publicMaintenanceStatsTypeSchema = z.object({
   by_priority: publicMaintenancePriorityTypeSchema.nullable(),
 });
 
+export const publicPropertyStatsTypeSchema = z.object({
+  total: z.number().nullable(),
+  occupied: z.number().nullable(),
+  vacant: z.number().nullable(),
+  occupancy_rate: z.number().nullable(),
+  total_monthly_rent: z.number().nullable(),
+  average_rent: z.number().nullable(),
+});
+
+export const publicRevenueStatsTypeSchema = z.object({
+  monthly: z.number().nullable(),
+  yearly: z.number().nullable(),
+  growth: z.number().nullable(),
+});
+
+export const publicTenantStatsTypeSchema = z.object({
+  total: z.number().nullable(),
+  active: z.number().nullable(),
+  inactive: z.number().nullable(),
+  new_this_month: z.number().nullable(),
+});
+
 export const publicTimeSeriesPointTypeSchema = z.object({
   date: z.string().nullable(),
   value: z.number().nullable(),
 });
 
-export const publicGetDashboardStatsReturnsSchema = z.array(
-  z.object({
-    leases: publicLeaseStatsTypeSchema,
-    maintenance: publicMaintenanceStatsTypeSchema,
-    properties: publicPropertyStatsTypeSchema,
-    revenue: publicRevenueStatsTypeSchema,
-    tenants: publicTenantStatsTypeSchema,
-    units: publicUnitStatsTypeSchema,
-  }),
-);
+export const publicUnitStatsTypeSchema = z.object({
+  total: z.number().nullable(),
+  occupied: z.number().nullable(),
+  vacant: z.number().nullable(),
+  maintenance: z.number().nullable(),
+  average_rent: z.number().nullable(),
+  available: z.number().nullable(),
+  occupancy_rate: z.number().nullable(),
+  occupancy_change: z.number().nullable(),
+  total_potential_rent: z.number().nullable(),
+  total_actual_rent: z.number().nullable(),
+});

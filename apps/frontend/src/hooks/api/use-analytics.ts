@@ -1,8 +1,11 @@
 /**
- * Analytics Queries - TanStack Query options for analytics data
- * Replaces server-side analytics-page.ts utilities with client-side queries
+ * Analytics Hooks & Query Options
+ * TanStack Query hooks for analytics data with colocated query options
+ *
+ * React 19 + TanStack Query v5 patterns
  */
-import { queryOptions } from '@tanstack/react-query'
+
+import { queryOptions, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import type {
 	FinancialAnalyticsPageData,
@@ -13,6 +16,13 @@ import type {
 } from '@repo/shared/types/analytics-page-data'
 import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
 
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Analytics query factory
+ */
 export const analyticsQueries = {
 	// Base keys for cache invalidation
 	all: () => ['analytics'] as const,
@@ -141,4 +151,57 @@ export const analyticsQueries = {
 				),
 			staleTime: 30_000 // 30 seconds for payment data
 		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
+
+/**
+ * Hook to fetch financial analytics page data
+ */
+export function useFinancialAnalytics() {
+	return useQuery(analyticsQueries.financialPageData())
+}
+
+/**
+ * Hook to fetch lease analytics page data
+ */
+export function useLeaseAnalytics() {
+	return useQuery(analyticsQueries.leasePageData())
+}
+
+/**
+ * Hook to fetch maintenance insights page data
+ */
+export function useMaintenanceAnalytics() {
+	return useQuery(analyticsQueries.maintenancePageData())
+}
+
+/**
+ * Hook to fetch occupancy analytics page data
+ */
+export function useOccupancyAnalytics() {
+	return useQuery(analyticsQueries.occupancyPageData())
+}
+
+/**
+ * Hook to fetch analytics overview page data
+ */
+export function useAnalyticsOverview() {
+	return useQuery(analyticsQueries.overviewPageData())
+}
+
+/**
+ * Hook to fetch property performance page data
+ */
+export function usePropertyPerformanceAnalytics() {
+	return useQuery(analyticsQueries.propertyPerformancePageData())
+}
+
+/**
+ * Hook to fetch owner payment summary
+ */
+export function useOwnerPaymentSummary() {
+	return useQuery(analyticsQueries.ownerPaymentSummary())
 }

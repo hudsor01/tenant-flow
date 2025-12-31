@@ -1,33 +1,95 @@
 /**
- * Emergency Contact Hooks
+ * Emergency Contact Hooks & Query Options
+ * TanStack Query hooks for managing tenant emergency contacts with colocated query options
  *
- * TanStack Query hooks for managing tenant emergency contacts.
- * Supports CRUD operations with optimistic updates.
+ * React 19 + TanStack Query v5 patterns
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
-
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import {
-	emergencyContactQueries,
-	emergencyContactKeys,
-	type EmergencyContact,
-	type CreateEmergencyContactInput,
-	type UpdateEmergencyContactInput
-} from './queries/emergency-contact-queries'
 
-// ========================================
-// Query Keys
-// ========================================
+// ============================================================================
+// TYPES
+// ============================================================================
 
-// Query keys are now imported from emergency-contact-queries.ts
+/**
+ * Emergency contact entity
+ */
+export interface EmergencyContact {
+	id: string
+	tenant_id: string
+	contactName: string
+	relationship: string
+	phoneNumber: string
+	email: string | null
+	created_at: string
+	updated_at: string
+}
 
-// ========================================
-// Query Hooks
-// ========================================
+export interface CreateEmergencyContactInput {
+	tenant_id: string
+	contactName: string
+	relationship: string
+	phoneNumber: string
+	email?: string | null
+}
+
+export interface UpdateEmergencyContactInput {
+	contactName?: string
+	relationship?: string
+	phoneNumber?: string
+	email?: string | null
+}
+
+// ============================================================================
+// QUERY KEYS
+// ============================================================================
+
+/**
+ * Emergency contact query keys for cache management
+ */
+export const emergencyContactKeys = {
+	all: ['emergency-contacts'] as const,
+	tenant: (tenant_id: string) =>
+		[...emergencyContactKeys.all, tenant_id] as const
+}
+
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Emergency contact query factory
+ */
+export const emergencyContactQueries = {
+	/**
+	 * Base key for all emergency contact queries
+	 */
+	all: () => ['emergency-contacts'] as const,
+
+	/**
+	 * Emergency contact for a tenant
+	 */
+	contact: (tenant_id: string) =>
+		queryOptions({
+			queryKey: [...emergencyContactQueries.all(), tenant_id],
+			queryFn: () =>
+				apiRequest<EmergencyContact | null>(
+					`/api/v1/tenants/${tenant_id}/emergency-contact`
+				),
+			enabled: !!tenant_id,
+			...QUERY_CACHE_TIMES.DETAIL,
+			retry: 2
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 /**
  * Fetch emergency contact for a tenant
@@ -37,9 +99,9 @@ export function useEmergencyContact(tenant_id: string) {
 	return useQuery(emergencyContactQueries.contact(tenant_id))
 }
 
-// ========================================
-// Mutation Hooks
-// ========================================
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Create emergency contact for a tenant
@@ -237,4 +299,19 @@ export function useDeleteEmergencyContact(tenant_id: string) {
 			})
 		}
 	})
+}
+
+// ============================================================================
+// PREFETCH HOOKS
+// ============================================================================
+
+/**
+ * Hook for prefetching emergency contact
+ */
+export function usePrefetchEmergencyContact() {
+	const queryClient = useQueryClient()
+
+	return (tenant_id: string) => {
+		queryClient.prefetchQuery(emergencyContactQueries.contact(tenant_id))
+	}
 }

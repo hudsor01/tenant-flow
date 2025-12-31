@@ -227,7 +227,7 @@ export class AdminService {
 	 * Get application logs from security_events table
 	 */
 	async getLogs(filters: {
-		level?: Database['public']['Enums']['security_event_severity']
+		level?: 'debug' | 'info' | 'warning' | 'error' | 'critical'
 		limit: number
 		offset: number
 	}) {

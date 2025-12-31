@@ -183,7 +183,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	// Group requests by status
 	const requestsByStatus = (requests || []).reduce(
 		(acc, request) => {
-			const status = request.status
+			const status = request.status as MaintenanceStatus
 			if (status && !acc[status]) acc[status] = []
 			if (status) acc[status].push(request)
 			return acc

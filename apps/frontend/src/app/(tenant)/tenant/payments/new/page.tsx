@@ -29,7 +29,7 @@ import { apiRequest } from '#lib/api-request'
 import {
 	tenantPortalQueries,
 	type PayRentRequest
-} from '#hooks/api/queries/tenant-portal-queries'
+} from '#hooks/api/use-tenant-portal'
 
 interface PaymentMethod {
 	id: string

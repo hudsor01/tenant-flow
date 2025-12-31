@@ -3,7 +3,7 @@
 import { use } from 'react'
 import { MaintenanceForm } from '#components/maintenance/maintenance-form.client'
 import { Skeleton } from '#components/ui/skeleton'
-import { maintenanceQueries } from '#hooks/api/queries/maintenance-queries'
+import { maintenanceQueries } from '#hooks/api/use-maintenance'
 import { useQuery } from '@tanstack/react-query'
 
 interface MaintenanceEditPageProps {

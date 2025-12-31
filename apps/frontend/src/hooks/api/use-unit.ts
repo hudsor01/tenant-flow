@@ -1,31 +1,122 @@
 /**
- * Unit Hooks
+ * Unit Hooks & Query Options
  * TanStack Query hooks for unit management with Zustand store integration
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
- * Following the proven use-tenant.ts pattern with:
+ * Colocated query options + hooks following the single-file pattern:
  * - Complete CRUD mutations
  * - Optimistic updates with rollback
  * - Placeholder data from cache
  * - Proper error handling
  */
 
-import { apiRequest } from '#lib/api-request'
-
+import { useMemo } from 'react'
+import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	handleConflictError,
 	isConflictError,
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-import { useMemo } from 'react'
 import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
-import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { unitQueries } from './queries/unit-queries'
+import type { Unit, UnitStats, UnitWithVersion } from '@repo/shared/types/core'
+import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { apiRequest } from '#lib/api-request'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Unit query filters
+ */
+export interface UnitFilters {
+	property_id?: string
+	status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
+	search?: string
+	limit?: number
+	offset?: number
+}
+
+// ============================================================================
+// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
+// ============================================================================
+
+/**
+ * Unit query factory
+ */
+export const unitQueries = {
+	all: () => ['units'] as const,
+	lists: () => [...unitQueries.all(), 'list'] as const,
+
+	list: (filters?: UnitFilters) =>
+		queryOptions({
+			queryKey: [...unitQueries.lists(), filters ?? {}],
+			queryFn: async () => {
+				const searchParams = new URLSearchParams()
+				if (filters?.property_id)
+					searchParams.append('property_id', filters.property_id)
+				if (filters?.status) searchParams.append('status', filters.status)
+				if (filters?.search) searchParams.append('search', filters.search)
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
+				const params = searchParams.toString()
+				return apiRequest<PaginatedResponse<Unit>>(
+					`/api/v1/units${params ? `?${params}` : ''}`
+				)
+			},
+			...QUERY_CACHE_TIMES.DETAIL
+		}),
+
+	listByProperty: (property_id: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.lists(), 'by-property', property_id],
+			queryFn: async () => {
+				const response = await apiRequest<PaginatedResponse<Unit>>(
+					`/api/v1/units?property_id=${property_id}`
+				)
+				return response.data
+			},
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id
+		}),
+
+	details: () => [...unitQueries.all(), 'detail'] as const,
+
+	detail: (id: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.details(), id],
+			queryFn: () => apiRequest<Unit>(`/api/v1/units/${id}`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!id
+		}),
+
+	byProperty: (property_id: string) =>
+		queryOptions({
+			queryKey: [...unitQueries.all(), 'by-property', property_id],
+			queryFn: () =>
+				apiRequest<Unit[]>(`/api/v1/units/by-property/${property_id}`),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: !!property_id
+		}),
+
+	stats: () =>
+		queryOptions({
+			queryKey: [...unitQueries.all(), 'stats'],
+			queryFn: () => apiRequest<UnitStats>('/api/v1/units/stats'),
+			...QUERY_CACHE_TIMES.DETAIL,
+			gcTime: 30 * 60 * 1000
+		})
+}
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 /**
  * Hook to fetch unit by ID
@@ -42,7 +133,6 @@ export function useUnit(id: string) {
 export function useUnitsByProperty(property_id: string) {
 	return useQuery({
 		...unitQueries.byProperty(property_id),
-
 		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
 		retry: 2,
@@ -85,6 +175,10 @@ export function useVacantUnits() {
 export function useAllUnits() {
 	return useUnitList()
 }
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
 
 /**
  * Mutation hook to create a new unit with enhanced optimistic updates
@@ -338,6 +432,10 @@ export function useDeleteUnit(options?: {
 		}
 	})
 }
+
+// ============================================================================
+// UTILITY HOOKS
+// ============================================================================
 
 /**
  * Hook for prefetching unit details (for hover states)

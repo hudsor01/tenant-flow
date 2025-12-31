@@ -13,7 +13,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
-// Mocks for data/query hooks
+// Mocks for data/query hooks (colocated pattern)
 vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantPortalDashboard: vi.fn(() => ({
 		data: {
@@ -34,10 +34,7 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	useTenantLeaseDocuments: vi.fn(() => ({
 		data: { documents: [] },
 		isLoading: false
-	}))
-}))
-
-vi.mock('#hooks/api/queries/tenant-portal-queries', () => ({
+	})),
 	tenantPortalQueries: {
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],

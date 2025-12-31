@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
+import { analyticsQueries } from '#hooks/api/use-analytics'
 import { ChartAreaInteractive } from '#components/dashboard/chart-area-interactive'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'

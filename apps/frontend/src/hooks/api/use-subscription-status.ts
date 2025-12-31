@@ -20,7 +20,7 @@ import { getApiBaseUrl } from '#lib/api-config'
 const logger = createLogger({ component: 'UseSubscriptionStatus' })
 
 export interface SubscriptionStatusResponse {
-	subscriptionStatus: 'active' | 'trialing' | 'canceled' | 'past_due' | null
+	subscriptionStatus: 'active' | 'trialing' | 'cancelled' | 'past_due' | null
 	stripeCustomerId: string | null
 }
 

@@ -1,13 +1,13 @@
 import { CheckCircle, Clock, Pause, XCircle } from 'lucide-react'
 
-export type SubscriptionStatus = 'active' | 'paused' | 'canceled'
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled'
 
 export type PaymentStatusType =
 	| 'succeeded'
 	| 'pending'
 	| 'processing'
 	| 'failed'
-	| 'canceled'
+	| 'cancelled'
 
 export function getStatusBadge(status: SubscriptionStatus) {
 	const styles: Record<SubscriptionStatus, string> = {
@@ -15,13 +15,13 @@ export function getStatusBadge(status: SubscriptionStatus) {
 			'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
 		paused:
 			'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-		canceled:
+		cancelled:
 			'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400'
 	}
 	const labels: Record<SubscriptionStatus, string> = {
 		active: 'Active',
 		paused: 'Paused',
-		canceled: 'Canceled'
+		cancelled: 'Canceled'
 	}
 	return (
 		<span
@@ -29,7 +29,7 @@ export function getStatusBadge(status: SubscriptionStatus) {
 		>
 			{status === 'active' && <CheckCircle className="w-3 h-3" />}
 			{status === 'paused' && <Pause className="w-3 h-3" />}
-			{status === 'canceled' && <XCircle className="w-3 h-3" />}
+			{status === 'cancelled' && <XCircle className="w-3 h-3" />}
 			{labels[status]}
 		</span>
 	)
@@ -67,7 +67,7 @@ export function getPaymentStatusConfig(status: string) {
 			label: 'Failed',
 			Icon: XCircle
 		},
-		canceled: {
+		cancelled: {
 			className:
 				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			label: 'Canceled',

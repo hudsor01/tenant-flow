@@ -17,7 +17,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { useQuery } from '@tanstack/react-query'
-import { leaseQueries } from '#hooks/api/queries/lease-queries'
+import { leaseQueries } from '#hooks/api/use-lease'
 import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
 import { Calendar, DollarSign, FileText, Home, MapPin } from 'lucide-react'
@@ -25,7 +25,6 @@ import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
 import { SignLeaseButton } from '#components/leases/sign-lease-button'
 import { DownloadSignedLeaseButton } from '#components/leases/download-signed-lease-button'
-import { LEASE_STATUS } from '#lib/constants/status-values'
 
 export default function TenantLeasePage() {
 	const { data: lease, isLoading } = useQuery(leaseQueries.tenantPortalActive())
@@ -56,7 +55,7 @@ export default function TenantLeasePage() {
 					</p>
 				</div>
 				<div className="flex items-center gap-3">
-					{lease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+					{lease?.lease_status === 'pending_signature' && (
 						<SignLeaseButton
 							leaseId={lease.id}
 							role="tenant"
@@ -74,14 +73,14 @@ export default function TenantLeasePage() {
 							</Badge>
 						</>
 					)}
-					{lease?.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+					{lease?.lease_status === 'pending_signature' && (
 						<Badge variant="secondary">Pending Signature</Badge>
 					)}
 				</div>
 			</div>
 
 			{/* Signature Status - Show when pending signature */}
-			{lease && lease.lease_status === LEASE_STATUS.PENDING_SIGNATURE && (
+			{lease && lease.lease_status === 'pending_signature' && (
 				<LeaseSignatureStatus leaseId={lease.id} />
 			)}
 			{/* Property Information */}

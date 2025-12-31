@@ -9,7 +9,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
-import { tenantQueries } from '#hooks/api/queries/tenant-queries'
+import { tenantQueries } from '#hooks/api/use-tenant'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
