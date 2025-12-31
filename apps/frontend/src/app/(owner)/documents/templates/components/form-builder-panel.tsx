@@ -106,7 +106,7 @@ export function FormBuilderPanel({
 					</p>
 				) : null}
 				{fields.map((field, index) => (
-					<div key={`${field.name}-${index}`} className="space-y-3 rounded border p-4">
+					<div key={`builder-field-${index}`} className="space-y-3 rounded border p-4">
 						<div className="flex items-center justify-between">
 							<p className="text-sm font-semibold">Custom field {index + 1}</p>
 							<Button

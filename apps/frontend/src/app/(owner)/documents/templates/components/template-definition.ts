@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { apiRequest } from '#lib/api-request'
+import { toast } from 'sonner'
 import type { DynamicField } from './dynamic-form'
 
 interface TemplateDefinitionResponse {
@@ -81,6 +82,11 @@ export function useTemplateDefinition(
 				method: 'POST',
 				body: JSON.stringify({ fields: customFields })
 			})
+			toast.success('Template fields saved')
+		} catch (error) {
+			toast.error(
+				error instanceof Error ? error.message : 'Failed to save template fields'
+			)
 		} finally {
 			setIsSaving(false)
 		}

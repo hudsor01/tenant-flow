@@ -49,7 +49,7 @@ export function CustomFieldsEditor({ fields, onChange }: CustomFieldsEditorProps
 					</p>
 				) : null}
 				{fields.map((field, index) => (
-					<div key={`${field.label}-${index}`} className="grid gap-3">
+					<div key={`custom-field-${index}`} className="grid gap-3">
 						<div className="flex items-center justify-between">
 							<Label>Field {index + 1}</Label>
 							<Button
