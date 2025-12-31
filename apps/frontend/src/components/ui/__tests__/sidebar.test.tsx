@@ -4,7 +4,8 @@
  * Tests for sidebar state management, SSR cookie access, and security enhancements.
  */
 
-import { act, render, screen } from '#test/utils/test-render'
+import { act, screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { vi } from 'vitest'
 import { SidebarProvider, useSidebar } from '#components/ui/sidebar/context'
 

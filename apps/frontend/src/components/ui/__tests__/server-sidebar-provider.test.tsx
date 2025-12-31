@@ -4,7 +4,8 @@
  * Tests for server-side cookie reading and SSR compatibility.
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { vi } from 'vitest'
 import { ServerSidebarProvider } from '#components/ui/server-sidebar-provider'
 import type { ReactNode, CSSProperties, HTMLAttributes } from 'react'

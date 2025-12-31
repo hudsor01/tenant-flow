@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, ChevronDown } from 'lucide-react'
-import type { LeaseStatus } from '@repo/shared/types/sections/tenants'
+import type { LeaseStatus } from '@repo/shared/types/core'
 
 interface TenantToolbarProps {
 	searchQuery: string

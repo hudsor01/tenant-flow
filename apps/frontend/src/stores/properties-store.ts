@@ -14,7 +14,8 @@
  */
 
 import { create } from 'zustand'
-import type { PropertyType, PropertyStatus } from '#components/properties/types'
+import type { PropertyType } from '#components/properties/types'
+import type { PropertyStatus } from '@repo/shared/types/core'
 
 export type PropertyStatusFilter = 'all' | 'occupied' | 'available' | 'maintenance'
 

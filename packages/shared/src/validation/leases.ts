@@ -1,3 +1,16 @@
+/**
+ * Lease Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - CreateSchema: InputSchema.omit({ fields_with_server_defaults })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import {
 	uuidSchema,
@@ -125,11 +138,9 @@ export const leaseQuerySchema = z.object({
 
 // Lease creation schema (for API requests)
 // New leases start in 'draft' status until sent for signature
+// Note: Only omit fields that exist in leaseInputSchema (Zod 4 throws for non-existent keys)
 export const leaseCreateSchema = leaseInputSchema
 	.omit({
-		id: true,
-		created_at: true,
-		updated_at: true,
 		lease_status: true,
 		stripe_subscription_id: true
 	})

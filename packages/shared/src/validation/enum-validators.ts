@@ -4,6 +4,7 @@
  * Centralized validation for enum types used across the application.
  * Eliminates duplicate validation logic in controllers and services.
  */
+import type { LeaseStatus, UnitStatus } from '../types/core.js'
 
 // Lease Status Validation
 
@@ -17,8 +18,6 @@ export const VALID_LEASE_STATUSES = [
 	'ended',
 	'terminated'
 ] as const
-
-export type LeaseStatus = (typeof VALID_LEASE_STATUSES)[number]
 
 /**
  * Type guard for lease status validation
@@ -54,8 +53,6 @@ export const VALID_UNIT_STATUSES = [
 	'maintenance',
 	'reserved'
 ] as const
-
-export type UnitStatus = (typeof VALID_UNIT_STATUSES)[number]
 
 /**
  * Type guard for unit status validation

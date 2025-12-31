@@ -1,4 +1,5 @@
 // Payments Section Types
+import type { PaymentStatus } from '../core.js'
 
 export interface PaymentsProps {
 	// Payment list
@@ -114,13 +115,6 @@ export interface DateRange {
 	preset?: 'week' | 'month' | 'quarter' | 'year' | 'custom'
 }
 
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
-	| 'requires_action'
 export type PaymentMethodType =
 	| 'card'
 	| 'bank_account'

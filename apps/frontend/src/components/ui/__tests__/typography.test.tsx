@@ -5,7 +5,8 @@
  * Ensures consistent font hierarchy, spacing, and visual hierarchy
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 
 // Typography utility components for testing

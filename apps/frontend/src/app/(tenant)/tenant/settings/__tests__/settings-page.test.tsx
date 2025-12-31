@@ -105,15 +105,18 @@ describe('Settings Page with Payment Comparison', () => {
 		// Wait for async rendering
 		await vi.waitFor(
 			() => {
-				expect(
-					screen.getByText(/save a card or bank account/i)
-				).toBeInTheDocument()
+				// Use getAllByText since description may appear in multiple places
+				const cardDescriptions = screen.getAllByText(
+					/save a card or bank account/i
+				)
+				expect(cardDescriptions.length).toBeGreaterThan(0)
 			},
 			{ timeout: 5000 }
 		)
 
-		// Check for descriptive text
-		expect(screen.getByText(/direct bank connection/i)).toBeInTheDocument()
+		// Check for descriptive text about bank connection
+		const bankDescriptions = screen.getAllByText(/direct bank/i)
+		expect(bankDescriptions.length).toBeGreaterThan(0)
 	}, 10000)
 
 	it('indicates "Add Payment Method" as recommended for autopay (4.2)', async () => {

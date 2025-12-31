@@ -1,6 +1,8 @@
 import {
 	Controller,
 	Get,
+	InternalServerErrorException,
+	NotFoundException,
 	Request,
 	UnauthorizedException,
 	UseGuards,
@@ -74,7 +76,7 @@ export class TenantSettingsController {
 				user_id: user.id,
 				error: userResult.error.message
 			})
-			throw new Error('Failed to load profile')
+			throw new InternalServerErrorException('Failed to load profile')
 		}
 
 		return {
@@ -104,7 +106,7 @@ export class TenantSettingsController {
 				authuser_id,
 				error: error.message
 			})
-			throw new Error('Failed to load profile')
+			throw new NotFoundException('Tenant profile not found')
 		}
 
 		return data as TenantRow

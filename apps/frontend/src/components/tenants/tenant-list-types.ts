@@ -1,4 +1,4 @@
-import type { LeaseStatus } from '@repo/shared/types/sections/tenants'
+import type { LeaseStatus } from '@repo/shared/types/core'
 
 export type SortField = 'name' | 'email' | 'property' | 'status'
 export type SortDirection = 'asc' | 'desc'
@@ -31,7 +31,9 @@ export const statusBadgeConfig: Record<LeaseStatus, StatusBadgeConfig> = {
 	}
 }
 
-export function getStatusBadge(status: LeaseStatus | undefined) {
+export function getStatusBadge(
+	status: LeaseStatus | undefined
+): StatusBadgeConfig {
 	if (!status) {
 		return {
 			className: 'bg-muted text-muted-foreground',
@@ -39,5 +41,10 @@ export function getStatusBadge(status: LeaseStatus | undefined) {
 		}
 	}
 
-	return statusBadgeConfig[status]
+	return (
+		statusBadgeConfig[status] ?? {
+			className: 'bg-muted text-muted-foreground',
+			label: status
+		}
+	)
 }

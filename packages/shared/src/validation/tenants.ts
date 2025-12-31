@@ -1,3 +1,16 @@
+/**
+ * Tenant Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - CreateSchema: InputSchema.omit({ fields_with_server_defaults })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import { uuidSchema, requiredString, phoneSchema } from './common.js'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
@@ -73,11 +86,9 @@ export const tenantQuerySchema = z.object({
 })
 
 // Tenant creation schema
+// Note: Only omit fields that exist in tenantInputSchema (Zod 4 throws for non-existent keys)
 export const tenantCreateSchema = tenantInputSchema
 	.omit({
-		id: true,
-		created_at: true,
-		updated_at: true,
 		stripe_customer_id: true
 	})
 	.extend({
@@ -97,7 +108,7 @@ export const sendPaymentReminderSchema = z.object({
 	lease_id: uuidSchema.optional()
 })
 
-// Emergency contact validation schema
+// Emergency contact validation schema (single source of truth)
 export const emergencyContactSchema = z.object({
 	name: z
 		.string()
@@ -109,6 +120,9 @@ export const emergencyContactSchema = z.object({
 		.min(1, 'Emergency contact relationship is required')
 		.max(50, 'Emergency contact relationship cannot exceed 50 characters')
 })
+
+// Alias for user profile updates (same structure)
+export const updateEmergencyContactSchema = emergencyContactSchema
 
 // Tenant verification schema
 export const tenantVerificationSchema = z.object({
@@ -123,6 +137,7 @@ export type TenantUpdate = z.infer<typeof tenantUpdateSchema>
 export type TenantQuery = z.infer<typeof tenantQuerySchema>
 export type TenantCreate = z.infer<typeof tenantCreateSchema>
 export type EmergencyContact = z.infer<typeof emergencyContactSchema>
+export type UpdateEmergencyContact = EmergencyContact // Alias for user profile updates
 export type TenantVerification = z.infer<typeof tenantVerificationSchema>
 
 // Frontend-specific form schemas
@@ -190,7 +205,7 @@ export const invitationStatusSchema = z.enum([
 // Schema for inviting a tenant to the platform (NO lease required)
 // Flat structure - used for simple validation
 export const inviteTenantSchema = z.object({
-	email: z.string().email('Valid email is required'),
+	email: z.email({ message: 'Valid email is required' }),
 	first_name: z.string().trim().min(1, 'First name is required').max(100),
 	last_name: z.string().trim().min(1, 'Last name is required').max(100),
 	phone: phoneSchema.optional(),
@@ -203,7 +218,7 @@ export const inviteTenantSchema = z.object({
 // Used for API requests
 export const inviteTenantRequestSchema = z.object({
 	tenantData: z.object({
-		email: z.string().email('Valid email is required'),
+		email: z.email({ message: 'Valid email is required' }),
 		first_name: z.string().trim().min(1, 'First name is required').max(100),
 		last_name: z.string().trim().min(1, 'Last name is required').max(100),
 		phone: phoneSchema.optional()
@@ -218,7 +233,7 @@ export const inviteTenantRequestSchema = z.object({
 // Schema for inviting tenant to sign a specific lease
 export const inviteToSignLeaseSchema = z.object({
 	lease_id: uuidSchema,
-	email: z.string().email('Valid email is required'),
+	email: z.email({ message: 'Valid email is required' }),
 	message: z
 		.string()
 		.max(1000, 'Message cannot exceed 1000 characters')
@@ -228,13 +243,13 @@ export const inviteToSignLeaseSchema = z.object({
 // Full invitation response schema
 export const tenantInvitationSchema = z.object({
 	id: uuidSchema,
-	email: z.string().email(),
+	email: z.email(),
 	property_owner_id: uuidSchema,
 	unit_id: uuidSchema.nullable().optional(),
 	property_id: uuidSchema.nullable().optional(),
 	lease_id: uuidSchema.nullable().optional(),
 	invitation_code: z.string(),
-	invitation_url: z.string().url(),
+	invitation_url: z.url(),
 	status: invitationStatusSchema,
 	type: invitationTypeSchema,
 	expires_at: z.string(),

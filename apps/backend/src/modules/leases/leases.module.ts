@@ -89,8 +89,10 @@ const WORKERS_ENABLED =
 		})
 	],
 	controllers: [
-		LeasesController,
+		// IMPORTANT: LeaseAnalyticsController MUST come first - it has static routes
+		// like /stats and /expiring that would otherwise be caught by LeasesController's /:id
 		LeaseAnalyticsController,
+		LeasesController,
 		LeaseSignatureController,
 		LeasePdfController,
 		LeasesPdfQueueController,

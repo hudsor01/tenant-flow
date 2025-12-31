@@ -5,7 +5,8 @@
  * Ensures consistent class naming and removal of data-slot attributes
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 import { Button } from '../button'
 

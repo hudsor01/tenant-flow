@@ -1,9 +1,12 @@
-import { z } from 'zod'
-
 /**
  * Zod schemas for validating database RPC function responses
  * These schemas ensure type safety for Supabase RPC calls
+ *
+ * Zod 4 Best Practices:
+ * - Use top-level validators: z.email(), z.uuid(), z.url()
  */
+
+import { z } from 'zod'
 
 // Generic RPC error schema
 export const rpcErrorSchema = z
@@ -21,9 +24,7 @@ export const createRpcResultSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 	})
 
 // Schema for get_user_id_by_stripe_customer RPC response
-export const user_idByStripeCustomerSchema = createRpcResultSchema(
-	z.string().uuid()
-)
+export const user_idByStripeCustomerSchema = createRpcResultSchema(z.uuid())
 export type user_idByStripeCustomerResult = z.infer<
 	typeof user_idByStripeCustomerSchema
 >
@@ -32,7 +33,7 @@ export type user_idByStripeCustomerResult = z.infer<
 // Function returns: SELECT tenant_record.id, activated
 export const activateTenantResultSchema = z.array(
 	z.object({
-		id: z.string().uuid(),
+		id: z.uuid(),
 		activated: z.boolean()
 	})
 )
@@ -133,26 +134,5 @@ export type StripePaymentIntentDBValidated = z.infer<
 	typeof stripePaymentIntentSchema
 >
 
-// Generic array validation helpers
-export const createValidatedArray = <T extends z.ZodTypeAny>(schema: T) =>
-	z.array(schema)
-
-export const validateDatabaseResponse = <T>(
-	data: unknown,
-	schema: z.ZodType<T>
-): T => {
-	const result = schema.safeParse(data)
-	if (!result.success) {
-		throw new Error(
-			`Database response validation failed: ${result.error.message}`
-		)
-	}
-	return result.data
-}
-
-export const validateProductsData = (data: unknown) => {
-	return validateDatabaseResponse(
-		data || [],
-		createValidatedArray(stripeProductSchema)
-	)
-}
+// Note: For array validation, use z.array(schema) directly
+// For database response validation, use schema.safeParse(data) directly

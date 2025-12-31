@@ -9,7 +9,8 @@
  * - Empty state for new users
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { OwnerDashboard } from '../owner-dashboard'
 import * as ownerDashboardHooks from '#hooks/api/use-owner-dashboard'

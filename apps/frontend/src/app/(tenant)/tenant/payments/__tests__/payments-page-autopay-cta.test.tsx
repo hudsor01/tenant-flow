@@ -9,7 +9,8 @@
  * - 7.2: Clear setup/manage autopay CTA
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock the hooks - must mock the correct module path

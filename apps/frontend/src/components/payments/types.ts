@@ -1,4 +1,5 @@
 // Payments Section Types
+import type { PaymentStatus } from '@repo/shared/types/core'
 
 export interface PaymentsProps {
 	// Payment list
@@ -109,12 +110,6 @@ export interface DateRange {
 	preset?: 'week' | 'month' | 'quarter' | 'year' | 'custom'
 }
 
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
 export type PaymentMethodType =
 	| 'card'
 	| 'bank_account'

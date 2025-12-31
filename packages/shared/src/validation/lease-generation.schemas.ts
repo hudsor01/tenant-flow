@@ -1,3 +1,10 @@
+/**
+ * Lease Generation Validation Schemas
+ *
+ * Zod 4 Best Practices:
+ * - Use top-level validators: z.email(), z.uuid(), z.url()
+ */
+
 import { z } from 'zod'
 
 /**
@@ -112,14 +119,14 @@ export const leaseGenerationSchema = z
 
 		// Section 33: Notice (Page 6)
 		noticeAddress: z.string().optional(),
-		noticeEmail: z.string().email().optional(),
+		noticeEmail: z.email().optional(),
 
 		// Section 34: Lead-Based Paint (Page 7)
 		propertyBuiltBefore1978: z.boolean().default(false),
 		leadPaintDisclosureProvided: z.boolean().optional(),
 
 		// Additional metadata (required for authorization/validation)
-		property_id: z.string().uuid('Invalid property ID'),
+		property_id: z.uuid({ message: 'Invalid property ID' }),
 		tenant_id: z.string().optional()
 	})
 	.refine(
@@ -149,9 +156,9 @@ export type LeaseGenerationFormData = z.infer<typeof leaseGenerationSchema>
  * Matches the GET /api/v1/leases/auto-fill/:property_id/:unit_id/:tenant_id endpoint
  */
 export const leaseAutoFillSchema = z.object({
-	property_id: z.string().uuid('Invalid property ID'),
-	unit_id: z.string().uuid('Invalid unit ID'),
-	tenant_id: z.string().uuid('Invalid tenant ID')
+	property_id: z.uuid({ message: 'Invalid property ID' }),
+	unit_id: z.uuid({ message: 'Invalid unit ID' }),
+	tenant_id: z.uuid({ message: 'Invalid tenant ID' })
 })
 
 export type LeaseAutoFillRequest = z.infer<typeof leaseAutoFillSchema>

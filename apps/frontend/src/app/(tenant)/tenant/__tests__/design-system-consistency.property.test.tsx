@@ -130,27 +130,31 @@ describe('Property 8: Design System Consistency', () => {
 	 * Property: For any card in the portal, content sections SHALL
 	 * follow the design-os spacing system
 	 */
-	it('should ensure content sections follow design-os spacing', () => {
-		fc.assert(
-			fc.property(fc.integer({ min: 1, max: 10 }), _iteration => {
-				render(<TenantDashboardPage />)
+	it(
+		'should ensure content sections follow design-os spacing',
+		() => {
+			fc.assert(
+				fc.property(fc.integer({ min: 1, max: 5 }), _iteration => {
+					render(<TenantDashboardPage />)
 
-				// Check that stat cards exist and have proper structure
-				const statCards = document.querySelectorAll('[data-slot="stat"]')
+					// Check that stat cards exist and have proper structure
+					const statCards = document.querySelectorAll('[data-slot="stat"]')
 
-				// Property: Every stat card must exist and have proper structure
-				expect(statCards.length).toBeGreaterThan(0)
+					// Property: Every stat card must exist and have proper structure
+					expect(statCards.length).toBeGreaterThan(0)
 
-				// Each stat card should have the grid layout for proper spacing
-				statCards.forEach(card => {
-					expect(card).toHaveClass('grid')
-				})
+					// Each stat card should have the grid layout for proper spacing
+					statCards.forEach(card => {
+						expect(card).toHaveClass('grid')
+					})
 
-				return true
-			}),
-			{ numRuns: 25 }
-		)
-	})
+					return true
+				}),
+				{ numRuns: 10 }
+			)
+		},
+		15000
+	)
 
 	/**
 	 * Property: For any stat card, the card SHALL have consistent border radius

@@ -17,8 +17,8 @@ import {
 	type QueryKey
 } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import type { RentPayment } from '@repo/shared/types/core'
 import type {
-	RentPayment,
 	TenantPaymentStatusResponse,
 	SendPaymentReminderRequest,
 	SendPaymentReminderResponse,

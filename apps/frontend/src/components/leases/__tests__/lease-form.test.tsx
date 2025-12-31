@@ -14,7 +14,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils/test-render'
+import { screen, waitFor } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { LeaseForm } from '../lease-form'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'

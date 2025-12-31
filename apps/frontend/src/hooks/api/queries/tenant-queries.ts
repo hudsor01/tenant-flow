@@ -19,8 +19,8 @@ import type {
 	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
 
-// Re-export for backward compatibility
-export type { TenantFilters, TenantInvitation }
+// Note: Import TenantFilters and TenantInvitation directly from '@repo/shared/types/api-contracts'
+// No re-exports per CLAUDE.md rules
 
 /**
  * Invitation filters

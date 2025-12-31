@@ -1,4 +1,6 @@
 // Leases Section Types
+// Import database enums from shared types (single source of truth)
+import type { LeaseStatus, PaymentStatus } from '@repo/shared/types/core'
 
 export interface LeasesProps {
 	// Lease list
@@ -110,18 +112,7 @@ export interface LeaseWizardData {
 	gracePeriodDays?: number
 }
 
-export type LeaseStatus =
-	| 'draft'
-	| 'pending_signature'
-	| 'active'
-	| 'ended'
-	| 'terminated'
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
+// App-specific types (not database enums)
 export type DocumentType =
 	| 'lease_agreement'
 	| 'addendum'

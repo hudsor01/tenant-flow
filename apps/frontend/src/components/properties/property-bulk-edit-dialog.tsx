@@ -11,7 +11,8 @@ import {
 	DialogHeader,
 	DialogTitle
 } from '#components/ui/dialog'
-import type { PropertyType, PropertyStatus } from './types'
+import type { PropertyType } from './types'
+import type { PropertyStatus } from '@repo/shared/types/core'
 
 interface PropertyBulkEditDialogProps {
 	open: boolean

@@ -11,10 +11,8 @@ import {
 	Check
 } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type {
-	TenantItem,
-	LeaseStatus
-} from '@repo/shared/types/sections/tenants'
+import type { TenantItem } from '@repo/shared/types/sections/tenants'
+import type { LeaseStatus } from '@repo/shared/types/core'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 

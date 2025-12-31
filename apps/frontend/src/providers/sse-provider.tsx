@@ -70,6 +70,8 @@ const INITIAL_RECONNECT_DELAY = 2000
 const MAX_RECONNECT_DELAY = 60000
 const RATE_LIMIT_BACKOFF = 65000 // Just over 1 minute
 const MAX_RECONNECT_ATTEMPTS = 10
+const READINESS_CHECK_INTERVAL = 500 // Check every 500ms
+const MAX_READINESS_CHECKS = 10 // Max 5 seconds of waiting
 
 /** Query keys to invalidate for each event type */
 const EVENT_TO_QUERY_KEYS: Record<SseEventType, string[][]> = {
@@ -121,6 +123,38 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 	const isVisibleRef = useRef(
 		typeof document !== 'undefined' ? !document.hidden : true
 	)
+
+	/**
+	 * Check if backend is ready to accept connections
+	 * Prevents 503 errors during backend startup/hot-reload
+	 */
+	const waitForBackendReady = useCallback(async (): Promise<boolean> => {
+		const baseUrl = getApiBaseUrl()
+		for (let i = 0; i < MAX_READINESS_CHECKS; i++) {
+			try {
+				const response = await fetch(`${baseUrl}/ready`, {
+					method: 'GET',
+					cache: 'no-store'
+				})
+				if (response.ok) {
+					return true
+				}
+				// 503 means not ready yet, wait and retry
+				if (response.status === 503) {
+					logger.debug('Backend not ready, waiting...', { attempt: i + 1 })
+					await new Promise(resolve => setTimeout(resolve, READINESS_CHECK_INTERVAL))
+					continue
+				}
+				// Other errors, proceed anyway (might work)
+				return true
+			} catch {
+				// Network error, wait and retry
+				await new Promise(resolve => setTimeout(resolve, READINESS_CHECK_INTERVAL))
+			}
+		}
+		logger.warn('Backend readiness check timed out, proceeding anyway')
+		return false
+	}, [])
 
 	/**
 	 * Notify all subscribers of an event
@@ -206,6 +240,9 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 				return
 			}
 
+			// Wait for backend to be ready (prevents 503 errors during startup)
+			await waitForBackendReady()
+
 			// Create abort controller for this connection
 			const abortController = new AbortController()
 			abortControllerRef.current = abortController
@@ -234,6 +271,22 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 					reconnectAttemptsRef.current = 0
 					connect()
 				}, RATE_LIMIT_BACKOFF)
+				return
+			}
+
+			// Handle service unavailable (503) - transient error, retry quickly
+			if (response.status === 503) {
+				logger.warn('Service unavailable, retrying', {
+					attempt: reconnectAttemptsRef.current + 1
+				})
+				setConnectionState('error')
+				isConnectingRef.current = false
+				// Quick retry for 503 (usually transient)
+				const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current), 10000)
+				reconnectTimeoutRef.current = setTimeout(() => {
+					reconnectAttemptsRef.current++
+					connect()
+				}, delay)
 				return
 			}
 
@@ -292,7 +345,9 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 				return
 			}
 
-			logger.error('Connection error', { error })
+			logger.error('Connection error', {
+				message: error instanceof Error ? error.message : String(error)
+			})
 			setConnectionState('error')
 			isConnectingRef.current = false
 
@@ -317,7 +372,7 @@ export function SseProvider({ children, disabled = false }: SseProviderProps) {
 				logger.warn('Max reconnect attempts reached')
 			}
 		}
-	}, [disabled, parseSseLine, invalidateQueries, notifySubscribers])
+	}, [disabled, parseSseLine, invalidateQueries, notifySubscribers, waitForBackendReady])
 
 	/**
 	 * Disconnect and cleanup

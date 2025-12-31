@@ -1,4 +1,5 @@
 // Leases Section Types
+import type { LeaseStatus, PaymentStatus } from '../core.js'
 
 export interface LeasesProps {
 	// Lease list
@@ -110,18 +111,7 @@ export interface LeaseWizardData {
 	gracePeriodDays?: number
 }
 
-export type LeaseStatus =
-	| 'draft'
-	| 'pending_signature'
-	| 'active'
-	| 'ended'
-	| 'terminated'
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
+// App-specific types (not DB enums)
 export type DocumentType =
 	| 'lease_agreement'
 	| 'addendum'

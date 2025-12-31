@@ -1,3 +1,16 @@
+/**
+ * Payment Transaction Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - CreateSchema: InputSchema.omit({ fields_with_server_defaults })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import {
 	uuidSchema,
@@ -107,11 +120,9 @@ export const paymentTransactionQuerySchema = z.object({
 })
 
 // Payment transaction creation schema
+// Note: Only omit fields that exist in paymentTransactionInputSchema (Zod 4 throws for non-existent keys)
 export const paymentTransactionCreateSchema = paymentTransactionInputSchema
 	.omit({
-		id: true,
-		created_at: true,
-		updated_at: true,
 		attempted_at: true,
 		last_attempted_at: true,
 		retry_count: true

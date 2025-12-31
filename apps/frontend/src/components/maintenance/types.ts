@@ -1,4 +1,6 @@
 // Maintenance Section Types
+// Import database enums from shared types (single source of truth)
+import type { MaintenanceStatus, MaintenancePriority } from '@repo/shared/types/core'
 
 export interface MaintenanceProps {
 	// Request list
@@ -149,12 +151,7 @@ export interface ExpenseData {
 	description?: string
 }
 
-export type MaintenanceStatus =
-	| 'open'
-	| 'in_progress'
-	| 'completed'
-	| 'cancelled'
-export type MaintenancePriority = 'urgent' | 'high' | 'normal' | 'low'
+// App-specific types (not database enums)
 export type TimelineEventType =
 	| 'created'
 	| 'assigned'

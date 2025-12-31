@@ -30,30 +30,26 @@ import { Button } from '#components/ui/button'
 import { AlertCircle, UserPlus } from 'lucide-react'
 import Link from 'next/link'
 import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import type {
+	Property as SharedProperty,
+	Unit as SharedUnit
+} from '@repo/shared/types/core'
 
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>
 	onChange: (data: Partial<SelectionStepData>) => void
 }
 
-interface Property {
-	id: string
-	name: string
-	address_line1: string
-	city: string
-	state: string
-}
+// Use Pick to get minimal fields from shared types
+type Property = Pick<SharedProperty, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
+type Unit = Pick<SharedUnit, 'id' | 'unit_number' | 'property_id'>
 
-interface Unit {
-	id: string
-	unit_number: string | null
-	property_id: string
-}
-
+// Tenant API response - the API returns tenant with user info joined
+// This is the shape of the API response, not a duplicate of shared types
 interface Tenant {
 	id: string
-	first_name: string | null
-	last_name: string | null
+	first_name: string
+	last_name: string
 	email: string
 }
 

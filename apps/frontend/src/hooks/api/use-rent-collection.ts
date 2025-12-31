@@ -19,15 +19,8 @@ import {
 	type ManualPaymentInput
 } from './queries/rent-collection-queries'
 
-// Re-export types
-export type {
-	PaymentAnalytics,
-	MonthlyPaymentTrend,
-	UpcomingPayment,
-	OverduePayment,
-	PaymentFilters,
-	ManualPaymentInput
-} from './queries/rent-collection-queries'
+// Note: Import rent collection types directly from './queries/rent-collection-queries'
+// No re-exports per CLAUDE.md rules
 
 /**
  * Get payment analytics

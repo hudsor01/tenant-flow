@@ -2,7 +2,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import '@testing-library/jest-dom/vitest'
 import { vi } from 'vitest'
 import { MobileNav } from '../mobile-nav'

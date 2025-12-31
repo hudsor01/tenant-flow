@@ -18,10 +18,8 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Button } from '#components/ui/button'
-import type {
-	TenantItem,
-	LeaseStatus
-} from '@repo/shared/types/sections/tenants'
+import type { TenantItem } from '@repo/shared/types/sections/tenants'
+import type { LeaseStatus } from '@repo/shared/types/core'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 // ============================================================================

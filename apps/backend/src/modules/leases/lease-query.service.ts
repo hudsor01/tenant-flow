@@ -21,7 +21,7 @@ import type {
 	Unit,
 	User,
 	Tenant
-} from '@repo/shared/types/api-contracts'
+} from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import {

@@ -1,4 +1,4 @@
-import type { PropertyStatus } from '@repo/shared/types/api-contracts'
+import type { PropertyStatus } from '@repo/shared/types/core'
 import { BadRequestException, Injectable } from '@nestjs/common'
 
 import { SupabaseService } from '../../../database/supabase.service'

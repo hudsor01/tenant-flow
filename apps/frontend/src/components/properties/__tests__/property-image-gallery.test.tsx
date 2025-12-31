@@ -13,7 +13,8 @@
  * @vitest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils/test-render'
+import { screen, waitFor } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { PropertyImageGallery } from '../property-image-gallery'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Tables } from '@repo/shared/types/supabase'

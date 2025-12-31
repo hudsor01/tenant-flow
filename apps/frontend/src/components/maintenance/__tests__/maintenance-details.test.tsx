@@ -5,7 +5,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils/test-render'
+import { screen, waitFor } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { MaintenanceDetails } from '../detail/maintenance-details.client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi } from 'vitest'

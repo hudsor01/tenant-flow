@@ -121,9 +121,5 @@ export function createTestWrapper(queryClient?: QueryClient) {
 	return { Wrapper, queryClient: client }
 }
 
-/**
- * Re-export everything from testing-library for convenience
- * Allows importing all testing utilities from a single location
- */
-export * from '@testing-library/react'
-export { default as userEvent } from '@testing-library/user-event'
+// Note: Import directly from @testing-library/react and @testing-library/user-event
+// No re-exports per CLAUDE.md rules

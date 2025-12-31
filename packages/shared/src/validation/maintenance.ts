@@ -1,3 +1,16 @@
+/**
+ * Maintenance Request Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - CreateSchema: InputSchema.omit({ fields_with_server_defaults })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import {
 	uuidSchema,
@@ -132,11 +145,9 @@ export const maintenanceRequestQuerySchema = z.object({
 })
 
 // Maintenance request creation schema
+// Note: Only omit fields that exist in maintenanceRequestInputSchema (Zod 4 throws for non-existent keys)
 export const maintenanceRequestCreateSchema = maintenanceRequestInputSchema
 	.omit({
-		id: true,
-		created_at: true,
-		updated_at: true,
 		status: true,
 		completed_at: true,
 		actual_cost: true

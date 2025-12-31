@@ -2035,80 +2035,6 @@ export const publicWebhookMetricsUpdateSchema = z.object({
   total_received: z.number().optional().nullable(),
 });
 
-export const publicPgStatMonitorRowSchema = z.object({
-  application_name: z.string().nullable(),
-  bucket: z.number().nullable(),
-  bucket_done: z.boolean().nullable(),
-  bucket_start_time: z.string().nullable(),
-  calls: z.number().nullable(),
-  client_ip: z.unknown(),
-  cmd_type: z.number().nullable(),
-  cmd_type_text: z.string().nullable(),
-  comments: z.string().nullable(),
-  cpu_sys_time: z.number().nullable(),
-  cpu_user_time: z.number().nullable(),
-  datname: z.string().nullable(),
-  dbid: z.unknown(),
-  elevel: z.number().nullable(),
-  jit_deform_count: z.number().nullable(),
-  jit_deform_time: z.number().nullable(),
-  jit_emission_count: z.number().nullable(),
-  jit_emission_time: z.number().nullable(),
-  jit_functions: z.number().nullable(),
-  jit_generation_time: z.number().nullable(),
-  jit_inlining_count: z.number().nullable(),
-  jit_inlining_time: z.number().nullable(),
-  jit_optimization_count: z.number().nullable(),
-  jit_optimization_time: z.number().nullable(),
-  local_blk_read_time: z.number().nullable(),
-  local_blk_write_time: z.number().nullable(),
-  local_blks_dirtied: z.number().nullable(),
-  local_blks_hit: z.number().nullable(),
-  local_blks_read: z.number().nullable(),
-  local_blks_written: z.number().nullable(),
-  max_exec_time: z.number().nullable(),
-  max_plan_time: z.number().nullable(),
-  mean_exec_time: z.number().nullable(),
-  mean_plan_time: z.number().nullable(),
-  message: z.string().nullable(),
-  min_exec_time: z.number().nullable(),
-  min_plan_time: z.number().nullable(),
-  minmax_stats_since: z.string().nullable(),
-  pgsm_query_id: z.number().nullable(),
-  planid: z.number().nullable(),
-  plans: z.number().nullable(),
-  query: z.string().nullable(),
-  query_plan: z.string().nullable(),
-  queryid: z.number().nullable(),
-  relations: z.array(z.string()).nullable(),
-  resp_calls: z.array(z.string()).nullable(),
-  rows: z.number().nullable(),
-  shared_blk_read_time: z.number().nullable(),
-  shared_blk_write_time: z.number().nullable(),
-  shared_blks_dirtied: z.number().nullable(),
-  shared_blks_hit: z.number().nullable(),
-  shared_blks_read: z.number().nullable(),
-  shared_blks_written: z.number().nullable(),
-  sqlcode: z.string().nullable(),
-  stats_since: z.string().nullable(),
-  stddev_exec_time: z.number().nullable(),
-  stddev_plan_time: z.number().nullable(),
-  temp_blk_read_time: z.number().nullable(),
-  temp_blk_write_time: z.number().nullable(),
-  temp_blks_read: z.number().nullable(),
-  temp_blks_written: z.number().nullable(),
-  top_query: z.string().nullable(),
-  top_queryid: z.number().nullable(),
-  toplevel: z.boolean().nullable(),
-  total_exec_time: z.number().nullable(),
-  total_plan_time: z.number().nullable(),
-  userid: z.unknown(),
-  username: z.string().nullable(),
-  wal_bytes: z.number().nullable(),
-  wal_fpi: z.number().nullable(),
-  wal_records: z.number().nullable(),
-});
-
 export const publicAcquireInternalEventLockArgsSchema = z.object({
   p_event_name: z.string(),
   p_idempotency_key: z.string(),
@@ -2221,12 +2147,6 @@ export const publicCustomAccessTokenHookArgsSchema = z.object({
 
 export const publicCustomAccessTokenHookReturnsSchema = jsonSchema;
 
-export const publicDecodeErrorLevelArgsSchema = z.object({
-  elevel: z.number(),
-});
-
-export const publicDecodeErrorLevelReturnsSchema = z.string();
-
 export const publicGetBillingInsightsArgsSchema = z.object({
   end_date_param: z.string().optional(),
   owner_id_param: z.string(),
@@ -2234,12 +2154,6 @@ export const publicGetBillingInsightsArgsSchema = z.object({
 });
 
 export const publicGetBillingInsightsReturnsSchema = jsonSchema;
-
-export const publicGetCmdTypeArgsSchema = z.object({
-  cmd_type: z.number(),
-});
-
-export const publicGetCmdTypeReturnsSchema = z.string();
 
 export const publicGetCommonErrorsArgsSchema = z.object({
   hours_back: z.number().optional(),
@@ -2364,10 +2278,6 @@ export const publicGetFinancialOverviewArgsSchema = z.object({
 });
 
 export const publicGetFinancialOverviewReturnsSchema = jsonSchema;
-
-export const publicGetHistogramTimingsArgsSchema = z.never();
-
-export const publicGetHistogramTimingsReturnsSchema = z.string();
 
 export const publicGetInvoiceStatisticsArgsSchema = z.object({
   p_user_id: z.string(),
@@ -2591,15 +2501,6 @@ export const publicHealthCheckArgsSchema = z.never();
 
 export const publicHealthCheckReturnsSchema = jsonSchema;
 
-export const publicHistogramArgsSchema = z.object({
-  _bucket: z.number(),
-  _quryid: z.number(),
-});
-
-export const publicHistogramReturnsSchema = z.array(
-  z.record(z.string(), z.unknown()),
-);
-
 export const publicIsAdminArgsSchema = z.never();
 
 export const publicIsAdminReturnsSchema = z.boolean();
@@ -2627,59 +2528,6 @@ export const publicLogUserErrorArgsSchema = z.object({
 
 export const publicLogUserErrorReturnsSchema = z.string();
 
-export const publicParseAddressArgsSchema = z.object({
-  "": z.string(),
-});
-
-export const publicParseAddressReturnsSchema = z.record(
-  z.string(),
-  z.unknown(),
-);
-
-export const publicPgStatMonitorInternalArgsSchema = z.object({
-  showtext: z.boolean(),
-});
-
-export const publicPgStatMonitorInternalReturnsSchema = z.array(
-  z.record(z.string(), z.unknown()),
-);
-
-export const publicPgStatMonitorResetArgsSchema = z.never();
-
-export const publicPgStatMonitorResetReturnsSchema = z.undefined();
-
-export const publicPgStatMonitorVersionArgsSchema = z.never();
-
-export const publicPgStatMonitorVersionReturnsSchema = z.string();
-
-export const publicPgsmCreate11ViewArgsSchema = z.never();
-
-export const publicPgsmCreate11ViewReturnsSchema = z.number();
-
-export const publicPgsmCreate13ViewArgsSchema = z.never();
-
-export const publicPgsmCreate13ViewReturnsSchema = z.number();
-
-export const publicPgsmCreate14ViewArgsSchema = z.never();
-
-export const publicPgsmCreate14ViewReturnsSchema = z.number();
-
-export const publicPgsmCreate15ViewArgsSchema = z.never();
-
-export const publicPgsmCreate15ViewReturnsSchema = z.number();
-
-export const publicPgsmCreate17ViewArgsSchema = z.never();
-
-export const publicPgsmCreate17ViewReturnsSchema = z.number();
-
-export const publicPgsmCreateViewArgsSchema = z.never();
-
-export const publicPgsmCreateViewReturnsSchema = z.number();
-
-export const publicRangeArgsSchema = z.never();
-
-export const publicRangeReturnsSchema = z.array(z.string());
-
 export const publicRevokeUserSessionArgsSchema = z.object({
   p_session_id: z.string(),
   p_user_id: z.string(),
@@ -2703,16 +2551,6 @@ export const publicSearchPropertiesReturnsSchema = z.array(
     state: z.string(),
   }),
 );
-
-export const publicShowLimitArgsSchema = z.never();
-
-export const publicShowLimitReturnsSchema = z.number();
-
-export const publicShowTrgmArgsSchema = z.object({
-  "": z.string(),
-});
-
-export const publicShowTrgmReturnsSchema = z.array(z.string());
 
 export const publicSignLeaseAndCheckActivationArgsSchema = z.object({
   p_lease_id: z.string(),
@@ -2771,25 +2609,6 @@ export const publicMaintenanceStatsTypeSchema = z.object({
   completed_today: z.number().nullable(),
   avg_resolution_time: z.number().nullable(),
   by_priority: publicMaintenancePriorityTypeSchema.nullable(),
-});
-
-export const publicStdaddrSchema = z.object({
-  building: z.string().nullable(),
-  house_num: z.string().nullable(),
-  predir: z.string().nullable(),
-  qual: z.string().nullable(),
-  pretype: z.string().nullable(),
-  name: z.string().nullable(),
-  suftype: z.string().nullable(),
-  sufdir: z.string().nullable(),
-  ruralroute: z.string().nullable(),
-  extra: z.string().nullable(),
-  city: z.string().nullable(),
-  state: z.string().nullable(),
-  country: z.string().nullable(),
-  postcode: z.string().nullable(),
-  box: z.string().nullable(),
-  unit: z.string().nullable(),
 });
 
 export const publicTimeSeriesPointTypeSchema = z.object({

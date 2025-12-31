@@ -67,18 +67,16 @@ export interface CharacterClassValidation {
 }
 
 // Zod schemas for input validation
-const SanitizationOptionsSchema = z
-	.object({
-		maxLength: z.number().min(1).max(10000).optional(),
-		allowControlChars: z.boolean().optional(),
-		allowNullBytes: z.boolean().optional(),
-		allowNewlines: z.boolean().optional(),
-		allowApostrophes: z.boolean().optional(),
-		allowUnicode: z.boolean().optional(),
-		forbiddenChars: z.string().optional(),
-		allowedCharClasses: z.array(z.string()).optional()
-	})
-	.strict()
+const SanitizationOptionsSchema = z.strictObject({
+	maxLength: z.number().min(1).max(10000).optional(),
+	allowControlChars: z.boolean().optional(),
+	allowNullBytes: z.boolean().optional(),
+	allowNewlines: z.boolean().optional(),
+	allowApostrophes: z.boolean().optional(),
+	allowUnicode: z.boolean().optional(),
+	forbiddenChars: z.string().optional(),
+	allowedCharClasses: z.array(z.string()).optional()
+})
 
 @Injectable()
 export class SecurityService {

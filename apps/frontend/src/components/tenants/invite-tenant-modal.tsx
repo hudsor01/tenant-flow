@@ -3,10 +3,8 @@
 import { useState } from 'react'
 import { X, UserPlus, Mail, User, Loader2 } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type {
-	InviteTenantData,
-	InvitationType
-} from '@repo/shared/types/sections/tenants'
+import type { InviteTenantData } from '@repo/shared/types/sections/tenants'
+import type { InvitationType } from '@repo/shared/types/core'
 
 // ============================================================================
 // TYPES

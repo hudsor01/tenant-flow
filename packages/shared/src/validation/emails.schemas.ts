@@ -1,9 +1,12 @@
-import { z } from 'zod'
-
 /**
  * Email Header Injection Prevention Schemas
  * Prevents CRLF injection and validates email headers
+ *
+ * Zod 4 Best Practices:
+ * - Use top-level validators: z.email(), z.uuid(), z.url()
  */
+
+import { z } from 'zod'
 
 // Regular expressions for email header validation
 const CRLF_REGEX = /[\r\n]/g
@@ -13,8 +16,7 @@ const HEADER_INJECTION_REGEX = /[\r\n]\s*[a-zA-Z-]+:/g // Detects potential head
  * Validates and sanitizes email addresses to prevent header injection
  */
 export const SecureEmailSchema = z
-	.string()
-	.email('Invalid email format')
+	.email({ message: 'Invalid email format' })
 	.refine(
 		email => !CRLF_REGEX.test(email),
 		'Email cannot contain line breaks or control characters'
@@ -48,9 +50,9 @@ export const EmailMetadataSchema = z.object({
 			'Name cannot contain line breaks or control characters'
 		)
 		.transform(name => name.trim()),
-	property_id: z.string().uuid('Property ID must be a valid UUID').optional(),
-	lease_id: z.string().uuid('Lease ID must be a valid UUID').optional(),
-	unit_id: z.string().uuid('Unit ID must be a valid UUID').optional(),
+	property_id: z.uuid({ message: 'Property ID must be a valid UUID' }).optional(),
+	lease_id: z.uuid({ message: 'Lease ID must be a valid UUID' }).optional(),
+	unit_id: z.uuid({ message: 'Unit ID must be a valid UUID' }).optional(),
 	propertyName: z
 		.string()
 		.max(200, 'Property name is too long')
@@ -69,7 +71,7 @@ export const EmailMetadataSchema = z.object({
 		)
 		.transform(number => number.trim())
 		.optional(),
-	checkoutUrl: z.string().url('Checkout URL must be a valid URL').optional(),
+	checkoutUrl: z.url({ message: 'Checkout URL must be a valid URL' }).optional(),
 	user_type: z.enum(['TENANT', 'OWNER', 'ADMIN']).default('TENANT')
 })
 
@@ -113,15 +115,13 @@ export const TenantInvitationDataSchema = z.object({
  */
 export const EmailHeadersSchema = z.object({
 	from: z
-		.string()
-		.email('From address must be valid')
+		.email({ message: 'From address must be valid' })
 		.refine(
 			email => !CRLF_REGEX.test(email),
 			'From email cannot contain line breaks or control characters'
 		),
 	to: z
-		.string()
-		.email('To address must be valid')
+		.email({ message: 'To address must be valid' })
 		.refine(
 			email => !CRLF_REGEX.test(email),
 			'To email cannot contain line breaks or control characters'
@@ -135,8 +135,7 @@ export const EmailHeadersSchema = z.object({
 		)
 		.transform(subject => subject.trim()),
 	replyTo: z
-		.string()
-		.email('Reply-to address must be valid')
+		.email({ message: 'Reply-to address must be valid' })
 		.refine(
 			email => !CRLF_REGEX.test(email),
 			'Reply-to email cannot contain line breaks or control characters'

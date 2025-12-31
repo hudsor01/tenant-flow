@@ -26,9 +26,9 @@ import {
 import { Tenants } from '#components/tenants/tenants'
 import type {
 	TenantItem,
-	TenantDetail,
-	LeaseStatus
+	TenantDetail
 } from '@repo/shared/types/sections/tenants'
+import type { LeaseStatus } from '@repo/shared/types/core'
 
 // ============================================================================
 // DATA TRANSFORMATION

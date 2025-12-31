@@ -15,6 +15,7 @@ import {
 	Query,
 	Req,
 	UnauthorizedException,
+	InternalServerErrorException,
 	ParseUUIDPipe,
 	UseGuards
 } from '@nestjs/common'
@@ -294,7 +295,7 @@ export class FinancialOverviewController {
 
 		if (error) {
 			this.logger.error('Failed to fetch expenses', { error: error.message })
-			throw new Error('Failed to fetch expenses')
+			throw new InternalServerErrorException('Failed to fetch expenses')
 		}
 
 		// Transform to include property name and category from maintenance_request
@@ -371,7 +372,7 @@ export class FinancialOverviewController {
 
 		if (error) {
 			this.logger.error('Failed to create expense', { error: error.message })
-			throw new Error('Failed to create expense')
+			throw new InternalServerErrorException('Failed to create expense')
 		}
 
 		return {
@@ -399,7 +400,7 @@ export class FinancialOverviewController {
 
 		if (error) {
 			this.logger.error('Failed to delete expense', { error: error.message })
-			throw new Error('Failed to delete expense')
+			throw new InternalServerErrorException('Failed to delete expense')
 		}
 
 		return {

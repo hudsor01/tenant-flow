@@ -12,7 +12,8 @@
  * @vitest-environment jsdom
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { ImageLightbox } from '../image-lightbox'
 import type { Tables } from '@repo/shared/types/supabase'
 import { vi } from 'vitest'

@@ -14,10 +14,8 @@ import {
 	Eye,
 	Send
 } from 'lucide-react'
-import type {
-	PaymentsListProps,
-	PaymentStatus
-} from '@repo/shared/types/sections/payments'
+import type { PaymentsListProps } from '@repo/shared/types/sections/payments'
+import type { PaymentStatus } from '@repo/shared/types/core'
 
 function formatCurrency(amount: number): string {
 	return new Intl.NumberFormat('en-US', {
@@ -69,6 +67,12 @@ function getStatusConfig(status: PaymentStatus) {
 			icon: XCircle,
 			label: 'Canceled'
 		},
+		cancelled: {
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			icon: XCircle,
+			label: 'Cancelled'
+		},
 		requires_action: {
 			className:
 				'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
@@ -76,7 +80,15 @@ function getStatusConfig(status: PaymentStatus) {
 			label: 'Action Required'
 		}
 	}
-	return config[status]
+	// Fallback for any unmapped status
+	return (
+		config[status] ?? {
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			icon: Clock,
+			label: status
+		}
+	)
 }
 
 function getInitials(name: string): string {

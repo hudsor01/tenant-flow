@@ -6,6 +6,7 @@ import {
 	UnauthorizedException,
 	SetMetadata
 } from '@nestjs/common'
+import { ApiTags } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
 import { PrometheusController } from '@willsoto/nestjs-prometheus'
 import { timingSafeEqual } from 'crypto'
@@ -30,6 +31,7 @@ const METRICS_THROTTLE = createThrottleDefaults({
  *
  * Pattern: https://github.com/willsoto/nestjs-prometheus#custom-controller
  */
+@ApiTags('Metrics')
 @Controller() // Define explicit route paths inside decorators
 export class MetricsController extends PrometheusController {
 	constructor(

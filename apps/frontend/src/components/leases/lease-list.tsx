@@ -19,10 +19,8 @@ import {
 	Plus,
 	Eye
 } from 'lucide-react'
-import type {
-	LeaseListProps,
-	LeaseStatus
-} from '@repo/shared/types/sections/leases'
+import type { LeaseListProps } from '@repo/shared/types/sections/leases'
+import type { LeaseStatus } from '@repo/shared/types/core'
 import { useLeasesStore } from '#stores/leases-store'
 import type { SortField } from '#components/leases/table/lease-utils'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -55,7 +53,10 @@ function getStatusBadge(status: LeaseStatus) {
 		}
 	}
 
-	const { className, label } = config[status]
+	const { className, label } = config[status] ?? {
+		className: 'bg-muted text-muted-foreground',
+		label: status
+	}
 
 	return (
 		<span

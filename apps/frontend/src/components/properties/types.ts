@@ -1,7 +1,10 @@
 // =============================================================================
 // Data Types
 // =============================================================================
+// Import database enums from shared types (single source of truth)
+import type { PropertyStatus, UnitStatus } from '@repo/shared/types/core'
 
+// App-specific property type (not a database enum)
 export type PropertyType =
 	| 'single_family'
 	| 'multi_family'
@@ -9,10 +12,6 @@ export type PropertyType =
 	| 'condo'
 	| 'townhouse'
 	| 'duplex'
-
-export type PropertyStatus = 'active' | 'inactive' | 'sold'
-
-export type UnitStatus = 'occupied' | 'available' | 'maintenance'
 
 export interface PropertyImage {
 	id: string

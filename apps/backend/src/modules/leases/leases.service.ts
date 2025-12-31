@@ -16,12 +16,8 @@ import {
 } from '@nestjs/common'
 import type { CreateLeaseDto } from './dto/create-lease.dto'
 import type { UpdateLeaseDto } from './dto/update-lease.dto'
-import type {
-	Lease,
-	LeaseStatus,
-	LeaseInsert,
-	LeaseUpdate
-} from '@repo/shared/types/api-contracts'
+import type { Lease, LeaseStatus } from '@repo/shared/types/core'
+import type { LeaseInsert, LeaseUpdate } from '@repo/shared/types/api-contracts'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { validateLeaseStatus } from '@repo/shared/validation/enum-validators'

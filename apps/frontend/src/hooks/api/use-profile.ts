@@ -22,16 +22,8 @@ import {
 	type AvatarUploadResponse
 } from './queries/profile-queries'
 
-// Re-export types
-export type {
-	UserProfile,
-	TenantProfile,
-	OwnerProfile,
-	UpdateProfileInput,
-	UpdatePhoneInput,
-	UpdateEmergencyContactInput,
-	AvatarUploadResponse
-} from './queries/profile-queries'
+// Note: Import profile types directly from './queries/profile-queries'
+// No re-exports per CLAUDE.md rules
 
 // ============================================================================
 // Query Hooks

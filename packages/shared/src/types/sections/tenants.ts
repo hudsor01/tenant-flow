@@ -1,4 +1,5 @@
 // Tenants Section Types
+import type { LeaseStatus, PaymentStatus, InvitationType } from '../core.js'
 
 export interface TenantsProps {
 	// Tenant list
@@ -108,19 +109,6 @@ export interface InviteTenantData {
 }
 
 export type UserStatus = 'active' | 'inactive' | 'suspended'
-export type LeaseStatus =
-	| 'draft'
-	| 'pending_signature'
-	| 'active'
-	| 'ended'
-	| 'terminated'
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
-export type InvitationType = 'platform_access' | 'lease_signing'
 export type InvitationStatus =
 	| 'pending'
 	| 'sent'

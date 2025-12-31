@@ -14,13 +14,13 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type { Unit, UnitStatus } from '@repo/shared/types/core'
+import { VALID_UNIT_STATUSES } from '@repo/shared/validation/enum-validators'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import {
 	buildILikePattern,
 	sanitizeSearchInput
 } from '../../../shared/utils/sql-safe.utils'
-import { VALID_UNIT_STATUSES } from '../../../schemas/units.schema'
 
 @Injectable()
 export class UnitQueryService {

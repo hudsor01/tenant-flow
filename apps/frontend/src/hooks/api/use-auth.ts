@@ -25,19 +25,10 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { authQueries, authKeys } from './queries/auth-queries'
+import { authQueries, authKeys, type AuthUser } from './queries/auth-queries'
 
 // Create browser client for authentication
 const supabase = createClient()
-
-/**
- * User type with Stripe integration (from database)
- */
-interface User {
-	id: string
-	email: string
-	stripe_customer_id: string | null
-}
 
 // ============================================================================
 // CACHE UTILITIES
@@ -408,7 +399,7 @@ export function usePrefetchUser() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: authKeys.me,
-			queryFn: () => apiRequest<User>('/api/v1/users/me'),
+			queryFn: () => apiRequest<AuthUser>('/api/v1/users/me'),
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}

@@ -1,3 +1,15 @@
+/**
+ * Unit Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import {
 	nonEmptyStringSchema,

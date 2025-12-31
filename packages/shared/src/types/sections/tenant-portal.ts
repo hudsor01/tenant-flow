@@ -1,4 +1,9 @@
 // Tenant Portal Section Types
+import type {
+	LeaseStatus,
+	PaymentStatus,
+	MaintenancePriority
+} from '../core.js'
 
 export interface TenantPortalProps {
 	// Current tenant
@@ -160,18 +165,6 @@ export interface ProfileUpdateData {
 	emergencyContactRelationship?: string
 }
 
-export type LeaseStatus =
-	| 'draft'
-	| 'pending_signature'
-	| 'active'
-	| 'ended'
-	| 'terminated'
-export type PaymentStatus =
-	| 'pending'
-	| 'processing'
-	| 'succeeded'
-	| 'failed'
-	| 'canceled'
 export type PaymentMethodType = 'card' | 'bank_account'
 export type RentStatus = 'upcoming' | 'due_today' | 'overdue' | 'paid'
 export type RequestStatus =
@@ -180,7 +173,6 @@ export type RequestStatus =
 	| 'completed'
 	| 'cancelled'
 	| 'on_hold'
-export type MaintenancePriority = 'low' | 'normal' | 'medium' | 'high' | 'urgent'
 export type DocumentType =
 	| 'lease_agreement'
 	| 'addendum'

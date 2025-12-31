@@ -13,27 +13,8 @@
 // Import directly from supabase.ts (source of truth)
 import type { Tables, TablesInsert, TablesUpdate } from './supabase.js'
 
-// Re-export base row types from core.ts for convenience
-// Note: PaymentStatus is NOT re-exported here - there's a local PaymentStatus interface
-// that represents a different structure (API response vs database enum)
-export type {
-	Property,
-	Tenant,
-	Lease,
-	Unit,
-	User,
-	MaintenanceRequest,
-	RentPayment,
-	LeaseStatus,
-	PropertyStatus,
-	UnitStatus,
-	MaintenancePriority,
-	MaintenanceStatus,
-	StripeSubscriptionStatus
-} from './core.js'
-
-// Re-export PaymentStatus enum from core.ts as PaymentStatusEnum to avoid conflict
-export type { PaymentStatus as PaymentStatusEnum } from './core.js'
+// Note: Base row types (Property, Tenant, Lease, etc.) are in core.ts
+// Import them directly from '@repo/shared/types/core' - no re-exports per CLAUDE.md rules
 
 // Import Zod-inferred types (Single Source of Truth)
 import type { TenantCreate, TenantUpdate } from '../validation/tenants.js'

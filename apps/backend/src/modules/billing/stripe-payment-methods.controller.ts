@@ -9,6 +9,7 @@ import {
 	Res,
 	HttpStatus,
 	BadRequestException,
+	InternalServerErrorException,
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
@@ -292,7 +293,7 @@ export class StripePaymentMethodsController {
 			const frontendUrl =
 				process.env.FRONTEND_URL || process.env.NEXT_PUBLIC_APP_URL
 			if (!frontendUrl) {
-				throw new Error(
+				throw new InternalServerErrorException(
 					'FRONTEND_URL or NEXT_PUBLIC_APP_URL environment variable not configured'
 				)
 			}

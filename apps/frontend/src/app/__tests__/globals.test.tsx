@@ -5,7 +5,8 @@
  * Ensures proper theme layer integration and variable usage
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 
 // Test component that uses CSS variables properly

@@ -5,7 +5,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { LeaseSignatureStatus } from '../lease-signature-status'
 import type { SignatureStatus } from '#hooks/api/queries/lease-queries'
 import { vi } from 'vitest'

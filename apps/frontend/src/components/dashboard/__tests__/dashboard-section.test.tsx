@@ -11,7 +11,8 @@
  * - Maintain existing CSS class structure for styling
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 import { DashboardSection } from '../dashboard-section'
 

@@ -27,6 +27,7 @@ import { useSupabaseUser } from '#hooks/api/use-auth'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyType } from '@repo/shared/types/core'
+import { propertyFormSchema } from '@repo/shared/validation/properties'
 import { useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
@@ -70,14 +71,14 @@ export function PropertyForm({
 	const mutation =
 		mode === 'create' ? createPropertyMutation : updatePropertyMutation
 
-	// Validation schema
-	const validationSchema = z.object({
-		name: z.string().min(3, 'Property name must be at least 3 characters'),
-		property_type: z.string(),
-		address_line1: z.string().min(5, 'Address is required'),
-		city: z.string().min(2, 'City is required'),
-		state: z.string().length(2, 'State must be 2 characters'),
-		postal_code: z.string().min(5, 'ZIP code is required')
+	// Use shared validation schema (partial for form fields only)
+	const validationSchema = propertyFormSchema.pick({
+		name: true,
+		property_type: true,
+		address_line1: true,
+		city: true,
+		state: true,
+		postal_code: true
 	})
 
 	// Sync server-fetched property into TanStack Query cache (edit mode only)

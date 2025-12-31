@@ -17,6 +17,7 @@ import {
 	Headers,
 	HttpCode,
 	HttpStatus,
+	InternalServerErrorException,
 	Post,
 	SetMetadata,
 	UnauthorizedException
@@ -174,7 +175,9 @@ export class N8nPdfWebhookController {
 			// 5. Get signed URL
 			const pdfUrl = await this.pdfStorageService.getLeasePdfUrl(leaseId)
 			if (!pdfUrl) {
-				throw new Error(`Failed to get PDF URL for lease ${leaseId}`)
+				throw new InternalServerErrorException(
+					`Failed to get PDF URL for lease ${leaseId}`
+				)
 			}
 
 			this.logger.log(

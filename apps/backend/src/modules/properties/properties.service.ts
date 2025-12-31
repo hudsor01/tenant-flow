@@ -1,8 +1,9 @@
+import type { Property, PropertyType } from '@repo/shared/types/core'
+import type { PropertyInsert, PropertyUpdate } from '@repo/shared/types/api-contracts'
 import type {
-	Property,
-	PropertyInsert,
-	PropertyUpdate
-} from '@repo/shared/types/api-contracts'
+	PropertyCreate as CreatePropertyDto,
+	PropertyUpdate as UpdatePropertyDto
+} from '@repo/shared/validation/properties'
 import {
 	BadRequestException,
 	ConflictException,
@@ -10,8 +11,6 @@ import {
 	InternalServerErrorException,
 	NotFoundException
 } from '@nestjs/common'
-import type { CreatePropertyDto, UpdatePropertyDto } from './property.schemas'
-import type { PropertyType } from '@repo/shared/types/core'
 
 import { SupabaseService } from '../../database/supabase.service'
 import {

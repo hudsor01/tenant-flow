@@ -1,4 +1,5 @@
 // Maintenance Section Types
+import type { MaintenanceStatus, MaintenancePriority } from '../core.js'
 
 export interface MaintenanceProps {
 	// Request list
@@ -150,12 +151,6 @@ export interface ExpenseData {
 	description?: string
 }
 
-export type MaintenanceStatus =
-	| 'open'
-	| 'in_progress'
-	| 'completed'
-	| 'cancelled'
-export type MaintenancePriority = 'urgent' | 'high' | 'medium' | 'normal' | 'low'
 export type TimelineEventType =
 	| 'created'
 	| 'assigned'

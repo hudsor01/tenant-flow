@@ -122,7 +122,7 @@ export class TenantLeasesController {
 			.single()
 
 		if (error || !data) {
-			throw new Error('Tenant account not found')
+			throw new NotFoundException('Tenant account not found')
 		}
 
 		return data

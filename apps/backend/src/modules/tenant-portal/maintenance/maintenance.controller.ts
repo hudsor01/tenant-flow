@@ -6,6 +6,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	InternalServerErrorException,
+	NotFoundException,
 	Post,
 	Request,
 	UnauthorizedException,
@@ -184,7 +185,7 @@ export class TenantMaintenanceController {
 			.single()
 
 		if (error || !data) {
-			throw new Error('Tenant account not found')
+			throw new NotFoundException('Tenant account not found')
 		}
 
 		return data
