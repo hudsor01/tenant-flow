@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 import { cn } from '#lib/utils'
 import { useLeaseSignatureStatus } from '#hooks/api/use-lease'
-import type { SignatureStatus } from '#hooks/api/queries/lease-queries'
+import type { SignatureStatus } from '#hooks/api/use-lease'
 import {
 	LEASE_SIGNATURE_ERROR_MESSAGES,
 	LEASE_SIGNATURE_ERROR_CODES

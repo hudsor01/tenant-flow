@@ -123,7 +123,7 @@ export default function TermsPage() {
 							</li>
 							<li>
 								<strong>Automatic Renewal:</strong> Subscriptions automatically
-								renew unless canceled before the renewal date
+								renew unless cancelled before the renewal date
 							</li>
 							<li>
 								<strong>Failed Payments:</strong> If a payment fails, we will

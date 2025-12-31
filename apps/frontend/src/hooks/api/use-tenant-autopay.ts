@@ -2,7 +2,7 @@
 
 import { apiRequest } from '#lib/api-request'
 
-import { tenantPortalKeys } from './queries/tenant-portal-queries'
+import { tenantPortalKeys } from './use-tenant-portal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export function useTenantPortalSetupAutopay() {

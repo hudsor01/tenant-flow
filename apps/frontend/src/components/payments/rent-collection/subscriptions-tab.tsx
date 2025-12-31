@@ -151,7 +151,7 @@ export function SubscriptionsTab({
 							<SelectItem value="all">All Status</SelectItem>
 							<SelectItem value="active">Active</SelectItem>
 							<SelectItem value="paused">Paused</SelectItem>
-							<SelectItem value="canceled">Canceled</SelectItem>
+							<SelectItem value="cancelled">Canceled</SelectItem>
 						</SelectContent>
 					</Select>
 
@@ -283,7 +283,7 @@ export function SubscriptionsTab({
 													Resume Subscription
 												</DropdownMenuItem>
 											)}
-											{sub.status !== 'canceled' && (
+											{sub.status !== 'cancelled' && (
 												<DropdownMenuItem
 													onClick={() => sub.id && onCancel(sub.id)}
 													className="text-destructive focus:text-destructive"

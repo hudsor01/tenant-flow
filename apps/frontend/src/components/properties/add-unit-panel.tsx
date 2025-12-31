@@ -25,7 +25,6 @@ import {
 	SheetTitle
 } from '#components/ui/sheet'
 import { useCreateUnitMutation } from '#hooks/api/mutations/unit-mutations'
-import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
 import { useForm } from '@tanstack/react-form'
 import { DollarSign, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -255,12 +254,8 @@ export function AddUnitPanel({
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value={UNIT_STATUS.AVAILABLE}>
-											{UNIT_STATUS_LABELS.AVAILABLE}
-										</SelectItem>
-										<SelectItem value={UNIT_STATUS.MAINTENANCE}>
-											{UNIT_STATUS_LABELS.MAINTENANCE}
-										</SelectItem>
+										<SelectItem value="available">Vacant</SelectItem>
+										<SelectItem value="maintenance">Maintenance</SelectItem>
 									</SelectContent>
 								</Select>
 								<p className="text-xs text-muted-foreground mt-1">
