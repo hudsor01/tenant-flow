@@ -6,7 +6,8 @@ import {
 	Param,
 	Post,
 	Req,
-	Res
+	Res,
+	UseGuards
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -25,6 +26,7 @@ import {
 	TemplateDefinitionDto
 } from './dto/document-template.dto'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 
 const TEMPLATE_MAP: Record<string, { name: string; title: string }> = {
 	'property-inspection': {
@@ -72,6 +74,8 @@ export class DocumentTemplateController {
 	@ApiBody({ type: DocumentTemplatePayloadDto })
 	@ApiProduces('application/pdf')
 	@ApiResponse({ status: 200, description: 'Template preview PDF generated' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@UseGuards(JwtAuthGuard)
 	@Post(':template/preview')
 	async previewTemplate(
 		@Param('template') template: string,
@@ -109,6 +113,8 @@ export class DocumentTemplateController {
 	})
 	@ApiBody({ type: DocumentTemplatePayloadDto })
 	@ApiResponse({ status: 200, description: 'Template PDF uploaded' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@UseGuards(JwtAuthGuard)
 	@Post(':template/export')
 	async exportTemplate(
 		@Req() req: AuthenticatedRequest,
@@ -145,6 +151,8 @@ export class DocumentTemplateController {
 	})
 	@ApiParam({ name: 'template', required: true, enum: Object.keys(TEMPLATE_MAP) })
 	@ApiResponse({ status: 200, description: 'Template definition fetched' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@UseGuards(JwtAuthGuard)
 	@Get(':template/definition')
 	async getTemplateDefinition(
 		@Req() req: AuthenticatedRequest,
@@ -172,6 +180,8 @@ export class DocumentTemplateController {
 	@ApiParam({ name: 'template', required: true, enum: Object.keys(TEMPLATE_MAP) })
 	@ApiBody({ type: TemplateDefinitionDto })
 	@ApiResponse({ status: 200, description: 'Template definition saved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@UseGuards(JwtAuthGuard)
 	@Post(':template/definition')
 	async saveTemplateDefinition(
 		@Req() req: AuthenticatedRequest,

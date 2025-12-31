@@ -27,12 +27,65 @@ export interface UploadDocumentTemplateResult {
 @Injectable()
 export class DocumentTemplateStorageService {
 	private readonly BUCKET_NAME = 'document-templates'
+	private bucketInitialized = false
 
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger,
 		private readonly compressionService: CompressionService
 	) {}
+
+	/**
+	 * Ensure the storage bucket exists, creating it if necessary.
+	 * This is called lazily on first upload to avoid startup overhead.
+	 */
+	private async ensureBucketExists(): Promise<void> {
+		if (this.bucketInitialized) {
+			return
+		}
+
+		const client = this.supabase.getAdminClient()
+
+		try {
+			const { data: buckets, error: listError } = await client.storage.listBuckets()
+
+			if (listError) {
+				this.logger.warn('Failed to list storage buckets', {
+					error: listError.message
+				})
+				return
+			}
+
+			const bucketExists = buckets?.some(b => b.name === this.BUCKET_NAME)
+
+			if (!bucketExists) {
+				const { error: createError } = await client.storage.createBucket(
+					this.BUCKET_NAME,
+					{
+						public: false,
+						fileSizeLimit: 10 * 1024 * 1024 // 10MB limit
+					}
+				)
+
+				if (createError && !createError.message.includes('already exists')) {
+					this.logger.warn('Failed to create storage bucket', {
+						bucket: this.BUCKET_NAME,
+						error: createError.message
+					})
+					return
+				}
+
+				this.logger.log('Created storage bucket', { bucket: this.BUCKET_NAME })
+			}
+
+			this.bucketInitialized = true
+		} catch (error) {
+			this.logger.warn('Error checking/creating bucket', {
+				bucket: this.BUCKET_NAME,
+				error: error instanceof Error ? error.message : String(error)
+			})
+		}
+	}
 
 	async uploadTemplatePdf(
 		ownerId: string,
@@ -48,6 +101,8 @@ export class DocumentTemplateStorageService {
 			filePath,
 			sizeBytes: pdfBuffer.length
 		})
+
+		await this.ensureBucketExists()
 
 		try {
 			const compressionResult = await this.compressionService.compressDocument(
@@ -100,6 +155,8 @@ export class DocumentTemplateStorageService {
 		const filePath = this.buildTemplatePath(ownerId, templateType, fileName)
 		const client = this.supabase.getAdminClient()
 		const payload = Buffer.from(JSON.stringify(definition, null, 2))
+
+		await this.ensureBucketExists()
 
 		try {
 			const { data, error } = await client.storage

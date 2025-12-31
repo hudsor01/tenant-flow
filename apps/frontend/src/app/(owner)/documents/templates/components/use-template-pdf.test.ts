@@ -11,6 +11,9 @@ vi.mock('sonner', () => ({
 	}
 }))
 
+/** Debounce delay in the hook - must match PREVIEW_DEBOUNCE_MS */
+const DEBOUNCE_DELAY = 500
+
 // Mock URL.createObjectURL and revokeObjectURL
 const mockCreateObjectURL = vi.fn(() => 'blob:mock-url')
 const mockRevokeObjectURL = vi.fn()
@@ -43,10 +46,12 @@ describe('useTemplatePdf', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+		vi.useFakeTimers()
 	})
 
 	afterEach(() => {
 		vi.restoreAllMocks()
+		vi.useRealTimers()
 	})
 
 	describe('initial state', () => {
@@ -71,6 +76,78 @@ describe('useTemplatePdf', () => {
 	})
 
 	describe('handlePreview', () => {
+		it('should debounce preview calls', async () => {
+			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
+			const mockResponse = {
+				ok: true,
+				blob: vi.fn().mockResolvedValue(mockBlob)
+			}
+			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			// Call preview - should not immediately trigger fetch
+			await act(async () => {
+				result.current.handlePreview()
+			})
+
+			expect(globalThis.fetch).not.toHaveBeenCalled()
+
+			// Advance timer past debounce delay
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve() // flush microtasks
+			})
+
+			expect(globalThis.fetch).toHaveBeenCalled()
+		})
+
+		it('should cancel previous debounced call when called again', async () => {
+			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
+			const mockResponse = {
+				ok: true,
+				blob: vi.fn().mockResolvedValue(mockBlob)
+			}
+			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
+
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			// Call preview twice in quick succession
+			await act(async () => {
+				result.current.handlePreview()
+			})
+
+			// Advance only halfway
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
+			})
+
+			// Call again - should reset the timer
+			await act(async () => {
+				result.current.handlePreview()
+			})
+
+			// Advance another half - still shouldn't trigger
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
+			})
+
+			expect(globalThis.fetch).not.toHaveBeenCalled()
+
+			// Advance remaining time
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
+				await Promise.resolve()
+			})
+
+			// Only one fetch call should have been made
+			expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+		})
+
 		it('should set isGeneratingPreview to true during preview', async () => {
 			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
 			const mockResponse = {
@@ -83,17 +160,20 @@ describe('useTemplatePdf', () => {
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			let previewPromise: Promise<void>
-			act(() => {
-				previewPromise = result.current.handlePreview()
-			})
-
-			expect(result.current.isGeneratingPreview).toBe(true)
-
 			await act(async () => {
-				await previewPromise
+				result.current.handlePreview()
 			})
 
+			// Before debounce, isGeneratingPreview should be false
+			expect(result.current.isGeneratingPreview).toBe(false)
+
+			// After debounce timer fires
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
+			})
+
+			// After completion, isGeneratingPreview should be false
 			expect(result.current.isGeneratingPreview).toBe(false)
 		})
 
@@ -110,7 +190,9 @@ describe('useTemplatePdf', () => {
 			)
 
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob)
@@ -127,7 +209,9 @@ describe('useTemplatePdf', () => {
 			)
 
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			expect(result.current.previewUrl).toBeNull()
@@ -152,14 +236,18 @@ describe('useTemplatePdf', () => {
 
 			// First preview
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			expect(result.current.previewUrl).toBe('blob:first-url')
 
 			// Second preview should revoke first
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:first-url')
@@ -179,7 +267,9 @@ describe('useTemplatePdf', () => {
 			)
 
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			expect(mockGetPayload).toHaveBeenCalled()
@@ -287,12 +377,42 @@ describe('useTemplatePdf', () => {
 			)
 
 			await act(async () => {
-				await result.current.handlePreview()
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
 			})
 
 			unmount()
 
 			expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
+		})
+
+		it('should clear debounce timer on unmount', async () => {
+			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
+			const mockResponse = {
+				ok: true,
+				blob: vi.fn().mockResolvedValue(mockBlob)
+			}
+			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
+
+			const { result, unmount } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				result.current.handlePreview()
+			})
+
+			// Unmount before debounce fires
+			unmount()
+
+			// Advance timer - fetch should NOT be called because timer was cleared
+			await act(async () => {
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
+			})
+
+			expect(globalThis.fetch).not.toHaveBeenCalled()
 		})
 	})
 })

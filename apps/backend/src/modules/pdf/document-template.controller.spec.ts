@@ -6,6 +6,7 @@ import type { Response } from 'express'
 import { DocumentTemplateController } from './document-template.controller'
 import { PDFGeneratorService } from './pdf-generator.service'
 import { DocumentTemplateStorageService } from '../documents/document-template-storage.service'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 describe('DocumentTemplateController', () => {
@@ -42,7 +43,10 @@ describe('DocumentTemplateController', () => {
 				{ provide: PDFGeneratorService, useValue: pdfGeneratorMock },
 				{ provide: DocumentTemplateStorageService, useValue: storageMock }
 			]
-		}).compile()
+		})
+			.overrideGuard(JwtAuthGuard)
+			.useValue({ canActivate: () => true })
+			.compile()
 
 		controller = module.get<DocumentTemplateController>(DocumentTemplateController)
 	})
