@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			:root {
+				--brand: {{branding.primaryColor}};
+			}
+			body {
+				font-family: 'Helvetica', Arial, sans-serif;
+				color: #111827;
+				margin: 0;
+				padding: 32px;
+				line-height: 1.4;
+			}
+			header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				border-bottom: 2px solid var(--brand, #1f3b66);
+				padding-bottom: 16px;
+				margin-bottom: 24px;
+			}
+			h1 {
+				font-size: 24px;
+				margin: 0;
+			}
+			.logo {
+				height: 48px;
+			}
+			.section {
+				margin-bottom: 20px;
+			}
+			.section-title {
+				font-size: 14px;
+				font-weight: 700;
+				text-transform: uppercase;
+				color: #6b7280;
+				margin-bottom: 6px;
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 12px;
+			}
+			.checklist {
+				list-style: none;
+				padding: 0;
+				margin: 0;
+			}
+			.checklist li {
+				padding: 6px 0;
+				display: flex;
+				align-items: center;
+				gap: 8px;
+			}
+			.badge {
+				display: inline-block;
+				padding: 2px 8px;
+				border-radius: 999px;
+				background: #eef2ff;
+				color: #3730a3;
+				font-size: 12px;
+			}
+			.photos {
+				display: grid;
+				grid-template-columns: repeat(2, 1fr);
+				gap: 12px;
+			}
+			.photo {
+				border: 1px solid #e5e7eb;
+				padding: 8px;
+				border-radius: 8px;
+			}
+			.photo img {
+				width: 100%;
+				height: 140px;
+				object-fit: cover;
+				border-radius: 6px;
+			}
+			.footer {
+				font-size: 12px;
+				color: #6b7280;
+				border-top: 1px solid #e5e7eb;
+				padding-top: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<div>
+				<h1>{{templateTitle}}</h1>
+				<p>{{branding.companyName}}</p>
+				<span class="badge">Generated {{generatedAt}}</span>
+			</div>
+			{{#if branding.logoUrl}}
+				<img class="logo" src="{{branding.logoUrl}}" alt="Logo" />
+			{{/if}}
+		</header>
+
+		<section class="section">
+			<div class="section-title">Property</div>
+			<div class="grid">
+				<div><strong>Name:</strong> {{property.name}}</div>
+				<div><strong>Address:</strong> {{property.address}}</div>
+				<div><strong>Inspection type:</strong> {{inspection.type}}</div>
+				<div><strong>Inspection date:</strong> {{inspection.date}}</div>
+				<div><strong>Inspector:</strong> {{inspection.inspector}}</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-title">Checklist</div>
+			<ul class="checklist">
+				{{#each checklist}}
+					<li>
+						<span>{{#if status}}&#x2611;{{else}}&#x2610;{{/if}}</span>
+						<span>{{label}}</span>
+					</li>
+				{{/each}}
+			</ul>
+		</section>
+
+		{{#if inspection.notes}}
+		<section class="section">
+			<div class="section-title">Notes</div>
+			<p>{{inspection.notes}}</p>
+		</section>
+		{{/if}}
+
+		{{#if photos}}
+		<section class="section">
+			<div class="section-title">Photo Evidence</div>
+			<div class="photos">
+				{{#each photos}}
+					<div class="photo">
+						<img src="{{url}}" alt="{{name}}" />
+						<p>{{name}}</p>
+					</div>
+				{{/each}}
+			</div>
+		</section>
+		{{/if}}
+
+		{{#if customFields}}
+		<section class="section">
+			<div class="section-title">Custom Fields</div>
+			<ul class="checklist">
+				{{#each customFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if dynamicFields}}
+		<section class="section">
+			<div class="section-title">Additional Fields</div>
+			<ul class="checklist">
+				{{#each dynamicFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if clauses}}
+		<section class="section">
+			<div class="section-title">State Clauses</div>
+			<ul class="checklist">
+				{{#each clauses}}
+					<li>{{text}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		<div class="footer">
+			{{branding.companyName}} | {{state}}
+		</div>
+	</body>
+</html>

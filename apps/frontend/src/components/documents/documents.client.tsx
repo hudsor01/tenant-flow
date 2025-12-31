@@ -63,46 +63,155 @@ export default function DocumentsClient() {
 					</CardContent>
 				</Card>
 
-				{/* TODO [MEDIUM PRIORITY]: Implement additional document templates beyond the lease agreement.
-				 * The documents module should be expanded to include:
-				 * 1. Property Inspection Reports - Pre/post move-in checklists with photo upload
-				 * 2. Rental Applications - Tenant application forms with background check integration
-				 * 3. Tenant Notices - Late rent notices, lease violation notices, move-out notices
-				 * 4. Maintenance Request Forms - Printable work order forms
-				 *
-				 * Implementation steps:
-				 * - Create template components in apps/frontend/src/app/(owner)/documents/templates/
-				 * - Use the existing PDF generation service (apps/backend/src/modules/pdf/) for exports
-				 * - Store templates in Supabase Storage with owner_user_id scoping
-				 * - Add template customization UI (logo upload, custom fields, state-specific clauses)
-				 * - Consider using a form builder library for dynamic template creation
-				 *
-				 * Template structure: Each template needs a preview component, edit form, and PDF export
-				 */}
-				{/* Future Templates Placeholder */}
-				<Card className="opacity-60">
+				{/* Property Inspection Report Template */}
+				<Card className="transition-all hover:shadow-md">
 					<CardHeader>
 						<CardTitle className="flex items-center gap-2">
 							<FileText className="size-5" />
-							Additional Templates
+							Property Inspection Report
 						</CardTitle>
 						<CardDescription>
-							More document templates coming soon
+							Pre/post move-in checklists with photo documentation
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="space-y-2 text-muted">
-							<p>Future templates will include:</p>
+							<p>Include every room, fixture, and appliance with photo proof:</p>
 							<ul className="list-disc space-y-1 pl-4">
-								<li>Property inspection reports</li>
-								<li>Rental applications</li>
-								<li>Tenant notices</li>
-								<li>Maintenance request forms</li>
+								<li>Move-in/move-out checklist builder</li>
+								<li>Photo uploads and notes</li>
+								<li>Inspector signatures</li>
+								<li>Exportable PDF summary</li>
 							</ul>
 						</div>
-						<Button size="sm" disabled>
-							Coming Soon
-						</Button>
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" asChild>
+								<Link href="/documents/templates/property-inspection">
+									<Eye className="mr-2 size-4" />
+									View Details
+								</Link>
+							</Button>
+							<Button size="sm" asChild>
+								<Link href="/documents/templates/property-inspection">
+									<ArrowRight className="mr-2 size-4" />
+									Access Template
+								</Link>
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Rental Application Template */}
+				<Card className="transition-all hover:shadow-md">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<FileText className="size-5" />
+							Rental Application
+						</CardTitle>
+						<CardDescription>
+							Tenant application forms with screening-ready fields
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2 text-muted">
+							<p>Collect applicant data and authorize screenings:</p>
+							<ul className="list-disc space-y-1 pl-4">
+								<li>Employment and income verification</li>
+								<li>Background check consent</li>
+								<li>Reference tracking</li>
+								<li>Custom screening criteria</li>
+							</ul>
+						</div>
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" asChild>
+								<Link href="/documents/templates/rental-application">
+									<Eye className="mr-2 size-4" />
+									View Details
+								</Link>
+							</Button>
+							<Button size="sm" asChild>
+								<Link href="/documents/templates/rental-application">
+									<ArrowRight className="mr-2 size-4" />
+									Access Template
+								</Link>
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Tenant Notice Template */}
+				<Card className="transition-all hover:shadow-md">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<FileText className="size-5" />
+							Tenant Notice
+						</CardTitle>
+						<CardDescription>
+							Late rent, lease violation, and move-out notices
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2 text-muted">
+							<p>Automate compliant communication with residents:</p>
+							<ul className="list-disc space-y-1 pl-4">
+								<li>Late rent notices with cure dates</li>
+								<li>Lease violation escalation</li>
+								<li>Move-out communication</li>
+								<li>State-specific clauses</li>
+							</ul>
+						</div>
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" asChild>
+								<Link href="/documents/templates/tenant-notice">
+									<Eye className="mr-2 size-4" />
+									View Details
+								</Link>
+							</Button>
+							<Button size="sm" asChild>
+								<Link href="/documents/templates/tenant-notice">
+									<ArrowRight className="mr-2 size-4" />
+									Access Template
+								</Link>
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+
+				{/* Maintenance Request Form Template */}
+				<Card className="transition-all hover:shadow-md">
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<FileText className="size-5" />
+							Maintenance Request Form
+						</CardTitle>
+						<CardDescription>
+							Printable work order forms for vendors
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="space-y-2 text-muted">
+							<p>Standardize maintenance workflows and approvals:</p>
+							<ul className="list-disc space-y-1 pl-4">
+								<li>Priority and scheduling fields</li>
+								<li>Access instructions</li>
+								<li>Vendor-ready work orders</li>
+								<li>Owner branding</li>
+							</ul>
+						</div>
+						<div className="flex gap-2">
+							<Button variant="outline" size="sm" asChild>
+								<Link href="/documents/templates/maintenance-request">
+									<Eye className="mr-2 size-4" />
+									View Details
+								</Link>
+							</Button>
+							<Button size="sm" asChild>
+								<Link href="/documents/templates/maintenance-request">
+									<ArrowRight className="mr-2 size-4" />
+									Access Template
+								</Link>
+							</Button>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
