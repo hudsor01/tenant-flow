@@ -26,6 +26,35 @@ const fieldTypes: Array<DynamicField['type']> = [
 	'checkbox'
 ]
 
+/** Regex for valid field names: alphanumeric and underscores, starting with letter */
+const VALID_FIELD_NAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]*$/
+
+/** Generate a unique field name using timestamp to avoid collisions */
+function generateUniqueFieldName(): string {
+	return `customField_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+/** Validate a field name for uniqueness and format */
+function validateFieldName(
+	name: string,
+	existingNames: string[],
+	currentIndex: number
+): string | null {
+	if (!name.trim()) {
+		return 'Field key is required'
+	}
+	if (!VALID_FIELD_NAME_PATTERN.test(name)) {
+		return 'Field key must start with a letter and contain only letters, numbers, and underscores'
+	}
+	const isDuplicate = existingNames.some(
+		(existingName, idx) => idx !== currentIndex && existingName === name
+	)
+	if (isDuplicate) {
+		return 'Field key must be unique'
+	}
+	return null
+}
+
 interface FormBuilderPanelProps {
 	fields: DynamicField[]
 	onChange: (fields: DynamicField[]) => void
@@ -39,11 +68,13 @@ export function FormBuilderPanel({
 	onSave,
 	isSaving
 }: FormBuilderPanelProps) {
+	const [fieldErrors, setFieldErrors] = React.useState<Record<number, string | null>>({})
+
 	const handleAdd = () => {
 		onChange([
 			...fields,
 			{
-				name: `customField${fields.length + 1}`,
+				name: generateUniqueFieldName(),
 				label: 'New field',
 				type: 'text',
 				section: 'Custom fields',
@@ -57,6 +88,12 @@ export function FormBuilderPanel({
 		key: K,
 		value: DynamicField[K]
 	) => {
+		if (key === 'name' && typeof value === 'string') {
+			const existingNames = fields.map(f => f.name)
+			const error = validateFieldName(value, existingNames, index)
+			setFieldErrors(prev => ({ ...prev, [index]: error }))
+		}
+
 		onChange(
 			fields.map((field, idx) =>
 				idx === index ? { ...field, [key]: value } : field
@@ -135,7 +172,11 @@ export function FormBuilderPanel({
 									onChange={event =>
 										updateField(index, 'name', event.target.value)
 									}
+									className={fieldErrors[index] ? 'border-destructive' : ''}
 								/>
+								{fieldErrors[index] ? (
+									<p className="text-xs text-destructive">{fieldErrors[index]}</p>
+								) : null}
 							</div>
 							<div className="space-y-2">
 								<Label>Type</Label>
