@@ -20,8 +20,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class ReportsService {
-
-	constructor(@Optional() private readonly logger: AppLogger, private readonly supabase?: SupabaseService) {}
+	constructor(
+		@Optional() private readonly logger: AppLogger,
+		private readonly supabase?: SupabaseService
+	) {}
 
 	private ensureSupabase(): boolean {
 		if (!this.supabase) {
@@ -38,7 +40,9 @@ export class ReportsService {
 	private parseDateRange(start_date?: string, end_date?: string) {
 		const now = new Date()
 		const end = end_date ? new Date(end_date) : now
-		const start = start_date ? new Date(start_date) : new Date(now.getFullYear(), now.getMonth() - 11, 1)
+		const start = start_date
+			? new Date(start_date)
+			: new Date(now.getFullYear(), now.getMonth() - 11, 1)
 		return { start, end }
 	}
 
@@ -329,9 +333,9 @@ export class ReportsService {
 							100
 						: 0,
 				paymentsByMethod: {
-				card: payments.filter(p => p.payment_method_type === 'card').length,
-				ach: payments.filter(p => p.payment_method_type === 'ach').length
-			},
+					card: payments.filter(p => p.payment_method_type === 'card').length,
+					ach: payments.filter(p => p.payment_method_type === 'ach').length
+				},
 				paymentsByStatus: {
 					completed: payments.filter(p => p.status === 'succeeded').length,
 					pending: payments.filter(p => p.status === 'pending').length,
@@ -518,15 +522,14 @@ export class ReportsService {
 				)
 			`
 			)
-			.in(
-				'maintenance_requests.units.property_id',
-				property_ids
-			)
+			.in('maintenance_requests.units.property_id', property_ids)
 			.gte('expense_date', start.toISOString())
 			.lte('expense_date', end.toISOString())
 
 		if (expenseError) {
-			this.logger.error('Failed to load expenses', { error: expenseError.message })
+			this.logger.error('Failed to load expenses', {
+				error: expenseError.message
+			})
 		}
 
 		let totalIncome = 0
@@ -543,23 +546,31 @@ export class ReportsService {
 				if (bucket) bucket.income += amount
 			}
 		})
-
 		;(maintenance ?? []).forEach(request => {
 			const cost = (request.actual_cost ?? request.estimated_cost ?? 0) / 100
 			totalExpenses += cost
-			expenseBreakdown.set('Maintenance', (expenseBreakdown.get('Maintenance') ?? 0) + cost)
-			const monthKey = request.completed_at?.substring(0, 7) ?? request.created_at?.substring(0, 7)
+			expenseBreakdown.set(
+				'Maintenance',
+				(expenseBreakdown.get('Maintenance') ?? 0) + cost
+			)
+			const monthKey =
+				request.completed_at?.substring(0, 7) ??
+				request.created_at?.substring(0, 7)
 			if (monthKey && monthBuckets.has(monthKey)) {
 				const bucket = monthBuckets.get(monthKey)
 				if (bucket) bucket.expenses += cost
 			}
 		})
-
 		;(expenses ?? []).forEach(expense => {
 			const amount = expense.amount / 100
 			totalExpenses += amount
-			const category = expense.vendor_name ? `Vendor: ${expense.vendor_name}` : 'Other'
-			expenseBreakdown.set(category, (expenseBreakdown.get(category) ?? 0) + amount)
+			const category = expense.vendor_name
+				? `Vendor: ${expense.vendor_name}`
+				: 'Other'
+			expenseBreakdown.set(
+				category,
+				(expenseBreakdown.get(category) ?? 0) + amount
+			)
 			const monthKey = expense.expense_date?.substring(0, 7)
 			if (monthKey && monthBuckets.has(monthKey)) {
 				const bucket = monthBuckets.get(monthKey)
@@ -580,20 +591,35 @@ export class ReportsService {
 			.in('unit.property_id', property_ids)
 			.eq('lease_status', 'active')
 
-		const unitCountByProperty = new Map<string, { total: number; occupied: number; rentPotential: number }>()
+		const unitCountByProperty = new Map<
+			string,
+			{ total: number; occupied: number; rentPotential: number }
+		>()
 
 		;(units ?? []).forEach(unit => {
-			const entry = unitCountByProperty.get(unit.property_id) ?? { total: 0, occupied: 0, rentPotential: 0 }
+			const entry = unitCountByProperty.get(unit.property_id) ?? {
+				total: 0,
+				occupied: 0,
+				rentPotential: 0
+			}
 			entry.total += 1
 			entry.rentPotential += unit.rent_amount ? unit.rent_amount / 100 : 0
 			unitCountByProperty.set(unit.property_id, entry)
 		})
 
-		type LeaseWithUnit = { id: string; unit_id: string; unit: { property_id: string } | null }
+		type LeaseWithUnit = {
+			id: string
+			unit_id: string
+			unit: { property_id: string } | null
+		}
 		;((activeLeases ?? []) as LeaseWithUnit[]).forEach(lease => {
 			const propertyId = lease.unit?.property_id
 			if (!propertyId) return
-			const entry = unitCountByProperty.get(propertyId) ?? { total: 0, occupied: 0, rentPotential: 0 }
+			const entry = unitCountByProperty.get(propertyId) ?? {
+				total: 0,
+				occupied: 0,
+				rentPotential: 0
+			}
 			entry.occupied += 1
 			unitCountByProperty.set(propertyId, entry)
 		})
@@ -605,8 +631,14 @@ export class ReportsService {
 			.in('id', property_ids)
 
 		const rentRoll = (properties ?? []).map(property => {
-			const entry = unitCountByProperty.get(property.id) ?? { total: 0, occupied: 0, rentPotential: 0 }
-			const occupancyRate = entry.total ? (entry.occupied / entry.total) * 100 : 0
+			const entry = unitCountByProperty.get(property.id) ?? {
+				total: 0,
+				occupied: 0,
+				rentPotential: 0
+			}
+			const occupancyRate = entry.total
+				? (entry.occupied / entry.total) * 100
+				: 0
 			return {
 				propertyId: property.id,
 				propertyName: property.name,
@@ -618,16 +650,21 @@ export class ReportsService {
 		})
 
 		const rentRollOccupancyRate =
-			rentRoll.reduce((sum, row) => sum + row.occupiedUnits, 0) /
-			Math.max(1, rentRoll.reduce((sum, row) => sum + row.unitCount, 0)) *
+			(rentRoll.reduce((sum, row) => sum + row.occupiedUnits, 0) /
+				Math.max(
+					1,
+					rentRoll.reduce((sum, row) => sum + row.unitCount, 0)
+				)) *
 			100
 
-		const monthly = Array.from(monthBuckets.entries()).map(([month, values]) => ({
-			month,
-			income: values.income,
-			expenses: values.expenses,
-			net: values.income - values.expenses
-		}))
+		const monthly = Array.from(monthBuckets.entries()).map(
+			([month, values]) => ({
+				month,
+				income: values.income,
+				expenses: values.expenses,
+				net: values.income - values.expenses
+			})
+		)
 
 		const expenseBreakdownArray = Array.from(expenseBreakdown.entries()).map(
 			([category, amount]) => ({
@@ -734,7 +771,11 @@ export class ReportsService {
 			unitMap.set(unit.property_id, entry)
 		})
 
-		type LeaseWithUnitRef = { id: string; unit_id: string; unit: { property_id: string } | null }
+		type LeaseWithUnitRef = {
+			id: string
+			unit_id: string
+			unit: { property_id: string } | null
+		}
 		;((activeLeases ?? []) as LeaseWithUnitRef[]).forEach(lease => {
 			const propertyId = lease.unit?.property_id
 			if (!propertyId) return
@@ -744,13 +785,21 @@ export class ReportsService {
 		})
 
 		const revenueByProperty = new Map<string, number>()
-		type PaymentWithLeaseUnit = { amount: number | null; status: string | null; created_at: string | null; lease: { unit: { property_id: string } | null } | null }
+		type PaymentWithLeaseUnit = {
+			amount: number | null
+			status: string | null
+			created_at: string | null
+			lease: { unit: { property_id: string } | null } | null
+		}
 		;((payments ?? []) as PaymentWithLeaseUnit[]).forEach(payment => {
 			if (payment.status !== 'succeeded') return
 			const propertyId = payment.lease?.unit?.property_id
 			if (!propertyId) return
 			const amount = payment.amount ? payment.amount / 100 : 0
-			revenueByProperty.set(propertyId, (revenueByProperty.get(propertyId) ?? 0) + amount)
+			revenueByProperty.set(
+				propertyId,
+				(revenueByProperty.get(propertyId) ?? 0) + amount
+			)
 		})
 
 		const expensesByProperty = new Map<string, number>()
@@ -758,14 +807,18 @@ export class ReportsService {
 			const propertyId = request.unit?.property_id
 			if (!propertyId) return
 			const cost = (request.actual_cost ?? request.estimated_cost ?? 0) / 100
-			expensesByProperty.set(propertyId, (expensesByProperty.get(propertyId) ?? 0) + cost)
-			const monthKey = request.completed_at?.substring(0, 7) ?? request.created_at?.substring(0, 7)
+			expensesByProperty.set(
+				propertyId,
+				(expensesByProperty.get(propertyId) ?? 0) + cost
+			)
+			const monthKey =
+				request.completed_at?.substring(0, 7) ??
+				request.created_at?.substring(0, 7)
 			if (monthKey && monthBuckets.has(monthKey)) {
 				const bucket = monthBuckets.get(monthKey)
 				if (bucket) bucket.expenses += cost
 			}
 		})
-
 		;(payments ?? []).forEach(payment => {
 			if (payment.status !== 'succeeded') return
 			const monthKey = payment.created_at?.substring(0, 7)
@@ -778,7 +831,9 @@ export class ReportsService {
 
 		const byProperty = (properties ?? []).map(property => {
 			const entry = unitMap.get(property.id) ?? { total: 0, occupied: 0 }
-			const occupancyRate = entry.total ? (entry.occupied / entry.total) * 100 : 0
+			const occupancyRate = entry.total
+				? (entry.occupied / entry.total) * 100
+				: 0
 			const revenue = revenueByProperty.get(property.id) ?? 0
 			const expenses = expensesByProperty.get(property.id) ?? 0
 			return {
@@ -792,14 +847,22 @@ export class ReportsService {
 			}
 		})
 
-		const totalUnits = Array.from(unitMap.values()).reduce((sum, row) => sum + row.total, 0)
-		const occupiedUnits = Array.from(unitMap.values()).reduce((sum, row) => sum + row.occupied, 0)
+		const totalUnits = Array.from(unitMap.values()).reduce(
+			(sum, row) => sum + row.total,
+			0
+		)
+		const occupiedUnits = Array.from(unitMap.values()).reduce(
+			(sum, row) => sum + row.occupied,
+			0
+		)
 		const occupancyRate = totalUnits ? (occupiedUnits / totalUnits) * 100 : 0
 
-		const occupancyTrend = Array.from(monthBuckets.entries()).map(([month, _values]) => {
-			const monthlyRate = totalUnits ? (occupiedUnits / totalUnits) * 100 : 0
-			return { month, occupancyRate: monthlyRate }
-		})
+		const occupancyTrend = Array.from(monthBuckets.entries()).map(
+			([month, _values]) => {
+				const monthlyRate = totalUnits ? (occupiedUnits / totalUnits) * 100 : 0
+				return { month, occupancyRate: monthlyRate }
+			}
+		)
 
 		const vacancyTrend = Array.from(monthBuckets.entries()).map(([month]) => ({
 			month,
@@ -886,7 +949,11 @@ export class ReportsService {
 			if (!monthKey || !monthBuckets.has(monthKey)) return
 			const entry = paymentSummary.get(monthKey) ?? { total: 0, onTime: 0 }
 			entry.total += 1
-			if (payment.status === 'succeeded' && payment.paid_date && payment.paid_date <= payment.due_date) {
+			if (
+				payment.status === 'succeeded' &&
+				payment.paid_date &&
+				payment.paid_date <= payment.due_date
+			) {
 				entry.onTime += 1
 			}
 			paymentSummary.set(monthKey, entry)
@@ -919,13 +986,23 @@ export class ReportsService {
 		const ninetyDays = new Date(now)
 		ninetyDays.setDate(ninetyDays.getDate() + 90)
 
-		type LeaseWithUnitProp = { id: string; start_date: string | null; end_date: string; unit_id: string; lease_status: string | null; primary_tenant_id: string | null; unit: { property_id: string } | null }
+		type LeaseWithUnitProp = {
+			id: string
+			start_date: string | null
+			end_date: string
+			unit_id: string
+			lease_status: string | null
+			primary_tenant_id: string | null
+			unit: { property_id: string } | null
+		}
 		const leaseExpirations = ((leases ?? []) as LeaseWithUnitProp[])
 			.filter(lease => lease.end_date && new Date(lease.end_date) <= ninetyDays)
 			.map(lease => {
 				const unitInfo = unitMap.get(lease.unit_id)
 				const propertyId = unitInfo?.propertyId ?? lease.unit?.property_id
-				const propertyName = propertyId ? propertyMap.get(propertyId) ?? 'Property' : 'Property'
+				const propertyName = propertyId
+					? (propertyMap.get(propertyId) ?? 'Property')
+					: 'Property'
 				return {
 					leaseId: lease.id,
 					propertyName,
@@ -954,14 +1031,21 @@ export class ReportsService {
 			moveOuts: moveOutsByMonth.get(month) ?? 0
 		}))
 
-		const totalPayments = paymentHistory.reduce((sum, row) => sum + row.paymentsReceived, 0)
+		const totalPayments = paymentHistory.reduce(
+			(sum, row) => sum + row.paymentsReceived,
+			0
+		)
 		const onTimePayments = paymentHistory.reduce(
 			(sum, row) => sum + (row.onTimeRate / 100) * row.paymentsReceived,
 			0
 		)
-		const onTimePaymentRate = totalPayments ? (onTimePayments / totalPayments) * 100 : 0
+		const onTimePaymentRate = totalPayments
+			? (onTimePayments / totalPayments) * 100
+			: 0
 
-		const activeLeases = (leases ?? []).filter(lease => lease.lease_status === 'active').length
+		const activeLeases = (leases ?? []).filter(
+			lease => lease.lease_status === 'active'
+		).length
 
 		const tenantIds = new Set<string>()
 		;(leases ?? []).forEach(lease => {
@@ -970,7 +1054,9 @@ export class ReportsService {
 		const totalTenants = tenantIds.size
 		const totalMoveIns = turnover.reduce((sum, row) => sum + row.moveIns, 0)
 		const totalMoveOuts = turnover.reduce((sum, row) => sum + row.moveOuts, 0)
-		const turnoverRate = totalTenants ? ((totalMoveIns + totalMoveOuts) / Math.max(1, totalTenants)) * 100 : 0
+		const turnoverRate = totalTenants
+			? ((totalMoveIns + totalMoveOuts) / Math.max(1, totalTenants)) * 100
+			: 0
 
 		return {
 			summary: {
@@ -1052,23 +1138,28 @@ export class ReportsService {
 			totalRequests += 1
 			if (request.status !== 'completed') openRequests += 1
 			byStatus.set(request.status, (byStatus.get(request.status) ?? 0) + 1)
-			byPriority.set(request.priority, (byPriority.get(request.priority) ?? 0) + 1)
+			byPriority.set(
+				request.priority,
+				(byPriority.get(request.priority) ?? 0) + 1
+			)
 			const cost = (request.actual_cost ?? request.estimated_cost ?? 0) / 100
 			totalCost += cost
-			const monthKey = request.completed_at?.substring(0, 7) ?? request.created_at?.substring(0, 7)
+			const monthKey =
+				request.completed_at?.substring(0, 7) ??
+				request.created_at?.substring(0, 7)
 			if (monthKey && monthlyCostBuckets.has(monthKey)) {
 				const bucket = monthlyCostBuckets.get(monthKey)
 				if (bucket) bucket.expenses += cost
 			}
 			if (request.completed_at && request.created_at) {
 				const duration =
-					(new Date(request.completed_at).getTime() - new Date(request.created_at).getTime()) /
+					(new Date(request.completed_at).getTime() -
+						new Date(request.created_at).getTime()) /
 					(1000 * 60 * 60)
 				totalResolutionHours += duration
 				resolutionCount += 1
 			}
 		})
-
 		;(expenses ?? []).forEach(expense => {
 			const cost = expense.amount / 100
 			totalCost += cost
@@ -1079,22 +1170,32 @@ export class ReportsService {
 			}
 		})
 
-		const vendorPerformanceMap = new Map<string, { totalSpend: number; jobs: number }>()
+		const vendorPerformanceMap = new Map<
+			string,
+			{ totalSpend: number; jobs: number }
+		>()
 		;(expenses ?? []).forEach(expense => {
 			const vendor = expense.vendor_name ?? 'Unknown'
-			const entry = vendorPerformanceMap.get(vendor) ?? { totalSpend: 0, jobs: 0 }
+			const entry = vendorPerformanceMap.get(vendor) ?? {
+				totalSpend: 0,
+				jobs: 0
+			}
 			entry.totalSpend += expense.amount / 100
 			entry.jobs += 1
 			vendorPerformanceMap.set(vendor, entry)
 		})
 
-		const monthlyCost = Array.from(monthlyCostBuckets.entries()).map(([month, values]) => ({
-			month,
-			cost: values.expenses
-		}))
+		const monthlyCost = Array.from(monthlyCostBuckets.entries()).map(
+			([month, values]) => ({
+				month,
+				cost: values.expenses
+			})
+		)
 
 		const averageCost = totalRequests ? totalCost / totalRequests : 0
-		const avgResolutionHours = resolutionCount ? totalResolutionHours / resolutionCount : 0
+		const avgResolutionHours = resolutionCount
+			? totalResolutionHours / resolutionCount
+			: 0
 
 		return {
 			summary: {

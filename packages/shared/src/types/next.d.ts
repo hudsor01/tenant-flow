@@ -5,30 +5,31 @@
  */
 
 declare global {
-  /**
-   * Type helper for page component props with typed params
-   * In Next.js 15+, params is a Promise that must be awaited
-   */
-  type PageProps<T extends string> = {
-    params: Promise<ExtractRouteParams<T>>
-    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
-  }
+	/**
+	 * Type helper for page component props with typed params
+	 * In Next.js 15+, params is a Promise that must be awaited
+	 */
+	type PageProps<T extends string> = {
+		params: Promise<ExtractRouteParams<T>>
+		searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
+	}
 
-  /**
-   * Type helper for layout component props with typed params and parallel routes
-   */
-  type LayoutProps<T extends string> = {
-    children: React.ReactNode
-    params?: ExtractRouteParams<T>
-    modal?: React.ReactNode
-  }
+	/**
+	 * Type helper for layout component props with typed params and parallel routes
+	 */
+	type LayoutProps<T extends string> = {
+		children: React.ReactNode
+		params?: ExtractRouteParams<T>
+		modal?: React.ReactNode
+	}
 
-  /**
-   * Helper type to extract route parameters from a route string
-   */
-  type ExtractRouteParams<T extends string> = T extends `${infer _Start}/[${infer Param}]${infer Rest}`
-    ? { [K in Param]: string } & ExtractRouteParams<Rest>
-    : {}
+	/**
+	 * Helper type to extract route parameters from a route string
+	 */
+	type ExtractRouteParams<T extends string> =
+		T extends `${infer _Start}/[${infer Param}]${infer Rest}`
+			? { [K in Param]: string } & ExtractRouteParams<Rest>
+			: {}
 }
 
 export {}

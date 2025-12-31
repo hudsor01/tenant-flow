@@ -21,7 +21,8 @@ const steps = [
 	{
 		number: '01',
 		title: 'Add Your Properties',
-		description: 'Import your portfolio in minutes. Add property details, units, and set up rent amounts. Our CSV import handles bulk uploads effortlessly.',
+		description:
+			'Import your portfolio in minutes. Add property details, units, and set up rent amounts. Our CSV import handles bulk uploads effortlessly.',
 		icon: Building,
 		features: [
 			'Bulk CSV import',
@@ -33,19 +34,17 @@ const steps = [
 	{
 		number: '02',
 		title: 'Invite Your Tenants',
-		description: 'Send digital invitations to tenants. They get their own portal for payments, maintenance requests, and lease documents.',
+		description:
+			'Send digital invitations to tenants. They get their own portal for payments, maintenance requests, and lease documents.',
 		icon: Users,
-		features: [
-			'Self-service portal',
-			'Online payments',
-			'Document signing'
-		],
+		features: ['Self-service portal', 'Online payments', 'Document signing'],
 		color: 'info'
 	},
 	{
 		number: '03',
 		title: 'Automate Everything',
-		description: 'Let TenantFlow handle the rest. Automated rent collection, late fees, maintenance workflows, and financial reporting.',
+		description:
+			'Let TenantFlow handle the rest. Automated rent collection, late fees, maintenance workflows, and financial reporting.',
 		icon: Zap,
 		features: [
 			'Auto rent collection',
@@ -58,7 +57,9 @@ const steps = [
 
 export function HowItWorks({ className }: HowItWorksProps) {
 	return (
-		<section className={cn('section-spacing relative overflow-hidden', className)}>
+		<section
+			className={cn('section-spacing relative overflow-hidden', className)}
+		>
 			{/* Subtle background pattern */}
 			<div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,color-mix(in_oklch,var(--color-primary)_3%,transparent),transparent_70%)]" />
 
@@ -72,7 +73,8 @@ export function HowItWorks({ className }: HowItWorksProps) {
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							From signup to automation in three simple steps. No complex setup, no technical skills required.
+							From signup to automation in three simple steps. No complex setup,
+							no technical skills required.
 						</p>
 					</div>
 				</BlurFade>
@@ -115,7 +117,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 }
 
 interface StepCardProps {
-	step: typeof steps[number]
+	step: (typeof steps)[number]
 	index: number
 }
 
@@ -149,25 +151,27 @@ function StepCard({ step, index }: StepCardProps) {
 			<div className="card-standard p-8 h-full hover:shadow-lg hover:border-primary/20 transition-all duration-300">
 				{/* Step number & icon */}
 				<div className="flex items-start justify-between mb-6">
-					<div className={cn(
-						'size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300',
-						colors.bg,
-						colors.text
-					)}>
+					<div
+						className={cn(
+							'size-16 rounded-2xl flex-center shadow-lg group-hover:scale-105 transition-transform duration-300',
+							colors.bg,
+							colors.text
+						)}
+					>
 						<step.icon className="size-8" />
 					</div>
-					<span className={cn(
-						'typography-h1 opacity-20 group-hover:opacity-40 transition-opacity',
-						colors.text
-					)}>
+					<span
+						className={cn(
+							'typography-h1 opacity-20 group-hover:opacity-40 transition-opacity',
+							colors.text
+						)}
+					>
 						{step.number}
 					</span>
 				</div>
 
 				{/* Content */}
-				<h3 className="text-xl font-bold text-foreground mb-3">
-					{step.title}
-				</h3>
+				<h3 className="text-xl font-bold text-foreground mb-3">{step.title}</h3>
 				<p className="text-muted-foreground leading-relaxed mb-6">
 					{step.description}
 				</p>
@@ -176,10 +180,7 @@ function StepCard({ step, index }: StepCardProps) {
 				<ul className="space-y-2">
 					{step.features.map(feature => (
 						<li key={feature} className="flex items-center gap-2 text-sm">
-							<div className={cn(
-								'size-5 rounded-full flex-center',
-								colors.bg
-							)}>
+							<div className={cn('size-5 rounded-full flex-center', colors.bg)}>
 								<Check className={cn('size-3', colors.text)} />
 							</div>
 							<span className="text-foreground">{feature}</span>

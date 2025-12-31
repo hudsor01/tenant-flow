@@ -120,13 +120,14 @@ export function PaymentMethodsContent() {
 		setShowAddDialog(false)
 	}
 
-	const hasPaymentMethods = Array.isArray(paymentMethods) && paymentMethods.length > 0
+	const hasPaymentMethods =
+		Array.isArray(paymentMethods) && paymentMethods.length > 0
 
 	return (
 		<>
 			<div className="container mx-auto py-8">
 				<div className="mb-8">
-					<h1 className="typography-h2 tracking-tight">Payment Methods</h1>
+					<h1 className="typography-h1">Payment Methods</h1>
 					<p className="text-muted-foreground mt-2">
 						Manage your payment methods for rent and fees
 					</p>
@@ -155,9 +156,7 @@ export function PaymentMethodsContent() {
 						) : !hasPaymentMethods ? (
 							<div className="text-center py-8">
 								<CreditCard className="mx-auto size-12 text-muted-foreground mb-4" />
-								<p className="text-muted mb-4">
-									No payment methods saved yet
-								</p>
+								<p className="text-muted mb-4">No payment methods saved yet</p>
 								<Button
 									onClick={() => setShowAddDialog(true)}
 									variant="outline"
@@ -169,65 +168,66 @@ export function PaymentMethodsContent() {
 							</div>
 						) : (
 							<div className="space-y-3">
-								{paymentMethods && paymentMethods.map(method => {
-									const display = formatPaymentMethod(method)
+								{paymentMethods &&
+									paymentMethods.map(method => {
+										const display = formatPaymentMethod(method)
 
-									return (
-										<div
-											key={method.id}
-											className="flex-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-										>
-											<div className="flex items-center gap-4">
-												<div className="text-muted-foreground">
-													{display.icon}
-												</div>
-												<div>
-													<div className="flex items-center gap-2">
-														<span className="font-medium">{display.label}</span>
-														{method.isDefault && (
-															<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-																<Check className="size-3" />
-																Default
+										return (
+											<div
+												key={method.id}
+												className="flex-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+											>
+												<div className="flex items-center gap-4">
+													<div className="text-muted-foreground">
+														{display.icon}
+													</div>
+													<div>
+														<div className="flex items-center gap-2">
+															<span className="font-medium">
+																{display.label}
 															</span>
+															{method.isDefault && (
+																<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+																	<Check className="size-3" />
+																	Default
+																</span>
+															)}
+														</div>
+														{display.details && (
+															<p className="text-muted">{display.details}</p>
 														)}
 													</div>
-													{display.details && (
-														<p className="text-muted">
-															{display.details}
-														</p>
-													)}
 												</div>
-											</div>
 
-											<DropdownMenu>
-												<DropdownMenuTrigger asChild>
-													<Button variant="ghost" size="sm">
-														<MoreVertical className="size-4" />
-													</Button>
-												</DropdownMenuTrigger>
-												<DropdownMenuContent align="end">
-													{!method.isDefault && (
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" size="sm">
+															<MoreVertical className="size-4" />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end">
+														{!method.isDefault && (
+															<DropdownMenuItem
+																onClick={() => handleSetDefault(method.id)}
+																disabled={setDefault.isPending}
+															>
+																<Check className="mr-2 size-4" />
+																Set as Default
+															</DropdownMenuItem>
+														)}
 														<DropdownMenuItem
-															onClick={() => handleSetDefault(method.id)}
-															disabled={setDefault.isPending}
+															onClick={() => handleDelete(method.id)}
+															disabled={deleteMethod.isPending}
+															className="text-destructive focus:text-destructive"
 														>
-															<Check className="mr-2 size-4" />
-															Set as Default
+															<Trash2 className="mr-2 size-4" />
+															Remove
 														</DropdownMenuItem>
-													)}
-													<DropdownMenuItem
-														onClick={() => handleDelete(method.id)}
-														disabled={deleteMethod.isPending}
-														className="text-destructive focus:text-destructive"
-													>
-														<Trash2 className="mr-2 size-4" />
-														Remove
-													</DropdownMenuItem>
-												</DropdownMenuContent>
-											</DropdownMenu>
-										</div>
-									)
-								})}
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</div>
+										)
+									})}
 							</div>
 						)}
 					</CardContent>

@@ -3,12 +3,12 @@
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { Separator } from '#components/ui/separator'
-import type { PaymentHistoryItem } from '#hooks/api/use-payment-history'
+import type { BillingHistoryItem } from '#hooks/api/use-billing-history'
 import { cn } from '#lib/utils'
 import { CreditCard, Download } from 'lucide-react'
 
 interface PaymentHistoryCardProps {
-	payment: PaymentHistoryItem
+	payment: BillingHistoryItem
 	statusClass?: string
 }
 
@@ -26,16 +26,21 @@ function getStatusBadgeClass(status: string) {
 	}
 }
 
-export function PaymentHistoryCard({ payment, statusClass }: PaymentHistoryCardProps) {
+export function PaymentHistoryCard({
+	payment,
+	statusClass
+}: PaymentHistoryCardProps) {
 	return (
 		<div
 			data-testid="payment-history-card"
 			data-layout="stacked"
-			className="rounded-lg border p-4 space-y-3 bg-card shadow-sm"
+			className="bg-card border border-border rounded-lg p-4 space-y-3"
 		>
 			<div className="flex items-start justify-between gap-3">
 				<div className="space-y-1 min-w-0">
-					<p className="font-semibold leading-tight break-words">{payment.formattedDate}</p>
+					<p className="font-semibold leading-tight break-words">
+						{payment.formattedDate}
+					</p>
 					<p className="text-muted text-sm break-words">
 						{payment.description || 'Monthly Rent'}
 					</p>
@@ -52,7 +57,9 @@ export function PaymentHistoryCard({ payment, statusClass }: PaymentHistoryCardP
 					<CreditCard className="size-4" aria-hidden />
 					<span className="capitalize">Credit Card</span>
 					{payment.stripePaymentIntentId && (
-						<span className="text-xs text-muted">{payment.stripePaymentIntentId}</span>
+						<span className="text-xs text-muted">
+							{payment.stripePaymentIntentId}
+						</span>
 					)}
 				</div>
 				<div className="flex flex-wrap items-center gap-2 justify-between">
@@ -62,7 +69,8 @@ export function PaymentHistoryCard({ payment, statusClass }: PaymentHistoryCardP
 					>
 						{payment.status === 'succeeded'
 							? 'Paid'
-							: payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+							: payment.status.charAt(0).toUpperCase() +
+								payment.status.slice(1)}
 					</Badge>
 					<Button
 						variant="outline"

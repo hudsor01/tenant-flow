@@ -12,7 +12,8 @@
  * 4. Custom className prop is merged correctly
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, test, expect } from 'vitest'
 import {
 	Table,
@@ -123,7 +124,9 @@ describe('Table Component', () => {
 							<TableCell data-testid="unit-cell">
 								<div className="flex flex-col">
 									<span className="font-medium">Unit 101</span>
-									<span className="text-sm text-muted-foreground">2 bd · 1 ba</span>
+									<span className="text-sm text-muted-foreground">
+										2 bd · 1 ba
+									</span>
 								</div>
 							</TableCell>
 						</TableRow>
@@ -220,12 +223,30 @@ describe('Table Component', () => {
 			// These data-slot attributes help with styling and testing
 			// Table component wraps in a container, so we get the actual table element
 			expect(screen.getByRole('table')).toHaveAttribute('data-slot', 'table')
-			expect(screen.getByTestId('header')).toHaveAttribute('data-slot', 'table-header')
-			expect(screen.getByTestId('body')).toHaveAttribute('data-slot', 'table-body')
-			expect(screen.getByTestId('header-row')).toHaveAttribute('data-slot', 'table-row')
-			expect(screen.getByTestId('body-row')).toHaveAttribute('data-slot', 'table-row')
-			expect(screen.getByTestId('head')).toHaveAttribute('data-slot', 'table-head')
-			expect(screen.getByTestId('cell')).toHaveAttribute('data-slot', 'table-cell')
+			expect(screen.getByTestId('header')).toHaveAttribute(
+				'data-slot',
+				'table-header'
+			)
+			expect(screen.getByTestId('body')).toHaveAttribute(
+				'data-slot',
+				'table-body'
+			)
+			expect(screen.getByTestId('header-row')).toHaveAttribute(
+				'data-slot',
+				'table-row'
+			)
+			expect(screen.getByTestId('body-row')).toHaveAttribute(
+				'data-slot',
+				'table-row'
+			)
+			expect(screen.getByTestId('head')).toHaveAttribute(
+				'data-slot',
+				'table-head'
+			)
+			expect(screen.getByTestId('cell')).toHaveAttribute(
+				'data-slot',
+				'table-cell'
+			)
 		})
 	})
 
@@ -242,7 +263,9 @@ describe('Table Component', () => {
 			)
 
 			// The container div wrapping the table
-			const container = screen.getByTestId('table').closest('[data-slot="table-container"]')
+			const container = screen
+				.getByTestId('table')
+				.closest('[data-slot="table-container"]')
 			expect(container).toHaveClass('overflow-x-auto')
 		})
 	})

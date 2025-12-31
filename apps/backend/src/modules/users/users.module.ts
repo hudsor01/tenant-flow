@@ -9,7 +9,12 @@ import { UserSessionsService } from './user-sessions.service'
 @Module({
 	imports: [SupabaseModule],
 	controllers: [UsersController],
-	providers: [UsersService, ProfileService, UserToursService, UserSessionsService],
+	providers: [
+		UsersService,
+		ProfileService,
+		UserToursService,
+		UserSessionsService
+	],
 	exports: [UsersService, ProfileService, UserToursService, UserSessionsService]
 })
 export class UsersModule {}

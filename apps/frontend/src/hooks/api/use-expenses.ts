@@ -44,8 +44,10 @@ export const expenseKeys = {
 	all: ['expenses'] as const,
 	list: () => [...expenseKeys.all, 'list'] as const,
 	detail: (id: string) => [...expenseKeys.all, 'detail', id] as const,
-	byProperty: (propertyId: string) => [...expenseKeys.all, 'property', propertyId] as const,
-	byCategory: (category: string) => [...expenseKeys.all, 'category', category] as const,
+	byProperty: (propertyId: string) =>
+		[...expenseKeys.all, 'property', propertyId] as const,
+	byCategory: (category: string) =>
+		[...expenseKeys.all, 'category', category] as const,
 	byDateRange: (start: string, end: string) =>
 		[...expenseKeys.all, 'dateRange', start, end] as const
 }
@@ -111,7 +113,8 @@ export function useExpensesByDateRange(
 		},
 		...QUERY_CACHE_TIMES.LIST,
 		retry: 2,
-		enabled: (options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
+		enabled:
+			(options?.enabled ?? true) && Boolean(startDate) && Boolean(endDate)
 	})
 }
 

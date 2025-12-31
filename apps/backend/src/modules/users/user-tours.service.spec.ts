@@ -26,7 +26,11 @@ describe('UserToursService', () => {
 			new SilentLogger() as never
 		)
 
-		const result = await service.getTourProgress(TOKEN, USER_ID, 'tenant-onboarding')
+		const result = await service.getTourProgress(
+			TOKEN,
+			USER_ID,
+			'tenant-onboarding'
+		)
 
 		expect(result).toEqual({
 			tour_key: 'tenant-onboarding',
@@ -63,10 +67,15 @@ describe('UserToursService', () => {
 			new SilentLogger() as never
 		)
 
-		const result = await service.updateTourProgress(TOKEN, USER_ID, 'tenant-onboarding', {
-			status: 'completed',
-			current_step: 5
-		})
+		const result = await service.updateTourProgress(
+			TOKEN,
+			USER_ID,
+			'tenant-onboarding',
+			{
+				status: 'completed',
+				current_step: 5
+			}
+		)
 
 		expect(mockClient.upsert).toHaveBeenCalled()
 		expect(result.status).toBe('completed')
@@ -97,7 +106,11 @@ describe('UserToursService', () => {
 			new SilentLogger() as never
 		)
 
-		const result = await service.resetTourProgress(TOKEN, USER_ID, 'owner-onboarding')
+		const result = await service.resetTourProgress(
+			TOKEN,
+			USER_ID,
+			'owner-onboarding'
+		)
 
 		expect(result.status).toBe('not_started')
 		expect(result.current_step).toBe(0)

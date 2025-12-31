@@ -17,7 +17,7 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type { Tenant, TenantWithLeaseInfo } from '@repo/shared/types/core'
+import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { tenantQueries } from './queries/tenant-queries'
 import {
 	useCreateTenant as useCreateTenantMutation,
@@ -68,8 +68,9 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 				const detailKey = tenantQueries.detail(tenant.id).queryKey
 				const leaseKey = tenantQueries.withLease(tenant.id).queryKey
 
+				// TenantWithLeaseInfo extends Tenant, so this is type-safe
 				if (!queryClient.getQueryData(detailKey)) {
-					queryClient.setQueryData(detailKey, tenant as unknown as Tenant)
+					queryClient.setQueryData(detailKey, tenant)
 				}
 				if (!queryClient.getQueryData(leaseKey)) {
 					queryClient.setQueryData(leaseKey, tenant)
@@ -105,10 +106,11 @@ export function useAllTenants() {
 					tenantQueries.withLease(tenant.id).queryKey
 				)
 
+				// TenantWithLeaseInfo extends Tenant, so this is type-safe
 				if (!existingDetail) {
 					queryClient.setQueryData(
 						tenantQueries.detail(tenant.id).queryKey,
-						tenant as unknown as Tenant
+						tenant
 					)
 				}
 				if (!existingWithLease) {
@@ -143,17 +145,6 @@ export function useTenantOperations() {
 }
 
 /**
- * Hook for tenant data with polling fallback
- * @deprecated Prefer using useTenant() with SSE enabled at app level.
- */
-export function useTenantPolling(id: string, interval: number = 5 * 60 * 1000) {
-	return useQuery({
-		...tenantQueries.polling(id),
-		refetchInterval: interval
-	})
-}
-
-/**
  * Hook for prefetching tenant data before navigation
  */
 export function usePrefetchTenant() {
@@ -184,15 +175,15 @@ export function useOptimisticTenantUpdate() {
 				queryKey: tenantQueries.detail(id).queryKey
 			})
 
-			const previous = queryClient.getQueryData<Tenant>(
+			const previous = queryClient.getQueryData<TenantWithLeaseInfo>(
 				tenantQueries.detail(id).queryKey
 			)
 
-			queryClient.setQueryData<Tenant>(
+			queryClient.setQueryData<TenantWithLeaseInfo>(
 				tenantQueries.detail(id).queryKey,
 				old => {
 					if (!old) return old
-					return { ...old, ...(updates as unknown as Partial<Tenant>) }
+					return { ...old, ...updates }
 				}
 			)
 

@@ -18,7 +18,7 @@ export function createTestServer(
 		},
 		close() {
 			return new Promise<void>((resolve, reject) => {
-				server.close((err) => {
+				server.close(err => {
 					if (err) {
 						reject(err)
 					} else {

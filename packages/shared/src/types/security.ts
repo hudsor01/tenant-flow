@@ -2,10 +2,11 @@
  * Security-related types shared between frontend and backend
  */
 
-// User user_types are consolidated in auth.ts - import from there
-// This ensures single source of truth and prevents duplication
-export { USER_user_type } from '../constants/auth.js'
-export type { Permission, SupabaseAuthUser } from '../types/auth.js'
+import { USER_user_type as USER_user_typeValue } from '../constants/auth.js'
+import type { SupabaseAuthUser as SupabaseAuthUserType } from './auth.js'
+
+export const USER_user_type = USER_user_typeValue
+export type SupabaseAuthUser = SupabaseAuthUserType
 
 /**
  * Comprehensive security event types for monitoring
@@ -172,11 +173,6 @@ export interface CSPDirectives {
 }
 
 /**
- * Type-safe user metadata for profiles - Re-export from auth.ts (primary source)
- */
-export type { SecureUserMetadata } from './auth.js'
-
-/**
  * Security event metadata with typed fields
  */
 export interface SecurityEventMetadata {
@@ -237,22 +233,22 @@ export interface SecurityEventMetadata {
 }
 
 export interface SecurityHeadersConfig {
-  csp: {
-    enabled: boolean
-    reportOnly: boolean
-    reportUri?: string
-  }
-  hsts: {
-    enabled: boolean
-    maxAge: number
-    includeSubDomains: boolean
-    preload: boolean
-  }
-  frameOptions: 'DENY' | 'SAMEORIGIN'
-  contentTypeOptions: boolean
-  xssProtection: boolean
-  referrerPolicy: string
-  permissionsPolicy: Record<string, string[]>
+	csp: {
+		enabled: boolean
+		reportOnly: boolean
+		reportUri?: string
+	}
+	hsts: {
+		enabled: boolean
+		maxAge: number
+		includeSubDomains: boolean
+		preload: boolean
+	}
+	frameOptions: 'DENY' | 'SAMEORIGIN'
+	contentTypeOptions: boolean
+	xssProtection: boolean
+	referrerPolicy: string
+	permissionsPolicy: Record<string, string[]>
 }
 
 // Security audit repository types (merged from security-repository.ts)

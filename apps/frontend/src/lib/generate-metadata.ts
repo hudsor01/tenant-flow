@@ -5,13 +5,14 @@ const DEV_APP_URL = 'http://localhost:3000'
 // Use getter to ensure env var is read at runtime, not compile time
 // Falls back to localhost in development, requires env var in production
 function getSiteUrl(): string {
-	const url = process.env.NEXT_PUBLIC_APP_URL ||
+	const url =
+		process.env.NEXT_PUBLIC_APP_URL ||
 		(process.env.NODE_ENV === 'production' ? undefined : DEV_APP_URL)
 
 	if (!url) {
 		throw new Error(
 			'NEXT_PUBLIC_APP_URL environment variable is required in production. ' +
-			'Set it in your deployment environment.'
+				'Set it in your deployment environment.'
 		)
 	}
 	return url

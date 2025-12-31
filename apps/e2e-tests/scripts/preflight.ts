@@ -17,25 +17,39 @@ interface CheckResult {
 
 const results: CheckResult[] = []
 
-function check(name: string, condition: boolean, failMessage: string, warnOnly = false): void {
+function check(
+	name: string,
+	condition: boolean,
+	failMessage: string,
+	warnOnly = false
+): void {
 	if (condition) {
 		results.push({ name, status: 'pass', message: 'OK' })
 	} else {
 		results.push({
 			name,
 			status: warnOnly ? 'warn' : 'fail',
-			message: failMessage,
+			message: failMessage
 		})
 	}
 }
 
-async function checkUrl(name: string, url: string, warnOnly = false): Promise<void> {
+async function checkUrl(
+	name: string,
+	url: string,
+	warnOnly = false
+): Promise<void> {
 	try {
 		const controller = new AbortController()
 		const timeout = setTimeout(() => controller.abort(), 5000)
 		const response = await fetch(url, { signal: controller.signal })
 		clearTimeout(timeout)
-		check(name, response.ok || response.status < 500, `${url} returned ${response.status}`, warnOnly)
+		check(
+			name,
+			response.ok || response.status < 500,
+			`${url} returned ${response.status}`,
+			warnOnly
+		)
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error)
 		check(name, false, `${url} unreachable: ${message}`, warnOnly)
@@ -44,7 +58,7 @@ async function checkUrl(name: string, url: string, warnOnly = false): Promise<vo
 
 async function main(): Promise<void> {
 	console.log('\n🔍 E2E Test Preflight Check\n')
-	console.log('=' .repeat(60))
+	console.log('='.repeat(60))
 
 	// === Required Environment Variables ===
 	console.log('\n📋 Environment Variables\n')
@@ -91,19 +105,26 @@ async function main(): Promise<void> {
 
 	if (supabaseUrl && supabaseKey && email && password) {
 		try {
-			const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-				method: 'POST',
-				headers: {
-					'apikey': supabaseKey,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ email, password }),
-			})
+			const response = await fetch(
+				`${supabaseUrl}/auth/v1/token?grant_type=password`,
+				{
+					method: 'POST',
+					headers: {
+						apikey: supabaseKey,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ email, password })
+				}
+			)
 
 			if (response.ok) {
 				const data = await response.json()
 				check('Supabase Auth', true, 'OK')
-				check('User ID present', !!data.user?.id, 'Auth succeeded but no user ID returned')
+				check(
+					'User ID present',
+					!!data.user?.id,
+					'Auth succeeded but no user ID returned'
+				)
 			} else {
 				const error = await response.text()
 				check('Supabase Auth', false, `Login failed: ${error}`)
@@ -120,13 +141,14 @@ async function main(): Promise<void> {
 	console.log('\n🌐 Server Connectivity (optional - Playwright auto-starts)\n')
 
 	const frontendUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4650'
+	const backendUrl =
+		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4650'
 
 	await checkUrl('Frontend', frontendUrl, true)
 	await checkUrl('Backend Health', `${backendUrl}/health/ping`, true)
 
 	// === Print Results ===
-	console.log('\n' + '=' .repeat(60))
+	console.log('\n' + '='.repeat(60))
 	console.log('\n📊 Results\n')
 
 	let passed = 0
@@ -134,8 +156,14 @@ async function main(): Promise<void> {
 	let warned = 0
 
 	for (const result of results) {
-		const icon = result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️ ' : '❌'
-		const color = result.status === 'pass' ? '\x1b[32m' : result.status === 'warn' ? '\x1b[33m' : '\x1b[31m'
+		const icon =
+			result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️ ' : '❌'
+		const color =
+			result.status === 'pass'
+				? '\x1b[32m'
+				: result.status === 'warn'
+					? '\x1b[33m'
+					: '\x1b[31m'
 		const reset = '\x1b[0m'
 		console.log(`${icon} ${color}${result.name}${reset}: ${result.message}`)
 
@@ -144,15 +172,21 @@ async function main(): Promise<void> {
 		else failed++
 	}
 
-	console.log('\n' + '=' .repeat(60))
-	console.log(`\n✅ Passed: ${passed}  ⚠️  Warnings: ${warned}  ❌ Failed: ${failed}\n`)
+	console.log('\n' + '='.repeat(60))
+	console.log(
+		`\n✅ Passed: ${passed}  ⚠️  Warnings: ${warned}  ❌ Failed: ${failed}\n`
+	)
 
 	if (failed > 0) {
-		console.log('❌ Preflight checks failed. Fix the issues above before running tests.\n')
+		console.log(
+			'❌ Preflight checks failed. Fix the issues above before running tests.\n'
+		)
 		console.log('📖 See TESTING.md for setup instructions.\n')
 		process.exit(1)
 	} else if (warned > 0) {
-		console.log('⚠️  Some checks have warnings. Tests may skip certain scenarios.\n')
+		console.log(
+			'⚠️  Some checks have warnings. Tests may skip certain scenarios.\n'
+		)
 		process.exit(0)
 	} else {
 		console.log('✅ All preflight checks passed. Ready to run tests!\n')
@@ -160,7 +194,7 @@ async function main(): Promise<void> {
 	}
 }
 
-main().catch((error) => {
+main().catch(error => {
 	console.error('Preflight script error:', error)
 	process.exit(1)
 })

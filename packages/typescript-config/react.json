@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow React TypeScript Config - Next.js 15 Compatible",
+	"display": "TenantFlow React TypeScript Config - Next.js 16 Compatible",
 	"extends": "./base.json",
 	"compilerOptions": {
 		"jsx": "preserve",

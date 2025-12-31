@@ -1,16 +1,41 @@
-import { BadRequestException, Body, Controller, Get, Header, Param, Post, Query, Request, Res, UseGuards, ParseUUIDPipe } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	Header,
+	Param,
+	Post,
+	Query,
+	Request,
+	Res,
+	UnauthorizedException,
+	UseGuards,
+	ParseUUIDPipe
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiProduces,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { Response } from 'express'
-import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { LeaseOwnershipGuard } from '../../shared/guards/lease-ownership.guard'
+import { TenantOwnershipGuard } from '../../shared/guards/tenant-ownership.guard'
 import { RentPaymentsService } from './rent-payments.service'
 import { PaymentAnalyticsService } from './payment-analytics.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { CreatePaymentDto } from './dto/create-payment.dto'
 import { AppLogger } from '../../logger/app-logger.service'
 
+@ApiTags('Rent Payments')
+@ApiBearerAuth('supabase-auth')
 @Controller('rent-payments')
 export class RentPaymentsController {
-
 	constructor(
 		private readonly rentPaymentsService: RentPaymentsService,
 		private readonly paymentAnalyticsService: PaymentAnalyticsService,
@@ -21,10 +46,18 @@ export class RentPaymentsController {
 	 * Get payment analytics
 	 * GET /api/v1/rent-payments/analytics
 	 */
+	@ApiOperation({ summary: 'Get payment analytics', description: 'Retrieve payment analytics for authenticated user' })
+	@ApiResponse({ status: 200, description: 'Payment analytics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('analytics')
-	async getPaymentAnalytics(@JwtToken() token: string) {
+	async getPaymentAnalytics(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Getting payment analytics for authenticated user')
-		const analytics = await this.paymentAnalyticsService.getPaymentAnalytics(token)
+		const analytics =
+			await this.paymentAnalyticsService.getPaymentAnalytics(token)
 		return { success: true, analytics }
 	}
 
@@ -32,10 +65,18 @@ export class RentPaymentsController {
 	 * Get upcoming payments (next 30 days)
 	 * GET /api/v1/rent-payments/upcoming
 	 */
+	@ApiOperation({ summary: 'Get upcoming payments', description: 'Retrieve upcoming payments for the next 30 days' })
+	@ApiResponse({ status: 200, description: 'Upcoming payments retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('upcoming')
-	async getUpcomingPayments(@JwtToken() token: string) {
+	async getUpcomingPayments(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Getting upcoming payments for authenticated user')
-		const payments = await this.paymentAnalyticsService.getUpcomingPayments(token)
+		const payments =
+			await this.paymentAnalyticsService.getUpcomingPayments(token)
 		return { success: true, payments }
 	}
 
@@ -43,10 +84,18 @@ export class RentPaymentsController {
 	 * Get overdue payments
 	 * GET /api/v1/rent-payments/overdue
 	 */
+	@ApiOperation({ summary: 'Get overdue payments', description: 'Retrieve all overdue payments for authenticated user' })
+	@ApiResponse({ status: 200, description: 'Overdue payments retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('overdue')
-	async getOverduePayments(@JwtToken() token: string) {
+	async getOverduePayments(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Getting overdue payments for authenticated user')
-		const payments = await this.paymentAnalyticsService.getOverduePayments(token)
+		const payments =
+			await this.paymentAnalyticsService.getOverduePayments(token)
 		return { success: true, payments }
 	}
 
@@ -54,23 +103,38 @@ export class RentPaymentsController {
 	 * Export payments as CSV
 	 * GET /api/v1/rent-payments/export
 	 */
+	@ApiOperation({ summary: 'Export payments as CSV', description: 'Export payment data as CSV file with optional filters' })
+	@ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by payment status' })
+	@ApiQuery({ name: 'startDate', required: false, type: String, description: 'Filter by start date (ISO format)' })
+	@ApiQuery({ name: 'endDate', required: false, type: String, description: 'Filter by end date (ISO format)' })
+	@ApiProduces('text/csv')
+	@ApiResponse({ status: 200, description: 'CSV file generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('export')
 	@Header('Content-Type', 'text/csv')
 	@Header('Content-Disposition', 'attachment; filename="payments.csv"')
 	async exportPayments(
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Query('status') status: string | undefined,
 		@Query('startDate') startDate: string | undefined,
 		@Query('endDate') endDate: string | undefined,
 		@Res() res?: Response
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Exporting payments to CSV')
-		const filters: { status?: string; startDate?: string; endDate?: string } = {}
+		const filters: { status?: string; startDate?: string; endDate?: string } =
+			{}
 		if (status) filters.status = status
 		if (startDate) filters.startDate = startDate
 		if (endDate) filters.endDate = endDate
 
-		const csv = await this.paymentAnalyticsService.exportPaymentsCSV(token, filters)
+		const csv = await this.paymentAnalyticsService.exportPaymentsCSV(
+			token,
+			filters
+		)
 
 		if (res) {
 			res.send(csv)
@@ -82,9 +146,15 @@ export class RentPaymentsController {
 	 * Record a manual payment (cash, check, etc.)
 	 * POST /api/v1/rent-payments/manual
 	 */
+	@ApiOperation({ summary: 'Record manual payment', description: 'Record a manual payment (cash, check, money order, etc.)' })
+	@ApiBody({ schema: { type: 'object', required: ['lease_id', 'tenant_id', 'amount', 'payment_method', 'paid_date'], properties: { lease_id: { type: 'string', format: 'uuid' }, tenant_id: { type: 'string', format: 'uuid' }, amount: { type: 'number' }, payment_method: { type: 'string', enum: ['cash', 'check', 'money_order', 'other'] }, paid_date: { type: 'string', format: 'date' }, notes: { type: 'string' } } } })
+	@ApiResponse({ status: 201, description: 'Manual payment recorded successfully' })
+	@ApiResponse({ status: 400, description: 'Missing required fields or invalid amount' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('manual')
 	async recordManualPayment(
-		@Body() body: {
+		@Body()
+		body: {
 			lease_id: string
 			tenant_id: string
 			amount: number
@@ -92,12 +162,22 @@ export class RentPaymentsController {
 			paid_date: string
 			notes?: string
 		},
-		@JwtToken() token: string
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log(`Recording manual payment for lease ${body.lease_id}`)
 
 		// Validate required fields
-		if (!body.lease_id || !body.tenant_id || !body.amount || !body.payment_method || !body.paid_date) {
+		if (
+			!body.lease_id ||
+			!body.tenant_id ||
+			!body.amount ||
+			!body.payment_method ||
+			!body.paid_date
+		) {
 			throw new BadRequestException('Missing required fields')
 		}
 
@@ -129,6 +209,11 @@ export class RentPaymentsController {
 	 *
 	 * POST /api/v1/rent-payments
 	 */
+	@ApiOperation({ summary: 'Create one-time payment', description: 'Create a one-time rent payment via Stripe' })
+	@ApiBody({ type: CreatePaymentDto })
+	@ApiResponse({ status: 201, description: 'Payment created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid payment data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post()
 	async createPayment(
 		@Body()
@@ -161,10 +246,17 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/rent-payments/history
-	 * RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses AuthenticatedRequest with token extraction
 	 */
+	@ApiOperation({ summary: 'Get payment history', description: 'Retrieve payment history for all subscriptions' })
+	@ApiResponse({ status: 200, description: 'Payment history retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('history')
-	async getPaymentHistory(@JwtToken() token: string) {
+	async getPaymentHistory(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Getting payment history for authenticated user')
 
 		const payments = await this.rentPaymentsService.getPaymentHistory(token)
@@ -194,13 +286,21 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/rent-payments/history/subscription/:subscriptionId
-	 * RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses AuthenticatedRequest with token extraction
 	 */
+	@ApiOperation({ summary: 'Get subscription payment history', description: 'Retrieve payment history for a specific subscription' })
+	@ApiParam({ name: 'subscriptionId', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription payment history retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('history/subscription/:subscriptionId')
 	async getSubscriptionPaymentHistory(
-		@JwtToken() token: string,
-		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string
+		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string,
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log(
 			`Getting payment history for subscription ${subscriptionId}`
 		)
@@ -236,10 +336,17 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/rent-payments/failed-attempts
-	 * RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses AuthenticatedRequest with token extraction
 	 */
+	@ApiOperation({ summary: 'Get failed payment attempts', description: 'Retrieve failed payment attempts for all subscriptions' })
+	@ApiResponse({ status: 200, description: 'Failed payment attempts retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('failed-attempts')
-	async getFailedPaymentAttempts(@JwtToken() token: string) {
+	async getFailedPaymentAttempts(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log('Getting failed payment attempts for authenticated user')
 
 		const failedAttempts =
@@ -263,13 +370,21 @@ export class RentPaymentsController {
 	 * Phase 4: Payment History Enhancement
 	 *
 	 * GET /api/v1/rent-payments/failed-attempts/subscription/:subscriptionId
-	 * RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses AuthenticatedRequest with token extraction
 	 */
+	@ApiOperation({ summary: 'Get subscription failed attempts', description: 'Retrieve failed payment attempts for a specific subscription' })
+	@ApiParam({ name: 'subscriptionId', type: String, description: 'Subscription UUID' })
+	@ApiResponse({ status: 200, description: 'Subscription failed attempts retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('failed-attempts/subscription/:subscriptionId')
 	async getSubscriptionFailedAttempts(
-		@JwtToken() token: string,
-		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string
+		@Param('subscriptionId', ParseUUIDPipe) subscriptionId: string,
+		@Request() req: AuthenticatedRequest
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		this.logger.log(
 			`Getting failed payment attempts for subscription ${subscriptionId}`
 		)
@@ -297,6 +412,11 @@ export class RentPaymentsController {
 	 * Setup autopay (recurring rent subscription) for a tenant
 	 * POST /api/v1/rent-payments/autopay/setup
 	 */
+	@ApiOperation({ summary: 'Setup autopay', description: 'Setup recurring rent subscription (autopay) for a tenant' })
+	@ApiBody({ schema: { type: 'object', required: ['tenant_id', 'lease_id'], properties: { tenant_id: { type: 'string', format: 'uuid' }, lease_id: { type: 'string', format: 'uuid' }, paymentMethodId: { type: 'string', description: 'Stripe payment method ID (optional)' } } } })
+	@ApiResponse({ status: 201, description: 'Autopay setup successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid setup data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('autopay/setup')
 	async setupAutopay(
 		@Body()
@@ -339,6 +459,11 @@ export class RentPaymentsController {
 	 * Cancel autopay for a tenant
 	 * POST /api/v1/rent-payments/autopay/cancel
 	 */
+	@ApiOperation({ summary: 'Cancel autopay', description: 'Cancel recurring rent subscription (autopay) for a tenant' })
+	@ApiBody({ schema: { type: 'object', required: ['tenant_id', 'lease_id'], properties: { tenant_id: { type: 'string', format: 'uuid' }, lease_id: { type: 'string', format: 'uuid' } } } })
+	@ApiResponse({ status: 200, description: 'Autopay cancelled successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid cancellation data' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('autopay/cancel')
 	async cancelAutopay(
 		@Body()
@@ -370,8 +495,14 @@ export class RentPaymentsController {
 	 * Get autopay status for a tenant
 	 * GET /api/v1/rent-payments/autopay/status/:tenant_id/:lease_id
 	 */
+	@ApiOperation({ summary: 'Get autopay status', description: 'Get autopay subscription status for a tenant and lease' })
+	@ApiParam({ name: 'tenant_id', type: String, description: 'Tenant UUID' })
+	@ApiParam({ name: 'lease_id', type: String, description: 'Lease UUID' })
+	@ApiResponse({ status: 200, description: 'Autopay status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - not authorized for this lease' })
 	@Get('autopay/status/:tenant_id/:lease_id')
-	@UseGuards(PropertyOwnershipGuard)
+	@UseGuards(LeaseOwnershipGuard)
 	async getAutopayStatus(
 		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string,
@@ -402,10 +533,15 @@ export class RentPaymentsController {
 	 * Task 2.4: Payment Status Tracking
 	 *
 	 * GET /api/v1/rent-payments/status/:tenant_id
-	 * RLS COMPLIANT: Uses @JwtToken decorator
+	 * RLS COMPLIANT: Uses AuthenticatedRequest with token extraction
 	 */
+	@ApiOperation({ summary: 'Get payment status', description: 'Get current payment status for a specific tenant' })
+	@ApiParam({ name: 'tenant_id', type: String, description: 'Tenant UUID' })
+	@ApiResponse({ status: 200, description: 'Payment status retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 403, description: 'Forbidden - not authorized for this tenant' })
 	@Get('status/:tenant_id')
-	@UseGuards(PropertyOwnershipGuard)
+	@UseGuards(TenantOwnershipGuard)
 	async getCurrentPaymentStatus(
 		@Param('tenant_id', ParseUUIDPipe) tenant_id: string,
 		@Request() req: AuthenticatedRequest

@@ -38,7 +38,9 @@ async function loginAsOwner(page: Page) {
 
 	// Submit and wait for redirect
 	await submitButton.click()
-	await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 })
+	await page.waitForURL(url => !url.pathname.includes('/login'), {
+		timeout: 15000
+	})
 }
 
 test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
@@ -89,23 +91,32 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Wait for navigation AWAY from login page (not just any URL)
 		try {
-			await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 })
+			await page.waitForURL(url => !url.pathname.includes('/login'), {
+				timeout: 15000
+			})
 		} catch (e) {
 			// Check if there's an error message on the page
-			const errorMsg = await page.locator('text=/Sign in failed|Invalid|error/i').textContent().catch(() => null)
+			const errorMsg = await page
+				.locator('text=/Sign in failed|Invalid|error/i')
+				.textContent()
+				.catch(() => null)
 			if (errorMsg) {
-				throw new Error(`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
-					`❌ CRITICAL: Owner cannot login!\n` +
-					`Account: ${OWNER_EMAIL}\n\n` +
-					`Fix:\n` +
-					`1. Check Supabase Dashboard → Users\n` +
-					`2. Verify account exists with correct password\n` +
-					`3. Check Custom Access Token Hook is enabled\n` +
-					`4. Verify app_metadata.user_type is set to "owner"`)
+				throw new Error(
+					`🚨 LOGIN FAILED: ${errorMsg}\n\n` +
+						`❌ CRITICAL: Owner cannot login!\n` +
+						`Account: ${OWNER_EMAIL}\n\n` +
+						`Fix:\n` +
+						`1. Check Supabase Dashboard → Users\n` +
+						`2. Verify account exists with correct password\n` +
+						`3. Check Custom Access Token Hook is enabled\n` +
+						`4. Verify app_metadata.user_type is set to "owner"`
+				)
 			}
-			throw new Error(`🚨 LOGIN TIMEOUT: No redirect after 15s\n` +
-				`Current URL: ${page.url()}\n` +
-				`Check: Supabase env vars, backend health, frontend build`)
+			throw new Error(
+				`🚨 LOGIN TIMEOUT: No redirect after 15s\n` +
+					`Current URL: ${page.url()}\n` +
+					`Check: Supabase env vars, backend health, frontend build`
+			)
 		}
 
 		// Verify we ended up on an authenticated page (dashboard or similar)
@@ -114,14 +125,15 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Extract auth token from cookies (Supabase SSR uses cookies, not localStorage)
 		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(c =>
-			c.name.includes('sb-') && c.name.includes('-auth-token')
+		const authCookie = cookies.find(
+			c => c.name.includes('sb-') && c.name.includes('-auth-token')
 		)
 
 		if (authCookie) {
 			try {
 				const cookieData = JSON.parse(decodeURIComponent(authCookie.value))
-				authToken = cookieData.access_token || cookieData[0]?.access_token || null
+				authToken =
+					cookieData.access_token || cookieData[0]?.access_token || null
 			} catch {
 				// Cookie might not be JSON encoded, try direct value
 				authToken = authCookie.value
@@ -131,7 +143,9 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		// Auth token extraction is nice-to-have, not critical
 		// The real success indicator is that we navigated away from /login
 		if (!authToken) {
-			logger.warn('Could not extract auth token from cookies - login succeeded but token extraction failed')
+			logger.warn(
+				'Could not extract auth token from cookies - login succeeded but token extraction failed'
+			)
 		}
 	})
 
@@ -143,9 +157,18 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Verify dashboard loads - accept any of these as success
 		const dashboardLoaded = await Promise.race([
-			page.locator('h1:has-text("Dashboard")').waitFor({ timeout: 5000 }).then(() => true),
-			page.locator('[data-testid="dashboard"]').waitFor({ timeout: 5000 }).then(() => true),
-			page.locator('text=Total Properties').waitFor({ timeout: 5000 }).then(() => true)
+			page
+				.locator('h1:has-text("Dashboard")')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('[data-testid="dashboard"]')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('text=Total Properties')
+				.waitFor({ timeout: 5000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(dashboardLoaded).toBeTruthy()
@@ -159,8 +182,14 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 		// Verify properties page loads
 		const propertiesLoaded = await Promise.race([
-			page.locator('h1:has-text("Properties")').waitFor({ timeout: 5000 }).then(() => true),
-			page.locator('button:has-text("New Property")').waitFor({ timeout: 5000 }).then(() => true)
+			page
+				.locator('h1:has-text("Properties")')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('button:has-text("New Property")')
+				.waitFor({ timeout: 5000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(propertiesLoaded).toBeTruthy()
@@ -186,9 +215,10 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 				if (key.includes('supabase') || key.includes('sb-')) {
 					try {
 						const data = JSON.parse(localStorage.getItem(key) || '{}')
-						const token = data?.currentSession?.access_token ||
-									  data?.access_token ||
-									  data?.session?.access_token
+						const token =
+							data?.currentSession?.access_token ||
+							data?.access_token ||
+							data?.session?.access_token
 						if (token) return token
 					} catch {
 						// Continue to next key
@@ -202,7 +232,9 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 			// The login was successful (we navigated away from /login), but we can't extract the token
 			// This is a test infrastructure issue, not a production bug
 			// Skip API testing but don't fail - the login test already verified auth works
-			logger.warn('Could not extract auth token for API testing - skipping API endpoint checks')
+			logger.warn(
+				'Could not extract auth token for API testing - skipping API endpoint checks'
+			)
 			return
 		}
 
@@ -215,24 +247,29 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		]
 
 		for (const endpoint of endpoints) {
-			const result = await page.evaluate(async ({ apiUrl, path, authToken }) => {
-				try {
-					const response = await fetch(`${apiUrl}${path}`, {
-						headers: {
-							'Content-Type': 'application/json',
-							'Authorization': `Bearer ${authToken}`
-						}
-					})
-					return { ok: response.ok, status: response.status }
-				} catch (e) {
-					return { ok: false, status: 0, error: (e as Error).message }
-				}
-			}, { apiUrl: API_URL, path: endpoint.path, authToken: token })
+			const result = await page.evaluate(
+				async ({ apiUrl, path, authToken }) => {
+					try {
+						const response = await fetch(`${apiUrl}${path}`, {
+							headers: {
+								'Content-Type': 'application/json',
+								Authorization: `Bearer ${authToken}`
+							}
+						})
+						return { ok: response.ok, status: response.status }
+					} catch (e) {
+						return { ok: false, status: 0, error: (e as Error).message }
+					}
+				},
+				{ apiUrl: API_URL, path: endpoint.path, authToken: token }
+			)
 
 			if (!result.ok) {
-				throw new Error(`🚨 API FAILURE: ${endpoint.name} endpoint returned ${result.status}\n` +
-					`Path: ${endpoint.path}\n` +
-					`This is CRITICAL - core API is broken!`)
+				throw new Error(
+					`🚨 API FAILURE: ${endpoint.name} endpoint returned ${result.status}\n` +
+						`Path: ${endpoint.path}\n` +
+						`This is CRITICAL - core API is broken!`
+				)
 			}
 		}
 	})
@@ -253,14 +290,23 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 
 			// Wait for page to load - check for common elements
 			const pageLoaded = await Promise.race([
-				page.locator('h1').first().waitFor({ timeout: 5000 }).then(() => true),
-				page.locator('main').waitFor({ timeout: 5000 }).then(() => true)
+				page
+					.locator('h1')
+					.first()
+					.waitFor({ timeout: 5000 })
+					.then(() => true),
+				page
+					.locator('main')
+					.waitFor({ timeout: 5000 })
+					.then(() => true)
 			]).catch(() => false)
 
 			if (!pageLoaded) {
-				throw new Error(`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
-					`URL: ${testPage.url}\n` +
-					`Current: ${page.url()}`)
+				throw new Error(
+					`🚨 NAVIGATION FAILED: ${testPage.name} page did not load\n` +
+						`URL: ${testPage.url}\n` +
+						`Current: ${page.url()}`
+				)
 			}
 		}
 	})
@@ -288,15 +334,18 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.waitForLoadState('networkidle')
 
 		// Filter out known acceptable errors
-		const criticalErrors = errors.filter(err =>
-			!err.includes('DevTools') &&
-			!err.includes('favicon') &&
-			!err.includes('webpack') &&
-			!err.includes('HMR')
+		const criticalErrors = errors.filter(
+			err =>
+				!err.includes('DevTools') &&
+				!err.includes('favicon') &&
+				!err.includes('webpack') &&
+				!err.includes('HMR')
 		)
 
 		if (criticalErrors.length > 0) {
-			logger.warn('⚠️  Console errors detected:', { metadata: { criticalErrors } })
+			logger.warn('⚠️  Console errors detected:', {
+				metadata: { criticalErrors }
+			})
 			// Don't fail the test, just warn
 			// In production, you might want to fail on any errors
 		}
@@ -314,10 +363,18 @@ test.describe('🔍 SMOKE: Environment Sanity Checks', () => {
 	test('Servers are reachable', async ({ request }) => {
 		// Frontend
 		const frontendResponse = await request.get(BASE_URL).catch(() => null)
-		expect(frontendResponse, `Frontend not reachable at ${BASE_URL}`).toBeTruthy()
+		expect(
+			frontendResponse,
+			`Frontend not reachable at ${BASE_URL}`
+		).toBeTruthy()
 
 		// Backend
-		const backendResponse = await request.get(`${API_URL}/health`).catch(() => null)
-		expect(backendResponse, `Backend not reachable at ${API_URL}/health`).toBeTruthy()
+		const backendResponse = await request
+			.get(`${API_URL}/health`)
+			.catch(() => null)
+		expect(
+			backendResponse,
+			`Backend not reachable at ${API_URL}/health`
+		).toBeTruthy()
 	})
 })

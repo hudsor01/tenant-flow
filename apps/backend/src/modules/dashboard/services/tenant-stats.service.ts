@@ -14,8 +14,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class TenantStatsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Calculate tenant statistics for a user
@@ -30,15 +32,19 @@ export class TenantStatsService {
 		// Get tenants and their lease statuses to count active ones
 		const { data: tenantData, error: dataError } = await client
 			.from('tenants')
-			.select(`
+			.select(
+				`
 				id,
 				created_at,
 				leases!primary_tenant_id(lease_status)
-			`)
+			`
+			)
 			.eq('user_id', internaluser_id)
 
 		if (dataError) {
-			this.logger.error('Failed to fetch tenant data', { error: dataError.message })
+			this.logger.error('Failed to fetch tenant data', {
+				error: dataError.message
+			})
 			return { total: 0, active: 0, pending: 0, inactive: 0, newThisMonth: 0 }
 		}
 
@@ -51,7 +57,9 @@ export class TenantStatsService {
 
 		for (const tenant of tenants) {
 			// Check if tenant has active lease
-			const hasActiveLease = (tenant.leases as { lease_status?: string }[])?.some(l =>
+			const hasActiveLease = (
+				tenant.leases as { lease_status?: string }[]
+			)?.some(l =>
 				['active', 'pending'].includes(l.lease_status?.toUpperCase() ?? '')
 			)
 
@@ -62,7 +70,10 @@ export class TenantStatsService {
 			}
 
 			// Check if tenant is new this month
-			if (tenant.created_at && new Date(tenant.created_at) >= startOfCurrentMonth) {
+			if (
+				tenant.created_at &&
+				new Date(tenant.created_at) >= startOfCurrentMonth
+			) {
 				newThisMonthCount += 1
 			}
 		}

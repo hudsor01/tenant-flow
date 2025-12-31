@@ -99,7 +99,10 @@ export class LeasePdfGeneratorService {
 		try {
 			// Validate template exists if requested
 			if (validateTemplate) {
-				const metadata = await this.templateCache.getTemplateMetadata(stateCode, templateType)
+				const metadata = await this.templateCache.getTemplateMetadata(
+					stateCode,
+					templateType
+				)
 				if (!metadata.exists) {
 					const error = `Failed to load template for state ${stateCode}`
 					this.logger.error('Template validation failed', {
@@ -119,9 +122,14 @@ export class LeasePdfGeneratorService {
 					}
 
 					// Fallback to default template
-					const defaultMetadata = await this.templateCache.getTemplateMetadata(DEFAULT_STATE_CODE, templateType)
+					const defaultMetadata = await this.templateCache.getTemplateMetadata(
+						DEFAULT_STATE_CODE,
+						templateType
+					)
 					if (!defaultMetadata.exists) {
-						throw new BadRequestException(`Failed to load template for state ${DEFAULT_STATE_CODE}`)
+						throw new BadRequestException(
+							`Failed to load template for state ${DEFAULT_STATE_CODE}`
+						)
 					}
 
 					this.logger.warn('Using default template as fallback', {
@@ -133,9 +141,14 @@ export class LeasePdfGeneratorService {
 			}
 
 			// Get template content from cache (with fallback to filesystem)
-			const templateBytes = await this.templateCache.getTemplateContent(stateCode, templateType)
+			const templateBytes = await this.templateCache.getTemplateContent(
+				stateCode,
+				templateType
+			)
 			if (!templateBytes) {
-				throw new BadRequestException(`Failed to load template for state ${stateCode}`)
+				throw new BadRequestException(
+					`Failed to load template for state ${stateCode}`
+				)
 			}
 
 			const pdfDoc = await PDFDocument.load(templateBytes)
@@ -147,33 +160,98 @@ export class LeasePdfGeneratorService {
 			const missingFields: string[] = []
 
 			// Fill all fields
-			this.fillTextField(form, 'agreement_date_day', fields.agreement_date_day, missingFields)
-			this.fillTextField(form, 'agreement_date_month', fields.agreement_date_month, missingFields)
-			this.fillTextField(form, 'agreement_date_year', fields.agreement_date_year, missingFields)
-			this.fillTextField(form, 'landlord_name', fields.landlord_name, missingFields)
+			this.fillTextField(
+				form,
+				'agreement_date_day',
+				fields.agreement_date_day,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'agreement_date_month',
+				fields.agreement_date_month,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'agreement_date_year',
+				fields.agreement_date_year,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'landlord_name',
+				fields.landlord_name,
+				missingFields
+			)
 			this.fillTextField(form, 'tenant_name', fields.tenant_name, missingFields)
-			this.fillTextField(form, 'property_address', fields.property_address, missingFields)
-			this.fillTextField(form, 'lease_start_date', fields.lease_start_date, missingFields)
-			this.fillTextField(form, 'lease_end_date', fields.lease_end_date, missingFields)
-			this.fillTextField(form, 'monthly_rent_amount', fields.monthly_rent_amount, missingFields)
-			this.fillTextField(form, 'late_fee_per_day', fields.late_fee_per_day, missingFields)
+			this.fillTextField(
+				form,
+				'property_address',
+				fields.property_address,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'lease_start_date',
+				fields.lease_start_date,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'lease_end_date',
+				fields.lease_end_date,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'monthly_rent_amount',
+				fields.monthly_rent_amount,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'late_fee_per_day',
+				fields.late_fee_per_day,
+				missingFields
+			)
 			this.fillTextField(form, 'nsf_fee', fields.nsf_fee, missingFields)
-			this.fillTextField(form, 'security_deposit_amount', fields.security_deposit_amount, missingFields)
+			this.fillTextField(
+				form,
+				'security_deposit_amount',
+				fields.security_deposit_amount,
+				missingFields
+			)
 			this.fillTextField(
 				form,
 				'immediate_family_members',
 				fields.immediate_family_members || 'None',
 				missingFields
 			)
-			this.fillTextField(form, 'month_to_month_rent', fields.month_to_month_rent, missingFields)
-			this.fillTextField(form, 'pet_fee_per_day', fields.pet_fee_per_day, missingFields)
+			this.fillTextField(
+				form,
+				'month_to_month_rent',
+				fields.month_to_month_rent,
+				missingFields
+			)
+			this.fillTextField(
+				form,
+				'pet_fee_per_day',
+				fields.pet_fee_per_day,
+				missingFields
+			)
 			this.fillTextField(
 				form,
 				'landlord_notice_address',
 				fields.landlord_notice_address || '',
 				missingFields
 			)
-			this.fillTextField(form, 'property_built_before_1978', fields.property_built_before_1978, missingFields)
+			this.fillTextField(
+				form,
+				'property_built_before_1978',
+				fields.property_built_before_1978,
+				missingFields
+			)
 
 			// Log summary if any fields were missing
 			if (missingFields.length > 0) {
@@ -213,14 +291,21 @@ export class LeasePdfGeneratorService {
 				throw error
 			}
 
-			throw new BadRequestException(`PDF generation failed for state ${stateCode}: ${error instanceof Error ? error.message : String(error)}`)
+			throw new BadRequestException(
+				`PDF generation failed for state ${stateCode}: ${error instanceof Error ? error.message : String(error)}`
+			)
 		}
 	}
 
 	/**
 	 * Helper to safely fill a text field (handles missing fields)
 	 */
-	private fillTextField(form: PDFForm, fieldName: string, value: string, missingFields: string[]): void {
+	private fillTextField(
+		form: PDFForm,
+		fieldName: string,
+		value: string,
+		missingFields: string[]
+	): void {
 		try {
 			const field = form.getTextField(fieldName)
 			field.setText(value)

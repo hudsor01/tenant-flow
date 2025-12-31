@@ -1,6 +1,26 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	InternalServerErrorException,
+	NotFoundException,
+	Post,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { AuthUser } from '@repo/shared/types/auth'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -15,7 +35,15 @@ const MaintenanceRequestCreateSchema = z.object({
 	description: z.string().min(1).max(2000),
 	priority: z.enum(['low', 'medium', 'high', 'urgent']),
 	category: z
-		.enum(['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'])
+		.enum([
+			'PLUMBING',
+			'ELECTRICAL',
+			'HVAC',
+			'APPLIANCES',
+			'SAFETY',
+			'GENERAL',
+			'OTHER'
+		])
 		.optional(),
 	allowEntry: z.boolean().default(true),
 	photos: z.array(z.string().url()).max(6).optional()
@@ -36,21 +64,33 @@ type MaintenanceRequestRow =
  *
  * Routes: /tenant/maintenance/*
  */
+@ApiTags('Tenant Portal - Maintenance')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantMaintenanceController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get maintenance request history
 	 *
 	 * @returns List of maintenance requests with summary stats
 	 */
+	@ApiOperation({ summary: 'Get maintenance requests', description: 'Get maintenance request history with summary statistics' })
+	@ApiResponse({ status: 200, description: 'Maintenance requests retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get()
-	async getMaintenance(@JwtToken() token: string, @User() user: AuthUser) {
-		const requests = await this.fetchMaintenanceRequests(token, user.id)
+	async getMaintenance(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const requests = await this.fetchMaintenanceRequests(token, req.user.id)
 		const summary = this.calculateMaintenanceStats(requests)
 
 		return { requests, summary }
@@ -62,20 +102,29 @@ export class TenantMaintenanceController {
 	 * @param body Request details
 	 * @returns Created maintenance request
 	 */
+	@ApiOperation({ summary: 'Create maintenance request', description: 'Submit a new maintenance request for the tenant\'s unit' })
+	@ApiBody({ schema: { type: 'object', required: ['title', 'description', 'priority'], properties: { title: { type: 'string', maxLength: 200 }, description: { type: 'string', maxLength: 2000 }, priority: { type: 'string', enum: ['low', 'medium', 'high', 'urgent'] }, category: { type: 'string', enum: ['PLUMBING', 'ELECTRICAL', 'HVAC', 'APPLIANCES', 'SAFETY', 'GENERAL', 'OTHER'] }, allowEntry: { type: 'boolean', default: true }, photos: { type: 'array', items: { type: 'string' }, maxItems: 6 } } } })
+	@ApiResponse({ status: 201, description: 'Maintenance request created successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or no active lease' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
 	async createMaintenanceRequest(
 		@Body() body: MaintenanceRequestCreateDto,
-		@JwtToken() token: string,
-		@User() user: AuthUser
+		@Request() req: AuthenticatedRequest
 	) {
-		const tenant = await this.resolveTenant(token, user)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 
 		if (!lease?.unit_id) {
 			this.logger.warn(
 				'Tenant attempted to create maintenance request without active unit',
-				{ authuser_id: user.id }
+				{ authuser_id: req.user.id }
 			)
 			throw new BadRequestException(
 				'No active lease unit found. Cannot create maintenance request.'
@@ -94,13 +143,13 @@ export class TenantMaintenanceController {
 			throw new BadRequestException('Unable to find property owner for unit')
 		}
 
-			const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
-				{
-					title: body.title,
-					description: body.description,
-					priority: body.priority,
-					status: 'open',
-					requested_by: user.id,
+		const maintenanceRequest: Database['public']['Tables']['maintenance_requests']['Insert'] =
+			{
+				title: body.title,
+				description: body.description,
+				priority: body.priority,
+				status: 'open',
+				requested_by: req.user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id,
 				owner_user_id: unit.property.owner_user_id
@@ -115,7 +164,7 @@ export class TenantMaintenanceController {
 
 		if (error) {
 			this.logger.error('Failed to create maintenance request', {
-				authuser_id: user.id,
+				authuser_id: req.user.id,
 				unit_id: lease.unit_id,
 				error: error.message
 			})
@@ -136,7 +185,7 @@ export class TenantMaintenanceController {
 			.single()
 
 		if (error || !data) {
-			throw new Error('Tenant account not found')
+			throw new NotFoundException('Tenant account not found')
 		}
 
 		return data

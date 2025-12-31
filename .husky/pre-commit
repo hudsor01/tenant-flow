@@ -3,9 +3,17 @@
 # Husky v9.1.7 optimized pre-commit hook
 # Comprehensive validation before commit
 
-echo "🔍 Running pre-commit validation (lockfile + lint + typecheck + tests)..."
+echo "🔍 Running pre-commit validation (lockfile + db types + lint + typecheck + tests)..."
 
-# Step 1: Verify pnpm lockfile is in sync
+# Step 1: Regenerate DB types from live schema (ensures types are always current)
+echo "🗄️ Regenerating DB types from Supabase..."
+if ! pnpm db:types > /dev/null 2>&1; then
+  echo "⚠️ DB type regeneration failed (Doppler/network issue) - continuing with existing types"
+fi
+# Stage any type changes
+git add packages/shared/src/types/supabase.ts 2>/dev/null || true
+
+# Step 2: Verify pnpm lockfile is in sync
 echo "📦 Verifying pnpm lockfile is up to date..."
 if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
   echo "❌ pnpm-lock.yaml is out of sync!"
@@ -13,7 +21,7 @@ if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
   exit 1
 fi
 
-# Step 2: Turbo runs lint, typecheck, and unit tests
+# Step 3: Turbo runs lint, typecheck, and unit tests
 # Integration/e2e tests excluded (require running services)
 # Run tasks for all packages to ensure comprehensive validation
 # --continue: Show all errors across all packages

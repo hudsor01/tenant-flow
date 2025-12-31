@@ -1,5 +1,20 @@
-import { Controller, Get, Req, UnauthorizedException, HttpException, InternalServerErrorException, UseGuards, UseInterceptors } from '@nestjs/common'
-import { user_id } from '../../../shared/decorators/user.decorator'
+import {
+	Controller,
+	Get,
+	Req,
+	UnauthorizedException,
+	HttpException,
+	InternalServerErrorException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -18,20 +33,27 @@ import { AppLogger } from '../../../logger/app-logger.service'
  * - System uptime
  * - Unified page data
  */
+@ApiTags('Owner Dashboard')
+@ApiBearerAuth('supabase-auth')
 @UseGuards(RolesGuard)
 @Roles('OWNER')
 @UseInterceptors(OwnerContextInterceptor)
 @Controller('')
 export class AnalyticsController {
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly dashboardService: DashboardService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
-
+	@ApiOperation({ summary: 'Get dashboard stats', description: 'Retrieve dashboard statistics (properties, units, tenants, revenue, maintenance)' })
+	@ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('stats')
 	async getStats(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req) || undefined
 
 		this.logger.log('Getting dashboard stats', { user_id })
@@ -46,11 +68,14 @@ export class AnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get activity feed', description: 'Retrieve recent activity feed for the dashboard' })
+	@ApiResponse({ status: 200, description: 'Activity feed retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('activity')
 	async getActivity(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -80,11 +105,15 @@ export class AnalyticsController {
 	 * - occupancyTrends: Occupancy rate over time (for sparklines)
 	 * - revenueTrends: Revenue over time (for charts)
 	 */
+	@ApiOperation({ summary: 'Get unified page data', description: 'Retrieve all dashboard data in a single request (stats, activity, trends)' })
+	@ApiResponse({ status: 200, description: 'Dashboard page data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 500, description: 'Failed to fetch dashboard data' })
 	@Get('page-data')
 	async getPageData(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -96,7 +125,13 @@ export class AnalyticsController {
 
 		try {
 			// Fetch ALL dashboard data in parallel - eliminates 8 separate API calls
-			const [stats, activityResult, propertyPerformance, occupancyTrends, revenueTrends] = await Promise.all([
+			const [
+				stats,
+				activityResult,
+				propertyPerformance,
+				occupancyTrends,
+				revenueTrends
+			] = await Promise.all([
 				this.dashboardService.getStats(user_id, token),
 				this.dashboardService.getActivity(user_id, token),
 				this.dashboardService.getPropertyPerformance(user_id, token),
@@ -167,15 +202,35 @@ export class AnalyticsController {
 	}
 
 	/**
+	 * Alias endpoint for unified dashboard payload
+	 * Path: /owner/analytics/dashboard
+	 * Keeps backwards compatibility with page-data while enabling
+	 * a clearer "dashboard" route for frontend aggregation.
+	 */
+	@ApiOperation({ summary: 'Get dashboard data', description: 'Alias for page-data endpoint - retrieves unified dashboard data' })
+	@ApiResponse({ status: 200, description: 'Dashboard data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('dashboard')
+	async getDashboard(
+		@Req() req: AuthenticatedRequest
+	) {
+		return this.getPageData(req)
+	}
+
+	/**
 	 * Trends endpoint for charts - DEFERRED data
 	 * Fetches occupancy and revenue trends for dashboard charts
 	 * Optimized for viewport-based loading with React 19.2 Activity
 	 */
+	@ApiOperation({ summary: 'Get dashboard trends', description: 'Retrieve occupancy and revenue trends for charts (deferred loading)' })
+	@ApiResponse({ status: 200, description: 'Trends data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 500, description: 'Failed to fetch trends data' })
 	@Get('trends')
 	async getTrends(
-		@Req() req: AuthenticatedRequest,
-		@user_id() user_id: string
+		@Req() req: AuthenticatedRequest
 	) {
+		const user_id = req.user.id
 		const token = this.supabase.getTokenFromRequest(req)
 
 		if (!token) {
@@ -208,6 +263,8 @@ export class AnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get system uptime', description: 'Retrieve system uptime metrics' })
+	@ApiResponse({ status: 200, description: 'System uptime retrieved successfully' })
 	@Get('uptime')
 	async getUptime(): Promise<ControllerApiResponse> {
 		this.logger.log('Getting system uptime metrics')

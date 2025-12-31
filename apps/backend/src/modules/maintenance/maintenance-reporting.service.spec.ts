@@ -13,7 +13,10 @@ describe('MaintenanceReportingService', () => {
 	const mockToken = 'mock-jwt-token'
 
 	// Mock Supabase query builder
-	const createMockQueryBuilder = (data: unknown[] | null, error: Error | null = null) => {
+	const createMockQueryBuilder = (
+		data: unknown[] | null,
+		error: Error | null = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -22,14 +25,18 @@ describe('MaintenanceReportingService', () => {
 			lt: jest.fn().mockReturnThis(),
 			order: jest.fn().mockReturnThis(),
 			single: jest.fn().mockResolvedValue({ data: data?.[0] ?? null, error }),
-			then: jest.fn((resolve) => resolve({ data, error }))
+			then: jest.fn(resolve => resolve({ data, error }))
 		}
 		// Make it thenable for async/await
 		return {
 			...builder,
 			[Symbol.toStringTag]: 'Promise',
-			then: (resolve: (value: { data: unknown[] | null; error: Error | null }) => void) =>
-				Promise.resolve({ data, error }).then(resolve),
+			then: (
+				resolve: (value: {
+					data: unknown[] | null
+					error: Error | null
+				}) => void
+			) => Promise.resolve({ data, error }).then(resolve),
 			catch: jest.fn(),
 			finally: jest.fn()
 		}
@@ -57,7 +64,9 @@ describe('MaintenanceReportingService', () => {
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<MaintenanceReportingService>(MaintenanceReportingService)
+		service = module.get<MaintenanceReportingService>(
+			MaintenanceReportingService
+		)
 	})
 
 	describe('getStats', () => {
@@ -67,7 +76,9 @@ describe('MaintenanceReportingService', () => {
 
 		it('returns empty stats when no maintenance requests exist', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder([]))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder([])
+			)
 
 			const result = await service.getStats(mockToken)
 
@@ -91,17 +102,47 @@ describe('MaintenanceReportingService', () => {
 
 		it('calculates stats correctly from maintenance requests', async () => {
 			const now = new Date()
-			const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+			const todayStart = new Date(
+				now.getFullYear(),
+				now.getMonth(),
+				now.getDate()
+			)
 
 			const mockRequests = [
-				{ status: 'open', priority: 'low', estimated_cost: 100, created_at: now.toISOString(), completed_at: null },
-				{ status: 'in_progress', priority: 'normal', estimated_cost: 200, created_at: now.toISOString(), completed_at: null },
-				{ status: 'completed', priority: 'high', estimated_cost: 300, created_at: new Date(now.getTime() - 3600000).toISOString(), completed_at: todayStart.toISOString() },
-				{ status: 'completed', priority: 'urgent', estimated_cost: 400, created_at: new Date(now.getTime() - 7200000).toISOString(), completed_at: new Date(now.getTime() - 3600000).toISOString() }
+				{
+					status: 'open',
+					priority: 'low',
+					estimated_cost: 100,
+					created_at: now.toISOString(),
+					completed_at: null
+				},
+				{
+					status: 'in_progress',
+					priority: 'normal',
+					estimated_cost: 200,
+					created_at: now.toISOString(),
+					completed_at: null
+				},
+				{
+					status: 'completed',
+					priority: 'high',
+					estimated_cost: 300,
+					created_at: new Date(now.getTime() - 3600000).toISOString(),
+					completed_at: todayStart.toISOString()
+				},
+				{
+					status: 'completed',
+					priority: 'urgent',
+					estimated_cost: 400,
+					created_at: new Date(now.getTime() - 7200000).toISOString(),
+					completed_at: new Date(now.getTime() - 3600000).toISOString()
+				}
 			]
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(mockRequests))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(mockRequests)
+			)
 
 			const result = await service.getStats(mockToken)
 
@@ -124,12 +165,22 @@ describe('MaintenanceReportingService', () => {
 
 		it('returns urgent maintenance requests (high and urgent priority)', async () => {
 			const urgentRequests = [
-				{ ...createMockMaintenanceRequest(), priority: 'urgent', status: 'open' },
-				{ ...createMockMaintenanceRequest(), priority: 'high', status: 'in_progress' }
+				{
+					...createMockMaintenanceRequest(),
+					priority: 'urgent',
+					status: 'open'
+				},
+				{
+					...createMockMaintenanceRequest(),
+					priority: 'high',
+					status: 'in_progress'
+				}
 			]
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(urgentRequests))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(urgentRequests)
+			)
 
 			const result = await service.getUrgent(mockToken)
 
@@ -139,7 +190,9 @@ describe('MaintenanceReportingService', () => {
 
 		it('returns empty array when no urgent requests exist', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder([]))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder([])
+			)
 
 			const result = await service.getUrgent(mockToken)
 
@@ -154,11 +207,17 @@ describe('MaintenanceReportingService', () => {
 
 		it('returns overdue maintenance requests', async () => {
 			const overdueRequests = [
-				{ ...createMockMaintenanceRequest(), status: 'open', scheduled_date: new Date(Date.now() - 86400000).toISOString() }
+				{
+					...createMockMaintenanceRequest(),
+					status: 'open',
+					scheduled_date: new Date(Date.now() - 86400000).toISOString()
+				}
 			]
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(overdueRequests))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(overdueRequests)
+			)
 
 			const result = await service.getOverdue(mockToken)
 
@@ -168,7 +227,9 @@ describe('MaintenanceReportingService', () => {
 
 		it('returns empty array when no overdue requests exist', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder([]))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder([])
+			)
 
 			const result = await service.getOverdue(mockToken)
 

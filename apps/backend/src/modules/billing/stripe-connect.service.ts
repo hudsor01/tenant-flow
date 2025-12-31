@@ -49,7 +49,10 @@ export class StripeConnectService {
 	}
 
 	/** Update property owner onboarding status based on Stripe Account */
-	async updateOnboardingStatus(user_id: string, accountId: string): Promise<void> {
+	async updateOnboardingStatus(
+		user_id: string,
+		accountId: string
+	): Promise<void> {
 		return this.setupService.updateOnboardingStatus(user_id, accountId)
 	}
 
@@ -65,7 +68,10 @@ export class StripeConnectService {
 			metadata?: Record<string, string>
 		}
 	): Promise<Stripe.Customer> {
-		return this.billingService.createCustomerOnConnectedAccount(connectedAccountId, params)
+		return this.billingService.createCustomerOnConnectedAccount(
+			connectedAccountId,
+			params
+		)
 	}
 
 	/** Create a Stripe subscription on a connected account */
@@ -79,7 +85,10 @@ export class StripeConnectService {
 			idempotencyKey?: string
 		}
 	): Promise<Stripe.Subscription> {
-		return this.billingService.createSubscriptionOnConnectedAccount(connectedAccountId, params)
+		return this.billingService.createSubscriptionOnConnectedAccount(
+			connectedAccountId,
+			params
+		)
 	}
 
 	/** Delete a customer on a connected account (SAGA compensation) */
@@ -95,13 +104,18 @@ export class StripeConnectService {
 		subscriptionId: string,
 		connectedAccountId: string
 	): Promise<Stripe.Subscription> {
-		return this.billingService.cancelSubscription(subscriptionId, connectedAccountId)
+		return this.billingService.cancelSubscription(
+			subscriptionId,
+			connectedAccountId
+		)
 	}
 
 	// ============ Payouts Service Delegation ============
 
 	/** Get balance for a connected account */
-	async getConnectedAccountBalance(stripeAccountId: string): Promise<Stripe.Balance> {
+	async getConnectedAccountBalance(
+		stripeAccountId: string
+	): Promise<Stripe.Balance> {
 		return this.payoutsService.getConnectedAccountBalance(stripeAccountId)
 	}
 
@@ -110,7 +124,10 @@ export class StripeConnectService {
 		stripeAccountId: string,
 		options?: { limit?: number; starting_after?: string }
 	): Promise<Stripe.ApiList<Stripe.Payout>> {
-		return this.payoutsService.listConnectedAccountPayouts(stripeAccountId, options)
+		return this.payoutsService.listConnectedAccountPayouts(
+			stripeAccountId,
+			options
+		)
 	}
 
 	/** Get details of a specific payout */

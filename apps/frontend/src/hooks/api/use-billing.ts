@@ -6,9 +6,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { billingQueries } from './queries/billing-queries'
 
-// Re-export types for consumer convenience
-export type { FormattedInvoice, StripeInvoice } from './queries/billing-queries'
-
 /**
  * Fetch user's billing invoices from Stripe
  */

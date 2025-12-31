@@ -34,7 +34,13 @@ describe('navigation store', () => {
 	it('manages breadcrumbs array', () => {
 		const store = useNavigationStore.getState()
 		// Suppress TypeScript error for internal API
-		const setBreadcrumbs = (store as { setBreadcrumbs?: (breadcrumbs: Array<{ label: string; href: string }>) => void }).setBreadcrumbs
+		const setBreadcrumbs = (
+			store as {
+				setBreadcrumbs?: (
+					breadcrumbs: Array<{ label: string; href: string }>
+				) => void
+			}
+		).setBreadcrumbs
 		const { addBreadcrumb, clearBreadcrumbs } = store
 
 		if (setBreadcrumbs) {

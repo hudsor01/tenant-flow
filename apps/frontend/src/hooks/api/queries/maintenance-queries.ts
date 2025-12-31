@@ -36,16 +36,19 @@ export const maintenanceQueries = {
 			queryFn: async () => {
 				const params = new URLSearchParams()
 				if (filters?.unit_id) params.append('unit_id', filters.unit_id)
-				if (filters?.property_id) params.append('property_id', filters.property_id)
+				if (filters?.property_id)
+					params.append('property_id', filters.property_id)
 				if (filters?.priority) params.append('priority', filters.priority)
 				if (filters?.category) params.append('category', filters.category)
 				if (filters?.status) params.append('status', filters.status)
 				if (filters?.limit) params.append('limit', filters.limit.toString())
 				if (filters?.offset) params.append('offset', filters.offset.toString())
 				const queryString = params.toString()
-				return apiRequest<PaginatedResponse<MaintenanceRequest>>(`/api/v1/maintenance${queryString ? `?${queryString}` : ''}`)
+				return apiRequest<PaginatedResponse<MaintenanceRequest>>(
+					`/api/v1/maintenance${queryString ? `?${queryString}` : ''}`
+				)
 			},
-			...QUERY_CACHE_TIMES.LIST,
+			...QUERY_CACHE_TIMES.LIST
 		}),
 
 	details: () => [...maintenanceQueries.all(), 'detail'] as const,
@@ -53,31 +56,34 @@ export const maintenanceQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.details(), id],
-			queryFn: () => apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`),
+			queryFn: () =>
+				apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	stats: () =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.all(), 'stats'],
 			queryFn: () => apiRequest('/api/v1/maintenance/stats'),
-			...QUERY_CACHE_TIMES.STATS,
+			...QUERY_CACHE_TIMES.STATS
 		}),
 
 	urgent: () =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.all(), 'urgent'],
-			queryFn: () => apiRequest<MaintenanceRequest[]>('/api/v1/maintenance/urgent'),
+			queryFn: () =>
+				apiRequest<MaintenanceRequest[]>('/api/v1/maintenance/urgent'),
 			staleTime: 30 * 1000,
-			gcTime: 5 * 60 * 1000,
+			gcTime: 5 * 60 * 1000
 		}),
 
 	overdue: () =>
 		queryOptions({
 			queryKey: [...maintenanceQueries.all(), 'overdue'],
-			queryFn: () => apiRequest<MaintenanceRequest[]>('/api/v1/maintenance/overdue'),
-			...QUERY_CACHE_TIMES.STATS,
+			queryFn: () =>
+				apiRequest<MaintenanceRequest[]>('/api/v1/maintenance/overdue'),
+			...QUERY_CACHE_TIMES.STATS
 		}),
 
 	tenantPortal: () =>
@@ -104,9 +110,9 @@ export const maintenanceQueries = {
 					total: response.summary.total,
 					open: response.summary.open,
 					inProgress: response.summary.inProgress,
-					completed: response.summary.completed,
+					completed: response.summary.completed
 				}
 			},
-			...QUERY_CACHE_TIMES.LIST,
-		}),
+			...QUERY_CACHE_TIMES.LIST
+		})
 }

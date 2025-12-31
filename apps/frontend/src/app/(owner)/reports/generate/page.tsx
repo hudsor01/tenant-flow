@@ -164,22 +164,27 @@ export default function GenerateReportsPage() {
 			toast.success('Report generated successfully')
 		} catch (error) {
 			handleMutationError(error, 'Generate report')
-		} finally{
+		} finally {
 			setGeneratingReports(prev => ({ ...prev, [reportKey]: false }))
 		}
 	}
 
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col gap-6">
-			<div className="flex flex-col gap-2">
-				<h1 className="typography-h2 tracking-tight">Generate Reports</h1>
-				<p className="text-muted-foreground">
-					Create comprehensive reports for your property portfolio
-				</p>
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			{/* Header */}
+			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+				<div>
+					<h1 className="text-2xl font-semibold text-foreground">
+						Generate Reports
+					</h1>
+					<p className="text-muted-foreground">
+						Create comprehensive reports for your property portfolio.
+					</p>
+				</div>
 			</div>
 
 			{/* Date Range Selector */}
-			<Card>
+			<Card className="mb-6">
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<Calendar className="size-5" />
@@ -208,10 +213,10 @@ export default function GenerateReportsPage() {
 			</Card>
 
 			{/* Executive Reports */}
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-4 mb-8">
 				<div>
-					<h2 className="typography-h4">Executive Reports</h2>
-					<p className="text-muted">
+					<h2 className="font-medium text-foreground">Executive Reports</h2>
+					<p className="text-sm text-muted-foreground">
 						High-level summaries for leadership and stakeholders
 					</p>
 				</div>
@@ -262,10 +267,10 @@ export default function GenerateReportsPage() {
 			</div>
 
 			{/* Financial Reports */}
-			<div className="flex flex-col gap-4">
+			<div className="flex flex-col gap-4 mb-8">
 				<div>
-					<h2 className="typography-h4">Financial Reports</h2>
-					<p className="text-muted">
+					<h2 className="font-medium text-foreground">Financial Reports</h2>
+					<p className="text-sm text-muted-foreground">
 						Detailed financial analysis and performance metrics
 					</p>
 				</div>
@@ -318,8 +323,8 @@ export default function GenerateReportsPage() {
 			{/* Operations Reports */}
 			<div className="flex flex-col gap-4">
 				<div>
-					<h2 className="typography-h4">Operations Reports</h2>
-					<p className="text-muted">
+					<h2 className="font-medium text-foreground">Operations Reports</h2>
+					<p className="text-sm text-muted-foreground">
 						Property and maintenance operations insights
 					</p>
 				</div>

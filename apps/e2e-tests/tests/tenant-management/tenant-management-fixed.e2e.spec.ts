@@ -41,11 +41,13 @@ test.describe('Tenant Management E2E Workflows', () => {
 		// STEP 2: Create new tenant
 		await test.step('Create new tenant', async () => {
 			// Look for the "Add Tenant" button with UserPlus icon
-			const createButton = page.getByRole('link', {
-				name: /add tenant/i
-			}).or(page.getByRole('button', { name: /add tenant/i }))
+			const createButton = page
+				.getByRole('link', {
+					name: /add tenant/i
+				})
+				.or(page.getByRole('button', { name: /add tenant/i }))
 
-			if (await createButton.count() > 0) {
+			if ((await createButton.count()) > 0) {
 				await createButton.click()
 				await page.waitForLoadState('networkidle')
 
@@ -59,7 +61,10 @@ test.describe('Tenant Management E2E Workflows', () => {
 					await page.fill('input#phone', tenantData.phone)
 				}
 				if (await page.locator('textarea#emergency_contact').count()) {
-					await page.fill('textarea#emergency_contact', tenantData.emergency_contact)
+					await page.fill(
+						'textarea#emergency_contact',
+						tenantData.emergency_contact
+					)
 				}
 
 				// Submit form
@@ -70,9 +75,20 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 				// Wait for success message or redirect with proper error handling
 				const result = await Promise.race([
-					page.waitForURL(/\/tenants\/[a-f0-9-]+/, { timeout: 10000 }).then(() => 'url_redirect'),
-					page.waitForSelector('text=/tenant created|success/i', { timeout: 10000 }).then(() => 'success_message'),
-					new Promise((_, reject) => setTimeout(() => reject(new Error('Tenant creation timeout after 10s')), 10000))
+					page
+						.waitForURL(/\/tenants\/[a-f0-9-]+/, { timeout: 10000 })
+						.then(() => 'url_redirect'),
+					page
+						.waitForSelector('text=/tenant created|success/i', {
+							timeout: 10000
+						})
+						.then(() => 'success_message'),
+					new Promise((_, reject) =>
+						setTimeout(
+							() => reject(new Error('Tenant creation timeout after 10s')),
+							10000
+						)
+					)
 				])
 
 				// Verify the result
@@ -94,7 +110,9 @@ test.describe('Tenant Management E2E Workflows', () => {
 				await expect(
 					page.getByText(`${tenantData.first_name} ${tenantData.last_name}`)
 				).toBeVisible({ timeout: 5000 })
-				await expect(page.getByText(tenantData.email)).toBeVisible({ timeout: 5000 })
+				await expect(page.getByText(tenantData.email)).toBeVisible({
+					timeout: 5000
+				})
 			}
 		})
 
@@ -103,10 +121,11 @@ test.describe('Tenant Management E2E Workflows', () => {
 			const currentUrl = page.url()
 			if (currentUrl.match(/\/tenants\/[a-f0-9-]+/)) {
 				// Look for edit button
-				const editButton = page.getByRole('link', { name: /edit/i })
+				const editButton = page
+					.getByRole('link', { name: /edit/i })
 					.or(page.getByRole('button', { name: /edit/i }))
 
-				if (await editButton.count() > 0) {
+				if ((await editButton.count()) > 0) {
 					await editButton.click()
 					await page.waitForLoadState('networkidle')
 
@@ -116,12 +135,16 @@ test.describe('Tenant Management E2E Workflows', () => {
 						await page.fill('input#phone', updatedPhone)
 
 						// Save changes
-						const saveButton = page.getByRole('button', { name: /save|update/i })
-						if (await saveButton.count() > 0) {
+						const saveButton = page.getByRole('button', {
+							name: /save|update/i
+						})
+						if ((await saveButton.count()) > 0) {
 							await saveButton.click()
 
 							// Wait for success message
-							await expect(page.getByText(/tenant updated|changes saved|success/i)).toBeVisible({
+							await expect(
+								page.getByText(/tenant updated|changes saved|success/i)
+							).toBeVisible({
 								timeout: 10000
 							})
 						}
@@ -147,7 +170,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 			// Look for search input
 			const searchInputs = page.getByPlaceholder(/search|filter/i)
 
-			if (await searchInputs.count() > 0) {
+			if ((await searchInputs.count()) > 0) {
 				const searchInput = searchInputs.first()
 				await searchInput.fill('John')
 				await page.waitForTimeout(500) // Debounce
@@ -161,7 +184,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 			// Look for search input
 			const searchInputs = page.getByPlaceholder(/search|filter/i)
 
-			if (await searchInputs.count() > 0) {
+			if ((await searchInputs.count()) > 0) {
 				const searchInput = searchInputs.first()
 				await searchInput.clear()
 				await page.waitForTimeout(500)
@@ -241,8 +264,10 @@ test.describe('Tenant Management Error Scenarios', () => {
 		await page.reload({ waitUntil: 'networkidle' })
 
 		// Expect some error indication (be flexible about the exact message)
-		const errorIndicators = page.locator('text=/error|failed|something went wrong/i')
-		if (await errorIndicators.count() > 0) {
+		const errorIndicators = page.locator(
+			'text=/error|failed|something went wrong/i'
+		)
+		if ((await errorIndicators.count()) > 0) {
 			await expect(errorIndicators.first()).toBeVisible({ timeout: 10000 })
 		}
 	})

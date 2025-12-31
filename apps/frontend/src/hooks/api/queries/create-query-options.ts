@@ -32,15 +32,21 @@ interface CreateQueryOptionsConfig<TData> extends Omit<
  * - Injects `QUERY_CACHE_TIMES` presets when `cache` is provided.
  * - Falls back to apiRequest-based queryFn when only `url` is supplied.
  */
-export function createQueryOptions<TData>(config: CreateQueryOptionsConfig<TData>) {
+export function createQueryOptions<TData>(
+	config: CreateQueryOptionsConfig<TData>
+) {
 	const { queryKey, cache, queryFn, url, ...rest } = config
 
-	const resolvedQueryFn = queryFn ?? (() => {
-		if (!url) {
-			throw new Error('createQueryOptions requires either `url` or `queryFn`.')
-		}
-		return apiRequest<TData>(url)
-	})
+	const resolvedQueryFn =
+		queryFn ??
+		(() => {
+			if (!url) {
+				throw new Error(
+					'createQueryOptions requires either `url` or `queryFn`.'
+				)
+			}
+			return apiRequest<TData>(url)
+		})
 
 	const cachePreset = cache ? QUERY_CACHE_TIMES[cache] : undefined
 
@@ -48,6 +54,6 @@ export function createQueryOptions<TData>(config: CreateQueryOptionsConfig<TData
 		queryKey,
 		queryFn: resolvedQueryFn,
 		...(cachePreset ?? {}),
-		...rest,
+		...rest
 	})
 }

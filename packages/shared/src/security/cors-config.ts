@@ -12,11 +12,11 @@
 function getApplicationDomains() {
 	// Consider production only when explicitly set to 'production' or running on Vercel
 	const isProduction =
-		process.env["NODE_ENV"] === 'production' || process.env["VERCEL"] === '1'
+		process.env['NODE_ENV'] === 'production' || process.env['VERCEL'] === '1'
 
 	// Get all URLs from environment variables only
-	const frontendUrl = process.env["NEXT_PUBLIC_APP_URL"]
-	const backendUrl = process.env["NEXT_PUBLIC_API_BASE_URL"]
+	const frontendUrl = process.env['NEXT_PUBLIC_APP_URL']
+	const backendUrl = process.env['NEXT_PUBLIC_API_BASE_URL']
 
 	if (isProduction) {
 		// Production: prefer env vars but don't throw during local builds.
@@ -96,7 +96,7 @@ export function getCORSOrigins(
 export function getCORSOriginsForEnv(): string[] | boolean {
 	// Consider production only when explicitly set to 'production' or running on Vercel
 	const isProduction =
-		process.env["NODE_ENV"] === 'production' || process.env["VERCEL"] === '1'
+		process.env['NODE_ENV'] === 'production' || process.env['VERCEL'] === '1'
 
 	const env = isProduction ? 'production' : 'development'
 	return getCORSOrigins(env)

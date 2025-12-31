@@ -134,8 +134,10 @@ describe('AdminSystemController', () => {
 					{
 						id: 'log-1',
 						created_at: '2025-01-15T12:00:00Z',
-						event_type: 'auth.login' as Database['public']['Enums']['security_event_type'],
-						severity: 'info' as Database['public']['Enums']['security_event_severity'],
+						event_type:
+							'auth.login' as Database['public']['Enums']['security_event_type'],
+						severity:
+							'info' as Database['public']['Enums']['security_event_severity'],
 						user_id: 'user-1',
 						message: 'User logged in successfully',
 						ip_address: '192.168.1.1'
@@ -164,7 +166,8 @@ describe('AdminSystemController', () => {
 				logs: [],
 				total: 5,
 				filters: {
-					level: 'error' as Database['public']['Enums']['security_event_severity'],
+					level:
+						'error' as Database['public']['Enums']['security_event_severity'],
 					limit: 100,
 					offset: 0
 				}

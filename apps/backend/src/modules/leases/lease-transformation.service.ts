@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common'
+import {
+	Injectable,
+	NotFoundException,
+	BadRequestException,
+	InternalServerErrorException
+} from '@nestjs/common'
 import type {
 	LeaseFormData,
 	LeaseTermType,
@@ -42,8 +47,10 @@ export const PROPERTY_TYPE_MAP: Record<
 
 @Injectable()
 export class LeaseTransformationService {
-
-	constructor(private readonly leasesService: LeasesService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly leasesService: LeasesService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Build LeaseFormData either from full relational data or fallback JSON terms.
@@ -225,18 +232,17 @@ export class LeaseTransformationService {
 
 		// Build property address object with proper optional handling
 		const propertyAddress: LeaseFormData['property']['address'] = {
-		street: property.address_line1,
-		city: property.city,
-		state: property.state as USState,
-		postal_code: property.postal_code,
-		...(unit.unit_number ? { unit: unit.unit_number } : {})
-	}
+			street: property.address_line1,
+			city: property.city,
+			state: property.state as USState,
+			postal_code: property.postal_code,
+			...(unit.unit_number ? { unit: unit.unit_number } : {})
+		}
 
 		// Build property object with proper optional handling
 		const propertyData: LeaseFormData['property'] = {
 			address: propertyAddress,
-			type:
-				propertyTypeMap[property.property_type] ?? PROPERTY_TYPES.APARTMENT,
+			type: propertyTypeMap[property.property_type] ?? PROPERTY_TYPES.APARTMENT,
 			bedrooms: unit.bedrooms || 1,
 			bathrooms: unit.bathrooms || 1,
 			parking: {
@@ -369,7 +375,8 @@ export class LeaseTransformationService {
 					fallbackPropertyState,
 				postal_code: structuredTerms?.property?.address?.postal_code ?? '00000'
 			},
-			type: (structuredTerms?.property?.type ?? 'APARTMENT') as LeaseFormData['property']['type'],
+			type: (structuredTerms?.property?.type ??
+				'APARTMENT') as LeaseFormData['property']['type'],
 			bedrooms: structuredTerms?.property?.bedrooms ?? 1,
 			bathrooms: structuredTerms?.property?.bathrooms ?? 1,
 			...(structuredTerms?.property?.square_feet
@@ -400,7 +407,8 @@ export class LeaseTransformationService {
 				city: structuredTerms?.owner?.address?.city ?? property.address.city,
 				state: ownerState,
 				postal_code:
-					structuredTerms?.owner?.address?.postal_code ?? property.address.postal_code
+					structuredTerms?.owner?.address?.postal_code ??
+					property.address.postal_code
 			},
 			phone: structuredTerms?.owner?.phone ?? '',
 			email: structuredTerms?.owner?.email ?? '',
@@ -434,7 +442,8 @@ export class LeaseTransformationService {
 			lateFee: structuredTerms?.leaseTerms?.lateFee ?? { enabled: false },
 			security_deposit: {
 				amount: leaseData.security_deposit || 0,
-				monthsRent: structuredTerms?.leaseTerms?.security_deposit?.monthsRent ?? 1
+				monthsRent:
+					structuredTerms?.leaseTerms?.security_deposit?.monthsRent ?? 1
 			}
 		}
 

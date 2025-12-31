@@ -5,7 +5,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class AnalyticsService {
-    constructor(private readonly logger: AppLogger) {}
+	constructor(private readonly logger: AppLogger) {}
 
 	private static readonly SENSITIVE_PROPERTY_KEYS = [
 		'password',
@@ -70,7 +70,13 @@ export class AnalyticsService {
 		const entries = Object.entries(properties)
 			.slice(0, AnalyticsService.MAX_PROPERTY_COUNT)
 			.filter(([key, value]) => this.isAllowedProperty(key, value))
-			.map(([key, value]) => [key, this.normalizeValue(value as string | number | boolean | null)] as const)
+			.map(
+				([key, value]) =>
+					[
+						key,
+						this.normalizeValue(value as string | number | boolean | null)
+					] as const
+			)
 
 		return Object.fromEntries(entries)
 	}

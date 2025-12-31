@@ -1,31 +1,23 @@
-"use client"
+'use client'
 
-import * as CollapsiblePrimitive from "@radix-ui/react-collapsible"
+import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
 
 function Collapsible({
-  ...props
+	...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {
-  return <CollapsiblePrimitive.Root {...props} />
+	return <CollapsiblePrimitive.Root {...props} />
 }
 
 function CollapsibleTrigger({
-  ...props
+	...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleTrigger>) {
-  return (
-    <CollapsiblePrimitive.CollapsibleTrigger
-      {...props}
-    />
-  )
+	return <CollapsiblePrimitive.CollapsibleTrigger {...props} />
 }
 
 function CollapsibleContent({
-  ...props
+	...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.CollapsibleContent>) {
-  return (
-    <CollapsiblePrimitive.CollapsibleContent
-      {...props}
-    />
-  )
+	return <CollapsiblePrimitive.CollapsibleContent {...props} />
 }
 
 export { Collapsible, CollapsibleTrigger, CollapsibleContent }

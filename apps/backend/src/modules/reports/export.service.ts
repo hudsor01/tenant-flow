@@ -1,13 +1,19 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import ExcelJS from 'exceljs'
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer'
+import {
+	Document,
+	Page,
+	Text,
+	View,
+	StyleSheet,
+	renderToBuffer
+} from '@react-pdf/renderer'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class ExportService {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	async generateExcel(
 		payload: Record<string, unknown> | Record<string, unknown>[],
@@ -70,7 +76,9 @@ export class ExportService {
 		}
 	}
 
-	async generateCSV(payload: Record<string, unknown> | Record<string, unknown>[]): Promise<string> {
+	async generateCSV(
+		payload: Record<string, unknown> | Record<string, unknown>[]
+	): Promise<string> {
 		const records = this.normalizeRecords(payload)
 
 		if (!records.length) {
@@ -124,11 +132,15 @@ export class ExportService {
 				error: error instanceof Error ? error.message : String(error),
 				title
 			})
-			throw new Error('Failed to generate PDF export. Please try Excel or CSV format.')
+			throw new Error(
+				'Failed to generate PDF export. Please try Excel or CSV format.'
+			)
 		}
 	}
 
-	private normalizeRecords(payload: Record<string, unknown> | Record<string, unknown>[]): Record<string, unknown>[] {
+	private normalizeRecords(
+		payload: Record<string, unknown> | Record<string, unknown>[]
+	): Record<string, unknown>[] {
 		if (Array.isArray(payload)) {
 			if (payload.length === 0) {
 				return []
@@ -241,11 +253,21 @@ export class ExportService {
 		})
 
 		if (!records.length) {
-			return React.createElement(Document, null,
-				React.createElement(Page, { size: 'A4', style: styles.page },
+			return React.createElement(
+				Document,
+				null,
+				React.createElement(
+					Page,
+					{ size: 'A4', style: styles.page },
 					React.createElement(Text, { style: styles.title }, title),
-					React.createElement(Text, { style: styles.noData }, 'No data available'),
-					React.createElement(Text, { style: styles.generatedAt },
+					React.createElement(
+						Text,
+						{ style: styles.noData },
+						'No data available'
+					),
+					React.createElement(
+						Text,
+						{ style: styles.generatedAt },
 						`Generated on ${new Date().toLocaleString()}`
 					)
 				)
@@ -256,11 +278,21 @@ export class ExportService {
 		const headers = firstRecord ? Object.keys(firstRecord) : []
 
 		if (!headers.length) {
-			return React.createElement(Document, null,
-				React.createElement(Page, { size: 'A4', style: styles.page },
+			return React.createElement(
+				Document,
+				null,
+				React.createElement(
+					Page,
+					{ size: 'A4', style: styles.page },
 					React.createElement(Text, { style: styles.title }, title),
-					React.createElement(Text, { style: styles.noData }, 'No structured data available'),
-					React.createElement(Text, { style: styles.generatedAt },
+					React.createElement(
+						Text,
+						{ style: styles.noData },
+						'No structured data available'
+					),
+					React.createElement(
+						Text,
+						{ style: styles.generatedAt },
 						`Generated on ${new Date().toLocaleString()}`
 					)
 				)
@@ -271,31 +303,49 @@ export class ExportService {
 		const columnWidth = Math.max(60, 500 / headers.length) // Distribute width evenly
 
 		const headerCells = headers.map(header =>
-			React.createElement(Text, {
-				key: header,
-				style: [styles.headerCell, styles.cell, { width: columnWidth }]
-			}, this.toTitleCase(header))
+			React.createElement(
+				Text,
+				{
+					key: header,
+					style: [styles.headerCell, styles.cell, { width: columnWidth }]
+				},
+				this.toTitleCase(header)
+			)
 		)
 
 		const tableRows = records.map((record, index) =>
-			React.createElement(View, { key: index, style: styles.tableRow },
+			React.createElement(
+				View,
+				{ key: index, style: styles.tableRow },
 				headers.map(header =>
-					React.createElement(Text, {
-						key: header,
-						style: [styles.cell, { width: columnWidth }]
-					}, String(record[header] ?? ''))
+					React.createElement(
+						Text,
+						{
+							key: header,
+							style: [styles.cell, { width: columnWidth }]
+						},
+						String(record[header] ?? '')
+					)
 				)
 			)
 		)
 
-		return React.createElement(Document, null,
-			React.createElement(Page, { size: 'A4', style: styles.page },
+		return React.createElement(
+			Document,
+			null,
+			React.createElement(
+				Page,
+				{ size: 'A4', style: styles.page },
 				React.createElement(Text, { style: styles.title }, title),
-				React.createElement(View, { style: styles.table },
+				React.createElement(
+					View,
+					{ style: styles.table },
 					React.createElement(View, { style: styles.tableHeader }, headerCells),
 					tableRows
 				),
-				React.createElement(Text, { style: styles.generatedAt },
+				React.createElement(
+					Text,
+					{ style: styles.generatedAt },
 					`Generated on ${new Date().toLocaleString()} | ${records.length} records`
 				)
 			)

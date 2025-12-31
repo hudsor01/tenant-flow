@@ -222,7 +222,7 @@ export const useToastStore = create<ToastStoreState>((set, get) => ({
 		}
 
 		set(state => {
-				// Filter toasts for this modal (used for potential cleanup)
+			// Filter toasts for this modal (used for potential cleanup)
 			state.toasts.filter(t => t.metadata?.modalId === modalId)
 			const nextToasts = [...state.toasts, toast]
 			return {

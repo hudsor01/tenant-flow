@@ -15,8 +15,9 @@ const sectionSkeletonVariants = cva('animate-pulse', {
 	}
 })
 
-interface SectionSkeletonProps
-	extends VariantProps<typeof sectionSkeletonVariants> {
+interface SectionSkeletonProps extends VariantProps<
+	typeof sectionSkeletonVariants
+> {
 	height?: number
 	className?: string
 }

@@ -23,15 +23,12 @@ test.describe('Property Image Upload', () => {
 
 		// Create a minimal PNG file (1x1 red pixel)
 		const pngData = Buffer.from([
-			0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
-			0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,
-			0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-			0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-			0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41,
-			0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
-			0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xDD, 0x8D,
-			0xB4, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E,
-			0x44, 0xAE, 0x42, 0x60, 0x82
+			0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+			0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+			0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde, 0x00, 0x00, 0x00,
+			0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+			0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xdd, 0x8d, 0xb4, 0x00, 0x00, 0x00,
+			0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82
 		])
 
 		fs.writeFileSync(testImagePath, pngData)
@@ -42,7 +39,9 @@ test.describe('Property Image Upload', () => {
 		await loginAsOwner(page)
 	})
 
-	test('should upload image and display it on property card', async ({ page }) => {
+	test('should upload image and display it on property card', async ({
+		page
+	}) => {
 		// Navigate to /properties
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('networkidle')
@@ -58,7 +57,10 @@ test.describe('Property Image Upload', () => {
 
 			// Fill the form
 			await page.getByLabel(/property name/i).fill('Test Property for Images')
-			await page.getByLabel(/address/i).first().fill('123 Test Street')
+			await page
+				.getByLabel(/address/i)
+				.first()
+				.fill('123 Test Street')
 			await page.getByLabel(/city/i).fill('San Francisco')
 			await page.getByLabel(/state/i).fill('CA')
 			await page.getByLabel(/zip/i).fill('94102')
@@ -74,7 +76,9 @@ test.describe('Property Image Upload', () => {
 		await expect(propertyCard).toBeVisible()
 
 		// Click View Details button WITHIN the first property card with navigation wait
-		const viewDetailsBtn = propertyCard.getByRole('link', { name: 'View Details' })
+		const viewDetailsBtn = propertyCard.getByRole('link', {
+			name: 'View Details'
+		})
 		await Promise.all([
 			page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 			viewDetailsBtn.click()
@@ -86,17 +90,16 @@ test.describe('Property Image Upload', () => {
 
 		// Click Edit button to go to edit page - wait for navigation
 		const editLink = page.getByRole('link', { name: /edit/i }).first()
-		await Promise.all([
-			page.waitForURL(/\/edit$/),
-			editLink.click()
-		])
+		await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
 		await page.waitForLoadState('networkidle')
 
 		// Verify we're on the edit page
 		expect(page.url()).toContain('/edit')
 
 		// Scroll to Property Images section
-		const propertyImagesSection = page.getByRole('heading', { name: /property images/i })
+		const propertyImagesSection = page.getByRole('heading', {
+			name: /property images/i
+		})
 		await propertyImagesSection.scrollIntoViewIfNeeded()
 		await page.waitForTimeout(500)
 
@@ -112,9 +115,11 @@ test.describe('Property Image Upload', () => {
 		await page.waitForFunction(
 			() => {
 				// Check if "Uploaded!" appears or if processing is done
-				const uploaded = document.body.textContent?.includes('Uploaded!') ||
+				const uploaded =
+					document.body.textContent?.includes('Uploaded!') ||
 					document.body.textContent?.includes('Image uploaded successfully')
-				const noActiveUploads = !document.body.textContent?.includes('Compressing...') &&
+				const noActiveUploads =
+					!document.body.textContent?.includes('Compressing...') &&
 					!document.body.textContent?.includes('Uploading...')
 				return uploaded || noActiveUploads
 			},
@@ -122,11 +127,14 @@ test.describe('Property Image Upload', () => {
 		)
 
 		// Verify the image appears in the gallery (look for img tag or "Primary" badge)
-		const gallery = page.locator('[class*="grid"]').filter({ has: page.locator('img') })
+		const gallery = page
+			.locator('[class*="grid"]')
+			.filter({ has: page.locator('img') })
 		const primaryBadge = page.getByText('Primary')
 
 		// Either the gallery shows images or the Primary badge appears
-		const imageUploaded = await gallery.count() > 0 || await primaryBadge.count() > 0
+		const imageUploaded =
+			(await gallery.count()) > 0 || (await primaryBadge.count()) > 0
 		expect(imageUploaded).toBeTruthy()
 
 		// Navigate back to /properties
@@ -141,7 +149,7 @@ test.describe('Property Image Upload', () => {
 
 		// Check if there's an actual image (not placeholder)
 		const cardImage = cardWithImage.locator('img')
-		const hasImage = await cardImage.count() > 0
+		const hasImage = (await cardImage.count()) > 0
 
 		if (hasImage) {
 			const imgSrc = await cardImage.getAttribute('src')
@@ -164,9 +172,11 @@ test.describe('Property Image Upload', () => {
 
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
-		if (await propertyCard.count() > 0) {
+		if ((await propertyCard.count()) > 0) {
 			// Navigate to details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', { name: 'View Details' })
+			const viewDetailsBtn = propertyCard.getByRole('link', {
+				name: 'View Details'
+			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 				viewDetailsBtn.click()
@@ -175,14 +185,13 @@ test.describe('Property Image Upload', () => {
 
 			// Click Edit with proper wait for navigation
 			const editLink = page.getByRole('link', { name: /edit/i }).first()
-			await Promise.all([
-				page.waitForURL(/\/edit$/),
-				editLink.click()
-			])
+			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
 			await page.waitForLoadState('networkidle')
 
 			// Scroll to images section
-			const imagesSection = page.getByRole('heading', { name: /property images/i })
+			const imagesSection = page.getByRole('heading', {
+				name: /property images/i
+			})
 			await imagesSection.scrollIntoViewIfNeeded()
 
 			// Upload image (use first() to avoid mobile duplicate)
@@ -193,22 +202,26 @@ test.describe('Property Image Upload', () => {
 			await page.waitForTimeout(2000)
 
 			// Verify file was selected (compression may show "smaller" stats)
-			const fileSelected = page.locator('text=test-property-image').or(
-				page.locator('[class*="preview"]')
-			)
+			const fileSelected = page
+				.locator('text=test-property-image')
+				.or(page.locator('[class*="preview"]'))
 			expect(await fileSelected.count()).toBeGreaterThanOrEqual(0)
 		}
 	})
 
-	test('should navigate to property edit page successfully', async ({ page }) => {
+	test('should navigate to property edit page successfully', async ({
+		page
+	}) => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('networkidle')
 
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
-		if (await propertyCard.count() > 0) {
+		if ((await propertyCard.count()) > 0) {
 			// Click View Details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', { name: 'View Details' })
+			const viewDetailsBtn = propertyCard.getByRole('link', {
+				name: 'View Details'
+			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 				viewDetailsBtn.click()
@@ -220,17 +233,16 @@ test.describe('Property Image Upload', () => {
 
 			// Click Edit with proper wait for navigation
 			const editLink = page.getByRole('link', { name: /edit/i }).first()
-			await Promise.all([
-				page.waitForURL(/\/edit$/),
-				editLink.click()
-			])
+			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
 			await page.waitForLoadState('networkidle')
 
 			// Verify edit page loaded
 			expect(page.url()).toContain('/edit')
 
 			// Verify Property Images section exists
-			const imagesSection = page.getByRole('heading', { name: /property images/i })
+			const imagesSection = page.getByRole('heading', {
+				name: /property images/i
+			})
 			await expect(imagesSection).toBeVisible()
 
 			// Verify upload dropzone exists

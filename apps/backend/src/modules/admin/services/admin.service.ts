@@ -115,7 +115,7 @@ export class AdminService {
 			// Sanitize search input: remove SQL special chars, wildcards, and control characters
 			const sanitized = filters.search
 				.trim()
-				.replace(/[%_*();'"\\]/g, '')  // Remove SQL wildcards and injection chars
+				.replace(/[%_*();'"\\]/g, '') // Remove SQL wildcards and injection chars
 				.split('')
 				.filter(char => {
 					const code = char.charCodeAt(0)
@@ -123,10 +123,12 @@ export class AdminService {
 					return code >= 32 && code !== 44 && code !== 127
 				})
 				.join('')
-				.substring(0, 100)  // Limit length
+				.substring(0, 100) // Limit length
 
 			if (sanitized) {
-				query = query.or(`email.ilike.%${sanitized}%,full_name.ilike.%${sanitized}%`)
+				query = query.or(
+					`email.ilike.%${sanitized}%,full_name.ilike.%${sanitized}%`
+				)
 			}
 		}
 
@@ -192,7 +194,7 @@ export class AdminService {
 			role?: string
 			status?: string
 		}
-		) {
+	) {
 		const client = this.supabase.getAdminClient()
 
 		const updateData: Database['public']['Tables']['users']['Update'] = {}
@@ -299,7 +301,7 @@ export class AdminService {
 				const jobs = await queue.getFailed(0, 100)
 				return {
 					queueName: name,
-					jobs: jobs.map((job) => ({
+					jobs: jobs.map(job => ({
 						id: job.id,
 						name: job.name,
 						data: job.data,

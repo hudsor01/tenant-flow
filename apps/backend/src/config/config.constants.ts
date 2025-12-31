@@ -4,11 +4,7 @@
  * Default values are now inlined in config.schema.ts for single source of truth.
  */
 
-export const NODE_ENVIRONMENTS = [
-	'development',
-	'production',
-	'test'
-] as const
+export const NODE_ENVIRONMENTS = ['development', 'production', 'test'] as const
 
 export const LOG_LEVELS = ['error', 'warn', 'info', 'debug'] as const
 

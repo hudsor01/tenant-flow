@@ -147,7 +147,10 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			</div>
 
 			{/* Units Table - Per spec: "Units table below header" */}
-			<PropertyUnitsTable propertyId={property.id} propertyName={property.name} />
+			<PropertyUnitsTable
+				propertyId={property.id}
+				propertyName={property.name}
+			/>
 
 			{/* Property Images Gallery */}
 			<Card>

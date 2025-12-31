@@ -16,7 +16,6 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
-
 	TEST_OWNER,
 	type AuthenticatedTestClient
 } from './invitation-setup'
@@ -45,11 +44,13 @@ describe('Tenant Invitation Flow', () => {
 	beforeAll(async () => {
 		ownerA = await authenticateAs(TEST_OWNER)
 
-			// Use auth user id for owner_user_id schema
-			ownerAPropertyOwnerId = ownerA.user_id
-			if (!ownerAPropertyOwnerId) {
-				throw new Error(`No user_id found for auth user. User must be authenticated as an owner.`)
-			}
+		// Use auth user id for owner_user_id schema
+		ownerAPropertyOwnerId = ownerA.user_id
+		if (!ownerAPropertyOwnerId) {
+			throw new Error(
+				`No user_id found for auth user. User must be authenticated as an owner.`
+			)
+		}
 
 		// Use owner's authenticated client - RLS policies allow owners to manage their data
 		const client = ownerA.client
@@ -312,11 +313,13 @@ describe('Tenant Invitation Flow', () => {
 			await ownerA.client.from('tenants').delete().eq('user_id', ownerA.user_id)
 
 			// Create tenant record (requires user_id and stripe_customer_id)
-			const { error: tenantError } = await ownerA.client.from('tenants').insert({
-				id: testTenantId,
-				user_id: ownerA.user_id, // Use owner's ID for test (would normally be tenant's user)
-				stripe_customer_id: `cus_test_${Date.now()}`
-			})
+			const { error: tenantError } = await ownerA.client
+				.from('tenants')
+				.insert({
+					id: testTenantId,
+					user_id: ownerA.user_id, // Use owner's ID for test (would normally be tenant's user)
+					stripe_customer_id: `cus_test_${Date.now()}`
+				})
 
 			if (tenantError) {
 				testLogger.error('Failed to create test tenant:', tenantError)
@@ -366,7 +369,8 @@ describe('Tenant Invitation Flow', () => {
 			// Days late = 10, grace period = 5, so late fee applies
 			const daysLate = 10
 			const gracePeriod = lease!.grace_period_days ?? 5
-			const expectedLateFee = daysLate > gracePeriod ? lease!.late_fee_amount : 0
+			const expectedLateFee =
+				daysLate > gracePeriod ? lease!.late_fee_amount : 0
 			const expectedTotal = lease!.rent_amount + (expectedLateFee ?? 0)
 
 			expect(expectedLateFee).toBe(5000)

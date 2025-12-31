@@ -12,7 +12,9 @@ import { emailSchema } from './common.js'
  * Metadata can contain lease_id and other arbitrary string values
  * DocuSeal passes through metadata set when creating the submission
  */
-export const docusealMetadataSchema = z.record(z.string(), z.string().optional()).optional()
+export const docusealMetadataSchema = z
+	.record(z.string(), z.string().optional())
+	.optional()
 
 /**
  * Payload received when a single submitter completes their signature
@@ -44,7 +46,7 @@ export const docusealSubmitterSchema = z.object({
  */
 export const docusealDocumentSchema = z.object({
 	name: z.string().min(1),
-	url: z.string().url()
+	url: z.url()
 })
 
 /**
@@ -60,4 +62,6 @@ export const submissionCompletedPayloadSchema = z.object({
 	metadata: docusealMetadataSchema
 })
 
-export type SubmissionCompletedPayload = z.infer<typeof submissionCompletedPayloadSchema>
+export type SubmissionCompletedPayload = z.infer<
+	typeof submissionCompletedPayloadSchema
+>

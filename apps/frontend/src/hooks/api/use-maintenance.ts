@@ -10,7 +10,10 @@ import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest, MaintenanceRequestWithVersion } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceRequestWithVersion
+} from '@repo/shared/types/core'
 import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { maintenanceQueries } from './queries/maintenance-queries'
@@ -24,7 +27,6 @@ import {
 	withVersion,
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
-
 
 /**
  * Hook to fetch all maintenance requests
@@ -42,7 +44,7 @@ export function useAllMaintenanceRequests(query?: {
 	return useQuery({
 		...maintenanceQueries.list(query),
 		// Extract data array for backward compatibility with components
-		select: (response) => response.data
+		select: response => response.data
 	})
 }
 
@@ -83,7 +85,7 @@ export function useMaintenanceRequestCreate() {
 				description: newRequest.description,
 				priority: newRequest.priority || 'normal',
 				status: 'open',
-			unit_id: newRequest.unit_id || '',
+				unit_id: newRequest.unit_id || '',
 				tenant_id: newRequest.tenant_id || '',
 				owner_user_id: '',
 				requested_by: null,
@@ -116,7 +118,10 @@ export function useMaintenanceRequestCreate() {
 		onSuccess: data => {
 			handleMutationSuccess('Create maintenance request')
 			// Update cache with real data
-			queryClient.setQueryData(maintenanceQueries.detail(data.id).queryKey, data)
+			queryClient.setQueryData(
+				maintenanceQueries.detail(data.id).queryKey,
+				data
+			)
 		},
 		onSettled: () => {
 			// Refetch in background
@@ -151,51 +156,62 @@ export function useMaintenanceRequestUpdate() {
 				)
 			})
 		},
-			onMutate: async ({ id, data }) => {
-				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
-				const previous = queryClient.getQueryData<MaintenanceRequest>(
-					maintenanceQueries.detail(id).queryKey
-				)
+		onMutate: async ({ id, data }) => {
+			await queryClient.cancelQueries({
+				queryKey: maintenanceQueries.detail(id).queryKey
+			})
+			const previous = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceQueries.detail(id).queryKey
+			)
 
-				// Optimistic update (use incrementVersion helper)
-				queryClient.setQueryData<MaintenanceRequestWithVersion>(
+			// Optimistic update (use incrementVersion helper)
+			queryClient.setQueryData<MaintenanceRequestWithVersion>(
+				maintenanceQueries.detail(id).queryKey,
+				old =>
+					old
+						? incrementVersion(
+								old,
+								data as Partial<MaintenanceRequestWithVersion>
+							)
+						: undefined
+			)
+
+			// Also update list cache
+			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+				maintenanceQueries.lists(),
+				old => {
+					if (!old) return old
+					return old.map(m =>
+						m.id === id
+							? incrementVersion(
+									m,
+									data as Partial<MaintenanceRequestWithVersion>
+								)
+							: m
+					)
+				}
+			)
+
+			return { previous }
+		},
+		onError: (_err, { id }, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(
 					maintenanceQueries.detail(id).queryKey,
-					(old) =>
-						old
-							? incrementVersion(old, data as Partial<MaintenanceRequestWithVersion>)
-							: undefined
+					context.previous
 				)
+			}
 
-				// Also update list cache
-				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-					maintenanceQueries.lists(),
-					(old) => {
-						if (!old) return old
-						return old.map(m =>
-							m.id === id
-								? incrementVersion(m, data as Partial<MaintenanceRequestWithVersion>)
-								: m
-						)
-					}
-				)
-
-				return { previous }
-			},
-			onError: (_err, { id }, context) => {
-				if (context?.previous) {
-					queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, context.previous)
-				}
-
-				// Handle 409 Conflict using helper
-				if (isConflictError(_err)) {
-					handleConflictError('maintenance request', id, queryClient, [
-						maintenanceQueries.detail(id).queryKey,
-						maintenanceQueries.lists()
-					])
-				} else {
-					handleMutationError(_err, 'Update maintenance request')
-				}
-			},
+			// Handle 409 Conflict using helper
+			if (isConflictError(_err)) {
+				handleConflictError('maintenance request', id, queryClient, [
+					maintenanceQueries.detail(id).queryKey,
+					maintenanceQueries.lists()
+				])
+			} else {
+				handleMutationError(_err, 'Update maintenance request')
+			}
+		},
 		onSuccess: () => {
 			handleMutationSuccess('Update maintenance request')
 		}
@@ -245,78 +261,85 @@ export function useCompleteMaintenance() {
 				}
 			)
 		},
-			onMutate: async ({ id }) => {
-				// Cancel outgoing queries
-				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
-				await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
+		onMutate: async ({ id }) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({
+				queryKey: maintenanceQueries.detail(id).queryKey
+			})
+			await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
 
-				// Snapshot previous state
-				const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
-					maintenanceQueries.detail(id).queryKey
-				)
-				const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-					maintenanceQueries.lists()
-				)
+			// Snapshot previous state
+			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceQueries.detail(id).queryKey
+			)
+			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceQueries.lists()
+			)
 
-				// Optimistically update to completed status
-				queryClient.setQueryData<MaintenanceRequestWithVersion>(
-					maintenanceQueries.detail(id).queryKey,
-					(old) =>
-						old
-							? incrementVersion(old, {
+			// Optimistically update to completed status
+			queryClient.setQueryData<MaintenanceRequestWithVersion>(
+				maintenanceQueries.detail(id).queryKey,
+				old =>
+					old
+						? incrementVersion(old, {
 								status: 'completed' as const,
 								completed_at: new Date().toISOString(),
 								updated_at: new Date().toISOString()
 							})
-							: undefined
-				)
+						: undefined
+			)
 
-				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-					maintenanceQueries.lists(),
-					(old) =>
-						old?.map(item =>
-							item.id === id
-								? incrementVersion(item, {
+			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+				maintenanceQueries.lists(),
+				old =>
+					old?.map(item =>
+						item.id === id
+							? incrementVersion(item, {
 									status: 'completed' as const,
 									completed_at: new Date().toISOString(),
 									updated_at: new Date().toISOString()
 								})
-								: item
-						)
-				)
-
-				return { previousDetail, previousList }
-			},
-			onError: (_err, { id }, context) => {
-				// Rollback on error
-				if (context?.previousDetail) {
-					queryClient.setQueryData(
-						maintenanceQueries.detail(id).queryKey,
-						context.previousDetail
+							: item
 					)
-				}
-				if (context?.previousList) {
-					queryClient.setQueryData(maintenanceQueries.lists(), context.previousList)
-				}
-				handleMutationError(_err, 'Complete maintenance request')
-			},
-			onSuccess: (data, { id }) => {
-				// Update with real server data
-				queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
-				queryClient.setQueryData<MaintenanceRequest[]>(
-					maintenanceQueries.lists(),
-					old => old?.map(item => (item.id === id ? data : item))
+			)
+
+			return { previousDetail, previousList }
+		},
+		onError: (_err, { id }, context) => {
+			// Rollback on error
+			if (context?.previousDetail) {
+				queryClient.setQueryData(
+					maintenanceQueries.detail(id).queryKey,
+					context.previousDetail
 				)
-				handleMutationSuccess(
-					'Complete maintenance request',
-					'Maintenance request marked as complete'
-				)
-			},
-			onSettled: () => {
-				// Refetch to ensure consistency
-				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
-				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
 			}
+			if (context?.previousList) {
+				queryClient.setQueryData(
+					maintenanceQueries.lists(),
+					context.previousList
+				)
+			}
+			handleMutationError(_err, 'Complete maintenance request')
+		},
+		onSuccess: (data, { id }) => {
+			// Update with real server data
+			queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceQueries.lists(),
+				old => old?.map(item => (item.id === id ? data : item))
+			)
+			handleMutationSuccess(
+				'Complete maintenance request',
+				'Maintenance request marked as complete'
+			)
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+			queryClient.invalidateQueries({
+				queryKey: maintenanceQueries.stats().queryKey
+			})
+		}
 	})
 }
 
@@ -343,76 +366,83 @@ export function useCancelMaintenance() {
 				}
 			)
 		},
-			onMutate: async ({ id }) => {
-				// Cancel outgoing queries
-				await queryClient.cancelQueries({ queryKey: maintenanceQueries.detail(id).queryKey })
-				await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
+		onMutate: async ({ id }) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({
+				queryKey: maintenanceQueries.detail(id).queryKey
+			})
+			await queryClient.cancelQueries({ queryKey: maintenanceQueries.lists() })
 
-				// Snapshot previous state
-				const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
-					maintenanceQueries.detail(id).queryKey
-				)
-				const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
-					maintenanceQueries.lists()
-				)
+			// Snapshot previous state
+			const previousDetail = queryClient.getQueryData<MaintenanceRequest>(
+				maintenanceQueries.detail(id).queryKey
+			)
+			const previousList = queryClient.getQueryData<MaintenanceRequest[]>(
+				maintenanceQueries.lists()
+			)
 
-				// Optimistically update to cancelled status
-				queryClient.setQueryData<MaintenanceRequestWithVersion>(
-					maintenanceQueries.detail(id).queryKey,
-					(old) =>
-						old
-							? incrementVersion(old, {
+			// Optimistically update to cancelled status
+			queryClient.setQueryData<MaintenanceRequestWithVersion>(
+				maintenanceQueries.detail(id).queryKey,
+				old =>
+					old
+						? incrementVersion(old, {
 								status: 'cancelled' as const,
 								updated_at: new Date().toISOString()
 							})
-							: undefined
-				)
+						: undefined
+			)
 
-				queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
-					maintenanceQueries.lists(),
-					(old) =>
-						old?.map(item =>
-							item.id === id
-								? incrementVersion(item, {
+			queryClient.setQueryData<MaintenanceRequestWithVersion[]>(
+				maintenanceQueries.lists(),
+				old =>
+					old?.map(item =>
+						item.id === id
+							? incrementVersion(item, {
 									status: 'cancelled' as const,
 									updated_at: new Date().toISOString()
 								})
-								: item
-						)
-				)
-
-				return { previousDetail, previousList }
-			},
-			onError: (_err, { id }, context) => {
-				// Rollback on error
-				if (context?.previousDetail) {
-					queryClient.setQueryData(
-						maintenanceQueries.detail(id).queryKey,
-						context.previousDetail
+							: item
 					)
-				}
-				if (context?.previousList) {
-					queryClient.setQueryData(maintenanceQueries.lists(), context.previousList)
-				}
-				handleMutationError(_err, 'Cancel maintenance request')
-			},
-			onSuccess: (data, { id }) => {
-				// Update with real server data
-				queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
-				queryClient.setQueryData<MaintenanceRequest[]>(
-					maintenanceQueries.lists(),
-					old => old?.map(item => (item.id === id ? data : item))
+			)
+
+			return { previousDetail, previousList }
+		},
+		onError: (_err, { id }, context) => {
+			// Rollback on error
+			if (context?.previousDetail) {
+				queryClient.setQueryData(
+					maintenanceQueries.detail(id).queryKey,
+					context.previousDetail
 				)
-				handleMutationSuccess(
-					'Cancel maintenance request',
-					'Maintenance request cancelled'
-				)
-			},
-			onSettled: () => {
-				// Refetch to ensure consistency
-				queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
-				queryClient.invalidateQueries({ queryKey: maintenanceQueries.stats().queryKey })
 			}
+			if (context?.previousList) {
+				queryClient.setQueryData(
+					maintenanceQueries.lists(),
+					context.previousList
+				)
+			}
+			handleMutationError(_err, 'Cancel maintenance request')
+		},
+		onSuccess: (data, { id }) => {
+			// Update with real server data
+			queryClient.setQueryData(maintenanceQueries.detail(id).queryKey, data)
+			queryClient.setQueryData<MaintenanceRequest[]>(
+				maintenanceQueries.lists(),
+				old => old?.map(item => (item.id === id ? data : item))
+			)
+			handleMutationSuccess(
+				'Cancel maintenance request',
+				'Maintenance request cancelled'
+			)
+		},
+		onSettled: () => {
+			// Refetch to ensure consistency
+			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+			queryClient.invalidateQueries({
+				queryKey: maintenanceQueries.stats().queryKey
+			})
+		}
 	})
 }
 
@@ -426,20 +456,23 @@ export function useMaintenanceOperations() {
 	const completeRequest = useCompleteMaintenance()
 	const cancelRequest = useCancelMaintenance()
 
-	return useMemo(() => ({
-		createRequest,
-		updateRequest,
-		completeRequest,
-		cancelRequest,
-		isLoading:
-			createRequest.isPending ||
-			updateRequest.isPending ||
-			completeRequest.isPending ||
-			cancelRequest.isPending,
-		error:
-			createRequest.error ||
-			updateRequest.error ||
-			completeRequest.error ||
-			cancelRequest.error
-	}), [createRequest, updateRequest, completeRequest, cancelRequest])
+	return useMemo(
+		() => ({
+			createRequest,
+			updateRequest,
+			completeRequest,
+			cancelRequest,
+			isLoading:
+				createRequest.isPending ||
+				updateRequest.isPending ||
+				completeRequest.isPending ||
+				cancelRequest.isPending,
+			error:
+				createRequest.error ||
+				updateRequest.error ||
+				completeRequest.error ||
+				cancelRequest.error
+		}),
+		[createRequest, updateRequest, completeRequest, cancelRequest]
+	)
 }

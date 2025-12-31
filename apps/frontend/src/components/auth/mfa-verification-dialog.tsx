@@ -16,7 +16,7 @@ import {
 	InputOTPSlot,
 	InputOTPSeparator
 } from '#components/ui/input-otp'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Loader2, Shield } from 'lucide-react'
 import { useState } from 'react'
@@ -115,8 +115,8 @@ export function MfaVerificationDialog({
 						Two-Factor Authentication
 					</DialogTitle>
 					<DialogDescription>
-						Enter the 6-digit code from your authenticator app to complete
-						sign in
+						Enter the 6-digit code from your authenticator app to complete sign
+						in
 					</DialogDescription>
 				</DialogHeader>
 				<DialogBody className="space-y-6">

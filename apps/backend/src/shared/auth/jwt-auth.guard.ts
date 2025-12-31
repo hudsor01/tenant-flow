@@ -34,7 +34,9 @@ export class JwtAuthGuard implements CanActivate {
 			return true
 		}
 
-		const request = context.switchToHttp().getRequest<Request & { user?: User }>()
+		const request = context
+			.switchToHttp()
+			.getRequest<Request & { user?: User }>()
 
 		// Use SupabaseService.getUser() - it handles:
 		// - Token extraction from Authorization header

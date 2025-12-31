@@ -1,4 +1,23 @@
-import { BadRequestException, Body, Controller, Get, UnauthorizedException, Post, Query, Req, Res } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	UnauthorizedException,
+	Post,
+	Query,
+	Req,
+	Res
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiProduces,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { ExportService } from './export.service'
@@ -46,17 +65,21 @@ const exportRequestSchema = z
 
 type ExportRequestDto = z.infer<typeof exportRequestSchema>
 
+@ApiTags('Reports')
+@ApiBearerAuth('supabase-auth')
 @Controller('reports')
 export class ReportsController {
-
-	constructor(private readonly exportService: ExportService,
+	constructor(
+		private readonly exportService: ExportService,
 		private readonly reportsService: ReportsService,
 		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
 		private readonly maintenanceOperationsTemplate: MaintenanceOperationsTemplate,
-		private readonly taxPreparationTemplate: TaxPreparationTemplate, private readonly logger: AppLogger) {}
+		private readonly taxPreparationTemplate: TaxPreparationTemplate,
+		private readonly logger: AppLogger
+	) {}
 
 	private parseRequest(body: ExportRequestDto): ExportRequestDto {
 		try {
@@ -87,6 +110,11 @@ export class ReportsController {
 
 	// ==================== REPORT GENERATION ENDPOINTS ====================
 
+	@ApiOperation({ summary: 'Export data as Excel', description: 'Generate Excel spreadsheet from provided data' })
+	@ApiBody({ schema: { type: 'object', required: ['payload'], properties: { filename: { type: 'string' }, sheetName: { type: 'string' }, payload: { type: 'object' }, data: { type: 'object' } } } })
+	@ApiProduces('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+	@ApiResponse({ status: 200, description: 'Excel file generated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
 	@Post('export/excel')
 	async exportExcel(
 		@Body() body: ExportRequestDto,
@@ -102,7 +130,10 @@ export class ReportsController {
 			filename
 		})
 
-		const buffer = await this.exportService.generateExcel(payload as Record<string, unknown> | Record<string, unknown>[], sheetName)
+		const buffer = await this.exportService.generateExcel(
+			payload as Record<string, unknown> | Record<string, unknown>[],
+			sheetName
+		)
 
 		res.setHeader(
 			'Content-Type',
@@ -113,6 +144,11 @@ export class ReportsController {
 		res.send(buffer)
 	}
 
+	@ApiOperation({ summary: 'Export data as CSV', description: 'Generate CSV file from provided data' })
+	@ApiBody({ schema: { type: 'object', required: ['payload'], properties: { filename: { type: 'string' }, payload: { type: 'object' }, data: { type: 'object' } } } })
+	@ApiProduces('text/csv')
+	@ApiResponse({ status: 200, description: 'CSV file generated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
 	@Post('export/csv')
 	async exportCsv(
 		@Body() body: ExportRequestDto,
@@ -124,13 +160,20 @@ export class ReportsController {
 
 		this.logger.log('Generating CSV export', { filename })
 
-		const csv = await this.exportService.generateCSV(payload as Record<string, unknown> | Record<string, unknown>[])
+		const csv = await this.exportService.generateCSV(
+			payload as Record<string, unknown> | Record<string, unknown>[]
+		)
 
 		res.setHeader('Content-Type', 'text/csv')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(csv)
 	}
 
+	@ApiOperation({ summary: 'Export data as PDF', description: 'Generate PDF document from provided data' })
+	@ApiBody({ schema: { type: 'object', required: ['payload'], properties: { filename: { type: 'string' }, title: { type: 'string' }, payload: { type: 'object' }, data: { type: 'object' } } } })
+	@ApiProduces('application/pdf')
+	@ApiResponse({ status: 200, description: 'PDF file generated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid request data' })
 	@Post('export/pdf')
 	async exportPdf(
 		@Body() body: ExportRequestDto,
@@ -143,13 +186,20 @@ export class ReportsController {
 
 		this.logger.log('Generating PDF export', { filename })
 
-		const buffer = await this.exportService.generatePDF(payload as Record<string, unknown> | Record<string, unknown>[], title)
+		const buffer = await this.exportService.generatePDF(
+			payload as Record<string, unknown> | Record<string, unknown>[],
+			title
+		)
 
 		res.setHeader('Content-Type', 'application/pdf')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(buffer)
 	}
 
+	@ApiOperation({ summary: 'Generate executive monthly report', description: 'Generate comprehensive monthly executive summary report' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/executive-monthly')
 	async generateExecutiveMonthly(
 		@Body()
@@ -192,7 +242,9 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.executiveMonthlyTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Executive Monthly Report'
 			)
 
@@ -207,6 +259,10 @@ export class ReportsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Generate financial performance report', description: 'Generate detailed financial performance analysis report' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/financial-performance')
 	async generateFinancialPerformance(
 		@Body()
@@ -248,6 +304,10 @@ export class ReportsController {
 		res.send(buffer)
 	}
 
+	@ApiOperation({ summary: 'Generate property portfolio report', description: 'Generate property portfolio overview and metrics report' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/property-portfolio')
 	async generatePropertyPortfolio(
 		@Body()
@@ -291,7 +351,9 @@ export class ReportsController {
 		} else {
 			const pdfContent = this.propertyPortfolioTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Property Portfolio Report'
 			)
 
@@ -306,6 +368,10 @@ export class ReportsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Generate lease portfolio report', description: 'Generate lease portfolio analysis report' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/lease-portfolio')
 	async generateLeasePortfolio(
 		@Body()
@@ -345,6 +411,10 @@ export class ReportsController {
 		res.send(buffer)
 	}
 
+	@ApiOperation({ summary: 'Generate maintenance operations report', description: 'Generate maintenance operations and costs analysis report' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/maintenance-operations')
 	async generateMaintenanceOperations(
 		@Body()
@@ -393,7 +463,9 @@ export class ReportsController {
 			const pdfContent =
 				this.maintenanceOperationsTemplate.formatForPDF(reportData)
 			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as Record<string, unknown> | Record<string, unknown>[],
+				pdfContent as unknown as
+					| Record<string, unknown>
+					| Record<string, unknown>[],
 				'Maintenance Operations Report'
 			)
 
@@ -408,6 +480,10 @@ export class ReportsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Generate tax preparation report', description: 'Generate tax preparation documents and summaries' })
+	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiResponse({ status: 200, description: 'Report generated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/tax-preparation')
 	async generateTaxPreparation(
 		@Body()
@@ -453,6 +529,10 @@ export class ReportsController {
 	 * GET /reports/analytics/revenue/monthly
 	 * Get monthly revenue data for charts
 	 */
+	@ApiOperation({ summary: 'Get monthly revenue', description: 'Get monthly revenue data for charts' })
+	@ApiQuery({ name: 'months', required: false, type: Number, description: 'Number of months to retrieve (default: 12)' })
+	@ApiResponse({ status: 200, description: 'Monthly revenue data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('analytics/revenue/monthly')
 	async getMonthlyRevenue(
 		@Req() req: AuthenticatedRequest,
@@ -479,6 +559,11 @@ export class ReportsController {
 	 * GET /reports/analytics/payments
 	 * Get payment analytics for dashboard
 	 */
+	@ApiOperation({ summary: 'Get payment analytics', description: 'Get payment analytics data for dashboard' })
+	@ApiQuery({ name: 'start_date', required: false, type: String, description: 'Start date filter (ISO format)' })
+	@ApiQuery({ name: 'end_date', required: false, type: String, description: 'End date filter (ISO format)' })
+	@ApiResponse({ status: 200, description: 'Payment analytics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('analytics/payments')
 	async getPaymentAnalytics(
 		@Req() req: AuthenticatedRequest,
@@ -506,6 +591,9 @@ export class ReportsController {
 	 * GET /reports/analytics/occupancy
 	 * Get occupancy metrics across all properties
 	 */
+	@ApiOperation({ summary: 'Get occupancy metrics', description: 'Get occupancy metrics across all properties' })
+	@ApiResponse({ status: 200, description: 'Occupancy metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('analytics/occupancy')
 	async getOccupancyMetrics(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user?.id
@@ -527,6 +615,11 @@ export class ReportsController {
 	 * GET /reports/financial
 	 * Financial report data for income, expenses, cash flow, rent roll
 	 */
+	@ApiOperation({ summary: 'Get financial report', description: 'Get financial report data including income, expenses, cash flow, and rent roll' })
+	@ApiQuery({ name: 'start_date', required: false, type: String, description: 'Start date filter (ISO format)' })
+	@ApiQuery({ name: 'end_date', required: false, type: String, description: 'End date filter (ISO format)' })
+	@ApiResponse({ status: 200, description: 'Financial report retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial')
 	async getFinancialReport(
 		@Req() req: AuthenticatedRequest,
@@ -554,6 +647,11 @@ export class ReportsController {
 	 * GET /reports/properties
 	 * Property report data for occupancy, vacancy, performance
 	 */
+	@ApiOperation({ summary: 'Get property report', description: 'Get property report data including occupancy, vacancy, and performance metrics' })
+	@ApiQuery({ name: 'start_date', required: false, type: String, description: 'Start date filter (ISO format)' })
+	@ApiQuery({ name: 'end_date', required: false, type: String, description: 'End date filter (ISO format)' })
+	@ApiResponse({ status: 200, description: 'Property report retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('properties')
 	async getPropertyReport(
 		@Req() req: AuthenticatedRequest,
@@ -581,6 +679,11 @@ export class ReportsController {
 	 * GET /reports/tenants
 	 * Tenant report data for payments, expirations, turnover
 	 */
+	@ApiOperation({ summary: 'Get tenant report', description: 'Get tenant report data including payments, expirations, and turnover' })
+	@ApiQuery({ name: 'start_date', required: false, type: String, description: 'Start date filter (ISO format)' })
+	@ApiQuery({ name: 'end_date', required: false, type: String, description: 'End date filter (ISO format)' })
+	@ApiResponse({ status: 200, description: 'Tenant report retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('tenants')
 	async getTenantReport(
 		@Req() req: AuthenticatedRequest,
@@ -608,6 +711,11 @@ export class ReportsController {
 	 * GET /reports/maintenance
 	 * Maintenance report data for work orders, costs, vendors
 	 */
+	@ApiOperation({ summary: 'Get maintenance report', description: 'Get maintenance report data including work orders, costs, and vendor information' })
+	@ApiQuery({ name: 'start_date', required: false, type: String, description: 'Start date filter (ISO format)' })
+	@ApiQuery({ name: 'end_date', required: false, type: String, description: 'End date filter (ISO format)' })
+	@ApiResponse({ status: 200, description: 'Maintenance report retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('maintenance')
 	async getMaintenanceReport(
 		@Req() req: AuthenticatedRequest,

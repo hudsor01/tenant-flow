@@ -11,7 +11,6 @@ import type { RentPayment, Lease } from './types'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('RentPaymentQueryService', () => {
 	let service: RentPaymentQueryService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
@@ -58,7 +57,7 @@ describe('RentPaymentQueryService', () => {
 			data: shouldError ? null : returnData,
 			error: shouldError ? { message: 'Error' } : null
 		}),
-		then: jest.fn((cb) =>
+		then: jest.fn(cb =>
 			cb({
 				data: shouldError ? null : returnData,
 				error: shouldError ? { message: 'Error' } : null

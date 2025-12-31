@@ -90,8 +90,10 @@ export interface CreateSubmissionFromPdfParams {
 
 @Injectable()
 export class DocuSealService {
-
-	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Check if DocuSeal is enabled (API key configured)
@@ -114,7 +116,9 @@ export class DocuSealService {
 	/**
 	 * Create a new submission (signing request)
 	 */
-	async createSubmission(params: CreateSubmissionParams): Promise<DocuSealSubmission> {
+	async createSubmission(
+		params: CreateSubmissionParams
+	): Promise<DocuSealSubmission> {
 		this.ensureEnabled()
 
 		const body = {
@@ -149,7 +153,10 @@ export class DocuSealService {
 	/**
 	 * Get the signing URL for a specific submitter
 	 */
-	async getSubmitterSigningUrl(submissionId: number, email: string): Promise<string | null> {
+	async getSubmitterSigningUrl(
+		submissionId: number,
+		email: string
+	): Promise<string | null> {
 		this.ensureEnabled()
 
 		const submitters = await this.fetch<DocuSealSubmitter[]>(
@@ -171,7 +178,6 @@ export class DocuSealService {
 			method: 'POST'
 		})
 	}
-
 
 	/**
 	 * Resend signature request email to a submitter (native DocuSeal approach)
@@ -208,7 +214,9 @@ export class DocuSealService {
 	 * Uses DocuSeal /submissions/pdf endpoint to submit already-filled PDF
 	 * for signature without template dependency
 	 */
-	async createSubmissionFromPdf(params: CreateSubmissionFromPdfParams): Promise<DocuSealSubmission> {
+	async createSubmissionFromPdf(
+		params: CreateSubmissionFromPdfParams
+	): Promise<DocuSealSubmission> {
 		this.ensureEnabled()
 
 		const body = {
@@ -241,10 +249,13 @@ export class DocuSealService {
 			}
 		}
 
-		const submission = await this.fetch<DocuSealSubmission>('/submissions/pdf', {
-			method: 'POST',
-			body: JSON.stringify(body)
-		})
+		const submission = await this.fetch<DocuSealSubmission>(
+			'/submissions/pdf',
+			{
+				method: 'POST',
+				body: JSON.stringify(body)
+			}
+		)
 
 		this.logger.log('Created DocuSeal submission from filled PDF', {
 			submissionId: submission.id,
@@ -259,7 +270,9 @@ export class DocuSealService {
 	 * Create a lease-specific submission with owner and tenant
 	 * This is the main method for creating e-signature requests for leases
 	 */
-	async createLeaseSubmission(params: CreateLeaseSubmissionParams): Promise<DocuSealSubmission> {
+	async createLeaseSubmission(
+		params: CreateLeaseSubmissionParams
+	): Promise<DocuSealSubmission> {
 		this.ensureEnabled()
 
 		// Build field values for template placeholders
@@ -271,7 +284,10 @@ export class DocuSealService {
 		]
 
 		if (params.unitNumber) {
-			commonFields.push({ name: 'unit_number', default_value: params.unitNumber })
+			commonFields.push({
+				name: 'unit_number',
+				default_value: params.unitNumber
+			})
 		}
 
 		const submission = await this.createSubmission({
@@ -316,7 +332,9 @@ export class DocuSealService {
 	 */
 	private ensureEnabled(): void {
 		if (!this.isEnabled()) {
-			throw new Error('DocuSeal is not configured. Set DOCUSEAL_API_KEY environment variable.')
+			throw new Error(
+				'DocuSeal is not configured. Set DOCUSEAL_API_KEY environment variable.'
+			)
 		}
 	}
 
@@ -365,7 +383,9 @@ export class DocuSealService {
 				statusText: response.statusText,
 				errorBody // Log the actual error response from DocuSeal
 			})
-			throw new Error(`DocuSeal API error: ${response.status} ${response.statusText}`)
+			throw new Error(
+				`DocuSeal API error: ${response.status} ${response.statusText}`
+			)
 		}
 
 		const json = await response.json()

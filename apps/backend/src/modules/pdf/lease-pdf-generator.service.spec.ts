@@ -8,7 +8,10 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { jest } from '@jest/globals'
-import { LeasePdfGeneratorService, PdfGenerationOptions } from './lease-pdf-generator.service'
+import {
+	LeasePdfGeneratorService,
+	PdfGenerationOptions
+} from './lease-pdf-generator.service'
 import { StateValidationService } from './state-validation.service'
 import { TemplateCacheService } from './template-cache.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -37,10 +40,18 @@ jest.mock('pdf-lib', () => {
 
 	const mockPdfDoc = {
 		getForm: jest.fn().mockReturnValue(mockForm),
-		save: jest.fn().mockResolvedValue(new Uint8Array([
-			0x25, 0x50, 0x44, 0x46, // %PDF
-			0x2d, 0x31, 0x2e, 0x34 // -1.4
-		]))
+		save: jest.fn().mockResolvedValue(
+			new Uint8Array([
+				0x25,
+				0x50,
+				0x44,
+				0x46, // %PDF
+				0x2d,
+				0x31,
+				0x2e,
+				0x34 // -1.4
+			])
+		)
 	}
 
 	return {
@@ -144,7 +155,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE)
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toBe('No state code provided, using default (TX)')
+				expect(result.warning).toBe(
+					'No state code provided, using default (TX)'
+				)
 				expect(result.error).toBeUndefined()
 			})
 
@@ -155,7 +168,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE)
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toBe('No state code provided, using default (TX)')
+				expect(result.warning).toBe(
+					'No state code provided, using default (TX)'
+				)
 				expect(result.error).toBeUndefined()
 			})
 
@@ -177,7 +192,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE) // Fallback to default
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toContain('Invalid state code "TEXAS", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code "TEXAS", using default (TX)'
+				)
 				expect(result.error).toContain('Invalid state code "TEXAS"')
 			})
 
@@ -188,7 +205,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE) // Fallback to default
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toContain('Invalid state code "T", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code "T", using default (TX)'
+				)
 				expect(result.error).toContain('Invalid state code "T"')
 			})
 
@@ -199,7 +218,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE) // Fallback to default
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toContain('Invalid state code "T1", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code "T1", using default (TX)'
+				)
 				expect(result.error).toContain('Invalid state code "T1"')
 			})
 
@@ -210,7 +231,9 @@ describe('LeasePdfGeneratorService', () => {
 				expect(result.stateCode).toBe(DEFAULT_STATE_CODE) // Fallback to default
 				expect(result.stateName).toBe('Texas')
 				expect(result.isSupported).toBe(true)
-				expect(result.warning).toContain('Invalid state code "XX", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code "XX", using default (TX)'
+				)
 				expect(result.error).toContain('Invalid state code "XX"')
 			})
 
@@ -284,7 +307,8 @@ describe('LeasePdfGeneratorService', () => {
 				}
 
 				// Mock the public method instead of private method
-				jest.spyOn(templateCache, 'getTemplateMetadata')
+				jest
+					.spyOn(templateCache, 'getTemplateMetadata')
 					.mockResolvedValue(mockMetadata)
 
 				const result = await templateCache.getTemplateMetadata('TX')
@@ -303,14 +327,17 @@ describe('LeasePdfGeneratorService', () => {
 					templateType: 'RESIDENTIAL' as const
 				}
 
-				jest.spyOn(templateCache, 'getTemplateMetadata')
+				jest
+					.spyOn(templateCache, 'getTemplateMetadata')
 					.mockResolvedValue(mockMetadata)
 
 				const result = await templateCache.getTemplateMetadata('CA')
 
 				expect(templateCache.getTemplateMetadata).toHaveBeenCalledWith('CA')
 				expect(result.exists).toBe(false)
-				expect(result.path).toContain('California_Residential_Lease_Agreement.pdf')
+				expect(result.path).toContain(
+					'California_Residential_Lease_Agreement.pdf'
+				)
 			})
 		})
 
@@ -318,7 +345,8 @@ describe('LeasePdfGeneratorService', () => {
 			it('should return cached content', async () => {
 				const mockContent = new Uint8Array([1, 2, 3])
 
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockResolvedValue(mockContent)
 
 				const result = await templateCache.getTemplateContent('TX')
@@ -328,8 +356,7 @@ describe('LeasePdfGeneratorService', () => {
 			})
 
 			it('should return null for non-existent template', async () => {
-				jest.spyOn(templateCache, 'getTemplateContent')
-					.mockResolvedValue(null)
+				jest.spyOn(templateCache, 'getTemplateContent').mockResolvedValue(null)
 
 				const result = await templateCache.getTemplateContent('CA')
 
@@ -340,54 +367,76 @@ describe('LeasePdfGeneratorService', () => {
 
 		describe('PDF Generation', () => {
 			it('should generate PDF with valid Texas template', async () => {
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockResolvedValue(new Uint8Array([1, 2, 3]))
 
 				const result = await service.generateFilledPdf(mockFields, 'lease-123')
 
 				expect(result).toBeInstanceOf(Buffer)
 				expect(result.length).toBeGreaterThan(0)
-				expect(templateCache.getTemplateContent).toHaveBeenCalledWith('TX', DEFAULT_TEMPLATE_TYPE)
+				expect(templateCache.getTemplateContent).toHaveBeenCalledWith(
+					'TX',
+					DEFAULT_TEMPLATE_TYPE
+				)
 			})
 
 			it('should use default template for unsupported state', async () => {
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockResolvedValue(new Uint8Array([1, 2, 3]))
 
-				const result = await service.generateFilledPdf(mockFields, 'lease-123', {
-					state: 'CA' // Unsupported state
-				})
+				const result = await service.generateFilledPdf(
+					mockFields,
+					'lease-123',
+					{
+						state: 'CA' // Unsupported state
+					}
+				)
 
 				expect(result).toBeInstanceOf(Buffer)
-				expect(templateCache.getTemplateContent).toHaveBeenCalledWith('TX', DEFAULT_TEMPLATE_TYPE) // Fallback to default
+				expect(templateCache.getTemplateContent).toHaveBeenCalledWith(
+					'TX',
+					DEFAULT_TEMPLATE_TYPE
+				) // Fallback to default
 			})
 
 			it('should throw error when template not found', async () => {
-				jest.spyOn(templateCache, 'getTemplateContent')
-					.mockResolvedValue(null)
+				jest.spyOn(templateCache, 'getTemplateContent').mockResolvedValue(null)
 
-				await expect(service.generateFilledPdf(mockFields, 'lease-123', {
-					throwOnUnsupportedState: true
-				})).rejects.toThrow('Failed to load template for state TX')
+				await expect(
+					service.generateFilledPdf(mockFields, 'lease-123', {
+						throwOnUnsupportedState: true
+					})
+				).rejects.toThrow('Failed to load template for state TX')
 			})
 
 			it('should handle different template types', async () => {
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockResolvedValue(new Uint8Array([1, 2, 3]))
 
-				const result = await service.generateFilledPdf(mockFields, 'lease-123', {
-					templateType: 'RESIDENTIAL'
-				})
+				const result = await service.generateFilledPdf(
+					mockFields,
+					'lease-123',
+					{
+						templateType: 'RESIDENTIAL'
+					}
+				)
 
 				expect(result).toBeInstanceOf(Buffer)
-				expect(templateCache.getTemplateContent).toHaveBeenCalledWith('TX', DEFAULT_TEMPLATE_TYPE)
+				expect(templateCache.getTemplateContent).toHaveBeenCalledWith(
+					'TX',
+					DEFAULT_TEMPLATE_TYPE
+				)
 			})
 
 			it('should log warnings for unsupported states', async () => {
 				const loggerSpy = jest.spyOn(logger, 'warn')
 				const consoleSpy = jest.spyOn(console, 'warn')
 
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockResolvedValue(new Uint8Array([1, 2, 3]))
 
 				await service.generateFilledPdf(mockFields, 'lease-123', {
@@ -395,10 +444,10 @@ describe('LeasePdfGeneratorService', () => {
 				})
 
 				expect(loggerSpy).toHaveBeenCalledWith(
-				'State validation warning',
-				expect.objectContaining({
-					inputState: 'CA',
-					warning: expect.stringContaining('not supported')
+					'State validation warning',
+					expect.objectContaining({
+						inputState: 'CA',
+						warning: expect.stringContaining('not supported')
 					})
 				)
 			})
@@ -407,20 +456,22 @@ describe('LeasePdfGeneratorService', () => {
 		describe('Error Handling', () => {
 			it('should handle PDF generation errors gracefully', async () => {
 				// Mock metadata check to pass so we reach getTemplateContent
-				jest.spyOn(templateCache, 'getTemplateMetadata')
-					.mockResolvedValue({
-						exists: true,
-						path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
-						stateCode: 'TX',
-						stateName: 'Texas'
-					})
+				jest.spyOn(templateCache, 'getTemplateMetadata').mockResolvedValue({
+					exists: true,
+					path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
+					stateCode: 'TX',
+					stateName: 'Texas'
+				})
 
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockRejectedValue(new Error('Template load failed'))
 
 				const loggerSpy = jest.spyOn(logger, 'error')
 
-				await expect(service.generateFilledPdf(mockFields, 'lease-123')).rejects.toThrow(
+				await expect(
+					service.generateFilledPdf(mockFields, 'lease-123')
+				).rejects.toThrow(
 					'PDF generation failed for state TX: Template load failed'
 				)
 
@@ -437,18 +488,20 @@ describe('LeasePdfGeneratorService', () => {
 				const badRequestError = new BadRequestException('Custom error')
 
 				// Mock metadata check to pass so we reach getTemplateContent
-				jest.spyOn(templateCache, 'getTemplateMetadata')
-					.mockResolvedValue({
-						exists: true,
-						path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
-						stateCode: 'TX',
-						stateName: 'Texas'
-					})
+				jest.spyOn(templateCache, 'getTemplateMetadata').mockResolvedValue({
+					exists: true,
+					path: '/fake/path/Texas_Residential_Lease_Agreement.pdf',
+					stateCode: 'TX',
+					stateName: 'Texas'
+				})
 
-				jest.spyOn(templateCache, 'getTemplateContent')
+				jest
+					.spyOn(templateCache, 'getTemplateContent')
 					.mockRejectedValue(badRequestError)
 
-				await expect(service.generateFilledPdf(mockFields, 'lease-123')).rejects.toThrow('Custom error')
+				await expect(
+					service.generateFilledPdf(mockFields, 'lease-123')
+				).rejects.toThrow('Custom error')
 			})
 		})
 
@@ -457,14 +510,18 @@ describe('LeasePdfGeneratorService', () => {
 				const result = stateValidation.validateState('T!X')
 
 				expect(result.isValid).toBe(false)
-				expect(result.warning).toContain('Invalid state code "T!X", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code "T!X", using default (TX)'
+				)
 			})
 
 			it('should handle whitespace in state codes', () => {
 				const result = stateValidation.validateState(' TX ')
 
 				expect(result.isValid).toBe(false)
-				expect(result.warning).toContain('Invalid state code " TX ", using default (TX)')
+				expect(result.warning).toContain(
+					'Invalid state code " TX ", using default (TX)'
+				)
 			})
 
 			it('should validate all US state codes format', () => {
@@ -483,9 +540,13 @@ describe('LeasePdfGeneratorService', () => {
 			})
 
 			it('should handle template type validation', async () => {
-				const result = await service.generateFilledPdf(mockFields, 'lease-123', {
-					templateType: 'RESIDENTIAL' // Valid template type
-				})
+				const result = await service.generateFilledPdf(
+					mockFields,
+					'lease-123',
+					{
+						templateType: 'RESIDENTIAL' // Valid template type
+					}
+				)
 
 				// Should still work but log error
 				expect(result).toBeInstanceOf(Buffer)

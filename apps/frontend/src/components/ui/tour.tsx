@@ -679,7 +679,7 @@ function Tour(props: TourProps) {
 
 				store.notify()
 			},
-		notify: () => {
+			notify: () => {
 				listenersRef.current.forEach((l: () => void) => {
 					l()
 				})
@@ -983,7 +983,13 @@ function TourStep(props: TourStepProps) {
 					...detectOverflowOptions
 				}),
 			stepData.avoidCollisions && flip({ ...detectOverflowOptions }),
-			arrow && onArrow({ element: arrow, ...(stepData.arrowPadding !== undefined ? { padding: stepData.arrowPadding } : {}) }),
+			arrow &&
+				onArrow({
+					element: arrow,
+					...(stepData.arrowPadding !== undefined
+						? { padding: stepData.arrowPadding }
+						: {})
+				}),
 			stepData.hideWhenDetached &&
 				hide({
 					strategy: 'referenceHidden',
@@ -1390,8 +1396,13 @@ function TourArrow(props: TourArrowProps) {
 			style={{
 				position: 'absolute',
 				left:
-					stepContext.arrowX !== undefined ? `${stepContext.arrowX}px` : undefined,
-				top: stepContext.arrowY !== undefined ? `${stepContext.arrowY}px` : undefined,
+					stepContext.arrowX !== undefined
+						? `${stepContext.arrowX}px`
+						: undefined,
+				top:
+					stepContext.arrowY !== undefined
+						? `${stepContext.arrowY}px`
+						: undefined,
 				[baseSide]: 0,
 				transformOrigin: {
 					top: '',

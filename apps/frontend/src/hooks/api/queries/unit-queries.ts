@@ -33,26 +33,33 @@ export const unitQueries = {
 			queryKey: [...unitQueries.lists(), filters ?? {}],
 			queryFn: async () => {
 				const searchParams = new URLSearchParams()
-				if (filters?.property_id) searchParams.append('property_id', filters.property_id)
+				if (filters?.property_id)
+					searchParams.append('property_id', filters.property_id)
 				if (filters?.status) searchParams.append('status', filters.status)
 				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
 				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<Unit>>(`/api/v1/units${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<Unit>>(
+					`/api/v1/units${params ? `?${params}` : ''}`
+				)
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	listByProperty: (property_id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.lists(), 'by-property', property_id],
 			queryFn: async () => {
-				const response = await apiRequest<PaginatedResponse<Unit>>(`/api/v1/units?property_id=${property_id}`)
+				const response = await apiRequest<PaginatedResponse<Unit>>(
+					`/api/v1/units?property_id=${property_id}`
+				)
 				return response.data
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id,
+			enabled: !!property_id
 		}),
 
 	details: () => [...unitQueries.all(), 'detail'] as const,
@@ -62,15 +69,16 @@ export const unitQueries = {
 			queryKey: [...unitQueries.details(), id],
 			queryFn: () => apiRequest<Unit>(`/api/v1/units/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	byProperty: (property_id: string) =>
 		queryOptions({
 			queryKey: [...unitQueries.all(), 'by-property', property_id],
-			queryFn: () => apiRequest<Unit[]>(`/api/v1/units/by-property/${property_id}`),
+			queryFn: () =>
+				apiRequest<Unit[]>(`/api/v1/units/by-property/${property_id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id,
+			enabled: !!property_id
 		}),
 
 	stats: () =>
@@ -78,6 +86,6 @@ export const unitQueries = {
 			queryKey: [...unitQueries.all(), 'stats'],
 			queryFn: () => apiRequest<UnitStats>('/api/v1/units/stats'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000,
-		}),
+			gcTime: 30 * 60 * 1000
+		})
 }

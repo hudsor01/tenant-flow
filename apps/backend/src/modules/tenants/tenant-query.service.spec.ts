@@ -25,7 +25,9 @@ type TenantByAuthResponse = Awaited<
 	ReturnType<TenantDetailService['getTenantByAuthUserId']>
 >
 type TenantStatsResponse = Awaited<ReturnType<TenantStatsService['getStats']>>
-type TenantSummaryResponse = Awaited<ReturnType<TenantStatsService['getSummary']>>
+type TenantSummaryResponse = Awaited<
+	ReturnType<TenantStatsService['getSummary']>
+>
 type PaymentStatusResponse = Awaited<
 	ReturnType<TenantStatsService['fetchPaymentStatuses']>
 >
@@ -104,7 +106,10 @@ describe('TenantQueryService', () => {
 				{ provide: TenantListService, useValue: mockListService },
 				{ provide: TenantStatsService, useValue: mockStatsService },
 				{ provide: TenantRelationService, useValue: mockRelationService },
-				{ provide: TenantInvitationQueryService, useValue: mockInvitationService },
+				{
+					provide: TenantInvitationQueryService,
+					useValue: mockInvitationService
+				},
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -167,7 +172,10 @@ describe('TenantQueryService', () => {
 
 			const result = await service.findOne(mockTenantId, mockToken)
 
-			expect(mockDetailService.findOne).toHaveBeenCalledWith(mockTenantId, mockToken)
+			expect(mockDetailService.findOne).toHaveBeenCalledWith(
+				mockTenantId,
+				mockToken
+			)
 			expect(result).toEqual(mockTenant)
 		})
 

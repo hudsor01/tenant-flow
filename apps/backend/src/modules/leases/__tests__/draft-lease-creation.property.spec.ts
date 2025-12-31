@@ -86,7 +86,7 @@ describe('Property 10: Draft Lease Creation', () => {
 				data: resolveData,
 				error: resolveError
 			}
-						return Promise.resolve(result)
+			return Promise.resolve(result)
 		})
 
 		return chain
@@ -101,10 +101,14 @@ describe('Property 10: Draft Lease Creation', () => {
 		// Create a persistent mock client that gets reused
 		const mockClient = {
 			from: jest.fn((table: string) => {
-								// Return table-specific mock chains with proper data
+				// Return table-specific mock chains with proper data
 				if (table === 'units') {
-										return createMockChain(
-						{ id: 'unit-123', property_id: 'property-456', property: { name: 'Test Property', owner_user_id: 'owner-123' } }, // unit data
+					return createMockChain(
+						{
+							id: 'unit-123',
+							property_id: 'property-456',
+							property: { name: 'Test Property', owner_user_id: 'owner-123' }
+						}, // unit data
 						null
 					)
 				}
@@ -112,15 +116,19 @@ describe('Property 10: Draft Lease Creation', () => {
 					const tenantData = {
 						id: 'tenant-789',
 						user_id: 'user-abc',
-						user: { first_name: 'Test', last_name: 'Tenant', email: 'test@example.com' }
+						user: {
+							first_name: 'Test',
+							last_name: 'Tenant',
+							email: 'test@example.com'
+						}
 					}
-										return createMockChain(
+					return createMockChain(
 						tenantData, // tenant data with user relation
 						null
 					)
 				}
 				if (table === 'tenant_invitations') {
-										return createMockChain(
+					return createMockChain(
 						{ id: 'invitation-def' }, // invitation exists
 						null
 					)
@@ -134,18 +142,22 @@ describe('Property 10: Draft Lease Creation', () => {
 					// Second call is insert - return created lease
 					if (leasesCallCount === 1) {
 						// Override maybeSingle for duplicate check to return null
-						leasesChain.maybeSingle = jest.fn(() => Promise.resolve({ data: null, error: null }))
+						leasesChain.maybeSingle = jest.fn(() =>
+							Promise.resolve({ data: null, error: null })
+						)
 					}
 
 					return leasesChain
 				}
 				// Default for other tables
-								return createMockChain()
+				return createMockChain()
 			})
 		}
 
 		mockSupabaseService = {
-			getUserClient: jest.fn(() => mockClient) as unknown as jest.MockedFunction<
+			getUserClient: jest.fn(
+				() => mockClient
+			) as unknown as jest.MockedFunction<
 				() => ReturnType<SupabaseService['getUserClient']>
 			>
 		}
@@ -181,13 +193,25 @@ describe('Property 10: Draft Lease Creation', () => {
 				fc.record({
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().split('T')[0]!),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2027-12-31') }).map(d => d.toISOString().split('T')[0]!),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().split('T')[0]!),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2027-12-31')
+						})
+						.map(d => d.toISOString().split('T')[0]!),
 					rent_amount: fc.integer({ min: 50000, max: 1000000 }), // $500 - $10,000 in cents
 					security_deposit: fc.integer({ min: 0, max: 1000000 }),
 					payment_day: fc.integer({ min: 1, max: 28 })
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					capturedInsertData = null
 
 					const generatedLeaseId = fc.sample(fc.uuid(), 1)[0]!
@@ -199,7 +223,10 @@ describe('Property 10: Draft Lease Creation', () => {
 								return createMockChain({
 									id: leaseData.unit_id,
 									property_id: 'test-property-id',
-									property: { name: 'Test Property', owner_user_id: 'owner-123' }
+									property: {
+										name: 'Test Property',
+										owner_user_id: 'owner-123'
+									}
 								})
 							}
 							if (table === 'tenants') {
@@ -257,8 +284,20 @@ describe('Property 10: Draft Lease Creation', () => {
 					// Required fields
 					unit_id: fc.uuid(),
 					primary_tenant_id: fc.uuid(),
-					start_date: fc.date({ noInvalidDate: true, min: new Date('2024-01-01'), max: new Date('2026-12-31') }).map(d => d.toISOString().split('T')[0]!),
-					end_date: fc.date({ noInvalidDate: true, min: new Date('2025-01-01'), max: new Date('2027-12-31') }).map(d => d.toISOString().split('T')[0]!),
+					start_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2024-01-01'),
+							max: new Date('2026-12-31')
+						})
+						.map(d => d.toISOString().split('T')[0]!),
+					end_date: fc
+						.date({
+							noInvalidDate: true,
+							min: new Date('2025-01-01'),
+							max: new Date('2027-12-31')
+						})
+						.map(d => d.toISOString().split('T')[0]!),
 					rent_amount: fc.integer({ min: 50000, max: 1000000 }),
 					security_deposit: fc.integer({ min: 0, max: 1000000 }),
 					payment_day: fc.integer({ min: 1, max: 28 }),
@@ -275,12 +314,14 @@ describe('Property 10: Draft Lease Creation', () => {
 						fc.constantFrom('water', 'electricity', 'gas', 'trash', 'internet'),
 						{ minLength: 0, maxLength: 5 }
 					),
-					property_rules: fc.option(fc.string({ minLength: 0, maxLength: 500 })),
+					property_rules: fc.option(
+						fc.string({ minLength: 0, maxLength: 500 })
+					),
 					property_built_before_1978: fc.boolean(),
 					lead_paint_disclosure_acknowledged: fc.option(fc.boolean()),
 					governing_state: fc.constantFrom('TX', 'CA', 'NY', 'FL', 'WA')
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					capturedInsertData = null
 
 					const generatedLeaseId = fc.sample(fc.uuid(), 1)[0]!
@@ -291,7 +332,10 @@ describe('Property 10: Draft Lease Creation', () => {
 								return createMockChain({
 									id: leaseData.unit_id,
 									property_id: 'test-property-id',
-									property: { name: 'Test Property', owner_user_id: 'owner-123' }
+									property: {
+										name: 'Test Property',
+										owner_user_id: 'owner-123'
+									}
 								})
 							}
 							if (table === 'tenants') {
@@ -327,16 +371,22 @@ describe('Property 10: Draft Lease Creation', () => {
 
 					// Core fields
 					expect(capturedInsertData?.unit_id).toBe(leaseData.unit_id)
-					expect(capturedInsertData?.primary_tenant_id).toBe(leaseData.primary_tenant_id)
+					expect(capturedInsertData?.primary_tenant_id).toBe(
+						leaseData.primary_tenant_id
+					)
 					expect(capturedInsertData?.start_date).toBe(leaseData.start_date)
 					expect(capturedInsertData?.rent_amount).toBe(leaseData.rent_amount)
 
 					// Wizard detail fields (only check if provided)
 					if (leaseData.max_occupants !== null) {
-						expect(capturedInsertData?.max_occupants).toBe(leaseData.max_occupants)
+						expect(capturedInsertData?.max_occupants).toBe(
+							leaseData.max_occupants
+						)
 					}
 					if (leaseData.pets_allowed !== undefined) {
-						expect(capturedInsertData?.pets_allowed).toBe(leaseData.pets_allowed)
+						expect(capturedInsertData?.pets_allowed).toBe(
+							leaseData.pets_allowed
+						)
 					}
 					if (leaseData.pet_deposit !== null) {
 						expect(capturedInsertData?.pet_deposit).toBe(leaseData.pet_deposit)
@@ -345,22 +395,34 @@ describe('Property 10: Draft Lease Creation', () => {
 						expect(capturedInsertData?.pet_rent).toBe(leaseData.pet_rent)
 					}
 					if (leaseData.utilities_included?.length) {
-						expect(capturedInsertData?.utilities_included).toEqual(leaseData.utilities_included)
+						expect(capturedInsertData?.utilities_included).toEqual(
+							leaseData.utilities_included
+						)
 					}
 					if (leaseData.tenant_responsible_utilities?.length) {
-						expect(capturedInsertData?.tenant_responsible_utilities).toEqual(leaseData.tenant_responsible_utilities)
+						expect(capturedInsertData?.tenant_responsible_utilities).toEqual(
+							leaseData.tenant_responsible_utilities
+						)
 					}
 					if (leaseData.property_rules !== null) {
-						expect(capturedInsertData?.property_rules).toBe(leaseData.property_rules)
+						expect(capturedInsertData?.property_rules).toBe(
+							leaseData.property_rules
+						)
 					}
 					if (leaseData.property_built_before_1978 !== undefined) {
-						expect(capturedInsertData?.property_built_before_1978).toBe(leaseData.property_built_before_1978)
+						expect(capturedInsertData?.property_built_before_1978).toBe(
+							leaseData.property_built_before_1978
+						)
 					}
 					if (leaseData.lead_paint_disclosure_acknowledged !== null) {
-						expect(capturedInsertData?.lead_paint_disclosure_acknowledged).toBe(leaseData.lead_paint_disclosure_acknowledged)
+						expect(capturedInsertData?.lead_paint_disclosure_acknowledged).toBe(
+							leaseData.lead_paint_disclosure_acknowledged
+						)
 					}
 					if (leaseData.governing_state) {
-						expect(capturedInsertData?.governing_state).toBe(leaseData.governing_state)
+						expect(capturedInsertData?.governing_state).toBe(
+							leaseData.governing_state
+						)
 					}
 				}
 			),
@@ -390,7 +452,7 @@ describe('Property 10: Draft Lease Creation', () => {
 					pet_rent: fc.option(fc.integer({ min: 0, max: 1000000 })),
 					payment_day: fc.integer({ min: 1, max: 28 })
 				}),
-				async (leaseData) => {
+				async leaseData => {
 					capturedInsertData = null
 
 					mockSupabaseService.getUserClient = jest.fn(() => ({
@@ -399,7 +461,10 @@ describe('Property 10: Draft Lease Creation', () => {
 								return createMockChain({
 									id: leaseData.unit_id,
 									property_id: 'test-property-id',
-									property: { name: 'Test Property', owner_user_id: 'owner-123' }
+									property: {
+										name: 'Test Property',
+										owner_user_id: 'owner-123'
+									}
 								})
 							}
 							if (table === 'tenants') {
@@ -433,10 +498,14 @@ describe('Property 10: Draft Lease Creation', () => {
 					// PROPERTY ASSERTIONS: Financial values must be exact (no rounding, no modification)
 					expect(capturedInsertData).not.toBeNull()
 					expect(capturedInsertData?.rent_amount).toBe(leaseData.rent_amount)
-					expect(capturedInsertData?.security_deposit).toBe(leaseData.security_deposit)
+					expect(capturedInsertData?.security_deposit).toBe(
+						leaseData.security_deposit
+					)
 
 					if (leaseData.late_fee_amount !== null) {
-						expect(capturedInsertData?.late_fee_amount).toBe(leaseData.late_fee_amount)
+						expect(capturedInsertData?.late_fee_amount).toBe(
+							leaseData.late_fee_amount
+						)
 					}
 					if (leaseData.pet_deposit !== null) {
 						expect(capturedInsertData?.pet_deposit).toBe(leaseData.pet_deposit)

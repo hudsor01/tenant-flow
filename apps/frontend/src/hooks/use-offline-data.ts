@@ -30,7 +30,9 @@ export function useOfflineData<T = unknown>(key: string) {
 
 	const getOfflineData = () => {
 		const queries = queryClient.getQueriesData({ queryKey: [key] })
-		const match = queries.find(([queryKey]) => Array.isArray(queryKey) && queryKey[0] === key)
+		const match = queries.find(
+			([queryKey]) => Array.isArray(queryKey) && queryKey[0] === key
+		)
 		return (match?.[1] as T[]) ?? []
 	}
 

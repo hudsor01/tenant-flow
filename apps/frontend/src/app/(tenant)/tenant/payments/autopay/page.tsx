@@ -26,7 +26,10 @@ import {
 import { Skeleton } from '#components/ui/skeleton'
 import { Switch } from '#components/ui/switch'
 
-import { useTenantAutopayStatus, useTenantLease } from '#hooks/api/use-tenant-portal'
+import {
+	useTenantAutopayStatus,
+	useTenantLease
+} from '#hooks/api/use-tenant-portal'
 import {
 	useTenantPortalSetupAutopay,
 	useTenantPortalCancelAutopay
@@ -35,32 +38,36 @@ import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCents } from '@repo/shared/lib/format'
 
 export default function TenantAutopayPage() {
-	const { data: autopayStatus, isLoading: isLoadingAutopay } = useTenantAutopayStatus()
+	const { data: autopayStatus, isLoading: isLoadingAutopay } =
+		useTenantAutopayStatus()
 	const { data: lease, isLoading: isLoadingLease } = useTenantLease()
-	const { data: paymentMethods, isLoading: isLoadingPaymentMethods } = usePaymentMethods()
-	
+	const { data: paymentMethods, isLoading: isLoadingPaymentMethods } =
+		usePaymentMethods()
+
 	const setupAutopay = useTenantPortalSetupAutopay()
 	const cancelAutopay = useTenantPortalCancelAutopay()
-	
-	const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>('')
-	
-	const isLoading = isLoadingAutopay || isLoadingLease || isLoadingPaymentMethods
+
+	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
+		useState<string>('')
+
+	const isLoading =
+		isLoadingAutopay || isLoadingLease || isLoadingPaymentMethods
 	const isAutopayEnabled = autopayStatus?.autopayEnabled ?? false
 	const hasPaymentMethods = (paymentMethods?.length ?? 0) > 0
-	
+
 	const handleToggleAutopay = async () => {
 		if (!lease) {
 			toast.error('No active lease found')
 			return
 		}
-		
+
 		// Get tenant_id from autopayStatus or we need to fetch it
 		const tenant_id = autopayStatus?.tenant_id
 		if (!tenant_id) {
 			toast.error('Unable to identify tenant')
 			return
 		}
-		
+
 		if (isAutopayEnabled) {
 			// Cancel autopay
 			try {
@@ -78,9 +85,13 @@ export default function TenantAutopayPage() {
 				toast.error('Please select a payment method')
 				return
 			}
-			
+
 			try {
-				const params: { tenant_id: string; lease_id: string; paymentMethodId?: string } = {
+				const params: {
+					tenant_id: string
+					lease_id: string
+					paymentMethodId?: string
+				} = {
 					tenant_id,
 					lease_id: lease.id
 				}
@@ -94,7 +105,7 @@ export default function TenantAutopayPage() {
 			}
 		}
 	}
-	
+
 	if (isLoading) {
 		return (
 			<div className="space-y-6 p-6">
@@ -103,7 +114,7 @@ export default function TenantAutopayPage() {
 			</div>
 		)
 	}
-	
+
 	if (!lease) {
 		return (
 			<div className="p-6">
@@ -171,11 +182,14 @@ export default function TenantAutopayPage() {
 							<div className="flex justify-between">
 								<span className="text-muted">Next Payment</span>
 								<span className="font-semibold">
-									{new Date(autopayStatus.nextPaymentDate).toLocaleDateString('en-US', {
-										month: 'long',
-										day: 'numeric',
-										year: 'numeric'
-									})}
+									{new Date(autopayStatus.nextPaymentDate).toLocaleDateString(
+										'en-US',
+										{
+											month: 'long',
+											day: 'numeric',
+											year: 'numeric'
+										}
+									)}
 								</span>
 							</div>
 						)}
@@ -238,7 +252,10 @@ export default function TenantAutopayPage() {
 												<div className="flex items-center gap-2">
 													<CreditCard className="size-4" />
 													<span>
-														{method.type === 'card' ? method.brand : 'Bank Account'} ****
+														{method.type === 'card'
+															? method.brand
+															: 'Bank Account'}{' '}
+														****
 														{method.last4}
 													</span>
 													{method.isDefault && (
@@ -279,7 +296,8 @@ export default function TenantAutopayPage() {
 						<div>
 							<p className="font-medium">Automatic Charging</p>
 							<p className="text-muted">
-								Your payment method will be charged automatically on the rent due date each month.
+								Your payment method will be charged automatically on the rent
+								due date each month.
 							</p>
 						</div>
 					</div>
@@ -290,7 +308,8 @@ export default function TenantAutopayPage() {
 						<div>
 							<p className="font-medium">Email Notifications</p>
 							<p className="text-muted">
-								You will receive email confirmations when payments are processed successfully.
+								You will receive email confirmations when payments are processed
+								successfully.
 							</p>
 						</div>
 					</div>
@@ -301,7 +320,8 @@ export default function TenantAutopayPage() {
 						<div>
 							<p className="font-medium">Cancel Anytime</p>
 							<p className="text-muted">
-								You can disable autopay at any time from this page. Changes take effect immediately.
+								You can disable autopay at any time from this page. Changes take
+								effect immediately.
 							</p>
 						</div>
 					</div>

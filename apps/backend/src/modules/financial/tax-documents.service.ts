@@ -21,27 +21,23 @@ import {
 
 @Injectable()
 export class TaxDocumentsService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate tax documents for a given year
 	 * Aggregates deductible expenses and depreciation for tax preparation
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateTaxDocuments(
 		token: string,
+		user_id: string,
 		taxYear: number
 	): Promise<TaxDocumentsData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getAdminClient().auth.getUser(token)
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(`Generating tax documents for tax year ${taxYear}`)
 
@@ -65,11 +61,16 @@ export class TaxDocumentsService {
 				isWithinRange(payment.due_date, range)
 			)
 			const grossRentalIncome = rentPayments
-				.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+				.filter(
+					payment =>
+						payment.status === 'succeeded' || Boolean(payment.paid_date)
+				)
 				.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 			const totalExpenses = ledger.expenses
-				.filter(expense => isWithinRange(expense.expense_date ?? expense.created_at, range))
+				.filter(expense =>
+					isWithinRange(expense.expense_date ?? expense.created_at, range)
+				)
 				.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
 
 			const netOperatingIncome = grossRentalIncome - totalExpenses
@@ -112,7 +113,7 @@ export class TaxDocumentsService {
 		} catch (error) {
 			this.logger.error('Failed to generate tax documents', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				taxYear
 			})
 			throw error instanceof Error
@@ -187,7 +188,10 @@ export class TaxDocumentsService {
 	): TaxPropertyDepreciation[] {
 		const financials = calculatePropertyFinancials(ledger, range)
 		const propertyNames = new Map(
-			ledger.properties.map(property => [property.id, property.name ?? 'Property'])
+			ledger.properties.map(property => [
+				property.id,
+				property.name ?? 'Property'
+			])
 		)
 
 		return Array.from(financials.revenue.entries()).map(

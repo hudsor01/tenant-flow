@@ -16,7 +16,13 @@ import { Button } from '#components/ui/button'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
+import {
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatDescription
+} from '#components/ui/stat'
 import {
 	Dialog,
 	DialogContent,
@@ -54,7 +60,9 @@ function ConnectOnboardingDialog({
 }: ConnectOnboardingDialogProps) {
 	const [displayName, setDisplayName] = useState('')
 	const [businessName, setBusinessName] = useState('')
-	const [entityType, setEntityType] = useState<'individual' | 'company'>('individual')
+	const [entityType, setEntityType] = useState<'individual' | 'company'>(
+		'individual'
+	)
 	const [country, setCountry] = useState('US')
 
 	const createAccount = useCreateConnectedAccount()
@@ -92,8 +100,13 @@ function ConnectOnboardingDialog({
 				if (onboardingResult.success && onboardingResult.data.onboardingUrl) {
 					try {
 						const url = new URL(onboardingResult.data.onboardingUrl)
-						if (url.protocol !== 'https:' || !url.hostname.includes('stripe.com')) {
-							stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+						if (
+							url.protocol !== 'https:' ||
+							!url.hostname.includes('stripe.com')
+						) {
+							stripeLogger.error('Invalid or untrusted URL', {
+								metadata: { url: url.href }
+							})
 							return
 						}
 						window.open(url.href, '_blank', 'noopener,noreferrer')
@@ -118,7 +131,8 @@ function ConnectOnboardingDialog({
 						Connect Stripe Account
 					</DialogTitle>
 					<DialogDescription>
-						Connect your Stripe account to start receiving rent payments from tenants.
+						Connect your Stripe account to start receiving rent payments from
+						tenants.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -128,7 +142,9 @@ function ConnectOnboardingDialog({
 						<Select
 							name="entityType"
 							value={entityType}
-							onValueChange={(value: 'individual' | 'company') => setEntityType(value)}
+							onValueChange={(value: 'individual' | 'company') =>
+								setEntityType(value)
+							}
 						>
 							<SelectTrigger id="entityType">
 								<SelectValue />
@@ -147,7 +163,9 @@ function ConnectOnboardingDialog({
 							placeholder="Your name or business name"
 							autoComplete="organization"
 							value={displayName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDisplayName(e.target.value)}
+							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								setDisplayName(e.target.value)
+							}
 							required
 						/>
 					</Field>
@@ -160,7 +178,9 @@ function ConnectOnboardingDialog({
 								placeholder="Legal business name"
 								autoComplete="organization"
 								value={businessName}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) => setBusinessName(e.target.value)}
+								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									setBusinessName(e.target.value)
+								}
 							/>
 						</Field>
 					)}
@@ -230,8 +250,13 @@ export default function BillingPage() {
 			if (result.success && result.data.onboardingUrl) {
 				try {
 					const url = new URL(result.data.onboardingUrl)
-					if (url.protocol !== 'https:' || !url.hostname.includes('stripe.com')) {
-						stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+					if (
+						url.protocol !== 'https:' ||
+						!url.hostname.includes('stripe.com')
+					) {
+						stripeLogger.error('Invalid or untrusted URL', {
+							metadata: { url: url.href }
+						})
 						return
 					}
 					window.open(url.href, '_blank', 'noopener,noreferrer')
@@ -277,37 +302,41 @@ export default function BillingPage() {
 				<BlurFade delay={0.1} inView>
 					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 						<div>
-							<h1 className="text-2xl font-semibold text-foreground">Billing & Payments</h1>
-							<p className="text-muted-foreground">Connect and manage your Stripe account for rent collection.</p>
+							<h1 className="typography-h1">Billing & Payments</h1>
+							<p className="text-muted-foreground">
+								Connect and manage your Stripe account for rent collection.
+							</p>
 						</div>
 					</div>
 				</BlurFade>
 
 				{/* Empty State */}
 				<BlurFade delay={0.15} inView>
-				<div className="max-w-md mx-auto text-center py-16">
-					<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
-						<CreditCard className="w-8 h-8 text-primary" />
-					</div>
-					<h2 className="text-xl font-semibold text-foreground mb-3">
-						Connect Your Payment Account
-					</h2>
-					<p className="text-muted-foreground mb-6">
-						Connect a Stripe account to start receiving rent payments directly from tenants.
-					</p>
-					<div className="p-4 rounded-lg border border-amber-500/30 bg-amber-50 dark:bg-amber-950/30 mb-6">
-						<p className="text-sm text-amber-700 dark:text-amber-300">
-							You need to connect a Stripe account before tenants can pay rent online.
+					<div className="max-w-md mx-auto text-center py-16">
+						<div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-6">
+							<CreditCard className="w-8 h-8 text-primary" />
+						</div>
+						<h2 className="text-xl font-semibold text-foreground mb-3">
+							Connect Your Payment Account
+						</h2>
+						<p className="text-muted-foreground mb-6">
+							Connect a Stripe account to start receiving rent payments directly
+							from tenants.
 						</p>
+						<div className="p-4 rounded-lg border border-amber-500/30 bg-amber-50 dark:bg-amber-950/30 mb-6">
+							<p className="text-sm text-amber-700 dark:text-amber-300">
+								You need to connect a Stripe account before tenants can pay rent
+								online.
+							</p>
+						</div>
+						<button
+							onClick={() => setShowOnboarding(true)}
+							className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<Building className="w-5 h-5" />
+							Connect Stripe Account
+						</button>
 					</div>
-					<button
-						onClick={() => setShowOnboarding(true)}
-						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-					>
-						<Building className="w-5 h-5" />
-						Connect Stripe Account
-					</button>
-				</div>
 				</BlurFade>
 
 				<ConnectOnboardingDialog
@@ -328,8 +357,12 @@ export default function BillingPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Billing & Payments</h1>
-						<p className="text-muted-foreground">Manage your Stripe account and payment settings.</p>
+						<h1 className="text-2xl font-semibold text-foreground">
+							Billing & Payments
+						</h1>
+						<p className="text-muted-foreground">
+							Manage your Stripe account and payment settings.
+						</p>
 					</div>
 					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
 						<Settings className="w-4 h-4" />
@@ -343,13 +376,23 @@ export default function BillingPage() {
 				<BlurFade delay={0.15} inView>
 					<Stat className="relative overflow-hidden">
 						{isActive && (
-							<BorderBeam size={80} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+							<BorderBeam
+								size={80}
+								duration={10}
+								colorFrom="hsl(142 76% 36%)"
+								colorTo="hsl(142 76% 36% / 0.3)"
+							/>
 						)}
 						<StatLabel>Account Status</StatLabel>
-						<StatValue className={`flex items-baseline capitalize ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
+						<StatValue
+							className={`flex items-baseline capitalize ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}
+						>
 							{account.identityVerification?.status || 'Incomplete'}
 						</StatValue>
-						<StatIndicator variant="icon" color={isActive ? 'success' : 'warning'}>
+						<StatIndicator
+							variant="icon"
+							color={isActive ? 'success' : 'warning'}
+						>
 							{isActive ? <CheckCircle /> : isPending ? <Clock /> : <XCircle />}
 						</StatIndicator>
 						<StatDescription>
@@ -361,17 +404,29 @@ export default function BillingPage() {
 				<BlurFade delay={0.2} inView>
 					<Stat className="relative overflow-hidden">
 						{account.charges_enabled && (
-							<BorderBeam size={80} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+							<BorderBeam
+								size={80}
+								duration={10}
+								colorFrom="hsl(142 76% 36%)"
+								colorTo="hsl(142 76% 36% / 0.3)"
+							/>
 						)}
 						<StatLabel>Charges</StatLabel>
-						<StatValue className={`flex items-baseline ${account.charges_enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+						<StatValue
+							className={`flex items-baseline ${account.charges_enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}
+						>
 							{account.charges_enabled ? 'Enabled' : 'Disabled'}
 						</StatValue>
-						<StatIndicator variant="icon" color={account.charges_enabled ? 'success' : 'destructive'}>
+						<StatIndicator
+							variant="icon"
+							color={account.charges_enabled ? 'success' : 'destructive'}
+						>
 							<CreditCard />
 						</StatIndicator>
 						<StatDescription>
-							{account.charges_enabled ? 'Can accept payments' : 'Complete setup'}
+							{account.charges_enabled
+								? 'Can accept payments'
+								: 'Complete setup'}
 						</StatDescription>
 					</Stat>
 				</BlurFade>
@@ -379,13 +434,23 @@ export default function BillingPage() {
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
 						{account.payouts_enabled && (
-							<BorderBeam size={80} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+							<BorderBeam
+								size={80}
+								duration={10}
+								colorFrom="hsl(142 76% 36%)"
+								colorTo="hsl(142 76% 36% / 0.3)"
+							/>
 						)}
 						<StatLabel>Payouts</StatLabel>
-						<StatValue className={`flex items-baseline ${account.payouts_enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+						<StatValue
+							className={`flex items-baseline ${account.payouts_enabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}
+						>
 							{account.payouts_enabled ? 'Enabled' : 'Disabled'}
 						</StatValue>
-						<StatIndicator variant="icon" color={account.payouts_enabled ? 'success' : 'destructive'}>
+						<StatIndicator
+							variant="icon"
+							color={account.payouts_enabled ? 'success' : 'destructive'}
+						>
 							<Building />
 						</StatIndicator>
 						<StatDescription>
@@ -397,66 +462,81 @@ export default function BillingPage() {
 
 			{/* Account Details */}
 			<BlurFade delay={0.3} inView>
-			<div className="bg-card border border-border rounded-lg overflow-hidden">
-				<div className="p-4 border-b border-border">
-					<h3 className="font-medium text-foreground">Account Details</h3>
-					<p className="text-sm text-muted-foreground">Your Stripe Connect account information</p>
-				</div>
-				<div className="p-6 space-y-4">
-					<div className="flex items-center justify-between py-3 border-b border-border">
-						<span className="text-sm text-muted-foreground">Stripe Account ID</span>
-						<span className="text-sm font-mono">{account.stripe_account_id || 'N/A'}</span>
+				<div className="bg-card border border-border rounded-lg overflow-hidden">
+					<div className="p-4 border-b border-border">
+						<h3 className="font-medium text-foreground">Account Details</h3>
+						<p className="text-sm text-muted-foreground">
+							Your Stripe Connect account information
+						</p>
 					</div>
-					<div className="flex items-center justify-between py-3 border-b border-border">
-						<span className="text-sm text-muted-foreground">Identity Verification</span>
-						<span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full capitalize ${
-							isActive
-								? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-								: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
-						}`}>
-							{isActive ? <CheckCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-							{account.identityVerification?.status || 'Incomplete'}
-						</span>
-					</div>
-					<div className="flex items-center justify-between py-3">
-						<span className="text-sm text-muted-foreground">Platform</span>
-						<span className="text-sm">Stripe Connect</span>
-					</div>
-				</div>
-
-				{/* Complete Onboarding CTA */}
-				{!isActive && (
-					<div className="p-4 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200 dark:border-amber-800">
-						<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-							<div>
-								<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-									Complete Your Stripe Onboarding
-								</p>
-								<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-									Finish setting up your account to start collecting payments from tenants.
-								</p>
-							</div>
-							<Button
-								onClick={handleRefreshOnboarding}
-								disabled={refreshOnboarding.isPending}
-								size="sm"
+					<div className="p-6 space-y-4">
+						<div className="flex items-center justify-between py-3 border-b border-border">
+							<span className="text-sm text-muted-foreground">
+								Stripe Account ID
+							</span>
+							<span className="text-sm font-mono">
+								{account.stripe_account_id || 'N/A'}
+							</span>
+						</div>
+						<div className="flex items-center justify-between py-3 border-b border-border">
+							<span className="text-sm text-muted-foreground">
+								Identity Verification
+							</span>
+							<span
+								className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full capitalize ${
+									isActive
+										? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+										: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+								}`}
 							>
-								{refreshOnboarding.isPending ? (
-									<>
-										<Spinner className="mr-2 w-4 h-4 animate-spin" />
-										Loading...
-									</>
+								{isActive ? (
+									<CheckCircle className="w-3.5 h-3.5" />
 								) : (
-									<>
-										Complete Onboarding
-										<ExternalLink className="ml-2 w-4 h-4" />
-									</>
+									<Clock className="w-3.5 h-3.5" />
 								)}
-							</Button>
+								{account.identityVerification?.status || 'Incomplete'}
+							</span>
+						</div>
+						<div className="flex items-center justify-between py-3">
+							<span className="text-sm text-muted-foreground">Platform</span>
+							<span className="text-sm">Stripe Connect</span>
 						</div>
 					</div>
-				)}
-			</div>
+
+					{/* Complete Onboarding CTA */}
+					{!isActive && (
+						<div className="p-4 bg-amber-50 dark:bg-amber-950/30 border-t border-amber-200 dark:border-amber-800">
+							<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+								<div>
+									<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+										Complete Your Stripe Onboarding
+									</p>
+									<p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+										Finish setting up your account to start collecting payments
+										from tenants.
+									</p>
+								</div>
+								<Button
+									onClick={handleRefreshOnboarding}
+									disabled={refreshOnboarding.isPending}
+									size="sm"
+								>
+									{refreshOnboarding.isPending ? (
+										<>
+											<Spinner className="mr-2 w-4 h-4 animate-spin" />
+											Loading...
+										</>
+									) : (
+										<>
+											Complete Onboarding
+											<ExternalLink className="ml-2 w-4 h-4" />
+										</>
+									)}
+								</Button>
+							</div>
+						</div>
+					)}
+				</div>
 			</BlurFade>
 		</div>
 	)

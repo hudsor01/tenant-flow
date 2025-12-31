@@ -36,7 +36,10 @@ export function GridPattern({
 }: GridPatternProps) {
 	const reactId = useId()
 	// Use provided patternId for stable hydration, or fall back to useId()
-	const id = useMemo(() => patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`, [patternId, reactId])
+	const id = useMemo(
+		() => patternId ?? `grid-pattern-${reactId.replace(/:/g, '')}`,
+		[patternId, reactId]
+	)
 
 	// Style variants for different visual approaches
 	const variantStyles = {

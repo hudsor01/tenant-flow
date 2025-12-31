@@ -57,9 +57,7 @@ interface LeaseCreationWizardProps {
 	onSuccess?: (leaseId: string) => void
 }
 
-export function LeaseCreationWizard({
-	onSuccess
-}: LeaseCreationWizardProps) {
+export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const { session } = useAuth()
@@ -106,12 +104,15 @@ export function LeaseCreationWizard({
 	const { data: unitData } = useQuery({
 		queryKey: ['units', selectionData.unit_id, session?.access_token],
 		queryFn: async () => {
-			const res = await fetch(`${getApiBaseUrl()}/api/v1/units/${selectionData.unit_id}`, {
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session?.access_token}`
+			const res = await fetch(
+				`${getApiBaseUrl()}/api/v1/units/${selectionData.unit_id}`,
+				{
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session?.access_token}`
+					}
 				}
-			})
+			)
 			if (!res.ok) return null
 			return res.json()
 		},
@@ -119,7 +120,11 @@ export function LeaseCreationWizard({
 	})
 
 	const { data: tenantData } = useQuery({
-		queryKey: ['tenants', selectionData.primary_tenant_id, session?.access_token],
+		queryKey: [
+			'tenants',
+			selectionData.primary_tenant_id,
+			session?.access_token
+		],
 		queryFn: async () => {
 			const res = await fetch(
 				`${getApiBaseUrl()}/api/v1/tenants/${selectionData.primary_tenant_id}`,
@@ -286,10 +291,7 @@ export function LeaseCreationWizard({
 				<CardContent className="pt-6">
 					<div className="min-h-[400px]">
 						{currentStep === 'selection' && (
-							<SelectionStep
-								data={selectionData}
-								onChange={setSelectionData}
-							/>
+							<SelectionStep data={selectionData} onChange={setSelectionData} />
 						)}
 						{currentStep === 'terms' && (
 							<TermsStep data={termsData} onChange={setTermsData} />

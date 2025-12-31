@@ -5,7 +5,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { LeaseSignatureStatus } from '../lease-signature-status'
 import type { SignatureStatus } from '#hooks/api/queries/lease-queries'
 import { vi } from 'vitest'
@@ -14,7 +15,8 @@ import { vi } from 'vitest'
 const mockUseLeaseSignatureStatus = vi.fn()
 
 vi.mock('#hooks/api/use-lease', () => ({
-	useLeaseSignatureStatus: (leaseId: string) => mockUseLeaseSignatureStatus(leaseId)
+	useLeaseSignatureStatus: (leaseId: string) =>
+		mockUseLeaseSignatureStatus(leaseId)
 }))
 
 const mockLeaseId = 'lease-123'
@@ -88,10 +90,14 @@ describe('LeaseSignatureStatus', () => {
 				error: null
 			})
 
-			const { container } = render(<LeaseSignatureStatus leaseId={mockLeaseId} />)
+			const { container } = render(
+				<LeaseSignatureStatus leaseId={mockLeaseId} />
+			)
 
 			// Should show skeleton elements (has animate-pulse class from Skeleton component)
-			const skeletons = container.querySelectorAll('[data-slot="skeleton"], .animate-pulse')
+			const skeletons = container.querySelectorAll(
+				'[data-slot="skeleton"], .animate-pulse'
+			)
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 
@@ -102,10 +108,14 @@ describe('LeaseSignatureStatus', () => {
 				error: null
 			})
 
-			const { container } = render(<LeaseSignatureStatus leaseId={mockLeaseId} compact />)
+			const { container } = render(
+				<LeaseSignatureStatus leaseId={mockLeaseId} compact />
+			)
 
 			// Compact skeleton should be visible (has animate-pulse class)
-			const skeletons = container.querySelectorAll('[data-slot="skeleton"], .animate-pulse')
+			const skeletons = container.querySelectorAll(
+				'[data-slot="skeleton"], .animate-pulse'
+			)
 			expect(skeletons.length).toBeGreaterThan(0)
 		})
 	})
@@ -120,7 +130,9 @@ describe('LeaseSignatureStatus', () => {
 
 			render(<LeaseSignatureStatus leaseId={mockLeaseId} />)
 
-			expect(screen.getByText(/unable to load signature status/i)).toBeInTheDocument()
+			expect(
+				screen.getByText(/unable to load signature status/i)
+			).toBeInTheDocument()
 			expect(screen.getByTestId('signature-status-error')).toBeInTheDocument()
 		})
 
@@ -146,7 +158,9 @@ describe('LeaseSignatureStatus', () => {
 				error: null
 			})
 
-			const { container } = render(<LeaseSignatureStatus leaseId={mockLeaseId} />)
+			const { container } = render(
+				<LeaseSignatureStatus leaseId={mockLeaseId} />
+			)
 
 			expect(container.firstChild).toBeNull()
 		})
@@ -344,7 +358,9 @@ describe('LeaseSignatureStatus', () => {
 				error: null
 			})
 
-			render(<LeaseSignatureStatus leaseId={mockLeaseId} className="custom-class" />)
+			render(
+				<LeaseSignatureStatus leaseId={mockLeaseId} className="custom-class" />
+			)
 
 			const card = screen.getByTestId('signature-status')
 			expect(card).toHaveClass('custom-class')

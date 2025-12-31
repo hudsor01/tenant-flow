@@ -21,37 +21,50 @@ export const analyticsQueries = {
 	maintenance: () => [...analyticsQueries.all(), 'maintenance'] as const,
 	occupancy: () => [...analyticsQueries.all(), 'occupancy'] as const,
 	overview: () => [...analyticsQueries.all(), 'overview'] as const,
-	propertyPerformance: () => [...analyticsQueries.all(), 'property-performance'] as const,
+	propertyPerformance: () =>
+		[...analyticsQueries.all(), 'property-performance'] as const,
 	paymentSummary: () => [...analyticsQueries.all(), 'payment-summary'] as const,
 
 	// Query options
 	financialPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.financial(),
-			queryFn: () => apiRequest<FinancialAnalyticsPageData>('/api/v1/analytics/financial/page-data'),
-			staleTime: 60_000, // 1 minute
+			queryFn: () =>
+				apiRequest<FinancialAnalyticsPageData>(
+					'/api/v1/analytics/financial/page-data'
+				),
+			staleTime: 60_000 // 1 minute
 		}),
 
 	leasePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.lease(),
-			queryFn: () => apiRequest<LeaseAnalyticsPageData>('/api/v1/analytics/lease/page-data'),
-			staleTime: 60_000,
+			queryFn: () =>
+				apiRequest<LeaseAnalyticsPageData>('/api/v1/analytics/lease/page-data'),
+			staleTime: 60_000
 		}),
 
 	maintenancePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.maintenance(),
-			queryFn: () => apiRequest<MaintenanceInsightsPageData>('/api/v1/analytics/maintenance/page-data'),
-			staleTime: 60_000,
+			queryFn: () =>
+				apiRequest<MaintenanceInsightsPageData>(
+					'/api/v1/analytics/maintenance/page-data'
+				),
+			staleTime: 60_000
 		}),
 
 	occupancyPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
-				const rawData = await apiRequest<OccupancyAnalyticsPageData | { data: OccupancyAnalyticsPageData }>('/api/v1/owner/tenants/occupancy-trends')
-				const data = 'data' in rawData && rawData.data ? rawData.data : rawData as OccupancyAnalyticsPageData
+				const rawData = await apiRequest<
+					OccupancyAnalyticsPageData | { data: OccupancyAnalyticsPageData }
+				>('/api/v1/owner/tenants/occupancy-trends')
+				const data =
+					'data' in rawData && rawData.data
+						? rawData.data
+						: (rawData as OccupancyAnalyticsPageData)
 
 				// Ensure all required fields have defaults
 				return {
@@ -67,7 +80,7 @@ export const analyticsQueries = {
 					vacancyAnalysis: data.vacancyAnalysis ?? []
 				}
 			},
-			staleTime: 60_000,
+			staleTime: 60_000
 		}),
 
 	overviewPageData: () =>
@@ -80,31 +93,52 @@ export const analyticsQueries = {
 			}> => {
 				// Fetch in parallel using apiRequest
 				const [financialRaw, maintenanceRaw, leaseRaw] = await Promise.all([
-					apiRequest<FinancialAnalyticsPageData | { data: FinancialAnalyticsPageData }>('/api/v1/analytics/financial/page-data'),
-					apiRequest<MaintenanceInsightsPageData | { data: MaintenanceInsightsPageData }>('/api/v1/analytics/maintenance/page-data'),
-					apiRequest<LeaseAnalyticsPageData | { data: LeaseAnalyticsPageData }>('/api/v1/analytics/lease/page-data')
+					apiRequest<
+						FinancialAnalyticsPageData | { data: FinancialAnalyticsPageData }
+					>('/api/v1/analytics/financial/page-data'),
+					apiRequest<
+						MaintenanceInsightsPageData | { data: MaintenanceInsightsPageData }
+					>('/api/v1/analytics/maintenance/page-data'),
+					apiRequest<LeaseAnalyticsPageData | { data: LeaseAnalyticsPageData }>(
+						'/api/v1/analytics/lease/page-data'
+					)
 				])
 
 				return {
-					financial: 'data' in financialRaw && financialRaw.data ? financialRaw.data : financialRaw as FinancialAnalyticsPageData,
-					maintenance: 'data' in maintenanceRaw && maintenanceRaw.data ? maintenanceRaw.data : maintenanceRaw as MaintenanceInsightsPageData,
-					lease: 'data' in leaseRaw && leaseRaw.data ? leaseRaw.data : leaseRaw as LeaseAnalyticsPageData
+					financial:
+						'data' in financialRaw && financialRaw.data
+							? financialRaw.data
+							: (financialRaw as FinancialAnalyticsPageData),
+					maintenance:
+						'data' in maintenanceRaw && maintenanceRaw.data
+							? maintenanceRaw.data
+							: (maintenanceRaw as MaintenanceInsightsPageData),
+					lease:
+						'data' in leaseRaw && leaseRaw.data
+							? leaseRaw.data
+							: (leaseRaw as LeaseAnalyticsPageData)
 				}
 			},
-			staleTime: 60_000,
+			staleTime: 60_000
 		}),
 
 	propertyPerformancePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.propertyPerformance(),
-			queryFn: () => apiRequest<PropertyPerformancePageData>('/api/v1/analytics/property-performance/page-data'),
-			staleTime: 60_000,
+			queryFn: () =>
+				apiRequest<PropertyPerformancePageData>(
+					'/api/v1/analytics/property-performance/page-data'
+				),
+			staleTime: 60_000
 		}),
 
 	ownerPaymentSummary: () =>
 		queryOptions({
 			queryKey: analyticsQueries.paymentSummary(),
-			queryFn: () => apiRequest<OwnerPaymentSummaryResponse>('/api/v1/tenants/payments/summary'),
-			staleTime: 30_000, // 30 seconds for payment data
-		}),
+			queryFn: () =>
+				apiRequest<OwnerPaymentSummaryResponse>(
+					'/api/v1/tenants/payments/summary'
+				),
+			staleTime: 30_000 // 30 seconds for payment data
+		})
 }

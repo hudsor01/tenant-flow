@@ -12,14 +12,19 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class LeaseLifecycleService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Find one lease by ID (internal helper for ownership verification)
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's leases
 	 */
-	private async findOne(token: string, lease_id: string): Promise<Lease | null> {
+	private async findOne(
+		token: string,
+		lease_id: string
+	): Promise<Lease | null> {
 		const client = this.supabase.getUserClient(token)
 
 		const { data, error } = await client

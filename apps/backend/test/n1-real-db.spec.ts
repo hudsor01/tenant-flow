@@ -19,17 +19,27 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 	})
 
 	it('should connect to real Supabase database', async () => {
-		const { data, error } = await client.from('properties').select('id').limit(1)
+		const { data, error } = await client
+			.from('properties')
+			.select('id')
+			.limit(1)
 
 		// Skip if connection fails (no Supabase in CI environment)
-		if (error?.message?.includes('fetch failed') || error?.message?.includes('ECONNREFUSED')) {
-			console.warn('⚠️  Skipping: Supabase not available (expected in CI environment)')
+		if (
+			error?.message?.includes('fetch failed') ||
+			error?.message?.includes('ECONNREFUSED')
+		) {
+			console.warn(
+				'⚠️  Skipping: Supabase not available (expected in CI environment)'
+			)
 			return
 		}
 
 		// Skip if schema not loaded (local dev without migrations)
 		if (error?.code === 'PGRST205') {
-			console.warn('⚠️  Skipping: properties table not in schema. Run with Doppler for full test DB.')
+			console.warn(
+				'⚠️  Skipping: properties table not in schema. Run with Doppler for full test DB.'
+			)
 			return
 		}
 
@@ -51,7 +61,9 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 			return
 		}
 
-		const propertyIds = (owners.properties as Array<{ id: string }>).map(p => p.id).slice(0, 3)
+		const propertyIds = (owners.properties as Array<{ id: string }>)
+			.map(p => p.id)
+			.slice(0, 3)
 
 		// PROOF: Single batch query gets ALL units for ALL properties
 		const startTime = Date.now()
@@ -63,8 +75,12 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 		const duration = Date.now() - startTime
 
 		expect(error).toBeNull()
-		console.log(`✅ Batch query for ${propertyIds.length} properties took ${duration}ms`)
-		console.log(`✅ Got ${allUnits?.length || 0} units in ONE query (not ${propertyIds.length} queries)`)
+		console.log(
+			`✅ Batch query for ${propertyIds.length} properties took ${duration}ms`
+		)
+		console.log(
+			`✅ Got ${allUnits?.length || 0} units in ONE query (not ${propertyIds.length} queries)`
+		)
 
 		// This proves we're using .in() for batch loading
 		expect(allUnits).toBeDefined()
@@ -106,8 +122,12 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 
 		expect(error).toBeNull()
 		console.log(`✅ Nested join query took ${duration}ms`)
-		console.log(`✅ Got ${results?.length || 0} properties with units AND leases in ONE query`)
-		console.log(`✅ OLD approach would need 3 separate queries (properties → units → leases)`)
+		console.log(
+			`✅ Got ${results?.length || 0} properties with units AND leases in ONE query`
+		)
+		console.log(
+			`✅ OLD approach would need 3 separate queries (properties → units → leases)`
+		)
 
 		// This proves the nested join optimization works
 		expect(results).toBeDefined()

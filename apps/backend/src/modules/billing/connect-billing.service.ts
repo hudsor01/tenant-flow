@@ -15,7 +15,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class ConnectBillingService {
 	private stripe: Stripe
 
-	constructor(private readonly stripeClientService: StripeClientService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly stripeClientService: StripeClientService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -51,11 +54,14 @@ export class ConnectBillingService {
 
 			return customer
 		} catch (error) {
-			this.logger.error('Failed to create Stripe customer on connected account', {
-				error: error instanceof Error ? error.message : String(error),
-				stripe_account_id: connectedAccountId,
-				email: params.email
-			})
+			this.logger.error(
+				'Failed to create Stripe customer on connected account',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					stripe_account_id: connectedAccountId,
+					email: params.email
+				}
+			)
 			throw error
 		}
 	}
@@ -92,7 +98,9 @@ export class ConnectBillingService {
 				},
 				{
 					stripeAccount: connectedAccountId,
-					...(params.idempotencyKey && { idempotencyKey: `${params.idempotencyKey}-price` })
+					...(params.idempotencyKey && {
+						idempotencyKey: `${params.idempotencyKey}-price`
+					})
 				}
 			)
 
@@ -107,7 +115,9 @@ export class ConnectBillingService {
 				},
 				{
 					stripeAccount: connectedAccountId,
-					...(params.idempotencyKey && { idempotencyKey: `${params.idempotencyKey}-subscription` })
+					...(params.idempotencyKey && {
+						idempotencyKey: `${params.idempotencyKey}-subscription`
+					})
 				}
 			)
 
@@ -120,12 +130,15 @@ export class ConnectBillingService {
 
 			return subscription
 		} catch (error) {
-			this.logger.error('Failed to create Stripe subscription on connected account', {
-				error: error instanceof Error ? error.message : String(error),
-				stripe_account_id: connectedAccountId,
-				customer_id: params.customerId,
-				rent_amount: params.rentAmount
-			})
+			this.logger.error(
+				'Failed to create Stripe subscription on connected account',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					stripe_account_id: connectedAccountId,
+					customer_id: params.customerId,
+					rent_amount: params.rentAmount
+				}
+			)
 			throw error
 		}
 	}
@@ -150,11 +163,14 @@ export class ConnectBillingService {
 
 			return deletedCustomer
 		} catch (error) {
-			this.logger.error('Failed to delete Stripe customer on connected account', {
-				error: error instanceof Error ? error.message : String(error),
-				stripe_account_id: connectedAccountId,
-				customer_id: customerId
-			})
+			this.logger.error(
+				'Failed to delete Stripe customer on connected account',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					stripe_account_id: connectedAccountId,
+					customer_id: customerId
+				}
+			)
 			throw error
 		}
 	}
@@ -181,11 +197,14 @@ export class ConnectBillingService {
 
 			return canceledSubscription
 		} catch (error) {
-			this.logger.error('Failed to cancel Stripe subscription on connected account', {
-				error: error instanceof Error ? error.message : String(error),
-				stripe_account_id: connectedAccountId,
-				subscription_id: subscriptionId
-			})
+			this.logger.error(
+				'Failed to cancel Stripe subscription on connected account',
+				{
+					error: error instanceof Error ? error.message : String(error),
+					stripe_account_id: connectedAccountId,
+					subscription_id: subscriptionId
+				}
+			)
 			throw error
 		}
 	}

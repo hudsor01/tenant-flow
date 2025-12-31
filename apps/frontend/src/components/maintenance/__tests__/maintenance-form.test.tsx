@@ -5,7 +5,8 @@
  * @jest-environment jsdom
  */
 
-import { render, screen, waitFor } from '#test/utils/test-render'
+import { screen, waitFor } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { act } from '@testing-library/react'
 import { MaintenanceForm } from '../maintenance-form.client'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
@@ -281,7 +282,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByLabelText(/title/i)).toHaveValue('Kitchen Faucet Issue')
+				expect(screen.getByLabelText(/title/i)).toHaveValue(
+					'Kitchen Faucet Issue'
+				)
 			})
 		})
 	})
@@ -374,7 +377,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('combobox', { name: /priority/i })
+				).toBeInTheDocument()
 			})
 		})
 	})
@@ -560,7 +565,9 @@ describe('MaintenanceForm', () => {
 			})
 
 			await waitFor(() => {
-				expect(screen.getByRole('combobox', { name: /priority/i })).toBeInTheDocument()
+				expect(
+					screen.getByRole('combobox', { name: /priority/i })
+				).toBeInTheDocument()
 			})
 			// Note: Priority options defined in NOTIFICATION_PRIORITY_OPTIONS from @repo/shared:
 			// Low, Medium, High, Urgent

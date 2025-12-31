@@ -28,7 +28,10 @@ const priorityColorMap: Record<string, string> = {
 
 const formatStatus = (status: string) => status.replace('_', ' ')
 
-export function TenantMaintenanceCard({ request, layout = 'stacked' }: TenantMaintenanceCardProps) {
+export function TenantMaintenanceCard({
+	request,
+	layout = 'stacked'
+}: TenantMaintenanceCardProps) {
 	return (
 		<div
 			data-testid="maintenance-request-card"
@@ -39,9 +42,16 @@ export function TenantMaintenanceCard({ request, layout = 'stacked' }: TenantMai
 				<Wrench className="size-5 text-primary mt-0.5" aria-hidden />
 				<div className="space-y-2 flex-1 min-w-0">
 					<div className="flex flex-wrap items-center gap-2">
-						<p className="font-medium leading-tight break-words">{request.description.length > 100 ? `${request.description.slice(0, 100)}…` : request.description}</p>
+						<p className="font-medium leading-tight break-words">
+							{request.description.length > 100
+								? `${request.description.slice(0, 100)}…`
+								: request.description}
+						</p>
 						<span
-							className={cn('text-xs font-semibold uppercase', priorityColorMap[request.priority] ?? 'text-muted-foreground')}
+							className={cn(
+								'text-xs font-semibold uppercase',
+								priorityColorMap[request.priority] ?? 'text-muted-foreground'
+							)}
 						>
 							{request.priority}
 						</span>
@@ -51,11 +61,19 @@ export function TenantMaintenanceCard({ request, layout = 'stacked' }: TenantMai
 					</p>
 					<div className="flex flex-wrap items-center gap-2 text-caption text-muted-foreground">
 						<Calendar className="size-3" aria-hidden />
-						<span>Submitted {formatDate(request.created_at || new Date().toISOString(), { relative: true })}</span>
+						<span>
+							Submitted{' '}
+							{formatDate(request.created_at || new Date().toISOString(), {
+								relative: true
+							})}
+						</span>
 						{request.completed_at && (
 							<>
 								<span>•</span>
-								<span>Completed {formatDate(request.completed_at, { relative: true })}</span>
+								<span>
+									Completed{' '}
+									{formatDate(request.completed_at, { relative: true })}
+								</span>
 							</>
 						)}
 					</div>
@@ -67,12 +85,16 @@ export function TenantMaintenanceCard({ request, layout = 'stacked' }: TenantMai
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<Badge
 					variant="outline"
-					className={cn(statusClassMap[request.status] ?? 'badge badge-outline')}
+					className={cn(
+						statusClassMap[request.status] ?? 'badge badge-outline'
+					)}
 				>
 					{formatStatus(request.status)}
 				</Badge>
 				{request.unit_id && (
-					<span className="text-xs text-muted-foreground">Unit {request.unit_id}</span>
+					<span className="text-xs text-muted-foreground">
+						Unit {request.unit_id}
+					</span>
 				)}
 			</div>
 		</div>

@@ -22,24 +22,28 @@ const MOBILE_NAV_ITEMS: MobileNavItem[] = [
 	{ label: 'Maintenance', href: '/maintenance', icon: Wrench }
 ]
 
-const NavItem = memo(({ item, isActive }: { item: MobileNavItem; isActive: boolean }) => {
-	const Icon = item.icon
+const NavItem = memo(
+	({ item, isActive }: { item: MobileNavItem; isActive: boolean }) => {
+		const Icon = item.icon
 
-	return (
-		<Link
-			href={item.href}
-			className={cn(
-				'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
-				isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground'
-			)}
-			aria-label={`${item.label} navigation`}
-			aria-current={isActive ? 'page' : undefined}
-		>
-			<Icon className="size-5 mb-1" aria-hidden />
-			<span>{item.label}</span>
-		</Link>
-	)
-})
+		return (
+			<Link
+				href={item.href}
+				className={cn(
+					'flex h-14 w-16 flex-col items-center justify-center rounded-lg text-xs font-medium transition-colors',
+					isActive
+						? 'text-primary bg-primary/10'
+						: 'text-muted-foreground hover:text-foreground'
+				)}
+				aria-label={`${item.label} navigation`}
+				aria-current={isActive ? 'page' : undefined}
+			>
+				<Icon className="size-5 mb-1" aria-hidden />
+				<span>{item.label}</span>
+			</Link>
+		)
+	}
+)
 NavItem.displayName = 'NavItem'
 
 export const MobileNav = memo(() => {
@@ -48,11 +52,15 @@ export const MobileNav = memo(() => {
 
 	const activeIndex = useMemo(() => {
 		// First, try to find an exact match
-		const exactMatchIndex = MOBILE_NAV_ITEMS.findIndex(item => pathname === item.href)
+		const exactMatchIndex = MOBILE_NAV_ITEMS.findIndex(
+			item => pathname === item.href
+		)
 		if (exactMatchIndex !== -1) return exactMatchIndex
 
 		// If no exact match, find the first prefix match
-		return MOBILE_NAV_ITEMS.findIndex(item => pathname.startsWith(`${item.href}/`))
+		return MOBILE_NAV_ITEMS.findIndex(item =>
+			pathname.startsWith(`${item.href}/`)
+		)
 	}, [pathname])
 
 	const handleSignOut = () => {
@@ -65,7 +73,11 @@ export const MobileNav = memo(() => {
 		<div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background md:hidden">
 			<div className="flex-between px-2 py-1">
 				{MOBILE_NAV_ITEMS.map((item, index) => (
-					<NavItem key={item.href} item={item} isActive={index === activeIndex} />
+					<NavItem
+						key={item.href}
+						item={item}
+						isActive={index === activeIndex}
+					/>
 				))}
 
 				<Sheet>
@@ -84,15 +96,19 @@ export const MobileNav = memo(() => {
 							<div className="flex-1 space-y-2 p-4">
 								{MOBILE_NAV_ITEMS.map(item => {
 									const Icon = item.icon
-									const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
+									const isActive =
+										pathname === item.href ||
+										pathname.startsWith(`${item.href}/`)
 									return (
 										<Link
 											key={item.href}
 											href={item.href}
 											className={cn(
-																	'flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors',
-																	isActive ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-																)}
+												'flex items-center gap-3 px-4 py-3 typography-small rounded-lg transition-colors',
+												isActive
+													? 'text-primary bg-primary/10'
+													: 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+											)}
 											aria-label={`${item.label} navigation`}
 											aria-current={isActive ? 'page' : undefined}
 										>

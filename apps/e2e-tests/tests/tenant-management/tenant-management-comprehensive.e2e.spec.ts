@@ -19,17 +19,23 @@ test.describe('Tenant Management - Empty State and UI', () => {
 
 		await test.step('Verify page title and breadcrumbs', async () => {
 			await expect(page).toHaveTitle(/Tenants.*TenantFlow/)
-			await expect(page.getByRole('heading', { name: 'Tenants', level: 1 })).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Tenants', level: 1 })
+			).toBeVisible()
 		})
 
 		await test.step('Verify empty state stats', async () => {
 			// Total Tenants
 			await expect(page.getByText('Total Tenants')).toBeVisible()
-			await expect(page.locator('text=/Total Tenants/').locator('..').getByText('0')).toBeVisible()
+			await expect(
+				page.locator('text=/Total Tenants/').locator('..').getByText('0')
+			).toBeVisible()
 
 			// Active Tenants
 			await expect(page.getByText('Active Tenants')).toBeVisible()
-			await expect(page.locator('text=/Active Tenants/').locator('..').getByText('0')).toBeVisible()
+			await expect(
+				page.locator('text=/Active Tenants/').locator('..').getByText('0')
+			).toBeVisible()
 
 			// Financial Stats
 			await expect(page.getByText('Overdue Balance')).toBeVisible()
@@ -37,13 +43,19 @@ test.describe('Tenant Management - Empty State and UI', () => {
 		})
 
 		await test.step('Verify empty directory table', async () => {
-			await expect(page.getByRole('heading', { name: 'Tenant Directory', level: 2 })).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Tenant Directory', level: 2 })
+			).toBeVisible()
 			await expect(page.getByText('No results.')).toBeVisible()
 		})
 
 		await test.step('Verify action buttons present', async () => {
-			await expect(page.getByRole('link', { name: /Invite Tenant/i })).toBeVisible()
-			await expect(page.getByPlaceholder(/Filter by tenant name/i)).toBeVisible()
+			await expect(
+				page.getByRole('link', { name: /Invite Tenant/i })
+			).toBeVisible()
+			await expect(
+				page.getByPlaceholder(/Filter by tenant name/i)
+			).toBeVisible()
 		})
 	})
 
@@ -71,11 +83,15 @@ test.describe('Tenant Management - Empty State and UI', () => {
 			// Required fields
 			await expect(page.getByPlaceholder(/John/i).first()).toBeVisible() // First Name
 			await expect(page.getByPlaceholder(/Smith/i)).toBeVisible() // Last Name
-			await expect(page.getByPlaceholder(/john\.smith@example\.com/i)).toBeVisible() // Email
+			await expect(
+				page.getByPlaceholder(/john\.smith@example\.com/i)
+			).toBeVisible() // Email
 
 			// Optional fields
 			await expect(page.getByPlaceholder(/\(555\) 123-4567/i)).toBeVisible() // Phone
-			await expect(page.getByPlaceholder(/Emergency contact name/i)).toBeVisible() // Emergency Contact
+			await expect(
+				page.getByPlaceholder(/Emergency contact name/i)
+			).toBeVisible() // Emergency Contact
 		})
 
 		await test.step('Verify Lease Assignment section', async () => {
@@ -83,25 +99,39 @@ test.describe('Tenant Management - Empty State and UI', () => {
 			await expect(page.getByText('Lease Assignment')).toBeVisible()
 
 			// Property dropdown
-			await expect(page.getByRole('combobox', { name: /Property/i })).toBeVisible()
+			await expect(
+				page.getByRole('combobox', { name: /Property/i })
+			).toBeVisible()
 			await expect(page.getByText('Select a property')).toBeVisible()
 
 			// Disabled Unit dropdown (no properties exist)
-			const unitCombobox = page.getByRole('combobox', { name: /Unit.*Optional/i })
+			const unitCombobox = page.getByRole('combobox', {
+				name: /Unit.*Optional/i
+			})
 			await expect(unitCombobox).toBeDisabled()
 
 			// Financial fields
-			await expect(page.getByRole('spinbutton', { name: /Monthly Rent/i })).toBeVisible()
-			await expect(page.getByRole('spinbutton', { name: /Security Deposit/i })).toBeVisible()
+			await expect(
+				page.getByRole('spinbutton', { name: /Monthly Rent/i })
+			).toBeVisible()
+			await expect(
+				page.getByRole('spinbutton', { name: /Security Deposit/i })
+			).toBeVisible()
 
 			// Date fields
-			await expect(page.getByRole('textbox', { name: /Lease Start Date/i })).toBeVisible()
-			await expect(page.getByRole('textbox', { name: /Lease End Date/i })).toBeVisible()
+			await expect(
+				page.getByRole('textbox', { name: /Lease Start Date/i })
+			).toBeVisible()
+			await expect(
+				page.getByRole('textbox', { name: /Lease End Date/i })
+			).toBeVisible()
 		})
 
 		await test.step('Verify action buttons', async () => {
 			await expect(page.getByRole('button', { name: /Cancel/i })).toBeVisible()
-			await expect(page.getByRole('button', { name: /Create & Invite Tenant/i })).toBeVisible()
+			await expect(
+				page.getByRole('button', { name: /Create & Invite Tenant/i })
+			).toBeVisible()
 		})
 
 		await test.step('Close modal with Escape key', async () => {
@@ -120,13 +150,17 @@ test.describe('Tenant Management - Empty State and UI', () => {
 		})
 
 		await test.step('Click property dropdown', async () => {
-			const propertyDropdown = page.getByRole('combobox', { name: /Property/i }).first()
+			const propertyDropdown = page
+				.getByRole('combobox', { name: /Property/i })
+				.first()
 			await propertyDropdown.click()
 		})
 
 		await test.step('Verify property dropdown is expanded', async () => {
 			// The dropdown should be expanded (will show empty list or no properties message)
-			const propertyDropdown = page.getByRole('combobox', { name: /Property/i }).first()
+			const propertyDropdown = page
+				.getByRole('combobox', { name: /Property/i })
+				.first()
 			await expect(propertyDropdown).toHaveAttribute('aria-expanded', 'true')
 		})
 	})
@@ -166,13 +200,17 @@ test.describe('Property Management - Empty State and UI', () => {
 
 		await test.step('Verify page title and heading', async () => {
 			await expect(page).toHaveTitle(/Properties.*TenantFlow/)
-			await expect(page.getByRole('heading', { name: 'Properties', level: 1 })).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Properties', level: 1 })
+			).toBeVisible()
 		})
 
 		await test.step('Verify empty state stats', async () => {
 			// Total Properties
 			await expect(page.getByText('Total Properties')).toBeVisible()
-			await expect(page.locator('text=/Total Properties/').locator('..').getByText('0')).toBeVisible()
+			await expect(
+				page.locator('text=/Total Properties/').locator('..').getByText('0')
+			).toBeVisible()
 
 			// Occupancy Rate
 			await expect(page.getByText('Occupancy Rate')).toBeVisible()
@@ -187,14 +225,24 @@ test.describe('Property Management - Empty State and UI', () => {
 		})
 
 		await test.step('Verify empty portfolio state', async () => {
-			await expect(page.getByRole('heading', { name: 'Portfolio', level: 2 })).toBeVisible()
-			await expect(page.getByRole('heading', { name: 'No properties yet', level: 3 })).toBeVisible()
-			await expect(page.getByText(/Get started by adding your first property/i)).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Portfolio', level: 2 })
+			).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'No properties yet', level: 3 })
+			).toBeVisible()
+			await expect(
+				page.getByText(/Get started by adding your first property/i)
+			).toBeVisible()
 		})
 
 		await test.step('Verify action buttons', async () => {
-			await expect(page.getByRole('button', { name: /Bulk Import/i })).toBeVisible()
-			await expect(page.getByRole('link', { name: /New Property/i })).toBeVisible()
+			await expect(
+				page.getByRole('button', { name: /Bulk Import/i })
+			).toBeVisible()
+			await expect(
+				page.getByRole('link', { name: /New Property/i })
+			).toBeVisible()
 		})
 
 		await test.step('Verify view switcher', async () => {
@@ -228,7 +276,10 @@ test.describe('Property Management - Empty State and UI', () => {
 			// Property Name (required)
 			const nameInput = page.getByPlaceholder(/e\.g\. Sunset Apartments/i)
 			await expect(nameInput).toBeVisible()
-			await expect(nameInput).toHaveAttribute('placeholder', 'e.g. Sunset Apartments')
+			await expect(nameInput).toHaveAttribute(
+				'placeholder',
+				'e.g. Sunset Apartments'
+			)
 
 			// Property Type (required dropdown)
 			await expect(page.getByText('Single Family')).toBeVisible()
@@ -247,12 +298,16 @@ test.describe('Property Management - Empty State and UI', () => {
 		})
 
 		await test.step('Verify image upload notice', async () => {
-			await expect(page.getByText(/Save property first to upload images/i)).toBeVisible()
+			await expect(
+				page.getByText(/Save property first to upload images/i)
+			).toBeVisible()
 		})
 
 		await test.step('Verify action buttons', async () => {
 			await expect(page.getByRole('button', { name: /Cancel/i })).toBeVisible()
-			await expect(page.getByRole('button', { name: /Create Property/i })).toBeVisible()
+			await expect(
+				page.getByRole('button', { name: /Create Property/i })
+			).toBeVisible()
 		})
 
 		await test.step('Close modal with Close button', async () => {
@@ -275,7 +330,10 @@ test.describe('Property Management - Empty State and UI', () => {
 		})
 
 		await test.step('Click property type dropdown', async () => {
-			const propertyTypeDropdown = page.getByRole('combobox').filter({ hasText: 'Single Family' }).first()
+			const propertyTypeDropdown = page
+				.getByRole('combobox')
+				.filter({ hasText: 'Single Family' })
+				.first()
 			await propertyTypeDropdown.click()
 		})
 	})
@@ -284,7 +342,9 @@ test.describe('Property Management - Empty State and UI', () => {
 test.describe('Navigation Between Pages', () => {
 	test.use({ storageState: 'playwright/.auth/owner.json' })
 
-	test('navigate between dashboard, tenants, and properties', async ({ page }) => {
+	test('navigate between dashboard, tenants, and properties', async ({
+		page
+	}) => {
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
 		await test.step('Start at dashboard', async () => {
@@ -297,14 +357,18 @@ test.describe('Navigation Between Pages', () => {
 			await page.getByRole('link', { name: /Tenants/i }).click()
 			await page.waitForLoadState('networkidle')
 			await expect(page).toHaveURL(/^\/tenants/)
-			await expect(page.getByRole('heading', { name: 'Tenants', level: 1 })).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Tenants', level: 1 })
+			).toBeVisible()
 		})
 
 		await test.step('Navigate to Properties via sidebar', async () => {
 			await page.getByRole('link', { name: /Properties/i }).click()
 			await page.waitForLoadState('networkidle')
 			await expect(page).toHaveURL(/^\/properties/)
-			await expect(page.getByRole('heading', { name: 'Properties', level: 1 })).toBeVisible()
+			await expect(
+				page.getByRole('heading', { name: 'Properties', level: 1 })
+			).toBeVisible()
 		})
 
 		await test.step('Navigate back to Dashboard via sidebar', async () => {
@@ -317,7 +381,9 @@ test.describe('Navigation Between Pages', () => {
 			await page.goto(`${baseUrl}/tenants/new`)
 			await page.waitForLoadState('networkidle')
 
-			const tenantsLink = page.getByRole('navigation', { name: /breadcrumb/i }).getByRole('link', { name: /Tenants/i })
+			const tenantsLink = page
+				.getByRole('navigation', { name: /breadcrumb/i })
+				.getByRole('link', { name: /Tenants/i })
 			await tenantsLink.click()
 			await page.waitForLoadState('networkidle')
 			await expect(page).toHaveURL(/^\/tenants$/)

@@ -12,10 +12,31 @@ export type UnitRow = TableRow<'units'>
 export type PropertyRow = TableRow<'properties'>
 
 // Partial types for optimized queries
-export type RentPaymentPartial = Pick<RentPaymentRow, 'status' | 'paid_date' | 'due_date' | 'amount' | 'lease_id' | 'application_fee_amount' | 'late_fee_amount'>
-export type ExpensePartial = Pick<ExpenseRow, 'expense_date' | 'created_at' | 'amount' | 'maintenance_request_id'>
+export type RentPaymentPartial = Pick<
+	RentPaymentRow,
+	| 'status'
+	| 'paid_date'
+	| 'due_date'
+	| 'amount'
+	| 'lease_id'
+	| 'application_fee_amount'
+	| 'late_fee_amount'
+>
+export type ExpensePartial = Pick<
+	ExpenseRow,
+	'expense_date' | 'created_at' | 'amount' | 'maintenance_request_id'
+>
 export type LeasePartial = Pick<LeaseRow, 'id' | 'unit_id' | 'security_deposit'>
-export type MaintenanceRequestPartial = Pick<MaintenanceRequestRow, 'id' | 'unit_id' | 'status' | 'completed_at' | 'created_at' | 'actual_cost' | 'estimated_cost'>
+export type MaintenanceRequestPartial = Pick<
+	MaintenanceRequestRow,
+	| 'id'
+	| 'unit_id'
+	| 'status'
+	| 'completed_at'
+	| 'created_at'
+	| 'actual_cost'
+	| 'estimated_cost'
+>
 export type UnitPartial = Pick<UnitRow, 'id' | 'property_id'>
 export type PropertyPartial = Pick<PropertyRow, 'id' | 'name' | 'created_at'>
 
@@ -51,19 +72,31 @@ export async function loadLedgerData(
 		unitsResult,
 		propertiesResult
 	] = await Promise.all([
-		client.from('rent_payments').select('status, paid_date, due_date, amount, lease_id, application_fee_amount, late_fee_amount'),
-		client.from('expenses').select('expense_date, created_at, amount, maintenance_request_id'),
+		client
+			.from('rent_payments')
+			.select(
+				'status, paid_date, due_date, amount, lease_id, application_fee_amount, late_fee_amount'
+			),
+		client
+			.from('expenses')
+			.select('expense_date, created_at, amount, maintenance_request_id'),
 		client.from('leases').select('id, unit_id, security_deposit'),
-		client.from('maintenance_requests').select('id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'),
+		client
+			.from('maintenance_requests')
+			.select(
+				'id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'
+			),
 		client.from('units').select('id, property_id'),
 		client.from('properties').select('id, name, created_at')
 	])
 
 	const errors = [
-		rentPaymentsResult.error && `rent_payments: ${rentPaymentsResult.error.message}`,
+		rentPaymentsResult.error &&
+			`rent_payments: ${rentPaymentsResult.error.message}`,
 		expensesResult.error && `expenses: ${expensesResult.error.message}`,
 		leasesResult.error && `leases: ${leasesResult.error.message}`,
-		maintenanceResult.error && `maintenance_requests: ${maintenanceResult.error.message}`,
+		maintenanceResult.error &&
+			`maintenance_requests: ${maintenanceResult.error.message}`,
 		unitsResult.error && `units: ${unitsResult.error.message}`,
 		propertiesResult.error && `properties: ${propertiesResult.error.message}`
 	].filter(Boolean)
@@ -110,7 +143,9 @@ export function isWithinRange(
 	return true
 }
 
-export function buildUnitPropertyMap(units: UnitPartial[]): Map<string, string> {
+export function buildUnitPropertyMap(
+	units: UnitPartial[]
+): Map<string, string> {
 	return units.reduce((map, unit) => {
 		if (unit.id && unit.property_id) {
 			map.set(unit.id, unit.property_id)
@@ -151,12 +186,18 @@ export function calculatePropertyFinancials(
 		if (!propertyId) {
 			continue
 		}
-		revenue.set(propertyId, (revenue.get(propertyId) ?? 0) + (payment.amount ?? 0))
+		revenue.set(
+			propertyId,
+			(revenue.get(propertyId) ?? 0) + (payment.amount ?? 0)
+		)
 	}
 
 	const expenses = new Map<string, number>()
 	for (const expense of ledger.expenses) {
-		if (range && !isWithinRange(expense.expense_date ?? expense.created_at, range)) {
+		if (
+			range &&
+			!isWithinRange(expense.expense_date ?? expense.created_at, range)
+		) {
 			continue
 		}
 		if (!expense.maintenance_request_id) {
@@ -170,7 +211,10 @@ export function calculatePropertyFinancials(
 		if (!propertyId) {
 			continue
 		}
-		expenses.set(propertyId, (expenses.get(propertyId) ?? 0) + (expense.amount ?? 0))
+		expenses.set(
+			propertyId,
+			(expenses.get(propertyId) ?? 0) + (expense.amount ?? 0)
+		)
 	}
 
 	return {

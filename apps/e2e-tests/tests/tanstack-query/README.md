@@ -22,8 +22,6 @@ tests/tanstack/
 ├── run-tanstack-tests.sh # Test runner script
 ├── tanstack-global-setup.ts # Global test setup
 ├── tanstack-global-teardown.ts # Global test cleanup
-├── fixtures/
-│ └── property-data.ts # Test data fixtures
 ├── utils/
 │ └── tanstack-helpers.ts # Test utilities and helpers
 └── Test Files:
@@ -33,6 +31,8 @@ tests/tanstack/
  ├── cache-behavior.spec.ts # Cache management tests
  └── real-user-workflows.spec.ts # End-to-end workflow tests
 ```
+
+Shared fixtures live in `apps/frontend/tests/fixtures/property-data.ts`.
 
 ## Quick Start
 
@@ -165,7 +165,7 @@ Tests complete business scenarios from a user's perspective.
 
 ### Test Fixtures
 
-- **`property-data.ts`** - Consistent test data generation
+- **`apps/frontend/tests/fixtures/property-data.ts`** - Consistent test data generation (shared)
 - Mock API responses for different scenarios
 - Network delay simulation constants
 - Validation error test cases
@@ -342,7 +342,7 @@ These tests are designed for CI/CD environments:
 
 ### Updating Test Data
 
-1. **Modify fixtures** in `fixtures/property-data.ts`
+1. **Modify fixtures** in `apps/frontend/tests/fixtures/property-data.ts`
 2. **Update helper methods** as needed
 3. **Ensure backwards compatibility** with existing tests
 4. **Test data cleanup** in global teardown

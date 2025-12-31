@@ -1,4 +1,4 @@
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { ServiceHealth, SystemHealth } from '@repo/shared/types/health'
 import { AppConfigService } from '../config/app-config.service'

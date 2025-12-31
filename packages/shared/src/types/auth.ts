@@ -1,181 +1,43 @@
 /**
- * Authentication and user management types
- * All types related to users, authentication, and user roles
+ * Authentication types
+ * Minimal set - only types actually used in the codebase
  */
 
-// Import constants from the single source of truth
 import type { USER_user_type } from '../constants/auth.js'
-import type { Database } from './supabase.js'
-import type { AuthError as BaseAuthError } from './errors.js'
+import type { SubscriptionStatus as SubscriptionStatusType } from '../constants/status-types.js'
+import type {
+	Session as SupabaseSession,
+	User as SupabaseAuthUserType
+} from '@supabase/supabase-js'
 
-// Use Supabase User type directly - matches what we get from auth
-// This is the authenticated user from Supabase Auth (auth.users table)
-// NOT the public.users profile table (use core.User for that)
-import type { User as SupabaseAuthUser } from '@supabase/supabase-js'
-export type { User as SupabaseAuthUser } from '@supabase/supabase-js'
-// Canonical backend/frontend auth user alias
+// Supabase Auth user - this is what we get from supabase.auth.getUser()
+export type SupabaseAuthUser = SupabaseAuthUserType
 export type AuthUser = SupabaseAuthUser
 
-// User role type derived from constants
+// User role from database constants
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
 
-// SubscriptionStatus for Stripe subscription states
-import type { SubscriptionStatus } from '../constants/status-types.js'
-export type { SubscriptionStatus }
+// Subscription status for Stripe
+export type SubscriptionStatus = SubscriptionStatusType
 
-export function hasOrganizationId(
-	user: SupabaseAuthUser
-): user is SupabaseAuthUser & { organizationId: string } {
-	const userWithOrg = user as SupabaseAuthUser & { organizationId?: string }
-	return (
-		typeof userWithOrg.organizationId === 'string' &&
-		userWithOrg.organizationId.length > 0
-	)
-}
+// Session from Supabase Auth
+export type AuthSession = SupabaseSession
 
-// Re-export Form types from forms.ts
-export type {
-	LoginFormData,
-	SignupFormData,
-	ForgotPasswordFormData,
-	ResetPasswordFormData,
-	UpdatePasswordFormData,
-	ProfileFormData,
-	ContactFormData
-} from './forms.js'
-
-// Auth request/response types for API - now consolidated in api-contracts.ts
-// See api-contracts.ts for: LoginInput, RegisterInput, RefreshTokenInput, etc.
+// Login credentials for auth hooks
 export type LoginCredentials = {
 	email: string
 	password: string
 }
 
-// Secure subscription data type
-export interface SecureSubscriptionData {
-	status: SubscriptionStatus
-	plan: string
-	expiresAt?: Date
-	stripeSubscriptionId?: string
-	trialEndsAt?: Date
-	cancelAtPeriodEnd?: boolean
-}
-
-// Enhanced user metadata with validation
-export interface SecureUserMetadata {
-	name?: string
-	full_name?: string
-	avatar_url?: string
-	company_name?: string
-	company_type?: 'OWNER' | 'PROPERTY_MANAGER' | 'TENANT' | 'VENDOR'
-	company_size?: '1-10' | '11-50' | '51-200' | '201+'
-	onboarding_completed?: boolean
-	terms_accepted_at?: string
-	privacy_policy_accepted_at?: string
-}
-
-// Authentication error types
-export type AuthErrorCode =
-	| 'INVALID_CREDENTIALS'
-	| 'USER_NOT_FOUND'
-	| 'EMAIL_NOT_VERIFIED'
-	| 'ACCOUNT_LOCKED'
-	| 'PASSWORD_TOO_WEAK'
-	| 'EMAIL_ALREADY_EXISTS'
-	| 'INVALID_TOKEN'
-	| 'TOKEN_EXPIRED'
-	| 'RATE_LIMITED'
-	| 'NETWORK_ERROR'
-	| 'VALIDATION_ERROR'
-	| 'UNKNOWN_ERROR'
-
-// Re-export AuthError from errors.ts with type alias
-export type AuthError = BaseAuthError
-
-// Use Supabase Session type directly - no custom interface needed
-import type { Session } from '@supabase/supabase-js'
-export type AuthSession = Session
-
-
-export interface SupabaseJwtPayload {
-	sub: string // Supabase user ID
+// Signup form data for registration
+export interface SignupFormData {
 	email: string
-	email_confirmed_at?: string
-	confirmed_at?: string
-	last_sign_in_at?: string
-	created_at?: string
-	updated_at?: string
-	user_metadata?: SecureUserMetadata
-	app_metadata?: {
-		provider?: string
-		providers?: string[]
-		role?: UserRole
-		user_type?: string
-		org_id?: string
-		organization_id?: string
-	}
-	org_id?: string
-	organization_id?: string
-	iat: number
-	exp: number
-	aud?: string
-	iss?: string
+	password: string
+	confirmPassword: string
+	fullName: string
+	firstName?: string
+	lastName?: string
+	company?: string
+	companyName?: string
+	acceptTerms: boolean
 }
-
-// Standard JWT Payload
-export interface JwtPayload {
-	sub: string
-	email: string
-	role?: UserRole
-	iat?: number
-	exp?: number
-}
-
-
-// Backend auth request/response schemas - consolidated in api-contracts.ts
-// See api-contracts.ts for: LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput, ChangePasswordInput
-
-// Extended auth context and guard types
-// MIGRATED from apps/backend/src/shared/guards/auth.guard.ts
-export interface AuthenticatedRequest {
-	user: Database['public']['Tables']['users']['Row']
-	// Additional authenticated request context could be added here with specific types
-}
-
-// MIGRATED from apps/backend/src/shared/guards/roles.guard.ts
-export interface RequestWithUser {
-	user?: SupabaseAuthUser & { organizationId?: string }
-	params?: Record<string, string>
-	query?: Record<string, string>
-	body?: Record<string, string | number | boolean | null> // HTTP request bodies have constrained JSON values
-	ip?: string
-	route?: { path?: string }
-	method?: string
-}
-
-
-// Permission and role enums (consolidated from security.ts)
-
-// Use const object instead of TypeScript enum (ENUM STANDARDIZATION compliance)
-export const Permission = {
-	READ_PROPERTIES: 'READ_PROPERTIES',
-	WRITE_PROPERTIES: 'WRITE_PROPERTIES',
-	DELETE_PROPERTIES: 'DELETE_PROPERTIES',
-	READ_TENANTS: 'READ_TENANTS',
-	WRITE_TENANTS: 'WRITE_TENANTS',
-	DELETE_TENANTS: 'DELETE_TENANTS',
-	READ_LEASES: 'READ_LEASES',
-	WRITE_LEASES: 'WRITE_LEASES',
-	DELETE_LEASES: 'DELETE_LEASES',
-	READ_MAINTENANCE: 'READ_MAINTENANCE',
-	WRITE_MAINTENANCE: 'WRITE_MAINTENANCE',
-	DELETE_MAINTENANCE: 'DELETE_MAINTENANCE',
-	READ_FINANCIAL: 'READ_FINANCIAL',
-	WRITE_FINANCIAL: 'WRITE_FINANCIAL',
-	ADMIN_ACCESS: 'ADMIN_ACCESS',
-	MANAGE_BILLING: 'MANAGE_BILLING',
-	MANAGE_USERS: 'MANAGE_USERS'
-} as const
-
-export type PermissionValue = (typeof Permission)[keyof typeof Permission]
-
