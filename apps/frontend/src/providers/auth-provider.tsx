@@ -2,13 +2,21 @@
 
 import { createClient } from '#lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js'
+import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react'
 
-const supabaseClient = createClient()
 const logger = createLogger({ component: 'AuthProvider' })
+
+// Lazy singleton - only created when first accessed at runtime (not during SSG)
+let supabaseClient: SupabaseClient | null = null
+function getSupabaseClient(): SupabaseClient {
+	if (!supabaseClient) {
+		supabaseClient = createClient()
+	}
+	return supabaseClient
+}
 
 export const authQueryKeys = {
 	session: ['auth', 'session'] as const,
@@ -40,7 +48,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 
 		const {
 			data: { subscription }
-		} = supabaseClient.auth.onAuthStateChange(
+		} = getSupabaseClient().auth.onAuthStateChange(
 			(event: AuthChangeEvent, session: Session | null) => {
 				// Official Supabase pattern: handle auth state changes
 				if (event === 'SIGNED_OUT') {
@@ -67,7 +75,7 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 			const {
 				data: { session },
 				error
-			} = await supabaseClient.auth.getSession()
+			} = await getSupabaseClient().auth.getSession()
 			if (error) {
 				logger.error('Failed to get auth session', { error: error.message })
 				return null
