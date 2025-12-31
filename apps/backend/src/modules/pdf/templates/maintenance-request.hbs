@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			:root { --brand: {{branding.primaryColor}}; }
+			body {
+				font-family: 'Helvetica', Arial, sans-serif;
+				color: #111827;
+				margin: 0;
+				padding: 32px;
+				line-height: 1.4;
+			}
+			header {
+				border-bottom: 2px solid var(--brand, #1f3b66);
+				padding-bottom: 16px;
+				margin-bottom: 24px;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			h1 { margin: 0; font-size: 24px; }
+			.section { margin-bottom: 18px; }
+			.section-title {
+				font-size: 13px;
+				text-transform: uppercase;
+				font-weight: 700;
+				color: #6b7280;
+				margin-bottom: 6px;
+			}
+			.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+			.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #ede9fe; color: #5b21b6; font-size: 12px; }
+			.list { padding-left: 18px; }
+		</style>
+	</head>
+	<body>
+		<header>
+			<div>
+				<h1>{{templateTitle}}</h1>
+				<p>{{branding.companyName}}</p>
+				<span class="badge">Generated {{generatedAt}}</span>
+			</div>
+			{{#if branding.logoUrl}}
+				<img src="{{branding.logoUrl}}" alt="Logo" style="height: 48px;" />
+			{{/if}}
+		</header>
+
+		<section class="section">
+			<div class="section-title">Property</div>
+			<div class="grid">
+				<div><strong>Name:</strong> {{property.name}}</div>
+				<div><strong>Unit:</strong> {{property.unit}}</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-title">Requester</div>
+			<div class="grid">
+				<div><strong>Name:</strong> {{requester.name}}</div>
+				<div><strong>Phone:</strong> {{requester.phone}}</div>
+				<div><strong>Email:</strong> {{requester.email}}</div>
+			</div>
+		</section>
+
+		<section class="section">
+			<div class="section-title">Work Order</div>
+			<div class="grid">
+				<div><strong>Priority:</strong> {{request.priority}}</div>
+				<div><strong>Preferred date:</strong> {{request.preferredDate}}</div>
+				<div><strong>Access notes:</strong> {{request.accessNotes}}</div>
+			</div>
+			<p><strong>Description:</strong> {{request.description}}</p>
+		</section>
+
+		{{#if customFields}}
+		<section class="section">
+			<div class="section-title">Custom Fields</div>
+			<ul class="list">
+				{{#each customFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+
+		{{#if dynamicFields}}
+		<section class="section">
+			<div class="section-title">Additional Fields</div>
+			<ul class="list">
+				{{#each dynamicFields}}
+					<li><strong>{{label}}:</strong> {{value}}</li>
+				{{/each}}
+			</ul>
+		</section>
+		{{/if}}
+	</body>
+</html>

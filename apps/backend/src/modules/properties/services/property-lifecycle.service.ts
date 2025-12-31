@@ -37,7 +37,7 @@ export class PropertyLifecycleService {
 	): Promise<{ success: boolean; message: string }> {
 		const { token, user_id } = this.extractAuthContext(req)
 		const property = await this.validatePropertyAccess(req, property_id)
-		await this.executeSoftDeleteSaga(token, property_id, user_id, property.status)
+		await this.executeSoftDeleteSaga(token, property_id, user_id, property.status as PropertyStatus)
 		this.cacheInvalidation.invalidatePropertyCaches(user_id, property_id)
 
 		return { success: true, message: 'Property deleted successfully' }

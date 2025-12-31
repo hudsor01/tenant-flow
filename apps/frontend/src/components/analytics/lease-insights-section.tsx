@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { analyticsQueries } from '#hooks/api/queries/analytics-queries'
+import { analyticsQueries } from '#hooks/api/use-analytics'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { DataTable } from '#components/data-table/data-table'

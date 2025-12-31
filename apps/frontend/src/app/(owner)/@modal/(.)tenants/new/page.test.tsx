@@ -34,8 +34,8 @@ vi.mock('#components/tenants/invite-tenant-form', () => ({
 	InviteTenantForm: () => <div>Form </div>
 }))
 
-// Mock the queries
-vi.mock('#hooks/api/queries/property-queries', () => ({
+// Mock the queries (colocated in use-* files)
+vi.mock('#hooks/api/use-properties', () => ({
 	propertyQueries: {
 		list: () => ({
 			queryKey: ['properties'],
@@ -44,7 +44,7 @@ vi.mock('#hooks/api/queries/property-queries', () => ({
 	}
 }))
 
-vi.mock('#hooks/api/queries/unit-queries', () => ({
+vi.mock('#hooks/api/use-unit', () => ({
 	unitQueries: {
 		list: () => ({
 			queryKey: ['units'],

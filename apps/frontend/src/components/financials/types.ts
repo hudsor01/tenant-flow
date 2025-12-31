@@ -144,7 +144,7 @@ export type PayoutStatus =
 	| 'in_transit'
 	| 'paid'
 	| 'failed'
-	| 'canceled'
+	| 'cancelled'
 export type ExpenseCategory =
 	| 'maintenance'
 	| 'utilities'

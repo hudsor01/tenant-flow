@@ -25,8 +25,8 @@ import type {
 	TenantWithExtras,
 	TenantWithLeaseInfoWithVersion
 } from '@repo/shared/types/core'
-import { tenantQueries } from '../queries/tenant-queries'
-import { leaseQueries } from '../queries/lease-queries'
+import { tenantQueries } from '../use-tenant'
+import { leaseQueries } from '../use-lease'
 import { createCrudMutations } from '../crud-mutations'
 
 const {
