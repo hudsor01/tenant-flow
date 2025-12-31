@@ -12,14 +12,25 @@
 import {
 	Controller,
 	Get,
+	HttpException,
+	HttpStatus,
 	Query,
 	Req,
 	Res,
 	Sse,
 	UnauthorizedException,
+	UseGuards,
 	type MessageEvent
 } from '@nestjs/common'
-import { Throttle } from '@nestjs/throttler'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { SkipThrottle } from '@nestjs/throttler'
+import { JwtAuthGuard } from '../../../shared/auth/jwt-auth.guard'
 import type { SseEvent } from '@repo/shared/events/sse-events'
 import type { Response, Request } from 'express'
 import { Observable, map, finalize } from 'rxjs'
@@ -28,6 +39,7 @@ import { SseService } from './sse.service'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Public } from '../../../shared/decorators/public.decorator'
+import { SkipSubscriptionCheck } from '../../../shared/guards/subscription.guard'
 
 /**
  * SSE Controller
@@ -37,6 +49,7 @@ import { Public } from '../../../shared/decorators/public.decorator'
  * Note: Uses @Public() decorator because authentication is handled
  * manually via query parameter (EventSource limitation)
  */
+@ApiTags('Notifications')
 @Controller('notifications')
 export class SseController {
 	constructor(
@@ -54,10 +67,29 @@ export class SseController {
 	 * @param token - JWT access token (required)
 	 * @returns Observable of SSE MessageEvents
 	 */
+	@ApiOperation({
+		summary: 'SSE event stream',
+		description:
+			'Server-Sent Events endpoint for real-time notifications. Authentication via query parameter (EventSource limitation).'
+	})
+	@ApiQuery({
+		name: 'token',
+		required: true,
+		type: String,
+		description: 'JWT access token for authentication'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'SSE stream established (text/event-stream)'
+	})
+	@ApiResponse({ status: 401, description: 'Invalid or missing token' })
+	@ApiResponse({ status: 429, description: 'Per-user connection limit exceeded' })
+	@ApiResponse({ status: 503, description: 'Server connection limit reached' })
 	@Get('stream')
 	@Sse()
 	@Public() // Bypass JwtAuthGuard - we handle auth manually
-	@Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 connections per minute per IP
+	@SkipSubscriptionCheck() // No subscription required for SSE
+	@SkipThrottle() // SSE is long-lived connection, not suitable for rate limiting
 	async stream(
 		@Query('token') token: string,
 		@Req() req: Request,
@@ -73,9 +105,10 @@ export class SseController {
 		}
 
 		// Validate JWT and get user
-		const { data: { user }, error } = await this.supabaseService
-			.getAdminClient()
-			.auth.getUser(token)
+		const {
+			data: { user },
+			error
+		} = await this.supabaseService.getAdminClient().auth.getUser(token)
 
 		if (error || !user) {
 			this.logger.warn('SSE connection with invalid token', {
@@ -103,8 +136,28 @@ export class SseController {
 		res.setHeader('Connection', 'keep-alive')
 		res.setHeader('X-Accel-Buffering', 'no') // Disable nginx buffering
 
-		// Subscribe to SSE events for this user
-		const eventStream = this.sseService.subscribe(userId, sessionId)
+		// Subscribe to SSE events for this user (with connection limits)
+		let eventStream
+		try {
+			eventStream = this.sseService.subscribe(userId, sessionId)
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Connection limit exceeded'
+
+			// Determine if it's a per-user limit or server limit
+			const isUserLimit = message.includes('per user')
+			this.logger.warn('SSE connection rejected', {
+				context: 'SseController',
+				userId,
+				reason: message,
+				ip: req.ip
+			})
+
+			throw new HttpException(
+				message,
+				isUserLimit ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.SERVICE_UNAVAILABLE
+			)
+		}
 
 		// Handle client disconnect
 		req.on('close', () => {
@@ -118,12 +171,14 @@ export class SseController {
 
 		// Transform SseEvent to NestJS MessageEvent format
 		return eventStream.pipe(
-			map((event: SseEvent): MessageEvent => ({
-				type: event.type,
-				data: JSON.stringify(event),
-				id: event.correlationId ?? randomUUID(),
-				retry: 5000 // Retry connection after 5 seconds on disconnect
-			})),
+			map(
+				(event: SseEvent): MessageEvent => ({
+					type: event.type,
+					data: JSON.stringify(event),
+					id: event.correlationId ?? randomUUID(),
+					retry: 5000 // Retry connection after 5 seconds on disconnect
+				})
+			),
 			finalize(() => {
 				// Cleanup on stream completion
 				this.sseService.unsubscribe(sessionId)
@@ -135,7 +190,26 @@ export class SseController {
 	 * SSE Connection Status Endpoint
 	 * Returns current connection statistics (for monitoring)
 	 */
+	@ApiOperation({
+		summary: 'SSE connection statistics',
+		description: 'Returns current SSE connection statistics for monitoring purposes'
+	})
+	@ApiBearerAuth('supabase-auth')
+	@ApiResponse({
+		status: 200,
+		description: 'Connection stats retrieved',
+		schema: {
+			type: 'object',
+			properties: {
+				status: { type: 'string', example: 'healthy' },
+				connections: { type: 'number', example: 42 },
+				uniqueUsers: { type: 'number', example: 35 }
+			}
+		}
+	})
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('stream/status')
+	@UseGuards(JwtAuthGuard)
 	getStreamStatus() {
 		const stats = this.sseService.getStats()
 		return {

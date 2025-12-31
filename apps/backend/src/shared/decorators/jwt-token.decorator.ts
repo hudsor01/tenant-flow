@@ -11,7 +11,7 @@
  * }
  */
 
-import type { ExecutionContext} from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common'
 import { createParamDecorator, UnauthorizedException } from '@nestjs/common'
 
 export const JwtToken = createParamDecorator(
@@ -57,13 +57,13 @@ export const JwtToken = createParamDecorator(
 
 			// Check for chunked cookies (sb-{project}-auth-token.0, .1, etc.)
 			const cookieChunks = Object.keys(request.cookies)
-				.filter((key) => key.startsWith(`${baseName}.`))
+				.filter(key => key.startsWith(`${baseName}.`))
 				.sort((a, b) => {
 					const numA = parseInt(a.split('.').pop() || '0', 10)
 					const numB = parseInt(b.split('.').pop() || '0', 10)
 					return numA - numB
 				})
-				.map((key) => request.cookies[key])
+				.map(key => request.cookies[key])
 				.join('')
 
 			if (cookieChunks) {

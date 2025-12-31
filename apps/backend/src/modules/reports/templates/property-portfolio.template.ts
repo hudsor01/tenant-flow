@@ -37,8 +37,10 @@ export interface PropertyPortfolioReportData {
 
 @Injectable()
 export class PropertyPortfolioTemplate {
-
-	constructor(private readonly propertyService: PropertyPerformanceService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly propertyService: PropertyPerformanceService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

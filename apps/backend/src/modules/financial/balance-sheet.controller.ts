@@ -3,21 +3,40 @@ import {
 	Controller,
 	Get,
 	Query,
-	UnauthorizedException
+	Request,
+	UnauthorizedException,
+	UseGuards
 } from '@nestjs/common'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { BalanceSheetService } from './balance-sheet.service'
 
+@ApiTags('Financials')
+@ApiBearerAuth('supabase-auth')
 @Controller('financials/balance-sheet')
+@UseGuards(JwtAuthGuard)
 export class BalanceSheetController {
 	constructor(private readonly balanceSheetService: BalanceSheetService) {}
 
+	@ApiOperation({ summary: 'Get balance sheet', description: 'Generate balance sheet report as of a specific date' })
+	@ApiQuery({ name: 'asOfDate', required: false, description: 'Date for balance sheet (YYYY-MM-DD format, defaults to today)' })
+	@ApiResponse({ status: 200, description: 'Balance sheet generated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid date format' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async getBalanceSheet(
-		@JwtToken() token: string,
+		@Request() req: AuthenticatedRequest,
 		@Query('asOfDate') asOfDate?: string
 	) {
-		if (!token) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token || !req.user?.id) {
 			throw new UnauthorizedException('Authentication token is required')
 		}
 
@@ -34,6 +53,7 @@ export class BalanceSheetController {
 
 		const data = await this.balanceSheetService.generateBalanceSheet(
 			token,
+			req.user.id,
 			finalDate
 		)
 

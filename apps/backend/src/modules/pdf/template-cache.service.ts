@@ -54,7 +54,10 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 	async onModuleInit(): Promise<void> {
 		// Prewarm Texas template (most common)
 		try {
-			await this.getTemplateContent('TX' as SupportedStateCode, DEFAULT_TEMPLATE_TYPE)
+			await this.getTemplateContent(
+				'TX' as SupportedStateCode,
+				DEFAULT_TEMPLATE_TYPE
+			)
 			this.logger.log('Template cache prewarmed with Texas template')
 		} catch (error) {
 			this.logger.warn('Failed to prewarm template cache', {
@@ -159,8 +162,24 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 		// Try multiple paths to handle different execution contexts
 		const possiblePaths = [
 			path.resolve(__dirname, 'templates', fileName),
-			path.resolve(process.cwd(), 'apps', 'backend', 'src', 'modules', 'pdf', 'templates', fileName),
-			path.resolve(process.cwd(), 'src', 'modules', 'pdf', 'templates', fileName),
+			path.resolve(
+				process.cwd(),
+				'apps',
+				'backend',
+				'src',
+				'modules',
+				'pdf',
+				'templates',
+				fileName
+			),
+			path.resolve(
+				process.cwd(),
+				'src',
+				'modules',
+				'pdf',
+				'templates',
+				fileName
+			),
 			path.resolve(process.cwd(), 'apps', 'backend', 'assets', fileName),
 			path.resolve(process.cwd(), 'assets', fileName)
 		]
@@ -175,7 +194,10 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 				let fields: string[] = []
 				try {
 					const pdfDoc = await PDFDocument.load(uint8Array)
-					fields = pdfDoc.getForm().getFields().map(f => f.getName())
+					fields = pdfDoc
+						.getForm()
+						.getFields()
+						.map(f => f.getName())
 				} catch {
 					// PDF field extraction failed, continue without fields
 				}
@@ -206,7 +228,11 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 		}
 
 		// Template not found
-		this.logger.warn('Template file not found', { stateCode, templateType, paths: possiblePaths })
+		this.logger.warn('Template file not found', {
+			stateCode,
+			templateType,
+			paths: possiblePaths
+		})
 
 		return {
 			metadata: {
@@ -220,7 +246,10 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 		}
 	}
 
-	private getCacheKey(stateCode: SupportedStateCode, templateType: TemplateType): string {
+	private getCacheKey(
+		stateCode: SupportedStateCode,
+		templateType: TemplateType
+	): string {
 		return `${stateCode}:${templateType}`
 	}
 
@@ -236,7 +265,10 @@ export class TemplateCacheService implements OnModuleInit, OnModuleDestroy {
 		}
 
 		if (cleaned > 0) {
-			this.logger.debug('Template cache cleanup', { cleaned, remaining: this.cache.size })
+			this.logger.debug('Template cache cleanup', {
+				cleaned,
+				remaining: this.cache.size
+			})
 		}
 	}
 }

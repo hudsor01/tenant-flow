@@ -30,7 +30,9 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 
 	test('should load real Stripe products from API', async ({ page }) => {
 		// Check that products loaded from backend (not mock data)
-		await expect(page.locator('text=/STARTER|GROWTH|MAX/i').first()).toBeVisible()
+		await expect(
+			page.locator('text=/STARTER|GROWTH|MAX/i').first()
+		).toBeVisible()
 
 		// Verify pricing displays correctly
 		const prices = page.locator('text=/\\$\\d+/').first()
@@ -57,24 +59,34 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 	test('should be fully responsive across devices', async ({ page }) => {
 		// Test mobile responsiveness
 		await page.setViewportSize({ width: 375, height: 667 })
-		await expect(page.locator('text=/Simple, Transparent Pricing/i')).toBeVisible()
+		await expect(
+			page.locator('text=/Simple, Transparent Pricing/i')
+		).toBeVisible()
 
 		// Check that Get Started buttons are visible on mobile
-		const mobileButtons = page.locator('button:has-text("Get Started"), a:has-text("Get Started")')
+		const mobileButtons = page.locator(
+			'button:has-text("Get Started"), a:has-text("Get Started")'
+		)
 		await expect(mobileButtons.first()).toBeVisible()
 
 		// Test tablet responsiveness
 		await page.setViewportSize({ width: 768, height: 1024 })
-		await expect(page.locator('text=/Simple, Transparent Pricing/i')).toBeVisible()
+		await expect(
+			page.locator('text=/Simple, Transparent Pricing/i')
+		).toBeVisible()
 
 		// Test desktop responsiveness
 		await page.setViewportSize({ width: 1920, height: 1080 })
-		await expect(page.locator('text=/Simple, Transparent Pricing/i')).toBeVisible()
+		await expect(
+			page.locator('text=/Simple, Transparent Pricing/i')
+		).toBeVisible()
 	})
 
 	test('should have premium micro-interactions', async ({ page }) => {
 		// Test button hover effects
-		const getStartedButton = page.locator('button:has-text("Get Started")').first()
+		const getStartedButton = page
+			.locator('button:has-text("Get Started")')
+			.first()
 		await expect(getStartedButton).toBeVisible()
 
 		// Hover over button
@@ -127,7 +139,9 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 		}
 	})
 
-	test('should handle billing toggle with confetti animation', async ({ page }) => {
+	test('should handle billing toggle with confetti animation', async ({
+		page
+	}) => {
 		// Find the billing toggle switch
 		const toggle = page.locator('button[user_type="switch"]')
 		await expect(toggle).toBeVisible()
@@ -149,12 +163,18 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 		await page.waitForTimeout(300)
 	})
 
-	test('should redirect unauthenticated users to login on checkout', async ({ page }) => {
+	test('should redirect unauthenticated users to login on checkout', async ({
+		page
+	}) => {
 		// Click Get Started button (assuming user is not logged in)
-		const getStartedButton = page.locator('button:has-text("Get Started")').first()
+		const getStartedButton = page
+			.locator('button:has-text("Get Started")')
+			.first()
 
 		// Listen for navigation
-		const navigationPromise = page.waitForURL(/\/login/, { timeout: 5000 }).catch(() => null)
+		const navigationPromise = page
+			.waitForURL(/\/login/, { timeout: 5000 })
+			.catch(() => null)
 
 		await getStartedButton.click()
 
@@ -169,7 +189,9 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 
 	test('should show loading state during checkout', async ({ page }) => {
 		// Click Get Started button
-		const getStartedButton = page.locator('button:has-text("Get Started")').first()
+		const getStartedButton = page
+			.locator('button:has-text("Get Started")')
+			.first()
 		await getStartedButton.click()
 
 		// Check for loading state (button becomes disabled or shows "Loading...")
@@ -183,7 +205,7 @@ test.describe('Premium SaaS Pricing Page - Visual & UX Tests', () => {
 		const contactSalesButton = page.locator('text=/Contact Sales/i')
 
 		// Max plan should link to /contact, not trigger checkout
-		if (await contactSalesButton.count() > 0) {
+		if ((await contactSalesButton.count()) > 0) {
 			await expect(contactSalesButton).toBeVisible()
 		}
 	})

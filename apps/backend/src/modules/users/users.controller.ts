@@ -21,6 +21,15 @@ import {
 	UploadedFile
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiConsumes,
+	ApiOperation,
+	ApiParam,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { decode, JwtPayload } from 'jsonwebtoken'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -28,26 +37,15 @@ import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
 import { UsersService } from './users.service'
 import { ProfileService } from './profile.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
+import { UpdateTourProgressDto } from './dto/update-tour-progress.dto'
+import { UpdatePhoneDto } from './dto/update-phone.dto'
+import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto'
 import { AppLogger } from '../../logger/app-logger.service'
 import { UserToursService } from './user-tours.service'
 import { UserSessionsService } from './user-sessions.service'
 
-type UpdateTourProgressBody = {
-	status?: 'not_started' | 'in_progress' | 'completed' | 'skipped'
-	current_step?: number
-}
-
-type UpdatePhoneBody = {
-	phone: string | null
-}
-
-type UpdateEmergencyContactBody = {
-	name: string
-	phone: string
-	relationship: string
-}
-
+@ApiTags('Users')
+@ApiBearerAuth('supabase-auth')
 @Controller('users')
 export class UsersController {
 	constructor(
@@ -70,6 +68,10 @@ export class UsersController {
 	 * - email: auth.users.email (from JWT)
 	 * - stripe_customer_id: stripe.customers.id (from Stripe Sync Engine)
 	 */
+	@ApiOperation({ summary: 'Get current user', description: 'Get current authenticated user with Stripe customer ID' })
+	@ApiResponse({ status: 200, description: 'Current user retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'User email not found' })
 	@Get('me')
 	@SkipSubscriptionCheck()
 	async getCurrentUser(@Req() req: AuthenticatedRequest) {
@@ -137,14 +139,20 @@ export class UsersController {
 	 * - For tenants: emergency contact, current lease info
 	 * - For owners: Stripe connection status, property/unit counts
 	 */
+	@ApiOperation({ summary: 'Get user profile', description: 'Get full user profile with role-specific data' })
+	@ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('profile')
 	@SkipSubscriptionCheck()
-	async getProfile(
-		@JwtToken() token: string,
-		@Req() req: AuthenticatedRequest
-	) {
+	async getProfile(@Req() req: AuthenticatedRequest) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		this.logger.debug('Fetching user profile', { user_id: req.user.id })
@@ -160,13 +168,20 @@ export class UsersController {
 	 * - email (must be unique)
 	 * - phone, company, timezone, bio
 	 */
+	@ApiOperation({ summary: 'Update profile', description: 'Update current user profile information' })
+	@ApiResponse({ status: 200, description: 'Profile updated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Patch('profile')
 	@SkipSubscriptionCheck()
 	async updateProfile(
-		@JwtToken() token: string,
 		@Req() req: AuthenticatedRequest,
 		@Body() dto: UpdateProfileDto
 	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
+		}
+
 		const user_id = req.user.id
 
 		this.logger.debug('Updating user profile', {
@@ -198,16 +213,26 @@ export class UsersController {
 	 * Accepts image file (JPEG, PNG, GIF, WebP) up to 5MB
 	 * Stores in Supabase Storage and updates user record
 	 */
+	@ApiOperation({ summary: 'Upload avatar', description: 'Upload user avatar image (JPEG, PNG, GIF, WebP up to 5MB)' })
+	@ApiConsumes('multipart/form-data')
+	@ApiBody({ schema: { type: 'object', properties: { avatar: { type: 'string', format: 'binary' } } } })
+	@ApiResponse({ status: 200, description: 'Avatar uploaded successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required or invalid file' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('avatar')
 	@SkipSubscriptionCheck()
 	@UseInterceptors(FileInterceptor('avatar'))
 	async uploadAvatar(
-		@JwtToken() token: string,
 		@Req() req: AuthenticatedRequest,
 		@UploadedFile() file: Express.Multer.File
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		this.logger.debug('Uploading avatar', {
@@ -224,14 +249,20 @@ export class UsersController {
 	 *
 	 * Deletes avatar from storage and clears avatar_url in user record
 	 */
+	@ApiOperation({ summary: 'Remove avatar', description: 'Delete user avatar from storage' })
+	@ApiResponse({ status: 200, description: 'Avatar removed successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Delete('avatar')
 	@SkipSubscriptionCheck()
-	async removeAvatar(
-		@JwtToken() token: string,
-		@Req() req: AuthenticatedRequest
-	) {
+	async removeAvatar(@Req() req: AuthenticatedRequest) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		this.logger.debug('Removing avatar', { user_id: req.user.id })
@@ -246,20 +277,29 @@ export class UsersController {
 	 *
 	 * Validates phone format and updates user record
 	 */
+	@ApiOperation({ summary: 'Update phone', description: 'Update user phone number' })
+	@ApiBody({ schema: { type: 'object', properties: { phone: { type: 'string', nullable: true } }, required: ['phone'] } })
+	@ApiResponse({ status: 200, description: 'Phone updated successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Patch('phone')
 	@SkipSubscriptionCheck()
 	async updatePhone(
-		@JwtToken() token: string,
 		@Req() req: AuthenticatedRequest,
-		@Body() body: UpdatePhoneBody
+		@Body() dto: UpdatePhoneDto
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
+		}
+
 		this.logger.debug('Updating phone number', { user_id: req.user.id })
 
-		return this.profileService.updatePhone(token, req.user.id, body.phone)
+		return this.profileService.updatePhone(token, req.user.id, dto.phone)
 	}
 
 	/**
@@ -267,26 +307,31 @@ export class UsersController {
 	 *
 	 * Updates emergency contact information in tenant record
 	 */
+	@ApiOperation({ summary: 'Update emergency contact', description: 'Update tenant emergency contact information' })
+	@ApiBody({ schema: { type: 'object', properties: { name: { type: 'string' }, phone: { type: 'string' }, relationship: { type: 'string' } }, required: ['name', 'phone', 'relationship'] } })
+	@ApiResponse({ status: 200, description: 'Emergency contact updated successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required or missing fields' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Patch('emergency-contact')
 	@SkipSubscriptionCheck()
 	async updateEmergencyContact(
-		@JwtToken() token: string,
 		@Req() req: AuthenticatedRequest,
-		@Body() body: UpdateEmergencyContactBody
+		@Body() dto: UpdateEmergencyContactDto
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		if (!body.name || !body.phone || !body.relationship) {
-			throw new BadRequestException(
-				'Name, phone, and relationship are required'
-			)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
+
+		// Zod DTO validates all fields, no manual check needed
 
 		this.logger.debug('Updating emergency contact', { user_id: req.user.id })
 
-		await this.profileService.updateEmergencyContact(token, req.user.id, body)
+		await this.profileService.updateEmergencyContact(token, req.user.id, dto)
 
 		return { success: true, message: 'Emergency contact updated successfully' }
 	}
@@ -296,14 +341,20 @@ export class UsersController {
 	 *
 	 * Clears emergency contact information from tenant record
 	 */
+	@ApiOperation({ summary: 'Remove emergency contact', description: 'Clear tenant emergency contact information' })
+	@ApiResponse({ status: 200, description: 'Emergency contact removed successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Delete('emergency-contact')
 	@SkipSubscriptionCheck()
-	async removeEmergencyContact(
-		@JwtToken() token: string,
-		@Req() req: AuthenticatedRequest
-	) {
+	async removeEmergencyContact(@Req() req: AuthenticatedRequest) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		this.logger.debug('Removing emergency contact', { user_id: req.user.id })
@@ -319,24 +370,29 @@ export class UsersController {
 	 * Returns a list of all active sessions with device/browser info.
 	 * The current session is marked with is_current: true
 	 */
+	@ApiOperation({ summary: 'Get sessions', description: 'Get all active sessions for current user' })
+	@ApiResponse({ status: 200, description: 'Sessions retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('sessions')
 	@SkipSubscriptionCheck()
-	async getSessions(
-		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string
-	) {
+	async getSessions(@Req() req: AuthenticatedRequest) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
+		const token = req.headers.authorization?.replace('Bearer ', '')
+
 		// Extract session_id from the JWT payload
 		// The JWT has already been verified by the auth guard
 		let currentSessionId: string | undefined
-		try {
-			const decoded = decode(token) as JwtPayload | null
-			currentSessionId = decoded?.session_id as string | undefined
-		} catch {
-			this.logger.debug('Could not decode JWT for session_id extraction')
+		if (token) {
+			try {
+				const decoded = decode(token) as JwtPayload | null
+				currentSessionId = decoded?.session_id as string | undefined
+			} catch {
+				this.logger.debug('Could not decode JWT for session_id extraction')
+			}
 		}
 
 		this.logger.debug('Fetching user sessions', {
@@ -358,24 +414,32 @@ export class UsersController {
 	 * Terminates the specified session, logging the user out of that device.
 	 * Users cannot revoke their current session through this endpoint.
 	 */
+	@ApiOperation({ summary: 'Revoke session', description: 'Terminate a specific session (cannot revoke current session)' })
+	@ApiParam({ name: 'sessionId', type: 'string', description: 'Session ID to revoke' })
+	@ApiResponse({ status: 200, description: 'Session revoked successfully' })
+	@ApiResponse({ status: 400, description: 'Cannot revoke current session' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Delete('sessions/:sessionId')
 	@SkipSubscriptionCheck()
 	async revokeSession(
 		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
 		@Param('sessionId') sessionId: string
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
+		const token = req.headers.authorization?.replace('Bearer ', '')
+
 		// Extract current session_id from JWT to prevent self-revocation
 		let currentSessionId: string | undefined
-		try {
-			const decoded = decode(token) as JwtPayload | null
-			currentSessionId = decoded?.session_id as string | undefined
-		} catch {
-			// If we can't decode, allow the operation (backend will validate)
+		if (token) {
+			try {
+				const decoded = decode(token) as JwtPayload | null
+				currentSessionId = decoded?.session_id as string | undefined
+			} catch {
+				// If we can't decode, allow the operation (backend will validate)
+			}
 		}
 
 		// Prevent users from revoking their current session
@@ -398,15 +462,24 @@ export class UsersController {
 	/**
 	 * Get onboarding tour progress for current user
 	 */
+	@ApiOperation({ summary: 'Get tour progress', description: 'Get onboarding tour progress for current user' })
+	@ApiParam({ name: 'tourKey', type: 'string', description: 'Tour identifier key' })
+	@ApiResponse({ status: 200, description: 'Tour progress retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('tours/:tourKey')
 	@SkipSubscriptionCheck()
 	async getTourProgress(
 		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
 		@Param('tourKey') tourKey: string
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		return this.userToursService.getTourProgress(token, req.user.id, tourKey)
@@ -415,38 +488,55 @@ export class UsersController {
 	/**
 	 * Update onboarding tour progress for current user
 	 */
+	@ApiOperation({ summary: 'Update tour progress', description: 'Update onboarding tour progress for current user' })
+	@ApiParam({ name: 'tourKey', type: 'string', description: 'Tour identifier key' })
+	@ApiBody({ schema: { type: 'object', properties: { status: { type: 'string', enum: ['not_started', 'in_progress', 'completed', 'skipped'] }, current_step: { type: 'number' } } } })
+	@ApiResponse({ status: 200, description: 'Tour progress updated successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Patch('tours/:tourKey')
 	@SkipSubscriptionCheck()
 	async updateTourProgress(
 		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
 		@Param('tourKey') tourKey: string,
-		@Body() body: UpdateTourProgressBody
+		@Body() dto: UpdateTourProgressDto
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
 
-		return this.userToursService.updateTourProgress(
-			token,
-			req.user.id,
-			tourKey,
-			body
-		)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
+		}
+
+		return this.userToursService.updateTourProgress(token, req.user.id, tourKey, {
+			...(dto.status !== undefined && { status: dto.status }),
+			...(dto.current_step !== undefined && { current_step: dto.current_step })
+		})
 	}
 
 	/**
 	 * Reset onboarding tour progress for current user
 	 */
+	@ApiOperation({ summary: 'Reset tour progress', description: 'Reset onboarding tour progress for current user' })
+	@ApiParam({ name: 'tourKey', type: 'string', description: 'Tour identifier key' })
+	@ApiResponse({ status: 200, description: 'Tour progress reset successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('tours/:tourKey/reset')
 	@SkipSubscriptionCheck()
 	async resetTourProgress(
 		@Req() req: AuthenticatedRequest,
-		@JwtToken() token: string,
 		@Param('tourKey') tourKey: string
 	) {
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
+		}
+
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new BadRequestException('Authorization token required')
 		}
 
 		return this.userToursService.resetTourProgress(token, req.user.id, tourKey)

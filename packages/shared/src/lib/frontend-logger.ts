@@ -29,7 +29,7 @@ export interface LogEntry {
 export type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR'
 
 // Environment checks
-const isDevelopment = () => process.env["NODE_ENV"] === 'development'
+const isDevelopment = () => process.env['NODE_ENV'] === 'development'
 const isClient = () => typeof window !== 'undefined'
 const devConsole: Partial<Console> | undefined =
 	typeof globalThis !== 'undefined'
@@ -39,7 +39,7 @@ const devConsole: Partial<Console> | undefined =
 // Safe timestamp for Next.js Server Components
 // Server-side logs skip timestamps to avoid Next.js 15 prerender errors
 // (new Date() before uncached data access breaks Server Components)
-const getTimestamp = () => isClient() ? new Date().toISOString() : ''
+const getTimestamp = () => (isClient() ? new Date().toISOString() : '')
 
 /**
  * Safe JSON stringify with circular reference handling
@@ -74,25 +74,13 @@ const developmentConsoleFallback = (entry: LogEntry) => {
 	switch (entry.level) {
 		case 'DEBUG':
 		case 'INFO':
-			devConsole?.info?.(
-				message,
-				metadataStr,
-				...(entry.args || [])
-			)
+			devConsole?.info?.(message, metadataStr, ...(entry.args || []))
 			break
 		case 'WARN':
-			devConsole?.warn?.(
-				message,
-				metadataStr,
-				...(entry.args || [])
-			)
+			devConsole?.warn?.(message, metadataStr, ...(entry.args || []))
 			break
 		case 'ERROR':
-			devConsole?.error?.(
-				message,
-				metadataStr,
-				...(entry.args || [])
-			)
+			devConsole?.error?.(message, metadataStr, ...(entry.args || []))
 			break
 	}
 }

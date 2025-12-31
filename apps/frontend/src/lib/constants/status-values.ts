@@ -74,14 +74,12 @@ export const MAINTENANCE_STATUS_LABELS: Record<
 	CANCELLED: 'Cancelled'
 }
 
-export const TENANT_STATUS_LABELS: Record<
-	keyof typeof TENANT_STATUS,
-	string
-> = {
-	ACTIVE: 'Active',
-	INACTIVE: 'Inactive',
-	PENDING: 'Pending'
-}
+export const TENANT_STATUS_LABELS: Record<keyof typeof TENANT_STATUS, string> =
+	{
+		ACTIVE: 'Active',
+		INACTIVE: 'Inactive',
+		PENDING: 'Pending'
+	}
 
 export const MAINTENANCE_CATEGORY = {
 	GENERAL: 'GENERAL',

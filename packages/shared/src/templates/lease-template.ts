@@ -697,7 +697,9 @@ export function createDefaultContext(
 			? { leaseEndDateFormatted: formatDate(overrides.leaseEndDateISO) }
 			: {}),
 		late_fee_amountFormatted: formatCurrency(
-			overrides?.late_fee_amountCents ?? DEFAULT_CONTEXT.late_fee_amountCents ?? 0
+			overrides?.late_fee_amountCents ??
+				DEFAULT_CONTEXT.late_fee_amountCents ??
+				0
 		)
 	}
 }

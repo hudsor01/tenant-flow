@@ -49,7 +49,8 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const updateRequest = useMaintenanceRequestUpdateMutation()
 
 	// Use query hooks for eager loading of properties and units
-	const { data: propertiesData, isLoading: propertiesLoading } = usePropertyList()
+	const { data: propertiesData, isLoading: propertiesLoading } =
+		usePropertyList()
 	const { data: unitsData, isLoading: unitsLoading } = useUnitList()
 
 	const extendedRequest = request as MaintenanceRequestWithExtras | undefined
@@ -151,7 +152,8 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											</SelectTrigger>
 											<SelectContent>
 												{propertiesData?.map((property: Property) => {
-													const propertyUnits = unitsByProperty.get(property.id) ?? []
+													const propertyUnits =
+														unitsByProperty.get(property.id) ?? []
 													if (propertyUnits.length === 0) return null
 													return (
 														<div key={property.id}>

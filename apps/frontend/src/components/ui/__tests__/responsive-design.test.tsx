@@ -24,7 +24,10 @@ describe('Mobile-First Responsive Design', () => {
 		test('links with touch-target class have adequate touch area', () => {
 			render(
 				<nav>
-					<Link href="/test" className="touch-target min-h-11 inline-flex items-center">
+					<Link
+						href="/test"
+						className="touch-target min-h-11 inline-flex items-center"
+					>
 						Test Link
 					</Link>
 				</nav>
@@ -75,7 +78,10 @@ describe('Mobile-First Responsive Design', () => {
 
 			const container = screen.getByText('Content').parentElement
 			// Check that the container uses CSS custom properties for responsive padding
-			expect(container).toHaveClass('px-(--layout-container-padding-x)', 'py-(--layout-content-padding)')
+			expect(container).toHaveClass(
+				'px-(--layout-container-padding-x)',
+				'py-(--layout-content-padding)'
+			)
 		})
 
 		test('grid layouts adapt to mobile screens', () => {
@@ -122,8 +128,14 @@ describe('Mobile-First Responsive Design', () => {
 				</nav>
 			)
 
-			expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/dashboard')
-			expect(screen.getByRole('link', { name: 'Properties' })).toHaveAttribute('href', '/properties')
+			expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+				'href',
+				'/dashboard'
+			)
+			expect(screen.getByRole('link', { name: 'Properties' })).toHaveAttribute(
+				'href',
+				'/properties'
+			)
 		})
 
 		test('focus management works for keyboard navigation', () => {

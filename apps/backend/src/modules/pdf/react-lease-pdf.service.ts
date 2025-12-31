@@ -16,8 +16,7 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class ReactLeasePDFService {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	/**
 	 * Generate filled Texas lease PDF from form data
@@ -38,7 +37,6 @@ export class ReactLeasePDFService {
 
 			this.logger.log('Texas lease PDF generated successfully')
 			return pdfBuffer
-
 		} catch (error) {
 			this.logger.error('Error generating Texas lease PDF', { error })
 			throw new InternalServerErrorException(

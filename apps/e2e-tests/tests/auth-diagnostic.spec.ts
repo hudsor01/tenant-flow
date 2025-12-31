@@ -11,12 +11,12 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 const logger = createLogger({ component: 'AuthDiagnostic' })
 
 interface NetworkLog {
-  url: string
-  method: string
-  status?: number | undefined
-  timing: number
-  type: string
-  error?: string
+	url: string
+	method: string
+	status?: number | undefined
+	timing: number
+	type: string
+	error?: string
 }
 
 interface ConsoleLog {
@@ -49,7 +49,9 @@ test.describe('Authentication Diagnostic Tests', () => {
 
 		page.on('response', response => {
 			const existing = networkLogs.find(
-				log => log.url === response.url() && log.method === response.request().method()
+				log =>
+					log.url === response.url() &&
+					log.method === response.request().method()
 			)
 			if (existing) {
 				existing.status = response.status()
@@ -93,11 +95,11 @@ test.describe('Authentication Diagnostic Tests', () => {
 		// Check for Supabase initialization
 		const supabaseInitialized = await page.evaluate(() => {
 			const w = window as unknown as {
-				supabase?: unknown;
-				_supabaseClient?: unknown;
-			};
-			return !!w.supabase || !!w._supabaseClient;
-		});
+				supabase?: unknown
+				_supabaseClient?: unknown
+			}
+			return !!w.supabase || !!w._supabaseClient
+		})
 		logger.info(`[SUPABASE] Initialized: ${supabaseInitialized}`)
 
 		// Get environment info
@@ -105,14 +107,18 @@ test.describe('Authentication Diagnostic Tests', () => {
 			origin: window.location.origin,
 			pathname: window.location.pathname,
 			supabaseUrl: (window as any).NEXT_PUBLIC_SUPABASE_URL,
-			supabaseKey: (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET'
-		}));
+			supabaseKey: (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY
+				? 'SET'
+				: 'NOT SET'
+		}))
 		logger.info('[ENV] Frontend environment:', envInfo)
 
 		// Log initial network requests
 		logger.info('[NETWORK] Initial page load requests:')
 		networkLogs.slice(0, 10).forEach(log => {
-			logger.info(`  ${log.method} ${log.url.substring(0, 100)} - Status: ${log.status} (${log.timing}ms)`)
+			logger.info(
+				`  ${log.method} ${log.url.substring(0, 100)} - Status: ${log.status} (${log.timing}ms)`
+			)
 		})
 
 		// Wait for form to be visible
@@ -141,8 +147,11 @@ test.describe('Authentication Diagnostic Tests', () => {
 		// Capture form state before submission
 		const formData = await page.evaluate(() => ({
 			email: (document.querySelector('#email') as HTMLInputElement)?.value,
-			password: (document.querySelector('#password') as HTMLInputElement)?.value,
-			submitButton: (document.querySelector('button[type="submit"]') as HTMLButtonElement)?.textContent
+			password: (document.querySelector('#password') as HTMLInputElement)
+				?.value,
+			submitButton: (
+				document.querySelector('button[type="submit"]') as HTMLButtonElement
+			)?.textContent
 		}))
 		logger.info('[FORM] Form state before submission:', formData)
 
@@ -172,9 +181,11 @@ test.describe('Authentication Diagnostic Tests', () => {
 
 		// Submit and wait for result
 		// Only wait for URL change - networkidle resolves too early
-		await page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }).catch(err => {
-			logger.error('[LOGIN_TIMEOUT] URL didnt change')
-		})
+		await page
+			.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 })
+			.catch(err => {
+				logger.error('[LOGIN_TIMEOUT] URL didnt change')
+			})
 		/*await Promise.race([
 			page.waitForURL(/\/(dashboard|portal|auth)/, { timeout: 30000 }),
 			page.waitForLoadState('networkidle', { timeout: 30000 })
@@ -208,13 +219,17 @@ test.describe('Authentication Diagnostic Tests', () => {
 			.filter(log => log.type === 'error' || log.type === 'warning')
 			.slice(0, 10)
 			.forEach(log => {
-				logger.info(`  [${log.timestamp}ms] ${log.type}: ${log.message.substring(0, 100)}`)
+				logger.info(
+					`  [${log.timestamp}ms] ${log.type}: ${log.message.substring(0, 100)}`
+				)
 			})
 
 		// Check final state
 		const finalUrl = page.url()
 		const sessionCookies = await context.cookies()
-		const authCookies = sessionCookies.filter(c => c.name.includes('auth') || c.name.includes('sb-'))
+		const authCookies = sessionCookies.filter(
+			c => c.name.includes('auth') || c.name.includes('sb-')
+		)
 
 		logger.info('[FINAL_STATE]')
 		logger.info(`  URL: ${finalUrl}`)
@@ -230,7 +245,9 @@ test.describe('Authentication Diagnostic Tests', () => {
 		logger.info('[DIAGNOSIS_COMPLETE]')
 		logger.info(`Total network requests: ${networkLogs.length}`)
 		logger.info(`Console logs: ${consoleLogs.length}`)
-		logger.info(`Auth-related requests: ${networkLogs.filter(log => log.url.includes('auth')).length}`)
+		logger.info(
+			`Auth-related requests: ${networkLogs.filter(log => log.url.includes('auth')).length}`
+		)
 
 		// Assertion
 		expect(finalUrl).toMatch(/\/(dashboard|portal|auth)/)
@@ -252,7 +269,7 @@ test.describe('Authentication Diagnostic Tests', () => {
 					{
 						method: 'HEAD',
 						headers: {
-							'apikey': (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY
+							apikey: (window as any).NEXT_PUBLIC_SUPABASE_ANON_KEY
 						}
 					}
 				)
@@ -316,7 +333,10 @@ test.describe('Authentication Diagnostic Tests', () => {
 			// Intercept responses
 			let loginResponse: any = null
 			page.on('response', response => {
-				if (response.url().includes('/auth') || response.url().includes('login')) {
+				if (
+					response.url().includes('/auth') ||
+					response.url().includes('login')
+				) {
 					loginResponse = {
 						url: response.url(),
 						status: response.status()

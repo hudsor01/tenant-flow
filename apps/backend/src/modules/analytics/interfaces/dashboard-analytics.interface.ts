@@ -40,7 +40,10 @@ export interface IDashboardAnalyticsService {
 	 * Get property performance metrics
 	 * Multi-table joins with complex calculations
 	 */
-	getPropertyPerformance(user_id: string, token?: string): Promise<PropertyPerformance[]>
+	getPropertyPerformance(
+		user_id: string,
+		token?: string
+	): Promise<PropertyPerformance[]>
 
 	/**
 	 * Get occupancy trends over time

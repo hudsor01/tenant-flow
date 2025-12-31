@@ -2,10 +2,8 @@ import type {
 	CallHandler,
 	ExecutionContext,
 	NestInterceptor
-} from '@nestjs/common';
-import {
-	Injectable
 } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Response } from 'express'
 import type { Observable } from 'rxjs'

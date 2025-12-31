@@ -6,17 +6,36 @@
  * See: apps/backend/ULTRA_NATIVE_ARCHITECTURE.md
  */
 
-import { BadRequestException, Body, Controller, Param, ParseUUIDPipe, Post, Req } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Param,
+	ParseUUIDPipe,
+	Post,
+	Req
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LateFeesService } from './late-fees.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
+@ApiTags('Late Fees')
+@ApiBearerAuth('supabase-auth')
 @Controller('late-fees')
 export class LateFeesController {
-
-	constructor(private readonly lateFeesService: LateFeesService,
-		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly lateFeesService: LateFeesService,
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Helper method to verify lease ownership via unit ownership
@@ -172,6 +191,11 @@ export class LateFeesController {
 	/**
 	 * Calculate late fee for a specific payment
 	 */
+	@ApiOperation({ summary: 'Calculate late fee', description: 'Calculate late fee for a specific payment based on rent amount and days late' })
+	@ApiBody({ schema: { type: 'object', required: ['rent_amount', 'daysLate'], properties: { rent_amount: { type: 'number', description: 'Rent amount in dollars' }, daysLate: { type: 'number', description: 'Number of days late' }, lease_id: { type: 'string', format: 'uuid', description: 'Lease UUID (optional)' } } } })
+	@ApiResponse({ status: 201, description: 'Late fee calculated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('calculate')
 	async calculateLateFee(
 		@Req() req: AuthenticatedRequest,
@@ -179,7 +203,7 @@ export class LateFeesController {
 		@Body('daysLate') daysLate: number,
 		@Body('lease_id') lease_id?: string
 	) {
-// SECURITY FIX #1: Explicit auth check (defense in depth)
+		// SECURITY FIX #1: Explicit auth check (defense in depth)
 		if (!req.user?.id) {
 			throw new BadRequestException('Authentication required')
 		}
@@ -304,7 +328,11 @@ export class LateFeesController {
 
 		this.logger.log('Processing late fees', { lease_id, user_id })
 
-		const result = await this.lateFeesService.processLateFees(lease_id, token, user_id)
+		const result = await this.lateFeesService.processLateFees(
+			lease_id,
+			token,
+			user_id
+		)
 
 		return {
 			success: true,
@@ -353,24 +381,22 @@ export class LateFeesController {
 
 		// RLS SECURITY: Use user-scoped client to get payment details
 		const client = this.supabaseService!.getUserClient(token)
-		const { data: payment, error } =
-			await client
-				.from('rent_payments')
-				.select('id, lease_id, stripe_payment_intent_id')
-				.eq('id', paymentId)
-				.single()
+		const { data: payment, error } = await client
+			.from('rent_payments')
+			.select('id, lease_id, stripe_payment_intent_id')
+			.eq('id', paymentId)
+			.single()
 
 		if (error || !payment) {
 			throw new BadRequestException('Payment not found')
 		}
 
 		// RLS SECURITY: Use user-scoped client to get user Stripe customer ID
-		const { data: userData, error: userError } =
-			await client
-				.from('users')
-				.select('stripe_customer_id')
-				.eq('id', user_id)
-				.single()
+		const { data: userData, error: userError } = await client
+			.from('users')
+			.select('stripe_customer_id')
+			.eq('id', user_id)
+			.single()
 
 		if (userError || !userData?.stripe_customer_id) {
 			throw new BadRequestException('User Stripe customer not found')

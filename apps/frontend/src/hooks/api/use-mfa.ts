@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { toast } from 'sonner'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
@@ -60,7 +60,8 @@ export function useMfaStatus() {
 	return useQuery({
 		queryKey: mfaKeys.status(),
 		queryFn: async (): Promise<MfaStatus> => {
-			const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+			const { data, error } =
+				await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
 			if (error) throw error
 
@@ -68,7 +69,8 @@ export function useMfaStatus() {
 				currentLevel: data.currentLevel ?? 'aal1',
 				nextLevel: data.nextLevel ?? 'aal1',
 				isMfaEnabled: data.nextLevel === 'aal2',
-				requiresMfaVerification: data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'
+				requiresMfaVerification:
+					data.nextLevel === 'aal2' && data.currentLevel !== 'aal2'
 			}
 		},
 		staleTime: 30 * 1000 // 30 seconds

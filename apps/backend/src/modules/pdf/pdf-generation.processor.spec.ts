@@ -5,7 +5,7 @@ import { LeasePdfGeneratorService } from './lease-pdf-generator.service'
 import { LeasePdfMapperService } from './lease-pdf-mapper.service'
 import type { LeasePdfFields } from './lease-pdf-mapper.service'
 import { PdfStorageService } from './pdf-storage.service'
-import { LeasesService } from '../leases/leases.service'
+import { LeaseQueryService } from '../leases/lease-query.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SseService } from '../notifications/sse/sse.service'
 
@@ -18,13 +18,13 @@ import { SseService } from '../notifications/sse/sse.service'
  * 3. Test PDF upload and database update
  */
 describe('PdfGenerationProcessor (TDD)', () => {
-	type LeaseData = Awaited<ReturnType<LeasesService['getLeaseDataForPdf']>>
+	type LeaseData = Awaited<ReturnType<LeaseQueryService['getLeaseDataForPdf']>>
 
 	let processor: PdfGenerationProcessor
 	let mockPdfGenerator: jest.Mocked<LeasePdfGeneratorService>
 	let mockPdfMapper: jest.Mocked<LeasePdfMapperService>
 	let mockPdfStorage: jest.Mocked<PdfStorageService>
-	let mockLeasesService: jest.Mocked<LeasesService>
+	let mockLeaseQueryService: jest.Mocked<LeaseQueryService>
 	let mockLogger: jest.Mocked<AppLogger>
 	let mockSseService: jest.Mocked<SseService>
 
@@ -43,9 +43,9 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			getLeasePdfUrl: jest.fn()
 		} as jest.Mocked<PdfStorageService>
 
-		mockLeasesService = {
+		mockLeaseQueryService = {
 			getLeaseDataForPdf: jest.fn()
-		} as jest.Mocked<LeasesService>
+		} as jest.Mocked<LeaseQueryService>
 
 		mockLogger = {
 			log: jest.fn(),
@@ -62,7 +62,7 @@ describe('PdfGenerationProcessor (TDD)', () => {
 				{ provide: LeasePdfGeneratorService, useValue: mockPdfGenerator },
 				{ provide: LeasePdfMapperService, useValue: mockPdfMapper },
 				{ provide: PdfStorageService, useValue: mockPdfStorage },
-				{ provide: LeasesService, useValue: mockLeasesService },
+				{ provide: LeaseQueryService, useValue: mockLeaseQueryService },
 				{ provide: AppLogger, useValue: mockLogger },
 				{ provide: SseService, useValue: mockSseService }
 			]
@@ -87,11 +87,22 @@ describe('PdfGenerationProcessor (TDD)', () => {
 
 			const ownerId = 'owner-user-123'
 			const leaseData: LeaseData = {
-				lease: { id: leaseId, governing_state: 'TX', owner_user_id: ownerId } as LeaseData['lease'],
+				lease: {
+					id: leaseId,
+					governing_state: 'TX',
+					owner_user_id: ownerId
+				} as LeaseData['lease'],
 				property: { name: 'Test Property' } as LeaseData['property'],
 				unit: { unit_number: '101' } as LeaseData['unit'],
-				landlord: { id: ownerId, first_name: 'John', last_name: 'Doe' } as LeaseData['landlord'],
-				tenant: { first_name: 'Jane', last_name: 'Smith' } as LeaseData['tenant'],
+				landlord: {
+					id: ownerId,
+					first_name: 'John',
+					last_name: 'Doe'
+				} as LeaseData['landlord'],
+				tenant: {
+					first_name: 'Jane',
+					last_name: 'Smith'
+				} as LeaseData['tenant'],
 				tenantRecord: { id: 'tenant-123' } as LeaseData['tenantRecord']
 			}
 
@@ -100,13 +111,15 @@ describe('PdfGenerationProcessor (TDD)', () => {
 				property_address: '123 Test St'
 			}
 
-			mockLeasesService.getLeaseDataForPdf.mockResolvedValue(leaseData)
+			mockLeaseQueryService.getLeaseDataForPdf.mockResolvedValue(leaseData)
 			mockPdfMapper.mapLeaseToPdfFields.mockReturnValue({
 				fields: mappedFields,
 				missing: []
 			})
 			mockPdfGenerator.generateFilledPdf.mockResolvedValue(pdfBuffer)
-			mockPdfStorage.uploadLeasePdf.mockResolvedValue({ path: 'leases/123/lease.pdf' })
+			mockPdfStorage.uploadLeasePdf.mockResolvedValue({
+				path: 'leases/123/lease.pdf'
+			})
 			mockPdfStorage.getLeasePdfUrl.mockResolvedValue(pdfUrl)
 
 			// Act
@@ -114,14 +127,20 @@ describe('PdfGenerationProcessor (TDD)', () => {
 
 			// Assert
 			expect(result).toEqual({ pdfUrl })
-			expect(mockLeasesService.getLeaseDataForPdf).toHaveBeenCalledWith(token, leaseId)
+			expect(mockLeaseQueryService.getLeaseDataForPdf).toHaveBeenCalledWith(
+				token,
+				leaseId
+			)
 			expect(mockPdfMapper.mapLeaseToPdfFields).toHaveBeenCalledWith(leaseData)
 			expect(mockPdfGenerator.generateFilledPdf).toHaveBeenCalledWith(
 				mappedFields,
 				leaseId,
 				expect.objectContaining({ state: 'TX', validateTemplate: true })
 			)
-			expect(mockPdfStorage.uploadLeasePdf).toHaveBeenCalledWith(leaseId, pdfBuffer)
+			expect(mockPdfStorage.uploadLeasePdf).toHaveBeenCalledWith(
+				leaseId,
+				pdfBuffer
+			)
 			expect(mockPdfStorage.getLeasePdfUrl).toHaveBeenCalledWith(leaseId)
 			expect(mockSseService.broadcast).toHaveBeenCalledWith(
 				ownerId,
@@ -136,21 +155,25 @@ describe('PdfGenerationProcessor (TDD)', () => {
 		})
 
 		it('should throw error if lease not found', async () => {
-		// Arrange
-		const leaseId = '123e4567-e89b-12d3-a456-426614174000'
-		const token = 'test-jwt-token'
+			// Arrange
+			const leaseId = '123e4567-e89b-12d3-a456-426614174000'
+			const token = 'test-jwt-token'
 
-		const mockJob = {
-			id: 'job-1',
-			data: { leaseId, token },
-			attemptsMade: 0
-		} as Job<{ leaseId: string; token: string }>
+			const mockJob = {
+				id: 'job-1',
+				data: { leaseId, token },
+				attemptsMade: 0
+			} as Job<{ leaseId: string; token: string }>
 
-		mockLeasesService.getLeaseDataForPdf.mockRejectedValue(new Error('Lease not found'))
+			mockLeaseQueryService.getLeaseDataForPdf.mockRejectedValue(
+				new Error('Lease not found')
+			)
 
-		// Act & Assert
-		await expect(processor.process(mockJob)).rejects.toThrow('Lease not found')
-	})
+			// Act & Assert
+			await expect(processor.process(mockJob)).rejects.toThrow(
+				'Lease not found'
+			)
+		})
 
 		it('should log error and rethrow for BullMQ retry', async () => {
 			// Arrange
@@ -165,23 +188,29 @@ describe('PdfGenerationProcessor (TDD)', () => {
 			} as Job<{ leaseId: string; token: string }>
 
 			const leaseData: LeaseData = {
-			lease: { id: leaseId, governing_state: 'TX', owner_user_id: 'owner-123' } as LeaseData['lease'],
-			property: {} as LeaseData['property'],
-			unit: {} as LeaseData['unit'],
-			landlord: { id: 'owner-123' } as LeaseData['landlord'],
-			tenant: {} as LeaseData['tenant'],
-			tenantRecord: {} as LeaseData['tenantRecord']
-		}
+				lease: {
+					id: leaseId,
+					governing_state: 'TX',
+					owner_user_id: 'owner-123'
+				} as LeaseData['lease'],
+				property: {} as LeaseData['property'],
+				unit: {} as LeaseData['unit'],
+				landlord: { id: 'owner-123' } as LeaseData['landlord'],
+				tenant: {} as LeaseData['tenant'],
+				tenantRecord: {} as LeaseData['tenantRecord']
+			}
 
-		mockLeasesService.getLeaseDataForPdf.mockResolvedValue(leaseData)
-		mockPdfMapper.mapLeaseToPdfFields.mockReturnValue({
-			fields: { tenant_name: 'Test Tenant' } as LeasePdfFields,
-			missing: []
-		})
-		mockPdfGenerator.generateFilledPdf.mockRejectedValue(error)
+			mockLeaseQueryService.getLeaseDataForPdf.mockResolvedValue(leaseData)
+			mockPdfMapper.mapLeaseToPdfFields.mockReturnValue({
+				fields: { tenant_name: 'Test Tenant' } as LeasePdfFields,
+				missing: []
+			})
+			mockPdfGenerator.generateFilledPdf.mockRejectedValue(error)
 
-		// Act & Assert
-		await expect(processor.process(mockJob)).rejects.toThrow('PDF generation failed')
+			// Act & Assert
+			await expect(processor.process(mockJob)).rejects.toThrow(
+				'PDF generation failed'
+			)
 			expect(mockLogger.error).toHaveBeenCalled()
 		})
 	})

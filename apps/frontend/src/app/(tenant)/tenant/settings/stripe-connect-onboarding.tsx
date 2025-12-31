@@ -93,7 +93,9 @@ export function ConnectOnboardingDialog({
 							url.protocol !== 'https:' ||
 							!url.hostname.includes('stripe.com')
 						) {
-							stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+							stripeLogger.error('Invalid or untrusted URL', {
+								metadata: { url: url.href }
+							})
 							return
 						}
 						// Open with security features
@@ -101,8 +103,8 @@ export function ConnectOnboardingDialog({
 					} catch {
 						// Invalid URL, do nothing
 						stripeLogger.error('Invalid URL format', {
-		metadata: { url: onboardingResult.data.onboardingUrl }
-	})
+							metadata: { url: onboardingResult.data.onboardingUrl }
+						})
 					}
 				}
 			}
@@ -312,18 +314,20 @@ export function StripeConnectStatus() {
 						url.protocol !== 'https:' ||
 						!url.hostname.includes('stripe.com')
 					) {
-						stripeLogger.error('Invalid or untrusted URL', { metadata: { url: url.href } })
+						stripeLogger.error('Invalid or untrusted URL', {
+							metadata: { url: url.href }
+						})
 						return
 					}
 					// Open with security features
 					window.open(url.href, '_blank', 'noopener,noreferrer')
 					toast.success('Opening Stripe onboarding in new window')
-			} catch {
-				// Invalid URL, do nothing
-				stripeLogger.error('Invalid URL format', {
-					metadata: { url: result.data.onboardingUrl }
-				})
-			}
+				} catch {
+					// Invalid URL, do nothing
+					stripeLogger.error('Invalid URL format', {
+						metadata: { url: result.data.onboardingUrl }
+					})
+				}
 			}
 		} catch {
 			toast.error('Failed to refresh onboarding link')
@@ -340,7 +344,9 @@ export function StripeConnectStatus() {
 					<div className="flex-between rounded-lg border p-4">
 						<div className="space-y-1">
 							<div className="flex items-center gap-2">
-								{getStatusIcon(account.identityVerification?.status || 'incomplete')}
+								{getStatusIcon(
+									account.identityVerification?.status || 'incomplete'
+								)}
 								<span
 									className={`font-medium capitalize ${getStatusColor(
 										account.identityVerification?.status || 'incomplete'

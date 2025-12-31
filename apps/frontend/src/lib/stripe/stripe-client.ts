@@ -4,7 +4,7 @@
  */
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
 import { API_BASE_URL } from '#lib/api-config'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 

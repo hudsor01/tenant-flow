@@ -8,13 +8,14 @@
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import type { AuthSession } from '@repo/shared/types/auth'
 
 /**
  * User type with Stripe integration (from database)
+ * Exported for use in use-auth.ts - single source of truth
  */
-interface User {
+export interface AuthUser {
 	id: string
 	email: string
 	stripe_customer_id: string | null
@@ -57,7 +58,7 @@ export const authQueries = {
 			queryKey: authKeys.session(),
 			queryFn: () => apiRequest<AuthSession>('/api/v1/auth/session'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			retry: false, // Auth failures shouldn't retry
+			retry: false // Auth failures shouldn't retry
 		}),
 
 	/**
@@ -69,7 +70,7 @@ export const authQueries = {
 	user: () =>
 		queryOptions({
 			queryKey: authKeys.me,
-			queryFn: () => apiRequest<User>('/api/v1/users/me'),
+			queryFn: () => apiRequest<AuthUser>('/api/v1/users/me'),
 			retry: 1,
 			...QUERY_CACHE_TIMES.DETAIL
 		}),

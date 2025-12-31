@@ -23,7 +23,6 @@ export async function GET(request: NextRequest) {
 	if (code) {
 		const cookieStore = await cookies()
 
-
 		const supabase = createServerClient<Database>(
 			process.env.NEXT_PUBLIC_SUPABASE_URL!,
 			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -64,9 +63,7 @@ export async function GET(request: NextRequest) {
 				return NextResponse.redirect(`${origin}${destination}`)
 			} else if (forwardedHost) {
 				// Production behind proxy - use forwarded host
-				return NextResponse.redirect(
-					`https://${forwardedHost}${destination}`
-				)
+				return NextResponse.redirect(`https://${forwardedHost}${destination}`)
 			} else {
 				// Fallback to origin
 				return NextResponse.redirect(`${origin}${destination}`)

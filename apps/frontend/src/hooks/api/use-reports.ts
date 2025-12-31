@@ -13,28 +13,20 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { reportsQueries, reportsKeys } from './queries/reports-queries'
-import type { ListReportsResponse, Report as ReportType } from '@repo/shared/types/reports'
+import type {
+	ListReportsResponse,
+	Report as ReportType
+} from '@repo/shared/types/reports'
 import type { UseReportsResult } from './types/reports'
 
 // Check test environment directly - T3 Env cannot be imported in client components
 const isTest = process.env.NODE_ENV === 'test'
 
-// Re-export types for backward compatibility
-export type {
-	Report,
-	ListReportsResponse,
-	RevenueData,
-	PaymentAnalytics,
-	OccupancyMetrics,
-	FinancialReport,
-	PropertyReport,
-	TenantReport,
-	MaintenanceReport
-} from './types/reports'
+// Note: Import types directly from '@repo/shared/types/reports'
+// No re-exports per CLAUDE.md rules
 
 // module-scoped timers map for delete undo timeouts
 const deleteReportTimers = new Map<string, number>()
-
 
 export function useReports({
 	offset,
@@ -323,7 +315,9 @@ export function usePrefetchPaymentAnalytics() {
 	const queryClient = useQueryClient()
 
 	return (start_date?: string, end_date?: string) => {
-		queryClient.prefetchQuery(reportsQueries.paymentAnalytics(start_date, end_date))
+		queryClient.prefetchQuery(
+			reportsQueries.paymentAnalytics(start_date, end_date)
+		)
 	}
 }
 

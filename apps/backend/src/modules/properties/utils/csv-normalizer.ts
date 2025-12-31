@@ -82,7 +82,11 @@ export const VALID_PROPERTY_TYPES: PropertyType[] = [
 
 const sanitizeKey = (key: string | undefined | null): string => {
 	if (!key) return ''
-	return key.replace(BOM_REGEX, '').trim().toLowerCase().replace(NON_ALPHANUMERIC, '')
+	return key
+		.replace(BOM_REGEX, '')
+		.trim()
+		.toLowerCase()
+		.replace(NON_ALPHANUMERIC, '')
 }
 
 /**
@@ -112,7 +116,9 @@ export function normalizePropertyCsvRow(
  * Normalize user-provided property type values to the expected enum.
  * Accepts friendly names like "Single Family" or lowercase enum values.
  */
-export function normalizePropertyType(value: string | undefined | null): PropertyType | null {
+export function normalizePropertyType(
+	value: string | undefined | null
+): PropertyType | null {
 	if (!value) return null
 
 	const trimmed = value.replace(BOM_REGEX, '').trim()

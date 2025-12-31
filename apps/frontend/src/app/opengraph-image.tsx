@@ -10,92 +10,90 @@ export const contentType = 'image/png'
 
 export default async function Image() {
 	return new ImageResponse(
-		(
+		<div
+			style={{
+				fontSize: 60,
+				background: BRAND_COLORS_HEX.primary,
+				width: '100%',
+				height: '100%',
+				display: 'flex',
+				flexDirection: 'column',
+				alignItems: 'center',
+				justifyContent: 'center',
+				color: BRAND_COLORS_HEX.white,
+				fontFamily: 'Inter, sans-serif'
+			}}
+		>
 			<div
 				style={{
-					fontSize: 60,
-					background: BRAND_COLORS_HEX.primary,
-					width: '100%',
-					height: '100%',
 					display: 'flex',
 					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
-					color: BRAND_COLORS_HEX.white,
-					fontFamily: 'Inter, sans-serif'
+					textAlign: 'center',
+					maxWidth: '900px',
+					padding: '0 40px'
 				}}
 			>
 				<div
 					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						textAlign: 'center',
-						maxWidth: '900px',
-						padding: '0 40px'
-					}}
-				>
-					<div
-						style={{
-							fontSize: 72,
-							fontWeight: 'bold',
-							marginBottom: 30,
-							color: BRAND_COLORS_HEX.white
-						}}
-					>
-						Simplify
-					</div>
-					<div
-						style={{
-							fontSize: 48,
-							fontWeight: '600',
-							marginBottom: 40,
-							opacity: 0.9
-						}}
-					>
-						Property Management
-					</div>
-					<div
-						style={{
-							fontSize: 24,
-							opacity: 0.8,
-							textAlign: 'center',
-							lineHeight: 1.4
-						}}
-					>
-						Professional property management software trusted by thousands
-					</div>
-				</div>
-
-				{/* Logo/Brand Mark */}
-				<div
-					style={{
-						position: 'absolute',
-						bottom: 60,
-						right: 60,
-						fontSize: 32,
+						fontSize: 72,
 						fontWeight: 'bold',
-						opacity: 0.7
+						marginBottom: 30,
+						color: BRAND_COLORS_HEX.white
 					}}
 				>
-					TenantFlow
+					Simplify
 				</div>
-
-				{/* Background Pattern */}
 				<div
 					style={{
-						position: 'absolute',
-						top: 0,
-						left: 0,
-						width: '100%',
-						height: '100%',
-						opacity: 0.1,
-						background: `radial-gradient(circle at 25% 25%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%), radial-gradient(circle at 75% 75%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%)`
+						fontSize: 48,
+						fontWeight: '600',
+						marginBottom: 40,
+						opacity: 0.9
 					}}
-				/>
+				>
+					Property Management
+				</div>
+				<div
+					style={{
+						fontSize: 24,
+						opacity: 0.8,
+						textAlign: 'center',
+						lineHeight: 1.4
+					}}
+				>
+					Professional property management software trusted by thousands
+				</div>
 			</div>
-		),
+
+			{/* Logo/Brand Mark */}
+			<div
+				style={{
+					position: 'absolute',
+					bottom: 60,
+					right: 60,
+					fontSize: 32,
+					fontWeight: 'bold',
+					opacity: 0.7
+				}}
+			>
+				TenantFlow
+			</div>
+
+			{/* Background Pattern */}
+			<div
+				style={{
+					position: 'absolute',
+					top: 0,
+					left: 0,
+					width: '100%',
+					height: '100%',
+					opacity: 0.1,
+					background: `radial-gradient(circle at 25% 25%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%), radial-gradient(circle at 75% 75%, ${BRAND_COLORS_HEX.white} 0%, transparent 50%)`
+				}}
+			/>
+		</div>,
 		{
 			...size
 		}

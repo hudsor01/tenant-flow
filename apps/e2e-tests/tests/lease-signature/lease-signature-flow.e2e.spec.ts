@@ -18,15 +18,19 @@ import { loginAsOwner, loginAsTenant } from '../../auth-helpers'
 test.describe('Lease Signature Flow', () => {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	// E2E_API_BASE_URL takes precedence for E2E tests, then NEXT_PUBLIC_API_BASE_URL, then localhost fallback
-	const apiUrl = process.env.E2E_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+	const apiUrl =
+		process.env.E2E_API_BASE_URL ||
+		process.env.NEXT_PUBLIC_API_BASE_URL ||
+		'http://localhost:4600'
 
 	// Helper to get auth headers for API calls
 	// Uses the session injected by auth-helpers.ts via Supabase API
 	async function getAuthHeaders(page: Page): Promise<Record<string, string>> {
 		// First try cookies - auth-helpers.ts sets sb-{project-ref}-auth-token cookie
 		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(cookie =>
-			cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
+		const authCookie = cookies.find(
+			cookie =>
+				cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
 		)
 
 		if (authCookie?.value) {
@@ -55,8 +59,8 @@ test.describe('Lease Signature Flow', () => {
 		// Try localStorage as fallback
 		const token = await page.evaluate(() => {
 			const keys = Object.keys(localStorage)
-			const tokenKey = keys.find(key =>
-				key.startsWith('sb-') && key.endsWith('-auth-token')
+			const tokenKey = keys.find(
+				key => key.startsWith('sb-') && key.endsWith('-auth-token')
 			)
 			if (!tokenKey) return null
 			try {
@@ -73,7 +77,9 @@ test.describe('Lease Signature Flow', () => {
 			return { Authorization: `Bearer ${token}` }
 		}
 
-		throw new Error('Could not get auth token for API calls. Make sure loginAsOwner/loginAsTenant was called.')
+		throw new Error(
+			'Could not get auth token for API calls. Make sure loginAsOwner/loginAsTenant was called.'
+		)
 	}
 
 	test.describe('Owner Actions', () => {
@@ -81,7 +87,9 @@ test.describe('Lease Signature Flow', () => {
 			await loginAsOwner(page)
 		})
 
-		test('should display leases page with proper structure', async ({ page }) => {
+		test('should display leases page with proper structure', async ({
+			page
+		}) => {
 			// Navigate to leases page
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -94,14 +102,20 @@ test.describe('Lease Signature Flow', () => {
 			const emptyStateById = page.locator('[data-testid="empty-state"]')
 			const emptyStateByText = page.getByText(/no leases/i)
 
-			const hasTable = await leaseTable.count() > 0
-			const hasEmptyState = await emptyStateById.count() > 0 || await emptyStateByText.count() > 0
+			const hasTable = (await leaseTable.count()) > 0
+			const hasEmptyState =
+				(await emptyStateById.count()) > 0 ||
+				(await emptyStateByText.count()) > 0
 
 			// Page should show either leases or empty state (or we're on the page at minimum)
-			expect(hasTable || hasEmptyState || page.url().includes('/leases')).toBe(true)
+			expect(hasTable || hasEmptyState || page.url().includes('/leases')).toBe(
+				true
+			)
 		})
 
-		test('should navigate to lease details and show signature info', async ({ page }) => {
+		test('should navigate to lease details and show signature info', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
 
@@ -111,13 +125,18 @@ test.describe('Lease Signature Flow', () => {
 
 			if (count > 0) {
 				// Click View button on first lease
-				const viewButton = leaseRows.first().getByRole('button', { name: /view/i })
-				if (await viewButton.count() > 0) {
+				const viewButton = leaseRows
+					.first()
+					.getByRole('button', { name: /view/i })
+				if ((await viewButton.count()) > 0) {
 					await viewButton.click()
 					await page.waitForLoadState('networkidle')
 
 					// Verify we're on a detail view or modal opened
-					const detailsVisible = await page.locator('[data-testid="lease-details"], [role="dialog"]').count() > 0
+					const detailsVisible =
+						(await page
+							.locator('[data-testid="lease-details"], [role="dialog"]')
+							.count()) > 0
 					expect(detailsVisible || page.url().includes('/leases/')).toBe(true)
 				}
 			}
@@ -136,10 +155,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Fetch leases via API
-			const response = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const response = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(response.status()).toBe(200)
 			const data = await response.json()
@@ -148,7 +166,9 @@ test.describe('Lease Signature Flow', () => {
 			expect(Array.isArray(data.data) || Array.isArray(data)).toBe(true)
 		})
 
-		test('should get 403 when accessing other user signature status', async ({ page }) => {
+		test('should get 403 when accessing other user signature status', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
 
@@ -177,29 +197,36 @@ test.describe('Lease Signature Flow', () => {
 			await loginAsTenant(page)
 		})
 
-		test('should display tenant portal with proper structure', async ({ page }) => {
+		test('should display tenant portal with proper structure', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.TENANT_PORTAL}`)
 			await page.waitForLoadState('networkidle')
 
 			// Verify we're on a tenant route (could be /portal or /tenant)
 			const currentUrl = page.url()
-			const isOnTenantRoute = currentUrl.includes('/portal') || currentUrl.includes('/tenant')
+			const isOnTenantRoute =
+				currentUrl.includes('/portal') || currentUrl.includes('/tenant')
 			expect(isOnTenantRoute).toBe(true)
 
 			// Check for key portal elements - look for any main content container
-			const portalContent = page.locator('[data-testid="tenant-portal"], main, [role="main"], #__next, body')
-			const hasContent = await portalContent.count() > 0
+			const portalContent = page.locator(
+				'[data-testid="tenant-portal"], main, [role="main"], #__next, body'
+			)
+			const hasContent = (await portalContent.count()) > 0
 			// If we're on the right URL, the page loaded correctly
 			expect(hasContent || isOnTenantRoute).toBe(true)
 		})
 
-		test('should check for pending signature banner when applicable', async ({ page }) => {
+		test('should check for pending signature banner when applicable', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.TENANT_PORTAL}`)
 			await page.waitForLoadState('networkidle')
 
 			// Look for pending signature indicator
 			const pendingBanner = page.locator('[data-testid="pending-signature"]')
-			const hasPendingSignature = await pendingBanner.count() > 0
+			const hasPendingSignature = (await pendingBanner.count()) > 0
 
 			if (hasPendingSignature) {
 				// If banner exists, it should have a link to the lease
@@ -209,33 +236,44 @@ test.describe('Lease Signature Flow', () => {
 
 			// Test passes regardless - validates structure (could be /portal or /tenant)
 			const currentUrl = page.url()
-			const isOnTenantRoute = currentUrl.includes('/portal') || currentUrl.includes('/tenant')
+			const isOnTenantRoute =
+				currentUrl.includes('/portal') || currentUrl.includes('/tenant')
 			expect(isOnTenantRoute).toBe(true)
 		})
 
-		test('should navigate to lease page and display lease info', async ({ page }) => {
+		test('should navigate to lease page and display lease info', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.TENANT_LEASE}`)
 			await page.waitForLoadState('networkidle')
 
 			// Should be on lease page
-			const onLeasePage = page.url().includes('/lease') || page.url().includes('/portal')
+			const onLeasePage =
+				page.url().includes('/lease') || page.url().includes('/portal')
 			expect(onLeasePage).toBe(true)
 
 			// Check for lease content or empty state
-			const leaseContent = page.locator('[data-testid="lease-info"], [data-testid="no-lease"]')
-			const pageHasContent = await leaseContent.count() > 0 ||
-				await page.locator('text=/lease/i').count() > 0
+			const leaseContent = page.locator(
+				'[data-testid="lease-info"], [data-testid="no-lease"]'
+			)
+			const pageHasContent =
+				(await leaseContent.count()) > 0 ||
+				(await page.locator('text=/lease/i').count()) > 0
 
 			expect(pageHasContent).toBe(true)
 		})
 
-		test('should display sign button only when lease is pending signature', async ({ page }) => {
+		test('should display sign button only when lease is pending signature', async ({
+			page
+		}) => {
 			await page.goto(`${baseUrl}${ROUTES.TENANT_LEASE}`)
 			await page.waitForLoadState('networkidle')
 
 			// Look for sign button with specific test id
-			const signButton = page.locator('[data-testid="sign-lease-tenant-button"]')
-			const hasSignButton = await signButton.count() > 0
+			const signButton = page.locator(
+				'[data-testid="sign-lease-tenant-button"]'
+			)
+			const hasSignButton = (await signButton.count()) > 0
 
 			if (hasSignButton) {
 				// If button exists, it should be enabled and visible
@@ -245,13 +283,18 @@ test.describe('Lease Signature Flow', () => {
 			// Test passes - we verified the UI responds correctly to lease state
 			// URL could be /tenant/lease, /portal, or /lease
 			const currentUrl = page.url()
-			const isOnTenantRoute = currentUrl.includes('/tenant') || currentUrl.includes('/portal') || currentUrl.includes('/lease')
+			const isOnTenantRoute =
+				currentUrl.includes('/tenant') ||
+				currentUrl.includes('/portal') ||
+				currentUrl.includes('/lease')
 			expect(isOnTenantRoute).toBe(true)
 		})
 	})
 
 	test.describe('API Integration', () => {
-		test('signature status endpoint returns correct structure for owned lease', async ({ page }) => {
+		test('signature status endpoint returns correct structure for owned lease', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -265,10 +308,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Get list of leases
-			const leasesResponse = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const leasesResponse = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(leasesResponse.status()).toBe(200)
 			const leases = await leasesResponse.json()
@@ -303,7 +345,9 @@ test.describe('Lease Signature Flow', () => {
 			expect(status).toHaveProperty('sent_for_signature_at')
 		})
 
-		test('leases endpoint returns proper pagination structure', async ({ page }) => {
+		test('leases endpoint returns proper pagination structure', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -330,7 +374,9 @@ test.describe('Lease Signature Flow', () => {
 			expect(Array.isArray(data.data)).toBe(true)
 		})
 
-		test('unauthorized access to signature status returns error', async ({ page }) => {
+		test('unauthorized access to signature status returns error', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -356,7 +402,9 @@ test.describe('Lease Signature Flow', () => {
 	})
 
 	test.describe('DocuSeal Integration', () => {
-		test('signing-url endpoint returns null when no DocuSeal submission exists', async ({ page }) => {
+		test('signing-url endpoint returns null when no DocuSeal submission exists', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -370,10 +418,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Get list of leases
-			const leasesResponse = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const leasesResponse = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(leasesResponse.status()).toBe(200)
 			const leases = await leasesResponse.json()
@@ -399,7 +446,9 @@ test.describe('Lease Signature Flow', () => {
 			expect(data).toHaveProperty('signing_url')
 		})
 
-		test('cancel-signature endpoint requires pending_signature status', async ({ page }) => {
+		test('cancel-signature endpoint requires pending_signature status', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -413,10 +462,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Get list of leases
-			const leasesResponse = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const leasesResponse = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(leasesResponse.status()).toBe(200)
 			const leases = await leasesResponse.json()
@@ -447,7 +495,9 @@ test.describe('Lease Signature Flow', () => {
 			expect(response.status()).toBe(400)
 		})
 
-		test('signature status includes docuseal_submission_id field', async ({ page }) => {
+		test('signature status includes docuseal_submission_id field', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -461,10 +511,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Get list of leases
-			const leasesResponse = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const leasesResponse = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(leasesResponse.status()).toBe(200)
 			const leases = await leasesResponse.json()
@@ -491,7 +540,9 @@ test.describe('Lease Signature Flow', () => {
 			expect('docuseal_submission_id' in status).toBe(true)
 		})
 
-		test('send-for-signature accepts templateId parameter', async ({ page }) => {
+		test('send-for-signature accepts templateId parameter', async ({
+			page
+		}) => {
 			await loginAsOwner(page)
 			await page.goto(`${baseUrl}${ROUTES.LEASES}`)
 			await page.waitForLoadState('networkidle')
@@ -505,10 +556,9 @@ test.describe('Lease Signature Flow', () => {
 			}
 
 			// Get list of leases
-			const leasesResponse = await page.request.get(
-				`${apiUrl}/api/v1/leases`,
-				{ headers }
-			)
+			const leasesResponse = await page.request.get(`${apiUrl}/api/v1/leases`, {
+				headers
+			})
 
 			expect(leasesResponse.status()).toBe(200)
 			const leases = await leasesResponse.json()
@@ -586,7 +636,6 @@ test.describe('Lease Signature Flow', () => {
 				// Both contexts should be authenticated
 				expect(ownerPage.url()).toContain(baseUrl)
 				expect(tenantPage.url()).toContain(baseUrl)
-
 			} finally {
 				await ownerContext.close()
 				await tenantContext.close()

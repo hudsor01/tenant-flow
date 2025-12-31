@@ -279,7 +279,10 @@ export class EmailTestUtils {
 	/**
 	 * Generate test email data
 	 */
-	static generateTestEmailData(template: string, overrides?: Record<string, unknown>) {
+	static generateTestEmailData(
+		template: string,
+		overrides?: Record<string, unknown>
+	) {
 		const baseData: Record<string, Record<string, unknown>> = {
 			welcome: {
 				email: 'test@example.com',
@@ -465,7 +468,9 @@ export class EmailPerformanceTest {
 	/**
 	 * Measure email send performance
 	 */
-	static async measureSendTime(sendFn: () => Promise<unknown>): Promise<number> {
+	static async measureSendTime(
+		sendFn: () => Promise<unknown>
+	): Promise<number> {
 		const start = process.hrtime.bigint()
 		await sendFn()
 		const end = process.hrtime.bigint()
@@ -478,7 +483,9 @@ export class EmailPerformanceTest {
 	/**
 	 * Measure total email operation time (render + send)
 	 */
-	static async measureTotalTime(totalFn: () => Promise<unknown>): Promise<number> {
+	static async measureTotalTime(
+		totalFn: () => Promise<unknown>
+	): Promise<number> {
 		const start = process.hrtime.bigint()
 		await totalFn()
 		const end = process.hrtime.bigint()

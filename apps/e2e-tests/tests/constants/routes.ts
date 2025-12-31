@@ -110,7 +110,7 @@ export const ROUTES = {
 
 	// Tenant - Maintenance
 	TENANT_MAINTENANCE: '/tenant/maintenance',
-	TENANT_MAINTENANCE_NEW: '/tenant/maintenance/new',
+	TENANT_MAINTENANCE_NEW: '/tenant/maintenance/new'
 } as const
 
 /**

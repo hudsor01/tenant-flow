@@ -17,19 +17,25 @@ export function useMobileAccessibility() {
 		const reducedMotion = window.matchMedia(REDUCED_MOTION_QUERY)
 		const highContrast = window.matchMedia(HIGH_CONTRAST_QUERY)
 
-		const handleReducedMotion = (query: MediaQueryList | MediaQueryListEvent) => {
+		const handleReducedMotion = (
+			query: MediaQueryList | MediaQueryListEvent
+		) => {
 			setIsScreenReaderMode(query.matches)
 		}
 
-		const handleHighContrast = (query: MediaQueryList | MediaQueryListEvent) => {
+		const handleHighContrast = (
+			query: MediaQueryList | MediaQueryListEvent
+		) => {
 			setIsHighContrast(query.matches)
 		}
 
 		handleReducedMotion(reducedMotion)
 		handleHighContrast(highContrast)
 
-		const reducedMotionListener = (event: MediaQueryListEvent) => handleReducedMotion(event)
-		const highContrastListener = (event: MediaQueryListEvent) => handleHighContrast(event)
+		const reducedMotionListener = (event: MediaQueryListEvent) =>
+			handleReducedMotion(event)
+		const highContrastListener = (event: MediaQueryListEvent) =>
+			handleHighContrast(event)
 
 		reducedMotion.addEventListener('change', reducedMotionListener)
 		highContrast.addEventListener('change', highContrastListener)
@@ -40,13 +46,16 @@ export function useMobileAccessibility() {
 		}
 	}, [])
 
-	const applyAccessibilityStyles = useCallback((element: HTMLElement | null) => {
-		if (!element) return
-		element.setAttribute('data-mobile-focus', 'true')
-		element.classList.add('outline-none')
-		element.style.outline = '2px solid var(--color-primary)'
-		element.style.outlineOffset = '2px'
-	}, [])
+	const applyAccessibilityStyles = useCallback(
+		(element: HTMLElement | null) => {
+			if (!element) return
+			element.setAttribute('data-mobile-focus', 'true')
+			element.classList.add('outline-none')
+			element.style.outline = '2px solid var(--color-primary)'
+			element.style.outlineOffset = '2px'
+		},
+		[]
+	)
 
 	return {
 		isScreenReader: isScreenReaderMode,

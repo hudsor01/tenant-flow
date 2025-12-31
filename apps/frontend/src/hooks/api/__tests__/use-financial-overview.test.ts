@@ -101,9 +101,27 @@ describe('useMonthlyMetrics', () => {
 		const mockData = {
 			success: true,
 			data: [
-				{ month: '2024-01', revenue: 40000, expenses: 10000, net_income: 30000, cash_flow: 30000 },
-				{ month: '2024-02', revenue: 42000, expenses: 11000, net_income: 31000, cash_flow: 31000 },
-				{ month: '2024-03', revenue: 43000, expenses: 10500, net_income: 32500, cash_flow: 32500 }
+				{
+					month: '2024-01',
+					revenue: 40000,
+					expenses: 10000,
+					net_income: 30000,
+					cash_flow: 30000
+				},
+				{
+					month: '2024-02',
+					revenue: 42000,
+					expenses: 11000,
+					net_income: 31000,
+					cash_flow: 31000
+				},
+				{
+					month: '2024-03',
+					revenue: 43000,
+					expenses: 10500,
+					net_income: 32500,
+					cash_flow: 32500
+				}
 			]
 		}
 

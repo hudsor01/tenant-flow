@@ -48,29 +48,25 @@ export interface CashFlowData {
 
 @Injectable()
 export class CashFlowService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate cash flow statement for a given period
 	 * Uses direct Supabase queries aggregated within the service
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateCashFlowStatement(
 		token: string,
+		user_id: string,
 		start_date: string,
 		end_date: string,
 		includePreviousPeriod = true
 	): Promise<CashFlowData> {
 		const client = this.supabaseService.getUserClient(token)
-
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getAdminClient().auth.getUser(token)
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
 
 		this.logger.log(
 			`Generating cash flow statement (${start_date} to ${end_date})`
@@ -121,7 +117,7 @@ export class CashFlowService {
 		} catch (error) {
 			this.logger.error('Failed to generate cash flow statement', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				start_date,
 				end_date
 			})
@@ -143,7 +139,9 @@ export class CashFlowService {
 		)
 
 		const rentalPaymentsReceived = payments
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const operatingExpensesPaid = expenses.reduce(
@@ -175,8 +173,7 @@ export class CashFlowService {
 		const netInvestingCash = propertyAcquisitions + propertyImprovements
 		const netFinancingCash =
 			loanProceeds + ownerContributions - mortgagePayments - ownerDistributions
-		const netCashFlow =
-			netOperatingCash + netInvestingCash + netFinancingCash
+		const netCashFlow = netOperatingCash + netInvestingCash + netFinancingCash
 
 		const beginningCash = this.calculateBeginningCash(ledger, range.start)
 		const endingCash = beginningCash + netCashFlow
@@ -210,7 +207,9 @@ export class CashFlowService {
 				const dueDate = parseDate(payment.due_date)
 				return dueDate ? dueDate < start : false
 			})
-			.filter(payment => payment.status === 'succeeded' || Boolean(payment.paid_date))
+			.filter(
+				payment => payment.status === 'succeeded' || Boolean(payment.paid_date)
+			)
 			.reduce((sum, payment) => sum + (payment.amount ?? 0), 0)
 
 		const expensesBefore = ledger.expenses

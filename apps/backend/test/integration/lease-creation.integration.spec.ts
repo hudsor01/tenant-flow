@@ -113,7 +113,9 @@ describe('Lease Creation Integration (TDD)', () => {
 			const tenantAuth = await authenticateAs(TEST_USERS.TENANT_A)
 			tenantUserId = tenantAuth.user_id
 			tenantEmail = tenantAuth.email
-			console.log(`  ✅ Using existing E2E tenant: ${tenantEmail} (${tenantUserId})`)
+			console.log(
+				`  ✅ Using existing E2E tenant: ${tenantEmail} (${tenantUserId})`
+			)
 		} else {
 			throw new Error(
 				'E2E_TENANT_EMAIL not configured. Set E2E_TENANT_EMAIL and E2E_TENANT_PASSWORD in Doppler.'
@@ -127,17 +129,19 @@ describe('Lease Creation Integration (TDD)', () => {
 		console.log(`  Tenant User ID: ${tenantUserId}`)
 
 		// Create property
-		const { error: propertyError } = await serviceRoleClient.from('properties').upsert({
-			id: ownerAPropertyId,
-			owner_user_id: ownerA.user_id,
-			name: 'Lease Test Property',
-			address_line1: '123 Test St',
-			city: 'Austin',
-			state: 'TX',
-			postal_code: '78701',
-			property_type: 'SINGLE_FAMILY',
-			status: 'active'
-		})
+		const { error: propertyError } = await serviceRoleClient
+			.from('properties')
+			.upsert({
+				id: ownerAPropertyId,
+				owner_user_id: ownerA.user_id,
+				name: 'Lease Test Property',
+				address_line1: '123 Test St',
+				city: 'Austin',
+				state: 'TX',
+				postal_code: '78701',
+				property_type: 'SINGLE_FAMILY',
+				status: 'active'
+			})
 		if (propertyError) {
 			console.error('❌ Failed to create property:', propertyError)
 			throw new Error(`Property creation failed: ${propertyError.message}`)
@@ -172,29 +176,29 @@ describe('Lease Creation Integration (TDD)', () => {
 
 		let actualTenantRecordId: string
 
-			if (existingTenant) {
-				actualTenantRecordId = existingTenant.id
-				console.log(`  ✅ Using existing tenant record: ${actualTenantRecordId}`)
-			} else {
+		if (existingTenant) {
+			actualTenantRecordId = existingTenant.id
+			console.log(`  ✅ Using existing tenant record: ${actualTenantRecordId}`)
+		} else {
 			// Create new tenant record for test setup
 			const { error: tenantError } = await serviceRoleClient
 				.from('tenants')
 				.insert({
-						id: seededTenantId,
-						user_id: tenantUserId, // References auth.users.id (already exists from E2E setup)
-						stripe_customer_id: ''
-					})
+					id: seededTenantId,
+					user_id: tenantUserId, // References auth.users.id (already exists from E2E setup)
+					stripe_customer_id: ''
+				})
 
 			if (tenantError) {
 				console.error('❌ Failed to create tenant record:', tenantError)
 				throw new Error(`Tenant creation failed: ${tenantError.message}`)
 			}
 
-				actualTenantRecordId = seededTenantId
-				console.log(`  ✅ Created tenant record: ${actualTenantRecordId}`)
-			}
+			actualTenantRecordId = seededTenantId
+			console.log(`  ✅ Created tenant record: ${actualTenantRecordId}`)
+		}
 
-			testTenantId = actualTenantRecordId
+		testTenantId = actualTenantRecordId
 
 		// Create accepted invitation (required for lease creation)
 		const expiresAt = new Date()
@@ -205,18 +209,23 @@ describe('Lease Creation Integration (TDD)', () => {
 			.delete()
 			.eq('id', testInvitationId)
 
-		const { error: invitationError } = await serviceRoleClient.from('tenant_invitations').insert({
-			id: testInvitationId,
-			email: tenantEmail, // Use actual tenant email
-			property_id: ownerAPropertyId,
-			unit_id: testUnitId,
-			owner_user_id: ownerA.user_id,
-			invitation_code: createHash('sha256').update('test-invitation').digest('hex').slice(0, 64),
-			invitation_url: 'https://test.com/invite',
-			expires_at: expiresAt.toISOString(),
-			accepted_at: new Date().toISOString(), // ACCEPTED
-			accepted_by_user_id: tenantUserId // Use actual tenant user ID
-		})
+		const { error: invitationError } = await serviceRoleClient
+			.from('tenant_invitations')
+			.insert({
+				id: testInvitationId,
+				email: tenantEmail, // Use actual tenant email
+				property_id: ownerAPropertyId,
+				unit_id: testUnitId,
+				owner_user_id: ownerA.user_id,
+				invitation_code: createHash('sha256')
+					.update('test-invitation')
+					.digest('hex')
+					.slice(0, 64),
+				invitation_url: 'https://test.com/invite',
+				expires_at: expiresAt.toISOString(),
+				accepted_at: new Date().toISOString(), // ACCEPTED
+				accepted_by_user_id: tenantUserId // Use actual tenant user ID
+			})
 		if (invitationError) {
 			console.error('❌ Failed to create invitation:', invitationError)
 			throw new Error(`Invitation creation failed: ${invitationError.message}`)
@@ -230,10 +239,7 @@ describe('Lease Creation Integration (TDD)', () => {
 	 */
 	async function cleanupTestData() {
 		// Delete leases (will be created during tests)
-		await serviceRoleClient
-			.from('leases')
-			.delete()
-			.eq('unit_id', testUnitId)
+		await serviceRoleClient.from('leases').delete().eq('unit_id', testUnitId)
 
 		// Delete invitation
 		await serviceRoleClient
@@ -242,16 +248,10 @@ describe('Lease Creation Integration (TDD)', () => {
 			.eq('id', testInvitationId)
 
 		// Delete tenant
-		await serviceRoleClient
-			.from('tenants')
-			.delete()
-			.eq('id', seededTenantId)
+		await serviceRoleClient.from('tenants').delete().eq('id', seededTenantId)
 
 		// Delete unit
-		await serviceRoleClient
-			.from('units')
-			.delete()
-			.eq('id', testUnitId)
+		await serviceRoleClient.from('units').delete().eq('id', testUnitId)
 
 		// Delete property
 		await serviceRoleClient
@@ -273,10 +273,7 @@ describe('Lease Creation Integration (TDD)', () => {
 
 	describe('POST /api/v1/leases', () => {
 		beforeEach(async () => {
-			await serviceRoleClient
-				.from('leases')
-				.delete()
-				.eq('unit_id', testUnitId)
+			await serviceRoleClient.from('leases').delete().eq('unit_id', testUnitId)
 		})
 
 		/**
@@ -378,10 +375,18 @@ describe('Lease Creation Integration (TDD)', () => {
 					.expect(400)
 
 				// THEN: Error message indicates tenant must be invited
-				expect(response.body.message).toMatch(/tenant must be invited|invitation/i)
+				expect(response.body.message).toMatch(
+					/tenant must be invited|invitation/i
+				)
 			} finally {
-				await serviceRoleClient.from('tenants').delete().eq('id', uninvitedTenantId)
-				await serviceRoleClient.from('users').delete().eq('id', uninvitedTenantUserId)
+				await serviceRoleClient
+					.from('tenants')
+					.delete()
+					.eq('id', uninvitedTenantId)
+				await serviceRoleClient
+					.from('users')
+					.delete()
+					.eq('id', uninvitedTenantUserId)
 			}
 		})
 
@@ -443,7 +448,10 @@ describe('Lease Creation Integration (TDD)', () => {
 
 			// Cleanup
 			await serviceRoleClient.from('units').delete().eq('id', ownerBUnitId)
-			await serviceRoleClient.from('properties').delete().eq('id', ownerBPropertyId)
+			await serviceRoleClient
+				.from('properties')
+				.delete()
+				.eq('id', ownerBPropertyId)
 		})
 
 		/**
@@ -489,7 +497,10 @@ describe('Lease Creation Integration (TDD)', () => {
 				pet_deposit: 50000,
 				pet_rent: 5000,
 				utilities_included: expect.arrayContaining(['electricity', 'water']),
-				tenant_responsible_utilities: expect.arrayContaining(['internet', 'cable']),
+				tenant_responsible_utilities: expect.arrayContaining([
+					'internet',
+					'cable'
+				]),
 				property_rules: 'No smoking. Quiet hours 10pm-8am.',
 				property_built_before_1978: true,
 				lead_paint_disclosure_acknowledged: true,
@@ -687,7 +698,9 @@ describe('Lease Creation Integration (TDD)', () => {
 				.expect(400)
 
 			// THEN: Validation error
-			expect(response.body.message).toMatch(/lead.*paint.*disclosure|acknowledge.*required/i)
+			expect(response.body.message).toMatch(
+				/lead.*paint.*disclosure|acknowledge.*required/i
+			)
 		})
 
 		/**
@@ -830,7 +843,10 @@ describe('Lease Creation Integration (TDD)', () => {
 					property_id: ownerAPropertyId,
 					unit_id: testUnitId,
 					owner_user_id: ownerA.user_id,
-					invitation_code: createHash('sha256').update('pending-inv').digest('hex').slice(0, 64),
+					invitation_code: createHash('sha256')
+						.update('pending-inv')
+						.digest('hex')
+						.slice(0, 64),
 					invitation_url: 'https://test.com/pending',
 					expires_at: expiresAt.toISOString(),
 					accepted_at: null, // NOT ACCEPTED
@@ -853,14 +869,22 @@ describe('Lease Creation Integration (TDD)', () => {
 					.expect(400)
 
 				// THEN: Error indicates invitation not accepted
-				expect(response.body.message).toMatch(/invitation.*not.*accepted|pending/i)
+				expect(response.body.message).toMatch(
+					/invitation.*not.*accepted|pending/i
+				)
 			} finally {
 				await serviceRoleClient
 					.from('tenant_invitations')
 					.delete()
 					.eq('id', pendingInvitationId)
-				await serviceRoleClient.from('tenants').delete().eq('id', pendingTenantId)
-				await serviceRoleClient.from('users').delete().eq('id', pendingTenantUserId)
+				await serviceRoleClient
+					.from('tenants')
+					.delete()
+					.eq('id', pendingTenantId)
+				await serviceRoleClient
+					.from('users')
+					.delete()
+					.eq('id', pendingTenantUserId)
 			}
 		})
 

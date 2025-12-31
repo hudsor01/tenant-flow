@@ -298,9 +298,8 @@ export const LeaseTenantSignedEmail = ({
 								</Text>
 								<Section style={successBox}>
 									<Text style={successText}>
-										A Stripe subscription has been created automatically.
-										Rental payments will be collected according to the lease
-										terms.
+										A Stripe subscription has been created automatically. Rental
+										payments will be collected according to the lease terms.
 									</Text>
 								</Section>
 							</>

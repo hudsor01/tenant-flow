@@ -153,8 +153,8 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Customer Success</ItemTitle>
 									<ItemDescription>
-										Your success is our success. We are committed to helping
-										you achieve your goals.
+										Your success is our success. We are committed to helping you
+										achieve your goals.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -183,8 +183,8 @@ export default function AboutPage() {
 								<ItemContent>
 									<ItemTitle>Simplicity</ItemTitle>
 									<ItemDescription>
-										Complex problems deserve simple solutions. We make
-										powerful tools easy to use.
+										Complex problems deserve simple solutions. We make powerful
+										tools easy to use.
 									</ItemDescription>
 								</ItemContent>
 							</Item>
@@ -264,7 +264,8 @@ export default function AboutPage() {
 								Meet the Team
 							</h2>
 							<p className="text-xl text-muted-foreground leading-relaxed max-w-lg mx-auto">
-								We&apos;re a diverse team of engineers, designers, and property management experts working together to build something great.
+								We&apos;re a diverse team of engineers, designers, and property
+								management experts working together to build something great.
 							</p>
 						</div>
 
@@ -335,8 +336,8 @@ export default function AboutPage() {
 								</Button>
 							</div>
 							<p className="text-muted">
-								No setup fees • Enterprise security • 99.9% uptime SLA •
-								Cancel anytime
+								No setup fees • Enterprise security • 99.9% uptime SLA • Cancel
+								anytime
 							</p>
 						</div>
 					</BlurFade>

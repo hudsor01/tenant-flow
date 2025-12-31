@@ -17,7 +17,9 @@ const __dirname = dirname(__filename)
  */
 
 test.describe('JWT Auth Guard Error Messages', () => {
-	test('should successfully authenticate and display manage dashboard', async ({ page }) => {
+	test('should successfully authenticate and display manage dashboard', async ({
+		page
+	}) => {
 		// Login as owner (navigates to /dashboard)
 		await loginAsOwner(page)
 
@@ -26,17 +28,23 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await expect(page.getByRole('main')).toBeVisible()
 
 		// Verify dashboard content is visible (auto-waiting handles timing)
-		await expect(page.getByRole('heading', { level: 1 })).toBeVisible({ timeout: 10000 })
+		await expect(page.getByRole('heading', { level: 1 })).toBeVisible({
+			timeout: 10000
+		})
 	})
 
-	test('should handle bulk import with valid authentication', async ({ page }) => {
+	test('should handle bulk import with valid authentication', async ({
+		page
+	}) => {
 		// Login and navigate to properties
 		await loginAsOwner(page)
 		await page.goto('/properties')
 
 		// Wait for page to be fully hydrated by checking for interactive content
 		// The "Properties" heading indicates the page has rendered
-		await expect(page.getByRole('heading', { name: 'Properties', level: 1 })).toBeVisible({ timeout: 15000 })
+		await expect(
+			page.getByRole('heading', { name: 'Properties', level: 1 })
+		).toBeVisible({ timeout: 15000 })
 
 		// Wait for the bulk import button to be visible AND enabled (indicates hydration complete)
 		const bulkImportBtn = page.getByRole('button', { name: /bulk import/i })
@@ -48,11 +56,18 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await expect(page.getByRole('dialog')).toBeVisible({ timeout: 10000 })
 
 		// Verify modal content
-		await expect(page.getByRole('dialog').getByText(/import properties/i)).toBeVisible()
-		await expect(page.getByRole('dialog').getByText(/required columns/i)).toBeVisible()
+		await expect(
+			page.getByRole('dialog').getByText(/import properties/i)
+		).toBeVisible()
+		await expect(
+			page.getByRole('dialog').getByText(/required columns/i)
+		).toBeVisible()
 	})
 
-	test('should display improved error message on API failures', async ({ page, context }) => {
+	test('should display improved error message on API failures', async ({
+		page,
+		context
+	}) => {
 		// Intercept API requests to simulate backend errors
 		await page.route('**/api/v1/properties/**', route => {
 			if (route.request().method() === 'POST') {
@@ -69,7 +84,9 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await page.goto('/properties')
 
 		// Wait for page to be fully hydrated
-		await expect(page.getByRole('heading', { name: 'Properties', level: 1 })).toBeVisible({ timeout: 15000 })
+		await expect(
+			page.getByRole('heading', { name: 'Properties', level: 1 })
+		).toBeVisible({ timeout: 15000 })
 
 		// Wait for bulk import button to be ready
 		const bulkImportBtn = page.getByRole('button', { name: /bulk import/i })
@@ -89,17 +106,21 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await page.getByRole('button', { name: /import properties/i }).click()
 
 		// Verify error message appears
-		await expect(
-			page.getByText(/failed|error|try again/i)
-		).toBeVisible({ timeout: 10000 })
+		await expect(page.getByText(/failed|error|try again/i)).toBeVisible({
+			timeout: 10000
+		})
 	})
 
-	test('should show clear error for invalid CSV with proper formatting', async ({ page }) => {
+	test('should show clear error for invalid CSV with proper formatting', async ({
+		page
+	}) => {
 		await loginAsOwner(page)
 		await page.goto('/properties')
 
 		// Wait for page to be fully hydrated
-		await expect(page.getByRole('heading', { name: 'Properties', level: 1 })).toBeVisible({ timeout: 15000 })
+		await expect(
+			page.getByRole('heading', { name: 'Properties', level: 1 })
+		).toBeVisible({ timeout: 15000 })
 
 		// Wait for bulk import button to be ready
 		const bulkImportBtn = page.getByRole('button', { name: /bulk import/i })
@@ -124,9 +145,14 @@ test.describe('JWT Auth Guard Error Messages', () => {
 
 		// Should show validation error - look for alert/error role or specific error text
 		// Avoid matching "Required columns:" by using more specific patterns
-		const errorMsg = page.getByRole('dialog').getByRole('alert').or(
-			page.getByRole('dialog').getByText(/csv.*missing|import.*failed|validation.*error/i)
-		)
+		const errorMsg = page
+			.getByRole('dialog')
+			.getByRole('alert')
+			.or(
+				page
+					.getByRole('dialog')
+					.getByText(/csv.*missing|import.*failed|validation.*error/i)
+			)
 		await expect(errorMsg.first()).toBeVisible({ timeout: 15000 })
 
 		// Error message should be readable and helpful
@@ -135,7 +161,9 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		expect(errorText?.length).toBeGreaterThan(5)
 	})
 
-	test('manage dashboard should remain accessible after multiple navigation', async ({ page }) => {
+	test('manage dashboard should remain accessible after multiple navigation', async ({
+		page
+	}) => {
 		// Test that auth guard doesn't break subsequent requests
 		await loginAsOwner(page)
 
@@ -162,11 +190,13 @@ test.describe('JWT Auth Guard Error Messages', () => {
 		await expect(page.getByRole('main')).toBeVisible()
 	})
 
-	test('should handle session persistence across page refreshes', async ({ page }) => {
+	test('should handle session persistence across page refreshes', async ({
+		page
+	}) => {
 		// Login once
 		await loginAsOwner(page)
 		await page.goto('/properties')
-		
+
 		// Wait for page to be ready (auto-waiting preferred)
 		await expect(page.getByRole('main')).toBeVisible()
 
@@ -176,7 +206,7 @@ test.describe('JWT Auth Guard Error Messages', () => {
 
 		// Refresh the page
 		await page.reload()
-		
+
 		// Wait for content to reload (auto-waiting)
 		await expect(page.getByRole('main')).toBeVisible()
 

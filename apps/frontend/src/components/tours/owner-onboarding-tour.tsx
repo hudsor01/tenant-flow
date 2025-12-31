@@ -77,11 +77,30 @@ export function OwnerOnboardingTour({
 					progress.status === 'completed' || progress.status === 'skipped'
 
 				if (!isCompleted || forceShow) {
-					timer = setTimeout(() => setOpen(true), TOUR_AUTO_START_DELAY_MS)
+					// Wait for first step target to appear in DOM before opening tour
+					// This prevents the spotlight from blocking UI when dashboard is still loading
+					// Dashboard may take 5-10 seconds to load, so retry for up to 15 seconds
+					const waitForTarget = (retriesLeft: number) => {
+						if (!isActive) return
+						const firstTarget = document.querySelector("[data-testid='dashboard-stats']")
+						if (firstTarget) {
+							timer = setTimeout(() => {
+								if (isActive) setOpen(true)
+							}, TOUR_AUTO_START_DELAY_MS)
+						} else if (retriesLeft > 0) {
+							// Retry after 500ms, up to 30 times (15s total) to handle slow dashboard loads
+							setTimeout(() => waitForTarget(retriesLeft - 1), 500)
+						} else {
+							logger.debug('Tour skipped: first step target not found after retries')
+						}
+					}
+					waitForTarget(30)
 				}
 			} catch (error) {
 				logger.error('Failed to load tour progress', { error })
 				if (!isActive) return
+				// Only show tour if explicitly forced - don't show on API failure
+				// This prevents broken tours from blocking the UI
 				if (forceShow) {
 					timer = setTimeout(() => setOpen(true), TOUR_AUTO_START_DELAY_MS)
 				}

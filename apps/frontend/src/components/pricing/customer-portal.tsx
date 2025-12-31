@@ -1,13 +1,3 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - KISS Principle violation
-// This file is ~640 lines. Per CLAUDE.md: "Small, Focused Modules - Maximum 300 lines per file"
-// Recommended refactoring:
-// 1. Extract PlanCard component into: `./plan-card.tsx`
-// 2. Extract UsageStats component into: `./usage-stats.tsx`
-// 3. Extract Testimonial component into: `./testimonial-card.tsx`
-// 4. Extract portal mutation hooks into: `#hooks/api/use-customer-portal.ts`
-// 5. Keep CustomerPortalCard as orchestration component
-// See: CLAUDE.md section "KISS (Keep It Simple, Stupid)"
-
 'use client'
 
 import { Badge } from '#components/ui/badge'
@@ -17,6 +7,29 @@ import { useUser } from '#hooks/api/use-auth'
 import { API_BASE_URL } from '#lib/api-config'
 import { cn } from '#lib/utils'
 import { useMutation } from '@tanstack/react-query'
+import { cardVariants } from '#components/ui/card'
+import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import {
+	ArrowRight,
+	Award,
+	Settings,
+	Sparkles
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import type { ComponentProps } from 'react'
+import { toast } from 'sonner'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import {
+	PortalUsageStats,
+	type UsageStatsData
+} from './portal-usage-stats'
+import {
+	PortalBillingInfo,
+	type BillingInfoData
+} from './portal-billing-info'
+import { PortalTestimonial, type TestimonialData } from './portal-testimonial'
+import { PortalFeatureGrid } from './portal-feature-grid'
+import { PortalTrustSignals } from './portal-trust-signals'
 
 interface CustomerPortalCardProps {
 	className?: string
@@ -24,50 +37,10 @@ interface CustomerPortalCardProps {
 	showTestimonial?: boolean
 	currentPlan?: string
 	planTier?: string
-	usageStats?: {
-		properties: number
-		tenants: number
-		uptime: string
-		monthlyRevenue: number
-		activeLeases: number
-	}
-	billingInfo?: {
-		nextBillingDate: string
-		lastPayment: string
-		paymentMethod: string
-	}
-	testimonial?: {
-		text: string
-		author: string
-		company: string
-		rating: number
-	}
+	usageStats?: UsageStatsData
+	billingInfo?: BillingInfoData
+	testimonial?: TestimonialData
 }
-import {
-	Activity,
-	ArrowRight,
-	Award,
-	Calendar,
-	CheckCircle2,
-	Clock,
-	CreditCard,
-	Download,
-	FileText,
-	Lock,
-	Settings,
-	Shield,
-	Sparkles,
-	Star,
-	TrendingUp,
-	Users,
-	Zap
-} from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import type { ComponentProps } from 'react'
-import { toast } from 'sonner'
-import { handleMutationError } from '#lib/mutation-error-handler'
-import { cardVariants } from '#components/ui/card'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 
 export function CustomerPortalButton({
 	variant = 'outline',
@@ -81,23 +54,19 @@ export function CustomerPortalButton({
 
 	const portalMutation = useMutation({
 		mutationFn: async () => {
-			// Check if user has Stripe customer ID
 			if (!user?.stripe_customer_id) {
 				router.push('/pricing')
 				throw new Error('No active subscription found')
 			}
 
-			// Check if user is authenticated
 			const authToken = localStorage.getItem('auth-token')
 			if (!authToken) {
 				window.location.href = '/login'
 				throw new Error('Please sign in to access your account')
 			}
 
-			// Show loading toast
 			toast.loading('Opening customer portal...', { id: 'portal' })
 
-			// Create portal session - matches backend endpoint at stripe.controller.ts:855
 			const response = await fetch(
 				`${API_BASE_URL}/stripe/create-billing-portal`,
 				{
@@ -119,13 +88,8 @@ export function CustomerPortalButton({
 			}
 
 			const { url } = await response.json()
-
-			// Update toast and redirect
 			toast.success('Redirecting to customer portal...', { id: 'portal' })
-
-			// Redirect to Stripe Customer Portal
 			window.location.href = url
-
 			return { success: true }
 		},
 		onError: error => {
@@ -134,11 +98,6 @@ export function CustomerPortalButton({
 		}
 	})
 
-	const handlePortalAccess = async () => {
-		portalMutation.mutate()
-	}
-
-	// Show "Subscribe Now" if user has no Stripe customer
 	if (!isLoadingUser && !user?.stripe_customer_id) {
 		return (
 			<Button
@@ -159,7 +118,7 @@ export function CustomerPortalButton({
 			variant={variant}
 			size={size}
 			className={cn('hover:scale-105 font-semibold', className)}
-			onClick={handlePortalAccess}
+			onClick={() => portalMutation.mutate()}
 			disabled={portalMutation.isPending}
 			{...props}
 		>
@@ -173,71 +132,70 @@ export function CustomerPortalButton({
 	)
 }
 
+const TIER_CONFIG = {
+	starter: {
+		cardBg: 'bg-primary/5',
+		borderColor: 'border-primary/20',
+		textColor: 'text-primary'
+	},
+	growth: {
+		cardBg: 'bg-accent/5',
+		borderColor: 'border-accent/20',
+		textColor: 'text-accent'
+	},
+	professional: {
+		cardBg: 'bg-primary/5',
+		borderColor: 'border-primary/20',
+		textColor: 'text-primary'
+	},
+	tenantflow_max: {
+		cardBg: 'bg-primary/5',
+		borderColor: 'border-primary/20',
+		textColor: 'text-primary'
+	},
+	enterprise: {
+		cardBg: 'bg-accent/5',
+		borderColor: 'border-accent/20',
+		textColor: 'text-accent'
+	}
+} as const
+
+const DEFAULT_USAGE_STATS: UsageStatsData = {
+	properties: 12,
+	tenants: 48,
+	uptime: '99.9%',
+	monthlyRevenue: 24500,
+	activeLeases: 42
+}
+
+const DEFAULT_BILLING_INFO: BillingInfoData = {
+	nextBillingDate: '2024-12-15',
+	lastPayment: '2024-11-15',
+	paymentMethod: 'Visa ending in 4242'
+}
+
+const DEFAULT_TESTIMONIAL: TestimonialData = {
+	text: 'TenantFlow transformed our property management workflow. The billing portal saves us hours every month.',
+	author: 'Sarah Johnson',
+	company: 'Metro Properties',
+	rating: 5
+}
+
 export function CustomerPortalCard({
 	className,
 	showStats = true,
 	showTestimonial = true,
 	currentPlan = 'Growth Plan',
 	planTier = 'enterprise',
-	usageStats = {
-		properties: 12,
-		tenants: 48,
-		uptime: '99.9%',
-		monthlyRevenue: 24500,
-		activeLeases: 42
-	},
-	billingInfo = {
-		nextBillingDate: '2024-12-15',
-		lastPayment: '2024-11-15',
-		paymentMethod: 'Visa ending in 4242'
-	},
-	testimonial = {
-		text: 'TenantFlow transformed our property management workflow. The billing portal saves us hours every month.',
-		author: 'Sarah Johnson',
-		company: 'Metro Properties',
-		rating: 5
-	}
+	usageStats = DEFAULT_USAGE_STATS,
+	billingInfo = DEFAULT_BILLING_INFO,
+	testimonial = DEFAULT_TESTIMONIAL
 }: CustomerPortalCardProps = {}) {
-	// Plan tier configuration
-	const tierConfig = {
-		starter: {
-			background: 'bg-primary',
-			cardBg: 'bg-primary/5',
-			borderColor: 'border-primary/20',
-			textColor: 'text-primary'
-		},
-		growth: {
-			background: 'bg-accent',
-			cardBg: 'bg-accent/5',
-			borderColor: 'border-accent/20',
-			textColor: 'text-accent'
-		},
-		professional: {
-			background: 'bg-primary',
-			cardBg: 'bg-primary/5',
-			borderColor: 'border-primary/20',
-			textColor: 'text-primary'
-		},
-		tenantflow_max: {
-			background: 'bg-primary',
-			cardBg: 'bg-primary/5',
-			borderColor: 'border-primary/20',
-			textColor: 'text-primary'
-		},
-		enterprise: {
-			background: 'bg-accent',
-			cardBg: 'bg-accent/5',
-			borderColor: 'border-accent/20',
-			textColor: 'text-accent'
-		}
-	}
-
 	const config =
-		tierConfig[planTier as keyof typeof tierConfig] || tierConfig.starter
+		TIER_CONFIG[planTier as keyof typeof TIER_CONFIG] || TIER_CONFIG.starter
 
 	return (
-		<div className="space-y-[var(--spacing-6)]">
-			{/* Main Account Card */}
+		<div className="space-y-6">
 			<CardLayout
 				title="Account Management"
 				description="Manage your subscription and billing preferences"
@@ -251,13 +209,9 @@ export function CustomerPortalCard({
 			>
 				<div className="absolute inset-0 bg-primary/5 opacity-50" />
 
-				<div className="flex-between mb-[var(--spacing-6)]">
+				<div className="flex-between mb-6">
 					<div className="flex items-center gap-4">
-						<div
-							className={cn(
-								'p-4 rounded-2xl gradient-background shadow-lg'
-							)}
-						>
+						<div className="p-4 rounded-2xl gradient-background shadow-lg">
 							<Settings className="size-8 text-primary-foreground" />
 						</div>
 						<div>
@@ -273,7 +227,6 @@ export function CustomerPortalCard({
 						</div>
 					</div>
 
-					{/* Plan Badge */}
 					<div className="text-right">
 						<Badge
 							className={cn(
@@ -286,310 +239,36 @@ export function CustomerPortalCard({
 							<Award className="size-4 mr-2" />
 							{currentPlan}
 						</Badge>
-						<div className="flex items-center gap-[var(--spacing-2)] mt-2">
-							<div className="size-2 bg-primary rounded-full animate-pulse" aria-hidden="true" />
-							<span className="text-caption font-medium">
-								Active Plan
-							</span>
+						<div className="flex items-center gap-2 mt-2">
+							<div
+								className="size-2 bg-primary rounded-full animate-pulse"
+								aria-hidden="true"
+							/>
+							<span className="text-caption font-medium">Active Plan</span>
 						</div>
 					</div>
 				</div>
 
-				<div
-					className={cn(
-						'relative z-10 space-y-[var(--spacing-8)]',
-						'animate-in slide-in-from-bottom-2 duration-300'
-					)}
-				>
-					{/* Enhanced Usage Stats */}
-					{showStats && (
-						<div className="bg-muted/10 rounded-2xl p-6 border-2 border-muted/20">
-							<div className="flex-between mb-[var(--spacing-6)]">
-								<h4
-									className="text-foreground flex items-center gap-[var(--spacing-3)]"
-									style={TYPOGRAPHY_SCALE['heading-md']}
-								>
-									<div className="p-[var(--spacing-2)] bg-primary/10 rounded-lg">
-										<Activity className="size-5 text-primary" />
-									</div>
-									Monthly Overview
-								</h4>
-								<Badge variant="outline" className="text-xs font-medium">
-									<Clock className="size-3 mr-1" />
-									Updated 2 hours ago
-								</Badge>
-							</div>
-								<div className={'portal-feature-grid'}>
-								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'}>
-										<FileText className="size-5 text-accent" />
-									</div>
-									<p className="text-2xl font-black text-foreground tabular-nums">
-										{usageStats.properties}
-									</p>
-									<p className="text-caption font-medium">
-										Properties
-									</p>
-								</div>
-								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
-										<Users className="size-5 text-primary" />
-									</div>
-									<p className="text-2xl font-black text-foreground tabular-nums">
-										{usageStats.tenants}
-									</p>
-									<p className="text-caption font-medium">
-										Tenants
-									</p>
-								</div>
-								<div className={cardVariants({ variant: 'portalFeature' })}>
-									<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
-										<Zap className="size-5 text-primary" />
-									</div>
-									<p className="text-2xl font-black text-primary tabular-nums">
-										{usageStats.uptime}
-									</p>
-									<p className="text-caption font-medium">
-										Uptime
-									</p>
-								</div>
-								{usageStats.monthlyRevenue && (
-									<div className={cardVariants({ variant: 'portalFeature' })}>
-										<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-primary/10'}>
-											<TrendingUp className="size-5 text-primary" />
-										</div>
-										<p className="text-2xl font-black text-primary tabular-nums">
-											${usageStats.monthlyRevenue.toLocaleString()}
-										</p>
-										<p className="text-caption font-medium">
-											Revenue
-										</p>
-									</div>
-								)}
-								{usageStats.activeLeases && (
-									<div className={cardVariants({ variant: 'portalFeature' })}>
-										<div className={'size-10 rounded-lg flex-center mx-auto mb-2 bg-accent/10'}>
-											<FileText className="size-5 text-accent" />
-										</div>
-										<p className="text-2xl font-black text-accent tabular-nums">
-											{usageStats.activeLeases}
-										</p>
-										<p className="text-caption font-medium">
-											Active Leases
-										</p>
-									</div>
-								)}
-							</div>
-						</div>
-					)}
+				<div className="relative z-10 space-y-8 animate-in slide-in-from-bottom-2 duration-300">
+					{showStats && <PortalUsageStats stats={usageStats} />}
 
-					{/* Billing Information */}
-					{billingInfo && (
-						<div className="bg-accent/8 rounded-2xl p-6 border border-accent/20">
-							<div className="flex-between mb-[var(--spacing-6)]">
-								<h4
-									className="text-foreground flex items-center gap-[var(--spacing-3)]"
-									style={TYPOGRAPHY_SCALE['heading-md']}
-								>
-									<div className="p-[var(--spacing-2)] bg-accent/10 rounded-lg">
-										<CreditCard className="size-5 text-accent" />
-									</div>
-									Billing Information
-								</h4>
-								<Badge className="bg-primary/10 text-primary border-primary/20">
-									<Lock className="size-3 mr-1" />
-									Secured
-								</Badge>
-							</div>
+					{billingInfo && <PortalBillingInfo billingInfo={billingInfo} />}
 
-							<div className="grid gap-4 [grid-template-columns:var(--layout-grid-cols-1)] md:[grid-template-columns:var(--layout-grid-cols-3)]">
-								{billingInfo.nextBillingDate && (
-									<div className={cardVariants({ variant: 'billingInfo' })}>
-										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
-											<Calendar className="size-4 text-primary" />
-											<span className="text-sm font-semibold text-muted-foreground">
-												Next Billing
-											</span>
-										</div>
-										<p className="font-bold text-foreground">
-											{new Date(billingInfo.nextBillingDate).toLocaleDateString(
-												'en-US',
-												{
-													month: 'short',
-													day: 'numeric',
-													year: 'numeric'
-												}
-											)}
-										</p>
-									</div>
-								)}
-								{billingInfo.lastPayment && (
-									<div className={cardVariants({ variant: 'billingInfo' })}>
-										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
-											<CheckCircle2 className="size-4 text-accent" />
-											<span className="text-sm font-semibold text-muted-foreground">
-												Last Payment
-											</span>
-										</div>
-										<p className="font-bold text-foreground">
-											{new Date(billingInfo.lastPayment).toLocaleDateString(
-												'en-US',
-												{
-													month: 'short',
-													day: 'numeric',
-													year: 'numeric'
-												}
-											)}
-										</p>
-									</div>
-								)}
-								{billingInfo.paymentMethod && (
-									<div className={cardVariants({ variant: 'billingInfo' })}>
-										<div className="flex items-center gap-[var(--spacing-2)] mb-[var(--spacing-2)]">
-											<CreditCard className="size-4 text-primary" />
-											<span className="text-sm font-semibold text-muted-foreground">
-												Payment Method
-											</span>
-										</div>
-										<p className="font-bold text-foreground">
-											{billingInfo.paymentMethod}
-										</p>
-									</div>
-								)}
-							</div>
-						</div>
-					)}
-
-					{/* Enhanced Description */}
-					<div className="text-center space-y-[var(--spacing-4)]">
-						<p className="text-muted-foreground leading-relaxed max-w-[var(--max-width-3xl)] mx-auto text-base">
+					<div className="text-center space-y-4">
+						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-base">
 							Manage your subscription, update payment methods, view invoices,
 							download reports, and access all billing features in our secure,
 							enterprise-grade customer portal.
 						</p>
 
 						{showTestimonial && testimonial && (
-							<div className="bg-primary/8 rounded-2xl p-6 border-2 border-primary/20 max-w-[var(--max-width-2xl)] mx-auto">
-								<div className="flex-center gap-[var(--spacing-1)] mb-[var(--spacing-4)]">
-									{[...Array(testimonial.rating)].map((_, i) => (
-										<Star key={i} className="size-4 fill-accent text-accent" />
-									))}
-									<span className="ml-2 text-sm font-bold text-primary">
-										{testimonial.rating}/5
-									</span>
-								</div>
-								<blockquote className="text-foreground text-center leading-relaxed font-medium">
-									&quot;{testimonial.text}&quot;
-								</blockquote>
-								<div className="flex-center gap-[var(--spacing-3)] mt-[var(--spacing-4)] pt-[var(--spacing-4)] border-t border-primary/10">
-									<div className="size-[var(--spacing-10)] bg-primary/15 rounded-full flex-center">
-										<Users className="size-5 text-primary" />
-									</div>
-									<cite className="text-sm font-bold text-foreground not-italic">
-										{testimonial.author}
-										<span className="text-muted-foreground font-medium block">
-											{testimonial.company}
-										</span>
-									</cite>
-								</div>
-							</div>
+							<PortalTestimonial testimonial={testimonial} />
 						)}
 					</div>
 
-					{/* Enhanced Feature Grid */}
-					<div
-						className={cn(
-						'grid gap-4 [grid-template-columns:var(--layout-grid-cols-1)] lg:[grid-template-columns:var(--layout-grid-cols-2)]',
-							'animate-in fade-in-0 duration-300'
-						)}
-					>
-						<div className={cardVariants({ variant: 'pricingFeature' })}>
-							<div className="flex items-center gap-4 mb-[var(--spacing-3)]">
-								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
-									<CreditCard className="size-6 text-primary" />
-								</div>
-								<div>
-									<h5 className="font-bold text-foreground">
-										Payment Management
-									</h5>
-									<p className="text-muted">
-										Update cards & billing info
-									</p>
-								</div>
-							</div>
-							<div className="flex-between">
-								<span className="text-sm text-primary font-medium">
-									Secure & instant updates
-								</span>
-								<ArrowRight className="size-5 text-primary group-hover:translate-x-1 transition-transform" />
-							</div>
-						</div>
+					<PortalFeatureGrid />
 
-						<div className={cardVariants({ variant: 'pricingFeatureAccent' })}>
-							<div className="flex items-center gap-4 mb-[var(--spacing-3)]">
-								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
-									<FileText className="size-6 text-accent" />
-								</div>
-								<div>
-									<h5 className="font-bold text-foreground">
-										Invoices & Receipts
-									</h5>
-									<p className="text-muted">
-										Download & track payments
-									</p>
-								</div>
-							</div>
-							<div className="flex-between">
-								<span className="text-sm text-accent font-medium">
-									Instant PDF downloads
-								</span>
-								<ArrowRight className="size-5 text-accent group-hover:translate-x-1 transition-transform" />
-							</div>
-						</div>
-
-						<div className={cardVariants({ variant: 'pricingFeature' })}>
-							<div className="flex items-center gap-4 mb-[var(--spacing-3)]">
-								<div className="p-[var(--spacing-3)] bg-primary/10 rounded-xl">
-									<Download className="size-6 text-primary" />
-								</div>
-								<div>
-									<h5 className="font-bold text-foreground">Usage Reports</h5>
-									<p className="text-muted">
-										Analytics & insights
-									</p>
-								</div>
-							</div>
-							<div className="flex-between">
-								<span className="text-sm text-primary font-medium">
-									Detailed breakdowns
-								</span>
-								<ArrowRight className="size-5 text-primary group-hover:translate-x-1 transition-transform" />
-							</div>
-						</div>
-
-						<div className={cardVariants({ variant: 'pricingFeatureAccent' })}>
-							<div className="flex items-center gap-4 mb-[var(--spacing-3)]">
-								<div className="p-[var(--spacing-3)] bg-accent/10 rounded-xl">
-									<Sparkles className="size-6 text-accent" />
-								</div>
-								<div>
-									<h5 className="font-bold text-foreground">Plan Management</h5>
-									<p className="text-muted">
-										Upgrade, downgrade or cancel
-									</p>
-								</div>
-							</div>
-							<div className="flex-between">
-								<span className="text-sm text-accent font-medium">
-									Flexible changes
-								</span>
-								<ArrowRight className="size-5 text-accent group-hover:translate-x-1 transition-transform" />
-							</div>
-						</div>
-					</div>
-
-					{/* Enhanced Primary Action */}
-					<div className={cn('pt-[var(--spacing-4)]', 'animate-in slide-in-from-bottom-2 duration-300')}>
+					<div className="pt-4 animate-in slide-in-from-bottom-2 duration-300">
 						<CustomerPortalButton
 							className={cn(
 								'w-full h-16 text-lg font-bold shadow-xl hover:shadow-2xl',
@@ -609,42 +288,7 @@ export function CustomerPortalCard({
 				</div>
 			</CardLayout>
 
-			{/* Enhanced Trust Signals */}
-			<div className="bg-muted/10 rounded-2xl p-6 border-2 border-muted/20">
-				<div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-					<div className={'trust-signal-item'}>
-						<div className={'size-8 rounded-lg flex-center bg-accent/10'}>
-							<Shield className="size-5 text-accent" />
-						</div>
-						<div>
-							<p className="font-bold text-foreground">Bank-Level Security</p>
-							<p className="text-caption">
-								256-bit SSL encryption
-							</p>
-						</div>
-					</div>
-					<div className={'trust-signal-item'}>
-						<div className={'size-8 rounded-lg flex-center bg-primary/10'}>
-							<CheckCircle2 className="size-5 text-primary" />
-						</div>
-						<div>
-							<p className="font-bold text-foreground">Powered by Stripe</p>
-							<p className="text-caption">
-								Trusted by millions
-							</p>
-						</div>
-					</div>
-					<div className={'trust-signal-item'}>
-						<div className={'size-8 rounded-lg flex-center bg-primary/10'}>
-							<Users className="size-5 text-primary" />
-						</div>
-						<div>
-							<p className="font-bold text-foreground">10,000+ Managers</p>
-							<p className="text-caption">Growing community</p>
-						</div>
-					</div>
-				</div>
-			</div>
+			<PortalTrustSignals />
 		</div>
 	)
 }

@@ -23,7 +23,6 @@ import type {
 
 @Injectable()
 export class DocuSealWebhookService {
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly eventEmitter: EventEmitter2,
@@ -57,7 +56,9 @@ export class DocuSealWebhookService {
 		// Try docuseal_submission_id first
 		const { data: leaseBySubmission, error: submissionError } = await client
 			.from('leases')
-			.select('id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id')
+			.select(
+				'id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id'
+			)
 			.eq('docuseal_submission_id', String(data.submission_id))
 			.maybeSingle()
 
@@ -66,7 +67,9 @@ export class DocuSealWebhookService {
 				submissionId: data.submission_id,
 				error: submissionError.message
 			})
-			throw new InternalServerErrorException(`Database error: ${submissionError.message}`)
+			throw new InternalServerErrorException(
+				`Database error: ${submissionError.message}`
+			)
 		}
 
 		lease = leaseBySubmission
@@ -75,16 +78,23 @@ export class DocuSealWebhookService {
 		if (!lease && data.metadata?.lease_id) {
 			const { data: leaseById, error: leaseIdError } = await client
 				.from('leases')
-				.select('id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id')
+				.select(
+					'id, lease_status, owner_signed_at, tenant_signed_at, owner_user_id, primary_tenant_id'
+				)
 				.eq('id', data.metadata.lease_id)
 				.maybeSingle()
 
 			if (leaseIdError) {
-				this.logger.error('Database error querying lease by metadata.lease_id', {
-					leaseId: data.metadata.lease_id,
-					error: leaseIdError.message
-				})
-				throw new InternalServerErrorException(`Database error: ${leaseIdError.message}`)
+				this.logger.error(
+					'Database error querying lease by metadata.lease_id',
+					{
+						leaseId: data.metadata.lease_id,
+						error: leaseIdError.message
+					}
+				)
+				throw new InternalServerErrorException(
+					`Database error: ${leaseIdError.message}`
+				)
 			}
 
 			lease = leaseById
@@ -119,7 +129,9 @@ export class DocuSealWebhookService {
 					leaseId: lease.id,
 					error: updateError.message
 				})
-				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+				throw new InternalServerErrorException(
+					`Update failed: ${updateError.message}`
+				)
 			}
 
 			this.eventEmitter.emit('lease.owner_signed', {
@@ -131,7 +143,9 @@ export class DocuSealWebhookService {
 			// Broadcast SSE event to owner for real-time UI update
 			await this.broadcastSignatureUpdate(lease, 'owner', signedAt)
 
-			this.logger.log('Owner signature recorded via DocuSeal', { leaseId: lease.id })
+			this.logger.log('Owner signature recorded via DocuSeal', {
+				leaseId: lease.id
+			})
 		} else if (isTenant && !lease.tenant_signed_at) {
 			const { error: updateError } = await client
 				.from('leases')
@@ -147,7 +161,9 @@ export class DocuSealWebhookService {
 					leaseId: lease.id,
 					error: updateError.message
 				})
-				throw new InternalServerErrorException(`Update failed: ${updateError.message}`)
+				throw new InternalServerErrorException(
+					`Update failed: ${updateError.message}`
+				)
 			}
 
 			this.eventEmitter.emit('lease.tenant_signed', {
@@ -159,7 +175,9 @@ export class DocuSealWebhookService {
 			// Broadcast SSE event to owner (and tenant if they're a platform user)
 			await this.broadcastSignatureUpdate(lease, 'tenant', signedAt)
 
-			this.logger.log('Tenant signature recorded via DocuSeal', { leaseId: lease.id })
+			this.logger.log('Tenant signature recorded via DocuSeal', {
+				leaseId: lease.id
+			})
 		}
 	}
 
@@ -179,7 +197,8 @@ export class DocuSealWebhookService {
 	): Promise<void> {
 		// Determine current signature status
 		const ownerSigned = signedBy === 'owner' || lease.owner_signed_at !== null
-		const tenantSigned = signedBy === 'tenant' || lease.tenant_signed_at !== null
+		const tenantSigned =
+			signedBy === 'tenant' || lease.tenant_signed_at !== null
 
 		let status: LeaseSignatureUpdatedEvent['payload']['status']
 		if (ownerSigned && tenantSigned) {
@@ -223,7 +242,9 @@ export class DocuSealWebhookService {
 	/**
 	 * Handle submission.completed event - all parties have signed
 	 */
-	async handleSubmissionCompleted(data: SubmissionCompletedPayload): Promise<void> {
+	async handleSubmissionCompleted(
+		data: SubmissionCompletedPayload
+	): Promise<void> {
 		this.logger.log('Processing submission.completed event', {
 			submissionId: data.id,
 			status: data.status,
@@ -247,7 +268,9 @@ export class DocuSealWebhookService {
 				submissionId: data.id,
 				error: submissionError.message
 			})
-			throw new InternalServerErrorException(`Database error: ${submissionError.message}`)
+			throw new InternalServerErrorException(
+				`Database error: ${submissionError.message}`
+			)
 		}
 
 		lease = leaseBySubmission
@@ -261,11 +284,16 @@ export class DocuSealWebhookService {
 				.maybeSingle()
 
 			if (leaseIdError) {
-				this.logger.error('Database error querying lease by metadata.lease_id', {
-					leaseId: data.metadata.lease_id,
-					error: leaseIdError.message
-				})
-				throw new InternalServerErrorException(`Database error: ${leaseIdError.message}`)
+				this.logger.error(
+					'Database error querying lease by metadata.lease_id',
+					{
+						leaseId: data.metadata.lease_id,
+						error: leaseIdError.message
+					}
+				)
+				throw new InternalServerErrorException(
+					`Database error: ${leaseIdError.message}`
+				)
 			}
 
 			lease = leaseById
@@ -297,6 +325,8 @@ export class DocuSealWebhookService {
 			completed_at: data.completed_at
 		})
 
-		this.logger.log('DocuSeal submission completed event emitted', { leaseId: lease.id })
+		this.logger.log('DocuSeal submission completed event emitted', {
+			leaseId: lease.id
+		})
 	}
 }

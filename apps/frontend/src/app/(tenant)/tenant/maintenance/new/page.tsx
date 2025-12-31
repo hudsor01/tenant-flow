@@ -9,7 +9,7 @@
 import {
 	Dropzone,
 	DropzoneContent,
-	DropzoneEmptyState,
+	DropzoneEmptyState
 } from '#components/ui/dropzone'
 import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { Button } from '#components/ui/button'
@@ -60,7 +60,7 @@ export default function NewMaintenanceRequestPage() {
 		isFileDialogActive,
 		acceptedFiles,
 		fileRejections,
-		rootRef,
+		rootRef
 	} = useSupabaseUpload({
 		bucketName: 'maintenance-photos',
 		path: 'maintenance_requests',
@@ -68,7 +68,7 @@ export default function NewMaintenanceRequestPage() {
 		maxFileSize: 5 * 1024 * 1024,
 		maxFiles: 5,
 		cacheControl: 3600,
-		upsert: false,
+		upsert: false
 	})
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -127,7 +127,7 @@ export default function NewMaintenanceRequestPage() {
 			return
 		}
 
-		const photoUrls = successes.map((fileName) => {
+		const photoUrls = successes.map(fileName => {
 			const baseUrl = `${supabaseUrl}/storage/v1/object/public/maintenance-photos/maintenance_requests/`
 			return `${baseUrl}${fileName}`
 		})
@@ -248,7 +248,8 @@ export default function NewMaintenanceRequestPage() {
 							</FieldLabel>
 						</div>
 						<p className="text-muted mt-1">
-							Check this box if maintenance can access your unit without you being present
+							Check this box if maintenance can access your unit without you
+							being present
 						</p>
 					</Field>
 

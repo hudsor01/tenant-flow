@@ -1,1 +1,1 @@
-declare module 'resend';
+declare module 'resend'

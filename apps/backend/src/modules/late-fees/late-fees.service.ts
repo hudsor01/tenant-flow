@@ -33,8 +33,11 @@ export interface LateFeeCalculation {
 export class LateFeesService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
-		private readonly stripeClientService: StripeClientService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly stripeClientService: StripeClientService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -252,7 +255,8 @@ export class LateFeesService {
 						amount: payment.amount / 100, // Convert from cents to dollars
 						dueDate: payment.due_date!,
 						daysOverdue,
-						lateFeeApplied: payment.late_fee_amount !== null && payment.late_fee_amount > 0
+						lateFeeApplied:
+							payment.late_fee_amount !== null && payment.late_fee_amount > 0
 					}
 				})
 				.filter(p => p.daysOverdue > gracePeriodDays && !p.lateFeeApplied)
@@ -362,7 +366,11 @@ export class LateFeesService {
 			const paymentsWithFees = overduePayments
 				.map(payment => ({
 					payment,
-					calculation: this.calculateLateFee(payment.amount, payment.daysOverdue, config)
+					calculation: this.calculateLateFee(
+						payment.amount,
+						payment.daysOverdue,
+						config
+					)
 				}))
 				.filter(({ calculation }) => calculation.shouldApplyFee)
 
@@ -400,10 +408,16 @@ export class LateFeesService {
 						results.push(result.value)
 					} else {
 						// Log failure but continue processing other payments
-						this.logger.error('Failed to apply late fee to individual payment', {
-							lease_id,
-							error: result.reason instanceof Error ? result.reason.message : String(result.reason)
-						})
+						this.logger.error(
+							'Failed to apply late fee to individual payment',
+							{
+								lease_id,
+								error:
+									result.reason instanceof Error
+										? result.reason.message
+										: String(result.reason)
+							}
+						)
 					}
 				}
 			}
@@ -414,7 +428,10 @@ export class LateFeesService {
 				await processChunk(chunk)
 			}
 
-			const totalLateFees = results.reduce((sum, r) => sum + r.late_fee_amount, 0)
+			const totalLateFees = results.reduce(
+				(sum, r) => sum + r.late_fee_amount,
+				0
+			)
 
 			this.logger.log('Late fees processed successfully', {
 				lease_id,
@@ -480,8 +497,7 @@ export class LateFeesService {
 				this.logger.error('Lease update threw unexpected error', {
 					lease_id,
 					updated_data,
-					error:
-						dbError instanceof Error ? dbError.message : String(dbError)
+					error: dbError instanceof Error ? dbError.message : String(dbError)
 				})
 				throw new BadRequestException('Failed to update late fee configuration')
 			}

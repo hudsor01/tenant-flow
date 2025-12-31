@@ -9,7 +9,8 @@
  * @vitest-environment jsdom
  */
 
-import { render, screen, within } from '#test/utils/test-render'
+import { screen, within } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { PropertyBulkImportDialog } from '../bulk-import-dialog'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'

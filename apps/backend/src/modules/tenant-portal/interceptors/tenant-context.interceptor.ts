@@ -1,7 +1,8 @@
 import type {
 	NestInterceptor,
 	ExecutionContext,
-	CallHandler} from '@nestjs/common';
+	CallHandler
+} from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { Observable } from 'rxjs'
 import { tap } from 'rxjs/operators'
@@ -44,13 +45,10 @@ export interface TenantContext {
  */
 @Injectable()
 export class TenantContextInterceptor implements NestInterceptor {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-		const request = context
-			.switchToHttp()
-			.getRequest<AuthenticatedRequest>()
+		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
 
 		const tenantContext = request.tenantContext
 		const method = request.method

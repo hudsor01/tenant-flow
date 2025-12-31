@@ -109,7 +109,9 @@ export const billingQueries = {
 		queryOptions({
 			queryKey: billingKeys.invoices(),
 			queryFn: async (): Promise<FormattedInvoice[]> => {
-				const response = await apiRequest<InvoicesResponse>('/api/v1/stripe/invoices')
+				const response = await apiRequest<InvoicesResponse>(
+					'/api/v1/stripe/invoices'
+				)
 				return response.invoices.map(formatInvoice)
 			},
 			staleTime: 5 * 60 * 1000 // 5 minutes - billing data doesn't change frequently

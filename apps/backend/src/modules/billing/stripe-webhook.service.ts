@@ -26,7 +26,9 @@ export class StripeWebhookService {
 	/**
 	 * Type predicate to check if an object has lock_acquired property set to true
 	 */
-	private isObjectWithLockAcquired(value: unknown): value is { lock_acquired: true } {
+	private isObjectWithLockAcquired(
+		value: unknown
+	): value is { lock_acquired: true } {
 		return (
 			value !== null &&
 			value !== undefined &&
@@ -120,7 +122,8 @@ export class StripeWebhookService {
 			} catch (markError) {
 				this.logger.error('Failed to mark event as processed after error', {
 					eventId,
-					error: markError instanceof Error ? markError.message : String(markError)
+					error:
+						markError instanceof Error ? markError.message : String(markError)
 				})
 			}
 
@@ -140,12 +143,15 @@ export class StripeWebhookService {
 			const client = this.supabaseService.getAdminClient()
 
 			// SECURITY FIX #5: Use RPC-backed lock to avoid race windows
-			const { data, error } = await client.rpc('acquire_webhook_event_lock_with_id', {
-				p_webhook_source: StripeWebhookService.WEBHOOK_SOURCE,
-				p_external_id: eventId,
-				p_event_type: eventType,
-				p_raw_payload: rawPayload
-			})
+			const { data, error } = await client.rpc(
+				'acquire_webhook_event_lock_with_id',
+				{
+					p_webhook_source: StripeWebhookService.WEBHOOK_SOURCE,
+					p_external_id: eventId,
+					p_event_type: eventType,
+					p_raw_payload: rawPayload
+				}
+			)
 
 			if (error) {
 				this.logger.error('Failed to record event processing', {
@@ -172,10 +178,13 @@ export class StripeWebhookService {
 			const lockAcquired = rows.some(row => this.isObjectWithLockAcquired(row))
 
 			if (!lockAcquired) {
-				this.logger.debug(`Event ${eventId} already being processed by another request`, {
-					eventId,
-					eventType
-				})
+				this.logger.debug(
+					`Event ${eventId} already being processed by another request`,
+					{
+						eventId,
+						eventType
+					}
+				)
 				return false
 			}
 

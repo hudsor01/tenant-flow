@@ -18,7 +18,6 @@ import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('StripeWebhookService', () => {
 	let service: StripeWebhookService
 	let supabase: jest.Mocked<SupabaseService>
@@ -85,14 +84,9 @@ describe('StripeWebhookService', () => {
 			const result = await service.isEventProcessed(eventId)
 
 			expect(result).toBe(true)
-			expect(mockSupabaseClient.from).toHaveBeenCalledWith(
-				'webhook_events'
-			)
+			expect(mockSupabaseClient.from).toHaveBeenCalledWith('webhook_events')
 			expect(mockSupabaseClient.select).toHaveBeenCalledWith('id')
-			expect(mockSupabaseClient.eq).toHaveBeenCalledWith(
-				'external_id',
-				eventId
-			)
+			expect(mockSupabaseClient.eq).toHaveBeenCalledWith('external_id', eventId)
 		})
 
 		it('should return false if event does not exist', async () => {
@@ -146,7 +140,9 @@ describe('StripeWebhookService', () => {
 				error: null
 			})
 
-			const result = await service.recordEventProcessing(eventId, eventType, { sample: true })
+			const result = await service.recordEventProcessing(eventId, eventType, {
+				sample: true
+			})
 
 			expect(result).toBe(true)
 			expect(mockSupabaseClient.rpc).toHaveBeenCalledWith(
@@ -223,7 +219,6 @@ describe('StripeWebhookService', () => {
 
 			expect(result).toBe(false)
 		})
-
 	})
 
 	describe('markEventProcessed', () => {
@@ -284,7 +279,8 @@ describe('StripeWebhookService', () => {
 			// First .eq() returns mock to continue chain, second .eq() returns error result
 			mockSupabaseClient.eq
 				.mockReturnValueOnce(mockSupabaseClient) // First .eq() - continue chain
-				.mockResolvedValueOnce({ // Second .eq() - return error
+				.mockResolvedValueOnce({
+					// Second .eq() - return error
 					error: {
 						code: 'PGRST500',
 						message: 'Update failed'
@@ -328,7 +324,11 @@ describe('StripeWebhookService', () => {
 				.mockReturnValueOnce(mockSupabaseClient)
 				.mockResolvedValueOnce({ error: null })
 
-			const result = await service.processWebhookEvent(eventId, eventType, processFunction)
+			const result = await service.processWebhookEvent(
+				eventId,
+				eventType,
+				processFunction
+			)
 
 			expect(result).toBe(true)
 			expect(processFunction).toHaveBeenCalled()
@@ -344,7 +344,11 @@ describe('StripeWebhookService', () => {
 				error: null
 			})
 
-			const result = await service.processWebhookEvent(eventId, eventType, processFunction)
+			const result = await service.processWebhookEvent(
+				eventId,
+				eventType,
+				processFunction
+			)
 
 			expect(result).toBe(false)
 			expect(processFunction).not.toHaveBeenCalled()
@@ -418,8 +422,11 @@ describe('StripeWebhookService', () => {
 			const updateChain = {
 				from: jest.fn().mockReturnThis(),
 				update: jest.fn().mockReturnThis(),
-				eq: jest.fn()
-					.mockReturnValueOnce({ eq: jest.fn().mockResolvedValue({ error: null }) }) // First .eq() returns chainable, second .eq() returns result
+				eq: jest
+					.fn()
+					.mockReturnValueOnce({
+						eq: jest.fn().mockResolvedValue({ error: null })
+					}) // First .eq() returns chainable, second .eq() returns result
 			}
 
 			supabase.getAdminClient = jest.fn().mockReturnValue(updateChain)
@@ -480,8 +487,11 @@ describe('StripeWebhookService', () => {
 			const updateChain = {
 				from: jest.fn().mockReturnThis(),
 				update: jest.fn().mockReturnThis(),
-				eq: jest.fn()
-					.mockReturnValueOnce({ eq: jest.fn().mockResolvedValue({ error: null }) }) // First .eq() returns chainable, second .eq() returns result
+				eq: jest
+					.fn()
+					.mockReturnValueOnce({
+						eq: jest.fn().mockResolvedValue({ error: null })
+					}) // First .eq() returns chainable, second .eq() returns result
 			}
 
 			supabase.getAdminClient = jest.fn().mockReturnValue(updateChain)

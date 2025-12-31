@@ -53,7 +53,9 @@ describe('FinancialOverviewController', () => {
 			]
 		}).compile()
 
-		controller = module.get<FinancialOverviewController>(FinancialOverviewController)
+		controller = module.get<FinancialOverviewController>(
+			FinancialOverviewController
+		)
 		financialService = module.get(FinancialService)
 		supabaseService = module.get(SupabaseService)
 	})
@@ -74,6 +76,32 @@ describe('FinancialOverviewController', () => {
 					occupancyRate: 94
 				}
 			})
+
+			// Mock getUserClient for pending payments and maintenance_requests queries
+			const mockClient = {
+				from: jest.fn((table: string) => {
+					if (table === 'rent_payments') {
+						return {
+							select: jest.fn().mockReturnValue({
+								eq: jest.fn().mockResolvedValue({
+									data: [{ amount: 1000 }, { amount: 500 }],
+									error: null
+								})
+							})
+						}
+					}
+					// maintenance_requests query uses .in() for status filtering
+					return {
+						select: jest.fn().mockReturnValue({
+							in: jest.fn().mockResolvedValue({
+								data: [{ estimated_cost: 200, actual_cost: 250 }],
+								error: null
+							})
+						})
+					}
+				})
+			}
+			supabaseService.getUserClient.mockReturnValue(mockClient as never)
 
 			const result = await controller.getOverview(mockRequest)
 
@@ -103,6 +131,32 @@ describe('FinancialOverviewController', () => {
 				}
 			})
 
+			// Mock getUserClient for pending payments and maintenance_requests queries
+			const mockClient = {
+				from: jest.fn((table: string) => {
+					if (table === 'rent_payments') {
+						return {
+							select: jest.fn().mockReturnValue({
+								eq: jest.fn().mockResolvedValue({
+									data: [],
+									error: null
+								})
+							})
+						}
+					}
+					// maintenance_requests query uses .in() for status filtering
+					return {
+						select: jest.fn().mockReturnValue({
+							in: jest.fn().mockResolvedValue({
+								data: [],
+								error: null
+							})
+						})
+					}
+				})
+			}
+			supabaseService.getUserClient.mockReturnValue(mockClient as never)
+
 			const result = await controller.getOverview(mockRequest)
 
 			expect(result.data.highlights).toHaveLength(3)
@@ -117,9 +171,27 @@ describe('FinancialOverviewController', () => {
 			supabaseService.getTokenFromRequest.mockReturnValue(mockToken)
 			// Mock returns the same structure as FinancialRevenueService.getRevenueTrends
 			financialService.getRevenueTrends.mockResolvedValue([
-				{ period: '2024-01', revenue: 4000, expenses: 1000, netIncome: 3000, profitMargin: 75 },
-				{ period: '2024-02', revenue: 4200, expenses: 1100, netIncome: 3100, profitMargin: 73.81 },
-				{ period: '2024-03', revenue: 4300, expenses: 1050, netIncome: 3250, profitMargin: 75.58 }
+				{
+					period: '2024-01',
+					revenue: 4000,
+					expenses: 1000,
+					netIncome: 3000,
+					profitMargin: 75
+				},
+				{
+					period: '2024-02',
+					revenue: 4200,
+					expenses: 1100,
+					netIncome: 3100,
+					profitMargin: 73.81
+				},
+				{
+					period: '2024-03',
+					revenue: 4300,
+					expenses: 1050,
+					netIncome: 3250,
+					profitMargin: 75.58
+				}
 			])
 
 			const result = await controller.getMonthlyMetrics(mockRequest)
@@ -136,7 +208,10 @@ describe('FinancialOverviewController', () => {
 
 			await controller.getMonthlyMetrics(mockRequest, '2023')
 
-			expect(financialService.getRevenueTrends).toHaveBeenCalledWith(mockToken, 2023)
+			expect(financialService.getRevenueTrends).toHaveBeenCalledWith(
+				mockToken,
+				2023
+			)
 		})
 
 		it('should default to current year when no year provided', async () => {

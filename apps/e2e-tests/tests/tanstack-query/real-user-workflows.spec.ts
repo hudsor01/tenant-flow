@@ -10,13 +10,13 @@
  * - Performance with realistic usage patterns
  */
 
-import type { Page } from '@playwright/test';
+import type { Page } from '@playwright/test'
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from '../../auth-helpers'
 import {
 	createTestProperty,
 	createTestProperties
-} from '../fixtures/property-data'
+} from '../../../frontend/tests/fixtures/property-data'
 import {
 	TanStackQueryHelper,
 	NetworkSimulator,
@@ -287,7 +287,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			})
 
 			// Simulate network going down during operation
-		await page.context().setOffline(true)
+			await page.context().setOffline(true)
 
 			// Attempt to create property (will fail)
 			await formHelper.createProperty(testProperty)
@@ -306,7 +306,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			await expect(errorMessage.first()).toBeVisible({ timeout: 5000 })
 
 			// Restore network
-		await page.context().setOffline(false)
+			await page.context().setOffline(false)
 
 			// Retry operation should succeed
 			await formHelper.createProperty(testProperty)

@@ -12,7 +12,10 @@ import { Injectable, type OnModuleDestroy } from '@nestjs/common'
 import { OnEvent } from '@nestjs/event-emitter'
 import { SseService } from '../../notifications/sse/sse.service'
 import { AppLogger } from '../../../logger/app-logger.service'
-import { SSE_EVENT_TYPES, type DashboardStatsUpdatedEvent } from '@repo/shared/events/sse-events'
+import {
+	SSE_EVENT_TYPES,
+	type DashboardStatsUpdatedEvent
+} from '@repo/shared/events/sse-events'
 
 type DashboardCategory = 'revenue' | 'occupancy' | 'maintenance' | 'payments'
 
@@ -169,10 +172,13 @@ export class DashboardEventAggregatorService implements OnModuleDestroy {
 
 		// Check if user is connected before broadcasting
 		if (!this.sseService.isUserConnected(ownerId)) {
-			this.logger.debug('Skipping dashboard SSE broadcast (user not connected)', {
-				context: 'DashboardEventAggregator',
-				ownerId
-			})
+			this.logger.debug(
+				'Skipping dashboard SSE broadcast (user not connected)',
+				{
+					context: 'DashboardEventAggregator',
+					ownerId
+				}
+			)
 			return
 		}
 

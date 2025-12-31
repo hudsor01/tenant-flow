@@ -15,10 +15,22 @@ import {
 	Query,
 	Req,
 	UnauthorizedException,
-	ParseUUIDPipe
+	InternalServerErrorException,
+	ParseUUIDPipe,
+	UseGuards
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Request } from 'express'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
+import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialService } from './financial.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -34,7 +46,10 @@ interface CreateExpenseDto {
  * Financial Overview endpoints at /financials/*
  * Provides unified financial dashboard data.
  */
+@ApiTags('Financials')
+@ApiBearerAuth('supabase-auth')
 @Controller('financials')
+@UseGuards(JwtAuthGuard)
 export class FinancialOverviewController {
 	constructor(
 		private readonly financialService: FinancialService,
@@ -53,40 +68,88 @@ export class FinancialOverviewController {
 		return token
 	}
 
-	/**
-	 * GET /financials/overview
-	 * Returns aggregated financial overview for dashboard
-	 */
+	@ApiOperation({ summary: 'Get financial overview', description: 'Returns aggregated financial overview for dashboard including revenue, expenses, receivables' })
+	@ApiResponse({ status: 200, description: 'Financial overview retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('overview')
 	async getOverview(@Req() req: Request): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
+		const client = this.supabase.getUserClient(token)
 
 		// Get financial overview
-		const overview = await this.financialService.getOverview(token)
+		const [overview, pendingPaymentsResult, pendingExpensesResult] =
+			await Promise.all([
+			this.financialService.getOverview(token),
+			client.from('rent_payments').select('amount').eq('status', 'pending'),
+			client
+				.from('maintenance_requests')
+				.select('estimated_cost, actual_cost')
+				.in('status', ['open', 'in_progress', 'on_hold'])
+		])
+		const { data: pendingPayments, error: pendingPaymentsError } =
+			pendingPaymentsResult
+		if (pendingPaymentsError) {
+			this.logger.warn('Failed to load pending payments for receivables', {
+				error: pendingPaymentsError.message
+			})
+		}
+		const accountsReceivable = pendingPaymentsError
+			? 0
+			: (pendingPayments ?? []).reduce(
+					(sum, payment) => sum + (payment.amount ?? 0),
+					0
+				)
+		const { data: pendingExpenses, error: pendingExpensesError } =
+			pendingExpensesResult
+		if (pendingExpensesError) {
+			this.logger.warn('Failed to load pending expenses for payables', {
+				error: pendingExpensesError.message
+			})
+		}
+		const accountsPayable = pendingExpensesError
+			? 0
+			: (pendingExpenses ?? []).reduce(
+					(sum, expense) =>
+						sum +
+						((expense.actual_cost ?? expense.estimated_cost) ?? 0),
+					0
+				)
 
 		// Transform to frontend format
 		const data = {
 			overview: {
-				total_revenue: (overview as Record<string, Record<string, number>>)?.summary?.totalRevenue ?? 0,
-				total_expenses: (overview as Record<string, Record<string, number>>)?.summary?.totalExpenses ?? 0,
-				net_income: (overview as Record<string, Record<string, number>>)?.summary?.netIncome ?? 0,
-				accounts_receivable: 0, // TODO: Calculate from pending payments
-				accounts_payable: 0 // TODO: Calculate from pending expenses
+				total_revenue:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.totalRevenue ?? 0,
+				total_expenses:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.totalExpenses ?? 0,
+				net_income:
+					(overview as Record<string, Record<string, number>>)?.summary
+						?.netIncome ?? 0,
+				accounts_receivable: accountsReceivable,
+				accounts_payable: accountsPayable
 			},
 			highlights: [
 				{
 					label: 'Monthly Revenue',
-					value: ((overview as Record<string, Record<string, number>>)?.summary?.totalRevenue ?? 0) / 12,
+					value:
+						((overview as Record<string, Record<string, number>>)?.summary
+							?.totalRevenue ?? 0) / 12,
 					trend: null
 				},
 				{
 					label: 'Operating Margin',
-					value: (overview as Record<string, Record<string, number>>)?.summary?.roi ?? 0,
+					value:
+						(overview as Record<string, Record<string, number>>)?.summary
+							?.roi ?? 0,
 					trend: null
 				},
 				{
 					label: 'Occupancy Rate',
-					value: (overview as Record<string, Record<string, number>>)?.summary?.occupancyRate ?? 0,
+					value:
+						(overview as Record<string, Record<string, number>>)?.summary
+							?.occupancyRate ?? 0,
 					trend: null
 				}
 			]
@@ -100,19 +163,23 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/monthly-metrics
-	 * Returns monthly financial metrics for charts
-	 */
+	@ApiOperation({ summary: 'Get monthly metrics', description: 'Returns monthly financial metrics for charts' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for metrics (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Monthly metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('monthly-metrics')
 	async getMonthlyMetrics(
 		@Req() req: Request,
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 
-		const trends = await this.financialService.getRevenueTrends(token, targetYear)
+		const trends = await this.financialService.getRevenueTrends(
+			token,
+			targetYear
+		)
 
 		// Transform to expected format
 		const data = trends.map(t => ({
@@ -131,19 +198,23 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/expense-summary
-	 * Returns expense breakdown with category summary
-	 */
+	@ApiOperation({ summary: 'Get expense summary', description: 'Returns expense breakdown with category summary' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Year for summary (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Expense summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expense-summary')
 	async getExpenseSummary(
 		@Req() req: Request,
 		@Query('year') year?: string
 	): Promise<ControllerApiResponse> {
 		const token = this.getToken(req)
-		const targetYear = Number.parseInt(year ?? '', 10) || new Date().getFullYear()
+		const targetYear =
+			Number.parseInt(year ?? '', 10) || new Date().getFullYear()
 
-		const summary = await this.financialService.getExpenseSummary(token, targetYear)
+		const summary = await this.financialService.getExpenseSummary(
+			token,
+			targetYear
+		)
 
 		return {
 			success: true,
@@ -153,10 +224,13 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * GET /financials/expenses
-	 * Returns list of expenses with optional filters
-	 */
+	@ApiOperation({ summary: 'Get expenses', description: 'Returns list of expenses with optional filters' })
+	@ApiQuery({ name: 'property_id', required: false, description: 'Filter by property UUID' })
+	@ApiQuery({ name: 'start_date', required: false, description: 'Filter expenses from date (YYYY-MM-DD)' })
+	@ApiQuery({ name: 'end_date', required: false, description: 'Filter expenses to date (YYYY-MM-DD)' })
+	@ApiQuery({ name: 'category', required: false, description: 'Filter by expense category' })
+	@ApiResponse({ status: 200, description: 'Expenses retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expenses')
 	async getExpenses(
 		@Req() req: Request,
@@ -169,9 +243,14 @@ export class FinancialOverviewController {
 		const client = this.supabase.getUserClient(token)
 
 		// Get user's properties
-		const { data: properties } = await client.from('properties').select('id, name')
+		const { data: properties } = await client
+			.from('properties')
+			.select('id, name')
 		const propertyMap = new Map(
-			(properties ?? []).map((p: { id: string; name: string }) => [p.id, p.name])
+			(properties ?? []).map((p: { id: string; name: string }) => [
+				p.id,
+				p.name
+			])
 		)
 		const propertyIds = Array.from(propertyMap.keys())
 
@@ -185,9 +264,7 @@ export class FinancialOverviewController {
 		}
 
 		// Build query - expenses are linked to maintenance_requests which have category
-		let query = client
-			.from('expenses')
-			.select(`
+		let query = client.from('expenses').select(`
 				id,
 				amount,
 				expense_date,
@@ -212,38 +289,47 @@ export class FinancialOverviewController {
 			query = query.lte('expense_date', endDate)
 		}
 
-		const { data: expenses, error } = await query.order('expense_date', { ascending: false })
+		const { data: expenses, error } = await query.order('expense_date', {
+			ascending: false
+		})
 
 		if (error) {
 			this.logger.error('Failed to fetch expenses', { error: error.message })
-			throw new Error('Failed to fetch expenses')
+			throw new InternalServerErrorException('Failed to fetch expenses')
 		}
 
 		// Transform to include property name and category from maintenance_request
-		const transformedExpenses = (expenses ?? []).map((expense: Record<string, unknown>) => {
-			const maintenanceRequest = expense.maintenance_requests as Record<string, unknown> | null
-			const unit = maintenanceRequest?.units as Record<string, string> | null
-			const property_id = unit?.property_id
-			const property_name = property_id ? propertyMap.get(property_id) : null
+		const transformedExpenses = (expenses ?? []).map(
+			(expense: Record<string, unknown>) => {
+				const maintenanceRequest = expense.maintenance_requests as Record<
+					string,
+					unknown
+				> | null
+				const unit = maintenanceRequest?.units as Record<string, string> | null
+				const property_id = unit?.property_id
+				const property_name = property_id ? propertyMap.get(property_id) : null
 
-			return {
-				id: expense.id,
-				description: (maintenanceRequest?.description as string) ?? '',
-				amount: expense.amount,
-				expense_date: expense.expense_date,
-				vendor_name: expense.vendor_name,
-				maintenance_request_id: expense.maintenance_request_id,
-				created_at: expense.created_at,
-				category: maintenanceRequest?.category ?? 'other',
-				property_id,
-				property_name
+				return {
+					id: expense.id,
+					description: (maintenanceRequest?.description as string) ?? '',
+					amount: expense.amount,
+					expense_date: expense.expense_date,
+					vendor_name: expense.vendor_name,
+					maintenance_request_id: expense.maintenance_request_id,
+					created_at: expense.created_at,
+					category: maintenanceRequest?.category ?? 'other',
+					property_id,
+					property_name
+				}
 			}
-		})
+		)
 
 		// Filter by property if specified
 		let filteredExpenses = transformedExpenses
 		if (propertyId) {
-			filteredExpenses = transformedExpenses.filter(e => e.property_id === propertyId)
+			filteredExpenses = transformedExpenses.filter(
+				e => e.property_id === propertyId
+			)
 		}
 
 		// Filter by category if specified
@@ -259,10 +345,11 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * POST /financials/expenses
-	 * Create a new expense record
-	 */
+	@ApiOperation({ summary: 'Create expense', description: 'Create a new expense record linked to a maintenance request' })
+	@ApiBody({ schema: { type: 'object', properties: { amount: { type: 'number' }, expense_date: { type: 'string', format: 'date' }, maintenance_request_id: { type: 'string', format: 'uuid' }, vendor_name: { type: 'string' } }, required: ['amount', 'expense_date', 'maintenance_request_id'] } })
+	@ApiResponse({ status: 201, description: 'Expense created successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('expenses')
 	async createExpense(
 		@Req() req: Request,
@@ -285,7 +372,7 @@ export class FinancialOverviewController {
 
 		if (error) {
 			this.logger.error('Failed to create expense', { error: error.message })
-			throw new Error('Failed to create expense')
+			throw new InternalServerErrorException('Failed to create expense')
 		}
 
 		return {
@@ -296,10 +383,11 @@ export class FinancialOverviewController {
 		}
 	}
 
-	/**
-	 * DELETE /financials/expenses/:id
-	 * Delete an expense record
-	 */
+	@ApiOperation({ summary: 'Delete expense', description: 'Delete an expense record by ID' })
+	@ApiParam({ name: 'id', type: String, description: 'Expense UUID' })
+	@ApiResponse({ status: 200, description: 'Expense deleted successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'Expense not found' })
 	@Delete('expenses/:id')
 	async deleteExpense(
 		@Req() req: Request,
@@ -312,7 +400,7 @@ export class FinancialOverviewController {
 
 		if (error) {
 			this.logger.error('Failed to delete expense', { error: error.message })
-			throw new Error('Failed to delete expense')
+			throw new InternalServerErrorException('Failed to delete expense')
 		}
 
 		return {

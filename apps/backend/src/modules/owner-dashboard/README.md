@@ -127,7 +127,7 @@ async uploadFile(
 
 ### app.module.ts
 ```typescript
-import { OwnerDashboardModule } from './modules/owner-dashboard'
+import { OwnerDashboardModule } from './modules/owner-dashboard/owner-dashboard.module'
 
 @Module({
   imports: [

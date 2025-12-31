@@ -1,56 +1,44 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
-//
-// 1. KISS Principle violation - File Size
-//    Current: ~561 lines
-//    Maximum: 300 lines per CLAUDE.md "Maximum component size: 300 lines"
-//    Recommended refactoring:
-//    - Extract status update logic into: `./maintenance-status.service.ts`
-//    - Extract assignment logic into: `./maintenance-assignment.service.ts`
-//    - Extract analytics/stats into: `./maintenance-stats.service.ts`
-//    - Keep core CRUD operations in this service
-//
-// 2. Sequential Query Anti-Pattern - update() method (lines ~442-458)
-//    Issue: Makes 2 separate queries (units, then properties) that could be 1 joined query
-//    Current: `client.from('units')...` then `client.from('properties')...`
-//    Fix: Use single query with join: `.select('unit_number, property:property_id(name)')`
-//
-// See: CLAUDE.md section "KISS (Keep It Simple)"
-
 /**
  * Maintenance Service - Ultra-Native NestJS Implementation
  * Direct Supabase access, no repository abstractions
  * Simplified: Removed helper methods, consolidated status updates
  */
 
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	ConflictException,
+	Injectable
+} from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
 } from '@repo/shared/validation/maintenance'
-import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority, ExpenseRecord } from '@repo/shared/types/core'
+import type {
+	MaintenanceRequest,
+	MaintenanceStatus,
+	MaintenancePriority,
+	ExpenseRecord
+} from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import {
 	buildMultiColumnSearch,
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
-import { MaintenanceUpdatedEvent } from '../notifications/events/notification.events'
 import { AppLogger } from '../../logger/app-logger.service'
+import { MaintenanceAssignmentService } from './maintenance-assignment.service'
+import { MaintenanceStatusService } from './maintenance-status.service'
 
 @Injectable()
 export class MaintenanceService {
-
-	// Reverse map for converting database priority values to enum values for events
-	private readonly reversePriorityMap: Record<string, 'low' | 'medium' | 'high' | 'urgent'> = {
-		low: 'low',
-		normal: 'medium',
-		high: 'high',
-		urgent: 'urgent'
-	}
-
-	constructor(private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2,
+		private readonly logger: AppLogger,
+		private readonly assignmentService: MaintenanceAssignmentService,
+		private readonly statusService: MaintenanceStatusService
+	) {}
 
 	/**
 	 * Get all maintenance requests for a user with search and filters
@@ -83,7 +71,10 @@ export class MaintenanceService {
 
 			// Apply filters
 			if (query.property_id) {
-				queryBuilder = queryBuilder.eq('property_id', query.property_id as string)
+				queryBuilder = queryBuilder.eq(
+					'property_id',
+					query.property_id as string
+				)
 			}
 			if (query.unit_id) {
 				queryBuilder = queryBuilder.eq('unit_id', query.unit_id as string)
@@ -98,20 +89,32 @@ export class MaintenanceService {
 					'completed',
 					'cancelled'
 				]
-				const normalizedStatus = String(query.status).toLowerCase() as MaintenanceStatus
+				const normalizedStatus = String(
+					query.status
+				).toLowerCase() as MaintenanceStatus
 				if (allowedStatuses.includes(normalizedStatus)) {
 					queryBuilder = queryBuilder.eq('status', normalizedStatus)
 				}
 			}
 			if (query.priority) {
-				const allowedPriorities: MaintenancePriority[] = ['low', 'normal', 'high', 'urgent']
-				const normalizedPriority = String(query.priority).toLowerCase() as MaintenancePriority
+				const allowedPriorities: MaintenancePriority[] = [
+					'low',
+					'normal',
+					'high',
+					'urgent'
+				]
+				const normalizedPriority = String(
+					query.priority
+				).toLowerCase() as MaintenancePriority
 				if (allowedPriorities.includes(normalizedPriority)) {
 					queryBuilder = queryBuilder.eq('priority', normalizedPriority)
 				}
 			}
 			if (query.assigned_to) {
-				queryBuilder = queryBuilder.eq('assigned_to', query.assigned_to as string)
+				queryBuilder = queryBuilder.eq(
+					'assigned_to',
+					query.assigned_to as string
+				)
 			}
 			if (query.dateFrom) {
 				queryBuilder = queryBuilder.gte(
@@ -290,8 +293,16 @@ export class MaintenanceService {
 					priority: priorityMap[createRequest.priority || 'medium'] ?? 'normal',
 					unit_id: createRequest.unit_id,
 					owner_user_id: unit.property.owner_user_id,
-											...(createRequest.scheduled_date ? { scheduled_date: new Date(createRequest.scheduled_date).toISOString() } : {}),
-					...(createRequest.estimated_cost ? { estimated_cost: createRequest.estimated_cost } : {})
+					...(createRequest.scheduled_date
+						? {
+								scheduled_date: new Date(
+									createRequest.scheduled_date
+								).toISOString()
+							}
+						: {}),
+					...(createRequest.estimated_cost
+						? { estimated_cost: createRequest.estimated_cost }
+						: {})
 				}
 
 			const { data, error } = await client
@@ -372,21 +383,6 @@ export class MaintenanceService {
 			// RLS SECURITY: User-scoped client automatically verifies ownership
 			const client = this.supabase.getUserClient(token)
 
-			// Map status and priority to lowercase
-			const priorityMap: Record<string, MaintenancePriority> = {
-				LOW: 'low',
-				MEDIUM: 'normal',
-				HIGH: 'high',
-				URGENT: 'urgent'
-			}
-
-			const statusMap: Record<string, MaintenanceStatus> = {
-				PENDING: 'open',
-				IN_PROGRESS: 'in_progress',
-				COMPLETED: 'completed',
-				CANCELLED: 'cancelled'
-			}
-
 			const updated_data: Database['public']['Tables']['maintenance_requests']['Update'] =
 				{
 					updated_at: new Date().toISOString()
@@ -397,17 +393,10 @@ export class MaintenanceService {
 
 			if (updateRequest.description !== undefined)
 				updated_data.description = updateRequest.description
-			if (updateRequest.priority !== undefined)
-				updated_data.priority = priorityMap[updateRequest.priority] ?? 'normal'
-			if (updateRequest.status !== undefined)
-				updated_data.status = statusMap[updateRequest.status] ?? 'open'
+			this.statusService.applyStatusUpdates(updateRequest, updated_data)
+			this.assignmentService.applyAssignmentUpdates(updateRequest, updated_data)
 			if (updateRequest.estimated_cost !== undefined)
 				updated_data.estimated_cost = updateRequest.estimated_cost
-			if (updateRequest.completed_at !== undefined)
-				updated_data.completed_at = updateRequest.completed_at
-					? new Date(updateRequest.completed_at).toISOString()
-					: null
-
 			// Optimistic locking: Add version check
 			const query = client
 				.from('maintenance_requests')
@@ -438,105 +427,13 @@ export class MaintenanceService {
 				throw new BadRequestException('Failed to update maintenance request')
 			}
 
-				const updated = data as MaintenanceRequest
+			const updated = data as MaintenanceRequest
 
-				// Emit maintenance updated event with inline context
-				if (updated) {
-					// ⚠️ SEQUENTIAL QUERY ANTI-PATTERN - INEFFICIENT DATABASE ACCESS
-					// ═══════════════════════════════════════════════════════════════════════════
-					//
-					// PROBLEM: Two sequential database queries where one joined query would suffice.
-					// This doubles the network latency and database load for every maintenance update.
-					//
-					// CURRENT BEHAVIOR (2 sequential queries):
-					//   Query 1: SELECT unit_number, property_id FROM units WHERE id = ?
-					//   Query 2: SELECT name FROM properties WHERE id = ? (conditional)
-					//   Total: 2 round trips, 2 query executions
-					//
-					// RECOMMENDED FIX (1 joined query):
-					//   const { data: unit } = await client
-					//     .from('units')
-					//     .select('unit_number, property:property_id(name)')
-					//     .eq('id', updated.unit_id)
-					//     .single()
-					//   // Access: unit.unit_number, unit.property?.name
-					//   Total: 1 round trip, 1 query execution
-					//
-					// WHY THIS MATTERS:
-					//   - Each maintenance update triggers these queries
-					//   - High-traffic systems may have 100s of updates/hour
-					//   - Database connection time is ~1-5ms per query (adds up!)
-					//   - Supabase has query limits on free/pro tiers
-					//
-					// ADDITIONAL ISSUE - ERROR HANDLING GAP:
-					//   If Query 1 succeeds but Query 2 fails, we still emit the event with
-					//   'Unknown Property' - this could cause confusing notifications.
-					//   A single joined query fails atomically, making error handling cleaner.
-					//
-					// ═══════════════════════════════════════════════════════════════════════════
-					// Query 1: Get unit data
-					const { data: unit } = await client
-						.from('units')
-						.select('unit_number, property_id')
-						.eq('id', updated.unit_id)
-						.single()
+			if (updated) {
+				await this.statusService.emitUpdatedEvents(client, updated)
+			}
 
-					let propertyName = 'Unknown Property'
-					const unitNumber = unit?.unit_number || 'Unknown Unit'
-
-					// Query 2: Get property name (should be joined above)
-					if (unit?.property_id) {
-						const { data: property } = await client
-							.from('properties')
-							.select('name')
-							.eq('id', unit.property_id)
-							.single()
-						propertyName = property?.name || 'Unknown Property'
-					}
-
-					const title = updated.title || updated.description || 'Maintenance Request'
-					const priority = this.reversePriorityMap[updated.priority] || 'medium'
-					const tenantUserId = updated.requested_by
-					const ownerUserId = updated.owner_user_id
-
-					// Notify tenant (requester) if different from owner.
-					if (tenantUserId && tenantUserId !== ownerUserId) {
-						this.eventEmitter.emit(
-							'maintenance.updated',
-							new MaintenanceUpdatedEvent(
-								tenantUserId,
-								updated.id,
-								title,
-								updated.status,
-								priority,
-								propertyName,
-								unitNumber,
-								updated.description ?? '',
-								`/tenant/maintenance/request/${updated.id}`
-							)
-						)
-					}
-
-					// Always notify owner.
-					if (ownerUserId) {
-						this.eventEmitter.emit(
-							'maintenance.updated',
-							new MaintenanceUpdatedEvent(
-								ownerUserId,
-								updated.id,
-								title,
-								updated.status,
-								priority,
-								propertyName,
-								unitNumber,
-								updated.description ?? '',
-								`/maintenance/${updated.id}`
-							)
-						)
-					}
-				}
-
-				return updated
+			return updated
 		} catch (error) {
 			// Re-throw ConflictException as-is
 			if (error instanceof ConflictException) {
@@ -628,12 +525,17 @@ export class MaintenanceService {
 				throw new BadRequestException('Authentication token is required')
 			}
 
-			this.logger.log('Creating expense via RLS-protected query', { expenseData })
+			this.logger.log('Creating expense via RLS-protected query', {
+				expenseData
+			})
 
 			const client = this.supabase.getUserClient(token)
 
 			// Verify user has access to the maintenance request
-			const maintenanceRequest = await this.findOne(token, expenseData.maintenance_request_id)
+			const maintenanceRequest = await this.findOne(
+				token,
+				expenseData.maintenance_request_id
+			)
 			if (!maintenanceRequest) {
 				throw new BadRequestException('Maintenance request not found')
 			}
@@ -674,14 +576,21 @@ export class MaintenanceService {
 	 * Get expenses for a maintenance request
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's expenses
 	 */
-	async getExpenses(token: string, maintenanceId: string): Promise<ExpenseRecord[]> {
+	async getExpenses(
+		token: string,
+		maintenanceId: string
+	): Promise<ExpenseRecord[]> {
 		try {
 			if (!token || !maintenanceId) {
-				this.logger.warn('Get expenses called with missing parameters', { maintenanceId })
+				this.logger.warn('Get expenses called with missing parameters', {
+					maintenanceId
+				})
 				return []
 			}
 
-			this.logger.log('Getting expenses via RLS-protected query', { maintenanceId })
+			this.logger.log('Getting expenses via RLS-protected query', {
+				maintenanceId
+			})
 
 			const client = this.supabase.getUserClient(token)
 
@@ -716,7 +625,9 @@ export class MaintenanceService {
 	async deleteExpense(token: string, expenseId: string): Promise<void> {
 		try {
 			if (!token || !expenseId) {
-				throw new BadRequestException('Authentication token and expense ID are required')
+				throw new BadRequestException(
+					'Authentication token and expense ID are required'
+				)
 			}
 
 			this.logger.log('Deleting expense via RLS-protected query', { expenseId })

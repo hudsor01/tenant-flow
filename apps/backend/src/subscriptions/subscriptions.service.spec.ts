@@ -11,7 +11,6 @@ import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 
-
 describe('SubscriptionsService (Facade)', () => {
 	let service: SubscriptionsService
 	let mockQueryService: jest.Mocked<SubscriptionQueryService>
@@ -43,7 +42,10 @@ describe('SubscriptionsService (Facade)', () => {
 				SubscriptionsService,
 				{ provide: SubscriptionQueryService, useValue: mockQueryService },
 				{ provide: SubscriptionBillingService, useValue: mockBillingService },
-				{ provide: SubscriptionLifecycleService, useValue: mockLifecycleService },
+				{
+					provide: SubscriptionLifecycleService,
+					useValue: mockLifecycleService
+				},
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -87,7 +89,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.createSubscription(mockUserId, mockRequest)
 
-			expect(mockBillingService.createSubscription).toHaveBeenCalledWith(mockUserId, mockRequest)
+			expect(mockBillingService.createSubscription).toHaveBeenCalledWith(
+				mockUserId,
+				mockRequest
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -101,7 +106,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.getSubscription(mockLeaseId, mockUserId)
 
-			expect(mockQueryService.getSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(mockQueryService.getSubscription).toHaveBeenCalledWith(
+				mockLeaseId,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -115,7 +123,9 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.listSubscriptions(mockUserId)
 
-			expect(mockQueryService.listSubscriptions).toHaveBeenCalledWith(mockUserId)
+			expect(mockQueryService.listSubscriptions).toHaveBeenCalledWith(
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -130,7 +140,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.pauseSubscription(mockLeaseId, mockUserId)
 
-			expect(mockLifecycleService.pauseSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(mockLifecycleService.pauseSubscription).toHaveBeenCalledWith(
+				mockLeaseId,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -145,7 +158,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.resumeSubscription(mockLeaseId, mockUserId)
 
-			expect(mockLifecycleService.resumeSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(mockLifecycleService.resumeSubscription).toHaveBeenCalledWith(
+				mockLeaseId,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -160,7 +176,10 @@ describe('SubscriptionsService (Facade)', () => {
 
 			const result = await service.cancelSubscription(mockLeaseId, mockUserId)
 
-			expect(mockLifecycleService.cancelSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId)
+			expect(mockLifecycleService.cancelSubscription).toHaveBeenCalledWith(
+				mockLeaseId,
+				mockUserId
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})
@@ -174,9 +193,17 @@ describe('SubscriptionsService (Facade)', () => {
 			} as UpdateSubscriptionResponse
 			mockBillingService.updateSubscription.mockResolvedValue(mockResponse)
 
-			const result = await service.updateSubscription(mockLeaseId, mockUserId, mockUpdate)
+			const result = await service.updateSubscription(
+				mockLeaseId,
+				mockUserId,
+				mockUpdate
+			)
 
-			expect(mockBillingService.updateSubscription).toHaveBeenCalledWith(mockLeaseId, mockUserId, mockUpdate)
+			expect(mockBillingService.updateSubscription).toHaveBeenCalledWith(
+				mockLeaseId,
+				mockUserId,
+				mockUpdate
+			)
 			expect(result).toBe(mockResponse)
 		})
 	})

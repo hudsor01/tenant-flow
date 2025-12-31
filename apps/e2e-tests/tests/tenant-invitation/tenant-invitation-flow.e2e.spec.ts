@@ -10,17 +10,24 @@ test.describe('Tenant Invitation Flow', () => {
 	// Test credentials from environment
 	const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL || 'test-admin@tenantflow.app'
 	const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD || 'TestPassword123!'
-	const TENANT_PASSWORD = process.env.E2E_TENANT_PASSWORD || 'TenantPassword123!'
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'https://tenantflow.app'
-	const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://api.tenantflow.app'
+	const TENANT_PASSWORD =
+		process.env.E2E_TENANT_PASSWORD || 'TenantPassword123!'
+	const BASE_URL =
+		process.env.PLAYWRIGHT_BASE_URL ||
+		process.env.BASE_URL ||
+		'https://tenantflow.app'
+	const API_URL =
+		process.env.NEXT_PUBLIC_API_BASE_URL ||
+		process.env.API_URL ||
+		'https://api.tenantflow.app'
 
 	// Test data
 	const testTenant = {
-	email: `test-tenant-${Date.now()}@example.com`,
-	first_name: 'Test',
-	last_name: 'Tenant',
-	phone: '5555551234'
-}
+		email: `test-tenant-${Date.now()}@example.com`,
+		first_name: 'Test',
+		last_name: 'Tenant',
+		phone: '5555551234'
+	}
 
 	let invitationToken: string
 	let tenant_id: string
@@ -34,11 +41,12 @@ test.describe('Tenant Invitation Flow', () => {
 		if (authCookie?.value) return authCookie.value
 
 		return page.evaluate(() => {
-			const tokenKey = Object.keys(localStorage).find(key =>
-				key.includes('auth-token') ||
-				key.includes('access_token') ||
-				key.includes('supabase') ||
-				key.includes('sb-')
+			const tokenKey = Object.keys(localStorage).find(
+				key =>
+					key.includes('auth-token') ||
+					key.includes('access_token') ||
+					key.includes('supabase') ||
+					key.includes('sb-')
 			)
 
 			if (!tokenKey) return null
@@ -104,13 +112,17 @@ test.describe('Tenant Invitation Flow', () => {
 		await page.click('button:has-text("Send Invitation")')
 
 		// Wait for success toast
-		await expect(page.locator('text=Invitation sent successfully')).toBeVisible()
+		await expect(
+			page.locator('text=Invitation sent successfully')
+		).toBeVisible()
 
 		// Verify tenant appears in table
 		await expect(page.locator(`text=${testTenant.email}`)).toBeVisible()
 	})
 
-	test('[Property Owner] Invitation appears in table with SENT badge', async ({ page }) => {
+	test('[Property Owner] Invitation appears in table with SENT badge', async ({
+		page
+	}) => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find the row with our test tenant
@@ -120,7 +132,9 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(tenantRow.locator('text=SENT')).toBeVisible()
 	})
 
-	test('[Property Owner] Resend button appears for SENT status', async ({ page }) => {
+	test('[Property Owner] Resend button appears for SENT status', async ({
+		page
+	}) => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find the row with our test tenant
@@ -130,29 +144,42 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(tenantRow.locator('button:has-text("Resend")')).toBeVisible()
 	})
 
-	test('[Property Owner] Click resend → new email sent, timestamp updated', async ({ page }) => {
+	test('[Property Owner] Click resend → new email sent, timestamp updated', async ({
+		page
+	}) => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Get initial sent_at timestamp
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
-		const initialTimestamp = await tenantRow.locator('[data-testid="sent-at"]').textContent()
+		const initialTimestamp = await tenantRow
+			.locator('[data-testid="sent-at"]')
+			.textContent()
 
 		// Click resend button
 		await tenantRow.locator('button:has-text("Resend")').click()
 
 		// Wait for success toast
-		await expect(page.locator('text=Invitation resent successfully')).toBeVisible()
+		await expect(
+			page.locator('text=Invitation resent successfully')
+		).toBeVisible()
 
 		// Verify timestamp updated
 		await page.reload()
-		const newTimestamp = await tenantRow.locator('[data-testid="sent-at"]').textContent()
+		const newTimestamp = await tenantRow
+			.locator('[data-testid="sent-at"]')
+			.textContent()
 		expect(newTimestamp).not.toBe(initialTimestamp)
 	})
 
-	test('[Tenant] Click valid invitation link → redirects to signup', async ({ page, context }) => {
+	test('[Tenant] Click valid invitation link → redirects to signup', async ({
+		page,
+		context
+	}) => {
 		// Get invitation token from API using bearer auth (cookie fallback removed)
 		const authHeaders = await getAuthHeaders(page)
-		const response = await page.request.get(`${API_URL}/api/v1/tenants`, { headers: authHeaders })
+		const response = await page.request.get(`${API_URL}/api/v1/tenants`, {
+			headers: authHeaders
+		})
 		const tenants = await response.json()
 		const tenant = tenants.find((t: any) => t.email === testTenant.email)
 		invitationToken = tenant.invitation_token
@@ -170,7 +197,10 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(emailInput).toHaveValue(testTenant.email)
 	})
 
-	test('[Tenant] Email pre-filled in signup form', async ({ page, context }) => {
+	test('[Tenant] Email pre-filled in signup form', async ({
+		page,
+		context
+	}) => {
 		const newPage = await context.newPage()
 		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
@@ -182,9 +212,14 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(emailInput).toBeDisabled()
 	})
 
-	test('[Tenant] Complete signup → invitation_status = ACCEPTED', async ({ page, context }) => {
+	test('[Tenant] Complete signup → invitation_status = ACCEPTED', async ({
+		page,
+		context
+	}) => {
 		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/signup?invitation=${invitationToken}&email=${testTenant.email}`)
+		await newPage.goto(
+			`${BASE_URL}/signup?invitation=${invitationToken}&email=${testTenant.email}`
+		)
 
 		// Fill in password
 		await newPage.fill('input[name="password"]', TENANT_PASSWORD)
@@ -197,21 +232,32 @@ test.describe('Tenant Invitation Flow', () => {
 		await newPage.waitForURL(`${BASE_URL}/tenant/**`)
 		// Verify invitation status updated in database
 		const authHeaders = await getAuthHeaders(page)
-		const response = await page.request.get(`${API_URL}/api/v1/tenants/${tenant_id}`, { headers: authHeaders })
+		const response = await page.request.get(
+			`${API_URL}/api/v1/tenants/${tenant_id}`,
+			{ headers: authHeaders }
+		)
 		const tenant = await response.json()
 		expect(tenant.invitation_status).toBe('accepted')
 	})
 
-	test('[Tenant] Try to reuse token → Already Accepted message', async ({ page, context }) => {
+	test('[Tenant] Try to reuse token → Already Accepted message', async ({
+		page,
+		context
+	}) => {
 		const newPage = await context.newPage()
 		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
 
 		// Should show "Already Accepted" message
-		await expect(newPage.locator('text=Invitation Already Accepted')).toBeVisible()
+		await expect(
+			newPage.locator('text=Invitation Already Accepted')
+		).toBeVisible()
 		await expect(newPage.locator('text=Log In to Your Portal')).toBeVisible()
 	})
 
-	test('[Tenant] Click invalid token → Invitation Not Found', async ({ page, context }) => {
+	test('[Tenant] Click invalid token → Invitation Not Found', async ({
+		page,
+		context
+	}) => {
 		const newPage = await context.newPage()
 		const invalidToken = 'a'.repeat(64) // 64 char invalid token (32 bytes = 64 hex chars)
 
@@ -219,7 +265,9 @@ test.describe('Tenant Invitation Flow', () => {
 
 		// Should show "Invitation Not Found" message
 		await expect(newPage.locator('text=Invitation Not Found')).toBeVisible()
-		await expect(newPage.locator('text=Contact your property manager')).toBeVisible()
+		await expect(
+			newPage.locator('text=Contact your property manager')
+		).toBeVisible()
 	})
 
 	test('[Email] Verify invitation email was sent', async ({ page }) => {
@@ -230,12 +278,16 @@ test.describe('Tenant Invitation Flow', () => {
 		const tenantRow = page.locator(`tr:has-text("${testTenant.email}")`)
 
 		// Verify invitation_sent_at is set
-		const sentAt = await tenantRow.locator('[data-testid="sent-at"]').textContent()
+		const sentAt = await tenantRow
+			.locator('[data-testid="sent-at"]')
+			.textContent()
 		expect(sentAt).not.toBeNull()
 		expect(sentAt).not.toBe('')
 	})
 
-	test('[Property Owner] Resend button hidden for ACCEPTED tenants', async ({ page }) => {
+	test('[Property Owner] Resend button hidden for ACCEPTED tenants', async ({
+		page
+	}) => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Find accepted tenant row
@@ -245,10 +297,15 @@ test.describe('Tenant Invitation Flow', () => {
 		await expect(tenantRow.locator('text=ACCEPTED')).toBeVisible()
 
 		// Verify resend button is NOT visible
-		await expect(tenantRow.locator('button:has-text("Resend")')).not.toBeVisible()
+		await expect(
+			tenantRow.locator('button:has-text("Resend")')
+		).not.toBeVisible()
 	})
 
-	test.skip('[Expiry] Wait 7 days → Invitation Expired message', async ({ page, context }) => {
+	test.skip('[Expiry] Wait 7 days → Invitation Expired message', async ({
+		page,
+		context
+	}) => {
 		/**
 		 * SKIPPED: This test requires refactoring to match current invitation system
 		 *
@@ -272,14 +329,19 @@ test.describe('Email Template Tests', () => {
 	 * without requiring Resend API access or email inbox integration.
 	 */
 
-	const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || process.env.BASE_URL || 'https://tenantflow.app'
+	const BASE_URL =
+		process.env.PLAYWRIGHT_BASE_URL ||
+		process.env.BASE_URL ||
+		'https://tenantflow.app'
 
 	test.beforeEach(async ({ page }) => {
 		// Login before each email template test
 		await loginAsOwner(page)
 	})
 
-	test('[Email] Invitation email contains required elements', async ({ page }) => {
+	test('[Email] Invitation email contains required elements', async ({
+		page
+	}) => {
 		// Mock the email API to capture the email payload
 		let emailPayload: any = null
 
@@ -343,7 +405,9 @@ test.describe('Email Template Tests', () => {
 		await page.waitForTimeout(1000)
 
 		// Extract invitation link from HTML
-		const linkMatch = emailPayload.html.match(/href="([^"]*\/accept-invite\?code=[a-f0-9]{64}[^"]*)"/i)
+		const linkMatch = emailPayload.html.match(
+			/href="([^"]*\/accept-invite\?code=[a-f0-9]{64}[^"]*)"/i
+		)
 		expect(linkMatch).not.toBeNull()
 
 		const invitationLink = linkMatch[1]
@@ -385,6 +449,8 @@ test.describe('Email Template Tests', () => {
 		const plainText = emailPayload.text || emailPayload.plainText
 
 		// Should contain invitation URL
-		expect(plainText).toMatch(/https?:\/\/.*\/accept-invite\?code=[a-f0-9]{64}/i)
+		expect(plainText).toMatch(
+			/https?:\/\/.*\/accept-invite\?code=[a-f0-9]{64}/i
+		)
 	})
 })

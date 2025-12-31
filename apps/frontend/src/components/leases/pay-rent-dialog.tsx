@@ -33,7 +33,12 @@ interface PayRentDialogProps {
 	onSuccess?: () => void
 }
 
-export function PayRentDialog({ open, onOpenChange, lease, onSuccess }: PayRentDialogProps) {
+export function PayRentDialog({
+	open,
+	onOpenChange,
+	lease,
+	onSuccess
+}: PayRentDialogProps) {
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')
 
@@ -111,12 +116,8 @@ export function PayRentDialog({ open, onOpenChange, lease, onSuccess }: PayRentD
 				<DialogBody>
 					{/* Rent Amount Display */}
 					<div className="p-4 bg-muted rounded-lg">
-						<p className="text-muted mb-[var(--spacing-1)]">
-							Rent Amount
-						</p>
-						<p className="typography-h3">
-							{formatCurrency(lease.rent_amount)}
-						</p>
+						<p className="text-muted mb-[var(--spacing-1)]">Rent Amount</p>
+						<p className="typography-h3">{formatCurrency(lease.rent_amount)}</p>
 					</div>
 
 					{/* Payment Method Selection */}

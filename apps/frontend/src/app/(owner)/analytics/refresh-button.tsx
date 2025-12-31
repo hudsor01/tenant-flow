@@ -60,12 +60,12 @@ export function RefreshButton({
 
 			// Start cooldown
 			setCooldownRemaining(cooldownSeconds)
-			
+
 			// Clear any existing interval before creating new one
 			if (intervalRef.current) {
 				clearInterval(intervalRef.current)
 			}
-			
+
 			intervalRef.current = setInterval(() => {
 				setCooldownRemaining(prev => {
 					if (prev <= 1) {

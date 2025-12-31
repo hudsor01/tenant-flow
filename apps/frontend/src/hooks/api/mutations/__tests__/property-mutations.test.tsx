@@ -51,7 +51,7 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: mockSupabaseFrom,
 		auth: {
@@ -76,9 +76,7 @@ function createWrapper() {
 
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
-			<QueryClientProvider client={queryClient}>
-				{children}
-			</QueryClientProvider>
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
 	}
 }
@@ -98,7 +96,10 @@ describe('useUpdatePropertyMutation', () => {
 		mockFetch.mockResolvedValue({
 			ok: true,
 			json: () => Promise.resolve({ id: 'prop-123', name: 'Updated Property' }),
-			text: () => Promise.resolve(JSON.stringify({ id: 'prop-123', name: 'Updated Property' }))
+			text: () =>
+				Promise.resolve(
+					JSON.stringify({ id: 'prop-123', name: 'Updated Property' })
+				)
 		})
 	})
 
@@ -155,7 +156,9 @@ describe('useUpdatePropertyMutation', () => {
 			data: { name: 'Updated' }
 		})
 
-		expect(mockToastSuccess).toHaveBeenCalledWith('Property updated successfully')
+		expect(mockToastSuccess).toHaveBeenCalledWith(
+			'Property updated successfully'
+		)
 	})
 
 	it('should call handleMutationError on failure', async () => {
@@ -176,7 +179,10 @@ describe('useUpdatePropertyMutation', () => {
 			})
 		).rejects.toThrow()
 
-		expect(mockHandleMutationError).toHaveBeenCalledWith(expect.any(Error), 'Update property')
+		expect(mockHandleMutationError).toHaveBeenCalledWith(
+			expect.any(Error),
+			'Update property'
+		)
 	})
 })
 
@@ -224,7 +230,9 @@ describe('useDeletePropertyMutation', () => {
 
 		await result.current.mutateAsync('prop-123')
 
-		expect(mockToastSuccess).toHaveBeenCalledWith('Property deleted successfully')
+		expect(mockToastSuccess).toHaveBeenCalledWith(
+			'Property deleted successfully'
+		)
 	})
 
 	it('should call handleMutationError on failure', async () => {
@@ -240,7 +248,10 @@ describe('useDeletePropertyMutation', () => {
 
 		await expect(result.current.mutateAsync('prop-123')).rejects.toThrow()
 
-		expect(mockHandleMutationError).toHaveBeenCalledWith(expect.any(Error), 'Delete property')
+		expect(mockHandleMutationError).toHaveBeenCalledWith(
+			expect.any(Error),
+			'Delete property'
+		)
 	})
 })
 
@@ -289,7 +300,9 @@ describe('useDeletePropertyImageMutation', () => {
 			imagePath: 'prop-123/image.webp'
 		})
 
-		expect(mockSupabaseStorageRemove).toHaveBeenCalledWith(['prop-123/image.webp'])
+		expect(mockSupabaseStorageRemove).toHaveBeenCalledWith([
+			'prop-123/image.webp'
+		])
 	})
 
 	it('should not call storage remove when imagePath is not provided', async () => {
