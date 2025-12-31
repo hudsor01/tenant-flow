@@ -1,21 +1,28 @@
 import type { Metadata } from 'next'
 
 const DEV_APP_URL = 'http://localhost:3000'
+const PRODUCTION_URL = 'https://tenantflow.app'
 
 // Use getter to ensure env var is read at runtime, not compile time
-// Falls back to localhost in development, requires env var in production
+// Falls back to VERCEL_URL during build, localhost in dev, or production URL as final fallback
 function getSiteUrl(): string {
-	const url =
-		process.env.NEXT_PUBLIC_APP_URL ||
-		(process.env.NODE_ENV === 'production' ? undefined : DEV_APP_URL)
-
-	if (!url) {
-		throw new Error(
-			'NEXT_PUBLIC_APP_URL environment variable is required in production. ' +
-				'Set it in your deployment environment.'
-		)
+	// Primary: explicit app URL
+	if (process.env.NEXT_PUBLIC_APP_URL) {
+		return process.env.NEXT_PUBLIC_APP_URL
 	}
-	return url
+
+	// Vercel provides this during build and runtime
+	if (process.env.VERCEL_URL) {
+		return `https://${process.env.VERCEL_URL}`
+	}
+
+	// Development fallback
+	if (process.env.NODE_ENV !== 'production') {
+		return DEV_APP_URL
+	}
+
+	// Production fallback for static generation
+	return PRODUCTION_URL
 }
 
 // Lazy initialization - computed when first accessed
