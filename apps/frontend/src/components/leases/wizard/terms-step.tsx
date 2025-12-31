@@ -7,7 +7,12 @@
  * Note: Validation is handled by Zod schemas in @repo/shared/validation/lease-wizard.schemas.ts
  * This component only handles display/input - uses type="text" with inputMode for mobile keyboards
  */
-import { Field, FieldLabel, FieldDescription, FieldGroup } from '#components/ui/field'
+import {
+	Field,
+	FieldLabel,
+	FieldDescription,
+	FieldGroup
+} from '#components/ui/field'
 import { Input } from '#components/ui/input'
 import type { TermsStepData } from '@repo/shared/validation/lease-wizard.schemas'
 
@@ -44,7 +49,7 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 	return (
 		<div className="space-y-6">
 			<div>
-				<h3 className="typography-large mb-4">Lease Terms</h3>
+				<h3 className="text-lg font-medium mb-4">Lease Terms</h3>
 				<p className="text-muted-foreground text-sm mb-6">
 					Set the lease duration and financial terms.
 				</p>
@@ -87,18 +92,24 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.rent_amount)}
-							onChange={e => handleChange('rent_amount', parseCents(e.target.value))}
+							onChange={e =>
+								handleChange('rent_amount', parseCents(e.target.value))
+							}
 						/>
 					</Field>
 					<Field>
-						<FieldLabel htmlFor="security_deposit">Security Deposit ($)</FieldLabel>
+						<FieldLabel htmlFor="security_deposit">
+							Security Deposit ($)
+						</FieldLabel>
 						<Input
 							id="security_deposit"
 							type="text"
 							inputMode="decimal"
 							placeholder="1500.00"
 							value={centsToDisplay(data.security_deposit)}
-							onChange={e => handleChange('security_deposit', parseCents(e.target.value))}
+							onChange={e =>
+								handleChange('security_deposit', parseCents(e.target.value))
+							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
 					</Field>
@@ -113,19 +124,25 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							inputMode="numeric"
 							placeholder="1"
 							value={data.payment_day}
-							onChange={e => handleChange('payment_day', parseInteger(e.target.value))}
+							onChange={e =>
+								handleChange('payment_day', parseInteger(e.target.value))
+							}
 						/>
 						<FieldDescription>Day rent is due (1-31)</FieldDescription>
 					</Field>
 					<Field>
-						<FieldLabel htmlFor="grace_period_days">Grace Period (days)</FieldLabel>
+						<FieldLabel htmlFor="grace_period_days">
+							Grace Period (days)
+						</FieldLabel>
 						<Input
 							id="grace_period_days"
 							type="text"
 							inputMode="numeric"
 							placeholder="3"
 							value={data.grace_period_days ?? ''}
-							onChange={e => handleChange('grace_period_days', parseInteger(e.target.value))}
+							onChange={e =>
+								handleChange('grace_period_days', parseInteger(e.target.value))
+							}
 						/>
 						<FieldDescription>Days before late fee</FieldDescription>
 					</Field>
@@ -137,7 +154,9 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							inputMode="decimal"
 							placeholder="50.00"
 							value={centsToDisplay(data.late_fee_amount)}
-							onChange={e => handleChange('late_fee_amount', parseCents(e.target.value))}
+							onChange={e =>
+								handleChange('late_fee_amount', parseCents(e.target.value))
+							}
 						/>
 						<FieldDescription>Optional, defaults to $0</FieldDescription>
 					</Field>

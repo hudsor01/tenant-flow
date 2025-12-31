@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { cn } from '#lib/utils'
 import type { BlurFadeProps } from '@repo/shared/types/frontend'
@@ -94,15 +94,16 @@ export function BlurFade({
 			? 'opacity-100'
 			: 'opacity-0'
 		: shouldAnimate
-		? selectedPreset?.visible
-		: selectedPreset?.hidden
+			? selectedPreset?.visible
+			: selectedPreset?.hidden
 
-	const durationClass = {
-		150: '[transition-duration:var(--duration-instant)]',
-		200: '[transition-duration:var(--duration-fast)]',
-		300: '[transition-duration:var(--duration-normal)]',
-		500: '[transition-duration:var(--duration-slow)]'
-	}[duration] || '[transition-duration:var(--duration-fast)]'
+	const durationClass =
+		{
+			150: '[transition-duration:var(--duration-instant)]',
+			200: '[transition-duration:var(--duration-fast)]',
+			300: '[transition-duration:var(--duration-normal)]',
+			500: '[transition-duration:var(--duration-slow)]'
+		}[duration] || '[transition-duration:var(--duration-fast)]'
 
 	return (
 		<div

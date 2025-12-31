@@ -23,10 +23,10 @@ interface LeaseWithTenant {
 	rent_amount: number
 	primary_tenant_id: string
 	unit_id: string
+	auto_pay_enabled: boolean
 	tenant?: {
 		id: string
 		user_id: string
-		autopay_enabled: boolean
 		users?: {
 			first_name: string | null
 			last_name: string | null
@@ -96,10 +96,10 @@ export class PaymentReminderService {
 					rent_amount,
 					primary_tenant_id,
 					unit_id,
+					auto_pay_enabled,
 					tenant:tenants!primary_tenant_id(
 						id,
 						user_id,
-						autopay_enabled,
 						users(first_name, last_name, email)
 					),
 					unit:units!unit_id(
@@ -167,7 +167,7 @@ export class PaymentReminderService {
 							currency: 'usd',
 							dueDate: nextDueDate.toISOString(),
 							daysUntilDue,
-							autopayEnabled: lease.tenant.autopay_enabled ?? false
+							autopayEnabled: lease.auto_pay_enabled ?? false
 						}
 
 						// Only add unitNumber if it's defined
@@ -184,7 +184,9 @@ export class PaymentReminderService {
 					}
 				} catch (leaseError) {
 					const errorMessage =
-						leaseError instanceof Error ? leaseError.message : String(leaseError)
+						leaseError instanceof Error
+							? leaseError.message
+							: String(leaseError)
 					errors.push(`Lease ${lease.id}: ${errorMessage}`)
 				}
 			}
@@ -323,7 +325,9 @@ export class PaymentReminderService {
 	/**
 	 * Queue payment reminder email
 	 */
-	private async queuePaymentReminderEmail(data: PaymentReminderData): Promise<void> {
+	private async queuePaymentReminderEmail(
+		data: PaymentReminderData
+	): Promise<void> {
 		const appUrl = this.config.getNextPublicAppUrl()
 		const paymentUrl = `${appUrl}/tenant`
 

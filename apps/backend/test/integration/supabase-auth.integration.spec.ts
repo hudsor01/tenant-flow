@@ -174,7 +174,11 @@ describe('Supabase auth integration', () => {
 			property_type: 'APARTMENT'
 		}
 
-		await adminClient.from('properties').insert(propertyPayload).select().single()
+		await adminClient
+			.from('properties')
+			.insert(propertyPayload)
+			.select()
+			.single()
 
 		expect(propertyChain.insert).toHaveBeenCalledWith(propertyPayload)
 		expect(propertyChain.select).toHaveBeenCalled()

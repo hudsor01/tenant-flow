@@ -20,8 +20,12 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Use TEST_* env vars for integration tests (separate from production)
 // Falls back to standard vars for backwards compatibility
-const SUPABASE_URL = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-const SUPABASE_SECRET_KEY = process.env.TEST_SUPABASE_SECRET_KEY || process.env.SB_SECRET_KEY
+const SUPABASE_URL =
+	process.env.TEST_SUPABASE_URL ||
+	process.env.NEXT_PUBLIC_SUPABASE_URL ||
+	process.env.SUPABASE_URL
+const SUPABASE_SECRET_KEY =
+	process.env.TEST_SUPABASE_SECRET_KEY || process.env.SB_SECRET_KEY
 
 const missingEnv: string[] = []
 if (!SUPABASE_URL) missingEnv.push('TEST_SUPABASE_URL')
@@ -32,9 +36,9 @@ const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
 if (missingEnv.length > 0 && shouldRunIntegration) {
 	throw new Error(
 		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
-		`Set these in Doppler or CI secrets:\n` +
-		`  - TEST_SUPABASE_URL (e.g., http://127.0.0.1:54321)\n` +
-		`  - TEST_SUPABASE_SECRET_KEY (from \`supabase status\`)`
+			`Set these in Doppler or CI secrets:\n` +
+			`  - TEST_SUPABASE_URL (e.g., http://127.0.0.1:54321)\n` +
+			`  - TEST_SUPABASE_SECRET_KEY (from \`supabase status\`)`
 	)
 }
 
@@ -43,10 +47,10 @@ const describeIntegration = missingEnv.length > 0 ? describe.skip : describe
 if (missingEnv.length > 0) {
 	console.warn(
 		`WARNING  Skipping EventIdempotency integration tests. Missing env: ${missingEnv.join(', ')}\n` +
-		`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n` +
-		`   Required env vars:\n` +
-		`   - TEST_SUPABASE_URL=http://127.0.0.1:54321\n` +
-		`   - TEST_SUPABASE_SECRET_KEY=<from supabase status>`
+			`   Set RUN_INTEGRATION_TESTS=true to fail instead of skip.\n` +
+			`   Required env vars:\n` +
+			`   - TEST_SUPABASE_URL=http://127.0.0.1:54321\n` +
+			`   - TEST_SUPABASE_SECRET_KEY=<from supabase status>`
 	)
 }
 
@@ -98,11 +102,14 @@ describeIntegration('EventIdempotencyService Integration Tests', () => {
 			const idempotencyKey = `key_${Date.now()}`
 			const payloadHash = 'hash123'
 
-			const { data, error } = await adminClient.rpc('acquire_internal_event_lock', {
-				p_event_name: eventName,
-				p_idempotency_key: idempotencyKey,
-				p_payload_hash: payloadHash
-			})
+			const { data, error } = await adminClient.rpc(
+				'acquire_internal_event_lock',
+				{
+					p_event_name: eventName,
+					p_idempotency_key: idempotencyKey,
+					p_payload_hash: payloadHash
+				}
+			)
 
 			expect(error).toBeNull()
 			expect(data).toBeDefined()
@@ -146,30 +153,39 @@ describeIntegration('EventIdempotencyService Integration Tests', () => {
 			expect(secondRows[0]).toHaveProperty('lock_acquired', false)
 		})
 
-		maybeIt('allows same idempotency key for different event names', async () => {
-			const idempotencyKey = `shared_key_${Date.now()}`
-			const payloadHash = 'hash789'
+		maybeIt(
+			'allows same idempotency key for different event names',
+			async () => {
+				const idempotencyKey = `shared_key_${Date.now()}`
+				const payloadHash = 'hash789'
 
-			// First event type
-			const { data: data1 } = await adminClient.rpc('acquire_internal_event_lock', {
-				p_event_name: `${testEventPrefix}_event_type_a`,
-				p_idempotency_key: idempotencyKey,
-				p_payload_hash: payloadHash
-			})
+				// First event type
+				const { data: data1 } = await adminClient.rpc(
+					'acquire_internal_event_lock',
+					{
+						p_event_name: `${testEventPrefix}_event_type_a`,
+						p_idempotency_key: idempotencyKey,
+						p_payload_hash: payloadHash
+					}
+				)
 
-			// Different event type with same idempotency key
-			const { data: data2 } = await adminClient.rpc('acquire_internal_event_lock', {
-				p_event_name: `${testEventPrefix}_event_type_b`,
-				p_idempotency_key: idempotencyKey,
-				p_payload_hash: payloadHash
-			})
+				// Different event type with same idempotency key
+				const { data: data2 } = await adminClient.rpc(
+					'acquire_internal_event_lock',
+					{
+						p_event_name: `${testEventPrefix}_event_type_b`,
+						p_idempotency_key: idempotencyKey,
+						p_payload_hash: payloadHash
+					}
+				)
 
-			const rows1 = Array.isArray(data1) ? data1 : [data1]
-			const rows2 = Array.isArray(data2) ? data2 : [data2]
+				const rows1 = Array.isArray(data1) ? data1 : [data1]
+				const rows2 = Array.isArray(data2) ? data2 : [data2]
 
-			expect(rows1[0]).toHaveProperty('lock_acquired', true)
-			expect(rows2[0]).toHaveProperty('lock_acquired', true)
-		})
+				expect(rows1[0]).toHaveProperty('lock_acquired', true)
+				expect(rows2[0]).toHaveProperty('lock_acquired', true)
+			}
+		)
 
 		maybeIt('creates event record with processing status', async () => {
 			const eventName = `${testEventPrefix}_status_check`
@@ -198,44 +214,47 @@ describeIntegration('EventIdempotencyService Integration Tests', () => {
 	})
 
 	describe('Concurrent lock acquisition (race condition safety)', () => {
-		maybeIt('only one of multiple concurrent requests acquires lock', async () => {
-			const eventName = `${testEventPrefix}_concurrent`
-			const idempotencyKey = `concurrent_key_${Date.now()}`
-			const payloadHash = 'concurrent_hash'
+		maybeIt(
+			'only one of multiple concurrent requests acquires lock',
+			async () => {
+				const eventName = `${testEventPrefix}_concurrent`
+				const idempotencyKey = `concurrent_key_${Date.now()}`
+				const payloadHash = 'concurrent_hash'
 
-			// Fire 10 concurrent lock acquisition requests
-			const concurrentRequests = Array.from({ length: 10 }, () =>
-				adminClient.rpc('acquire_internal_event_lock', {
-					p_event_name: eventName,
-					p_idempotency_key: idempotencyKey,
-					p_payload_hash: payloadHash
-				})
-			)
+				// Fire 10 concurrent lock acquisition requests
+				const concurrentRequests = Array.from({ length: 10 }, () =>
+					adminClient.rpc('acquire_internal_event_lock', {
+						p_event_name: eventName,
+						p_idempotency_key: idempotencyKey,
+						p_payload_hash: payloadHash
+					})
+				)
 
-			const results = await Promise.all(concurrentRequests)
+				const results = await Promise.all(concurrentRequests)
 
-			// Count how many acquired the lock
-			let locksAcquired = 0
-			for (const result of results) {
-				expect(result.error).toBeNull()
-				const rows = Array.isArray(result.data) ? result.data : [result.data]
-				if (rows[0]?.lock_acquired === true) {
-					locksAcquired++
+				// Count how many acquired the lock
+				let locksAcquired = 0
+				for (const result of results) {
+					expect(result.error).toBeNull()
+					const rows = Array.isArray(result.data) ? result.data : [result.data]
+					if (rows[0]?.lock_acquired === true) {
+						locksAcquired++
+					}
 				}
+
+				// Exactly one should have acquired the lock
+				expect(locksAcquired).toBe(1)
+
+				// Verify only one record exists in database
+				const { data: records } = await adminClient
+					.from('processed_internal_events')
+					.select('*')
+					.eq('event_name', eventName)
+					.eq('idempotency_key', idempotencyKey)
+
+				expect(records).toHaveLength(1)
 			}
-
-			// Exactly one should have acquired the lock
-			expect(locksAcquired).toBe(1)
-
-			// Verify only one record exists in database
-			const { data: records } = await adminClient
-				.from('processed_internal_events')
-				.select('*')
-				.eq('event_name', eventName)
-				.eq('idempotency_key', idempotencyKey)
-
-			expect(records).toHaveLength(1)
-		})
+		)
 
 		maybeIt('handles high concurrency without errors', async () => {
 			const eventName = `${testEventPrefix}_high_concurrency`
@@ -414,57 +433,65 @@ describeIntegration('EventIdempotencyService Integration Tests', () => {
 	})
 
 	describe('Idempotency key collision resistance', () => {
-		maybeIt('different payloads produce different idempotency keys', async () => {
-			const eventName = `${testEventPrefix}_key_collision`
+		maybeIt(
+			'different payloads produce different idempotency keys',
+			async () => {
+				const eventName = `${testEventPrefix}_key_collision`
 
-			// These should all succeed as they have different keys
-			const payloads = [
-				{ user_id: '1', amount: 100 },
-				{ user_id: '1', amount: 200 },
-				{ user_id: '2', amount: 100 }
-			]
+				// These should all succeed as they have different keys
+				const payloads = [
+					{ user_id: '1', amount: 100 },
+					{ user_id: '1', amount: 200 },
+					{ user_id: '2', amount: 100 }
+				]
 
-			const results = await Promise.all(
-				payloads.map((payload, index) =>
-					adminClient.rpc('acquire_internal_event_lock', {
-						p_event_name: eventName,
-						p_idempotency_key: `payload_${JSON.stringify(payload)}_${index}`,
-						p_payload_hash: `hash_${index}`
-					})
+				const results = await Promise.all(
+					payloads.map((payload, index) =>
+						adminClient.rpc('acquire_internal_event_lock', {
+							p_event_name: eventName,
+							p_idempotency_key: `payload_${JSON.stringify(payload)}_${index}`,
+							p_payload_hash: `hash_${index}`
+						})
+					)
 				)
-			)
 
-			// All should acquire locks (different keys)
-			for (const result of results) {
-				expect(result.error).toBeNull()
-				const rows = Array.isArray(result.data) ? result.data : [result.data]
-				expect(rows[0]).toHaveProperty('lock_acquired', true)
+				// All should acquire locks (different keys)
+				for (const result of results) {
+					expect(result.error).toBeNull()
+					const rows = Array.isArray(result.data) ? result.data : [result.data]
+					expect(rows[0]).toHaveProperty('lock_acquired', true)
+				}
 			}
-		})
+		)
 	})
 
 	describe('Table constraints', () => {
-		maybeIt('enforces unique constraint on (event_name, idempotency_key)', async () => {
-			const eventName = `${testEventPrefix}_unique_constraint`
-			const idempotencyKey = `unique_key_${Date.now()}`
+		maybeIt(
+			'enforces unique constraint on (event_name, idempotency_key)',
+			async () => {
+				const eventName = `${testEventPrefix}_unique_constraint`
+				const idempotencyKey = `unique_key_${Date.now()}`
 
-			// First insert via RPC
-			await adminClient.rpc('acquire_internal_event_lock', {
-				p_event_name: eventName,
-				p_idempotency_key: idempotencyKey,
-				p_payload_hash: 'hash1'
-			})
+				// First insert via RPC
+				await adminClient.rpc('acquire_internal_event_lock', {
+					p_event_name: eventName,
+					p_idempotency_key: idempotencyKey,
+					p_payload_hash: 'hash1'
+				})
 
-			// Direct insert with same key should fail
-			const { error } = await adminClient.from('processed_internal_events').insert({
-				event_name: eventName,
-				idempotency_key: idempotencyKey,
-				payload_hash: 'hash2'
-			})
+				// Direct insert with same key should fail
+				const { error } = await adminClient
+					.from('processed_internal_events')
+					.insert({
+						event_name: eventName,
+						idempotency_key: idempotencyKey,
+						payload_hash: 'hash2'
+					})
 
-			expect(error).not.toBeNull()
-			expect(error?.message).toContain('duplicate key')
-		})
+				expect(error).not.toBeNull()
+				expect(error?.message).toContain('duplicate key')
+			}
+		)
 
 		maybeIt('validates status values', async () => {
 			const eventName = `${testEventPrefix}_status_validation`
@@ -508,7 +535,9 @@ describeIntegration('EventIdempotencyService Integration Tests', () => {
 			const avgTime = times.reduce((a, b) => a + b, 0) / times.length
 			const maxTime = Math.max(...times)
 
-			console.log(`Lock acquisition times - Avg: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`)
+			console.log(
+				`Lock acquisition times - Avg: ${avgTime.toFixed(2)}ms, Max: ${maxTime}ms`
+			)
 
 			expect(avgTime).toBeLessThan(100)
 			expect(maxTime).toBeLessThan(500) // Allow for occasional slow queries

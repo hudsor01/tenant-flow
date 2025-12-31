@@ -5,23 +5,23 @@
  */
 
 export interface EmailParams {
-  to: string
-  customerName?: string
-  subscriptionId?: string
-  planName?: string
-  amount?: number
-  currency?: string
-  interval?: 'month' | 'year'
-  nextBillingDate?: string
-  trialEndDate?: string
-  failureReason?: string
+	to: string
+	customerName?: string
+	subscriptionId?: string
+	planName?: string
+	amount?: number
+	currency?: string
+	interval?: 'month' | 'year'
+	nextBillingDate?: string
+	trialEndDate?: string
+	failureReason?: string
 }
 
 export const emailTemplates = {
-  subscriptionCreated: (params: EmailParams) => ({
-    to: params.to,
-    subject: `Welcome to ${params.planName}!`,
-    html: `
+	subscriptionCreated: (params: EmailParams) => ({
+		to: params.to,
+		subject: `Welcome to ${params.planName}!`,
+		html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome to TenantFlow!</h2>
         <p>Hi ${params.customerName || 'there'},</p>
@@ -35,12 +35,12 @@ export const emailTemplates = {
         <p>Thanks for choosing TenantFlow!</p>
       </div>
     `
-  }),
+	}),
 
-  subscriptionCancelled: (params: EmailParams) => ({
-    to: params.to,
-    subject: 'Subscription Cancelled',
-    html: `
+	subscriptionCancelled: (params: EmailParams) => ({
+		to: params.to,
+		subject: 'Subscription Cancelled',
+		html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Subscription Cancelled</h2>
         <p>Hi ${params.customerName || 'there'},</p>
@@ -50,12 +50,12 @@ export const emailTemplates = {
         <p><a href="https://tenantflow.app/settings/billing">Manage Billing</a></p>
       </div>
     `
-  }),
+	}),
 
-  paymentFailed: (params: EmailParams) => ({
-    to: params.to,
-    subject: 'Payment Failed - Action Required',
-    html: `
+	paymentFailed: (params: EmailParams) => ({
+		to: params.to,
+		subject: 'Payment Failed - Action Required',
+		html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Payment Failed</h2>
         <p>Hi ${params.customerName || 'there'},</p>
@@ -65,12 +65,12 @@ export const emailTemplates = {
         <p><a href="https://tenantflow.app/settings/billing" style="background: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Update Payment Method</a></p>
       </div>
     `
-  }),
+	}),
 
-  trialEndingSoon: (params: EmailParams) => ({
-    to: params.to,
-    subject: 'Your Trial Ends Soon',
-    html: `
+	trialEndingSoon: (params: EmailParams) => ({
+		to: params.to,
+		subject: 'Your Trial Ends Soon',
+		html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Your Trial Ends Soon</h2>
         <p>Hi ${params.customerName || 'there'},</p>
@@ -79,5 +79,5 @@ export const emailTemplates = {
         <p><a href="https://tenantflow.app/pricing" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Upgrade Now</a></p>
       </div>
     `
-  })
+	})
 }

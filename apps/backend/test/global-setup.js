@@ -15,7 +15,9 @@ module.exports = async () => {
 	// Set SUPABASE_URL = NEXT_PUBLIC_SUPABASE_URL if not already set
 	if (!process.env.SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_URL) {
 		process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-		console.log(`✓ Global setup: Using NEXT_PUBLIC_SUPABASE_URL for SUPABASE_URL`)
+		console.log(
+			`✓ Global setup: Using NEXT_PUBLIC_SUPABASE_URL for SUPABASE_URL`
+		)
 	}
 
 	// Similarly, ensure SUPABASE_PUBLISHABLE_KEY is set
@@ -43,7 +45,8 @@ module.exports = async () => {
 		STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret_for_testing',
 		SUPPORT_EMAIL: 'support@test.local',
 		RESEND_API_KEY: 're_test_mock_resend_api_key_for_testing',
-		IDEMPOTENCY_KEY_SECRET: 'test_idempotency_secret_min_32_chars_long_for_testing'
+		IDEMPOTENCY_KEY_SECRET:
+			'test_idempotency_secret_min_32_chars_long_for_testing'
 	}
 
 	for (const [key, value] of Object.entries(requiredTestVars)) {

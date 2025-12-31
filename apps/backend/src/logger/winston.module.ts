@@ -3,10 +3,7 @@ import { WinstonModule } from 'nest-winston'
 import { AppConfigService } from '../config/app-config.service'
 import { SharedModule } from '../shared/shared.module'
 import { AppLogger } from './app-logger.service'
-import {
-	DEFAULT_LOG_DIR,
-	DEFAULT_SERVICE_NAME
-} from './winston.config'
+import { DEFAULT_LOG_DIR, DEFAULT_SERVICE_NAME } from './winston.config'
 import {
 	baseLoggerOptions,
 	createConsoleTransport,

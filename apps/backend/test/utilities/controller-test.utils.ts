@@ -17,9 +17,9 @@ import * as request from 'supertest'
  * Controller test result
  */
 export interface ControllerTestResult {
-  status: number
-  body: unknown
-  headers: Record<string, string>
+	status: number
+	body: unknown
+	headers: Record<string, string>
 }
 
 /**
@@ -44,14 +44,23 @@ export interface ControllerTestResult {
  * ```
  */
 export interface ControllerTestBed<TService = unknown> {
-  app: INestApplication
-  service: TService
-  get: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
-  post: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
-  put: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
-  delete: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
-  patch: <T>(path: string, body: unknown) => Promise<ControllerTestResult & { body: T }>
-  close: () => Promise<void>
+	app: INestApplication
+	service: TService
+	get: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
+	post: <T>(
+		path: string,
+		body: unknown
+	) => Promise<ControllerTestResult & { body: T }>
+	put: <T>(
+		path: string,
+		body: unknown
+	) => Promise<ControllerTestResult & { body: T }>
+	delete: <T>(path: string) => Promise<ControllerTestResult & { body: T }>
+	patch: <T>(
+		path: string,
+		body: unknown
+	) => Promise<ControllerTestResult & { body: T }>
+	close: () => Promise<void>
 }
 
 type Constructor<T> = new (...args: unknown[]) => T
@@ -60,88 +69,101 @@ type Constructor<T> = new (...args: unknown[]) => T
  * Create a testbed for controller testing with Supertest
  */
 export async function createControllerTest<TController, TService>(
-  controllerClass: Constructor<TController>,
-  serviceClass: Constructor<TService>,
-  serviceMocks: Partial<TService> = {}
+	controllerClass: Constructor<TController>,
+	serviceClass: Constructor<TService>,
+	serviceMocks: Partial<TService> = {}
 ): Promise<ControllerTestBed<TService>> {
-  const mockService: Record<string, jest.Mock> = {}
-  Object.keys(serviceMocks).forEach(key => {
-    mockService[key] = jest.fn().mockResolvedValue(
-      serviceMocks[key as keyof TService]
-    )
-  })
+	const mockService: Record<string, jest.Mock> = {}
+	Object.keys(serviceMocks).forEach(key => {
+		mockService[key] = jest
+			.fn()
+			.mockResolvedValue(serviceMocks[key as keyof TService])
+	})
 
-  const moduleRef: TestingModule = await Test.createTestingModule({
-    controllers: [controllerClass],
-    providers: [
-      {
-        provide: serviceClass,
-        useValue: mockService
-      }
-    ]
-  }).compile()
+	const moduleRef: TestingModule = await Test.createTestingModule({
+		controllers: [controllerClass],
+		providers: [
+			{
+				provide: serviceClass,
+				useValue: mockService
+			}
+		]
+	}).compile()
 
-  const app = moduleRef.createNestApplication()
-  await app.init()
+	const app = moduleRef.createNestApplication()
+	await app.init()
 
-  const httpServer = app.getHttpServer()
+	const httpServer = app.getHttpServer()
 
-  return {
-    app,
-    service: mockService,
-    get: async <T,>(path: string): Promise<ControllerTestResult & { body: T }> => {
-      const res = await request(httpServer).get(path)
-      return {
-        status: res.status,
-        body: res.body,
-        headers: res.headers
-      }
-    },
-    post: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
-      const res = await request(httpServer)
-        .post(path)
-        .send(body)
-        .set('Content-Type', 'application/json')
-      return {
-        status: res.status,
-        body: res.body,
-        headers: res.headers
-      }
-    },
-    put: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
-      const res = await request(httpServer)
-        .put(path)
-        .send(body)
-        .set('Content-Type', 'application/json')
-      return {
-        status: res.status,
-        body: res.body,
-        headers: res.headers
-      }
-    },
-    delete: async <T,>(path: string): Promise<ControllerTestResult & { body: T }> => {
-      const res = await request(httpServer).delete(path)
-      return {
-        status: res.status,
-        body: res.body,
-        headers: res.headers
-      }
-    },
-    patch: async <T,>(path: string, body: unknown): Promise<ControllerTestResult & { body: T }> => {
-      const res = await request(httpServer)
-        .patch(path)
-        .send(body)
-        .set('Content-Type', 'application/json')
-      return {
-        status: res.status,
-        body: res.body,
-        headers: res.headers
-      }
-    },
-    close: async () => {
-      await app.close()
-    }
-  }
+	return {
+		app,
+		service: mockService,
+		get: async <T>(
+			path: string
+		): Promise<ControllerTestResult & { body: T }> => {
+			const res = await request(httpServer).get(path)
+			return {
+				status: res.status,
+				body: res.body,
+				headers: res.headers
+			}
+		},
+		post: async <T>(
+			path: string,
+			body: unknown
+		): Promise<ControllerTestResult & { body: T }> => {
+			const res = await request(httpServer)
+				.post(path)
+				.send(body)
+				.set('Content-Type', 'application/json')
+			return {
+				status: res.status,
+				body: res.body,
+				headers: res.headers
+			}
+		},
+		put: async <T>(
+			path: string,
+			body: unknown
+		): Promise<ControllerTestResult & { body: T }> => {
+			const res = await request(httpServer)
+				.put(path)
+				.send(body)
+				.set('Content-Type', 'application/json')
+			return {
+				status: res.status,
+				body: res.body,
+				headers: res.headers
+			}
+		},
+		delete: async <T>(
+			path: string
+		): Promise<ControllerTestResult & { body: T }> => {
+			const res = await request(httpServer).delete(path)
+			return {
+				status: res.status,
+				body: res.body,
+				headers: res.headers
+			}
+		},
+		patch: async <T>(
+			path: string,
+			body: unknown
+		): Promise<ControllerTestResult & { body: T }> => {
+			const res = await request(httpServer)
+				.patch(path)
+				.send(body)
+				.set('Content-Type', 'application/json')
+			return {
+				status: res.status,
+				body: res.body,
+				headers: res.headers
+			}
+		},
+		close: async () => {
+			await app.close()
+		}
+	}
 }
 
 /**
@@ -156,51 +178,51 @@ export async function createControllerTest<TController, TService>(
  * ```
  */
 export interface HTTPResponseExpectation {
-  status: number
-  bodyContains?: Partial<Record<string, unknown>>
-  bodyLength?: number
-  headerContains?: Record<string, string>
+	status: number
+	bodyContains?: Partial<Record<string, unknown>>
+	bodyLength?: number
+	headerContains?: Record<string, string>
 }
 
 export function expectHTTPResponse(
-  response: ControllerTestResult,
-  expectations: HTTPResponseExpectation
+	response: ControllerTestResult,
+	expectations: HTTPResponseExpectation
 ): void {
-  if (response.status !== expectations.status) {
-    throw new Error(
-      `Expected status ${expectations.status}, got ${response.status}`
-    )
-  }
+	if (response.status !== expectations.status) {
+		throw new Error(
+			`Expected status ${expectations.status}, got ${response.status}`
+		)
+	}
 
-  if (expectations.bodyContains) {
-    Object.entries(expectations.bodyContains).forEach(([key, value]) => {
-      if (JSON.stringify(response.body[key]) !== JSON.stringify(value)) {
-        throw new Error(
-          `Expected body.${key} = ${JSON.stringify(value)}, got ${JSON.stringify(response.body[key])}`
-        )
-      }
-    })
-  }
+	if (expectations.bodyContains) {
+		Object.entries(expectations.bodyContains).forEach(([key, value]) => {
+			if (JSON.stringify(response.body[key]) !== JSON.stringify(value)) {
+				throw new Error(
+					`Expected body.${key} = ${JSON.stringify(value)}, got ${JSON.stringify(response.body[key])}`
+				)
+			}
+		})
+	}
 
-  if (expectations.bodyLength !== undefined) {
-    if (Array.isArray(response.body)) {
-      if (response.body.length !== expectations.bodyLength) {
-        throw new Error(
-          `Expected body length ${expectations.bodyLength}, got ${response.body.length}`
-        )
-      }
-    }
-  }
+	if (expectations.bodyLength !== undefined) {
+		if (Array.isArray(response.body)) {
+			if (response.body.length !== expectations.bodyLength) {
+				throw new Error(
+					`Expected body length ${expectations.bodyLength}, got ${response.body.length}`
+				)
+			}
+		}
+	}
 
-  if (expectations.headerContains) {
-    Object.entries(expectations.headerContains).forEach(([key, value]) => {
-      if (response.headers[key.toLowerCase()] !== value) {
-        throw new Error(
-          `Expected header ${key} = ${value}, got ${response.headers[key.toLowerCase()]}`
-        )
-      }
-    })
-  }
+	if (expectations.headerContains) {
+		Object.entries(expectations.headerContains).forEach(([key, value]) => {
+			if (response.headers[key.toLowerCase()] !== value) {
+				throw new Error(
+					`Expected header ${key} = ${value}, got ${response.headers[key.toLowerCase()]}`
+				)
+			}
+		})
+	}
 }
 
 /**
@@ -215,37 +237,37 @@ export function expectHTTPResponse(
  * ```
  */
 export interface ErrorResponseExpectation {
-  status: number
-  messageContains?: string
-  errorCodeContains?: string
+	status: number
+	messageContains?: string
+	errorCodeContains?: string
 }
 
 export function expectErrorResponse(
-  response: ControllerTestResult,
-  expectations: ErrorResponseExpectation
+	response: ControllerTestResult,
+	expectations: ErrorResponseExpectation
 ): void {
-  if (response.status !== expectations.status) {
-    throw new Error(
-      `Expected error status ${expectations.status}, got ${response.status}`
-    )
-  }
+	if (response.status !== expectations.status) {
+		throw new Error(
+			`Expected error status ${expectations.status}, got ${response.status}`
+		)
+	}
 
-  const errorMessage = response.body.message || ''
-  if (expectations.messageContains) {
-    if (!errorMessage.includes(expectations.messageContains)) {
-      throw new Error(
-        `Expected error message containing "${expectations.messageContains}", got "${errorMessage}"`
-      )
-    }
-  }
+	const errorMessage = response.body.message || ''
+	if (expectations.messageContains) {
+		if (!errorMessage.includes(expectations.messageContains)) {
+			throw new Error(
+				`Expected error message containing "${expectations.messageContains}", got "${errorMessage}"`
+			)
+		}
+	}
 
-  if (expectations.errorCodeContains) {
-    if (!response.body.error?.includes(expectations.errorCodeContains)) {
-      throw new Error(
-        `Expected error code containing "${expectations.errorCodeContains}", got "${response.body.error}"`
-      )
-    }
-  }
+	if (expectations.errorCodeContains) {
+		if (!response.body.error?.includes(expectations.errorCodeContains)) {
+			throw new Error(
+				`Expected error code containing "${expectations.errorCodeContains}", got "${response.body.error}"`
+			)
+		}
+	}
 }
 
 /**
@@ -260,26 +282,29 @@ export function expectErrorResponse(
  * ```
  */
 type AuthenticatedRequestOverrides = Partial<{
-  userId: string
-  email: string
-  token: string
-  headers: Record<string, string>
-}> & Record<string, unknown>
+	userId: string
+	email: string
+	token: string
+	headers: Record<string, string>
+}> &
+	Record<string, unknown>
 
-export function createAuthenticatedRequest(overrides: AuthenticatedRequestOverrides = {}) {
-  const overrideHeaders = overrides.headers ?? {}
-  return {
-    user: {
-      id: overrides.userId || 'user-123',
-      email: overrides.email || 'user@example.com',
-      aud: 'authenticated'
-    },
-    headers: {
-      authorization: `Bearer ${overrides.token || 'test-token'}`,
-      ...overrideHeaders
-    },
-    ...overrides
-  }
+export function createAuthenticatedRequest(
+	overrides: AuthenticatedRequestOverrides = {}
+) {
+	const overrideHeaders = overrides.headers ?? {}
+	return {
+		user: {
+			id: overrides.userId || 'user-123',
+			email: overrides.email || 'user@example.com',
+			aud: 'authenticated'
+		},
+		headers: {
+			authorization: `Bearer ${overrides.token || 'test-token'}`,
+			...overrideHeaders
+		},
+		...overrides
+	}
 }
 
 /**
@@ -291,13 +316,13 @@ export function createAuthenticatedRequest(overrides: AuthenticatedRequestOverri
  * ```
  */
 export function createMockResponse() {
-  return {
-    status: jest.fn().mockReturnThis(),
-    json: jest.fn().mockReturnThis(),
-    send: jest.fn().mockReturnThis(),
-    setHeader: jest.fn().mockReturnThis(),
-    end: jest.fn()
-  }
+	return {
+		status: jest.fn().mockReturnThis(),
+		json: jest.fn().mockReturnThis(),
+		send: jest.fn().mockReturnThis(),
+		setHeader: jest.fn().mockReturnThis(),
+		end: jest.fn()
+	}
 }
 
 /**
@@ -311,34 +336,34 @@ export function createMockResponse() {
  * ```
  */
 export class ControllerCacheTest {
-  private cacheKeys: Map<string, string> = new Map()
-  private cacheTTLs: Map<string, number> = new Map()
+	private cacheKeys: Map<string, string> = new Map()
+	private cacheTTLs: Map<string, number> = new Map()
 
-  registerCacheKey(endpoint: string, key: string): void {
-    this.cacheKeys.set(endpoint, key)
-  }
+	registerCacheKey(endpoint: string, key: string): void {
+		this.cacheKeys.set(endpoint, key)
+	}
 
-  registerCacheTTL(endpoint: string, ttl: number): void {
-    this.cacheTTLs.set(endpoint, ttl)
-  }
+	registerCacheTTL(endpoint: string, ttl: number): void {
+		this.cacheTTLs.set(endpoint, ttl)
+	}
 
-  expectCacheKey(endpoint: string, expectedKey: string): void {
-    const actual = this.cacheKeys.get(endpoint)
-    if (actual !== expectedKey) {
-      throw new Error(
-        `Expected cache key "${expectedKey}" for endpoint ${endpoint}, got "${actual}"`
-      )
-    }
-  }
+	expectCacheKey(endpoint: string, expectedKey: string): void {
+		const actual = this.cacheKeys.get(endpoint)
+		if (actual !== expectedKey) {
+			throw new Error(
+				`Expected cache key "${expectedKey}" for endpoint ${endpoint}, got "${actual}"`
+			)
+		}
+	}
 
-  expectCacheTTL(endpoint: string, expectedTTL: number): void {
-    const actual = this.cacheTTLs.get(endpoint)
-    if (actual !== expectedTTL) {
-      throw new Error(
-        `Expected cache TTL ${expectedTTL} for endpoint ${endpoint}, got ${actual}`
-      )
-    }
-  }
+	expectCacheTTL(endpoint: string, expectedTTL: number): void {
+		const actual = this.cacheTTLs.get(endpoint)
+		if (actual !== expectedTTL) {
+			throw new Error(
+				`Expected cache TTL ${expectedTTL} for endpoint ${endpoint}, got ${actual}`
+			)
+		}
+	}
 }
 
 /**
@@ -354,37 +379,37 @@ export class ControllerCacheTest {
  * ```
  */
 export interface PaginationExpectation {
-  pageSize: number
-  currentPage: number
-  totalCount: number
+	pageSize: number
+	currentPage: number
+	totalCount: number
 }
 
 export function expectPaginatedResponse(
-  response: ControllerTestResult,
-  expectations: PaginationExpectation
+	response: ControllerTestResult,
+	expectations: PaginationExpectation
 ): void {
-  const data = response.body
-  if (!data.data || !Array.isArray(data.data)) {
-    throw new Error('Expected paginated response with data array')
-  }
+	const data = response.body
+	if (!data.data || !Array.isArray(data.data)) {
+		throw new Error('Expected paginated response with data array')
+	}
 
-  if (data.pageSize !== expectations.pageSize) {
-    throw new Error(
-      `Expected pageSize ${expectations.pageSize}, got ${data.pageSize}`
-    )
-  }
+	if (data.pageSize !== expectations.pageSize) {
+		throw new Error(
+			`Expected pageSize ${expectations.pageSize}, got ${data.pageSize}`
+		)
+	}
 
-  if (data.currentPage !== expectations.currentPage) {
-    throw new Error(
-      `Expected currentPage ${expectations.currentPage}, got ${data.currentPage}`
-    )
-  }
+	if (data.currentPage !== expectations.currentPage) {
+		throw new Error(
+			`Expected currentPage ${expectations.currentPage}, got ${data.currentPage}`
+		)
+	}
 
-  if (data.totalCount !== expectations.totalCount) {
-    throw new Error(
-      `Expected totalCount ${expectations.totalCount}, got ${data.totalCount}`
-    )
-  }
+	if (data.totalCount !== expectations.totalCount) {
+		throw new Error(
+			`Expected totalCount ${expectations.totalCount}, got ${data.totalCount}`
+		)
+	}
 }
 
 /**
@@ -398,26 +423,26 @@ export function expectPaginatedResponse(
  * ```
  */
 export async function uploadFile(
-  controllerTest: ControllerTestBed,
-  endpoint: string,
-  file: Buffer,
-  fileName: string,
-  additionalFields?: Record<string, string>
+	controllerTest: ControllerTestBed,
+	endpoint: string,
+	file: Buffer,
+	fileName: string,
+	additionalFields?: Record<string, string>
 ): Promise<ControllerTestResult> {
-  let req = request(controllerTest.app.getHttpServer())
-    .post(endpoint)
-    .attach('file', file, fileName)
+	let req = request(controllerTest.app.getHttpServer())
+		.post(endpoint)
+		.attach('file', file, fileName)
 
-  if (additionalFields) {
-    Object.entries(additionalFields).forEach(([key, value]) => {
-      req = req.field(key, value)
-    })
-  }
+	if (additionalFields) {
+		Object.entries(additionalFields).forEach(([key, value]) => {
+			req = req.field(key, value)
+		})
+	}
 
-  const res = await req
-  return {
-    status: res.status,
-    body: res.body,
-    headers: res.headers
-  }
+	const res = await req
+	return {
+		status: res.status,
+		body: res.body,
+		headers: res.headers
+	}
 }

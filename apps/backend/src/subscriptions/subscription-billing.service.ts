@@ -4,7 +4,11 @@
  * Extracted from SubscriptionsService for SRP compliance
  */
 
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable
+} from '@nestjs/common'
 import type {
 	CreateSubscriptionRequest,
 	RentSubscriptionResponse,
@@ -20,17 +24,21 @@ import { AppLogger } from '../logger/app-logger.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PropertyOwnerRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 
 @Injectable()
 export class SubscriptionBillingService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly cache: SubscriptionCacheService,
-		private readonly queryService: SubscriptionQueryService, private readonly logger: AppLogger) {
+		private readonly queryService: SubscriptionQueryService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -43,7 +51,9 @@ export class SubscriptionBillingService {
 	): Promise<RentSubscriptionResponse> {
 		const adminClient = this.supabase.getAdminClient()
 		const tenantContext = await this.requireTenantForUser(userId)
-		const leaseContext = await this.queryService.loadLeaseContext(request.leaseId)
+		const leaseContext = await this.queryService.loadLeaseContext(
+			request.leaseId
+		)
 
 		if (leaseContext.tenant.id !== tenantContext.tenant.id) {
 			throw new BadRequestException('Lease does not belong to tenant')
@@ -53,7 +63,9 @@ export class SubscriptionBillingService {
 			throw new BadRequestException('Autopay is already enabled for this lease')
 		}
 
-		const paymentMethod = await this.queryService.getPaymentMethod(request.paymentMethodId)
+		const paymentMethod = await this.queryService.getPaymentMethod(
+			request.paymentMethodId
+		)
 		if (paymentMethod.tenant_id !== leaseContext.tenant.id) {
 			throw new BadRequestException('Payment method does not belong to tenant')
 		}
@@ -68,7 +80,11 @@ export class SubscriptionBillingService {
 
 		const billingDay = this.validateBillingDay(request.billingDayOfMonth)
 		const amountInCents = this.normalizeStripeAmount(request.amount)
-		const currency = (request.currency ?? leaseContext.lease.rent_currency ?? 'usd').toLowerCase()
+		const currency = (
+			request.currency ??
+			leaseContext.lease.rent_currency ??
+			'usd'
+		).toLowerCase()
 		const billingCycleAnchor = this.computeBillingCycleAnchor(billingDay)
 
 		const price = await this.stripe.prices.create({
@@ -97,7 +113,8 @@ export class SubscriptionBillingService {
 				destination: leaseContext.owner.stripe_account_id
 			},
 			// Platform fee: use owner's configured rate or default to 1%
-			application_fee_percent: leaseContext.owner.default_platform_fee_percent ?? 1.0,
+			application_fee_percent:
+				leaseContext.owner.default_platform_fee_percent ?? 1.0,
 			proration_behavior: 'none',
 			billing_cycle_anchor: billingCycleAnchor,
 			metadata: {
@@ -120,13 +137,18 @@ export class SubscriptionBillingService {
 			.eq('id', leaseContext.lease.id)
 
 		if (error) {
-			this.logger.error('Failed to persist subscription metadata, cancelling Stripe subscription', {
-				leaseId: leaseContext.lease.id,
-				subscriptionId: subscription.id,
-				error: error.message
-			})
+			this.logger.error(
+				'Failed to persist subscription metadata, cancelling Stripe subscription',
+				{
+					leaseId: leaseContext.lease.id,
+					subscriptionId: subscription.id,
+					error: error.message
+				}
+			)
 			await this.safeCancelStripeSubscription(subscription.id)
-			throw new BadRequestException('Failed to persist subscription configuration')
+			throw new BadRequestException(
+				'Failed to persist subscription configuration'
+			)
 		}
 
 		leaseContext.lease.stripe_subscription_id = subscription.id
@@ -137,7 +159,10 @@ export class SubscriptionBillingService {
 
 		// Invalidate lease cache
 		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
-		await this.cache.invalidatePaymentMethodCache(leaseContext.tenant.id, paymentMethod.id)
+		await this.cache.invalidatePaymentMethodCache(
+			leaseContext.tenant.id,
+			paymentMethod.id
+		)
 
 		return this.queryService.mapLeaseContextToResponse(leaseContext, {
 			stripeSubscription: subscription,
@@ -172,7 +197,9 @@ export class SubscriptionBillingService {
 			const currentItem = existingSubscription.items.data[0]
 
 			if (!currentItem?.price) {
-				throw new BadRequestException('Subscription price configuration missing')
+				throw new BadRequestException(
+					'Subscription price configuration missing'
+				)
 			}
 
 			const productId =
@@ -204,18 +231,24 @@ export class SubscriptionBillingService {
 
 		if (typeof update.billingDayOfMonth === 'number') {
 			const billingDay = this.validateBillingDay(update.billingDayOfMonth)
-			stripeUpdates.billing_cycle_anchor = 'now' as Stripe.SubscriptionUpdateParams.BillingCycleAnchor
+			stripeUpdates.billing_cycle_anchor =
+				'now' as Stripe.SubscriptionUpdateParams.BillingCycleAnchor
 			stripeUpdates.proration_behavior = 'none'
 			leaseContext.lease.payment_day = billingDay
 			adminUpdates.payment_day = billingDay
 		}
 
 		if (update.paymentMethodId) {
-			const paymentMethod = await this.queryService.getPaymentMethod(update.paymentMethodId)
+			const paymentMethod = await this.queryService.getPaymentMethod(
+				update.paymentMethodId
+			)
 			if (paymentMethod.tenant_id !== leaseContext.tenant.id) {
-				throw new BadRequestException('Payment method does not belong to tenant')
+				throw new BadRequestException(
+					'Payment method does not belong to tenant'
+				)
 			}
-			stripeUpdates.default_payment_method = paymentMethod.stripe_payment_method_id
+			stripeUpdates.default_payment_method =
+				paymentMethod.stripe_payment_method_id
 			nextPaymentMethodId = paymentMethod.id
 		}
 
@@ -252,7 +285,10 @@ export class SubscriptionBillingService {
 		// Invalidate lease cache
 		await this.cache.invalidateLeaseCache(leaseContext.lease.id)
 		if (nextPaymentMethodId) {
-			await this.cache.invalidatePaymentMethodCache(leaseContext.tenant.id, nextPaymentMethodId)
+			await this.cache.invalidatePaymentMethodCache(
+				leaseContext.tenant.id,
+				nextPaymentMethodId
+			)
 		}
 
 		return this.queryService.mapLeaseContextToResponse(leaseContext, {
@@ -274,15 +310,22 @@ export class SubscriptionBillingService {
 		return tenantRecord
 	}
 
-	private assertTenantUser(requestingUserId: string, tenantUserId: string): void {
+	private assertTenantUser(
+		requestingUserId: string,
+		tenantUserId: string
+	): void {
 		if (requestingUserId !== tenantUserId) {
-			throw new ForbiddenException('You do not have access to this subscription')
+			throw new ForbiddenException(
+				'You do not have access to this subscription'
+			)
 		}
 	}
 
 	private assertOwnerReady(owner: PropertyOwnerRow): void {
 		if (!owner.stripe_account_id || owner.charges_enabled !== true) {
-			throw new BadRequestException('Owner has not completed Stripe Connect onboarding')
+			throw new BadRequestException(
+				'Owner has not completed Stripe Connect onboarding'
+			)
 		}
 	}
 
@@ -319,15 +362,7 @@ export class SubscriptionBillingService {
 	private computeBillingCycleAnchor(dayOfMonth: number): number {
 		const now = new Date()
 		const anchor = new Date(
-			Date.UTC(
-				now.getUTCFullYear(),
-				now.getUTCMonth(),
-				dayOfMonth,
-				0,
-				0,
-				0,
-				0
-			)
+			Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), dayOfMonth, 0, 0, 0, 0)
 		)
 
 		if (anchor.getTime() <= now.getTime()) {
@@ -352,7 +387,10 @@ export class SubscriptionBillingService {
 				user_id: tenantUser.id
 			}
 		}
-		const displayName = [tenantUser.first_name, tenantUser.last_name].filter(Boolean).join(' ').trim()
+		const displayName = [tenantUser.first_name, tenantUser.last_name]
+			.filter(Boolean)
+			.join(' ')
+			.trim()
 		if (displayName) {
 			customerPayload.name = displayName
 		}
@@ -370,13 +408,17 @@ export class SubscriptionBillingService {
 				tenantId: tenant.id,
 				error: error.message
 			})
-			throw new BadRequestException('Failed to persist Stripe customer reference')
+			throw new BadRequestException(
+				'Failed to persist Stripe customer reference'
+			)
 		}
 
 		return customer.id
 	}
 
-	private async safeCancelStripeSubscription(subscriptionId: string): Promise<void> {
+	private async safeCancelStripeSubscription(
+		subscriptionId: string
+	): Promise<void> {
 		try {
 			await this.stripe.subscriptions.cancel(subscriptionId)
 		} catch (error) {

@@ -143,7 +143,9 @@ export class EmailTemplateService {
 			subject: 'Action Required: Your Lease Agreement is Ready for Signature',
 			templateData: {
 				tenantName: data.tenantName,
-				...(data.propertyName !== undefined && { propertyName: data.propertyName }),
+				...(data.propertyName !== undefined && {
+					propertyName: data.propertyName
+				}),
 				...(data.unitNumber !== undefined && { unitNumber: data.unitNumber }),
 				...(data.ownerName !== undefined && { ownerName: data.ownerName }),
 				...(data.message !== undefined && { message: data.message }),
@@ -173,7 +175,9 @@ export class EmailTemplateService {
 			templateData: {
 				tenantName: data.tenantName,
 				...(data.ownerName !== undefined && { ownerName: data.ownerName }),
-				...(data.propertyName !== undefined && { propertyName: data.propertyName }),
+				...(data.propertyName !== undefined && {
+					propertyName: data.propertyName
+				}),
 				signedAt: data.signedAt,
 				signUrl: data.signUrl,
 				tenantHasSigned: data.tenantHasSigned
@@ -202,7 +206,9 @@ export class EmailTemplateService {
 			templateData: {
 				ownerName: data.ownerName,
 				tenantName: data.tenantName,
-				...(data.propertyName !== undefined && { propertyName: data.propertyName }),
+				...(data.propertyName !== undefined && {
+					propertyName: data.propertyName
+				}),
 				signedAt: data.signedAt,
 				dashboardUrl: data.dashboardUrl,
 				ownerHasSigned: data.ownerHasSigned
@@ -230,7 +236,9 @@ export class EmailTemplateService {
 			templateData: {
 				recipientName: data.recipientName,
 				isOwner: data.isOwner,
-				...(data.propertyName !== undefined && { propertyName: data.propertyName }),
+				...(data.propertyName !== undefined && {
+					propertyName: data.propertyName
+				}),
 				rentAmount: data.rentAmount,
 				rentCurrency: data.rentCurrency,
 				startDate: data.startDate,
@@ -317,13 +325,13 @@ export class EmailTemplateService {
 </html>
 		`.trim()
 
-			return {
-				from: this.config.getResendFromEmail(),
-				to: [data.recipientEmail],
-				subject,
-				html
-			}
+		return {
+			from: this.config.getResendFromEmail(),
+			to: [data.recipientEmail],
+			subject,
+			html
 		}
+	}
 
 	/**
 	 * Prepare contact form email data

@@ -71,7 +71,9 @@ vi.mock('#hooks/api/mutations/unit-mutations', () => ({
 		isPending: false
 	}),
 	useCreateUnitMutation: () => ({
-		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-unit', unit_number: '104' }),
+		mutateAsync: vi
+			.fn()
+			.mockResolvedValue({ id: 'new-unit', unit_number: '104' }),
 		isPending: false
 	})
 }))
@@ -121,7 +123,9 @@ describe('PropertyUnitsTable', () => {
 				<PropertyUnitsTable propertyId="prop-1" propertyName="Test Property" />,
 				{ wrapper: createWrapper() }
 			)
-			expect(screen.getByRole('button', { name: /add unit/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /add unit/i })
+			).toBeInTheDocument()
 		})
 
 		it('should render unit numbers in the table', () => {
@@ -180,7 +184,9 @@ describe('PropertyUnitsTable', () => {
 				<PropertyUnitsTable propertyId="prop-1" propertyName="Test Property" />,
 				{ wrapper: createWrapper() }
 			)
-			expect(screen.getByText(/no units added to this property/i)).toBeInTheDocument()
+			expect(
+				screen.getByText(/no units added to this property/i)
+			).toBeInTheDocument()
 		})
 
 		it('should show Add Your First Unit button in empty state', () => {
@@ -194,7 +200,9 @@ describe('PropertyUnitsTable', () => {
 				<PropertyUnitsTable propertyId="prop-1" propertyName="Test Property" />,
 				{ wrapper: createWrapper() }
 			)
-			expect(screen.getByRole('button', { name: /add your first unit/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('button', { name: /add your first unit/i })
+			).toBeInTheDocument()
 		})
 	})
 
@@ -262,11 +270,19 @@ describe('PropertyUnitsTable', () => {
 				{ wrapper: createWrapper() }
 			)
 
-			expect(screen.getByRole('columnheader', { name: /unit #/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('columnheader', { name: /unit #/i })
+			).toBeInTheDocument()
 			// Use exact match for "Rent" to avoid matching "Current Tenant"
-			expect(screen.getByRole('columnheader', { name: /^Rent$/i })).toBeInTheDocument()
-			expect(screen.getByRole('columnheader', { name: /status/i })).toBeInTheDocument()
-			expect(screen.getByRole('columnheader', { name: /actions/i })).toBeInTheDocument()
+			expect(
+				screen.getByRole('columnheader', { name: /^Rent$/i })
+			).toBeInTheDocument()
+			expect(
+				screen.getByRole('columnheader', { name: /status/i })
+			).toBeInTheDocument()
+			expect(
+				screen.getByRole('columnheader', { name: /actions/i })
+			).toBeInTheDocument()
 		})
 	})
 
@@ -287,7 +303,9 @@ describe('PropertyUnitsTable', () => {
 			)
 
 			// Check for action menu buttons
-			const actionButtons = screen.getAllByRole('button', { name: /actions for unit/i })
+			const actionButtons = screen.getAllByRole('button', {
+				name: /actions for unit/i
+			})
 			expect(actionButtons.length).toBe(3) // One per unit
 		})
 	})

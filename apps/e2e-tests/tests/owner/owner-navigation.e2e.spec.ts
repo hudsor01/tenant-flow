@@ -13,53 +13,55 @@ import { test, expect } from '@playwright/test'
  */
 
 test.describe('Owner Core Navigation', () => {
-  const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
-  // No beforeEach needed - tests navigate directly (auth via storageState)
+	// No beforeEach needed - tests navigate directly (auth via storageState)
 
-  // Core pages that MUST work
-  const criticalRoutes = [
-    { path: '/dashboard', heading: 'Dashboard' },
-    { path: '/properties', heading: 'Properties' },
-    { path: '/tenants', heading: 'Tenants' },
-    { path: '/leases', heading: 'Leases' },
-    { path: '/maintenance', heading: 'Maintenance' },
-  ]
+	// Core pages that MUST work
+	const criticalRoutes = [
+		{ path: '/dashboard', heading: 'Dashboard' },
+		{ path: '/properties', heading: 'Properties' },
+		{ path: '/tenants', heading: 'Tenants' },
+		{ path: '/leases', heading: 'Leases' },
+		{ path: '/maintenance', heading: 'Maintenance' }
+	]
 
-  for (const route of criticalRoutes) {
-    test(`${route.path} loads`, async ({ page }) => {
-      await page.goto(`${baseUrl}${route.path}`)
-      await page.waitForLoadState('networkidle', { timeout: 30000 })
+	for (const route of criticalRoutes) {
+		test(`${route.path} loads`, async ({ page }) => {
+			await page.goto(`${baseUrl}${route.path}`)
+			await page.waitForLoadState('networkidle', { timeout: 30000 })
 
-      // Not redirected to login
-      expect(page.url()).not.toContain('/login')
+			// Not redirected to login
+			expect(page.url()).not.toContain('/login')
 
-      // No error boundary
-      const errorText = page.getByText('Something went wrong')
-      await expect(errorText).not.toBeVisible({ timeout: 3000 }).catch(() => {})
+			// No error boundary
+			const errorText = page.getByText('Something went wrong')
+			await expect(errorText)
+				.not.toBeVisible({ timeout: 3000 })
+				.catch(() => {})
 
-      // Heading visible
-      await expect(page.locator('h1, h2').first()).toContainText(
-        new RegExp(route.heading, 'i'),
-        { timeout: 10000 }
-      )
-    })
-  }
+			// Heading visible
+			await expect(page.locator('h1, h2').first()).toContainText(
+				new RegExp(route.heading, 'i'),
+				{ timeout: 10000 }
+			)
+		})
+	}
 
-  test('can navigate between core pages', async ({ page }) => {
-    // Properties
-    await page.goto(`${baseUrl}/properties`)
-    await page.waitForLoadState('networkidle')
-    expect(page.url()).toContain('/properties')
+	test('can navigate between core pages', async ({ page }) => {
+		// Properties
+		await page.goto(`${baseUrl}/properties`)
+		await page.waitForLoadState('networkidle')
+		expect(page.url()).toContain('/properties')
 
-    // Tenants
-    await page.goto(`${baseUrl}/tenants`)
-    await page.waitForLoadState('networkidle')
-    expect(page.url()).toContain('/tenants')
+		// Tenants
+		await page.goto(`${baseUrl}/tenants`)
+		await page.waitForLoadState('networkidle')
+		expect(page.url()).toContain('/tenants')
 
-    // Back/forward
-    await page.goBack()
-    await page.waitForLoadState('networkidle')
-    expect(page.url()).toContain('/properties')
-  })
+		// Back/forward
+		await page.goBack()
+		await page.waitForLoadState('networkidle')
+		expect(page.url()).toContain('/properties')
+	})
 })

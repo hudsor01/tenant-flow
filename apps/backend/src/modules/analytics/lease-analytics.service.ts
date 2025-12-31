@@ -18,8 +18,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class LeaseAnalyticsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	private buildUserPayload(
 		user_id: string,
@@ -40,9 +42,7 @@ export class LeaseAnalyticsService {
 	): Promise<T | null> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			const res = result as {
 				data?: T | null
 				error?: { message?: string } | null
@@ -117,7 +117,10 @@ export class LeaseAnalyticsService {
 					'get_leases_with_financial_analytics',
 					this.buildUserPayload(user_id)
 				),
-				this.callRpc('get_lease_lifecycle_data', this.buildUserPayload(user_id)),
+				this.callRpc(
+					'get_lease_lifecycle_data',
+					this.buildUserPayload(user_id)
+				),
 				this.callRpc(
 					'get_lease_status_breakdown',
 					this.buildUserPayload(user_id)

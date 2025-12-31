@@ -97,7 +97,8 @@ export class RentPaymentContextService {
 		// Single query with nested joins - includes tenant for authorization
 		const { data: leaseData, error: leaseError } = await adminClient
 			.from('leases')
-			.select(`
+			.select(
+				`
 				id,
 				primary_tenant_id,
 				unit_id,
@@ -115,7 +116,8 @@ export class RentPaymentContextService {
 					owner:owner_user_id (*)
 				)
 				)
-			`)
+			`
+			)
 			.eq('id', lease_id)
 			.single()
 
@@ -140,14 +142,18 @@ export class RentPaymentContextService {
 		}
 
 		const ownerUser = typedData.unit.property.owner
-		const stripeAccountId = typedData.unit.property.stripe_connected_account?.stripe_account_id ?? null
+		const stripeAccountId =
+			typedData.unit.property.stripe_connected_account?.stripe_account_id ??
+			null
 
 		// Authorization check - no separate query needed, tenant included in join
 		const isOwner = ownerUser.id === requestingUserId
 		const isTenant = typedData.tenant.user_id === requestingUserId
 
 		if (!isOwner && !isTenant) {
-			throw new ForbiddenException('You are not authorized to access this lease')
+			throw new ForbiddenException(
+				'You are not authorized to access this lease'
+			)
 		}
 
 		// Construct lease object with required fields
@@ -184,14 +190,16 @@ export class RentPaymentContextService {
 		// Uses nested join to verify the relationship chain
 		const { data: leaseWithOwner, error } = await adminClient
 			.from('leases')
-			.select(`
+			.select(
+				`
 				id,
 				unit:unit_id (
 				property:property_id (
 					owner_user_id
 				)
 			)
-			`)
+			`
+			)
 			.eq('primary_tenant_id', tenant_id)
 			.limit(1)
 			.maybeSingle()
@@ -199,7 +207,9 @@ export class RentPaymentContextService {
 		const ownerUserId = leaseWithOwner?.unit?.property?.owner_user_id
 
 		if (error || ownerUserId !== requestingUserId) {
-			throw new ForbiddenException('You are not authorized to access this tenant')
+			throw new ForbiddenException(
+				'You are not authorized to access this tenant'
+			)
 		}
 	}
 }

@@ -24,7 +24,10 @@ const isSerializable = (data: unknown) => {
 const shouldDehydrateQuery = (query: Query) => {
 	const queryState = query.state
 
-	if (queryState.status === 'pending' || queryState.fetchStatus === 'fetching') {
+	if (
+		queryState.status === 'pending' ||
+		queryState.fetchStatus === 'fetching'
+	) {
 		return false
 	}
 
@@ -88,21 +91,14 @@ export const createIdbPersister = async (
 					}
 					return cached
 				} catch (error) {
-					logger.error(
-						'IndexedDB restore failed - treating as cache miss',
-						{
-							action: 'restore_client_error',
-							metadata: {
-								error:
-									error instanceof Error
-									? error.message
-									: String(error),
-								errorType:
-									error instanceof Error ? error.name : 'Unknown',
-								isError: true
-							}
+					logger.error('IndexedDB restore failed - treating as cache miss', {
+						action: 'restore_client_error',
+						metadata: {
+							error: error instanceof Error ? error.message : String(error),
+							errorType: error instanceof Error ? error.name : 'Unknown',
+							isError: true
 						}
-					)
+					})
 					return undefined
 				}
 			},

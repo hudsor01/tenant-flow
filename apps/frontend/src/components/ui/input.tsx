@@ -9,19 +9,19 @@ const inputVariants = cva(
 		variants: {
 			variant: {
 				default: '',
-				invalid: 'border-destructive focus-visible:ring-destructive',
+				invalid: 'border-destructive focus-visible:ring-destructive'
 			},
 			inputSize: {
 				default: 'h-11',
 				sm: 'h-9 px-2 py-1 text-xs',
 				lg: 'h-12 px-4 py-2',
-				xl: 'h-14 px-4 py-3 text-base',
-			},
+				xl: 'h-14 px-4 py-3 text-base'
+			}
 		},
 		defaultVariants: {
 			variant: 'default',
-			inputSize: 'default',
-		},
+			inputSize: 'default'
+		}
 	}
 )
 

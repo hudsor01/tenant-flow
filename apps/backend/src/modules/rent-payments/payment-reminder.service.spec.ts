@@ -17,7 +17,10 @@ describe('PaymentReminderService', () => {
 		add: jest.fn().mockResolvedValue({ id: 'job-1' })
 	}
 
-	const createMockQueryBuilder = (data: unknown = [], error: unknown = null) => {
+	const createMockQueryBuilder = (
+		data: unknown = [],
+		error: unknown = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -27,7 +30,7 @@ describe('PaymentReminderService', () => {
 			limit: jest.fn().mockReturnThis(),
 			single: jest.fn().mockResolvedValue({ data, error }),
 			insert: jest.fn().mockResolvedValue({ data: null, error: null }),
-			then: jest.fn().mockImplementation((resolve) => resolve({ data, error }))
+			then: jest.fn().mockImplementation(resolve => resolve({ data, error }))
 		}
 		return builder
 	}
@@ -89,10 +92,10 @@ describe('PaymentReminderService', () => {
 					rent_amount: 150000,
 					primary_tenant_id: 'tenant-1',
 					unit_id: 'unit-1',
+					auto_pay_enabled: false,
 					tenant: {
 						id: 'tenant-1',
 						user_id: 'user-1',
-						autopay_enabled: false,
 						users: null
 					},
 					unit: {

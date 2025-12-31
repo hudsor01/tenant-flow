@@ -35,7 +35,9 @@ describe('DashboardEventAggregatorService', () => {
 			]
 		}).compile()
 
-		service = module.get<DashboardEventAggregatorService>(DashboardEventAggregatorService)
+		service = module.get<DashboardEventAggregatorService>(
+			DashboardEventAggregatorService
+		)
 		sseService = module.get(SseService)
 	})
 

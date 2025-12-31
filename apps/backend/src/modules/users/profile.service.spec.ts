@@ -121,10 +121,14 @@ describe('ProfileService', () => {
 			const userQueryMock = createQueryMock(mockUserData)
 
 			// Mock properties count
-			const propertiesCountMock = jest.fn().mockResolvedValue({ count: 5, error: null })
+			const propertiesCountMock = jest
+				.fn()
+				.mockResolvedValue({ count: 5, error: null })
 
 			// Mock units count
-			const unitsCountMock = jest.fn().mockResolvedValue({ count: 20, error: null })
+			const unitsCountMock = jest
+				.fn()
+				.mockResolvedValue({ count: 20, error: null })
 
 			// Mock stripe_connected_accounts query
 			const stripeQueryMock = createQueryMock({ id: 'stripe-123' })
@@ -155,7 +159,10 @@ describe('ProfileService', () => {
 		})
 
 		it('throws NotFoundException when profile not found', async () => {
-			const userQueryMock = createQueryMock(null, { code: 'PGRST116', message: 'Not found' })
+			const userQueryMock = createQueryMock(null, {
+				code: 'PGRST116',
+				message: 'Not found'
+			})
 			mockUserClient.from = jest.fn().mockReturnValue(userQueryMock)
 
 			await expect(service.getProfile('token', 'user-123')).rejects.toThrow(
@@ -183,7 +190,11 @@ describe('ProfileService', () => {
 
 		it('throws BadRequestException when no file provided', async () => {
 			await expect(
-				service.uploadAvatar('token', 'user-123', undefined as unknown as Express.Multer.File)
+				service.uploadAvatar(
+					'token',
+					'user-123',
+					undefined as unknown as Express.Multer.File
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 
@@ -220,7 +231,9 @@ describe('ProfileService', () => {
 				error: null
 			})
 			getPublicUrlMock.mockReturnValueOnce({
-				data: { publicUrl: 'https://storage.example.com/avatars/user-123/avatar.jpg' }
+				data: {
+					publicUrl: 'https://storage.example.com/avatars/user-123/avatar.jpg'
+				}
 			})
 
 			// Mock database update
@@ -249,7 +262,9 @@ describe('ProfileService', () => {
 				error: null
 			})
 			getPublicUrlMock.mockReturnValueOnce({
-				data: { publicUrl: 'https://storage.example.com/avatars/user-123/avatar.jpg' }
+				data: {
+					publicUrl: 'https://storage.example.com/avatars/user-123/avatar.jpg'
+				}
 			})
 
 			const updateMock = createUpdateMock(null)

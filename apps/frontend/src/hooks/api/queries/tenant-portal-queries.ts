@@ -7,7 +7,10 @@
 
 import { apiRequest } from '#lib/api-request'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
-import type { MaintenanceCategory, MaintenancePriority } from '@repo/shared/types/core'
+import type {
+	MaintenanceCategory,
+	MaintenancePriority
+} from '@repo/shared/types/core'
 import { createQueryOptions } from './create-query-options'
 
 /**
@@ -177,14 +180,14 @@ export const tenantPortalQueries = {
 	all: () => ['tenant-portal'] as const,
 
 	/**
- * Dashboard data
- */
+	 * Dashboard data
+	 */
 	dashboard: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'dashboard'],
 			queryFn: () => apiRequest('/api/v1/tenant-portal/dashboard'),
 			cache: 'DETAIL',
-			refetchOnWindowFocus: false,
+			refetchOnWindowFocus: false
 		}),
 
 	/**
@@ -195,11 +198,12 @@ export const tenantPortalQueries = {
 	amountDue: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'amount-due'],
-			queryFn: () => apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
+			queryFn: () =>
+				apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
 			cache: 'STATS',
 			refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true, // Catch missed events on tab focus
+			refetchOnWindowFocus: true // Catch missed events on tab focus
 		}),
 
 	/**
@@ -209,10 +213,11 @@ export const tenantPortalQueries = {
 	payments: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'payments'],
-			queryFn: () => apiRequest<{
-				payments: TenantPayment[]
-				methodsEndpoint: string
-			}>('/api/v1/tenants/payments'),
+			queryFn: () =>
+				apiRequest<{
+					payments: TenantPayment[]
+					methodsEndpoint: string
+				}>('/api/v1/tenants/payments'),
 			cache: 'LIST',
 			// No interval - SSE handles updates, tab focus catches missed events
 			refetchOnWindowFocus: true,
@@ -220,8 +225,8 @@ export const tenantPortalQueries = {
 		}),
 
 	/**
- * Autopay/subscription status for active lease
- */
+	 * Autopay/subscription status for active lease
+	 */
 	autopay: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'autopay'],
@@ -232,23 +237,24 @@ export const tenantPortalQueries = {
 		}),
 
 	/**
- * Maintenance request history with summary stats
- */
+	 * Maintenance request history with summary stats
+	 */
 	maintenance: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'maintenance'],
-			queryFn: () => apiRequest<{
-				requests: TenantMaintenanceRequest[]
-				summary: TenantMaintenanceStats
-			}>('/api/v1/tenants/maintenance'),
+			queryFn: () =>
+				apiRequest<{
+					requests: TenantMaintenanceRequest[]
+					summary: TenantMaintenanceStats
+				}>('/api/v1/tenants/maintenance'),
 			cache: 'LIST',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
 
 	/**
- * Active lease with unit/property metadata
- */
+	 * Active lease with unit/property metadata
+	 */
 	lease: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'lease'],
@@ -259,23 +265,23 @@ export const tenantPortalQueries = {
 		}),
 
 	/**
- * Lease documents (signed agreement, receipts)
- */
-documents: () =>
-	createQueryOptions({
-		queryKey: [...tenantPortalQueries.all(), 'documents'],
-		queryFn: () =>
-			apiRequest<{ documents: TenantDocument[] }>(
-				'/api/v1/tenants/leases/documents'
-			),
-		cache: 'DETAIL',
-		refetchOnWindowFocus: false,
-		retry: DEFAULT_RETRY_ATTEMPTS
-	}),
+	 * Lease documents (signed agreement, receipts)
+	 */
+	documents: () =>
+		createQueryOptions({
+			queryKey: [...tenantPortalQueries.all(), 'documents'],
+			queryFn: () =>
+				apiRequest<{ documents: TenantDocument[] }>(
+					'/api/v1/tenants/leases/documents'
+				),
+			cache: 'DETAIL',
+			refetchOnWindowFocus: false,
+			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
 
 	/**
- * Tenant profile and settings
- */
+	 * Tenant profile and settings
+	 */
 	settings: () =>
 		createQueryOptions({
 			queryKey: [...tenantPortalQueries.all(), 'settings'],
@@ -283,7 +289,7 @@ documents: () =>
 			cache: 'DETAIL',
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
-		}),
+		})
 }
 
 /**

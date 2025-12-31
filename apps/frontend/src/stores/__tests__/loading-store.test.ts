@@ -36,10 +36,14 @@ describe('loading store', () => {
 		const store = useLoadingStore.getState()
 		store.startLoading('op-progress')
 		store.updateProgress('op-progress', 150)
-		expect(useLoadingStore.getState().operations['op-progress']?.progress).toBe(100)
+		expect(useLoadingStore.getState().operations['op-progress']?.progress).toBe(
+			100
+		)
 
 		store.updateProgress('op-progress', -25)
-		expect(useLoadingStore.getState().operations['op-progress']?.progress).toBe(0)
+		expect(useLoadingStore.getState().operations['op-progress']?.progress).toBe(
+			0
+		)
 	})
 
 	it('handles category-based operations consistently', () => {

@@ -63,21 +63,24 @@ describe('MaintenanceAnalytics Metrics Calculation', () => {
 	describe('Completion Rate', () => {
 		test('calculates completion rate correctly', () => {
 			const stats = { total: 100, completed: 75 }
-			const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+			const completionRate =
+				stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
 
 			expect(completionRate).toBe(75)
 		})
 
 		test('handles zero total gracefully', () => {
 			const stats = { total: 0, completed: 0 }
-			const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+			const completionRate =
+				stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
 
 			expect(completionRate).toBe(0)
 		})
 
 		test('calculates 100% when all requests are completed', () => {
 			const stats = { total: 50, completed: 50 }
-			const completionRate = stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+			const completionRate =
+				stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
 
 			expect(completionRate).toBe(100)
 		})

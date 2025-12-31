@@ -31,18 +31,35 @@ const results: CheckResult[] = []
 function checkEnvironmentVariables(): void {
 	const required = [
 		{ name: 'E2E_OWNER_EMAIL', description: 'Owner test account email' },
-		{ name: 'E2E_OWNER_PASSWORD', description: 'Owner test account password' },
+		{ name: 'E2E_OWNER_PASSWORD', description: 'Owner test account password' }
 	]
 
 	const optional = [
-		{ name: 'E2E_TENANT_EMAIL', description: 'Tenant test account email (created via invitation)' },
-		{ name: 'E2E_TENANT_PASSWORD', description: 'Tenant test account password' },
-		{ name: 'PLAYWRIGHT_BASE_URL', description: 'Frontend URL (defaults to http://localhost:3050)' },
+		{
+			name: 'E2E_TENANT_EMAIL',
+			description: 'Tenant test account email (created via invitation)'
+		},
+		{
+			name: 'E2E_TENANT_PASSWORD',
+			description: 'Tenant test account password'
+		},
+		{
+			name: 'PLAYWRIGHT_BASE_URL',
+			description: 'Frontend URL (defaults to http://localhost:3050)'
+		}
 	]
 
 	const supabase = [
-		{ name: 'NEXT_PUBLIC_SUPABASE_URL', alt: 'TEST_SUPABASE_URL', description: 'Supabase project URL' },
-		{ name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', alt: 'TEST_SUPABASE_PUBLISHABLE_KEY', description: 'Supabase anon/public key' },
+		{
+			name: 'NEXT_PUBLIC_SUPABASE_URL',
+			alt: 'TEST_SUPABASE_URL',
+			description: 'Supabase project URL'
+		},
+		{
+			name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			alt: 'TEST_SUPABASE_PUBLISHABLE_KEY',
+			description: 'Supabase anon/public key'
+		}
 	]
 
 	// Check required vars
@@ -52,7 +69,9 @@ function checkEnvironmentVariables(): void {
 			name: `Env: ${name}`,
 			passed: !!value,
 			error: value ? undefined : `Missing required variable: ${name}`,
-			suggestion: value ? undefined : `Set ${name} in Doppler or .env file. ${description}`
+			suggestion: value
+				? undefined
+				: `Set ${name} in Doppler or .env file. ${description}`
 		})
 	}
 
@@ -86,7 +105,7 @@ async function checkServer(url: string, name: string): Promise<void> {
 
 		const response = await fetch(url, {
 			method: 'GET',
-			signal: controller.signal,
+			signal: controller.signal
 		})
 
 		clearTimeout(timeout)
@@ -94,7 +113,10 @@ async function checkServer(url: string, name: string): Promise<void> {
 		results.push({
 			name: `Server: ${name}`,
 			passed: response.ok || response.status === 401, // 401 is OK - means server is up but needs auth
-			error: response.ok || response.status === 401 ? undefined : `Server returned ${response.status}`,
+			error:
+				response.ok || response.status === 401
+					? undefined
+					: `Server returned ${response.status}`,
 			suggestion: `Ensure ${name} is running and accessible at ${url}`
 		})
 	} catch (error) {
@@ -117,7 +139,7 @@ async function checkServers(): Promise<void> {
 
 	await Promise.all([
 		checkServer(baseUrl, 'Frontend'),
-		checkServer(backendUrl, 'Backend'),
+		checkServer(backendUrl, 'Backend')
 	])
 }
 
@@ -151,7 +173,9 @@ function printResults(): boolean {
 	if (allPassed) {
 		console.log('✅ All preflight checks passed! Ready to run tests.')
 	} else {
-		console.log('❌ Some checks failed. Fix the issues above before running tests.')
+		console.log(
+			'❌ Some checks failed. Fix the issues above before running tests.'
+		)
 	}
 
 	console.log('='.repeat(60) + '\n')
@@ -178,7 +202,7 @@ async function main(): Promise<void> {
 	}
 }
 
-main().catch((error) => {
+main().catch(error => {
 	console.error('Preflight check crashed:', error)
 	process.exit(1)
 })

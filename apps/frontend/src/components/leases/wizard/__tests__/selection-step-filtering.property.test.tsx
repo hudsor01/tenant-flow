@@ -77,7 +77,7 @@ describe('Selection Step Filtering - Property Tests', () => {
 			await fc.assert(
 				fc.asyncProperty(
 					fc.uuid(), // property_id
-					async (propertyId) => {
+					async propertyId => {
 						const fetchedUrls: string[] = []
 
 						mockFetch.mockImplementation((url: string) => {
@@ -86,7 +86,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 							if (url.includes('/api/v1/properties')) {
 								return Promise.resolve({
 									ok: true,
-									json: () => Promise.resolve({ data: [{ id: propertyId, name: 'Test', address_line1: '123 Main', city: 'Austin', state: 'TX' }] })
+									json: () =>
+										Promise.resolve({
+											data: [
+												{
+													id: propertyId,
+													name: 'Test',
+													address_line1: '123 Main',
+													city: 'Austin',
+													state: 'TX'
+												}
+											]
+										})
 								})
 							}
 
@@ -114,14 +125,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 						// Wait for units query to be made
 						await waitFor(
 							() => {
-								const unitUrl = fetchedUrls.find(url => url.includes('/api/v1/units'))
+								const unitUrl = fetchedUrls.find(url =>
+									url.includes('/api/v1/units')
+								)
 								expect(unitUrl).toBeDefined()
 							},
 							{ timeout: 3000 }
 						)
 
 						// PROPERTY ASSERTION: Units request must include the selected property_id as filter
-						const unitUrl = fetchedUrls.find(url => url.includes('/api/v1/units'))
+						const unitUrl = fetchedUrls.find(url =>
+							url.includes('/api/v1/units')
+						)
 						expect(unitUrl).toContain(`property_id=${propertyId}`)
 
 						cleanup()
@@ -161,8 +176,12 @@ describe('Selection Step Filtering - Property Tests', () => {
 			// Wait for properties and tenants to be fetched
 			await waitFor(
 				() => {
-					expect(fetchedUrls.some(url => url.includes('/api/v1/properties'))).toBe(true)
-					expect(fetchedUrls.some(url => url.includes('/api/v1/tenants'))).toBe(true)
+					expect(
+						fetchedUrls.some(url => url.includes('/api/v1/properties'))
+					).toBe(true)
+					expect(fetchedUrls.some(url => url.includes('/api/v1/tenants'))).toBe(
+						true
+					)
 				},
 				{ timeout: 3000 }
 			)
@@ -170,7 +189,9 @@ describe('Selection Step Filtering - Property Tests', () => {
 			// PROPERTY ASSERTION: No units request should be made without property_id
 			await waitFor(
 				() => {
-					expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(false)
+					expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(
+						false
+					)
 				},
 				{ timeout: 3000 }
 			)
@@ -189,7 +210,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 					if (url.includes('/api/v1/properties')) {
 						return Promise.resolve({
 							ok: true,
-							json: () => Promise.resolve({ data: [{ id: propertyId, name: 'Test', address_line1: '123 Main', city: 'Austin', state: 'TX' }] })
+							json: () =>
+								Promise.resolve({
+									data: [
+										{
+											id: propertyId,
+											name: 'Test',
+											address_line1: '123 Main',
+											city: 'Austin',
+											state: 'TX'
+										}
+									]
+								})
 						})
 					}
 
@@ -216,7 +248,9 @@ describe('Selection Step Filtering - Property Tests', () => {
 
 				await waitFor(
 					() => {
-						expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(true)
+						expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(
+							true
+						)
 					},
 					{ timeout: 3000 }
 				)
@@ -243,13 +277,19 @@ describe('Selection Step Filtering - Property Tests', () => {
 					fc.array(
 						fc.record({
 							id: fc.uuid(),
-							first_name: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 30 })),
-							last_name: fc.oneof(fc.constant(null), fc.string({ minLength: 1, maxLength: 30 })),
+							first_name: fc.oneof(
+								fc.constant(null),
+								fc.string({ minLength: 1, maxLength: 30 })
+							),
+							last_name: fc.oneof(
+								fc.constant(null),
+								fc.string({ minLength: 1, maxLength: 30 })
+							),
 							email: fc.emailAddress()
 						}),
 						{ minLength: 0, maxLength: 5 }
 					),
-					async (tenants) => {
+					async tenants => {
 						let tenantsFetched = false
 						let _returnedTenants: unknown[] = []
 
@@ -299,14 +339,27 @@ describe('Selection Step Filtering - Property Tests', () => {
 			await fc.assert(
 				fc.asyncProperty(
 					fc.option(fc.uuid(), { nil: undefined }), // optional property_id
-					async (propertyId) => {
+					async propertyId => {
 						let tenantsFetched = false
 
 						mockFetch.mockImplementation((url: string) => {
 							if (url.includes('/api/v1/properties')) {
 								return Promise.resolve({
 									ok: true,
-									json: () => Promise.resolve({ data: propertyId ? [{ id: propertyId, name: 'Test', address_line1: '123 Main', city: 'Austin', state: 'TX' }] : [] })
+									json: () =>
+										Promise.resolve({
+											data: propertyId
+												? [
+														{
+															id: propertyId,
+															name: 'Test',
+															address_line1: '123 Main',
+															city: 'Austin',
+															state: 'TX'
+														}
+													]
+												: []
+										})
 								})
 							}
 
@@ -369,7 +422,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 				if (url.includes('/api/v1/properties')) {
 					return Promise.resolve({
 						ok: true,
-						json: () => Promise.resolve({ data: [{ id: 'prop-1', name: 'Test', address_line1: '123 Main', city: 'Austin', state: 'TX' }] })
+						json: () =>
+							Promise.resolve({
+								data: [
+									{
+										id: 'prop-1',
+										name: 'Test',
+										address_line1: '123 Main',
+										city: 'Austin',
+										state: 'TX'
+									}
+								]
+							})
 					})
 				}
 

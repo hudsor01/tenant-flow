@@ -1,4 +1,4 @@
-import { createClient } from '#utils/supabase/server'
+import { createClient } from '#lib/supabase/server'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MetadataRoute } from 'next'
 

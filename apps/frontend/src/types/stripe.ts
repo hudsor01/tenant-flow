@@ -3,8 +3,8 @@
  */
 
 export interface SubscriptionData {
-  status: string
-  planName: string
-  currentPeriodEnd: string
-  cancelAtPeriodEnd: boolean
+	status: string
+	planName: string
+	currentPeriodEnd: string
+	cancelAtPeriodEnd: boolean
 }

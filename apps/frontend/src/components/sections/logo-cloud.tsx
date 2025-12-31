@@ -55,14 +55,16 @@ export function LogoCloud({
 						<p className="typography-small text-muted-foreground uppercase tracking-wider mb-2">
 							{title}
 						</p>
-						<p className="text-muted-foreground text-sm">
-							{subtitle}
-						</p>
+						<p className="text-muted-foreground text-sm">{subtitle}</p>
 					</div>
 
 					<div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
 						{integrations.map((integration, index) => (
-							<BlurFade key={integration.name} delay={0.1 + index * 0.05} inView>
+							<BlurFade
+								key={integration.name}
+								delay={0.1 + index * 0.05}
+								inView
+							>
 								<div className="group relative flex flex-col items-center gap-2">
 									<div className="h-10 flex items-center grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-300">
 										<integration.logo className="h-full w-auto" />

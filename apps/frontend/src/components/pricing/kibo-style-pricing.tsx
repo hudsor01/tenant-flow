@@ -15,7 +15,10 @@ import { Skeleton } from '#components/ui/skeleton'
 
 import { ArrowRight, BadgeCheck } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { createCheckoutSession, isUserAuthenticated } from '#lib/stripe/stripe-client'
+import {
+	createCheckoutSession,
+	isUserAuthenticated
+} from '#lib/stripe/stripe-client'
 import { checkoutRateLimiter } from '#lib/security'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -43,7 +46,9 @@ interface PricingPlan {
 	stripeAnnualPriceId?: string
 }
 
-export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingProps) {
+export function KiboStylePricing({
+	billingCycle = 'monthly'
+}: KiboStylePricingProps) {
 	const frequency = billingCycle
 	const [pendingPlan, setPendingPlan] = useState<PricingPlan | null>(null)
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
@@ -206,7 +211,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 				<div className="mt-10 grid w-full gap-6 sm:grid-cols-2 xl:grid-cols-3">
 					{pricingPlans.map(plan => (
 						<Card
-							variant={plan.popular ? "pricingPopular" : "pricing"}
+							variant={plan.popular ? 'pricingPopular' : 'pricing'}
 							key={plan.id}
 						>
 							<CardHeader className="space-y-[var(--spacing-4)] pb-[var(--spacing-6)] text-left">
@@ -245,7 +250,7 @@ export function KiboStylePricing({ billingCycle = 'monthly' }: KiboStylePricingP
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="flex flex-1 flex-col gap-[var(--spacing-3)] pb-[var(--spacing-6)] text-left">
-								{plan.features.map((feature) => (
+								{plan.features.map(feature => (
 									<div
 										className="flex gap-[var(--spacing-2)] text-left text-sm leading-6 text-muted-foreground"
 										key={feature}

@@ -26,9 +26,16 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 // Extract Supabase configuration from environment variables
 // No more hardcoded project refs!
-function getSupabaseConfig(): { supabaseUrl: string; supabaseKey: string; projectRef: string } {
-	const supabaseUrl = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const supabaseKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+function getSupabaseConfig(): {
+	supabaseUrl: string
+	supabaseKey: string
+	projectRef: string
+} {
+	const supabaseUrl =
+		process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const supabaseKey =
+		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 	if (!supabaseUrl) {
 		throw new Error(
@@ -53,7 +60,11 @@ function getSupabaseConfig(): { supabaseUrl: string; supabaseKey: string; projec
 }
 
 // Lazy-loaded config (initialized on first use)
-let _config: { supabaseUrl: string; supabaseKey: string; projectRef: string } | null = null
+let _config: {
+	supabaseUrl: string
+	supabaseKey: string
+	projectRef: string
+} | null = null
 function getConfig() {
 	if (!_config) {
 		_config = getSupabaseConfig()
@@ -108,22 +119,27 @@ async function authenticateViaAPI(
 	email: string,
 	password: string
 ): Promise<SupabaseSession> {
-  const config = getConfig()
+	const config = getConfig()
 	const { supabaseUrl, supabaseKey } = config
 
-	const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'apikey': supabaseKey,
-			'Authorization': `Bearer ${supabaseKey}`
-		},
-		body: JSON.stringify({ email, password })
-	})
+	const response = await fetch(
+		`${supabaseUrl}/auth/v1/token?grant_type=password`,
+		{
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				apikey: supabaseKey,
+				Authorization: `Bearer ${supabaseKey}`
+			},
+			body: JSON.stringify({ email, password })
+		}
+	)
 
 	if (!response.ok) {
 		const error = await response.json()
-		throw new Error(`Supabase auth failed: ${error.error_description || error.message || response.statusText}`)
+		throw new Error(
+			`Supabase auth failed: ${error.error_description || error.message || response.statusText}`
+		)
 	}
 
 	const data = (await response.json()) as SupabaseSession
@@ -193,7 +209,9 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const rawPassword =
 		options.password ||
 		process.env.E2E_OWNER_PASSWORD ||
-		(() => { throw new Error('E2E_OWNER_PASSWORD environment variable is required') })()
+		(() => {
+			throw new Error('E2E_OWNER_PASSWORD environment variable is required')
+		})()
 	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `owner:${email}`
 
@@ -231,7 +249,9 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	// Verify we're on the dashboard, not redirected to login
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
-		throw new Error(`Login failed: Redirected to login page. Session may be invalid.`)
+		throw new Error(
+			`Login failed: Redirected to login page. Session may be invalid.`
+		)
 	}
 
 	debugLog(` Logged in as owner (${email})`)
@@ -251,7 +271,9 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const rawPassword =
 		options.password ||
 		process.env.E2E_TENANT_PASSWORD ||
-		(() => { throw new Error('E2E_TENANT_PASSWORD environment variable is required') })()
+		(() => {
+			throw new Error('E2E_TENANT_PASSWORD environment variable is required')
+		})()
 	const password = rawPassword.replace(/\\!/g, '!')
 	const cacheKey = `tenant:${email}`
 
@@ -289,7 +311,9 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	// Verify we're on the tenant page, not redirected to login
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
-		throw new Error(`Tenant login failed: Redirected to login page. Session may be invalid.`)
+		throw new Error(
+			`Tenant login failed: Redirected to login page. Session may be invalid.`
+		)
 	}
 
 	debugLog(` Logged in as tenant (${email})`)

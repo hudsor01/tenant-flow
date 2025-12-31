@@ -74,7 +74,9 @@ export class LeasePdfMapperService {
 		const fields: LeasePdfFields = {
 			// Agreement date (today's date)
 			agreement_date_day: today.getDate().toString(),
-			agreement_date_month: today.toLocaleDateString('en-US', { month: 'long' }),
+			agreement_date_month: today.toLocaleDateString('en-US', {
+				month: 'long'
+			}),
 			agreement_date_year: today.getFullYear().toString().slice(-2), // Last 2 digits
 
 			// Parties
@@ -99,7 +101,9 @@ export class LeasePdfMapperService {
 			pet_fee_per_day: this.formatCurrency(2500), // Default $25/day
 
 			// Disclosures
-			property_built_before_1978: data.lease.property_built_before_1978 ? 'Yes' : 'No',
+			property_built_before_1978: data.lease.property_built_before_1978
+				? 'Yes'
+				: 'No',
 
 			// Missing fields (user must provide)
 			immediate_family_members: undefined,
@@ -117,7 +121,9 @@ export class LeasePdfMapperService {
 
 		this.logger.log('Mapped lease data to PDF fields', {
 			leaseId: data.lease.id,
-			autoFilledFields: Object.keys(fields).filter(k => fields[k as keyof LeasePdfFields] !== undefined).length,
+			autoFilledFields: Object.keys(fields).filter(
+				k => fields[k as keyof LeasePdfFields] !== undefined
+			).length,
 			missingFields: missingFields.length
 		})
 
@@ -212,7 +218,10 @@ export class LeasePdfMapperService {
 		}
 
 		// Landlord notice address (required)
-		if (!data.landlord_notice_address || data.landlord_notice_address.trim() === '') {
+		if (
+			!data.landlord_notice_address ||
+			data.landlord_notice_address.trim() === ''
+		) {
 			errors.push('landlord_notice_address is required and cannot be empty')
 		}
 
@@ -227,7 +236,12 @@ export class LeasePdfMapperService {
 	 */
 	mergeMissingFields(
 		autoFilled: LeasePdfFields,
-		userProvided: Partial<Pick<LeasePdfFields, 'immediate_family_members' | 'landlord_notice_address'>>
+		userProvided: Partial<
+			Pick<
+				LeasePdfFields,
+				'immediate_family_members' | 'landlord_notice_address'
+			>
+		>
 	): LeasePdfFields {
 		return {
 			...autoFilled,

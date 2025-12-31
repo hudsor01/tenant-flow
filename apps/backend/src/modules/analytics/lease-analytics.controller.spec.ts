@@ -6,18 +6,19 @@ import { LeaseAnalyticsService } from './lease-analytics.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('LeaseAnalyticsController', () => {
 	let controller: LeaseAnalyticsController
 	let service: Record<string, jest.Mock>
 
-const createRequest = (user_id?: string): Partial<AuthenticatedRequest> => ({
-	path: '/analytics/leases',
-	method: 'GET',
-	headers: {},
-	cookies: {},
-	user: user_id ? ({ id: user_id } as AuthenticatedRequest['user']) : undefined
-})
+	const createRequest = (user_id?: string): Partial<AuthenticatedRequest> => ({
+		path: '/analytics/leases',
+		method: 'GET',
+		headers: {},
+		cookies: {},
+		user: user_id
+			? ({ id: user_id } as AuthenticatedRequest['user'])
+			: undefined
+	})
 
 	beforeEach(async () => {
 		service = {

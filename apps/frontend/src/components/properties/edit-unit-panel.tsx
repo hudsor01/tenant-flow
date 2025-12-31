@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
@@ -145,7 +149,9 @@ export function EditUnitPanel({
 			<SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
 				<SheetHeader>
 					<SheetTitle>Edit Unit {unit.unit_number}</SheetTitle>
-					<SheetDescription>Update unit details for {propertyName}</SheetDescription>
+					<SheetDescription>
+						Update unit details for {propertyName}
+					</SheetDescription>
 				</SheetHeader>
 
 				<form
@@ -232,7 +238,9 @@ export function EditUnitPanel({
 					<form.Field name="rent_amount">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="edit_rent_amount">Monthly Rent *</FieldLabel>
+								<FieldLabel htmlFor="edit_rent_amount">
+									Monthly Rent *
+								</FieldLabel>
 								<InputGroup>
 									<InputGroupAddon>
 										<DollarSign className="size-4" />
@@ -260,7 +268,11 @@ export function EditUnitPanel({
 									value={field.state.value}
 									onValueChange={value =>
 										field.handleChange(
-											value as 'available' | 'occupied' | 'maintenance' | 'reserved'
+											value as
+												| 'available'
+												| 'occupied'
+												| 'maintenance'
+												| 'reserved'
 										)
 									}
 								>

@@ -57,7 +57,11 @@ const validateMoveOutDate = (dateString: string): void => {
 }
 
 export function TenantDetails({ id }: TenantDetailsProps) {
-	const { data: tenant, isLoading, isError } = useQuery(tenantQueries.withLease(id))
+	const {
+		data: tenant,
+		isLoading,
+		isError
+	} = useQuery(tenantQueries.withLease(id))
 	const router = useRouter()
 	const markAsMovedOut = useMarkTenantAsMovedOut()
 
@@ -73,9 +77,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 			validateMoveOutDate(moveOutDate)
 		} catch (error) {
 			toast.error(
-				error instanceof Error
-					? error.message
-					: 'Invalid move-out date'
+				error instanceof Error ? error.message : 'Invalid move-out date'
 			)
 			return
 		}
@@ -171,17 +173,21 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 					</div>
 
 					{tenant.emergency_contact_name && (
-				<div className="pt-4 border-t">
-					<div className="text-muted mb-2">
-						Emergency Contact
-					</div>
-					<div className="font-medium whitespace-pre-wrap">
-						{tenant.emergency_contact_name}
-						{tenant.emergency_contact_phone && <div>{tenant.emergency_contact_phone}</div>}
-						{tenant.emergency_contact_relationship && <div className="text-caption">{tenant.emergency_contact_relationship}</div>}
-					</div>
-				</div>
-			)}
+						<div className="pt-4 border-t">
+							<div className="text-muted mb-2">Emergency Contact</div>
+							<div className="font-medium whitespace-pre-wrap">
+								{tenant.emergency_contact_name}
+								{tenant.emergency_contact_phone && (
+									<div>{tenant.emergency_contact_phone}</div>
+								)}
+								{tenant.emergency_contact_relationship && (
+									<div className="text-caption">
+										{tenant.emergency_contact_relationship}
+									</div>
+								)}
+							</div>
+						</div>
+					)}
 
 					{/* Created and Updated Dates */}
 					<div className="pt-4 border-t">
@@ -192,13 +198,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Created
 								</div>
 								<div className="font-medium">
-							{formatDate(tenant.created_at ?? new Date().toISOString(), {
-								formatOptions: {
-									year: 'numeric',
-									month: 'long',
-									day: 'numeric'
-								}
-							})}
+									{formatDate(tenant.created_at ?? new Date().toISOString(), {
+										formatOptions: {
+											year: 'numeric',
+											month: 'long',
+											day: 'numeric'
+										}
+									})}
 								</div>
 							</div>
 							<div className="space-y-1">
@@ -207,13 +213,13 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 									Updated
 								</div>
 								<div className="font-medium">
-							{formatDate(tenant.updated_at as string, {
-								formatOptions: {
-									year: 'numeric',
-									month: 'long',
-									day: 'numeric'
-								}
-							})}
+									{formatDate(tenant.updated_at as string, {
+										formatOptions: {
+											year: 'numeric',
+											month: 'long',
+											day: 'numeric'
+										}
+									})}
 								</div>
 							</div>
 						</div>
@@ -240,7 +246,9 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 											<span className="flex items-center gap-1">
 												<Calendar className="size-3" />
 												{formatDate(lease.start_date)} -{' '}
-												{lease.end_date ? formatDate(lease.end_date) : 'Month-to-Month'}
+												{lease.end_date
+													? formatDate(lease.end_date)
+													: 'Month-to-Month'}
 											</span>
 											<span>${lease.rent_amount}/mo</span>
 										</div>

@@ -15,23 +15,26 @@
 import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SubscriptionWebhookHandler } from './handlers/subscription-webhook.handler'
 import {
-	SubscriptionWebhookHandler,
 	PaymentWebhookHandler,
-	CheckoutWebhookHandler,
-	ConnectWebhookHandler
-} from './handlers'
+	MAX_PAYMENT_RETRY_ATTEMPTS as MAX_PAYMENT_RETRY_ATTEMPTSValue
+} from './handlers/payment-webhook.handler'
+import { CheckoutWebhookHandler } from './handlers/checkout-webhook.handler'
+import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
 
-// Re-export for backward compatibility
-export { MAX_PAYMENT_RETRY_ATTEMPTS } from './handlers'
+// Re-export for backward compatibility without barrel re-exports
+export const MAX_PAYMENT_RETRY_ATTEMPTS = MAX_PAYMENT_RETRY_ATTEMPTSValue
 
 @Injectable()
 export class WebhookProcessor {
-
-	constructor(private readonly subscriptionHandler: SubscriptionWebhookHandler,
+	constructor(
+		private readonly subscriptionHandler: SubscriptionWebhookHandler,
 		private readonly paymentHandler: PaymentWebhookHandler,
 		private readonly checkoutHandler: CheckoutWebhookHandler,
-		private readonly connectHandler: ConnectWebhookHandler, private readonly logger: AppLogger) {}
+		private readonly connectHandler: ConnectWebhookHandler,
+		private readonly logger: AppLogger
+	) {}
 
 	async processEvent(event: Stripe.Event): Promise<void> {
 		switch (event.type) {

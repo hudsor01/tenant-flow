@@ -11,6 +11,7 @@ import { defineConfig } from 'eslint/config'
 import eslintConfigPrettier from 'eslint-config-prettier'
 // import turboPlugin from 'eslint-plugin-turbo' // Removed - using turbo.js config instead
 import globals from 'globals'
+import noBarrelFiles from 'eslint-plugin-no-barrel-files'
 import tseslint from 'typescript-eslint'
 
 export const config = defineConfig([
@@ -38,7 +39,26 @@ export const config = defineConfig([
 	},
 	eslintConfigPrettier,
 	...tseslint.configs.recommended,
+	noBarrelFiles.flat,
 
+	{
+		name: 'base/barrel-file-exceptions',
+		files: [
+			'**/test/utils/**/*.ts',
+			'**/test/utils/**/*.tsx',
+			'**/components/ui/**/*.tsx',
+			'**/hooks/**/*.ts',
+			'**/lib/formatters/**/*.ts',
+			'**/lib/env/**/*.ts',
+			'**/types/**/*.ts',
+			'**/schemas/**/*.ts',
+			'**/config/**/*.ts',
+			'**/columns.tsx'
+		],
+		rules: {
+			'no-barrel-files/no-barrel-files': 'off'
+		}
+	},
 	{
 		name: 'base/ignores',
 		ignores: [

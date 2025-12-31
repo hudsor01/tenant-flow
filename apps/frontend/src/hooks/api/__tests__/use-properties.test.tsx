@@ -46,7 +46,8 @@ const mockHandleMutationError = vi.fn()
 const mockHandleMutationSuccess = vi.fn()
 vi.mock('#lib/mutation-error-handler', () => ({
 	handleMutationError: (...args: unknown[]) => mockHandleMutationError(...args),
-	handleMutationSuccess: (...args: unknown[]) => mockHandleMutationSuccess(...args)
+	handleMutationSuccess: (...args: unknown[]) =>
+		mockHandleMutationSuccess(...args)
 }))
 
 // Mock logger
@@ -66,7 +67,12 @@ vi.mock('@repo/shared/lib/frontend-logger', () => ({
 }))
 
 // Mock Supabase client using vi.hoisted() to avoid initialization errors
-const { mockGetSession, mockSupabaseSelect, mockSupabaseEq, mockSupabaseOrder } = vi.hoisted(() => ({
+const {
+	mockGetSession,
+	mockSupabaseSelect,
+	mockSupabaseEq,
+	mockSupabaseOrder
+} = vi.hoisted(() => ({
 	mockGetSession: vi.fn(),
 	mockSupabaseSelect: vi.fn(),
 	mockSupabaseEq: vi.fn(),
@@ -95,9 +101,7 @@ function createWrapper() {
 
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
-			<QueryClientProvider client={queryClient}>
-				{children}
-			</QueryClientProvider>
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
 	}
 }
@@ -164,7 +168,8 @@ describe('Query Hooks', () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ data: [mockProperty], total: 1 }),
-				text: () => Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
+				text: () =>
+					Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
 			})
 
 			const { result } = renderHook(() => usePropertyList(), {
@@ -209,7 +214,8 @@ describe('Query Hooks', () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ data: [mockProperty], total: 1 }),
-				text: () => Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
+				text: () =>
+					Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
 			})
 
 			const { result } = renderHook(() => usePropertyList(), {
@@ -253,7 +259,8 @@ describe('Query Hooks', () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ total: 10, active: 8, sold: 2 }),
-				text: () => Promise.resolve(JSON.stringify({ total: 10, active: 8, sold: 2 }))
+				text: () =>
+					Promise.resolve(JSON.stringify({ total: 10, active: 8, sold: 2 }))
 			})
 
 			const { result } = renderHook(() => usePropertyStats(), {
@@ -453,7 +460,10 @@ describe('Mutation Hooks', () => {
 				})
 			).rejects.toThrow()
 
-			expect(mockHandleMutationError).toHaveBeenCalledWith(expect.any(Error), 'Create property')
+			expect(mockHandleMutationError).toHaveBeenCalledWith(
+				expect.any(Error),
+				'Create property'
+			)
 		})
 	})
 
@@ -530,7 +540,10 @@ describe('Mutation Hooks', () => {
 				})
 			).rejects.toThrow()
 
-			expect(mockHandleMutationError).toHaveBeenCalledWith(expect.any(Error), 'Update property')
+			expect(mockHandleMutationError).toHaveBeenCalledWith(
+				expect.any(Error),
+				'Update property'
+			)
 		})
 	})
 
@@ -538,8 +551,18 @@ describe('Mutation Hooks', () => {
 		it('should call API with correct endpoint and data', async () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({ success: true, message: 'Property marked as sold' }),
-				text: () => Promise.resolve(JSON.stringify({ success: true, message: 'Property marked as sold' }))
+				json: () =>
+					Promise.resolve({
+						success: true,
+						message: 'Property marked as sold'
+					}),
+				text: () =>
+					Promise.resolve(
+						JSON.stringify({
+							success: true,
+							message: 'Property marked as sold'
+						})
+					)
 			})
 
 			const { result } = renderHook(() => useMarkPropertySold(), {
@@ -569,7 +592,8 @@ describe('Mutation Hooks', () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ message: 'Property deleted' }),
-				text: () => Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
+				text: () =>
+					Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
 			})
 
 			const { result } = renderHook(() => useDeleteProperty(), {
@@ -590,7 +614,8 @@ describe('Mutation Hooks', () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ message: 'Property deleted' }),
-				text: () => Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
+				text: () =>
+					Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
 			})
 
 			const { result } = renderHook(() => useDeleteProperty(), {
@@ -618,7 +643,10 @@ describe('Mutation Hooks', () => {
 
 			await expect(result.current.mutateAsync('prop-123')).rejects.toThrow()
 
-			expect(mockHandleMutationError).toHaveBeenCalledWith(expect.any(Error), 'Delete property')
+			expect(mockHandleMutationError).toHaveBeenCalledWith(
+				expect.any(Error),
+				'Delete property'
+			)
 		})
 	})
 })

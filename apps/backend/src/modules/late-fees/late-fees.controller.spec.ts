@@ -116,8 +116,12 @@ describe('LateFeesController', () => {
 		controller = module.get<LateFeesController>(LateFeesController)
 
 		// Replace injected services with mocks
-		;(controller as unknown as { lateFeesService: typeof mockLateFeesService }).lateFeesService = mockLateFeesService
-		;(controller as unknown as { supabaseService: typeof mockSupabaseService }).supabaseService = mockSupabaseService
+		;(
+			controller as unknown as { lateFeesService: typeof mockLateFeesService }
+		).lateFeesService = mockLateFeesService
+		;(
+			controller as unknown as { supabaseService: typeof mockSupabaseService }
+		).supabaseService = mockSupabaseService
 
 		// Spy on logger
 		jest.spyOn(controller['logger'], 'log').mockImplementation(() => {})
@@ -148,11 +152,18 @@ describe('LateFeesController', () => {
 
 			expect(result.success).toBe(true)
 			expect(result.data).toEqual(mockConfig)
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(lease_id, 'mock-jwt-token')
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(
+				lease_id,
+				'mock-jwt-token'
+			)
 		})
 
 		it('should throw BadRequestException when service not available', async () => {
-			;(controller as unknown as { lateFeesService: typeof mockLateFeesService | undefined }).lateFeesService = undefined
+			;(
+				controller as unknown as {
+					lateFeesService: typeof mockLateFeesService | undefined
+				}
+			).lateFeesService = undefined
 
 			await expect(
 				controller.getConfig(createMockRequest(), generateUUID())
@@ -310,7 +321,10 @@ describe('LateFeesController', () => {
 				lease_id
 			)
 
-			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(lease_id, 'mock-jwt-token')
+			expect(mockLateFeesService.getLateFeeConfig).toHaveBeenCalledWith(
+				lease_id,
+				'mock-jwt-token'
+			)
 			expect(mockLateFeesService.calculateLateFee).toHaveBeenCalledWith(
 				1500,
 				10,
@@ -322,7 +336,12 @@ describe('LateFeesController', () => {
 			const user_id = generateUUID()
 
 			await expect(
-				controller.calculateLateFee(createMockRequest(user_id), 0, 10, undefined)
+				controller.calculateLateFee(
+					createMockRequest(user_id),
+					0,
+					10,
+					undefined
+				)
 			).rejects.toThrow('Rent amount must be positive')
 		})
 

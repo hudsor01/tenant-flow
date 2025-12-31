@@ -6,7 +6,7 @@
  * table does not exist. This service now focuses on retry logic only.
  */
 
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -49,7 +49,12 @@ export class FailedNotificationsService implements OnModuleDestroy {
 					this.pendingTimers.add(timer)
 				})
 
-				return this.retryWithBackoff(operation, eventType, _eventData, attempt + 1)
+				return this.retryWithBackoff(
+					operation,
+					eventType,
+					_eventData,
+					attempt + 1
+				)
 			} else {
 				// Max retries exceeded
 				this.logger.error('Retry operation failed after max attempts', {

@@ -36,7 +36,6 @@ import {
 
 // Query keys are now imported from tenant-portal-queries.ts
 
-
 // ============================================================================
 // PAYMENTS HOOKS (/tenant-portal/payments/*)
 // ============================================================================
@@ -85,7 +84,9 @@ export function useMaintenanceRequestCreate() {
 		onSuccess: () => {
 			handleMutationSuccess('Maintenance request created successfully')
 			// Invalidate maintenance list to refetch with new request
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.maintenance.list() })
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.maintenance.list()
+			})
 		}
 	})
 }
@@ -93,7 +94,6 @@ export function useMaintenanceRequestCreate() {
 // ============================================================================
 // LEASES HOOKS (/tenant-portal/leases/*)
 // ============================================================================
-
 
 /**
  * Combined dashboard hook for tenant portal homepage
@@ -105,8 +105,13 @@ export function useTenantPortalDashboard() {
 	const maintenance = useTenantMaintenance()
 	const autopay = useTenantAutopayStatus()
 
-	const isLoading = lease.isLoading || payments.isLoading || maintenance.isLoading || autopay.isLoading
-	const error = lease.error || payments.error || maintenance.error || autopay.error
+	const isLoading =
+		lease.isLoading ||
+		payments.isLoading ||
+		maintenance.isLoading ||
+		autopay.isLoading
+	const error =
+		lease.error || payments.error || maintenance.error || autopay.error
 
 	return {
 		data: {
@@ -211,19 +216,27 @@ export function useTenantPortalCacheUtils() {
 
 	return {
 		invalidatePayments: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.payments.all() })
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.payments.all()
+			})
 		},
 		invalidateAutopay: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.autopay.all() })
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.autopay.all()
+			})
 		},
 		invalidateMaintenance: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.maintenance.all() })
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.maintenance.all()
+			})
 		},
 		invalidateLeases: () => {
 			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.leases.all() })
 		},
 		invalidateSettings: () => {
-			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.settings.all() })
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.settings.all()
+			})
 		},
 		invalidateAll: () => {
 			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.all })

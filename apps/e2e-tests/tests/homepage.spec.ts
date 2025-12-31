@@ -17,24 +17,26 @@ test.describe('Homepage Smoke', () => {
 		consoleErrors = []
 		networkErrors = []
 
-		page.on('console', (msg) => {
+		page.on('console', msg => {
 			if (msg.type() === 'error') {
 				consoleErrors.push(msg.text())
 			}
 		})
 
-		page.on('requestfailed', (request) => {
+		page.on('requestfailed', request => {
 			networkErrors.push(`${request.url()} - ${request.failure()?.errorText}`)
 		})
 
-		page.on('response', (response) => {
+		page.on('response', response => {
 			if (response.status() >= 400) {
 				networkErrors.push(`${response.url()} - Status: ${response.status()}`)
 			}
 		})
 	})
 
-	test('renders primary marketing content without errors', async ({ page }, testInfo) => {
+	test('renders primary marketing content without errors', async ({
+		page
+	}, testInfo) => {
 		// Use 'load' to avoid waiting for long-running analytics/resources
 		await page.goto('/', { waitUntil: 'load', timeout: 60000 })
 
@@ -54,12 +56,14 @@ test.describe('Homepage Smoke', () => {
 	})
 
 	test('login form shows required controls', async ({ page }) => {
-	await page.goto('/login', { waitUntil: 'load', timeout: 60000 })
+		await page.goto('/login', { waitUntil: 'load', timeout: 60000 })
 
 		await expect(page).toHaveTitle(/sign in|login|tenantflow/i)
 		await expect(page.locator('[data-testid="email-input"]')).toBeVisible()
 		await expect(page.locator('[data-testid="password-input"]')).toBeVisible()
-		await expect(page.locator('[data-testid="login-button"]').first()).toBeVisible()
+		await expect(
+			page.locator('[data-testid="login-button"]').first()
+		).toBeVisible()
 	})
 
 	test('critical assets are applied', async ({ page }) => {

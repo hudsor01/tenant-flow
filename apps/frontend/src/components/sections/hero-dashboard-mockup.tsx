@@ -42,8 +42,12 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					{/* Header row */}
 					<div className="flex-between">
 						<div>
-							<h3 className="text-sm font-semibold text-foreground">Dashboard</h3>
-							<p className="text-xs text-muted-foreground">Welcome back, Sarah</p>
+							<h3 className="text-sm font-semibold text-foreground">
+								Dashboard
+							</h3>
+							<p className="text-xs text-muted-foreground">
+								Welcome back, Sarah
+							</p>
 						</div>
 						<div className="flex items-center gap-2">
 							<div className="relative">
@@ -93,26 +97,30 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 						{/* Revenue chart */}
 						<div className="col-span-3 card-standard p-3">
 							<div className="flex-between mb-3">
-								<span className="text-xs font-medium text-foreground">Monthly Revenue</span>
+								<span className="text-xs font-medium text-foreground">
+									Monthly Revenue
+								</span>
 								<span className="text-xs text-success flex items-center gap-1">
 									<ArrowUpRight className="size-3" />
 									+18.2%
 								</span>
 							</div>
 							<div className="flex items-end gap-1 h-20">
-								{[35, 45, 40, 55, 50, 65, 60, 75, 70, 82, 78, 92].map((height, i) => (
-									<div
-										key={i}
-										className={cn(
-											'rounded-sm flex-1 transition-all duration-500',
-											i === 11 ? 'bg-primary' : 'bg-primary/40'
-										)}
-										style={{
-											height: `${height}%`,
-											animationDelay: `${i * 50}ms`
-										}}
-									/>
-								))}
+								{[35, 45, 40, 55, 50, 65, 60, 75, 70, 82, 78, 92].map(
+									(height, i) => (
+										<div
+											key={i}
+											className={cn(
+												'rounded-sm flex-1 transition-all duration-500',
+												i === 11 ? 'bg-primary' : 'bg-primary/40'
+											)}
+											style={{
+												height: `${height}%`,
+												animationDelay: `${i * 50}ms`
+											}}
+										/>
+									)
+								)}
 							</div>
 							<div className="flex justify-between mt-2 text-xs text-muted-foreground">
 								<span>Jan</span>
@@ -144,8 +152,13 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					{/* Recent activity */}
 					<div className="card-standard p-3">
 						<div className="flex-between mb-3">
-							<span className="text-xs font-medium text-foreground">Recent Activity</span>
-							<button type="button" className="text-xs text-primary hover:underline flex items-center">
+							<span className="text-xs font-medium text-foreground">
+								Recent Activity
+							</span>
+							<button
+								type="button"
+								className="text-xs text-primary hover:underline flex items-center"
+							>
 								View all <ChevronRight className="size-3" />
 							</button>
 						</div>
@@ -205,11 +218,17 @@ function StatCard({
 				<div className="icon-container-sm bg-primary/10 text-primary">
 					{icon}
 				</div>
-				<span className={cn(
-					'text-xs flex items-center gap-0.5',
-					trendUp ? 'text-success' : 'text-destructive'
-				)}>
-					{trendUp ? <ArrowUpRight className="size-2.5" /> : <ArrowDownRight className="size-2.5" />}
+				<span
+					className={cn(
+						'text-xs flex items-center gap-0.5',
+						trendUp ? 'text-success' : 'text-destructive'
+					)}
+				>
+					{trendUp ? (
+						<ArrowUpRight className="size-2.5" />
+					) : (
+						<ArrowDownRight className="size-2.5" />
+					)}
 					{trend}
 				</span>
 			</div>
@@ -248,7 +267,12 @@ function QuickAction({
 				<span className="text-xs font-medium text-foreground">{label}</span>
 			</div>
 			{badge ? (
-				<span className={cn('text-xs px-2 py-0.5 rounded-full', badgeColors[badgeColor || 'info'])}>
+				<span
+					className={cn(
+						'text-xs px-2 py-0.5 rounded-full',
+						badgeColors[badgeColor || 'info']
+					)}
+				>
 					{badge}
 				</span>
 			) : (
@@ -290,7 +314,9 @@ function ActivityItem({
 					<span className="text-muted-foreground"> {action}</span>
 				</div>
 			</div>
-			<span className={cn('text-xs px-2 py-0.5 rounded-full', statusColors[status])}>
+			<span
+				className={cn('text-xs px-2 py-0.5 rounded-full', statusColors[status])}
+			>
 				{amount}
 			</span>
 			<span className="text-xs text-muted-foreground">{time}</span>

@@ -156,9 +156,15 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		// Verify the API returns only 2 invited tenants, not 3 (excluding Bob Wilson)
 		expect(mockInvitedTenants).toHaveLength(2)
-		expect(mockInvitedTenants.some(t => t.email === 'john@example.com')).toBe(true)
-		expect(mockInvitedTenants.some(t => t.email === 'jane@example.com')).toBe(true)
-		expect(mockInvitedTenants.some(t => t.email === 'bob@example.com')).toBe(false)
+		expect(mockInvitedTenants.some(t => t.email === 'john@example.com')).toBe(
+			true
+		)
+		expect(mockInvitedTenants.some(t => t.email === 'jane@example.com')).toBe(
+			true
+		)
+		expect(mockInvitedTenants.some(t => t.email === 'bob@example.com')).toBe(
+			false
+		)
 	})
 
 	it('should fetch all tenants when no property is selected', async () => {
@@ -179,10 +185,7 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		render(
 			<QueryClientProvider client={queryClient}>
-				<SelectionStep
-					data={dataWithoutProperty}
-					onChange={mockOnChange}
-				/>
+				<SelectionStep data={dataWithoutProperty} onChange={mockOnChange} />
 			</QueryClientProvider>
 		)
 
@@ -267,7 +270,9 @@ describe('SelectionStep - Tenant Filtering', () => {
 		mockFetch
 			.mockResolvedValueOnce({
 				ok: true,
-				json: async () => ({ data: [{ id: 'unit-3', unit_number: '201', property_id: 'prop-456' }] })
+				json: async () => ({
+					data: [{ id: 'unit-3', unit_number: '201', property_id: 'prop-456' }]
+				})
 			})
 			.mockResolvedValueOnce({
 				ok: true,

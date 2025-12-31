@@ -21,6 +21,7 @@ import { Module } from '@nestjs/common'
 import { BullModule } from '@nestjs/bullmq'
 import { StripeModule } from '../billing/stripe.module'
 import { RentPaymentsController } from './rent-payments.controller'
+import { N8nPaymentReminderWebhookController } from './n8n-payment-reminder-webhook.controller'
 
 // Decomposed services
 import { RentPaymentQueryService } from './rent-payment-query.service'
@@ -32,6 +33,12 @@ import { PaymentReminderService } from './payment-reminder.service'
 // Facade service
 import { RentPaymentsService } from './rent-payments.service'
 
+/**
+ * N8N Cron Mode: When enabled, exposes HTTP endpoint for n8n to trigger
+ * payment reminders instead of using @Cron decorator.
+ */
+const N8N_CRON_MODE_ENABLED = process.env.N8N_CRON_MODE === 'true'
+
 @Module({
 	imports: [
 		StripeModule,
@@ -39,7 +46,10 @@ import { RentPaymentsService } from './rent-payments.service'
 			name: 'emails'
 		})
 	],
-	controllers: [RentPaymentsController],
+	controllers: [
+		RentPaymentsController,
+		...(N8N_CRON_MODE_ENABLED ? [N8nPaymentReminderWebhookController] : [])
+	],
 	providers: [
 		// Context service (no dependencies on other rent-payment services)
 		RentPaymentContextService,

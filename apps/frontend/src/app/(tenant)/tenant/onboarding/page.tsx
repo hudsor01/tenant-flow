@@ -1,7 +1,8 @@
-// TODO: [VIOLATION] CLAUDE.md Standards - Multiple violations in this file:
-// 1. LINE 7: Direct path import `@repo/shared/lib/frontend-logger` - should import from `@repo/shared`
-// 2. LINE 76-77: Duplicate API_BASE_URL fallback pattern - should import `API_BASE_URL` from `@/lib/api-client`
-// See CLAUDE.md "API Base URL (Single Source of Truth)" and "Type System Rules"
+/**
+ * Tenant Onboarding Page
+ * Called after Supabase Auth email confirmation
+ * Activates tenant record and redirects to dashboard
+ */
 
 'use client'
 
@@ -10,6 +11,7 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
@@ -31,12 +33,12 @@ export default function TenantOnboardingPage() {
 
 		const activateTenant = async () => {
 			try {
-			// Use process.env directly for NEXT_PUBLIC_* vars in client components
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-			const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+				// Use process.env directly for NEXT_PUBLIC_* vars in client components
+				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+				const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
 
-			// 1. Create Supabase browser client with validated config
-			const supabase = createBrowserClient(supabaseUrl, supabaseKey)
+				// 1. Create Supabase browser client with validated config
+				const supabase = createBrowserClient(supabaseUrl, supabaseKey)
 
 				// 3. Get current auth user (validates JWT securely)
 				const {
@@ -76,23 +78,15 @@ export default function TenantOnboardingPage() {
 
 				setStatus('activating')
 
-			// Use process.env directly for NEXT_PUBLIC_* vars in client components
-			// Falls back to localhost in development, empty string triggers error in production
-			const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ||
-				(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:4600')
-
-			// 5. Call backend activation endpoint with authentication
-			const response = await fetch(
-				`${apiBaseUrl}/api/v1/tenants/activate`,
-					{
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json',
-							Authorization: `Bearer ${session.access_token}`
-						},
-						body: JSON.stringify({ authuser_id: user.id })
-					}
-				)
+				// 5. Call backend activation endpoint with authentication
+				const response = await fetch(`${API_BASE_URL}/api/v1/tenants/activate`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session.access_token}`
+					},
+					body: JSON.stringify({ authuser_id: user.id })
+				})
 
 				if (!response.ok) {
 					let errorMessage = `HTTP ${response.status}: ${response.statusText}`

@@ -21,7 +21,8 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PropertyOwnerRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 
 type LeaseContextResponse = Awaited<
 	ReturnType<SubscriptionQueryService['mapLeaseContextToResponse']>
@@ -114,7 +115,9 @@ describe('SubscriptionLifecycleService', () => {
 		status: 'active',
 		customer: 'cus_test123',
 		current_period_end: Math.floor(Date.now() / 1000) + 86400 * 30,
-		items: { data: [{ id: 'si_test', price: { id: 'price_test', currency: 'usd' } }] },
+		items: {
+			data: [{ id: 'si_test', price: { id: 'price_test', currency: 'usd' } }]
+		},
 		pause_collection: null,
 		canceled_at: null
 	}
@@ -186,7 +189,9 @@ describe('SubscriptionLifecycleService', () => {
 			.setLogger(new SilentLogger())
 			.compile()
 
-		service = module.get<SubscriptionLifecycleService>(SubscriptionLifecycleService)
+		service = module.get<SubscriptionLifecycleService>(
+			SubscriptionLifecycleService
+		)
 	})
 
 	describe('pauseSubscription', () => {
@@ -198,9 +203,14 @@ describe('SubscriptionLifecycleService', () => {
 			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(mockLeaseWithSubscription)
+			)
 
-			const result = await service.pauseSubscription(mockLeaseId, mockTenantUserId)
+			const result = await service.pauseSubscription(
+				mockLeaseId,
+				mockTenantUserId
+			)
 
 			expect(result.success).toBe(true)
 			expect(result.message).toContain('paused')
@@ -215,7 +225,9 @@ describe('SubscriptionLifecycleService', () => {
 		})
 
 		it('should throw BadRequestException if no active subscription', async () => {
-			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContextNoSubscription)
+			mockQueryService.loadLeaseContext.mockResolvedValue(
+				mockLeaseContextNoSubscription
+			)
 
 			await expect(
 				service.pauseSubscription(mockLeaseId, mockTenantUserId)
@@ -240,9 +252,14 @@ describe('SubscriptionLifecycleService', () => {
 			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(mockLeaseWithSubscription)
+			)
 
-			const result = await service.resumeSubscription(mockLeaseId, mockTenantUserId)
+			const result = await service.resumeSubscription(
+				mockLeaseId,
+				mockTenantUserId
+			)
 
 			expect(result.success).toBe(true)
 			expect(result.message).toContain('resumed')
@@ -257,7 +274,9 @@ describe('SubscriptionLifecycleService', () => {
 		})
 
 		it('should throw BadRequestException if no active subscription', async () => {
-			mockQueryService.loadLeaseContext.mockResolvedValue(mockLeaseContextNoSubscription)
+			mockQueryService.loadLeaseContext.mockResolvedValue(
+				mockLeaseContextNoSubscription
+			)
 
 			await expect(
 				service.resumeSubscription(mockLeaseId, mockTenantUserId)
@@ -274,9 +293,14 @@ describe('SubscriptionLifecycleService', () => {
 			} as LeaseContextResponse)
 
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSubscription))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(mockLeaseWithSubscription)
+			)
 
-			const result = await service.cancelSubscription(mockLeaseId, mockTenantUserId)
+			const result = await service.cancelSubscription(
+				mockLeaseId,
+				mockTenantUserId
+			)
 
 			expect(result.success).toBe(true)
 			expect(result.message).toContain('canceled')
@@ -291,7 +315,9 @@ describe('SubscriptionLifecycleService', () => {
 		})
 
 		it('should throw BadRequestException if no active subscription', async () => {
-			mockQueryService.loadLeaseContext.mockResolvedValueOnce(mockLeaseContextNoSubscription)
+			mockQueryService.loadLeaseContext.mockResolvedValueOnce(
+				mockLeaseContextNoSubscription
+			)
 
 			await expect(
 				service.cancelSubscription(mockLeaseId, mockTenantUserId)

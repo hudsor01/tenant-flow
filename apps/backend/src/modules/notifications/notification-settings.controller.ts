@@ -7,6 +7,13 @@ import {
 	Req,
 	UnauthorizedException
 } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import { SupabaseService } from '../../database/supabase.service'
@@ -58,6 +65,8 @@ const DEFAULT_SETTINGS: NotificationPreferences = {
 	}
 }
 
+@ApiTags('Notification Settings')
+@ApiBearerAuth('supabase-auth')
 @Controller('notification-settings')
 export class NotificationSettingsController {
 	constructor(private readonly supabase: SupabaseService) {}
@@ -72,7 +81,9 @@ export class NotificationSettingsController {
 		return this.supabase.getUserClient(token) as unknown as SupabaseClient
 	}
 
-	private mapRowToPreferences(row: NotificationSettingsRow): NotificationPreferences {
+	private mapRowToPreferences(
+		row: NotificationSettingsRow
+	): NotificationPreferences {
 		return {
 			email: row.email ?? DEFAULT_SETTINGS.email,
 			sms: row.sms ?? DEFAULT_SETTINGS.sms,
@@ -98,14 +109,25 @@ export class NotificationSettingsController {
 		if (typeof payload.push === 'boolean') update.push = payload.push
 		if (typeof payload.inApp === 'boolean') update.in_app = payload.inApp
 
-		const categories = payload.categories as { maintenance?: boolean; leases?: boolean; general?: boolean } | undefined
-		if (categories?.maintenance !== undefined && typeof categories.maintenance === 'boolean') {
+		const categories = payload.categories as
+			| { maintenance?: boolean; leases?: boolean; general?: boolean }
+			| undefined
+		if (
+			categories?.maintenance !== undefined &&
+			typeof categories.maintenance === 'boolean'
+		) {
 			update.maintenance = categories.maintenance
 		}
-		if (categories?.leases !== undefined && typeof categories.leases === 'boolean') {
+		if (
+			categories?.leases !== undefined &&
+			typeof categories.leases === 'boolean'
+		) {
 			update.leases = categories.leases
 		}
-		if (categories?.general !== undefined && typeof categories.general === 'boolean') {
+		if (
+			categories?.general !== undefined &&
+			typeof categories.general === 'boolean'
+		) {
 			update.general = categories.general
 		}
 
@@ -151,19 +173,24 @@ export class NotificationSettingsController {
 			throw new BadRequestException(insertError.message)
 		}
 
-		return (inserted?.[0] as NotificationSettingsRow) ?? {
-			id: '',
-			user_id: userId,
-			email: DEFAULT_SETTINGS.email,
-			sms: DEFAULT_SETTINGS.sms,
-			push: DEFAULT_SETTINGS.push,
-			in_app: DEFAULT_SETTINGS.inApp,
-			maintenance: DEFAULT_SETTINGS.categories.maintenance,
-			leases: DEFAULT_SETTINGS.categories.leases,
-			general: DEFAULT_SETTINGS.categories.general
-		}
+		return (
+			(inserted?.[0] as NotificationSettingsRow) ?? {
+				id: '',
+				user_id: userId,
+				email: DEFAULT_SETTINGS.email,
+				sms: DEFAULT_SETTINGS.sms,
+				push: DEFAULT_SETTINGS.push,
+				in_app: DEFAULT_SETTINGS.inApp,
+				maintenance: DEFAULT_SETTINGS.categories.maintenance,
+				leases: DEFAULT_SETTINGS.categories.leases,
+				general: DEFAULT_SETTINGS.categories.general
+			}
+		)
 	}
 
+	@ApiOperation({ summary: 'Get notification settings', description: 'Get notification preferences for current user' })
+	@ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get()
 	async getSettings(@Req() req: AuthenticatedRequest) {
 		const userId = req.user?.id
@@ -174,6 +201,11 @@ export class NotificationSettingsController {
 		return this.mapRowToPreferences(row)
 	}
 
+	@ApiOperation({ summary: 'Update notification settings', description: 'Update notification preferences for current user' })
+	@ApiBody({ schema: { type: 'object', properties: { email: { type: 'boolean' }, sms: { type: 'boolean' }, push: { type: 'boolean' }, inApp: { type: 'boolean' }, categories: { type: 'object', properties: { maintenance: { type: 'boolean' }, leases: { type: 'boolean' }, general: { type: 'boolean' } } } } } })
+	@ApiResponse({ status: 200, description: 'Settings updated successfully' })
+	@ApiResponse({ status: 400, description: 'No valid settings provided' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Put()
 	async updateSettings(
 		@Body() body: Partial<NotificationPreferences>,
@@ -204,7 +236,8 @@ export class NotificationSettingsController {
 			throw new BadRequestException(error.message)
 		}
 
-		const updatedRow = (data?.[0] as NotificationSettingsRow | undefined) ?? null
+		const updatedRow =
+			(data?.[0] as NotificationSettingsRow | undefined) ?? null
 		if (!updatedRow) {
 			throw new BadRequestException('Unable to update notification settings')
 		}

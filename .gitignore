@@ -241,6 +241,8 @@ playwright-report/
 **/playwright-report/
 test-screenshots/
 **/test-screenshots/
+screenshots/
+**/screenshots/
 test-videos/
 **/test-videos/
 jest-results/

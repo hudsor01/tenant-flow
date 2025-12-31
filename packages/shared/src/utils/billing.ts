@@ -3,7 +3,11 @@
  * Helper functions for subscription calculations and plan management
  */
 
-import { BILLING_PLANS, type PlanType, type BillingPlan } from '../constants/billing.js'
+import {
+	BILLING_PLANS,
+	type PlanType,
+	type BillingPlan
+} from '../constants/billing.js'
 
 export function getPlanById(planId: string): BillingPlan | undefined {
 	return BILLING_PLANS[planId as PlanType]

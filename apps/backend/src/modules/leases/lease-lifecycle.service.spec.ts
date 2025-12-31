@@ -12,7 +12,10 @@ describe('LeaseLifecycleService', () => {
 	const mockToken = 'mock-jwt-token'
 
 	// Mock Supabase query builder
-	const createMockQueryBuilder = (data: unknown | null, error: Error | null = null) => {
+	const createMockQueryBuilder = (
+		data: unknown | null,
+		error: Error | null = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -57,7 +60,9 @@ describe('LeaseLifecycleService', () => {
 
 		it('throws BadRequestException when lease not found', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(null))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(null)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2025-12-31')
@@ -67,27 +72,37 @@ describe('LeaseLifecycleService', () => {
 		it('throws BadRequestException when lease is not active', async () => {
 			const draftLease = { ...mockLease, lease_status: 'draft' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(draftLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(draftLease)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2025-12-31')
-			).rejects.toThrow("Cannot renew lease in 'draft' status. Only active leases can be renewed.")
+			).rejects.toThrow(
+				"Cannot renew lease in 'draft' status. Only active leases can be renewed."
+			)
 		})
 
 		it('throws BadRequestException when lease is pending_signature', async () => {
 			const pendingLease = { ...mockLease, lease_status: 'pending_signature' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(pendingLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(pendingLease)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2025-12-31')
-			).rejects.toThrow("Cannot renew lease in 'pending_signature' status. Only active leases can be renewed.")
+			).rejects.toThrow(
+				"Cannot renew lease in 'pending_signature' status. Only active leases can be renewed."
+			)
 		})
 
 		it('throws BadRequestException for month-to-month lease (no end_date)', async () => {
 			const monthToMonthLease = { ...mockLease, end_date: null }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(monthToMonthLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(monthToMonthLease)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2025-12-31')
@@ -96,7 +111,9 @@ describe('LeaseLifecycleService', () => {
 
 		it('throws BadRequestException when new end date is not after current', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(mockLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(mockLease)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2024-06-01')
@@ -105,7 +122,9 @@ describe('LeaseLifecycleService', () => {
 
 		it('throws BadRequestException when rent amount is not positive', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(mockLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(mockLease)
+			)
 
 			await expect(
 				service.renew(mockToken, 'lease-id', '2025-12-31', -100)
@@ -127,14 +146,23 @@ describe('LeaseLifecycleService', () => {
 		})
 
 		it('renews lease with new rent amount', async () => {
-			const renewedLease = { ...mockLease, end_date: '2025-12-31', rent_amount: 1600 }
+			const renewedLease = {
+				...mockLease,
+				end_date: '2025-12-31',
+				rent_amount: 1600
+			}
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			;(mockClient.from as jest.Mock)
 				.mockReturnValueOnce(createMockQueryBuilder(mockLease))
 				.mockReturnValueOnce(createMockQueryBuilder(renewedLease))
 
-			const result = await service.renew(mockToken, 'lease-id', '2025-12-31', 1600)
+			const result = await service.renew(
+				mockToken,
+				'lease-id',
+				'2025-12-31',
+				1600
+			)
 
 			expect(result).toEqual(renewedLease)
 		})
@@ -149,7 +177,9 @@ describe('LeaseLifecycleService', () => {
 
 		it('throws BadRequestException when lease not found', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(null))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(null)
+			)
 
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
@@ -159,7 +189,9 @@ describe('LeaseLifecycleService', () => {
 
 		it('throws BadRequestException when termination date is in the past', async () => {
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(mockLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(mockLease)
+			)
 
 			const pastDate = new Date(Date.now() - 86400000).toISOString()
 			await expect(
@@ -170,18 +202,24 @@ describe('LeaseLifecycleService', () => {
 		it('throws BadRequestException when lease is draft', async () => {
 			const draftLease = { ...mockLease, lease_status: 'draft' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(draftLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(draftLease)
+			)
 
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
 				service.terminate(mockToken, 'lease-id', futureDate)
-			).rejects.toThrow('Draft leases cannot be terminated. Delete the lease instead.')
+			).rejects.toThrow(
+				'Draft leases cannot be terminated. Delete the lease instead.'
+			)
 		})
 
 		it('throws BadRequestException when lease is already terminated', async () => {
 			const terminatedLease = { ...mockLease, lease_status: 'terminated' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(terminatedLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(terminatedLease)
+			)
 
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
@@ -192,7 +230,9 @@ describe('LeaseLifecycleService', () => {
 		it('throws BadRequestException when lease is already ended', async () => {
 			const endedLease = { ...mockLease, lease_status: 'ended' }
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(endedLease))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(endedLease)
+			)
 
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
 			await expect(
@@ -202,7 +242,11 @@ describe('LeaseLifecycleService', () => {
 
 		it('terminates lease successfully', async () => {
 			const futureDate = new Date(Date.now() + 86400000).toISOString()
-			const terminatedLease = { ...mockLease, lease_status: 'terminated', end_date: futureDate }
+			const terminatedLease = {
+				...mockLease,
+				lease_status: 'terminated',
+				end_date: futureDate
+			}
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			;(mockClient.from as jest.Mock)

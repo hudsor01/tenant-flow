@@ -14,7 +14,10 @@ import {
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
-import type { TenantCreate, TenantUpdate } from '@repo/shared/validation/tenants'
+import type {
+	TenantCreate,
+	TenantUpdate
+} from '@repo/shared/validation/tenants'
 import type {
 	Tenant,
 	TenantInput,

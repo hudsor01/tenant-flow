@@ -7,7 +7,11 @@
 import { queryOptions } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { apiRequest } from '#lib/api-request'
-import type { Tenant, TenantWithLeaseInfo, TenantStats } from '@repo/shared/types/core'
+import type {
+	Tenant,
+	TenantWithLeaseInfo,
+	TenantStats
+} from '@repo/shared/types/core'
 import type {
 	PaginatedResponse,
 	TenantFilters,
@@ -15,8 +19,8 @@ import type {
 	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
 
-// Re-export for backward compatibility
-export type { TenantFilters, TenantInvitation }
+// Note: Import TenantFilters and TenantInvitation directly from '@repo/shared/types/api-contracts'
+// No re-exports per CLAUDE.md rules
 
 /**
  * Invitation filters
@@ -40,14 +44,19 @@ export const tenantQueries = {
 			queryFn: async () => {
 				const searchParams = new URLSearchParams()
 				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.property_id) searchParams.append('property_id', filters.property_id)
+				if (filters?.property_id)
+					searchParams.append('property_id', filters.property_id)
 				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit) searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset) searchParams.append('offset', filters.offset.toString())
+				if (filters?.limit)
+					searchParams.append('limit', filters.limit.toString())
+				if (filters?.offset)
+					searchParams.append('offset', filters.offset.toString())
 				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<TenantWithLeaseInfo>>(`/api/v1/tenants${params ? `?${params}` : ''}`)
+				return apiRequest<PaginatedResponse<TenantWithLeaseInfo>>(
+					`/api/v1/tenants${params ? `?${params}` : ''}`
+				)
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
 	details: () => [...tenantQueries.all(), 'detail'] as const,
@@ -57,15 +66,16 @@ export const tenantQueries = {
 			queryKey: [...tenantQueries.details(), id],
 			queryFn: () => apiRequest<Tenant>(`/api/v1/tenants/${id}`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	withLease: (id: string) =>
 		queryOptions({
 			queryKey: [...tenantQueries.all(), 'with-lease', id],
-			queryFn: () => apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`),
+			queryFn: () =>
+				apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`),
 			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id,
+			enabled: !!id
 		}),
 
 	stats: () =>
@@ -73,7 +83,7 @@ export const tenantQueries = {
 			queryKey: [...tenantQueries.all(), 'stats'],
 			queryFn: () => apiRequest<TenantStats>('/api/v1/tenants/stats'),
 			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000,
+			gcTime: 30 * 60 * 1000
 		}),
 
 	invitations: () => [...tenantQueries.all(), 'invitations'] as const,
@@ -108,13 +118,18 @@ export const tenantQueries = {
 
 	notificationPreferences: (tenant_id: string) =>
 		queryOptions({
-			queryKey: [...tenantQueries.details(), tenant_id, 'notification-preferences'],
-			queryFn: () => apiRequest<{
-				emailNotifications: boolean
-				smsNotifications: boolean
-				maintenanceUpdates: boolean
-				paymentReminders: boolean
-			}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
+			queryKey: [
+				...tenantQueries.details(),
+				tenant_id,
+				'notification-preferences'
+			],
+			queryFn: () =>
+				apiRequest<{
+					emailNotifications: boolean
+					smsNotifications: boolean
+					maintenanceUpdates: boolean
+					paymentReminders: boolean
+				}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
 			enabled: !!tenant_id,
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 10 * 60 * 1000
@@ -123,7 +138,10 @@ export const tenantQueries = {
 	invitationList: () =>
 		queryOptions({
 			queryKey: tenantQueries.invitations(),
-			queryFn: () => apiRequest<PaginatedResponse<TenantInvitation>>('/api/v1/tenants/invitations'),
+			queryFn: () =>
+				apiRequest<PaginatedResponse<TenantInvitation>>(
+					'/api/v1/tenants/invitations'
+				),
 			...QUERY_CACHE_TIMES.LIST
 		}),
 
@@ -136,7 +154,9 @@ export const tenantQueries = {
 			queryKey: [...tenantQueries.details(), tenantId, 'payments', limit ?? 20],
 			queryFn: () => {
 				const params = limit ? `?limit=${limit}` : ''
-				return apiRequest<TenantPaymentHistoryResponse>(`/api/v1/tenants/${tenantId}/payments${params}`)
+				return apiRequest<TenantPaymentHistoryResponse>(
+					`/api/v1/tenants/${tenantId}/payments${params}`
+				)
 			},
 			enabled: !!tenantId,
 			...QUERY_CACHE_TIMES.DETAIL,
@@ -150,17 +170,18 @@ export const tenantQueries = {
 	leaseHistory: (tenantId: string) =>
 		queryOptions({
 			queryKey: [...tenantQueries.details(), tenantId, 'leases'],
-			queryFn: () => apiRequest<{
-				leases: Array<{
-					id: string
-					property_name: string
-					unit_number: string
-					start_date: string
-					end_date: string | null
-					rent_amount: number
-					status: string
-				}>
-			}>(`/api/v1/tenants/${tenantId}/leases`),
+			queryFn: () =>
+				apiRequest<{
+					leases: Array<{
+						id: string
+						property_name: string
+						unit_number: string
+						start_date: string
+						end_date: string | null
+						rent_amount: number
+						status: string
+					}>
+				}>(`/api/v1/tenants/${tenantId}/leases`),
 			enabled: !!tenantId,
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 10 * 60 * 1000

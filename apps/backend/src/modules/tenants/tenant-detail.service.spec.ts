@@ -8,7 +8,9 @@ import { SupabaseService } from '../../database/supabase.service'
 import { TenantDetailService } from './tenant-detail.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']
-type TenantWithLease = Awaited<ReturnType<TenantDetailService['findOneWithLease']>>
+type TenantWithLease = Awaited<
+	ReturnType<TenantDetailService['findOneWithLease']>
+>
 
 describe('TenantDetailService', () => {
 	let service: TenantDetailService
@@ -72,7 +74,9 @@ describe('TenantDetailService', () => {
 		})
 
 		it('should throw UnauthorizedException when token is missing', async () => {
-			await expect(service.findOne(mockTenantId, '')).rejects.toThrow(UnauthorizedException)
+			await expect(service.findOne(mockTenantId, '')).rejects.toThrow(
+				UnauthorizedException
+			)
 			await expect(
 				service.findOne(mockTenantId, undefined as unknown as string)
 			).rejects.toThrow(UnauthorizedException)
@@ -98,15 +102,21 @@ describe('TenantDetailService', () => {
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'not found' } })
+				single: jest
+					.fn()
+					.mockResolvedValue({ data: null, error: { message: 'not found' } })
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			await expect(service.findOne(mockTenantId, mockToken)).rejects.toThrow(NotFoundException)
+			await expect(service.findOne(mockTenantId, mockToken)).rejects.toThrow(
+				NotFoundException
+			)
 		})
 
 		it('throws error when tenant ID is missing', async () => {
-			await expect(service.findOne('', mockToken)).rejects.toThrow('Tenant ID required')
+			await expect(service.findOne('', mockToken)).rejects.toThrow(
+				'Tenant ID required'
+			)
 		})
 	})
 
@@ -133,7 +143,9 @@ describe('TenantDetailService', () => {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				order: jest.fn().mockReturnThis(),
-				limit: jest.fn().mockResolvedValue({ data: [{ lease: mockLease }], error: null })
+				limit: jest
+					.fn()
+					.mockResolvedValue({ data: [{ lease: mockLease }], error: null })
 			}
 
 			mockClient.from
@@ -173,7 +185,9 @@ describe('TenantDetailService', () => {
 		})
 
 		it('throws UnauthorizedException when token is missing', async () => {
-			await expect(service.findOneWithLease(mockTenantId, '')).rejects.toThrow(UnauthorizedException)
+			await expect(service.findOneWithLease(mockTenantId, '')).rejects.toThrow(
+				UnauthorizedException
+			)
 		})
 	})
 
@@ -186,7 +200,10 @@ describe('TenantDetailService', () => {
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			const result = await service.getTenantByAuthUserId(mockAuthUserId, mockToken)
+			const result = await service.getTenantByAuthUserId(
+				mockAuthUserId,
+				mockToken
+			)
 
 			expect(result).toEqual(mockTenant)
 			expect(mockBuilder.eq).toHaveBeenCalledWith('user_id', mockAuthUserId)
@@ -196,19 +213,27 @@ describe('TenantDetailService', () => {
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				single: jest.fn().mockResolvedValue({ data: null, error: { message: 'not found' } })
+				single: jest
+					.fn()
+					.mockResolvedValue({ data: null, error: { message: 'not found' } })
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			await expect(service.getTenantByAuthUserId(mockAuthUserId, mockToken)).rejects.toThrow(NotFoundException)
+			await expect(
+				service.getTenantByAuthUserId(mockAuthUserId, mockToken)
+			).rejects.toThrow(NotFoundException)
 		})
 
 		it('throws error when auth user ID is missing', async () => {
-			await expect(service.getTenantByAuthUserId('', mockToken)).rejects.toThrow('Auth user ID required')
+			await expect(
+				service.getTenantByAuthUserId('', mockToken)
+			).rejects.toThrow('Auth user ID required')
 		})
 
 		it('throws UnauthorizedException when token is missing', async () => {
-			await expect(service.getTenantByAuthUserId(mockAuthUserId, '')).rejects.toThrow(UnauthorizedException)
+			await expect(
+				service.getTenantByAuthUserId(mockAuthUserId, '')
+			).rejects.toThrow(UnauthorizedException)
 		})
 	})
 
@@ -227,11 +252,16 @@ describe('TenantDetailService', () => {
 		it('returns Map of tenants by IDs', async () => {
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
-				in: jest.fn().mockResolvedValue({ data: [mockTenant, mockTenant2], error: null })
+				in: jest
+					.fn()
+					.mockResolvedValue({ data: [mockTenant, mockTenant2], error: null })
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			const result = await service.findByIds([mockTenantId, 'tenant-789'], mockToken)
+			const result = await service.findByIds(
+				[mockTenantId, 'tenant-789'],
+				mockToken
+			)
 
 			expect(result).toBeInstanceOf(Map)
 			expect(result.size).toBe(2)
@@ -254,7 +284,10 @@ describe('TenantDetailService', () => {
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			const result = await service.findByIds([mockTenantId, 'non-existent-id'], mockToken)
+			const result = await service.findByIds(
+				[mockTenantId, 'non-existent-id'],
+				mockToken
+			)
 
 			expect(result.size).toBe(1)
 			expect(result.has(mockTenantId)).toBe(true)
@@ -264,11 +297,18 @@ describe('TenantDetailService', () => {
 		it('throws NotFoundException on database error', async () => {
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
-				in: jest.fn().mockResolvedValue({ data: null, error: { message: 'Database error' } })
+				in: jest
+					.fn()
+					.mockResolvedValue({
+						data: null,
+						error: { message: 'Database error' }
+					})
 			}
 			mockClient.from.mockReturnValue(mockBuilder)
 
-			await expect(service.findByIds([mockTenantId], mockToken)).rejects.toThrow(NotFoundException)
+			await expect(
+				service.findByIds([mockTenantId], mockToken)
+			).rejects.toThrow(NotFoundException)
 		})
 
 		it('uses user client with token for RLS enforcement', async () => {
@@ -285,7 +325,9 @@ describe('TenantDetailService', () => {
 		})
 
 		it('throws UnauthorizedException when token is missing', async () => {
-			await expect(service.findByIds([mockTenantId], '')).rejects.toThrow(UnauthorizedException)
+			await expect(service.findByIds([mockTenantId], '')).rejects.toThrow(
+				UnauthorizedException
+			)
 		})
 	})
 })

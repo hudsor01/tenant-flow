@@ -131,23 +131,44 @@ describe('TermsStep', () => {
 		it('should use decimal inputMode for currency fields', () => {
 			renderTermsStep()
 
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute('inputMode', 'decimal')
-			expect(screen.getByLabelText(/security deposit/i)).toHaveAttribute('inputMode', 'decimal')
-			expect(screen.getByLabelText(/late fee/i)).toHaveAttribute('inputMode', 'decimal')
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute(
+				'inputMode',
+				'decimal'
+			)
+			expect(screen.getByLabelText(/security deposit/i)).toHaveAttribute(
+				'inputMode',
+				'decimal'
+			)
+			expect(screen.getByLabelText(/late fee/i)).toHaveAttribute(
+				'inputMode',
+				'decimal'
+			)
 		})
 
 		it('should use numeric inputMode for integer fields', () => {
 			renderTermsStep()
 
-			expect(screen.getByLabelText(/monthly due date/i)).toHaveAttribute('inputMode', 'numeric')
-			expect(screen.getByLabelText(/grace period/i)).toHaveAttribute('inputMode', 'numeric')
+			expect(screen.getByLabelText(/monthly due date/i)).toHaveAttribute(
+				'inputMode',
+				'numeric'
+			)
+			expect(screen.getByLabelText(/grace period/i)).toHaveAttribute(
+				'inputMode',
+				'numeric'
+			)
 		})
 
 		it('should use text type for numeric fields (allows direct typing)', () => {
 			renderTermsStep()
 
-			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute('type', 'text')
-			expect(screen.getByLabelText(/monthly due date/i)).toHaveAttribute('type', 'text')
+			expect(screen.getByLabelText(/monthly rent/i)).toHaveAttribute(
+				'type',
+				'text'
+			)
+			expect(screen.getByLabelText(/monthly due date/i)).toHaveAttribute(
+				'type',
+				'text'
+			)
 		})
 	})
 

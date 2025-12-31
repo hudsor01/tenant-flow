@@ -22,10 +22,7 @@ import {
 	incrementVersion
 } from '@repo/shared/utils/optimistic-locking'
 import { useMemo } from 'react'
-import type {
-	UnitInput,
-	UnitUpdate
-} from '@repo/shared/validation/units'
+import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import type { Unit, UnitWithVersion } from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { unitQueries } from './queries/unit-queries'
@@ -46,7 +43,6 @@ export function useUnitsByProperty(property_id: string) {
 	return useQuery({
 		...unitQueries.byProperty(property_id),
 
-
 		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
 		retry: 2,
@@ -63,7 +59,7 @@ export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
 	return useQuery({
 		...unitQueries.list(filters),
 		// Extract data array for backward compatibility with components
-		select: (response) => response.data
+		select: response => response.data
 	})
 }
 
@@ -115,20 +111,20 @@ export function useCreateUnit() {
 			// Create optimistic unit entry
 			const tempId = `temp-${Date.now()}`
 			const optimisticUnit: Unit = {
-			id: tempId,
-			property_id: newUnit.property_id,
-			owner_user_id: '', // Placeholder - will be set by server
-			unit_number: newUnit.unit_number ?? null,
-			bedrooms: newUnit.bedrooms ?? null,
-			bathrooms: newUnit.bathrooms ?? null,
-			square_feet: newUnit.square_feet ?? null,
-			rent_amount: newUnit.rent_amount ?? 0,
-			rent_currency: 'USD',
-			rent_period: 'month',
-			status: (newUnit.status as Unit['status']) || 'available',
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString()
-		}
+				id: tempId,
+				property_id: newUnit.property_id,
+				owner_user_id: '', // Placeholder - will be set by server
+				unit_number: newUnit.unit_number ?? null,
+				bedrooms: newUnit.bedrooms ?? null,
+				bathrooms: newUnit.bathrooms ?? null,
+				square_feet: newUnit.square_feet ?? null,
+				rent_amount: newUnit.rent_amount ?? 0,
+				rent_currency: 'USD',
+				rent_period: 'month',
+				status: (newUnit.status as Unit['status']) || 'available',
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString()
+			}
 
 			// Optimistically update all relevant caches
 			queryClient.setQueriesData<Unit[]>(
@@ -200,7 +196,9 @@ export function useUpdateUnit() {
 		},
 		onMutate: async ({ id, data }) => {
 			// Cancel all outgoing queries for this unit
-			await queryClient.cancelQueries({ queryKey: unitQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: unitQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
 			// Snapshot all relevant caches for comprehensive rollback
@@ -212,13 +210,15 @@ export function useUpdateUnit() {
 			})
 
 			// Optimistically update detail cache
-		if (previousDetail) {
-			queryClient.setQueryData<UnitWithVersion>(
-				unitQueries.detail(id).queryKey,
-				(old: UnitWithVersion | undefined) =>
-					old ? incrementVersion(old, data as Partial<UnitWithVersion>) : undefined
-			)
-		}
+			if (previousDetail) {
+				queryClient.setQueryData<UnitWithVersion>(
+					unitQueries.detail(id).queryKey,
+					(old: UnitWithVersion | undefined) =>
+						old
+							? incrementVersion(old, data as Partial<UnitWithVersion>)
+							: undefined
+				)
+			}
 
 			// Return context for rollback
 			return { previousDetail, previousLists }
@@ -260,7 +260,9 @@ export function useUpdateUnit() {
 		},
 		onSettled: (_data, _error, { id }) => {
 			// Refetch to ensure consistency
-			queryClient.invalidateQueries({ queryKey: unitQueries.detail(id).queryKey })
+			queryClient.invalidateQueries({
+				queryKey: unitQueries.detail(id).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
 		}
@@ -286,7 +288,9 @@ export function useDeleteUnit(options?: {
 		},
 		onMutate: async (id: string) => {
 			// Cancel outgoing refetches
-			await queryClient.cancelQueries({ queryKey: unitQueries.detail(id).queryKey })
+			await queryClient.cancelQueries({
+				queryKey: unitQueries.detail(id).queryKey
+			})
 			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
 
 			// Snapshot previous state

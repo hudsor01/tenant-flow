@@ -37,7 +37,7 @@ vi.mock('#utils/supabase/client', () => ({
 				},
 				error: null
 			}),
-			onAuthStateChange: vi.fn((callback) => {
+			onAuthStateChange: vi.fn(callback => {
 				setTimeout(() => {
 					callback('SIGNED_IN', {
 						user: {
@@ -171,7 +171,7 @@ describe('Owner Profile Page', () => {
 		mockPush.mockClear()
 
 		originalMatchMedia = window.matchMedia
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: false,
 			media: query,
 			onchange: null,
@@ -309,10 +309,11 @@ describe('Owner Profile Page', () => {
 				// Look for any text that indicates the dialog opened
 				const dialogHeadings = screen.queryAllByRole('heading')
 				const changePasswordHeading = dialogHeadings.find(
-					(h) => h.textContent === 'Change Password'
+					h => h.textContent === 'Change Password'
 				)
 				// Also try looking for dialog-specific elements
-				const currentPasswordField = screen.queryByLabelText(/current password/i)
+				const currentPasswordField =
+					screen.queryByLabelText(/current password/i)
 				const newPasswordField = screen.queryByLabelText(/new password/i)
 
 				expect(
@@ -376,7 +377,7 @@ describe('Owner Profile Page', () => {
 		// Find the Security quick link button (not the section header)
 		const quickLinks = screen.getAllByText('Security')
 		const securityQuickLink = quickLinks.find(
-			(el) => el.closest('button') !== null
+			el => el.closest('button') !== null
 		)
 		if (securityQuickLink) {
 			await user.click(securityQuickLink)
@@ -412,7 +413,7 @@ describe('Profile Avatar Upload', () => {
 		mockProfileData = mockOwnerProfile
 
 		originalMatchMedia = window.matchMedia
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: false,
 			media: query,
 			onchange: null,
@@ -488,7 +489,7 @@ describe('Profile Responsiveness', () => {
 
 	it('renders correctly on mobile (single column)', async () => {
 		// Mock mobile viewport
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: query.includes('max-width'),
 			media: query,
 			onchange: null,
@@ -515,7 +516,7 @@ describe('Profile Responsiveness', () => {
 
 	it('renders correctly on desktop (three columns)', async () => {
 		// Mock desktop viewport
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: query.includes('min-width'),
 			media: query,
 			onchange: null,
@@ -560,7 +561,7 @@ describe('Profile Dark Mode', () => {
 	it('applies dark mode styles when dark class is present', async () => {
 		document.documentElement.classList.add('dark')
 
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: query === '(prefers-color-scheme: dark)',
 			media: query,
 			onchange: null,
@@ -588,7 +589,7 @@ describe('Profile Dark Mode', () => {
 	it('applies light mode styles when dark class is not present', async () => {
 		document.documentElement.classList.remove('dark')
 
-		window.matchMedia = vi.fn().mockImplementation((query) => ({
+		window.matchMedia = vi.fn().mockImplementation(query => ({
 			matches: query === '(prefers-color-scheme: light)',
 			media: query,
 			onchange: null,

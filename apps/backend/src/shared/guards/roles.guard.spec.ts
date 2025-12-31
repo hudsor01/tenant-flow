@@ -126,7 +126,9 @@ describe('RolesGuard', () => {
 			})
 
 			expect(() => guard.canActivate(context)).toThrow(ForbiddenException)
-			expect(() => guard.canActivate(context)).toThrow('Insufficient permissions')
+			expect(() => guard.canActivate(context)).toThrow(
+				'Insufficient permissions'
+			)
 		})
 
 		it('throws ForbiddenException when user role does not match required roles', () => {
@@ -141,7 +143,9 @@ describe('RolesGuard', () => {
 			})
 
 			expect(() => guard.canActivate(context)).toThrow(ForbiddenException)
-			expect(() => guard.canActivate(context)).toThrow('Insufficient permissions')
+			expect(() => guard.canActivate(context)).toThrow(
+				'Insufficient permissions'
+			)
 		})
 
 		it('throws ForbiddenException when user role does not match any of multiple required roles', () => {
@@ -156,7 +160,9 @@ describe('RolesGuard', () => {
 			})
 
 			expect(() => guard.canActivate(context)).toThrow(ForbiddenException)
-			expect(() => guard.canActivate(context)).toThrow('Insufficient permissions')
+			expect(() => guard.canActivate(context)).toThrow(
+				'Insufficient permissions'
+			)
 		})
 	})
 

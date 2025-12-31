@@ -3,7 +3,11 @@
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
@@ -26,7 +30,10 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { UNIT_STATUS, UNIT_STATUS_LABELS } from '#lib/constants/status-values'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
-import { isConflictError, handleConflictError } from '@repo/shared/utils/optimistic-locking'
+import {
+	isConflictError,
+	handleConflictError
+} from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 interface UnitFormProps {
@@ -42,10 +49,17 @@ interface UnitFormProps {
  * Consolidated form for creating and editing units.
  * Follows the same pattern as PropertyForm, LeaseForm, and MaintenanceForm.
  */
-export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps) {
+export function UnitForm({
+	mode,
+	unit: unitProp,
+	id,
+	onSuccess
+}: UnitFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { data: propertiesResponse } = useQuery(propertyQueries.list({ limit: 100 }))
+	const { data: propertiesResponse } = useQuery(
+		propertyQueries.list({ limit: 100 })
+	)
 	const properties = propertiesResponse?.data
 	const createUnitMutation = useCreateUnitMutation()
 	const updateUnitMutation = useUpdateUnitMutation()
@@ -76,7 +90,11 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 			bathrooms: unit?.bathrooms?.toString() ?? '1',
 			square_feet: unit?.square_feet?.toString() ?? '',
 			rent_amount: unit?.rent_amount?.toString() ?? '',
-			status: (unit?.status ?? 'available') as 'available' | 'occupied' | 'maintenance' | 'reserved'
+			status: (unit?.status ?? 'available') as
+				| 'available'
+				| 'occupied'
+				| 'maintenance'
+				| 'reserved'
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -100,7 +118,9 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				const bedrooms = Number.parseInt(value.bedrooms)
 				const bathrooms = Number.parseFloat(value.bathrooms)
 				const rent_amount = Number.parseFloat(value.rent_amount)
-				const square_feet = value.square_feet ? Number.parseInt(value.square_feet) : null
+				const square_feet = value.square_feet
+					? Number.parseInt(value.square_feet)
+					: null
 
 				if (!Number.isFinite(bedrooms) || bedrooms < 0) {
 					toast.error('Bedrooms must be a valid positive number')
@@ -117,7 +137,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					return
 				}
 
-				if (value.square_feet && (!Number.isFinite(square_feet) || square_feet! < 0)) {
+				if (
+					value.square_feet &&
+					(!Number.isFinite(square_feet) || square_feet! < 0)
+				) {
 					toast.error('Square feet must be a valid positive number')
 					return
 				}
@@ -150,7 +173,7 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					toast.success('Unit updated successfully')
 				}
 
-					onSuccess?.()
+				onSuccess?.()
 			} catch (error) {
 				// Handle optimistic locking conflicts
 				if (mode === 'edit' && unit && isConflictError(error)) {
@@ -162,7 +185,10 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 					return
 				}
 
-				handleMutationError(error, `${mode === 'create' ? 'Create' : 'Update'} unit`)
+				handleMutationError(
+					error,
+					`${mode === 'create' ? 'Create' : 'Update'} unit`
+				)
 			}
 		}
 	})
@@ -177,13 +203,19 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 				bathrooms: unit.bathrooms?.toString() ?? '1',
 				square_feet: unit.square_feet?.toString() ?? '',
 				rent_amount: unit.rent_amount?.toString() ?? '',
-				status: (unit.status ?? 'available') as 'available' | 'occupied' | 'maintenance' | 'reserved'
+				status: (unit.status ?? 'available') as
+					| 'available'
+					| 'occupied'
+					| 'maintenance'
+					| 'reserved'
 			})
 		}
 	}, [unit, form])
 
 	const isSubmitting =
-		mode === 'create' ? createUnitMutation.isPending : updateUnitMutation.isPending
+		mode === 'create'
+			? createUnitMutation.isPending
+			: updateUnitMutation.isPending
 
 	return (
 		<form
@@ -318,7 +350,11 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 								value={field.state.value}
 								onValueChange={value => {
 									field.handleChange(
-										value as 'available' | 'occupied' | 'maintenance' | 'reserved'
+										value as
+											| 'available'
+											| 'occupied'
+											| 'maintenance'
+											| 'reserved'
 									)
 								}}
 							>
@@ -326,10 +362,18 @@ export function UnitForm({ mode, unit: unitProp, id, onSuccess }: UnitFormProps)
 									<SelectValue />
 								</SelectTrigger>
 								<SelectContent>
-									<SelectItem value={UNIT_STATUS.AVAILABLE}>{UNIT_STATUS_LABELS.AVAILABLE}</SelectItem>
-									<SelectItem value={UNIT_STATUS.OCCUPIED}>{UNIT_STATUS_LABELS.OCCUPIED}</SelectItem>
-									<SelectItem value={UNIT_STATUS.MAINTENANCE}>{UNIT_STATUS_LABELS.MAINTENANCE}</SelectItem>
-									<SelectItem value={UNIT_STATUS.RESERVED}>{UNIT_STATUS_LABELS.RESERVED}</SelectItem>
+									<SelectItem value={UNIT_STATUS.AVAILABLE}>
+										{UNIT_STATUS_LABELS.AVAILABLE}
+									</SelectItem>
+									<SelectItem value={UNIT_STATUS.OCCUPIED}>
+										{UNIT_STATUS_LABELS.OCCUPIED}
+									</SelectItem>
+									<SelectItem value={UNIT_STATUS.MAINTENANCE}>
+										{UNIT_STATUS_LABELS.MAINTENANCE}
+									</SelectItem>
+									<SelectItem value={UNIT_STATUS.RESERVED}>
+										{UNIT_STATUS_LABELS.RESERVED}
+									</SelectItem>
 								</SelectContent>
 							</Select>
 						</Field>

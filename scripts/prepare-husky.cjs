@@ -24,7 +24,6 @@ const shouldSkip = () => {
 }
 
 let logger
-
 ;(async () => {
 	const { createLogger } = await import('@repo/shared/lib/frontend-logger')
 	logger = createLogger({ component: 'PrepareHuskyScript' })

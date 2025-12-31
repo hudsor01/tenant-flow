@@ -1,6 +1,11 @@
 /**
  * Unified Redis Cache Service
  * Consolidates cache layers into a single Redis-backed cache with TTL tiers.
+ *
+ * @todo PERF-003: Optimize cache TTL settings.
+ *       - STATS TTL too short (3 min) - should be 5 min
+ *       - REALTIME uses polling (30s) - consider SSE/WebSocket
+ *       See TODO.md for details.
  */
 
 import type { OnModuleDestroy } from '@nestjs/common'
@@ -61,13 +66,13 @@ export class RedisCacheService implements OnModuleDestroy {
 			this.redis = redisConfig.url
 				? new Redis(redisConfig.url)
 				: new Redis({
-					...(redisConfig.host ? { host: redisConfig.host } : {}),
-					...(redisConfig.port ? { port: redisConfig.port } : {}),
-					...(redisConfig.username ? { username: redisConfig.username } : {}),
-					...(redisConfig.password ? { password: redisConfig.password } : {}),
-					...(redisConfig.db ? { db: redisConfig.db } : {}),
-					...(redisConfig.tls ? { tls: {} } : {})
-				})
+						...(redisConfig.host ? { host: redisConfig.host } : {}),
+						...(redisConfig.port ? { port: redisConfig.port } : {}),
+						...(redisConfig.username ? { username: redisConfig.username } : {}),
+						...(redisConfig.password ? { password: redisConfig.password } : {}),
+						...(redisConfig.db ? { db: redisConfig.db } : {}),
+						...(redisConfig.tls ? { tls: {} } : {})
+					})
 
 			this.redis.on('error', error => {
 				this.logger.error('Redis cache error', {
@@ -111,7 +116,10 @@ export class RedisCacheService implements OnModuleDestroy {
 					this.stats.misses++
 					this.logger.warn('Failed to parse cached value; evicting key', {
 						key,
-						error: parseError instanceof Error ? parseError.message : String(parseError)
+						error:
+							parseError instanceof Error
+								? parseError.message
+								: String(parseError)
 					})
 					await this.redis.del(cacheKey).catch(() => {})
 					return null
@@ -232,7 +240,10 @@ export class RedisCacheService implements OnModuleDestroy {
 		}
 	}
 
-	async invalidate(pattern: string | RegExp, reason = 'data_changed'): Promise<number> {
+	async invalidate(
+		pattern: string | RegExp,
+		reason = 'data_changed'
+	): Promise<number> {
 		const keysToDelete = await this.findKeys(pattern)
 		if (typeof pattern === 'string') {
 			const tagged = await this.findTaggedKeys(pattern)
@@ -261,12 +272,7 @@ export class RedisCacheService implements OnModuleDestroy {
 	}
 
 	async invalidateByEntity(
-		entityType:
-			| 'properties'
-			| 'units'
-			| 'tenants'
-			| 'leases'
-			| 'maintenance',
+		entityType: 'properties' | 'units' | 'tenants' | 'leases' | 'maintenance',
 		entityId?: string
 	): Promise<number> {
 		const pattern = entityId ? `${entityType}:${entityId}` : entityType
@@ -284,9 +290,12 @@ export class RedisCacheService implements OnModuleDestroy {
 				return
 			} catch (error) {
 				// Redis connection failed - fall back to in-memory cache
-				this.logger.warn('Redis clear failed, falling back to in-memory cache', {
-					error: error instanceof Error ? error.message : String(error)
-				})
+				this.logger.warn(
+					'Redis clear failed, falling back to in-memory cache',
+					{
+						error: error instanceof Error ? error.message : String(error)
+					}
+				)
 			}
 		}
 
@@ -414,10 +423,13 @@ export class RedisCacheService implements OnModuleDestroy {
 			return keys
 		} catch (error) {
 			// Redis connection failed - fall back to in-memory cache
-			this.logger.warn('Redis findKeys failed, falling back to in-memory cache', {
-				pattern: pattern.toString(),
-				error: error instanceof Error ? error.message : String(error)
-			})
+			this.logger.warn(
+				'Redis findKeys failed, falling back to in-memory cache',
+				{
+					pattern: pattern.toString(),
+					error: error instanceof Error ? error.message : String(error)
+				}
+			)
 			const keys = Array.from(this.fallbackCache.keys())
 			if (pattern instanceof RegExp) {
 				return keys.filter(key => pattern.test(this.stripKey(key)))
@@ -444,10 +456,13 @@ export class RedisCacheService implements OnModuleDestroy {
 			return await this.redis.smembers(this.tagKey(tag))
 		} catch (error) {
 			// Redis connection failed - fall back to in-memory cache
-			this.logger.warn('Redis findTaggedKeys failed, falling back to in-memory cache', {
-				tag,
-				error: error instanceof Error ? error.message : String(error)
-			})
+			this.logger.warn(
+				'Redis findTaggedKeys failed, falling back to in-memory cache',
+				{
+					tag,
+					error: error instanceof Error ? error.message : String(error)
+				}
+			)
 			return Array.from(this.fallbackCache.entries())
 				.filter(([, entry]) => entry.tags?.includes(tag))
 				.map(([key]) => key)

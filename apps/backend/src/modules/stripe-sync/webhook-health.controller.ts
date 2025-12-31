@@ -17,14 +17,14 @@ import {
 	HttpCode,
 	SetMetadata
 } from '@nestjs/common'
-import { AppConfigService } from '../../config/app-config.service'
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger'
 
 // Public decorator for monitoring endpoints (bypasses JWT auth)
 const Public = () => SetMetadata('isPublic', true)
 
+@ApiTags('Webhooks')
 @Controller('webhooks/health')
 export class WebhookHealthController {
-	constructor(private readonly appConfigService: AppConfigService) {}
 
 	/**
 	 * GET /webhooks/health
@@ -35,23 +35,31 @@ export class WebhookHealthController {
 	 * For detailed webhook metrics, use Stripe Dashboard:
 	 * https://dashboard.stripe.com/webhooks
 	 */
+	@ApiOperation({
+		summary: 'Webhook system health',
+		description:
+			'Returns webhook system health status. For detailed metrics, use Stripe Dashboard.'
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Webhook system is healthy',
+		schema: {
+			type: 'object',
+			properties: {
+				status: { type: 'string', example: 'ok' },
+				timestamp: { type: 'string', format: 'date-time' }
+			}
+		}
+	})
 	@Public()
 	@Get()
 	@HttpCode(HttpStatus.OK)
 	getHealth() {
-		const webhookSecret = this.appConfigService.getStripeWebhookSecret()
-		const stripeKey = this.appConfigService.getStripeSecretKey()
-
-		const isConfigured = !!webhookSecret && !!stripeKey
-
+		// Only return basic health status - no configuration details exposed
+		// For detailed webhook metrics, use Stripe Dashboard
 		return {
-			status: isConfigured ? 'healthy' : 'misconfigured',
-			timestamp: new Date().toISOString(),
-			checks: {
-				webhook_secret_configured: !!webhookSecret,
-				stripe_key_configured: !!stripeKey
-			},
-			dashboard_url: 'https://dashboard.stripe.com/webhooks'
+			status: 'ok',
+			timestamp: new Date().toISOString()
 		}
 	}
 }

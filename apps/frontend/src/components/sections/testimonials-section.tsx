@@ -25,7 +25,8 @@ interface TestimonialsSectionProps {
 
 const defaultTestimonials: Testimonial[] = [
 	{
-		quote: "TenantFlow transformed how we manage our 35-unit portfolio. The automation alone saves us 20+ hours per week on rent collection and maintenance coordination.",
+		quote:
+			'TenantFlow transformed how we manage our 35-unit portfolio. The automation alone saves us 20+ hours per week on rent collection and maintenance coordination.',
 		author: 'Sarah Chen',
 		title: 'Portfolio Manager',
 		company: 'Westside Properties',
@@ -33,7 +34,8 @@ const defaultTestimonials: Testimonial[] = [
 		metricLabel: 'NOI increase'
 	},
 	{
-		quote: "We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.",
+		quote:
+			"We evaluated 6 different platforms before choosing TenantFlow. The ROI was clear within 60 days - best property management decision we've made.",
 		author: 'Marcus Rodriguez',
 		title: 'Director of Operations',
 		company: 'Urban Real Estate Group',
@@ -41,7 +43,8 @@ const defaultTestimonials: Testimonial[] = [
 		metricLabel: 'to positive ROI'
 	},
 	{
-		quote: "The tenant portal has completely changed our relationship with residents. Maintenance requests are handled faster, and tenants love being able to pay rent online.",
+		quote:
+			'The tenant portal has completely changed our relationship with residents. Maintenance requests are handled faster, and tenants love being able to pay rent online.',
 		author: 'Jennifer Walsh',
 		title: 'Property Manager',
 		company: 'Metropolitan Holdings',
@@ -49,7 +52,8 @@ const defaultTestimonials: Testimonial[] = [
 		metricLabel: 'tenant satisfaction'
 	},
 	{
-		quote: "As a small landlord with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.",
+		quote:
+			"As a small landlord with 8 units, I thought enterprise software was overkill. TenantFlow proved me wrong - it's powerful yet simple enough for solo operators.",
 		author: 'David Park',
 		title: 'Independent Owner',
 		company: 'Park Properties LLC',
@@ -57,7 +61,8 @@ const defaultTestimonials: Testimonial[] = [
 		metricLabel: 'saved weekly'
 	},
 	{
-		quote: "The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.",
+		quote:
+			'The financial reporting alone is worth the subscription. I can generate professional reports for my investors in minutes instead of hours with spreadsheets.',
 		author: 'Amanda Foster',
 		title: 'Asset Manager',
 		company: 'Foster Investments',
@@ -81,7 +86,9 @@ export function TestimonialsSection({
 	}, [testimonials.length])
 
 	const goToPrev = useCallback(() => {
-		setCurrentIndex(prev => (prev - 1 + testimonials.length) % testimonials.length)
+		setCurrentIndex(
+			prev => (prev - 1 + testimonials.length) % testimonials.length
+		)
 	}, [testimonials.length])
 
 	const goToSlide = useCallback((index: number) => {
@@ -101,7 +108,9 @@ export function TestimonialsSection({
 
 	if (variant === 'grid') {
 		return (
-			<section className={cn('section-spacing relative overflow-hidden', className)}>
+			<section
+				className={cn('section-spacing relative overflow-hidden', className)}
+			>
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-16 max-w-3xl mx-auto">
 						<BlurFade delay={0.1} inView>
@@ -116,7 +125,11 @@ export function TestimonialsSection({
 
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
 						{testimonials.slice(0, 4).map((testimonial, index) => (
-							<BlurFade key={testimonial.author} delay={0.2 + index * 0.1} inView>
+							<BlurFade
+								key={testimonial.author}
+								delay={0.2 + index * 0.1}
+								inView
+							>
 								<TestimonialCard testimonial={testimonial} />
 							</BlurFade>
 						))}
@@ -136,7 +149,8 @@ export function TestimonialsSection({
 							<span className="hero-highlight">everywhere</span>
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-							Join thousands of property managers who've transformed their operations with TenantFlow
+							Join thousands of property managers who've transformed their
+							operations with TenantFlow
 						</p>
 					</div>
 				</BlurFade>
@@ -169,7 +183,10 @@ export function TestimonialsSection({
 								<div className="flex items-center gap-4">
 									{/* Initial avatar instead of photo */}
 									<div className="size-14 rounded-full bg-primary/10 flex-center text-primary text-xl font-bold">
-										{currentTestimonial?.author.split(' ').map(n => n[0]).join('')}
+										{currentTestimonial?.author
+											.split(' ')
+											.map(n => n[0])
+											.join('')}
 									</div>
 									<div>
 										<div className="font-semibold text-foreground text-lg">
@@ -274,7 +291,10 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 				<div className="flex items-center justify-between pt-4 border-t border-border/50">
 					<div className="flex items-center gap-3">
 						<div className="size-10 rounded-full bg-primary/10 flex-center text-primary text-sm font-bold">
-							{testimonial.author.split(' ').map(n => n[0]).join('')}
+							{testimonial.author
+								.split(' ')
+								.map(n => n[0])
+								.join('')}
 						</div>
 						<div>
 							<div className="font-semibold text-foreground">

@@ -95,7 +95,11 @@ describe('LeaseGenerationController (Integration)', () => {
 		const mockAuthRequestCache = {
 			get: jest.fn(),
 			set: jest.fn(),
-			getOrSet: jest.fn().mockImplementation(async (_key: string, factory: () => Promise<boolean>) => factory())
+			getOrSet: jest
+				.fn()
+				.mockImplementation(
+					async (_key: string, factory: () => Promise<boolean>) => factory()
+				)
 		}
 
 		const mockZeroCacheService = {
@@ -180,11 +184,15 @@ describe('LeaseGenerationController (Integration)', () => {
 				.expect(HttpStatus.OK)
 
 			// Verify PDF service was called
-			expect(leasePDFService.generateLeasePDF).toHaveBeenCalledWith(mockLeaseData)
+			expect(leasePDFService.generateLeasePDF).toHaveBeenCalledWith(
+				mockLeaseData
+			)
 
 			// Verify response headers
 			expect(response.headers['content-type']).toBe('application/pdf')
-			expect(response.headers['content-disposition']).toMatch(/^inline; filename="lease-.*\.pdf"$/)
+			expect(response.headers['content-disposition']).toMatch(
+				/^inline; filename="lease-.*\.pdf"$/
+			)
 			expect(response.headers['cache-control']).toBe('no-cache')
 
 			// Verify response body
@@ -204,10 +212,14 @@ describe('LeaseGenerationController (Integration)', () => {
 				.expect(HttpStatus.OK)
 
 			// Filename should have special characters replaced with hyphens
-			const contentDisposition = response.headers['content-disposition'] as string
+			const contentDisposition = response.headers[
+				'content-disposition'
+			] as string
 			const filename = contentDisposition.match(/filename="([^"]+)"/)?.[1]
 			expect(filename).toBeDefined()
-			expect(filename).toMatch(/^lease-[-a-zA-Z0-9]+-[-a-zA-Z0-9]+-\d{4}-\d{2}-\d{2}\.pdf$/)
+			expect(filename).toMatch(
+				/^lease-[-a-zA-Z0-9]+-[-a-zA-Z0-9]+-\d{4}-\d{2}-\d{2}\.pdf$/
+			)
 			// Check that the base filename (without .pdf extension) has no special chars
 			const baseFilename = filename?.replace(/\.pdf$/, '') ?? ''
 			expect(baseFilename).not.toMatch(/[()#'.,]/)
@@ -264,11 +276,15 @@ describe('LeaseGenerationController (Integration)', () => {
 				.expect(HttpStatus.OK)
 
 			// Verify PDF service was called
-			expect(leasePDFService.generateLeasePDF).toHaveBeenCalledWith(mockLeaseData)
+			expect(leasePDFService.generateLeasePDF).toHaveBeenCalledWith(
+				mockLeaseData
+			)
 
 			// Verify response headers for download
 			expect(response.headers['content-type']).toBe('application/pdf')
-			expect(response.headers['content-disposition']).toMatch(/^attachment; filename="lease-.*\.pdf"$/)
+			expect(response.headers['content-disposition']).toMatch(
+				/^attachment; filename="lease-.*\.pdf"$/
+			)
 
 			// Verify response body
 			expect(response.body).toEqual(mockPDFBuffer)
@@ -286,10 +302,16 @@ describe('LeaseGenerationController (Integration)', () => {
 				.expect(HttpStatus.OK)
 
 			// Extract filenames
-			const generateDisposition = generateResponse.headers['content-disposition'] as string
-			const downloadDisposition = downloadResponse.headers['content-disposition'] as string
-			const generateFilename = generateDisposition.match(/filename="([^"]+)"/)?.[1]
-			const downloadFilename = downloadDisposition.match(/filename="([^"]+)"/)?.[1]
+			const generateDisposition = generateResponse.headers[
+				'content-disposition'
+			] as string
+			const downloadDisposition = downloadResponse.headers[
+				'content-disposition'
+			] as string
+			const generateFilename =
+				generateDisposition.match(/filename="([^"]+)"/)?.[1]
+			const downloadFilename =
+				downloadDisposition.match(/filename="([^"]+)"/)?.[1]
 
 			// Should be identical (same date, data)
 			expect(generateFilename).toBeDefined()
@@ -363,13 +385,18 @@ describe('LeaseGenerationController (Integration)', () => {
 							return Promise.resolve({ data: mockOwner, error: null })
 						}
 					}
-					return Promise.resolve({ data: null, error: { message: 'Not found', code: 'PGRST116' } })
+					return Promise.resolve({
+						data: null,
+						error: { message: 'Not found', code: 'PGRST116' }
+					})
 				})
 			}
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			const response = await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
+				.get(
+					`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`
+				)
 				.expect(HttpStatus.OK)
 
 			// Verify auto-filled data structure
@@ -396,7 +423,10 @@ describe('LeaseGenerationController (Integration)', () => {
 				eq: jest.fn().mockReturnThis(),
 				single: jest.fn().mockImplementation(() => {
 					if (currentTable === 'properties') {
-						return Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'Not found' } })
+						return Promise.resolve({
+							data: null,
+							error: { code: 'PGRST116', message: 'Not found' }
+						})
 					}
 					return Promise.resolve({ data: null, error: null })
 				})
@@ -404,7 +434,9 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
+				.get(
+					`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`
+				)
 				.expect(HttpStatus.NOT_FOUND)
 		})
 
@@ -430,7 +462,10 @@ describe('LeaseGenerationController (Integration)', () => {
 					if (currentTable === 'properties') {
 						return Promise.resolve({ data: mockProperty, error: null })
 					} else if (currentTable === 'units') {
-						return Promise.resolve({ data: null, error: { code: 'PGRST116', message: 'Not found' } })
+						return Promise.resolve({
+							data: null,
+							error: { code: 'PGRST116', message: 'Not found' }
+						})
 					}
 					return Promise.resolve({ data: null, error: null })
 				})
@@ -438,7 +473,9 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
+				.get(
+					`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`
+				)
 				.expect(HttpStatus.NOT_FOUND)
 		})
 
@@ -494,7 +531,9 @@ describe('LeaseGenerationController (Integration)', () => {
 			supabaseService.getAdminClient.mockReturnValue(mockChain as never)
 
 			await request(app.getHttpServer())
-				.get(`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`)
+				.get(
+					`/api/v1/leases/auto-fill/${mockproperty_id}/${mockunit_id}/${mocktenant_id}`
+				)
 				.expect(HttpStatus.BAD_REQUEST)
 		})
 	})
@@ -506,7 +545,9 @@ describe('LeaseGenerationController (Integration)', () => {
 				.send(mockLeaseData)
 				.expect(HttpStatus.OK)
 
-			const contentDisposition = response1.headers['content-disposition'] as string
+			const contentDisposition = response1.headers[
+				'content-disposition'
+			] as string
 			const filename = contentDisposition.match(/filename="([^"]+)"/)?.[1]
 
 			// Verify filename format
@@ -527,7 +568,9 @@ describe('LeaseGenerationController (Integration)', () => {
 				.send(dataWithLongAddress)
 				.expect(HttpStatus.OK)
 
-			const contentDisposition = response.headers['content-disposition'] as string
+			const contentDisposition = response.headers[
+				'content-disposition'
+			] as string
 			const filename = contentDisposition.match(/filename="([^"]+)"/)?.[1]
 			expect(filename).toBeDefined()
 			const addressPart = filename?.split('-')[1]

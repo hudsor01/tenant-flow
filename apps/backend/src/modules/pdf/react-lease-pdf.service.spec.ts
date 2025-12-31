@@ -5,232 +5,230 @@ import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-gene
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock NestJS Logger to suppress console output during tests
 jest.mock('@nestjs/common', () => {
-  const actual = jest.requireActual('@nestjs/common')
-  const LoggerClass = jest.fn().mockImplementation(() => ({
-    log: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-    verbose: jest.fn()
-  }))
-  LoggerClass.overrideLogger = jest.fn()
-  return {
-    ...actual,
-    Logger: LoggerClass
-  }
+	const actual = jest.requireActual('@nestjs/common')
+	const LoggerClass = jest.fn().mockImplementation(() => ({
+		log: jest.fn(),
+		error: jest.fn(),
+		warn: jest.fn(),
+		debug: jest.fn(),
+		verbose: jest.fn()
+	}))
+	LoggerClass.overrideLogger = jest.fn()
+	return {
+		...actual,
+		Logger: LoggerClass
+	}
 })
 
 describe('ReactLeasePDFService', () => {
-  let service: ReactLeasePDFService
+	let service: ReactLeasePDFService
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ReactLeasePDFService,
-        {
-          provide: AppLogger,
-          useValue: new SilentLogger()
-        }
-      ]
-    }).compile()
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			providers: [
+				ReactLeasePDFService,
+				{
+					provide: AppLogger,
+					useValue: new SilentLogger()
+				}
+			]
+		}).compile()
 
-    service = module.get<ReactLeasePDFService>(ReactLeasePDFService)
-  })
+		service = module.get<ReactLeasePDFService>(ReactLeasePDFService)
+	})
 
-  const createMockLeaseData = (): LeaseGenerationFormData => ({
-    // Agreement date
-    agreementDate: '2024-01-15',
+	const createMockLeaseData = (): LeaseGenerationFormData => ({
+		// Agreement date
+		agreementDate: '2024-01-15',
 
-    // Parties
-    ownerName: 'John Smith',
-    ownerAddress: '123 Main St, Austin, TX 78701',
-    ownerPhone: '512-555-1234',
-    tenantName: 'Jane Doe',
+		// Parties
+		ownerName: 'John Smith',
+		ownerAddress: '123 Main St, Austin, TX 78701',
+		ownerPhone: '512-555-1234',
+		tenantName: 'Jane Doe',
 
-    // Property
-    propertyAddress: '456 Oak Ave, Austin, TX 78702',
-    property_id: '123e4567-e89b-12d3-a456-426614174000',
+		// Property
+		propertyAddress: '456 Oak Ave, Austin, TX 78702',
+		property_id: '123e4567-e89b-12d3-a456-426614174000',
 
-    // Term
-    commencementDate: '2024-02-01',
-    terminationDate: '2025-01-31',
+		// Term
+		commencementDate: '2024-02-01',
+		terminationDate: '2025-01-31',
 
-    // Financial
-    rent_amount: 1500,
-    rentDueDay: 1,
-    late_fee_amount: 50,
-    lateFeeGraceDays: 3,
-    nsfFee: 50,
-    security_deposit: 1500,
-    security_depositDueDays: 30,
-    holdOverRentMultiplier: 1.2,
+		// Financial
+		rent_amount: 1500,
+		rentDueDay: 1,
+		late_fee_amount: 50,
+		lateFeeGraceDays: 3,
+		nsfFee: 50,
+		security_deposit: 1500,
+		security_depositDueDays: 30,
+		holdOverRentMultiplier: 1.2,
 
-    // Occupancy
-    maxOccupants: 2,
-    allowedUse: 'Residential dwelling purposes only',
+		// Occupancy
+		maxOccupants: 2,
+		allowedUse: 'Residential dwelling purposes only',
 
-    // Utilities
-    utilitiesIncluded: ['Water', 'Trash'],
-    tenantResponsibleUtilities: ['Electric', 'Gas', 'Internet'],
+		// Utilities
+		utilitiesIncluded: ['Water', 'Trash'],
+		tenantResponsibleUtilities: ['Electric', 'Gas', 'Internet'],
 
-    // Pets
-    petsAllowed: false,
-    petDeposit: 0,
-    petRent: 0,
+		// Pets
+		petsAllowed: false,
+		petDeposit: 0,
+		petRent: 0,
 
-    // Alterations
-    alterationsAllowed: false,
-    alterationsRequireConsent: true,
+		// Alterations
+		alterationsAllowed: false,
+		alterationsRequireConsent: true,
 
-    // Legal
-    governingState: 'TX',
-    prevailingPartyAttorneyFees: true,
-    propertyBuiltBefore1978: false,
+		// Legal
+		governingState: 'TX',
+		prevailingPartyAttorneyFees: true,
+		propertyBuiltBefore1978: false,
 
-    // Notices
-    noticeAddress: '123 Main St, Austin, TX 78701',
-    noticeEmail: 'john.smith@example.com',
+		// Notices
+		noticeAddress: '123 Main St, Austin, TX 78701',
+		noticeEmail: 'john.smith@example.com',
 
-    // Tenant ID
-    tenant_id: '987e6543-e21b-12d3-a456-426614174999'
-  })
+		// Tenant ID
+		tenant_id: '987e6543-e21b-12d3-a456-426614174999'
+	})
 
-  describe('generateLeasePDF', () => {
-    it('should generate a PDF buffer', async () => {
-      const mockData = createMockLeaseData()
+	describe('generateLeasePDF', () => {
+		it('should generate a PDF buffer', async () => {
+			const mockData = createMockLeaseData()
 
-      const pdfBuffer = await service.generateLeasePDF(mockData)
+			const pdfBuffer = await service.generateLeasePDF(mockData)
 
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.length).toBeGreaterThan(0)
-    })
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
 
+		it('should handle pets allowed = true', async () => {
+			const mockData: LeaseGenerationFormData = {
+				...createMockLeaseData(),
+				petsAllowed: true,
+				petDeposit: 500,
+				petRent: 50
+			}
 
-    it('should handle pets allowed = true', async () => {
-      const mockData: LeaseGenerationFormData = {
-        ...createMockLeaseData(),
-        petsAllowed: true,
-        petDeposit: 500,
-        petRent: 50
-      }
+			const pdfBuffer = await service.generateLeasePDF(mockData)
 
-      const pdfBuffer = await service.generateLeasePDF(mockData)
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
 
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.length).toBeGreaterThan(0)
-    })
+		it('should handle property built before 1978', async () => {
+			const mockData: LeaseGenerationFormData = {
+				...createMockLeaseData(),
+				propertyBuiltBefore1978: true
+			}
 
-    it('should handle property built before 1978', async () => {
-      const mockData: LeaseGenerationFormData = {
-        ...createMockLeaseData(),
-        propertyBuiltBefore1978: true
-      }
+			const pdfBuffer = await service.generateLeasePDF(mockData)
 
-      const pdfBuffer = await service.generateLeasePDF(mockData)
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
 
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.length).toBeGreaterThan(0)
-    })
+		it('should handle minimal required data', async () => {
+			const minimalData: LeaseGenerationFormData = {
+				agreementDate: '2024-01-15',
+				ownerName: 'Owner',
+				ownerAddress: 'Address',
+				ownerPhone: '555-1234',
+				tenantName: 'Tenant',
+				propertyAddress: 'Property',
+				property_id: '123e4567-e89b-12d3-a456-426614174000',
+				commencementDate: '2024-02-01',
+				terminationDate: '2025-01-31',
+				rent_amount: 1000,
+				rentDueDay: 1,
+				late_fee_amount: 50,
+				lateFeeGraceDays: 3,
+				nsfFee: 50,
+				security_deposit: 1000,
+				security_depositDueDays: 30,
+				holdOverRentMultiplier: 1.2,
+				maxOccupants: 2,
+				allowedUse: 'Residential',
+				utilitiesIncluded: [],
+				tenantResponsibleUtilities: [],
+				petsAllowed: false,
+				petDeposit: 0,
+				petRent: 0,
+				alterationsAllowed: false,
+				alterationsRequireConsent: true,
+				governingState: 'TX',
+				prevailingPartyAttorneyFees: true,
+				propertyBuiltBefore1978: false,
+				noticeAddress: 'Address',
+				noticeEmail: 'owner@example.com',
+				tenant_id: '123e4567-e89b-12d3-a456-426614174000'
+			}
 
-    it('should handle minimal required data', async () => {
-      const minimalData: LeaseGenerationFormData = {
-        agreementDate: '2024-01-15',
-        ownerName: 'Owner',
-        ownerAddress: 'Address',
-        ownerPhone: '555-1234',
-        tenantName: 'Tenant',
-        propertyAddress: 'Property',
-        property_id: '123e4567-e89b-12d3-a456-426614174000',
-        commencementDate: '2024-02-01',
-        terminationDate: '2025-01-31',
-        rent_amount: 1000,
-        rentDueDay: 1,
-        late_fee_amount: 50,
-        lateFeeGraceDays: 3,
-        nsfFee: 50,
-        security_deposit: 1000,
-        security_depositDueDays: 30,
-        holdOverRentMultiplier: 1.2,
-        maxOccupants: 2,
-        allowedUse: 'Residential',
-        utilitiesIncluded: [],
-        tenantResponsibleUtilities: [],
-        petsAllowed: false,
-        petDeposit: 0,
-        petRent: 0,
-        alterationsAllowed: false,
-        alterationsRequireConsent: true,
-        governingState: 'TX',
-        prevailingPartyAttorneyFees: true,
-        propertyBuiltBefore1978: false,
-        noticeAddress: 'Address',
-        noticeEmail: 'owner@example.com',
-        tenant_id: '123e4567-e89b-12d3-a456-426614174000'
-      }
+			const pdfBuffer = await service.generateLeasePDF(minimalData)
 
-      const pdfBuffer = await service.generateLeasePDF(minimalData)
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
 
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.length).toBeGreaterThan(0)
-    })
+		it('should handle all optional fields populated', async () => {
+			const fullData: LeaseGenerationFormData = {
+				...createMockLeaseData(),
+				ownerPhone: '512-555-1234',
+				late_fee_amount: 75,
+				maxOccupants: 4,
+				utilitiesIncluded: ['Water', 'Trash', 'Sewer'],
+				tenantResponsibleUtilities: ['Electric', 'Gas', 'Internet', 'Cable'],
+				noticeAddress: '789 Notice St, Austin, TX 78703',
+				noticeEmail: 'owner@example.com'
+			}
 
-    it('should handle all optional fields populated', async () => {
-      const fullData: LeaseGenerationFormData = {
-        ...createMockLeaseData(),
-        ownerPhone: '512-555-1234',
-        late_fee_amount: 75,
-        maxOccupants: 4,
-        utilitiesIncluded: ['Water', 'Trash', 'Sewer'],
-        tenantResponsibleUtilities: ['Electric', 'Gas', 'Internet', 'Cable'],
-        noticeAddress: '789 Notice St, Austin, TX 78703',
-        noticeEmail: 'owner@example.com'
-      }
+			const pdfBuffer = await service.generateLeasePDF(fullData)
 
-      const pdfBuffer = await service.generateLeasePDF(fullData)
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.length).toBeGreaterThan(0)
+		})
 
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.length).toBeGreaterThan(0)
-    })
+		it('should generate consistent PDF size for same data', async () => {
+			const mockData = createMockLeaseData()
 
-    it('should generate consistent PDF size for same data', async () => {
-      const mockData = createMockLeaseData()
+			const buffer1 = await service.generateLeasePDF(mockData)
+			const buffer2 = await service.generateLeasePDF(mockData)
 
-      const buffer1 = await service.generateLeasePDF(mockData)
-      const buffer2 = await service.generateLeasePDF(mockData)
+			// PDFs should be similar size (allowing for metadata differences)
+			expect(Math.abs(buffer1.length - buffer2.length)).toBeLessThan(1000)
+		})
 
-      // PDFs should be similar size (allowing for metadata differences)
-      expect(Math.abs(buffer1.length - buffer2.length)).toBeLessThan(1000)
-    })
+		it('should throw error on invalid data', async () => {
+			const invalidData = {} as LeaseGenerationFormData
 
-    it('should throw error on invalid data', async () => {
-      const invalidData = {} as LeaseGenerationFormData
+			await expect(service.generateLeasePDF(invalidData)).rejects.toThrow(
+				'Failed to generate lease PDF'
+			)
+		})
+	})
 
-      await expect(
-        service.generateLeasePDF(invalidData)
-      ).rejects.toThrow('Failed to generate lease PDF')
-    })
-  })
+	describe('Service behavior', () => {
+		it('should call renderToBuffer with template data', async () => {
+			const mockData = createMockLeaseData()
 
-  describe('Service behavior', () => {
-    it('should call renderToBuffer with template data', async () => {
-      const mockData = createMockLeaseData()
+			const pdfBuffer = await service.generateLeasePDF(mockData)
 
-      const pdfBuffer = await service.generateLeasePDF(mockData)
+			// Verify service returns buffer from renderToBuffer (mocked)
+			expect(pdfBuffer).toBeInstanceOf(Buffer)
+			expect(pdfBuffer.toString()).toBe('mock-pdf-buffer')
+		})
 
-      // Verify service returns buffer from renderToBuffer (mocked)
-      expect(pdfBuffer).toBeInstanceOf(Buffer)
-      expect(pdfBuffer.toString()).toBe('mock-pdf-buffer')
-    })
+		it('should handle form data fields correctly', async () => {
+			const mockData = createMockLeaseData()
 
-    it('should handle form data fields correctly', async () => {
-      const mockData = createMockLeaseData()
-
-      // Should not throw with valid data
-      const pdfBuffer = await service.generateLeasePDF(mockData)
-      expect(pdfBuffer).toBeDefined()
-    })
-  })
+			// Should not throw with valid data
+			const pdfBuffer = await service.generateLeasePDF(mockData)
+			expect(pdfBuffer).toBeDefined()
+		})
+	})
 })

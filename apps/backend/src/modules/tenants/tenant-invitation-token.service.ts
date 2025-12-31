@@ -112,9 +112,9 @@ export class TenantInvitationTokenService {
 
 			if (data.unit_id) result.unit_id = data.unit_id
 			if (owner?.first_name || owner?.last_name)
-				result.property_owner_name = `${owner.first_name || ''} ${owner.last_name || ''}`.trim()
-			else if (owner?.email)
-				result.property_owner_name = owner.email
+				result.property_owner_name =
+					`${owner.first_name || ''} ${owner.last_name || ''}`.trim()
+			else if (owner?.email) result.property_owner_name = owner.email
 			if (property?.name) result.property_name = property.name
 			if (unit?.unit_number) result.unit_number = unit.unit_number
 

@@ -198,8 +198,8 @@ export function TwoFactorSetupDialog({
 								Verify Your Code
 							</DialogTitle>
 							<DialogDescription>
-								Enter the 6-digit code from your authenticator app to
-								complete setup
+								Enter the 6-digit code from your authenticator app to complete
+								setup
 							</DialogDescription>
 						</DialogHeader>
 						<DialogBody className="space-y-6">
@@ -274,12 +274,10 @@ export function TwoFactorSetupDialog({
 									<Shield className="size-8 text-success" />
 								</div>
 								<div className="space-y-2">
-									<p className="font-medium">
-										Your account is now more secure
-									</p>
+									<p className="font-medium">Your account is now more secure</p>
 									<p className="text-sm text-muted-foreground">
-										You&apos;ll need your authenticator app to sign in
-										from now on.
+										You&apos;ll need your authenticator app to sign in from now
+										on.
 									</p>
 								</div>
 							</div>
@@ -335,8 +333,8 @@ export function DisableTwoFactorDialog({
 						Disable Two-Factor Authentication
 					</DialogTitle>
 					<DialogDescription>
-						Are you sure you want to disable 2FA? This will make your
-						account less secure.
+						Are you sure you want to disable 2FA? This will make your account
+						less secure.
 					</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>

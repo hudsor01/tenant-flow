@@ -7,14 +7,13 @@ import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
 
 export default function FAQPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+	const baseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
 		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 	const faqCategories = faqData
 
 	// FAQ Schema for Google rich snippets - flatten all questions
-	const allQuestions = faqCategories.flatMap(category =>
-		category.questions
-	)
+	const allQuestions = faqCategories.flatMap(category => category.questions)
 	const faqSchema = {
 		'@context': 'https://schema.org',
 		'@type': 'FAQPage',
@@ -61,7 +60,7 @@ export default function FAQPage() {
 					__html: JSON.stringify(breadcrumbSchema).replace(/</g, '\\u003c')
 				}}
 			/>
-				<HeroSection
+			<HeroSection
 				trustBadge="Real answers from real results"
 				title="Your $30,000 annual savings"
 				titleHighlight="questions answered"
@@ -85,9 +84,9 @@ export default function FAQPage() {
 						</div>
 					)}
 					{faqCategories.length > 0 &&
-					faqCategories.map((category) => (
-						<FaqsAccordion
-							key={category.category}
+						faqCategories.map(category => (
+							<FaqsAccordion
+								key={category.category}
 								category={category.category}
 								faqs={category.questions}
 								defaultOpenIndex={null}
@@ -118,7 +117,7 @@ export default function FAQPage() {
 						</Button>
 					</div>
 				</div>
-				</section>
+			</section>
 		</PageLayout>
 	)
 }

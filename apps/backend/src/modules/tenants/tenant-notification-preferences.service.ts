@@ -8,7 +8,11 @@
  * The notification_settings table is linked to users via user_id
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { TenantNotificationPreferences } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -94,7 +98,10 @@ export class TenantNotificationPreferencesService {
 			if (error) {
 				// No settings found - return defaults
 				if (error.code === 'PGRST116') {
-					this.logger.debug('No notification settings found, returning defaults', { user_id })
+					this.logger.debug(
+						'No notification settings found, returning defaults',
+						{ user_id }
+					)
 					return { ...DEFAULT_NOTIFICATION_PREFERENCES }
 				}
 				this.logger.error('Failed to fetch notification preferences', {
@@ -118,8 +125,10 @@ export class TenantNotificationPreferencesService {
 
 			return preferences
 		} catch (error) {
-			if (error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+			if (
+				error instanceof NotFoundException ||
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error getting notification preferences', {
@@ -154,7 +163,8 @@ export class TenantNotificationPreferencesService {
 			for (const [apiKey, value] of Object.entries(preferences)) {
 				if (typeof value !== 'boolean') continue
 
-				const dbColumn = API_TO_DB_MAPPING[apiKey as keyof typeof API_TO_DB_MAPPING]
+				const dbColumn =
+					API_TO_DB_MAPPING[apiKey as keyof typeof API_TO_DB_MAPPING]
 				if (dbColumn) {
 					dbUpdate[dbColumn] = value
 				}
@@ -162,7 +172,9 @@ export class TenantNotificationPreferencesService {
 
 			// If no mappable fields, just return current (fields like paymentReminders have no DB column)
 			if (Object.keys(dbUpdate).length === 0) {
-				this.logger.debug('No DB-mappable preferences to update', { preferences })
+				this.logger.debug('No DB-mappable preferences to update', {
+					preferences
+				})
 				return {
 					...currentPreferences,
 					...preferences
@@ -173,10 +185,7 @@ export class TenantNotificationPreferencesService {
 			const client = this.supabase.getAdminClient()
 			const { data, error } = await client
 				.from('notification_settings')
-				.upsert(
-					{ user_id, ...dbUpdate },
-					{ onConflict: 'user_id' }
-				)
+				.upsert({ user_id, ...dbUpdate }, { onConflict: 'user_id' })
 				.select('email, sms, push, in_app, maintenance, leases, general')
 				.single()
 
@@ -201,13 +210,21 @@ export class TenantNotificationPreferencesService {
 				smsNotifications: data.sms ?? false,
 				leaseNotifications: data.leases ?? true,
 				maintenanceNotifications: data.maintenance ?? true,
-				paymentReminders: preferences.paymentReminders ?? currentPreferences?.paymentReminders ?? true,
-				rentalApplications: preferences.rentalApplications ?? currentPreferences?.rentalApplications ?? true,
+				paymentReminders:
+					preferences.paymentReminders ??
+					currentPreferences?.paymentReminders ??
+					true,
+				rentalApplications:
+					preferences.rentalApplications ??
+					currentPreferences?.rentalApplications ??
+					true,
 				propertyNotices: data.general ?? true
 			}
 		} catch (error) {
-			if (error instanceof NotFoundException ||
-				error instanceof BadRequestException) {
+			if (
+				error instanceof NotFoundException ||
+				error instanceof BadRequestException
+			) {
 				throw error
 			}
 			this.logger.error('Error updating notification preferences', {

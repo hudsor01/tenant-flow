@@ -209,9 +209,12 @@ describe('Lease Creation Wizard - Selection Step Validation', () => {
 
 						// Filter out undefined values to satisfy exactOptionalPropertyTypes
 						const cleanedData: Partial<SelectionStepData> = {}
-						if (selectionData.property_id) cleanedData.property_id = selectionData.property_id
-						if (selectionData.unit_id) cleanedData.unit_id = selectionData.unit_id
-						if (selectionData.primary_tenant_id) cleanedData.primary_tenant_id = selectionData.primary_tenant_id
+						if (selectionData.property_id)
+							cleanedData.property_id = selectionData.property_id
+						if (selectionData.unit_id)
+							cleanedData.unit_id = selectionData.unit_id
+						if (selectionData.primary_tenant_id)
+							cleanedData.primary_tenant_id = selectionData.primary_tenant_id
 
 						const isValid = isSelectionStepValid(cleanedData)
 

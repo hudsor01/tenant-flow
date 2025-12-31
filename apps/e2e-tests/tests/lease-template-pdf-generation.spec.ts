@@ -57,10 +57,16 @@ test.describe('Lease Template PDF Generation', () => {
 		} catch (error) {
 			authenticationAvailable = false
 			logger.warn('️ Authentication failed - tests will be SKIPPED')
-			logger.warn(`Error: ${error instanceof Error ? error.message : String(error)}`)
+			logger.warn(
+				`Error: ${error instanceof Error ? error.message : String(error)}`
+			)
 			logger.info(' Required environment variables:')
-			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
-			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
+			logger.info(
+				`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`
+			)
+			logger.info(
+				`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`
+			)
 			logger.info(' Set up test account at http://localhost:3050/signup')
 		} finally {
 			await page.close()
@@ -81,17 +87,17 @@ test.describe('Lease Template PDF Generation', () => {
 		await loginAsOwner(page)
 
 		// Set up console and network monitoring
-		page.on('console', (msg) => {
+		page.on('console', msg => {
 			if (msg.type() === 'error') {
 				consoleErrors.push(msg.text())
 			}
 		})
 
-		page.on('requestfailed', (request) => {
+		page.on('requestfailed', request => {
 			networkErrors.push(`${request.url()} - ${request.failure()?.errorText}`)
 		})
 
-		page.on('response', (response) => {
+		page.on('response', response => {
 			if (response.status() >= 400) {
 				networkErrors.push(`${response.url()} - Status: ${response.status()}`)
 			}
@@ -103,7 +109,9 @@ test.describe('Lease Template PDF Generation', () => {
 		await attachText(testInfo, 'network-errors', networkErrors)
 	})
 
-	test('should generate and preview lease PDF from template builder', async ({ page }, testInfo) => {
+	test('should generate and preview lease PDF from template builder', async ({
+		page
+	}, testInfo) => {
 		// Navigate to lease template builder
 		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
@@ -111,46 +119,66 @@ test.describe('Lease Template PDF Generation', () => {
 		})
 
 		// Verify page loaded
-		await expect(page.locator('h1, h2').filter({ hasText: /lease/i }).first()).toBeVisible()
+		await expect(
+			page.locator('h1, h2').filter({ hasText: /lease/i }).first()
+		).toBeVisible()
 
 		// Select state (California for comprehensive requirements)
-		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
+		const stateSelect = page
+			.locator('select[name="state"], [user_type="combobox"]')
+			.first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('CA')
 		}
 
 		// Fill in owner information (required fields)
-		const ownerNameInput = page.getByLabel(/owner.*name/i).or(page.locator('input[name*="owner"][name*="name"]')).first()
+		const ownerNameInput = page
+			.getByLabel(/owner.*name/i)
+			.or(page.locator('input[name*="owner"][name*="name"]'))
+			.first()
 		if (await ownerNameInput.isVisible()) {
 			await ownerNameInput.fill('Test Property Owner LLC')
 		}
 
 		// Fill in tenant information
-		const tenantNameInput = page.getByLabel(/tenant.*name/i).or(page.locator('input[name*="tenant"][name*="name"]')).first()
+		const tenantNameInput = page
+			.getByLabel(/tenant.*name/i)
+			.or(page.locator('input[name*="tenant"][name*="name"]'))
+			.first()
 		if (await tenantNameInput.isVisible()) {
 			await tenantNameInput.fill('John Doe; Jane Smith')
 		}
 
 		// Fill in property address
-		const propertyAddressInput = page.getByLabel(/property.*address/i).or(page.locator('input[name*="property"][name*="address"]')).first()
+		const propertyAddressInput = page
+			.getByLabel(/property.*address/i)
+			.or(page.locator('input[name*="property"][name*="address"]'))
+			.first()
 		if (await propertyAddressInput.isVisible()) {
 			await propertyAddressInput.fill('123 Main Street, Los Angeles, CA 90001')
 		}
 
 		// Fill in rent amount
-		const rentInput = page.getByLabel(/rent.*amount/i).or(page.locator('input[name*="rent"][type="number"]')).first()
+		const rentInput = page
+			.getByLabel(/rent.*amount/i)
+			.or(page.locator('input[name*="rent"][type="number"]'))
+			.first()
 		if (await rentInput.isVisible()) {
 			await rentInput.fill('2500')
 		}
 
 		// Intercept the PDF preview API call
 		const pdfPreviewPromise = page.waitForResponse(
-			response => response.url().includes('/api/v1/pdf/lease/template/preview') && response.status() === 200,
+			response =>
+				response.url().includes('/api/v1/pdf/lease/template/preview') &&
+				response.status() === 200,
 			{ timeout: 30000 }
 		)
 
 		// Click "Render PDF" button
-		const renderButton = page.getByRole('button', { name: /render.*pdf|generate.*pdf/i })
+		const renderButton = page.getByRole('button', {
+			name: /render.*pdf|generate.*pdf/i
+		})
 		await expect(renderButton).toBeVisible()
 		await renderButton.click()
 
@@ -166,7 +194,11 @@ test.describe('Lease Template PDF Generation', () => {
 		expect(typeof pdfData.pdf).toBe('string') // Base64 encoded PDF
 
 		// Verify PDF preview iframe appears
-		const pdfIframe = page.locator('iframe[title*="Lease"][title*="PDF"], iframe[src*="data:application/pdf"]').first()
+		const pdfIframe = page
+			.locator(
+				'iframe[title*="Lease"][title*="PDF"], iframe[src*="data:application/pdf"]'
+			)
+			.first()
 		await expect(pdfIframe).toBeVisible({ timeout: 10000 })
 
 		// Verify iframe has PDF content loaded
@@ -181,10 +213,11 @@ test.describe('Lease Template PDF Generation', () => {
 
 		// Verify no console or network errors during the process
 		expect(consoleErrors.length).toBe(0)
-		const criticalErrors = networkErrors.filter(err =>
-			!err.includes('analytics') &&
-			!err.includes('telemetry') &&
-			!err.includes('favicon')
+		const criticalErrors = networkErrors.filter(
+			err =>
+				!err.includes('analytics') &&
+				!err.includes('telemetry') &&
+				!err.includes('favicon')
 		)
 		expect(criticalErrors.length).toBe(0)
 	})
@@ -196,7 +229,9 @@ test.describe('Lease Template PDF Generation', () => {
 		})
 
 		// Try to render PDF without filling required fields
-		const renderButton = page.getByRole('button', { name: /render.*pdf|generate.*pdf/i })
+		const renderButton = page.getByRole('button', {
+			name: /render.*pdf|generate.*pdf/i
+		})
 
 		if (await renderButton.isVisible()) {
 			// Should either be disabled or show validation error
@@ -209,17 +244,21 @@ test.describe('Lease Template PDF Generation', () => {
 				await page.waitForTimeout(1000)
 
 				// Should show error toast or validation message
-				const errorMessage = page.locator('[user_type="alert"], .error-message, [class*="error"]').first()
+				const errorMessage = page
+					.locator('[user_type="alert"], .error-message, [class*="error"]')
+					.first()
 				// Note: Validation might be client-side, so this is optional
 				// Only assert if errorMessage is present in DOM
-				if (await errorMessage.count() > 0) {
+				if ((await errorMessage.count()) > 0) {
 					await expect(errorMessage).toBeVisible({ timeout: 3000 })
 				}
 			}
 		}
 	})
 
-	test('should handle PDF generation API errors gracefully', async ({ page }) => {
+	test('should handle PDF generation API errors gracefully', async ({
+		page
+	}) => {
 		// Mock API to return error
 		await page.route('**/api/v1/pdf/lease/template/preview', route => {
 			route.fulfill({
@@ -235,30 +274,44 @@ test.describe('Lease Template PDF Generation', () => {
 		})
 
 		// Fill minimum required fields
-		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
+		const stateSelect = page
+			.locator('select[name="state"], [user_type="combobox"]')
+			.first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('CA')
 		}
 
 		// Click render button
-		const renderButton = page.getByRole('button', { name: /render.*pdf|generate.*pdf/i })
-		if (await renderButton.isVisible() && !(await renderButton.isDisabled())) {
+		const renderButton = page.getByRole('button', {
+			name: /render.*pdf|generate.*pdf/i
+		})
+		if (
+			(await renderButton.isVisible()) &&
+			!(await renderButton.isDisabled())
+		) {
 			await renderButton.click()
 
 			// Should show error toast/message
-			const errorMessage = page.locator('[user_type="alert"], .toast, [class*="error"]').filter({ hasText: /failed|error/i }).first()
+			const errorMessage = page
+				.locator('[user_type="alert"], .toast, [class*="error"]')
+				.filter({ hasText: /failed|error/i })
+				.first()
 			await expect(errorMessage).toBeVisible({ timeout: 5000 })
 		}
 	})
 
-	test('should maintain template selections when regenerating PDF', async ({ page }) => {
+	test('should maintain template selections when regenerating PDF', async ({
+		page
+	}) => {
 		await page.goto('/documents/lease-template', {
 			waitUntil: 'networkidle',
 			timeout: 30000
 		})
 
 		// Select specific state
-		const stateSelect = page.locator('select[name="state"], [user_type="combobox"]').first()
+		const stateSelect = page
+			.locator('select[name="state"], [user_type="combobox"]')
+			.first()
 		if (await stateSelect.isVisible()) {
 			await stateSelect.selectOption('NY')
 
@@ -284,7 +337,10 @@ test.describe('Lease Template PDF Generation', () => {
 
 		// Generate PDF (if button is enabled)
 		const renderButton = page.getByRole('button', { name: /render.*pdf/i })
-		if (await renderButton.isVisible() && !(await renderButton.isDisabled())) {
+		if (
+			(await renderButton.isVisible()) &&
+			!(await renderButton.isDisabled())
+		) {
 			// Note: Without filling all required fields, button might be disabled
 			// This test primarily verifies state persistence
 		}

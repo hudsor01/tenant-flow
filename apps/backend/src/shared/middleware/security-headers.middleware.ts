@@ -11,7 +11,7 @@
  * - Permissions-Policy for feature restrictions
  */
 
-import type { NestMiddleware } from '@nestjs/common';
+import type { NestMiddleware } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { SecurityHeadersConfig } from '@repo/shared/types/security'
 import { getCSPString } from '@repo/shared/security/csp-config'
@@ -50,8 +50,10 @@ const SECURITY_CONFIG: SecurityHeadersConfig = {
 
 @Injectable()
 export class SecurityHeadersMiddleware implements NestMiddleware {
-
-	constructor(private readonly config: AppConfigService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger
+	) {}
 
 	use(req: Request, res: Response, next: () => void): void {
 		try {

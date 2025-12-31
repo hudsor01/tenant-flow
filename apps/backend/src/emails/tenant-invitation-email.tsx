@@ -83,8 +83,8 @@ export const TenantInvitationEmail = ({
 						<Heading style={h2}>Welcome to TenantFlow!</Heading>
 
 						<Text style={text}>
-							{ownerName ? `${ownerName} has` : 'Your property manager has'} invited
-							you to join TenantFlow as a tenant for{' '}
+							{ownerName ? `${ownerName} has` : 'Your property manager has'}{' '}
+							invited you to join TenantFlow as a tenant for{' '}
 							<strong>{locationDisplay}</strong>.
 						</Text>
 

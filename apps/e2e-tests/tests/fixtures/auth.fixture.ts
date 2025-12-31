@@ -32,8 +32,8 @@ export type AuthFixtures = {
 	authenticatedPage: Page
 }
 export const test = base.extend<AuthFixtures>({
-		authenticatedPage: [
-			async ({ browser }, use: (page: Page) => Promise<void>) => {
+	authenticatedPage: [
+		async ({ browser }, use: (page: Page) => Promise<void>) => {
 			// Get worker-specific auth file
 			// In multi-worker scenarios, each worker could use a different account
 			// For now, all workers use the same owner account
@@ -41,7 +41,7 @@ export const test = base.extend<AuthFixtures>({
 
 			// Create isolated browser context with auth state
 			const context = await browser.newContext({
-				storageState: authFile,
+				storageState: authFile
 			})
 
 			// Create page in authenticated context
@@ -53,13 +53,10 @@ export const test = base.extend<AuthFixtures>({
 			// Cleanup: Close page and context after test
 			await page.close()
 			await context.close()
-			},
-			{ scope: 'worker' },
-		],
-	})
-
-export { expect } from '@playwright/test'
-export { type Page } from '@playwright/test'
+		},
+		{ scope: 'worker' }
+	]
+})
 
 /**
  * Alternative fixture for multiple role support

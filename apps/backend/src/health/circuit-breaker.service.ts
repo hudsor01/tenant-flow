@@ -1,4 +1,4 @@
-import type { OnModuleDestroy } from '@nestjs/common';
+import type { OnModuleDestroy } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { ServiceHealth } from '@repo/shared/types/health'
 import { evictOldestEntries } from '../utils/cache-eviction'

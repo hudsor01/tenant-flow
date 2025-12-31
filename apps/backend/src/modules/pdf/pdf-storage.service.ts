@@ -247,7 +247,8 @@ export class PdfStorageService {
 		try {
 			const client = this.supabase.getAdminClient()
 
-			const { data: buckets, error: listError } = await client.storage.listBuckets()
+			const { data: buckets, error: listError } =
+				await client.storage.listBuckets()
 
 			if (listError) {
 				this.logger.error('Failed to list storage buckets', {

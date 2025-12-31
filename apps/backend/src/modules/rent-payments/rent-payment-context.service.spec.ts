@@ -17,8 +17,8 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type StripeAccountRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
-
+type StripeAccountRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 
 describe('RentPaymentContextService', () => {
 	let service: RentPaymentContextService
@@ -302,7 +302,9 @@ describe('RentPaymentContextService', () => {
 
 			mockAdminClient.from
 				.mockReturnValueOnce(createSingleQueryMock(tenantWithUser))
-				.mockReturnValueOnce(createMaybeSingleQueryMock(leaseWithDifferentOwner))
+				.mockReturnValueOnce(
+					createMaybeSingleQueryMock(leaseWithDifferentOwner)
+				)
 
 			await expect(
 				service.verifyTenantAccess('wrong-user-id', mockTenantId)

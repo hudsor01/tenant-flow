@@ -19,14 +19,54 @@ interface EndpointTest {
 }
 
 const endpoints: EndpointTest[] = [
-	{ method: 'GET', path: '/health', requiresAuth: false, description: 'Health check' },
-	{ method: 'GET', path: '/api/v1/properties', requiresAuth: true, description: 'List properties' },
-	{ method: 'GET', path: '/api/v1/units', requiresAuth: true, description: 'List units' },
-	{ method: 'GET', path: '/api/v1/tenants', requiresAuth: true, description: 'List tenants' },
-	{ method: 'GET', path: '/api/v1/leases', requiresAuth: true, description: 'List leases' },
-	{ method: 'GET', path: '/api/v1/dashboard', requiresAuth: true, description: 'Dashboard stats' },
-	{ method: 'GET', path: '/api/v1/financial/analytics', requiresAuth: true, description: 'Financial analytics' },
-	{ method: 'GET', path: '/api/v1/maintenance', requiresAuth: true, description: 'Maintenance requests' },
+	{
+		method: 'GET',
+		path: '/health',
+		requiresAuth: false,
+		description: 'Health check'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/properties',
+		requiresAuth: true,
+		description: 'List properties'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/units',
+		requiresAuth: true,
+		description: 'List units'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/tenants',
+		requiresAuth: true,
+		description: 'List tenants'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/leases',
+		requiresAuth: true,
+		description: 'List leases'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/dashboard',
+		requiresAuth: true,
+		description: 'Dashboard stats'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/financial/analytics',
+		requiresAuth: true,
+		description: 'Financial analytics'
+	},
+	{
+		method: 'GET',
+		path: '/api/v1/maintenance',
+		requiresAuth: true,
+		description: 'Maintenance requests'
+	}
 ]
 
 interface TestResult {
@@ -37,7 +77,10 @@ interface TestResult {
 	error?: string
 }
 
-async function testEndpoint(endpoint: EndpointTest, authToken?: string): Promise<TestResult> {
+async function testEndpoint(
+	endpoint: EndpointTest,
+	authToken?: string
+): Promise<TestResult> {
 	const start = performance.now()
 
 	try {
@@ -82,7 +125,9 @@ async function main() {
 	const authToken = process.env.TEST_AUTH_TOKEN || ''
 
 	if (!authToken) {
-		logger.warn('WARNING  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail')
+		logger.warn(
+			'WARNING  No TEST_AUTH_TOKEN provided - authenticated endpoints will fail'
+		)
 		logger.warn('')
 	}
 
@@ -92,8 +137,14 @@ async function main() {
 		const result = await testEndpoint(endpoint, authToken)
 		results.push(result)
 
-		const statusIcon = result.status >= 200 && result.status < 300 ? 'SUCCESS' : 'ERROR'
-		const speedIcon = result.duration > 1000 ? 'SLOW' : result.duration > 500 ? 'WARNING' : 'FAST'
+		const statusIcon =
+			result.status >= 200 && result.status < 300 ? 'SUCCESS' : 'ERROR'
+		const speedIcon =
+			result.duration > 1000
+				? 'SLOW'
+				: result.duration > 500
+					? 'WARNING'
+					: 'FAST'
 
 		logger.log(`${statusIcon} ${speedIcon} [${result.status}] ${result.path}`)
 		logger.log(`   ${result.description}`)
@@ -127,11 +178,15 @@ async function main() {
 		logger.log('')
 	}
 
-	const avgDuration = results.reduce((sum, r) => sum + r.duration, 0) / results.length
+	const avgDuration =
+		results.reduce((sum, r) => sum + r.duration, 0) / results.length
 	logger.log(`ANALYTICS Average response time: ${Math.round(avgDuration)}ms`)
 	logger.log('')
 }
 main().catch(error => {
-	logger.error('Performance diagnostic failed', error instanceof Error ? error.stack : String(error))
+	logger.error(
+		'Performance diagnostic failed',
+		error instanceof Error ? error.stack : String(error)
+	)
 	process.exit(1)
 })

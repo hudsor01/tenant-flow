@@ -11,7 +11,8 @@
  * - Maintain existing CSS class structure for styling
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 import { DashboardSection } from '../dashboard-section'
 
@@ -49,17 +50,29 @@ describe('DashboardSection', () => {
 			)
 
 			expect(container.querySelector('.dashboard-panel')).toBeInTheDocument()
-			expect(container.querySelector('.dashboard-panel-header')).toBeInTheDocument()
-			expect(container.querySelector('.dashboard-panel-title')).toBeInTheDocument()
-			expect(container.querySelector('.dashboard-panel-description')).toBeInTheDocument()
-			expect(container.querySelector('.dashboard-panel-body')).toBeInTheDocument()
+			expect(
+				container.querySelector('.dashboard-panel-header')
+			).toBeInTheDocument()
+			expect(
+				container.querySelector('.dashboard-panel-title')
+			).toBeInTheDocument()
+			expect(
+				container.querySelector('.dashboard-panel-description')
+			).toBeInTheDocument()
+			expect(
+				container.querySelector('.dashboard-panel-body')
+			).toBeInTheDocument()
 		})
 	})
 
 	describe('Variants', () => {
 		it('applies activity variant to header', () => {
 			const { container } = render(
-				<DashboardSection title="Recent Activity" description="Latest updates" variant="activity">
+				<DashboardSection
+					title="Recent Activity"
+					description="Latest updates"
+					variant="activity"
+				>
 					Content
 				</DashboardSection>
 			)
@@ -70,7 +83,11 @@ describe('DashboardSection', () => {
 
 		it('applies performance variant to header', () => {
 			const { container } = render(
-				<DashboardSection title="Property Performance" description="Top properties" variant="performance">
+				<DashboardSection
+					title="Property Performance"
+					description="Top properties"
+					variant="performance"
+				>
 					Content
 				</DashboardSection>
 			)
@@ -81,7 +98,11 @@ describe('DashboardSection', () => {
 
 		it('applies actions variant to header', () => {
 			const { container } = render(
-				<DashboardSection title="Quick Actions" description="Common tasks" variant="actions">
+				<DashboardSection
+					title="Quick Actions"
+					description="Common tasks"
+					variant="actions"
+				>
 					Content
 				</DashboardSection>
 			)
@@ -105,7 +126,11 @@ describe('DashboardSection', () => {
 
 		it('applies tour attribute for onboarding', () => {
 			const { container } = render(
-				<DashboardSection title="Title" description="Desc" tourId="quick-actions">
+				<DashboardSection
+					title="Title"
+					description="Desc"
+					tourId="quick-actions"
+				>
 					Content
 				</DashboardSection>
 			)
@@ -175,7 +200,9 @@ describe('DashboardSection', () => {
 
 	describe('Composition Patterns', () => {
 		it('works with ActivityFeed as child', () => {
-			const MockActivityFeed = () => <div data-testid="activity-feed">Activity items</div>
+			const MockActivityFeed = () => (
+				<div data-testid="activity-feed">Activity items</div>
+			)
 
 			render(
 				<DashboardSection
@@ -193,7 +220,9 @@ describe('DashboardSection', () => {
 		})
 
 		it('works with PropertyPerformanceTable as child', () => {
-			const MockPerformanceTable = () => <div data-testid="performance-table">Performance data</div>
+			const MockPerformanceTable = () => (
+				<div data-testid="performance-table">Performance data</div>
+			)
 
 			render(
 				<DashboardSection
@@ -210,7 +239,9 @@ describe('DashboardSection', () => {
 		})
 
 		it('works with QuickActions as child', () => {
-			const MockQuickActions = () => <div data-testid="quick-actions">Quick action buttons</div>
+			const MockQuickActions = () => (
+				<div data-testid="quick-actions">Quick action buttons</div>
+			)
 
 			render(
 				<DashboardSection

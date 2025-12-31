@@ -63,7 +63,7 @@ export function useCreateConnectedAccount() {
 		mutationFn: async (
 			request: CreateConnectAccountRequest
 		): Promise<ConnectAccountResponse> => {
-		return apiRequest('/api/v1/stripe/connect/onboard', {
+			return apiRequest('/api/v1/stripe/connect/onboard', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			})
@@ -81,8 +81,8 @@ export function useCreateConnectedAccount() {
 export function useRefreshOnboarding() {
 	return useMutation({
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
-		return apiRequest<OnboardingUrlResponse>(
-			'/api/v1/stripe/connect/refresh-link',
+			return apiRequest<OnboardingUrlResponse>(
+				'/api/v1/stripe/connect/refresh-link',
 				{
 					method: 'POST'
 				}
@@ -106,7 +106,7 @@ export function usePrefetchConnectedAccount() {
 				)
 				return response.data
 			},
-			...QUERY_CACHE_TIMES.DETAIL,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 	}
 }
@@ -203,7 +203,8 @@ export function useConnectedAccountPayouts(params?: {
 		queryFn: async (): Promise<{ payouts: Payout[]; hasMore: boolean }> => {
 			const queryString = new URLSearchParams()
 			if (params?.limit) queryString.set('limit', params.limit.toString())
-			if (params?.starting_after) queryString.set('starting_after', params.starting_after)
+			if (params?.starting_after)
+				queryString.set('starting_after', params.starting_after)
 			const query = queryString.toString()
 			const response = await apiRequest<PayoutsResponse>(
 				`/api/v1/stripe/connect/payouts${query ? `?${query}` : ''}`
@@ -227,7 +228,8 @@ export function useConnectedAccountTransfers(params?: {
 		queryFn: async (): Promise<{ transfers: Transfer[]; hasMore: boolean }> => {
 			const queryString = new URLSearchParams()
 			if (params?.limit) queryString.set('limit', params.limit.toString())
-			if (params?.starting_after) queryString.set('starting_after', params.starting_after)
+			if (params?.starting_after)
+				queryString.set('starting_after', params.starting_after)
 			const query = queryString.toString()
 			const response = await apiRequest<TransfersResponse>(
 				`/api/v1/stripe/connect/transfers${query ? `?${query}` : ''}`

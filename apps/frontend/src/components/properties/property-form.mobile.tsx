@@ -51,7 +51,8 @@ export function MobilePropertyForm({
 						</CardTitle>
 					</div>
 					<p className="text-muted">
-						Mobile-first form with offline awareness and accessible touch targets.
+						Mobile-first form with offline awareness and accessible touch
+						targets.
 					</p>
 				</CardHeader>
 				<CardContent className="space-y-4">

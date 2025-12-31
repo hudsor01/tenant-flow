@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { LeaseForm } from '#components/leases/lease-form.client'
+import { LeaseForm } from '#components/leases/lease-form'
 import { RouteModal } from '#components/ui/route-modal'
 import { Skeleton } from '#components/ui/skeleton'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
@@ -24,7 +24,10 @@ export default function EditLeaseModal({
 	}
 
 	return (
-		<RouteModal intent="edit" className="max-w-3xl max-h-[90vh] overflow-y-auto">
+		<RouteModal
+			intent="edit"
+			className="max-w-3xl max-h-[90vh] overflow-y-auto"
+		>
 			<div className="space-y-6">
 				<div className="space-y-2">
 					<h2 className="typography-h3">Edit Lease</h2>

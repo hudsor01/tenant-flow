@@ -1,6 +1,4 @@
-import type {
-	CanActivate,
-	ExecutionContext} from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common'
 import { Injectable, ForbiddenException } from '@nestjs/common'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
@@ -33,8 +31,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
  */
 @Injectable()
 export class TenantAuthGuard implements CanActivate {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()

@@ -19,12 +19,18 @@ const Toaster = ({ className, toastOptions, ...props }: ToasterProps) => {
 	useEffect(() => {
 		toasts.forEach(storeToast => {
 			// Check if this toast is already shown by sonner
-			const existingToast = document.querySelector(`[data-toast-id="${storeToast.id}"]`)
+			const existingToast = document.querySelector(
+				`[data-toast-id="${storeToast.id}"]`
+			)
 			if (!existingToast) {
-				const toastFn = storeToast.type === 'error' ? sonnerToast.error
-					: storeToast.type === 'success' ? sonnerToast.success
-					: storeToast.type === 'warning' ? sonnerToast.warning
-					: sonnerToast
+				const toastFn =
+					storeToast.type === 'error'
+						? sonnerToast.error
+						: storeToast.type === 'success'
+							? sonnerToast.success
+							: storeToast.type === 'warning'
+								? sonnerToast.warning
+								: sonnerToast
 
 				toastFn(storeToast.title || storeToast.description || '', {
 					id: storeToast.id,

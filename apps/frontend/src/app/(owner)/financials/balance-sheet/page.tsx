@@ -7,7 +7,9 @@ import {
 	CreditCard,
 	Download,
 	ChevronDown,
-	ChevronRight
+	ChevronRight,
+	Check,
+	X
 } from 'lucide-react'
 import {
 	Select,
@@ -19,7 +21,13 @@ import {
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
+import {
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatDescription
+} from '#components/ui/stat'
 import { useBalanceSheet } from '#hooks/api/use-financial-statements'
 import { formatCents } from '#lib/formatters/currency'
 
@@ -53,12 +61,14 @@ function BalanceSection({
 
 	return (
 		<div className="bg-card border border-border rounded-lg overflow-hidden">
-			<div className={`p-4 border-b border-border flex items-center gap-3 ${colorClass}`}>
+			<div
+				className={`p-4 border-b border-border flex items-center gap-3 ${colorClass}`}
+			>
 				<Icon className="w-5 h-5" />
 				<h3 className="font-medium text-foreground">{title}</h3>
 			</div>
 			<div className="divide-y divide-border">
-				{items.map((section) => (
+				{items.map(section => (
 					<div key={section.label}>
 						<button
 							onClick={() => toggleExpanded(section.label)}
@@ -72,14 +82,23 @@ function BalanceSection({
 								)}
 								<span className="text-sm font-medium">{section.label}</span>
 							</div>
-							<span className="text-sm font-medium tabular-nums">{formatCents(section.subtotal * 100)}</span>
+							<span className="text-sm font-medium tabular-nums">
+								{formatCents(section.subtotal * 100)}
+							</span>
 						</button>
 						{expanded[section.label] && (
 							<div className="bg-muted/20 px-4 pb-4">
 								{section.items.map((item, idx) => (
-									<div key={idx} className="flex items-center justify-between py-2 pl-6">
-										<span className="text-sm text-muted-foreground">{item.name}</span>
-										<span className={`text-sm tabular-nums ${item.amount < 0 ? 'text-red-600' : ''}`}>
+									<div
+										key={idx}
+										className="flex items-center justify-between py-2 pl-6"
+									>
+										<span className="text-sm text-muted-foreground">
+											{item.name}
+										</span>
+										<span
+											className={`text-sm tabular-nums ${item.amount < 0 ? 'text-red-600' : ''}`}
+										>
 											{formatCents(item.amount * 100)}
 										</span>
 									</div>
@@ -92,7 +111,9 @@ function BalanceSection({
 			<div className="p-4 bg-muted/30 border-t border-border">
 				<div className="flex items-center justify-between">
 					<span className="text-sm font-semibold">{totalLabel}</span>
-					<span className={`text-lg font-bold tabular-nums ${colorClass}`}>{formatCents(total * 100)}</span>
+					<span className={`text-lg font-bold tabular-nums ${colorClass}`}>
+						{formatCents(total * 100)}
+					</span>
 				</div>
 			</div>
 		</div>
@@ -116,17 +137,35 @@ export default function BalanceSheetPage() {
 				label: 'Current Assets',
 				items: [
 					{ name: 'Cash', amount: balanceData.assets.currentAssets.cash },
-					{ name: 'Accounts Receivable', amount: balanceData.assets.currentAssets.accountsReceivable },
-					{ name: 'Security Deposits', amount: balanceData.assets.currentAssets.security_deposits }
+					{
+						name: 'Accounts Receivable',
+						amount: balanceData.assets.currentAssets.accountsReceivable
+					},
+					{
+						name: 'Security Deposits',
+						amount: balanceData.assets.currentAssets.security_deposits
+					}
 				],
-				subtotal: balanceData.assets.currentAssets.cash + balanceData.assets.currentAssets.accountsReceivable + balanceData.assets.currentAssets.security_deposits
+				subtotal:
+					balanceData.assets.currentAssets.cash +
+					balanceData.assets.currentAssets.accountsReceivable +
+					balanceData.assets.currentAssets.security_deposits
 			},
 			{
 				label: 'Fixed Assets',
 				items: [
-					{ name: 'Property Values', amount: balanceData.assets.fixedAssets.propertyValues },
-					{ name: 'Accumulated Depreciation', amount: -balanceData.assets.fixedAssets.accumulatedDepreciation },
-					{ name: 'Net Property Value', amount: balanceData.assets.fixedAssets.netPropertyValue }
+					{
+						name: 'Property Values',
+						amount: balanceData.assets.fixedAssets.propertyValues
+					},
+					{
+						name: 'Accumulated Depreciation',
+						amount: -balanceData.assets.fixedAssets.accumulatedDepreciation
+					},
+					{
+						name: 'Net Property Value',
+						amount: balanceData.assets.fixedAssets.netPropertyValue
+					}
 				],
 				subtotal: balanceData.assets.fixedAssets.netPropertyValue
 			}
@@ -139,16 +178,33 @@ export default function BalanceSheetPage() {
 			{
 				label: 'Current Liabilities',
 				items: [
-					{ name: 'Accounts Payable', amount: balanceData.liabilities.currentLiabilities.accountsPayable },
-					{ name: 'Security Deposit Liability', amount: balanceData.liabilities.currentLiabilities.security_depositLiability },
-					{ name: 'Accrued Expenses', amount: balanceData.liabilities.currentLiabilities.accruedExpenses }
+					{
+						name: 'Accounts Payable',
+						amount: balanceData.liabilities.currentLiabilities.accountsPayable
+					},
+					{
+						name: 'Security Deposit Liability',
+						amount:
+							balanceData.liabilities.currentLiabilities
+								.security_depositLiability
+					},
+					{
+						name: 'Accrued Expenses',
+						amount: balanceData.liabilities.currentLiabilities.accruedExpenses
+					}
 				],
-				subtotal: balanceData.liabilities.currentLiabilities.accountsPayable + balanceData.liabilities.currentLiabilities.security_depositLiability + balanceData.liabilities.currentLiabilities.accruedExpenses
+				subtotal:
+					balanceData.liabilities.currentLiabilities.accountsPayable +
+					balanceData.liabilities.currentLiabilities.security_depositLiability +
+					balanceData.liabilities.currentLiabilities.accruedExpenses
 			},
 			{
 				label: 'Long-Term Liabilities',
 				items: [
-					{ name: 'Mortgages Payable', amount: balanceData.liabilities.longTermLiabilities.mortgagesPayable }
+					{
+						name: 'Mortgages Payable',
+						amount: balanceData.liabilities.longTermLiabilities.mortgagesPayable
+					}
 				],
 				subtotal: balanceData.liabilities.longTermLiabilities.mortgagesPayable
 			}
@@ -159,8 +215,14 @@ export default function BalanceSheetPage() {
 		if (!balanceData) return []
 		return [
 			{ name: 'Owner Capital', amount: balanceData.equity.ownerCapital },
-			{ name: 'Retained Earnings', amount: balanceData.equity.retainedEarnings },
-			{ name: 'Current Period Income', amount: balanceData.equity.currentPeriodIncome }
+			{
+				name: 'Retained Earnings',
+				amount: balanceData.equity.retainedEarnings
+			},
+			{
+				name: 'Current Period Income',
+				amount: balanceData.equity.currentPeriodIncome
+			}
 		]
 	}, [balanceData])
 
@@ -238,8 +300,10 @@ export default function BalanceSheetPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Balance Sheet</h1>
-						<p className="text-muted-foreground">As of {formatDate(asOfDate)}</p>
+						<h1 className="typography-h1">Balance Sheet</h1>
+						<p className="text-muted-foreground">
+							As of {formatDate(asOfDate)}
+						</p>
 					</div>
 					<div className="flex gap-2">
 						<Select value={year} onValueChange={setYear}>
@@ -283,7 +347,12 @@ export default function BalanceSheetPage() {
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.15} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
+						/>
 						<StatLabel>Total Assets</StatLabel>
 						<StatValue className="flex items-baseline text-emerald-600 dark:text-emerald-400">
 							${Math.floor(totalAssets).toLocaleString()}
@@ -291,9 +360,7 @@ export default function BalanceSheetPage() {
 						<StatIndicator variant="icon" color="success">
 							<Building2 />
 						</StatIndicator>
-						<StatDescription>
-							what you own
-						</StatDescription>
+						<StatDescription>what you own</StatDescription>
 					</Stat>
 				</BlurFade>
 
@@ -306,16 +373,19 @@ export default function BalanceSheetPage() {
 						<StatIndicator variant="icon" color="destructive">
 							<CreditCard />
 						</StatIndicator>
-						<StatDescription>
-							what you owe
-						</StatDescription>
+						<StatDescription>what you owe</StatDescription>
 					</Stat>
 				</BlurFade>
 
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
 						{totalEquity > 0 && (
-							<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
+							<BorderBeam
+								size={100}
+								duration={12}
+								colorFrom="var(--color-primary)"
+								colorTo="oklch(from var(--color-primary) l c h / 0.3)"
+							/>
 						)}
 						<StatLabel>Total Equity</StatLabel>
 						<StatValue className="flex items-baseline">
@@ -324,26 +394,38 @@ export default function BalanceSheetPage() {
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />
 						</StatIndicator>
-						<StatDescription>
-							net worth
-						</StatDescription>
+						<StatDescription>net worth</StatDescription>
 					</Stat>
 				</BlurFade>
 			</div>
 
 			{/* Balance Equation Check */}
 			<BlurFade delay={0.3} inView>
-				<div className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}>
+				<div
+					className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}
+				>
 					<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-						<span className="font-medium">Assets ({formatCents(totalAssets * 100)})</span>
+						<span className="font-medium">
+							Assets ({formatCents(totalAssets * 100)})
+						</span>
 						<span className="text-muted-foreground">=</span>
-						<span className="font-medium">Liabilities ({formatCents(totalLiabilities * 100)})</span>
+						<span className="font-medium">
+							Liabilities ({formatCents(totalLiabilities * 100)})
+						</span>
 						<span className="text-muted-foreground">+</span>
-						<span className="font-medium">Equity ({formatCents(totalEquity * 100)})</span>
+						<span className="font-medium">
+							Equity ({formatCents(totalEquity * 100)})
+						</span>
 						{isBalanced ? (
-							<span className="text-emerald-600 font-medium">✓ Balanced</span>
+							<span className="text-emerald-600 font-medium inline-flex items-center gap-1">
+								<Check className="size-4" aria-hidden="true" />
+								Balanced
+							</span>
 						) : (
-							<span className="text-red-600 font-medium">✗ Unbalanced</span>
+							<span className="text-red-600 font-medium inline-flex items-center gap-1">
+								<X className="size-4" aria-hidden="true" />
+								Unbalanced
+							</span>
 						)}
 					</div>
 				</div>
@@ -351,51 +433,58 @@ export default function BalanceSheetPage() {
 
 			{/* Balance Sheet Details */}
 			<BlurFade delay={0.35} inView>
-			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{/* Assets */}
-				<BalanceSection
-					title="Assets"
-					icon={Building2}
-					items={assetsItems}
-					total={totalAssets}
-					totalLabel="Total Assets"
-					colorClass="text-emerald-600"
-				/>
-
-				{/* Liabilities & Equity */}
-				<div className="space-y-6">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					{/* Assets */}
 					<BalanceSection
-						title="Liabilities"
-						icon={CreditCard}
-						items={liabilitiesItems}
-						total={totalLiabilities}
-						totalLabel="Total Liabilities"
-						colorClass="text-red-600"
+						title="Assets"
+						icon={Building2}
+						items={assetsItems}
+						total={totalAssets}
+						totalLabel="Total Assets"
+						colorClass="text-emerald-600"
 					/>
 
-					{/* Equity (simpler section) */}
-					<div className="bg-card border border-border rounded-lg overflow-hidden">
-						<div className="p-4 border-b border-border flex items-center gap-3 text-primary">
-							<Wallet className="w-5 h-5" />
-							<h3 className="font-medium text-foreground">Equity</h3>
-						</div>
-						<div className="divide-y divide-border">
-							{equityItems.map((item, idx) => (
-								<div key={idx} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-									<span className="text-sm">{item.name}</span>
-									<span className="text-sm font-medium tabular-nums">{formatCents(item.amount * 100)}</span>
+					{/* Liabilities & Equity */}
+					<div className="space-y-6">
+						<BalanceSection
+							title="Liabilities"
+							icon={CreditCard}
+							items={liabilitiesItems}
+							total={totalLiabilities}
+							totalLabel="Total Liabilities"
+							colorClass="text-red-600"
+						/>
+
+						{/* Equity (simpler section) */}
+						<div className="bg-card border border-border rounded-lg overflow-hidden">
+							<div className="p-4 border-b border-border flex items-center gap-3 text-primary">
+								<Wallet className="w-5 h-5" />
+								<h3 className="font-medium text-foreground">Equity</h3>
+							</div>
+							<div className="divide-y divide-border">
+								{equityItems.map((item, idx) => (
+									<div
+										key={idx}
+										className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
+									>
+										<span className="text-sm">{item.name}</span>
+										<span className="text-sm font-medium tabular-nums">
+											{formatCents(item.amount * 100)}
+										</span>
+									</div>
+								))}
+							</div>
+							<div className="p-4 bg-muted/30 border-t border-border">
+								<div className="flex items-center justify-between">
+									<span className="text-sm font-semibold">Total Equity</span>
+									<span className="text-lg font-bold text-primary tabular-nums">
+										{formatCents(totalEquity * 100)}
+									</span>
 								</div>
-							))}
-						</div>
-						<div className="p-4 bg-muted/30 border-t border-border">
-							<div className="flex items-center justify-between">
-								<span className="text-sm font-semibold">Total Equity</span>
-								<span className="text-lg font-bold text-primary tabular-nums">{formatCents(totalEquity * 100)}</span>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 			</BlurFade>
 		</div>
 	)

@@ -433,4 +433,3 @@ export type SecurityEventType =
 export type Result<T = void, E = string> =
 	| { success: true; value: T; error?: never }
 	| { success: false; error: E; value?: never }
-

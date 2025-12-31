@@ -48,7 +48,12 @@ export function PageLayout({
 				className
 			)}
 		>
-			{showGridPattern && <GridPattern patternId="page-layout-grid" className="fixed inset-0 -z-10" />}
+			{showGridPattern && (
+				<GridPattern
+					patternId="page-layout-grid"
+					className="fixed inset-0 -z-10"
+				/>
+			)}
 			{showNavbar && <Navbar />}
 			<main
 				className={cn(

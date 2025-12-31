@@ -1,4 +1,3 @@
-
 import type { CSPReportBody } from '@repo/shared/types/domain'
 import {
 	SecurityEventSeverity,
@@ -44,7 +43,7 @@ describe('SecurityController', () => {
 		})
 
 		securityMetricsService = new SecurityMetricsService(
-		mockSupabaseService as unknown as SupabaseService
+			mockSupabaseService as unknown as SupabaseService
 		)
 		mockConfigService = {
 			getConfig: jest.fn(() => ({})),
@@ -52,7 +51,10 @@ describe('SecurityController', () => {
 			getNodeEnv: jest.fn(() => 'test')
 		} as unknown as jest.Mocked<AppConfigService>
 
-		controller = new SecurityController(securityMetricsService, mockConfigService)
+		controller = new SecurityController(
+			securityMetricsService,
+			mockConfigService
+		)
 
 		Object.defineProperty(controller, 'logger', {
 			configurable: true,

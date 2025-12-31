@@ -67,35 +67,35 @@ export default function AnalyticsPage() {
 	}
 
 	return (
-		<div className="@container/main flex min-h-screen w-full flex-col">
-			<div
-				className="border-b bg-background p-6 border-(--color-fill-tertiary)"
-			>
-				<div className="mx-auto max-w-400 py-4">
-					<div className="flex-between mb-4">
-						<div>
-							<h1 className="typography-h2">Analytics Dashboard</h1>
-							<p className="text-muted-foreground mt-1">
-								Real-time insights into revenue, payments, and occupancy metrics
-							</p>
-						</div>
-						<Select value={timeRange} onValueChange={setTimeRange}>
-							<SelectTrigger
-								id="time-range"
-								className="w-36"
-								aria-label="Select time range"
-							>
-								<SelectValue placeholder="Time Range" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="6">Last 6 months</SelectItem>
-								<SelectItem value="12">Last 12 months</SelectItem>
-								<SelectItem value="24">Last 24 months</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+		<div className="p-6 lg:p-8 bg-background min-h-full">
+			{/* Header */}
+			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+				<div>
+					<h1 className="text-2xl font-semibold text-foreground">
+						Analytics Dashboard
+					</h1>
+					<p className="text-muted-foreground">
+						Real-time insights into revenue, payments, and occupancy metrics.
+					</p>
+				</div>
+				<Select value={timeRange} onValueChange={setTimeRange}>
+					<SelectTrigger
+						id="time-range"
+						className="w-36"
+						aria-label="Select time range"
+					>
+						<SelectValue placeholder="Time Range" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="6">Last 6 months</SelectItem>
+						<SelectItem value="12">Last 12 months</SelectItem>
+						<SelectItem value="24">Last 24 months</SelectItem>
+					</SelectContent>
+				</Select>
+			</div>
 
-					<div className="grid grid-cols-1 gap-4 *:data-[slot=card]:bg-card *:data-[slot=card]:shadow-xs @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+			{/* Stats Row */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 						{paymentsLoading ? (
 							<>
 								<Skeleton className="h-28" />
@@ -212,12 +212,10 @@ export default function AnalyticsPage() {
 								</Card>
 							</>
 						)}
-					</div>
-				</div>
 			</div>
 
-			<div className="flex-1 p-6 pt-6 pb-6">
-				<div className="mx-auto max-w-400 flex flex-col gap-6">
+			{/* Charts Section */}
+			<div className="flex flex-col gap-6">
 					{/* Revenue Chart */}
 					<Card className="@container/card">
 						<div className="p-6 border-b">
@@ -288,13 +286,15 @@ export default function AnalyticsPage() {
 											contentStyle={{
 												backgroundColor: 'var(--color-background)',
 												border: '1px solid var(--color-border)',
-												borderRadius: '8px'
+												borderRadius: '2px'
 											}}
 											formatter={value => {
 												const numericValue = Array.isArray(value)
 													? Number(value[0])
 													: Number(value)
-												return formatWholeAmount(Number.isFinite(numericValue) ? numericValue : 0)
+												return formatWholeAmount(
+													Number.isFinite(numericValue) ? numericValue : 0
+												)
 											}}
 										/>
 										<Legend />
@@ -367,7 +367,7 @@ export default function AnalyticsPage() {
 												contentStyle={{
 													backgroundColor: 'var(--color-background)',
 													border: '1px solid var(--color-border)',
-													borderRadius: '8px'
+													borderRadius: '2px'
 												}}
 											/>
 											<Bar dataKey="count" fill="var(--chart-2)" />
@@ -418,13 +418,15 @@ export default function AnalyticsPage() {
 												contentStyle={{
 													backgroundColor: 'var(--color-background)',
 													border: '1px solid var(--color-border)',
-													borderRadius: '8px'
+													borderRadius: '2px'
 												}}
 												formatter={value => {
 													const numericValue = Array.isArray(value)
 														? Number(value[0])
 														: Number(value)
-													return formatPercent(Number.isFinite(numericValue) ? numericValue : 0)
+													return formatPercent(
+														Number.isFinite(numericValue) ? numericValue : 0
+													)
 												}}
 											/>
 											<Line
@@ -474,7 +476,7 @@ export default function AnalyticsPage() {
 											</tr>
 										</thead>
 										<tbody>
-											{occupancyMetrics.byProperty.map((property) => (
+											{occupancyMetrics.byProperty.map(property => (
 												<tr
 													key={property.propertyName}
 													className="border-b hover:bg-muted/30 transition-colors"
@@ -490,7 +492,7 @@ export default function AnalyticsPage() {
 													</td>
 													<td className="p-3">
 														<div className="flex items-center gap-2">
-															<div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+															<div className="flex-1 h-2 bg-muted rounded-sm overflow-hidden">
 																<div
 																	className="h-full bg-chart-4 transition-all"
 																	style={{
@@ -511,7 +513,6 @@ export default function AnalyticsPage() {
 							</div>
 						</Card>
 					)}
-				</div>
 			</div>
 		</div>
 	)

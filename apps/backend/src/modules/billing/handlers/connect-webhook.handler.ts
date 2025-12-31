@@ -12,8 +12,10 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class ConnectWebhookHandler {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	async handleAccountUpdated(account: Stripe.Account): Promise<void> {
 		try {
@@ -27,8 +29,13 @@ export class ConnectWebhookHandler {
 			const client = this.supabase.getAdminClient()
 
 			// Determine onboarding status based on Stripe account state while respecting DB constraint
-			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' = 'in_progress'
-			if (account.details_submitted && account.charges_enabled && account.payouts_enabled) {
+			let onboardingStatus: 'not_started' | 'in_progress' | 'completed' =
+				'in_progress'
+			if (
+				account.details_submitted &&
+				account.charges_enabled &&
+				account.payouts_enabled
+			) {
 				onboardingStatus = 'completed'
 			} else if (!account.details_submitted) {
 				onboardingStatus = 'not_started'
@@ -47,7 +54,8 @@ export class ConnectWebhookHandler {
 					payouts_enabled: account.payouts_enabled,
 					onboarding_status: onboardingStatus,
 					requirements_due: requirementsDue,
-					onboarding_completed_at: onboardingStatus === 'completed' ? new Date().toISOString() : null,
+					onboarding_completed_at:
+						onboardingStatus === 'completed' ? new Date().toISOString() : null,
 					updated_at: new Date().toISOString()
 				})
 				.eq('stripe_account_id', account.id)

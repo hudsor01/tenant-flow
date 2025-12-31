@@ -1,14 +1,33 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, SetMetadata } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	HttpCode,
+	HttpStatus,
+	Post,
+	SetMetadata
+} from '@nestjs/common'
+import {
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { AnalyticsService } from './analytics.service'
 import { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
 import { WebVitalDto } from './dto/web-vital.dto'
 import { AppLogger } from '../../logger/app-logger.service'
 
+@ApiTags('Analytics')
 @Controller('analytics')
 export class AnalyticsController {
+	constructor(
+		private readonly analyticsService: AnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly analyticsService: AnalyticsService, private readonly logger: AppLogger) {}
-
+	@ApiOperation({ summary: 'Ingest mobile event', description: 'Record a mobile analytics event (public endpoint)' })
+	@ApiBody({ type: MobileAnalyticsEventDto })
+	@ApiResponse({ status: 202, description: 'Event accepted for processing' })
 	@Post()
 	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.ACCEPTED)
@@ -17,6 +36,9 @@ export class AnalyticsController {
 		return { success: true }
 	}
 
+	@ApiOperation({ summary: 'Report web vitals', description: 'Record Core Web Vitals metrics (public endpoint)' })
+	@ApiBody({ type: WebVitalDto })
+	@ApiResponse({ status: 202, description: 'Web vital metrics accepted' })
 	@Post('web-vitals')
 	@SetMetadata('isPublic', true)
 	@HttpCode(HttpStatus.ACCEPTED)

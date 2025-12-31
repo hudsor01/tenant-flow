@@ -2,10 +2,10 @@ import type {
 	CallHandler,
 	ExecutionContext,
 	NestInterceptor
-} from '@nestjs/common';
+} from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import type { Request } from 'express'
-import type { Observable} from 'rxjs';
+import type { Observable } from 'rxjs'
 import { tap } from 'rxjs'
 import { performance } from 'node:perf_hooks'
 import { AppLogger } from '../logger/app-logger.service'
@@ -32,31 +32,18 @@ export class QueryPerformanceInterceptor implements NestInterceptor {
 		const controller = context.getClass().name
 		const handler = context.getHandler().name
 		const method = request?.method ?? 'UNKNOWN'
-		const route =
-			request?.route?.path ?? request?.url ?? 'unknown'
+		const route = request?.route?.path ?? request?.url ?? 'unknown'
 
 		const startTime = performance.now()
 
 		return next.handle().pipe(
 			tap({
 				next: () => {
-					this.logPerformance(
-						startTime,
-						controller,
-						handler,
-						method,
-						route
-					)
+					this.logPerformance(startTime, controller, handler, method, route)
 				},
 				error: () => {
 					// Still log performance even on errors
-					this.logPerformance(
-						startTime,
-						controller,
-						handler,
-						method,
-						route
-					)
+					this.logPerformance(startTime, controller, handler, method, route)
 				}
 			})
 		)

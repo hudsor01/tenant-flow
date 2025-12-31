@@ -1,6 +1,9 @@
 import { Module, Global } from '@nestjs/common'
 import { RedisCacheService } from './cache.service'
-import { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN } from './cache.module-definition'
+import {
+	ConfigurableModuleClass,
+	MODULE_OPTIONS_TOKEN
+} from './cache.module-definition'
 
 @Global()
 @Module({

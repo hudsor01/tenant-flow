@@ -133,8 +133,8 @@ export function SignLeaseButton({
 						htmlFor="agree-terms"
 						className="text-sm leading-relaxed cursor-pointer"
 					>
-						I confirm that I have read and understood the lease agreement, and
-						I agree to be legally bound by its terms.
+						I confirm that I have read and understood the lease agreement, and I
+						agree to be legally bound by its terms.
 					</Label>
 				</div>
 

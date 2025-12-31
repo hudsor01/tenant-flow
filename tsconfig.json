@@ -1,52 +1,52 @@
 {
-  "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "TenantFlow Monorepo Root",
-  "extends": "./packages/typescript-config/base.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "noEmit": true,
-    "jsx": "preserve",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["node", "vitest/globals"],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./apps/frontend/node_modules/@types",
-      "./apps/frontend/node_modules"
-    ],
-    "paths": {
-      "@repo/shared/*": ["./packages/shared/src/*"],
-      "@repo/testing/*": ["./packages/testing/src/*"],
-      "@repo/eslint-config/*": ["./packages/eslint-config/*"],
-      "@repo/typescript-config/*": ["./packages/typescript-config/*"],
-      "#app/*": ["./apps/frontend/src/app/*"],
-      "#components/*": ["./apps/frontend/src/components/*"],
-      "#contexts/*": ["./apps/frontend/src/contexts/*"],
-      "#design-system/*": ["./apps/frontend/src/design-system/*"],
-      "#lib/*": ["./apps/frontend/src/lib/*"],
-      "#hooks/*": ["./apps/frontend/src/hooks/*"],
-      "#stores/*": ["./apps/frontend/src/stores/*"],
-      "#types/*": ["./apps/frontend/src/types/*"],
-      "#providers/*": ["./apps/frontend/src/providers/*"],
-      "#test/*": ["./apps/frontend/src/test/*"],
-      "#config/*": ["./apps/frontend/src/config/*"],
-      "#utils/*": ["./apps/frontend/src/utils/*"]
-    }
-  },
-  "include": [
-    "apps/**/*",
-    "packages/**/*",
-    "scripts/**/*.ts",
-    "scripts/**/*.tsx",
-    "turbo.d.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    ".next",
-    ".turbo",
-    "dist",
-    "coverage",
-    "playwright-report",
-    "apps/**/dist",
-    "packages/**/dist"
-  ]
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow Monorepo Root",
+	"extends": "./packages/typescript-config/base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"noEmit": true,
+		"jsx": "preserve",
+		"lib": ["ES2022", "DOM", "DOM.Iterable"],
+		"types": ["node", "vitest/globals"],
+		"typeRoots": [
+			"./node_modules/@types",
+			"./apps/frontend/node_modules/@types",
+			"./apps/frontend/node_modules"
+		],
+		"paths": {
+			"@repo/shared/*": ["./packages/shared/src/*"],
+			"@repo/testing/*": ["./packages/testing/src/*"],
+			"@repo/eslint-config/*": ["./packages/eslint-config/*"],
+			"@repo/typescript-config/*": ["./packages/typescript-config/*"],
+			"#app/*": ["./apps/frontend/src/app/*"],
+			"#components/*": ["./apps/frontend/src/components/*"],
+			"#contexts/*": ["./apps/frontend/src/contexts/*"],
+			"#design-system/*": ["./apps/frontend/src/design-system/*"],
+			"#lib/*": ["./apps/frontend/src/lib/*"],
+			"#hooks/*": ["./apps/frontend/src/hooks/*"],
+			"#stores/*": ["./apps/frontend/src/stores/*"],
+			"#types/*": ["./apps/frontend/src/types/*"],
+			"#providers/*": ["./apps/frontend/src/providers/*"],
+			"#test/*": ["./apps/frontend/src/test/*"],
+			"#config/*": ["./apps/frontend/src/config/*"],
+			"#utils/*": ["./apps/frontend/src/utils/*"]
+		}
+	},
+	"include": [
+		"apps/**/*",
+		"packages/**/*",
+		"scripts/**/*.ts",
+		"scripts/**/*.tsx",
+		"turbo.d.ts"
+	],
+	"exclude": [
+		"node_modules",
+		".next",
+		".turbo",
+		"dist",
+		"coverage",
+		"playwright-report",
+		"apps/**/dist",
+		"packages/**/dist"
+	]
 }

@@ -23,35 +23,47 @@ const logger = createLogger({ component: 'AuthApiSetup' })
  */
 setup('authenticate as owner via API', async ({ request }) => {
 	// Environment variables
-	const supabaseUrl = process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
-	const supabaseKey = process.env.TEST_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	const supabaseUrl =
+		process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+	const supabaseKey =
+		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 	const email = process.env.E2E_OWNER_EMAIL
 	const password = process.env.E2E_OWNER_PASSWORD
 
 	// Validation
 	if (!supabaseUrl || !supabaseKey) {
-		throw new Error('Missing Supabase configuration: TEST_SUPABASE_URL and TEST_SUPABASE_PUBLISHABLE_KEY required')
+		throw new Error(
+			'Missing Supabase configuration: TEST_SUPABASE_URL and TEST_SUPABASE_PUBLISHABLE_KEY required'
+		)
 	}
 	if (!email || !password) {
-		throw new Error('Missing E2E credentials: E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD required')
+		throw new Error(
+			'Missing E2E credentials: E2E_OWNER_EMAIL and E2E_OWNER_PASSWORD required'
+		)
 	}
 
 	// Authenticate via Supabase Auth API
 	// Using password grant type for direct email/password authentication
-	const authResponse = await request.post(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-		headers: {
-			'apikey': supabaseKey,
-			'Content-Type': 'application/json',
-		},
-		data: {
-			email,
-			password,
-		},
-	})
+	const authResponse = await request.post(
+		`${supabaseUrl}/auth/v1/token?grant_type=password`,
+		{
+			headers: {
+				apikey: supabaseKey,
+				'Content-Type': 'application/json'
+			},
+			data: {
+				email,
+				password
+			}
+		}
+	)
 
 	if (!authResponse.ok()) {
 		const errorBody = await authResponse.text()
-		throw new Error(`Authentication failed (${authResponse.status()}): ${errorBody}`)
+		throw new Error(
+			`Authentication failed (${authResponse.status()}): ${errorBody}`
+		)
 	}
 
 	const authData = await authResponse.json()
@@ -59,7 +71,8 @@ setup('authenticate as owner via API', async ({ request }) => {
 	// Extract tokens from response
 	const accessToken = authData.access_token
 	const refreshToken = authData.refresh_token
-	const expiresAt = authData.expires_at || Math.floor(Date.now() / 1000) + authData.expires_in
+	const expiresAt =
+		authData.expires_at || Math.floor(Date.now() / 1000) + authData.expires_in
 
 	if (!accessToken || !refreshToken) {
 		throw new Error('Authentication response missing required tokens')
@@ -91,7 +104,7 @@ setup('authenticate as owner via API', async ({ request }) => {
 		expires_at: expiresAt,
 		expires_in: authData.expires_in,
 		token_type: 'bearer',
-		user: authData.user,
+		user: authData.user
 	}
 
 	// Base64URL encode per RFC 4648: +→-, /→_, no padding
@@ -127,11 +140,15 @@ setup('authenticate as owner via API', async ({ request }) => {
 			expires: expiresAt,
 			httpOnly: false,
 			secure: isSecure,
-			sameSite: 'Lax' as const,
+			sameSite: 'Lax' as const
 		})
 	} else {
 		// Split into numbered chunks: cookieName.0, cookieName.1, etc.
-		for (let i = 0, chunkIndex = 0; i < encodedSession.length; i += CHUNK_SIZE, chunkIndex++) {
+		for (
+			let i = 0, chunkIndex = 0;
+			i < encodedSession.length;
+			i += CHUNK_SIZE, chunkIndex++
+		) {
 			cookies.push({
 				name: `${cookieName}.${chunkIndex}`,
 				value: encodedSession.slice(i, i + CHUNK_SIZE),
@@ -140,7 +157,7 @@ setup('authenticate as owner via API', async ({ request }) => {
 				expires: expiresAt,
 				httpOnly: false,
 				secure: isSecure,
-				sameSite: 'Lax' as const,
+				sameSite: 'Lax' as const
 			})
 		}
 	}
@@ -153,11 +170,11 @@ setup('authenticate as owner via API', async ({ request }) => {
 				localStorage: [
 					{
 						name: cookieName,
-						value: jsonSession,
-					},
-				],
-			},
-		],
+						value: jsonSession
+					}
+				]
+			}
+		]
 	}
 
 	// Save storage state to file

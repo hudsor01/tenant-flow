@@ -3,40 +3,20 @@
  */
 
 import type { UseMutationResult } from '@tanstack/react-query'
-import type {
-  Report,
-  ListReportsResponse,
-  RevenueData,
-  PaymentAnalytics,
-  OccupancyMetrics,
-  FinancialReport,
-  PropertyReport,
-  TenantReport,
-  MaintenanceReport
-} from '@repo/shared/types/reports'
+import type { Report } from '@repo/shared/types/reports'
 
 export interface UseReportsResult {
-  reports: Report[]
-  total: number
-  isLoading: boolean
-  isFetching: boolean
-  deleteMutation: UseMutationResult<void, unknown, string, unknown>
-  downloadMutation: UseMutationResult<void, unknown, string, unknown>
-  downloadingIds: Set<string>
-  deletingIds: Set<string>
-  downloadReport: (reportId: string) => void
-  deleteReport: (reportId: string) => void
+	reports: Report[]
+	total: number
+	isLoading: boolean
+	isFetching: boolean
+	deleteMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadingIds: Set<string>
+	deletingIds: Set<string>
+	downloadReport: (reportId: string) => void
+	deleteReport: (reportId: string) => void
 }
 
-// Re-export for convenience
-export type {
-  Report,
-  ListReportsResponse,
-  RevenueData,
-  PaymentAnalytics,
-  OccupancyMetrics,
-  FinancialReport,
-  PropertyReport,
-  TenantReport,
-  MaintenanceReport
-}
+// Note: Import these types directly from '@repo/shared/types/reports'
+// No re-exports per CLAUDE.md rules

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import { HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common'
 import { Subject } from 'rxjs'
 import type { SseEvent } from '@repo/shared/events/sse-events'
 import { SSE_EVENT_TYPES } from '@repo/shared/events/sse-events'
@@ -87,5 +88,123 @@ describe('SseController', () => {
 		)
 
 		sub.unsubscribe()
+	})
+
+	describe('authentication', () => {
+		it('throws UnauthorizedException when token is missing', async () => {
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			await expect(controller.stream('', req, res)).rejects.toThrow(
+				UnauthorizedException
+			)
+		})
+
+		it('throws UnauthorizedException when token is invalid', async () => {
+			type AdminClient = ReturnType<SupabaseService['getAdminClient']>
+			supabaseService.getAdminClient.mockReturnValue({
+				auth: {
+					getUser: jest.fn().mockResolvedValue({
+						data: { user: null },
+						error: { message: 'Invalid token' }
+					})
+				}
+			} as AdminClient)
+
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			await expect(controller.stream('invalid-token', req, res)).rejects.toThrow(
+				UnauthorizedException
+			)
+		})
+	})
+
+	describe('DoS protection error handling', () => {
+		it('throws 429 Too Many Requests when per-user limit exceeded', async () => {
+			sseService.subscribe.mockImplementation(() => {
+				throw new Error('Maximum connections (5) per user reached. Close other tabs to connect.')
+			})
+
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			try {
+				await controller.stream('token', req, res)
+				fail('Expected HttpException to be thrown')
+			} catch (error) {
+				expect(error).toBeInstanceOf(HttpException)
+				expect((error as HttpException).getStatus()).toBe(HttpStatus.TOO_MANY_REQUESTS)
+			}
+		})
+
+		it('throws 503 Service Unavailable when server limit exceeded', async () => {
+			sseService.subscribe.mockImplementation(() => {
+				throw new Error('Server connection limit reached. Please try again later.')
+			})
+
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			try {
+				await controller.stream('token', req, res)
+				fail('Expected HttpException to be thrown')
+			} catch (error) {
+				expect(error).toBeInstanceOf(HttpException)
+				expect((error as HttpException).getStatus()).toBe(HttpStatus.SERVICE_UNAVAILABLE)
+			}
+		})
+
+		it('logs warning when connection is rejected due to limits', async () => {
+			sseService.subscribe.mockImplementation(() => {
+				throw new Error('Maximum connections (5) per user reached. Close other tabs to connect.')
+			})
+
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			try {
+				await controller.stream('token', req, res)
+			} catch {
+				// Expected
+			}
+
+			expect(logger.warn).toHaveBeenCalledWith(
+				'SSE connection rejected',
+				expect.objectContaining({
+					userId: 'user-1',
+					reason: expect.stringContaining('per user')
+				})
+			)
+		})
+	})
+
+	describe('SSE headers', () => {
+		it('sets correct SSE headers', async () => {
+			const events = new Subject<SseEvent>()
+			sseService.subscribe.mockReturnValue(events.asObservable())
+
+			const controller = new SseController(sseService, supabaseService, logger)
+			const req = new EventEmitter() as unknown as Request
+			req.ip = '127.0.0.1'
+			const res = { setHeader: jest.fn() } as unknown as Response
+
+			await controller.stream('token', req, res)
+
+			expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/event-stream')
+			expect(res.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-cache')
+			expect(res.setHeader).toHaveBeenCalledWith('Connection', 'keep-alive')
+			expect(res.setHeader).toHaveBeenCalledWith('X-Accel-Buffering', 'no')
+		})
 	})
 })

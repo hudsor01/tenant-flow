@@ -17,7 +17,11 @@ import { ConnectWebhookHandler } from '../../src/modules/billing/handlers/connec
 import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/subscription-webhook.handler'
 import { PaymentWebhookHandler } from '../../src/modules/billing/handlers/payment-webhook.handler'
 import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
-import { authenticateAs, TEST_USERS, type AuthenticatedTestClient } from './rls/setup'
+import {
+	authenticateAs,
+	TEST_USERS,
+	type AuthenticatedTestClient
+} from './rls/setup'
 import { AppLogger } from '../../src/logger/app-logger.service'
 import { SilentLogger } from '../../src/__test__/silent-logger'
 
@@ -54,7 +58,8 @@ describe('Stripe Webhook Integration', () => {
 
 		// Use the existing stripe_account_id for testing
 		// This ensures RLS allows the webhook processor to find and update the record
-		testStripeAccountId = existingPo.stripe_account_id || `acct_test_${Date.now()}`
+		testStripeAccountId =
+			existingPo.stripe_account_id || `acct_test_${Date.now()}`
 
 		// Set up initial test state
 		const { error: updateError } = await ownerAuth.client
@@ -102,7 +107,10 @@ describe('Stripe Webhook Integration', () => {
 				WebhookProcessor,
 				ConnectWebhookHandler,
 				{ provide: SupabaseService, useValue: supabaseService },
-				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
+				{
+					provide: SubscriptionWebhookHandler,
+					useValue: mockSubscriptionHandler
+				},
 				{ provide: PaymentWebhookHandler, useValue: mockPaymentHandler },
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
 				{ provide: AppLogger, useValue: new SilentLogger() }
@@ -172,7 +180,9 @@ describe('Stripe Webhook Integration', () => {
 			// Verify database was updated
 			const { data: after } = await ownerAuth.client
 				.from('stripe_connected_accounts')
-				.select('onboarding_status, charges_enabled, payouts_enabled, onboarding_completed_at')
+				.select(
+					'onboarding_status, charges_enabled, payouts_enabled, onboarding_completed_at'
+				)
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
 
@@ -248,7 +258,10 @@ describe('Stripe Webhook Integration', () => {
 				payouts_enabled: false,
 				requirements: {
 					disabled_reason: null,
-					currently_due: ['individual.verification.document', 'external_account'],
+					currently_due: [
+						'individual.verification.document',
+						'external_account'
+					],
 					eventually_due: ['individual.dob.day']
 				}
 			} as unknown as Stripe.Account
@@ -265,7 +278,9 @@ describe('Stripe Webhook Integration', () => {
 				.eq('stripe_account_id', testStripeAccountId)
 				.single()
 
-			expect(after?.requirements_due).toContain('individual.verification.document')
+			expect(after?.requirements_due).toContain(
+				'individual.verification.document'
+			)
 			expect(after?.requirements_due).toContain('external_account')
 			expect(after?.requirements_due).toContain('individual.dob.day')
 		})

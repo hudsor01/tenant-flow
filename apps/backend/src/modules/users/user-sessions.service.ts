@@ -27,7 +27,10 @@ export class UserSessionsService {
 	 * Get all active sessions for a user
 	 * Uses admin client to query auth.sessions table
 	 */
-	async getUserSessions(userId: string, currentSessionId?: string): Promise<UserSession[]> {
+	async getUserSessions(
+		userId: string,
+		currentSessionId?: string
+	): Promise<UserSession[]> {
 		try {
 			// Query auth.sessions using raw SQL via rpc
 			// The auth.sessions table is in the auth schema and not accessible via standard client
@@ -42,22 +45,28 @@ export class UserSessionsService {
 			}
 
 			// Try to query via RPC function (uses string overload to avoid type issues)
-			const { data: rpcData, error: rpcError } = await this.supabase.rpcWithRetries(
-				'get_user_sessions',
-				{ p_user_id: userId },
-				2 // Only 2 attempts for fast failure
-			)
+			const { data: rpcData, error: rpcError } =
+				await this.supabase.rpcWithRetries(
+					'get_user_sessions',
+					{ p_user_id: userId },
+					2 // Only 2 attempts for fast failure
+				)
 
 			if (!rpcError && rpcData) {
 				const sessions = rpcData as AuthSession[]
-				return sessions.map(session => this.formatSession(session, currentSessionId))
+				return sessions.map(session =>
+					this.formatSession(session, currentSessionId)
+				)
 			}
 
 			// Log if RPC is not available
 			if (rpcError) {
-				this.logger.debug('get_user_sessions RPC not available, using fallback', {
-					error: rpcError.message ?? String(rpcError)
-				})
+				this.logger.debug(
+					'get_user_sessions RPC not available, using fallback',
+					{
+						error: rpcError.message ?? String(rpcError)
+					}
+				)
 			}
 
 			// Fallback: return just the current session info
@@ -115,23 +124,28 @@ export class UserSessionsService {
 	/**
 	 * Fallback: return just current session info when sessions table isn't accessible
 	 */
-	private getCurrentSessionOnly(userId: string, currentSessionId?: string): UserSession[] {
+	private getCurrentSessionOnly(
+		userId: string,
+		currentSessionId?: string
+	): UserSession[] {
 		if (!currentSessionId) {
 			return []
 		}
 
-		return [{
-			id: currentSessionId,
-			user_id: userId,
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
-			user_agent: null,
-			ip: null,
-			browser: 'Current Browser',
-			os: 'Unknown',
-			device: 'desktop',
-			is_current: true
-		}]
+		return [
+			{
+				id: currentSessionId,
+				user_id: userId,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+				user_agent: null,
+				ip: null,
+				browser: 'Current Browser',
+				os: 'Unknown',
+				device: 'desktop',
+				is_current: true
+			}
+		]
 	}
 
 	/**
@@ -155,7 +169,9 @@ export class UserSessionsService {
 
 		// Format browser string
 		const browserName = browser.name || 'Unknown Browser'
-		const browserVersion = browser.version ? ` ${browser.version.split('.')[0]}` : ''
+		const browserVersion = browser.version
+			? ` ${browser.version.split('.')[0]}`
+			: ''
 		const browserString = `${browserName}${browserVersion}`
 
 		// Format OS string

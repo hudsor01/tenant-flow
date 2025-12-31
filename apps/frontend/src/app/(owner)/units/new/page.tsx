@@ -8,7 +8,6 @@ import { UnitForm } from '#components/units/unit-form.client'
  * - Fallback when intercepting route fails
  */
 export default async function NewUnitPage() {
-
 	return (
 		<div className="mx-auto max-w-3xl space-y-6 p-6">
 			<div className="space-y-2">

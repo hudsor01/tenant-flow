@@ -16,7 +16,6 @@ import { unitQueries } from '../queries/unit-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
-
 /**
  * Create lease mutation
  */
@@ -33,14 +32,14 @@ export function useCreateLeaseMutation() {
 					owner_user_id: user?.id
 				})
 			}),
-		onSuccess: (_newLease) => {
+		onSuccess: _newLease => {
 			// Invalidate lease, tenant, and unit lists
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Lease created successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Create lease')
 		}
 	})
@@ -53,12 +52,20 @@ export function useUpdateLeaseMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ id, data, version }: { id: string; data: LeaseUpdate; version?: number }) =>
+		mutationFn: ({
+			id,
+			data,
+			version
+		}: {
+			id: string
+			data: LeaseUpdate
+			version?: number
+		}) =>
 			apiRequest<Lease>(`/api/v1/leases/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)
 			}),
-		onSuccess: (updatedLease) => {
+		onSuccess: updatedLease => {
 			// Update the specific lease in cache
 			queryClient.setQueryData(
 				leaseQueries.detail(updatedLease.id).queryKey,
@@ -70,7 +77,7 @@ export function useUpdateLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Lease updated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Update lease')
 		}
 	})
@@ -87,13 +94,13 @@ export function useTerminateLeaseMutation() {
 			apiRequest<Lease>(`/api/v1/leases/${id}/terminate`, {
 				method: 'POST'
 			}),
-		onSuccess: (_terminatedLease) => {
+		onSuccess: _terminatedLease => {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Lease terminated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Terminate lease')
 		}
 	})
@@ -111,7 +118,7 @@ export function useRenewLeaseMutation() {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
-		onSuccess: (renewedLease) => {
+		onSuccess: renewedLease => {
 			queryClient.setQueryData(
 				leaseQueries.detail(renewedLease.id).queryKey,
 				renewedLease
@@ -119,7 +126,7 @@ export function useRenewLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Lease renewed successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Renew lease')
 		}
 	})
@@ -138,13 +145,15 @@ export function useDeleteLeaseMutation() {
 			}),
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
-			queryClient.removeQueries({ queryKey: leaseQueries.detail(deletedId).queryKey })
+			queryClient.removeQueries({
+				queryKey: leaseQueries.detail(deletedId).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Lease deleted successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Delete lease')
 		}
 	})
@@ -174,18 +183,25 @@ export function useSendForSignatureMutation() {
 				landlord_notice_address: string
 			}
 		}) =>
-			apiRequest<{ success: boolean }>(`/api/v1/leases/${id}/send-for-signature`, {
-				method: 'POST',
-				body: JSON.stringify({ message, missingFields })
-			}),
+			apiRequest<{ success: boolean }>(
+				`/api/v1/leases/${id}/send-for-signature`,
+				{
+					method: 'POST',
+					body: JSON.stringify({ message, missingFields })
+				}
+			),
 		onSuccess: (_result, { id }) => {
 			// Invalidate lease detail and signature status
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
-			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: [...leaseQueries.all(), 'signature-status', id]
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Lease sent for signature')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Send lease for signature')
 		}
 	})
@@ -204,12 +220,16 @@ export function useSignLeaseAsOwnerMutation() {
 			}),
 		onSuccess: (_result, id) => {
 			// Invalidate lease detail and signature status
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
-			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: [...leaseQueries.all(), 'signature-status', id]
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Lease signed successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Sign lease')
 		}
 	})
@@ -228,13 +248,19 @@ export function useSignLeaseAsTenantMutation() {
 			}),
 		onSuccess: (_result, id) => {
 			// Invalidate lease detail, signature status, and tenant portal data
-			queryClient.invalidateQueries({ queryKey: leaseQueries.detail(id).queryKey })
-			queryClient.invalidateQueries({ queryKey: [...leaseQueries.all(), 'signature-status', id] })
-			queryClient.invalidateQueries({ queryKey: leaseQueries.tenantPortalActive().queryKey })
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.detail(id).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: [...leaseQueries.all(), 'signature-status', id]
+			})
+			queryClient.invalidateQueries({
+				queryKey: leaseQueries.tenantPortalActive().queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			toast.success('Lease signed successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Sign lease')
 		}
 	})

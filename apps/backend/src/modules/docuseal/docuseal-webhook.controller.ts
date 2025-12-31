@@ -9,8 +9,26 @@
  * - submission.completed: All parties have signed
  */
 
-import { BadRequestException, Body, Controller, Headers, Post, UnauthorizedException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Headers,
+	Post,
+	SetMetadata,
+	UnauthorizedException
+} from '@nestjs/common'
+import {
+	ApiBody,
+	ApiHeader,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { timingSafeEqual } from 'crypto'
+
+// Bypass global JwtAuthGuard - DocuSeal webhooks use secret-based auth
+const Public = () => SetMetadata('isPublic', true)
 import { DocuSealWebhookService } from './docuseal-webhook.service'
 import {
 	formCompletedPayloadSchema,
@@ -27,14 +45,22 @@ export interface DocuSealWebhookPayload {
 	data?: Record<string, unknown>
 }
 
+@ApiTags('Docuseal Webhooks')
 @Controller('webhooks/docuseal')
+@Public()
 export class DocuSealWebhookController {
+	constructor(
+		private readonly webhookService: DocuSealWebhookService,
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger,
+		private readonly supabaseService: SupabaseService
+	) {}
 
-	constructor(private readonly webhookService: DocuSealWebhookService,
-		private readonly config: AppConfigService, private readonly logger: AppLogger,
-		private readonly supabaseService: SupabaseService) {}
-
-	private async acquireWebhookLock(externalId: string, eventType: string, rawPayload: unknown): Promise<boolean> {
+	private async acquireWebhookLock(
+		externalId: string,
+		eventType: string,
+		rawPayload: unknown
+	): Promise<boolean> {
 		const { data, error } = await this.supabaseService
 			.getAdminClient()
 			.rpc('acquire_webhook_event_lock_with_id', {
@@ -57,6 +83,51 @@ export class DocuSealWebhookController {
 		return rows.some(row => row?.lock_acquired === true)
 	}
 
+	@ApiOperation({
+		summary: 'Handle DocuSeal document signing webhook',
+		description:
+			'Receives webhook events from self-hosted DocuSeal instance. Handles form.completed (individual submitter signed) and submission.completed (all parties signed) events. Authenticated via x-docuseal-secret header.'
+	})
+	@ApiHeader({
+		name: 'x-docuseal-secret',
+		required: true,
+		description: 'DocuSeal webhook secret for authentication'
+	})
+	@ApiBody({
+		description: 'DocuSeal webhook event payload',
+		schema: {
+			type: 'object',
+			required: ['event_type', 'data'],
+			properties: {
+				event_type: {
+					type: 'string',
+					enum: ['form.completed', 'submission.completed'],
+					description: 'Type of DocuSeal event'
+				},
+				timestamp: {
+					type: 'string',
+					format: 'date-time',
+					description: 'Event timestamp'
+				},
+				data: {
+					type: 'object',
+					description: 'Event-specific payload data'
+				}
+			}
+		}
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Webhook received and processed',
+		schema: {
+			type: 'object',
+			properties: {
+				received: { type: 'boolean', example: true }
+			}
+		}
+	})
+	@ApiResponse({ status: 400, description: 'Invalid webhook payload' })
+	@ApiResponse({ status: 401, description: 'Invalid or missing webhook secret' })
 	@Post()
 	async handleWebhook(
 		@Headers() headers: Record<string, string>,
@@ -117,10 +188,13 @@ export class DocuSealWebhookController {
 			)
 
 			if (!lockAcquired) {
-				this.logger.log('DocuSeal webhook duplicate detected, skipping processing', {
-					eventType: payload.event_type,
-					externalId
-				})
+				this.logger.log(
+					'DocuSeal webhook duplicate detected, skipping processing',
+					{
+						eventType: payload.event_type,
+						externalId
+					}
+				)
 				return { received: true }
 			}
 
@@ -139,12 +213,16 @@ export class DocuSealWebhookController {
 				}
 
 				case 'submission.completed': {
-					const result = submissionCompletedPayloadSchema.safeParse(payload.data)
+					const result = submissionCompletedPayloadSchema.safeParse(
+						payload.data
+					)
 					if (!result.success) {
 						this.logger.warn('Invalid submission.completed payload', {
 							errors: result.error.flatten()
 						})
-						throw new BadRequestException('Invalid submission.completed payload')
+						throw new BadRequestException(
+							'Invalid submission.completed payload'
+						)
 					}
 					await this.webhookService.handleSubmissionCompleted(result.data)
 					break

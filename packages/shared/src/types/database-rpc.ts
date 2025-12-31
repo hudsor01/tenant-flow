@@ -43,7 +43,6 @@ export interface RevenueTrendResponse {
 	previous_period_revenue: number
 }
 
-
 /**
  * Type guards for runtime validation
  */

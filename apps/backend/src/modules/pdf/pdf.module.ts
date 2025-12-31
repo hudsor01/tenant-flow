@@ -18,7 +18,12 @@ import { DocumentsModule } from '../documents/documents.module'
  * Provides services for lease PDF generation and other document types
  */
 @Module({
-	imports: [SupabaseModule, CacheConfigurationModule, SharedModule, DocumentsModule],
+	imports: [
+		SupabaseModule,
+		CacheConfigurationModule,
+		SharedModule,
+		DocumentsModule
+	],
 	controllers: [LeaseGenerationController],
 	providers: [
 		PDFGeneratorService,

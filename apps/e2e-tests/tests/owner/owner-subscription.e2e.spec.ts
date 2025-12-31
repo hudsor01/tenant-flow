@@ -20,21 +20,32 @@ import { ROUTES } from '../constants/routes'
  */
 
 test.describe('Owner Subscription Flow', () => {
-
 	test.describe('1. Pricing Page Display', () => {
-		test('should display pricing page with all plan tiers', async ({ page }) => {
+		test('should display pricing page with all plan tiers', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 
 			// Verify page title - "Simple, transparent pricing for every portfolio"
-			await expect(page.locator('h1')).toContainText(/portfolio/i, { timeout: 10000 })
+			await expect(page.locator('h1')).toContainText(/portfolio/i, {
+				timeout: 10000
+			})
 
 			// Verify pricing plans are displayed (Starter, Growth, MAX)
-			await expect(page.locator('text=/starter/i').first()).toBeVisible({ timeout: 10000 })
-			await expect(page.locator('text=/growth/i').first()).toBeVisible({ timeout: 10000 })
-			await expect(page.locator('text=/max/i').first()).toBeVisible({ timeout: 10000 })
+			await expect(page.locator('text=/starter/i').first()).toBeVisible({
+				timeout: 10000
+			})
+			await expect(page.locator('text=/growth/i').first()).toBeVisible({
+				timeout: 10000
+			})
+			await expect(page.locator('text=/max/i').first()).toBeVisible({
+				timeout: 10000
+			})
 		})
 
-		test('should display monthly and yearly billing toggle', async ({ page }) => {
+		test('should display monthly and yearly billing toggle', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 
 			// Look for billing cycle toggle - using switch pattern
@@ -45,7 +56,9 @@ test.describe('Owner Subscription Flow', () => {
 			await expect(annualLabel.first()).toBeVisible({ timeout: 10000 })
 		})
 
-		test('should toggle between monthly and yearly pricing', async ({ page }) => {
+		test('should toggle between monthly and yearly pricing', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
@@ -72,7 +85,9 @@ test.describe('Owner Subscription Flow', () => {
 			expect(count).toBeGreaterThan(0)
 		})
 
-		test('should show "Most Popular" badge on Growth plan', async ({ page }) => {
+		test('should show "Most Popular" badge on Growth plan', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 
 			// Look for popular badge - may or may not be visible based on product config
@@ -85,17 +100,24 @@ test.describe('Owner Subscription Flow', () => {
 	})
 
 	test.describe('2. Plan Selection & Checkout Navigation', () => {
-		test('should redirect to Stripe checkout when selecting Starter plan', async ({ page }) => {
+		test('should redirect to Stripe checkout when selecting Starter plan', async ({
+			page
+		}) => {
 			// Navigate directly (authenticated via storageState)
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
 			// Find and click the Starter plan button
-			const starterButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const starterButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Start waiting for navigation before clicking
-				const navigationPromise = page.waitForURL(/checkout\.stripe\.com|\/pricing/, { timeout: 30000 })
+				const navigationPromise = page.waitForURL(
+					/checkout\.stripe\.com|\/pricing/,
+					{ timeout: 30000 }
+				)
 				await starterButton.click()
 
 				// Wait for redirect to Stripe checkout
@@ -103,28 +125,43 @@ test.describe('Owner Subscription Flow', () => {
 
 				// Should redirect to Stripe hosted checkout
 				const currentUrl = page.url()
-				expect(currentUrl.includes('checkout.stripe.com') || currentUrl.includes('/pricing')).toBeTruthy()
+				expect(
+					currentUrl.includes('checkout.stripe.com') ||
+						currentUrl.includes('/pricing')
+				).toBeTruthy()
 			}
 		})
 
-		test('should redirect to Stripe checkout when selecting Growth plan', async ({ page }) => {
+		test('should redirect to Stripe checkout when selecting Growth plan', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
 			// Find and click the Growth plan button
-			const growthButton = page.locator('button:has-text("Subscribe to Growth")').first()
+			const growthButton = page
+				.locator('button:has-text("Subscribe to Growth")')
+				.first()
 
 			if (await growthButton.isVisible().catch(() => false)) {
-				const navigationPromise = page.waitForURL(/checkout\.stripe\.com|\/pricing/, { timeout: 30000 })
+				const navigationPromise = page.waitForURL(
+					/checkout\.stripe\.com|\/pricing/,
+					{ timeout: 30000 }
+				)
 				await growthButton.click()
 				await navigationPromise
 
 				const currentUrl = page.url()
-				expect(currentUrl.includes('checkout.stripe.com') || currentUrl.includes('/pricing')).toBeTruthy()
+				expect(
+					currentUrl.includes('checkout.stripe.com') ||
+						currentUrl.includes('/pricing')
+				).toBeTruthy()
 			}
 		})
 
-		test('should redirect to contact for MAX/Enterprise plan', async ({ page }) => {
+		test('should redirect to contact for MAX/Enterprise plan', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
@@ -140,13 +177,17 @@ test.describe('Owner Subscription Flow', () => {
 			}
 		})
 
-		test('should show auth dialog for unauthenticated users', async ({ page }) => {
+		test('should show auth dialog for unauthenticated users', async ({
+			page
+		}) => {
 			// Go to pricing page WITHOUT logging in
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
 			// Try to subscribe to Starter
-			const subscribeButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const subscribeButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await subscribeButton.isVisible().catch(() => false)) {
 				await subscribeButton.click()
@@ -154,8 +195,14 @@ test.describe('Owner Subscription Flow', () => {
 
 				// Should show auth dialog or redirect to login
 				const isLoginPage = page.url().includes('/login')
-				const hasAuthDialog = await page.locator('[role="dialog"]').isVisible().catch(() => false)
-				const hasLoginForm = await page.locator('input[type="email"], input[name="email"]').isVisible().catch(() => false)
+				const hasAuthDialog = await page
+					.locator('[role="dialog"]')
+					.isVisible()
+					.catch(() => false)
+				const hasLoginForm = await page
+					.locator('input[type="email"], input[name="email"]')
+					.isVisible()
+					.catch(() => false)
 
 				expect(isLoginPage || hasAuthDialog || hasLoginForm).toBeTruthy()
 			}
@@ -165,19 +212,28 @@ test.describe('Owner Subscription Flow', () => {
 	test.describe('3. Stripe Hosted Checkout Flow', () => {
 		// Auth provided via storageState - no beforeEach login needed
 
-		test('should show loading state when initiating checkout', async ({ page }) => {
+		test('should show loading state when initiating checkout', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
-			const starterButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const starterButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Click and check for loading state
 				await starterButton.click()
 
 				// Should show processing/loading state
-				const hasLoadingState = await page.locator('text=/processing|loading|creating/i').isVisible().catch(() => false)
-				const buttonDisabled = await starterButton.isDisabled().catch(() => false)
+				const hasLoadingState = await page
+					.locator('text=/processing|loading|creating/i')
+					.isVisible()
+					.catch(() => false)
+				const buttonDisabled = await starterButton
+					.isDisabled()
+					.catch(() => false)
 
 				// Either loading text or disabled button indicates processing
 				expect(hasLoadingState || buttonDisabled).toBeTruthy()
@@ -188,14 +244,19 @@ test.describe('Owner Subscription Flow', () => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
-			const growthButton = page.locator('button:has-text("Subscribe to Growth")').first()
+			const growthButton = page
+				.locator('button:has-text("Subscribe to Growth")')
+				.first()
 
 			if (await growthButton.isVisible().catch(() => false)) {
 				// Listen for the navigation
-				const responsePromise = page.waitForResponse(
-					response => response.url().includes('/stripe/create-checkout-session'),
-					{ timeout: 30000 }
-				).catch(() => null)
+				const responsePromise = page
+					.waitForResponse(
+						response =>
+							response.url().includes('/stripe/create-checkout-session'),
+						{ timeout: 30000 }
+					)
+					.catch(() => null)
 
 				await growthButton.click()
 
@@ -213,7 +274,9 @@ test.describe('Owner Subscription Flow', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Verify success page content
-			await expect(page.locator('text=/success|welcome|thank you|subscription/i').first()).toBeVisible({ timeout: 10000 })
+			await expect(
+				page.locator('text=/success|welcome|thank you|subscription/i').first()
+			).toBeVisible({ timeout: 10000 })
 		})
 
 		test('should display complete page with session info', async ({ page }) => {
@@ -222,18 +285,29 @@ test.describe('Owner Subscription Flow', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Should show payment status or error for invalid session
-			const hasStatusContent = await page.locator('text=/payment|status|error|invalid/i').first().isVisible().catch(() => false)
+			const hasStatusContent = await page
+				.locator('text=/payment|status|error|invalid/i')
+				.first()
+				.isVisible()
+				.catch(() => false)
 			expect(hasStatusContent).toBeTruthy()
 		})
 
-		test('should show subscription status in dashboard settings', async ({ page }) => {
+		test('should show subscription status in dashboard settings', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.DASHBOARD_SETTINGS)
 			await page.waitForLoadState('networkidle')
 
 			// Look for subscription/billing section
 			const billingSection = page.locator('text=/billing|subscription|plan/i')
 
-			if (await billingSection.first().isVisible().catch(() => false)) {
+			if (
+				await billingSection
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				await expect(billingSection.first()).toBeVisible()
 			}
 		})
@@ -247,7 +321,9 @@ test.describe('Owner Subscription Flow', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Look for subscription info
-			const subscriptionInfo = page.locator('text=/subscription|billing|plan/i').first()
+			const subscriptionInfo = page
+				.locator('text=/subscription|billing|plan/i')
+				.first()
 
 			if (await subscriptionInfo.isVisible().catch(() => false)) {
 				await expect(subscriptionInfo).toBeVisible()
@@ -259,9 +335,16 @@ test.describe('Owner Subscription Flow', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Look for manage subscription button
-			const manageButton = page.locator('button:has-text("Manage"), button:has-text("Billing"), a:has-text("Manage")')
+			const manageButton = page.locator(
+				'button:has-text("Manage"), button:has-text("Billing"), a:has-text("Manage")'
+			)
 
-			if (await manageButton.first().isVisible().catch(() => false)) {
+			if (
+				await manageButton
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				// Click should redirect to Stripe Customer Portal
 				await manageButton.first().click()
 
@@ -270,7 +353,9 @@ test.describe('Owner Subscription Flow', () => {
 
 				// Either opens new tab or redirects to Stripe
 				const currentUrl = page.url()
-				const isStripePortal = currentUrl.includes('stripe.com') || currentUrl.includes('billing.stripe.com')
+				const isStripePortal =
+					currentUrl.includes('stripe.com') ||
+					currentUrl.includes('billing.stripe.com')
 
 				// If not redirected, might be in a new tab or modal
 				expect(isStripePortal || currentUrl.includes('/settings')).toBeTruthy()
@@ -279,7 +364,9 @@ test.describe('Owner Subscription Flow', () => {
 	})
 
 	test.describe('6. Error Scenarios', () => {
-		test('should handle checkout creation failure gracefully', async ({ page }) => {
+		test('should handle checkout creation failure gracefully', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
@@ -291,14 +378,19 @@ test.describe('Owner Subscription Flow', () => {
 				})
 			})
 
-			const starterButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const starterButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				await starterButton.click()
 				await page.waitForTimeout(3000)
 
 				// Should show error message via toast or inline
-				const hasError = await page.locator('text=/error|failed|try again/i').isVisible().catch(() => false)
+				const hasError = await page
+					.locator('text=/error|failed|try again/i')
+					.isVisible()
+					.catch(() => false)
 				expect(hasError).toBeTruthy()
 			}
 		})
@@ -307,7 +399,9 @@ test.describe('Owner Subscription Flow', () => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
-			const starterButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const starterButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				// Click multiple times quickly
@@ -334,38 +428,49 @@ test.describe('Owner Subscription Flow', () => {
 				})
 			})
 
-			const starterButton = page.locator('button:has-text("Subscribe to Starter")').first()
+			const starterButton = page
+				.locator('button:has-text("Subscribe to Starter")')
+				.first()
 
 			if (await starterButton.isVisible().catch(() => false)) {
 				await starterButton.click()
 				await page.waitForTimeout(2000)
 
 				// Should show rate limit message
-				const hasRateLimitError = await page.locator('text=/too many|wait|try again/i').isVisible().catch(() => false)
+				const hasRateLimitError = await page
+					.locator('text=/too many|wait|try again/i')
+					.isVisible()
+					.catch(() => false)
 				expect(hasRateLimitError).toBeTruthy()
 			}
 		})
 	})
 
 	test.describe('7. Security & Compliance', () => {
-		test('should display secure checkout indicator on pricing page', async ({ page }) => {
+		test('should display secure checkout indicator on pricing page', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
 			// Look for secure checkout indicators (trust badges, SSL mentions)
-			const secureIndicator = page.locator('text=/secure|ssl|encrypted|stripe|pci/i, [class*="shield"], svg[class*="lock"]')
+			const secureIndicator = page.locator(
+				'text=/secure|ssl|encrypted|stripe|pci/i, [class*="shield"], svg[class*="lock"]'
+			)
 
 			// May or may not be visible depending on design
 			const count = await secureIndicator.count()
 			expect(count).toBeGreaterThanOrEqual(0)
 		})
 
-		test('should not expose Stripe price IDs in visible DOM', async ({ page }) => {
+		test('should not expose Stripe price IDs in visible DOM', async ({
+			page
+		}) => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
 			// Get visible text content
-			const bodyText = await page.locator('body').textContent() || ''
+			const bodyText = (await page.locator('body').textContent()) || ''
 
 			// Stripe price IDs should not be visible to users
 			expect(bodyText).not.toMatch(/price_[a-zA-Z0-9]{20,}/)
@@ -375,7 +480,9 @@ test.describe('Owner Subscription Flow', () => {
 			await page.goto(ROUTES.PRICING)
 			await page.waitForLoadState('networkidle')
 
-			const growthButton = page.locator('button:has-text("Subscribe to Growth")').first()
+			const growthButton = page
+				.locator('button:has-text("Subscribe to Growth")')
+				.first()
 
 			if (await growthButton.isVisible().catch(() => false)) {
 				// Track where we get redirected to

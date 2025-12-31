@@ -7,7 +7,6 @@ import { AppConfigService } from '../../config/app-config.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock NestJS Logger to suppress console output during tests
 jest.mock('@nestjs/common', () => {
 	const actual = jest.requireActual('@nestjs/common')
@@ -92,15 +91,19 @@ describe('MetricsController', () => {
 		})
 
 		it('should deny access to metrics when PROMETHEUS_BEARER_TOKEN is not configured', async () => {
-		mockAppConfigService.getPrometheusBearerToken = jest.fn().mockReturnValue(undefined)
+			mockAppConfigService.getPrometheusBearerToken = jest
+				.fn()
+				.mockReturnValue(undefined)
 
-		await expect(
-			controller.getMetrics(mockRequest as Request, mockResponse as Response)
-		).rejects.toThrow('Metrics endpoint requires PROMETHEUS_BEARER_TOKEN or disable auth via PROMETHEUS_REQUIRE_AUTH=false')
+			await expect(
+				controller.getMetrics(mockRequest as Request, mockResponse as Response)
+			).rejects.toThrow(
+				'Metrics endpoint requires PROMETHEUS_BEARER_TOKEN or disable auth via PROMETHEUS_REQUIRE_AUTH=false'
+			)
 
-		// Verify that parent controller was NOT called
-		expect(mockIndexMethod).not.toHaveBeenCalled()
-	})
+			// Verify that parent controller was NOT called
+			expect(mockIndexMethod).not.toHaveBeenCalled()
+		})
 
 		it('should throw UnauthorizedException when Authorization header is missing', async () => {
 			await expect(
@@ -143,7 +146,10 @@ describe('MetricsController', () => {
 				authorization: `Bearer ${VALID_TOKEN}`
 			}
 
-			await controller.getMetrics(mockRequest as Request, mockResponse as Response)
+			await controller.getMetrics(
+				mockRequest as Request,
+				mockResponse as Response
+			)
 
 			// Verify successful authentication by checking parent controller was called
 			expect(mockIndexMethod).toHaveBeenCalledWith(mockResponse)
@@ -183,7 +189,10 @@ describe('MetricsController', () => {
 		})
 
 		it('should delegate to parent PrometheusController.index() with only response object', async () => {
-			await controller.getMetrics(mockRequest as Request, mockResponse as Response)
+			await controller.getMetrics(
+				mockRequest as Request,
+				mockResponse as Response
+			)
 
 			// Verify parent controller called with only response (not request)
 			expect(mockIndexMethod).toHaveBeenCalledTimes(1)

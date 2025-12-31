@@ -4,12 +4,16 @@ import { MaintenanceInsightsService } from './maintenance-insights.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('MaintenanceInsightsController', () => {
 	let controller: MaintenanceInsightsController
 	let service: Record<string, jest.Mock>
 
 	const TEST_USER_ID = 'user-5'
+
+	// Mock authenticated request
+	const mockRequest = {
+		user: { id: TEST_USER_ID, email: 'test@example.com' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
 
 	beforeEach(async () => {
 		service = {
@@ -39,7 +43,7 @@ describe('MaintenanceInsightsController', () => {
 		const metrics = { openRequests: 3 }
 		service.getMaintenanceMetrics!.mockResolvedValue(metrics)
 
-		const response = await controller.getMaintenanceMetrics(TEST_USER_ID)
+		const response = await controller.getMaintenanceMetrics(mockRequest)
 
 		expect(service.getMaintenanceMetrics).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -54,7 +58,7 @@ describe('MaintenanceInsightsController', () => {
 		const analytics = { trends: [] }
 		service.getMaintenanceAnalytics!.mockResolvedValue(analytics)
 
-		const response = await controller.getMaintenanceAnalytics(TEST_USER_ID)
+		const response = await controller.getMaintenanceAnalytics(mockRequest)
 
 		expect(service.getMaintenanceAnalytics).toHaveBeenCalledWith(TEST_USER_ID)
 		expect(response).toEqual({
@@ -69,7 +73,7 @@ describe('MaintenanceInsightsController', () => {
 		const pageData = { metrics: { openRequests: 2 } }
 		service.getMaintenanceInsightsPageData!.mockResolvedValue(pageData)
 
-		const response = await controller.getMaintenancePageData(TEST_USER_ID)
+		const response = await controller.getMaintenancePageData(mockRequest)
 
 		expect(service.getMaintenanceInsightsPageData).toHaveBeenCalledWith(
 			TEST_USER_ID

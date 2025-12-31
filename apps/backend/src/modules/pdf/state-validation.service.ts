@@ -20,12 +20,13 @@ import { AppLogger } from '../../logger/app-logger.service'
 /**
  * Zod schema for validating US state codes
  */
-const stateCodeSchema = z.string()
+const stateCodeSchema = z
+	.string()
 	.min(2, 'State code must be exactly 2 characters')
 	.max(2, 'State code must be exactly 2 characters')
 	.regex(/^[A-Za-z]{2}$/, 'State code must contain only letters')
-	.transform((val) => val.toUpperCase())
-	.refine((val) => US_STATE_CODES.includes(val as StateCode), {
+	.transform(val => val.toUpperCase())
+	.refine(val => US_STATE_CODES.includes(val as StateCode), {
 		message: `Invalid US state code. Must be one of: ${US_STATE_CODES.join(', ')}`
 	})
 
@@ -94,10 +95,7 @@ export class StateValidationService {
 		stateCode?: string | null,
 		options: StateValidationOptions = {}
 	): StateValidationResult {
-		const {
-			throwOnUnsupported = false,
-			logWarnings = true
-		} = options
+		const { throwOnUnsupported = false, logWarnings = true } = options
 
 		// Handle null/undefined state code
 		if (!stateCode) {
@@ -122,7 +120,8 @@ export class StateValidationService {
 		const validationResult = stateCodeSchema.safeParse(stateCode)
 
 		if (!validationResult.success) {
-			const error = validationResult.error.issues[0]?.message || 'Invalid state code'
+			const error =
+				validationResult.error.issues[0]?.message || 'Invalid state code'
 
 			this.logger.error('Invalid state code format', {
 				input: stateCode,
@@ -159,7 +158,9 @@ export class StateValidationService {
 			}
 
 			if (throwOnUnsupported) {
-				throw new Error(`Unsupported state code: ${normalizedCode}. Supported states: ${Object.keys(SUPPORTED_STATES).join(', ')}`)
+				throw new Error(
+					`Unsupported state code: ${normalizedCode}. Supported states: ${Object.keys(SUPPORTED_STATES).join(', ')}`
+				)
 			}
 
 			// Fallback to default state
@@ -212,6 +213,8 @@ export class StateValidationService {
 	 */
 	getStateName(stateCode: string): string {
 		const normalized = stateCode.toUpperCase()
-		return SUPPORTED_STATES[normalized as SupportedStateCode] ?? DEFAULT_STATE_NAME
+		return (
+			SUPPORTED_STATES[normalized as SupportedStateCode] ?? DEFAULT_STATE_NAME
+		)
 	}
 }

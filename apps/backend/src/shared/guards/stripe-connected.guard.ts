@@ -12,15 +12,22 @@
  * }
  */
 
-import { BadRequestException, type CanActivate, type ExecutionContext, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	type CanActivate,
+	type ExecutionContext,
+	Injectable
+} from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class StripeConnectedGuard implements CanActivate {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -40,10 +47,13 @@ export class StripeConnectedGuard implements CanActivate {
 			.single()
 
 		if (ownerError || !stripeAccount) {
-			this.logger.error('StripeConnectedGuard: Failed to fetch Stripe account', {
-				user_id,
-				error: ownerError
-			})
+			this.logger.error(
+				'StripeConnectedGuard: Failed to fetch Stripe account',
+				{
+					user_id,
+					error: ownerError
+				}
+			)
 			throw new BadRequestException('Stripe account not found')
 		}
 
@@ -64,10 +74,9 @@ export class StripeConnectedGuard implements CanActivate {
 
 		// Verify Stripe Connected Account exists
 		if (!stripeAccount.stripe_account_id) {
-			this.logger.warn(
-				'StripeConnectedGuard: Missing connected account',
-				{ user_id }
-			)
+			this.logger.warn('StripeConnectedGuard: Missing connected account', {
+				user_id
+			})
 			throw new BadRequestException(
 				'Please complete Stripe onboarding before inviting tenants. Go to Settings → Billing to set up payments.'
 			)
@@ -75,10 +84,9 @@ export class StripeConnectedGuard implements CanActivate {
 
 		// Verify onboarding is complete
 		if (!user.onboarding_completed_at) {
-			this.logger.warn(
-				'StripeConnectedGuard: Onboarding incomplete',
-				{ user_id }
-			)
+			this.logger.warn('StripeConnectedGuard: Onboarding incomplete', {
+				user_id
+			})
 			throw new BadRequestException(
 				'Your Stripe account setup is incomplete. Please complete onboarding in Settings → Billing before inviting tenants.'
 			)

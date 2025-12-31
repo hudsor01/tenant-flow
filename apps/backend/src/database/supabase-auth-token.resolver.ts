@@ -31,9 +31,7 @@ export class SupabaseAuthTokenResolver {
 		}
 	}
 
-	private extractTokenFromAuthHeader(
-		headerValue?: string
-	): string | undefined {
+	private extractTokenFromAuthHeader(headerValue?: string): string | undefined {
 		if (!headerValue || !headerValue.startsWith(AUTH_HEADER_PREFIX)) {
 			return undefined
 		}

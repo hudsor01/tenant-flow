@@ -15,7 +15,6 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('ReportsController', () => {
 	let controller: ReportsController
 	let exportService: jest.Mocked<ExportService>

@@ -14,7 +14,13 @@ import {
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
-import { Stat, StatLabel, StatValue, StatIndicator, StatDescription } from '#components/ui/stat'
+import {
+	Stat,
+	StatLabel,
+	StatValue,
+	StatIndicator,
+	StatDescription
+} from '#components/ui/stat'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { DataTable } from '#components/data-table/data-table'
 import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
@@ -71,22 +77,35 @@ function getPayoutStatusBadge(status: string) {
 }
 
 export default function PayoutsPage() {
-	const { data: balance, isLoading: balanceLoading } = useConnectedAccountBalance()
-	const { data: payoutsData, isLoading: payoutsLoading, error: payoutsError, refetch } = useConnectedAccountPayouts({ limit: 100 })
-	const { data: transfersData, isLoading: transfersLoading } = useConnectedAccountTransfers({ limit: 100 })
+	const { data: balance, isLoading: balanceLoading } =
+		useConnectedAccountBalance()
+	const {
+		data: payoutsData,
+		isLoading: payoutsLoading,
+		error: payoutsError,
+		refetch
+	} = useConnectedAccountPayouts({ limit: 100 })
+	const { data: transfersData, isLoading: transfersLoading } =
+		useConnectedAccountTransfers({ limit: 100 })
 
 	const isLoading = balanceLoading || payoutsLoading || transfersLoading
 
 	// Get USD balance (primary)
-	const availableUSD = balance?.available.find(b => b.currency === 'usd')?.amount ?? 0
-	const pendingUSD = balance?.pending.find(b => b.currency === 'usd')?.amount ?? 0
+	const availableUSD =
+		balance?.available.find(b => b.currency === 'usd')?.amount ?? 0
+	const pendingUSD =
+		balance?.pending.find(b => b.currency === 'usd')?.amount ?? 0
 	const payouts = payoutsData?.payouts ?? []
 	const transfers = transfersData?.transfers ?? []
 
 	// Calculate stats
 	const paidCount = payouts.filter(p => p.status === 'paid').length
-	const inTransitCount = payouts.filter(p => p.status === 'in_transit' || p.status === 'pending').length
-	const totalPaidOut = payouts.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0)
+	const inTransitCount = payouts.filter(
+		p => p.status === 'in_transit' || p.status === 'pending'
+	).length
+	const totalPaidOut = payouts
+		.filter(p => p.status === 'paid')
+		.reduce((sum, p) => sum + p.amount, 0)
 
 	const payoutColumns: ColumnDef<Payout>[] = React.useMemo(
 		() => [
@@ -261,8 +280,10 @@ export default function PayoutsPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Payouts</h1>
-						<p className="text-muted-foreground">View your account balance and payout history.</p>
+						<h1 className="typography-h1">Payouts</h1>
+						<p className="text-muted-foreground">
+							View your account balance and payout history.
+						</p>
 					</div>
 					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
 						<Download className="w-4 h-4" />
@@ -275,11 +296,19 @@ export default function PayoutsPage() {
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 				<BlurFade delay={0.15} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={10} colorFrom="hsl(142 76% 36%)" colorTo="hsl(142 76% 36% / 0.3)" />
+						<BorderBeam
+							size={100}
+							duration={10}
+							colorFrom="var(--color-success)"
+							colorTo="oklch(from var(--color-success) l c h / 0.3)"
+						/>
 						<StatLabel>Available Balance</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400">
 							<span className="text-lg">$</span>
-							<NumberTicker value={Math.floor(availableUSD / 100)} duration={1500} />
+							<NumberTicker
+								value={Math.floor(availableUSD / 100)}
+								duration={1500}
+							/>
 						</StatValue>
 						<StatIndicator variant="icon" color="success">
 							<DollarSign />
@@ -293,7 +322,10 @@ export default function PayoutsPage() {
 						<StatLabel>Pending Balance</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5 text-amber-600 dark:text-amber-400">
 							<span className="text-lg">$</span>
-							<NumberTicker value={Math.floor(pendingUSD / 100)} duration={1500} />
+							<NumberTicker
+								value={Math.floor(pendingUSD / 100)}
+								duration={1500}
+							/>
 						</StatValue>
 						<StatIndicator variant="icon" color="warning">
 							<Clock />
@@ -304,11 +336,19 @@ export default function PayoutsPage() {
 
 				<BlurFade delay={0.25} inView>
 					<Stat className="relative overflow-hidden">
-						<BorderBeam size={100} duration={12} colorFrom="hsl(var(--primary))" colorTo="hsl(var(--primary)/0.3)" />
+						<BorderBeam
+							size={100}
+							duration={12}
+							colorFrom="var(--color-primary)"
+							colorTo="oklch(from var(--color-primary) l c h / 0.3)"
+						/>
 						<StatLabel>Total Paid Out</StatLabel>
 						<StatValue className="flex items-baseline gap-0.5">
 							<span className="text-lg">$</span>
-							<NumberTicker value={Math.floor(totalPaidOut / 100)} duration={1500} />
+							<NumberTicker
+								value={Math.floor(totalPaidOut / 100)}
+								duration={1500}
+							/>
 						</StatValue>
 						<StatIndicator variant="icon" color="primary">
 							<Wallet />
@@ -333,54 +373,61 @@ export default function PayoutsPage() {
 
 			{/* Payout History */}
 			<BlurFade delay={0.35} inView>
-			<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
-				<div className="p-4 border-b border-border">
-					<h3 className="font-medium text-foreground">Payout History</h3>
-					<p className="text-sm text-muted-foreground">Recent payouts to your bank account</p>
-				</div>
-				{payouts.length === 0 ? (
-					<div className="p-8 text-center">
-						<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
-							<Wallet className="w-6 h-6 text-muted-foreground" />
-						</div>
+				<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+					<div className="p-4 border-b border-border">
+						<h3 className="font-medium text-foreground">Payout History</h3>
 						<p className="text-sm text-muted-foreground">
-							Your payout history will appear here once you receive rent payments.
+							Recent payouts to your bank account
 						</p>
 					</div>
-				) : (
-					<div className="p-4">
-						<DataTable table={payoutsTable}>
-							<DataTableToolbar table={payoutsTable} />
-						</DataTable>
-					</div>
-				)}
-			</div>
+					{payouts.length === 0 ? (
+						<div className="p-8 text-center">
+							<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
+								<Wallet className="w-6 h-6 text-muted-foreground" />
+							</div>
+							<p className="text-sm text-muted-foreground">
+								Your payout history will appear here once you receive rent
+								payments.
+							</p>
+						</div>
+					) : (
+						<div className="p-4">
+							<DataTable table={payoutsTable}>
+								<DataTableToolbar table={payoutsTable} />
+							</DataTable>
+						</div>
+					)}
+				</div>
 			</BlurFade>
 
 			{/* Rent Payments Received */}
 			<BlurFade delay={0.4} inView>
-			<div className="bg-card border border-border rounded-lg overflow-hidden">
-				<div className="p-4 border-b border-border">
-					<h3 className="font-medium text-foreground">Rent Payments Received</h3>
-					<p className="text-sm text-muted-foreground">Rent collected from tenants</p>
-				</div>
-				{transfers.length === 0 ? (
-					<div className="p-8 text-center">
-						<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
-							<Building2 className="w-6 h-6 text-muted-foreground" />
-						</div>
+				<div className="bg-card border border-border rounded-lg overflow-hidden">
+					<div className="p-4 border-b border-border">
+						<h3 className="font-medium text-foreground">
+							Rent Payments Received
+						</h3>
 						<p className="text-sm text-muted-foreground">
-							Rent payments from tenants will appear here.
+							Rent collected from tenants
 						</p>
 					</div>
-				) : (
-					<div className="p-4">
-						<DataTable table={transfersTable}>
-							<DataTableToolbar table={transfersTable} />
-						</DataTable>
-					</div>
-				)}
-			</div>
+					{transfers.length === 0 ? (
+						<div className="p-8 text-center">
+							<div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mx-auto mb-4">
+								<Building2 className="w-6 h-6 text-muted-foreground" />
+							</div>
+							<p className="text-sm text-muted-foreground">
+								Rent payments from tenants will appear here.
+							</p>
+						</div>
+					) : (
+						<div className="p-4">
+							<DataTable table={transfersTable}>
+								<DataTableToolbar table={transfersTable} />
+							</DataTable>
+						</div>
+					)}
+				</div>
 			</BlurFade>
 		</div>
 	)

@@ -5,5 +5,10 @@
 	"compilerOptions": {
 		"types": ["node", "jest", "express", "@jest/globals"]
 	},
-	"include": ["src/**/*.spec.ts", "src/**/*.test.ts", "test/**/*.spec.ts", "test/**/*.test.ts"]
+	"include": [
+		"src/**/*.spec.ts",
+		"src/**/*.test.ts",
+		"test/**/*.spec.ts",
+		"test/**/*.test.ts"
+	]
 }

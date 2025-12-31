@@ -34,11 +34,19 @@ vi.mock('#utils/supabase/client', () => ({
 			select: vi.fn().mockReturnValue({
 				eq: vi.fn().mockReturnValue({
 					single: vi.fn().mockResolvedValue({
-						data: { first_name: 'Test', last_name: 'Owner', email: 'owner@example.com', phone: '555-1234' },
+						data: {
+							first_name: 'Test',
+							last_name: 'Owner',
+							email: 'owner@example.com',
+							phone: '555-1234'
+						},
 						error: null
 					}),
 					maybeSingle: vi.fn().mockResolvedValue({
-						data: { business_name: 'Test Business', business_type: 'individual' },
+						data: {
+							business_name: 'Test Business',
+							business_type: 'individual'
+						},
 						error: null
 					}),
 					order: vi.fn().mockReturnValue({
@@ -57,7 +65,7 @@ vi.mock('#utils/supabase/client', () => ({
 
 // Mock preferences store
 vi.mock('#providers/preferences-provider', () => ({
-	usePreferencesStore: vi.fn((selector) => {
+	usePreferencesStore: vi.fn(selector => {
 		const state = {
 			themeMode: 'system' as const,
 			setThemeMode: vi.fn()
@@ -82,7 +90,12 @@ vi.mock('#hooks/api/use-subscription-status', () => ({
 vi.mock('#hooks/api/use-payment-history', () => ({
 	usePaymentHistory: () => ({
 		data: [
-			{ id: 'inv_123', created_at: '2024-01-15', amount: 4900, status: 'succeeded' }
+			{
+				id: 'inv_123',
+				created_at: '2024-01-15',
+				amount: 4900,
+				status: 'succeeded'
+			}
 		],
 		isLoading: false
 	})
@@ -161,7 +174,19 @@ vi.mock('#components/auth/two-factor-setup-dialog', () => ({
 
 // Mock password strength component
 vi.mock('#components/auth/password-strength', () => ({
-	PasswordStrength: ({ id, placeholder, value, onChange, disabled }: { id: string; placeholder: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; disabled: boolean }) => (
+	PasswordStrength: ({
+		id,
+		placeholder,
+		value,
+		onChange,
+		disabled
+	}: {
+		id: string
+		placeholder: string
+		value: string
+		onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+		disabled: boolean
+	}) => (
 		<input
 			id={id}
 			placeholder={placeholder}
@@ -191,7 +216,9 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 
 // Mock api-request
 vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn().mockResolvedValue({ url: 'https://billing.stripe.com/session' })
+	apiRequest: vi
+		.fn()
+		.mockResolvedValue({ url: 'https://billing.stripe.com/session' })
 }))
 
 // Mock formatCurrency
@@ -227,12 +254,18 @@ describe('Settings Page', () => {
 		renderWithProviders(<SettingsPage />)
 
 		// Check page title
-		expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+		expect(
+			screen.getByRole('heading', { name: 'Settings' })
+		).toBeInTheDocument()
 
 		// Check navigation tabs exist
 		expect(screen.getByRole('button', { name: /General/i })).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /Notifications/i })).toBeInTheDocument()
-		expect(screen.getByRole('button', { name: /Security/i })).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /Notifications/i })
+		).toBeInTheDocument()
+		expect(
+			screen.getByRole('button', { name: /Security/i })
+		).toBeInTheDocument()
 		expect(screen.getByRole('button', { name: /Billing/i })).toBeInTheDocument()
 	})
 
@@ -243,7 +276,9 @@ describe('Settings Page', () => {
 
 		// Check for General settings header
 		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: 'General Settings' })).toBeInTheDocument()
+			expect(
+				screen.getByRole('heading', { name: 'General Settings' })
+			).toBeInTheDocument()
 		})
 
 		// Check for Business Profile section
@@ -267,12 +302,16 @@ describe('Settings Page', () => {
 		renderWithProviders(<SettingsPage />)
 
 		// Click on Notifications tab
-		const notificationsTab = screen.getByRole('button', { name: /Notifications/i })
+		const notificationsTab = screen.getByRole('button', {
+			name: /Notifications/i
+		})
 		await user.click(notificationsTab)
 
 		// Check for Notification Settings content
 		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: 'Notification Settings' })).toBeInTheDocument()
+			expect(
+				screen.getByRole('heading', { name: 'Notification Settings' })
+			).toBeInTheDocument()
 		})
 
 		// Check for notification channels
@@ -300,7 +339,9 @@ describe('Settings Page', () => {
 
 		// Check for Security Settings content
 		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: 'Security Settings' })).toBeInTheDocument()
+			expect(
+				screen.getByRole('heading', { name: 'Security Settings' })
+			).toBeInTheDocument()
 		})
 
 		// Check for Password section
@@ -330,7 +371,9 @@ describe('Settings Page', () => {
 
 		// Check for Billing Settings content
 		await waitFor(() => {
-			expect(screen.getByRole('heading', { name: 'Billing & Subscription' })).toBeInTheDocument()
+			expect(
+				screen.getByRole('heading', { name: 'Billing & Subscription' })
+			).toBeInTheDocument()
 		})
 
 		// Check for Current Plan section
@@ -447,11 +490,13 @@ describe('Settings Page', () => {
 		renderWithProviders(<SettingsPage />)
 
 		// Check that navigation buttons have min-h-11 (44px touch targets)
-		const navButtons = screen.getAllByRole('button').filter(button =>
-			['General', 'Notifications', 'Security', 'Billing'].some(label =>
-				button.textContent?.includes(label)
+		const navButtons = screen
+			.getAllByRole('button')
+			.filter(button =>
+				['General', 'Notifications', 'Security', 'Billing'].some(label =>
+					button.textContent?.includes(label)
+				)
 			)
-		)
 
 		navButtons.forEach(button => {
 			expect(button.className).toContain('min-h-11')
@@ -513,8 +558,8 @@ describe('Settings Page - Mobile Responsiveness', () => {
 
 		const { container } = renderWithProviders(<SettingsPage />)
 
-		// Check that the main container uses responsive padding
-		const mainContainer = container.querySelector('.p-4')
+		// Check that the main container uses spacing utilities
+		const mainContainer = container.querySelector('.space-y-6')
 		expect(mainContainer).toBeInTheDocument()
 	})
 })

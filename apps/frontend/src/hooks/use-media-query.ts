@@ -2,7 +2,10 @@ import * as React from 'react'
 
 export function useMediaQuery(query: string) {
 	const getMatch = React.useCallback(() => {
-		if (typeof window === 'undefined' || typeof window.matchMedia === 'undefined') {
+		if (
+			typeof window === 'undefined' ||
+			typeof window.matchMedia === 'undefined'
+		) {
 			return false
 		}
 		return window.matchMedia(query).matches

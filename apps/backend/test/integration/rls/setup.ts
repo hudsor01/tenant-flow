@@ -33,12 +33,18 @@ export const TEST_USERS = {
 	// OWNER_B, TENANT_A, TENANT_B are optional - use existing E2E_TENANT_EMAIL if available
 	OWNER_B: {
 		email: process.env.E2E_OWNER_B_EMAIL || process.env.E2E_MANAGER_EMAIL || '',
-		password: process.env.E2E_OWNER_B_PASSWORD || process.env.E2E_MANAGER_PASSWORD || '',
+		password:
+			process.env.E2E_OWNER_B_PASSWORD ||
+			process.env.E2E_MANAGER_PASSWORD ||
+			'',
 		user_type: 'OWNER' as const
 	},
 	TENANT_A: {
 		email: process.env.E2E_TENANT_A_EMAIL || process.env.E2E_TENANT_EMAIL || '',
-		password: process.env.E2E_TENANT_A_PASSWORD || process.env.E2E_TENANT_PASSWORD || '',
+		password:
+			process.env.E2E_TENANT_A_PASSWORD ||
+			process.env.E2E_TENANT_PASSWORD ||
+			'',
 		user_type: 'TENANT' as const
 	},
 	TENANT_B: {
@@ -51,19 +57,25 @@ export const TEST_USERS = {
 // Only the primary owner credentials are strictly required
 // Other test users are optional - tests will skip if not available
 const REQUIRED_TEST_USER_VARS = [
-	'E2E_OWNER_EMAIL', 'E2E_OWNER_PASSWORD'
+	'E2E_OWNER_EMAIL',
+	'E2E_OWNER_PASSWORD'
 ] as const
 
 // These are optional but tests may be skipped without them
 const OPTIONAL_TEST_USER_VARS = [
-	'E2E_OWNER_B_EMAIL', 'E2E_OWNER_B_PASSWORD',
-	'E2E_TENANT_A_EMAIL', 'E2E_TENANT_A_PASSWORD',
-	'E2E_TENANT_B_EMAIL', 'E2E_TENANT_B_PASSWORD'
+	'E2E_OWNER_B_EMAIL',
+	'E2E_OWNER_B_PASSWORD',
+	'E2E_TENANT_A_EMAIL',
+	'E2E_TENANT_A_PASSWORD',
+	'E2E_TENANT_B_EMAIL',
+	'E2E_TENANT_B_PASSWORD'
 ] as const
 
 const logger = new Logger('RlsTestSetup')
 
-const missingRequiredVars = REQUIRED_TEST_USER_VARS.filter(varName => !process.env[varName])
+const missingRequiredVars = REQUIRED_TEST_USER_VARS.filter(
+	varName => !process.env[varName]
+)
 
 // Skip integration tests if required environment variables are not set
 // This allows unit tests to run without needing integration test credentials
@@ -79,7 +91,9 @@ To run integration tests, set these variables in your environment or .env.local 
 }
 
 // Check for optional vars and warn (don't fail)
-const missingOptionalVars = OPTIONAL_TEST_USER_VARS.filter(varName => !process.env[varName])
+const missingOptionalVars = OPTIONAL_TEST_USER_VARS.filter(
+	varName => !process.env[varName]
+)
 if (missingOptionalVars.length > 0) {
 	logger.warn(
 		`[RLS Tests] Some multi-user test accounts are not configured. Tests requiring these users will be skipped:
@@ -115,10 +129,14 @@ Object.entries(TEST_USERS).forEach(([key, user]) => {
 		return
 	}
 	// Check exact match only - complex passwords with these substrings are fine
-	if (WEAK_PASSWORDS.some(weak => user.password.toLowerCase() === weak.toLowerCase())) {
+	if (
+		WEAK_PASSWORDS.some(
+			weak => user.password.toLowerCase() === weak.toLowerCase()
+		)
+	) {
 		throw new Error(
 			`Test user ${key} is using a weak password. ` +
-			`Please set a secure password in environment variables.`
+				`Please set a secure password in environment variables.`
 		)
 	}
 })
@@ -342,7 +360,8 @@ export async function ensureTestLease(
 	// Generate deterministic UUIDs based on owner/tenant using crypto
 	// This ensures same owner/tenant pair gets same IDs across test runs
 	const crypto = await import('crypto')
-	const hash = (input: string) => crypto.createHash('sha256').update(input).digest('hex').slice(0, 32)
+	const hash = (input: string) =>
+		crypto.createHash('sha256').update(input).digest('hex').slice(0, 32)
 
 	// Create valid UUID v4 format from hash
 	const toUUID = (hashStr: string) => {
@@ -431,7 +450,7 @@ export async function ensureTestLease(
 		if (tenantRecordError) {
 			throw new Error(
 				`Failed to create tenant record for test setup: ${tenantRecordError.message}. ` +
-				`Ensure SERVICE_ROLE is configured correctly in Doppler.`
+					`Ensure SERVICE_ROLE is configured correctly in Doppler.`
 			)
 		}
 		actualTenantRecordId = testTenantRecordId

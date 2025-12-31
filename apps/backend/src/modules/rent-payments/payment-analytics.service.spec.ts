@@ -12,7 +12,10 @@ describe('PaymentAnalyticsService', () => {
 	let service: PaymentAnalyticsService
 
 	// Mock Supabase client builder
-	const createMockQueryBuilder = (data: unknown = [], error: unknown = null) => {
+	const createMockQueryBuilder = (
+		data: unknown = [],
+		error: unknown = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -24,11 +27,11 @@ describe('PaymentAnalyticsService', () => {
 			limit: jest.fn().mockReturnThis(),
 			single: jest.fn().mockResolvedValue({ data, error }),
 			maybeSingle: jest.fn().mockResolvedValue({ data, error }),
-			then: jest.fn().mockImplementation((resolve) => resolve({ data, error }))
+			then: jest.fn().mockImplementation(resolve => resolve({ data, error }))
 		}
 		// Make it thenable for Promise-like behavior
 		Object.defineProperty(builder, 'then', {
-			value: jest.fn().mockImplementation((resolve) => resolve({ data, error }))
+			value: jest.fn().mockImplementation(resolve => resolve({ data, error }))
 		})
 		return builder
 	}
@@ -80,9 +83,32 @@ describe('PaymentAnalyticsService', () => {
 
 		it('should calculate correct collection metrics', async () => {
 			const mockPayments = [
-				{ id: '1', amount: 100000, status: 'succeeded', due_date: new Date().toISOString(), paid_date: new Date().toISOString(), created_at: new Date().toISOString(), lease_id: 'l1' },
-				{ id: '2', amount: 100000, status: 'succeeded', due_date: new Date().toISOString(), paid_date: new Date().toISOString(), created_at: new Date().toISOString(), lease_id: 'l2' },
-				{ id: '3', amount: 100000, status: 'pending', due_date: new Date().toISOString(), created_at: new Date().toISOString(), lease_id: 'l3' }
+				{
+					id: '1',
+					amount: 100000,
+					status: 'succeeded',
+					due_date: new Date().toISOString(),
+					paid_date: new Date().toISOString(),
+					created_at: new Date().toISOString(),
+					lease_id: 'l1'
+				},
+				{
+					id: '2',
+					amount: 100000,
+					status: 'succeeded',
+					due_date: new Date().toISOString(),
+					paid_date: new Date().toISOString(),
+					created_at: new Date().toISOString(),
+					lease_id: 'l2'
+				},
+				{
+					id: '3',
+					amount: 100000,
+					status: 'pending',
+					due_date: new Date().toISOString(),
+					created_at: new Date().toISOString(),
+					lease_id: 'l3'
+				}
 			]
 
 			const queryBuilder = createMockQueryBuilder(mockPayments)
@@ -96,7 +122,9 @@ describe('PaymentAnalyticsService', () => {
 		})
 
 		it('should handle database errors gracefully', async () => {
-			const queryBuilder = createMockQueryBuilder(null, { message: 'Database error' })
+			const queryBuilder = createMockQueryBuilder(null, {
+				message: 'Database error'
+			})
 			mockUserClient.from.mockReturnValue(queryBuilder)
 
 			const result = await service.getPaymentAnalytics('test-token')
@@ -109,9 +137,7 @@ describe('PaymentAnalyticsService', () => {
 
 	describe('getMonthlyTrend', () => {
 		it('should return trends for specified number of months', async () => {
-			const mockPayments = [
-				{ amount: 100000, status: 'succeeded' }
-			]
+			const mockPayments = [{ amount: 100000, status: 'succeeded' }]
 
 			const queryBuilder = createMockQueryBuilder(mockPayments)
 			mockUserClient.from.mockReturnValue(queryBuilder)
@@ -164,7 +190,12 @@ describe('PaymentAnalyticsService', () => {
 					tenants: {
 						id: 't1',
 						user_id: 'user1',
-						users: { id: 'user1', first_name: 'John', last_name: 'Doe', email: 'john@test.com' }
+						users: {
+							id: 'user1',
+							first_name: 'John',
+							last_name: 'Doe',
+							email: 'john@test.com'
+						}
 					}
 				}
 			]
@@ -202,7 +233,11 @@ describe('PaymentAnalyticsService', () => {
 						}
 					},
 					tenants: {
-						users: { first_name: 'John', last_name: 'Doe', email: 'john@test.com' }
+						users: {
+							first_name: 'John',
+							last_name: 'Doe',
+							email: 'john@test.com'
+						}
 					}
 				}
 			]

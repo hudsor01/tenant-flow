@@ -8,12 +8,15 @@
 
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { PaymentHistoryItem } from '#hooks/api/use-payment-history'
-import type { PaymentMethodResponse, MaintenanceRequest } from '@repo/shared/types/core'
+import type { BillingHistoryItem } from '#hooks/api/use-billing-history'
+import type {
+	PaymentMethodResponse,
+	MaintenanceRequest
+} from '@repo/shared/types/core'
 import TenantPaymentHistoryPage from '../payments/history/page'
 import TenantMaintenancePage from '../maintenance/page'
 
-const mockPayments: PaymentHistoryItem[] = [
+const mockPayments: BillingHistoryItem[] = [
 	{
 		id: 'pay_1',
 		subscriptionId: 'sub_1',
@@ -106,12 +109,16 @@ function mockViewport(isMobile: boolean) {
 }
 
 // Mock data hooks before importing pages
-vi.mock('#hooks/api/use-payment-history', () => ({
-	usePaymentHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
+// The page uses useBillingHistory, not usePaymentHistory
+vi.mock('#hooks/api/use-billing-history', () => ({
+	useBillingHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
 }))
 
 vi.mock('#hooks/api/use-payment-methods', () => ({
-	usePaymentMethods: vi.fn(() => ({ data: mockPaymentMethods, isLoading: false }))
+	usePaymentMethods: vi.fn(() => ({
+		data: mockPaymentMethods,
+		isLoading: false
+	}))
 }))
 
 vi.mock('@tanstack/react-query', async () => {
@@ -132,9 +139,13 @@ vi.mock('@tanstack/react-query', async () => {
 })
 
 vi.mock('next/link', () => ({
-	default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-		<a href={href}>{children}</a>
-	)
+	default: ({
+		children,
+		href
+	}: {
+		children: React.ReactNode
+		href: string
+	}) => <a href={href}>{children}</a>
 }))
 
 describe('Responsive Data Display (mobile-first)', () => {
@@ -150,14 +161,18 @@ describe('Responsive Data Display (mobile-first)', () => {
 		expect(cards).toHaveLength(mockPayments.length)
 
 		// Table view should be swapped out for the mobile card view
-		expect(screen.queryByTestId('payment-history-table')).not.toBeInTheDocument()
+		expect(
+			screen.queryByTestId('payment-history-table')
+		).not.toBeInTheDocument()
 
 		// Card contains the same key details and actions
 		const firstCard = cards[0]!
 		expect(firstCard).toHaveAttribute('data-layout', 'stacked')
 		expect(firstCard).toHaveTextContent('Jan 05, 2024')
 		expect(firstCard).toHaveTextContent('$1,500.00')
-		expect(within(firstCard).getByRole('button', { name: /download receipt/i })).toBeInTheDocument()
+		expect(
+			within(firstCard).getByRole('button', { name: /download receipt/i })
+		).toBeInTheDocument()
 	})
 
 	it('keeps the sortable table view for desktop and preserves receipt actions', () => {
@@ -172,7 +187,9 @@ describe('Responsive Data Display (mobile-first)', () => {
 		expect(rows.length).toBe(mockPayments.length)
 
 		// Receipt download action remains available on desktop
-		expect(screen.getAllByRole('button', { name: /download receipt/i }).length).toBeGreaterThan(0)
+		expect(
+			screen.getAllByRole('button', { name: /download receipt/i }).length
+		).toBeGreaterThan(0)
 	})
 
 	it('renders maintenance requests as responsive cards on mobile (Requirement 2.5)', () => {
@@ -183,7 +200,9 @@ describe('Responsive Data Display (mobile-first)', () => {
 		expect(cards).toHaveLength(mockMaintenanceRequests.length)
 
 		// Cards stack content vertically to prevent overflow
-		cards.forEach(card => expect(card).toHaveAttribute('data-layout', 'stacked'))
+		cards.forEach(card =>
+			expect(card).toHaveAttribute('data-layout', 'stacked')
+		)
 
 		// Status badges remain visible in the mobile layout
 		expect(screen.getByText(/open/i)).toBeInTheDocument()
@@ -197,8 +216,12 @@ describe('Responsive Data Display (mobile-first)', () => {
 		const activeTable = screen.getByTestId('maintenance-active-table')
 		const historyTable = screen.getByTestId('maintenance-history-table')
 
-		const activeRows = activeTable.querySelectorAll('[data-testid="maintenance-row"]')
-		const historyRows = historyTable.querySelectorAll('[data-testid="maintenance-row"]')
+		const activeRows = activeTable.querySelectorAll(
+			'[data-testid="maintenance-row"]'
+		)
+		const historyRows = historyTable.querySelectorAll(
+			'[data-testid="maintenance-row"]'
+		)
 
 		expect(activeRows.length).toBe(1)
 		expect(historyRows.length).toBe(1)

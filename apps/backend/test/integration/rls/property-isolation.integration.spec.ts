@@ -18,7 +18,6 @@ import {
 	authenticateAs,
 	expectEmptyResult,
 	expectPermissionError,
-
 	isTestUserAvailable,
 	TEST_USERS,
 	type AuthenticatedTestClient
@@ -55,14 +54,18 @@ describe('RLS: Property Isolation', () => {
 				ownerB = await authenticateAs(TEST_USERS.OWNER_B)
 				ownerBPropertyOwnerId = ownerB.user_id
 			} catch (error) {
-				testLogger.warn(`[SKIP] Failed to authenticate OWNER_B: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				testLogger.warn(
+					`[SKIP] Failed to authenticate OWNER_B: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		}
 		if (isTestUserAvailable('TENANT_A')) {
 			try {
 				tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 			} catch (error) {
-				testLogger.warn(`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				testLogger.warn(
+					`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		}
 	})
@@ -84,7 +87,9 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - some tests will be skipped')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - some tests will be skipped'
+				)
 				return
 			}
 			// Get owner A's first property
@@ -112,7 +117,9 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A can read their own properties', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - skipping test'
+				)
 				return
 			}
 			const { data, error } = await ownerA.client
@@ -134,7 +141,9 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot read owner B properties', async () => {
 			if (!ownerB || !ownerBproperty_id) {
-				testLogger.warn('owner B not available or has no properties - skipping test')
+				testLogger.warn(
+					'owner B not available or has no properties - skipping test'
+				)
 				return
 			}
 
@@ -166,7 +175,9 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot update owner B property', async () => {
 			if (!ownerB || !ownerBproperty_id) {
-				testLogger.warn('owner B not available or has no properties - skipping test')
+				testLogger.warn(
+					'owner B not available or has no properties - skipping test'
+				)
 				return
 			}
 
@@ -209,7 +220,9 @@ describe('RLS: Property Isolation', () => {
 				return
 			}
 
-			const { data, error } = await tenantA.client.from('properties').select('*')
+			const { data, error } = await tenantA.client
+				.from('properties')
+				.select('*')
 
 			expect(error).toBeNull()
 			expectEmptyResult(data, 'tenant listing all properties')
@@ -219,18 +232,21 @@ describe('RLS: Property Isolation', () => {
 	describe('Property Creation', () => {
 		it('owner A can create property', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - skipping test'
+				)
 				return
 			}
-			const newProperty: Database['public']['Tables']['properties']['Insert'] = {
-				name: `TEST Property ${Date.now()}`,
-				property_type: 'SINGLE_FAMILY',
-				address_line1: '123 Test St',
-				city: 'Test City',
-				state: 'TS',
-				postal_code: '12345',
-				owner_user_id: ownerAPropertyOwnerId
-			}
+			const newProperty: Database['public']['Tables']['properties']['Insert'] =
+				{
+					name: `TEST Property ${Date.now()}`,
+					property_type: 'SINGLE_FAMILY',
+					address_line1: '123 Test St',
+					city: 'Test City',
+					state: 'TS',
+					postal_code: '12345',
+					owner_user_id: ownerAPropertyOwnerId
+				}
 
 			const { data, error } = await ownerA.client
 				.from('properties')
@@ -249,7 +265,9 @@ describe('RLS: Property Isolation', () => {
 
 		it('owner A cannot create property for owner B', async () => {
 			if (!ownerB || !ownerBPropertyOwnerId) {
-				testLogger.warn('owner B not available or has no stripe_connected_accounts record - skipping test')
+				testLogger.warn(
+					'owner B not available or has no stripe_connected_accounts record - skipping test'
+				)
 				return
 			}
 
@@ -310,7 +328,9 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - Unit Isolation tests will be skipped')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - Unit Isolation tests will be skipped'
+				)
 				return
 			}
 			// Get owner A's property and unit
@@ -359,10 +379,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can read units in their own property', async () => {
-		if (!ownerAproperty_id) {
-			testLogger.warn('owner A has no properties - skipping test')
-			return
-		}
+			if (!ownerAproperty_id) {
+				testLogger.warn('owner A has no properties - skipping test')
+				return
+			}
 
 			const { data, error } = await ownerA.client
 				.from('units')
@@ -374,10 +394,12 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot read units in owner B property', async () => {
-		if (!ownerB || !ownerBproperty_id) {
-			testLogger.warn('owner B not available or has no properties - skipping test')
-			return
-		}
+			if (!ownerB || !ownerBproperty_id) {
+				testLogger.warn(
+					'owner B not available or has no properties - skipping test'
+				)
+				return
+			}
 
 			const { data, error } = await ownerA.client
 				.from('units')
@@ -389,10 +411,12 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can create unit in their own property', async () => {
-		if (!ownerAproperty_id || !ownerAPropertyOwnerId) {
-			testLogger.warn('owner A has no properties or stripe_connected_accounts record - skipping test')
-			return
-		}
+			if (!ownerAproperty_id || !ownerAPropertyOwnerId) {
+				testLogger.warn(
+					'owner A has no properties or stripe_connected_accounts record - skipping test'
+				)
+				return
+			}
 
 			const newUnit: Database['public']['Tables']['units']['Insert'] = {
 				property_id: ownerAproperty_id,
@@ -419,10 +443,12 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot create unit in owner B property', async () => {
-		if (!ownerB || !ownerBproperty_id) {
-			testLogger.warn('owner B not available or has no properties - skipping test')
-			return
-		}
+			if (!ownerB || !ownerBproperty_id) {
+				testLogger.warn(
+					'owner B not available or has no properties - skipping test'
+				)
+				return
+			}
 
 			const maliciousUnit: Database['public']['Tables']['units']['Insert'] = {
 				property_id: ownerBproperty_id, // Attempt to create unit in another owner's property
@@ -444,9 +470,9 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can update unit in their own property', async () => {
-		if (!ownerAunit_id) {
-			testLogger.warn('owner A has no units - skipping test')
-			return
+			if (!ownerAunit_id) {
+				testLogger.warn('owner A has no units - skipping test')
+				return
 			}
 
 			const { data, error } = await ownerA.client
@@ -462,10 +488,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A cannot update unit in owner B property', async () => {
-		if (!ownerB || !ownerBunit_id) {
-			testLogger.warn('owner B not available or has no units - skipping test')
-			return
-		}
+			if (!ownerB || !ownerBunit_id) {
+				testLogger.warn('owner B not available or has no units - skipping test')
+				return
+			}
 
 			const { data, error } = await ownerA.client
 				.from('units')
@@ -490,7 +516,9 @@ describe('RLS: Property Isolation', () => {
 
 		beforeAll(async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - Property Status Transitions tests will be skipped')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - Property Status Transitions tests will be skipped'
+				)
 				return
 			}
 			// Create a test property for status transition tests
@@ -515,10 +543,10 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner A can mark their property as sold', async () => {
-		if (!testproperty_id) {
-			testLogger.warn('Test property not created - skipping test')
-			return
-		}
+			if (!testproperty_id) {
+				testLogger.warn('Test property not created - skipping test')
+				return
+			}
 
 			const { data, error } = await ownerA.client
 				.from('properties')
@@ -536,14 +564,14 @@ describe('RLS: Property Isolation', () => {
 		})
 
 		it('owner B cannot mark owner A property as sold', async () => {
-		if (!ownerB) {
-			testLogger.warn('owner B not available - skipping test')
-			return
-		}
-		if (!testproperty_id) {
-			testLogger.warn('Test property not created - skipping test')
-			return
-		}
+			if (!ownerB) {
+				testLogger.warn('owner B not available - skipping test')
+				return
+			}
+			if (!testproperty_id) {
+				testLogger.warn('Test property not created - skipping test')
+				return
+			}
 
 			const { data, error } = await ownerB.client
 				.from('properties')
@@ -563,7 +591,9 @@ describe('RLS: Property Isolation', () => {
 	describe('Property Metadata Access', () => {
 		it('owner A can read property metadata (address, features)', async () => {
 			if (!ownerAPropertyOwnerId) {
-				testLogger.warn('Owner A has no stripe_connected_accounts record - skipping test')
+				testLogger.warn(
+					'Owner A has no stripe_connected_accounts record - skipping test'
+				)
 				return
 			}
 			const { data, error } = await ownerA.client

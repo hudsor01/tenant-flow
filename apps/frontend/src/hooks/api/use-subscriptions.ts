@@ -18,7 +18,6 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 
-
 /**
  * Query keys for subscriptions
  */
@@ -35,7 +34,10 @@ export function useSubscriptions() {
 	return useQuery({
 		queryKey: subscriptionsKeys.list(),
 		queryFn: async (): Promise<RentSubscriptionResponse[]> => {
-			return apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions')
+			const response = await apiRequest<{
+				subscriptions: RentSubscriptionResponse[]
+			}>('/api/v1/subscriptions')
+			return response.subscriptions
 		},
 		staleTime: 30 * 1000 // 30 seconds
 	})
@@ -47,7 +49,8 @@ export function useSubscriptions() {
 export function useSubscription(id: string) {
 	return useQuery({
 		queryKey: subscriptionsKeys.detail(id),
-		queryFn: () => apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
+		queryFn: () =>
+			apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
 		enabled: !!id
 	})
 }
@@ -229,7 +232,9 @@ export function useHasActiveSubscription(lease_id?: string): boolean {
 	const { data: subscriptions } = useSubscriptions()
 	if (!lease_id || !subscriptions) return false
 
-	return subscriptions.some(s => s.leaseId === lease_id && s.status === 'active')
+	return subscriptions.some(
+		s => s.leaseId === lease_id && s.status === 'active'
+	)
 }
 
 /**
@@ -241,7 +246,8 @@ export function usePrefetchSubscriptions() {
 	return () => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.list(),
-			queryFn: () => apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions'),
+			queryFn: () =>
+				apiRequest<RentSubscriptionResponse[]>('/api/v1/subscriptions'),
 			staleTime: 60 * 1000
 		})
 	}
@@ -256,7 +262,8 @@ export function usePrefetchSubscription() {
 	return (id: string) => {
 		queryClient.prefetchQuery({
 			queryKey: subscriptionsKeys.detail(id),
-			queryFn: () => apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
+			queryFn: () =>
+				apiRequest<RentSubscriptionResponse>(`/api/v1/subscriptions/${id}`),
 			staleTime: 60 * 1000
 		})
 	}

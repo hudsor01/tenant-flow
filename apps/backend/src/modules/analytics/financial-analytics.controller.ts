@@ -1,21 +1,32 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Request } from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
-import { user_id } from '../../shared/decorators/user.decorator'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { FinancialAnalyticsService } from './financial-analytics.service'
 
+@ApiTags('Analytics')
+@ApiBearerAuth('supabase-auth')
 @Controller('analytics')
 export class FinancialAnalyticsController {
 	constructor(
 		private readonly financialAnalyticsService: FinancialAnalyticsService
 	) {}
 
+	@ApiOperation({ summary: 'Get financial metrics', description: 'Retrieve aggregate financial metrics for the owner' })
+	@ApiResponse({ status: 200, description: 'Financial metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial-metrics')
 	async getFinancialMetrics(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialMetrics(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getFinancialMetrics(userId)
 
 		return {
 			success: true,
@@ -25,13 +36,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get financial breakdown', description: 'Retrieve detailed financial breakdown by category' })
+	@ApiResponse({ status: 200, description: 'Financial breakdown retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial-breakdown')
 	async getFinancialBreakdown(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialBreakdown(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getFinancialBreakdown(userId)
 
 		return {
 			success: true,
@@ -41,13 +55,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get net operating income', description: 'Retrieve net operating income (NOI) calculation' })
+	@ApiResponse({ status: 200, description: 'NOI retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('net-operating-income')
 	async getNetOperatingIncome(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getNetOperatingIncome(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getNetOperatingIncome(userId)
 
 		return {
 			success: true,
@@ -57,13 +74,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get financial overview', description: 'Retrieve high-level financial overview' })
+	@ApiResponse({ status: 200, description: 'Financial overview retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial-overview')
 	async getFinancialOverview(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getFinancialOverview(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getFinancialOverview(userId)
 
 		return {
 			success: true,
@@ -73,13 +93,15 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get billing insights', description: 'Retrieve billing insights and trends' })
+	@ApiResponse({ status: 200, description: 'Billing insights retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('billing-insights')
 	async getBillingInsights(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getBillingInsights(
-			userId
-		)
+		const userId = req.user.id
+		const data = await this.financialAnalyticsService.getBillingInsights(userId)
 
 		return {
 			success: true,
@@ -89,10 +111,14 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get expense summary', description: 'Retrieve expense summary by category' })
+	@ApiResponse({ status: 200, description: 'Expense summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('expense-summary')
 	async getExpenseSummary(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 		const data = await this.financialAnalyticsService.getExpenseSummary(userId)
 
 		return {
@@ -103,13 +129,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get invoice statistics', description: 'Retrieve invoice statistics and status breakdown' })
+	@ApiResponse({ status: 200, description: 'Invoice statistics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('invoice-statistics')
 	async getInvoiceStatistics(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getInvoiceStatistics(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getInvoiceStatistics(userId)
 
 		return {
 			success: true,
@@ -119,10 +148,14 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get monthly metrics', description: 'Retrieve monthly financial metrics time series' })
+	@ApiResponse({ status: 200, description: 'Monthly metrics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('monthly-metrics')
 	async getMonthlyMetrics(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 		const data = await this.financialAnalyticsService.getMonthlyMetrics(userId)
 
 		return {
@@ -133,13 +166,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get lease financial summary', description: 'Retrieve financial summary for all leases' })
+	@ApiResponse({ status: 200, description: 'Lease financial summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('lease-financial-summary')
 	async getLeaseFinancialSummary(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
-		const data = await this.financialAnalyticsService.getLeaseFinancialSummary(
-			userId
-		)
+		const userId = req.user.id
+		const data =
+			await this.financialAnalyticsService.getLeaseFinancialSummary(userId)
 
 		return {
 			success: true,
@@ -149,10 +185,14 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get lease financial analytics', description: 'Retrieve detailed financial analytics per lease' })
+	@ApiResponse({ status: 200, description: 'Lease financial analytics retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('lease-financial-analytics')
 	async getLeaseFinancialAnalytics(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 		const data =
 			await this.financialAnalyticsService.getLeasesWithFinancialAnalytics(
 				userId
@@ -166,14 +206,16 @@ export class FinancialAnalyticsController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get financial page data', description: 'Retrieve unified financial analytics page data' })
+	@ApiResponse({ status: 200, description: 'Financial page data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('financial/page-data')
 	async getFinancialPageData(
-		@user_id() userId: string
+		@Request() req: AuthenticatedRequest
 	): Promise<ControllerApiResponse> {
+		const userId = req.user.id
 		const data =
-			await this.financialAnalyticsService.getFinancialAnalyticsPageData(
-				userId
-			)
+			await this.financialAnalyticsService.getFinancialAnalyticsPageData(userId)
 
 		return {
 			success: true,

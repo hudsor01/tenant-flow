@@ -59,7 +59,9 @@ describe('AddUnitPanel', () => {
 
 		it('should render panel description with property name', () => {
 			render(<AddUnitPanel {...defaultProps} />, { wrapper: createWrapper() })
-			expect(screen.getByText(/add a new unit to test property/i)).toBeInTheDocument()
+			expect(
+				screen.getByText(/add a new unit to test property/i)
+			).toBeInTheDocument()
 		})
 
 		it('should render all form fields', () => {

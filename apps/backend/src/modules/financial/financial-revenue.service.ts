@@ -16,9 +16,11 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class FinancialRevenueService {
-
-	constructor(private readonly supabaseService: SupabaseService,
-		private readonly expenseService: FinancialExpenseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly expenseService: FinancialExpenseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get revenue trends by month for a given year
@@ -48,10 +50,14 @@ export class FinancialRevenueService {
 		const expenses = await this.expenseService.fetchExpenses(
 			property_ids,
 			yearStart,
-			yearEnd
+			yearEnd,
+			token
 		)
 
-		const revenueByMonth = this.calculateMonthlyRevenue(leases || [], targetYear)
+		const revenueByMonth = this.calculateMonthlyRevenue(
+			leases || [],
+			targetYear
+		)
 		const expensesByMonth = this.expenseService.groupExpensesByMonth(expenses)
 		const monthlyMetrics: FinancialMetrics[] = []
 
@@ -158,7 +164,7 @@ export class FinancialRevenueService {
 		}
 
 		// Query 4: Get ALL expenses for ALL properties at once (batch query)
-		const expenses = await this.expenseService.fetchExpenses(property_ids)
+		const expenses = await this.expenseService.fetchExpenses(property_ids, undefined, undefined, token)
 		const expensesByProperty = new Map<string, number>()
 		for (const exp of expenses) {
 			const propertyId = (exp as { property_id?: string }).property_id
@@ -199,7 +205,10 @@ export class FinancialRevenueService {
 	/**
 	 * Calculate monthly revenue from leases for a given year
 	 */
-	calculateMonthlyRevenue(leases: Lease[], targetYear: number): Map<string, number> {
+	calculateMonthlyRevenue(
+		leases: Lease[],
+		targetYear: number
+	): Map<string, number> {
 		const map = new Map<string, number>()
 
 		// Initialize all months with 0 revenue

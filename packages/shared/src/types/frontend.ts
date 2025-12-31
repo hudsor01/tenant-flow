@@ -25,11 +25,28 @@ export interface PaginationLinkProps extends React.ComponentProps<'a'> {
 
 // Tailwind theme types
 export type TailwindColorName =
-	| 'slate' | 'gray' | 'zinc' | 'neutral' | 'stone'
-	| 'red' | 'orange' | 'amber' | 'yellow' | 'lime'
-	| 'green' | 'emerald' | 'teal' | 'cyan' | 'sky'
-	| 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia'
-	| 'pink' | 'rose'
+	| 'slate'
+	| 'gray'
+	| 'zinc'
+	| 'neutral'
+	| 'stone'
+	| 'red'
+	| 'orange'
+	| 'amber'
+	| 'yellow'
+	| 'lime'
+	| 'green'
+	| 'emerald'
+	| 'teal'
+	| 'cyan'
+	| 'sky'
+	| 'blue'
+	| 'indigo'
+	| 'violet'
+	| 'purple'
+	| 'fuchsia'
+	| 'pink'
+	| 'rose'
 
 export type TailwindRadiusValue = 0 | 0.3 | 0.5 | 0.65 | 0.75 | 1.0
 
@@ -59,7 +76,10 @@ export interface MetricsCardProps {
 	value: string | number
 	description?: string
 	status?: string
-	statusIcon?: React.ComponentType<{ className?: string; [key: string]: unknown }>
+	statusIcon?: React.ComponentType<{
+		className?: string
+		[key: string]: unknown
+	}>
 	icon?: React.ComponentType<{ className?: string; [key: string]: unknown }>
 	colorVariant:
 		| 'success'
@@ -85,8 +105,10 @@ export interface BlurFadeVariant {
 	filter: string
 }
 
-export interface BlurFadeProps
-	extends Omit<ComponentPropsWithChildren, 'children'> {
+export interface BlurFadeProps extends Omit<
+	ComponentPropsWithChildren,
+	'children'
+> {
 	children: React.ReactNode
 	variant?: {
 		hidden: BlurFadeVariant

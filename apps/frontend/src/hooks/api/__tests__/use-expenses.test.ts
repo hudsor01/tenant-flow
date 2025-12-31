@@ -43,7 +43,11 @@ describe('expenseKeys', () => {
 		expect(expenseKeys.all).toEqual(['expenses'])
 		expect(expenseKeys.list()).toEqual(['expenses', 'list'])
 		expect(expenseKeys.detail('123')).toEqual(['expenses', 'detail', '123'])
-		expect(expenseKeys.byProperty('prop-1')).toEqual(['expenses', 'property', 'prop-1'])
+		expect(expenseKeys.byProperty('prop-1')).toEqual([
+			'expenses',
+			'property',
+			'prop-1'
+		])
 		expect(expenseKeys.byDateRange('2024-01-01', '2024-12-31')).toEqual([
 			'expenses',
 			'dateRange',
@@ -98,7 +102,9 @@ describe('useExpenses', () => {
 		})
 
 		expect(result.current.data?.length).toBe(2)
-		expect(result.current.data?.[0]?.description).toBe('Water heater replacement')
+		expect(result.current.data?.[0]?.description).toBe(
+			'Water heater replacement'
+		)
 	})
 
 	it('handles empty expense list', async () => {
@@ -254,8 +260,11 @@ describe('useDeleteExpense', () => {
 
 		await result.current.mutateAsync('exp-1')
 
-		expect(mockApiRequest).toHaveBeenCalledWith('/api/v1/financials/expenses/exp-1', {
-			method: 'DELETE'
-		})
+		expect(mockApiRequest).toHaveBeenCalledWith(
+			'/api/v1/financials/expenses/exp-1',
+			{
+				method: 'DELETE'
+			}
+		)
 	})
 })

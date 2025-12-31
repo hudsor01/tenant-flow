@@ -12,4 +12,6 @@ import { inviteTenantRequestSchema } from '@repo/shared/validation/tenants'
  * - Actual lease creation is a separate workflow after tenant accepts
  * - Stripe subscription created only when BOTH parties sign the lease
  */
-export class InviteWithLeaseDto extends createZodDto(inviteTenantRequestSchema) {}
+export class InviteWithLeaseDto extends createZodDto(
+	inviteTenantRequestSchema
+) {}

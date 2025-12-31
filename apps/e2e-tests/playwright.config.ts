@@ -41,8 +41,8 @@ export default defineConfig({
 		timeout: 5_000, // 5s for assertions
 		toHaveScreenshot: {
 			maxDiffPixels: 100,
-			animations: 'disabled',
-		},
+			animations: 'disabled'
+		}
 	},
 
 	// ===================
@@ -63,11 +63,11 @@ export default defineConfig({
 				['github'],
 				['html', { open: 'never', outputFolder: 'playwright-report' }],
 				['json', { outputFile: 'test-results/results.json' }],
-				['junit', { outputFile: 'test-results/junit.xml' }],
+				['junit', { outputFile: 'test-results/junit.xml' }]
 			]
 		: [
 				['list', { printSteps: true }],
-				['html', { open: 'on-failure', outputFolder: 'playwright-report' }],
+				['html', { open: 'on-failure', outputFolder: 'playwright-report' }]
 			],
 
 	// ===================
@@ -97,7 +97,7 @@ export default defineConfig({
 		viewport: { width: 1280, height: 720 },
 
 		// Always headless (use --headed flag to override)
-		headless: true,
+		headless: true
 
 		// Note: Removed x-playwright-test header - not in CORS allowed headers
 	},
@@ -114,7 +114,7 @@ export default defineConfig({
 		{
 			name: 'setup-owner',
 			testMatch: /auth-api\.setup\.ts/,
-			retries: 2,
+			retries: 2
 		},
 
 		// ─────────────────────────────────────────
@@ -126,9 +126,9 @@ export default defineConfig({
 			testMatch: /setup-invite-tenant\.setup\.ts/,
 			dependencies: ['setup-owner'],
 			use: {
-				storageState: OWNER_AUTH_FILE,
+				storageState: OWNER_AUTH_FILE
 			},
-			retries: 2,
+			retries: 2
 		},
 
 		// ─────────────────────────────────────────
@@ -139,7 +139,7 @@ export default defineConfig({
 			name: 'setup-tenant',
 			testMatch: /auth-tenant\.setup\.ts/,
 			dependencies: ['setup-invite-tenant'],
-			retries: 2,
+			retries: 2
 		},
 
 		// ─────────────────────────────────────────
@@ -150,10 +150,10 @@ export default defineConfig({
 			name: 'owner',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: OWNER_AUTH_FILE,
+				storageState: OWNER_AUTH_FILE
 			},
 			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts'],
+			testMatch: ['**/owner/**/*.spec.ts']
 		},
 
 		// ─────────────────────────────────────────
@@ -164,10 +164,10 @@ export default defineConfig({
 			name: 'tenant',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: TENANT_AUTH_FILE,
+				storageState: TENANT_AUTH_FILE
 			},
 			dependencies: ['setup-tenant'],
-			testMatch: ['**/tenant/**/*.spec.ts'],
+			testMatch: ['**/tenant/**/*.spec.ts']
 		},
 
 		// ─────────────────────────────────────────
@@ -177,7 +177,7 @@ export default defineConfig({
 			name: 'chromium',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: OWNER_AUTH_FILE,
+				storageState: OWNER_AUTH_FILE
 			},
 			dependencies: ['setup-owner'],
 			testIgnore: [
@@ -185,8 +185,8 @@ export default defineConfig({
 				'**/public/**',
 				'**/owner/**',
 				'**/tenant/**',
-				'**/stripe-payment-flow.e2e.spec.ts',
-			],
+				'**/stripe-payment-flow.e2e.spec.ts'
+			]
 		},
 
 		// ─────────────────────────────────────────
@@ -196,10 +196,10 @@ export default defineConfig({
 			name: 'smoke',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: { cookies: [], origins: [] }, // No auth - tests login flow
+				storageState: { cookies: [], origins: [] } // No auth - tests login flow
 			},
 			testMatch: ['**/smoke/**/*.spec.ts'],
-			testIgnore: ['**/minimal.smoke.spec.ts'], // This test requires pre-auth, runs in chromium project
+			testIgnore: ['**/minimal.smoke.spec.ts'] // This test requires pre-auth, runs in chromium project
 		},
 
 		// ─────────────────────────────────────────
@@ -209,9 +209,9 @@ export default defineConfig({
 			name: 'public',
 			use: {
 				...devices['Desktop Chrome'],
-				storageState: { cookies: [], origins: [] }, // Explicitly no auth
+				storageState: { cookies: [], origins: [] } // Explicitly no auth
 			},
-			testMatch: ['**/public/**/*.spec.ts', '**/*public*.spec.ts'],
+			testMatch: ['**/public/**/*.spec.ts', '**/*public*.spec.ts']
 		},
 
 		// ─────────────────────────────────────────
@@ -221,10 +221,10 @@ export default defineConfig({
 			name: 'firefox',
 			use: {
 				...devices['Desktop Firefox'],
-				storageState: OWNER_AUTH_FILE,
+				storageState: OWNER_AUTH_FILE
 			},
 			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts'], // Owner tests for cross-browser
+			testMatch: ['**/owner/**/*.spec.ts'] // Owner tests for cross-browser
 		},
 
 		// ─────────────────────────────────────────
@@ -234,11 +234,11 @@ export default defineConfig({
 			name: 'mobile-chrome',
 			use: {
 				...devices['Pixel 5'],
-				storageState: OWNER_AUTH_FILE,
+				storageState: OWNER_AUTH_FILE
 			},
 			dependencies: ['setup-owner'],
-			testMatch: ['**/owner/**/*.spec.ts'], // Owner tests for responsive
-		},
+			testMatch: ['**/owner/**/*.spec.ts'] // Owner tests for responsive
+		}
 	],
 
 	// ===================
@@ -257,8 +257,8 @@ export default defineConfig({
 			stdout: 'pipe',
 			stderr: 'pipe',
 			env: {
-				PORT: String(TEST_BACKEND_PORT),
-			},
+				PORT: String(TEST_BACKEND_PORT)
+			}
 		},
 		{
 			// Override API URL AFTER doppler injects its secrets
@@ -269,12 +269,12 @@ export default defineConfig({
 			reuseExistingServer: !process.env.CI,
 			stdout: 'pipe',
 			stderr: 'pipe',
-			cwd: '/Users/richard/Developer/tenant-flow',
-		},
+			cwd: '/Users/richard/Developer/tenant-flow'
+		}
 	],
 
 	// ===================
 	// Output
 	// ===================
-	outputDir: 'test-results/',
+	outputDir: 'test-results/'
 })

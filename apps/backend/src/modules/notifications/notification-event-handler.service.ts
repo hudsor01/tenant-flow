@@ -54,11 +54,12 @@ interface TenantPlatformInvitationSentPayload {
 
 @Injectable()
 export class NotificationEventHandlerService {
-
-	constructor(private readonly supabaseService: SupabaseService,
+	constructor(
+		private readonly supabaseService: SupabaseService,
 		private readonly failedNotifications: FailedNotificationsService,
 		private readonly logger: AppLogger,
-		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>) {}
+		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>
+	) {}
 
 	@OnEvent('maintenance.updated')
 	async handleMaintenanceUpdated(event: MaintenanceUpdatedEvent) {
@@ -179,11 +180,13 @@ export class NotificationEventHandlerService {
 						.single(),
 					client
 						.from('leases')
-						.select(`
+						.select(
+							`
 							id,
 							unit_id,
 							unit:unit_id(unit_number, property_id, property:property_id(name))
-						`)
+						`
+						)
 						.eq('id', event.lease_id)
 						.single()
 				])
@@ -194,12 +197,14 @@ export class NotificationEventHandlerService {
 				const tenant = tenantResult.data
 				const lease = leaseResult.data
 
-				const tenantNameParts = [tenant?.user?.first_name, tenant?.user?.last_name].filter(
-					(part): part is string => Boolean(part && part.trim())
-				)
-				const tenantName = tenantNameParts.length > 0
-					? tenantNameParts.join(' ')
-					: (tenant?.user?.email ?? 'New tenant')
+				const tenantNameParts = [
+					tenant?.user?.first_name,
+					tenant?.user?.last_name
+				].filter((part): part is string => Boolean(part && part.trim()))
+				const tenantName =
+					tenantNameParts.length > 0
+						? tenantNameParts.join(' ')
+						: (tenant?.user?.email ?? 'New tenant')
 
 				const propertyName = lease?.unit?.property?.name ?? 'their property'
 				const unit_number = lease?.unit?.unit_number ?? null
@@ -230,7 +235,8 @@ export class NotificationEventHandlerService {
 
 				const { data: invitation, error: invError } = await client
 					.from('tenant_invitations')
-					.select(`
+					.select(
+						`
 						id,
 						email,
 						unit_id,
@@ -241,7 +247,8 @@ export class NotificationEventHandlerService {
 							property_id,
 							property:property_id(name)
 						)
-					`)
+					`
+					)
 					.eq('invitation_code', event.invitationCode)
 					.single()
 
@@ -250,11 +257,12 @@ export class NotificationEventHandlerService {
 				let ownerName: string | undefined
 
 				if (invError) {
-					this.logger.warn('Could not fetch invitation details', { error: invError.message })
+					this.logger.warn('Could not fetch invitation details', {
+						error: invError.message
+					})
 				} else if (invitation) {
 					propertyName = invitation.unit?.property?.name ?? undefined
 					unitNumber = invitation.unit?.unit_number ?? undefined
-
 				}
 
 				await this.emailQueue.add('tenant-invitation', {
@@ -275,8 +283,12 @@ export class NotificationEventHandlerService {
 	}
 
 	@OnEvent('tenant.platform_invitation.sent')
-	async handleTenantPlatformInvitationSent(event: TenantPlatformInvitationSentPayload) {
-		this.logger.log(`Processing tenant.platform_invitation.sent for ${event.email}`)
+	async handleTenantPlatformInvitationSent(
+		event: TenantPlatformInvitationSentPayload
+	) {
+		this.logger.log(
+			`Processing tenant.platform_invitation.sent for ${event.email}`
+		)
 
 		await this.failedNotifications.retryWithBackoff(
 			async () => {

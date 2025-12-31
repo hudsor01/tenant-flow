@@ -245,8 +245,5 @@ GRANT EXECUTE ON FUNCTION public.get_user_profile(uuid) TO service_role;
 -- Comments for documentation
 -- ============================================================================
 
-COMMENT ON POLICY "Anyone can view avatars" ON storage.objects IS 'Allows public access to avatar images for fast serving';
-COMMENT ON POLICY "Users can upload their own avatar" ON storage.objects IS 'Users can only upload to their own avatar folder (avatars/{user_id}/)';
-COMMENT ON POLICY "Users can update their own avatar" ON storage.objects IS 'Users can only update their own avatar files';
-COMMENT ON POLICY "Users can delete their own avatar" ON storage.objects IS 'Users can only delete their own avatar files';
+-- Note: COMMENT ON POLICY for storage.objects is skipped as it requires owner privileges
 COMMENT ON FUNCTION public.get_user_profile(uuid) IS 'Returns user profile with role-specific data (tenant or owner fields)';

@@ -8,7 +8,6 @@ import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('WebhookProcessor', () => {
 	let processor: WebhookProcessor
 	let mockSubscriptionHandler: jest.Mocked<Partial<SubscriptionWebhookHandler>>
@@ -41,7 +40,10 @@ describe('WebhookProcessor', () => {
 		const moduleRef = await Test.createTestingModule({
 			providers: [
 				WebhookProcessor,
-				{ provide: SubscriptionWebhookHandler, useValue: mockSubscriptionHandler },
+				{
+					provide: SubscriptionWebhookHandler,
+					useValue: mockSubscriptionHandler
+				},
 				{ provide: PaymentWebhookHandler, useValue: mockPaymentHandler },
 				{ provide: CheckoutWebhookHandler, useValue: mockCheckoutHandler },
 				{ provide: ConnectWebhookHandler, useValue: mockConnectHandler },
@@ -60,17 +62,18 @@ describe('WebhookProcessor', () => {
 		jest.clearAllMocks()
 	})
 
-	const createEvent = (type: string, data: unknown = {}): Stripe.Event => ({
-		id: 'evt_test',
-		object: 'event',
-		type,
-		data: { object: data },
-		api_version: '2024-04-10',
-		created: Date.now(),
-		livemode: false,
-		pending_webhooks: 0,
-		request: null
-	} as Stripe.Event)
+	const createEvent = (type: string, data: unknown = {}): Stripe.Event =>
+		({
+			id: 'evt_test',
+			object: 'event',
+			type,
+			data: { object: data },
+			api_version: '2024-04-10',
+			created: Date.now(),
+			livemode: false,
+			pending_webhooks: 0,
+			request: null
+		}) as Stripe.Event
 
 	describe('processEvent routing', () => {
 		it('routes checkout.session.completed to checkoutHandler', async () => {
@@ -84,33 +87,39 @@ describe('WebhookProcessor', () => {
 		})
 
 		it('routes customer.subscription.created to subscriptionHandler', async () => {
-			const event = createEvent('customer.subscription.created', { id: 'sub_test' })
+			const event = createEvent('customer.subscription.created', {
+				id: 'sub_test'
+			})
 
 			await processor.processEvent(event)
 
-			expect(mockSubscriptionHandler.handleSubscriptionCreated).toHaveBeenCalledWith(
-				expect.objectContaining({ id: 'sub_test' })
-			)
+			expect(
+				mockSubscriptionHandler.handleSubscriptionCreated
+			).toHaveBeenCalledWith(expect.objectContaining({ id: 'sub_test' }))
 		})
 
 		it('routes customer.subscription.updated to subscriptionHandler', async () => {
-			const event = createEvent('customer.subscription.updated', { id: 'sub_test' })
+			const event = createEvent('customer.subscription.updated', {
+				id: 'sub_test'
+			})
 
 			await processor.processEvent(event)
 
-			expect(mockSubscriptionHandler.handleSubscriptionUpdated).toHaveBeenCalledWith(
-				expect.objectContaining({ id: 'sub_test' })
-			)
+			expect(
+				mockSubscriptionHandler.handleSubscriptionUpdated
+			).toHaveBeenCalledWith(expect.objectContaining({ id: 'sub_test' }))
 		})
 
 		it('routes customer.subscription.deleted to subscriptionHandler', async () => {
-			const event = createEvent('customer.subscription.deleted', { id: 'sub_test' })
+			const event = createEvent('customer.subscription.deleted', {
+				id: 'sub_test'
+			})
 
 			await processor.processEvent(event)
 
-			expect(mockSubscriptionHandler.handleSubscriptionDeleted).toHaveBeenCalledWith(
-				expect.objectContaining({ id: 'sub_test' })
-			)
+			expect(
+				mockSubscriptionHandler.handleSubscriptionDeleted
+			).toHaveBeenCalledWith(expect.objectContaining({ id: 'sub_test' }))
 		})
 
 		it('routes payment_intent.succeeded to paymentHandler', async () => {
@@ -118,13 +127,15 @@ describe('WebhookProcessor', () => {
 
 			await processor.processEvent(event)
 
-			expect(mockPaymentHandler.handlePaymentIntentSucceeded).toHaveBeenCalledWith(
-				expect.objectContaining({ id: 'pi_test' })
-			)
+			expect(
+				mockPaymentHandler.handlePaymentIntentSucceeded
+			).toHaveBeenCalledWith(expect.objectContaining({ id: 'pi_test' }))
 		})
 
 		it('routes payment_intent.payment_failed to paymentHandler', async () => {
-			const event = createEvent('payment_intent.payment_failed', { id: 'pi_test' })
+			const event = createEvent('payment_intent.payment_failed', {
+				id: 'pi_test'
+			})
 
 			await processor.processEvent(event)
 

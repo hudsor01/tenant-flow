@@ -58,7 +58,6 @@ module.exports = {
 		'^uuid$': '<rootDir>/__mocks__/uuid.js',
 		'^@repo/shared$': '<rootDir>/../../packages/shared/src/index.ts',
 		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
-		'^@repo/database/(.*)$': '<rootDir>/../../packages/database/src/$1',
 		'^@repo/testing/(.*)$': '<rootDir>/../../packages/testing/src/$1',
 		'^\\.\\./(constants|types|validation|utils|config|stripe|lib)/(.*)\\.js$':
 			'<rootDir>/../../packages/shared/src/$1/$2.ts'

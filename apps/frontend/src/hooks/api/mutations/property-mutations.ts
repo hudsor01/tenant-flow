@@ -6,11 +6,14 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import type { PropertyCreate, PropertyUpdate } from '@repo/shared/validation/properties'
+import type {
+	PropertyCreate,
+	PropertyUpdate
+} from '@repo/shared/validation/properties'
 import type { Property } from '@repo/shared/types/core'
 import { propertyQueries } from '../queries/property-queries'
 import { unitQueries } from '../queries/unit-queries'
@@ -21,10 +24,10 @@ const { useCreateMutation: useCreatePropertyMutationBase } =
 	createCrudMutations<PropertyCreate, PropertyUpdate, Property>({
 		entityName: 'Property',
 		createEndpoint: '/api/v1/properties',
-		updateEndpoint: (id) => `/api/v1/properties/${id}`,
-		deleteEndpoint: (id) => `/api/v1/properties/${id}`,
+		updateEndpoint: id => `/api/v1/properties/${id}`,
+		deleteEndpoint: id => `/api/v1/properties/${id}`,
 		listQueryKey: propertyQueries.lists,
-		detailQueryKey: (id) => propertyQueries.detail(id).queryKey
+		detailQueryKey: id => propertyQueries.detail(id).queryKey
 	})
 
 /**
@@ -46,12 +49,20 @@ export function useUpdatePropertyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({ id, data, version }: { id: string; data: PropertyUpdate; version?: number }) =>
+		mutationFn: async ({
+			id,
+			data,
+			version
+		}: {
+			id: string
+			data: PropertyUpdate
+			version?: number
+		}) =>
 			apiRequest<Property>(`/api/v1/properties/${id}`, {
 				method: 'PUT',
 				body: JSON.stringify(version ? { ...data, version } : data)
 			}),
-		onSuccess: (updatedProperty) => {
+		onSuccess: updatedProperty => {
 			queryClient.setQueryData(
 				propertyQueries.detail(updatedProperty.id).queryKey,
 				updatedProperty
@@ -60,7 +71,7 @@ export function useUpdatePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Property updated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Update property')
 		}
 	})
@@ -77,12 +88,14 @@ export function useDeletePropertyMutation() {
 			apiRequest<void>(`/api/v1/properties/${id}`, { method: 'DELETE' }),
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
-			queryClient.removeQueries({ queryKey: propertyQueries.detail(deletedId).queryKey })
+			queryClient.removeQueries({
+				queryKey: propertyQueries.detail(deletedId).queryKey
+			})
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			toast.success('Property deleted successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Delete property')
 		}
 	})
@@ -118,9 +131,7 @@ export function useDeletePropertyImageMutation() {
 			// Delete from storage if path provided (non-blocking)
 			if (imagePath) {
 				try {
-					await supabase.storage
-						.from('property-images')
-						.remove([imagePath])
+					await supabase.storage.from('property-images').remove([imagePath])
 				} catch {
 					// Log warning but don't fail - DB cleanup is intact
 					logger.warn('Storage deletion failed', {
@@ -141,7 +152,7 @@ export function useDeletePropertyImageMutation() {
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			toast.success('Image deleted successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Delete image')
 		}
 	})

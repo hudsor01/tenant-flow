@@ -45,7 +45,9 @@ export interface MockSupabaseService {
 /**
  * Create a chainable Supabase client mock with all methods
  */
-export function createMockSupabaseClient(defaultReturn = { data: null, error: null }): MockSupabaseClient {
+export function createMockSupabaseClient(
+	defaultReturn = { data: null, error: null }
+): MockSupabaseClient {
 	const mockClient: MockSupabaseClient = {
 		schema: jest.fn().mockReturnThis(),
 		from: jest.fn().mockReturnThis(),
@@ -76,7 +78,7 @@ export function createMockSupabaseClient(defaultReturn = { data: null, error: nu
 			remove: jest.fn().mockResolvedValue(defaultReturn),
 			list: jest.fn().mockResolvedValue(defaultReturn),
 			createSignedUrl: jest.fn().mockResolvedValue(defaultReturn),
-			createSignedUrls: jest.fn().mockResolvedValue(defaultReturn),
+			createSignedUrls: jest.fn().mockResolvedValue(defaultReturn)
 		}
 	}
 
@@ -94,104 +96,112 @@ export function createMockSupabaseService(
 	const mockUserClient = createMockSupabaseClient(userClientReturn)
 
 	return {
-		getAdminClient: jest.fn().mockReturnValue(mockAdminClient) as jest.Mock<MockSupabaseClient>,
-		getUserClient: jest.fn().mockReturnValue(mockUserClient) as jest.Mock<MockSupabaseClient>,
+		getAdminClient: jest
+			.fn()
+			.mockReturnValue(mockAdminClient) as jest.Mock<MockSupabaseClient>,
+		getUserClient: jest
+			.fn()
+			.mockReturnValue(mockUserClient) as jest.Mock<MockSupabaseClient>
 	}
 }
 
 /**
  * Helper to configure RPC responses for dashboard tests
  */
-export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseService) {
+export function configureDashboardRPCMocks(
+	mockSupabaseService: MockSupabaseService
+) {
 	const mockAdminClient = mockSupabaseService.getAdminClient()
 
 	// Mock successful dashboard stats RPC
-	mockAdminClient.rpc.mockImplementation((functionName: string, _params?: unknown) => {
-		switch (functionName) {
-			case 'get_user_dashboard_stats':
-				return Promise.resolve({
-					data: {
-						properties: {
-							total: 10,
-							occupied: 8,
-							vacant: 2,
-							occupancyRate: 80,
-							totalrent_amount: 15000,
-							averageRent: 1500
-						},
-						tenants: {
-							total: 8,
-							active: 7,
-							inactive: 1,
-							newThisMonth: 2
-						},
-						units: {
-							total: 10,
-							occupied: 8,
-							vacant: 2,
-							maintenance: 0,
-							averageRent: 1500,
-							available: 2,
-							occupancyRate: 80,
-							totalPotentialRent: 15000,
-							totalActualRent: 15000
-						},
-						leases: {
-							total: 8,
-							active: 6,
-							expired: 2,
-							expiringSoon: 1
-						},
-						maintenance: {
-							total: 0,
-							open: 0,
-							inProgress: 0,
-							completed: 0,
-							avgResolutionTime: 0,
-							byPriority: {
-								low: 0,
-								medium: 0,
-								high: 0,
-								emergency: 0
+	mockAdminClient.rpc.mockImplementation(
+		(functionName: string, _params?: unknown) => {
+			switch (functionName) {
+				case 'get_user_dashboard_stats':
+					return Promise.resolve({
+						data: {
+							properties: {
+								total: 10,
+								occupied: 8,
+								vacant: 2,
+								occupancyRate: 80,
+								totalrent_amount: 15000,
+								averageRent: 1500
+							},
+							tenants: {
+								total: 8,
+								active: 7,
+								inactive: 1,
+								newThisMonth: 2
+							},
+							units: {
+								total: 10,
+								occupied: 8,
+								vacant: 2,
+								maintenance: 0,
+								averageRent: 1500,
+								available: 2,
+								occupancyRate: 80,
+								totalPotentialRent: 15000,
+								totalActualRent: 15000
+							},
+							leases: {
+								total: 8,
+								active: 6,
+								expired: 2,
+								expiringSoon: 1
+							},
+							maintenance: {
+								total: 0,
+								open: 0,
+								inProgress: 0,
+								completed: 0,
+								avgResolutionTime: 0,
+								byPriority: {
+									low: 0,
+									medium: 0,
+									high: 0,
+									emergency: 0
+								}
+							},
+							revenue: {
+								monthly: 15000,
+								yearly: 180000,
+								growth: 0
 							}
 						},
-						revenue: {
-							monthly: 15000,
-							yearly: 180000,
-							growth: 0
-						}
-					},
-					error: null
-				})
+						error: null
+					})
 
-			case 'get_user_dashboard_activity':
-				return Promise.resolve({
-					data: { activities: [] },
-					error: null
-				})
+				case 'get_user_dashboard_activity':
+					return Promise.resolve({
+						data: { activities: [] },
+						error: null
+					})
 
-			case 'get_stripe_billing_insights':
-				return Promise.resolve({
-					data: {
-						revenue: [],
-						churn: [],
-						customerLifetimeValue: [],
-						mrr: [],
-						subscriptionStatusBreakdown: {}
-					},
-					error: null
-				})
+				case 'get_stripe_billing_insights':
+					return Promise.resolve({
+						data: {
+							revenue: [],
+							churn: [],
+							customerLifetimeValue: [],
+							mrr: [],
+							subscriptionStatusBreakdown: {}
+						},
+						error: null
+					})
 
-			case 'check_stripe_sync_health':
-				return Promise.resolve({
-					data: true,
-					error: null
-				})
+				case 'check_stripe_sync_health':
+					return Promise.resolve({
+						data: true,
+						error: null
+					})
 
-			default:
-				return Promise.resolve({ data: null, error: null })
+				default:
+					return Promise.resolve({ data: null, error: null })
+			}
 		}
-	})
+	)
 
 	return mockSupabaseService
 }
@@ -199,7 +209,11 @@ export function configureDashboardRPCMocks(mockSupabaseService: MockSupabaseServ
 /**
  * Helper to mock RPC errors for testing error scenarios
  */
-export function mockRPCError(mockSupabaseService: MockSupabaseService, functionName: string, error: unknown) {
+export function mockRPCError(
+	mockSupabaseService: MockSupabaseService,
+	functionName: string,
+	error: unknown
+) {
 	const mockAdminClient = mockSupabaseService.getAdminClient()
 
 	mockAdminClient.rpc.mockImplementation((name: string) => {

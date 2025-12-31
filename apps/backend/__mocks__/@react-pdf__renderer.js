@@ -11,7 +11,7 @@ module.exports = {
 	Image: jest.fn(() => null),
 	Link: jest.fn(() => null),
 	StyleSheet: {
-		create: jest.fn((styles) => styles)
+		create: jest.fn(styles => styles)
 	},
 	PDFViewer: jest.fn(() => null),
 	PDFDownloadLink: jest.fn(() => null),

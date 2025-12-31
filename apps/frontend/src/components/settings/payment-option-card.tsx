@@ -36,7 +36,7 @@ export function PaymentOptionCard({
 	return (
 		<div
 			className={cn(
-				'rounded-lg border p-6 space-y-4 transition-all',
+				'rounded-lg border bg-card p-6 space-y-4 transition-all',
 				recommended && 'border-primary/50 bg-primary/5'
 			)}
 			data-tour={tourId}

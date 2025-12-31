@@ -1,10 +1,7 @@
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
 
-import {
-	WebVitalMetricName,
-	WebVitalRating
-} from '@repo/shared/types/domain'
+import { WebVitalMetricName, WebVitalRating } from '@repo/shared/types/domain'
 import type {
 	WebVitalMetricNameValue,
 	WebVitalRatingValue

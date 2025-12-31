@@ -17,7 +17,10 @@ export class BullMqHealthIndicator {
 		const startTime = Date.now()
 
 		try {
-			await Promise.race([this.emailQueue.getWaitingCount(), this.createTimeoutPromise(1000)])
+			await Promise.race([
+				this.emailQueue.getWaitingCount(),
+				this.createTimeoutPromise(1000)
+			])
 
 			const responseTime = Date.now() - startTime
 			return indicator.up({
@@ -54,4 +57,3 @@ export class BullMqHealthIndicator {
 		})
 	}
 }
-

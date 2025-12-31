@@ -16,10 +16,14 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 @Injectable()
 export class SubscriptionWebhookHandler {
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
-
-	async handleSubscriptionCreated(subscription: Stripe.Subscription): Promise<void> {
+	async handleSubscriptionCreated(
+		subscription: Stripe.Subscription
+	): Promise<void> {
 		try {
 			this.logger.log('Subscription created webhook received', {
 				subscriptionId: subscription.id,
@@ -58,10 +62,13 @@ export class SubscriptionWebhookHandler {
 							subscriptionId: subscription.id
 						})
 					} else {
-						this.logger.debug('Lease subscription already active, skipping update', {
-							leaseId: lease.id,
-							currentStatus: lease.stripe_subscription_status
-						})
+						this.logger.debug(
+							'Lease subscription already active, skipping update',
+							{
+								leaseId: lease.id,
+								currentStatus: lease.stripe_subscription_status
+							}
+						)
 					}
 				} else {
 					this.logger.warn('Lease not found for subscription metadata', {
@@ -87,10 +94,13 @@ export class SubscriptionWebhookHandler {
 						})
 						.eq('id', lease.id)
 
-					this.logger.log('Lease subscription status confirmed via webhook (fallback)', {
-						leaseId: lease.id,
-						subscriptionId: subscription.id
-					})
+					this.logger.log(
+						'Lease subscription status confirmed via webhook (fallback)',
+						{
+							leaseId: lease.id,
+							subscriptionId: subscription.id
+						}
+					)
 				}
 			}
 		} catch (error) {
@@ -102,7 +112,9 @@ export class SubscriptionWebhookHandler {
 		}
 	}
 
-	async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+	async handleSubscriptionUpdated(
+		subscription: Stripe.Subscription
+	): Promise<void> {
 		try {
 			this.logger.log('Subscription updated', {
 				subscriptionId: subscription.id,
@@ -152,7 +164,9 @@ export class SubscriptionWebhookHandler {
 		}
 	}
 
-	async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+	async handleSubscriptionDeleted(
+		subscription: Stripe.Subscription
+	): Promise<void> {
 		try {
 			this.logger.log('Subscription deleted', {
 				subscriptionId: subscription.id

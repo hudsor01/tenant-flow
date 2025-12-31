@@ -367,9 +367,7 @@ export function InviteTenantForm({
 						<Button
 							type="submit"
 							disabled={
-								!canSubmit ||
-								inviteTenantMutation.isPending ||
-								isFormSubmitting
+								!canSubmit || inviteTenantMutation.isPending || isFormSubmitting
 							}
 							onClick={form.handleSubmit}
 						>

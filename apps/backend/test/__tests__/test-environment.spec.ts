@@ -80,20 +80,22 @@ describe('Test Environment Configuration', () => {
 
 		it('should return real database config for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
-		process.env.TEST_DATABASE_URL = 'postgresql://test:test@localhost:5432/postgres'
-		process.env.TEST_DATABASE_HOST = 'localhost'
-		process.env.TEST_DATABASE_NAME = 'postgres'
+			process.env.TEST_DATABASE_URL =
+				'postgresql://test:test@localhost:5432/postgres'
+			process.env.TEST_DATABASE_HOST = 'localhost'
+			process.env.TEST_DATABASE_NAME = 'postgres'
 
-		const config = getTestDatabaseConfig()
-		expect(config.url).toContain('postgres')
-		expect(config.database).toBe('postgres')
-	})
+			const config = getTestDatabaseConfig()
+			expect(config.url).toContain('postgres')
+			expect(config.database).toBe('postgres')
+		})
 
-	it('should return e2e database config for e2e tests', () => {
-		process.env.TEST_TYPE = 'e2e'
-		process.env.E2E_DATABASE_URL = 'postgresql://test:test@localhost:5432/postgres'
-		process.env.E2E_DATABASE_HOST = 'localhost'
-		process.env.E2E_DATABASE_NAME = 'postgres'
+		it('should return e2e database config for e2e tests', () => {
+			process.env.TEST_TYPE = 'e2e'
+			process.env.E2E_DATABASE_URL =
+				'postgresql://test:test@localhost:5432/postgres'
+			process.env.E2E_DATABASE_HOST = 'localhost'
+			process.env.E2E_DATABASE_NAME = 'postgres'
 
 			const config = getTestDatabaseConfig()
 			expect(config.url).toContain('postgres')
@@ -108,7 +110,9 @@ describe('Test Environment Configuration', () => {
 			const config = getTestSupabaseConfig()
 			expect(config.url).toBe('https://mock-supabase-project.supabase.co')
 			expect(config.publishableKey).toBe('mock_anon_key_for_unit_tests')
-			expect(config.serviceuser_typeKey).toBe('mock_service_user_type_key_for_unit_tests')
+			expect(config.serviceuser_typeKey).toBe(
+				'mock_service_user_type_key_for_unit_tests'
+			)
 		})
 
 		it('should use environment variables for integration tests', () => {
@@ -131,7 +135,9 @@ describe('Test Environment Configuration', () => {
 			process.env.TEST_TYPE = 'units'
 
 			const config = getTestStripeConfig()
-			expect(config.secretKey).toBe('test_mock_stripe_secret_key_for_unit_testing_not_real')
+			expect(config.secretKey).toBe(
+				'test_mock_stripe_secret_key_for_unit_testing_not_real'
+			)
 			expect(config.publishableKey).toBe(
 				'test_mock_publishable_key_for_unit_testing_not_real'
 			)
@@ -142,7 +148,8 @@ describe('Test Environment Configuration', () => {
 
 		it('should validate test key format for integration tests', () => {
 			process.env.TEST_TYPE = 'integration'
-			process.env.TEST_STRIPE_SECRET_KEY = 'invalid_key_not_starting_with_sk_test'
+			process.env.TEST_STRIPE_SECRET_KEY =
+				'invalid_key_not_starting_with_sk_test'
 
 			expect(() => getTestStripeConfig()).toThrow(
 				"TEST_STRIPE_SECRET_KEY must start with 'sk_test_'"
@@ -152,13 +159,17 @@ describe('Test Environment Configuration', () => {
 		it('should accept properly formatted test keys', () => {
 			process.env.TEST_TYPE = 'integration'
 			process.env.TEST_STRIPE_SECRET_KEY = 'sk_test_valid_test_key_placeholder'
-			process.env.TEST_STRIPE_PUBLISHABLE_KEY = 'pk_test_valid_test_key_placeholder'
-			process.env.TEST_STRIPE_WEBHOOK_SECRET = 'whsec_valid_webhook_secret_placeholder'
+			process.env.TEST_STRIPE_PUBLISHABLE_KEY =
+				'pk_test_valid_test_key_placeholder'
+			process.env.TEST_STRIPE_WEBHOOK_SECRET =
+				'whsec_valid_webhook_secret_placeholder'
 
 			const config = getTestStripeConfig()
 			expect(config.secretKey).toBe('sk_test_valid_test_key_placeholder')
 			expect(config.publishableKey).toBe('pk_test_valid_test_key_placeholder')
-			expect(config.webhookSecret).toBe('whsec_valid_webhook_secret_placeholder')
+			expect(config.webhookSecret).toBe(
+				'whsec_valid_webhook_secret_placeholder'
+			)
 		})
 
 		it('should throw error when environment variables are not set', () => {

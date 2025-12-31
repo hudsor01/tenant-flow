@@ -1,4 +1,3 @@
-
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
@@ -84,13 +83,13 @@ export class SupabaseUserClientPool {
 				cached.lastUsed = now
 				this.touch(tokenKey, cached)
 				this.maybeRunHealthCheck(tokenKey, cached)
-			this.metrics.hits++
-			return cached.client
+				this.metrics.hits++
+				return cached.client
 			}
 		}
 
 		this.metrics.misses++
-		
+
 		// Use accessToken callback pattern (recommended by Supabase docs)
 		// The deprecated global.headers.Authorization pattern doesn't properly
 		// integrate with Supabase's internal token handling for RLS
@@ -211,7 +210,10 @@ export class SupabaseUserClientPool {
 			const result = await Promise.race([
 				cached.client.auth.getUser(),
 				new Promise((_, reject) =>
-					setTimeout(() => reject(new Error('Health check timeout')), this.healthCheckTimeoutMs)
+					setTimeout(
+						() => reject(new Error('Health check timeout')),
+						this.healthCheckTimeoutMs
+					)
 				)
 			])
 			if (result && typeof result === 'object' && 'error' in result) {

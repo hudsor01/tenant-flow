@@ -4,7 +4,11 @@
  * Extracted from RentPaymentsService for SRP compliance
  */
 
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type {
 	CancelTenantAutopayParams,
 	CancelTenantAutopayResponse,
@@ -25,10 +29,13 @@ import { AppLogger } from '../../logger/app-logger.service'
 export class RentPaymentAutopayService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly stripeTenantService: StripeTenantService,
-		private readonly contextService: RentPaymentContextService, private readonly logger: AppLogger) {
+		private readonly contextService: RentPaymentContextService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -42,12 +49,14 @@ export class RentPaymentAutopayService {
 		const { tenant_id, lease_id, paymentMethodId } = params
 		const adminClient = this.supabase.getAdminClient()
 
-		const { tenant, tenantUser } = await this.contextService.getTenantContext(tenant_id)
-		const { lease, stripeAccountId } = await this.contextService.getLeaseContext(
-			lease_id,
-			tenant_id,
-			requestingUserId
-		)
+		const { tenant, tenantUser } =
+			await this.contextService.getTenantContext(tenant_id)
+		const { lease, stripeAccountId } =
+			await this.contextService.getLeaseContext(
+				lease_id,
+				tenant_id,
+				requestingUserId
+			)
 
 		if (lease.stripe_subscription_id) {
 			throw new BadRequestException('Autopay already enabled for this lease')
@@ -82,17 +91,16 @@ export class RentPaymentAutopayService {
 		}
 
 		const amountInCents = lease.rent_amount
-		const priceData =
-			{
-				currency: 'usd',
-				product_data: {
-					name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`
-				},
-				unit_amount: amountInCents,
-				recurring: {
-					interval: 'month'
-				}
-			} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
+		const priceData = {
+			currency: 'usd',
+			product_data: {
+				name: `Monthly Rent - Lease ${lease.id.slice(0, 8)}`
+			},
+			unit_amount: amountInCents,
+			recurring: {
+				interval: 'month'
+			}
+		} as unknown as Stripe.SubscriptionCreateParams.Item.PriceData
 
 		const subscriptionPayload: Stripe.SubscriptionCreateParams = {
 			customer: stripeCustomer.id,
@@ -133,14 +141,12 @@ export class RentPaymentAutopayService {
 				subscriptionId: subscription.id,
 				error: updateError
 			})
-			await this.stripe.subscriptions
-				.cancel(subscription.id)
-				.catch(err =>
-					this.logger.error('Failed to cancel orphaned subscription', {
-						subscriptionId: subscription.id,
-						error: err
-					})
-				)
+			await this.stripe.subscriptions.cancel(subscription.id).catch(err =>
+				this.logger.error('Failed to cancel orphaned subscription', {
+					subscriptionId: subscription.id,
+					error: err
+				})
+			)
 			throw new BadRequestException('Failed to enable autopay')
 		}
 
@@ -160,7 +166,11 @@ export class RentPaymentAutopayService {
 		const { tenant_id, lease_id } = params
 		const adminClient = this.supabase.getAdminClient()
 
-		await this.contextService.getLeaseContext(lease_id, tenant_id, requestingUserId)
+		await this.contextService.getLeaseContext(
+			lease_id,
+			tenant_id,
+			requestingUserId
+		)
 
 		const { data: lease, error: leaseError } = await adminClient
 			.from('leases')
@@ -172,9 +182,8 @@ export class RentPaymentAutopayService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		const subscriptionId = (
-			lease as { stripe_subscription_id: string | null }
-		).stripe_subscription_id
+		const subscriptionId = (lease as { stripe_subscription_id: string | null })
+			.stripe_subscription_id
 
 		if (!subscriptionId) {
 			throw new BadRequestException('Autopay not enabled for this lease')
@@ -208,7 +217,11 @@ export class RentPaymentAutopayService {
 		const { tenant_id, lease_id } = params
 		const adminClient = this.supabase.getAdminClient()
 
-		await this.contextService.getLeaseContext(lease_id, tenant_id, requestingUserId)
+		await this.contextService.getLeaseContext(
+			lease_id,
+			tenant_id,
+			requestingUserId
+		)
 
 		const { data: lease, error: leaseError } = await adminClient
 			.from('leases')
@@ -220,9 +233,8 @@ export class RentPaymentAutopayService {
 			throw new NotFoundException('Lease not found')
 		}
 
-		const subscriptionId = (
-			lease as { stripe_subscription_id: string | null }
-		).stripe_subscription_id
+		const subscriptionId = (lease as { stripe_subscription_id: string | null })
+			.stripe_subscription_id
 
 		if (!subscriptionId) {
 			return {

@@ -18,7 +18,8 @@ import {
 import Link from 'next/link'
 
 export default function ResourcesPage() {
-	const baseUrl = process.env.NEXT_PUBLIC_APP_URL ||
+	const baseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
 		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
 
 	// Breadcrumb Schema
@@ -156,9 +157,7 @@ export default function ResourcesPage() {
 			<section className="section-spacing-compact">
 				<div className="max-w-7xl mx-auto px-6 lg:px-8">
 					<div className="text-center mb-12">
-						<h2 className="typography-h2 text-foreground mb-3">
-							Quick Start
-						</h2>
+						<h2 className="typography-h2 text-foreground mb-3">Quick Start</h2>
 						<p className="text-muted-foreground text-lg">
 							Jump right into what you need
 						</p>
@@ -185,9 +184,7 @@ export default function ResourcesPage() {
 								<h3 className="font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
 									{link.title}
 								</h3>
-								<p className="text-muted">
-									{link.description}
-								</p>
+								<p className="text-muted">{link.description}</p>
 							</Link>
 						))}
 					</div>
@@ -282,7 +279,9 @@ export default function ResourcesPage() {
 					<div className="text-center space-y-8">
 						<h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-foreground">
 							Still have questions?{' '}
-							<span className="text-foreground font-semibold">We're here to help</span>
+							<span className="text-foreground font-semibold">
+								We're here to help
+							</span>
 						</h2>
 
 						<p className="text-muted-foreground leading-relaxed max-w-3xl mx-auto text-xl">
@@ -329,7 +328,6 @@ export default function ResourcesPage() {
 					</div>
 				</div>
 			</section>
-
 		</PageLayout>
 	)
 }

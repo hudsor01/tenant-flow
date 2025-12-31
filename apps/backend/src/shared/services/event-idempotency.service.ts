@@ -22,13 +22,17 @@ import { AppLogger } from '../../logger/app-logger.service'
  */
 @Injectable()
 export class EventIdempotencyService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Type predicate to check if an object has lock_acquired property set to true
 	 */
-	private isObjectWithLockAcquired(value: unknown): value is { lock_acquired: true } {
+	private isObjectWithLockAcquired(
+		value: unknown
+	): value is { lock_acquired: true } {
 		return (
 			value !== null &&
 			value !== undefined &&
@@ -46,7 +50,9 @@ export class EventIdempotencyService {
 		// Sort object keys for deterministic hashing
 		const sortedPayload = JSON.stringify(
 			payload,
-			payload && typeof payload === 'object' ? Object.keys(payload as object).sort() : undefined
+			payload && typeof payload === 'object'
+				? Object.keys(payload as object).sort()
+				: undefined
 		)
 		const hash = crypto
 			.createHash('sha256')
@@ -94,10 +100,12 @@ export class EventIdempotencyService {
 			}
 
 			const rows = Array.isArray(data) ? data : [data]
-			const lockAcquired = rows.some((row) => this.isObjectWithLockAcquired(row))
+			const lockAcquired = rows.some(row => this.isObjectWithLockAcquired(row))
 
 			if (!lockAcquired) {
-				this.logger.debug(`Event already processed: ${eventName}`, { idempotencyKey })
+				this.logger.debug(`Event already processed: ${eventName}`, {
+					idempotencyKey
+				})
 			}
 
 			return lockAcquired
@@ -124,7 +132,10 @@ export class EventIdempotencyService {
 				.eq('idempotency_key', idempotencyKey)
 
 			if (error) {
-				this.logger.error('Failed to mark event as processed', { eventName, error })
+				this.logger.error('Failed to mark event as processed', {
+					eventName,
+					error
+				})
 			}
 		} catch (error) {
 			this.logger.error('Error marking event processed', { eventName, error })
@@ -147,7 +158,10 @@ export class EventIdempotencyService {
 				.eq('idempotency_key', idempotencyKey)
 
 			if (error) {
-				this.logger.error('Failed to mark event as failed', { eventName, error })
+				this.logger.error('Failed to mark event as failed', {
+					eventName,
+					error
+				})
 			}
 		} catch (error) {
 			this.logger.error('Error marking event failed', { eventName, error })
@@ -224,7 +238,11 @@ export class EventIdempotencyService {
 			const client = this.supabaseService.getAdminClient()
 
 			const now = new Date()
-			const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+			const todayStart = new Date(
+				now.getFullYear(),
+				now.getMonth(),
+				now.getDate()
+			)
 
 			// Get total count
 			const { count: totalEvents } = await client
@@ -244,7 +262,7 @@ export class EventIdempotencyService {
 
 			const byStatus: Record<string, number> = {}
 			if (statusData) {
-				statusData.forEach((row) => {
+				statusData.forEach(row => {
 					const status = row.status || 'unknown'
 					byStatus[status] = (byStatus[status] || 0) + 1
 				})
@@ -257,7 +275,7 @@ export class EventIdempotencyService {
 
 			const byEventName: Record<string, number> = {}
 			if (eventNameData) {
-				eventNameData.forEach((row) => {
+				eventNameData.forEach(row => {
 					const name = row.event_name
 					byEventName[name] = (byEventName[name] || 0) + 1
 				})

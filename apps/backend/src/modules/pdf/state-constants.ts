@@ -20,7 +20,7 @@ export const DEFAULT_STATE_NAME = 'Texas' as const
  * Only states with existing templates should be listed here
  */
 export const SUPPORTED_STATES = {
-	TX: 'Texas',
+	TX: 'Texas'
 	// Add more states as templates become available:
 	// CA: 'California',
 	// NY: 'New_York',
@@ -32,18 +32,68 @@ export const SUPPORTED_STATES = {
  * This is the complete list of valid 2-letter US state codes
  */
 export const US_STATE_CODES = [
-	'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-	'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-	'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-	'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-	'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY',
-	'DC', 'PR', 'VI', 'GU', 'AS', 'MP'
+	'AL',
+	'AK',
+	'AZ',
+	'AR',
+	'CA',
+	'CO',
+	'CT',
+	'DE',
+	'FL',
+	'GA',
+	'HI',
+	'ID',
+	'IL',
+	'IN',
+	'IA',
+	'KS',
+	'KY',
+	'LA',
+	'ME',
+	'MD',
+	'MA',
+	'MI',
+	'MN',
+	'MS',
+	'MO',
+	'MT',
+	'NE',
+	'NV',
+	'NH',
+	'NJ',
+	'NM',
+	'NY',
+	'NC',
+	'ND',
+	'OH',
+	'OK',
+	'OR',
+	'PA',
+	'RI',
+	'SC',
+	'SD',
+	'TN',
+	'TX',
+	'UT',
+	'VT',
+	'VA',
+	'WA',
+	'WV',
+	'WI',
+	'WY',
+	'DC',
+	'PR',
+	'VI',
+	'GU',
+	'AS',
+	'MP'
 ] as const
 
 /**
  * Type for valid US state codes
  */
-export type StateCode = typeof US_STATE_CODES[number]
+export type StateCode = (typeof US_STATE_CODES)[number]
 
 /**
  * Type for supported states (states with templates)
@@ -55,7 +105,7 @@ export type SupportedStateCode = keyof typeof SUPPORTED_STATES
  */
 export const TEMPLATE_TYPES = {
 	RESIDENTIAL: 'residential',
-	COMMERCIAL: 'commercial',
+	COMMERCIAL: 'commercial'
 	// Add more template types as needed
 } as const
 
@@ -73,4 +123,5 @@ export const DEFAULT_TEMPLATE_TYPE: TemplateType = 'RESIDENTIAL'
  * Template file naming pattern
  * {StateName}_{TemplateType}_Lease_Agreement.pdf
  */
-export const TEMPLATE_FILE_PATTERN = '{stateName}_{templateType}_Lease_Agreement.pdf'
+export const TEMPLATE_FILE_PATTERN =
+	'{stateName}_{templateType}_Lease_Agreement.pdf'

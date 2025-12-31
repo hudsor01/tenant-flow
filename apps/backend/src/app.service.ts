@@ -1,4 +1,4 @@
-import type { OnModuleInit } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import { AppConfigService } from './config/app-config.service'
 import { SupabaseService } from './database/supabase.service'
@@ -6,9 +6,11 @@ import { AppLogger } from './logger/app-logger.service'
 
 @Injectable()
 export class AppService implements OnModuleInit {
-
-	constructor(private readonly supabaseService: SupabaseService,
-		private readonly config: AppConfigService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Lifecycle hook: Called once the module has been initialized
@@ -40,7 +42,10 @@ export class AppService implements OnModuleInit {
 				if (dbStatus.status === 'healthy') {
 					this.logger.log('✓ Database connection: healthy')
 				} else {
-					this.logger.error('ERROR: Database connection: unhealthy', dbStatus.message)
+					this.logger.error(
+						'ERROR: Database connection: unhealthy',
+						dbStatus.message
+					)
 				}
 			} catch (dbError) {
 				// Don't fail startup on DB check - log warning and continue

@@ -57,12 +57,7 @@ describe('Property 5: Tour Completion Persistence', () => {
 	it('respects backend completion state for auto-start behavior', async () => {
 		await fc.assert(
 			fc.asyncProperty(
-				fc.constantFrom(
-					'not_started',
-					'in_progress',
-					'completed',
-					'skipped'
-				),
+				fc.constantFrom('not_started', 'in_progress', 'completed', 'skipped'),
 				fc.boolean(),
 				async (status, forceShow) => {
 					mockUpdateTourProgress.mockClear()
@@ -70,7 +65,8 @@ describe('Property 5: Tour Completion Persistence', () => {
 						tour_key: 'tenant-onboarding',
 						status,
 						current_step: 0,
-						completed_at: status === 'completed' ? '2024-01-01T00:00:00Z' : null,
+						completed_at:
+							status === 'completed' ? '2024-01-01T00:00:00Z' : null,
 						skipped_at: status === 'skipped' ? '2024-01-01T00:00:00Z' : null,
 						last_seen_at: null
 					})

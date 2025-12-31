@@ -1,8 +1,27 @@
-import { BadRequestException, Body, Controller, Get, HttpCode, HttpStatus, InternalServerErrorException, Post, UseGuards, UseInterceptors } from '@nestjs/common'
+import {
+	BadRequestException,
+	Body,
+	Controller,
+	Get,
+	HttpCode,
+	HttpStatus,
+	InternalServerErrorException,
+	Post,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { createZodDto } from 'nestjs-zod'
 import { z } from 'zod'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -24,24 +43,38 @@ class PayRentDto extends createZodDto(PayRentSchema) {}
  *
  * Routes: /tenant/payments/*
  */
+@ApiTags('Tenant Portal - Payments')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantPaymentsController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get payment history and upcoming payments
 	 *
 	 * @returns Payment list with metadata
 	 */
+	@ApiOperation({ summary: 'Get payments', description: 'Get payment history and upcoming payments for tenant' })
+	@ApiResponse({ status: 200, description: 'Payments retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get()
 	async getPayments(
-		@JwtToken() token: string,
-		@User() user: AuthUser
-	): Promise<{ payments: Array<Record<string, unknown>>; methodsEndpoint: string }> {
-		const tenant = await this.resolveTenant(token, user)
+		@Request() req: AuthenticatedRequest
+	): Promise<{
+		payments: Array<Record<string, unknown>>
+		methodsEndpoint: string
+	}> {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		const payments = await this.fetchPayments(token, tenant.id)
 
 		return {
@@ -54,9 +87,17 @@ export class TenantPaymentsController {
 	 * Get amount due for current billing period
 	 * Calculates base rent + late fee if applicable
 	 */
+	@ApiOperation({ summary: 'Get amount due', description: 'Get amount due for current billing period including late fees if applicable' })
+	@ApiResponse({ status: 200, description: 'Amount due retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'No active lease found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
 	@Get('amount-due')
-	async getAmountDue(@JwtToken() token: string, @User() user: AuthUser) {
-		const tenant = await this.resolveTenant(token, user)
+	async getAmountDue(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 
 		if (!lease) {
@@ -132,14 +173,23 @@ export class TenantPaymentsController {
 	 * Process rent payment
 	 * Creates payment intent and records payment in database
 	 */
+	@ApiOperation({ summary: 'Pay rent', description: 'Process rent payment for current billing period' })
+	@ApiBody({ schema: { type: 'object', required: ['payment_method_id', 'amount_cents'], properties: { payment_method_id: { type: 'string', description: 'Stripe payment method ID' }, amount_cents: { type: 'integer', description: 'Payment amount in cents' } } } })
+	@ApiResponse({ status: 200, description: 'Payment processed successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid payment or already paid' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Post('pay-rent')
 	@HttpCode(HttpStatus.OK)
 	async payRent(
-		@JwtToken() token: string,
-		@User() user: AuthUser,
+		@Request() req: AuthenticatedRequest,
 		@Body() dto: PayRentDto
 	) {
-		const tenant = await this.resolveTenant(token, user)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 
 		if (!lease) {
@@ -147,7 +197,7 @@ export class TenantPaymentsController {
 		}
 
 		// Validate amount matches expected
-		const amountDue = await this.getAmountDue(token, user)
+		const amountDue = await this.getAmountDue(req)
 		if (amountDue.already_paid) {
 			throw new BadRequestException('Rent already paid for this period')
 		}
@@ -183,7 +233,9 @@ export class TenantPaymentsController {
 			.single()
 
 		if (paymentError) {
-			this.logger.error('Failed to record payment', { error: paymentError.message })
+			this.logger.error('Failed to record payment', {
+				error: paymentError.message
+			})
 			throw new InternalServerErrorException('Failed to process payment')
 		}
 

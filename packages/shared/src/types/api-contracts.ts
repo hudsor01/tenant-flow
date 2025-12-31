@@ -3,10 +3,203 @@
  *
  * Centralized API contract definitions for type-safe communication
  * between frontend and backend services.
+ *
+ * Type Flow: supabase.ts → api-contracts.ts → Backend/Frontend
+ *
+ * Note: Base row types (Property, Tenant, etc.) are in core.ts
+ * This file defines List/Detail response types and Insert/Update types
  */
+
+// Import directly from supabase.ts (source of truth)
+import type { Tables, TablesInsert, TablesUpdate } from './supabase.js'
+
+// Note: Base row types (Property, Tenant, Lease, etc.) are in core.ts
+// Import them directly from '@repo/shared/types/core' - no re-exports per CLAUDE.md rules
 
 // Import Zod-inferred types (Single Source of Truth)
 import type { TenantCreate, TenantUpdate } from '../validation/tenants.js'
+
+// =============================================================================
+// PROPERTY RESPONSE TYPES
+// =============================================================================
+
+/** Property list item - minimal fields for list views */
+export type PropertyListItem = Pick<
+	Tables<'properties'>,
+	| 'id'
+	| 'name'
+	| 'address_line1'
+	| 'city'
+	| 'state'
+	| 'postal_code'
+	| 'status'
+	| 'property_type'
+	| 'created_at'
+>
+
+/** Property detail - full row with related units */
+export type PropertyDetail = Tables<'properties'> & {
+	units?: Pick<
+		Tables<'units'>,
+		'id' | 'unit_number' | 'status' | 'bedrooms' | 'bathrooms' | 'rent_amount'
+	>[]
+}
+
+// =============================================================================
+// UNIT RESPONSE TYPES
+// =============================================================================
+
+/** Unit list item - minimal fields for list views */
+export type UnitListItem = Pick<
+	Tables<'units'>,
+	| 'id'
+	| 'unit_number'
+	| 'property_id'
+	| 'status'
+	| 'bedrooms'
+	| 'bathrooms'
+	| 'rent_amount'
+	| 'square_feet'
+>
+
+/** Unit detail - full row with property info */
+export type UnitDetail = Tables<'units'> & {
+	property?: Pick<Tables<'properties'>, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
+}
+
+// =============================================================================
+// TENANT RESPONSE TYPES
+// =============================================================================
+
+/** Tenant list item - combines tenant and user info for list views */
+export type TenantListItem = Pick<Tables<'tenants'>, 'id' | 'user_id' | 'created_at'> & {
+	user: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone' | 'status'>
+}
+
+/** Tenant detail - full tenant with user and lease info */
+export type TenantDetail = Tables<'tenants'> & {
+	user: Pick<
+		Tables<'users'>,
+		'id' | 'email' | 'first_name' | 'last_name' | 'phone' | 'status' | 'avatar_url'
+	>
+	leases?: Pick<
+		Tables<'leases'>,
+		'id' | 'lease_status' | 'start_date' | 'end_date' | 'rent_amount' | 'unit_id'
+	>[]
+}
+
+// =============================================================================
+// LEASE RESPONSE TYPES
+// =============================================================================
+
+/** Lease list item - minimal fields for list views */
+export type LeaseListItem = Pick<
+	Tables<'leases'>,
+	| 'id'
+	| 'lease_status'
+	| 'start_date'
+	| 'end_date'
+	| 'rent_amount'
+	| 'unit_id'
+	| 'primary_tenant_id'
+	| 'created_at'
+>
+
+/** Lease detail - full row with relations */
+export type LeaseDetail = Tables<'leases'> & {
+	unit?: Pick<Tables<'units'>, 'id' | 'unit_number' | 'property_id'> & {
+		property?: Pick<Tables<'properties'>, 'id' | 'name' | 'address_line1' | 'city' | 'state'>
+	}
+	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
+}
+
+// =============================================================================
+// MAINTENANCE REQUEST RESPONSE TYPES
+// =============================================================================
+
+/** Maintenance request list item - minimal fields for list views */
+export type MaintenanceRequestListItem = Pick<
+	Tables<'maintenance_requests'>,
+	| 'id'
+	| 'title'
+	| 'status'
+	| 'priority'
+	| 'unit_id'
+	| 'tenant_id'
+	| 'created_at'
+	| 'scheduled_date'
+>
+
+/** Maintenance request detail - full row with relations */
+export type MaintenanceRequestDetail = Tables<'maintenance_requests'> & {
+	unit?: Pick<Tables<'units'>, 'id' | 'unit_number' | 'property_id'> & {
+		property?: Pick<Tables<'properties'>, 'id' | 'name' | 'address_line1'>
+	}
+	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name' | 'phone'>
+	assigned_user?: Pick<Tables<'users'>, 'id' | 'first_name' | 'last_name'>
+}
+
+// =============================================================================
+// RENT PAYMENT RESPONSE TYPES
+// =============================================================================
+
+/** Rent payment list item - minimal fields for list views */
+export type RentPaymentListItem = Pick<
+	Tables<'rent_payments'>,
+	| 'id'
+	| 'amount'
+	| 'status'
+	| 'due_date'
+	| 'paid_date'
+	| 'lease_id'
+	| 'tenant_id'
+	| 'period_start'
+	| 'period_end'
+>
+
+/** Rent payment detail - full row with relations */
+export type RentPaymentDetail = Tables<'rent_payments'> & {
+	lease?: Pick<Tables<'leases'>, 'id' | 'unit_id' | 'rent_amount'>
+	tenant?: Pick<Tables<'users'>, 'id' | 'email' | 'first_name' | 'last_name'>
+}
+
+// =============================================================================
+// INSERT/UPDATE TYPES (for type-safe mutations)
+// =============================================================================
+
+/** Property insert type */
+export type PropertyInsert = TablesInsert<'properties'>
+
+/** Property update type */
+export type PropertyUpdate = TablesUpdate<'properties'>
+
+/** Unit insert type */
+export type UnitInsert = TablesInsert<'units'>
+
+/** Unit update type */
+export type UnitUpdate = TablesUpdate<'units'>
+
+/** Lease insert type */
+export type LeaseInsert = TablesInsert<'leases'>
+
+/** Lease update type */
+export type LeaseUpdate = TablesUpdate<'leases'>
+
+/** Maintenance request insert type */
+export type MaintenanceRequestInsert = TablesInsert<'maintenance_requests'>
+
+/** Maintenance request update type */
+export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
+
+/** Rent payment insert type */
+export type RentPaymentInsert = TablesInsert<'rent_payments'>
+
+/** Rent payment update type */
+export type RentPaymentUpdate = TablesUpdate<'rent_payments'>
+
+// =============================================================================
+// LEGACY TYPES (kept for backwards compatibility - migrate away from these)
+// =============================================================================
 
 /**
  * Tenant status values (normalized to lowercase for consistency)
@@ -333,10 +526,21 @@ export interface EmergencyContactResponse {
 	updated_at: string
 }
 
+/** Basic payment status for tenant portal */
 export interface PaymentStatus {
 	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
 	due_date: string
 	amount: number
+}
+
+/** Full payment status response from /api/v1/rent-payments/status/:tenant_id */
+export interface TenantPaymentStatusResponse {
+	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
+	rent_amount: number
+	nextDueDate: string | null
+	lastPaymentDate: string | null
+	outstandingBalance: number
+	isOverdue: boolean
 }
 
 export interface NotificationPreferences {
@@ -478,8 +682,6 @@ export interface UpdatePropertyInput {
 	property_type?: string
 	units_count?: number
 }
-
-
 
 export interface CreateUnitInput {
 	property_id: string

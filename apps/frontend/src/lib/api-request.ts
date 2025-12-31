@@ -5,7 +5,7 @@
  * Used by all TanStack Query hooks for NestJS API calls.
  */
 
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 
 /**

@@ -12,12 +12,12 @@ import type { CreatePropertyDto } from './dto/create-property.dto'
 import type { UpdatePropertyDto } from './dto/update-property.dto'
 import { PropertiesController } from './properties.controller'
 import { PropertiesService } from './properties.service'
+import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardService } from '../dashboard/dashboard.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
-
 
 // Mock the PropertiesService
 jest.mock('./properties.service', () => {
@@ -29,11 +29,19 @@ jest.mock('./properties.service', () => {
 			findOne: jest.fn(),
 			create: jest.fn(),
 			update: jest.fn(),
-			remove: jest.fn(),
 			getPropertyPerformanceAnalytics: jest.fn(),
 			getPropertyOccupancyAnalytics: jest.fn(),
 			getPropertyFinancialAnalytics: jest.fn(),
-			getPropertyMaintenanceAnalytics: jest.fn(),
+			getPropertyMaintenanceAnalytics: jest.fn()
+		}))
+	}
+})
+
+// Mock the PropertyLifecycleService
+jest.mock('./services/property-lifecycle.service', () => {
+	return {
+		PropertyLifecycleService: jest.fn().mockImplementation(() => ({
+			remove: jest.fn(),
 			markAsSold: jest.fn()
 		}))
 	}
@@ -42,25 +50,26 @@ jest.mock('./properties.service', () => {
 describe('PropertiesController', () => {
 	let controller: PropertiesController
 	let mockPropertiesServiceInstance: jest.Mocked<PropertiesService>
+	let mockLifecycleServiceInstance: jest.Mocked<PropertyLifecycleService>
 
 	const mockUser = createMockUser({ id: 'user-123' })
 
 	const createMockProperty = (overrides: Partial<Property> = {}): Property => ({
-	id: 'property-default',
-	name: 'Test Property',
-	address_line1: '123 Main St',
-	address_line2: null,
-	city: 'New York',
-	state: 'NY',
-	postal_code: '10001',
-	country: 'US',
-	property_type: 'SINGLE_FAMILY',
-	status: 'active',
-	owner_user_id: mockUser.id,
-	date_sold: null,
-	sale_price: null,
-	created_at: new Date().toISOString(),
-	updated_at: new Date().toISOString(),
+		id: 'property-default',
+		name: 'Test Property',
+		address_line1: '123 Main St',
+		address_line2: null,
+		city: 'New York',
+		state: 'NY',
+		postal_code: '10001',
+		country: 'US',
+		property_type: 'SINGLE_FAMILY',
+		status: 'active',
+		owner_user_id: mockUser.id,
+		date_sold: null,
+		sale_price: null,
+		created_at: new Date().toISOString(),
+		updated_at: new Date().toISOString(),
 		...overrides
 	})
 
@@ -83,21 +92,25 @@ describe('PropertiesController', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [PropertiesController],
 			providers: [
-			PropertiesService,
-			{ provide: PropertyBulkImportService, useValue: {} },
-			{ provide: PropertyAnalyticsService, useValue: {} },
-			{ provide: DashboardService, useValue: {} },
+				PropertiesService,
+				PropertyLifecycleService,
+				{ provide: PropertyBulkImportService, useValue: {} },
+				{ provide: PropertyAnalyticsService, useValue: {} },
+				{ provide: DashboardService, useValue: {} },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
 				}
-		]
+			]
 		}).compile()
 
 		controller = module.get<PropertiesController>(PropertiesController)
 		mockPropertiesServiceInstance = module.get(
 			PropertiesService
 		) as jest.Mocked<PropertiesService>
+		mockLifecycleServiceInstance = module.get(
+			PropertyLifecycleService
+		) as jest.Mocked<PropertyLifecycleService>
 	})
 
 	it('should be defined', () => {
@@ -109,11 +122,12 @@ describe('PropertiesController', () => {
 			const mockProperties = [createMockProperty({ id: 'property-1' })]
 			mockPropertiesServiceInstance.findAll.mockResolvedValue(mockProperties)
 
+			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findAll(
 				null, // search
 				10, // limit
 				0, // offset
-				'mock-jwt-token' // JWT token
+				mockRequest
 			)
 
 			expect(mockPropertiesServiceInstance.findAll).toHaveBeenCalled()
@@ -170,10 +184,7 @@ describe('PropertiesController', () => {
 			mockPropertiesServiceInstance.findOne.mockResolvedValue(mockProperty)
 
 			const mockRequest = createMockRequest({ user: mockUser })
-			const result = await controller.findOne(
-				'property-1',
-				mockRequest
-			)
+			const result = await controller.findOne('property-1', mockRequest)
 			expect(mockPropertiesServiceInstance.findOne).toHaveBeenCalledWith(
 				mockRequest,
 				'property-1'
@@ -242,15 +253,15 @@ describe('PropertiesController', () => {
 
 	describe('remove', () => {
 		it('should delete a property', async () => {
-			mockPropertiesServiceInstance.remove.mockResolvedValue({ success: true, message: 'Property deleted successfully' })
+			mockLifecycleServiceInstance.remove.mockResolvedValue({
+				success: true,
+				message: 'Property deleted successfully'
+			})
 
 			const mockRequest = createMockRequest({ user: mockUser })
-			const result = await controller.remove(
-				'property-1',
-				mockRequest
-			)
+			const result = await controller.remove('property-1', mockRequest)
 
-			expect(mockPropertiesServiceInstance.remove).toHaveBeenCalledWith(
+			expect(mockLifecycleServiceInstance.remove).toHaveBeenCalledWith(
 				mockRequest,
 				'property-1'
 			)
@@ -260,8 +271,11 @@ describe('PropertiesController', () => {
 
 	describe('markPropertyAsSold', () => {
 		it('should mark property as sold with date and sale price', async () => {
-			const mockResponse = { success: true, message: 'Property marked as sold successfully' }
-			mockPropertiesServiceInstance.markAsSold.mockResolvedValue(mockResponse)
+			const mockResponse = {
+				success: true,
+				message: 'Property marked as sold successfully'
+			}
+			mockLifecycleServiceInstance.markAsSold.mockResolvedValue(mockResponse)
 
 			const result = await controller.markPropertyAsSold(
 				'property-1',
@@ -272,12 +286,12 @@ describe('PropertiesController', () => {
 				createMockRequest({ user: mockUser })
 			)
 
-			expect(mockPropertiesServiceInstance.markAsSold).toHaveBeenCalled()
+			expect(mockLifecycleServiceInstance.markAsSold).toHaveBeenCalled()
 			expect(result).toEqual(mockResponse)
 			expect(result.success).toBe(true)
 		})
 
-	// NOTE: Input validation tests are not needed for unit tests
+		// NOTE: Input validation tests are not needed for unit tests
 		// Validation is handled by ZodValidationPipe globally configured in app.module.ts
 		// The pipe validates DTOs BEFORE requests reach the controller
 		// See apps/backend/src/modules/pdf/pdf.controller.integration.spec.ts for validation testing pattern

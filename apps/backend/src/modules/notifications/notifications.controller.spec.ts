@@ -25,27 +25,32 @@ describe('NotificationsController', () => {
 	const mockToken = 'valid-jwt-token'
 
 	// Helper to create authenticated request with token
-	const createAuthenticatedRequest = (overrides?: Partial<AuthenticatedRequest>): AuthenticatedRequest => ({
-		user: { id: mockUserId },
-		headers: {
-			authorization: `Bearer ${mockToken}`
-		},
-		...overrides
-	} as unknown as AuthenticatedRequest)
+	const createAuthenticatedRequest = (
+		overrides?: Partial<AuthenticatedRequest>
+	): AuthenticatedRequest =>
+		({
+			user: { id: mockUserId },
+			headers: {
+				authorization: `Bearer ${mockToken}`
+			},
+			...overrides
+		}) as unknown as AuthenticatedRequest
 
 	// Helper for unauthenticated request (no user)
-	const createUnauthenticatedRequest = (): AuthenticatedRequest => ({
-		user: {},
-		headers: {
-			authorization: `Bearer ${mockToken}`
-		}
-	} as unknown as AuthenticatedRequest)
+	const createUnauthenticatedRequest = (): AuthenticatedRequest =>
+		({
+			user: {},
+			headers: {
+				authorization: `Bearer ${mockToken}`
+			}
+		}) as unknown as AuthenticatedRequest
 
 	// Helper for request missing token
-	const createRequestWithoutToken = (): AuthenticatedRequest => ({
-		user: { id: mockUserId },
-		headers: {}
-	} as unknown as AuthenticatedRequest)
+	const createRequestWithoutToken = (): AuthenticatedRequest =>
+		({
+			user: { id: mockUserId },
+			headers: {}
+		}) as unknown as AuthenticatedRequest
 
 	beforeEach(async () => {
 		jest.clearAllMocks()
@@ -70,9 +75,7 @@ describe('NotificationsController', () => {
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [NotificationsController],
-			providers: [
-				{ provide: SupabaseService, useValue: mockSupabaseService }
-			]
+			providers: [{ provide: SupabaseService, useValue: mockSupabaseService }]
 		}).compile()
 
 		controller = module.get<NotificationsController>(NotificationsController)
@@ -96,7 +99,9 @@ describe('NotificationsController', () => {
 		it('should throw UnauthorizedException when authorization header is missing', async () => {
 			const req = createRequestWithoutToken()
 
-			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
+			await expect(controller.getNotifications(req)).rejects.toThrow(
+				UnauthorizedException
+			)
 			expect(mockSupabaseService.getUserClient).not.toHaveBeenCalled()
 		})
 
@@ -106,7 +111,9 @@ describe('NotificationsController', () => {
 				headers: { authorization: 'InvalidFormat token' }
 			} as unknown as AuthenticatedRequest
 
-			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
+			await expect(controller.getNotifications(req)).rejects.toThrow(
+				UnauthorizedException
+			)
 		})
 	})
 
@@ -138,7 +145,11 @@ describe('NotificationsController', () => {
 
 		it('should support page + limit parameters', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: [], error: null, count: 0 })
+			mockSupabaseClient.range.mockReturnValue({
+				data: [],
+				error: null,
+				count: 0
+			})
 
 			await controller.getNotifications(req, 2, 20, false)
 
@@ -147,7 +158,11 @@ describe('NotificationsController', () => {
 
 		it('should support unreadOnly filter', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: [], error: null, count: 0 })
+			mockSupabaseClient.range.mockReturnValue({
+				data: [],
+				error: null,
+				count: 0
+			})
 
 			await controller.getNotifications(req, 1, 20, true)
 
@@ -157,7 +172,9 @@ describe('NotificationsController', () => {
 		it('should throw UnauthorizedException when user.id is missing', async () => {
 			const req = createUnauthenticatedRequest()
 
-			await expect(controller.getNotifications(req)).rejects.toThrow(UnauthorizedException)
+			await expect(controller.getNotifications(req)).rejects.toThrow(
+				UnauthorizedException
+			)
 		})
 
 		it('should throw BadRequestException on database error', async () => {
@@ -168,12 +185,18 @@ describe('NotificationsController', () => {
 				count: 0
 			})
 
-			await expect(controller.getNotifications(req)).rejects.toThrow(BadRequestException)
+			await expect(controller.getNotifications(req)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 
 		it('should return empty array when no notifications found', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.range.mockReturnValue({ data: null, error: null, count: 0 })
+			mockSupabaseClient.range.mockReturnValue({
+				data: null,
+				error: null,
+				count: 0
+			})
 
 			const result = await controller.getNotifications(req)
 
@@ -193,10 +216,19 @@ describe('NotificationsController', () => {
 
 		it('should create notification with RLS-scoped client', async () => {
 			const req = createAuthenticatedRequest()
-			const mockCreatedNotification = { id: 'notif-123', ...validNotificationData }
-			mockSupabaseClient.single.mockResolvedValue({ data: mockCreatedNotification, error: null })
+			const mockCreatedNotification = {
+				id: 'notif-123',
+				...validNotificationData
+			}
+			mockSupabaseClient.single.mockResolvedValue({
+				data: mockCreatedNotification,
+				error: null
+			})
 
-			const result = await controller.createNotification(req, validNotificationData)
+			const result = await controller.createNotification(
+				req,
+				validNotificationData
+			)
 
 			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
 			expect(mockSupabaseClient.from).toHaveBeenCalledWith('notifications')
@@ -214,7 +246,10 @@ describe('NotificationsController', () => {
 		it('should create notification without optional actionUrl', async () => {
 			const req = createAuthenticatedRequest()
 			const dataWithoutUrl = { ...validNotificationData, actionUrl: undefined }
-			mockSupabaseClient.single.mockResolvedValue({ data: { id: 'notif-456' }, error: null })
+			mockSupabaseClient.single.mockResolvedValue({
+				data: { id: 'notif-456' },
+				error: null
+			})
 
 			await controller.createNotification(req, dataWithoutUrl)
 
@@ -225,9 +260,14 @@ describe('NotificationsController', () => {
 
 		it('should throw BadRequestException on creation failure', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.single.mockResolvedValue({ data: null, error: { message: 'Creation failed' } })
+			mockSupabaseClient.single.mockResolvedValue({
+				data: null,
+				error: { message: 'Creation failed' }
+			})
 
-			await expect(controller.createNotification(req, validNotificationData)).rejects.toThrow(BadRequestException)
+			await expect(
+				controller.createNotification(req, validNotificationData)
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 
@@ -257,7 +297,9 @@ describe('NotificationsController', () => {
 		it('should throw UnauthorizedException when user.id is missing', async () => {
 			const req = createUnauthenticatedRequest()
 
-			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(UnauthorizedException)
+			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(
+				UnauthorizedException
+			)
 		})
 
 		it('should throw BadRequestException on update failure', async () => {
@@ -269,7 +311,9 @@ describe('NotificationsController', () => {
 				return mockSupabaseClient
 			})
 
-			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(BadRequestException)
+			await expect(controller.markAsRead(notificationId, req)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 
@@ -296,7 +340,9 @@ describe('NotificationsController', () => {
 		it('should throw UnauthorizedException when user.id is missing', async () => {
 			const req = createUnauthenticatedRequest()
 
-			await expect(controller.deleteNotification(notificationId, req)).rejects.toThrow(UnauthorizedException)
+			await expect(
+				controller.deleteNotification(notificationId, req)
+			).rejects.toThrow(UnauthorizedException)
 		})
 
 		it('should throw BadRequestException on deletion failure', async () => {
@@ -308,7 +354,9 @@ describe('NotificationsController', () => {
 				return mockSupabaseClient
 			})
 
-			await expect(controller.deleteNotification(notificationId, req)).rejects.toThrow(BadRequestException)
+			await expect(
+				controller.deleteNotification(notificationId, req)
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 
@@ -323,9 +371,15 @@ describe('NotificationsController', () => {
 		it('should create maintenance notification with RLS-scoped client', async () => {
 			const req = createAuthenticatedRequest()
 			const expectedNotification = { id: 'notif-789', ...maintenanceData }
-			mockSupabaseClient.single.mockResolvedValue({ data: expectedNotification, error: null })
+			mockSupabaseClient.single.mockResolvedValue({
+				data: expectedNotification,
+				error: null
+			})
 
-			const result = await controller.createMaintenanceNotification(req, maintenanceData)
+			const result = await controller.createMaintenanceNotification(
+				req,
+				maintenanceData
+			)
 
 			expect(mockSupabaseService.getUserClient).toHaveBeenCalledWith(mockToken)
 			expect(mockSupabaseClient.insert).toHaveBeenCalledWith({
@@ -343,16 +397,24 @@ describe('NotificationsController', () => {
 
 		it('should throw BadRequestException on creation failure', async () => {
 			const req = createAuthenticatedRequest()
-			mockSupabaseClient.single.mockResolvedValue({ data: null, error: { message: 'Creation failed' } })
+			mockSupabaseClient.single.mockResolvedValue({
+				data: null,
+				error: { message: 'Creation failed' }
+			})
 
-			await expect(controller.createMaintenanceNotification(req, maintenanceData)).rejects.toThrow(BadRequestException)
+			await expect(
+				controller.createMaintenanceNotification(req, maintenanceData)
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 
 	describe('getPriorityInfo', () => {
 		it('should return correct info for LOW priority', async () => {
 			const result = await controller.getPriorityInfo('low')
-			expect(result).toEqual({ color: 'hsl(var(--muted-foreground))', label: 'Low Priority' })
+			expect(result).toEqual({
+				color: 'hsl(var(--muted-foreground))',
+				label: 'Low Priority'
+			})
 		})
 
 		it('should return correct info for MEDIUM priority', async () => {
@@ -362,7 +424,10 @@ describe('NotificationsController', () => {
 
 		it('should return correct info for HIGH priority', async () => {
 			const result = await controller.getPriorityInfo('high')
-			expect(result).toEqual({ color: 'hsl(var(--destructive))', label: 'High Priority' })
+			expect(result).toEqual({
+				color: 'hsl(var(--destructive))',
+				label: 'High Priority'
+			})
 		})
 
 		it('should return correct info for EMERGENCY priority', async () => {
@@ -372,11 +437,16 @@ describe('NotificationsController', () => {
 
 		it('should handle case insensitive priority input', async () => {
 			const result = await controller.getPriorityInfo('low')
-			expect(result).toEqual({ color: 'hsl(var(--muted-foreground))', label: 'Low Priority' })
+			expect(result).toEqual({
+				color: 'hsl(var(--muted-foreground))',
+				label: 'Low Priority'
+			})
 		})
 
 		it('should throw BadRequestException for invalid priority', async () => {
-			await expect(controller.getPriorityInfo('INVALID')).rejects.toThrow(BadRequestException)
+			await expect(controller.getPriorityInfo('INVALID')).rejects.toThrow(
+				BadRequestException
+			)
 		})
 	})
 })

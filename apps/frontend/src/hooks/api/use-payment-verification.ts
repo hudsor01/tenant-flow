@@ -12,12 +12,17 @@ const logger = createLogger({ component: 'PaymentVerification' })
 
 // Query keys for payment verification
 export const paymentQueryKeys = {
-	verifySession: (sessionId: string) => ['payment', 'verify', sessionId] as const,
-	sessionStatus: (sessionId: string) => ['payment', 'status', sessionId] as const
+	verifySession: (sessionId: string) =>
+		['payment', 'verify', sessionId] as const,
+	sessionStatus: (sessionId: string) =>
+		['payment', 'status', sessionId] as const
 }
 
 // Hook to verify payment session with TanStack Query
-export function usePaymentVerification(sessionId: string | null, options: { throwOnError?: boolean } = {}) {
+export function usePaymentVerification(
+	sessionId: string | null,
+	options: { throwOnError?: boolean } = {}
+) {
 	return useQuery({
 		queryKey: paymentQueryKeys.verifySession(sessionId || ''),
 		queryFn: async (): Promise<{ subscription: SubscriptionData }> => {
@@ -55,13 +60,18 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 				}
 
 				const sub = response.subscription
-				const planName = sub.items[0]?.price?.nickname || sub.items[0]?.price?.product?.name || 'Unknown Plan'
+				const planName =
+					sub.items[0]?.price?.nickname ||
+					sub.items[0]?.price?.product?.name ||
+					'Unknown Plan'
 
 				data = {
 					subscription: {
 						status: sub.status as SubscriptionData['status'],
 						planName,
-						currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : '',
+						currentPeriodEnd: sub.current_period_end
+							? new Date(sub.current_period_end * 1000).toISOString()
+							: '',
 						cancelAtPeriodEnd: sub.cancelAt_period_end
 					}
 				}
@@ -97,7 +107,10 @@ export function usePaymentVerification(sessionId: string | null, options: { thro
 }
 
 // Hook to get session status with TanStack Query
-export function useSessionStatus(sessionId: string | null, options: { throwOnError?: boolean } = {}) {
+export function useSessionStatus(
+	sessionId: string | null,
+	options: { throwOnError?: boolean } = {}
+) {
 	return useQuery({
 		queryKey: paymentQueryKeys.sessionStatus(sessionId || ''),
 		queryFn: async (): Promise<StripeSessionStatusResponse> => {

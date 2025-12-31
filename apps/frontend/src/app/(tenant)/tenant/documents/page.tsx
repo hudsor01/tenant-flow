@@ -20,7 +20,6 @@ import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
-
 const logger = createLogger({ component: 'TenantDocumentsPage' })
 
 // Next.js 16: Dynamic behavior is controlled by cacheComponents
@@ -128,141 +127,59 @@ export default function TenantDocumentsPage() {
 
 	return (
 		<div className="space-y-8">
-				<div>
-					<h1 className="typography-h2 tracking-tight">My Documents</h1>
-					<p className="text-muted-foreground">
-						View and download your lease documents and important notices
-					</p>
-				</div>
+			<div>
+				<h1 className="typography-h1">My Documents</h1>
+				<p className="text-muted-foreground">
+					View and download your lease documents and important notices
+				</p>
+			</div>
 
-				{error && (
-					<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
-						<div className="flex-between">
-							<p className="text-sm text-destructive">
-								Failed to load documents. Please try again.
-							</p>
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => refetch()}
-								className="ml-4"
-							>
-								Retry
-							</Button>
-						</div>
-					</div>
-				)}
-
-				<CardLayout
-					title="Lease Documents"
-					description="Signed agreements and addendums"
-				>
-					{isLoading ? (
-						<div className="space-y-3">
-							<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-								<div className="flex items-center gap-4 flex-1">
-									<FileText className="size-6 text-accent-main" />
-									<div className="flex-1">
-										<div className="flex items-center gap-3">
-											<p className="font-medium">Lease Agreement - 2024</p>
-											<Badge
-												variant="outline"
-												className="bg-success/10 text-success border-success/20"
-											>
-												Signed
-											</Badge>
-										</div>
-										<div className="flex items-center gap-4 text-muted mt-1">
-											<div className="flex items-center gap-1">
-												<Calendar className="size-3" />
-												<span>
-													Signed on{' '}
-													<Skeleton className="inline-block h-4 w-20" />
-												</span>
-											</div>
-											<span>•</span>
-											<span>PDF, 1.2 MB</span>
-										</div>
-									</div>
-								</div>
-								<div className="flex gap-2">
-									<Button variant="ghost" size="sm">
-										<Eye className="size-4" />
-									</Button>
-									<Button variant="outline" size="sm">
-										<Download className="size-4 mr-2" />
-										Download
-									</Button>
-								</div>
-							</div>
-
-							<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-								<div className="flex items-center gap-4 flex-1">
-									<FileText className="size-6 text-accent-main" />
-									<div className="flex-1">
-										<div className="flex items-center gap-3">
-											<p className="font-medium">Pet Addendum</p>
-											<Badge
-												variant="outline"
-												className="bg-success/10 text-success border-success/20"
-											>
-												Signed
-											</Badge>
-										</div>
-										<div className="flex items-center gap-4 text-muted mt-1">
-											<div className="flex items-center gap-1">
-												<Calendar className="size-3" />
-												<span>
-													Signed on{' '}
-													<Skeleton className="inline-block h-4 w-20" />
-												</span>
-											</div>
-											<span>•</span>
-											<span>PDF, 245 KB</span>
-										</div>
-									</div>
-								</div>
-								<div className="flex gap-2">
-									<Button variant="ghost" size="sm">
-										<Eye className="size-4" />
-									</Button>
-									<Button variant="outline" size="sm">
-										<Download className="size-4 mr-2" />
-										Download
-									</Button>
-								</div>
-							</div>
-						</div>
-					) : leaseDocs.length > 0 ? (
-						<div className="space-y-3">{leaseDocs.map(renderDocumentRow)}</div>
-					) : (
-						<p className="text-muted text-center py-8">
-							No lease documents available yet
+			{error && (
+				<div className="p-4 border border-destructive/50 rounded-lg bg-destructive/10">
+					<div className="flex-between">
+						<p className="text-sm text-destructive">
+							Failed to load documents. Please try again.
 						</p>
-					)}
-				</CardLayout>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => refetch()}
+							className="ml-4"
+						>
+							Retry
+						</Button>
+					</div>
+				</div>
+			)}
 
-				{/* Move-In Documents */}
-				<CardLayout
-					title="Move-In Documents"
-					description="Documents from your move-in inspection"
-				>
+			<CardLayout
+				title="Lease Documents"
+				description="Signed agreements and addendums"
+			>
+				{isLoading ? (
 					<div className="space-y-3">
 						<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
 								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
-									<p className="font-medium">Move-In Checklist</p>
+									<div className="flex items-center gap-3">
+										<p className="font-medium">Lease Agreement - 2024</p>
+										<Badge
+											variant="outline"
+											className="bg-success/10 text-success border-success/20"
+										>
+											Signed
+										</Badge>
+									</div>
 									<div className="flex items-center gap-4 text-muted mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
 											<span>
-												Completed on{' '}
-												<Skeleton className="inline-block h-4 w-20" />
+												Signed on <Skeleton className="inline-block h-4 w-20" />
 											</span>
 										</div>
 										<span>•</span>
-										<span>PDF, 892 KB</span>
+										<span>PDF, 1.2 MB</span>
 									</div>
 								</div>
 							</div>
@@ -277,26 +194,29 @@ export default function TenantDocumentsPage() {
 							</div>
 						</div>
 
-						<p className="text-muted text-center py-8">
-							No move-in documents available yet
-						</p>
-					</div>
-				</CardLayout>
-
-				{/* Property Rules & Policies */}
-				<CardLayout
-					title="Property Rules & Policies"
-					description="Important information about your property"
-				>
-					<div className="space-y-3">
 						<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
 							<div className="flex items-center gap-4 flex-1">
-								<FolderOpen className="size-6 text-accent-main" />
+								<FileText className="size-6 text-accent-main" />
 								<div className="flex-1">
-									<p className="font-medium">Community Rules</p>
-									<p className="text-muted mt-1">
-										Property guidelines and community standards
-									</p>
+									<div className="flex items-center gap-3">
+										<p className="font-medium">Pet Addendum</p>
+										<Badge
+											variant="outline"
+											className="bg-success/10 text-success border-success/20"
+										>
+											Signed
+										</Badge>
+									</div>
+									<div className="flex items-center gap-4 text-muted mt-1">
+										<div className="flex items-center gap-1">
+											<Calendar className="size-3" />
+											<span>
+												Signed on <Skeleton className="inline-block h-4 w-20" />
+											</span>
+										</div>
+										<span>•</span>
+										<span>PDF, 245 KB</span>
+									</div>
 								</div>
 							</div>
 							<div className="flex gap-2">
@@ -309,45 +229,120 @@ export default function TenantDocumentsPage() {
 								</Button>
 							</div>
 						</div>
+					</div>
+				) : leaseDocs.length > 0 ? (
+					<div className="space-y-3">{leaseDocs.map(renderDocumentRow)}</div>
+				) : (
+					<p className="text-muted text-center py-8">
+						No lease documents available yet
+					</p>
+				)}
+			</CardLayout>
 
-						<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
-							<div className="flex items-center gap-4 flex-1">
-								<FolderOpen className="size-6 text-accent-main" />
-								<div className="flex-1">
-									<p className="font-medium">Emergency Procedures</p>
-									<p className="text-muted mt-1">
-										What to do in case of emergency
-									</p>
+			{/* Move-In Documents */}
+			<CardLayout
+				title="Move-In Documents"
+				description="Documents from your move-in inspection"
+			>
+				<div className="space-y-3">
+					<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+						<div className="flex items-center gap-4 flex-1">
+							<FileText className="size-6 text-accent-main" />
+							<div className="flex-1">
+								<p className="font-medium">Move-In Checklist</p>
+								<div className="flex items-center gap-4 text-muted mt-1">
+									<div className="flex items-center gap-1">
+										<Calendar className="size-3" />
+										<span>
+											Completed on{' '}
+											<Skeleton className="inline-block h-4 w-20" />
+										</span>
+									</div>
+									<span>•</span>
+									<span>PDF, 892 KB</span>
 								</div>
 							</div>
-							<div className="flex gap-2">
-								<Button variant="ghost" size="sm">
-									<Eye className="size-4" />
-								</Button>
-								<Button variant="outline" size="sm">
-									<Download className="size-4 mr-2" />
-									Download
-								</Button>
+						</div>
+						<div className="flex gap-2">
+							<Button variant="ghost" size="sm">
+								<Eye className="size-4" />
+							</Button>
+							<Button variant="outline" size="sm">
+								<Download className="size-4 mr-2" />
+								Download
+							</Button>
+						</div>
+					</div>
+
+					<p className="text-muted text-center py-8">
+						No move-in documents available yet
+					</p>
+				</div>
+			</CardLayout>
+
+			{/* Property Rules & Policies */}
+			<CardLayout
+				title="Property Rules & Policies"
+				description="Important information about your property"
+			>
+				<div className="space-y-3">
+					<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+						<div className="flex items-center gap-4 flex-1">
+							<FolderOpen className="size-6 text-accent-main" />
+							<div className="flex-1">
+								<p className="font-medium">Community Rules</p>
+								<p className="text-muted mt-1">
+									Property guidelines and community standards
+								</p>
 							</div>
 						</div>
-
-						<p className="text-muted text-center py-8">
-							No property documents available yet
-						</p>
+						<div className="flex gap-2">
+							<Button variant="ghost" size="sm">
+								<Eye className="size-4" />
+							</Button>
+							<Button variant="outline" size="sm">
+								<Download className="size-4 mr-2" />
+								Download
+							</Button>
+						</div>
 					</div>
-				</CardLayout>
 
-				{/* Notices & Communications */}
-				<CardLayout
-					title="Notices & Communications"
-					description="Important notices from your property manager"
-				>
-					<div className="space-y-3">
-						<p className="text-muted text-center py-8">
-							No notices at this time
-						</p>
+					<div className="flex-between p-4 border rounded-lg hover:bg-accent/5 transition-colors">
+						<div className="flex items-center gap-4 flex-1">
+							<FolderOpen className="size-6 text-accent-main" />
+							<div className="flex-1">
+								<p className="font-medium">Emergency Procedures</p>
+								<p className="text-muted mt-1">
+									What to do in case of emergency
+								</p>
+							</div>
+						</div>
+						<div className="flex gap-2">
+							<Button variant="ghost" size="sm">
+								<Eye className="size-4" />
+							</Button>
+							<Button variant="outline" size="sm">
+								<Download className="size-4 mr-2" />
+								Download
+							</Button>
+						</div>
 					</div>
-				</CardLayout>
+
+					<p className="text-muted text-center py-8">
+						No property documents available yet
+					</p>
+				</div>
+			</CardLayout>
+
+			{/* Notices & Communications */}
+			<CardLayout
+				title="Notices & Communications"
+				description="Important notices from your property manager"
+			>
+				<div className="space-y-3">
+					<p className="text-muted text-center py-8">No notices at this time</p>
+				</div>
+			</CardLayout>
 		</div>
 	)
 }

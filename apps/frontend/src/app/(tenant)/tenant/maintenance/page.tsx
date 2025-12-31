@@ -21,7 +21,11 @@ import { Plus, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 export default function TenantMaintenancePage() {
-	const { data: maintenanceData, isLoading, error } = useQuery(maintenanceQueries.tenantPortal())
+	const {
+		data: maintenanceData,
+		isLoading,
+		error
+	} = useQuery(maintenanceQueries.tenantPortal())
 	const isMobile = useMediaQuery('(max-width: 768px)')
 
 	// DB enum values are lowercase: 'open' | 'in_progress' | 'completed' | 'cancelled' | 'on_hold'
@@ -53,9 +57,7 @@ export default function TenantMaintenancePage() {
 		<div className="space-y-8">
 			<div className="flex-between">
 				<div>
-					<h1 className="typography-h2 tracking-tight">
-						Maintenance Requests
-					</h1>
+					<h1 className="typography-h1">Maintenance Requests</h1>
 					<p className="text-muted-foreground">
 						View and manage your maintenance requests
 					</p>
@@ -92,66 +94,69 @@ export default function TenantMaintenancePage() {
 					{!isLoading && !error && activeRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
 							<Wrench className="size-12 text-muted-foreground mx-auto mb-3" />
-							<p className="text-muted">
-								No active maintenance requests
-							</p>
+							<p className="text-muted">No active maintenance requests</p>
 							<p className="text-caption mt-1">
 								Submit a request if you need help with something
 							</p>
 						</div>
 					)}
 
-			{!isLoading &&
-				!error &&
-				(isMobile ? (
-					activeRequests.map(request => (
-						<TenantMaintenanceCard
-							key={request.id}
-							request={request}
-							layout="stacked"
-						/>
-					))
-				) : (
-					<div
-						data-testid="maintenance-active-table"
-						className="overflow-x-auto"
-					>
-						<div className="min-w-[720px] space-y-1">
-							<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
-								<div>Description</div>
-								<div>Priority</div>
-								<div>Status</div>
-								<div>Submitted</div>
-								<div className="text-right">Unit</div>
-							</div>
-							{activeRequests.map(request => (
-								<div
+					{!isLoading &&
+						!error &&
+						(isMobile ? (
+							activeRequests.map(request => (
+								<TenantMaintenanceCard
 									key={request.id}
-									data-testid="maintenance-row"
-									className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
-								>
-									<div className="space-y-1">
-										<p className="font-medium break-words">{request.description}</p>
+									request={request}
+									layout="stacked"
+								/>
+							))
+						) : (
+							<div
+								data-testid="maintenance-active-table"
+								className="overflow-x-auto"
+							>
+								<div className="min-w-[720px] space-y-1">
+									<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+										<div>Description</div>
+										<div>Priority</div>
+										<div>Status</div>
+										<div>Submitted</div>
+										<div className="text-right">Unit</div>
 									</div>
-									<div className="text-sm font-semibold uppercase text-muted-foreground">
-										{request.priority}
-									</div>
-									<div>
-										<span className={getStatusBadgeClass(request.status)}>
-											{request.status.replace('_', ' ')}
-										</span>
-									</div>
-									<div className="text-sm text-muted-foreground">
-										{formatDate(request.created_at || new Date().toISOString(), { relative: true })}
-									</div>
-									<div className="text-right text-sm text-muted-foreground">
-										{request.unit_id || '—'}
-									</div>
+									{activeRequests.map(request => (
+										<div
+											key={request.id}
+											data-testid="maintenance-row"
+											className="grid grid-cols-5 gap-4 p-4 items-center border-b hover:bg-accent/5 transition-colors"
+										>
+											<div className="space-y-1">
+												<p className="font-medium break-words">
+													{request.description}
+												</p>
+											</div>
+											<div className="text-sm font-semibold uppercase text-muted-foreground">
+												{request.priority}
+											</div>
+											<div>
+												<span className={getStatusBadgeClass(request.status)}>
+													{request.status.replace('_', ' ')}
+												</span>
+											</div>
+											<div className="text-sm text-muted-foreground">
+												{formatDate(
+													request.created_at || new Date().toISOString(),
+													{ relative: true }
+												)}
+											</div>
+											<div className="text-right text-sm text-muted-foreground">
+												{request.unit_id || '—'}
+											</div>
+										</div>
+									))}
 								</div>
-							))}
-						</div>
-					</div>
-				))}
+							</div>
+						))}
 				</div>
 			</CardLayout>
 
@@ -170,66 +175,69 @@ export default function TenantMaintenancePage() {
 
 					{!isLoading && !error && completedRequests.length === 0 && (
 						<div className="text-center section-spacing-compact bg-muted/30 rounded-lg border-2 border-dashed border-border/50">
-							<p className="text-muted">
-								No request history yet
-							</p>
+							<p className="text-muted">No request history yet</p>
 						</div>
 					)}
 
-			{!isLoading &&
-				!error &&
-				(isMobile ? (
-					completedRequests.map(request => (
-						<TenantMaintenanceCard
-							key={request.id}
-							request={request}
-							layout="stacked"
-						/>
-					))
-				) : (
-					<div
-						data-testid="maintenance-history-table"
-						className="overflow-x-auto"
-					>
-						<div className="min-w-[720px] space-y-1">
-							<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
-								<div>Description</div>
-								<div>Priority</div>
-								<div>Status</div>
-								<div>Submitted</div>
-								<div className="text-right">Completed</div>
-							</div>
-
-							{completedRequests.map(request => (
-								<div
+					{!isLoading &&
+						!error &&
+						(isMobile ? (
+							completedRequests.map(request => (
+								<TenantMaintenanceCard
 									key={request.id}
-									data-testid="maintenance-row"
-									className="grid grid-cols-5 gap-4 p-4 items-center border-b"
-								>
-									<div className="space-y-1">
-										<p className="font-medium break-words">{request.description}</p>
+									request={request}
+									layout="stacked"
+								/>
+							))
+						) : (
+							<div
+								data-testid="maintenance-history-table"
+								className="overflow-x-auto"
+							>
+								<div className="min-w-[720px] space-y-1">
+									<div className="grid grid-cols-5 gap-4 p-4 text-muted font-medium border-b">
+										<div>Description</div>
+										<div>Priority</div>
+										<div>Status</div>
+										<div>Submitted</div>
+										<div className="text-right">Completed</div>
 									</div>
-									<div className="text-sm font-semibold uppercase text-muted-foreground">
-										{request.priority}
-									</div>
-									<div>
-										<span className={getStatusBadgeClass(request.status)}>
-											{request.status.replace('_', ' ')}
-										</span>
-									</div>
-									<div className="text-sm text-muted-foreground">
-										{formatDate(request.created_at || new Date().toISOString(), { relative: true })}
-									</div>
-									<div className="text-right text-sm text-muted-foreground">
-										{request.completed_at
-											? formatDate(request.completed_at, { relative: true })
-											: '—'}
-									</div>
+
+									{completedRequests.map(request => (
+										<div
+											key={request.id}
+											data-testid="maintenance-row"
+											className="grid grid-cols-5 gap-4 p-4 items-center border-b"
+										>
+											<div className="space-y-1">
+												<p className="font-medium break-words">
+													{request.description}
+												</p>
+											</div>
+											<div className="text-sm font-semibold uppercase text-muted-foreground">
+												{request.priority}
+											</div>
+											<div>
+												<span className={getStatusBadgeClass(request.status)}>
+													{request.status.replace('_', ' ')}
+												</span>
+											</div>
+											<div className="text-sm text-muted-foreground">
+												{formatDate(
+													request.created_at || new Date().toISOString(),
+													{ relative: true }
+												)}
+											</div>
+											<div className="text-right text-sm text-muted-foreground">
+												{request.completed_at
+													? formatDate(request.completed_at, { relative: true })
+													: '—'}
+											</div>
+										</div>
+									))}
 								</div>
-							))}
-						</div>
-					</div>
-				))}
+							</div>
+						))}
 				</div>
 			</CardLayout>
 		</div>

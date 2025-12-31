@@ -3,7 +3,7 @@
  * Centralized error handling types for consistent error management
  */
 
-import type { ApiResponse } from './core.js'
+import type { ApiResponse as ApiResponseType } from './core.js'
 
 // React node type definition for error boundaries - avoiding React dependency
 export type ReactNodeType = unknown
@@ -142,10 +142,10 @@ export interface StandardApiResponse<T = unknown> {
 }
 
 // Generic API response - union type for type-safe error handling (imported from base-types)
-export type { ApiResponse }
+export type ApiResponse = ApiResponseType
 
 // Export StandardApiResponse as ApiResponse for backend controllers
-export type { StandardApiResponse as ControllerApiResponse }
+export type ControllerApiResponse = StandardApiResponse
 
 // Error handler function type
 export type ErrorHandler = (error: AppError) => void
@@ -159,7 +159,6 @@ export interface ErrorBoundaryProps {
 
 // Form error state
 export type FormErrorState = Record<string, string | undefined>
-
 
 // Error context for debugging
 export interface ErrorContext {

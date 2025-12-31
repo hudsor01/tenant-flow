@@ -11,7 +11,8 @@
  * @vitest-environment jsdom
  */
 
-import { render, screen, fireEvent } from '#test/utils/test-render'
+import { screen, fireEvent } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { BulkImportUploadStep } from '../bulk-import-upload-step'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import userEvent from '@testing-library/user-event'

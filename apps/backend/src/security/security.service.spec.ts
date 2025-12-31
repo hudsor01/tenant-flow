@@ -62,7 +62,9 @@ describe('SecurityService', () => {
 
 		it('should throw on string with only whitespace', () => {
 			expect(() => service.sanitizeInput('   ')).toThrow(BadRequestException)
-			expect(() => service.sanitizeInput('   ')).toThrow('Input cannot contain only whitespace')
+			expect(() => service.sanitizeInput('   ')).toThrow(
+				'Input cannot contain only whitespace'
+			)
 		})
 
 		it('should preserve other special characters', () => {

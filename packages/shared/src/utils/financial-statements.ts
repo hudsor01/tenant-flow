@@ -4,9 +4,7 @@
  * Helper functions for financial statement calculations and formatting
  */
 
-import type {
-	TaxDocumentsData
-} from '../types/financial-statements.js'
+import type { TaxDocumentsData } from '../types/financial-statements.js'
 
 /**
  * Safely converts a value to a number, returning 0 for invalid values
@@ -31,7 +29,10 @@ export function calculatePercentChange(
 /**
  * Formats a date range into a human-readable label
  */
-export function formatPeriodLabel(start_date: string, end_date: string): string {
+export function formatPeriodLabel(
+	start_date: string,
+	end_date: string
+): string {
 	const start = new Date(start_date)
 	const end = new Date(end_date)
 
@@ -107,7 +108,6 @@ export function formatCurrency(value: number): string {
 export function formatPercentage(value: number, decimals = 1): string {
 	return `${value.toFixed(decimals)}%`
 }
-
 
 /**
  * Creates a financial period from start and end dates

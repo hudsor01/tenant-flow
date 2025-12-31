@@ -53,9 +53,7 @@ export default function CheckoutSuccessPage() {
 				<main className="flex-1 page-offset-navbar flex-center">
 					<div className="text-center">
 						<div className="animate-spin rounded-full size-12 border-b-2 border-primary mx-auto mb-4"></div>
-						<h2 className="typography-h4 mb-2">
-							Verifying your payment...
-						</h2>
+						<h2 className="typography-h4 mb-2">Verifying your payment...</h2>
 						<p className="text-muted-foreground">
 							Please wait while we confirm your subscription.
 						</p>
@@ -70,67 +68,66 @@ export default function CheckoutSuccessPage() {
 			<Navbar />
 
 			<main className="flex-1 page-offset-navbar">
+				{/* Hero Section */}
+				<HeroSection
+					title="Payment Successful!"
+					subtitle="Welcome to TenantFlow! Your subscription is now active and ready to use. Start managing your properties with enterprise-grade tools."
+					primaryCta={{ label: 'Go to Dashboard', href: '/' }}
+					secondaryCta={{ label: 'Contact Support', href: '/contact' }}
+				/>
 
-			{/* Hero Section */}
-			<HeroSection
-				title="Payment Successful!"
-				subtitle="Welcome to TenantFlow! Your subscription is now active and ready to use. Start managing your properties with enterprise-grade tools."
-				primaryCta={{ label: 'Go to Dashboard', href: '/' }}
-				secondaryCta={{ label: 'Contact Support', href: '/contact' }}
-			/>
-
-			<div className="section-content">
-				<div className="max-w-2xl mx-auto px-6 lg:px-8">
-					<CardLayout
-						title="Payment Successful!"
-						description="Welcome to TenantFlow! Your subscription is now active."
-						className="text-center shadow-2xl border-2 border-border/50"
-					>
-						<div className="pb-8">
-							<div className="size-16 bg-accent/10 rounded-full flex-center mx-auto mb-6">
-								<CheckCircle className="size-8 text-accent" />
+				<div className="section-content">
+					<div className="max-w-2xl mx-auto px-6 lg:px-8">
+						<CardLayout
+							title="Payment Successful!"
+							description="Welcome to TenantFlow! Your subscription is now active."
+							className="text-center shadow-2xl border-2 border-border/50"
+						>
+							<div className="pb-8">
+								<div className="size-16 bg-accent/10 rounded-full flex-center mx-auto mb-6">
+									<CheckCircle className="size-8 text-accent" />
+								</div>
+								<p className="text-xl text-muted-foreground">
+									Welcome to TenantFlow! Your subscription is now active.
+								</p>
 							</div>
-							<p className="text-xl text-muted-foreground">
-								Welcome to TenantFlow! Your subscription is now active.
-							</p>
-						</div>
 
-						<div className="space-y-6">
-							<div className="space-y-4">
-								<h3 className="font-semibold">What&apos;s next?</h3>
-								<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-									<Link href="/dashboard">
-										<Button className="w-full justify-start" size="lg">
-											<Home className="size-4 mr-2" />
-											Go to Dashboard
-										</Button>
-									</Link>
-									<CustomerPortalButton
-										className="w-full justify-start"
-										size="lg"
-									/>
+							<div className="space-y-6">
+								<div className="space-y-4">
+									<h3 className="font-semibold">What&apos;s next?</h3>
+									<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+										<Link href="/dashboard">
+											<Button className="w-full justify-start" size="lg">
+												<Home className="size-4 mr-2" />
+												Go to Dashboard
+											</Button>
+										</Link>
+										<CustomerPortalButton
+											className="w-full justify-start"
+											size="lg"
+										/>
+									</div>
+								</div>
+
+								<div className="pt-6 border-t">
+									<p className="text-muted mb-4">
+										A confirmation email has been sent to your email address
+										with your receipt and subscription details.
+									</p>
+									<p className="text-muted">
+										Need help?{' '}
+										<Link
+											href="/contact"
+											className="text-primary hover:underline"
+										>
+											Contact our support team
+										</Link>
+									</p>
 								</div>
 							</div>
-
-							<div className="pt-6 border-t">
-								<p className="text-muted mb-4">
-									A confirmation email has been sent to your email address with
-									your receipt and subscription details.
-								</p>
-								<p className="text-muted">
-									Need help?{' '}
-									<Link
-										href="/contact"
-										className="text-primary hover:underline"
-									>
-										Contact our support team
-									</Link>
-								</p>
-							</div>
-						</div>
-					</CardLayout>
+						</CardLayout>
+					</div>
 				</div>
-			</div>
 			</main>
 			<Footer />
 		</div>

@@ -19,7 +19,9 @@ import { toast } from 'sonner'
 const logger = createLogger({ component: 'PaymentMethodSetupForm' })
 
 // Load Stripe outside component render per official docs
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+const stripePromise = loadStripe(
+	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
+)
 
 interface PaymentMethodSetupFormProps {
 	onSuccess: (paymentMethodId: string) => void
@@ -94,7 +96,9 @@ function SetupForm({
 				const { error: submitError } = await elements.submit()
 				if (submitError) {
 					if (!isMountedRef.current) return
-					setError(submitError.message || 'Please check your payment information')
+					setError(
+						submitError.message || 'Please check your payment information'
+					)
 					setIsProcessing(false)
 					return
 				}
@@ -164,7 +168,8 @@ function SetupForm({
 				if (err instanceof Error && err.name === 'AbortError') return
 				if (!isMountedRef.current) return
 
-				const error = err instanceof Error ? err : new Error('An unexpected error occurred')
+				const error =
+					err instanceof Error ? err : new Error('An unexpected error occurred')
 				setError(error.message)
 				toast.error(error.message)
 				onErrorRef.current?.(error)
@@ -253,9 +258,7 @@ function SetupForm({
 					}}
 					onLoadError={() => handleLoadError('Failed to load address form')}
 				/>
-				<p className="text-caption">
-					Required for billing and compliance
-				</p>
+				<p className="text-caption">Required for billing and compliance</p>
 			</div>
 
 			{/* Error Display */}
@@ -279,7 +282,9 @@ function SetupForm({
 			{/* Submit Button */}
 			<Button
 				type="submit"
-				disabled={isProcessing || !stripe || !elements || isLoading || !elementReady}
+				disabled={
+					isProcessing || !stripe || !elements || isLoading || !elementReady
+				}
 				className="w-full"
 			>
 				{isProcessing ? (

@@ -56,7 +56,6 @@ async function addFormFields() {
 	}
 	firstPage.getSize()
 
-
 	// Page 1 - Agreement Information
 	form.createTextField('agreement_date')
 	form.createTextField('owner_name')

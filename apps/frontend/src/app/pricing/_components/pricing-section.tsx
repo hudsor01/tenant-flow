@@ -6,7 +6,9 @@ import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
 
 export function PricingSection() {
-	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly')
+	const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>(
+		'monthly'
+	)
 
 	return (
 		<div className="w-full">
@@ -25,7 +27,7 @@ export function PricingSection() {
 				<Switch
 					id="billing-toggle"
 					checked={billingCycle === 'yearly'}
-					onCheckedChange={(checked) =>
+					onCheckedChange={checked =>
 						setBillingCycle(checked ? 'yearly' : 'monthly')
 					}
 				/>

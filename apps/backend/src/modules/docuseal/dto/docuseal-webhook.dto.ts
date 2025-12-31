@@ -15,9 +15,13 @@ import {
 /**
  * DTO for form.completed event payload
  */
-export class FormCompletedPayloadDto extends createZodDto(formCompletedPayloadSchema) {}
+export class FormCompletedPayloadDto extends createZodDto(
+	formCompletedPayloadSchema
+) {}
 
 /**
  * DTO for submission.completed event payload
  */
-export class SubmissionCompletedPayloadDto extends createZodDto(submissionCompletedPayloadSchema) {}
+export class SubmissionCompletedPayloadDto extends createZodDto(
+	submissionCompletedPayloadSchema
+) {}

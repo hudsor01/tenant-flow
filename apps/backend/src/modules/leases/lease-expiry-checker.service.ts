@@ -8,32 +8,34 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 /**
  * Lease Expiry Checker Service
- * 
+ *
  * Provides a daily safety net check for lease expiry notifications.
  * While notifications are primarily created when leases are created/updated,
  * this scheduler handles edge cases where leases created 100+ days before expiry
  * might not have been in notification windows at creation time.
- * 
+ *
  * Idempotency: The LeaseExpiryNotificationListener checks for existing notifications
  * before creating new ones, preventing duplicates.
  */
 @Injectable()
 export class LeaseExpiryCheckerService {
-
-	constructor(private readonly supabase: SupabaseService,
-		private readonly eventEmitter: EventEmitter2, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly eventEmitter: EventEmitter2,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Daily safety net: Check for leases entering notification windows
 	 * Runs at 9:00 AM daily (UTC)
-	 * 
+	 *
 	 * Only emits events for leases within 95-25 day windows.
 	 * Events are idempotently handled by LeaseExpiryNotificationListener.
 	 */
 	@Cron(CronExpression.EVERY_DAY_AT_9AM)
 	async checkLeaseExpiries(): Promise<void> {
 		const startTime = Date.now()
-		
+
 		try {
 			this.logger.log('Starting daily lease expiry check')
 
@@ -46,8 +48,8 @@ export class LeaseExpiryCheckerService {
 				.from('leases')
 				.select(
 					'id, end_date, lease_status, unit_id, ' +
-					'tenant:tenants!primary_tenant_id(id, user_id, users(full_name)), ' +
-					'unit:units!unit_id(id, unit_number, property_id, property:properties(id, name, owner_user_id))'
+						'tenant:tenants!primary_tenant_id(id, user_id, users(full_name)), ' +
+						'unit:units!unit_id(id, unit_number, property_id, property:properties(id, name, owner_user_id))'
 				)
 				.eq('lease_status', 'active')
 				.not('end_date', 'is', null)
@@ -66,7 +68,11 @@ export class LeaseExpiryCheckerService {
 				end_date: string
 				lease_status: string
 				unit_id: string
-				tenant?: { id: string; user_id: string; users?: { full_name: string | null } }
+				tenant?: {
+					id: string
+					user_id: string
+					users?: { full_name: string | null }
+				}
 				unit?: {
 					id: string
 					unit_number: string
@@ -93,11 +99,14 @@ export class LeaseExpiryCheckerService {
 
 					// Validate property and owner_user_id exist before processing
 					if (!property || !property.owner_user_id) {
-						this.logger.warn('Skipping lease expiring event: missing property or owner_user_id', {
-							lease_id: lease.id,
-							property_id: property?.id,
-							tenant_id: lease.tenant?.id
-						})
+						this.logger.warn(
+							'Skipping lease expiring event: missing property or owner_user_id',
+							{
+								lease_id: lease.id,
+								property_id: property?.id,
+								tenant_id: lease.tenant?.id
+							}
+						)
 						continue
 					}
 

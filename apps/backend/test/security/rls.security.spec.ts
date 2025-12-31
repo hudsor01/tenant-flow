@@ -176,7 +176,10 @@ describeOrSkip('RLS Policy Security Tests', () => {
 			const leaseId = ownerBLease.body.id
 
 			// Act: OwnerA attempts to delete ownerB's lease
-			const { data, error } = await ownerA.client.from('leases').delete().eq('id', leaseId)
+			const { data, error } = await ownerA.client
+				.from('leases')
+				.delete()
+				.eq('id', leaseId)
 
 			// Assert: Delete should fail (RLS blocks)
 			expect(error).toBeDefined()
@@ -406,7 +409,8 @@ describeOrSkip('RLS Policy Security Tests', () => {
 			for (const table of rlsTables) {
 				// Attempt unauthenticated access
 				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-				const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
+				const supabaseKey =
+					process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ''
 				const unauthClient = createClient(supabaseUrl, supabaseKey)
 
 				const { data } = await unauthClient.from(table).select('*').limit(1)
@@ -429,7 +433,10 @@ describeOrSkip('RLS Policy Security Tests', () => {
 			const serviceClient = createClient(supabaseUrl, serviceRoleKey)
 
 			// Act: Service role should bypass RLS
-			const { data, error } = await serviceClient.from('leases').select('*').limit(1)
+			const { data, error } = await serviceClient
+				.from('leases')
+				.select('*')
+				.limit(1)
 
 			// Assert: Should succeed (bypasses RLS)
 			expect(error).toBeNull()
@@ -469,9 +476,9 @@ describeOrSkip('RLS Policy Security Tests', () => {
 
 				// Verify no data belongs to ownerB (if owner_user_id exists)
 				if (data && data.length > 0 && 'owner_user_id' in data[0]) {
-					const hasOwnerBData = (data as Array<{ owner_user_id?: string | null }>).some(
-						row => row.owner_user_id === ownerB.userId
-					)
+					const hasOwnerBData = (
+						data as Array<{ owner_user_id?: string | null }>
+					).some(row => row.owner_user_id === ownerB.userId)
 					expect(hasOwnerBData).toBe(false)
 				}
 			}
@@ -487,7 +494,11 @@ describeOrSkip('RLS Policy Security Tests', () => {
 			expect(error).toBeNull()
 
 			if (data && data.length > 0) {
-				(data as Array<{ properties?: { owner_user_id?: string | null } | null }>).forEach((lease) => {
+				;(
+					data as Array<{
+						properties?: { owner_user_id?: string | null } | null
+					}>
+				).forEach(lease => {
 					// Verify units and properties also belong to ownerA
 					if (lease.properties) {
 						expect(lease.properties.owner_user_id).toBe(ownerA.userId)

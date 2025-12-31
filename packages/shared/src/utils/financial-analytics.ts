@@ -141,7 +141,10 @@ export function mapNetOperatingIncome(
 	return data.map(item => {
 		const record = isObject(item) ? item : {}
 		return {
-			property_id: toString(record.property_id ?? record.property_id, 'unknown'),
+			property_id: toString(
+				record.property_id ?? record.property_id,
+				'unknown'
+			),
 			propertyName: toString(
 				record.property_name ?? record.propertyName,
 				'Unknown Property'

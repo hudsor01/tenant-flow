@@ -8,7 +8,12 @@
  * - RentPaymentContextService: Tenant and lease context loading
  */
 
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type Stripe from 'stripe'
 import type {
 	CancelTenantAutopayParams,
@@ -55,12 +60,15 @@ export interface ManualPaymentInput {
 export class RentPaymentsService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
 		private readonly stripeTenantService: StripeTenantService,
 		private readonly queryService: RentPaymentQueryService,
 		private readonly autopayService: RentPaymentAutopayService,
-		private readonly contextService: RentPaymentContextService, private readonly logger: AppLogger) {
+		private readonly contextService: RentPaymentContextService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -76,7 +84,10 @@ export class RentPaymentsService {
 		subscriptionId: string,
 		token: string
 	): Promise<RentPayment[]> {
-		return this.queryService.getSubscriptionPaymentHistory(subscriptionId, token)
+		return this.queryService.getSubscriptionPaymentHistory(
+			subscriptionId,
+			token
+		)
 	}
 
 	async getFailedPaymentAttempts(token: string): Promise<RentPayment[]> {
@@ -87,7 +98,10 @@ export class RentPaymentsService {
 		subscriptionId: string,
 		token: string
 	): Promise<RentPayment[]> {
-		return this.queryService.getSubscriptionFailedAttempts(subscriptionId, token)
+		return this.queryService.getSubscriptionFailedAttempts(
+			subscriptionId,
+			token
+		)
 	}
 
 	// ==================
@@ -127,7 +141,8 @@ export class RentPaymentsService {
 		params: ManualPaymentInput,
 		token: string
 	): Promise<RentPayment> {
-		const { lease_id, tenant_id, amount, payment_method, paid_date, notes } = params
+		const { lease_id, tenant_id, amount, payment_method, paid_date, notes } =
+			params
 
 		// Use user client for RLS-protected access
 		const client = this.supabase.getUserClient(token)
@@ -174,7 +189,11 @@ export class RentPaymentsService {
 			paid_date: new Date(paid_date).toISOString(),
 			payment_method_type: paymentMethodType,
 			period_start: dueDate.toISOString(),
-			period_end: new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).toISOString(),
+			period_end: new Date(
+				dueDate.getFullYear(),
+				dueDate.getMonth() + 1,
+				0
+			).toISOString(),
 			status: 'succeeded' as PaymentStatus,
 			// Use placeholder ID until migration makes this column nullable
 			stripe_payment_intent_id: manualPaymentId
@@ -205,7 +224,9 @@ export class RentPaymentsService {
 		return payment as RentPayment
 	}
 
-	private mapManualPaymentMethod(method: 'cash' | 'check' | 'money_order' | 'other'): string {
+	private mapManualPaymentMethod(
+		method: 'cash' | 'check' | 'money_order' | 'other'
+	): string {
 		const methodMap: Record<string, string> = {
 			cash: 'CASH',
 			check: 'CHECK',
@@ -248,12 +269,14 @@ export class RentPaymentsService {
 		}
 
 		const adminClient = this.supabase.getAdminClient()
-		const { tenant, tenantUser } = await this.contextService.getTenantContext(tenant_id)
-		const { lease, stripeAccountId } = await this.contextService.getLeaseContext(
-			lease_id,
-			tenant_id,
-			requestingUserId
-		)
+		const { tenant, tenantUser } =
+			await this.contextService.getTenantContext(tenant_id)
+		const { lease, stripeAccountId } =
+			await this.contextService.getLeaseContext(
+				lease_id,
+				tenant_id,
+				requestingUserId
+			)
 
 		const { data: paymentMethod, error: paymentMethodError } = await adminClient
 			.from('payment_methods')

@@ -11,7 +11,8 @@ import { defineConfig, devices } from '@playwright/test'
  * @see https://playwright.dev/docs/test-configuration
  */
 
-const PROD_FRONTEND_URL = process.env.PROD_FRONTEND_URL || 'https://tenantflow.app'
+const PROD_FRONTEND_URL =
+	process.env.PROD_FRONTEND_URL || 'https://tenantflow.app'
 
 export default defineConfig({
 	// ===================
@@ -25,7 +26,7 @@ export default defineConfig({
 	// ===================
 	timeout: 60_000, // 60s per test
 	expect: {
-		timeout: 10_000, // 10s for assertions
+		timeout: 10_000 // 10s for assertions
 	},
 
 	// ===================
@@ -41,7 +42,7 @@ export default defineConfig({
 	// ===================
 	reporter: [
 		['list', { printSteps: true }],
-		['json', { outputFile: 'test-results/prod-results.json' }],
+		['json', { outputFile: 'test-results/prod-results.json' }]
 	],
 
 	// ===================
@@ -68,8 +69,8 @@ export default defineConfig({
 
 		// Production header for monitoring
 		extraHTTPHeaders: {
-			'x-playwright-test': 'production-monitoring',
-		},
+			'x-playwright-test': 'production-monitoring'
+		}
 	},
 
 	// ===================
@@ -79,9 +80,9 @@ export default defineConfig({
 		{
 			name: 'production-chromium',
 			use: {
-				...devices['Desktop Chrome'],
-			},
-		},
+				...devices['Desktop Chrome']
+			}
+		}
 	],
 
 	// ===================
@@ -91,5 +92,5 @@ export default defineConfig({
 	// ===================
 	// Output
 	// ===================
-	outputDir: 'test-results/production/',
+	outputDir: 'test-results/production/'
 })

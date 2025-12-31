@@ -1,7 +1,9 @@
 import { Controller, Get, Header, UseGuards } from '@nestjs/common'
+import { ApiTags } from '@nestjs/swagger'
 import { PrometheusService } from './prometheus.service'
 import { BearerTokenGuard } from './guards/bearer-token.guard'
 
+@ApiTags('Metrics')
 @Controller('metrics')
 export class MetricsController {
 	constructor(private readonly prometheus: PrometheusService) {}

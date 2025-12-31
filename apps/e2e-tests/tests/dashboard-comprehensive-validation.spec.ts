@@ -22,7 +22,8 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 	}) => {
 		// Setup error tracking
 		const consoleMessages: { type: string; message: string }[] = []
-		const networkRequests: { url: string; status: number; method: string }[] = []
+		const networkRequests: { url: string; status: number; method: string }[] =
+			[]
 		const renderingErrors: string[] = []
 
 		// Listen to console messages
@@ -98,37 +99,45 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 				await expect(page.locator('main')).toBeVisible()
 
 				// Check for loading states
-				const loadingIndicators = await page.locator('[data-testid*="loading"], .spinner, [aria-busy="true"]').count()
+				const loadingIndicators = await page
+					.locator('[data-testid*="loading"], .spinner, [aria-busy="true"]')
+					.count()
 				logger.info(`[PAGE] Loading indicators visible: ${loadingIndicators}`)
 
 				// Get screenshot for visual inspection
-				await page.screenshot({ path: `test-results/dashboard-${title.toLowerCase()}.png` })
+				await page.screenshot({
+					path: `test-results/dashboard-${title.toLowerCase()}.png`
+				})
 				logger.info(`[SCREENSHOT] Saved screenshot for ${title}`)
 
 				// Analyze network requests for this page
 				const pageRequests = networkRequests.slice(priorRequestCount)
 				logger.info(`[NETWORK] Requests made: ${pageRequests.length}`)
 
-			pageRequests.forEach(req => {
-				if (req.status >= 400) {
-					const errorMsg = `${req.method} ${req.url} returned ${req.status}`
-					apiErrors.push(errorMsg)
-					logger.error(`[ERROR] ${errorMsg}`)
-				}
+				pageRequests.forEach(req => {
+					if (req.status >= 400) {
+						const errorMsg = `${req.method} ${req.url} returned ${req.status}`
+						apiErrors.push(errorMsg)
+						logger.error(`[ERROR] ${errorMsg}`)
+					}
 					// Log API endpoints called
 					if (req.url.includes('/api/')) {
-						logger.info(`[API] ${req.method} ${req.url.split('/api/')[1]} - ${req.status}`)
+						logger.info(
+							`[API] ${req.method} ${req.url.split('/api/')[1]} - ${req.status}`
+						)
 					}
 				})
 
 				// Check for console errors on this page
-				const pageErrors = consoleMessages.filter(m => m.type === 'error').map(m => m.message)
+				const pageErrors = consoleMessages
+					.filter(m => m.type === 'error')
+					.map(m => m.message)
 				pageConsoleErrors.push(...pageErrors)
 
-			if (pageErrors.length > 0) {
-				logger.error(`[CONSOLE] Errors on ${title}:`)
-				pageErrors.forEach(err => logger.error(`  - ${err}`))
-			}
+				if (pageErrors.length > 0) {
+					logger.error(`[CONSOLE] Errors on ${title}:`)
+					pageErrors.forEach(err => logger.error(`  - ${err}`))
+				}
 
 				// Verify main content is visible
 				const mainContent = page.locator('main')
@@ -137,13 +146,15 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 				// Check for interactive elements
 				const buttons = await page.locator('button').count()
 				const forms = await page.locator('form, [role="form"]').count()
-				logger.info(`[UI] Interactive elements - Buttons: ${buttons}, Forms: ${forms}`)
+				logger.info(
+					`[UI] Interactive elements - Buttons: ${buttons}, Forms: ${forms}`
+				)
 
-			// Verify no 404s or 500s
-			const hasApiErrors = pageRequests.some(r => r.status >= 400)
-			if (hasApiErrors) {
-				logger.warn(`[WARNING] Page ${title} has API errors`)
-			}
+				// Verify no 404s or 500s
+				const hasApiErrors = pageRequests.some(r => r.status >= 400)
+				if (hasApiErrors) {
+					logger.warn(`[WARNING] Page ${title} has API errors`)
+				}
 
 				// Store validation result
 				pageValidations.push({
@@ -179,7 +190,9 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 
 		pageValidations.forEach(validation => {
 			logger.info(`\n📄 Page: ${validation.title} (${validation.url})`)
-			logger.info(`   Status: ${validation.hasErrors ? '❌ ISSUES FOUND' : '✅ OK'}`)
+			logger.info(
+				`   Status: ${validation.hasErrors ? '❌ ISSUES FOUND' : '✅ OK'}`
+			)
 
 			if (validation.consoleErrors.length > 0) {
 				logger.info(`   Console Errors: ${validation.consoleErrors.length}`)
@@ -196,7 +209,9 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 			}
 
 			if (validation.apiEndpoints.length > 0) {
-				logger.info(`   API Endpoints Called: ${validation.apiEndpoints.length}`)
+				logger.info(
+					`   API Endpoints Called: ${validation.apiEndpoints.length}`
+				)
 				validation.apiEndpoints.forEach(endpoint => {
 					logger.info(`     - ${endpoint}`)
 				})
@@ -215,8 +230,14 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 		logger.info('='.repeat(80))
 
 		const pagesWithErrors = pageValidations.filter(p => p.hasErrors)
-		const totalApiErrors = pageValidations.reduce((sum, p) => sum + p.networkErrors.length, 0)
-		const totalConsoleErrors = pageValidations.reduce((sum, p) => sum + p.consoleErrors.length, 0)
+		const totalApiErrors = pageValidations.reduce(
+			(sum, p) => sum + p.networkErrors.length,
+			0
+		)
+		const totalConsoleErrors = pageValidations.reduce(
+			(sum, p) => sum + p.consoleErrors.length,
+			0
+		)
 
 		logger.info(`Total Pages Tested: ${pageValidations.length}`)
 		logger.info(`Pages with Issues: ${pagesWithErrors.length}`)
@@ -225,6 +246,9 @@ test.describe('Dashboard Comprehensive Navigation & Validation', () => {
 
 		// Assert no critical errors
 		expect(totalApiErrors, 'Should have no API errors').toBe(0)
-		expect(pagesWithErrors, 'All pages should load without errors').toHaveLength(0)
+		expect(
+			pagesWithErrors,
+			'All pages should load without errors'
+		).toHaveLength(0)
 	})
 })

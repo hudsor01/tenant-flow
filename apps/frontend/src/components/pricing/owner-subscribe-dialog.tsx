@@ -15,7 +15,7 @@ import {
 	InputGroupInput
 } from '#components/ui/input-group'
 import { Button } from '#components/ui/button'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { useForm } from '@tanstack/react-form'
 import { signupFormSchema } from '@repo/shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
@@ -152,200 +152,188 @@ export function OwnerSubscribeDialog({
 						Join TenantFlow {planName ? `· ${planName}` : ''}
 					</DialogTitle>
 					<DialogDescription>
-						Create your account to kick off checkout. You&apos;ll be
-						redirected to Stripe to securely complete your subscription.
+						Create your account to kick off checkout. You&apos;ll be redirected
+						to Stripe to securely complete your subscription.
 					</DialogDescription>
 				</DialogHeader>
 				<form
-							onSubmit={event => {
-								event.preventDefault()
-								form.handleSubmit()
-							}}
-							className="space-y-4"
+					onSubmit={event => {
+						event.preventDefault()
+						form.handleSubmit()
+					}}
+					className="space-y-4"
+				>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<form.Field name="first_name">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="first_name">First name</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<User />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="first_name"
+											placeholder="Jamie"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+						<form.Field name="last_name">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="last_name">Last name</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<User />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="last_name"
+											placeholder="Rivera"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<form.Field name="company">
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="company">Company</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Building2 />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="company"
+										placeholder="Rivera Property Group"
+										value={field.state.value}
+										onChange={event => field.handleChange(event.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isSubmitting}
+									/>
+								</InputGroup>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<form.Field name="email">
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="email">Work email</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Mail />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="email"
+										type="email"
+										placeholder="jamie@riverapm.com"
+										value={field.state.value}
+										onChange={event => field.handleChange(event.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isSubmitting}
+									/>
+								</InputGroup>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<form.Field name="password">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Lock />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="password"
+											type="password"
+											placeholder="Create a password"
+											autoComplete="new-password"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+						<form.Field name="confirmPassword">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="confirmPassword">
+										Confirm password
+									</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Lock />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="confirmPassword"
+											type="password"
+											placeholder="Repeat password"
+											autoComplete="new-password"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={handleCancel}
+							disabled={isSubmitting}
 						>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<form.Field name="first_name">
-									{field => (
-										<Field>
-											<FieldLabel htmlFor="first_name">First name</FieldLabel>
-											<InputGroup>
-												<InputGroupAddon align="inline-start">
-													<User />
-												</InputGroupAddon>
-												<InputGroupInput
-													id="first_name"
-													placeholder="Jamie"
-													value={field.state.value}
-													onChange={event =>
-														field.handleChange(event.target.value)
-													}
-													onBlur={field.handleBlur}
-													disabled={isSubmitting}
-												/>
-											</InputGroup>
-											<FieldError>
-												{String(field.state.meta.errors?.[0] ?? '')}
-											</FieldError>
-										</Field>
-									)}
-								</form.Field>
-								<form.Field name="last_name">
-									{field => (
-										<Field>
-											<FieldLabel htmlFor="last_name">Last name</FieldLabel>
-											<InputGroup>
-												<InputGroupAddon align="inline-start">
-													<User />
-												</InputGroupAddon>
-												<InputGroupInput
-													id="last_name"
-													placeholder="Rivera"
-													value={field.state.value}
-													onChange={event =>
-														field.handleChange(event.target.value)
-													}
-													onBlur={field.handleBlur}
-													disabled={isSubmitting}
-												/>
-											</InputGroup>
-											<FieldError>
-												{String(field.state.meta.errors?.[0] ?? '')}
-											</FieldError>
-										</Field>
-									)}
-								</form.Field>
-							</div>
-
-							<form.Field name="company">
-								{field => (
-									<Field>
-										<FieldLabel htmlFor="company">Company</FieldLabel>
-										<InputGroup>
-											<InputGroupAddon align="inline-start">
-												<Building2 />
-											</InputGroupAddon>
-											<InputGroupInput
-												id="company"
-												placeholder="Rivera Property Group"
-												value={field.state.value}
-												onChange={event =>
-													field.handleChange(event.target.value)
-												}
-												onBlur={field.handleBlur}
-												disabled={isSubmitting}
-											/>
-										</InputGroup>
-										<FieldError>
-											{String(field.state.meta.errors?.[0] ?? '')}
-										</FieldError>
-									</Field>
-								)}
-							</form.Field>
-
-							<form.Field name="email">
-								{field => (
-									<Field>
-										<FieldLabel htmlFor="email">Work email</FieldLabel>
-										<InputGroup>
-											<InputGroupAddon align="inline-start">
-												<Mail />
-											</InputGroupAddon>
-											<InputGroupInput
-												id="email"
-												type="email"
-												placeholder="jamie@riverapm.com"
-												value={field.state.value}
-												onChange={event =>
-													field.handleChange(event.target.value)
-												}
-												onBlur={field.handleBlur}
-												disabled={isSubmitting}
-											/>
-										</InputGroup>
-										<FieldError>
-											{String(field.state.meta.errors?.[0] ?? '')}
-										</FieldError>
-									</Field>
-								)}
-							</form.Field>
-
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-								<form.Field name="password">
-									{field => (
-										<Field>
-											<FieldLabel htmlFor="password">Password</FieldLabel>
-											<InputGroup>
-												<InputGroupAddon align="inline-start">
-													<Lock />
-												</InputGroupAddon>
-												<InputGroupInput
-													id="password"
-													type="password"
-													placeholder="Create a password"
-													autoComplete="new-password"
-													value={field.state.value}
-													onChange={event =>
-														field.handleChange(event.target.value)
-													}
-													onBlur={field.handleBlur}
-													disabled={isSubmitting}
-												/>
-											</InputGroup>
-											<FieldError>
-												{String(field.state.meta.errors?.[0] ?? '')}
-											</FieldError>
-										</Field>
-									)}
-								</form.Field>
-								<form.Field name="confirmPassword">
-									{field => (
-										<Field>
-											<FieldLabel htmlFor="confirmPassword">
-												Confirm password
-											</FieldLabel>
-											<InputGroup>
-												<InputGroupAddon align="inline-start">
-													<Lock />
-												</InputGroupAddon>
-												<InputGroupInput
-													id="confirmPassword"
-													type="password"
-													placeholder="Repeat password"
-													autoComplete="new-password"
-													value={field.state.value}
-													onChange={event =>
-														field.handleChange(event.target.value)
-													}
-													onBlur={field.handleBlur}
-													disabled={isSubmitting}
-												/>
-											</InputGroup>
-											<FieldError>
-												{String(field.state.meta.errors?.[0] ?? '')}
-											</FieldError>
-										</Field>
-									)}
-								</form.Field>
-							</div>
-
-							<DialogFooter>
-							<Button
-								type="button"
-								variant="ghost"
-								onClick={handleCancel}
-								disabled={isSubmitting}
-							>
-								Cancel
-							</Button>
-							<Button
-								type="submit"
-								disabled={isSubmitting || form.state.isSubmitting}
-							>
-								{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
-							</Button>
-						</DialogFooter>
-					</form>
-				</DialogContent>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							disabled={isSubmitting || form.state.isSubmitting}
+						>
+							{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
 		</Dialog>
 	)
 }

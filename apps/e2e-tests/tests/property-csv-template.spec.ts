@@ -66,7 +66,9 @@ test.describe('Property CSV Template Download', () => {
 		logStep(' Bulk Import dialog opened')
 
 		// Verify dialog title
-		const dialogTitle = page.locator('user_type=dialog >> text=Bulk Import Properties')
+		const dialogTitle = page.locator(
+			'user_type=dialog >> text=Bulk Import Properties'
+		)
 		await expect(dialogTitle).toBeVisible()
 		logStep(' Dialog title confirmed')
 

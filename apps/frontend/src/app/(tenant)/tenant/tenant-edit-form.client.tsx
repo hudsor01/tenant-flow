@@ -11,9 +11,7 @@ import {
 import { useUpdateTenantMutation } from '#hooks/api/mutations/tenant-mutations'
 import { tenantQueries } from '#hooks/api/queries/tenant-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import {
-	tenantUpdateSchema
-} from '@repo/shared/validation/tenants'
+import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 import { Phone, Save, User } from 'lucide-react'
@@ -26,7 +24,11 @@ export interface TenantEditFormProps {
 }
 
 export function TenantEditForm({ id }: TenantEditFormProps) {
-	const { data: tenant, isLoading, isError } = useQuery(tenantQueries.detail(id))
+	const {
+		data: tenant,
+		isLoading,
+		isError
+	} = useQuery(tenantQueries.detail(id))
 	const router = useRouter()
 	const updateMutation = useUpdateTenantMutation()
 
@@ -34,7 +36,8 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		defaultValues: {
 			emergency_contact_name: tenant?.emergency_contact_name || '',
 			emergency_contact_phone: tenant?.emergency_contact_phone || '',
-			emergency_contact_relationship: tenant?.emergency_contact_relationship || ''
+			emergency_contact_relationship:
+				tenant?.emergency_contact_relationship || ''
 		},
 		onSubmit: async ({ value }) => {
 			try {

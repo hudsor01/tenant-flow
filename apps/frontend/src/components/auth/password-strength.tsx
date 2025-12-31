@@ -5,8 +5,7 @@ import * as Popover from '@radix-ui/react-popover'
 import { Check, X } from 'lucide-react'
 import * as React from 'react'
 
-export interface PasswordStrengthProps
-	extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface PasswordStrengthProps extends React.InputHTMLAttributes<HTMLInputElement> {
 	label?: string
 	showStrengthIndicator?: boolean
 	minLength?: number
@@ -98,7 +97,7 @@ const PasswordStrength = React.forwardRef<
 							id={inputId}
 							name={inputId}
 							type="password"
-						autoComplete="new-password"
+							autoComplete="new-password"
 							className={cn(
 								'flex h-10 w-full rounded-[var(--radius-md)] border border-(--color-separator) bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-(--color-label-tertiary) focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
 								className
@@ -119,7 +118,7 @@ const PasswordStrength = React.forwardRef<
 							onOpenAutoFocus={e => e.preventDefault()}
 						>
 							{/* Strength indicator bars */}
-				<div className="flex gap-[var(--spacing-1)] h-[var(--spacing-2)]">
+							<div className="flex gap-[var(--spacing-1)] h-[var(--spacing-2)]">
 								{[...Array(5)].map((_, i) => (
 									<div
 										key={i}
@@ -134,7 +133,7 @@ const PasswordStrength = React.forwardRef<
 								))}
 							</div>
 
-				<h4 className="mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground">
+							<h4 className="mt-[var(--spacing-4)] mb-[var(--spacing-3)] text-sm font-semibold text-foreground">
 								Your password must contain:
 							</h4>
 
@@ -147,9 +146,7 @@ const PasswordStrength = React.forwardRef<
 											data-tokens="applied"
 											className={cn(
 												'flex items-center gap-x-[var(--spacing-2)] transition-colors',
-												passed
-													? 'text-accent'
-													: 'text-(--color-label-tertiary)'
+												passed ? 'text-accent' : 'text-(--color-label-tertiary)'
 											)}
 										>
 											{passed ? (

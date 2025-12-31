@@ -22,7 +22,12 @@ interface TerminateLeaseDialogProps {
 	onSuccess?: () => void
 }
 
-export function TerminateLeaseDialog({ open, onOpenChange, lease, onSuccess }: TerminateLeaseDialogProps) {
+export function TerminateLeaseDialog({
+	open,
+	onOpenChange,
+	lease,
+	onSuccess
+}: TerminateLeaseDialogProps) {
 	const terminateLeaseMutation = useTerminateLeaseMutation()
 
 	const handleConfirm = async () => {

@@ -74,17 +74,15 @@ export async function executeSaga<T = unknown>(
 	} catch (error) {
 		// Compensation phase: Rollback completed steps in reverse order
 		const lastStep = executedSteps[executedSteps.length - 1]
-		log?.error(
-			`Saga failed at step: ${lastStep?.name || 'unknown'}`,
-			'Saga',
-			{ error: error instanceof Error ? error.message : String(error) }
-		)
+		log?.error(`Saga failed at step: ${lastStep?.name || 'unknown'}`, 'Saga', {
+			error: error instanceof Error ? error.message : String(error)
+		})
 
 		// Compensate in reverse order
 		for (let i = executedSteps.length - 1; i >= 0; i--) {
 			const executedStep = executedSteps[i]
 			if (!executedStep) continue
-			
+
 			const { name, result } = executedStep
 			const step = steps[i]
 			if (!step) continue
@@ -114,44 +112,3 @@ export async function executeSaga<T = unknown>(
 	}
 }
 
-/**
- * Create a no-op compensation step (when compensation is not possible/needed)
- */
-export function noCompensation(): Promise<void> {
-	return Promise.resolve()
-}
-
-/**
- * Saga builder for fluent API
-
- * @example
- * const result = await new SagaBuilder()
- * .addStep({
- * name: 'Delete property',
- * execute: () => deleteProperty(),
- * compensate: () => restoreProperty()
- * })
- * .addStep({
- * name: 'Delete images',
- * execute: () => deleteImages(),
- * compensate: () => restoreImages()
- * })
- * .execute()
- */
-export class SagaBuilder {
-	private steps: SagaStep<unknown>[] = []
-	private logger: AppLogger | undefined
-
-	constructor(logger?: AppLogger) {
-		this.logger = logger
-	}
-
-	addStep<T = unknown>(step: SagaStep<T>): this {
-		this.steps.push(step as SagaStep<unknown>)
-		return this
-	}
-
-	async execute<T = unknown>(): Promise<SagaResult<T>> {
-		return executeSaga<T>(this.steps, this.logger)
-	}
-}

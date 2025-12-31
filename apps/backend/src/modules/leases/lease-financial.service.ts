@@ -12,8 +12,10 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class LeaseFinancialService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get lease statistics
@@ -46,15 +48,22 @@ export class LeaseFinancialService {
 
 		const stats = {
 			totalLeases: leases.length,
-			activeLeases: leases.filter((l: LeaseRow) => l.lease_status === 'active').length,
-			expiredLeases: leases.filter((l: LeaseRow) => l.lease_status === 'ended').length,
-			terminatedLeases: leases.filter((l: LeaseRow) => l.lease_status === 'terminated').length,
+			activeLeases: leases.filter((l: LeaseRow) => l.lease_status === 'active')
+				.length,
+			expiredLeases: leases.filter((l: LeaseRow) => l.lease_status === 'ended')
+				.length,
+			terminatedLeases: leases.filter(
+				(l: LeaseRow) => l.lease_status === 'terminated'
+			).length,
 			totalMonthlyRent: leases
 				.filter((l: LeaseRow) => l.lease_status === 'active')
 				.reduce((sum: number, l: LeaseRow) => sum + (l.rent_amount || 0), 0),
 			averageRent:
 				leases.length > 0
-					? leases.reduce((sum: number, l: LeaseRow) => sum + (l.rent_amount || 0), 0) / leases.length
+					? leases.reduce(
+							(sum: number, l: LeaseRow) => sum + (l.rent_amount || 0),
+							0
+						) / leases.length
 					: 0,
 			totalsecurity_deposits: leases.reduce(
 				(sum: number, l: LeaseRow) => sum + (l.security_deposit || 0),
@@ -125,7 +134,9 @@ export class LeaseFinancialService {
 			throw new BadRequestException('Authentication token is required')
 		}
 
-		this.logger.log('Getting lease analytics via RLS-protected query', { options })
+		this.logger.log('Getting lease analytics via RLS-protected query', {
+			options
+		})
 
 		const client = this.supabase.getUserClient(token)
 
@@ -156,10 +167,17 @@ export class LeaseFinancialService {
 	 * Get lease payment history
 	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically validates ownership
 	 */
-	async getPaymentHistory(token: string, lease_id: string): Promise<Database['public']['Tables']['rent_payments']['Row'][]> {
+	async getPaymentHistory(
+		token: string,
+		lease_id: string
+	): Promise<Database['public']['Tables']['rent_payments']['Row'][]> {
 		if (!token || !lease_id) {
-			this.logger.warn('Payment history requested with missing parameters', { lease_id })
-			throw new BadRequestException('Authentication token and lease ID are required')
+			this.logger.warn('Payment history requested with missing parameters', {
+				lease_id
+			})
+			throw new BadRequestException(
+				'Authentication token and lease ID are required'
+			)
 		}
 
 		const client = this.supabase.getUserClient(token)
@@ -175,7 +193,9 @@ export class LeaseFinancialService {
 			throw new BadRequestException('Lease not found or access denied')
 		}
 
-		this.logger.log('Getting lease payment history via RLS-protected query', { lease_id })
+		this.logger.log('Getting lease payment history via RLS-protected query', {
+			lease_id
+		})
 
 		const { data, error } = await client
 			.from('rent_payments')

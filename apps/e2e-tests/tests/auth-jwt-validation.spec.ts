@@ -64,9 +64,10 @@ test.describe('Authentication & JWT Validation', () => {
 					// Ignore if can't read body
 				}
 				authErrors.push(`${response.status()} - ${url}`)
-				const errorPayload = body !== undefined
-					? { status: response.status(), url, body }
-					: { status: response.status(), url }
+				const errorPayload =
+					body !== undefined
+						? { status: response.status(), url, body }
+						: { status: response.status(), url }
 				apiErrors.push(errorPayload)
 			}
 		})
@@ -269,7 +270,10 @@ test.describe('Authentication & JWT Validation', () => {
 
 		// Log API calls for debugging
 		logger.info('API calls completed', {
-			metadata: { totalCalls: apiCalls.length, authErrors: authErrorCalls.length }
+			metadata: {
+				totalCalls: apiCalls.length,
+				authErrors: authErrorCalls.length
+			}
 		})
 	})
 

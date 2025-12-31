@@ -256,9 +256,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 			{/* Right side - Contact Form */}
 			<div className="flex flex-col justify-center w-full p-8 lg:w-1/2 lg:px-16 xl:px-24 bg-background border-l border-border">
 				<div className="max-w-xl mx-auto w-full">
-					<h2 className="typography-h3 text-foreground mb-2">
-						Get in Touch
-					</h2>
+					<h2 className="typography-h3 text-foreground mb-2">Get in Touch</h2>
 					<p className="text-muted-foreground mb-8">
 						Have questions about TenantFlow? Want to see a demo? We&apos;d love
 						to hear from you. Our team typically responds within 4 hours.
@@ -267,9 +265,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 					{/* Progress indicator */}
 					{!isHydrated && (
 						<div className="mb-4 p-3 bg-muted rounded-md">
-							<p className="text-muted">
-								Restoring your progress...
-							</p>
+							<p className="text-muted">Restoring your progress...</p>
 						</div>
 					)}
 

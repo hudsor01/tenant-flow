@@ -64,7 +64,8 @@ export const financialOverviewKeys = {
 	overview: () => [...financialOverviewKeys.all, 'overview'] as const,
 	monthly: () => [...financialOverviewKeys.all, 'monthly'] as const,
 	expenses: () => [...financialOverviewKeys.all, 'expenses'] as const,
-	expenseSummary: () => [...financialOverviewKeys.all, 'expense-summary'] as const
+	expenseSummary: () =>
+		[...financialOverviewKeys.all, 'expense-summary'] as const
 }
 
 /**
@@ -74,9 +75,10 @@ export function useFinancialOverview() {
 	return useQuery({
 		queryKey: financialOverviewKeys.overview(),
 		queryFn: async (): Promise<FinancialOverviewData> => {
-			const response = await apiRequest<{ success: boolean; data: FinancialOverviewData }>(
-				'/api/v1/financials/overview'
-			)
+			const response = await apiRequest<{
+				success: boolean
+				data: FinancialOverviewData
+			}>('/api/v1/financials/overview')
 			return response.data
 		},
 		...QUERY_CACHE_TIMES.ANALYTICS,
@@ -91,9 +93,10 @@ export function useMonthlyMetrics() {
 	return useQuery({
 		queryKey: financialOverviewKeys.monthly(),
 		queryFn: async (): Promise<MonthlyMetric[]> => {
-			const response = await apiRequest<{ success: boolean; data: MonthlyMetric[] }>(
-				'/api/v1/financials/monthly-metrics'
-			)
+			const response = await apiRequest<{
+				success: boolean
+				data: MonthlyMetric[]
+			}>('/api/v1/financials/monthly-metrics')
 			return response.data
 		},
 		...QUERY_CACHE_TIMES.ANALYTICS,
@@ -108,9 +111,10 @@ export function useExpenseSummary() {
 	return useQuery({
 		queryKey: financialOverviewKeys.expenseSummary(),
 		queryFn: async (): Promise<ExpenseSummaryData> => {
-			const response = await apiRequest<{ success: boolean; data: ExpenseSummaryData }>(
-				'/api/v1/financials/expense-summary'
-			)
+			const response = await apiRequest<{
+				success: boolean
+				data: ExpenseSummaryData
+			}>('/api/v1/financials/expense-summary')
 			return response.data
 		},
 		...QUERY_CACHE_TIMES.ANALYTICS,

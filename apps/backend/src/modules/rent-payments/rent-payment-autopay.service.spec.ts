@@ -14,7 +14,6 @@ import type { Lease, Tenant, User } from './types'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 describe('RentPaymentAutopayService', () => {
 	let service: RentPaymentAutopayService
 	let mockSupabaseService: jest.Mocked<SupabaseService>
@@ -110,7 +109,9 @@ describe('RentPaymentAutopayService', () => {
 		const mockStripe = {
 			subscriptions: {
 				create: jest.fn().mockResolvedValue(mockStripeSubscription),
-				cancel: jest.fn().mockResolvedValue({ id: mockSubscriptionId, status: 'canceled' }),
+				cancel: jest
+					.fn()
+					.mockResolvedValue({ id: mockSubscriptionId, status: 'canceled' }),
 				retrieve: jest.fn().mockResolvedValue(mockStripeSubscription)
 			}
 		}
@@ -128,8 +129,12 @@ describe('RentPaymentAutopayService', () => {
 		} as unknown as jest.Mocked<SupabaseService>
 
 		mockStripeTenantService = {
-			getStripeCustomerForTenant: jest.fn().mockResolvedValue(mockStripeCustomer),
-			createStripeCustomerForTenant: jest.fn().mockResolvedValue(mockStripeCustomer),
+			getStripeCustomerForTenant: jest
+				.fn()
+				.mockResolvedValue(mockStripeCustomer),
+			createStripeCustomerForTenant: jest
+				.fn()
+				.mockResolvedValue(mockStripeCustomer),
 			attachPaymentMethod: jest.fn().mockResolvedValue({ success: true })
 		} as unknown as jest.Mocked<StripeTenantService>
 
@@ -158,7 +163,9 @@ describe('RentPaymentAutopayService', () => {
 	describe('setupTenantAutopay', () => {
 		it('should create Stripe subscription and update lease', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSub))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(mockLeaseWithSub)
+			)
 
 			const result = await service.setupTenantAutopay(
 				{
@@ -174,7 +181,9 @@ describe('RentPaymentAutopayService', () => {
 		})
 
 		it('should throw BadRequestException if autopay already enabled', async () => {
-			mockContextService.getLeaseContext.mockResolvedValue(mockLeaseContextWithSub)
+			mockContextService.getLeaseContext.mockResolvedValue(
+				mockLeaseContextWithSub
+			)
 
 			await expect(
 				service.setupTenantAutopay(
@@ -191,7 +200,9 @@ describe('RentPaymentAutopayService', () => {
 		it('should create Stripe customer if not exists', async () => {
 			mockStripeTenantService.getStripeCustomerForTenant.mockResolvedValue(null)
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(mockLeaseWithSub))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(mockLeaseWithSub)
+			)
 
 			await service.setupTenantAutopay(
 				{
@@ -202,15 +213,21 @@ describe('RentPaymentAutopayService', () => {
 				mockTenantUserId
 			)
 
-			expect(mockStripeTenantService.createStripeCustomerForTenant).toHaveBeenCalled()
+			expect(
+				mockStripeTenantService.createStripeCustomerForTenant
+			).toHaveBeenCalled()
 		})
 	})
 
 	describe('cancelTenantAutopay', () => {
 		it('should cancel Stripe subscription and clear lease subscription_id', async () => {
-			mockContextService.getLeaseContext.mockResolvedValue(mockLeaseContextWithSub)
+			mockContextService.getLeaseContext.mockResolvedValue(
+				mockLeaseContextWithSub
+			)
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder({ stripe_subscription_id: mockSubscriptionId }))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder({ stripe_subscription_id: mockSubscriptionId })
+			)
 
 			const result = await service.cancelTenantAutopay(
 				{ tenant_id: mockTenantId, lease_id: mockLeaseId },
@@ -220,7 +237,9 @@ describe('RentPaymentAutopayService', () => {
 			expect(result.success).toBe(true)
 
 			const stripe = mockStripeClientService.getClient()
-			expect(stripe.subscriptions.cancel).toHaveBeenCalledWith(mockSubscriptionId)
+			expect(stripe.subscriptions.cancel).toHaveBeenCalledWith(
+				mockSubscriptionId
+			)
 		})
 
 		it('should throw BadRequestException if autopay not enabled', async () => {
@@ -241,7 +260,9 @@ describe('RentPaymentAutopayService', () => {
 
 	describe('getAutopayStatus', () => {
 		it('should return enabled status with subscription details', async () => {
-			mockContextService.getLeaseContext.mockResolvedValue(mockLeaseContextWithSub)
+			mockContextService.getLeaseContext.mockResolvedValue(
+				mockLeaseContextWithSub
+			)
 			const mockClient = mockSupabaseService.getAdminClient()
 			;(mockClient.from as jest.Mock).mockReturnValue(
 				createQueryBuilder({ stripe_subscription_id: mockSubscriptionId })
@@ -278,7 +299,9 @@ describe('RentPaymentAutopayService', () => {
 		it('should throw NotFoundException when lease not found', async () => {
 			mockContextService.getLeaseContext.mockResolvedValue(mockLeaseContext)
 			const mockClient = mockSupabaseService.getAdminClient()
-			;(mockClient.from as jest.Mock).mockReturnValue(createQueryBuilder(null, true))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createQueryBuilder(null, true)
+			)
 
 			await expect(
 				service.getAutopayStatus(

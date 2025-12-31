@@ -4,7 +4,10 @@
  */
 import { apiRequest } from '#lib/api-request'
 
-import type { PaymentMethodResponse, PaymentMethodResponseWithVersion } from '@repo/shared/types/core'
+import type {
+	PaymentMethodResponse,
+	PaymentMethodResponseWithVersion
+} from '@repo/shared/types/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
@@ -67,17 +70,17 @@ export function useSetDefaultPaymentMethod() {
 				paymentMethodKeys.list()
 			)
 			// Optimistically mark selected method as default and unset others
-		queryClient.setQueryData<PaymentMethodResponseWithVersion[]>(
-			paymentMethodKeys.list(),
-			(old: PaymentMethodResponseWithVersion[] | undefined) =>
-				old
-					? old.map((m: PaymentMethodResponseWithVersion) =>
-							incrementVersion(m, {
-								isDefault: m.id === paymentMethodId
-							})
-						)
-					: old
-		)
+			queryClient.setQueryData<PaymentMethodResponseWithVersion[]>(
+				paymentMethodKeys.list(),
+				(old: PaymentMethodResponseWithVersion[] | undefined) =>
+					old
+						? old.map((m: PaymentMethodResponseWithVersion) =>
+								incrementVersion(m, {
+									isDefault: m.id === paymentMethodId
+								})
+							)
+						: old
+			)
 			return previous ? { previous } : {}
 		},
 		onError: (

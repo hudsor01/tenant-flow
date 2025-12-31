@@ -1,5 +1,12 @@
 import { Controller, Post, Body, Headers, Req } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import type { Request } from 'express'
 import { firstValueFrom } from 'rxjs'
 
@@ -18,6 +25,8 @@ interface BatchResult<T = unknown> {
 	error?: string
 }
 
+@ApiTags('Batch')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 export class AppController {
 	constructor(private readonly httpService: HttpService) {}
@@ -31,6 +40,53 @@ export class AppController {
 	 * TanStack Query batch endpoint for request deduplication
 	 * Processes multiple queries in parallel to reduce network round trips
 	 */
+	@ApiOperation({
+		summary: 'Batch API queries',
+		description:
+			'TanStack Query batch endpoint for request deduplication. Processes multiple queries in parallel to reduce network round trips.'
+	})
+	@ApiBody({
+		description: 'Array of batch queries to execute',
+		schema: {
+			type: 'array',
+			items: {
+				type: 'object',
+				required: ['id', 'method', 'url'],
+				properties: {
+					id: { type: 'string', description: 'Unique query identifier' },
+					method: {
+						type: 'string',
+						enum: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+						description: 'HTTP method'
+					},
+					url: { type: 'string', description: 'API endpoint URL (relative or absolute)' },
+					headers: {
+						type: 'object',
+						additionalProperties: { type: 'string' },
+						description: 'Optional query-specific headers'
+					},
+					body: { description: 'Optional request body' }
+				}
+			}
+		}
+	})
+	@ApiResponse({
+		status: 200,
+		description: 'Batch results with individual query responses',
+		schema: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					id: { type: 'string', description: 'Query identifier' },
+					status: { type: 'number', description: 'HTTP status code' },
+					data: { description: 'Response data if successful' },
+					error: { type: 'string', description: 'Error message if failed' }
+				}
+			}
+		}
+	})
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('api/batch')
 	async batchQueries(
 		@Body() queries: BatchQuery[],
@@ -44,7 +100,7 @@ export class AppController {
 
 		// Process all queries in parallel for maximum performance
 		const results = await Promise.allSettled(
-			queries.map(async (query) => {
+			queries.map(async query => {
 				try {
 					const result = await this.processBatchQuery(query, headers, baseUrl)
 					return {
@@ -70,7 +126,10 @@ export class AppController {
 				return {
 					id: queries[index]?.id || 'unknown',
 					status: 500,
-					error: result.reason instanceof Error ? result.reason.message : 'Batch query failed'
+					error:
+						result.reason instanceof Error
+							? result.reason.message
+							: 'Batch query failed'
 				}
 			}
 		})
@@ -89,13 +148,25 @@ export class AppController {
 		}
 
 		// Remove hop-by-hop headers that shouldn't be forwarded
-		const hopByHopHeaders = ['host', 'connection', 'keep-alive', 'proxy-authenticate', 'proxy-authorization', 'te', 'trailers', 'transfer-encoding', 'upgrade']
+		const hopByHopHeaders = [
+			'host',
+			'connection',
+			'keep-alive',
+			'proxy-authenticate',
+			'proxy-authorization',
+			'te',
+			'trailers',
+			'transfer-encoding',
+			'upgrade'
+		]
 		hopByHopHeaders.forEach(header => {
 			delete requestHeaders[header]
 		})
 
 		// Construct full URL
-		const fullUrl = query.url.startsWith('http') ? query.url : `${baseUrl}${query.url}`
+		const fullUrl = query.url.startsWith('http')
+			? query.url
+			: `${baseUrl}${query.url}`
 
 		try {
 			// Make internal HTTP request to the actual API endpoint

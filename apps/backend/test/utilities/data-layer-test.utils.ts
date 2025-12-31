@@ -13,10 +13,10 @@
  * Mock Supabase RPC response
  */
 export interface SupabaseRPCResponse<T = unknown> {
-  data: T | null
-  error: Error | null
-  count?: number
-  status: number
+	data: T | null
+	error: Error | null
+	count?: number
+	status: number
 }
 
 /**
@@ -31,14 +31,14 @@ export interface SupabaseRPCResponse<T = unknown> {
  * ```
  */
 export function createSupabaseRPCResponse<T>(
-  data: T,
-  status: number = 200
+	data: T,
+	status: number = 200
 ): SupabaseRPCResponse<T> {
-  return {
-    data,
-    error: null,
-    status
-  }
+	return {
+		data,
+		error: null,
+		status
+	}
 }
 
 /**
@@ -53,14 +53,14 @@ export function createSupabaseRPCResponse<T>(
  * ```
  */
 export function createSupabaseRPCError(
-  message: string,
-  status: number = 400
+	message: string,
+	status: number = 400
 ): SupabaseRPCResponse {
-  return {
-    data: null,
-    error: new Error(message),
-    status
-  }
+	return {
+		data: null,
+		error: new Error(message),
+		status
+	}
 }
 
 /**
@@ -81,46 +81,46 @@ export function createSupabaseRPCError(
  * ```
  */
 export function createMockSupabaseClient() {
-  const chainMethods = {
-    from: jest.fn(),
-    insert: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    select: jest.fn(),
-    eq: jest.fn(),
-    neq: jest.fn(),
-    gt: jest.fn(),
-    gte: jest.fn(),
-    lt: jest.fn(),
-    lte: jest.fn(),
-    like: jest.fn(),
-    ilike: jest.fn(),
-    is: jest.fn(),
-    in: jest.fn(),
-    contains: jest.fn(),
-    containedBy: jest.fn(),
-    overlaps: jest.fn(),
-    order: jest.fn(),
-    limit: jest.fn(),
-    range: jest.fn(),
-    single: jest.fn(),
-    maybeSingle: jest.fn(),
-    csv: jest.fn(),
-    rpc: jest.fn()
-  }
+	const chainMethods = {
+		from: jest.fn(),
+		insert: jest.fn(),
+		update: jest.fn(),
+		delete: jest.fn(),
+		select: jest.fn(),
+		eq: jest.fn(),
+		neq: jest.fn(),
+		gt: jest.fn(),
+		gte: jest.fn(),
+		lt: jest.fn(),
+		lte: jest.fn(),
+		like: jest.fn(),
+		ilike: jest.fn(),
+		is: jest.fn(),
+		in: jest.fn(),
+		contains: jest.fn(),
+		containedBy: jest.fn(),
+		overlaps: jest.fn(),
+		order: jest.fn(),
+		limit: jest.fn(),
+		range: jest.fn(),
+		single: jest.fn(),
+		maybeSingle: jest.fn(),
+		csv: jest.fn(),
+		rpc: jest.fn()
+	}
 
-  // Create a chain proxy that returns self for fluent API
-  const chainProxy = new Proxy(chainMethods, {
-    get(target, prop: string | symbol) {
-      const method = Reflect.get(target, prop)
-      if (typeof method === 'function') {
-        return jest.fn().mockReturnThis()
-      }
-      return method
-    }
-  })
+	// Create a chain proxy that returns self for fluent API
+	const chainProxy = new Proxy(chainMethods, {
+		get(target, prop: string | symbol) {
+			const method = Reflect.get(target, prop)
+			if (typeof method === 'function') {
+				return jest.fn().mockReturnThis()
+			}
+			return method
+		}
+	})
 
-  return chainProxy as Record<string, jest.Mock>
+	return chainProxy as Record<string, jest.Mock>
 }
 
 /**
@@ -136,29 +136,29 @@ export function createMockSupabaseClient() {
  * ```
  */
 export function expectRPCCall(
-  mockClient: Record<string, jest.Mock>,
-  method: string,
-  expectedArgs?: unknown[]
+	mockClient: Record<string, jest.Mock>,
+	method: string,
+	expectedArgs?: unknown[]
 ): void {
-  const mock = mockClient[method]
-  if (!jest.isMockFunction(mock)) {
-    throw new Error(`${method} is not a mock function on client`)
-  }
+	const mock = mockClient[method]
+	if (!jest.isMockFunction(mock)) {
+		throw new Error(`${method} is not a mock function on client`)
+	}
 
-  if (!mock.mock.calls.length) {
-    throw new Error(`Expected RPC method ${method} to be called`)
-  }
+	if (!mock.mock.calls.length) {
+		throw new Error(`Expected RPC method ${method} to be called`)
+	}
 
-  if (expectedArgs) {
-    const called = mock.mock.calls.some((args: unknown[]) =>
-      JSON.stringify(args) === JSON.stringify(expectedArgs)
-    )
-    if (!called) {
-      throw new Error(
-        `Expected RPC method ${method} called with ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(mock.mock.calls)}`
-      )
-    }
-  }
+	if (expectedArgs) {
+		const called = mock.mock.calls.some(
+			(args: unknown[]) => JSON.stringify(args) === JSON.stringify(expectedArgs)
+		)
+		if (!called) {
+			throw new Error(
+				`Expected RPC method ${method} called with ${JSON.stringify(expectedArgs)}, got ${JSON.stringify(mock.mock.calls)}`
+			)
+		}
+	}
 }
 
 /**
@@ -182,50 +182,51 @@ export function expectRPCCall(
  * ```
  */
 export interface DataLayerScenario {
-  name: string
-  response: SupabaseRPCResponse
-  expected?: Record<string, unknown>
-  expectedError?: string
+	name: string
+	response: SupabaseRPCResponse
+	expected?: Record<string, unknown>
+	expectedError?: string
 }
 
 export async function runDataLayerScenarios(
-  dataLayerMethod: (...args: unknown[]) => Promise<unknown>,
-  scenarios: DataLayerScenario[],
-  methodArgs: unknown[] = []
+	dataLayerMethod: (...args: unknown[]) => Promise<unknown>,
+	scenarios: DataLayerScenario[],
+	methodArgs: unknown[] = []
 ): Promise<void> {
-  for (const scenario of scenarios) {
-    try {
-      // Mock the response for this scenario
-      const result = await dataLayerMethod(...methodArgs)
+	for (const scenario of scenarios) {
+		try {
+			// Mock the response for this scenario
+			const result = await dataLayerMethod(...methodArgs)
 
-      if (scenario.expectedError) {
-        throw new Error(
-          `Scenario "${scenario.name}" expected error but got: ${JSON.stringify(result)}`
-        )
-      }
+			if (scenario.expectedError) {
+				throw new Error(
+					`Scenario "${scenario.name}" expected error but got: ${JSON.stringify(result)}`
+				)
+			}
 
-      if (scenario.expected) {
-        Object.entries(scenario.expected).forEach(([key, value]) => {
-          if (JSON.stringify(result[key]) !== JSON.stringify(value)) {
-            throw new Error(
-              `Scenario "${scenario.name}": expected ${key}=${JSON.stringify(value)}, got ${JSON.stringify(result[key])}`
-            )
-          }
-        })
-      }
-    } catch (error: unknown) {
-      if (!scenario.expectedError) {
-        throw error
-      }
+			if (scenario.expected) {
+				Object.entries(scenario.expected).forEach(([key, value]) => {
+					if (JSON.stringify(result[key]) !== JSON.stringify(value)) {
+						throw new Error(
+							`Scenario "${scenario.name}": expected ${key}=${JSON.stringify(value)}, got ${JSON.stringify(result[key])}`
+						)
+					}
+				})
+			}
+		} catch (error: unknown) {
+			if (!scenario.expectedError) {
+				throw error
+			}
 
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      if (!errorMessage.includes(scenario.expectedError)) {
-        throw new Error(
-          `Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${errorMessage}"`
-        )
-      }
-    }
-  }
+			const errorMessage =
+				error instanceof Error ? error.message : String(error)
+			if (!errorMessage.includes(scenario.expectedError)) {
+				throw new Error(
+					`Scenario "${scenario.name}" expected error "${scenario.expectedError}", got "${errorMessage}"`
+				)
+			}
+		}
+	}
 }
 
 /**
@@ -239,62 +240,54 @@ export async function runDataLayerScenarios(
  * ```
  */
 export class RLSEnforcementTest {
-  private userScopedQueries: Map<
-    string,
-    { table: string; column: string; userId: string }
-  > = new Map()
-  private tenantScopedQueries: Map<
-    string,
-    { table: string; column: string; tenantId: string }
-  > = new Map()
+	private userScopedQueries: Map<
+		string,
+		{ table: string; column: string; userId: string }
+	> = new Map()
+	private tenantScopedQueries: Map<
+		string,
+		{ table: string; column: string; tenantId: string }
+	> = new Map()
 
-  registerUserScoped(
-    queryName: string,
-    table: string,
-    column: string,
-    userId: string
-  ): void {
-    this.userScopedQueries.set(queryName, { table, column, userId })
-  }
+	registerUserScoped(
+		queryName: string,
+		table: string,
+		column: string,
+		userId: string
+	): void {
+		this.userScopedQueries.set(queryName, { table, column, userId })
+	}
 
-  registerTenantScoped(
-    queryName: string,
-    table: string,
-    column: string,
-    tenantId: string
-  ): void {
-    this.tenantScopedQueries.set(queryName, { table, column, tenantId })
-  }
+	registerTenantScoped(
+		queryName: string,
+		table: string,
+		column: string,
+		tenantId: string
+	): void {
+		this.tenantScopedQueries.set(queryName, { table, column, tenantId })
+	}
 
-  expectUserScoped(
-    table: string,
-    column: string,
-    userId: string
-  ): void {
-    const found = Array.from(this.userScopedQueries.values()).find(
-      (q) => q.table === table && q.column === column && q.userId === userId
-    )
-    if (!found) {
-      throw new Error(
-        `Expected user-scoped query on ${table}.${column} for user ${userId}`
-      )
-    }
-  }
+	expectUserScoped(table: string, column: string, userId: string): void {
+		const found = Array.from(this.userScopedQueries.values()).find(
+			q => q.table === table && q.column === column && q.userId === userId
+		)
+		if (!found) {
+			throw new Error(
+				`Expected user-scoped query on ${table}.${column} for user ${userId}`
+			)
+		}
+	}
 
-  expectTenantScoped(
-    table: string,
-    column: string,
-    tenantId: string
-  ): void {
-    const found = Array.from(this.tenantScopedQueries.values()).find(
-      (q) => q.table === table && q.column === column && q.tenantId === tenantId
-    )
-    if (!found) {
-      throw new Error(
-        `Expected tenant-scoped query on ${table}.${column} for tenant ${tenantId}`
-      )
-    }
-  }
+	expectTenantScoped(table: string, column: string, tenantId: string): void {
+		const found = Array.from(this.tenantScopedQueries.values()).find(
+			q => q.table === table && q.column === column && q.tenantId === tenantId
+		)
+		if (!found) {
+			throw new Error(
+				`Expected tenant-scoped query on ${table}.${column} for tenant ${tenantId}`
+			)
+		}
+	}
 }
 
 /**
@@ -311,39 +304,39 @@ export class RLSEnforcementTest {
  * ```
  */
 export class N1QueryTest {
-  private queries: Array<{ method: string; args: unknown[] }> = []
+	private queries: Array<{ method: string; args: unknown[] }> = []
 
-  recordQuery(method: string, args: unknown[]): void {
-    this.queries.push({ method, args })
-  }
+	recordQuery(method: string, args: unknown[]): void {
+		this.queries.push({ method, args })
+	}
 
-  expectMaxQueries(maxCount: number): void {
-    if (this.queries.length > maxCount) {
-      throw new Error(
-        `Expected max ${maxCount} queries, but got ${this.queries.length}: ${JSON.stringify(this.queries)}`
-      )
-    }
-  }
+	expectMaxQueries(maxCount: number): void {
+		if (this.queries.length > maxCount) {
+			throw new Error(
+				`Expected max ${maxCount} queries, but got ${this.queries.length}: ${JSON.stringify(this.queries)}`
+			)
+		}
+	}
 
-  expectExactQueries(expectedCount: number): void {
-    if (this.queries.length !== expectedCount) {
-      throw new Error(
-        `Expected exactly ${expectedCount} queries, but got ${this.queries.length}`
-      )
-    }
-  }
+	expectExactQueries(expectedCount: number): void {
+		if (this.queries.length !== expectedCount) {
+			throw new Error(
+				`Expected exactly ${expectedCount} queries, but got ${this.queries.length}`
+			)
+		}
+	}
 
-  getQueryCount(): number {
-    return this.queries.length
-  }
+	getQueryCount(): number {
+		return this.queries.length
+	}
 
-  getQueries(): Array<{ method: string; args: unknown[] }> {
-    return this.queries
-  }
+	getQueries(): Array<{ method: string; args: unknown[] }> {
+		return this.queries
+	}
 
-  reset(): void {
-    this.queries = []
-  }
+	reset(): void {
+		this.queries = []
+	}
 }
 
 /**
@@ -362,21 +355,25 @@ export class N1QueryTest {
  * ```
  */
 export function createDataLayerResponseFactory<T>(defaults: T) {
-  return {
-    create: (overrides?: Partial<T>): SupabaseRPCResponse<T> => {
-      return createSupabaseRPCResponse({ ...defaults, ...overrides } as T)
-    },
-    createError: (message: string): SupabaseRPCResponse<T> => {
-      return createSupabaseRPCError(message)
-    },
-    createBatch: (count: number, overrides?: Partial<T>): SupabaseRPCResponse<T[]> => {
-      const baseId = (defaults as { id?: string }).id ?? 'item'
-      const items = Array.from({ length: count }, (_, i) =>
-        ({ ...defaults, ...overrides, id: `${baseId}-${i}` } as T)
-      )
-      return createSupabaseRPCResponse(items)
-    }
-  }
+	return {
+		create: (overrides?: Partial<T>): SupabaseRPCResponse<T> => {
+			return createSupabaseRPCResponse({ ...defaults, ...overrides } as T)
+		},
+		createError: (message: string): SupabaseRPCResponse<T> => {
+			return createSupabaseRPCError(message)
+		},
+		createBatch: (
+			count: number,
+			overrides?: Partial<T>
+		): SupabaseRPCResponse<T[]> => {
+			const baseId = (defaults as { id?: string }).id ?? 'item'
+			const items = Array.from(
+				{ length: count },
+				(_, i) => ({ ...defaults, ...overrides, id: `${baseId}-${i}` }) as T
+			)
+			return createSupabaseRPCResponse(items)
+		}
+	}
 }
 
 /**
@@ -392,28 +389,27 @@ export function createDataLayerResponseFactory<T>(defaults: T) {
  * ```
  */
 export interface DataLayerPaginationExpectation {
-  pageSize: number
-  currentPage: number
-  totalCount: number
+	pageSize: number
+	currentPage: number
+	totalCount: number
 }
 
 export function expectDataLayerPagination(
-  response: SupabaseRPCResponse<unknown[]>,
-  expectations: DataLayerPaginationExpectation
+	response: SupabaseRPCResponse<unknown[]>,
+	expectations: DataLayerPaginationExpectation
 ): void {
-  if (!Array.isArray(response.data)) {
-    throw new Error('Expected paginated response with data array')
-  }
+	if (!Array.isArray(response.data)) {
+		throw new Error('Expected paginated response with data array')
+	}
 
-  if (response.data.length > expectations.pageSize) {
-    throw new Error(
-      `Expected max ${expectations.pageSize} items, got ${response.data.length}`
-    )
-  }
+	if (response.data.length > expectations.pageSize) {
+		throw new Error(
+			`Expected max ${expectations.pageSize} items, got ${response.data.length}`
+		)
+	}
 
-  const expectedOffset =
-    (expectations.currentPage - 1) * expectations.pageSize
-  // In actual implementation, offset would be stored in query or pagination metadata
+	const expectedOffset = (expectations.currentPage - 1) * expectations.pageSize
+	// In actual implementation, offset would be stored in query or pagination metadata
 }
 
 /**
@@ -427,11 +423,13 @@ export function expectDataLayerPagination(
  * ])
  * ```
  */
-export function createBatchOperationMock<T>(items: T[]): SupabaseRPCResponse<T[]> {
-  return {
-    data: items,
-    error: null,
-    status: 200,
-    count: items.length
-  }
+export function createBatchOperationMock<T>(
+	items: T[]
+): SupabaseRPCResponse<T[]> {
+	return {
+		data: items,
+		error: null,
+		status: 200,
+		count: items.length
+	}
 }

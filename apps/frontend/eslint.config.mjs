@@ -55,7 +55,7 @@ export default defineConfig([
 			'scripts/**',
 			'playwright-report/**',
 			'test-results/**',
-      'opengraph-image.tsx'
+			'opengraph-image.tsx'
 		]
 	},
 	{

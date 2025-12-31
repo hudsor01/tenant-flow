@@ -32,9 +32,11 @@ export interface ExecutiveMonthlyReportData {
 
 @Injectable()
 export class ExecutiveMonthlyTemplate {
-
-	constructor(private readonly dashboardService: DashboardAnalyticsService,
-		private readonly financialService: FinancialAnalyticsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly dashboardService: DashboardAnalyticsService,
+		private readonly financialService: FinancialAnalyticsService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

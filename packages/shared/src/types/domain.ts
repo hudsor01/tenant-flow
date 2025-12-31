@@ -25,8 +25,6 @@ export interface CSPReportBody {
 	'csp-report': CSPViolationReport
 }
 
-
-
 // CONTACT DOMAIN
 
 // UI-only const for contact form types (not stored in database)
@@ -38,7 +36,6 @@ export const ContactFormType = {
 	PARTNERSHIP: 'partnership',
 	DEMO_REQUEST: 'demo'
 } as const satisfies Record<string, string>
-
 
 export interface ContactFormRequest {
 	name: string
@@ -57,7 +54,6 @@ export interface ContactFormResponse {
 	contactId?: string
 }
 
-
 export const NotificationType = {
 	PAYMENT: 'payment',
 	BILLING: 'billing',
@@ -66,7 +62,6 @@ export const NotificationType = {
 
 export type NotificationTypeValue =
 	(typeof NotificationType)[keyof typeof NotificationType]
-
 
 export const WebVitalMetricName = {
 	CLS: 'CLS',
@@ -121,8 +116,6 @@ export const StripeWebhookEventType = {
 export type StripeWebhookEventTypeValue =
 	(typeof StripeWebhookEventType)[keyof typeof StripeWebhookEventType]
 
-
-
 export interface StorageUploadResult {
 	url: string
 	path: string
@@ -134,10 +127,12 @@ export interface StorageUploadResult {
 
 // NOTE: Import FileUploadOptions directly from './file-upload.js' - not re-exported here
 
-export type StorageEntityType = 'properties' | 'tenants' | 'maintenance' | 'user'
+export type StorageEntityType =
+	| 'properties'
+	| 'tenants'
+	| 'maintenance'
+	| 'user'
 export type StorageFileType = 'document' | 'image' | 'avatar'
-
-
 
 // UI/UX PREFERENCES DOMAIN
 
@@ -183,16 +178,12 @@ export interface ColorRationale {
 	reasoning: string
 }
 
-
-
 export type StripeWebhookEventTypes =
 	| 'customer.subscription.created'
 	| 'customer.subscription.updated'
 	| 'customer.subscription.deleted'
 	| 'invoice.payment_succeeded'
 	| 'invoice.payment_failed'
-
-
 
 // NOTE: Import WebhookNotification directly from './stripe.js' - not re-exported here
 // NOTE: Import SecurityEvent directly from './security.js' - not re-exported here

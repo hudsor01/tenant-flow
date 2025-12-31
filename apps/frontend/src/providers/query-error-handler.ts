@@ -37,7 +37,9 @@ const isClientError = (error: unknown) => {
 	return status >= 400 && status < 500
 }
 
-export const createQueryErrorHandlers = (logger: Logger): QueryErrorHandlers => {
+export const createQueryErrorHandlers = (
+	logger: Logger
+): QueryErrorHandlers => {
 	return {
 		retry: (failureCount, error) => {
 			if (isClientError(error)) {

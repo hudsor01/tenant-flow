@@ -15,7 +15,10 @@ import type { Queue } from 'bullmq'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { SseService } from '../../notifications/sse/sse.service'
-import { SSE_EVENT_TYPES, type PaymentStatusUpdatedEvent } from '@repo/shared/events/sse-events'
+import {
+	SSE_EVENT_TYPES,
+	type PaymentStatusUpdatedEvent
+} from '@repo/shared/events/sse-events'
 import type { EmailJob } from '../../email/email.queue'
 
 /** Maximum number of payment retry attempts before marking as final failure */
@@ -39,14 +42,15 @@ function isTenantWithEmail(data: unknown): data is TenantWithEmail {
 		'users' in data &&
 		typeof (data as Record<string, unknown>).users === 'object' &&
 		(data as Record<string, unknown>).users !== null &&
-		'email' in ((data as Record<string, unknown>).users as Record<string, unknown>) &&
-		typeof ((data as Record<string, unknown>).users as Record<string, unknown>).email === 'string'
+		'email' in
+			((data as Record<string, unknown>).users as Record<string, unknown>) &&
+		typeof ((data as Record<string, unknown>).users as Record<string, unknown>)
+			.email === 'string'
 	)
 }
 
 @Injectable()
 export class PaymentWebhookHandler {
-
 	constructor(
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger,
@@ -54,7 +58,9 @@ export class PaymentWebhookHandler {
 		@InjectQueue('emails') private readonly emailQueue: Queue<EmailJob>
 	) {}
 
-	async handlePaymentAttached(paymentMethod: Stripe.PaymentMethod): Promise<void> {
+	async handlePaymentAttached(
+		paymentMethod: Stripe.PaymentMethod
+	): Promise<void> {
 		try {
 			this.logger.log('Payment method attached', {
 				customerId: paymentMethod.customer
@@ -94,7 +100,10 @@ export class PaymentWebhookHandler {
 					accepted_by_user_id: tenantWithUser.user_id,
 					accepted_at: new Date().toISOString()
 				})
-				.eq('email', (tenantWithUser as { users: { email: string } }).users.email)
+				.eq(
+					'email',
+					(tenantWithUser as { users: { email: string } }).users.email
+				)
 				.eq('status', 'pending')
 
 			this.logger.log('Tenant invitation accepted', {
@@ -144,7 +153,8 @@ export class PaymentWebhookHandler {
 				tenant_id: tenant.id,
 				invoice_id: invoice.id,
 				amount: invoice.amount_due / 100,
-				failure_reason: invoice.last_finalization_error?.message || 'Unknown error'
+				failure_reason:
+					invoice.last_finalization_error?.message || 'Unknown error'
 			})
 
 			this.logger.log('Payment failure processed', {
@@ -159,7 +169,9 @@ export class PaymentWebhookHandler {
 		}
 	}
 
-	async handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+	async handlePaymentIntentSucceeded(
+		paymentIntent: Stripe.PaymentIntent
+	): Promise<void> {
 		try {
 			this.logger.log('Payment intent succeeded', {
 				paymentIntentId: paymentIntent.id,
@@ -172,9 +184,12 @@ export class PaymentWebhookHandler {
 			// Check if this is a rent payment (has lease_id in metadata)
 			const leaseId = paymentIntent.metadata?.lease_id
 			if (!leaseId) {
-				this.logger.debug('Payment intent is not a rent payment (no lease_id metadata)', {
-					paymentIntentId: paymentIntent.id
-				})
+				this.logger.debug(
+					'Payment intent is not a rent payment (no lease_id metadata)',
+					{
+						paymentIntentId: paymentIntent.id
+					}
+				)
 				return
 			}
 
@@ -207,7 +222,9 @@ export class PaymentWebhookHandler {
 						error: updateError.message,
 						rentPaymentId: rentPayment.id
 					})
-					throw new Error(`Failed to update rent payment: ${updateError.message}`)
+					throw new Error(
+						`Failed to update rent payment: ${updateError.message}`
+					)
 				}
 
 				this.logger.log('Rent payment marked as succeeded', {
@@ -216,7 +233,8 @@ export class PaymentWebhookHandler {
 				})
 
 				// Broadcast SSE event to tenant
-				const tenantUserId = (rentPayment as { tenants: { user_id: string } }).tenants?.user_id
+				const tenantUserId = (rentPayment as { tenants: { user_id: string } })
+					.tenants?.user_id
 				if (tenantUserId) {
 					await this.broadcastPaymentStatus({
 						tenantId: rentPayment.tenant_id,
@@ -241,7 +259,9 @@ export class PaymentWebhookHandler {
 		}
 	}
 
-	async handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent): Promise<void> {
+	async handlePaymentIntentFailed(
+		paymentIntent: Stripe.PaymentIntent
+	): Promise<void> {
 		try {
 			this.logger.log('Payment intent failed', {
 				paymentIntentId: paymentIntent.id,
@@ -254,9 +274,12 @@ export class PaymentWebhookHandler {
 			// Check if this is a rent payment
 			const leaseId = paymentIntent.metadata?.lease_id
 			if (!leaseId) {
-				this.logger.debug('Payment intent is not a rent payment (no lease_id metadata)', {
-					paymentIntentId: paymentIntent.id
-				})
+				this.logger.debug(
+					'Payment intent is not a rent payment (no lease_id metadata)',
+					{
+						paymentIntentId: paymentIntent.id
+					}
+				)
 				return
 			}
 
@@ -284,19 +307,21 @@ export class PaymentWebhookHandler {
 						})
 						.eq('id', rentPayment.id),
 					// Idempotent upsert - handles webhook retries safely
-					client
-						.from('payment_transactions')
-						.upsert(
-							{
-								rent_payment_id: rentPayment.id,
-								stripe_payment_intent_id: paymentIntent.id,
-								status: 'failed',
-								amount: paymentIntent.amount,
-								failure_reason: paymentIntent.last_payment_error?.message || 'Unknown error',
-								attempted_at: new Date().toISOString()
-							},
-							{ onConflict: 'rent_payment_id,stripe_payment_intent_id,status', ignoreDuplicates: true }
-						)
+					client.from('payment_transactions').upsert(
+						{
+							rent_payment_id: rentPayment.id,
+							stripe_payment_intent_id: paymentIntent.id,
+							status: 'failed',
+							amount: paymentIntent.amount,
+							failure_reason:
+								paymentIntent.last_payment_error?.message || 'Unknown error',
+							attempted_at: new Date().toISOString()
+						},
+						{
+							onConflict: 'rent_payment_id,stripe_payment_intent_id,status',
+							ignoreDuplicates: true
+						}
+					)
 				])
 
 				if (updateResult.error) {
@@ -322,7 +347,8 @@ export class PaymentWebhookHandler {
 				})
 
 				// Broadcast SSE event to tenant
-				const tenantUserId = (rentPayment as { tenants: { user_id: string } }).tenants?.user_id
+				const tenantUserId = (rentPayment as { tenants: { user_id: string } })
+					.tenants?.user_id
 				if (tenantUserId) {
 					await this.broadcastPaymentStatus({
 						tenantId: rentPayment.tenant_id,
@@ -334,10 +360,13 @@ export class PaymentWebhookHandler {
 
 				await this.sendPaymentFailureEmail(paymentIntent, rentPayment, client)
 			} else {
-				this.logger.warn('No rent_payment record found for failed payment intent', {
-					paymentIntentId: paymentIntent.id,
-					leaseId
-				})
+				this.logger.warn(
+					'No rent_payment record found for failed payment intent',
+					{
+						paymentIntentId: paymentIntent.id,
+						leaseId
+					}
+				)
 			}
 		} catch (error) {
 			this.logger.error('Failed to handle payment_intent.payment_failed', {
@@ -384,9 +413,12 @@ export class PaymentWebhookHandler {
 			? parseInt(paymentIntent.metadata.attempt_count, 10)
 			: 1
 		const latestCharge = paymentIntent.latest_charge
-		const invoiceUrl = latestCharge && typeof latestCharge === 'object' && 'receipt_url' in latestCharge
-			? latestCharge.receipt_url ?? null
-			: null
+		const invoiceUrl =
+			latestCharge &&
+			typeof latestCharge === 'object' &&
+			'receipt_url' in latestCharge
+				? (latestCharge.receipt_url ?? null)
+				: null
 		const isLastAttempt = attemptCount >= MAX_PAYMENT_RETRY_ATTEMPTS
 
 		await this.emailQueue.add('payment-failed', {

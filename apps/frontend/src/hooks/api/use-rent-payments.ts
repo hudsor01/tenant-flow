@@ -1,12 +1,29 @@
 /**
- * TanStack Query hooks for rent payments API
- * Phase 6D: One-Time Rent Payment UI
- * Task 2.4: Payment Status Tracking
+ * Rent Payments Hooks
+ *
+ * TanStack Query hooks for rent payment operations including:
+ * - Creating one-time rent payments
+ * - Payment status tracking
+ * - Tenant payment history (owner and self view)
+ * - Payment reminders
  */
-import { apiRequest } from '#lib/api-request'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiRequest } from '#lib/api-request'
+import {
+	useMutation,
+	useQuery,
+	useQueryClient,
+	queryOptions,
+	type QueryKey
+} from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import type { RentPayment } from '@repo/shared/types/core'
+import type {
+	TenantPaymentStatusResponse,
+	SendPaymentReminderRequest,
+	SendPaymentReminderResponse,
+	TenantPaymentHistoryResponse
+} from '@repo/shared/types/api-contracts'
 
 /**
  * Query keys for rent payments endpoints
@@ -15,7 +32,18 @@ export const rentPaymentKeys = {
 	all: ['rent-payments'] as const,
 	list: () => [...rentPaymentKeys.all, 'list'] as const,
 	status: (tenant_id: string) =>
-		[...rentPaymentKeys.all, 'status', tenant_id] as const
+		[...rentPaymentKeys.all, 'status', tenant_id] as const,
+	// Tenant payment history keys
+	tenantHistory: () => [...rentPaymentKeys.all, 'tenant-history'] as const,
+	ownerView: (tenant_id: string, limit?: number) =>
+		[...rentPaymentKeys.all, 'tenant-history', 'owner', tenant_id, limit ?? 20] as const,
+	selfView: (limit?: number) =>
+		[...rentPaymentKeys.all, 'tenant-history', 'self', limit ?? 20] as const
+}
+
+interface PaymentQueryOptions {
+	limit?: number
+	enabled?: boolean
 }
 
 /**
@@ -63,37 +91,37 @@ export function useCreateRentPayment() {
 			await queryClient.cancelQueries({ queryKey: rentPaymentKeys.list() })
 
 			// Snapshot previous state
-			const previousList = queryClient.getQueryData<
-				import('@repo/shared/types/core').RentPayment[] | undefined
-			>(rentPaymentKeys.list())
+			const previousList = queryClient.getQueryData<RentPayment[] | undefined>(
+				rentPaymentKeys.list()
+			)
 
 			// Create optimistic payment entry (partial - will be replaced by server response)
 			const tempId = `temp-${Date.now()}`
-			const optimisticPayment = {
-		id: tempId,
-		version: 1,
-		amount: newPayment.amount,
-		status: 'pending',
-		tenant_id: newPayment.tenant_id,
-		lease_id: newPayment.lease_id,
-		stripe_payment_intent_id: '',
-		application_fee_amount: 0,
-		late_fee_amount: null,
-		payment_method_type: 'stripe',
-		period_start: new Date().toISOString().split('T')[0],
-		period_end: new Date().toISOString().split('T')[0],
-		due_date: new Date().toISOString().split('T')[0],
-		paid_date: null,
-		currency: 'USD',
-		created_at: new Date().toISOString(),
-		updated_at: null
-	} as unknown as import('@repo/shared/types/core').RentPayment
+			const today = new Date().toISOString().split('T')[0] ?? ''
+			const optimisticPayment: RentPayment = {
+				id: tempId,
+				amount: newPayment.amount,
+				status: 'pending',
+				tenant_id: newPayment.tenant_id,
+				lease_id: newPayment.lease_id,
+				stripe_payment_intent_id: '',
+				application_fee_amount: 0,
+				late_fee_amount: null,
+				payment_method_type: 'stripe',
+				period_start: today,
+				period_end: today,
+				due_date: today,
+				paid_date: null,
+				currency: 'USD',
+				notes: null,
+				created_at: new Date().toISOString(),
+				updated_at: null
+			}
 
 			// Optimistically update cache
-			queryClient.setQueryData<
-				import('@repo/shared/types/core').RentPayment[] | undefined
-			>(rentPaymentKeys.list(), old =>
-				old ? [optimisticPayment, ...old] : [optimisticPayment]
+			queryClient.setQueryData<RentPayment[] | undefined>(
+				rentPaymentKeys.list(),
+				old => (old ? [optimisticPayment, ...old] : [optimisticPayment])
 			)
 
 			return { previousList, tempId }
@@ -104,21 +132,9 @@ export function useCreateRentPayment() {
 				queryClient.setQueryData(rentPaymentKeys.list(), context.previousList)
 			}
 		},
-		onSuccess: (res, _variables, context) => {
-			if (res?.payment) {
-				// Replace optimistic entry with real data
-				queryClient.setQueryData<
-					import('@repo/shared/types/core').RentPayment[] | undefined
-				>(rentPaymentKeys.list(), old =>
-					old
-						? old.map(p =>
-								p.id === context?.tempId
-									? (res.payment as unknown as import('@repo/shared/types/core').RentPayment)
-									: p
-							)
-						: [res.payment as unknown as import('@repo/shared/types/core').RentPayment]
-				)
-			}
+		onSuccess: (_res, _variables, _context) => {
+			// The API returns a partial payment object, so we rely on onSettled
+			// to refetch the full list with proper RentPayment types
 		},
 		onSettled: () => {
 			// Refetch to ensure consistency
@@ -128,30 +144,112 @@ export function useCreateRentPayment() {
 }
 
 /**
- * Payment status response type
- * Task 2.4: Payment Status Tracking
- */
-export interface PaymentStatus {
-	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
-	rent_amount: number
-	nextDueDate: string | null
-	lastPaymentDate: string | null
-	outstandingBalance: number
-	isOverdue: boolean
-}
-
-/**
  * Hook to get current payment status for a tenant
  * Returns real-time payment status from backend
- * Task 2.4: Payment Status Tracking
  */
 export function usePaymentStatus(tenant_id: string) {
 	return useQuery({
 		queryKey: rentPaymentKeys.status(tenant_id),
 		queryFn: () =>
-			apiRequest<PaymentStatus>(`/api/v1/rent-payments/status/${tenant_id}`),
+			apiRequest<TenantPaymentStatusResponse>(
+				`/api/v1/rent-payments/status/${tenant_id}`
+			),
 		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.STATS, // Payment status can change
 		retry: 2
 	})
+}
+
+/**
+ * Hook to get tenant payment history from owner perspective
+ */
+export function useOwnerTenantPayments(
+	tenant_id: string,
+	options?: PaymentQueryOptions
+) {
+	return useQuery({
+		queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
+		queryFn: () =>
+			apiRequest<TenantPaymentHistoryResponse>(
+				`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
+			),
+		...QUERY_CACHE_TIMES.DETAIL,
+		enabled: options?.enabled ?? Boolean(tenant_id)
+	})
+}
+
+/**
+ * Hook to get tenant's own payment history
+ */
+export function useTenantPaymentsHistory(options?: PaymentQueryOptions) {
+	return useQuery({
+		queryKey: rentPaymentKeys.selfView(options?.limit),
+		queryFn: () =>
+			apiRequest<TenantPaymentHistoryResponse>(
+				`/api/v1/tenants/me/payments?limit=${options?.limit ?? 20}`
+			),
+		...QUERY_CACHE_TIMES.DETAIL,
+		enabled: options?.enabled ?? true
+	})
+}
+
+type SendReminderVariables = {
+	request: SendPaymentReminderRequest
+	ownerQueryKey?: QueryKey
+}
+
+/**
+ * Hook to send payment reminder to tenant
+ */
+export function useSendTenantPaymentReminder() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationFn: async ({ request }: SendReminderVariables) => {
+			return apiRequest<SendPaymentReminderResponse>(
+				'/api/v1/tenants/payments/reminders',
+				{
+					method: 'POST',
+					body: JSON.stringify(request)
+				}
+			)
+		},
+		onSuccess: (_data, variables) => {
+			if (variables?.ownerQueryKey) {
+				queryClient.invalidateQueries({
+					queryKey: variables.ownerQueryKey
+				})
+			} else if (variables?.request.tenant_id) {
+				queryClient.invalidateQueries({
+					queryKey: rentPaymentKeys.ownerView(variables.request.tenant_id)
+				})
+			}
+		}
+	})
+}
+
+/**
+ * Query options for tenant payments (for use with useQuery directly)
+ */
+export const tenantPaymentQueries = {
+	ownerPayments: (tenant_id: string, options?: PaymentQueryOptions) =>
+		queryOptions({
+			queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
+			queryFn: () =>
+				apiRequest<TenantPaymentHistoryResponse>(
+					`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
+				),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: options?.enabled ?? Boolean(tenant_id)
+		}),
+	selfPayments: (options?: PaymentQueryOptions) =>
+		queryOptions({
+			queryKey: rentPaymentKeys.selfView(options?.limit),
+			queryFn: () =>
+				apiRequest<TenantPaymentHistoryResponse>(
+					`/api/v1/tenants/me/payments?limit=${options?.limit ?? 20}`
+				),
+			...QUERY_CACHE_TIMES.DETAIL,
+			enabled: options?.enabled ?? true
+		})
 }

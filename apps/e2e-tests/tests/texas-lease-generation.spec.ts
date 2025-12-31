@@ -71,10 +71,16 @@ test.describe('Texas Lease Generation', () => {
 		} catch (error) {
 			authenticationAvailable = false
 			logger.warn('️ Authentication failed - tests will be SKIPPED')
-			logger.warn(`Error: ${error instanceof Error ? error.message : String(error)}`)
+			logger.warn(
+				`Error: ${error instanceof Error ? error.message : String(error)}`
+			)
 			logger.info(' Required environment variables:')
-			logger.info(`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`)
-			logger.info(`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`)
+			logger.info(
+				`   E2E_OWNER_EMAIL=${process.env.E2E_OWNER_EMAIL || '(not set)'}`
+			)
+			logger.info(
+				`   E2E_OWNER_PASSWORD=${process.env.E2E_OWNER_PASSWORD ? '(set)' : '(not set)'}`
+			)
 			logger.info(' Set up test account at http://localhost:3050/signup')
 		} finally {
 			await page.close()
@@ -105,22 +111,22 @@ test.describe('Texas Lease Generation', () => {
 			networkErrors.push(`${request.url()} - ${request.failure()?.errorText}`)
 		})
 
-	page.on('response', response => {
-		if (response.status() >= 400) {
-			networkErrors.push(`${response.url()} - Status: ${response.status()}`)
-	}
-})
-})
+		page.on('response', response => {
+			if (response.status() >= 400) {
+				networkErrors.push(`${response.url()} - Status: ${response.status()}`)
+			}
+		})
+	})
 
-test.afterEach(async ({ page: _page }, testInfo) => {
-	await attachText(testInfo, 'console-errors', consoleErrors)
-	await attachText(testInfo, 'network-errors', networkErrors)
-})
+	test.afterEach(async ({ page: _page }, testInfo) => {
+		await attachText(testInfo, 'console-errors', consoleErrors)
+		await attachText(testInfo, 'network-errors', networkErrors)
+	})
 
-test('should auto-fill and generate Texas lease PDF', async ({
-	page
-}, testInfo) => {
-	// Authentication handled in beforeEach		// Navigate to leases page
+	test('should auto-fill and generate Texas lease PDF', async ({
+		page
+	}, testInfo) => {
+		// Authentication handled in beforeEach		// Navigate to leases page
 		await page.goto('/leases', {
 			waitUntil: 'networkidle',
 			timeout: 30000

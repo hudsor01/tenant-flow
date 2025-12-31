@@ -24,8 +24,10 @@ const TREND_WINDOW_DAYS = 14
 
 @Injectable()
 export class SecurityMetricsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	async getMetrics(
 		lookbackInDays: number = DEFAULT_LOOKBACK_DAYS
@@ -37,9 +39,7 @@ export class SecurityMetricsService {
 		const client = this.supabase.getAdminClient()
 		const { data, error } = await client
 			.from('security_audit_log')
-			.select(
-				'id, event_type, user_id, details, created_at'
-			)
+			.select('id, event_type, user_id, details, created_at')
 			.gte('created_at', start.toISOString())
 			.order('created_at', { ascending: false })
 			.limit(500)
@@ -57,7 +57,7 @@ export class SecurityMetricsService {
 			details: unknown
 			created_at: string
 		}
-		const auditLogs = (((data ?? []) as AuditLogRow[]).map(row => {
+		const auditLogs = ((data ?? []) as AuditLogRow[]).map(row => {
 			const event: SecurityAuditLogEntry = {
 				id: row.id,
 				eventType: row.event_type as SecurityEventTypeEnum,
@@ -72,7 +72,7 @@ export class SecurityMetricsService {
 				timestamp: row.created_at
 			}
 			return event
-		})) as SecurityAuditLogEntry[]
+		}) as SecurityAuditLogEntry[]
 
 		const eventsByType = this.initializeTypeBuckets()
 		const eventsBySeverity = this.initializeSeverityBuckets()

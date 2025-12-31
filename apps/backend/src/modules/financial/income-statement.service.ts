@@ -17,30 +17,28 @@ import {
 
 @Injectable()
 export class IncomeStatementService {
-
-	constructor(private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Generate income statement for a given period
 	 * Uses existing financial metrics RPC function
+	 * @param token - JWT token for RLS-protected database access
+	 * @param user_id - Authenticated user ID from controller (avoids auth.getUser call)
 	 */
 	async generateIncomeStatement(
 		token: string,
+		user_id: string,
 		start_date: string,
 		end_date: string
 	): Promise<IncomeStatementData> {
 		const client = this.supabaseService.getUserClient(token)
 
-		const {
-			data: { user },
-			error: authError
-		} = await this.supabaseService.getAdminClient().auth.getUser(token)
-
-		if (authError || !user) {
-			throw new Error('Failed to authenticate user from token')
-		}
-
-		this.logger.log(`Generating income statement (${start_date} to ${end_date})`)
+		this.logger.log(
+			`Generating income statement (${start_date} to ${end_date})`
+		)
 
 		// Validate date parameters before creating Date objects
 		const startDate = new Date(start_date)
@@ -122,7 +120,7 @@ export class IncomeStatementService {
 		} catch (error) {
 			this.logger.error('Failed to generate income statement', {
 				error: error instanceof Error ? error.message : String(error),
-				user_id: user.id,
+				user_id,
 				start_date,
 				end_date
 			})
@@ -139,9 +137,10 @@ export class IncomeStatementService {
 		const expenses = ledger.expenses.filter(expense =>
 			isWithinRange(expense.expense_date ?? expense.created_at, range)
 		)
-		const maintenance = ledger.maintenanceRequests.filter(request =>
-			request.status === 'completed' &&
-			isWithinRange(request.completed_at ?? request.created_at, range)
+		const maintenance = ledger.maintenanceRequests.filter(
+			request =>
+				request.status === 'completed' &&
+				isWithinRange(request.completed_at ?? request.created_at, range)
 		)
 
 		const totalRevenue = payments

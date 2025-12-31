@@ -4,547 +4,547 @@
  * ==========================================
  */
 
-import { z } from "zod";
-import * as generated from "./generated-schemas";
+import { z } from 'zod'
+import * as generated from './generated-schemas'
 export type PublicInvitationType = z.infer<
-  typeof generated.publicInvitationTypeSchema
->;
+	typeof generated.publicInvitationTypeSchema
+>
 export type PublicSignatureMethod = z.infer<
-  typeof generated.publicSignatureMethodSchema
->;
+	typeof generated.publicSignatureMethodSchema
+>
 export type PublicStripeSubscriptionStatus = z.infer<
-  typeof generated.publicStripeSubscriptionStatusSchema
->;
-export type Json = z.infer<typeof generated.jsonSchema>;
+	typeof generated.publicStripeSubscriptionStatusSchema
+>
+export type Json = z.infer<typeof generated.jsonSchema>
 export type PublicActivityRow = z.infer<
-  typeof generated.publicActivityRowSchema
->;
+	typeof generated.publicActivityRowSchema
+>
 export type PublicActivityInsert = z.infer<
-  typeof generated.publicActivityInsertSchema
->;
+	typeof generated.publicActivityInsertSchema
+>
 export type PublicActivityUpdate = z.infer<
-  typeof generated.publicActivityUpdateSchema
->;
+	typeof generated.publicActivityUpdateSchema
+>
 export type PublicActivityRelationships = z.infer<
-  typeof generated.publicActivityRelationshipsSchema
->;
+	typeof generated.publicActivityRelationshipsSchema
+>
 export type PublicDocumentsRow = z.infer<
-  typeof generated.publicDocumentsRowSchema
->;
+	typeof generated.publicDocumentsRowSchema
+>
 export type PublicDocumentsInsert = z.infer<
-  typeof generated.publicDocumentsInsertSchema
->;
+	typeof generated.publicDocumentsInsertSchema
+>
 export type PublicDocumentsUpdate = z.infer<
-  typeof generated.publicDocumentsUpdateSchema
->;
+	typeof generated.publicDocumentsUpdateSchema
+>
 export type PublicExpensesRow = z.infer<
-  typeof generated.publicExpensesRowSchema
->;
+	typeof generated.publicExpensesRowSchema
+>
 export type PublicExpensesInsert = z.infer<
-  typeof generated.publicExpensesInsertSchema
->;
+	typeof generated.publicExpensesInsertSchema
+>
 export type PublicExpensesUpdate = z.infer<
-  typeof generated.publicExpensesUpdateSchema
->;
+	typeof generated.publicExpensesUpdateSchema
+>
 export type PublicExpensesRelationships = z.infer<
-  typeof generated.publicExpensesRelationshipsSchema
->;
+	typeof generated.publicExpensesRelationshipsSchema
+>
 export type PublicLeaseTenantsRow = z.infer<
-  typeof generated.publicLeaseTenantsRowSchema
->;
+	typeof generated.publicLeaseTenantsRowSchema
+>
 export type PublicLeaseTenantsInsert = z.infer<
-  typeof generated.publicLeaseTenantsInsertSchema
->;
+	typeof generated.publicLeaseTenantsInsertSchema
+>
 export type PublicLeaseTenantsUpdate = z.infer<
-  typeof generated.publicLeaseTenantsUpdateSchema
->;
+	typeof generated.publicLeaseTenantsUpdateSchema
+>
 export type PublicLeaseTenantsRelationships = z.infer<
-  typeof generated.publicLeaseTenantsRelationshipsSchema
->;
-export type PublicLeasesRow = z.infer<typeof generated.publicLeasesRowSchema>;
+	typeof generated.publicLeaseTenantsRelationshipsSchema
+>
+export type PublicLeasesRow = z.infer<typeof generated.publicLeasesRowSchema>
 export type PublicLeasesInsert = z.infer<
-  typeof generated.publicLeasesInsertSchema
->;
+	typeof generated.publicLeasesInsertSchema
+>
 export type PublicLeasesUpdate = z.infer<
-  typeof generated.publicLeasesUpdateSchema
->;
+	typeof generated.publicLeasesUpdateSchema
+>
 export type PublicLeasesRelationships = z.infer<
-  typeof generated.publicLeasesRelationshipsSchema
->;
+	typeof generated.publicLeasesRelationshipsSchema
+>
 export type PublicMaintenanceRequestsRow = z.infer<
-  typeof generated.publicMaintenanceRequestsRowSchema
->;
+	typeof generated.publicMaintenanceRequestsRowSchema
+>
 export type PublicMaintenanceRequestsInsert = z.infer<
-  typeof generated.publicMaintenanceRequestsInsertSchema
->;
+	typeof generated.publicMaintenanceRequestsInsertSchema
+>
 export type PublicMaintenanceRequestsUpdate = z.infer<
-  typeof generated.publicMaintenanceRequestsUpdateSchema
->;
+	typeof generated.publicMaintenanceRequestsUpdateSchema
+>
 export type PublicMaintenanceRequestsRelationships = z.infer<
-  typeof generated.publicMaintenanceRequestsRelationshipsSchema
->;
+	typeof generated.publicMaintenanceRequestsRelationshipsSchema
+>
 export type PublicNotificationLogsRow = z.infer<
-  typeof generated.publicNotificationLogsRowSchema
->;
+	typeof generated.publicNotificationLogsRowSchema
+>
 export type PublicNotificationLogsInsert = z.infer<
-  typeof generated.publicNotificationLogsInsertSchema
->;
+	typeof generated.publicNotificationLogsInsertSchema
+>
 export type PublicNotificationLogsUpdate = z.infer<
-  typeof generated.publicNotificationLogsUpdateSchema
->;
+	typeof generated.publicNotificationLogsUpdateSchema
+>
 export type PublicNotificationLogsRelationships = z.infer<
-  typeof generated.publicNotificationLogsRelationshipsSchema
->;
+	typeof generated.publicNotificationLogsRelationshipsSchema
+>
 export type PublicNotificationsRow = z.infer<
-  typeof generated.publicNotificationsRowSchema
->;
+	typeof generated.publicNotificationsRowSchema
+>
 export type PublicNotificationsInsert = z.infer<
-  typeof generated.publicNotificationsInsertSchema
->;
+	typeof generated.publicNotificationsInsertSchema
+>
 export type PublicNotificationsUpdate = z.infer<
-  typeof generated.publicNotificationsUpdateSchema
->;
+	typeof generated.publicNotificationsUpdateSchema
+>
 export type PublicNotificationsRelationships = z.infer<
-  typeof generated.publicNotificationsRelationshipsSchema
->;
+	typeof generated.publicNotificationsRelationshipsSchema
+>
 export type PublicPaymentMethodsRow = z.infer<
-  typeof generated.publicPaymentMethodsRowSchema
->;
+	typeof generated.publicPaymentMethodsRowSchema
+>
 export type PublicPaymentMethodsInsert = z.infer<
-  typeof generated.publicPaymentMethodsInsertSchema
->;
+	typeof generated.publicPaymentMethodsInsertSchema
+>
 export type PublicPaymentMethodsUpdate = z.infer<
-  typeof generated.publicPaymentMethodsUpdateSchema
->;
+	typeof generated.publicPaymentMethodsUpdateSchema
+>
 export type PublicPaymentMethodsRelationships = z.infer<
-  typeof generated.publicPaymentMethodsRelationshipsSchema
->;
+	typeof generated.publicPaymentMethodsRelationshipsSchema
+>
 export type PublicPaymentSchedulesRow = z.infer<
-  typeof generated.publicPaymentSchedulesRowSchema
->;
+	typeof generated.publicPaymentSchedulesRowSchema
+>
 export type PublicPaymentSchedulesInsert = z.infer<
-  typeof generated.publicPaymentSchedulesInsertSchema
->;
+	typeof generated.publicPaymentSchedulesInsertSchema
+>
 export type PublicPaymentSchedulesUpdate = z.infer<
-  typeof generated.publicPaymentSchedulesUpdateSchema
->;
+	typeof generated.publicPaymentSchedulesUpdateSchema
+>
 export type PublicPaymentSchedulesRelationships = z.infer<
-  typeof generated.publicPaymentSchedulesRelationshipsSchema
->;
+	typeof generated.publicPaymentSchedulesRelationshipsSchema
+>
 export type PublicPaymentTransactionsRow = z.infer<
-  typeof generated.publicPaymentTransactionsRowSchema
->;
+	typeof generated.publicPaymentTransactionsRowSchema
+>
 export type PublicPaymentTransactionsInsert = z.infer<
-  typeof generated.publicPaymentTransactionsInsertSchema
->;
+	typeof generated.publicPaymentTransactionsInsertSchema
+>
 export type PublicPaymentTransactionsUpdate = z.infer<
-  typeof generated.publicPaymentTransactionsUpdateSchema
->;
+	typeof generated.publicPaymentTransactionsUpdateSchema
+>
 export type PublicPaymentTransactionsRelationships = z.infer<
-  typeof generated.publicPaymentTransactionsRelationshipsSchema
->;
+	typeof generated.publicPaymentTransactionsRelationshipsSchema
+>
 export type PublicProcessedInternalEventsRow = z.infer<
-  typeof generated.publicProcessedInternalEventsRowSchema
->;
+	typeof generated.publicProcessedInternalEventsRowSchema
+>
 export type PublicProcessedInternalEventsInsert = z.infer<
-  typeof generated.publicProcessedInternalEventsInsertSchema
->;
+	typeof generated.publicProcessedInternalEventsInsertSchema
+>
 export type PublicProcessedInternalEventsUpdate = z.infer<
-  typeof generated.publicProcessedInternalEventsUpdateSchema
->;
+	typeof generated.publicProcessedInternalEventsUpdateSchema
+>
 export type PublicPropertiesRow = z.infer<
-  typeof generated.publicPropertiesRowSchema
->;
+	typeof generated.publicPropertiesRowSchema
+>
 export type PublicPropertiesInsert = z.infer<
-  typeof generated.publicPropertiesInsertSchema
->;
+	typeof generated.publicPropertiesInsertSchema
+>
 export type PublicPropertiesUpdate = z.infer<
-  typeof generated.publicPropertiesUpdateSchema
->;
+	typeof generated.publicPropertiesUpdateSchema
+>
 export type PublicPropertiesRelationships = z.infer<
-  typeof generated.publicPropertiesRelationshipsSchema
->;
+	typeof generated.publicPropertiesRelationshipsSchema
+>
 export type PublicPropertyImagesRow = z.infer<
-  typeof generated.publicPropertyImagesRowSchema
->;
+	typeof generated.publicPropertyImagesRowSchema
+>
 export type PublicPropertyImagesInsert = z.infer<
-  typeof generated.publicPropertyImagesInsertSchema
->;
+	typeof generated.publicPropertyImagesInsertSchema
+>
 export type PublicPropertyImagesUpdate = z.infer<
-  typeof generated.publicPropertyImagesUpdateSchema
->;
+	typeof generated.publicPropertyImagesUpdateSchema
+>
 export type PublicPropertyImagesRelationships = z.infer<
-  typeof generated.publicPropertyImagesRelationshipsSchema
->;
+	typeof generated.publicPropertyImagesRelationshipsSchema
+>
 export type PublicPropertyOwnersRow = z.infer<
-  typeof generated.publicPropertyOwnersRowSchema
->;
+	typeof generated.publicPropertyOwnersRowSchema
+>
 export type PublicPropertyOwnersInsert = z.infer<
-  typeof generated.publicPropertyOwnersInsertSchema
->;
+	typeof generated.publicPropertyOwnersInsertSchema
+>
 export type PublicPropertyOwnersUpdate = z.infer<
-  typeof generated.publicPropertyOwnersUpdateSchema
->;
+	typeof generated.publicPropertyOwnersUpdateSchema
+>
 export type PublicPropertyOwnersRelationships = z.infer<
-  typeof generated.publicPropertyOwnersRelationshipsSchema
->;
-export type PublicRentDueRow = z.infer<typeof generated.publicRentDueRowSchema>;
+	typeof generated.publicPropertyOwnersRelationshipsSchema
+>
+export type PublicRentDueRow = z.infer<typeof generated.publicRentDueRowSchema>
 export type PublicRentDueInsert = z.infer<
-  typeof generated.publicRentDueInsertSchema
->;
+	typeof generated.publicRentDueInsertSchema
+>
 export type PublicRentDueUpdate = z.infer<
-  typeof generated.publicRentDueUpdateSchema
->;
+	typeof generated.publicRentDueUpdateSchema
+>
 export type PublicRentDueRelationships = z.infer<
-  typeof generated.publicRentDueRelationshipsSchema
->;
+	typeof generated.publicRentDueRelationshipsSchema
+>
 export type PublicRentPaymentsRow = z.infer<
-  typeof generated.publicRentPaymentsRowSchema
->;
+	typeof generated.publicRentPaymentsRowSchema
+>
 export type PublicRentPaymentsInsert = z.infer<
-  typeof generated.publicRentPaymentsInsertSchema
->;
+	typeof generated.publicRentPaymentsInsertSchema
+>
 export type PublicRentPaymentsUpdate = z.infer<
-  typeof generated.publicRentPaymentsUpdateSchema
->;
+	typeof generated.publicRentPaymentsUpdateSchema
+>
 export type PublicRentPaymentsRelationships = z.infer<
-  typeof generated.publicRentPaymentsRelationshipsSchema
->;
+	typeof generated.publicRentPaymentsRelationshipsSchema
+>
 export type PublicReportRunsRow = z.infer<
-  typeof generated.publicReportRunsRowSchema
->;
+	typeof generated.publicReportRunsRowSchema
+>
 export type PublicReportRunsInsert = z.infer<
-  typeof generated.publicReportRunsInsertSchema
->;
+	typeof generated.publicReportRunsInsertSchema
+>
 export type PublicReportRunsUpdate = z.infer<
-  typeof generated.publicReportRunsUpdateSchema
->;
+	typeof generated.publicReportRunsUpdateSchema
+>
 export type PublicReportRunsRelationships = z.infer<
-  typeof generated.publicReportRunsRelationshipsSchema
->;
-export type PublicReportsRow = z.infer<typeof generated.publicReportsRowSchema>;
+	typeof generated.publicReportRunsRelationshipsSchema
+>
+export type PublicReportsRow = z.infer<typeof generated.publicReportsRowSchema>
 export type PublicReportsInsert = z.infer<
-  typeof generated.publicReportsInsertSchema
->;
+	typeof generated.publicReportsInsertSchema
+>
 export type PublicReportsUpdate = z.infer<
-  typeof generated.publicReportsUpdateSchema
->;
+	typeof generated.publicReportsUpdateSchema
+>
 export type PublicReportsRelationships = z.infer<
-  typeof generated.publicReportsRelationshipsSchema
->;
+	typeof generated.publicReportsRelationshipsSchema
+>
 export type PublicSecurityAuditLogRow = z.infer<
-  typeof generated.publicSecurityAuditLogRowSchema
->;
+	typeof generated.publicSecurityAuditLogRowSchema
+>
 export type PublicSecurityAuditLogInsert = z.infer<
-  typeof generated.publicSecurityAuditLogInsertSchema
->;
+	typeof generated.publicSecurityAuditLogInsertSchema
+>
 export type PublicSecurityAuditLogUpdate = z.infer<
-  typeof generated.publicSecurityAuditLogUpdateSchema
->;
+	typeof generated.publicSecurityAuditLogUpdateSchema
+>
 export type PublicSecurityAuditLogRelationships = z.infer<
-  typeof generated.publicSecurityAuditLogRelationshipsSchema
->;
+	typeof generated.publicSecurityAuditLogRelationshipsSchema
+>
 export type PublicSubscriptionsRow = z.infer<
-  typeof generated.publicSubscriptionsRowSchema
->;
+	typeof generated.publicSubscriptionsRowSchema
+>
 export type PublicSubscriptionsInsert = z.infer<
-  typeof generated.publicSubscriptionsInsertSchema
->;
+	typeof generated.publicSubscriptionsInsertSchema
+>
 export type PublicSubscriptionsUpdate = z.infer<
-  typeof generated.publicSubscriptionsUpdateSchema
->;
+	typeof generated.publicSubscriptionsUpdateSchema
+>
 export type PublicSubscriptionsRelationships = z.infer<
-  typeof generated.publicSubscriptionsRelationshipsSchema
->;
+	typeof generated.publicSubscriptionsRelationshipsSchema
+>
 export type PublicTenantInvitationsRow = z.infer<
-  typeof generated.publicTenantInvitationsRowSchema
->;
+	typeof generated.publicTenantInvitationsRowSchema
+>
 export type PublicTenantInvitationsInsert = z.infer<
-  typeof generated.publicTenantInvitationsInsertSchema
->;
+	typeof generated.publicTenantInvitationsInsertSchema
+>
 export type PublicTenantInvitationsUpdate = z.infer<
-  typeof generated.publicTenantInvitationsUpdateSchema
->;
+	typeof generated.publicTenantInvitationsUpdateSchema
+>
 export type PublicTenantInvitationsRelationships = z.infer<
-  typeof generated.publicTenantInvitationsRelationshipsSchema
->;
-export type PublicTenantsRow = z.infer<typeof generated.publicTenantsRowSchema>;
+	typeof generated.publicTenantInvitationsRelationshipsSchema
+>
+export type PublicTenantsRow = z.infer<typeof generated.publicTenantsRowSchema>
 export type PublicTenantsInsert = z.infer<
-  typeof generated.publicTenantsInsertSchema
->;
+	typeof generated.publicTenantsInsertSchema
+>
 export type PublicTenantsUpdate = z.infer<
-  typeof generated.publicTenantsUpdateSchema
->;
+	typeof generated.publicTenantsUpdateSchema
+>
 export type PublicTenantsRelationships = z.infer<
-  typeof generated.publicTenantsRelationshipsSchema
->;
-export type PublicUnitsRow = z.infer<typeof generated.publicUnitsRowSchema>;
+	typeof generated.publicTenantsRelationshipsSchema
+>
+export type PublicUnitsRow = z.infer<typeof generated.publicUnitsRowSchema>
 export type PublicUnitsInsert = z.infer<
-  typeof generated.publicUnitsInsertSchema
->;
+	typeof generated.publicUnitsInsertSchema
+>
 export type PublicUnitsUpdate = z.infer<
-  typeof generated.publicUnitsUpdateSchema
->;
+	typeof generated.publicUnitsUpdateSchema
+>
 export type PublicUnitsRelationships = z.infer<
-  typeof generated.publicUnitsRelationshipsSchema
->;
+	typeof generated.publicUnitsRelationshipsSchema
+>
 export type PublicUserAccessLogRow = z.infer<
-  typeof generated.publicUserAccessLogRowSchema
->;
+	typeof generated.publicUserAccessLogRowSchema
+>
 export type PublicUserAccessLogInsert = z.infer<
-  typeof generated.publicUserAccessLogInsertSchema
->;
+	typeof generated.publicUserAccessLogInsertSchema
+>
 export type PublicUserAccessLogUpdate = z.infer<
-  typeof generated.publicUserAccessLogUpdateSchema
->;
+	typeof generated.publicUserAccessLogUpdateSchema
+>
 export type PublicUserAccessLogRelationships = z.infer<
-  typeof generated.publicUserAccessLogRelationshipsSchema
->;
+	typeof generated.publicUserAccessLogRelationshipsSchema
+>
 export type PublicUserFeatureAccessRow = z.infer<
-  typeof generated.publicUserFeatureAccessRowSchema
->;
+	typeof generated.publicUserFeatureAccessRowSchema
+>
 export type PublicUserFeatureAccessInsert = z.infer<
-  typeof generated.publicUserFeatureAccessInsertSchema
->;
+	typeof generated.publicUserFeatureAccessInsertSchema
+>
 export type PublicUserFeatureAccessUpdate = z.infer<
-  typeof generated.publicUserFeatureAccessUpdateSchema
->;
+	typeof generated.publicUserFeatureAccessUpdateSchema
+>
 export type PublicUserFeatureAccessRelationships = z.infer<
-  typeof generated.publicUserFeatureAccessRelationshipsSchema
->;
+	typeof generated.publicUserFeatureAccessRelationshipsSchema
+>
 export type PublicUserPreferencesRow = z.infer<
-  typeof generated.publicUserPreferencesRowSchema
->;
+	typeof generated.publicUserPreferencesRowSchema
+>
 export type PublicUserPreferencesInsert = z.infer<
-  typeof generated.publicUserPreferencesInsertSchema
->;
+	typeof generated.publicUserPreferencesInsertSchema
+>
 export type PublicUserPreferencesUpdate = z.infer<
-  typeof generated.publicUserPreferencesUpdateSchema
->;
+	typeof generated.publicUserPreferencesUpdateSchema
+>
 export type PublicUserPreferencesRelationships = z.infer<
-  typeof generated.publicUserPreferencesRelationshipsSchema
->;
-export type PublicUsersRow = z.infer<typeof generated.publicUsersRowSchema>;
+	typeof generated.publicUserPreferencesRelationshipsSchema
+>
+export type PublicUsersRow = z.infer<typeof generated.publicUsersRowSchema>
 export type PublicUsersInsert = z.infer<
-  typeof generated.publicUsersInsertSchema
->;
+	typeof generated.publicUsersInsertSchema
+>
 export type PublicUsersUpdate = z.infer<
-  typeof generated.publicUsersUpdateSchema
->;
+	typeof generated.publicUsersUpdateSchema
+>
 export type PublicWebhookAttemptsRow = z.infer<
-  typeof generated.publicWebhookAttemptsRowSchema
->;
+	typeof generated.publicWebhookAttemptsRowSchema
+>
 export type PublicWebhookAttemptsInsert = z.infer<
-  typeof generated.publicWebhookAttemptsInsertSchema
->;
+	typeof generated.publicWebhookAttemptsInsertSchema
+>
 export type PublicWebhookAttemptsUpdate = z.infer<
-  typeof generated.publicWebhookAttemptsUpdateSchema
->;
+	typeof generated.publicWebhookAttemptsUpdateSchema
+>
 export type PublicWebhookAttemptsRelationships = z.infer<
-  typeof generated.publicWebhookAttemptsRelationshipsSchema
->;
+	typeof generated.publicWebhookAttemptsRelationshipsSchema
+>
 export type PublicWebhookEventsRow = z.infer<
-  typeof generated.publicWebhookEventsRowSchema
->;
+	typeof generated.publicWebhookEventsRowSchema
+>
 export type PublicWebhookEventsInsert = z.infer<
-  typeof generated.publicWebhookEventsInsertSchema
->;
+	typeof generated.publicWebhookEventsInsertSchema
+>
 export type PublicWebhookEventsUpdate = z.infer<
-  typeof generated.publicWebhookEventsUpdateSchema
->;
+	typeof generated.publicWebhookEventsUpdateSchema
+>
 export type PublicWebhookMetricsRow = z.infer<
-  typeof generated.publicWebhookMetricsRowSchema
->;
+	typeof generated.publicWebhookMetricsRowSchema
+>
 export type PublicWebhookMetricsInsert = z.infer<
-  typeof generated.publicWebhookMetricsInsertSchema
->;
+	typeof generated.publicWebhookMetricsInsertSchema
+>
 export type PublicWebhookMetricsUpdate = z.infer<
-  typeof generated.publicWebhookMetricsUpdateSchema
->;
+	typeof generated.publicWebhookMetricsUpdateSchema
+>
 export type PublicAcquireInternalEventLockArgs = z.infer<
-  typeof generated.publicAcquireInternalEventLockArgsSchema
->;
+	typeof generated.publicAcquireInternalEventLockArgsSchema
+>
 export type PublicAcquireInternalEventLockReturns = z.infer<
-  typeof generated.publicAcquireInternalEventLockReturnsSchema
->;
+	typeof generated.publicAcquireInternalEventLockReturnsSchema
+>
 export type PublicAcquireWebhookEventLockWithIdArgs = z.infer<
-  typeof generated.publicAcquireWebhookEventLockWithIdArgsSchema
->;
+	typeof generated.publicAcquireWebhookEventLockWithIdArgsSchema
+>
 export type PublicAcquireWebhookEventLockWithIdReturns = z.infer<
-  typeof generated.publicAcquireWebhookEventLockWithIdReturnsSchema
->;
+	typeof generated.publicAcquireWebhookEventLockWithIdReturnsSchema
+>
 export type PublicActivateLeaseWithPendingSubscriptionArgs = z.infer<
-  typeof generated.publicActivateLeaseWithPendingSubscriptionArgsSchema
->;
+	typeof generated.publicActivateLeaseWithPendingSubscriptionArgsSchema
+>
 export type PublicActivateLeaseWithPendingSubscriptionReturns = z.infer<
-  typeof generated.publicActivateLeaseWithPendingSubscriptionReturnsSchema
->;
+	typeof generated.publicActivateLeaseWithPendingSubscriptionReturnsSchema
+>
 export type PublicCheckUserFeatureAccessArgs = z.infer<
-  typeof generated.publicCheckUserFeatureAccessArgsSchema
->;
+	typeof generated.publicCheckUserFeatureAccessArgsSchema
+>
 export type PublicCheckUserFeatureAccessReturns = z.infer<
-  typeof generated.publicCheckUserFeatureAccessReturnsSchema
->;
+	typeof generated.publicCheckUserFeatureAccessReturnsSchema
+>
 export type PublicCleanupOldInternalEventsArgs = z.infer<
-  typeof generated.publicCleanupOldInternalEventsArgsSchema
->;
+	typeof generated.publicCleanupOldInternalEventsArgsSchema
+>
 export type PublicCleanupOldInternalEventsReturns = z.infer<
-  typeof generated.publicCleanupOldInternalEventsReturnsSchema
->;
+	typeof generated.publicCleanupOldInternalEventsReturnsSchema
+>
 export type PublicCustomAccessTokenHookArgs = z.infer<
-  typeof generated.publicCustomAccessTokenHookArgsSchema
->;
+	typeof generated.publicCustomAccessTokenHookArgsSchema
+>
 export type PublicCustomAccessTokenHookReturns = z.infer<
-  typeof generated.publicCustomAccessTokenHookReturnsSchema
->;
+	typeof generated.publicCustomAccessTokenHookReturnsSchema
+>
 export type PublicGetBillingInsightsArgs = z.infer<
-  typeof generated.publicGetBillingInsightsArgsSchema
->;
+	typeof generated.publicGetBillingInsightsArgsSchema
+>
 export type PublicGetBillingInsightsReturns = z.infer<
-  typeof generated.publicGetBillingInsightsReturnsSchema
->;
+	typeof generated.publicGetBillingInsightsReturnsSchema
+>
 export type PublicGetCurrentPropertyOwnerIdArgs = z.infer<
-  typeof generated.publicGetCurrentPropertyOwnerIdArgsSchema
->;
+	typeof generated.publicGetCurrentPropertyOwnerIdArgsSchema
+>
 export type PublicGetCurrentPropertyOwnerIdReturns = z.infer<
-  typeof generated.publicGetCurrentPropertyOwnerIdReturnsSchema
->;
+	typeof generated.publicGetCurrentPropertyOwnerIdReturnsSchema
+>
 export type PublicGetCurrentTenantIdArgs = z.infer<
-  typeof generated.publicGetCurrentTenantIdArgsSchema
->;
+	typeof generated.publicGetCurrentTenantIdArgsSchema
+>
 export type PublicGetCurrentTenantIdReturns = z.infer<
-  typeof generated.publicGetCurrentTenantIdReturnsSchema
->;
+	typeof generated.publicGetCurrentTenantIdReturnsSchema
+>
 export type PublicGetCurrentUserTypeArgs = z.infer<
-  typeof generated.publicGetCurrentUserTypeArgsSchema
->;
+	typeof generated.publicGetCurrentUserTypeArgsSchema
+>
 export type PublicGetCurrentUserTypeReturns = z.infer<
-  typeof generated.publicGetCurrentUserTypeReturnsSchema
->;
+	typeof generated.publicGetCurrentUserTypeReturnsSchema
+>
 export type PublicGetDashboardStatsArgs = z.infer<
-  typeof generated.publicGetDashboardStatsArgsSchema
->;
+	typeof generated.publicGetDashboardStatsArgsSchema
+>
 export type PublicGetDashboardStatsReturns = z.infer<
-  typeof generated.publicGetDashboardStatsReturnsSchema
->;
+	typeof generated.publicGetDashboardStatsReturnsSchema
+>
 export type PublicGetDashboardTimeSeriesArgs = z.infer<
-  typeof generated.publicGetDashboardTimeSeriesArgsSchema
->;
+	typeof generated.publicGetDashboardTimeSeriesArgsSchema
+>
 export type PublicGetDashboardTimeSeriesReturns = z.infer<
-  typeof generated.publicGetDashboardTimeSeriesReturnsSchema
->;
+	typeof generated.publicGetDashboardTimeSeriesReturnsSchema
+>
 export type PublicGetMaintenanceAnalyticsArgs = z.infer<
-  typeof generated.publicGetMaintenanceAnalyticsArgsSchema
->;
+	typeof generated.publicGetMaintenanceAnalyticsArgsSchema
+>
 export type PublicGetMaintenanceAnalyticsReturns = z.infer<
-  typeof generated.publicGetMaintenanceAnalyticsReturnsSchema
->;
+	typeof generated.publicGetMaintenanceAnalyticsReturnsSchema
+>
 export type PublicGetMetricTrendArgs = z.infer<
-  typeof generated.publicGetMetricTrendArgsSchema
->;
+	typeof generated.publicGetMetricTrendArgsSchema
+>
 export type PublicGetMetricTrendReturns = z.infer<
-  typeof generated.publicGetMetricTrendReturnsSchema
->;
+	typeof generated.publicGetMetricTrendReturnsSchema
+>
 export type PublicGetOccupancyTrendsOptimizedArgs = z.infer<
-  typeof generated.publicGetOccupancyTrendsOptimizedArgsSchema
->;
+	typeof generated.publicGetOccupancyTrendsOptimizedArgsSchema
+>
 export type PublicGetOccupancyTrendsOptimizedReturns = z.infer<
-  typeof generated.publicGetOccupancyTrendsOptimizedReturnsSchema
->;
+	typeof generated.publicGetOccupancyTrendsOptimizedReturnsSchema
+>
 export type PublicGetOwnerLeaseTenantIdsArgs = z.infer<
-  typeof generated.publicGetOwnerLeaseTenantIdsArgsSchema
->;
+	typeof generated.publicGetOwnerLeaseTenantIdsArgsSchema
+>
 export type PublicGetOwnerLeaseTenantIdsReturns = z.infer<
-  typeof generated.publicGetOwnerLeaseTenantIdsReturnsSchema
->;
+	typeof generated.publicGetOwnerLeaseTenantIdsReturnsSchema
+>
 export type PublicGetPropertyPerformanceCachedArgs = z.infer<
-  typeof generated.publicGetPropertyPerformanceCachedArgsSchema
->;
+	typeof generated.publicGetPropertyPerformanceCachedArgsSchema
+>
 export type PublicGetPropertyPerformanceCachedReturns = z.infer<
-  typeof generated.publicGetPropertyPerformanceCachedReturnsSchema
->;
+	typeof generated.publicGetPropertyPerformanceCachedReturnsSchema
+>
 export type PublicGetPropertyPerformanceTrendsArgs = z.infer<
-  typeof generated.publicGetPropertyPerformanceTrendsArgsSchema
->;
+	typeof generated.publicGetPropertyPerformanceTrendsArgsSchema
+>
 export type PublicGetPropertyPerformanceTrendsReturns = z.infer<
-  typeof generated.publicGetPropertyPerformanceTrendsReturnsSchema
->;
+	typeof generated.publicGetPropertyPerformanceTrendsReturnsSchema
+>
 export type PublicGetRevenueTrendsOptimizedArgs = z.infer<
-  typeof generated.publicGetRevenueTrendsOptimizedArgsSchema
->;
+	typeof generated.publicGetRevenueTrendsOptimizedArgsSchema
+>
 export type PublicGetRevenueTrendsOptimizedReturns = z.infer<
-  typeof generated.publicGetRevenueTrendsOptimizedReturnsSchema
->;
+	typeof generated.publicGetRevenueTrendsOptimizedReturnsSchema
+>
 export type PublicGetTenantLeaseIdsArgs = z.infer<
-  typeof generated.publicGetTenantLeaseIdsArgsSchema
->;
+	typeof generated.publicGetTenantLeaseIdsArgsSchema
+>
 export type PublicGetTenantLeaseIdsReturns = z.infer<
-  typeof generated.publicGetTenantLeaseIdsReturnsSchema
->;
+	typeof generated.publicGetTenantLeaseIdsReturnsSchema
+>
 export type PublicGetTenantPropertyIdsArgs = z.infer<
-  typeof generated.publicGetTenantPropertyIdsArgsSchema
->;
+	typeof generated.publicGetTenantPropertyIdsArgsSchema
+>
 export type PublicGetTenantPropertyIdsReturns = z.infer<
-  typeof generated.publicGetTenantPropertyIdsReturnsSchema
->;
+	typeof generated.publicGetTenantPropertyIdsReturnsSchema
+>
 export type PublicGetTenantUnitIdsArgs = z.infer<
-  typeof generated.publicGetTenantUnitIdsArgsSchema
->;
+	typeof generated.publicGetTenantUnitIdsArgsSchema
+>
 export type PublicGetTenantUnitIdsReturns = z.infer<
-  typeof generated.publicGetTenantUnitIdsReturnsSchema
->;
+	typeof generated.publicGetTenantUnitIdsReturnsSchema
+>
 export type PublicGetTenantsByOwnerArgs = z.infer<
-  typeof generated.publicGetTenantsByOwnerArgsSchema
->;
+	typeof generated.publicGetTenantsByOwnerArgsSchema
+>
 export type PublicGetTenantsByOwnerReturns = z.infer<
-  typeof generated.publicGetTenantsByOwnerReturnsSchema
->;
+	typeof generated.publicGetTenantsByOwnerReturnsSchema
+>
 export type PublicGetTenantsWithLeaseByOwnerArgs = z.infer<
-  typeof generated.publicGetTenantsWithLeaseByOwnerArgsSchema
->;
+	typeof generated.publicGetTenantsWithLeaseByOwnerArgsSchema
+>
 export type PublicGetTenantsWithLeaseByOwnerReturns = z.infer<
-  typeof generated.publicGetTenantsWithLeaseByOwnerReturnsSchema
->;
+	typeof generated.publicGetTenantsWithLeaseByOwnerReturnsSchema
+>
 export type PublicGetUserDashboardActivitiesArgs = z.infer<
-  typeof generated.publicGetUserDashboardActivitiesArgsSchema
->;
+	typeof generated.publicGetUserDashboardActivitiesArgsSchema
+>
 export type PublicGetUserDashboardActivitiesReturns = z.infer<
-  typeof generated.publicGetUserDashboardActivitiesReturnsSchema
->;
+	typeof generated.publicGetUserDashboardActivitiesReturnsSchema
+>
 export type PublicGetUserPlanLimitsArgs = z.infer<
-  typeof generated.publicGetUserPlanLimitsArgsSchema
->;
+	typeof generated.publicGetUserPlanLimitsArgsSchema
+>
 export type PublicGetUserPlanLimitsReturns = z.infer<
-  typeof generated.publicGetUserPlanLimitsReturnsSchema
->;
+	typeof generated.publicGetUserPlanLimitsReturnsSchema
+>
 export type PublicHealthCheckArgs = z.infer<
-  typeof generated.publicHealthCheckArgsSchema
->;
+	typeof generated.publicHealthCheckArgsSchema
+>
 export type PublicHealthCheckReturns = z.infer<
-  typeof generated.publicHealthCheckReturnsSchema
->;
+	typeof generated.publicHealthCheckReturnsSchema
+>
 export type PublicParseAddressArgs = z.infer<
-  typeof generated.publicParseAddressArgsSchema
->;
+	typeof generated.publicParseAddressArgsSchema
+>
 export type PublicParseAddressReturns = z.infer<
-  typeof generated.publicParseAddressReturnsSchema
->;
+	typeof generated.publicParseAddressReturnsSchema
+>
 export type PublicRecordProcessedStripeEventLockArgs = z.infer<
-  typeof generated.publicRecordProcessedStripeEventLockArgsSchema
->;
+	typeof generated.publicRecordProcessedStripeEventLockArgsSchema
+>
 export type PublicRecordProcessedStripeEventLockReturns = z.infer<
-  typeof generated.publicRecordProcessedStripeEventLockReturnsSchema
->;
+	typeof generated.publicRecordProcessedStripeEventLockReturnsSchema
+>
 export type PublicSignLeaseAndCheckActivationArgs = z.infer<
-  typeof generated.publicSignLeaseAndCheckActivationArgsSchema
->;
+	typeof generated.publicSignLeaseAndCheckActivationArgsSchema
+>
 export type PublicSignLeaseAndCheckActivationReturns = z.infer<
-  typeof generated.publicSignLeaseAndCheckActivationReturnsSchema
->;
+	typeof generated.publicSignLeaseAndCheckActivationReturnsSchema
+>
 export type PublicUserIsTenantArgs = z.infer<
-  typeof generated.publicUserIsTenantArgsSchema
->;
+	typeof generated.publicUserIsTenantArgsSchema
+>
 export type PublicUserIsTenantReturns = z.infer<
-  typeof generated.publicUserIsTenantReturnsSchema
->;
-export type PublicStdaddr = z.infer<typeof generated.publicStdaddrSchema>;
+	typeof generated.publicUserIsTenantReturnsSchema
+>
+export type PublicStdaddr = z.infer<typeof generated.publicStdaddrSchema>

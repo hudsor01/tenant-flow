@@ -13,8 +13,7 @@ export interface CompressionResult {
 
 @Injectable()
 export class CompressionService {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	/**
 	 * Compress document based on MIME type
@@ -115,7 +114,9 @@ export class CompressionService {
 		if (!pdfHeader.startsWith('%PDF')) {
 			// Show hex for non-printable characters (control chars, etc.)
 			const isPrintable = /^[\x20-\x7E]*$/.test(pdfHeader)
-			const displayHeader = isPrintable ? pdfHeader : `0x${headerBytes.toString('hex')}`
+			const displayHeader = isPrintable
+				? pdfHeader
+				: `0x${headerBytes.toString('hex')}`
 			this.logger.debug(
 				`Invalid PDF header detected. Expected '%PDF', got '${displayHeader}' - skipping compression`
 			)

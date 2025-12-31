@@ -3,7 +3,10 @@
 import { useCallback, useState } from 'react'
 import Image from 'next/image'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { usePropertyImages, useDeletePropertyImageMutation } from '#hooks/api/mutations/property-mutations'
+import {
+	usePropertyImages,
+	useDeletePropertyImageMutation
+} from '#hooks/api/mutations/property-mutations'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
 import {
@@ -28,15 +31,27 @@ interface PropertyImageGalleryProps {
 	editable?: boolean
 }
 
-export function PropertyImageGallery({ propertyId, editable = false }: PropertyImageGalleryProps) {
+export function PropertyImageGallery({
+	propertyId,
+	editable = false
+}: PropertyImageGalleryProps) {
 	const { data: images, isLoading } = usePropertyImages(propertyId)
 	const deleteMutation = useDeletePropertyImageMutation()
 
 	// State for delete confirmation dialog
-	const [deleteTarget, setDeleteTarget] = useState<{ imageId: string; imageUrl: string } | null>(null)
+	const [deleteTarget, setDeleteTarget] = useState<{
+		imageId: string
+		imageUrl: string
+	} | null>(null)
 
 	// Use nuqs hook for URL state management
-	const { isOpen: lightboxOpen, currentIndex: lightboxIndex, open: _openLightbox, close: closeLightbox, goToImage } = useLightboxState(0)
+	const {
+		isOpen: lightboxOpen,
+		currentIndex: lightboxIndex,
+		open: _openLightbox,
+		close: closeLightbox,
+		goToImage
+	} = useLightboxState(0)
 
 	const executeDelete = useCallback(
 		async (imageId: string, imageUrl: string) => {
@@ -100,7 +115,9 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 				<ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
 				<p className="typography-small text-muted-foreground">No images yet</p>
 				{editable && (
-					<p className="text-caption mt-1">Upload images below to showcase this property</p>
+					<p className="text-caption mt-1">
+						Upload images below to showcase this property
+					</p>
 				)}
 			</div>
 		)
@@ -142,7 +159,7 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 									variant="destructive"
 									size="icon"
 									className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8"
-									onClick={(e) => {
+									onClick={e => {
 										e.stopPropagation()
 										handleDeleteClick(image.id, image.image_url)
 									}}
@@ -181,16 +198,20 @@ export function PropertyImageGallery({ propertyId, editable = false }: PropertyI
 				currentIndex={lightboxIndex}
 				open={lightboxOpen}
 				onClose={closeLightbox}
-				onIndexChange={(idx) => goToImage(idx)}
+				onIndexChange={idx => goToImage(idx)}
 			/>
 
 			{/* Delete Confirmation Dialog */}
-			<AlertDialog open={!!deleteTarget} onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}>
+			<AlertDialog
+				open={!!deleteTarget}
+				onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
+			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>Delete Image</AlertDialogTitle>
 						<AlertDialogDescription>
-							Are you sure you want to delete this image? This action cannot be undone.
+							Are you sure you want to delete this image? This action cannot be
+							undone.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

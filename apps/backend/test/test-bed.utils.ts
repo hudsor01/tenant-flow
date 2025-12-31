@@ -69,7 +69,7 @@ type UnitRef = {
 export async function createTestBed<T>(
 	classType: Constructor<T>
 ): Promise<TestBedResult<T>> {
-	const { unit, unitRef } = await TestBed.solitary(classType).compile() as {
+	const { unit, unitRef } = (await TestBed.solitary(classType).compile()) as {
 		unit: T
 		unitRef: UnitRef
 	}

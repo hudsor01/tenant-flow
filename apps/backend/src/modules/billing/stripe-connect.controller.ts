@@ -1,11 +1,30 @@
-import { Body, Controller, Post, Get, Request, BadRequestException, InternalServerErrorException, NotFoundException, Query, Param } from '@nestjs/common'
+import {
+	Body,
+	Controller,
+	Post,
+	Get,
+	Request,
+	BadRequestException,
+	InternalServerErrorException,
+	NotFoundException,
+	Query,
+	Param
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiParam,
+	ApiQuery,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
-import type { AuthenticatedRequest } from '@repo/shared/types/auth'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { validateLimit } from '../../shared/utils/pagination.utils'
-
 
 /**
  * Stripe-supported countries for Express accounts
@@ -67,11 +86,15 @@ function isValidStripeCountry(country: string | undefined): boolean {
  *
  * Handles Connected Account management for multi-owner SaaS platform
  */
+@ApiTags('Stripe Connect')
+@ApiBearerAuth('supabase-auth')
 @Controller('stripe/connect')
 export class StripeConnectController {
-
-	constructor(private readonly stripeConnectService: StripeConnectService,
-		private readonly supabaseService: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly stripeConnectService: StripeConnectService,
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Retrieves the Stripe Connect account ID for the authenticated user
@@ -103,11 +126,15 @@ export class StripeConnectController {
 				code: error.code,
 				userId
 			})
-			throw new InternalServerErrorException('Failed to retrieve payment account. Please try again or contact support if this persists.')
+			throw new InternalServerErrorException(
+				'Failed to retrieve payment account. Please try again or contact support if this persists.'
+			)
 		}
 
 		if (!propertyOwner?.stripe_account_id) {
-			throw new BadRequestException('No Stripe Connect account found. Please complete onboarding first.')
+			throw new BadRequestException(
+				'No Stripe Connect account found. Please complete onboarding first.'
+			)
 		}
 
 		return propertyOwner.stripe_account_id
@@ -117,6 +144,11 @@ export class StripeConnectController {
 	 * Create a Stripe Connected Account and start onboarding
 	 * POST /api/v1/stripe/connect/onboard
 	 */
+	@ApiOperation({ summary: 'Start Connect onboarding', description: 'Create a Stripe Connected Account and get onboarding URL' })
+	@ApiBody({ schema: { type: 'object', properties: { country: { type: 'string', description: 'ISO 3166-1 alpha-2 country code' } } }, required: false })
+	@ApiResponse({ status: 200, description: 'Connected account created and onboarding URL generated' })
+	@ApiResponse({ status: 400, description: 'Invalid country code or user not found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('onboard')
 	@SkipSubscriptionCheck() // Allow onboarding before subscription is active
 	async createConnectedAccount(
@@ -194,6 +226,10 @@ export class StripeConnectController {
 	 * Refresh Account Link (when expired or onboarding needs restart)
 	 * POST /api/v1/stripe/connect/refresh-link
 	 */
+	@ApiOperation({ summary: 'Refresh account link', description: 'Generate a new onboarding URL for an existing Connected Account' })
+	@ApiResponse({ status: 200, description: 'New onboarding URL generated' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('refresh-link')
 	@SkipSubscriptionCheck()
 	async refreshAccountLink(@Request() req: AuthenticatedRequest) {
@@ -231,6 +267,9 @@ export class StripeConnectController {
 	 * Get Connected Account status
 	 * GET /api/v1/stripe/connect/status
 	 */
+	@ApiOperation({ summary: 'Get Connect status', description: 'Get Connected Account onboarding and verification status' })
+	@ApiResponse({ status: 200, description: 'Connected account status retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('status')
 	@SkipSubscriptionCheck()
 	async getConnectedAccountStatus(@Request() req: AuthenticatedRequest) {
@@ -241,7 +280,9 @@ export class StripeConnectController {
 			const { data: propertyOwner, error } = await this.supabaseService
 				.getAdminClient()
 				.from('stripe_connected_accounts')
-				.select('stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.select(
+					'stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
 				.eq('user_id', user_id)
 				.single()
 
@@ -273,11 +314,14 @@ export class StripeConnectController {
 			const { data: updatedOwner } = await this.supabaseService
 				.getAdminClient()
 				.from('stripe_connected_accounts')
-				.select('charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at')
+				.select(
+					'charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
 				.eq('user_id', user_id)
 				.single()
 
-			const isOnboardingComplete = updatedOwner?.onboarding_status === 'complete'
+			const isOnboardingComplete =
+				updatedOwner?.onboarding_status === 'complete'
 
 			return {
 				hasConnectedAccount: true,
@@ -297,6 +341,10 @@ export class StripeConnectController {
 		}
 	}
 
+	@ApiOperation({ summary: 'Get account details', description: 'Get detailed information about the Connected Account' })
+	@ApiResponse({ status: 200, description: 'Account details retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'No connected account found' })
 	@Get('account')
 	async getConnectedAccountDetails(@Request() req: AuthenticatedRequest) {
 		const user_id = req.user.id
@@ -323,6 +371,10 @@ export class StripeConnectController {
 	 * Get Stripe Dashboard login link for the connected account
 	 * POST /api/v1/stripe/connect/dashboard-link
 	 */
+	@ApiOperation({ summary: 'Get dashboard link', description: 'Get a login link for the Stripe Express Dashboard' })
+	@ApiResponse({ status: 200, description: 'Dashboard link generated' })
+	@ApiResponse({ status: 400, description: 'No connected account found or onboarding incomplete' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('dashboard-link')
 	async getStripeDashboardLink(@Request() req: AuthenticatedRequest) {
 		const user_id = req.user.id
@@ -358,18 +410,22 @@ export class StripeConnectController {
 		}
 	}
 
-
 	/**
 	 * Get connected account balance
 	 * GET /api/v1/stripe/connect/balance
 	 */
+	@ApiOperation({ summary: 'Get account balance', description: 'Get available and pending balance for the Connected Account' })
+	@ApiResponse({ status: 200, description: 'Balance retrieved' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('balance')
 	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
 		const stripeAccountId = await this.getStripeAccountId(req.user.id)
 
-		const balance = await this.stripeConnectService.getConnectedAccountBalance(
-			stripeAccountId
-		)
+		const balance =
+			await this.stripeConnectService.getConnectedAccountBalance(
+				stripeAccountId
+			)
 
 		return {
 			success: true,
@@ -390,6 +446,12 @@ export class StripeConnectController {
 	 * List payouts for connected account
 	 * GET /api/v1/stripe/connect/payouts
 	 */
+	@ApiOperation({ summary: 'List payouts', description: 'List payouts for the Connected Account with pagination' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of payouts to return (default: 10, max: 100)' })
+	@ApiQuery({ name: 'starting_after', required: false, type: String, description: 'Cursor for pagination' })
+	@ApiResponse({ status: 200, description: 'Payouts retrieved' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('payouts')
 	async listPayouts(
 		@Request() req: AuthenticatedRequest,
@@ -431,6 +493,11 @@ export class StripeConnectController {
 	 * Get specific payout details
 	 * GET /api/v1/stripe/connect/payouts/:payoutId
 	 */
+	@ApiOperation({ summary: 'Get payout details', description: 'Get details for a specific payout' })
+	@ApiParam({ name: 'payoutId', type: String, description: 'Stripe payout ID' })
+	@ApiResponse({ status: 200, description: 'Payout details retrieved' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('payouts/:payoutId')
 	async getPayoutDetails(
 		@Request() req: AuthenticatedRequest,
@@ -464,6 +531,12 @@ export class StripeConnectController {
 	 * List rent payments received (transfers to connected account)
 	 * GET /api/v1/stripe/connect/transfers
 	 */
+	@ApiOperation({ summary: 'List transfers', description: 'List rent payment transfers received by the Connected Account' })
+	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of transfers to return (default: 10, max: 100)' })
+	@ApiQuery({ name: 'starting_after', required: false, type: String, description: 'Cursor for pagination' })
+	@ApiResponse({ status: 200, description: 'Transfers retrieved' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('transfers')
 	async listTransfers(
 		@Request() req: AuthenticatedRequest,

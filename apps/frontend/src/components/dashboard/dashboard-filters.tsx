@@ -19,11 +19,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
-import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger
-} from '#components/ui/popover'
+import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
 import { toast } from 'sonner'
 import { apiRequestRaw } from '#lib/api-request'
 
@@ -40,10 +36,12 @@ export interface DashboardFiltersProps {
 	/** Callback when date range changes */
 	onDateRangeChange?: (range: DateRange) => void
 	/** Data to export (for CSV/PDF) */
-	exportData?: {
-		stats?: Record<string, unknown>
-		propertyPerformance?: Array<Record<string, unknown>>
-	} | undefined
+	exportData?:
+		| {
+				stats?: Record<string, unknown>
+				propertyPerformance?: Array<Record<string, unknown>>
+		  }
+		| undefined
 	/** Disabled state for loading */
 	disabled?: boolean
 	/** Compact mode for mobile */
@@ -83,7 +81,7 @@ function getPresetLabel(preset: DateRangePreset): string {
 		'90d': 'Last 90 days',
 		'6m': 'Last 6 months',
 		'1y': 'Last year',
-		'custom': 'Custom range'
+		custom: 'Custom range'
 	}
 	return labels[preset]
 }
@@ -91,20 +89,25 @@ function getPresetLabel(preset: DateRangePreset): string {
 /**
  * Convert data to CSV format
  */
-function convertToCSV(data: Array<Record<string, unknown>>, headers?: string[]): string {
+function convertToCSV(
+	data: Array<Record<string, unknown>>,
+	headers?: string[]
+): string {
 	if (data.length === 0) return ''
 
 	const keys = headers ?? Object.keys(data[0]!)
 	const headerRow = keys.join(',')
 	const rows = data.map(row =>
-		keys.map(key => {
-			const value = row[key]
-			if (value === null || value === undefined) return ''
-			if (typeof value === 'string' && value.includes(',')) {
-				return `"${value.replace(/"/g, '""')}"`
-			}
-			return String(value)
-		}).join(',')
+		keys
+			.map(key => {
+				const value = row[key]
+				if (value === null || value === undefined) return ''
+				if (typeof value === 'string' && value.includes(',')) {
+					return `"${value.replace(/"/g, '""')}"`
+				}
+				return String(value)
+			})
+			.join(',')
 	)
 
 	return [headerRow, ...rows].join('\n')
@@ -142,16 +145,19 @@ export function DashboardFilters({
 	const [customStart, setCustomStart] = useState('')
 	const [customEnd, setCustomEnd] = useState('')
 
-	const handlePresetChange = useCallback((preset: DateRangePreset) => {
-		setActivePreset(preset)
-		if (preset !== 'custom') {
-			const range = getDateRangeFromPreset(preset)
-			onDateRangeChange?.(range)
-			setShowCustomRange(false)
-		} else {
-			setShowCustomRange(true)
-		}
-	}, [onDateRangeChange])
+	const handlePresetChange = useCallback(
+		(preset: DateRangePreset) => {
+			setActivePreset(preset)
+			if (preset !== 'custom') {
+				const range = getDateRangeFromPreset(preset)
+				onDateRangeChange?.(range)
+				setShowCustomRange(false)
+			} else {
+				setShowCustomRange(true)
+			}
+		},
+		[onDateRangeChange]
+	)
 
 	const handleCustomRangeApply = useCallback(() => {
 		if (customStart && customEnd) {
@@ -161,7 +167,10 @@ export function DashboardFilters({
 	}, [customStart, customEnd, onDateRangeChange])
 
 	const handleExportCSV = useCallback(async () => {
-		if (!exportData?.propertyPerformance || exportData.propertyPerformance.length === 0) {
+		if (
+			!exportData?.propertyPerformance ||
+			exportData.propertyPerformance.length === 0
+		) {
 			toast.error('No data available to export')
 			return
 		}
@@ -239,7 +248,9 @@ export function DashboardFilters({
 							className="h-9 gap-2"
 						>
 							<Calendar className="h-4 w-4" aria-hidden="true" />
-							<span className="hidden sm:inline">{getPresetLabel(activePreset)}</span>
+							<span className="hidden sm:inline">
+								{getPresetLabel(activePreset)}
+							</span>
 							<ChevronDown className="h-3 w-3" aria-hidden="true" />
 						</Button>
 					</DropdownMenuTrigger>

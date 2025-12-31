@@ -1,7 +1,7 @@
 'use client'
 
 import { use } from 'react'
-import { LeaseForm } from '#components/leases/lease-form.client'
+import { LeaseForm } from '#components/leases/lease-form'
 import { Skeleton } from '#components/ui/skeleton'
 import { leaseQueries } from '#hooks/api/queries/lease-queries'
 import { useQuery } from '@tanstack/react-query'

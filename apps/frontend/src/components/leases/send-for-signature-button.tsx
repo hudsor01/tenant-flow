@@ -127,7 +127,8 @@ export function SendForSignatureButton({
 			setTimeout(() => URL.revokeObjectURL(url), 60_000)
 		} catch (error) {
 			toast.error('Failed to preview PDF', {
-				description: error instanceof Error ? error.message : 'Please try again.'
+				description:
+					error instanceof Error ? error.message : 'Please try again.'
 			})
 		} finally {
 			setIsPreviewing(false)
@@ -142,7 +143,9 @@ export function SendForSignatureButton({
 					size={size}
 					disabled={disabled}
 					className={cn('gap-2', className)}
-					data-testid={isResend ? 'resend-signature-button' : 'send-for-signature-button'}
+					data-testid={
+						isResend ? 'resend-signature-button' : 'send-for-signature-button'
+					}
 				>
 					<Send className="h-4 w-4" />
 					{isResend ? 'Resend' : 'Send for Signature'}
@@ -160,8 +163,8 @@ export function SendForSignatureButton({
 								: 'Resend the signature request. This will create a fresh signing request.'
 							: tenantName
 								? `Send this lease to ${tenantName} for review and signature.`
-								: 'Send this lease to the tenant for review and signature.'}
-						{' '}You can include an optional message.
+								: 'Send this lease to the tenant for review and signature.'}{' '}
+						You can include an optional message.
 					</DialogDescription>
 				</DialogHeader>
 
@@ -196,7 +199,8 @@ export function SendForSignatureButton({
 						</div>
 						<div>
 							<Label htmlFor="landlord-notice-address" className="mb-2 block">
-								Landlord notice address <span className="text-destructive">*</span>
+								Landlord notice address{' '}
+								<span className="text-destructive">*</span>
 							</Label>
 							<Textarea
 								id="landlord-notice-address"

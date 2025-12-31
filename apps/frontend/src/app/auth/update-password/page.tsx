@@ -14,7 +14,10 @@ export default function UpdatePasswordPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col lg:flex-row">
 			{/* Full page grid background */}
-			<GridPattern patternId="update-password-grid" className="fixed inset-0 -z-10" />
+			<GridPattern
+				patternId="update-password-grid"
+				className="fixed inset-0 -z-10"
+			/>
 
 			{/* Left Side - Image Section (Hidden on mobile) */}
 			<div className="relative hidden lg:flex lg:w-1/2 min-h-screen bg-background overflow-hidden">
@@ -67,8 +70,8 @@ export default function UpdatePasswordPage() {
 							</h2>
 
 							<p className="text-muted-foreground text-lg leading-relaxed">
-								Create a strong password to keep your property management
-								data safe and secure.
+								Create a strong password to keep your property management data
+								safe and secure.
 							</p>
 
 							{/* Security Tips */}

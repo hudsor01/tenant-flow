@@ -37,7 +37,10 @@ export class AppLogger implements LoggerService {
 
 	verbose(message: unknown, contextOrMeta?: string | LogMeta, meta?: LogMeta) {
 		const { context, mergedMeta } = this.normalize(contextOrMeta, meta)
-		this.logger.verbose(message as string, this.mergeContext(mergedMeta, context))
+		this.logger.verbose(
+			message as string,
+			this.mergeContext(mergedMeta, context)
+		)
 	}
 
 	private normalize(
@@ -60,10 +63,14 @@ export class AppLogger implements LoggerService {
 
 		return {
 			...(context ? { context } : {}),
-			...(requestContext?.requestId ? { requestId: requestContext.requestId } : {}),
+			...(requestContext?.requestId
+				? { requestId: requestContext.requestId }
+				: {}),
 			...(requestContext?.path ? { path: requestContext.path } : {}),
 			...(requestContext?.method ? { method: requestContext.method } : {}),
-			...(requestContext?.startTime ? { startTime: requestContext.startTime } : {}),
+			...(requestContext?.startTime
+				? { startTime: requestContext.startTime }
+				: {}),
 			...meta
 		}
 	}

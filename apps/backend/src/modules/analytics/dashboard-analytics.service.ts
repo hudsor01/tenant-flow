@@ -29,8 +29,10 @@ import type {
  */
 @Injectable()
 export class DashboardAnalyticsService implements IDashboardAnalyticsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Call RPC using centralized retry logic from SupabaseService
@@ -43,9 +45,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 	): Promise<T> {
 		try {
 			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short',
-				source: 'service'
-			})
+				cacheTier: 'short' })
 			const res = result as { data?: T; error?: { message?: string } | null }
 
 			if (res.error) {
@@ -57,8 +57,8 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				throw new InternalServerErrorException(
 					`Analytics RPC failed: ${functionName}`,
 					res.error?.message
-					? { cause: res.error, description: res.error.message }
-					: { cause: res.error }
+						? { cause: res.error, description: res.error.message }
+						: { cause: res.error }
 				)
 			}
 
@@ -90,17 +90,29 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		}
 	}
 
-	async getDashboardStats(user_id: string, _token?: string): Promise<DashboardStats> {
+	async getDashboardStats(
+		user_id: string,
+		_token?: string
+	): Promise<DashboardStats> {
 		this.logger.log('Calculating dashboard stats via optimized RPC', {
 			user_id
 		})
 
 		// Call RPC with built-in retry logic (3 attempts with exponential backoff)
 		// FAIL-FAST: Let errors propagate to controller for proper HTTP response
-		return this.callRpc<DashboardStats>(
-			'get_dashboard_stats',
-			{ p_user_id: user_id }
-		)
+		// Note: RETURNS TABLE functions return an array - we need the first row
+		const result = await this.callRpc<DashboardStats[]>('get_dashboard_stats', {
+			p_user_id: user_id
+		})
+
+		// Extract first row from RETURNS TABLE result
+		const row = Array.isArray(result) ? result[0] : result
+		if (!row) {
+			this.logger.warn('Dashboard stats RPC returned empty result', { user_id })
+			throw new InternalServerErrorException('No dashboard stats available')
+		}
+
+		return row
 	}
 
 	async getPropertyPerformance(
@@ -120,12 +132,15 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			this.callRpc<
 				Array<{
 					property_id: string
-					current_month_revenue: number
-					previous_month_revenue: number
-					trend: 'up' | 'down' | 'stable'
+					total_revenue: number
+					previous_revenue: number
 					trend_percentage: number
+					timeframe: string
 				}>
-			>('get_property_performance_trends', { p_user_id: user_id })
+			>('get_property_performance_with_trends', {
+				p_user_id: user_id,
+				p_timeframe: '30d'
+			})
 		])
 
 		// Create a map of property trends for O(1) lookup
@@ -135,6 +150,13 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 
 		return rawProperties.map(item => {
 			const trendData = trendsMap.get(item.property_id)
+			const currentRevenue = trendData?.total_revenue ?? 0
+			const previousRevenue = trendData?.previous_revenue ?? 0
+			const trend = currentRevenue > previousRevenue
+				? ('up' as const)
+				: currentRevenue < previousRevenue
+					? ('down' as const)
+					: ('stable' as const)
 
 			return {
 				property: item.property_name,
@@ -149,7 +171,7 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 				potentialRevenue: item.potential_revenue,
 				property_type: item.property_type,
 				status: item.status as 'NO_UNITS' | 'vacant' | 'FULL' | 'PARTIAL',
-				trend: trendData?.trend ?? ('stable' as const),
+				trend,
 				trendPercentage: trendData?.trend_percentage ?? 0
 			}
 		})
@@ -172,10 +194,13 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			)
 
 			if (!raw || raw.length === 0) {
-				this.logger.warn('No occupancy trends data from RPC, returning empty array', {
-					user_id,
-					months
-				})
+				this.logger.warn(
+					'No occupancy trends data from RPC, returning empty array',
+					{
+						user_id,
+						months
+					}
+				)
 				return []
 			}
 
@@ -214,20 +239,27 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			)
 
 			if (!raw || raw.length === 0) {
-				this.logger.warn('No revenue trends data from RPC, returning empty array', {
-					user_id,
-					months
-				})
+				this.logger.warn(
+					'No revenue trends data from RPC, returning empty array',
+					{
+						user_id,
+						months
+					}
+				)
 				return []
 			}
 
 			return raw.map(item => ({
 				month: item.month || (item as { period?: string }).period || '',
-				revenue: typeof item.revenue === 'number' ? item.revenue : parseFloat(item.revenue) || 0,
+				revenue:
+					typeof item.revenue === 'number'
+						? item.revenue
+						: parseFloat(item.revenue) || 0,
 				growth: item.growth || 0,
-				previous_period_revenue: typeof item.previous_period_revenue === 'number'
-					? item.previous_period_revenue
-					: parseFloat(item.previous_period_revenue) || 0
+				previous_period_revenue:
+					typeof item.previous_period_revenue === 'number'
+						? item.previous_period_revenue
+						: parseFloat(item.previous_period_revenue) || 0
 			}))
 		} catch (error) {
 			this.logger.error(
@@ -306,13 +338,14 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 		try {
 			this.logger.log('Calculating billing insights via RPC', { user_id })
 
-			const data = await this.callRpc<BillingInsights>(
-				'get_billing_insights',
-				{ p_user_id: user_id }
-			)
+			const data = await this.callRpc<BillingInsights>('get_billing_insights', {
+				p_user_id: user_id
+			})
 
 			if (!data) {
-				this.logger.warn('Billing insights RPC failed, returning defaults', { user_id })
+				this.logger.warn('Billing insights RPC failed, returning defaults', {
+					user_id
+				})
 				return { totalRevenue: 0, churnRate: 0, mrr: 0 }
 			}
 
@@ -333,12 +366,10 @@ export class DashboardAnalyticsService implements IDashboardAnalyticsService {
 			const { error } = await client.from('properties').select('id').limit(1)
 			return !error
 		} catch (error) {
-			this.logger.error(
-				'Dashboard analytics service health check failed:',
-				{ error }
-			)
+			this.logger.error('Dashboard analytics service health check failed:', {
+				error
+			})
 			return false
 		}
 	}
-
 }

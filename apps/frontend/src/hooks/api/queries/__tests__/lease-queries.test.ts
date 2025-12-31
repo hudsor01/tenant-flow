@@ -26,7 +26,7 @@ vi.mock('#lib/api-config', () => ({
 
 // Mock Supabase client
 const mockGetSession = vi.fn()
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		auth: {
 			getSession: mockGetSession
@@ -103,7 +103,11 @@ describe('leaseQueries', () => {
 
 		it('should generate signature status key', () => {
 			const options = leaseQueries.signatureStatus('lease-123')
-			expect(options.queryKey).toEqual(['leases', 'signature-status', 'lease-123'])
+			expect(options.queryKey).toEqual([
+				'leases',
+				'signature-status',
+				'lease-123'
+			])
 		})
 
 		it('should generate analytics performance key', () => {
@@ -206,10 +210,12 @@ describe('leaseQueries', () => {
 
 	describe('tenantPortalActive query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
-				id: 'lease-123',
-				metadata: { documentUrl: null }
-			}))
+			mockFetch.mockResolvedValue(
+				createMockResponse({
+					id: 'lease-123',
+					metadata: { documentUrl: null }
+				})
+			)
 
 			const options = leaseQueries.tenantPortalActive()
 			await options.queryFn!({} as never)
@@ -259,11 +265,13 @@ describe('leaseQueries', () => {
 
 	describe('stats query', () => {
 		it('should call fetch with correct endpoint', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
-				total: 100,
-				active: 80,
-				expiring: 10
-			}))
+			mockFetch.mockResolvedValue(
+				createMockResponse({
+					total: 100,
+					active: 80,
+					expiring: 10
+				})
+			)
 
 			const options = leaseQueries.stats()
 			await options.queryFn!({} as never)
@@ -282,12 +290,14 @@ describe('leaseQueries', () => {
 
 	describe('signatureStatus query', () => {
 		it('should call fetch with lease ID', async () => {
-			mockFetch.mockResolvedValue(createMockResponse({
-				lease_id: 'lease-123',
-				status: 'pending',
-				owner_signed: false,
-				tenant_signed: false
-			}))
+			mockFetch.mockResolvedValue(
+				createMockResponse({
+					lease_id: 'lease-123',
+					status: 'pending',
+					owner_signed: false,
+					tenant_signed: false
+				})
+			)
 
 			const options = leaseQueries.signatureStatus('lease-123')
 			await options.queryFn!({} as never)

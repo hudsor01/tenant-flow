@@ -173,9 +173,8 @@ class EmailTestRunner {
 		const startTime = Date.now()
 
 		try {
-			const { EmailTemplateService } = await import(
-				'../../src/emails/email-template.service'
-			)
+			const { EmailTemplateService } =
+				await import('../../src/emails/email-template.service')
 			const service = new EmailTemplateService()
 
 			// Test template rendering performance
@@ -250,9 +249,7 @@ class EmailTestRunner {
 
 		// Summary
 		this.logger.log('\n[METRICS] Summary:')
-		this.logger.log(
-			` Total Tests: ${totalPassed + totalFailed + totalSkipped}`
-		)
+		this.logger.log(` Total Tests: ${totalPassed + totalFailed + totalSkipped}`)
 		this.logger.log(` [OK] Passed: ${totalPassed}`)
 		this.logger.log(` [ERROR] Failed: ${totalFailed}`)
 		this.logger.log(` ⏭️ Skipped: ${totalSkipped}`)

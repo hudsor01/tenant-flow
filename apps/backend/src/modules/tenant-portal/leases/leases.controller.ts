@@ -1,6 +1,20 @@
-import { Controller, Get, InternalServerErrorException, NotFoundException, UseGuards, UseInterceptors } from '@nestjs/common'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
+import {
+	Controller,
+	Get,
+	InternalServerErrorException,
+	NotFoundException,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { AuthUser } from '@repo/shared/types/auth'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -15,21 +29,34 @@ import { AppLogger } from '../../../logger/app-logger.service'
  *
  * Routes: /tenant/leases/*
  */
+@ApiTags('Tenant Portal - Leases')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantLeasesController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get active lease with unit/property metadata
 	 *
 	 * @returns Active lease details
 	 */
+	@ApiOperation({ summary: 'Get active lease', description: 'Get active lease details with unit and property information' })
+	@ApiResponse({ status: 200, description: 'Lease details retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get()
-	async getLease(@JwtToken() token: string, @User() user: AuthUser) {
-		const tenant = await this.resolveTenant(token, user)
+	async getLease(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		return this.fetchActiveLease(token, tenant.id)
 	}
 
@@ -38,9 +65,18 @@ export class TenantLeasesController {
 	 *
 	 * @returns List of lease-related documents
 	 */
+	@ApiOperation({ summary: 'Get lease documents', description: 'Get lease-related documents including signed agreement and payment receipts' })
+	@ApiResponse({ status: 200, description: 'Documents retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 404, description: 'Lease not found' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get('documents')
-	async getDocuments(@JwtToken() token: string, @User() user: AuthUser) {
-		const tenant = await this.resolveTenant(token, user)
+	async getDocuments(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const tenant = await this.resolveTenant(token, req.user)
 		const lease = await this.fetchActiveLease(token, tenant.id)
 		const payments = await this.fetchPayments(token, tenant.id)
 
@@ -86,7 +122,7 @@ export class TenantLeasesController {
 			.single()
 
 		if (error || !data) {
-			throw new Error('Tenant account not found')
+			throw new NotFoundException('Tenant account not found')
 		}
 
 		return data
@@ -154,9 +190,7 @@ export class TenantLeasesController {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('rent_payments')
-			.select(
-				'id, amount, status, paid_date, due_date, created_at'
-			)
+			.select('id, amount, status, paid_date, due_date, created_at')
 			.eq('tenant_id', tenant_id)
 			.order('created_at', { ascending: false })
 			.limit(50)

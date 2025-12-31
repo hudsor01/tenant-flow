@@ -15,7 +15,7 @@ export class TanStackQueryHelper {
 	 * Get the data for a specific query from the cache
 	 */
 	async getQueryData(queryKey: unknown[]): Promise<unknown> {
-		return this.page.evaluate((key) => {
+		return this.page.evaluate(key => {
 			const queryClient = (window as any).__QUERY_CLIENT__
 			if (!queryClient) {
 				throw new Error('Query client not found on window.__QUERY_CLIENT__')
@@ -48,7 +48,7 @@ export class TanStackQueryHelper {
 	 */
 	async waitForInvalidation(queryKey: unknown[]): Promise<void> {
 		await this.page.waitForFunction(
-			(key) => {
+			key => {
 				const ops = (window as any).cacheOperations || []
 				return ops.some(
 					(op: any) =>
@@ -69,7 +69,7 @@ export class TanStackQueryHelper {
 		dataUpdatedAt: number
 		isStale: boolean
 	}> {
-		return this.page.evaluate((key) => {
+		return this.page.evaluate(key => {
 			const queryClient = (window as any).__QUERY_CLIENT__
 			if (!queryClient) {
 				throw new Error('Query client not found')
@@ -85,14 +85,16 @@ export class TanStackQueryHelper {
 
 	async clearCache(): Promise<void> {
 		await this.page.evaluate(() => {
-			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+			const qc = (window as Window & { __QUERY_CLIENT__?: any })
+				.__QUERY_CLIENT__
 			qc?.clear?.()
 		})
 	}
 
 	async invalidateQueries(queryKey?: unknown[]): Promise<void> {
-		await this.page.evaluate((key) => {
-			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+		await this.page.evaluate(key => {
+			const qc = (window as Window & { __QUERY_CLIENT__?: any })
+				.__QUERY_CLIENT__
 			if (!qc?.invalidateQueries) return
 			qc.invalidateQueries(key ?? [])
 		}, queryKey)
@@ -100,7 +102,8 @@ export class TanStackQueryHelper {
 
 	async getAllQueries(): Promise<unknown[]> {
 		return this.page.evaluate(() => {
-			const qc = (window as Window & { __QUERY_CLIENT__?: any }).__QUERY_CLIENT__
+			const qc = (window as Window & { __QUERY_CLIENT__?: any })
+				.__QUERY_CLIENT__
 			const cache = qc?.getQueryCache?.()
 			return cache?.getAll ? cache.getAll() : []
 		})
@@ -113,23 +116,35 @@ export class TanStackQueryHelper {
 export class NetworkSimulator {
 	constructor(private page: Page) {}
 
-	async simulateNetworkFailure(urlPattern: string, status = 500): Promise<void> {
-		await this.page.route(urlPattern, (route) => {
-			route.fulfill({ status, body: JSON.stringify({ error: 'Simulated failure' }) })
+	async simulateNetworkFailure(
+		urlPattern: string,
+		status = 500
+	): Promise<void> {
+		await this.page.route(urlPattern, route => {
+			route.fulfill({
+				status,
+				body: JSON.stringify({ error: 'Simulated failure' })
+			})
 		})
 	}
 
 	async simulateSlowNetwork(delayMs = 1200): Promise<void> {
-		await this.page.route('**/*', async (route) => {
+		await this.page.route('**/*', async route => {
 			await this.page.waitForTimeout(delayMs)
 			route.continue()
 		})
 	}
 
-	async simulateIntermittentFailures(urlPattern = '**/*', failureRate = 0.3): Promise<void> {
-		await this.page.route(urlPattern, async (route) => {
+	async simulateIntermittentFailures(
+		urlPattern = '**/*',
+		failureRate = 0.3
+	): Promise<void> {
+		await this.page.route(urlPattern, async route => {
 			if (Math.random() < failureRate) {
-				return route.fulfill({ status: 503, body: JSON.stringify({ error: 'Intermittent failure' }) })
+				return route.fulfill({
+					status: 503,
+					body: JSON.stringify({ error: 'Intermittent failure' })
+				})
 			}
 			return route.continue()
 		})
@@ -139,7 +154,7 @@ export class NetworkSimulator {
 	 * Mock a successful API response
 	 */
 	async mockSuccessResponse(url: string, data: unknown): Promise<void> {
-		await this.page.route(url, (route) => {
+		await this.page.route(url, route => {
 			route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -156,7 +171,7 @@ export class NetworkSimulator {
 		status: number = 500,
 		message?: string
 	): Promise<void> {
-		await this.page.route(url, (route) => {
+		await this.page.route(url, route => {
 			route.fulfill({
 				status,
 				contentType: 'application/json',
@@ -168,9 +183,13 @@ export class NetworkSimulator {
 	/**
 	 * Simulate network delay
 	 */
-	async mockDelayedResponse(url: string, delay: number, data: unknown): Promise<void> {
-		await this.page.route(url, async (route) => {
-			await new Promise((resolve) => setTimeout(resolve, delay))
+	async mockDelayedResponse(
+		url: string,
+		delay: number,
+		data: unknown
+	): Promise<void> {
+		await this.page.route(url, async route => {
+			await new Promise(resolve => setTimeout(resolve, delay))
 			route.fulfill({
 				status: 200,
 				contentType: 'application/json',
@@ -183,9 +202,9 @@ export class NetworkSimulator {
 	 * Simulate network timeout
 	 */
 	async mockTimeout(url: string): Promise<void> {
-		await this.page.route(url, async (route) => {
+		await this.page.route(url, async route => {
 			// Delay for longer than typical timeout
-			await new Promise((resolve) => setTimeout(resolve, 60000))
+			await new Promise(resolve => setTimeout(resolve, 60000))
 			route.abort('timedout')
 		})
 	}
@@ -237,7 +256,10 @@ export class PropertyTableHelper {
 	 * Wait for a property to appear in the table
 	 */
 	async waitForPropertyInTable(name: string, timeout?: number): Promise<void> {
-		const options = timeout !== undefined ? { state: 'visible' as const, timeout } : { state: 'visible' as const }
+		const options =
+			timeout !== undefined
+				? { state: 'visible' as const, timeout }
+				: { state: 'visible' as const }
 		await this.page
 			.locator(`table tbody tr:has-text("${name}")`)
 			.waitFor(options)
@@ -246,8 +268,14 @@ export class PropertyTableHelper {
 	/**
 	 * Wait for a property to disappear from the table
 	 */
-	async waitForPropertyToDisappear(name: string, timeout?: number): Promise<void> {
-		const options = timeout !== undefined ? { state: 'hidden' as const, timeout } : { state: 'hidden' as const }
+	async waitForPropertyToDisappear(
+		name: string,
+		timeout?: number
+	): Promise<void> {
+		const options =
+			timeout !== undefined
+				? { state: 'hidden' as const, timeout }
+				: { state: 'hidden' as const }
 		await this.page
 			.locator(`table tbody tr:has-text("${name}")`)
 			.waitFor(options)
@@ -258,7 +286,9 @@ export class PropertyTableHelper {
 	 */
 	async editProperty(name: string): Promise<void> {
 		const row = this.getPropertyByName(name)
-		await row.locator('button[aria-label="Edit"], button:has-text("Edit")').click()
+		await row
+			.locator('button[aria-label="Edit"], button:has-text("Edit")')
+			.click()
 	}
 
 	/**
@@ -266,7 +296,9 @@ export class PropertyTableHelper {
 	 */
 	async deleteProperty(name: string): Promise<void> {
 		const row = this.getPropertyByName(name)
-		await row.locator('button[aria-label="Delete"], button:has-text("Delete")').click()
+		await row
+			.locator('button[aria-label="Delete"], button:has-text("Delete")')
+			.click()
 	}
 
 	/**
@@ -295,21 +327,38 @@ export class PropertyTableHelper {
 		await this.waitForLoading()
 	}
 
-	async waitForLoading(isLoading: boolean | number = true, timeout = 10000): Promise<void> {
+	async waitForLoading(
+		isLoading: boolean | number = true,
+		timeout = 10000
+	): Promise<void> {
 		const effectiveTimeout = typeof isLoading === 'number' ? isLoading : timeout
 		if (isLoading === true) {
-			await this.page.locator('text="Loading more properties..."').first().waitFor({ state: 'visible', timeout: effectiveTimeout }).catch(() => {})
+			await this.page
+				.locator('text="Loading more properties..."')
+				.first()
+				.waitFor({ state: 'visible', timeout: effectiveTimeout })
+				.catch(() => {})
 			return
 		}
 		if (isLoading === false) {
-			await this.page.locator('text="Loading more properties..."').first().waitFor({ state: 'hidden', timeout: effectiveTimeout }).catch(() => {})
+			await this.page
+				.locator('text="Loading more properties..."')
+				.first()
+				.waitFor({ state: 'hidden', timeout: effectiveTimeout })
+				.catch(() => {})
 			return
 		}
-		await this.page.waitForLoadState('networkidle', { timeout: effectiveTimeout }).catch(() => {})
+		await this.page
+			.waitForLoadState('networkidle', { timeout: effectiveTimeout })
+			.catch(() => {})
 	}
 
 	async isAtEnd(): Promise<boolean> {
-		const loadingVisible = await this.page.locator('text="Loading more properties..."').first().isVisible().catch(() => false)
+		const loadingVisible = await this.page
+			.locator('text="Loading more properties..."')
+			.first()
+			.isVisible()
+			.catch(() => false)
 		const lastRow = this.page.locator('table tbody tr').last()
 		const lastVisible = await lastRow.isVisible().catch(() => false)
 		return !loadingVisible && lastVisible
@@ -336,12 +385,16 @@ export class PropertyFormHelper {
 	}): Promise<void> {
 		// Click "Add Property" or similar button
 		await this.page
-			.locator('button:has-text("Add Property"), button:has-text("New Property")')
+			.locator(
+				'button:has-text("Add Property"), button:has-text("New Property")'
+			)
 			.click()
 
 		// Fill form fields
 		if (property.name) {
-			await this.page.locator('input[name="name"], input[placeholder*="name" i]').fill(property.name)
+			await this.page
+				.locator('input[name="name"], input[placeholder*="name" i]')
+				.fill(property.name)
 		}
 		if (property.address) {
 			await this.page
@@ -349,7 +402,9 @@ export class PropertyFormHelper {
 				.fill(property.address)
 		}
 		if (property.city) {
-			await this.page.locator('input[name="city"], input[placeholder*="city" i]').fill(property.city)
+			await this.page
+				.locator('input[name="city"], input[placeholder*="city" i]')
+				.fill(property.city)
 		}
 		if (property.state) {
 			await this.page
@@ -357,7 +412,9 @@ export class PropertyFormHelper {
 				.fill(property.state)
 		}
 		if (property.zip) {
-			await this.page.locator('input[name="zip"], input[placeholder*="zip" i]').fill(property.zip)
+			await this.page
+				.locator('input[name="zip"], input[placeholder*="zip" i]')
+				.fill(property.zip)
 		}
 		if (property.type) {
 			await this.page.locator('select[name="type"]').selectOption(property.type)
@@ -369,7 +426,9 @@ export class PropertyFormHelper {
 		}
 
 		// Submit form
-		await this.page.locator('button[type="submit"], button:has-text("Save")').click()
+		await this.page
+			.locator('button[type="submit"], button:has-text("Save")')
+			.click()
 	}
 
 	/**
@@ -384,7 +443,9 @@ export class PropertyFormHelper {
 	}): Promise<void> {
 		// Fill form fields with updates
 		if (updates.name) {
-			const nameInput = this.page.locator('input[name="name"], input[placeholder*="name" i]')
+			const nameInput = this.page.locator(
+				'input[name="name"], input[placeholder*="name" i]'
+			)
 			await nameInput.clear()
 			await nameInput.fill(updates.name)
 		}
@@ -396,23 +457,31 @@ export class PropertyFormHelper {
 			await addressInput.fill(updates.address)
 		}
 		if (updates.city) {
-			const cityInput = this.page.locator('input[name="city"], input[placeholder*="city" i]')
+			const cityInput = this.page.locator(
+				'input[name="city"], input[placeholder*="city" i]'
+			)
 			await cityInput.clear()
 			await cityInput.fill(updates.city)
 		}
 		if (updates.state) {
-			const stateInput = this.page.locator('input[name="state"], select[name="state"]')
+			const stateInput = this.page.locator(
+				'input[name="state"], select[name="state"]'
+			)
 			await stateInput.clear()
 			await stateInput.fill(updates.state)
 		}
 		if (updates.zip) {
-			const zipInput = this.page.locator('input[name="zip"], input[placeholder*="zip" i]')
+			const zipInput = this.page.locator(
+				'input[name="zip"], input[placeholder*="zip" i]'
+			)
 			await zipInput.clear()
 			await zipInput.fill(updates.zip)
 		}
 
 		// Submit form
-		await this.page.locator('button[type="submit"], button:has-text("Save")').click()
+		await this.page
+			.locator('button[type="submit"], button:has-text("Save")')
+			.click()
 	}
 
 	/**
@@ -424,7 +493,10 @@ export class PropertyFormHelper {
 
 	async waitForFormSubmission(timeout = 10000): Promise<void> {
 		const success = this.page.getByText(/saved|created|updated|success/i)
-		await success.first().waitFor({ timeout }).catch(() => {})
+		await success
+			.first()
+			.waitFor({ timeout })
+			.catch(() => {})
 	}
 }
 
@@ -456,7 +528,9 @@ export class DashboardStatsHelper {
 	 * Get a specific stat value from the dashboard
 	 */
 	private async getStatValue(statName: string): Promise<number | undefined> {
-		const element = this.page.locator(`[data-stat="${statName}"], [data-testid="${statName}"]`)
+		const element = this.page.locator(
+			`[data-stat="${statName}"], [data-testid="${statName}"]`
+		)
 		const isVisible = await element.isVisible().catch(() => false)
 		if (!isVisible) return undefined
 
@@ -487,7 +561,9 @@ export class DashboardStatsHelper {
 	async waitForStatsUpdate(previous?: number, timeout = 10000): Promise<void> {
 		await this.page.waitForFunction(
 			({ prev }) => {
-				const el = document.querySelector('[data-stat="total-properties"], [data-testid="total-properties"]')
+				const el = document.querySelector(
+					'[data-stat="total-properties"], [data-testid="total-properties"]'
+				)
 				if (!el) return false
 				const text = el.textContent || ''
 				const cleaned = text.replace(/[^0-9.]/g, '')
@@ -567,13 +643,13 @@ export class PerformanceHelper {
 			size: number
 		}>
 	> {
-		return this.page.evaluate((resourceType) => {
+		return this.page.evaluate(resourceType => {
 			const entries = performance.getEntriesByType('resource') as any[]
 			const filtered = resourceType
-				? entries.filter((e) => e.initiatorType === resourceType)
+				? entries.filter(e => e.initiatorType === resourceType)
 				: entries
 
-			return filtered.map((entry) => ({
+			return filtered.map(entry => ({
 				name: entry.name,
 				duration: entry.duration,
 				size: entry.transferSize || 0
@@ -585,7 +661,7 @@ export class PerformanceHelper {
 	 * Start performance mark
 	 */
 	async startMark(markName: string): Promise<void> {
-		await this.page.evaluate((name) => {
+		await this.page.evaluate(name => {
 			performance.mark(name)
 		}, markName)
 	}

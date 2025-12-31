@@ -25,7 +25,6 @@ import { maintenanceQueries } from '../queries/maintenance-queries'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
-
 /**
  * Create maintenance request mutation
  */
@@ -42,12 +41,12 @@ export function useMaintenanceRequestCreateMutation() {
 					owner_user_id: user?.id
 				})
 			}),
-		onSuccess: (_newRequest) => {
+		onSuccess: _newRequest => {
 			// Invalidate and refetch maintenance lists
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
 			toast.success('Maintenance request created successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Create maintenance request')
 		}
 	})
@@ -63,9 +62,11 @@ export function useMaintenanceRequestUpdateMutation() {
 		mutationFn: ({ id, data, version }: MaintenanceUpdateMutationVariables) =>
 			apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
 				method: 'PUT',
-				body: JSON.stringify(version !== undefined ? { ...data, version } : data)
+				body: JSON.stringify(
+					version !== undefined ? { ...data, version } : data
+				)
 			}),
-		onSuccess: (updatedRequest) => {
+		onSuccess: updatedRequest => {
 			// Update the specific maintenance request in cache
 			queryClient.setQueryData(
 				maintenanceQueries.detail(updatedRequest.id).queryKey,
@@ -75,7 +76,7 @@ export function useMaintenanceRequestUpdateMutation() {
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
 			toast.success('Maintenance request updated successfully')
 		},
-		onError: (error) => {
+		onError: error => {
 			handleMutationError(error, 'Update maintenance request')
 		}
 	})

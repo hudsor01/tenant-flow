@@ -44,7 +44,12 @@ export interface LeaseSignatureUpdatedEvent extends SseEventBase {
 		/** Which party signed */
 		signedBy: 'owner' | 'tenant'
 		/** Current overall signature status */
-		status: 'pending' | 'owner_signed' | 'tenant_signed' | 'fully_signed' | 'cancelled'
+		status:
+			| 'pending'
+			| 'owner_signed'
+			| 'tenant_signed'
+			| 'fully_signed'
+			| 'cancelled'
 		/** Timestamp of the signature */
 		signedAt: string
 		/** Optional signer info */

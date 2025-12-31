@@ -17,7 +17,7 @@ const config = [
 		name: 'nestjs/backend',
 		files: ['**/*.ts'],
 		plugins: {
-			'custom': {
+			custom: {
 				rules: {
 					'no-admin-client-bypass': noAdminClientBypass
 				}

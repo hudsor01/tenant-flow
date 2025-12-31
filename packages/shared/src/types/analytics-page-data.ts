@@ -9,10 +9,10 @@ import type {
 	LeaseAnalyticsPageResponse,
 	LeaseLifecyclePoint,
 	MaintenanceAnalyticsPageResponse,
-	MaintenanceTrendPoint as MAMaintenanceTrendPoint,
+	MaintenanceTrendPoint as MaintenanceTrendPointType,
 	OccupancyAnalyticsPageResponse,
 	PropertyPerformancePageResponse,
-	VisitorAnalyticsResponse
+	VisitorAnalyticsResponse as VisitorAnalyticsResponseType
 } from './analytics.js'
 
 // ============================================================================
@@ -109,8 +109,8 @@ export interface MaintenanceCostEntry {
 	percentage: number
 }
 
-// Re-export from maintenance-analytics for compatibility
-export type { MAMaintenanceTrendPoint as MaintenanceTrendPoint }
+// Maintenance trend point alias for compatibility
+export type MaintenanceTrendPoint = MaintenanceTrendPointType
 
 /**
  * Maintenance Insights Page Data
@@ -268,8 +268,8 @@ export interface PropertyPerformancePageData extends PropertyPerformancePageResp
 	revenueTrends: RevenueTrendPoint[]
 }
 
-// Re-export for convenience
-export type { VisitorAnalyticsResponse }
+// Visitor analytics response alias for compatibility
+export type VisitorAnalyticsResponse = VisitorAnalyticsResponseType
 
 // ============================================================================
 // Leases Page Data

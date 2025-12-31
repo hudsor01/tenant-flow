@@ -152,10 +152,7 @@ export async function canServiceKeyBypassRLS(): Promise<boolean> {
 	try {
 		const client = getServiceClient()
 		// Try a simple read operation that requires service role
-		const { error } = await client
-			.from('properties')
-			.select('id')
-			.limit(1)
+		const { error } = await client.from('properties').select('id').limit(1)
 
 		// If we get "permission denied", the key doesn't bypass RLS
 		if (error?.message?.includes('permission denied')) {

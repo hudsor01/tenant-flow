@@ -55,7 +55,7 @@ vi.mock('next/navigation', () => ({
 	usePathname: vi.fn(() => '/tenant')
 }))
 
-vi.mock('#components/tours', () => ({
+vi.mock('#components/tours/tenant-onboarding-tour', () => ({
 	TenantOnboardingTour: () => null,
 	TenantTourTrigger: () => <button type="button">Take a Tour</button>
 }))
@@ -120,7 +120,7 @@ describe('Autopay Status on Dashboard (Requirement 7.3)', () => {
 		const statCards = document.querySelectorAll('[data-slot="stat"]')
 		expect(statCards.length).toBe(4)
 
-		// Each card should have proper styling
+		// Each card should have proper styling (Stat component uses rounded-lg)
 		statCards.forEach(card => {
 			expect(card).toHaveClass('rounded-lg')
 			expect(card).toHaveClass('border')

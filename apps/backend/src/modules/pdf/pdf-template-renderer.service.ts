@@ -11,8 +11,13 @@ type RenderCacheEntry = {
 }
 
 @Injectable()
-export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy {
-	private readonly templateCache = new Map<string, Handlebars.TemplateDelegate>()
+export class PdfTemplateRendererService
+	implements OnModuleInit, OnModuleDestroy
+{
+	private readonly templateCache = new Map<
+		string,
+		Handlebars.TemplateDelegate
+	>()
 	private readonly templateCacheMaxEntries = Number.parseInt(
 		process.env.PDF_TEMPLATE_CACHE_MAX ?? '50',
 		10
@@ -26,7 +31,9 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 		process.env.PDF_TEMPLATE_RENDER_CACHE_TTL_MS ?? '300000',
 		10
 	)
-	private readonly prewarmTemplates = (process.env.PDF_TEMPLATE_PREWARM ?? 'lease-agreement')
+	private readonly prewarmTemplates = (
+		process.env.PDF_TEMPLATE_PREWARM ?? 'lease-agreement'
+	)
 		.split(',')
 		.map(value => value.trim())
 		.filter(Boolean)
@@ -73,7 +80,8 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 			ttlMs?: number
 		}
 	): Promise<string> {
-		const cacheKey = options?.cacheKey ?? this.buildRenderCacheKey(templateName, data)
+		const cacheKey =
+			options?.cacheKey ?? this.buildRenderCacheKey(templateName, data)
 		const cached = this.getCachedRender(cacheKey)
 		if (cached) {
 			return cached
@@ -81,7 +89,11 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 
 		const template = await this.getTemplate(templateName)
 		const html = template(data)
-		this.setCachedRender(cacheKey, html, options?.ttlMs ?? this.renderCacheTtlMs)
+		this.setCachedRender(
+			cacheKey,
+			html,
+			options?.ttlMs ?? this.renderCacheTtlMs
+		)
 		return html
 	}
 
@@ -135,7 +147,9 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 		}
 	}
 
-	private async getTemplate(templateName: string): Promise<Handlebars.TemplateDelegate> {
+	private async getTemplate(
+		templateName: string
+	): Promise<Handlebars.TemplateDelegate> {
 		const cached = this.templateCache.get(templateName)
 		if (cached) {
 			return cached
@@ -159,8 +173,24 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 		const fileName = `${templateName}.hbs`
 		const candidates = [
 			path.resolve(__dirname, 'templates', fileName),
-			path.resolve(process.cwd(), 'apps', 'backend', 'src', 'modules', 'pdf', 'templates', fileName),
-			path.resolve(process.cwd(), 'src', 'modules', 'pdf', 'templates', fileName)
+			path.resolve(
+				process.cwd(),
+				'apps',
+				'backend',
+				'src',
+				'modules',
+				'pdf',
+				'templates',
+				fileName
+			),
+			path.resolve(
+				process.cwd(),
+				'src',
+				'modules',
+				'pdf',
+				'templates',
+				fileName
+			)
 		]
 
 		for (const candidate of candidates) {
@@ -175,7 +205,10 @@ export class PdfTemplateRendererService implements OnModuleInit, OnModuleDestroy
 		throw new Error(`PDF HTML template not found: ${templateName}`)
 	}
 
-	private buildRenderCacheKey(templateName: string, data: Record<string, unknown>): string {
+	private buildRenderCacheKey(
+		templateName: string,
+		data: Record<string, unknown>
+	): string {
 		const payload = JSON.stringify(data)
 		const hash = crypto.createHash('sha1').update(payload).digest('hex')
 		return `${templateName}:${hash}`

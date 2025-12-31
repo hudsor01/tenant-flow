@@ -56,29 +56,43 @@ describe('RLS: Payment Isolation', () => {
 				tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 				// Create test lease for payment foreign key - only if tenantA available
 				try {
-					testlease_id = await ensureTestLease(ownerA.client, ownerA.user_id, tenantA.user_id)
+					testlease_id = await ensureTestLease(
+						ownerA.client,
+						ownerA.user_id,
+						tenantA.user_id
+					)
 					const { data: leaseRow, error: leaseError } = await ownerA.client
 						.from('leases')
 						.select('primary_tenant_id')
 						.eq('id', testlease_id)
 						.single()
 					if (leaseError) {
-						testLogger.warn('Could not load tenant record for test lease', leaseError)
+						testLogger.warn(
+							'Could not load tenant record for test lease',
+							leaseError
+						)
 					} else {
 						testTenantRecordId = leaseRow.primary_tenant_id
 					}
 				} catch (e) {
-					testLogger.warn('Could not create test lease - some tests may be skipped', e)
+					testLogger.warn(
+						'Could not create test lease - some tests may be skipped',
+						e
+					)
 				}
 			} catch (error) {
-				testLogger.warn(`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				testLogger.warn(
+					`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		}
 		if (isTestUserAvailable('TENANT_B')) {
 			try {
 				tenantB = await authenticateAs(TEST_USERS.TENANT_B)
 			} catch (error) {
-				testLogger.warn(`[SKIP] Failed to authenticate TENANT_B: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				testLogger.warn(
+					`[SKIP] Failed to authenticate TENANT_B: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		}
 	})
@@ -96,7 +110,10 @@ describe('RLS: Payment Isolation', () => {
 			}
 		} catch (error) {
 			// Log but don't fail tests on cleanup errors
-			testLogger.error('Cleanup error in payment-isolation tests:', error as Error)
+			testLogger.error(
+				'Cleanup error in payment-isolation tests:',
+				error as Error
+			)
 		}
 	})
 
@@ -120,7 +137,7 @@ describe('RLS: Payment Isolation', () => {
 			const { data, error } = await ownerA.client
 				.from('rent_payments')
 				.select('*')
-				// RLS policy ensures only owner's payments are returned; owner_id field doesn't exist in schema
+			// RLS policy ensures only owner's payments are returned; owner_id field doesn't exist in schema
 
 			expect(error).toBeNull()
 			expect(Array.isArray(data)).toBe(true)
@@ -168,7 +185,7 @@ describe('RLS: Payment Isolation', () => {
 			const { data, error } = await tenantA.client
 				.from('rent_payments')
 				.select('*')
-				// RLS policy ensures only owner's payments are returned; owner_id field doesn't exist in schema
+			// RLS policy ensures only owner's payments are returned; owner_id field doesn't exist in schema
 
 			expect(error).toBeNull()
 			expect(Array.isArray(data)).toBe(true)
@@ -185,18 +202,20 @@ describe('RLS: Payment Isolation', () => {
 			const { data, error } = await ownerA.client
 				.from('rent_payments')
 				.insert({
-				tenant_id: testTenantRecordId,
-				amount: 150000,
-				application_fee_amount: 7500,
-				currency: 'USD',
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!,
-				period_end: new Date().toISOString().split('T')[0]!,
-				stripe_payment_intent_id: makeStripeIntentId()
-			})
+					tenant_id: testTenantRecordId,
+					amount: 150000,
+					application_fee_amount: 7500,
+					currency: 'USD',
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+						.toISOString()
+						.split('T')[0]!,
+					period_end: new Date().toISOString().split('T')[0]!,
+					stripe_payment_intent_id: makeStripeIntentId()
+				})
 				.select()
 
 			if (error) {
@@ -219,19 +238,22 @@ describe('RLS: Payment Isolation', () => {
 				return
 			}
 
-			const tenantPayment: Database['public']['Tables']['rent_payments']['Insert'] = {
-				tenant_id: testTenantRecordId,
-				amount: 150000,
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				application_fee_amount: 7500,
-				currency: 'usd',
-				period_start: new Date().toISOString(),
-				period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-				stripe_payment_intent_id: makeStripeIntentId()
-			}
+			const tenantPayment: Database['public']['Tables']['rent_payments']['Insert'] =
+				{
+					tenant_id: testTenantRecordId,
+					amount: 150000,
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					application_fee_amount: 7500,
+					currency: 'usd',
+					period_start: new Date().toISOString(),
+					period_end: new Date(
+						Date.now() + 30 * 24 * 60 * 60 * 1000
+					).toISOString(),
+					stripe_payment_intent_id: makeStripeIntentId()
+				}
 
 			const { data, error } = await tenantA.client
 				.from('rent_payments')
@@ -268,7 +290,9 @@ describe('RLS: Payment Isolation', () => {
 					application_fee_amount: 7500,
 					currency: 'usd',
 					period_start: new Date().toISOString(),
-					period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+					period_end: new Date(
+						Date.now() + 30 * 24 * 60 * 60 * 1000
+					).toISOString(),
 					stripe_payment_intent_id: makeStripeIntentId()
 				}
 
@@ -294,7 +318,9 @@ describe('RLS: Payment Isolation', () => {
 
 		beforeAll(async () => {
 			if (!tenantA || !testlease_id || !testTenantRecordId) {
-				testLogger.warn('[SKIP] Tenant A or test lease not available - UPDATE tests will be skipped')
+				testLogger.warn(
+					'[SKIP] Tenant A or test lease not available - UPDATE tests will be skipped'
+				)
 				return
 			}
 
@@ -302,18 +328,20 @@ describe('RLS: Payment Isolation', () => {
 			const { data } = await serviceClient
 				.from('rent_payments')
 				.insert({
-				tenant_id: testTenantRecordId,
-				amount: 150000,
-				application_fee_amount: 7500,
-				currency: 'USD',
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!,
-				period_end: new Date().toISOString().split('T')[0]!,
-				stripe_payment_intent_id: makeStripeIntentId()
-			})
+					tenant_id: testTenantRecordId,
+					amount: 150000,
+					application_fee_amount: 7500,
+					currency: 'USD',
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+						.toISOString()
+						.split('T')[0]!,
+					period_end: new Date().toISOString().split('T')[0]!,
+					stripe_payment_intent_id: makeStripeIntentId()
+				})
 				.select()
 				.single()
 
@@ -385,7 +413,9 @@ describe('RLS: Payment Isolation', () => {
 
 		beforeAll(async () => {
 			if (!tenantA || !testlease_id || !testTenantRecordId) {
-				testLogger.warn('[SKIP] Tenant A or test lease not available - DELETE tests will be skipped')
+				testLogger.warn(
+					'[SKIP] Tenant A or test lease not available - DELETE tests will be skipped'
+				)
 				return
 			}
 
@@ -393,18 +423,20 @@ describe('RLS: Payment Isolation', () => {
 			const { data } = await serviceClient
 				.from('rent_payments')
 				.insert({
-				tenant_id: testTenantRecordId,
-				amount: 150000,
-				application_fee_amount: 7500,
-				currency: 'USD',
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]!,
-				period_end: new Date().toISOString().split('T')[0]!,
-				stripe_payment_intent_id: makeStripeIntentId()
-			})
+					tenant_id: testTenantRecordId,
+					amount: 150000,
+					application_fee_amount: 7500,
+					currency: 'USD',
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					period_start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+						.toISOString()
+						.split('T')[0]!,
+					period_end: new Date().toISOString().split('T')[0]!,
+					stripe_payment_intent_id: makeStripeIntentId()
+				})
 				.select()
 				.single()
 
@@ -483,19 +515,22 @@ describe('RLS: Payment Isolation', () => {
 				return
 			}
 			// Tenant A tries to create payment claiming to be Tenant B
-			const spoofedTenantPayment: Database['public']['Tables']['rent_payments']['Insert'] = {
-				tenant_id: testTenantRecordId, // Valid tenant record id is sufficient for permission check
-				amount: 150000,
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				application_fee_amount: 7500,
-				currency: 'usd',
-				period_start: new Date().toISOString(),
-				period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-				stripe_payment_intent_id: makeStripeIntentId()
-			}
+			const spoofedTenantPayment: Database['public']['Tables']['rent_payments']['Insert'] =
+				{
+					tenant_id: testTenantRecordId, // Valid tenant record id is sufficient for permission check
+					amount: 150000,
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					application_fee_amount: 7500,
+					currency: 'usd',
+					period_start: new Date().toISOString(),
+					period_end: new Date(
+						Date.now() + 30 * 24 * 60 * 60 * 1000
+					).toISOString(),
+					stripe_payment_intent_id: makeStripeIntentId()
+				}
 
 			const { data, error } = await tenantA.client
 				.from('rent_payments')
@@ -514,19 +549,22 @@ describe('RLS: Payment Isolation', () => {
 			}
 
 			// owner A tries to create payment claiming to be owner B
-			const ownerSpoofPayment: Database['public']['Tables']['rent_payments']['Insert'] = {
-				tenant_id: testTenantRecordId,
-				amount: 150000,
-				status: 'pending',
-				due_date: new Date().toISOString().split('T')[0]!,
-				lease_id: testlease_id,
-				payment_method_type: 'card',
-				application_fee_amount: 7500,
-				currency: 'usd',
-				period_start: new Date().toISOString(),
-				period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-				stripe_payment_intent_id: makeStripeIntentId()
-			}
+			const ownerSpoofPayment: Database['public']['Tables']['rent_payments']['Insert'] =
+				{
+					tenant_id: testTenantRecordId,
+					amount: 150000,
+					status: 'pending',
+					due_date: new Date().toISOString().split('T')[0]!,
+					lease_id: testlease_id,
+					payment_method_type: 'card',
+					application_fee_amount: 7500,
+					currency: 'usd',
+					period_start: new Date().toISOString(),
+					period_end: new Date(
+						Date.now() + 30 * 24 * 60 * 60 * 1000
+					).toISOString(),
+					stripe_payment_intent_id: makeStripeIntentId()
+				}
 
 			const { data, error } = await ownerA.client
 				.from('rent_payments')

@@ -15,7 +15,7 @@ import { Test } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request, Response } from 'express'
-import { StripeController } from './stripe.controller'
+import { StripeSubscriptionController } from './stripe-subscription.controller'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
@@ -23,7 +23,6 @@ import { SecurityService } from '../../security/security.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
-
 
 // Mock services
 const mockStripeService = {
@@ -51,7 +50,7 @@ const mockSupabaseService = {
 	getAdminClient: jest.fn()
 }
 
-describe('StripeController', () => {
+describe('StripeSubscriptionController', () => {
 	type UpdateSubscriptionResponse = Awaited<
 		ReturnType<StripeService['updateSubscription']>
 	>
@@ -62,14 +61,14 @@ describe('StripeController', () => {
 		ReturnType<BillingService['findSubscriptionByStripeId']>
 	>
 
-	let controller: StripeController
+	let controller: StripeSubscriptionController
 	let stripeService: jest.Mocked<StripeService>
 	let stripeSharedService: jest.Mocked<StripeSharedService>
 	let billingService: jest.Mocked<BillingService>
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			controllers: [StripeController],
+			controllers: [StripeSubscriptionController],
 			providers: [
 				{ provide: StripeService, useValue: mockStripeService },
 				{ provide: StripeSharedService, useValue: mockStripeSharedService },
@@ -87,7 +86,9 @@ describe('StripeController', () => {
 			]
 		}).compile()
 
-		controller = module.get<StripeController>(StripeController)
+		controller = module.get<StripeSubscriptionController>(
+			StripeSubscriptionController
+		)
 		stripeService = module.get(StripeService)
 		stripeSharedService = module.get(StripeSharedService)
 		billingService = module.get(BillingService)
@@ -115,9 +116,16 @@ describe('StripeController', () => {
 				billingService.findSubscriptionByStripeId.mockResolvedValue({
 					customer: 'tenant-123'
 				} as BillingSubscription)
-				stripeService.updateSubscription.mockResolvedValue(mockSubscription as UpdateSubscriptionResponse)
+				stripeService.updateSubscription.mockResolvedValue(
+					mockSubscription as UpdateSubscriptionResponse
+				)
 
-				await controller.updateSubscription(validUUID, mockReq as Request, mockRes as Response, {})
+				await controller.updateSubscription(
+					validUUID,
+					mockReq as Request,
+					mockRes as Response,
+					{}
+				)
 
 				expect(mockRes.status).toHaveBeenCalledWith(200)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -155,9 +163,15 @@ describe('StripeController', () => {
 				}
 
 				stripeSharedService.generateIdempotencyKey.mockReturnValue('key-123')
-				stripeService.createSubscription.mockResolvedValue(mockSubscription as CreateSubscriptionResponse)
+				stripeService.createSubscription.mockResolvedValue(
+					mockSubscription as CreateSubscriptionResponse
+				)
 
-				await controller.createSubscription(mockReq as Request, mockRes as Response, body)
+				await controller.createSubscription(
+					mockReq as Request,
+					mockRes as Response,
+					body
+				)
 
 				expect(mockRes.status).toHaveBeenCalledWith(201)
 				expect(mockRes.json).toHaveBeenCalledWith({
@@ -182,7 +196,11 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as Request, mockRes as Response, body)
+					controller.createSubscription(
+						mockReq as Request,
+						mockRes as Response,
+						body
+					)
 				).rejects.toThrow(BadRequestException)
 			})
 
@@ -200,7 +218,11 @@ describe('StripeController', () => {
 				}
 
 				await expect(
-					controller.createSubscription(mockReq as Request, mockRes as Response, body)
+					controller.createSubscription(
+						mockReq as Request,
+						mockRes as Response,
+						body
+					)
 				).rejects.toThrow(BadRequestException)
 			})
 		})

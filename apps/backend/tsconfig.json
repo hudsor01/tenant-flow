@@ -7,8 +7,6 @@
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
 		"types": ["node", "jest", "express"],
-		// Strict mode enabled via base config inheritance
-		// "noUnusedLocals" and "noUnusedParameters" enabled via nestjs.json
 		"composite": false,
 		"declaration": true,
 		"declarationMap": true,

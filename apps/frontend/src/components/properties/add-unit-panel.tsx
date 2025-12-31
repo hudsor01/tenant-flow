@@ -4,7 +4,11 @@ import { useState } from 'react'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '#components/ui/input-group'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
 import {
 	Select,
 	SelectContent,
@@ -129,9 +133,7 @@ export function AddUnitPanel({
 			<SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
 				<SheetHeader>
 					<SheetTitle>Add Unit</SheetTitle>
-					<SheetDescription>
-						Add a new unit to {propertyName}
-					</SheetDescription>
+					<SheetDescription>Add a new unit to {propertyName}</SheetDescription>
 				</SheetHeader>
 
 				<form

@@ -4,7 +4,12 @@
  * Extracted from SubscriptionsService for SRP compliance
  */
 
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { RentSubscriptionResponse } from '@repo/shared/types/api-contracts'
 import type { SubscriptionStatus } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
@@ -19,7 +24,8 @@ type TenantRow = Database['public']['Tables']['tenants']['Row']
 type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 type UnitRow = Database['public']['Tables']['units']['Row']
 type PropertyRow = Database['public']['Tables']['properties']['Row']
-type PropertyOwnerRow = Database['public']['Tables']['stripe_connected_accounts']['Row']
+type PropertyOwnerRow =
+	Database['public']['Tables']['stripe_connected_accounts']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 
 export interface LeaseContext {
@@ -35,9 +41,12 @@ export interface LeaseContext {
 export class SubscriptionQueryService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly supabase: SupabaseService,
+	constructor(
+		private readonly supabase: SupabaseService,
 		private readonly stripeClientService: StripeClientService,
-		private readonly cache: SubscriptionCacheService, private readonly logger: AppLogger) {
+		private readonly cache: SubscriptionCacheService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
 
@@ -83,7 +92,10 @@ export class SubscriptionQueryService {
 		}
 
 		if (ownerRecord) {
-			const ownerLeases = await this.getLeasesForOwner(ownerRecord.owner.id, adminClient)
+			const ownerLeases = await this.getLeasesForOwner(
+				ownerRecord.owner.id,
+				adminClient
+			)
 			ownerLeases.forEach(lease => leases.set(lease.id, lease))
 		}
 
@@ -103,7 +115,9 @@ export class SubscriptionQueryService {
 			responses.push(await this.mapLeaseContextToResponse(context))
 		}
 
-		return responses.sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''))
+		return responses.sort((a, b) =>
+			(b.updatedAt ?? '').localeCompare(a.updatedAt ?? '')
+		)
 	}
 
 	/**
@@ -128,20 +142,29 @@ export class SubscriptionQueryService {
 			const tenantUser = await this.getUserById(tenant.user_id)
 			const unit = await this.getUnitById(lease.unit_id)
 			const property = await this.getPropertyById(unit.property_id)
-			const ownerData = await this.cache.getOwnerByUserId(property.owner_user_id, async () => {
-				const adminClient = this.supabase.getAdminClient()
-				const { data: owner, error } = await adminClient
-					.from('stripe_connected_accounts')
-					.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
-					.eq('user_id', property.owner_user_id)
-					.maybeSingle<PropertyOwnerRow>()
-				if (error || !owner) {
-					this.logger.warn(`Owner not found for user ${property.owner_user_id}`)
-					throw new Error(`Owner not found for user ${property.owner_user_id}`)
+			const ownerData = await this.cache.getOwnerByUserId(
+				property.owner_user_id,
+				async () => {
+					const adminClient = this.supabase.getAdminClient()
+					const { data: owner, error } = await adminClient
+						.from('stripe_connected_accounts')
+						.select(
+							'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
+						)
+						.eq('user_id', property.owner_user_id)
+						.maybeSingle<PropertyOwnerRow>()
+					if (error || !owner) {
+						this.logger.warn(
+							`Owner not found for user ${property.owner_user_id}`
+						)
+						throw new Error(
+							`Owner not found for user ${property.owner_user_id}`
+						)
+					}
+					return owner as PropertyOwnerRow // Type assertion: we've validated owner is not null above
 				}
-				return owner as PropertyOwnerRow // Type assertion: we've validated owner is not null above
-			})
-		const owner = ownerData as PropertyOwnerRow // Type assertion: getOwnerByUserId returns PropertyOwnerRow
+			)
+			const owner = ownerData as PropertyOwnerRow // Type assertion: getOwnerByUserId returns PropertyOwnerRow
 
 			return {
 				lease,
@@ -167,7 +190,9 @@ export class SubscriptionQueryService {
 		const stripeSubscription =
 			options.stripeSubscription ??
 			(context.lease.stripe_subscription_id
-				? await this.fetchStripeSubscription(context.lease.stripe_subscription_id)
+				? await this.fetchStripeSubscription(
+						context.lease.stripe_subscription_id
+					)
 				: null)
 
 		const paymentMethodId =
@@ -190,7 +215,8 @@ export class SubscriptionQueryService {
 			leaseId: context.lease.id,
 			tenantId: context.tenant.id,
 			ownerId: context.owner.user_id,
-			stripeSubscriptionId: context.lease.stripe_subscription_id ?? stripeSubscription?.id ?? '',
+			stripeSubscriptionId:
+				context.lease.stripe_subscription_id ?? stripeSubscription?.id ?? '',
 			stripeCustomerId:
 				context.tenant.stripe_customer_id ??
 				(stripeSubscription?.customer as string | undefined) ??
@@ -202,10 +228,15 @@ export class SubscriptionQueryService {
 			nextChargeDate: nextChargeDate ?? undefined,
 			status,
 			platformFeePercentage: context.owner.default_platform_fee_percent ?? 0,
-			pausedAt: stripeSubscription?.pause_collection ? new Date().toISOString() : undefined,
+			pausedAt: stripeSubscription?.pause_collection
+				? new Date().toISOString()
+				: undefined,
 			canceledAt: this.toIso(stripeSubscription?.canceled_at) ?? undefined,
 			createdAt: context.lease.created_at ?? new Date().toISOString(),
-			updatedAt: context.lease.updated_at ?? context.lease.created_at ?? new Date().toISOString()
+			updatedAt:
+				context.lease.updated_at ??
+				context.lease.created_at ??
+				new Date().toISOString()
 		}
 	}
 
@@ -244,7 +275,10 @@ export class SubscriptionQueryService {
 				.maybeSingle<TenantRow>()
 
 			if (error) {
-				this.logger.error('Failed to fetch tenant by user id', { userId, error: error.message })
+				this.logger.error('Failed to fetch tenant by user id', {
+					userId,
+					error: error.message
+				})
 				throw new BadRequestException('Failed to load tenant profile')
 			}
 
@@ -267,7 +301,9 @@ export class SubscriptionQueryService {
 			const adminClient = this.supabase.getAdminClient()
 			const { data: owner, error } = await adminClient
 				.from('stripe_connected_accounts')
-				.select('id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent')
+				.select(
+					'id, user_id, stripe_account_id, charges_enabled, default_platform_fee_percent'
+				)
 				.eq('user_id', userId)
 				.maybeSingle<PropertyOwnerRow>()
 
@@ -292,7 +328,9 @@ export class SubscriptionQueryService {
 			return
 		}
 
-		throw new ForbiddenException('You are not authorized to view this subscription')
+		throw new ForbiddenException(
+			'You are not authorized to view this subscription'
+		)
 	}
 
 	private async getLeasesForTenant(

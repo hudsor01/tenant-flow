@@ -68,8 +68,11 @@ export function render(
 	ui: ReactElement,
 	options?: CustomRenderOptions
 ): RenderResult {
-	const { queryClientConfig, wrapper: userWrapper, ...renderOptions } =
-		options || {}
+	const {
+		queryClientConfig,
+		wrapper: userWrapper,
+		...renderOptions
+	} = options || {}
 
 	const queryClient = queryClientConfig
 		? new QueryClient(queryClientConfig)
@@ -77,9 +80,7 @@ export function render(
 
 	function Wrapper({ children }: { children: React.ReactNode }) {
 		const content = (
-			<QueryClientProvider client={queryClient}>
-				{children}
-			</QueryClientProvider>
+			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
 
 		if (!userWrapper) {
@@ -114,17 +115,11 @@ export function createTestWrapper(queryClient?: QueryClient) {
 	const client = queryClient || createTestQueryClient()
 
 	const Wrapper = ({ children }: { children: React.ReactNode }) => (
-		<QueryClientProvider client={client}>
-			{children}
-		</QueryClientProvider>
+		<QueryClientProvider client={client}>{children}</QueryClientProvider>
 	)
 
 	return { Wrapper, queryClient: client }
 }
 
-/**
- * Re-export everything from testing-library for convenience
- * Allows importing all testing utilities from a single location
- */
-export * from '@testing-library/react'
-export { default as userEvent } from '@testing-library/user-event'
+// Note: Import directly from @testing-library/react and @testing-library/user-event
+// No re-exports per CLAUDE.md rules

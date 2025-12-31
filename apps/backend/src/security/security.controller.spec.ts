@@ -7,9 +7,10 @@ import { AppConfigService } from '../config/app-config.service'
 import { SilentLogger } from '../__test__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 
-
 describe('SecurityController', () => {
-	type MetricsResponse = Awaited<ReturnType<SecurityMetricsService['getMetrics']>>
+	type MetricsResponse = Awaited<
+		ReturnType<SecurityMetricsService['getMetrics']>
+	>
 
 	let controller: SecurityController
 	let mockMetricsService: jest.Mocked<SecurityMetricsService>

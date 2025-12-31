@@ -6,7 +6,7 @@
  */
 
 import { cookies } from 'next/headers'
-import { SidebarProvider } from '#components/ui/sidebar'
+import { SidebarProvider } from '#components/ui/sidebar/context'
 import type { ReactNode } from 'react'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'

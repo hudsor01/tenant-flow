@@ -16,7 +16,6 @@ import {
 	SelectValue
 } from '#components/ui/select'
 
-
 interface AddPaymentMethodProps {
 	onSuccess?: () => void
 }

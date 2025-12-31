@@ -13,9 +13,7 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
 	 * Custom tracker for Railway/proxy environments
 	 * Uses X-Forwarded-For header to get real client IP
 	 */
-	protected override async getTracker(
-		req: ThrottlerRequest
-	): Promise<string> {
+	protected override async getTracker(req: ThrottlerRequest): Promise<string> {
 		// Check for forwarded IP from proxy (Railway, Cloudflare, etc.)
 		const forwardedFor = req.headers['x-forwarded-for']
 		const realIp = req.headers['x-real-ip']
@@ -32,16 +30,12 @@ export class ThrottlerProxyGuard extends ThrottlerGuard {
 
 		if (realIp) {
 			return Promise.resolve(
-				Array.isArray(realIp)
-					? (realIp[0] ?? 'unknown')
-					: String(realIp)
+				Array.isArray(realIp) ? (realIp[0] ?? 'unknown') : String(realIp)
 			)
 		}
 
 		if (forwardedFor) {
-			const ips = Array.isArray(forwardedFor)
-				? forwardedFor[0]
-				: forwardedFor
+			const ips = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor
 			if (typeof ips === 'string') {
 				const parts = ips.split(',')
 				return Promise.resolve(parts[0]?.trim() || 'unknown')

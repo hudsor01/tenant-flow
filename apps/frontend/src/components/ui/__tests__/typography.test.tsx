@@ -5,7 +5,8 @@
  * Ensures consistent font hierarchy, spacing, and visual hierarchy
  */
 
-import { render, screen } from '#test/utils/test-render'
+import { screen } from '@testing-library/react'
+import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 
 // Typography utility components for testing
@@ -38,7 +39,10 @@ function TypographyTestComponent({
 	}
 
 	return (
-		<div data-testid={`typography-${variant}`} className={classes[variant as keyof typeof classes]}>
+		<div
+			data-testid={`typography-${variant}`}
+			className={classes[variant as keyof typeof classes]}
+		>
 			{children}
 		</div>
 	)
@@ -47,20 +51,41 @@ function TypographyTestComponent({
 describe('Typography System', () => {
 	describe('Font Hierarchy', () => {
 		it('should render display variants with correct font sizes', () => {
-			render(<TypographyTestComponent variant="display-2xl">Display 2XL</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="display-2xl">
+					Display 2XL
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-display-2xl')
-			expect(element).toHaveClass('text-5xl', 'font-black', 'leading-tight', 'tracking-tight')
+			expect(element).toHaveClass(
+				'text-5xl',
+				'font-black',
+				'leading-tight',
+				'tracking-tight'
+			)
 		})
 
 		it('should render heading variants with semantic hierarchy', () => {
-			render(<TypographyTestComponent variant="heading-xl">Heading XL</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="heading-xl">
+					Heading XL
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-heading-xl')
 			// Uses typography-h3 utility class for semantic hierarchy
-			expect(element).toHaveClass('typography-h3', 'leading-snug', 'tracking-tight')
+			expect(element).toHaveClass(
+				'typography-h3',
+				'leading-snug',
+				'tracking-tight'
+			)
 		})
 
 		it('should render body variants with readable line heights', () => {
-			render(<TypographyTestComponent variant="body-md">Body Medium</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="body-md">
+					Body Medium
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-body-md')
 			expect(element).toHaveClass('text-base', 'leading-relaxed')
 		})
@@ -68,28 +93,54 @@ describe('Typography System', () => {
 
 	describe('UI Typography', () => {
 		it('should render UI labels with proper styling', () => {
-			render(<TypographyTestComponent variant="ui-label">UI Label</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="ui-label">
+					UI Label
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-ui-label')
 			// Uses typography-small utility class
 			expect(element).toHaveClass('typography-small', 'leading-none')
 		})
 
 		it('should render captions with muted foreground', () => {
-			render(<TypographyTestComponent variant="ui-caption">Caption</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="ui-caption">
+					Caption
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-ui-caption')
-			expect(element).toHaveClass('text-xs', 'font-medium', 'leading-none', 'text-muted-foreground')
+			expect(element).toHaveClass(
+				'text-xs',
+				'font-medium',
+				'leading-none',
+				'text-muted-foreground'
+			)
 		})
 	})
 
 	describe('Marketing Typography', () => {
 		it('should render hero text with maximum impact', () => {
-			render(<TypographyTestComponent variant="hero-primary">Hero Primary</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="hero-primary">
+					Hero Primary
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-hero-primary')
-			expect(element).toHaveClass('text-6xl', 'font-black', 'leading-none', 'tracking-tight')
+			expect(element).toHaveClass(
+				'text-6xl',
+				'font-black',
+				'leading-none',
+				'tracking-tight'
+			)
 		})
 
 		it('should render feature titles with clear hierarchy', () => {
-			render(<TypographyTestComponent variant="feature-title">Feature Title</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="feature-title">
+					Feature Title
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-feature-title')
 			// Uses typography-h3 utility class for semantic hierarchy
 			expect(element).toHaveClass('typography-h3', 'leading-tight')
@@ -98,14 +149,22 @@ describe('Typography System', () => {
 
 	describe('Accessibility', () => {
 		it('should maintain proper contrast ratios', () => {
-			render(<TypographyTestComponent variant="body-md">Accessible text</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="body-md">
+					Accessible text
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-body-md')
 			// Test that text color is not too light on light backgrounds
 			expect(element).not.toHaveClass('text-white')
 		})
 
 		it('should use appropriate font weights for readability', () => {
-			render(<TypographyTestComponent variant="body-sm">Readable text</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="body-sm">
+					Readable text
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-body-sm')
 			// Body text should not be too thin
 			expect(element).not.toHaveClass('font-thin', 'font-extralight')
@@ -117,7 +176,11 @@ describe('Typography System', () => {
 			// Mock mobile viewport
 			Object.defineProperty(window, 'innerWidth', { value: 375 })
 
-			render(<TypographyTestComponent variant="display-xl">Mobile Display</TypographyTestComponent>)
+			render(
+				<TypographyTestComponent variant="display-xl">
+					Mobile Display
+				</TypographyTestComponent>
+			)
 			const element = screen.getByTestId('typography-display-xl')
 
 			// On mobile, should still be readable

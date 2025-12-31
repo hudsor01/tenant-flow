@@ -1,13 +1,22 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException
+} from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 const TOUR_KEYS = ['owner-onboarding', 'tenant-onboarding'] as const
-const TOUR_STATUSES = ['not_started', 'in_progress', 'completed', 'skipped'] as const
+const TOUR_STATUSES = [
+	'not_started',
+	'in_progress',
+	'completed',
+	'skipped'
+] as const
 
-export type TourKey = typeof TOUR_KEYS[number]
-export type TourStatus = typeof TOUR_STATUSES[number]
+export type TourKey = (typeof TOUR_KEYS)[number]
+export type TourStatus = (typeof TOUR_STATUSES)[number]
 
 type TourRow = Database['public']['Tables']['user_tour_progress']['Row']
 type TourInsert = Database['public']['Tables']['user_tour_progress']['Insert']
@@ -51,12 +60,17 @@ export class UserToursService {
 	private assertCurrentStep(step?: number): number | undefined {
 		if (step === undefined) return undefined
 		if (!Number.isInteger(step) || step < 0) {
-			throw new BadRequestException('current_step must be a non-negative integer')
+			throw new BadRequestException(
+				'current_step must be a non-negative integer'
+			)
 		}
 		return step
 	}
 
-	private toResponse(tourKey: TourKey, row?: TourRow | null): TourProgressResponse {
+	private toResponse(
+		tourKey: TourKey,
+		row?: TourRow | null
+	): TourProgressResponse {
 		if (!row) {
 			return {
 				tour_key: tourKey,
@@ -99,7 +113,11 @@ export class UserToursService {
 		return data
 	}
 
-	async getTourProgress(token: string, user_id: string, tourKeyRaw: string): Promise<TourProgressResponse> {
+	async getTourProgress(
+		token: string,
+		user_id: string,
+		tourKeyRaw: string
+	): Promise<TourProgressResponse> {
 		const tourKey = this.assertTourKey(tourKeyRaw)
 		const data = await this.fetchRow(token, user_id, tourKey)
 		return this.toResponse(tourKey, data)
@@ -118,7 +136,8 @@ export class UserToursService {
 		const existing = await this.fetchRow(token, user_id, tourKey)
 		const now = new Date().toISOString()
 
-		const nextStatus = status ?? (existing?.status as TourStatus | undefined) ?? 'not_started'
+		const nextStatus =
+			status ?? (existing?.status as TourStatus | undefined) ?? 'not_started'
 		const nextStep = current_step ?? existing?.current_step ?? 0
 
 		let completed_at = existing?.completed_at ?? null
@@ -164,7 +183,11 @@ export class UserToursService {
 		return this.toResponse(tourKey, data)
 	}
 
-	async resetTourProgress(token: string, user_id: string, tourKeyRaw: string): Promise<TourProgressResponse> {
+	async resetTourProgress(
+		token: string,
+		user_id: string,
+		tourKeyRaw: string
+	): Promise<TourProgressResponse> {
 		const tourKey = this.assertTourKey(tourKeyRaw)
 		const now = new Date().toISOString()
 

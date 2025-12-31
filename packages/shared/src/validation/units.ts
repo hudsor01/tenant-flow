@@ -1,16 +1,33 @@
+/**
+ * Unit Validation Schemas
+ *
+ * Schema Pattern (Zod 4 Best Practices):
+ * - InputSchema: User-provided fields only (no id, created_at, updated_at)
+ * - Schema: Full schema = InputSchema.extend({ id, created_at, updated_at })
+ * - UpdateSchema: InputSchema.partial()
+ *
+ * IMPORTANT: .omit() only accepts keys that exist in the source schema.
+ * Zod 4 throws "Unrecognized key" errors for non-existent keys.
+ */
+
 import { z } from 'zod'
 import {
-  nonEmptyStringSchema,
-  nonNegativeNumberSchema,
-  positiveNumberSchema,
-  requiredString,
-  uuidSchema
+	nonEmptyStringSchema,
+	nonNegativeNumberSchema,
+	positiveNumberSchema,
+	requiredString,
+	uuidSchema
 } from './common'
 import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 
 // Unit status enum - matches PostgreSQL enum values exactly
 // Values: 'available', 'occupied', 'maintenance', 'reserved'
-export const unitStatusSchema = z.enum(['available', 'occupied', 'maintenance', 'reserved'])
+export const unitStatusSchema = z.enum([
+	'available',
+	'occupied',
+	'maintenance',
+	'reserved'
+])
 
 // Base unit input schema (for forms and API creation) - matches database exactly
 export const unitInputSchema = z.object({
@@ -18,23 +35,38 @@ export const unitInputSchema = z.object({
 
 	unit_number: nonEmptyStringSchema
 		.min(1, 'Unit number is required')
-		.max(VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH, `Unit number cannot exceed ${VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH} characters`),
+		.max(
+			VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH,
+			`Unit number cannot exceed ${VALIDATION_LIMITS.UNIT_NUMBER_MAX_LENGTH} characters`
+		),
 
 	bedrooms: positiveNumberSchema
 		.int('Bedrooms must be a whole number')
-		.max(VALIDATION_LIMITS.UNIT_MAX_BEDROOMS, `Maximum ${VALIDATION_LIMITS.UNIT_MAX_BEDROOMS} bedrooms allowed`)
+		.max(
+			VALIDATION_LIMITS.UNIT_MAX_BEDROOMS,
+			`Maximum ${VALIDATION_LIMITS.UNIT_MAX_BEDROOMS} bedrooms allowed`
+		)
 		.default(1),
 
 	bathrooms: positiveNumberSchema
-		.max(VALIDATION_LIMITS.UNIT_MAX_BATHROOMS, `Maximum ${VALIDATION_LIMITS.UNIT_MAX_BATHROOMS} bathrooms allowed`)
+		.max(
+			VALIDATION_LIMITS.UNIT_MAX_BATHROOMS,
+			`Maximum ${VALIDATION_LIMITS.UNIT_MAX_BATHROOMS} bathrooms allowed`
+		)
 		.default(1),
 
 	square_feet: positiveNumberSchema
 		.int('Square feet must be a whole number')
-		.max(VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET, 'Square feet seems unrealistic')
+		.max(
+			VALIDATION_LIMITS.UNIT_MAX_SQUARE_FEET,
+			'Square feet seems unrealistic'
+		)
 		.optional(),
 
-	rent_amount: nonNegativeNumberSchema.max(VALIDATION_LIMITS.UNIT_RENT_MAXIMUM, 'Rent amount seems unrealistic'),
+	rent_amount: nonNegativeNumberSchema.max(
+		VALIDATION_LIMITS.UNIT_RENT_MAXIMUM,
+		'Rent amount seems unrealistic'
+	),
 
 	rent_currency: z.string().default('USD'),
 
@@ -75,8 +107,17 @@ export const unitQuerySchema = z.object({
 		])
 		.optional(),
 	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
-	page: z.coerce.number().int().positive().default(VALIDATION_LIMITS.API_QUERY_DEFAULT_PAGE),
-	limit: z.coerce.number().int().positive().max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT).default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT)
+	page: z.coerce
+		.number()
+		.int()
+		.positive()
+		.default(VALIDATION_LIMITS.API_QUERY_DEFAULT_PAGE),
+	limit: z.coerce
+		.number()
+		.int()
+		.positive()
+		.max(VALIDATION_LIMITS.API_QUERY_MAX_LIMIT)
+		.default(VALIDATION_LIMITS.API_QUERY_DEFAULT_LIMIT)
 })
 
 // Unit statistics schema

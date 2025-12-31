@@ -26,8 +26,11 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '#components/ui/toggle-group'
-import { useFinancialChartData, type FinancialTimeRange } from '#hooks/api/use-owner-dashboard'
-import { useIsMobile } from '#hooks/use-mobile'
+import {
+	useFinancialChartData,
+	type FinancialTimeRange
+} from '#hooks/api/use-owner-dashboard'
+import { useMediaQuery } from '#hooks/use-media-query'
 import { cn } from '#lib/utils'
 
 export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
@@ -35,11 +38,11 @@ export const description = 'Revenue vs Expenses Chart - Dashboard Focal Point'
 const chartConfig = {
 	revenue: {
 		label: 'Revenue',
-		color: 'var(--chart-1)'
+		color: 'var(--color-chart-1)'
 	},
 	expenses: {
 		label: 'Expenses',
-		color: 'var(--chart-2)'
+		color: 'var(--color-chart-2)'
 	}
 } satisfies ChartConfig
 
@@ -49,7 +52,7 @@ export function ChartAreaInteractive({
 	className?: string
 } = {}) {
 	const [timeRange, setTimeRange] = React.useState<FinancialTimeRange>('6m')
-	const isMobile = useIsMobile()
+	const isMobile = useMediaQuery('(max-width: 767px)')
 
 	// Fetch financial data with TanStack Query
 	const { data: chartData, isLoading, error } = useFinancialChartData(timeRange)
@@ -83,7 +86,10 @@ export function ChartAreaInteractive({
 				</div>
 				<div className="flex">
 					{isMobile ? (
-						<Select value={timeRange} onValueChange={(value) => setTimeRange(value as FinancialTimeRange)}>
+						<Select
+							value={timeRange}
+							onValueChange={value => setTimeRange(value as FinancialTimeRange)}
+						>
 							<SelectTrigger
 								className="w-40 rounded-lg sm:ml-auto"
 								aria-label="Select time range"
@@ -109,7 +115,9 @@ export function ChartAreaInteractive({
 						<ToggleGroup
 							type="single"
 							value={timeRange}
-							onValueChange={value => value && setTimeRange(value as FinancialTimeRange)}
+							onValueChange={value =>
+								value && setTimeRange(value as FinancialTimeRange)
+							}
 							className="ml-auto flex gap-2"
 						>
 							<ToggleGroupItem
@@ -202,7 +210,9 @@ export function ChartAreaInteractive({
 							Unable to fetch financial data. Please try refreshing the page.
 						</p>
 					</div>
-				) : !chartData || !Array.isArray(chartData) || chartData.length === 0 ? (
+				) : !chartData ||
+				  !Array.isArray(chartData) ||
+				  chartData.length === 0 ? (
 					<Empty className="h-75 flex-center">
 						<EmptyTitle>No data available</EmptyTitle>
 						<EmptyDescription>
@@ -219,24 +229,24 @@ export function ChartAreaInteractive({
 								<linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="var(--chart-1)"
+										stopColor="var(--color-chart-1)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="95%"
-										stopColor="var(--chart-1)"
+										stopColor="var(--color-chart-1)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
 								<linearGradient id="fillExpenses" x1="0" y1="0" x2="0" y2="1">
 									<stop
 										offset="5%"
-										stopColor="var(--chart-2)"
+										stopColor="var(--color-chart-2)"
 										stopOpacity={0.8}
 									/>
 									<stop
 										offset="95%"
-										stopColor="var(--chart-2)"
+										stopColor="var(--color-chart-2)"
 										stopOpacity={0.1}
 									/>
 								</linearGradient>
@@ -272,14 +282,14 @@ export function ChartAreaInteractive({
 								dataKey="expenses"
 								type="natural"
 								fill="url(#fillExpenses)"
-								stroke="var(--chart-2)"
+								stroke="var(--color-chart-2)"
 								strokeWidth={2}
 							/>
 							<Area
 								dataKey="revenue"
 								type="natural"
 								fill="url(#fillRevenue)"
-								stroke="var(--chart-1)"
+								stroke="var(--color-chart-1)"
 								strokeWidth={2}
 							/>
 						</AreaChart>

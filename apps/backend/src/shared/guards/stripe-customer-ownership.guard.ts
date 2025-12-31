@@ -3,7 +3,12 @@
  * Uses RPC function to check ownership through stripe.customers table
  */
 
-import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common'
+import {
+	type CanActivate,
+	type ExecutionContext,
+	ForbiddenException,
+	Injectable
+} from '@nestjs/common'
 import type { AuthenticatedRequest } from '../types/express-request.types'
 import { SupabaseService } from '../../database/supabase.service'
 import { user_idByStripeCustomerSchema } from '@repo/shared/validation/database-rpc.schemas'
@@ -12,9 +17,11 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class StripeCustomerOwnershipGuard implements CanActivate {
-
-	constructor(private readonly supabase: SupabaseService,
-		private readonly authCache: AuthRequestCache, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly authCache: AuthRequestCache,
+		private readonly logger: AppLogger
+	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
 		const request = context.switchToHttp().getRequest<AuthenticatedRequest>()
@@ -29,7 +36,9 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 		const customerId = request.params?.id || request.params?.customerId
 
 		if (!customerId) {
-			this.logger.warn('StripeCustomerOwnershipGuard: No customer ID in request')
+			this.logger.warn(
+				'StripeCustomerOwnershipGuard: No customer ID in request'
+			)
 			throw new ForbiddenException('Customer ID required')
 		}
 

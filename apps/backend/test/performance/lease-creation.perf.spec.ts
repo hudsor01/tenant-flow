@@ -128,7 +128,10 @@ describeOrSkip('Lease Creation Performance (P1-1)', () => {
 	 */
 	async function cleanupTestData() {
 		await serviceRoleClient.from('leases').delete().eq('unit_id', unitId)
-		await serviceRoleClient.from('tenant_invitations').delete().eq('id', invitationId)
+		await serviceRoleClient
+			.from('tenant_invitations')
+			.delete()
+			.eq('id', invitationId)
 		await serviceRoleClient.from('tenants').delete().eq('id', tenantId)
 		await serviceRoleClient.from('units').delete().eq('id', unitId)
 		await serviceRoleClient.from('properties').delete().eq('id', propertyId)
@@ -161,7 +164,10 @@ describeOrSkip('Lease Creation Performance (P1-1)', () => {
 
 			// Cleanup created lease
 			if (response.body?.id) {
-				await serviceRoleClient.from('leases').delete().eq('id', response.body.id)
+				await serviceRoleClient
+					.from('leases')
+					.delete()
+					.eq('id', response.body.id)
 			}
 		})
 	})
@@ -204,7 +210,10 @@ describeOrSkip('Lease Creation Performance (P1-1)', () => {
 
 			// Cleanup
 			if (response.body?.id) {
-				await serviceRoleClient.from('leases').delete().eq('id', response.body.id)
+				await serviceRoleClient
+					.from('leases')
+					.delete()
+					.eq('id', response.body.id)
 			}
 		})
 	})
@@ -237,7 +246,10 @@ describeOrSkip('Lease Creation Performance (P1-1)', () => {
 
 			// Cleanup
 			if (response.body?.id) {
-				await serviceRoleClient.from('leases').delete().eq('id', response.body.id)
+				await serviceRoleClient
+					.from('leases')
+					.delete()
+					.eq('id', response.body.id)
 			}
 		})
 	})

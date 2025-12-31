@@ -38,5 +38,3 @@ import { leaseGenerationSchema } from '@repo/shared/validation/lease-generation.
  * ```
  */
 export class LeaseGenerationDto extends createZodDto(leaseGenerationSchema) {}
-
-

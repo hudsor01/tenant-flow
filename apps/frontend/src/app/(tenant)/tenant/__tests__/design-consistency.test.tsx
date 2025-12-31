@@ -6,7 +6,7 @@
  *
  * Design-OS Patterns:
  * - Stat Cards: Uses data-slot="stat" with card styling (rounded-lg, border, bg-card, shadow-sm)
- * - Stat Values: Uses data-slot="stat-value" with font-semibold
+ * - Stat Values: Uses data-slot="stat-value" with typography-stat
  * - Stat Labels: Uses data-slot="stat-label" with font-medium
  * - Stat Indicators: Uses data-slot="stat-indicator" for icons
  */
@@ -64,7 +64,7 @@ vi.mock('next/navigation', () => ({
 	usePathname: vi.fn(() => '/tenant')
 }))
 
-vi.mock('#components/tours', () => ({
+vi.mock('#components/tours/tenant-onboarding-tour', () => ({
 	TenantOnboardingTour: () => null,
 	TenantTourTrigger: () => <button type="button">Take a Tour</button>
 }))
@@ -92,9 +92,9 @@ describe('Tenant Portal Design Consistency', () => {
 			const statCards = document.querySelectorAll('[data-slot="stat"]')
 			expect(statCards.length).toBeGreaterThan(0)
 
-			// Each stat card should have the card-standard class pattern
+			// Each stat card should have the Stat component styling pattern
 			statCards.forEach(card => {
-				// Check for rounded-lg border bg-card shadow-sm (card-standard pattern)
+				// Stat component uses rounded-lg border bg-card shadow-sm
 				expect(card).toHaveClass('rounded-lg')
 				expect(card).toHaveClass('border')
 				expect(card).toHaveClass('bg-card')
@@ -121,15 +121,15 @@ describe('Tenant Portal Design Consistency', () => {
 			expect(statCards.length).toBe(4)
 		})
 
-		it('should display stat values with consistent typography (font-semibold)', () => {
+		it('should display stat values with consistent typography', () => {
 			render(<TenantDashboardPage />)
 
 			const statValues = document.querySelectorAll('[data-slot="stat-value"]')
 
 			statValues.forEach(value => {
 				expect(value).toBeInTheDocument()
-				// Design-OS uses font-semibold for stat values
-				expect(value).toHaveClass('font-semibold')
+				// Stat component uses typography-stat for stat values
+				expect(value).toHaveClass('typography-stat')
 			})
 		})
 

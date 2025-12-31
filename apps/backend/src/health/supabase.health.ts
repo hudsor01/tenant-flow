@@ -47,12 +47,8 @@ export class SupabaseHealthIndicator {
 			return indicator.down({
 				responseTime,
 				error: {
-					type:
-						error instanceof Error
-							? error.constructor.name
-							: 'Unknown',
-					message:
-						error instanceof Error ? error.message : String(error)
+					type: error instanceof Error ? error.constructor.name : 'Unknown',
+					message: error instanceof Error ? error.message : String(error)
 				}
 			})
 		}
@@ -90,12 +86,8 @@ export class SupabaseHealthIndicator {
 			return indicator.down({
 				responseTime,
 				error: {
-					message:
-						error instanceof Error ? error.message : String(error),
-					type:
-						error instanceof Error
-							? error.constructor.name
-							: 'Unknown'
+					message: error instanceof Error ? error.message : String(error),
+					type: error instanceof Error ? error.constructor.name : 'Unknown'
 				}
 			})
 		}

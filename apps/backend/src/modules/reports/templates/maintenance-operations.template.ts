@@ -36,8 +36,10 @@ export interface MaintenanceOperationsReportData {
 
 @Injectable()
 export class MaintenanceOperationsTemplate {
-
-	constructor(private readonly maintenanceService: MaintenanceInsightsService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly maintenanceService: MaintenanceInsightsService,
+		private readonly logger: AppLogger
+	) {}
 
 	async generateReportData(
 		user_id: string,

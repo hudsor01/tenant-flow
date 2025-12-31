@@ -14,7 +14,6 @@ type PaymentMethodRow = Database['public']['Tables']['payment_methods']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
 type UserRow = Database['public']['Tables']['users']['Row']
 
-
 type SupabaseQueryResult<T> = Promise<{ data: T; error: null }>
 
 const createSelectSingleMock = <T>(result: T) => {
@@ -46,8 +45,12 @@ const createSelectSingleMock = <T>(result: T) => {
 
 describe('PaymentMethodsService', () => {
 	let service: PaymentMethodsService
-	const userClient: SupabaseClient<Database> = { from: jest.fn() } as unknown as SupabaseClient<Database>
-	const adminClient: SupabaseClient<Database> = { from: jest.fn() } as unknown as SupabaseClient<Database>
+	const userClient: SupabaseClient<Database> = {
+		from: jest.fn()
+	} as unknown as SupabaseClient<Database>
+	const adminClient: SupabaseClient<Database> = {
+		from: jest.fn()
+	} as unknown as SupabaseClient<Database>
 	const mockSupabaseService = {
 		getUserClient: jest.fn(() => userClient),
 		getAdminClient: jest.fn(() => adminClient)
@@ -169,7 +172,9 @@ describe('PaymentMethodsService', () => {
 		beforeEach(() => {
 			resolvetenant_idSpy = jest
 				.spyOn(
-					service as unknown as { resolvetenant_id: (...args: unknown[]) => unknown },
+					service as unknown as {
+						resolvetenant_id: (...args: unknown[]) => unknown
+					},
 					'resolvetenant_id'
 				)
 				.mockResolvedValue('tenant-123')
@@ -317,7 +322,7 @@ describe('PaymentMethodsService', () => {
 								Promise.resolve({
 									data: {
 										stripe_payment_method_id: 'pm_123',
-									is_default: true
+										is_default: true
 									},
 									error: null
 								})

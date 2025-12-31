@@ -1,11 +1,14 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SB_SECRET_KEY!)
+const supabase = createClient(
+	process.env.NEXT_PUBLIC_SUPABASE_URL!,
+	process.env.SB_SECRET_KEY!
+)
 
 async function applyMigration() {
-  console.log('Applying RLS policy migration...')
+	console.log('Applying RLS policy migration...')
 
-const sql = `
+	const sql = `
 -- Define the missing get_current_owner_user_id function
 CREATE OR REPLACE FUNCTION public.get_current_owner_user_id()
 RETURNS uuid
@@ -51,13 +54,13 @@ USING (true)
 WITH CHECK (true);
 `
 
-  const { error } = await supabase.rpc('exec_sql', { sql })
+	const { error } = await supabase.rpc('exec_sql', { sql })
 
-  if (error) {
-    console.error('Migration failed:', error)
-  } else {
-    console.log('Migration applied successfully')
-  }
+	if (error) {
+		console.error('Migration failed:', error)
+	} else {
+		console.log('Migration applied successfully')
+	}
 }
 
 applyMigration()

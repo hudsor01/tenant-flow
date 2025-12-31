@@ -1,4 +1,4 @@
-import type { OnModuleInit } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common'
 import { Inject, Injectable } from '@nestjs/common'
 import {
 	Registry,
@@ -20,10 +20,14 @@ import { normalizeHttpRoute } from './utils/http-route-normalizer'
 function normalizeErrorType(errorType: string): string {
 	const upper = errorType.toUpperCase()
 	if (upper.includes('VALIDATION')) return 'VALIDATION_ERROR'
-	if (upper.includes('DATABASE') || upper.includes('SQL')) return 'DATABASE_ERROR'
-	if (upper.includes('NETWORK') || upper.includes('TIMEOUT')) return 'NETWORK_ERROR'
-	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED')) return 'AUTH_ERROR'
-	if (upper.includes('STRIPE') || upper.includes('PAYMENT')) return 'STRIPE_ERROR'
+	if (upper.includes('DATABASE') || upper.includes('SQL'))
+		return 'DATABASE_ERROR'
+	if (upper.includes('NETWORK') || upper.includes('TIMEOUT'))
+		return 'NETWORK_ERROR'
+	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED'))
+		return 'AUTH_ERROR'
+	if (upper.includes('STRIPE') || upper.includes('PAYMENT'))
+		return 'STRIPE_ERROR'
 	if (upper.includes('PDF') || upper.includes('TEMPLATE')) return 'PDF_ERROR'
 	return 'UNKNOWN'
 }
@@ -173,7 +177,10 @@ export class PrometheusService implements OnModuleInit {
 	 */
 	recordWebhookFailure(eventType: string, errorType: string): void {
 		const normalizedErrorType = normalizeErrorType(errorType)
-		this.webhookFailures.inc({ event_type: eventType, error_type: normalizedErrorType })
+		this.webhookFailures.inc({
+			event_type: eventType,
+			error_type: normalizedErrorType
+		})
 	}
 
 	/**
@@ -198,7 +205,10 @@ export class PrometheusService implements OnModuleInit {
 			route: normalizedRoute,
 			status: statusCode.toString()
 		})
-		this.httpRequestDuration.observe({ method, route: normalizedRoute }, durationMs / 1000)
+		this.httpRequestDuration.observe(
+			{ method, route: normalizedRoute },
+			durationMs / 1000
+		)
 	}
 
 	/**

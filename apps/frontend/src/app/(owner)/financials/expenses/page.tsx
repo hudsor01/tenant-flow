@@ -110,7 +110,7 @@ export default function ExpensesPage() {
 	// Filter expenses
 	const filteredExpenses = React.useMemo(() => {
 		if (!expenses) return []
-		return expenses.filter((expense) => {
+		return expenses.filter(expense => {
 			if (categoryFilter !== 'all' && expense.category !== categoryFilter) {
 				return false
 			}
@@ -153,7 +153,9 @@ export default function ExpensesPage() {
 	// Calculate maintenance vs other ratio
 	const maintenanceTotal = React.useMemo(() => {
 		if (!summary?.categories) return 0
-		const maintenance = summary.categories.find((c) => c.category === 'maintenance')
+		const maintenance = summary.categories.find(
+			c => c.category === 'maintenance'
+		)
 		return maintenance?.amount ?? 0
 	}, [summary])
 
@@ -175,14 +177,14 @@ export default function ExpensesPage() {
 				</div>
 				{/* Stats skeleton */}
 				<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-					{[1, 2, 3, 4].map((i) => (
+					{[1, 2, 3, 4].map(i => (
 						<Skeleton key={i} className="h-24 rounded-lg" />
 					))}
 				</div>
 				{/* Content skeleton */}
 				<Skeleton className="h-12 w-full mb-4 rounded-lg" />
 				<div className="space-y-2">
-					{[1, 2, 3, 4, 5].map((i) => (
+					{[1, 2, 3, 4, 5].map(i => (
 						<Skeleton key={i} className="h-14 rounded-lg" />
 					))}
 				</div>
@@ -220,7 +222,7 @@ export default function ExpensesPage() {
 			<BlurFade delay={0.1} inView>
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
-						<h1 className="text-2xl font-semibold text-foreground">Expenses</h1>
+						<h1 className="typography-h1">Expenses</h1>
 						<p className="text-muted-foreground">
 							Track maintenance costs and operating expenses.
 						</p>
@@ -240,8 +242,8 @@ export default function ExpensesPage() {
 							<BorderBeam
 								size={80}
 								duration={10}
-								colorFrom="hsl(var(--destructive))"
-								colorTo="hsl(var(--destructive)/0.3)"
+								colorFrom="var(--color-destructive)"
+								colorTo="oklch(from var(--color-destructive) l c h / 0.3)"
 							/>
 						)}
 						<StatLabel>Total Expenses</StatLabel>
@@ -333,7 +335,7 @@ export default function ExpensesPage() {
 							Expense Breakdown
 						</h3>
 						<div className="flex flex-wrap gap-4">
-							{summary.categories.map((cat) => (
+							{summary.categories.map(cat => (
 								<div key={cat.category} className="flex items-center gap-3">
 									{getCategoryBadge(cat.category)}
 									<span className="text-sm text-muted-foreground">
@@ -357,7 +359,7 @@ export default function ExpensesPage() {
 							<Input
 								placeholder="Search expenses..."
 								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
+								onChange={e => setSearchQuery(e.target.value)}
 								className="pl-9 h-9"
 							/>
 						</div>
@@ -379,7 +381,7 @@ export default function ExpensesPage() {
 									<SelectValue placeholder="Category" />
 								</SelectTrigger>
 								<SelectContent>
-									{EXPENSE_CATEGORIES.map((cat) => (
+									{EXPENSE_CATEGORIES.map(cat => (
 										<SelectItem key={cat.value} value={cat.value}>
 											{cat.label}
 										</SelectItem>
@@ -437,7 +439,9 @@ export default function ExpensesPage() {
 									<TableCell className="hidden md:table-cell text-sm text-muted-foreground">
 										{expense.property_name || '--'}
 									</TableCell>
-									<TableCell>{getCategoryBadge(expense.category ?? 'other')}</TableCell>
+									<TableCell>
+										{getCategoryBadge(expense.category ?? 'other')}
+									</TableCell>
 									<TableCell className="text-right tabular-nums font-medium text-foreground">
 										{formatCents(expense.amount ?? 0)}
 									</TableCell>
@@ -481,12 +485,15 @@ export default function ExpensesPage() {
 							<span className="text-sm text-muted-foreground">
 								Showing {(currentPage - 1) * itemsPerPage + 1}
 								{' - '}
-								{Math.min(currentPage * itemsPerPage, filteredExpenses.length)}{' '}
+								{Math.min(
+									currentPage * itemsPerPage,
+									filteredExpenses.length
+								)}{' '}
 								of {filteredExpenses.length}
 							</span>
 							<div className="flex items-center gap-1">
 								<button
-									onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+									onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
 									disabled={currentPage === 1}
 									className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
 									aria-label="Previous page"
@@ -496,7 +503,7 @@ export default function ExpensesPage() {
 								{Array.from(
 									{ length: Math.min(totalPages, 5) },
 									(_, i) => i + 1
-								).map((page) => (
+								).map(page => (
 									<button
 										key={page}
 										onClick={() => setCurrentPage(page)}
@@ -510,7 +517,9 @@ export default function ExpensesPage() {
 									</button>
 								))}
 								<button
-									onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+									onClick={() =>
+										setCurrentPage(p => Math.min(totalPages, p + 1))
+									}
 									disabled={currentPage === totalPages}
 									className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
 									aria-label="Next page"

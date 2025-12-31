@@ -28,14 +28,14 @@ import { invoiceStyles, leaseStyles } from './pdf-styles'
 @Injectable()
 export class PDFGeneratorService implements OnModuleDestroy {
 	private browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
-	private readonly maxPageBytes = Number.parseInt(
-		process.env.PDF_PUPPETEER_MAX_PAGE_MB ?? '256',
-		10
-	) * 1024 * 1024
-	private readonly maxBrowserBytes = Number.parseInt(
-		process.env.PDF_PUPPETEER_MAX_BROWSER_MB ?? '512',
-		10
-	) * 1024 * 1024
+	private readonly maxPageBytes =
+		Number.parseInt(process.env.PDF_PUPPETEER_MAX_PAGE_MB ?? '256', 10) *
+		1024 *
+		1024
+	private readonly maxBrowserBytes =
+		Number.parseInt(process.env.PDF_PUPPETEER_MAX_BROWSER_MB ?? '512', 10) *
+		1024 *
+		1024
 	private readonly memoryCheckIntervalMs = Number.parseInt(
 		process.env.PDF_PUPPETEER_MEMORY_CHECK_MS ?? '15000',
 		10
@@ -93,7 +93,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: invoiceStyles.invoiceMeta },
-						React.createElement(Text, { style: invoiceStyles.invoiceTitle }, 'INVOICE'),
+						React.createElement(
+							Text,
+							{ style: invoiceStyles.invoiceTitle },
+							'INVOICE'
+						),
 						React.createElement(
 							Text,
 							{ style: invoiceStyles.metaText },
@@ -109,9 +113,21 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: invoiceStyles.customerInfo },
-						React.createElement(Text, { style: invoiceStyles.sectionTitle }, 'Bill To:'),
-						React.createElement(Text, { style: invoiceStyles.customerName }, invoiceData.customerName),
-						React.createElement(Text, { style: invoiceStyles.customerEmail }, invoiceData.customerEmail)
+						React.createElement(
+							Text,
+							{ style: invoiceStyles.sectionTitle },
+							'Bill To:'
+						),
+						React.createElement(
+							Text,
+							{ style: invoiceStyles.customerName },
+							invoiceData.customerName
+						),
+						React.createElement(
+							Text,
+							{ style: invoiceStyles.customerEmail },
+							invoiceData.customerEmail
+						)
 					),
 					// Items Table
 					React.createElement(
@@ -121,10 +137,16 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							View,
 							{ style: invoiceStyles.tableHeader },
-							React.createElement(Text, { style: invoiceStyles.tableColHeader }, 'Description'),
 							React.createElement(
 								Text,
-								{ style: [invoiceStyles.tableColHeader, invoiceStyles.amountCol] },
+								{ style: invoiceStyles.tableColHeader },
+								'Description'
+							),
+							React.createElement(
+								Text,
+								{
+									style: [invoiceStyles.tableColHeader, invoiceStyles.amountCol]
+								},
 								'Amount'
 							)
 						),
@@ -133,7 +155,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 							React.createElement(
 								View,
 								{ key: item.description, style: invoiceStyles.tableRow },
-								React.createElement(Text, { style: invoiceStyles.tableCol }, item.description),
+								React.createElement(
+									Text,
+									{ style: invoiceStyles.tableCol },
+									item.description
+								),
 								React.createElement(
 									Text,
 									{ style: [invoiceStyles.tableCol, invoiceStyles.amountCol] },
@@ -145,7 +171,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 						React.createElement(
 							View,
 							{ style: invoiceStyles.totalRow },
-							React.createElement(Text, { style: invoiceStyles.totalLabel }, 'Total'),
+							React.createElement(
+								Text,
+								{ style: invoiceStyles.totalLabel },
+								'Total'
+							),
 							React.createElement(
 								Text,
 								{ style: [invoiceStyles.totalAmount, invoiceStyles.amountCol] },
@@ -218,7 +248,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: leaseStyles.section },
-						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'PARTIES'),
+						React.createElement(
+							Text,
+							{ style: leaseStyles.sectionTitle },
+							'PARTIES'
+						),
 						React.createElement(
 							Text,
 							{ style: leaseStyles.text },
@@ -234,7 +268,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: leaseStyles.section },
-						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'LEASE TERM'),
+						React.createElement(
+							Text,
+							{ style: leaseStyles.sectionTitle },
+							'LEASE TERM'
+						),
 						React.createElement(
 							Text,
 							{ style: leaseStyles.text },
@@ -250,7 +288,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: leaseStyles.section },
-						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'RENT'),
+						React.createElement(
+							Text,
+							{ style: leaseStyles.sectionTitle },
+							'RENT'
+						),
 						React.createElement(
 							Text,
 							{ style: leaseStyles.text },
@@ -280,7 +322,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 					React.createElement(
 						View,
 						{ style: leaseStyles.signatures },
-						React.createElement(Text, { style: leaseStyles.sectionTitle }, 'SIGNATURES'),
+						React.createElement(
+							Text,
+							{ style: leaseStyles.sectionTitle },
+							'SIGNATURES'
+						),
 						React.createElement(
 							View,
 							{ style: leaseStyles.signatureRow },
@@ -293,7 +339,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 									{ style: leaseStyles.signatureLabel },
 									`Owner: ${leaseData.ownerName}`
 								),
-								React.createElement(Text, { style: leaseStyles.signatureDate }, 'Date: _________________')
+								React.createElement(
+									Text,
+									{ style: leaseStyles.signatureDate },
+									'Date: _________________'
+								)
 							),
 							React.createElement(
 								View,
@@ -304,7 +354,11 @@ export class PDFGeneratorService implements OnModuleDestroy {
 									{ style: leaseStyles.signatureLabel },
 									`Tenant: ${leaseData.tenantName}`
 								),
-								React.createElement(Text, { style: leaseStyles.signatureDate }, 'Date: _________________')
+								React.createElement(
+									Text,
+									{ style: leaseStyles.signatureDate },
+									'Date: _________________'
+								)
 							)
 						)
 					)
@@ -319,14 +373,18 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			return pdfBuffer
 		} catch (error) {
 			this.logger.error('Error generating lease agreement PDF:', { error })
-			throw new InternalServerErrorException('Failed to generate lease agreement PDF')
+			throw new InternalServerErrorException(
+				'Failed to generate lease agreement PDF'
+			)
 		}
 	}
 
 	/**
 	 * Generic PDF generation from React components (for future use)
 	 */
-	async generatePDFFromReact(document: React.ReactElement<DocumentProps>): Promise<Buffer> {
+	async generatePDFFromReact(
+		document: React.ReactElement<DocumentProps>
+	): Promise<Buffer> {
 		try {
 			const pdfBuffer = await renderToBuffer(document)
 			this.logger.log('PDF generated successfully', {
@@ -363,9 +421,9 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			format: options?.format || 'A4'
 		})
 
-		let page: Awaited<ReturnType<
-			Awaited<ReturnType<typeof puppeteer.launch>>['newPage']
-		>> | null = null
+		let page: Awaited<
+			ReturnType<Awaited<ReturnType<typeof puppeteer.launch>>['newPage']>
+		> | null = null
 
 		try {
 			const browser = await this.getBrowser()
@@ -376,7 +434,14 @@ export class PDFGeneratorService implements OnModuleDestroy {
 			await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
 
 			// PDF options with defaults
-			const pdfOptions: { format: "A4" | "Letter" | "Legal"; printBackground: boolean; margin: { top?: string; right?: string; bottom?: string; left?: string }; landscape: boolean; headerTemplate?: string; footerTemplate?: string } = {
+			const pdfOptions: {
+				format: 'A4' | 'Letter' | 'Legal'
+				printBackground: boolean
+				margin: { top?: string; right?: string; bottom?: string; left?: string }
+				landscape: boolean
+				headerTemplate?: string
+				footerTemplate?: string
+			} = {
 				format: options?.format || 'A4',
 				printBackground: true,
 				margin: options?.margin || {
@@ -500,7 +565,8 @@ export class PDFGeneratorService implements OnModuleDestroy {
 		const usage = process.memoryUsage()
 		const heapUsage = usage.heapUsed
 		const rssUsage = usage.rss
-		const overLimit = heapUsage > this.maxPageBytes || rssUsage > this.maxBrowserBytes
+		const overLimit =
+			heapUsage > this.maxPageBytes || rssUsage > this.maxBrowserBytes
 		if (!overLimit || !this.browser) {
 			return
 		}
@@ -536,4 +602,3 @@ export class PDFGeneratorService implements OnModuleDestroy {
 		}
 	}
 }
-

@@ -11,7 +11,7 @@ import {
 	useOverduePayments,
 	useRecordManualPayment,
 	useExportPayments
-} from '../use-payments'
+} from '../use-rent-collection'
 import * as apiRequest from '#lib/api-request'
 import type { ReactNode } from 'react'
 
@@ -52,7 +52,13 @@ describe('Payment Hooks', () => {
 				averagePaymentTime: 2.3,
 				onTimePaymentRate: 95.2,
 				monthlyTrend: [
-					{ month: 'Jan', monthNumber: 1, collected: 125000, pending: 25000, failed: 0 }
+					{
+						month: 'Jan',
+						monthNumber: 1,
+						collected: 125000,
+						pending: 25000,
+						failed: 0
+					}
 				]
 			}
 
@@ -68,11 +74,15 @@ describe('Payment Hooks', () => {
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
 			expect(result.current.data).toEqual(mockAnalytics)
-			expect(apiRequest.apiRequest).toHaveBeenCalledWith('/api/v1/rent-payments/analytics')
+			expect(apiRequest.apiRequest).toHaveBeenCalledWith(
+				'/api/v1/rent-payments/analytics'
+			)
 		})
 
 		it('should handle error state', async () => {
-			vi.mocked(apiRequest.apiRequest).mockRejectedValue(new Error('Network error'))
+			vi.mocked(apiRequest.apiRequest).mockRejectedValue(
+				new Error('Network error')
+			)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
 				wrapper: createWrapper()
@@ -193,7 +203,9 @@ describe('Payment Hooks', () => {
 				blob: () => Promise.resolve(mockBlob)
 			}
 
-			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(mockResponse as Response)
+			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(
+				mockResponse as Response
+			)
 
 			// Mock URL methods without affecting document.createElement
 			const originalCreateObjectURL = URL.createObjectURL
@@ -222,7 +234,9 @@ describe('Payment Hooks', () => {
 				blob: () => Promise.resolve(mockBlob)
 			}
 
-			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(mockResponse as Response)
+			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(
+				mockResponse as Response
+			)
 
 			const originalCreateObjectURL = URL.createObjectURL
 			const originalRevokeObjectURL = URL.revokeObjectURL

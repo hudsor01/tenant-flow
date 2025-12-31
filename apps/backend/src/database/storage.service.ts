@@ -16,7 +16,6 @@ import { CompressionService } from '../modules/documents/compression.service'
 
 @Injectable()
 export class StorageService {
-
 	constructor(
 		private readonly supabaseService: SupabaseService,
 		private readonly logger: AppLogger,
@@ -118,10 +117,8 @@ export class StorageService {
 
 		if (shouldCompress) {
 			try {
-				const compressionResult = await this.compressionService.compressDocument(
-					file,
-					contentType
-				)
+				const compressionResult =
+					await this.compressionService.compressDocument(file, contentType)
 
 				this.logger.log('File compression complete', {
 					bucket,

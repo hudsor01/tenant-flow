@@ -38,8 +38,11 @@ type TenantWithUser = TenantRow & {
 export class StripeTenantService {
 	private stripe: Stripe
 
-	constructor(private readonly stripeClientService: StripeClientService,
-		private readonly supabase: SupabaseService, private readonly logger: AppLogger) {
+	constructor(
+		private readonly stripeClientService: StripeClientService,
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe Tenant Customer Service initialized')
 	}
@@ -92,7 +95,9 @@ export class StripeTenantService {
 			}
 
 			// Create new Stripe Customer
-			this.logger.log(`Creating Stripe Customer for Tenant: ${params.tenant_id}`)
+			this.logger.log(
+				`Creating Stripe Customer for Tenant: ${params.tenant_id}`
+			)
 			const customerParams: Stripe.CustomerCreateParams = {
 				metadata: {
 					tenant_id: params.tenant_id,
@@ -238,7 +243,8 @@ export class StripeTenantService {
 			const errCode = err?.code
 			const errMsg = err?.message
 
-			const isNotFound = errCode === 'PGRST116' || (errMsg ? /not found/i.test(errMsg) : false)
+			const isNotFound =
+				errCode === 'PGRST116' || (errMsg ? /not found/i.test(errMsg) : false)
 
 			if (isNotFound) {
 				this.logger.warn('Tenant not found while ensuring Stripe customer', {
@@ -255,8 +261,7 @@ export class StripeTenantService {
 		const tenant = data as TenantWithUser
 
 		const resolvedEmail = params.email ?? tenant.users?.email ?? undefined
-		const resolvedName =
-			params.name ?? this.buildTenantName(tenant)
+		const resolvedName = params.name ?? this.buildTenantName(tenant)
 
 		const metadata: Record<string, string> = {
 			...(params.metadata ?? {}),

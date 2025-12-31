@@ -5,14 +5,20 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common'
-import type { TenantStats, TenantSummary, RentPayment } from '@repo/shared/types/core'
+import type {
+	TenantStats,
+	TenantSummary,
+	RentPayment
+} from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 @Injectable()
 export class TenantStatsService {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get tenant count for a user

@@ -49,7 +49,9 @@ describe('GlobalLoadingIndicator', () => {
 
 		// hides promptly after loading completes
 		return waitFor(() => {
-			expect(screen.queryByTestId('global-loading-indicator')).not.toBeInTheDocument()
+			expect(
+				screen.queryByTestId('global-loading-indicator')
+			).not.toBeInTheDocument()
 		})
 	})
 })

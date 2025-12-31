@@ -1,16 +1,15 @@
-import type { TestingModule } from '@nestjs/testing';
+import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { FinancialService } from './financial.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { SupabaseService } from '../../database/supabase.service'
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
 import { Pool } from 'pg'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
-
 
 /**
  * Integration test for FinancialService N+1 query prevention
@@ -56,13 +55,13 @@ describe('FinancialService - N+1 Integration Tests', () => {
 				FinancialRevenueService,
 				{
 					provide: SupabaseService,
-					useValue: mockSupabaseService,
+					useValue: mockSupabaseService
 				},
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
 				}
-			],
+			]
 		}).compile()
 
 		service = module.get<FinancialService>(FinancialService)
@@ -102,7 +101,11 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		await pool.query(
 			`insert into users (id, email, full_name, user_type) values ($1, $2, $3, 'OWNER') on conflict (id) do nothing`,
-			[ownerUserId, `integration-owner-${Date.now()}@test.local`, 'Integration Owner']
+			[
+				ownerUserId,
+				`integration-owner-${Date.now()}@test.local`,
+				'Integration Owner'
+			]
 		)
 
 		const ownerRes = await pool.query(
@@ -149,26 +152,36 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	async function cleanupTestData() {
 		// Delete leases, units, properties, stripe accounts, users in reverse dependency order
 		if (testLeaseIds.length) {
-			await pool.query(`delete from leases where id = any($1::uuid[])`, [testLeaseIds])
+			await pool.query(`delete from leases where id = any($1::uuid[])`, [
+				testLeaseIds
+			])
 		}
 		if (testUnitIds.length) {
-			await pool.query(`delete from units where id = any($1::uuid[])`, [testUnitIds])
+			await pool.query(`delete from units where id = any($1::uuid[])`, [
+				testUnitIds
+			])
 		}
 		if (testPropertyIds.length) {
-			await pool.query(`delete from properties where id = any($1::uuid[])`, [testPropertyIds])
+			await pool.query(`delete from properties where id = any($1::uuid[])`, [
+				testPropertyIds
+			])
 		}
 		if (tenantId) {
 			await pool.query(`delete from tenants where id = $1`, [tenantId])
 		}
 		if (testOwnerId) {
-			await pool.query(`delete from stripe_connected_accounts where id = $1`, [testOwnerId])
+			await pool.query(`delete from stripe_connected_accounts where id = $1`, [
+				testOwnerId
+			])
 		}
 		if (ownerUserId) {
 			await pool.query(`delete from users where id = $1`, [ownerUserId])
 		}
 	}
 
-	async function countQueries(operation: () => Promise<unknown>): Promise<number> {
+	async function countQueries(
+		operation: () => Promise<unknown>
+	): Promise<number> {
 		// Enable query logging
 		await supabaseClient.rpc('pg_stat_statements_reset')
 
@@ -177,7 +190,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		// Count queries
 		const { data } = await supabaseClient.rpc('pg_stat_statements', {
-			query: '%FROM properties%',
+			query: '%FROM properties%'
 		})
 
 		return data?.length || 0
@@ -202,7 +215,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 		// Execute the method
 		await service.getNetOperatingIncome(mockToken, {
 			start_date: '2025-01-01',
-			end_date: '2025-12-31',
+			end_date: '2025-12-31'
 		})
 
 		// Restore original method
@@ -218,7 +231,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		const result = await service.getNetOperatingIncome(mockToken, {
 			start_date: '2025-01-01',
-			end_date: '2025-12-31',
+			end_date: '2025-12-31'
 		})
 
 		// Should return metrics for all 3 properties

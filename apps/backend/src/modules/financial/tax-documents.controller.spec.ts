@@ -8,20 +8,33 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-
 // Mock the JwtToken decorator to return our test token
 jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken: () => (target: object, propertyKey: string, parameterIndex: number) => {
-		// Store metadata for the decorator
-		const existingParams = Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) || []
-		existingParams.push(parameterIndex)
-		Reflect.defineMetadata('custom:jwt-token-params', existingParams, target, propertyKey)
-	}
+	JwtToken:
+		() => (target: object, propertyKey: string, parameterIndex: number) => {
+			// Store metadata for the decorator
+			const existingParams =
+				Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) ||
+				[]
+			existingParams.push(parameterIndex)
+			Reflect.defineMetadata(
+				'custom:jwt-token-params',
+				existingParams,
+				target,
+				propertyKey
+			)
+		}
 }))
 
 describe('TaxDocumentsController', () => {
 	let controller: TaxDocumentsController
 	let service: jest.Mocked<TaxDocumentsService>
+
+	// Mock authenticated request with authorization header
+	const mockRequest = {
+		user: { id: 'test-user-id', email: 'test@example.com' },
+		headers: { authorization: 'Bearer mock-jwt-token' }
+	} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
 
 	const mockTaxDocuments: TaxDocumentsData = {
 		period: { start_date: '2024-01-01', end_date: '2024-12-31', label: '2024' },
@@ -158,7 +171,7 @@ describe('TaxDocumentsController', () => {
 
 	describe('GET /financials/tax-documents', () => {
 		it('should return tax documents with provided tax year', async () => {
-			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
+			const result = await controller.getTaxDocuments(mockRequest, '2024')
 
 			expect(result).toEqual({
 				success: true,
@@ -166,6 +179,7 @@ describe('TaxDocumentsController', () => {
 			})
 			expect(service.generateTaxDocuments).toHaveBeenCalledWith(
 				'mock-jwt-token',
+				'test-user-id',
 				2024
 			)
 		})
@@ -173,36 +187,42 @@ describe('TaxDocumentsController', () => {
 		it('should use current year as default when no tax year provided', async () => {
 			const expectedYear = new Date().getFullYear()
 
-			await controller.getTaxDocuments('mock-jwt-token')
+			await controller.getTaxDocuments(mockRequest)
 
 			expect(service.generateTaxDocuments).toHaveBeenCalledWith(
 				'mock-jwt-token',
+				'test-user-id',
 				expectedYear
 			)
 		})
 
 		it('should throw UnauthorizedException when token is missing', async () => {
-			await expect(controller.getTaxDocuments('', '2024')).rejects.toThrow(
-				'Authentication token is required'
-			)
+			const noTokenRequest = {
+				user: { id: 'test-user-id' },
+				headers: {}
+			} as unknown as import('../../shared/types/express-request.types').AuthenticatedRequest
+
+			await expect(
+				controller.getTaxDocuments(noTokenRequest, '2024')
+			).rejects.toThrow('Authentication token is required')
 		})
 
 		it('should throw BadRequestException for invalid tax year format', async () => {
 			await expect(
-				controller.getTaxDocuments('mock-jwt-token', 'invalid-year')
+				controller.getTaxDocuments(mockRequest, 'invalid-year')
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should throw BadRequestException for tax year below 2000', async () => {
-			await expect(controller.getTaxDocuments('mock-jwt-token', '1999')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				controller.getTaxDocuments(mockRequest, '1999')
+			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should throw BadRequestException for tax year above 2100', async () => {
-			await expect(controller.getTaxDocuments('mock-jwt-token', '2101')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				controller.getTaxDocuments(mockRequest, '2101')
+			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should handle service errors', async () => {
@@ -210,13 +230,13 @@ describe('TaxDocumentsController', () => {
 				new Error('Service error')
 			)
 
-			await expect(controller.getTaxDocuments('mock-jwt-token', '2024')).rejects.toThrow(
-				'Service error'
-			)
+			await expect(
+				controller.getTaxDocuments(mockRequest, '2024')
+			).rejects.toThrow('Service error')
 		})
 
 		it('should verify Schedule E calculations', async () => {
-			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
+			const result = await controller.getTaxDocuments(mockRequest, '2024')
 
 			const { scheduleE } = result.data.schedule
 			const calculatedNet =
@@ -228,7 +248,7 @@ describe('TaxDocumentsController', () => {
 		})
 
 		it('should verify all expense categories are present', async () => {
-			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
+			const result = await controller.getTaxDocuments(mockRequest, '2024')
 
 			const { expenseCategories } = result.data
 
@@ -243,7 +263,7 @@ describe('TaxDocumentsController', () => {
 		})
 
 		it('should verify depreciation schedule structure', async () => {
-			const result = await controller.getTaxDocuments('mock-jwt-token', '2024')
+			const result = await controller.getTaxDocuments(mockRequest, '2024')
 
 			const { propertyDepreciation } = result.data
 			expect(Array.isArray(propertyDepreciation)).toBe(true)

@@ -2,7 +2,7 @@
 
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
-import { createClient } from '#utils/supabase/client'
+import { createClient } from '#lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
 import Image from 'next/image'
@@ -63,7 +63,10 @@ export default function ConfirmEmailPage() {
 	return (
 		<div className="relative min-h-screen flex flex-col lg:flex-row">
 			{/* Full page grid background */}
-			<GridPattern patternId="confirm-email-grid" className="fixed inset-0 -z-10" />
+			<GridPattern
+				patternId="confirm-email-grid"
+				className="fixed inset-0 -z-10"
+			/>
 
 			{/* Left Side - Image Section (Hidden on mobile) */}
 			<div className="relative hidden lg:flex lg:w-1/2 min-h-screen bg-background overflow-hidden">
@@ -231,9 +234,7 @@ export default function ConfirmEmailPage() {
 									<p className="text-foreground font-medium">
 										Click the confirmation link
 									</p>
-									<p className="text-muted">
-										The link expires in 24 hours
-									</p>
+									<p className="text-muted">The link expires in 24 hours</p>
 								</div>
 							</li>
 							<li className="flex items-start gap-3">

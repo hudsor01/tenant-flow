@@ -3,8 +3,7 @@ import { AppLogger } from '../logger/app-logger.service'
 
 @Injectable()
 export class SecurityMonitorService {
-    constructor(private readonly logger: AppLogger) {}
-
+	constructor(private readonly logger: AppLogger) {}
 
 	logSecurityEvent(event: string, details: Record<string, unknown> = {}) {
 		this.logger.warn(

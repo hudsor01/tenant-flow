@@ -1,7 +1,20 @@
-import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common'
-import { JwtToken } from '../../../shared/decorators/jwt-token.decorator'
-import { User } from '../../../shared/decorators/user.decorator'
-import type { AuthUser } from '@repo/shared/types/auth'
+import {
+	Controller,
+	Get,
+	InternalServerErrorException,
+	NotFoundException,
+	Request,
+	UnauthorizedException,
+	UseGuards,
+	UseInterceptors
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
@@ -10,8 +23,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 
 type TenantRow = Pick<
 	Database['public']['Tables']['tenants']['Row'],
-	| 'id'
-	| 'user_id'
+	'id' | 'user_id'
 >
 
 /**
@@ -22,20 +34,33 @@ type TenantRow = Pick<
  *
  * Routes: /tenant/settings/*
  */
+@ApiTags('Tenant Portal - Settings')
+@ApiBearerAuth('supabase-auth')
 @Controller()
 @UseGuards(TenantAuthGuard)
 @UseInterceptors(TenantContextInterceptor)
 export class TenantSettingsController {
-
-	constructor(private readonly supabase: SupabaseService, private readonly logger: AppLogger) {}
+	constructor(
+		private readonly supabase: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get tenant profile and settings
 	 *
 	 * @returns Tenant profile information
 	 */
+	@ApiOperation({ summary: 'Get settings', description: 'Get tenant profile and account settings' })
+	@ApiResponse({ status: 200, description: 'Settings retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized - tenant authentication required' })
+	@ApiResponse({ status: 500, description: 'Internal server error' })
 	@Get()
-	async getSettings(@JwtToken() token: string, @User() user: AuthUser) {
+	async getSettings(@Request() req: AuthenticatedRequest) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user = req.user
 		const [tenant, userResult] = await Promise.all([
 			this.fetchTenantProfile(token, user.id),
 			this.supabase
@@ -51,7 +76,7 @@ export class TenantSettingsController {
 				user_id: user.id,
 				error: userResult.error.message
 			})
-			throw new Error('Failed to load profile')
+			throw new InternalServerErrorException('Failed to load profile')
 		}
 
 		return {
@@ -60,8 +85,7 @@ export class TenantSettingsController {
 				first_name: userResult.data?.first_name ?? null,
 				last_name: userResult.data?.last_name ?? null,
 				email: userResult.data?.email ?? user.email ?? null,
-				phone: userResult.data?.phone ?? null,
-
+				phone: userResult.data?.phone ?? null
 			}
 		}
 	}
@@ -82,9 +106,9 @@ export class TenantSettingsController {
 				authuser_id,
 				error: error.message
 			})
-			throw new Error('Failed to load profile')
+			throw new NotFoundException('Tenant profile not found')
 		}
 
-			return data as TenantRow
+		return data as TenantRow
 	}
 }

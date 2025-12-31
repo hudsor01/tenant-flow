@@ -61,12 +61,49 @@ describe('LeasePdfGeneratorService Integration', () => {
 	describe('Template File Existence', () => {
 		it('should have Texas template file in templates or assets directory', () => {
 			const possiblePaths = [
-				resolve(__dirname, 'templates', 'Texas_Residential_Lease_Agreement.pdf'),
-				resolve(process.cwd(), 'apps', 'backend', 'src', 'modules', 'pdf', 'templates', 'Texas_Residential_Lease_Agreement.pdf'),
-				resolve(process.cwd(), 'src', 'modules', 'pdf', 'templates', 'Texas_Residential_Lease_Agreement.pdf'),
-				resolve(process.cwd(), 'apps', 'backend', 'assets', 'Texas_Residential_Lease_Agreement.pdf'),
-				resolve(process.cwd(), 'assets', 'Texas_Residential_Lease_Agreement.pdf'),
-				resolve(__dirname, '..', '..', '..', 'assets', 'Texas_Residential_Lease_Agreement.pdf')
+				resolve(
+					__dirname,
+					'templates',
+					'Texas_Residential_Lease_Agreement.pdf'
+				),
+				resolve(
+					process.cwd(),
+					'apps',
+					'backend',
+					'src',
+					'modules',
+					'pdf',
+					'templates',
+					'Texas_Residential_Lease_Agreement.pdf'
+				),
+				resolve(
+					process.cwd(),
+					'src',
+					'modules',
+					'pdf',
+					'templates',
+					'Texas_Residential_Lease_Agreement.pdf'
+				),
+				resolve(
+					process.cwd(),
+					'apps',
+					'backend',
+					'assets',
+					'Texas_Residential_Lease_Agreement.pdf'
+				),
+				resolve(
+					process.cwd(),
+					'assets',
+					'Texas_Residential_Lease_Agreement.pdf'
+				),
+				resolve(
+					__dirname,
+					'..',
+					'..',
+					'..',
+					'assets',
+					'Texas_Residential_Lease_Agreement.pdf'
+				)
 			]
 
 			const foundPath = possiblePaths.find(p => existsSync(p))
@@ -75,7 +112,10 @@ describe('LeasePdfGeneratorService Integration', () => {
 		})
 
 		it('should load Texas template metadata from real filesystem', async () => {
-			const metadata = await templateCache.getTemplateMetadata('TX', 'RESIDENTIAL')
+			const metadata = await templateCache.getTemplateMetadata(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			expect(metadata.exists).toBe(true)
 			expect(metadata.stateCode).toBe('TX')
@@ -84,7 +124,10 @@ describe('LeasePdfGeneratorService Integration', () => {
 		})
 
 		it('should load Texas template content from real filesystem', async () => {
-			const content = await templateCache.getTemplateContent('TX', 'RESIDENTIAL')
+			const content = await templateCache.getTemplateContent(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			expect(content).toBeDefined()
 			expect(content).toBeInstanceOf(Uint8Array)
@@ -98,7 +141,10 @@ describe('LeasePdfGeneratorService Integration', () => {
 
 	describe('PDF Generation with Real Templates', () => {
 		it('should generate filled PDF using real Texas template', async () => {
-			const result = await service.generateFilledPdf(mockFields, 'lease-integration-test')
+			const result = await service.generateFilledPdf(
+				mockFields,
+				'lease-integration-test'
+			)
 
 			expect(result).toBeInstanceOf(Buffer)
 			expect(result.length).toBeGreaterThan(0)
@@ -109,18 +155,26 @@ describe('LeasePdfGeneratorService Integration', () => {
 		}, 10000) // 10s timeout for PDF generation
 
 		it('should validate template before generation', async () => {
-			const result = await service.generateFilledPdf(mockFields, 'lease-validation-test', {
-				validateTemplate: true
-			})
+			const result = await service.generateFilledPdf(
+				mockFields,
+				'lease-validation-test',
+				{
+					validateTemplate: true
+				}
+			)
 
 			expect(result).toBeInstanceOf(Buffer)
 			expect(result.length).toBeGreaterThan(0)
 		}, 10000)
 
 		it('should handle unsupported states by falling back to Texas template', async () => {
-			const result = await service.generateFilledPdf(mockFields, 'lease-fallback-test', {
-				state: 'CA' // Unsupported state
-			})
+			const result = await service.generateFilledPdf(
+				mockFields,
+				'lease-fallback-test',
+				{
+					state: 'CA' // Unsupported state
+				}
+			)
 
 			expect(result).toBeInstanceOf(Buffer)
 			expect(result.length).toBeGreaterThan(0)
@@ -134,20 +188,32 @@ describe('LeasePdfGeneratorService Integration', () => {
 	describe('Template Caching', () => {
 		it('should cache template metadata after first load', async () => {
 			// First load
-			const metadata1 = await templateCache.getTemplateMetadata('TX', 'RESIDENTIAL')
+			const metadata1 = await templateCache.getTemplateMetadata(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			// Second load (should be cached)
-			const metadata2 = await templateCache.getTemplateMetadata('TX', 'RESIDENTIAL')
+			const metadata2 = await templateCache.getTemplateMetadata(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			expect(metadata1).toEqual(metadata2)
 		})
 
 		it('should cache template content after first load', async () => {
 			// First load
-			const content1 = await templateCache.getTemplateContent('TX', 'RESIDENTIAL')
+			const content1 = await templateCache.getTemplateContent(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			// Second load (should be cached)
-			const content2 = await templateCache.getTemplateContent('TX', 'RESIDENTIAL')
+			const content2 = await templateCache.getTemplateContent(
+				'TX',
+				'RESIDENTIAL'
+			)
 
 			expect(content1).toEqual(content2)
 		})
@@ -156,7 +222,10 @@ describe('LeasePdfGeneratorService Integration', () => {
 	describe('Production Environment Simulation', () => {
 		it('should work when process.cwd() is repo root', async () => {
 			// This simulates CI/production where cwd is the monorepo root
-			const result = await service.generateFilledPdf(mockFields, 'lease-prod-sim-test')
+			const result = await service.generateFilledPdf(
+				mockFields,
+				'lease-prod-sim-test'
+			)
 
 			expect(result).toBeInstanceOf(Buffer)
 			expect(result.length).toBeGreaterThan(0)

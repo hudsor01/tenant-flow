@@ -2,12 +2,10 @@ import type {
 	CallHandler,
 	ExecutionContext,
 	NestInterceptor
-} from '@nestjs/common';
-import {
-	Injectable
 } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type { Request, Response } from 'express'
-import type { Observable} from 'rxjs';
+import type { Observable } from 'rxjs'
 import { tap } from 'rxjs'
 import { performance } from 'node:perf_hooks'
 import { MetricsService } from '../modules/metrics/metrics.service'
@@ -26,7 +24,12 @@ export class HttpMetricsInterceptor implements NestInterceptor {
 
 		const record = (statusCode: number) => {
 			const durationMs = performance.now() - startTime
-			this.metricsService.recordHttpRequest(method, route, statusCode, durationMs)
+			this.metricsService.recordHttpRequest(
+				method,
+				route,
+				statusCode,
+				durationMs
+			)
 		}
 
 		return next.handle().pipe(
@@ -41,7 +44,7 @@ export class HttpMetricsInterceptor implements NestInterceptor {
 							? (error as { getStatus: () => number }).getStatus()
 							: typeof (error as { status?: number }).status === 'number'
 								? (error as { status: number }).status
-								: response?.statusCode ?? 500
+								: (response?.statusCode ?? 500)
 					record(statusCode)
 					throw error
 				}

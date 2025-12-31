@@ -192,16 +192,16 @@ describe('Property 3: Loading State Timeout', () => {
 						expect(
 							screen.queryByText(/taking longer than expected/i)
 						).not.toBeInTheDocument()
-						} finally {
-							unmount()
-						}
-
-						return true
+					} finally {
+						unmount()
 					}
-				),
-				{ numRuns: 10 }
-			)
-		})
+
+					return true
+				}
+			),
+			{ numRuns: 10 }
+		)
+	})
 
 	it('should never exceed 3 second timeout for any sequence of loading state changes', () => {
 		fc.assert(
@@ -246,16 +246,16 @@ describe('Property 3: Loading State Timeout', () => {
 								screen.queryByText(/taking longer than expected/i)
 							).not.toBeInTheDocument()
 						}
-						} finally {
-							unmount()
-						}
-
-						return true
+					} finally {
+						unmount()
 					}
-				),
-				{ numRuns: 10 }
-			)
-		})
+
+					return true
+				}
+			),
+			{ numRuns: 10 }
+		)
+	})
 
 	it('should handle rapid loading state transitions without breaking timeout logic', () => {
 		fc.assert(
@@ -293,14 +293,14 @@ describe('Property 3: Loading State Timeout', () => {
 								screen.getByText(/taking longer than expected/i)
 							).toBeInTheDocument()
 						}
-						} finally {
-							unmount()
-						}
-
-						return true
+					} finally {
+						unmount()
 					}
-				),
-				{ numRuns: 10 }
-			)
-		})
+
+					return true
+				}
+			),
+			{ numRuns: 10 }
+		)
+	})
 })

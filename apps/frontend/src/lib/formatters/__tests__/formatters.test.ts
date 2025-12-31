@@ -16,15 +16,25 @@ describe('date formatters', () => {
 
 	it('returns relative labels when requested', () => {
 		const base = new Date('2025-01-10T00:00:00Z')
-		expect(formatDate('2025-01-10', { relative: true, relativeTo: base })).toBe('Today')
-		expect(formatDate('2025-01-09', { relative: true, relativeTo: base })).toBe('Yesterday')
-		expect(formatDate('2025-01-07', { relative: true, relativeTo: base })).toBe('3 days ago')
-		expect(formatDate('2025-01-13', { relative: true, relativeTo: base })).toBe('In 3 days')
+		expect(formatDate('2025-01-10', { relative: true, relativeTo: base })).toBe(
+			'Today'
+		)
+		expect(formatDate('2025-01-09', { relative: true, relativeTo: base })).toBe(
+			'Yesterday'
+		)
+		expect(formatDate('2025-01-07', { relative: true, relativeTo: base })).toBe(
+			'3 days ago'
+		)
+		expect(formatDate('2025-01-13', { relative: true, relativeTo: base })).toBe(
+			'In 3 days'
+		)
 	})
 
 	it('formats relative distance with suffix', () => {
 		const base = new Date('2025-03-01T00:00:00Z')
-		expect(formatRelativeDate('2025-02-28', { baseDate: base })).toBe('2 days ago')
+		expect(formatRelativeDate('2025-02-28', { baseDate: base })).toBe(
+			'2 days ago'
+		)
 	})
 })
 
@@ -35,6 +45,8 @@ describe('numeric formatters', () => {
 	})
 
 	it('formats numbers with compact notation', () => {
-		expect(formatNumber(15300, { compact: true, maximumFractionDigits: 1 })).toBe('15.3K')
+		expect(
+			formatNumber(15300, { compact: true, maximumFractionDigits: 1 })
+		).toBe('15.3K')
 	})
 })

@@ -36,7 +36,9 @@ async function loginAsOwner(page: Page) {
 	await page.fill('[data-testid="password-input"]', OWNER_PASSWORD)
 	await page.click('[data-testid="login-button"]')
 	// Wait for navigation away from login page
-	await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 })
+	await page.waitForURL(url => !url.pathname.includes('/login'), {
+		timeout: 15000
+	})
 }
 
 /**
@@ -44,7 +46,9 @@ async function loginAsOwner(page: Page) {
  */
 async function loginAsTenant(page: Page) {
 	if (!TENANT_EMAIL || !TENANT_PASSWORD) {
-		throw new Error('Tenant credentials not configured. Set E2E_TENANT_A_EMAIL and E2E_TENANT_A_PASSWORD')
+		throw new Error(
+			'Tenant credentials not configured. Set E2E_TENANT_A_EMAIL and E2E_TENANT_A_PASSWORD'
+		)
 	}
 	await page.goto(`${BASE_URL}/login`)
 	// Wait for form to load
@@ -54,7 +58,9 @@ async function loginAsTenant(page: Page) {
 	await page.fill('[data-testid="password-input"]', TENANT_PASSWORD)
 	await page.click('[data-testid="login-button"]')
 	// Wait for navigation away from login page
-	await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 15000 })
+	await page.waitForURL(url => !url.pathname.includes('/login'), {
+		timeout: 15000
+	})
 }
 
 test.describe('Owner Invitation Flow', () => {
@@ -66,14 +72,18 @@ test.describe('Owner Invitation Flow', () => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Verify tenants page loads
-		await expect(page.locator('h1:has-text("Tenants")')).toBeVisible({ timeout: 10000 })
+		await expect(page.locator('h1:has-text("Tenants")')).toBeVisible({
+			timeout: 10000
+		})
 	})
 
 	test('Owner can see invite tenant button', async ({ page }) => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Verify invite button exists
-		const inviteButton = page.locator('a:has-text("Invite Tenant"), button:has-text("Invite Tenant")')
+		const inviteButton = page.locator(
+			'a:has-text("Invite Tenant"), button:has-text("Invite Tenant")'
+		)
 		await expect(inviteButton).toBeVisible({ timeout: 10000 })
 	})
 
@@ -81,14 +91,18 @@ test.describe('Owner Invitation Flow', () => {
 		await page.goto(`${BASE_URL}/tenants`)
 
 		// Click invite button
-		const inviteButton = page.locator('a:has-text("Invite Tenant"), button:has-text("Invite Tenant")')
+		const inviteButton = page.locator(
+			'a:has-text("Invite Tenant"), button:has-text("Invite Tenant")'
+		)
 		await inviteButton.click()
 
 		// Should navigate to invite form
 		await page.waitForURL('**/tenants/new**', { timeout: 10000 })
 
 		// Verify form elements exist
-		await expect(page.locator('input[type="email"], [name="email"]')).toBeVisible({ timeout: 5000 })
+		await expect(
+			page.locator('input[type="email"], [name="email"]')
+		).toBeVisible({ timeout: 5000 })
 	})
 
 	test('Invitations table loads on tenants page', async ({ page }) => {
@@ -104,7 +118,10 @@ test.describe('Owner Invitation Flow', () => {
 })
 
 test.describe('Tenant Portal Access', () => {
-	test.skip(!TENANT_EMAIL || !TENANT_PASSWORD, 'Tenant credentials not configured')
+	test.skip(
+		!TENANT_EMAIL || !TENANT_PASSWORD,
+		'Tenant credentials not configured'
+	)
 
 	test.beforeEach(async ({ page }) => {
 		await loginAsTenant(page)
@@ -116,9 +133,18 @@ test.describe('Tenant Portal Access', () => {
 
 		// Verify tenant portal loads
 		const portalLoaded = await Promise.race([
-			page.locator('text=Tenant Portal').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('[data-testid="tenant-dashboard-stats"]').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=Quick Actions').waitFor({ timeout: 10000 }).then(() => true)
+			page
+				.locator('text=Tenant Portal')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('[data-testid="tenant-dashboard-stats"]')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=Quick Actions')
+				.waitFor({ timeout: 10000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(portalLoaded).toBeTruthy()
@@ -128,7 +154,9 @@ test.describe('Tenant Portal Access', () => {
 		await page.goto(`${BASE_URL}/tenant`)
 
 		// Verify Next Payment card is visible
-		await expect(page.locator('text=Next Payment')).toBeVisible({ timeout: 10000 })
+		await expect(page.locator('text=Next Payment')).toBeVisible({
+			timeout: 10000
+		})
 	})
 
 	test('Tenant can navigate to pay rent page', async ({ page }) => {
@@ -142,7 +170,9 @@ test.describe('Tenant Portal Access', () => {
 		await page.waitForURL('**/payments/new**', { timeout: 10000 })
 
 		// Verify pay rent page loads
-		await expect(page.locator('h1:has-text("Pay Rent"), text=Pay Rent')).toBeVisible({ timeout: 10000 })
+		await expect(
+			page.locator('h1:has-text("Pay Rent"), text=Pay Rent')
+		).toBeVisible({ timeout: 10000 })
 	})
 
 	test('Pay rent page shows payment breakdown', async ({ page }) => {
@@ -153,18 +183,35 @@ test.describe('Tenant Portal Access', () => {
 
 		// Should show payment breakdown or loading state
 		const contentLoaded = await Promise.race([
-			page.locator('text=Payment Breakdown').waitFor({ timeout: 10000 }).then(() => 'breakdown'),
-			page.locator('text=Total Due').waitFor({ timeout: 10000 }).then(() => 'total'),
-			page.locator('text=Loading').waitFor({ timeout: 5000 }).then(() => 'loading'),
-			page.locator('text=Rent Paid').waitFor({ timeout: 5000 }).then(() => 'paid'),
-			page.locator('text=Unable to Load').waitFor({ timeout: 5000 }).then(() => 'error')
+			page
+				.locator('text=Payment Breakdown')
+				.waitFor({ timeout: 10000 })
+				.then(() => 'breakdown'),
+			page
+				.locator('text=Total Due')
+				.waitFor({ timeout: 10000 })
+				.then(() => 'total'),
+			page
+				.locator('text=Loading')
+				.waitFor({ timeout: 5000 })
+				.then(() => 'loading'),
+			page
+				.locator('text=Rent Paid')
+				.waitFor({ timeout: 5000 })
+				.then(() => 'paid'),
+			page
+				.locator('text=Unable to Load')
+				.waitFor({ timeout: 5000 })
+				.then(() => 'error')
 		]).catch(() => 'timeout')
 
 		// Any of these states indicates the page is working
 		expect(['breakdown', 'total', 'paid', 'error']).toContain(contentLoaded)
 	})
 
-	test('Payment status badge appears on dashboard when applicable', async ({ page }) => {
+	test('Payment status badge appears on dashboard when applicable', async ({
+		page
+	}) => {
 		await page.goto(`${BASE_URL}/tenant`)
 
 		// Wait for data to load
@@ -172,9 +219,21 @@ test.describe('Tenant Portal Access', () => {
 
 		// Check for payment status badge (Paid, Due Soon, or Overdue)
 		const badgeVisible = await Promise.race([
-			page.locator('text=Paid').first().waitFor({ timeout: 5000 }).then(() => true),
-			page.locator('text=Due Soon').first().waitFor({ timeout: 5000 }).then(() => true),
-			page.locator('text=Overdue').first().waitFor({ timeout: 5000 }).then(() => true)
+			page
+				.locator('text=Paid')
+				.first()
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('text=Due Soon')
+				.first()
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('text=Overdue')
+				.first()
+				.waitFor({ timeout: 5000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		// Badge may not always be visible depending on tenant state
@@ -184,7 +243,10 @@ test.describe('Tenant Portal Access', () => {
 })
 
 test.describe('Payment History', () => {
-	test.skip(!TENANT_EMAIL || !TENANT_PASSWORD, 'Tenant credentials not configured')
+	test.skip(
+		!TENANT_EMAIL || !TENANT_PASSWORD,
+		'Tenant credentials not configured'
+	)
 
 	test.beforeEach(async ({ page }) => {
 		await loginAsTenant(page)
@@ -195,9 +257,18 @@ test.describe('Payment History', () => {
 
 		// Verify payment history page loads
 		const historyLoaded = await Promise.race([
-			page.locator('text=Payment History').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=Recent Payments').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=No payments yet').waitFor({ timeout: 10000 }).then(() => true)
+			page
+				.locator('text=Payment History')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=Recent Payments')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=No payments yet')
+				.waitFor({ timeout: 10000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(historyLoaded).toBeTruthy()
@@ -205,7 +276,10 @@ test.describe('Payment History', () => {
 })
 
 test.describe('Maintenance Request', () => {
-	test.skip(!TENANT_EMAIL || !TENANT_PASSWORD, 'Tenant credentials not configured')
+	test.skip(
+		!TENANT_EMAIL || !TENANT_PASSWORD,
+		'Tenant credentials not configured'
+	)
 
 	test.beforeEach(async ({ page }) => {
 		await loginAsTenant(page)
@@ -216,9 +290,18 @@ test.describe('Maintenance Request', () => {
 
 		// Verify maintenance page loads
 		const maintenanceLoaded = await Promise.race([
-			page.locator('text=Maintenance').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=Submit Request').waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=No maintenance requests').waitFor({ timeout: 10000 }).then(() => true)
+			page
+				.locator('text=Maintenance')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=Submit Request')
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=No maintenance requests')
+				.waitFor({ timeout: 10000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(maintenanceLoaded).toBeTruthy()
@@ -236,8 +319,15 @@ test.describe('Maintenance Request', () => {
 
 		// Verify form loads
 		const formLoaded = await Promise.race([
-			page.locator('input[name="title"], textarea[name="description"]').first().waitFor({ timeout: 10000 }).then(() => true),
-			page.locator('text=Submit Request').waitFor({ timeout: 10000 }).then(() => true)
+			page
+				.locator('input[name="title"], textarea[name="description"]')
+				.first()
+				.waitFor({ timeout: 10000 })
+				.then(() => true),
+			page
+				.locator('text=Submit Request')
+				.waitFor({ timeout: 10000 })
+				.then(() => true)
 		]).catch(() => false)
 
 		expect(formLoaded).toBeTruthy()
@@ -245,13 +335,16 @@ test.describe('Maintenance Request', () => {
 })
 
 test.describe('API Endpoints', () => {
-	test('Owner invitation endpoints are accessible', async ({ page, request }) => {
+	test('Owner invitation endpoints are accessible', async ({
+		page,
+		request
+	}) => {
 		await loginAsOwner(page)
 
 		// Get auth token from cookies
 		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(c =>
-			c.name.includes('sb-') && c.name.includes('-auth-token')
+		const authCookie = cookies.find(
+			c => c.name.includes('sb-') && c.name.includes('-auth-token')
 		)
 
 		let token: string | null = null
@@ -268,11 +361,15 @@ test.describe('API Endpoints', () => {
 			// Try localStorage
 			token = await page.evaluate(() => {
 				const keys = Object.keys(localStorage)
-				const authKey = keys.find(k => k.includes('supabase') || k.includes('sb-'))
+				const authKey = keys.find(
+					k => k.includes('supabase') || k.includes('sb-')
+				)
 				if (!authKey) return null
 				try {
 					const data = JSON.parse(localStorage.getItem(authKey) || '{}')
-					return data?.currentSession?.access_token || data?.access_token || null
+					return (
+						data?.currentSession?.access_token || data?.access_token || null
+					)
 				} catch {
 					return null
 				}
@@ -282,9 +379,12 @@ test.describe('API Endpoints', () => {
 		expect(token).toBeTruthy()
 
 		// Test invitations endpoint
-		const invitationsResponse = await request.get(`${API_URL}/api/v1/tenants/invitations`, {
-			headers: { Authorization: `Bearer ${token}` }
-		})
+		const invitationsResponse = await request.get(
+			`${API_URL}/api/v1/tenants/invitations`,
+			{
+				headers: { Authorization: `Bearer ${token}` }
+			}
+		)
 		expect(invitationsResponse.ok()).toBeTruthy()
 
 		// Test tenants endpoint
@@ -294,15 +394,18 @@ test.describe('API Endpoints', () => {
 		expect(tenantsResponse.ok()).toBeTruthy()
 	})
 
-	test.skip(!TENANT_EMAIL || !TENANT_PASSWORD, 'Tenant credentials not configured')
+	test.skip(
+		!TENANT_EMAIL || !TENANT_PASSWORD,
+		'Tenant credentials not configured'
+	)
 
 	test('Tenant portal endpoints are accessible', async ({ page, request }) => {
 		await loginAsTenant(page)
 
 		// Get auth token
 		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(c =>
-			c.name.includes('sb-') && c.name.includes('-auth-token')
+		const authCookie = cookies.find(
+			c => c.name.includes('sb-') && c.name.includes('-auth-token')
 		)
 
 		let token: string | null = null
@@ -318,11 +421,15 @@ test.describe('API Endpoints', () => {
 		if (!token) {
 			token = await page.evaluate(() => {
 				const keys = Object.keys(localStorage)
-				const authKey = keys.find(k => k.includes('supabase') || k.includes('sb-'))
+				const authKey = keys.find(
+					k => k.includes('supabase') || k.includes('sb-')
+				)
 				if (!authKey) return null
 				try {
 					const data = JSON.parse(localStorage.getItem(authKey) || '{}')
-					return data?.currentSession?.access_token || data?.access_token || null
+					return (
+						data?.currentSession?.access_token || data?.access_token || null
+					)
 				} catch {
 					return null
 				}
@@ -335,16 +442,22 @@ test.describe('API Endpoints', () => {
 		}
 
 		// Test amount-due endpoint
-		const amountDueResponse = await request.get(`${API_URL}/api/v1/tenant-portal/amount-due`, {
-			headers: { Authorization: `Bearer ${token}` }
-		})
+		const amountDueResponse = await request.get(
+			`${API_URL}/api/v1/tenant-portal/amount-due`,
+			{
+				headers: { Authorization: `Bearer ${token}` }
+			}
+		)
 		// May return 404 if no lease, but shouldn't error
 		expect([200, 404]).toContain(amountDueResponse.status())
 
 		// Test dashboard endpoint
-		const dashboardResponse = await request.get(`${API_URL}/api/v1/tenant-portal/dashboard`, {
-			headers: { Authorization: `Bearer ${token}` }
-		})
+		const dashboardResponse = await request.get(
+			`${API_URL}/api/v1/tenant-portal/dashboard`,
+			{
+				headers: { Authorization: `Bearer ${token}` }
+			}
+		)
 		expect([200, 404]).toContain(dashboardResponse.status())
 	})
 })

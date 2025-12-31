@@ -14,7 +14,10 @@ describe('MaintenanceWorkflowService', () => {
 	const mockToken = 'mock-jwt-token'
 
 	// Mock Supabase query builder
-	const createMockQueryBuilder = (data: unknown | null, error: Error | null = null) => {
+	const createMockQueryBuilder = (
+		data: unknown | null,
+		error: Error | null = null
+	) => {
 		const builder = {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
@@ -56,7 +59,11 @@ describe('MaintenanceWorkflowService', () => {
 
 	describe('updateStatus', () => {
 		it('returns null when token is missing', async () => {
-			const result = await service.updateStatus('', 'maintenance-id', 'completed')
+			const result = await service.updateStatus(
+				'',
+				'maintenance-id',
+				'completed'
+			)
 			expect(result).toBeNull()
 		})
 
@@ -75,9 +82,15 @@ describe('MaintenanceWorkflowService', () => {
 			const updatedRequest = { ...mockRequest, status: 'in_progress' }
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(updatedRequest))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(updatedRequest)
+			)
 
-			const result = await service.updateStatus(mockToken, mockRequest.id, 'in_progress')
+			const result = await service.updateStatus(
+				mockToken,
+				mockRequest.id,
+				'in_progress'
+			)
 
 			expect(result).toEqual(updatedRequest)
 			expect(mockClient.from).toHaveBeenCalledWith('maintenance_requests')
@@ -85,7 +98,11 @@ describe('MaintenanceWorkflowService', () => {
 
 		it('sets completed_at when status is completed', async () => {
 			const mockRequest = createMockMaintenanceRequest()
-			const updatedRequest = { ...mockRequest, status: 'completed', completed_at: expect.any(String) }
+			const updatedRequest = {
+				...mockRequest,
+				status: 'completed',
+				completed_at: expect.any(String)
+			}
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
 			const queryBuilder = createMockQueryBuilder(updatedRequest)
@@ -105,12 +122,23 @@ describe('MaintenanceWorkflowService', () => {
 	describe('complete', () => {
 		it('completes maintenance request with actual cost', async () => {
 			const mockRequest = createMockMaintenanceRequest()
-			const completedRequest = { ...mockRequest, status: 'completed', actual_cost: 500 }
+			const completedRequest = {
+				...mockRequest,
+				status: 'completed',
+				actual_cost: 500
+			}
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(completedRequest))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(completedRequest)
+			)
 
-			const result = await service.complete(mockToken, mockRequest.id, 500, 'Fixed the issue')
+			const result = await service.complete(
+				mockToken,
+				mockRequest.id,
+				500,
+				'Fixed the issue'
+			)
 
 			expect(result).toEqual(completedRequest)
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
@@ -137,9 +165,15 @@ describe('MaintenanceWorkflowService', () => {
 			const cancelledRequest = { ...mockRequest, status: 'cancelled' }
 
 			const mockClient = mockSupabaseService.getUserClient(mockToken)
-			;(mockClient.from as jest.Mock).mockReturnValue(createMockQueryBuilder(cancelledRequest))
+			;(mockClient.from as jest.Mock).mockReturnValue(
+				createMockQueryBuilder(cancelledRequest)
+			)
 
-			const result = await service.cancel(mockToken, mockRequest.id, 'No longer needed')
+			const result = await service.cancel(
+				mockToken,
+				mockRequest.id,
+				'No longer needed'
+			)
 
 			expect(result).toEqual(cancelledRequest)
 		})

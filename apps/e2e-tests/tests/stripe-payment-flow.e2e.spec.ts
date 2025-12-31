@@ -32,22 +32,37 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 	 * @see https://playwright.dev/docs/best-practices#use-web-first-assertions
 	 */
 	async function waitForStripeForm(page: Page) {
-		await page.waitForSelector('[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]', { timeout: 15000 })
+		await page.waitForSelector(
+			'[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]',
+			{ timeout: 15000 }
+		)
 		// Wait for Stripe iframe to be interactive
 		const stripeFrame = page.frameLocator('iframe[src*="stripe.com"]').first()
-		await expect(stripeFrame.locator('input').first()).toBeAttached({ timeout: 10000 })
+		await expect(stripeFrame.locator('input').first()).toBeAttached({
+			timeout: 10000
+		})
 	}
 
 	/**
 	 * Helper: Wait for payment submission result
 	 * Waits for either success message, error message, or page navigation
 	 */
-	async function waitForPaymentResult(page: Page, options?: { timeout?: number }) {
+	async function waitForPaymentResult(
+		page: Page,
+		options?: { timeout?: number }
+	) {
 		const timeout = options?.timeout || 15000
 		await expect(async () => {
-			const hasSuccess = await page.locator('text=/success|saved|added|confirmed|thank you/i').isVisible().catch(() => false)
-			const hasError = await page.locator('text=/error|failed|declined|invalid/i').isVisible().catch(() => false)
-			const urlChanged = !page.url().includes('/new') && !page.url().includes('/methods')
+			const hasSuccess = await page
+				.locator('text=/success|saved|added|confirmed|thank you/i')
+				.isVisible()
+				.catch(() => false)
+			const hasError = await page
+				.locator('text=/error|failed|declined|invalid/i')
+				.isVisible()
+				.catch(() => false)
+			const urlChanged =
+				!page.url().includes('/new') && !page.url().includes('/methods')
 			expect(hasSuccess || hasError || urlChanged).toBeTruthy()
 		}).toPass({ timeout })
 	}
@@ -59,29 +74,46 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 	 *
 	 * @see https://playwright.dev/docs/pages#handling-iframes
 	 */
-	async function fillStripePaymentElement(page: Page, cardNumber: string, options?: { expiry?: string; cvc?: string }) {
+	async function fillStripePaymentElement(
+		page: Page,
+		cardNumber: string,
+		options?: { expiry?: string; cvc?: string }
+	) {
 		const expiry = options?.expiry || '12/30'
 		const cvc = options?.cvc || '123'
 
 		// Wait for Stripe PaymentElement to load - look for the payment form container
-		await page.waitForSelector('[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]', { timeout: 15000 })
+		await page.waitForSelector(
+			'[class*="StripeElement"], [data-stripe], iframe[src*="stripe.com"]',
+			{ timeout: 15000 }
+		)
 
 		// Wait for Stripe iframe to be interactive (deterministic - wait for iframe's input to exist)
 		const stripeFrame = page.frameLocator('iframe[src*="stripe.com"]').first()
-		await expect(stripeFrame.locator('input').first()).toBeAttached({ timeout: 10000 })
+		await expect(stripeFrame.locator('input').first()).toBeAttached({
+			timeout: 10000
+		})
 
 		// PaymentElement creates multiple iframes for different fields
 		// Find the card number iframe (contains 'cardNumber' in name or is first payment iframe)
-		const cardNumberFrame = page.frameLocator('iframe[title*="card number" i], iframe[name*="card" i]').first()
+		const cardNumberFrame = page
+			.frameLocator('iframe[title*="card number" i], iframe[name*="card" i]')
+			.first()
 
 		// Try to find and fill the card number input
 		try {
-			const cardInput = cardNumberFrame.locator('input[name="cardnumber"], input[autocomplete*="cc-number"], input').first()
+			const cardInput = cardNumberFrame
+				.locator(
+					'input[name="cardnumber"], input[autocomplete*="cc-number"], input'
+				)
+				.first()
 			await cardInput.waitFor({ state: 'visible', timeout: 5000 })
 			await cardInput.fill(cardNumber)
 		} catch {
 			// Fallback: Try typing into the focused element after clicking the payment form
-			const paymentForm = page.locator('[class*="StripeElement"], [data-stripe]').first()
+			const paymentForm = page
+				.locator('[class*="StripeElement"], [data-stripe]')
+				.first()
 			await paymentForm.click()
 			await page.keyboard.type(cardNumber)
 		}
@@ -110,22 +142,33 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.waitForLoadState('networkidle')
 
 			// Verify we're authenticated (not on login page)
-			const isLoginPage = await page.locator('text=/sign in|login/i').isVisible().catch(() => false)
+			const isLoginPage = await page
+				.locator('text=/sign in|login/i')
+				.isVisible()
+				.catch(() => false)
 			if (isLoginPage) {
-				throw new Error('Test tenant is not authenticated - check E2E_TENANT_EMAIL exists in database as tenant')
+				throw new Error(
+					'Test tenant is not authenticated - check E2E_TENANT_EMAIL exists in database as tenant'
+				)
 			}
 
 			// Verify page loaded - be flexible with heading text
 			const heading = page.locator('h1, h2').first()
 			await expect(heading).toBeVisible({ timeout: 10000 })
-			await expect(page.locator('text=/payment method|add.*card|add.*payment/i')).toBeVisible()
+			await expect(
+				page.locator('text=/payment method|add.*card|add.*payment/i')
+			).toBeVisible()
 		})
 
-		test('should add credit card successfully with test card', async ({ page }) => {
+		test('should add credit card successfully with test card', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Click "Add Payment Method" button
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")')
+			const addButton = page.locator(
+				'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+			)
 			await addButton.click()
 
 			// Wait for Stripe Elements to load
@@ -135,17 +178,25 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 
 			// Fill billing address if AddressElement is present
-			const billingName = page.locator('input[name="name"], input[placeholder*="name" i]')
+			const billingName = page.locator(
+				'input[name="name"], input[placeholder*="name" i]'
+			)
 			if (await billingName.isVisible().catch(() => false)) {
 				await billingName.fill('Test Tenant')
 			}
 
 			// Submit form
-			const submitButton = page.locator('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').last()
+			const submitButton = page
+				.locator(
+					'button:has-text("Save"), button:has-text("Add"), button[type="submit"]'
+				)
+				.last()
 			await submitButton.click()
 
 			// Verify success
-			await expect(page.locator('text=/saved successfully|added successfully/i')).toBeVisible({ timeout: 10000 })
+			await expect(
+				page.locator('text=/saved successfully|added successfully/i')
+			).toBeVisible({ timeout: 10000 })
 
 			// Verify card appears in list
 			await expect(page.locator('text=/4242|visa/i')).toBeVisible()
@@ -154,7 +205,11 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should reject invalid card number', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+			const addButton = page
+				.locator(
+					'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+				)
+				.first()
 			await addButton.click()
 
 			// Wait for Stripe form (deterministic)
@@ -164,13 +219,21 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await fillStripePaymentElement(page, '1234567890123456')
 
 			// Verify error appears (Stripe validates card numbers inline)
-			await expect(page.locator('text=/invalid|card number|Your card number is incomplete/i')).toBeVisible({ timeout: 5000 })
+			await expect(
+				page.locator(
+					'text=/invalid|card number|Your card number is incomplete/i'
+				)
+			).toBeVisible({ timeout: 5000 })
 		})
 
 		test('should handle declined card gracefully', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+			const addButton = page
+				.locator(
+					'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+				)
+				.first()
 			await addButton.click()
 
 			await waitForStripeForm(page)
@@ -178,7 +241,11 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Use decline test card
 			await fillStripePaymentElement(page, STRIPE_TEST_DECLINE_CARD)
 
-			const submitButton = page.locator('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').last()
+			const submitButton = page
+				.locator(
+					'button:has-text("Save"), button:has-text("Add"), button[type="submit"]'
+				)
+				.last()
 			await submitButton.click()
 
 			// Should show error (card may be saved but decline on first charge)
@@ -191,22 +258,34 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Count existing cards
-			const initialCount = await page.locator('text=/4242|visa|mastercard|ending in/i').count()
+			const initialCount = await page
+				.locator('text=/4242|visa|mastercard|ending in/i')
+				.count()
 
 			// Add another card
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+			const addButton = page
+				.locator(
+					'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+				)
+				.first()
 			await addButton.click()
 
 			await waitForStripeForm(page)
 			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 
-			const submitButton = page.locator('button:has-text("Save"), button:has-text("Add"), button[type="submit"]').last()
+			const submitButton = page
+				.locator(
+					'button:has-text("Save"), button:has-text("Add"), button[type="submit"]'
+				)
+				.last()
 			await submitButton.click()
 
 			await waitForStripeForm(page)
 
 			// Verify count increased (or at least one card exists)
-			const newCount = await page.locator('text=/4242|visa|mastercard|ending in/i').count()
+			const newCount = await page
+				.locator('text=/4242|visa|mastercard|ending in/i')
+				.count()
 			expect(newCount).toBeGreaterThanOrEqual(1)
 		})
 
@@ -225,19 +304,25 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Look for delete/remove button
-			const deleteButton = page.locator('button:has-text("Delete"), button:has-text("Remove")').first()
+			const deleteButton = page
+				.locator('button:has-text("Delete"), button:has-text("Remove")')
+				.first()
 
 			if (await deleteButton.isVisible().catch(() => false)) {
 				await deleteButton.click()
 
 				// Confirm deletion if modal appears
-				const confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")')
+				const confirmButton = page.locator(
+					'button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")'
+				)
 				if (await confirmButton.isVisible().catch(() => false)) {
 					await confirmButton.click()
 				}
 
 				// Verify removal
-				await expect(page.locator('text=/removed|deleted/i')).toBeVisible({ timeout: 5000 })
+				await expect(page.locator('text=/removed|deleted/i')).toBeVisible({
+					timeout: 5000
+				})
 			}
 		})
 	})
@@ -246,7 +331,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should navigate to payment page', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments`)
 
-			await expect(page.locator('h1, h2').filter({ hasText: /payment/i })).toBeVisible()
+			await expect(
+				page.locator('h1, h2').filter({ hasText: /payment/i })
+			).toBeVisible()
 		})
 
 		test('should display payment amount and due date', async ({ page }) => {
@@ -260,14 +347,21 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should submit one-time payment successfully', async ({ page }) => {
 			// First ensure payment method exists
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			const hasPaymentMethod = await page.locator('text=/4242|visa|ending in/i').isVisible().catch(() => false)
+			const hasPaymentMethod = await page
+				.locator('text=/4242|visa|ending in/i')
+				.isVisible()
+				.catch(() => false)
 
 			if (!hasPaymentMethod) {
 				// Add payment method first
-				const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+				const addButton = page
+					.locator(
+						'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+					)
+					.first()
 				await addButton.click()
 				await waitForStripeForm(page)
-			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
+				await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 				await page.locator('button[type="submit"]').last().click()
 				await waitForStripeForm(page)
 			}
@@ -276,39 +370,59 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
 			// Fill payment amount if input exists
-			const amountInput = page.locator('input[name="amount"], input[type="number"]')
+			const amountInput = page.locator(
+				'input[name="amount"], input[type="number"]'
+			)
 			if (await amountInput.isVisible().catch(() => false)) {
 				await amountInput.fill('1500')
 			}
 
 			// Select payment method if dropdown exists
 			const paymentMethodSelect = page.locator('[role="combobox"], select')
-			if (await paymentMethodSelect.first().isVisible().catch(() => false)) {
+			if (
+				await paymentMethodSelect
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				await paymentMethodSelect.first().click()
-				await page.locator('[role="option"]:has-text("4242"), option:has-text("4242")').first().click()
+				await page
+					.locator('[role="option"]:has-text("4242"), option:has-text("4242")')
+					.first()
+					.click()
 			}
 
 			// Submit payment
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay"), button:has-text("Confirm")')
+			const submitButton = page.locator(
+				'button:has-text("Submit Payment"), button:has-text("Pay"), button:has-text("Confirm")'
+			)
 			await submitButton.first().click()
 
 			// Wait for processing
 			await waitForPaymentResult(page)
 
 			// Verify success (either redirect or success message)
-			const successIndicators = page.locator('text=/success|payment received|confirmed|thank you/i')
+			const successIndicators = page.locator(
+				'text=/success|payment received|confirmed|thank you/i'
+			)
 			await expect(successIndicators.first()).toBeVisible({ timeout: 15000 })
 		})
 
-		test('should handle payment with requires authentication card', async ({ page }) => {
+		test('should handle payment with requires authentication card', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Add 3D Secure test card
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+			const addButton = page
+				.locator(
+					'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+				)
+				.first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
 				await waitForStripeForm(page)
-			await fillStripePaymentElement(page, STRIPE_TEST_REQUIRES_AUTH)
+				await fillStripePaymentElement(page, STRIPE_TEST_REQUIRES_AUTH)
 				await page.locator('button[type="submit"]').last().click()
 				await waitForStripeForm(page)
 			}
@@ -316,7 +430,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Attempt payment
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+			const submitButton = page.locator(
+				'button:has-text("Submit Payment"), button:has-text("Pay")'
+			)
 			if (await submitButton.isVisible().catch(() => false)) {
 				await submitButton.first().click()
 
@@ -332,11 +448,15 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Add insufficient funds test card
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
-			const addButton = page.locator('button:has-text("Add Payment Method"), button:has-text("Add Card")').first()
+			const addButton = page
+				.locator(
+					'button:has-text("Add Payment Method"), button:has-text("Add Card")'
+				)
+				.first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
 				await waitForStripeForm(page)
-			await fillStripePaymentElement(page, STRIPE_TEST_INSUFFICIENT_FUNDS)
+				await fillStripePaymentElement(page, STRIPE_TEST_INSUFFICIENT_FUNDS)
 				await page.locator('button[type="submit"]').last().click()
 				await waitForStripeForm(page)
 			}
@@ -344,29 +464,39 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Try to make payment
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+			const submitButton = page.locator(
+				'button:has-text("Submit Payment"), button:has-text("Pay")'
+			)
 			if (await submitButton.isVisible().catch(() => false)) {
 				await submitButton.first().click()
 				await waitForPaymentResult(page)
 
 				// Should show error
-				await expect(page.locator('text=/insufficient funds|declined|failed|error/i')).toBeVisible({ timeout: 10000 })
+				await expect(
+					page.locator('text=/insufficient funds|declined|failed|error/i')
+				).toBeVisible({ timeout: 10000 })
 			}
 		})
 
 		test('should validate payment amount', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const amountInput = page.locator('input[name="amount"], input[type="number"]')
+			const amountInput = page.locator(
+				'input[name="amount"], input[type="number"]'
+			)
 			if (await amountInput.isVisible().catch(() => false)) {
 				// Try negative amount
 				await amountInput.fill('-100')
 
-				const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+				const submitButton = page.locator(
+					'button:has-text("Submit Payment"), button:has-text("Pay")'
+				)
 				await submitButton.first().click()
 
 				// Should show validation error
-				await expect(page.locator('text=/invalid|positive|required/i')).toBeVisible({ timeout: 5000 })
+				await expect(
+					page.locator('text=/invalid|positive|required/i')
+				).toBeVisible({ timeout: 5000 })
 			}
 		})
 	})
@@ -385,20 +515,31 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Look for receipt link or view button
-			const receiptLink = page.locator('a:has-text("Receipt"), a:has-text("View"), button:has-text("View")')
+			const receiptLink = page.locator(
+				'a:has-text("Receipt"), a:has-text("View"), button:has-text("View")'
+			)
 
-			if (await receiptLink.first().isVisible().catch(() => false)) {
+			if (
+				await receiptLink
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				// Click to view receipt
 				await receiptLink.first().click()
 				await waitForStripeForm(page)
 			}
 		})
 
-		test('should include payment metadata (tenant, amount, date)', async ({ page }) => {
+		test('should include payment metadata (tenant, amount, date)', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Verify payment details are present
-			await expect(page.locator('text=/\\$\\d+\\.\\d{2}/').first()).toBeVisible({ timeout: 5000 })
+			await expect(page.locator('text=/\\$\\d+\\.\\d{2}/').first()).toBeVisible(
+				{ timeout: 5000 }
+			)
 
 			// Check for date
 			const datePattern = /\d{1,2}\/\d{1,2}\/\d{2,4}|\w+ \d{1,2}, \d{4}/
@@ -412,10 +553,16 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments`)
 
 			// Initial state
-			const statusBefore = await page.locator('[data-status], .payment-status').first().textContent().catch(() => '')
+			const statusBefore = await page
+				.locator('[data-status], .payment-status')
+				.first()
+				.textContent()
+				.catch(() => '')
 
 			// Make a payment if possible
-			const payButton = page.locator('button:has-text("Pay"), button:has-text("Submit Payment")')
+			const payButton = page.locator(
+				'button:has-text("Pay"), button:has-text("Submit Payment")'
+			)
 			if (await payButton.isVisible().catch(() => false)) {
 				await payButton.click()
 				await waitForPaymentResult(page, { timeout: 15000 })
@@ -427,14 +574,18 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 	})
 
 	test.describe('4. Payment Failure Handling', () => {
-		test('should display clear error message on payment failure', async ({ page }) => {
+		test('should display clear error message on payment failure', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
 			// This test would require triggering a failure
 			// Most easily done by using decline test card (tested above)
 
 			// Verify error handling UI exists
-			const errorContainer = page.locator('[role="alert"], .error, .alert-error')
+			const errorContainer = page.locator(
+				'[role="alert"], .error, .alert-error'
+			)
 			// Error container should exist in DOM (even if not visible)
 			expect(await errorContainer.count()).toBeGreaterThanOrEqual(0)
 		})
@@ -444,7 +595,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments`)
 
 			// Look for retry button (may appear after failed payment)
-			const retryButton = page.locator('button:has-text("Retry"), button:has-text("Try Again")')
+			const retryButton = page.locator(
+				'button:has-text("Retry"), button:has-text("Try Again")'
+			)
 
 			// If retry button exists, it should be clickable
 			if (await retryButton.isVisible().catch(() => false)) {
@@ -464,10 +617,14 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			expect(count).toBeGreaterThanOrEqual(0)
 		})
 
-		test('should preserve payment data after failure for retry', async ({ page }) => {
+		test('should preserve payment data after failure for retry', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const amountInput = page.locator('input[name="amount"], input[type="number"]')
+			const amountInput = page.locator(
+				'input[name="amount"], input[type="number"]'
+			)
 			if (await amountInput.isVisible().catch(() => false)) {
 				await amountInput.fill('1200')
 				const enteredValue = await amountInput.inputValue()
@@ -477,7 +634,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			}
 		})
 
-		test('should provide helpful error messages for different failure types', async ({ page }) => {
+		test('should provide helpful error messages for different failure types', async ({
+			page
+		}) => {
 			// This test documents expected error types
 			await page.goto(`${BASE_URL}/tenant/payments`)
 
@@ -494,16 +653,24 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Verify page loaded
-			await expect(page.locator('h1, h2').filter({ hasText: /payment history|payments/i })).toBeVisible()
+			await expect(
+				page.locator('h1, h2').filter({ hasText: /payment history|payments/i })
+			).toBeVisible()
 
 			// Should have either payments or empty state
-			const hasPayments = await page.locator('table tbody tr, .payment-item').count() > 0
-			const hasEmptyState = await page.locator('text=/no payments/i').isVisible().catch(() => false)
+			const hasPayments =
+				(await page.locator('table tbody tr, .payment-item').count()) > 0
+			const hasEmptyState = await page
+				.locator('text=/no payments/i')
+				.isVisible()
+				.catch(() => false)
 
 			expect(hasPayments || hasEmptyState).toBeTruthy()
 		})
 
-		test('should show payment details (amount, date, status)', async ({ page }) => {
+		test('should show payment details (amount, date, status)', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			const firstPayment = page.locator('table tbody tr, .payment-item').first()
@@ -520,7 +687,12 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Look for date filters
 			const dateFilter = page.locator('input[type="date"], [role="datepicker"]')
 
-			if (await dateFilter.first().isVisible().catch(() => false)) {
+			if (
+				await dateFilter
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				// Filter functionality exists
 				await expect(dateFilter.first()).toBeVisible()
 			}
@@ -530,7 +702,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Look for status filter
-			const statusFilter = page.locator('[role="combobox"]:has-text("Status"), select[name="status"]')
+			const statusFilter = page.locator(
+				'[role="combobox"]:has-text("Status"), select[name="status"]'
+			)
 
 			if (await statusFilter.isVisible().catch(() => false)) {
 				await expect(statusFilter).toBeVisible()
@@ -541,9 +715,16 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Look for pagination
-			const pagination = page.locator('[role="navigation"], .pagination, button:has-text("Next")')
+			const pagination = page.locator(
+				'[role="navigation"], .pagination, button:has-text("Next")'
+			)
 
-			if (await pagination.first().isVisible().catch(() => false)) {
+			if (
+				await pagination
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				await expect(pagination.first()).toBeVisible()
 			}
 		})
@@ -552,7 +733,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
 			// Look for export button
-			const exportButton = page.locator('button:has-text("Export"), button:has-text("Download")')
+			const exportButton = page.locator(
+				'button:has-text("Export"), button:has-text("Download")'
+			)
 
 			if (await exportButton.isVisible().catch(() => false)) {
 				await expect(exportButton).toBeEnabled()
@@ -572,7 +755,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			expect(count).toBeGreaterThanOrEqual(0)
 		})
 
-		test('should show refund details (amount, date, reason)', async ({ page }) => {
+		test('should show refund details (amount, date, reason)', async ({
+			page
+		}) => {
 			// This test depends on refund data existing
 			await page.goto(`${BASE_URL}/tenant/payments/history`)
 
@@ -587,7 +772,12 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// Look for balance information
 			const balance = page.locator('text=/balance|due|owed/i')
 
-			if (await balance.first().isVisible().catch(() => false)) {
+			if (
+				await balance
+					.first()
+					.isVisible()
+					.catch(() => false)
+			) {
 				await expect(balance.first()).toBeVisible()
 			}
 		})
@@ -599,14 +789,19 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Ensure payment method exists
-			const hasCard = await page.locator('text=/4242|visa/i').isVisible().catch(() => false)
+			const hasCard = await page
+				.locator('text=/4242|visa/i')
+				.isVisible()
+				.catch(() => false)
 
 			if (!hasCard) {
-				const addButton = page.locator('button:has-text("Add Payment Method")').first()
+				const addButton = page
+					.locator('button:has-text("Add Payment Method")')
+					.first()
 				if (await addButton.isVisible().catch(() => false)) {
 					await addButton.click()
 					await waitForStripeForm(page)
-			await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
+					await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD)
 					await page.locator('button[type="submit"]').last().click()
 					await waitForStripeForm(page)
 				}
@@ -614,7 +809,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 
 			// Make payment
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+			const submitButton = page.locator(
+				'button:has-text("Submit Payment"), button:has-text("Pay")'
+			)
 			if (await submitButton.isVisible().catch(() => false)) {
 				await submitButton.first().click()
 				await waitForPaymentResult(page, { timeout: 15000 })
@@ -625,13 +822,17 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await waitForStripeForm(page)
 
 			// Most recent payment should show success status
-			const successStatus = page.locator('text=/paid|success|completed/i').first()
+			const successStatus = page
+				.locator('text=/paid|success|completed/i')
+				.first()
 			if (await successStatus.isVisible().catch(() => false)) {
 				await expect(successStatus).toBeVisible()
 			}
 		})
 
-		test('should handle payment_intent.payment_failed webhook', async ({ page }) => {
+		test('should handle payment_intent.payment_failed webhook', async ({
+			page
+		}) => {
 			// This would require triggering a failure
 			// Decline card testing covered in earlier tests
 
@@ -641,7 +842,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await expect(page.locator('body')).toBeVisible()
 		})
 
-		test('should sync payment method updates from webhook', async ({ page }) => {
+		test('should sync payment method updates from webhook', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Verify payment methods page loads
@@ -669,17 +872,23 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should handle expired card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
-			const addButton = page.locator('button:has-text("Add Payment Method")').first()
+			const addButton = page
+				.locator('button:has-text("Add Payment Method")')
+				.first()
 			if (await addButton.isVisible().catch(() => false)) {
 				await addButton.click()
 				await waitForStripeForm(page)
 
 				// Fill with expired card (expiry in past) using PaymentElement
-				await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD, { expiry: '01/20' })
+				await fillStripePaymentElement(page, STRIPE_TEST_SUCCESS_CARD, {
+					expiry: '01/20'
+				})
 
 				// Should show error (Stripe validates expiry inline)
 				// No arbitrary wait - expect() handles retry automatically
-				await expect(page.locator('text=/expired|invalid|past|expiration/i')).toBeVisible({ timeout: 10000 })
+				await expect(
+					page.locator('text=/expired|invalid|past|expiration/i')
+				).toBeVisible({ timeout: 10000 })
 			}
 		})
 
@@ -687,7 +896,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			// This tests idempotency
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")').first()
+			const submitButton = page
+				.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+				.first()
 
 			if (await submitButton.isVisible().catch(() => false)) {
 				// Click multiple times quickly
@@ -702,12 +913,16 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should handle amount exceeding limits', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const amountInput = page.locator('input[name="amount"], input[type="number"]')
+			const amountInput = page.locator(
+				'input[name="amount"], input[type="number"]'
+			)
 			if (await amountInput.isVisible().catch(() => false)) {
 				// Try very large amount
 				await amountInput.fill('999999999')
 
-				const submitButton = page.locator('button:has-text("Submit Payment")').first()
+				const submitButton = page
+					.locator('button:has-text("Submit Payment")')
+					.first()
 				await submitButton.click()
 
 				// Should show validation error or process with Stripe limit error
@@ -715,7 +930,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			}
 		})
 
-		test('should require authentication for tenant routes', async ({ page }) => {
+		test('should require authentication for tenant routes', async ({
+			page
+		}) => {
 			// Create new context without auth
 			const newContext = await page.context().browser()!.newContext()
 			const unauthPage = await newContext.newPage()
@@ -733,7 +950,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
 			// Try to pay without payment method
-			const submitButton = page.locator('button:has-text("Submit Payment"), button:has-text("Pay")').first()
+			const submitButton = page
+				.locator('button:has-text("Submit Payment"), button:has-text("Pay")')
+				.first()
 
 			// Button should either be disabled or show error on click
 			if (await submitButton.isVisible().catch(() => false)) {
@@ -742,14 +961,18 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 				if (!isDisabled) {
 					await submitButton.click()
 					// Should show error about missing payment method
-					await expect(page.locator('text=/payment method|card required/i')).toBeVisible({ timeout: 5000 })
+					await expect(
+						page.locator('text=/payment method|card required/i')
+					).toBeVisible({ timeout: 5000 })
 				}
 			}
 		})
 	})
 
 	test.describe('9. Security & Compliance', () => {
-		test('should not expose sensitive card details in DOM', async ({ page }) => {
+		test('should not expose sensitive card details in DOM', async ({
+			page
+		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Card details should be in Stripe iframe, not in page content
@@ -771,7 +994,9 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			}
 		})
 
-		test('should validate CSRF tokens on payment submission', async ({ page }) => {
+		test('should validate CSRF tokens on payment submission', async ({
+			page
+		}) => {
 			// Modern frameworks handle this automatically
 			// This test verifies the payment flow works (implying CSRF protection is correct)
 
@@ -782,12 +1007,16 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 		test('should sanitize user input in payment notes', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/new`)
 
-			const notesInput = page.locator('input[name="notes"], textarea[name="notes"]')
+			const notesInput = page.locator(
+				'input[name="notes"], textarea[name="notes"]'
+			)
 			if (await notesInput.isVisible().catch(() => false)) {
 				// Try XSS
 				await notesInput.fill('<script>alert("xss")</script>')
 
-				const submitButton = page.locator('button:has-text("Submit Payment")').first()
+				const submitButton = page
+					.locator('button:has-text("Submit Payment")')
+					.first()
 				await submitButton.click()
 				await waitForStripeForm(page)
 

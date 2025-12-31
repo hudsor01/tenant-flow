@@ -238,23 +238,6 @@
 			"cache": true,
 			"persistent": false
 		},
-		"@repo/frontend#test:integration": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"tests/integration/**/*.{test,spec}.{ts,tsx}",
-				"vitest.integration.config.js",
-				"package.json"
-			],
-			"outputs": ["coverage/**"],
-			"env": [
-				"NEXT_PUBLIC_*",
-				"API_BASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_PUBLISHABLE_KEY"
-			],
-			"cache": false,
-			"persistent": false
-		},
 		"dev": {
 			"cache": false,
 			"persistent": true,

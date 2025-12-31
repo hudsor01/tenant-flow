@@ -6,13 +6,13 @@
 	"type": "module",
 	"description": "Shared types and utilities for TenantFlow monorepo",
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"default": "./dist/index.js"
-		},
 		"./types/*": {
 			"types": "./dist/types/*.d.ts",
 			"default": "./dist/types/*.js"
+		},
+		"./types/sections/*": {
+			"types": "./dist/types/sections/*.d.ts",
+			"default": "./dist/types/sections/*.js"
 		},
 		"./constants/*": {
 			"types": "./dist/constants/*.d.ts",

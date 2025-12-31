@@ -19,19 +19,26 @@ import type {
 	RentPayment
 } from '@repo/shared/types/core'
 import { TenantDetailService } from './tenant-detail.service'
-import { TenantListService, ListFilters } from './tenant-list.service'
+import {
+	TenantListService,
+	type ListFilters as ListFiltersType
+} from './tenant-list.service'
 import { TenantStatsService } from './tenant-stats.service'
-import { TenantRelationService, LeaseHistoryItem } from './tenant-relation.service'
+import {
+	TenantRelationService,
+	type LeaseHistoryItem as LeaseHistoryItemType
+} from './tenant-relation.service'
 import {
 	TenantInvitationQueryService,
-	TenantInvitation,
-	InvitationFilters
+	type TenantInvitation as TenantInvitationType,
+	type InvitationFilters as InvitationFiltersType
 } from './tenant-invitation-query.service'
 
-// Re-export types for backwards compatibility
-export type { ListFilters } from './tenant-list.service'
-export type { TenantInvitation, InvitationFilters } from './tenant-invitation-query.service'
-export type { LeaseHistoryItem } from './tenant-relation.service'
+// Re-export types for backwards compatibility without barrel re-exports
+export type ListFilters = ListFiltersType
+export type TenantInvitation = TenantInvitationType
+export type InvitationFilters = InvitationFiltersType
+export type LeaseHistoryItem = LeaseHistoryItemType
 
 @Injectable()
 export class TenantQueryService {
@@ -91,14 +98,20 @@ export class TenantQueryService {
 	/**
 	 * Get tenant with all lease details
 	 */
-	async findOneWithLease(tenantId: string, token: string): Promise<TenantWithLeaseInfo> {
+	async findOneWithLease(
+		tenantId: string,
+		token: string
+	): Promise<TenantWithLeaseInfo> {
 		return this.detailService.findOneWithLease(tenantId, token)
 	}
 
 	/**
 	 * Get tenant by auth user ID
 	 */
-	async getTenantByAuthUserId(authUserId: string, token: string): Promise<Tenant> {
+	async getTenantByAuthUserId(
+		authUserId: string,
+		token: string
+	): Promise<Tenant> {
 		return this.detailService.getTenantByAuthUserId(authUserId, token)
 	}
 

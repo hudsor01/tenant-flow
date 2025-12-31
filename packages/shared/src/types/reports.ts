@@ -68,7 +68,6 @@ export interface OccupancyMetrics {
 	}>
 }
 
-
 export interface FinancialReport {
 	summary: {
 		totalIncome: number

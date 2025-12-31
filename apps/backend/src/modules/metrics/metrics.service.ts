@@ -34,10 +34,14 @@ const CORE_TABLE_NAMES = [
 function normalizeErrorType(errorType: string): string {
 	const upper = errorType.toUpperCase()
 	if (upper.includes('VALIDATION')) return 'VALIDATION_ERROR'
-	if (upper.includes('DATABASE') || upper.includes('SQL')) return 'DATABASE_ERROR'
-	if (upper.includes('NETWORK') || upper.includes('TIMEOUT')) return 'NETWORK_ERROR'
-	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED')) return 'AUTH_ERROR'
-	if (upper.includes('STRIPE') || upper.includes('PAYMENT')) return 'STRIPE_ERROR'
+	if (upper.includes('DATABASE') || upper.includes('SQL'))
+		return 'DATABASE_ERROR'
+	if (upper.includes('NETWORK') || upper.includes('TIMEOUT'))
+		return 'NETWORK_ERROR'
+	if (upper.includes('AUTH') || upper.includes('UNAUTHORIZED'))
+		return 'AUTH_ERROR'
+	if (upper.includes('STRIPE') || upper.includes('PAYMENT'))
+		return 'STRIPE_ERROR'
 	return 'UNKNOWN'
 }
 
@@ -46,13 +50,20 @@ function normalizeErrorType(errorType: string): string {
  */
 function normalizeAuthFailureReason(reason: string): string {
 	const upper = reason.toUpperCase()
-	if (upper.includes('CREDENTIAL') || upper.includes('PASSWORD') || upper.includes('INVALID'))
+	if (
+		upper.includes('CREDENTIAL') ||
+		upper.includes('PASSWORD') ||
+		upper.includes('INVALID')
+	)
 		return 'INVALID_CREDENTIALS'
 	if (upper.includes('expired')) return 'TOKEN_EXPIRED'
-	if (upper.includes('MALFORMED') || upper.includes('DECODE')) return 'TOKEN_INVALID'
-	if (upper.includes('MISSING') || upper.includes('NOT FOUND')) return 'TOKEN_MISSING'
+	if (upper.includes('MALFORMED') || upper.includes('DECODE'))
+		return 'TOKEN_INVALID'
+	if (upper.includes('MISSING') || upper.includes('NOT FOUND'))
+		return 'TOKEN_MISSING'
 	if (upper.includes('LOCKED')) return 'ACCOUNT_LOCKED'
-	if (upper.includes('DISABLED') || upper.includes('inactive')) return 'ACCOUNT_DISABLED'
+	if (upper.includes('DISABLED') || upper.includes('inactive'))
+		return 'ACCOUNT_DISABLED'
 	return 'UNKNOWN'
 }
 
@@ -61,7 +72,7 @@ function normalizeAuthFailureReason(reason: string): string {
  */
 function normalizeTableName(tableName: string): string {
 	const lower = tableName.toLowerCase()
-	if (CORE_TABLE_NAMES.includes(lower as typeof CORE_TABLE_NAMES[number])) {
+	if (CORE_TABLE_NAMES.includes(lower as (typeof CORE_TABLE_NAMES)[number])) {
 		return lower
 	}
 	return 'other'
@@ -147,7 +158,11 @@ export class MetricsService {
 		this.activeSubscriptionsGauge.set({ plan_type: planType }, count)
 	}
 
-	recordSubscriptionChange(changeType: string, fromPlan: string, toPlan: string): void {
+	recordSubscriptionChange(
+		changeType: string,
+		fromPlan: string,
+		toPlan: string
+	): void {
 		this.subscriptionChangesCounter.inc({
 			change_type: changeType,
 			from_plan: fromPlan,
@@ -233,7 +248,10 @@ export class MetricsService {
 	}
 
 	recordAuthFailure(method: string, reason: string): void {
-		this.authFailuresCounter.inc({ method, reason: normalizeAuthFailureReason(reason) })
+		this.authFailuresCounter.inc({
+			method,
+			reason: normalizeAuthFailureReason(reason)
+		})
 	}
 
 	// HTTP metrics

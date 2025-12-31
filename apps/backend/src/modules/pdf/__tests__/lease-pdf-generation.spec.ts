@@ -49,9 +49,7 @@ describe('Lease PDF Generation (Integration)', () => {
 			]
 		}).compile()
 
-		mapperService = module.get<LeasePdfMapperService>(
-			LeasePdfMapperService
-		)
+		mapperService = module.get<LeasePdfMapperService>(LeasePdfMapperService)
 		generatorService = module.get<LeasePdfGeneratorService>(
 			LeasePdfGeneratorService
 		)
@@ -63,7 +61,8 @@ describe('Lease PDF Generation (Integration)', () => {
 			const mockLeaseData = createMockLeaseData()
 
 			// Map to PDF fields
-			const { fields, missing } = mapperService.mapLeaseToPdfFields(mockLeaseData)
+			const { fields, missing } =
+				mapperService.mapLeaseToPdfFields(mockLeaseData)
 
 			// Verify auto-filled fields
 			expect(fields.landlord_name).toBe('John Doe')

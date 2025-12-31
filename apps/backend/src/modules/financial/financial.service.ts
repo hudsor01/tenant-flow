@@ -17,13 +17,19 @@ import { AppLogger } from '../../logger/app-logger.service'
  *
  * Orchestrates financial data aggregation across properties, units, and leases.
  * Delegates expense and revenue calculations to focused services.
+ *
+ * @todo SEC-003: Add Zod validation schemas for all financial DTOs and query parameters.
+ *       Currently accepts unvalidated query parameters.
+ *       See TODO.md for details.
  */
 @Injectable()
 export class FinancialService {
-
-	constructor(private readonly supabaseService: SupabaseService,
+	constructor(
+		private readonly supabaseService: SupabaseService,
 		private readonly expenseService: FinancialExpenseService,
-		private readonly revenueService: FinancialRevenueService, private readonly logger: AppLogger) {}
+		private readonly revenueService: FinancialRevenueService,
+		private readonly logger: AppLogger
+	) {}
 
 	/**
 	 * Get expense summary - delegates to expense service
@@ -34,7 +40,7 @@ export class FinancialService {
 	): Promise<Record<string, unknown>> {
 		try {
 			const property_ids = await this.getUserPropertyIds(token)
-			return this.expenseService.getExpenseSummary(property_ids, year)
+			return this.expenseService.getExpenseSummary(property_ids, year, token)
 		} catch (error) {
 			this.logger.error('Failed to get expense summary', {
 				error: error instanceof Error ? error.message : String(error),
@@ -58,9 +64,7 @@ export class FinancialService {
 			const client = this.supabaseService.getUserClient(token)
 
 			// Get user's property IDs - RLS automatically filters
-			const { data: properties } = await client
-				.from('properties')
-				.select('id')
+			const { data: properties } = await client.from('properties').select('id')
 
 			const propertyRows = (properties ?? []) as Array<{ id: string }>
 			const property_ids = propertyRows.map(p => p.id)
@@ -108,7 +112,8 @@ export class FinancialService {
 			const expenses = await this.expenseService.fetchExpenses(
 				property_ids,
 				new Date(targetYear, 0, 1),
-				new Date(targetYear + 1, 0, 1)
+				new Date(targetYear + 1, 0, 1),
+				token
 			)
 			const totalExpenses = expenses.reduce(
 				(sum, exp) => sum + (exp.amount || 0),
@@ -158,7 +163,9 @@ export class FinancialService {
 						if (!l.end_date) return false
 						const end_date = new Date(l.end_date)
 						const now = new Date()
-						const thirtyDaysFromNow = new Date(now.getTime() + THIRTY_DAYS_IN_MS)
+						const thirtyDaysFromNow = new Date(
+							now.getTime() + THIRTY_DAYS_IN_MS
+						)
 						return end_date > now && end_date <= thirtyDaysFromNow
 					}).length
 				},

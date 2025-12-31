@@ -38,20 +38,26 @@ describe('RLS: Tenant Isolation', () => {
 	beforeAll(async () => {
 		// These tests require tenant users - skip if not available
 		if (!isTestUserAvailable('TENANT_A')) {
-			testLogger.warn('[SKIP] Tenant isolation tests require TENANT_A credentials')
+			testLogger.warn(
+				'[SKIP] Tenant isolation tests require TENANT_A credentials'
+			)
 			return
 		}
 		try {
 			tenantA = await authenticateAs(TEST_USERS.TENANT_A)
 		} catch (error) {
-			testLogger.warn(`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`)
+			testLogger.warn(
+				`[SKIP] Failed to authenticate TENANT_A: ${error instanceof Error ? error.message : 'Unknown error'}`
+			)
 			return
 		}
 		if (isTestUserAvailable('TENANT_B')) {
 			try {
 				tenantB = await authenticateAs(TEST_USERS.TENANT_B)
 			} catch (error) {
-				testLogger.warn(`[SKIP] Failed to authenticate TENANT_B: ${error instanceof Error ? error.message : 'Unknown error'}`)
+				testLogger.warn(
+					`[SKIP] Failed to authenticate TENANT_B: ${error instanceof Error ? error.message : 'Unknown error'}`
+				)
 			}
 		}
 
@@ -68,7 +74,10 @@ describe('RLS: Tenant Isolation', () => {
 			.single()
 
 		if (tenantAError && !tenantAError.message.includes('duplicate key')) {
-			testLogger.error(`Failed to create tenant record for tenantA:`, tenantAError)
+			testLogger.error(
+				`Failed to create tenant record for tenantA:`,
+				tenantAError
+			)
 		} else if (tenantAData) {
 			testData.tenants.push(tenantAData.id)
 		}
@@ -85,7 +94,10 @@ describe('RLS: Tenant Isolation', () => {
 				.single()
 
 			if (tenantBError && !tenantBError.message.includes('duplicate key')) {
-				testLogger.error(`Failed to create tenant record for tenantB:`, tenantBError)
+				testLogger.error(
+					`Failed to create tenant record for tenantB:`,
+					tenantBError
+				)
 			} else if (tenantBData) {
 				testData.tenants.push(tenantBData.id)
 			}
@@ -213,7 +225,9 @@ describe('RLS: Tenant Isolation', () => {
 
 		beforeAll(async () => {
 			if (!tenantA) {
-				testLogger.warn('[SKIP] TenantA not available for Emergency Contact tests')
+				testLogger.warn(
+					'[SKIP] TenantA not available for Emergency Contact tests'
+				)
 				return
 			}
 			// Get tenant IDs
@@ -261,7 +275,9 @@ describe('RLS: Tenant Isolation', () => {
 
 			const { data, error } = await tenantA.client
 				.from('tenants')
-				.select('emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
+				.select(
+					'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+				)
 				.eq('id', tenantAId)
 				.single()
 
@@ -283,7 +299,9 @@ describe('RLS: Tenant Isolation', () => {
 
 			const { data, error } = await tenantB.client
 				.from('tenants')
-				.select('emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
+				.select(
+					'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+				)
 				.eq('id', tenantAId)
 
 			expect(error).toBeNull()
@@ -340,7 +358,10 @@ describe('RLS: Tenant Isolation', () => {
 
 			// MUST fail or return empty
 			if (error) {
-				expectPermissionError(error, 'tenant A updating tenant B emergency contact')
+				expectPermissionError(
+					error,
+					'tenant A updating tenant B emergency contact'
+				)
 			} else {
 				expectEmptyResult(data, 'tenant A updating tenant B emergency contact')
 			}
@@ -359,11 +380,16 @@ describe('RLS: Tenant Isolation', () => {
 			// Verify tenant B's emergency contact is still secure
 			const { data, error } = await tenantA.client
 				.from('tenants')
-				.select('emergency_contact_name, emergency_contact_phone, emergency_contact_relationship')
+				.select(
+					'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+				)
 				.eq('id', tenantBId)
 
 			expect(error).toBeNull()
-			expectEmptyResult(data, 'tenant A accessing tenant B emergency contact after update attempt')
+			expectEmptyResult(
+				data,
+				'tenant A accessing tenant B emergency contact after update attempt'
+			)
 		})
 	})
 
@@ -420,10 +446,7 @@ describe('RLS: Tenant Isolation', () => {
 				.eq('id', tenantRecord.id)
 
 			expect(error).toBeNull()
-			expectEmptyResult(
-				data,
-				'tenant A querying tenant B data'
-			)
+			expectEmptyResult(data, 'tenant A querying tenant B data')
 		})
 	})
 })
