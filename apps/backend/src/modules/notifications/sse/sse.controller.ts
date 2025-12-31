@@ -12,6 +12,8 @@
 import {
 	Controller,
 	Get,
+	HttpException,
+	HttpStatus,
 	Query,
 	Req,
 	Res,
@@ -37,6 +39,7 @@ import { SseService } from './sse.service'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Public } from '../../../shared/decorators/public.decorator'
+import { SkipSubscriptionCheck } from '../../../shared/guards/subscription.guard'
 
 /**
  * SSE Controller
@@ -80,9 +83,12 @@ export class SseController {
 		description: 'SSE stream established (text/event-stream)'
 	})
 	@ApiResponse({ status: 401, description: 'Invalid or missing token' })
+	@ApiResponse({ status: 429, description: 'Per-user connection limit exceeded' })
+	@ApiResponse({ status: 503, description: 'Server connection limit reached' })
 	@Get('stream')
 	@Sse()
 	@Public() // Bypass JwtAuthGuard - we handle auth manually
+	@SkipSubscriptionCheck() // No subscription required for SSE
 	@SkipThrottle() // SSE is long-lived connection, not suitable for rate limiting
 	async stream(
 		@Query('token') token: string,
@@ -130,8 +136,28 @@ export class SseController {
 		res.setHeader('Connection', 'keep-alive')
 		res.setHeader('X-Accel-Buffering', 'no') // Disable nginx buffering
 
-		// Subscribe to SSE events for this user
-		const eventStream = this.sseService.subscribe(userId, sessionId)
+		// Subscribe to SSE events for this user (with connection limits)
+		let eventStream
+		try {
+			eventStream = this.sseService.subscribe(userId, sessionId)
+		} catch (error) {
+			const message =
+				error instanceof Error ? error.message : 'Connection limit exceeded'
+
+			// Determine if it's a per-user limit or server limit
+			const isUserLimit = message.includes('per user')
+			this.logger.warn('SSE connection rejected', {
+				context: 'SseController',
+				userId,
+				reason: message,
+				ip: req.ip
+			})
+
+			throw new HttpException(
+				message,
+				isUserLimit ? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.SERVICE_UNAVAILABLE
+			)
+		}
 
 		// Handle client disconnect
 		req.on('close', () => {

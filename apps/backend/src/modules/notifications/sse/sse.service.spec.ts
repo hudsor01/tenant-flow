@@ -199,4 +199,134 @@ describe('SseService', () => {
 		subB.unsubscribe()
 		service.onModuleDestroy()
 	})
+
+	describe('DoS protection', () => {
+		it('enforces per-user connection limit of 5', () => {
+			const service = new SseService(logger)
+
+			// Create 5 connections for the same user
+			const subscriptions: Array<ReturnType<typeof service.subscribe>> = []
+			for (let i = 0; i < 5; i++) {
+				const stream = service.subscribe('user-limit', `session-${i}`)
+				subscriptions.push(stream)
+				stream.subscribe(() => {})
+			}
+
+			expect(service.getConnectionCount()).toBe(5)
+
+			// 6th connection should throw
+			expect(() => {
+				service.subscribe('user-limit', 'session-6')
+			}).toThrow('Maximum connections (5) per user reached')
+
+			// Cleanup
+			for (let i = 0; i < 5; i++) {
+				service.unsubscribe(`session-${i}`)
+			}
+			service.onModuleDestroy()
+		})
+
+		it('allows connections after unsubscribing one', () => {
+			const service = new SseService(logger)
+
+			// Create 5 connections for the same user
+			for (let i = 0; i < 5; i++) {
+				const stream = service.subscribe('user-limit', `session-${i}`)
+				stream.subscribe(() => {})
+			}
+
+			// Remove one
+			service.unsubscribe('session-2')
+
+			// Now 6th connection should work (as session-5)
+			expect(() => {
+				const stream = service.subscribe('user-limit', 'session-new')
+				stream.subscribe(() => {})
+			}).not.toThrow()
+
+			expect(service.getConnectionCount()).toBe(5)
+
+			// Cleanup
+			service.onModuleDestroy()
+		})
+
+		it('logs warning when per-user limit is reached', () => {
+			const service = new SseService(logger)
+
+			// Create 5 connections for the same user
+			for (let i = 0; i < 5; i++) {
+				const stream = service.subscribe('user-limit', `session-${i}`)
+				stream.subscribe(() => {})
+			}
+
+			// 6th connection attempt
+			try {
+				service.subscribe('user-limit', 'session-6')
+			} catch {
+				// Expected
+			}
+
+			expect(logger.warn).toHaveBeenCalledWith(
+				'SSE per-user connection limit reached',
+				expect.objectContaining({
+					userId: 'user-limit',
+					userConnections: 5,
+					limit: 5
+				})
+			)
+
+			service.onModuleDestroy()
+		})
+
+		it('tracks user sessions correctly for limit enforcement', () => {
+			const service = new SseService(logger)
+
+			// User 1: 3 connections
+			for (let i = 0; i < 3; i++) {
+				const stream = service.subscribe('user-1', `user1-session-${i}`)
+				stream.subscribe(() => {})
+			}
+
+			// User 2: 3 connections
+			for (let i = 0; i < 3; i++) {
+				const stream = service.subscribe('user-2', `user2-session-${i}`)
+				stream.subscribe(() => {})
+			}
+
+			expect(service.getConnectionCount()).toBe(6)
+			expect(service.getStats().uniqueUsers).toBe(2)
+
+			// User 1 can still add 2 more
+			expect(() => {
+				service.subscribe('user-1', 'user1-session-3').subscribe(() => {})
+				service.subscribe('user-1', 'user1-session-4').subscribe(() => {})
+			}).not.toThrow()
+
+			// But not a 6th
+			expect(() => {
+				service.subscribe('user-1', 'user1-session-5')
+			}).toThrow()
+
+			service.onModuleDestroy()
+		})
+
+		it('replaces existing connection with same sessionId', () => {
+			const service = new SseService(logger)
+
+			// Create first connection
+			const stream1 = service.subscribe('user-1', 'session-1')
+			stream1.subscribe(() => {})
+
+			expect(service.getConnectionCount()).toBe(1)
+
+			// Create second connection with same sessionId (should replace)
+			const stream2 = service.subscribe('user-1', 'session-1')
+			stream2.subscribe(() => {})
+
+			// Should still be 1 connection
+			expect(service.getConnectionCount()).toBe(1)
+
+			service.onModuleDestroy()
+		})
+	})
 })
