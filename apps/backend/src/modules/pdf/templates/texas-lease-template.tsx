@@ -79,7 +79,6 @@ export function TexasLeaseTemplate({ data }: TexasLeaseTemplateProps) {
 					agreementDay={agreementDay}
 					agreementMonth={agreementMonth}
 					agreementYear={agreementYear}
-					holdOverRent={holdOverRent}
 				/>
 			</Page>
 
@@ -87,27 +86,13 @@ export function TexasLeaseTemplate({ data }: TexasLeaseTemplateProps) {
 				<LeasePageTwoSections
 					data={data}
 					styles={styles}
-					formatDate={formatDate}
-					getOrdinalSuffix={getOrdinalSuffix}
 					formatCurrency={formatCurrency}
-					agreementDay={agreementDay}
-					agreementMonth={agreementMonth}
-					agreementYear={agreementYear}
-					holdOverRent={holdOverRent}
 				/>
 			</Page>
 
 			<Page size="A4" style={styles.page}>
 				<LeasePageThreeSections
-					data={data}
 					styles={styles}
-					formatDate={formatDate}
-					getOrdinalSuffix={getOrdinalSuffix}
-					formatCurrency={formatCurrency}
-					agreementDay={agreementDay}
-					agreementMonth={agreementMonth}
-					agreementYear={agreementYear}
-					holdOverRent={holdOverRent}
 				/>
 			</Page>
 
@@ -115,12 +100,7 @@ export function TexasLeaseTemplate({ data }: TexasLeaseTemplateProps) {
 				<LeasePageFourSections
 					data={data}
 					styles={styles}
-					formatDate={formatDate}
-					getOrdinalSuffix={getOrdinalSuffix}
 					formatCurrency={formatCurrency}
-					agreementDay={agreementDay}
-					agreementMonth={agreementMonth}
-					agreementYear={agreementYear}
 					holdOverRent={holdOverRent}
 				/>
 			</Page>
@@ -130,12 +110,9 @@ export function TexasLeaseTemplate({ data }: TexasLeaseTemplateProps) {
 					data={data}
 					styles={styles}
 					formatDate={formatDate}
-					getOrdinalSuffix={getOrdinalSuffix}
-					formatCurrency={formatCurrency}
 					agreementDay={agreementDay}
 					agreementMonth={agreementMonth}
 					agreementYear={agreementYear}
-					holdOverRent={holdOverRent}
 				/>
 			</Page>
 		</Document>

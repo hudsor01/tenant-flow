@@ -1,0 +1,56 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ReactLeasePDFService Template snapshot matches the section titles per page 1`] = `
+[
+  [
+    "1. PROPERTY.",
+    "2. TERM.",
+    "3. RENT.",
+    "A. Delinquent Rent.",
+    "B. Prorated Rent.",
+    "C. Returned Checks.",
+    "D. Order in which funds are applied.",
+    "E. Rent Increases.",
+  ],
+  [
+    "4. SECURITY DEPOSIT.",
+    "REFUND OF SECURITY DEPOSIT.",
+    "5. USE OF PREMISES.",
+    "6. CONDITION OF PREMISES.",
+    "7. ASSIGNMENT AND SUB-LETTING.",
+    "8. ALTERATIONS AND IMPROVEMENTS.",
+    "9. NON-DELIVERY OF POSSESSION.",
+    "10. HAZARDOUS MATERIALS.",
+    "11. UTILITIES.",
+  ],
+  [
+    "12. MAINTENANCE, REPAIR, AND RULES.",
+    "13. DAMAGE TO PREMISES.",
+    "14. ACCESS BY PROPERTY OWNER.",
+    "15. SUBORDINATION OF LEASE.",
+  ],
+  [
+    "16. TENANT'S HOLD OVER.",
+    "17. SURRENDER OF PREMISES.",
+    "18. ANIMALS.",
+    "19. WATERBEDS.",
+    "20. QUIET ENJOYMENT.",
+    "21. INDEMNIFICATION.",
+    "22. DEFAULT.",
+    "23. ABANDONMENT.",
+  ],
+  [
+    "24. ATTORNEYS' FEES.",
+    "25. RECORDING OF TEXAS LEASE AGREEMENT.",
+    "26. GOVERNING LAW.",
+    "27. SEVERABILITY.",
+    "28. BINDING EFFECT.",
+    "29. DESCRIPTIVE HEADINGS.",
+    "30. CONSTRUCTION.",
+    "31. NON-WAIVER.",
+    "32. MODIFICATION.",
+    "33. NOTICE.",
+    "34. LEAD-BASED PAINT DISCLOSURE.",
+  ],
+]
+`;

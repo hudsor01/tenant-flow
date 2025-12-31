@@ -4,6 +4,9 @@ import { ReactLeasePDFService } from './react-lease-pdf.service'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { TexasLeaseTemplate } from './templates/texas-lease-template'
+import { styles } from './templates/texas-lease-styles'
+import { Document, Page, Text, View } from '@react-pdf/renderer'
 
 // Mock NestJS Logger to suppress console output during tests
 jest.mock('@nestjs/common', () => {
@@ -96,6 +99,73 @@ describe('ReactLeasePDFService', () => {
 		// Tenant ID
 		tenant_id: '987e6543-e21b-12d3-a456-426614174999'
 	})
+
+	const extractSectionTitlesByPage = (root: unknown): string[][] => {
+		const hostTypes = new Set([Document, Page, Text, View])
+		const pages: string[][] = []
+		let currentPageIndex = -1
+
+		const getText = (node: unknown): string => {
+			if (node === null || node === undefined || typeof node === 'boolean') {
+				return ''
+			}
+			if (typeof node === 'string' || typeof node === 'number') {
+				return String(node)
+			}
+			if (Array.isArray(node)) {
+				return node.map(getText).join('')
+			}
+			if (typeof node === 'object' && node && 'props' in node) {
+				const element = node as { props?: { children?: unknown } }
+				return getText(element.props?.children)
+			}
+			return ''
+		}
+
+		const visit = (node: unknown) => {
+			if (node === null || node === undefined || typeof node === 'boolean') {
+				return
+			}
+			if (Array.isArray(node)) {
+				node.forEach(visit)
+				return
+			}
+			if (typeof node !== 'object' || !('type' in node) || !('props' in node)) {
+				return
+			}
+
+			const element = node as {
+				type: unknown
+				props?: { children?: unknown; style?: unknown }
+			}
+			const { type, props } = element
+
+			if (typeof type === 'function' && !hostTypes.has(type)) {
+				visit(type(props))
+				return
+			}
+
+			if (type === Page) {
+				currentPageIndex += 1
+				pages[currentPageIndex] = []
+				visit(props?.children)
+				return
+			}
+
+			if (type === Text && props?.style === styles.sectionTitle) {
+				const title = getText(props.children).trim()
+				if (title) {
+					pages[currentPageIndex]?.push(title)
+				}
+				return
+			}
+
+			visit(props?.children)
+		}
+
+		visit(root)
+		return pages
+	}
 
 	describe('generateLeasePDF', () => {
 		it('should generate a PDF buffer', async () => {
@@ -229,6 +299,16 @@ describe('ReactLeasePDFService', () => {
 			// Should not throw with valid data
 			const pdfBuffer = await service.generateLeasePDF(mockData)
 			expect(pdfBuffer).toBeDefined()
+		})
+	})
+
+	describe('Template snapshot', () => {
+		it('matches the section titles per page', () => {
+			const mockData = createMockLeaseData()
+			const document = TexasLeaseTemplate({ data: mockData })
+			const titlesByPage = extractSectionTitlesByPage(document)
+
+			expect(titlesByPage).toMatchSnapshot()
 		})
 	})
 })

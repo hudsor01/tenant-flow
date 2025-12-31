@@ -5,16 +5,43 @@ import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-gene
 import type { TexasLeaseStyles } from '../texas-lease-styles'
 import { LeadBasedPaintDisclosure } from './disclosures'
 
-interface LeaseSectionProps {
+interface BaseSectionProps {
 	data: LeaseGenerationFormData
 	styles: TexasLeaseStyles
+}
+
+interface FormatSectionProps {
 	formatDate: (dateStr: string) => string
 	getOrdinalSuffix: (day: number) => string
 	formatCurrency: (value: number | undefined | null, fallback?: number) => string
+}
+
+interface AgreementDateProps {
 	agreementDay: number
 	agreementMonth: string
 	agreementYear: number
+}
+
+interface LeasePageOneProps
+	extends BaseSectionProps,
+		FormatSectionProps,
+		AgreementDateProps {}
+
+interface LeasePageTwoProps extends BaseSectionProps {
+	formatCurrency: (value: number | undefined | null, fallback?: number) => string
+}
+
+interface LeasePageThreeProps {
+	styles: TexasLeaseStyles
+}
+
+interface LeasePageFourProps extends BaseSectionProps {
+	formatCurrency: (value: number | undefined | null, fallback?: number) => string
 	holdOverRent: number
+}
+
+interface LeasePageFiveProps extends BaseSectionProps, AgreementDateProps {
+	formatDate: (dateStr: string) => string
 }
 
 export function LeasePageOneSections({
@@ -26,7 +53,7 @@ export function LeasePageOneSections({
 	agreementDay,
 	agreementMonth,
 	agreementYear
-}: LeaseSectionProps) {
+}: LeasePageOneProps) {
 	return (
 		<>
 			<Text style={styles.title}>Texas Residential Lease Agreement</Text>
@@ -183,7 +210,7 @@ export function LeasePageTwoSections({
 	data,
 	styles,
 	formatCurrency
-}: LeaseSectionProps) {
+}: LeasePageTwoProps) {
 	return (
 		<>
 			<View style={styles.section}>
@@ -322,9 +349,7 @@ export function LeasePageTwoSections({
 	)
 }
 
-export function LeasePageThreeSections({
-	styles
-}: LeaseSectionProps) {
+export function LeasePageThreeSections({ styles }: LeasePageThreeProps) {
 	return (
 		<>
 			<View style={styles.section}>
@@ -482,7 +507,7 @@ export function LeasePageFourSections({
 	styles,
 	formatCurrency,
 	holdOverRent
-}: LeaseSectionProps) {
+}: LeasePageFourProps) {
 	return (
 		<>
 			<View style={styles.section}>
@@ -617,7 +642,7 @@ export function LeasePageFiveSections({
 	agreementDay,
 	agreementMonth,
 	agreementYear
-}: LeaseSectionProps) {
+}: LeasePageFiveProps) {
 	return (
 		<>
 			<View style={styles.section}>
@@ -658,7 +683,7 @@ export function LeasePageFiveSections({
 				<Text style={styles.paragraph}>
 					If any provision of this Texas Lease Agreement or the application
 					thereof shall, for any reason and to any extent, be invalid or
-					unforceable, neither the remainder of this Texas Lease Agreement
+					unenforceable, neither the remainder of this Texas Lease Agreement
 					nor the application of the provision to other persons, entities or
 					circumstances shall be affected thereby, but instead shall be
 					enforced to the maximum extent permitted by law.
