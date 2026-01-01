@@ -26,7 +26,7 @@ import { Building2, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { tenantQueries } from '#hooks/api/use-tenant'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { apiRequest } from '#lib/api-request'
 
 const logger = createLogger({ component: 'InviteTenantForm' })

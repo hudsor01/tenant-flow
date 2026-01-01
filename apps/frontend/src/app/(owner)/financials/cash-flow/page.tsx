@@ -25,7 +25,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import { useCashFlow } from '#hooks/api/use-financial-statements'
+import { useCashFlow } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 export default function CashFlowPage() {

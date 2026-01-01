@@ -15,7 +15,7 @@ import { useSupabaseUpload } from '#hooks/use-supabase-upload'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useMaintenanceRequestCreate } from '#hooks/api/use-tenant-portal'
+import { useMaintenanceRequestCreateMutation } from '#hooks/api/use-tenant-portal'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ import { toast } from 'sonner'
 
 export default function NewMaintenanceRequestPage() {
 	const router = useRouter()
-	const createRequest = useMaintenanceRequestCreate()
+	const createRequest = useMaintenanceRequestCreateMutation()
 
 	// Form state
 	const [formData, setFormData] = useState({

@@ -31,10 +31,10 @@ import {
 } from '#components/ui/dialog'
 
 import {
-	useDeletePaymentMethod,
+	useDeletePaymentMethodMutation,
 	usePaymentMethods,
-	useSetDefaultPaymentMethod
-} from '#hooks/api/use-payment-methods'
+	useSetDefaultPaymentMethodMutation
+} from '#hooks/api/use-payments'
 
 // Helper functions inlined from payment-methods-list.tsx
 function getCardBrandDisplay(brand: string) {
@@ -75,8 +75,8 @@ export function PaymentMethodsTab() {
 	const [showAddDialog, setShowAddDialog] = useState(false)
 
 	const { data: paymentMethods, isLoading, refetch } = usePaymentMethods()
-	const setDefault = useSetDefaultPaymentMethod()
-	const deleteMethod = useDeletePaymentMethod()
+	const setDefault = useSetDefaultPaymentMethodMutation()
+	const deleteMethod = useDeletePaymentMethodMutation()
 
 	const handleSetDefault = async (paymentMethodId: string) => {
 		try {

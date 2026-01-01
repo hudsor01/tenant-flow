@@ -21,8 +21,8 @@ import { PropertyImageDropzone } from './property-image-dropzone'
 import {
 	useCreatePropertyMutation,
 	useUpdatePropertyMutation
-} from '#hooks/api/mutations/property-mutations'
-import { propertyQueries } from '#hooks/api/use-properties'
+} from '#hooks/api/use-properties'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useSupabaseUser } from '#hooks/api/use-auth'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'

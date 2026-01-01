@@ -7,7 +7,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { useMaintenanceRequestUpdateMutation } from '#hooks/api/mutations/maintenance-mutations'
+import { useMaintenanceRequestUpdateMutation } from '#hooks/api/use-maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MaintenanceStatus } from '@repo/shared/types/core'
 

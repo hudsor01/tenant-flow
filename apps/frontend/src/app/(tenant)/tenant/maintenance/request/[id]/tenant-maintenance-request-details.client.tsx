@@ -8,7 +8,7 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { formatDate } from '#lib/formatters/date'
-import { maintenanceQueries } from '#hooks/api/use-maintenance'
+import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 import type { MaintenanceRequest } from '@repo/shared/types/core'
 
 function formatStatus(status: string) {

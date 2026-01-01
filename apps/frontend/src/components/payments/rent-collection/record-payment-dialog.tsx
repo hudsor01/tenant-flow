@@ -22,7 +22,7 @@ import {
 	DialogTitle,
 	DialogTrigger
 } from '#components/ui/dialog'
-import { useRecordManualPayment } from '#hooks/api/use-rent-collection'
+import { useRecordManualPaymentMutation } from '#hooks/api/use-payments'
 import { toast } from 'sonner'
 
 export function RecordPaymentDialog() {
@@ -36,7 +36,7 @@ export function RecordPaymentDialog() {
 		notes: ''
 	})
 
-	const recordPayment = useRecordManualPayment()
+	const recordPayment = useRecordManualPaymentMutation()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()

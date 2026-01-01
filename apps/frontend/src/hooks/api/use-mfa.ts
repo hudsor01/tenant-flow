@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { toast } from 'sonner'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { mutationKeys } from './mutation-keys'
 
 const supabase = createClient()
 
@@ -128,8 +129,9 @@ export function useMfaFactors() {
  * Enroll a new TOTP factor
  * Returns QR code and secret for authenticator app setup
  */
-export function useMfaEnroll() {
+export function useMfaEnrollMutation() {
 	return useMutation({
+		mutationKey: mutationKeys.mfa.enroll,
 		mutationFn: async (friendlyName?: string): Promise<EnrollmentResult> => {
 			const { data, error } = await supabase.auth.mfa.enroll({
 				factorType: 'totp',
@@ -152,10 +154,11 @@ export function useMfaEnroll() {
 /**
  * Verify TOTP code during enrollment or challenge
  */
-export function useMfaVerify() {
+export function useMfaVerifyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.mfa.verify,
 		mutationFn: async ({
 			factorId,
 			code
@@ -190,10 +193,11 @@ export function useMfaVerify() {
 /**
  * Unenroll (remove) an MFA factor
  */
-export function useMfaUnenroll() {
+export function useMfaUnenrollMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.mfa.unenroll,
 		mutationFn: async (factorId: string): Promise<void> => {
 			const { error } = await supabase.auth.mfa.unenroll({ factorId })
 

@@ -3,11 +3,12 @@ import { HttpStatus } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { ZodValidationPipe } from 'nestjs-zod'
+import type { Request, Response, NextFunction } from 'express'
 import request from 'supertest'
 import { PropertiesController } from '../../src/modules/properties/properties.controller'
 import { PropertiesService } from '../../src/modules/properties/properties.service'
 import { PropertyBulkImportService } from '../../src/modules/properties/services/property-bulk-import.service'
-import { PropertyAnalyticsService } from '../../src/modules/properties/services/property-analytics.service'
+import { PropertyLifecycleService } from '../../src/modules/properties/services/property-lifecycle.service'
 import { DashboardService } from '../../src/modules/dashboard/dashboard.service'
 import { AppLogger } from '../../src/logger/app-logger.service'
 import type { Database } from '@repo/shared/types/supabase'
@@ -49,9 +50,10 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			validateCSV: jest.fn()
 		}
 
-		const mockPropertyAnalyticsService = {
-			getAnalytics: jest.fn(),
-			getOccupancyRate: jest.fn()
+		const mockPropertyLifecycleService = {
+			markPropertyAsSold: jest.fn(),
+			archiveProperty: jest.fn(),
+			reactivateProperty: jest.fn()
 		}
 
 		const mockDashboardService = {
@@ -79,8 +81,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 					useValue: mockPropertyBulkImportService
 				},
 				{
-					provide: PropertyAnalyticsService,
-					useValue: mockPropertyAnalyticsService
+					provide: PropertyLifecycleService,
+					useValue: mockPropertyLifecycleService
 				},
 				{
 					provide: DashboardService,
@@ -98,6 +100,15 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 		// CRITICAL: Register ZodValidationPipe globally (mirrors production setup)
 		// This enables Zod validation BEFORE requests reach the controller
 		app.useGlobalPipes(new ZodValidationPipe())
+
+		// Add middleware to set req.user for tests that need authenticated context
+		// Uses a valid UUID that matches property_owner_id in test data
+		app.use((req: Request, _res: Response, next: NextFunction) => {
+			req.user = { id: '550e8400-e29b-41d4-a716-446655440000', email: 'test@example.com' }
+			// Set authorization header for getTokenFromRequest
+			req.headers.authorization = 'Bearer test-token-for-integration-tests'
+			next()
+		})
 
 		await app.init()
 
@@ -137,13 +148,19 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78701',
-				property_type: 'APARTMENT'
+				property_type: 'APARTMENT',
+				property_owner_id: '550e8400-e29b-41d4-a716-446655440000' // Valid UUID matching authenticated user
 			}
 
 			const response = await request(app.getHttpServer())
 				.post('/properties')
 				.send(validBody)
-				.expect(HttpStatus.CREATED)
+
+			if (response.status !== HttpStatus.CREATED) {
+				console.error('Unexpected status:', response.status, response.body)
+			}
+
+			expect(response.status).toBe(HttpStatus.CREATED)
 
 			expect(response.body).toMatchObject({
 				id: mockCreatedProperty.id,
@@ -187,7 +204,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: '  Dallas  ',
 				state: 'TX', // State should NOT be trimmed - it must be exactly 2 uppercase letters
 				postal_code: '75201',
-				property_type: 'SINGLE_FAMILY'
+				property_type: 'SINGLE_FAMILY',
+				property_owner_id: '550e8400-e29b-41d4-a716-446655440000' // Valid UUID matching authenticated user
 			}
 
 			await request(app.getHttpServer())
@@ -321,7 +339,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 				city: 'San Antonio',
 				state: 'TX',
 				postal_code: '78205-1234', // ZIP+4 format
-				property_type: 'CONDO'
+				property_type: 'CONDO',
+				property_owner_id: '550e8400-e29b-41d4-a716-446655440000' // Valid UUID matching authenticated user
 			}
 
 			await request(app.getHttpServer())
