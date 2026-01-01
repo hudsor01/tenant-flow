@@ -31,10 +31,10 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import {
-	useDeletePaymentMethod,
+	useDeletePaymentMethodMutation,
 	usePaymentMethods,
-	useSetDefaultPaymentMethod
-} from '#hooks/api/use-payment-methods'
+	useSetDefaultPaymentMethodMutation
+} from '#hooks/api/use-payments'
 
 function formatMethodLabel(type: string) {
 	switch (type) {
@@ -49,8 +49,8 @@ function formatMethodLabel(type: string) {
 
 export function PaymentMethodsList() {
 	const { data: paymentMethods = [], isLoading, isError } = usePaymentMethods()
-	const setDefault = useSetDefaultPaymentMethod()
-	const deleteMethod = useDeletePaymentMethod()
+	const setDefault = useSetDefaultPaymentMethodMutation()
+	const deleteMethod = useDeletePaymentMethodMutation()
 
 	const sortedMethods = useMemo(
 		() =>

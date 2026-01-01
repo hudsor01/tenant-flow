@@ -17,11 +17,11 @@ import {
 import {
 	useCreateLeaseMutation,
 	useUpdateLeaseMutation
-} from '#hooks/api/mutations/lease-mutations'
-import { propertyQueries } from '#hooks/api/use-properties'
-import { unitQueries } from '#hooks/api/use-unit'
-import { tenantQueries } from '#hooks/api/use-tenant'
-import { leaseQueries } from '#hooks/api/use-lease'
+} from '#hooks/api/use-lease'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	LeaseStatus,

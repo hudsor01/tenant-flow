@@ -12,7 +12,7 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
+import { useRenewLeaseMutation } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { useState } from 'react'

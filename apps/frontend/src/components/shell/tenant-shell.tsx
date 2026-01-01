@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { TenantNav } from './tenant-nav'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { useSupabaseUser, useSignOut } from '#hooks/api/use-auth'
+import { useSupabaseUser, useSignOutMutation } from '#hooks/api/use-auth'
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -33,7 +33,7 @@ export function TenantShell({ children }: TenantShellProps) {
 	const router = useRouter()
 	const breadcrumbs = generateBreadcrumbs(pathname)
 	const { data: user } = useSupabaseUser()
-	const signOutMutation = useSignOut()
+	const signOutMutation = useSignOutMutation()
 
 	// Get user initials
 	const userName = user?.user_metadata?.full_name || user?.email || 'User'

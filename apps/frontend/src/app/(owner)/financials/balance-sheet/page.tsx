@@ -28,7 +28,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import { useBalanceSheet } from '#hooks/api/use-financial-statements'
+import { useBalanceSheet } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 interface BalanceItem {

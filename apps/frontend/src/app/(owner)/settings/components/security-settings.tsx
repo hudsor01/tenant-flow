@@ -17,7 +17,7 @@ import { Skeleton } from '#components/ui/skeleton'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
-import { useUserSessions, useRevokeSession } from '#hooks/api/use-sessions'
+import { useUserSessions, useRevokeSessionMutation } from '#hooks/api/use-sessions'
 import { useMfaStatus, useMfaFactors } from '#hooks/api/use-mfa'
 import {
 	TwoFactorSetupDialog,
@@ -37,7 +37,7 @@ export function SecuritySettings() {
 
 	// Real sessions from API
 	const { data: sessions, isLoading: sessionsLoading } = useUserSessions()
-	const revokeSession = useRevokeSession()
+	const revokeSession = useRevokeSessionMutation()
 
 	// 2FA dialogs
 	const [show2FASetup, setShow2FASetup] = React.useState(false)

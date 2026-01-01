@@ -11,20 +11,20 @@ import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import {
 	useFailedPaymentAttempts,
 	useBillingHistory
-} from '#hooks/api/use-billing-history'
-import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+} from '#hooks/api/use-billing'
+import { usePaymentMethods } from '#hooks/api/use-payments'
 import {
-	useCancelSubscription,
-	usePauseSubscription,
-	useResumeSubscription,
+	useCancelSubscriptionMutation,
+	usePauseSubscriptionMutation,
+	useResumeSubscriptionMutation,
 	useSubscriptions
-} from '#hooks/api/use-subscriptions'
+} from '#hooks/api/use-billing'
 import {
 	usePaymentAnalytics,
 	useUpcomingPayments,
 	useOverduePayments,
-	useExportPayments
-} from '#hooks/api/use-rent-collection'
+	useExportPaymentsMutation
+} from '#hooks/api/use-payments'
 import { formatCents } from '#lib/formatters/currency'
 import { toast } from 'sonner'
 
@@ -44,10 +44,10 @@ export default function RentCollectionPage() {
 	const { data: analytics } = usePaymentAnalytics()
 	const { data: upcomingPayments } = useUpcomingPayments()
 	const { data: overduePayments } = useOverduePayments()
-	const pauseSubscription = usePauseSubscription()
-	const resumeSubscription = useResumeSubscription()
-	const cancelSubscription = useCancelSubscription()
-	const exportPayments = useExportPayments()
+	const pauseSubscription = usePauseSubscriptionMutation()
+	const resumeSubscription = useResumeSubscriptionMutation()
+	const cancelSubscription = useCancelSubscriptionMutation()
+	const exportPayments = useExportPaymentsMutation()
 
 	const [actioningId, setActioningId] = React.useState<string | null>(null)
 	const [failedOpen, setFailedOpen] = React.useState(true)

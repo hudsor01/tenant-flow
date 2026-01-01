@@ -8,7 +8,7 @@
 
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { BillingHistoryItem } from '#hooks/api/use-billing-history'
+import type { BillingHistoryItem } from '@repo/shared/types/api-contracts'
 import type {
 	PaymentMethodResponse,
 	MaintenanceRequest
@@ -109,12 +109,11 @@ function mockViewport(isMobile: boolean) {
 }
 
 // Mock data hooks before importing pages
-// The page uses useBillingHistory, not usePaymentHistory
-vi.mock('#hooks/api/use-billing-history', () => ({
+vi.mock('#hooks/api/use-billing', () => ({
 	useBillingHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
 }))
 
-vi.mock('#hooks/api/use-payment-methods', () => ({
+vi.mock('#hooks/api/use-payments', () => ({
 	usePaymentMethods: vi.fn(() => ({
 		data: mockPaymentMethods,
 		isLoading: false

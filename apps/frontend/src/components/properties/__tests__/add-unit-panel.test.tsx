@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Mock the mutation hook
 const mockMutateAsync = vi.fn()
-vi.mock('#hooks/api/mutations/unit-mutations', () => ({
+vi.mock('#hooks/api/use-unit', () => ({
 	useCreateUnitMutation: () => ({
 		mutateAsync: mockMutateAsync,
 		isPending: false

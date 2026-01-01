@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
 
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleMutationError,
@@ -22,15 +23,15 @@ export function useOwnerNotificationSettings() {
 		queryKey: notificationSettingsKey,
 		queryFn: () =>
 			apiRequest<OwnerNotificationSettings>('/api/v1/notification-settings'),
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
-export function useUpdateOwnerNotificationSettings() {
+export function useUpdateOwnerNotificationSettingsMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.ownerNotificationSettings.update,
 		mutationFn: (updates: OwnerNotificationSettingsUpdate) =>
 			apiRequest<OwnerNotificationSettings>('/api/v1/notification-settings', {
 				method: 'PUT',

@@ -10,7 +10,7 @@ import { getStripe } from '#lib/stripe/stripe-client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { IdentityVerificationStatus } from '@repo/shared/types/stripe'
 import {
-	useCreateIdentityVerificationSession,
+	useCreateIdentityVerificationSessionMutation,
 	useIdentityVerificationStatus
 } from '#hooks/api/use-identity-verification'
 import { AlertTriangle, CheckCircle, ShieldCheck, XCircle } from 'lucide-react'
@@ -81,7 +81,7 @@ const defaultStatus = {
 
 export function IdentityVerificationCard() {
 	const statusQuery = useIdentityVerificationStatus()
-	const sessionMutation = useCreateIdentityVerificationSession()
+	const sessionMutation = useCreateIdentityVerificationSessionMutation()
 	const status = statusQuery.data?.status ?? null
 	const info = (status && statusMap[status]) || defaultStatus
 	const Icon = info.icon

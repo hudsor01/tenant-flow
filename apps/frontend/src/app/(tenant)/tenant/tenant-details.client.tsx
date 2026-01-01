@@ -21,8 +21,8 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Textarea } from '#components/ui/textarea'
-import { useMarkTenantAsMovedOut } from '#hooks/api/use-tenant'
-import { tenantQueries } from '#hooks/api/use-tenant'
+import { useMarkTenantAsMovedOutMutation } from '#hooks/api/use-tenant'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { formatDate } from '#lib/formatters/date'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'
@@ -63,7 +63,7 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 		isError
 	} = useQuery(tenantQueries.withLease(id))
 	const router = useRouter()
-	const markAsMovedOut = useMarkTenantAsMovedOut()
+	const markAsMovedOut = useMarkTenantAsMovedOutMutation()
 
 	// Move-out dialog state
 	const [moveOutDialogOpen, setMoveOutDialogOpen] = React.useState(false)

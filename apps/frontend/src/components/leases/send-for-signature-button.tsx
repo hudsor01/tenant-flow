@@ -17,8 +17,8 @@ import { Textarea } from '#components/ui/textarea'
 import { Label } from '#components/ui/label'
 import { apiRequestRaw } from '#lib/api-request'
 import {
-	useSendLeaseForSignature,
-	useResendSignatureRequest
+	useSendLeaseForSignatureMutation,
+	useResendSignatureRequestMutation
 } from '#hooks/api/use-lease'
 import { cn } from '#lib/utils'
 
@@ -51,8 +51,8 @@ export function SendForSignatureButton({
 	const [immediateFamilyMembers, setImmediateFamilyMembers] = useState('')
 	const [landlordNoticeAddress, setLandlordNoticeAddress] = useState('')
 	const [isPreviewing, setIsPreviewing] = useState(false)
-	const sendForSignature = useSendLeaseForSignature()
-	const resendSignature = useResendSignatureRequest()
+	const sendForSignature = useSendLeaseForSignatureMutation()
+	const resendSignature = useResendSignatureRequestMutation()
 
 	const isResend = action === 'resend'
 

@@ -4,12 +4,12 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { tenantQueries } from '#hooks/api/use-tenant'
-import { tenantPaymentQueries } from '#hooks/api/use-rent-payments'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { tenantPaymentQueries } from '#hooks/api/use-payments'
 import {
-	useCancelInvitation,
-	useResendInvitation
-} from '#hooks/api/mutations/tenant-mutations'
+	useCancelInvitationMutation,
+	useResendInvitationMutation
+} from '#hooks/api/use-tenant'
 import { apiRequest } from '#lib/api-request'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
@@ -243,8 +243,8 @@ export default function TenantsPage() {
 		}
 	})
 
-	const { mutate: resendInvitation } = useResendInvitation()
-	const { mutate: cancelInvitation } = useCancelInvitation()
+	const { mutate: resendInvitation } = useResendInvitationMutation()
+	const { mutate: cancelInvitation } = useCancelInvitationMutation()
 
 	// Callbacks
 	const handleInviteTenant = React.useCallback(() => {

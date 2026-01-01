@@ -19,7 +19,7 @@ import {
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
-import { useRenewLeaseMutation } from '#hooks/api/mutations/lease-mutations'
+import { useRenewLeaseMutation } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { addMonths, addYears, format, isAfter, parseISO } from 'date-fns'

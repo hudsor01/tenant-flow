@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { PropertyImageGallery } from '#components/properties/property-image-gallery'
 import { PropertyUnitsTable } from '#components/properties/property-units-table'
-import { useDeletePropertyMutation } from '#hooks/api/mutations/property-mutations'
+import { useDeletePropertyMutation } from '#hooks/api/use-properties'
 import { toast } from 'sonner'
 
 interface PropertyDetailsProps {

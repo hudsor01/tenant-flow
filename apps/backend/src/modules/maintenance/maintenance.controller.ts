@@ -23,6 +23,10 @@ import {
 	UnauthorizedException
 } from '@nestjs/common'
 import {
+	normalizeLimit,
+	normalizeOffset
+} from '../../shared/utils/pagination.utils'
+import {
 	ApiBearerAuth,
 	ApiBody,
 	ApiOperation,
@@ -117,10 +121,9 @@ export class MaintenanceController {
 			throw new BadRequestException('Invalid status')
 		}
 
-		// Validate limits
-		if (limit && (limit < 1 || limit > 50)) {
-			throw new BadRequestException('Limit must be between 1 and 50')
-		}
+		// Normalize pagination values
+		const safeLimit = normalizeLimit(limit ?? 10)
+		const safeOffset = normalizeOffset(offset ?? 0)
 
 		// RLS: Pass JWT token to service layer
 		const data = await this.maintenanceService.findAll(token, {
@@ -129,15 +132,13 @@ export class MaintenanceController {
 			priority,
 			category,
 			status,
-			limit,
-			offset,
+			limit: safeLimit,
+			offset: safeOffset,
 			sortBy,
 			sortOrder
 		})
 
 		// Return PaginatedResponse format expected by frontend
-		const safeLimit = limit ?? 10
-		const safeOffset = offset ?? 0
 		return {
 			data,
 			total: data.length,

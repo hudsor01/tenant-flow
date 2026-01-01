@@ -1,118 +1,39 @@
 /**
- * Unit Hooks & Query Options
+ * Unit Hooks
  * TanStack Query hooks for unit management with Zustand store integration
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
- * Colocated query options + hooks following the single-file pattern:
- * - Complete CRUD mutations
- * - Optimistic updates with rollback
+ * Query keys are in a separate file to avoid circular dependencies.
  * - Placeholder data from cache
  * - Proper error handling
  */
 
-import { useMemo } from 'react'
-import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { logger } from '@repo/shared/lib/frontend-logger'
 import {
-	handleConflictError,
-	isConflictError,
-	withVersion,
-	incrementVersion
-} from '@repo/shared/utils/optimistic-locking'
-import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
-import type { Unit, UnitStats, UnitWithVersion } from '@repo/shared/types/core'
+	useMutation,
+	usePrefetchQuery,
+	useQuery,
+	useQueryClient
+} from '@tanstack/react-query'
+import type { Unit } from '@repo/shared/types/core'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import { apiRequest } from '#lib/api-request'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { useUser } from '#hooks/api/use-auth'
+import { toast } from 'sonner'
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * Unit query filters
- */
-export interface UnitFilters {
-	property_id?: string
-	status?: 'available' | 'occupied' | 'maintenance' | 'reserved'
-	search?: string
-	limit?: number
-	offset?: number
-}
-
-// ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
+// Import query keys from separate file to avoid circular dependency
+import { unitQueries } from './query-keys/unit-keys'
+import { propertyQueries } from './query-keys/property-keys'
+import { leaseQueries } from './query-keys/lease-keys'
+import { mutationKeys } from './mutation-keys'
 
 /**
- * Unit query factory
+ * Extract data array from paginated response
+ * Stable reference for TanStack Query select optimization
  */
-export const unitQueries = {
-	all: () => ['units'] as const,
-	lists: () => [...unitQueries.all(), 'list'] as const,
-
-	list: (filters?: UnitFilters) =>
-		queryOptions({
-			queryKey: [...unitQueries.lists(), filters ?? {}],
-			queryFn: async () => {
-				const searchParams = new URLSearchParams()
-				if (filters?.property_id)
-					searchParams.append('property_id', filters.property_id)
-				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit)
-					searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset)
-					searchParams.append('offset', filters.offset.toString())
-				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<Unit>>(
-					`/api/v1/units${params ? `?${params}` : ''}`
-				)
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-
-	listByProperty: (property_id: string) =>
-		queryOptions({
-			queryKey: [...unitQueries.lists(), 'by-property', property_id],
-			queryFn: async () => {
-				const response = await apiRequest<PaginatedResponse<Unit>>(
-					`/api/v1/units?property_id=${property_id}`
-				)
-				return response.data
-			},
-			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id
-		}),
-
-	details: () => [...unitQueries.all(), 'detail'] as const,
-
-	detail: (id: string) =>
-		queryOptions({
-			queryKey: [...unitQueries.details(), id],
-			queryFn: () => apiRequest<Unit>(`/api/v1/units/${id}`),
-			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
-		}),
-
-	byProperty: (property_id: string) =>
-		queryOptions({
-			queryKey: [...unitQueries.all(), 'by-property', property_id],
-			queryFn: () =>
-				apiRequest<Unit[]>(`/api/v1/units/by-property/${property_id}`),
-			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!property_id
-		}),
-
-	stats: () =>
-		queryOptions({
-			queryKey: [...unitQueries.all(), 'stats'],
-			queryFn: () => apiRequest<UnitStats>('/api/v1/units/stats'),
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000
-		})
-}
+const selectPaginatedData = <T>(response: PaginatedResponse<T>): T[] => response.data
 
 // ============================================================================
 // QUERY HOOKS
@@ -120,36 +41,64 @@ export const unitQueries = {
 
 /**
  * Hook to fetch unit by ID
+ * Uses placeholderData from list cache for instant detail view
  */
 export function useUnit(id: string) {
-	return useQuery(unitQueries.detail(id))
+	const queryClient = useQueryClient()
+
+	return useQuery({
+		...unitQueries.detail(id),
+		placeholderData: () => {
+			// Search all list caches for this unit
+			const listCaches = queryClient.getQueriesData<Unit[]>({
+				queryKey: unitQueries.lists()
+			})
+
+			for (const [, units] of listCaches) {
+				const item = units?.find(u => u.id === id)
+				if (item) return item
+			}
+			return undefined
+		}
+	})
 }
 
 /**
  * Hook to fetch units by property ID
  * Optimized for property detail pages showing all units
  * Uses queryOptions pattern with automatic prefetching of individual units
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/react/guides/render-optimizations
  */
 export function useUnitsByProperty(property_id: string) {
 	return useQuery({
 		...unitQueries.byProperty(property_id),
 		...QUERY_CACHE_TIMES.LIST,
 		gcTime: 30 * 60 * 1000, // 30 minutes cache time
-		retry: 2,
-		// Enable structural sharing to prevent re-renders when data hasn't changed
-		structuralSharing: true
+		structuralSharing: true,
+		// Only re-render when these properties change
+		notifyOnChangeProps: ['data', 'error', 'isPending', 'isFetching']
 	})
 }
 
 /**
  * Hook to fetch all units with optional filters
  * Base hook for other unit list functions
+ *
+ * Optimizations from TanStack Query docs:
+ * - notifyOnChangeProps: Only re-render when data/error/isPending change
+ * - select: Using stable function reference (selectPaginatedData)
+ *
+ * @see https://tanstack.com/query/latest/docs/framework/react/guides/render-optimizations
  */
 export function useUnitList(filters?: Parameters<typeof unitQueries.list>[0]) {
 	return useQuery({
 		...unitQueries.list(filters),
-		// Extract data array for backward compatibility with components
-		select: response => response.data
+		// Stable select function - defined outside component for referential equality
+		select: selectPaginatedData,
+		structuralSharing: true,
+		// Only re-render when these properties change
+		notifyOnChangeProps: ['data', 'error', 'isPending', 'isFetching']
 	})
 }
 
@@ -177,100 +126,61 @@ export function useAllUnits() {
 }
 
 // ============================================================================
+// UTILITY HOOKS
+// ============================================================================
+
+/**
+ * Declarative prefetch hook for unit detail
+ * Prefetches when component mounts (route-level prefetching)
+ *
+ * For imperative prefetching (e.g., on hover), use:
+ * queryClient.prefetchQuery(unitQueries.detail(id))
+ */
+export function usePrefetchUnitDetail(id: string) {
+	usePrefetchQuery(unitQueries.detail(id))
+}
+
+// ============================================================================
 // MUTATION HOOKS
 // ============================================================================
 
 /**
- * Mutation hook to create a new unit with enhanced optimistic updates
- * Includes automatic rollback on error with proper context preservation
+ * Create unit mutation
  */
-export function useCreateUnit() {
+export function useCreateUnitMutation() {
 	const queryClient = useQueryClient()
+	const { data: user } = useUser()
 
 	return useMutation({
-		mutationFn: (unitData: UnitInput) =>
+		mutationKey: mutationKeys.units.create,
+		mutationFn: (data: UnitInput) =>
 			apiRequest<Unit>('/api/v1/units', {
 				method: 'POST',
-				body: JSON.stringify(unitData)
-			}),
-		onMutate: async (newUnit: UnitInput) => {
-			// Cancel outgoing refetches to prevent overwriting optimistic update
-			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
-
-			// Snapshot previous state for rollback
-			const previousLists = queryClient.getQueriesData<Unit[]>({
-				queryKey: unitQueries.lists()
-			})
-
-			// Create optimistic unit entry
-			const tempId = `temp-${Date.now()}`
-			const optimisticUnit: Unit = {
-				id: tempId,
-				property_id: newUnit.property_id,
-				owner_user_id: '', // Placeholder - will be set by server
-				unit_number: newUnit.unit_number ?? null,
-				bedrooms: newUnit.bedrooms ?? null,
-				bathrooms: newUnit.bathrooms ?? null,
-				square_feet: newUnit.square_feet ?? null,
-				rent_amount: newUnit.rent_amount ?? 0,
-				rent_currency: 'USD',
-				rent_period: 'month',
-				status: (newUnit.status as Unit['status']) || 'available',
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString()
-			}
-
-			// Optimistically update all relevant caches
-			queryClient.setQueriesData<Unit[]>(
-				{ queryKey: unitQueries.lists() },
-				old => (old ? [optimisticUnit, ...old] : [optimisticUnit])
-			)
-
-			// Return context for rollback
-			return { previousLists, tempId }
-		},
-		onError: (err, _variables, context) => {
-			// Rollback: restore previous state
-			if (context?.previousLists) {
-				context.previousLists.forEach(([queryKey, data]) => {
-					queryClient.setQueryData(queryKey, data)
+				body: JSON.stringify({
+					...data,
+					owner_user_id: user?.id
 				})
-			}
-
-			handleMutationError(err, 'Create unit')
-		},
-		onSuccess: (data, _variables, context) => {
-			// Replace optimistic entry with real data
-			queryClient.setQueriesData<Unit[]>(
-				{ queryKey: unitQueries.lists() },
-				old => {
-					if (!old) return [data]
-					return old.map(unit => (unit.id === context?.tempId ? data : unit))
-				}
-			)
-
-			// Cache individual unit details
-			queryClient.setQueryData(unitQueries.detail(data.id).queryKey, data)
-
-			logger.info('Unit created successfully', { unit_id: data.id })
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency with server
+			}),
+		onSuccess: _newUnit => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			toast.success('Unit created successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Create unit')
 		}
 	})
 }
 
 /**
- * Mutation hook to update an existing unit with enhanced optimistic updates
- * Includes comprehensive rollback mechanism for both detail and list caches
+ * Update unit mutation
  */
-export function useUpdateUnit() {
+export function useUpdateUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async ({
+		mutationKey: mutationKeys.units.update,
+		mutationFn: ({
 			id,
 			data,
 			version
@@ -278,198 +188,50 @@ export function useUpdateUnit() {
 			id: string
 			data: UnitUpdate
 			version?: number
-		}): Promise<Unit> => {
-			return apiRequest<Unit>(`/api/v1/units/${id}`, {
+		}) =>
+			apiRequest<Unit>(`/api/v1/units/${id}`, {
 				method: 'PUT',
-				body: JSON.stringify(
-					version !== null && version !== undefined
-						? withVersion(data, version)
-						: data
-				)
-			})
-		},
-		onMutate: async ({ id, data }) => {
-			// Cancel all outgoing queries for this unit
-			await queryClient.cancelQueries({
-				queryKey: unitQueries.detail(id).queryKey
-			})
-			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
-
-			// Snapshot all relevant caches for comprehensive rollback
-			const previousDetail = queryClient.getQueryData<Unit>(
-				unitQueries.detail(id).queryKey
+				body: JSON.stringify(version ? { ...data, version } : data)
+			}),
+		onSuccess: updatedUnit => {
+			queryClient.setQueryData(
+				unitQueries.detail(updatedUnit.id).queryKey,
+				updatedUnit
 			)
-			const previousLists = queryClient.getQueriesData<Unit[]>({
-				queryKey: unitQueries.lists()
-			})
-
-			// Optimistically update detail cache
-			if (previousDetail) {
-				queryClient.setQueryData<UnitWithVersion>(
-					unitQueries.detail(id).queryKey,
-					(old: UnitWithVersion | undefined) =>
-						old
-							? incrementVersion(old, data as Partial<UnitWithVersion>)
-							: undefined
-				)
-			}
-
-			// Return context for rollback
-			return { previousDetail, previousLists }
-		},
-		onError: (err, { id }, context) => {
-			// Comprehensive rollback: restore all caches
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					unitQueries.detail(id).queryKey,
-					context.previousDetail
-				)
-			}
-			if (context?.previousLists) {
-				context.previousLists.forEach(([queryKey, data]) => {
-					queryClient.setQueryData(queryKey, data)
-				})
-			}
-
-			//Handle 409 Conflict using helper
-			if (isConflictError(err)) {
-				handleConflictError('units', id, queryClient, [
-					unitQueries.detail(id).queryKey,
-					unitQueries.lists()
-				])
-			} else {
-				handleMutationError(err, 'Update unit')
-			}
-		},
-		onSuccess: (data, { id }) => {
-			// Replace optimistic update with real server data (including correct version)
-			queryClient.setQueryData(unitQueries.detail(id).queryKey, data)
-
-			queryClient.setQueriesData<Unit[]>(
-				{ queryKey: unitQueries.lists() },
-				old => (old ? old.map(unit => (unit.id === id ? data : unit)) : old)
-			)
-
-			logger.info('Unit updated successfully', { unit_id: id })
-		},
-		onSettled: (_data, _error, { id }) => {
-			// Refetch to ensure consistency
-			queryClient.invalidateQueries({
-				queryKey: unitQueries.detail(id).queryKey
-			})
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Unit updated successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Update unit')
 		}
 	})
 }
 
 /**
- * Mutation hook to delete a unit with optimistic removal
- * Includes automatic rollback on error
+ * Delete unit mutation
  */
-export function useDeleteUnit(options?: {
-	onSuccess?: () => void
-	onError?: (error: Error) => void
-}) {
+export function useDeleteUnitMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: async (id: string): Promise<string> => {
-			await apiRequest(`/api/v1/units/${id}`, {
+		mutationKey: mutationKeys.units.delete,
+		mutationFn: (id: string) =>
+			apiRequest(`/api/v1/units/${id}`, {
 				method: 'DELETE'
+			}),
+		onSuccess: (_result, deletedId) => {
+			queryClient.removeQueries({
+				queryKey: unitQueries.detail(deletedId).queryKey
 			})
-			return id
-		},
-		onMutate: async (id: string) => {
-			// Cancel outgoing refetches
-			await queryClient.cancelQueries({
-				queryKey: unitQueries.detail(id).queryKey
-			})
-			await queryClient.cancelQueries({ queryKey: unitQueries.lists() })
-
-			// Snapshot previous state
-			const previousDetail = queryClient.getQueryData<Unit>(
-				unitQueries.detail(id).queryKey
-			)
-			const previousLists = queryClient.getQueriesData<Unit[]>({
-				queryKey: unitQueries.lists()
-			})
-
-			// Optimistically remove from all caches
-			queryClient.removeQueries({ queryKey: unitQueries.detail(id).queryKey })
-			queryClient.setQueriesData<Unit[]>(
-				{ queryKey: unitQueries.lists() },
-				old => (old ? old.filter(unit => unit.id !== id) : old)
-			)
-
-			return { previousDetail, previousLists }
-		},
-		onError: (err, id, context) => {
-			// Rollback: restore previous state
-			if (context?.previousDetail) {
-				queryClient.setQueryData(
-					unitQueries.detail(id).queryKey,
-					context.previousDetail
-				)
-			}
-			if (context?.previousLists) {
-				context.previousLists.forEach(([queryKey, data]) => {
-					queryClient.setQueryData(queryKey, data)
-				})
-			}
-
-			handleMutationError(err, 'Delete unit')
-			options?.onError?.(err instanceof Error ? err : new Error(String(err)))
-		},
-		onSuccess: id => {
-			logger.info('Unit deleted successfully', { unit_id: id })
-			options?.onSuccess?.()
-		},
-		onSettled: () => {
-			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
-			queryClient.invalidateQueries({ queryKey: unitQueries.stats().queryKey })
+			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Unit deleted successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Delete unit')
 		}
 	})
-}
-
-// ============================================================================
-// UTILITY HOOKS
-// ============================================================================
-
-/**
- * Hook for prefetching unit details (for hover states)
- */
-export function usePrefetchUnit() {
-	const queryClient = useQueryClient()
-
-	return (id: string) => {
-		queryClient.prefetchQuery({
-			queryKey: unitQueries.detail(id).queryKey,
-			queryFn: async (): Promise<Unit> => {
-				return apiRequest<Unit>(`/api/v1/units/${id}`)
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
-	}
-}
-
-/**
- * Combined hook for all unit operations
- * Convenience hook for components that need multiple operations
- */
-export function useUnitOperations() {
-	const create = useCreateUnit()
-	const update = useUpdateUnit()
-	const remove = useDeleteUnit()
-
-	return useMemo(
-		() => ({
-			create,
-			update,
-			delete: remove,
-			isLoading: create.isPending || update.isPending || remove.isPending
-		}),
-		[create, update, remove]
-	)
 }

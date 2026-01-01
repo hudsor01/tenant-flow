@@ -29,8 +29,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { MainNav } from './main-nav'
 import { QuickActionsDock } from './quick-actions-dock'
+import { GlobalSyncIndicator } from '#components/ui/global-sync-indicator'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
-import { useSupabaseUser, useSignOut } from '#hooks/api/use-auth'
+import { useSupabaseUser, useSignOutMutation } from '#hooks/api/use-auth'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useTenantList } from '#hooks/api/use-tenant'
 import {
@@ -62,7 +63,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 	const pathname = usePathname()
 	const breadcrumbs = generateBreadcrumbs(pathname)
 	const { data: user } = useSupabaseUser()
-	const signOutMutation = useSignOut()
+	const signOutMutation = useSignOutMutation()
 	const router = useRouter()
 	const { data: properties } = usePropertyList({ limit: 6 })
 	const { data: tenantsResponse } = useTenantList(1, 6)
@@ -272,8 +273,9 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 						)}
 					</div>
 
-					{/* Right side - notifications, user */}
-					<div className="flex items-center gap-1">
+					{/* Right side - sync status, notifications, user */}
+					<div className="flex items-center gap-2">
+						<GlobalSyncIndicator />
 						<Link
 							href="/settings?tab=notifications"
 							className="p-2 rounded-md hover:bg-muted transition-colors"

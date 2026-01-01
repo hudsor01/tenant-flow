@@ -135,9 +135,7 @@ export const ownerDashboardQueries = {
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true, // Catch missed events on tab focus
-				retry: 2,
-				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
+				refetchOnWindowFocus: true // Catch missed events on tab focus
 			}),
 
 		/**
@@ -155,9 +153,7 @@ export const ownerDashboardQueries = {
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true, // Catch missed events on tab focus
-				retry: 2,
-				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
+				refetchOnWindowFocus: true // Catch missed events on tab focus
 			}),
 
 		/**
@@ -176,8 +172,7 @@ export const ownerDashboardQueries = {
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true, // Catch missed events on tab focus
-				retry: 2
+				refetchOnWindowFocus: true // Catch missed events on tab focus
 			})
 	},
 
@@ -239,9 +234,7 @@ export const ownerDashboardQueries = {
 					),
 				...QUERY_CACHE_TIMES.DETAIL,
 				// No refetchInterval - data doesn't change frequently
-				refetchOnWindowFocus: false,
-				retry: 2,
-				retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000)
+				refetchOnWindowFocus: false
 			})
 	},
 
@@ -265,8 +258,7 @@ export const ownerDashboardQueries = {
 						unpaidInvoices: number
 					}>('/api/v1/owner/financial/billing/insights'),
 				...QUERY_CACHE_TIMES.ANALYTICS,
-				refetchOnWindowFocus: false,
-				retry: 2
+				refetchOnWindowFocus: false
 			}),
 
 		/**
@@ -281,8 +273,7 @@ export const ownerDashboardQueries = {
 						`/api/v1/owner/financial/revenue-trends?year=${year}`
 					),
 				...QUERY_CACHE_TIMES.ANALYTICS,
-				refetchOnWindowFocus: false,
-				retry: 2
+				refetchOnWindowFocus: false
 			})
 	},
 
@@ -309,8 +300,7 @@ export const ownerDashboardQueries = {
 				...QUERY_CACHE_TIMES.STATS,
 				refetchInterval: 2 * 60 * 1000, // 2 min refresh for maintenance updates
 				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: false,
-				retry: 2
+				refetchOnWindowFocus: false
 			})
 	},
 
@@ -334,8 +324,7 @@ export const ownerDashboardQueries = {
 						expiringLeases: number
 					}>('/api/v1/owner/tenants/occupancy-trends'),
 				...QUERY_CACHE_TIMES.LIST,
-				refetchOnWindowFocus: false,
-				retry: 2
+				refetchOnWindowFocus: false
 			})
 	}
 }
@@ -426,8 +415,6 @@ const DASHBOARD_BASE_QUERY_OPTIONS = {
 	...QUERY_CACHE_TIMES.STATS,
 	refetchIntervalInBackground: false,
 	refetchOnWindowFocus: false,
-	retry: 2,
-	retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 5000),
 	structuralSharing: true
 } as const
 
@@ -576,29 +563,11 @@ export function usePropertyPerformance() {
 }
 
 // ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
-/**
- * Prefetch all dashboard data sections
- * Call on hover or route prefetch
- */
-export function usePrefetchDashboard() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		// Prefetch unified dashboard payload (rest derives from this)
-		queryClient.prefetchQuery(DASHBOARD_BASE_QUERY_OPTIONS)
-	}
-}
-
-// ============================================================================
-// REPORTS HOOKS (Legacy compatibility)
+// REPORTS HOOKS
 // ============================================================================
 
 /**
  * Get time series data for charts
- * Re-exports for backward compatibility with use-dashboard-trends.ts
  */
 export function useOwnerTimeSeries(options: DashboardTimeSeriesOptions) {
 	return useQuery(ownerDashboardQueries.reports.timeSeries(options))
@@ -606,7 +575,6 @@ export function useOwnerTimeSeries(options: DashboardTimeSeriesOptions) {
 
 /**
  * Get trend data for a specific metric
- * Re-exports for backward compatibility with use-dashboard-trends.ts
  */
 export function useOwnerMetricTrend(
 	metric: string,
@@ -674,8 +642,6 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		// Financial/analytics data changes infrequently - no interval needed
 		...QUERY_CACHE_TIMES.ANALYTICS,
 		refetchOnWindowFocus: false,
-		retry: 2,
-		retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 5000),
 		structuralSharing: true
 	})
 }

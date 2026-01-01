@@ -8,17 +8,17 @@ import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Mock the hooks
-vi.mock('#hooks/api/use-payment-methods', () => ({
+vi.mock('#hooks/api/use-payments', () => ({
 	usePaymentMethods: () => ({
 		data: [],
 		isLoading: false,
 		refetch: vi.fn()
 	}),
-	useSetDefaultPaymentMethod: () => ({
+	useSetDefaultPaymentMethodMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
-	useDeletePaymentMethod: () => ({
+	useDeletePaymentMethodMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	})
@@ -33,11 +33,11 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
-	useCreateConnectedAccount: () => ({
+	useCreateConnectedAccountMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
-	useRefreshOnboarding: () => ({
+	useRefreshOnboardingMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	})

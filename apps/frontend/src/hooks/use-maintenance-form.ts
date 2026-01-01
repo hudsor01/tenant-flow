@@ -9,7 +9,7 @@ import type {
 	MaintenanceRequest,
 	MaintenancePriority
 } from '@repo/shared/types/core'
-import type { MaintenanceUpdateMutationVariables } from '#hooks/api/mutations/maintenance-mutations'
+import type { MaintenanceUpdateMutationVariables } from '#hooks/api/use-maintenance'
 
 const logger = createLogger({ component: 'MaintenanceFormHook' })
 

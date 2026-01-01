@@ -16,11 +16,11 @@ import { vi } from 'vitest'
 
 // Mock hooks
 vi.mock('#hooks/api/use-maintenance', () => ({
-	useMaintenanceRequestCreate: () => ({
+	useMaintenanceRequestCreateMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-request-id' }),
 		isPending: false
 	}),
-	useMaintenanceRequestUpdate: () => ({
+	useMaintenanceRequestUpdateMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'request-1' }),
 		isPending: false
 	}),

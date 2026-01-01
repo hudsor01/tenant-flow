@@ -8,7 +8,7 @@
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { LeaseSignatureStatus } from '../lease-signature-status'
-import type { SignatureStatus } from '#hooks/api/use-lease'
+import type { SignatureStatus } from '#hooks/api/query-keys/lease-keys'
 import { vi } from 'vitest'
 
 // Mock the hook

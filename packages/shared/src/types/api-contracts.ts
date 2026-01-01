@@ -20,6 +20,91 @@ import type { Tables, TablesInsert, TablesUpdate } from './supabase.js'
 import type { TenantCreate, TenantUpdate } from '../validation/tenants.js'
 
 // =============================================================================
+// USER PROFILE TYPES
+// =============================================================================
+
+/**
+ * Tenant-specific profile data within a UserProfile response
+ * Used for displaying tenant info in the user profile view
+ */
+export interface UserProfileTenantData {
+	date_of_birth: string | null
+	emergency_contact_name: string | null
+	emergency_contact_phone: string | null
+	emergency_contact_relationship: string | null
+	identity_verified: boolean | null
+	current_lease?: {
+		property_name: string
+		unit_number: string
+		move_in_date: string
+	} | null
+}
+
+/**
+ * Owner-specific profile data within a UserProfile response
+ * Used for displaying owner info in the user profile view
+ */
+export interface UserProfileOwnerData {
+	stripe_connected: boolean
+	properties_count: number
+	units_count: number
+}
+
+/**
+ * User profile response from /api/v1/users/profile
+ * Includes base user info and role-specific nested data
+ */
+export interface UserProfile {
+	id: string
+	email: string
+	first_name: string | null
+	last_name: string | null
+	full_name: string
+	phone: string | null
+	avatar_url: string | null
+	user_type: 'owner' | 'tenant' | 'manager' | 'admin'
+	status: string
+	created_at: string
+	updated_at: string | null
+	tenant_profile?: UserProfileTenantData
+	owner_profile?: UserProfileOwnerData
+}
+
+/**
+ * Input for updating user profile (name, email, phone)
+ */
+export interface UpdateProfileInput {
+	first_name: string
+	last_name: string
+	email: string
+	phone?: string | null
+}
+
+/**
+ * Input for updating phone number
+ */
+export interface UpdatePhoneInput {
+	phone: string | null
+}
+
+/**
+ * Input for updating emergency contact (all fields required)
+ * Different from UpdateEmergencyContactInput which has optional fields
+ */
+export interface SetEmergencyContactInput {
+	name: string
+	phone: string
+	relationship: string
+}
+
+/**
+ * Response from avatar upload endpoint
+ */
+export interface AvatarUploadResponse {
+	avatar_url: string
+}
+
+// =============================================================================
 // PROPERTY RESPONSE TYPES
 // =============================================================================
 
@@ -308,13 +393,70 @@ export interface PaymentHistoryItem {
 	period_end: string
 }
 
+// =============================================================================
+// BILLING & INVOICE TYPES
+// =============================================================================
+
+/**
+ * Invoice response from Stripe API
+ */
+export interface StripeInvoice {
+	id: string
+	amount_paid: number
+	status: string
+	created: number
+	invoice_pdf: string | null
+	hosted_invoice_url: string | null
+	currency: string
+	description: string | null
+}
+
+/**
+ * Billing history item for rent payment tracking
+ * Used in billing history views and payment history cards
+ */
+export interface BillingHistoryItem {
+	id: string
+	subscriptionId: string
+	tenant_id: string
+	amount: number
+	currency: string
+	status: 'succeeded' | 'failed' | 'pending' | 'cancelled'
+	stripePaymentIntentId?: string
+	description?: string
+	metadata?: Record<string, unknown>
+	created_at: string
+	updated_at: string
+	formattedAmount: string
+	formattedDate: string
+	isSuccessful: boolean
+	failureReason?: string
+}
+
+/**
+ * Subscription status response from Stripe API
+ */
+export interface SubscriptionStatusResponse {
+	subscriptionStatus: 'active' | 'trialing' | 'cancelled' | 'past_due' | null
+	stripeCustomerId: string | null
+}
+
+/**
+ * Failed payment attempt response from rent-payments API
+ * Shape matches the API response from /api/v1/rent-payments/failed-attempts
+ */
 export interface FailedPaymentAttempt {
 	id: string
-	payment_id: string
-	attempt_count: number
-	last_error: string
-	last_attempted_at: string
-	status: string
+	subscriptionId: string
+	tenant_id: string
+	amount: number
+	failureReason: string | null
+	stripePaymentIntentId?: string
+	created_at: string
+	/** Optional: attempt number for retry tracking (may not be provided by API) */
+	attemptNumber?: number
+	/** Optional: next retry date for failed payments (may not be provided by API) */
+	nextRetryDate?: string
 }
 
 export interface TenantPayment {

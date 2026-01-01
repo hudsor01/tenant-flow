@@ -36,7 +36,7 @@ const mockSignOutMutation = { mutate: vi.fn() }
 
 vi.mock('#hooks/api/use-auth', () => ({
 	useSupabaseUser: () => ({ data: mockUser }),
-	useSignOut: () => mockSignOutMutation
+	useSignOutMutation: () => mockSignOutMutation
 }))
 
 // Mock TenantNav component

@@ -17,7 +17,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 const mockUseTenantPaymentsHistory = vi.fn()
 const mockUseTenantAutopayStatus = vi.fn()
 
-vi.mock('#hooks/api/use-rent-payments', () => ({
+vi.mock('#hooks/api/use-payments', () => ({
 	useTenantPaymentsHistory: () => mockUseTenantPaymentsHistory()
 }))
 

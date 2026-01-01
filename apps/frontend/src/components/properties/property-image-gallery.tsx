@@ -6,7 +6,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	usePropertyImages,
 	useDeletePropertyImageMutation
-} from '#hooks/api/mutations/property-mutations'
+} from '#hooks/api/use-properties'
 import { useLightboxState } from '#hooks/use-lightbox-state'
 import { ImageLightbox } from './image-lightbox'
 import {

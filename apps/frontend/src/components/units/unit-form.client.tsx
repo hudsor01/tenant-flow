@@ -18,9 +18,9 @@ import {
 import {
 	useCreateUnitMutation,
 	useUpdateUnitMutation
-} from '#hooks/api/mutations/unit-mutations'
-import { propertyQueries } from '#hooks/api/use-properties'
-import { unitQueries } from '#hooks/api/use-unit'
+} from '#hooks/api/use-unit'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import type { Unit } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

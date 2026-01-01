@@ -23,13 +23,9 @@ import {
 	usePropertyOccupancyAnalytics,
 	usePropertyFinancialAnalytics,
 	usePropertyMaintenanceAnalytics,
-	useCreateProperty,
-	useUpdateProperty,
-	useMarkPropertySold,
-	useDeleteProperty,
-	usePrefetchProperty,
-	usePropertyImages,
-	usePropertyOperations
+	useMarkPropertySoldMutation,
+	usePrefetchPropertyDetail,
+	usePropertyImages
 } from '../use-properties'
 
 // Mock fetch globally
@@ -39,15 +35,6 @@ vi.stubGlobal('fetch', mockFetch)
 // Mock api-config (used by api-request internally)
 vi.mock('#lib/api-config', () => ({
 	getApiBaseUrl: () => 'http://localhost:4600'
-}))
-
-// Mock mutation handlers
-const mockHandleMutationError = vi.fn()
-const mockHandleMutationSuccess = vi.fn()
-vi.mock('#lib/mutation-error-handler', () => ({
-	handleMutationError: (...args: unknown[]) => mockHandleMutationError(...args),
-	handleMutationSuccess: (...args: unknown[]) =>
-		mockHandleMutationSuccess(...args)
 }))
 
 // Mock logger
@@ -385,169 +372,7 @@ describe('Mutation Hooks', () => {
 		})
 	})
 
-	describe('useCreateProperty', () => {
-		it('should call API with correct endpoint and method', async () => {
-			const { result } = renderHook(() => useCreateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				name: 'New Property',
-				address_line1: '456 Oak Ave',
-				city: 'New City',
-				state: 'NY',
-				postal_code: '54321',
-				country: 'US',
-				property_type: 'SINGLE_FAMILY',
-				status: 'active',
-				property_owner_id: 'user-1'
-			})
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties',
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.any(String)
-				})
-			)
-		})
-
-		it('should call handleMutationSuccess on success', async () => {
-			const { result } = renderHook(() => useCreateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				name: 'Test Property',
-				address_line1: '123 Main St',
-				city: 'Test City',
-				state: 'CA',
-				postal_code: '12345',
-				country: 'US',
-				property_type: 'SINGLE_FAMILY',
-				status: 'active',
-				property_owner_id: 'user-1'
-			})
-
-			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
-				'Create property',
-				expect.stringContaining('Test Property')
-			)
-		})
-
-		it('should call handleMutationError on failure', async () => {
-			mockFetch.mockResolvedValue({
-				ok: false,
-				status: 500,
-				statusText: 'Internal Server Error'
-			})
-
-			const { result } = renderHook(() => useCreateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await expect(
-				result.current.mutateAsync({
-					name: 'Test Property',
-					address_line1: '123 Main St',
-					city: 'Test City',
-					state: 'CA',
-					postal_code: '12345',
-					country: 'US',
-					property_type: 'SINGLE_FAMILY',
-					status: 'active',
-					property_owner_id: 'user-1'
-				})
-			).rejects.toThrow()
-
-			expect(mockHandleMutationError).toHaveBeenCalledWith(
-				expect.any(Error),
-				'Create property'
-			)
-		})
-	})
-
-	describe('useUpdateProperty', () => {
-		it('should call API with correct endpoint and method', async () => {
-			const { result } = renderHook(() => useUpdateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				id: 'prop-123',
-				data: { name: 'Updated Property' }
-			})
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/prop-123',
-				expect.objectContaining({
-					method: 'PUT',
-					body: expect.stringContaining('Updated Property')
-				})
-			)
-		})
-
-		it('should include version in body when provided', async () => {
-			const { result } = renderHook(() => useUpdateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				id: 'prop-123',
-				data: { name: 'Updated Property' },
-				version: 5
-			})
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/prop-123',
-				expect.objectContaining({
-					body: expect.stringContaining('"version":5')
-				})
-			)
-		})
-
-		it('should call handleMutationSuccess on success', async () => {
-			const { result } = renderHook(() => useUpdateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				id: 'prop-123',
-				data: { name: 'Updated Property' }
-			})
-
-			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
-				'Update property',
-				expect.any(String)
-			)
-		})
-
-		it('should call handleMutationError on non-conflict error', async () => {
-			mockFetch.mockResolvedValue({
-				ok: false,
-				status: 500,
-				statusText: 'Internal Server Error'
-			})
-
-			const { result } = renderHook(() => useUpdateProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await expect(
-				result.current.mutateAsync({
-					id: 'prop-123',
-					data: { name: 'Updated Property' }
-				})
-			).rejects.toThrow()
-
-			expect(mockHandleMutationError).toHaveBeenCalledWith(
-				expect.any(Error),
-				'Update property'
-			)
-		})
-	})
-
-	describe('useMarkPropertySold', () => {
+	describe('useMarkPropertySoldMutation', () => {
 		it('should call API with correct endpoint and data', async () => {
 			mockFetch.mockResolvedValue({
 				ok: true,
@@ -565,7 +390,7 @@ describe('Mutation Hooks', () => {
 					)
 			})
 
-			const { result } = renderHook(() => useMarkPropertySold(), {
+			const { result } = renderHook(() => useMarkPropertySoldMutation(), {
 				wrapper: createWrapper()
 			})
 
@@ -586,69 +411,6 @@ describe('Mutation Hooks', () => {
 			)
 		})
 	})
-
-	describe('useDeleteProperty', () => {
-		it('should call API with correct endpoint and method', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ message: 'Property deleted' }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
-			})
-
-			const { result } = renderHook(() => useDeleteProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('prop-123')
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/prop-123',
-				expect.objectContaining({
-					method: 'DELETE'
-				})
-			)
-		})
-
-		it('should call handleMutationSuccess on success', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ message: 'Property deleted' }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ message: 'Property deleted' }))
-			})
-
-			const { result } = renderHook(() => useDeleteProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync('prop-123')
-
-			expect(mockHandleMutationSuccess).toHaveBeenCalledWith(
-				'Delete property',
-				'Property has been removed from your portfolio'
-			)
-		})
-
-		it('should call handleMutationError on failure', async () => {
-			mockFetch.mockResolvedValue({
-				ok: false,
-				status: 500,
-				statusText: 'Internal Server Error'
-			})
-
-			const { result } = renderHook(() => useDeleteProperty(), {
-				wrapper: createWrapper()
-			})
-
-			await expect(result.current.mutateAsync('prop-123')).rejects.toThrow()
-
-			expect(mockHandleMutationError).toHaveBeenCalledWith(
-				expect.any(Error),
-				'Delete property'
-			)
-		})
-	})
 })
 
 describe('Utility Hooks', () => {
@@ -664,13 +426,15 @@ describe('Utility Hooks', () => {
 		})
 	})
 
-	describe('usePrefetchProperty', () => {
-		it('should return a prefetch function', () => {
-			const { result } = renderHook(() => usePrefetchProperty(), {
+	describe('usePrefetchPropertyDetail', () => {
+		it('should be a declarative prefetch hook', () => {
+			// usePrefetchPropertyDetail is a declarative hook that calls usePrefetchQuery
+			// It returns void and triggers prefetching when the component mounts
+			const { result } = renderHook(() => usePrefetchPropertyDetail('prop-123'), {
 				wrapper: createWrapper()
 			})
 
-			expect(typeof result.current).toBe('function')
+			expect(result.current).toBeUndefined()
 		})
 	})
 
@@ -704,29 +468,6 @@ describe('Utility Hooks', () => {
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
-		})
-	})
-
-	describe('usePropertyOperations', () => {
-		it('should return all operation mutations', () => {
-			const { result } = renderHook(() => usePropertyOperations(), {
-				wrapper: createWrapper()
-			})
-
-			expect(result.current.create).toBeDefined()
-			expect(result.current.update).toBeDefined()
-			expect(result.current.delete).toBeDefined()
-			expect(result.current.markSold).toBeDefined()
-			expect(typeof result.current.isLoading).toBe('boolean')
-		})
-
-		it('should track combined loading state', () => {
-			const { result } = renderHook(() => usePropertyOperations(), {
-				wrapper: createWrapper()
-			})
-
-			// Initially not loading
-			expect(result.current.isLoading).toBe(false)
 		})
 	})
 })

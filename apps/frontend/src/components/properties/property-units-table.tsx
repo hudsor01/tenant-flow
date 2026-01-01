@@ -30,8 +30,8 @@ import {
 	AlertDialogTitle
 } from '#components/ui/dialog'
 import { Skeleton } from '#components/ui/skeleton'
-import { unitQueries } from '#hooks/api/use-unit'
-import { useDeleteUnitMutation } from '#hooks/api/mutations/unit-mutations'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
+import { useDeleteUnitMutation } from '#hooks/api/use-unit'
 import type { Unit, UnitStatus } from '@repo/shared/types/core'
 import { useQuery } from '@tanstack/react-query'
 import {

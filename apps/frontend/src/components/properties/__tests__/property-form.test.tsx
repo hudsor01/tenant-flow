@@ -15,7 +15,7 @@ import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 
 // Mock hooks
-vi.mock('#hooks/api/mutations/property-mutations', () => ({
+vi.mock('#hooks/api/use-properties', () => ({
 	useCreatePropertyMutation: () => ({
 		mutateAsync: vi.fn().mockResolvedValue({ id: 'new-property-id' }),
 		isPending: false

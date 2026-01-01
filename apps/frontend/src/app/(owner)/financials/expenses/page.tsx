@@ -47,8 +47,8 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { Button } from '#components/ui/button'
-import { useExpenses, type Expense } from '#hooks/api/use-expenses'
-import { useExpenseSummary } from '#hooks/api/use-financial-overview'
+import { useExpenses, type Expense } from '#hooks/api/use-financials'
+import { useExpenseSummary } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 const EXPENSE_CATEGORIES = [

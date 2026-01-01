@@ -11,7 +11,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
-import { useChangePassword } from '#hooks/api/use-auth'
+import { useChangePasswordMutation } from '#hooks/api/use-auth'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
@@ -25,7 +25,7 @@ export function ChangePasswordDialog({
 	open,
 	onOpenChange
 }: ChangePasswordDialogProps) {
-	const changePassword = useChangePassword()
+	const changePassword = useChangePasswordMutation()
 
 	const [formData, setFormData] = useState({
 		currentPassword: '',

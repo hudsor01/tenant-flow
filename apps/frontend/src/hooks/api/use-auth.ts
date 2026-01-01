@@ -26,6 +26,7 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { mutationKeys } from './mutation-keys'
 
 // Create browser client for authentication
 const supabase = createClient()
@@ -35,9 +36,10 @@ const supabase = createClient()
 // ============================================================================
 
 /**
- * User type with Stripe integration (from database)
+ * User type with Stripe integration (from database /api/v1/users/me endpoint)
+ * Distinct from AuthUser in shared types which is the Supabase auth user
  */
-export interface AuthUser {
+export interface UserWithStripe {
 	id: string
 	email: string
 	stripe_customer_id: string | null
@@ -66,9 +68,6 @@ export const authKeys = {
 }
 
 export const supabaseAuthKeys = authKeys.supabase
-
-// Legacy alias for backward compatibility
-export const authQueryKeys = authKeys
 
 // ============================================================================
 // QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
@@ -100,8 +99,7 @@ export const authQueries = {
 	user: () =>
 		queryOptions({
 			queryKey: authKeys.me,
-			queryFn: () => apiRequest<AuthUser>('/api/v1/users/me'),
-			retry: 1,
+			queryFn: () => apiRequest<UserWithStripe>('/api/v1/users/me'),
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
@@ -120,7 +118,6 @@ export const authQueries = {
 				if (error) throw error
 				return user
 			},
-			retry: 1,
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
@@ -279,10 +276,11 @@ export function useSupabaseUser() {
 /**
  * Sign out mutation with comprehensive cache clearing
  */
-export function useSignOut() {
+export function useSignOutMutation() {
 	const { clearAuthData } = useAuthCacheUtils()
 
 	return useMutation({
+		mutationKey: mutationKeys.auth.logout,
 		mutationFn: async () => {
 			const { error } = await supabase.auth.signOut()
 			if (error) throw error
@@ -308,11 +306,12 @@ export function useSignOut() {
 /**
  * Login mutation
  */
-export function useSupabaseLogin() {
+export function useSupabaseLoginMutation() {
 	const queryClient = useQueryClient()
 	const router = useRouter()
 
 	return useMutation({
+		mutationKey: mutationKeys.auth.login,
 		mutationFn: async (credentials: LoginCredentials) => {
 			const { data, error } = await supabase.auth.signInWithPassword({
 				email: credentials.email,
@@ -339,11 +338,12 @@ export function useSupabaseLogin() {
 /**
  * Signup mutation
  */
-export function useSupabaseSignup() {
+export function useSupabaseSignupMutation() {
 	const queryClient = useQueryClient()
 	const router = useRouter()
 
 	return useMutation({
+		mutationKey: mutationKeys.auth.signup,
 		mutationFn: async (data: SignupFormData) => {
 			const { email, password, firstName, lastName, company } = data
 
@@ -385,8 +385,9 @@ export function useSupabaseSignup() {
 /**
  * Password reset request mutation
  */
-export function useSupabasePasswordReset() {
+export function useSupabasePasswordResetMutation() {
 	return useMutation({
+		mutationKey: mutationKeys.auth.resetPassword,
 		mutationFn: async (email: string) => {
 			const { error } = await supabase.auth.resetPasswordForEmail(email, {
 				redirectTo: `${window.location.origin}/auth/reset-password`
@@ -405,10 +406,11 @@ export function useSupabasePasswordReset() {
 /**
  * Update user profile mutation
  */
-export function useSupabaseUpdateProfile() {
+export function useSupabaseUpdateProfileMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.auth.updateProfile,
 		mutationFn: async (updates: {
 			first_name?: string
 			last_name?: string
@@ -432,8 +434,9 @@ export function useSupabaseUpdateProfile() {
 /**
  * Change password mutation
  */
-export function useChangePassword() {
+export function useChangePasswordMutation() {
 	return useMutation({
+		mutationKey: mutationKeys.auth.updatePassword,
 		mutationFn: async ({
 			currentPassword,
 			newPassword
@@ -480,50 +483,3 @@ export function useChangePassword() {
 	})
 }
 
-// ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
-/**
- * Hook for prefetching auth session
- */
-export function usePrefetchAuthSession() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(authQueries.session())
-	}
-}
-
-/**
- * Hook for prefetching current user (with Stripe data)
- */
-export function usePrefetchUser() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(authQueries.user())
-	}
-}
-
-/**
- * Hook for prefetching Supabase user
- */
-export function usePrefetchSupabaseUser() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(authQueries.supabaseUser())
-	}
-}
-
-/**
- * Hook for prefetching Supabase session
- */
-export function usePrefetchSupabaseSession() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(authQueries.supabaseSession())
-	}
-}

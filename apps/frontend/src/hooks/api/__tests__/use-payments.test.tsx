@@ -9,9 +9,9 @@ import {
 	usePaymentAnalytics,
 	useUpcomingPayments,
 	useOverduePayments,
-	useRecordManualPayment,
-	useExportPayments
-} from '../use-rent-collection'
+	useRecordManualPaymentMutation,
+	useExportPaymentsMutation
+} from '../use-payments'
 import * as apiRequest from '#lib/api-request'
 import type { ReactNode } from 'react'
 
@@ -161,7 +161,7 @@ describe('Payment Hooks', () => {
 		})
 	})
 
-	describe('useRecordManualPayment', () => {
+	describe('useRecordManualPaymentMutation', () => {
 		it('should record manual payment successfully', async () => {
 			const mockPayment = {
 				id: 'p1',
@@ -174,7 +174,7 @@ describe('Payment Hooks', () => {
 				payment: mockPayment
 			})
 
-			const { result } = renderHook(() => useRecordManualPayment(), {
+			const { result } = renderHook(() => useRecordManualPaymentMutation(), {
 				wrapper: createWrapper()
 			})
 
@@ -196,7 +196,7 @@ describe('Payment Hooks', () => {
 		})
 	})
 
-	describe('useExportPayments', () => {
+	describe('useExportPaymentsMutation', () => {
 		it('should call export API with correct URL', async () => {
 			const mockBlob = new Blob(['csv,content'], { type: 'text/csv' })
 			const mockResponse = {
@@ -213,7 +213,7 @@ describe('Payment Hooks', () => {
 			URL.createObjectURL = vi.fn().mockReturnValue('blob:test-url')
 			URL.revokeObjectURL = vi.fn()
 
-			const { result } = renderHook(() => useExportPayments(), {
+			const { result } = renderHook(() => useExportPaymentsMutation(), {
 				wrapper: createWrapper()
 			})
 
@@ -243,7 +243,7 @@ describe('Payment Hooks', () => {
 			URL.createObjectURL = vi.fn().mockReturnValue('blob:test-url')
 			URL.revokeObjectURL = vi.fn()
 
-			const { result } = renderHook(() => useExportPayments(), {
+			const { result } = renderHook(() => useExportPaymentsMutation(), {
 				wrapper: createWrapper()
 			})
 

@@ -41,8 +41,8 @@ import {
 } from '#components/ui/select'
 import {
 	useConnectedAccount,
-	useCreateConnectedAccount,
-	useRefreshOnboarding
+	useCreateConnectedAccountMutation,
+	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Spinner } from '#components/ui/loading-spinner'
@@ -65,8 +65,8 @@ function ConnectOnboardingDialog({
 	)
 	const [country, setCountry] = useState('US')
 
-	const createAccount = useCreateConnectedAccount()
-	const refreshOnboarding = useRefreshOnboarding()
+	const createAccount = useCreateConnectedAccountMutation()
+	const refreshOnboarding = useRefreshOnboardingMutation()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -241,7 +241,7 @@ function ConnectOnboardingDialog({
 
 export default function BillingPage() {
 	const { data: account, isLoading, error } = useConnectedAccount()
-	const refreshOnboarding = useRefreshOnboarding()
+	const refreshOnboarding = useRefreshOnboardingMutation()
 	const [showOnboarding, setShowOnboarding] = useState(false)
 
 	const handleRefreshOnboarding = async () => {

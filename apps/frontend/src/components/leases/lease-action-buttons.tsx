@@ -45,7 +45,7 @@ import {
 	Trash2,
 	X
 } from 'lucide-react'
-import { useDeleteLease, useSignLeaseAsOwner } from '#hooks/api/use-lease'
+import { useDeleteLeaseOptimisticMutation, useSignLeaseAsOwnerMutation } from '#hooks/api/use-lease'
 import { toast } from 'sonner'
 
 interface LeaseActionButtonsProps {
@@ -53,13 +53,13 @@ interface LeaseActionButtonsProps {
 }
 
 export function LeaseActionButtons({ lease }: LeaseActionButtonsProps) {
-	const signAsOwner = useSignLeaseAsOwner()
+	const signAsOwner = useSignLeaseAsOwnerMutation()
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 	const [showViewDialog, setShowViewDialog] = useState(false)
 	const [showPayRentDialog, setShowPayRentDialog] = useState(false)
 	const [showRenewDialog, setShowRenewDialog] = useState(false)
 	const [showTerminateDialog, setShowTerminateDialog] = useState(false)
-	const deleteLease = useDeleteLease({
+	const deleteLease = useDeleteLeaseOptimisticMutation({
 		onSuccess: () => {
 			toast.success('Lease deleted successfully')
 			setShowDeleteDialog(false)

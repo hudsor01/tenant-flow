@@ -7,6 +7,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -82,8 +83,7 @@ export const emergencyContactQueries = {
 					`/api/v1/tenants/${tenant_id}/emergency-contact`
 				),
 			enabled: !!tenant_id,
-			...QUERY_CACHE_TIMES.DETAIL,
-			retry: 2
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
 
@@ -110,6 +110,7 @@ export function useCreateEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.emergencyContact.create,
 		mutationFn: (input: Omit<CreateEmergencyContactInput, 'tenant_id'>) =>
 			apiRequest<EmergencyContact>(
 				`/api/v1/tenants/${tenant_id}/emergency-contact`,
@@ -179,6 +180,7 @@ export function useUpdateEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.emergencyContact.update,
 		mutationFn: (input: UpdateEmergencyContactInput) =>
 			apiRequest<EmergencyContact>(
 				`/api/v1/tenants/${tenant_id}/emergency-contact`,
@@ -247,6 +249,7 @@ export function useDeleteEmergencyContact(tenant_id: string) {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.emergencyContact.delete,
 		mutationFn: () =>
 			apiRequest<{ success: boolean; message: string }>(
 				`/api/v1/tenants/${tenant_id}/emergency-contact`,
@@ -301,17 +304,3 @@ export function useDeleteEmergencyContact(tenant_id: string) {
 	})
 }
 
-// ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
-/**
- * Hook for prefetching emergency contact
- */
-export function usePrefetchEmergencyContact() {
-	const queryClient = useQueryClient()
-
-	return (tenant_id: string) => {
-		queryClient.prefetchQuery(emergencyContactQueries.contact(tenant_id))
-	}
-}

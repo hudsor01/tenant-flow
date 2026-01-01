@@ -6,6 +6,7 @@ import { apiRequest } from '#lib/api-request'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { mutationKeys } from './mutation-keys'
 import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe'
 
 interface CreateConnectAccountRequest {
@@ -48,7 +49,6 @@ export function useConnectedAccount() {
 			return response.data
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 1, // Don't retry much - 404 is expected for new owners
 		retryOnMount: false
 	})
 }
@@ -56,10 +56,11 @@ export function useConnectedAccount() {
 /**
  * Hook to create a new Stripe Connect account
  */
-export function useCreateConnectedAccount() {
+export function useCreateConnectedAccountMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.stripeConnect.createAccount,
 		mutationFn: async (
 			request: CreateConnectAccountRequest
 		): Promise<ConnectAccountResponse> => {
@@ -78,8 +79,9 @@ export function useCreateConnectedAccount() {
 /**
  * Hook to refresh onboarding link for existing account
  */
-export function useRefreshOnboarding() {
+export function useRefreshOnboardingMutation() {
 	return useMutation({
+		mutationKey: mutationKeys.stripeConnect.refreshLink,
 		mutationFn: async (): Promise<OnboardingUrlResponse> => {
 			return apiRequest<OnboardingUrlResponse>(
 				'/api/v1/stripe/connect/refresh-link',
@@ -89,26 +91,6 @@ export function useRefreshOnboarding() {
 			)
 		}
 	})
-}
-
-/**
- * Hook for prefetching connected account
- */
-export function usePrefetchConnectedAccount() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery({
-			queryKey: stripeConnectKeys.account(),
-			queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
-				const response = await apiRequest<ConnectAccountResponse>(
-					'/api/v1/stripe/connect/account'
-				)
-				return response.data
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		})
-	}
 }
 
 // ============================================
@@ -186,8 +168,7 @@ export function useConnectedAccountBalance() {
 			)
 			return response.balance
 		},
-		...QUERY_CACHE_TIMES.STATS, // 1 minute cache for financial data
-		retry: 1
+		...QUERY_CACHE_TIMES.STATS // 1 minute cache for financial data
 	})
 }
 
@@ -211,8 +192,7 @@ export function useConnectedAccountPayouts(params?: {
 			)
 			return { payouts: response.payouts, hasMore: response.hasMore }
 		},
-		...QUERY_CACHE_TIMES.LIST,
-		retry: 1
+		...QUERY_CACHE_TIMES.LIST
 	})
 }
 
@@ -236,7 +216,6 @@ export function useConnectedAccountTransfers(params?: {
 			)
 			return { transfers: response.transfers, hasMore: response.hasMore }
 		},
-		...QUERY_CACHE_TIMES.LIST,
-		retry: 1
+		...QUERY_CACHE_TIMES.LIST
 	})
 }

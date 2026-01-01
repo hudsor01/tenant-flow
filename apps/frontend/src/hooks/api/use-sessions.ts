@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleMutationError,
@@ -33,15 +34,15 @@ export function useUserSessions() {
 			apiRequest<SessionsResponse>('/api/v1/users/sessions').then(
 				res => res.sessions
 			),
-		...QUERY_CACHE_TIMES.DETAIL,
-		retry: 2
+		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
-export function useRevokeSession() {
+export function useRevokeSessionMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.sessions.revoke,
 		mutationFn: (sessionId: string) =>
 			apiRequest<{ success: boolean; message: string }>(
 				`/api/v1/users/sessions/${sessionId}`,

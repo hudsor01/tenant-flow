@@ -16,7 +16,7 @@ import {
 	InputOTPSlot,
 	InputOTPSeparator
 } from '#components/ui/input-otp'
-import { useMfaEnroll, useMfaVerify, useMfaUnenroll } from '#hooks/api/use-mfa'
+import { useMfaEnrollMutation, useMfaVerifyMutation, useMfaUnenrollMutation } from '#hooks/api/use-mfa'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import { CheckCircle2, Copy, Loader2, Shield, ShieldOff } from 'lucide-react'
 import { useState, useEffect } from 'react'
@@ -35,8 +35,8 @@ export function TwoFactorSetupDialog({
 	onOpenChange,
 	onSuccess
 }: TwoFactorSetupDialogProps) {
-	const enrollMfa = useMfaEnroll()
-	const verifyMfa = useMfaVerify()
+	const enrollMfa = useMfaEnrollMutation()
+	const verifyMfa = useMfaVerifyMutation()
 
 	const [step, setStep] = useState<SetupStep>('qr')
 	const [verifyCode, setVerifyCode] = useState('')
@@ -307,7 +307,7 @@ export function DisableTwoFactorDialog({
 	factorId,
 	onSuccess
 }: DisableTwoFactorDialogProps) {
-	const unenrollMfa = useMfaUnenroll()
+	const unenrollMfa = useMfaUnenrollMutation()
 
 	const handleDisable = async () => {
 		try {

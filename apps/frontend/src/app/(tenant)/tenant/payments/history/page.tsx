@@ -14,11 +14,9 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { PaymentHistoryCard } from '#components/payments/payment-history-card'
-import {
-	type BillingHistoryItem,
-	useBillingHistory
-} from '#hooks/api/use-billing-history'
-import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+import { useBillingHistory } from '#hooks/api/use-billing'
+import type { BillingHistoryItem } from '@repo/shared/types/api-contracts'
+import { usePaymentMethods } from '#hooks/api/use-payments'
 import { useMediaQuery } from '#hooks/use-media-query'
 import { formatCurrency } from '#lib/formatters/currency'
 import { Calendar, CreditCard, DollarSign, Download } from 'lucide-react'

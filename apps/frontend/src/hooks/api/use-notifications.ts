@@ -13,6 +13,7 @@ import {
 } from '@tanstack/react-query'
 
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
 	handleMutationError,
@@ -77,10 +78,11 @@ export function useUnreadNotificationsCount() {
 	})
 }
 
-export function useMarkNotificationRead() {
+export function useMarkNotificationReadMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.notifications.markRead,
 		mutationFn: (id: string) =>
 			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}/read`, {
 				method: 'PUT'
@@ -97,10 +99,11 @@ export function useMarkNotificationRead() {
 	})
 }
 
-export function useDeleteNotification() {
+export function useDeleteNotificationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.notifications.delete,
 		mutationFn: (id: string) =>
 			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}`, {
 				method: 'DELETE'
@@ -114,10 +117,11 @@ export function useDeleteNotification() {
 	})
 }
 
-export function useMarkAllNotificationsRead() {
+export function useMarkAllNotificationsReadMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.notifications.markAllRead,
 		mutationFn: () =>
 			apiRequest<{ updated: number }>('/api/v1/notifications/read-all', {
 				method: 'PUT'
@@ -136,10 +140,11 @@ export function useMarkAllNotificationsRead() {
 	})
 }
 
-export function useBulkMarkNotificationsRead() {
+export function useBulkMarkNotificationsReadMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.notifications.markBulkRead,
 		mutationFn: (ids: string[]) =>
 			apiRequest<{ updated: number }>('/api/v1/notifications/bulk-read', {
 				method: 'PUT',
@@ -160,10 +165,11 @@ export function useBulkMarkNotificationsRead() {
 	})
 }
 
-export function useCreateMaintenanceNotification() {
+export function useCreateMaintenanceNotificationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.notifications.createMaintenance,
 		mutationFn: (payload: {
 			user_id: string
 			maintenanceId: string
