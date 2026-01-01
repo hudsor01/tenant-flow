@@ -12,7 +12,7 @@ import {
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { Spinner } from '#components/ui/loading-spinner'
-import { useSupabasePasswordReset } from '#hooks/api/use-auth'
+import { useSupabasePasswordResetMutation } from '#hooks/api/use-auth'
 import { CheckCircle2, Info, Mail } from 'lucide-react'
 import { useState } from 'react'
 
@@ -28,7 +28,7 @@ export function ForgotPasswordModal({
 	const [email, setEmail] = useState('')
 	const [isSubmitted, setIsSubmitted] = useState(false)
 
-	const resetPasswordMutation = useSupabasePasswordReset()
+	const resetPasswordMutation = useSupabasePasswordResetMutation()
 
 	// Reset state when modal closes
 	const handleOpenChange = (open: boolean) => {

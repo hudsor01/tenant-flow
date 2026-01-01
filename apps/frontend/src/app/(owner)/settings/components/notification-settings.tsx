@@ -5,12 +5,12 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	useOwnerNotificationSettings,
-	useUpdateOwnerNotificationSettings
+	useUpdateOwnerNotificationSettingsMutation
 } from '#hooks/api/use-owner-notification-settings'
 
 export function NotificationSettings() {
 	const { data: settings, isLoading } = useOwnerNotificationSettings()
-	const updateSettings = useUpdateOwnerNotificationSettings()
+	const updateSettings = useUpdateOwnerNotificationSettingsMutation()
 
 	const handleChannelToggle = (
 		channel: 'email' | 'sms' | 'push' | 'inApp',

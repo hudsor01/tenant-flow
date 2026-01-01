@@ -4,7 +4,7 @@ import { use } from 'react'
 import { PropertyForm } from '#components/properties/property-form.client'
 import { RouteModal } from '#components/ui/route-modal'
 import { Skeleton } from '#components/ui/skeleton'
-import { propertyQueries } from '#hooks/api/use-properties'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useQuery } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 

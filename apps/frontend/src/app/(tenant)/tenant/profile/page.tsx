@@ -22,11 +22,11 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useSupabaseUpdateProfile } from '#hooks/api/use-auth'
+import { useSupabaseUpdateProfileMutation } from '#hooks/api/use-auth'
 import {
 	useTenantNotificationPreferences,
 	useUpdateTenantNotificationPreferences
-} from '#hooks/api/use-tenant-notification-preferences'
+} from '#hooks/api/use-tenant-portal'
 import {
 	useEmergencyContact,
 	useCreateEmergencyContact,
@@ -50,7 +50,7 @@ export default function TenantProfilePage() {
 	const [showChangePasswordDialog, setShowChangePasswordDialog] =
 		useState(false)
 	const { user, isLoading: authLoading } = useCurrentUser()
-	const updateProfile = useSupabaseUpdateProfile()
+	const updateProfile = useSupabaseUpdateProfileMutation()
 
 	// Notification preferences (get tenant ID from user)
 	const tenant_id = user?.id || ''

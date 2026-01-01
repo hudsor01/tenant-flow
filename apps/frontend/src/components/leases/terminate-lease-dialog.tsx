@@ -10,7 +10,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import { useTerminateLeaseMutation } from '#hooks/api/mutations/lease-mutations'
+import { useTerminateLeaseMutation } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import { toast } from 'sonner'

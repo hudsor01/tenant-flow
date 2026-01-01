@@ -4,7 +4,7 @@ import { use } from 'react'
 import { LeaseForm } from '#components/leases/lease-form'
 import { RouteModal } from '#components/ui/route-modal'
 import { Skeleton } from '#components/ui/skeleton'
-import { leaseQueries } from '#hooks/api/use-lease'
+import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
 import { useQuery } from '@tanstack/react-query'
 import { notFound } from 'next/navigation'
 

@@ -10,10 +10,10 @@ import {
 	useExpenses,
 	useExpensesByProperty,
 	useExpensesByDateRange,
-	useCreateExpense,
-	useDeleteExpense,
+	useCreateExpenseMutation,
+	useDeleteExpenseMutation,
 	expenseKeys
-} from '../use-expenses'
+} from '../use-financials'
 
 // Mock the api-request module
 vi.mock('#lib/api-request', () => ({
@@ -213,17 +213,17 @@ describe('useExpensesByDateRange', () => {
 	})
 })
 
-describe('useCreateExpense', () => {
+describe('useCreateExpenseMutation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
 
 	it('creates a new expense successfully', async () => {
 		const newExpense = {
-			description: 'New repair',
-			category: 'maintenance',
 			amount: 50000,
-			expense_date: '2024-12-25'
+			expense_date: '2024-12-25',
+			maintenance_request_id: 'mr-test-123',
+			vendor_name: 'Test Vendor'
 		}
 
 		const mockResponse = {
@@ -233,7 +233,7 @@ describe('useCreateExpense', () => {
 
 		mockApiRequest.mockResolvedValueOnce(mockResponse)
 
-		const { result } = renderHook(() => useCreateExpense(), {
+		const { result } = renderHook(() => useCreateExpenseMutation(), {
 			wrapper: createWrapper()
 		})
 
@@ -246,7 +246,7 @@ describe('useCreateExpense', () => {
 	})
 })
 
-describe('useDeleteExpense', () => {
+describe('useDeleteExpenseMutation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -254,7 +254,7 @@ describe('useDeleteExpense', () => {
 	it('deletes an expense successfully', async () => {
 		mockApiRequest.mockResolvedValueOnce(undefined)
 
-		const { result } = renderHook(() => useDeleteExpense(), {
+		const { result } = renderHook(() => useDeleteExpenseMutation(), {
 			wrapper: createWrapper()
 		})
 

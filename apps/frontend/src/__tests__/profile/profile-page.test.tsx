@@ -89,27 +89,27 @@ vi.mock('#hooks/api/use-profile', () => ({
 		isLoading: false,
 		error: null
 	}),
-	useUpdateProfile: () => ({
+	useUpdateProfileMutation: () => ({
 		mutateAsync: mockUpdateProfile,
 		isPending: false
 	}),
-	useUploadAvatar: () => ({
+	useUploadAvatarMutation: () => ({
 		mutateAsync: mockUploadAvatar,
 		isPending: false
 	}),
-	useRemoveAvatar: () => ({
+	useRemoveAvatarMutation: () => ({
 		mutateAsync: mockRemoveAvatar,
 		isPending: false
 	}),
-	useUpdatePhone: () => ({
+	useUpdatePhoneMutation: () => ({
 		mutateAsync: mockUpdatePhone,
 		isPending: false
 	}),
-	useUpdateProfileEmergencyContact: () => ({
+	useUpdateProfileEmergencyContactMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
-	useRemoveProfileEmergencyContact: () => ({
+	useRemoveProfileEmergencyContactMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	})
@@ -119,11 +119,11 @@ vi.mock('#hooks/api/use-profile', () => ({
 const mockSignOut = vi.fn()
 const mockChangePassword = vi.fn()
 vi.mock('#hooks/api/use-auth', () => ({
-	useSignOut: () => ({
+	useSignOutMutation: () => ({
 		mutateAsync: mockSignOut,
 		isPending: false
 	}),
-	useChangePassword: () => ({
+	useChangePasswordMutation: () => ({
 		mutateAsync: mockChangePassword,
 		isPending: false
 	})

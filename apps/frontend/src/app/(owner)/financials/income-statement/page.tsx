@@ -27,7 +27,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import { useIncomeStatement } from '#hooks/api/use-financial-statements'
+import { useIncomeStatement } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 export default function IncomeStatementPage() {

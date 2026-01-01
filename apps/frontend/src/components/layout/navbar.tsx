@@ -1,6 +1,6 @@
 'use client'
 
-import { useSignOut } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
 import { useAuth } from '#providers/auth-provider'
@@ -33,7 +33,7 @@ export const Navbar = React.forwardRef<HTMLElement, NavbarProps>(
 			useNavigation()
 		const pathname = usePathname()
 		const { isAuthenticated, isLoading, user } = useAuth()
-		const signOutMutation = useSignOut()
+		const signOutMutation = useSignOutMutation()
 
 		useEffect(() => {
 			queueMicrotask(() => setIsMounted(true))

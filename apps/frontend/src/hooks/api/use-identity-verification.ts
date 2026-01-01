@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { mutationKeys } from './mutation-keys'
 import type {
 	IdentityVerificationRecord,
 	IdentityVerificationSessionPayload
@@ -28,10 +29,11 @@ export function useIdentityVerificationStatus() {
 	})
 }
 
-export function useCreateIdentityVerificationSession() {
+export function useCreateIdentityVerificationSessionMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.identityVerification.start,
 		mutationFn: async () => {
 			return apiRequest<{
 				success: boolean

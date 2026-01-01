@@ -10,7 +10,7 @@ import {
 	useFinancialOverview,
 	useMonthlyMetrics,
 	useExpenseSummary
-} from '../use-financial-overview'
+} from '../use-financials'
 
 // Mock the api-request module
 vi.mock('#lib/api-request', () => ({
