@@ -8,9 +8,9 @@ import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import {
-	useDeleteNotification,
-	useMarkAllNotificationsRead,
-	useMarkNotificationRead,
+	useDeleteNotificationMutation,
+	useMarkAllNotificationsReadMutation,
+	useMarkNotificationReadMutation,
 	useNotifications,
 	useUnreadNotificationsCount
 } from '#hooks/api/use-notifications'
@@ -32,9 +32,9 @@ export default function TenantNotificationsPage() {
 	const { data: unreadData } = useUnreadNotificationsCount()
 	const unreadCount = unreadData?.total ?? 0
 
-	const markNotificationRead = useMarkNotificationRead()
-	const deleteNotification = useDeleteNotification()
-	const markAllNotificationsRead = useMarkAllNotificationsRead()
+	const markNotificationRead = useMarkNotificationReadMutation()
+	const deleteNotification = useDeleteNotificationMutation()
+	const markAllNotificationsRead = useMarkAllNotificationsReadMutation()
 
 	const handleOpenNotification = (notification: NotificationItem) => {
 		if (!notification.action_url) return

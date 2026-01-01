@@ -27,9 +27,14 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { handleMutationSuccess } from '#lib/mutation-error-handler'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
+import { logger } from '@repo/shared/lib/frontend-logger'
 import type {
 	MaintenanceCategory,
 	MaintenancePriority
@@ -142,6 +147,18 @@ export interface TenantSettings {
 	profile: TenantProfile
 }
 
+/**
+ * Tenant-specific notification preferences
+ * Used by tenant portal for self-management of preferences
+ */
+export interface TenantNotificationPreferences {
+	rentReminders: boolean
+	maintenanceUpdates: boolean
+	propertyNotices: boolean
+	emailNotifications: boolean
+	smsNotifications: boolean
+}
+
 export interface MaintenanceRequestCreate {
 	title: string
 	description: string
@@ -216,6 +233,11 @@ export const tenantPortalKeys = {
 	},
 	settings: {
 		all: () => [...tenantPortalKeys.all, 'settings'] as const
+	},
+	notificationPreferences: {
+		all: () => [...tenantPortalKeys.all, 'notification-preferences'] as const,
+		detail: (tenantId: string) =>
+			[...tenantPortalKeys.all, 'notification-preferences', tenantId] as const
 	}
 }
 
@@ -352,6 +374,20 @@ export const tenantPortalQueries = {
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
+		}),
+
+	/**
+	 * Tenant notification preferences (self-managed by tenant)
+	 */
+	notificationPreferences: (tenantId: string) =>
+		queryOptions({
+			queryKey: tenantPortalKeys.notificationPreferences.detail(tenantId),
+			queryFn: () =>
+				apiRequest<TenantNotificationPreferences>(
+					`/api/v1/tenants/${tenantId}/notification-preferences`
+				),
+			enabled: !!tenantId,
+			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
 
@@ -395,10 +431,11 @@ export function useTenantMaintenance() {
 /**
  * Create a maintenance request
  */
-export function useMaintenanceRequestCreate() {
+export function useMaintenanceRequestCreateMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.tenantPortal.createMaintenanceRequest,
 		mutationFn: (request: MaintenanceRequestCreate) =>
 			apiRequest<TenantMaintenanceRequest>('/api/v1/tenants/maintenance', {
 				method: 'POST',
@@ -480,56 +517,154 @@ export function useTenantSettings() {
 }
 
 // ============================================================================
-// PREFETCH HOOKS
+// QUERY HOOKS - NOTIFICATION PREFERENCES
 // ============================================================================
 
 /**
- * Prefetch tenant payments
+ * Get notification preferences for a tenant (tenant self-service)
  */
-export function usePrefetchTenantPayments() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(tenantPortalQueries.payments())
-	}
+export function useTenantNotificationPreferences(tenantId: string) {
+	return useQuery(tenantPortalQueries.notificationPreferences(tenantId))
 }
 
 /**
- * Prefetch tenant lease
+ * Update notification preferences (tenant self-service)
+ * Includes optimistic updates with rollback
  */
-export function usePrefetchTenantLease() {
+export function useUpdateTenantNotificationPreferences(tenantId: string) {
 	const queryClient = useQueryClient()
 
-	return () => {
-		queryClient.prefetchQuery(tenantPortalQueries.lease())
-	}
+	return useMutation({
+		mutationKey: mutationKeys.tenantNotificationPreferences.update,
+		mutationFn: (preferences: Partial<TenantNotificationPreferences>) =>
+			apiRequest<TenantNotificationPreferences>(
+				`/api/v1/tenants/${tenantId}/notification-preferences`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(preferences)
+				}
+			),
+		onMutate: async (newPreferences: Partial<TenantNotificationPreferences>) => {
+			// Cancel outgoing queries
+			await queryClient.cancelQueries({
+				queryKey: tenantPortalKeys.notificationPreferences.detail(tenantId)
+			})
+
+			// Snapshot previous state
+			const previousPreferences =
+				queryClient.getQueryData<TenantNotificationPreferences>(
+					tenantPortalKeys.notificationPreferences.detail(tenantId)
+				)
+
+			// Optimistically update
+			if (previousPreferences) {
+				queryClient.setQueryData<TenantNotificationPreferences>(
+					tenantPortalKeys.notificationPreferences.detail(tenantId),
+					(old: TenantNotificationPreferences | undefined) =>
+						old ? { ...old, ...newPreferences } : undefined
+				)
+			}
+
+			return { previousPreferences }
+		},
+		onError: (err, _variables, context) => {
+			// Rollback on error
+			if (context?.previousPreferences) {
+				queryClient.setQueryData(
+					tenantPortalKeys.notificationPreferences.detail(tenantId),
+					context.previousPreferences
+				)
+			}
+
+			logger.error('Failed to update notification preferences', {
+				action: 'update_notification_preferences',
+				metadata: {
+					tenant_id: tenantId,
+					error: err instanceof Error ? err.message : String(err)
+				}
+			})
+
+			handleMutationError(err, 'Update notification preferences')
+		},
+		onSuccess: data => {
+			// Update cache with server response
+			queryClient.setQueryData<TenantNotificationPreferences>(
+				tenantPortalKeys.notificationPreferences.detail(tenantId),
+				data
+			)
+
+			handleMutationSuccess(
+				'Update notification preferences',
+				'Your notification preferences have been saved'
+			)
+
+			logger.info('Notification preferences updated', {
+				action: 'update_notification_preferences',
+				metadata: { tenant_id: tenantId }
+			})
+		}
+	})
+}
+
+// ============================================================================
+// MUTATION HOOKS - AUTOPAY
+// ============================================================================
+
+/**
+ * Setup autopay for tenant's lease
+ */
+export function useTenantPortalSetupAutopayMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenantAutopay.setup,
+		mutationFn: async (params: {
+			tenant_id: string
+			lease_id: string
+			paymentMethodId?: string
+		}) => {
+			return apiRequest('/api/v1/rent-payments/autopay/setup', {
+				method: 'POST',
+				body: JSON.stringify(params)
+			})
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.autopay.status()
+			})
+		}
+	})
 }
 
 /**
- * Prefetch tenant maintenance requests
+ * Cancel autopay for tenant's lease
  */
-export function usePrefetchTenantMaintenance() {
+export function useTenantPortalCancelAutopayMutation() {
 	const queryClient = useQueryClient()
 
-	return () => {
-		queryClient.prefetchQuery(tenantPortalQueries.maintenance())
-	}
+	return useMutation({
+		mutationKey: mutationKeys.tenantAutopay.cancel,
+		mutationFn: async (params: {
+			tenant_id: string
+			lease_id: string
+			paymentMethodId?: string
+		}) => {
+			return apiRequest('/api/v1/rent-payments/autopay/cancel', {
+				method: 'POST',
+				body: JSON.stringify(params)
+			})
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: tenantPortalKeys.autopay.status()
+			})
+		}
+	})
 }
 
 // ============================================================================
 // CACHE UTILITIES
 // ============================================================================
-
-/**
- * Invalidate all tenant portal data
- */
-export function useInvalidateTenantPortal() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.invalidateQueries({ queryKey: tenantPortalKeys.all })
-	}
-}
 
 /**
  * Invalidate specific tenant portal sections

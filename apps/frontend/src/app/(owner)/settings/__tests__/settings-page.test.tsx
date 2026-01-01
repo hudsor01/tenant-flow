@@ -78,17 +78,13 @@ vi.mock('#providers/preferences-provider', () => ({
 	})
 }))
 
-// Mock subscription status hook
-vi.mock('#hooks/api/use-subscription-status', () => ({
+// Mock billing hooks (subscription status and billing history)
+vi.mock('#hooks/api/use-billing', () => ({
 	useSubscriptionStatus: () => ({
 		data: { subscriptionStatus: 'active' },
 		isLoading: false
-	})
-}))
-
-// Mock payment history hook
-vi.mock('#hooks/api/use-payment-history', () => ({
-	usePaymentHistory: () => ({
+	}),
+	useBillingHistory: () => ({
 		data: [
 			{
 				id: 'inv_123',
@@ -102,7 +98,7 @@ vi.mock('#hooks/api/use-payment-history', () => ({
 }))
 
 // Mock notification settings hooks
-vi.mock('#hooks/api/use-notification-settings', () => ({
+vi.mock('#hooks/api/use-owner-notification-settings', () => ({
 	useOwnerNotificationSettings: () => ({
 		data: {
 			email: true,
@@ -117,7 +113,7 @@ vi.mock('#hooks/api/use-notification-settings', () => ({
 		},
 		isLoading: false
 	}),
-	useUpdateOwnerNotificationSettings: () => ({
+	useUpdateOwnerNotificationSettingsMutation: () => ({
 		mutate: vi.fn(),
 		isPending: false
 	})
@@ -146,7 +142,7 @@ vi.mock('#hooks/api/use-sessions', () => ({
 		],
 		isLoading: false
 	}),
-	useRevokeSession: () => ({
+	useRevokeSessionMutation: () => ({
 		mutate: vi.fn(),
 		isPending: false
 	})
@@ -204,11 +200,11 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 		data: null,
 		isLoading: false
 	}),
-	useCreateConnectedAccount: () => ({
+	useCreateConnectedAccountMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
-	useRefreshOnboarding: () => ({
+	useRefreshOnboardingMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	})

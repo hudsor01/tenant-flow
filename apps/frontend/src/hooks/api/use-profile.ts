@@ -14,75 +14,20 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-
-// ============================================================================
-// TYPES
-// ============================================================================
-
-/**
- * User profile entity
- */
-export interface UserProfile {
-	id: string
-	email: string
-	first_name: string | null
-	last_name: string | null
-	full_name: string
-	phone: string | null
-	avatar_url: string | null
-	user_type: 'owner' | 'tenant' | 'manager' | 'admin'
-	status: string
-	created_at: string
-	updated_at: string | null
-	tenant_profile?: TenantProfile
-	owner_profile?: OwnerProfile
-}
-
-export interface TenantProfile {
-	date_of_birth: string | null
-	emergency_contact_name: string | null
-	emergency_contact_phone: string | null
-	emergency_contact_relationship: string | null
-	identity_verified: boolean | null
-	current_lease?: {
-		property_name: string
-		unit_number: string
-		move_in_date: string
-	} | null
-}
-
-export interface OwnerProfile {
-	stripe_connected: boolean
-	properties_count: number
-	units_count: number
-}
-
-export interface UpdateProfileInput {
-	first_name: string
-	last_name: string
-	email: string
-	phone?: string | null
-}
-
-export interface UpdatePhoneInput {
-	phone: string | null
-}
-
-export interface UpdateEmergencyContactInput {
-	name: string
-	phone: string
-	relationship: string
-}
-
-export interface AvatarUploadResponse {
-	avatar_url: string
-}
+import type {
+	AvatarUploadResponse,
+	SetEmergencyContactInput,
+	UpdatePhoneInput,
+	UpdateProfileInput,
+	UserProfile
+} from '@repo/shared/types/api-contracts'
 
 // ============================================================================
 // QUERY KEYS
@@ -143,10 +88,11 @@ export function useProfile() {
 /**
  * Update user profile
  */
-export function useUpdateProfile() {
+export function useUpdateProfileMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.profile.update,
 		mutationFn: (input: UpdateProfileInput) =>
 			apiRequest<UserProfile>('/api/v1/users/profile', {
 				method: 'PATCH',
@@ -203,10 +149,11 @@ export function useUpdateProfile() {
 /**
  * Upload avatar image
  */
-export function useUploadAvatar() {
+export function useUploadAvatarMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.profile.uploadAvatar,
 		mutationFn: async (file: File) => {
 			const formData = new FormData()
 			formData.append('avatar', file)
@@ -272,10 +219,11 @@ export function useUploadAvatar() {
 /**
  * Remove avatar image
  */
-export function useRemoveAvatar() {
+export function useRemoveAvatarMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.profile.deleteAvatar,
 		mutationFn: () =>
 			apiRequest<{ success: boolean; message: string }>(
 				'/api/v1/users/avatar',
@@ -325,10 +273,11 @@ export function useRemoveAvatar() {
 /**
  * Update phone number
  */
-export function useUpdatePhone() {
+export function useUpdatePhoneMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.profile.updatePhone,
 		mutationFn: (input: UpdatePhoneInput) =>
 			apiRequest<{ phone: string | null }>('/api/v1/users/phone', {
 				method: 'PATCH',
@@ -380,11 +329,12 @@ export function useUpdatePhone() {
 /**
  * Update emergency contact (for tenants)
  */
-export function useUpdateProfileEmergencyContact() {
+export function useUpdateProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
-		mutationFn: (input: UpdateEmergencyContactInput) =>
+		mutationKey: mutationKeys.profile.updateEmergencyContact,
+		mutationFn: (input: SetEmergencyContactInput) =>
 			apiRequest<{ success: boolean; message: string }>(
 				'/api/v1/users/emergency-contact',
 				{
@@ -443,10 +393,11 @@ export function useUpdateProfileEmergencyContact() {
 /**
  * Remove emergency contact (for tenants)
  */
-export function useRemoveProfileEmergencyContact() {
+export function useRemoveProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
+		mutationKey: mutationKeys.profile.deleteEmergencyContact,
 		mutationFn: () =>
 			apiRequest<{ success: boolean; message: string }>(
 				'/api/v1/users/emergency-contact',
@@ -500,17 +451,3 @@ export function useRemoveProfileEmergencyContact() {
 	})
 }
 
-// ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
-/**
- * Prefetch user profile for faster navigation
- */
-export function usePrefetchProfile() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(profileQueries.detail())
-	}
-}

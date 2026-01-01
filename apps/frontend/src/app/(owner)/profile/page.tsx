@@ -16,12 +16,12 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
 import {
 	useProfile,
-	useUpdateProfile,
-	useUploadAvatar,
-	useRemoveAvatar,
-	useUpdatePhone
+	useUpdateProfileMutation,
+	useUploadAvatarMutation,
+	useRemoveAvatarMutation,
+	useUpdatePhoneMutation
 } from '#hooks/api/use-profile'
-import { useSignOut } from '#hooks/api/use-auth'
+import { useSignOutMutation } from '#hooks/api/use-auth'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
@@ -50,11 +50,11 @@ export default function OwnerProfilePage() {
 	const { data: profile, isLoading, error } = useProfile()
 
 	// Mutations
-	const updateProfile = useUpdateProfile()
-	const uploadAvatar = useUploadAvatar()
-	const removeAvatar = useRemoveAvatar()
-	const updatePhone = useUpdatePhone()
-	const signOut = useSignOut()
+	const updateProfile = useUpdateProfileMutation()
+	const uploadAvatar = useUploadAvatarMutation()
+	const removeAvatar = useRemoveAvatarMutation()
+	const updatePhone = useUpdatePhoneMutation()
+	const signOut = useSignOutMutation()
 
 	// Initialize form data when profile loads
 	useState(() => {

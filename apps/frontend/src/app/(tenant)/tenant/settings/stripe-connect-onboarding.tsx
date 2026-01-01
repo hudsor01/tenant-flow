@@ -27,8 +27,8 @@ import {
 
 import {
 	useConnectedAccount,
-	useCreateConnectedAccount,
-	useRefreshOnboarding
+	useCreateConnectedAccountMutation,
+	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { IdentityVerificationCard } from '#components/identity/identity-verification-card'
@@ -51,8 +51,8 @@ export function ConnectOnboardingDialog({
 	)
 	const [country, setCountry] = useState('US')
 
-	const createAccount = useCreateConnectedAccount()
-	const refreshOnboarding = useRefreshOnboarding()
+	const createAccount = useCreateConnectedAccountMutation()
+	const refreshOnboarding = useRefreshOnboardingMutation()
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -232,7 +232,7 @@ export function ConnectOnboardingDialog({
 
 export function StripeConnectStatus() {
 	const { data: account, isLoading, error } = useConnectedAccount()
-	const refreshOnboarding = useRefreshOnboarding()
+	const refreshOnboarding = useRefreshOnboardingMutation()
 	const [showOnboarding, setShowOnboarding] = useState(false)
 
 	// Don't show anything while loading

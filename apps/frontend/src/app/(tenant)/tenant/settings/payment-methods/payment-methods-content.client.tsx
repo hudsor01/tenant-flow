@@ -35,10 +35,10 @@ import {
 } from '#components/ui/dialog'
 
 import {
-	useDeletePaymentMethod,
+	useDeletePaymentMethodMutation,
 	usePaymentMethods,
-	useSetDefaultPaymentMethod
-} from '#hooks/api/use-payment-methods'
+	useSetDefaultPaymentMethodMutation
+} from '#hooks/api/use-payments'
 
 import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-method.client'
 import type { PaymentMethodResponse } from '@repo/shared/types/core'
@@ -82,8 +82,8 @@ export function PaymentMethodsContent() {
 	const [showAddDialog, setShowAddDialog] = useState(false)
 
 	const { data: paymentMethods, isLoading, refetch } = usePaymentMethods()
-	const setDefault = useSetDefaultPaymentMethod()
-	const deleteMethod = useDeletePaymentMethod()
+	const setDefault = useSetDefaultPaymentMethodMutation()
+	const deleteMethod = useDeletePaymentMethodMutation()
 
 	const handleSetDefault = async (paymentMethodId: string) => {
 		try {

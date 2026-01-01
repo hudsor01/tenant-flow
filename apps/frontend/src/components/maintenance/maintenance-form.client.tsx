@@ -26,7 +26,7 @@ import { Textarea } from '#components/ui/textarea'
 import {
 	useMaintenanceRequestCreateMutation,
 	useMaintenanceRequestUpdateMutation
-} from '#hooks/api/mutations/maintenance-mutations'
+} from '#hooks/api/use-maintenance'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
