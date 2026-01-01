@@ -10,8 +10,8 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { propertyQueries } from '#hooks/api/use-properties'
-import { unitQueries } from '#hooks/api/use-unit'
+import { propertyQueries } from '#hooks/api/query-keys/property-keys'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { apiRequest } from '#lib/api-request'
 import type { Property as ApiProperty, Unit } from '@repo/shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'

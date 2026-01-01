@@ -18,8 +18,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { useCreateRentPayment } from '#hooks/api/use-rent-payments'
-import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+import { useCreateRentPaymentMutation } from '#hooks/api/use-payments'
+import { usePaymentMethods } from '#hooks/api/use-payments'
 import { formatCurrency } from '#lib/formatters/currency'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'
@@ -43,7 +43,7 @@ export function PayRentDialog({
 		useState<string>('')
 
 	const { data: paymentMethods } = usePaymentMethods()
-	const createPayment = useCreateRentPayment()
+	const createPayment = useCreateRentPaymentMutation()
 
 	const handlePayRent = async () => {
 		if (!selectedPaymentMethodId) {

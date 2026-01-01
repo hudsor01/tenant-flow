@@ -17,19 +17,10 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { formatCents } from '#lib/formatters/currency'
-
-interface FailedAttempt {
-	id: string
-	created_at: string
-	tenant_id: string
-	amount: number
-	attemptNumber: number
-	failureReason: string
-	nextRetryDate?: string
-}
+import type { FailedPaymentAttempt } from '@repo/shared/types/api-contracts'
 
 interface FailedPaymentsAlertProps {
-	attempts: FailedAttempt[]
+	attempts: FailedPaymentAttempt[]
 	open: boolean
 	onOpenChange: (open: boolean) => void
 }
@@ -96,10 +87,10 @@ export function FailedPaymentsAlert({
 											{formatCents(attempt.amount)}
 										</TableCell>
 										<TableCell className="text-sm">
-											#{attempt.attemptNumber}
+											{attempt.attemptNumber ? `#${attempt.attemptNumber}` : '-'}
 										</TableCell>
 										<TableCell className="text-sm text-destructive max-w-xs truncate">
-											{attempt.failureReason}
+											{attempt.failureReason ?? 'Unknown error'}
 										</TableCell>
 										<TableCell className="text-sm">
 											{attempt.nextRetryDate

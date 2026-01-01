@@ -43,6 +43,10 @@ import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
 import { AppLogger } from '../../logger/app-logger.service'
+import {
+	normalizeLimit,
+	normalizeOffset
+} from '../../shared/utils/pagination.utils'
 
 @ApiTags('Properties')
 @ApiBearerAuth('supabase-auth')
@@ -78,8 +82,8 @@ export class PropertiesController {
 		if (!token) {
 			throw new UnauthorizedException('Authorization token required')
 		}
-		const safeLimit = Math.max(1, Math.min(limit, 50))
-		const safeOffset = Math.max(0, offset)
+		const safeLimit = normalizeLimit(limit)
+		const safeOffset = normalizeOffset(offset)
 
 		const data = await this.propertiesService.findAll(token, {
 			search,
@@ -125,8 +129,8 @@ export class PropertiesController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
 	) {
-		const safeLimit = Math.max(1, Math.min(limit, 50))
-		const safeOffset = Math.max(0, offset)
+		const safeLimit = normalizeLimit(limit)
+		const safeOffset = normalizeOffset(offset)
 		return this.propertiesService.findAllWithUnits(req, {
 			search,
 			limit: safeLimit,

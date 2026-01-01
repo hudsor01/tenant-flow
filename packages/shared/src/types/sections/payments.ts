@@ -75,6 +75,7 @@ export interface PaymentTransaction {
 
 export interface UpcomingPayment {
 	id: string
+	tenantId: string
 	tenantName: string
 	propertyName: string
 	unitNumber: string
@@ -96,9 +97,39 @@ export interface PaymentAnalytics {
 
 export interface MonthlyPaymentTrend {
 	month: string
+	monthNumber: number
 	collected: number
 	pending: number
 	failed: number
+}
+
+export interface OverduePayment {
+	id: string
+	tenantId: string
+	tenantName: string
+	tenantEmail: string
+	propertyName: string
+	unitNumber: string
+	amount: number
+	dueDate: string
+	daysOverdue: number
+	lateFeeAmount: number
+	lateFeeApplied: boolean
+}
+
+export interface PaymentFilters {
+	status?: string
+	startDate?: string
+	endDate?: string
+}
+
+export interface ManualPaymentInput {
+	lease_id: string
+	tenant_id: string
+	amount: number
+	payment_method: 'cash' | 'check' | 'money_order' | 'other'
+	paid_date: string
+	notes?: string
 }
 
 export interface ManualPaymentData {

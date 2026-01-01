@@ -39,7 +39,7 @@ import { Button } from '#components/ui/button'
 import {
 	useFinancialOverview,
 	useMonthlyMetrics
-} from '#hooks/api/use-financial-overview'
+} from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 interface QuickLinkCardProps {

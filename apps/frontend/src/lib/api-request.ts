@@ -3,97 +3,277 @@
  *
  * Native fetch wrapper with Supabase auth token injection.
  * Used by all TanStack Query hooks for NestJS API calls.
+ *
+ * Features:
+ * - ApiError class for typed error handling
+ * - AbortSignal support for query cancellation
+ * - Smart error classification (retryable, client, server, network)
  */
 
 import { createClient } from '#lib/supabase/client'
 import { getApiBaseUrl } from '#lib/api-config'
 
+// ============================================================================
+// API ERROR CLASS
+// ============================================================================
+
+/**
+ * Typed API Error with rich classification methods
+ * Used by TanStack Query retry logic and error handlers
+ */
+export class ApiError extends Error {
+	constructor(
+		message: string,
+		public readonly status: number,
+		public readonly statusText: string,
+		public readonly body: unknown,
+		public readonly isNetworkError: boolean = false,
+		public readonly isAborted: boolean = false
+	) {
+		super(message)
+		this.name = 'ApiError'
+	}
+
+	/** True for 4xx status codes */
+	get isClientError(): boolean {
+		return this.status >= 400 && this.status < 500
+	}
+
+	/** True for 5xx status codes */
+	get isServerError(): boolean {
+		return this.status >= 500
+	}
+
+	/** True if request should be retried (5xx or network errors) */
+	get isRetryable(): boolean {
+		return this.isServerError || this.isNetworkError
+	}
+
+	/** True for 400 Bad Request or 422 Unprocessable Entity */
+	get isValidationError(): boolean {
+		return this.status === 400 || this.status === 422
+	}
+
+	/** True for 401 Unauthorized or 403 Forbidden */
+	get isAuthError(): boolean {
+		return this.status === 401 || this.status === 403
+	}
+
+	/** True for 404 Not Found */
+	get isNotFound(): boolean {
+		return this.status === 404
+	}
+
+	/** True for 409 Conflict (optimistic locking) */
+	get isConflict(): boolean {
+		return this.status === 409
+	}
+}
+
+/**
+ * Type guard to check if error is an ApiError
+ */
+export function isApiError(error: unknown): error is ApiError {
+	return error instanceof ApiError
+}
+
+/**
+ * Type guard to check if error is an abort error
+ */
+export function isAbortError(error: unknown): boolean {
+	if (error instanceof ApiError) return error.isAborted
+	if (error instanceof DOMException && error.name === 'AbortError') return true
+	return false
+}
+
+// ============================================================================
+// API REQUEST FUNCTIONS
+// ============================================================================
+
 /**
  * Make an authenticated API request to NestJS backend
  * Automatically injects Supabase auth token
+ *
+ * @param endpoint - API endpoint (e.g., '/api/v1/properties')
+ * @param options - Fetch options including optional AbortSignal
  */
 export async function apiRequest<T>(
 	endpoint: string,
-	options?: RequestInit
+	options?: RequestInit & { signal?: AbortSignal }
 ): Promise<T> {
+	const { signal, ...fetchOptions } = options ?? {}
+
 	const supabase = createClient()
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${session?.access_token}`,
-			...options?.headers
+	try {
+		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+			...fetchOptions,
+			...(signal ? { signal } : {}),
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${session?.access_token}`,
+				...fetchOptions?.headers
+			}
+		})
+
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}))
+			throw new ApiError(
+				(body as { message?: string }).message || res.statusText || `HTTP ${res.status}`,
+				res.status,
+				res.statusText,
+				body
+			)
 		}
-	})
 
-	if (!res.ok) {
-		throw new Error(`API Error: ${res.status}`)
+		const text = await res.text()
+		return text ? (JSON.parse(text) as T) : ({} as T)
+	} catch (error) {
+		// Re-throw ApiError as-is
+		if (error instanceof ApiError) throw error
+
+		// Handle abort errors
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new ApiError('Request aborted', 0, 'Aborted', null, false, true)
+		}
+
+		// Handle network errors (fetch failed completely)
+		if (error instanceof TypeError && error.message.includes('fetch')) {
+			throw new ApiError('Network error', 0, 'NetworkError', null, true, false)
+		}
+
+		// Re-throw unknown errors wrapped in ApiError
+		throw new ApiError(
+			error instanceof Error ? error.message : 'Unknown error',
+			0,
+			'UnknownError',
+			null,
+			true,
+			false
+		)
 	}
-
-	const text = await res.text()
-	return text ? (JSON.parse(text) as T) : ({} as T)
 }
 
 /**
  * Make an authenticated API request with FormData (for file uploads)
  * Does not set Content-Type header - browser auto-sets multipart/form-data
+ *
+ * @param endpoint - API endpoint
+ * @param formData - FormData body
+ * @param options - Fetch options including optional AbortSignal
  */
 export async function apiRequestFormData<T>(
 	endpoint: string,
 	formData: FormData,
-	options?: Omit<RequestInit, 'body'>
+	options?: Omit<RequestInit, 'body'> & { signal?: AbortSignal }
 ): Promise<T> {
+	const { signal, ...fetchOptions } = options ?? {}
+
 	const supabase = createClient()
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
-		method: 'POST',
-		...options,
-		headers: {
-			Authorization: `Bearer ${session?.access_token}`,
-			...options?.headers
-		},
-		body: formData
-	})
+	try {
+		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+			method: 'POST',
+			...fetchOptions,
+			...(signal ? { signal } : {}),
+			headers: {
+				Authorization: `Bearer ${session?.access_token}`,
+				...fetchOptions?.headers
+			},
+			body: formData
+		})
 
-	if (!res.ok) {
-		throw new Error(`API Error: ${res.status}`)
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}))
+			throw new ApiError(
+				(body as { message?: string }).message || res.statusText || `HTTP ${res.status}`,
+				res.status,
+				res.statusText,
+				body
+			)
+		}
+
+		const text = await res.text()
+		return text ? (JSON.parse(text) as T) : ({} as T)
+	} catch (error) {
+		if (error instanceof ApiError) throw error
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new ApiError('Request aborted', 0, 'Aborted', null, false, true)
+		}
+		if (error instanceof TypeError && error.message.includes('fetch')) {
+			throw new ApiError('Network error', 0, 'NetworkError', null, true, false)
+		}
+		throw new ApiError(
+			error instanceof Error ? error.message : 'Unknown error',
+			0,
+			'UnknownError',
+			null,
+			true,
+			false
+		)
 	}
-
-	const text = await res.text()
-	return text ? (JSON.parse(text) as T) : ({} as T)
 }
 
 /**
  * Make an authenticated API request that returns a blob (for file downloads)
  * Returns the raw Response so caller can handle blob/headers
+ *
+ * @param endpoint - API endpoint
+ * @param options - Fetch options including optional AbortSignal
  */
 export async function apiRequestRaw(
 	endpoint: string,
-	options?: RequestInit
+	options?: RequestInit & { signal?: AbortSignal }
 ): Promise<Response> {
+	const { signal, ...fetchOptions } = options ?? {}
+
 	const supabase = createClient()
 	const {
 		data: { session }
 	} = await supabase.auth.getSession()
 
-	const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
-		...options,
-		headers: {
-			Authorization: `Bearer ${session?.access_token}`,
-			...options?.headers
+	try {
+		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+			...fetchOptions,
+			...(signal ? { signal } : {}),
+			headers: {
+				Authorization: `Bearer ${session?.access_token}`,
+				...fetchOptions?.headers
+			}
+		})
+
+		if (!res.ok) {
+			const body = await res.json().catch(() => ({}))
+			throw new ApiError(
+				(body as { message?: string }).message || res.statusText || `HTTP ${res.status}`,
+				res.status,
+				res.statusText,
+				body
+			)
 		}
-	})
 
-	if (!res.ok) {
-		throw new Error(`API Error: ${res.status}`)
+		return res
+	} catch (error) {
+		if (error instanceof ApiError) throw error
+		if (error instanceof DOMException && error.name === 'AbortError') {
+			throw new ApiError('Request aborted', 0, 'Aborted', null, false, true)
+		}
+		if (error instanceof TypeError && error.message.includes('fetch')) {
+			throw new ApiError('Network error', 0, 'NetworkError', null, true, false)
+		}
+		throw new ApiError(
+			error instanceof Error ? error.message : 'Unknown error',
+			0,
+			'UnknownError',
+			null,
+			true,
+			false
+		)
 	}
-
-	return res
 }

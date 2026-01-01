@@ -20,6 +20,8 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { mutationKeys } from './mutation-keys'
+import type { UseMutationResult } from '@tanstack/react-query'
 import type {
 	ListReportsResponse,
 	Report as ReportType,
@@ -31,7 +33,26 @@ import type {
 	TenantReport,
 	MaintenanceReport
 } from '@repo/shared/types/reports'
-import type { UseReportsResult } from './types/reports'
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Return type for useReports hook
+ */
+export interface UseReportsResult {
+	reports: ReportType[]
+	total: number
+	isLoading: boolean
+	isFetching: boolean
+	deleteMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadMutation: UseMutationResult<void, unknown, string, unknown>
+	downloadingIds: Set<string>
+	deletingIds: Set<string>
+	downloadReport: (reportId: string) => void
+	deleteReport: (reportId: string) => void
+}
 
 // Check test environment directly - T3 Env cannot be imported in client components
 const isTest = process.env.NODE_ENV === 'test'
@@ -214,6 +235,7 @@ export function useReports({
 	const total = listResponse?.pagination?.total ?? 0
 
 	const deleteMutation = useMutation({
+		mutationKey: mutationKeys.reports.delete,
 		mutationFn: (reportId: string) =>
 			apiRequest<void>(`/api/v1/reports/${reportId}`, {
 				method: 'DELETE'
@@ -261,6 +283,7 @@ export function useReports({
 	})
 
 	const downloadMutation = useMutation({
+		mutationKey: mutationKeys.reports.download,
 		mutationFn: async (reportId: string): Promise<void> => {
 			// Use apiRequestRaw for blob downloads (returns raw Response)
 			const res = await apiRequestRaw(`/api/v1/reports/${reportId}/download`)
@@ -448,52 +471,3 @@ export function useMaintenanceReport(start_date?: string, end_date?: string) {
 	return useQuery(reportsQueries.maintenance(start_date, end_date))
 }
 
-// ============================================================================
-// PREFETCH HOOKS
-// ============================================================================
-
-/**
- * Hook for prefetching reports
- */
-export function usePrefetchReports() {
-	const queryClient = useQueryClient()
-
-	return (offset: number, limit: number) => {
-		queryClient.prefetchQuery(reportsQueries.list(offset, limit))
-	}
-}
-
-/**
- * Hook for prefetching monthly revenue
- */
-export function usePrefetchMonthlyRevenue() {
-	const queryClient = useQueryClient()
-
-	return (months: number = 12) => {
-		queryClient.prefetchQuery(reportsQueries.monthlyRevenue(months))
-	}
-}
-
-/**
- * Hook for prefetching payment analytics
- */
-export function usePrefetchPaymentAnalytics() {
-	const queryClient = useQueryClient()
-
-	return (start_date?: string, end_date?: string) => {
-		queryClient.prefetchQuery(
-			reportsQueries.paymentAnalytics(start_date, end_date)
-		)
-	}
-}
-
-/**
- * Hook for prefetching occupancy metrics
- */
-export function usePrefetchOccupancyMetrics() {
-	const queryClient = useQueryClient()
-
-	return () => {
-		queryClient.prefetchQuery(reportsQueries.occupancyMetrics())
-	}
-}

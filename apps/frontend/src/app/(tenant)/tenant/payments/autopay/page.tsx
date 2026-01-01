@@ -31,10 +31,10 @@ import {
 	useTenantLease
 } from '#hooks/api/use-tenant-portal'
 import {
-	useTenantPortalSetupAutopay,
-	useTenantPortalCancelAutopay
-} from '#hooks/api/use-tenant-autopay'
-import { usePaymentMethods } from '#hooks/api/use-payment-methods'
+	useTenantPortalSetupAutopayMutation,
+	useTenantPortalCancelAutopayMutation
+} from '#hooks/api/use-tenant-portal'
+import { usePaymentMethods } from '#hooks/api/use-payments'
 import { formatCents } from '@repo/shared/lib/format'
 
 export default function TenantAutopayPage() {
@@ -44,8 +44,8 @@ export default function TenantAutopayPage() {
 	const { data: paymentMethods, isLoading: isLoadingPaymentMethods } =
 		usePaymentMethods()
 
-	const setupAutopay = useTenantPortalSetupAutopay()
-	const cancelAutopay = useTenantPortalCancelAutopay()
+	const setupAutopay = useTenantPortalSetupAutopayMutation()
+	const cancelAutopay = useTenantPortalCancelAutopayMutation()
 
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')

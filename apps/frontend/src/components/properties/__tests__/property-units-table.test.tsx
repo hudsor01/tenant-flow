@@ -65,7 +65,7 @@ vi.mock('@tanstack/react-query', async () => {
 	}
 })
 
-vi.mock('#hooks/api/mutations/unit-mutations', () => ({
+vi.mock('#hooks/api/use-unit', () => ({
 	useDeleteUnitMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false

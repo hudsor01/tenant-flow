@@ -26,7 +26,7 @@ import { vi } from 'vitest'
 const mockCreateLeaseMutation = vi.fn().mockResolvedValue({ id: 'new-lease-id' })
 const mockUpdateLeaseMutation = vi.fn().mockResolvedValue({ id: 'lease-1' })
 
-vi.mock('#hooks/api/mutations/lease-mutations', () => ({
+vi.mock('#hooks/api/use-lease', () => ({
 	useCreateLeaseMutation: () => ({
 		mutateAsync: mockCreateLeaseMutation,
 		isPending: false
@@ -34,7 +34,12 @@ vi.mock('#hooks/api/mutations/lease-mutations', () => ({
 	useUpdateLeaseMutation: () => ({
 		mutateAsync: mockUpdateLeaseMutation,
 		isPending: false
-	})
+	}),
+	leaseQueries: {
+		detail: (id: string) => ({
+			queryKey: ['leases', 'detail', id]
+		})
+	}
 }))
 
 vi.mock('#hooks/api/use-tenant', () => ({
@@ -96,14 +101,6 @@ vi.mock('#hooks/api/use-unit', () => ({
 						}
 					]
 				})
-		})
-	}
-}))
-
-vi.mock('#hooks/api/use-lease', () => ({
-	leaseQueries: {
-		detail: (id: string) => ({
-			queryKey: ['leases', 'detail', id]
 		})
 	}
 }))

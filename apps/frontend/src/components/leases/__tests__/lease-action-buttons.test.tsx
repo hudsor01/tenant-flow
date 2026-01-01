@@ -12,7 +12,7 @@
  * 4. AlertDialog Cancel closes dialog and allows further interaction
  * 5. Dialog properly shows toast on delete
  *
- * Note: The useDeleteLease hook is fully implemented in use-lease.ts with:
+ * Note: The useDeleteLeaseOptimisticMutation hook is fully implemented in use-lease.ts with:
  * - DELETE /api/v1/leases/:id endpoint call
  * - Optimistic updates with rollback on error
  * - Query invalidation on success
@@ -57,11 +57,23 @@ const mockDeleteLease = {
 	isPending: false
 }
 
+const mockTerminateLease = {
+	mutateAsync: vi.fn(),
+	isPending: false
+}
+
+const mockRenewLease = {
+	mutateAsync: vi.fn(),
+	isPending: false
+}
+
 vi.mock('#hooks/api/use-lease', () => ({
-	useSendLeaseForSignature: () => mockSendForSignature,
-	useResendSignatureRequest: () => mockResendSignature,
-	useSignLeaseAsOwner: () => mockSignAsOwner,
-	useDeleteLease: (options?: {
+	useSendLeaseForSignatureMutation: () => mockSendForSignature,
+	useResendSignatureRequestMutation: () => mockResendSignature,
+	useSignLeaseAsOwnerMutation: () => mockSignAsOwner,
+	useTerminateLeaseMutation: () => mockTerminateLease,
+	useRenewLeaseMutation: () => mockRenewLease,
+	useDeleteLeaseOptimisticMutation: (options?: {
 		onSuccess?: () => void
 		onError?: (error: Error) => void
 	}) => {
@@ -73,7 +85,7 @@ vi.mock('#hooks/api/use-lease', () => ({
 	}
 }))
 
-// Mock use-tenant to provide tenantQueries (needed by lease-mutations)
+// Mock use-tenant to provide tenantQueries (needed by use-lease)
 vi.mock('#hooks/api/use-tenant', () => ({
 	tenantQueries: {
 		all: () => ['tenants'],

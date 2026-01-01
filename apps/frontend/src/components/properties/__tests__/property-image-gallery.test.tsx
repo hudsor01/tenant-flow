@@ -37,7 +37,7 @@ vi.mock('#hooks/use-lightbox-state', () => ({
 }))
 
 // Mock hooks
-vi.mock('#hooks/api/mutations/property-mutations', () => ({
+vi.mock('#hooks/api/use-properties', () => ({
 	usePropertyImages: (propertyId: string) => {
 		if (propertyId === 'empty-prop') {
 			return { data: [], isLoading: false }

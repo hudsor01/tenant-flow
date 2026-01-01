@@ -5,7 +5,7 @@
  * Provides revenue, payment, and occupancy analytics
  */
 
-import { Injectable, Optional } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import type {
 	FinancialReport,
 	MaintenanceReport,
@@ -21,20 +21,12 @@ import { AppLogger } from '../../logger/app-logger.service'
 @Injectable()
 export class ReportsService {
 	constructor(
-		@Optional() private readonly logger: AppLogger,
-		private readonly supabase?: SupabaseService
+		private readonly logger: AppLogger,
+		private readonly supabase: SupabaseService
 	) {}
 
-	private ensureSupabase(): boolean {
-		if (!this.supabase) {
-			this.logger.warn('Supabase service not available')
-			return false
-		}
-		return true
-	}
-
 	private get sb(): SupabaseService {
-		return this.supabase!
+		return this.supabase
 	}
 
 	private parseDateRange(start_date?: string, end_date?: string) {
@@ -61,7 +53,7 @@ export class ReportsService {
 	}
 
 	private async getPropertyIdsByOwner(user_id: string): Promise<string[]> {
-		if (!this.supabase) return []
+		
 		const { data, error } = await this.sb
 			.getAdminClient()
 			.from('properties')
@@ -143,8 +135,6 @@ export class ReportsService {
 		user_id: string,
 		months: number = 12
 	): Promise<RevenueData[]> {
-		if (!this.ensureSupabase()) return []
-
 		try {
 			// Get user's properties
 			const { data: properties } = await this.sb
@@ -258,8 +248,6 @@ export class ReportsService {
 		start_date?: string,
 		end_date?: string
 	): Promise<PaymentAnalytics> {
-		if (!this.ensureSupabase()) return this.getEmptyPaymentAnalytics()
-
 		try {
 			// Get user's properties
 			const { data: properties } = await this.sb
@@ -354,8 +342,6 @@ export class ReportsService {
 	 * Get occupancy metrics across all properties
 	 */
 	async getOccupancyMetrics(user_id: string): Promise<OccupancyMetrics> {
-		if (!this.ensureSupabase()) return this.getEmptyOccupancyMetrics()
-
 		try {
 			const client = this.sb.getAdminClient()
 
@@ -452,8 +438,6 @@ export class ReportsService {
 		start_date?: string,
 		end_date?: string
 	): Promise<FinancialReport> {
-		if (!this.ensureSupabase()) return this.getEmptyFinancialReport()
-
 		const { start, end } = this.parseDateRange(start_date, end_date)
 		const property_ids = await this.getPropertyIdsByOwner(user_id)
 
@@ -699,8 +683,6 @@ export class ReportsService {
 		start_date?: string,
 		end_date?: string
 	): Promise<PropertyReport> {
-		if (!this.ensureSupabase()) return this.getEmptyPropertyReport()
-
 		const { start, end } = this.parseDateRange(start_date, end_date)
 		const property_ids = await this.getPropertyIdsByOwner(user_id)
 
@@ -890,8 +872,6 @@ export class ReportsService {
 		start_date?: string,
 		end_date?: string
 	): Promise<TenantReport> {
-		if (!this.ensureSupabase()) return this.getEmptyTenantReport()
-
 		const { start, end } = this.parseDateRange(start_date, end_date)
 		const property_ids = await this.getPropertyIdsByOwner(user_id)
 
@@ -1080,8 +1060,6 @@ export class ReportsService {
 		start_date?: string,
 		end_date?: string
 	): Promise<MaintenanceReport> {
-		if (!this.ensureSupabase()) return this.getEmptyMaintenanceReport()
-
 		const { start, end } = this.parseDateRange(start_date, end_date)
 		const property_ids = await this.getPropertyIdsByOwner(user_id)
 
