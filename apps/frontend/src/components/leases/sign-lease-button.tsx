@@ -17,7 +17,7 @@ import {
 } from '#components/ui/dialog'
 import { Checkbox } from '#components/ui/checkbox'
 import { Label } from '#components/ui/label'
-import { useSignLeaseAsOwner, useSignLeaseAsTenant } from '#hooks/api/use-lease'
+import { useSignLeaseAsOwnerMutation, useSignLeaseAsTenantMutation } from '#hooks/api/use-lease'
 import { cn } from '#lib/utils'
 
 type SignerRole = 'owner' | 'tenant'
@@ -47,8 +47,8 @@ export function SignLeaseButton({
 }: SignLeaseButtonProps) {
 	const [agreed, setAgreed] = useState(false)
 	const [open, setOpen] = useState(false)
-	const signAsOwner = useSignLeaseAsOwner()
-	const signAsTenant = useSignLeaseAsTenant()
+	const signAsOwner = useSignLeaseAsOwnerMutation()
+	const signAsTenant = useSignLeaseAsTenantMutation()
 
 	const mutation = role === 'owner' ? signAsOwner : signAsTenant
 

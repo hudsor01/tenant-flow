@@ -38,7 +38,7 @@ const mockSignOutMutation = { mutate: vi.fn() }
 
 vi.mock('#hooks/api/use-auth', () => ({
 	useSupabaseUser: () => ({ data: mockUser }),
-	useSignOut: () => mockSignOutMutation
+	useSignOutMutation: () => mockSignOutMutation
 }))
 
 // Mock property and tenant list hooks
@@ -74,6 +74,11 @@ vi.mock('../main-nav', () => ({
 // Mock QuickActionsDock component
 vi.mock('../quick-actions-dock', () => ({
 	QuickActionsDock: () => <div data-testid="quick-actions-dock">Quick Actions</div>
+}))
+
+// Mock GlobalSyncIndicator to avoid needing QueryClientProvider
+vi.mock('#components/ui/global-sync-indicator', () => ({
+	GlobalSyncIndicator: () => <div data-testid="global-sync-indicator">Saved</div>
 }))
 
 // Mock scrollIntoView for command palette (JSDOM doesn't support it)

@@ -3,10 +3,10 @@
 import { Card, CardContent } from '#components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { useQuery } from '@tanstack/react-query'
-import { leaseQueries } from '#hooks/api/use-lease'
-import { tenantQueries } from '#hooks/api/use-tenant'
+import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { useUnitList } from '#hooks/api/use-unit'
-import { useCancelSignatureRequest } from '#hooks/api/use-lease'
+import { useCancelSignatureRequestMutation } from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { AlertTriangle } from 'lucide-react'
 
@@ -27,7 +27,7 @@ const logger = createLogger({ component: 'LeaseDetails' })
 
 export function LeaseDetails({ id }: LeaseDetailsProps) {
 	const { data: lease, isLoading, isError, error } = useQuery(leaseQueries.detail(id))
-	const cancelSignature = useCancelSignatureRequest()
+	const cancelSignature = useCancelSignatureRequestMutation()
 
 	const { data: tenantsResponse } = useQuery(tenantQueries.list())
 	const { data: units } = useUnitList()

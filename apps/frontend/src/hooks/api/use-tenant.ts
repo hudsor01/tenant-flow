@@ -3,51 +3,42 @@
  * TanStack Query hooks for tenant management with colocated query options
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
- * Colocated query options + hooks following the single-file pattern:
- * - Query factory with all tenant queries
+ * Query keys are in a separate file to avoid circular dependencies.
  * - Query hooks for data fetching
+ * - Mutation hooks for data modification
  * - Utility hooks for prefetching and optimistic updates
  */
 
-import { useMemo } from 'react'
 import {
 	keepPreviousData,
-	queryOptions,
+	useMutation,
+	usePrefetchQuery,
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
+import { apiRequest } from '#lib/api-request'
+import {
+	handleMutationError,
+	handleMutationSuccess
+} from '#lib/mutation-error-handler'
+import { toast } from 'sonner'
+import { logger } from '@repo/shared/lib/frontend-logger'
+import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
+import type {
+	TenantCreate,
+	TenantUpdate
+} from '@repo/shared/validation/tenants'
 import type {
 	Tenant,
 	TenantWithLeaseInfo,
-	TenantStats
+	TenantWithExtras,
+	TenantWithLeaseInfoWithVersion
 } from '@repo/shared/types/core'
-import type {
-	PaginatedResponse,
-	TenantFilters,
-	TenantInvitation,
-	TenantPaymentHistoryResponse
-} from '@repo/shared/types/api-contracts'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { apiRequest } from '#lib/api-request'
-import {
-	useCreateTenant as useCreateTenantMutation,
-	useUpdateTenant as useUpdateTenantMutation
-} from './mutations/tenant-mutations'
 
-// Re-export all mutations from the mutations module
-export {
-	useCreateTenant,
-	useUpdateTenant,
-	useCreateTenantMutation as useCreateTenantMutationFactory,
-	useUpdateTenantMutation as useUpdateTenantMutationFactory,
-	useDeleteTenantMutation,
-	useMarkTenantAsMovedOut,
-	useBatchTenantOperations,
-	useInviteTenant,
-	useResendInvitation,
-	useCancelInvitation,
-	useUpdateNotificationPreferences
-} from './mutations/tenant-mutations'
+// Import query keys from separate file to avoid circular dependency
+import { tenantQueries } from './query-keys/tenant-keys'
+import { leaseQueries } from './query-keys/lease-keys'
+import { mutationKeys } from './mutation-keys'
 
 // ============================================================================
 // TYPES
@@ -63,175 +54,33 @@ export interface InvitationFilters {
 }
 
 // ============================================================================
-// QUERY OPTIONS (for direct use in pages with useQueries/prefetch)
-// ============================================================================
-
-/**
- * Tenant query factory
- */
-export const tenantQueries = {
-	all: () => ['tenants'] as const,
-	lists: () => [...tenantQueries.all(), 'list'] as const,
-
-	list: (filters?: TenantFilters) =>
-		queryOptions({
-			queryKey: [...tenantQueries.lists(), filters ?? {}],
-			queryFn: async () => {
-				const searchParams = new URLSearchParams()
-				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.property_id)
-					searchParams.append('property_id', filters.property_id)
-				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit)
-					searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset)
-					searchParams.append('offset', filters.offset.toString())
-				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<TenantWithLeaseInfo>>(
-					`/api/v1/tenants${params ? `?${params}` : ''}`
-				)
-			},
-			...QUERY_CACHE_TIMES.DETAIL
-		}),
-
-	details: () => [...tenantQueries.all(), 'detail'] as const,
-
-	detail: (id: string) =>
-		queryOptions({
-			queryKey: [...tenantQueries.details(), id],
-			queryFn: () => apiRequest<Tenant>(`/api/v1/tenants/${id}`),
-			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
-		}),
-
-	withLease: (id: string) =>
-		queryOptions({
-			queryKey: [...tenantQueries.all(), 'with-lease', id],
-			queryFn: () =>
-				apiRequest<TenantWithLeaseInfo>(`/api/v1/tenants/${id}/with-lease`),
-			...QUERY_CACHE_TIMES.DETAIL,
-			enabled: !!id
-		}),
-
-	stats: () =>
-		queryOptions({
-			queryKey: [...tenantQueries.all(), 'stats'],
-			queryFn: () => apiRequest<TenantStats>('/api/v1/tenants/stats'),
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000
-		}),
-
-	invitations: () => [...tenantQueries.all(), 'invitations'] as const,
-
-	allTenants: () =>
-		queryOptions({
-			queryKey: [...tenantQueries.lists(), 'all'],
-			queryFn: () => apiRequest<TenantWithLeaseInfo[]>('/api/v1/tenants'),
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 30 * 60 * 1000,
-			retry: 3,
-			retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-			structuralSharing: true
-		}),
-
-	/**
-	 * Tenant detail query with SSE real-time updates
-	 * SSE automatically invalidates queries on tenant.updated events
-	 * Fallback polling at 5 min for missed events, refetch on window focus
-	 */
-	polling: (id: string) =>
-		queryOptions({
-			queryKey: [...tenantQueries.details(), id, 'polling'],
-			queryFn: () => apiRequest<Tenant>(`/api/v1/tenants/${id}`),
-			enabled: !!id,
-			// SSE provides real-time updates; 5-min fallback for missed events
-			refetchInterval: 5 * 60 * 1000, // 5 minutes (reduced from 30 seconds)
-			refetchIntervalInBackground: false,
-			refetchOnWindowFocus: true,
-			staleTime: 30_000 // Consider fresh for 30 seconds
-		}),
-
-	notificationPreferences: (tenant_id: string) =>
-		queryOptions({
-			queryKey: [
-				...tenantQueries.details(),
-				tenant_id,
-				'notification-preferences'
-			],
-			queryFn: () =>
-				apiRequest<{
-					emailNotifications: boolean
-					smsNotifications: boolean
-					maintenanceUpdates: boolean
-					paymentReminders: boolean
-				}>(`/api/v1/tenants/${tenant_id}/notification-preferences`),
-			enabled: !!tenant_id,
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 10 * 60 * 1000
-		}),
-
-	invitationList: () =>
-		queryOptions({
-			queryKey: tenantQueries.invitations(),
-			queryFn: () =>
-				apiRequest<PaginatedResponse<TenantInvitation>>(
-					'/api/v1/tenants/invitations'
-				),
-			...QUERY_CACHE_TIMES.LIST
-		}),
-
-	/**
-	 * Payment history for a specific tenant
-	 * Returns list of payment records with status, amount, and dates
-	 */
-	paymentHistory: (tenantId: string, limit?: number) =>
-		queryOptions({
-			queryKey: [...tenantQueries.details(), tenantId, 'payments', limit ?? 20],
-			queryFn: () => {
-				const params = limit ? `?limit=${limit}` : ''
-				return apiRequest<TenantPaymentHistoryResponse>(
-					`/api/v1/tenants/${tenantId}/payments${params}`
-				)
-			},
-			enabled: !!tenantId,
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 5 * 60 * 1000
-		}),
-
-	/**
-	 * All leases (past and current) for a specific tenant
-	 * Used in tenant detail view for lease history
-	 */
-	leaseHistory: (tenantId: string) =>
-		queryOptions({
-			queryKey: [...tenantQueries.details(), tenantId, 'leases'],
-			queryFn: () =>
-				apiRequest<{
-					leases: Array<{
-						id: string
-						property_name: string
-						unit_number: string
-						start_date: string
-						end_date: string | null
-						rent_amount: number
-						status: string
-					}>
-				}>(`/api/v1/tenants/${tenantId}/leases`),
-			enabled: !!tenantId,
-			...QUERY_CACHE_TIMES.DETAIL,
-			gcTime: 10 * 60 * 1000
-		})
-}
-
-// ============================================================================
 // QUERY HOOKS
 // ============================================================================
 
 /**
  * Hook to fetch tenant by ID
+ * Uses placeholderData from list cache for instant detail view
  */
 export function useTenant(id: string) {
-	return useQuery(tenantQueries.detail(id))
+	const queryClient = useQueryClient()
+
+	return useQuery({
+		...tenantQueries.detail(id),
+		placeholderData: () => {
+			// Search all list caches for this tenant
+			const listCaches = queryClient.getQueriesData<{
+				data?: TenantWithLeaseInfo[]
+			}>({
+				queryKey: tenantQueries.lists()
+			})
+
+			for (const [, response] of listCaches) {
+				const item = response?.data?.find(t => t.id === id)
+				if (item) return item
+			}
+			return undefined
+		}
+	})
 }
 
 /**
@@ -272,7 +121,6 @@ export function useTenantList(page: number = 1, limit: number = 50) {
 				limit
 			}
 		},
-		retry: 2,
 		placeholderData: keepPreviousData
 	})
 }
@@ -326,37 +174,22 @@ export function useTenantStats() {
 // ============================================================================
 
 /**
- * Combined hook for tenant operations needed by tenant management pages
+ * Declarative prefetch hook for tenant detail
+ * Prefetches when component mounts (route-level prefetching)
+ *
+ * For imperative prefetching (e.g., on hover), use:
+ * queryClient.prefetchQuery(tenantQueries.detail(id))
  */
-export function useTenantOperations() {
-	const createTenant = useCreateTenantMutation()
-	const updateTenant = useUpdateTenantMutation()
-
-	return useMemo(
-		() => ({
-			createTenant,
-			updateTenant,
-			isLoading: createTenant.isPending || updateTenant.isPending,
-			error: createTenant.error || updateTenant.error
-		}),
-		[createTenant, updateTenant]
-	)
+export function usePrefetchTenantDetail(id: string) {
+	usePrefetchQuery(tenantQueries.detail(id))
 }
 
 /**
- * Hook for prefetching tenant data before navigation
+ * Declarative prefetch hook for tenant with lease info
+ * Prefetches tenant detail with associated lease data
  */
-export function usePrefetchTenant() {
-	const queryClient = useQueryClient()
-
-	return {
-		prefetchTenant: (id: string) => {
-			return queryClient.prefetchQuery(tenantQueries.detail(id))
-		},
-		prefetchTenantWithLease: (id: string) => {
-			return queryClient.prefetchQuery(tenantQueries.withLease(id))
-		}
-	}
+export function usePrefetchTenantWithLease(id: string) {
+	usePrefetchQuery(tenantQueries.withLease(id))
 }
 
 /**
@@ -413,4 +246,417 @@ export function useNotificationPreferences(tenant_id: string) {
  */
 export function useInvitations() {
 	return useQuery(tenantQueries.invitationList())
+}
+
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
+/**
+ * Create tenant mutation
+ */
+export function useCreateTenantMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.create,
+		mutationFn: (data: TenantCreate) =>
+			apiRequest<Tenant>('/api/v1/tenants', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			}),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			toast.success('Tenant created successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Create tenant')
+		}
+	})
+}
+
+/**
+ * Update tenant mutation
+ */
+export function useUpdateTenantMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.update,
+		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) =>
+			apiRequest<Tenant>(`/api/v1/tenants/${id}`, {
+				method: 'PUT',
+				body: JSON.stringify(data)
+			}),
+		onSuccess: updatedTenant => {
+			queryClient.setQueryData(
+				tenantQueries.detail(updatedTenant.id).queryKey,
+				updatedTenant
+			)
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			toast.success('Tenant updated successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Update tenant')
+		}
+	})
+}
+
+/**
+ * Delete tenant mutation
+ */
+export function useDeleteTenantMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.delete,
+		mutationFn: async (id: string) =>
+			apiRequest<void>(`/api/v1/tenants/${id}`, { method: 'DELETE' }),
+		onSuccess: (_result, deletedId) => {
+			queryClient.removeQueries({
+				queryKey: tenantQueries.detail(deletedId).queryKey
+			})
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			toast.success('Tenant deleted successfully')
+		},
+		onError: error => {
+			handleMutationError(error, 'Delete tenant')
+		}
+	})
+}
+
+/**
+ * Mark tenant as moved out (soft delete)
+ * Follows industry-standard 7-year retention pattern
+ */
+export function useMarkTenantAsMovedOutMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.markMovedOut,
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: { moveOutDate: string; moveOutReason: string }
+		}): Promise<TenantWithLeaseInfo> => {
+			return apiRequest<TenantWithLeaseInfo>(
+				`/api/v1/tenants/${id}/mark-moved-out`,
+				{
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}
+			)
+		},
+		onMutate: async ({ id }) => {
+			await queryClient.cancelQueries({
+				queryKey: tenantQueries.detail(id).queryKey
+			})
+			await queryClient.cancelQueries({
+				queryKey: tenantQueries.withLease(id).queryKey
+			})
+			await queryClient.cancelQueries({ queryKey: tenantQueries.lists() })
+
+			const previousDetail = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantQueries.detail(id).queryKey
+			)
+			const previousWithLease = queryClient.getQueryData<TenantWithLeaseInfo>(
+				tenantQueries.withLease(id).queryKey
+			)
+			const previousList = queryClient.getQueryData<TenantWithLeaseInfo[]>(
+				tenantQueries.lists()
+			)
+
+			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+				tenantQueries.detail(id).queryKey,
+				(old: TenantWithLeaseInfoWithVersion | undefined) => {
+					if (!old) return old
+					return incrementVersion(old, {
+						updated_at: new Date().toISOString()
+					} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
+				}
+			)
+
+			queryClient.setQueryData<TenantWithLeaseInfoWithVersion>(
+				tenantQueries.withLease(id).queryKey,
+				(old: TenantWithLeaseInfoWithVersion | undefined) => {
+					if (!old) return old
+					return incrementVersion(old, {
+						updated_at: new Date().toISOString()
+					} as Partial<TenantWithLeaseInfoWithVersion>) as TenantWithLeaseInfoWithVersion
+				}
+			)
+
+			queryClient.setQueryData<TenantWithLeaseInfo[]>(
+				tenantQueries.lists(),
+				old => {
+					if (!old) return old
+					return old.filter(tenant => tenant.id !== id)
+				}
+			)
+
+			return { previousDetail, previousWithLease, previousList, id }
+		},
+		onError: (err, _variables, context) => {
+			if (context) {
+				if (context.previousDetail) {
+					queryClient.setQueryData(
+						tenantQueries.detail(context.id).queryKey,
+						context.previousDetail as unknown as Tenant
+					)
+				}
+				if (context.previousWithLease) {
+					queryClient.setQueryData(
+						tenantQueries.withLease(context.id).queryKey,
+						context.previousWithLease
+					)
+				}
+				if (context.previousList) {
+					queryClient.setQueryData(tenantQueries.lists(), context.previousList)
+				}
+			}
+			handleMutationError(err, 'Mark tenant as moved out')
+		},
+		onSuccess: data => {
+			handleMutationSuccess(
+				'Mark tenant as moved out',
+				`${data?.name ?? 'Tenant'} has been marked as moved out`
+			)
+		},
+		onSettled: (_data, _error, variables) => {
+			queryClient.invalidateQueries({
+				queryKey: tenantQueries.detail(variables.id).queryKey
+			})
+			queryClient.invalidateQueries({
+				queryKey: tenantQueries.withLease(variables.id).queryKey
+			})
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+		}
+	})
+}
+
+/**
+ * Batch tenant operations using bulk endpoints
+ */
+export function useBatchTenantOperations() {
+	const queryClient = useQueryClient()
+
+	return {
+		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
+			const response = await apiRequest<{
+				success: Array<{ id: string; tenant: TenantWithLeaseInfo }>
+				failed: Array<{ id: string; error: string }>
+			}>('/api/v1/tenants/bulk-update', {
+				method: 'POST',
+				body: JSON.stringify({ updates })
+			})
+
+			if (response.failed.length > 0) {
+				response.failed.forEach(failure => {
+					toast.error(`Failed to update tenant: ${failure.error}`)
+				})
+			}
+
+			if (response.success.length > 0) {
+				toast.success(`Updated ${response.success.length} tenant(s)`)
+			}
+
+			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			updates.forEach(({ id }) => {
+				queryClient.invalidateQueries({
+					queryKey: tenantQueries.detail(id).queryKey
+				})
+			})
+
+			return response
+		},
+		batchDelete: async (ids: string[]) => {
+			const response = await apiRequest<{
+				success: Array<{ id: string }>
+				failed: Array<{ id: string; error: string }>
+			}>('/api/v1/tenants/bulk-delete', {
+				method: 'DELETE',
+				body: JSON.stringify({ ids })
+			})
+
+			if (response.failed.length > 0) {
+				response.failed.forEach(failure => {
+					toast.error(`Failed to delete tenant: ${failure.error}`)
+				})
+			}
+
+			if (response.success.length > 0) {
+				toast.success(`Deleted ${response.success.length} tenant(s)`)
+			}
+
+			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+
+			return response
+		}
+	}
+}
+
+/**
+ * Invite tenant - Creates tenant record and sends invitation email
+ */
+export function useInviteTenantMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.invite,
+		mutationFn: async (data: {
+			email: string
+			first_name: string
+			last_name: string
+			phone: string | null
+			lease_id: string
+		}): Promise<TenantWithExtras> => {
+			const response = await apiRequest<TenantWithExtras>('/api/v1/tenants', {
+				method: 'POST',
+				body: JSON.stringify({
+					email: data?.email ?? '',
+					name: `${data.first_name} ${data.last_name}`.trim(),
+					phone: data.phone ?? null
+				})
+			})
+
+			if (data.lease_id) {
+				await apiRequest(`/api/v1/leases/${data.lease_id}`, {
+					method: 'PATCH',
+					body: JSON.stringify({ tenant_id: response.id })
+				})
+			}
+
+			return response
+		},
+		onSuccess: data => {
+			toast.success('Invitation sent', {
+				description: `${data?.name ?? 'Tenant'} will receive an email to accept the invitation`
+			})
+
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+
+			logger.info('Tenant invitation sent', {
+				action: 'invite_tenant',
+				metadata: { tenant_id: data?.id, email: data?.email ?? '' }
+			})
+		},
+		onError: error => {
+			handleMutationError(error, 'Send tenant invitation')
+		}
+	})
+}
+
+/**
+ * Resend invitation email for expired or pending invitations
+ */
+export function useResendInvitationMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.resendInvite,
+		mutationFn: (tenant_id: string) =>
+			apiRequest<{ message: string }>(
+				`/api/v1/tenants/${tenant_id}/resend-invitation`,
+				{
+					method: 'POST'
+				}
+			),
+		onSuccess: (_, tenant_id) => {
+			toast.success('Invitation resent', {
+				description: 'A new invitation email has been sent'
+			})
+
+			queryClient.invalidateQueries({
+				queryKey: tenantQueries.detail(tenant_id).queryKey
+			})
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+
+			logger.info('Tenant invitation resent', {
+				action: 'resend_invitation',
+				metadata: { tenant_id }
+			})
+		},
+		onError: error => {
+			handleMutationError(error, 'Resend invitation')
+		}
+	})
+}
+
+/**
+ * Cancel tenant invitation
+ */
+export function useCancelInvitationMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.cancelInvite,
+		mutationFn: (invitationId: string) =>
+			apiRequest<{ message: string }>(
+				`/api/v1/tenants/invitations/${invitationId}/cancel`,
+				{
+					method: 'POST'
+				}
+			),
+		onSuccess: () => {
+			toast.success('Invitation cancelled')
+
+			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+
+			logger.info('Tenant invitation cancelled', {
+				action: 'cancel_invitation'
+			})
+		},
+		onError: error => {
+			handleMutationError(error, 'Cancel invitation')
+		}
+	})
+}
+
+/**
+ * Update notification preferences for a tenant
+ */
+export function useUpdateNotificationPreferencesMutation() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.tenants.updateNotificationPreferences,
+		mutationFn: ({
+			tenant_id,
+			preferences
+		}: {
+			tenant_id: string
+			preferences: {
+				emailNotifications: boolean
+				smsNotifications: boolean
+				maintenanceUpdates: boolean
+				paymentReminders: boolean
+			}
+		}) =>
+			apiRequest(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
+				method: 'PUT',
+				body: JSON.stringify(preferences)
+			}),
+		onSuccess: (_data, variables) => {
+			toast.success('Notification preferences updated')
+
+			queryClient.invalidateQueries({
+				queryKey: [
+					...tenantQueries.detail(variables.tenant_id).queryKey,
+					'notification-preferences'
+				]
+			})
+
+			logger.info('Notification preferences updated', {
+				action: 'update_notification_preferences',
+				metadata: { tenant_id: variables.tenant_id }
+			})
+		},
+		onError: error => {
+			handleMutationError(error, 'Update notification preferences')
+		}
+	})
 }

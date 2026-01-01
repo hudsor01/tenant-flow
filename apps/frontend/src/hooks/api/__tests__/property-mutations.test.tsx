@@ -19,7 +19,7 @@ import {
 	useDeletePropertyMutation,
 	useDeletePropertyImageMutation,
 	usePropertyImages
-} from '../property-mutations'
+} from '../use-properties'
 
 // Create mock functions before vi.mock calls (hoisting-safe)
 const mockFetch = vi.hoisted(() => vi.fn())

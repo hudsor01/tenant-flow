@@ -137,7 +137,7 @@ vi.mock('#hooks/api/use-lease', () => ({
 		list: () => ({ queryKey: ['leases', 'list'] }),
 		detail: (id: string) => ({ queryKey: ['leases', 'detail', id] })
 	},
-	useCancelSignatureRequest: () => ({
+	useCancelSignatureRequestMutation: () => ({
 		mutateAsync: vi.fn(),
 		isPending: false
 	}),
@@ -148,7 +148,7 @@ vi.mock('#hooks/api/use-lease', () => ({
 	})
 }))
 
-// Mock use-tenant to provide tenantQueries (needed by lease-mutations)
+// Mock use-tenant to provide tenantQueries (needed by use-lease)
 vi.mock('#hooks/api/use-tenant', () => ({
 	tenantQueries: {
 		all: () => ['tenants'],
