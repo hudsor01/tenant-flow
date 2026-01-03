@@ -10,7 +10,7 @@
 
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, type ChangeEvent } from 'react'
 import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
@@ -119,7 +119,7 @@ export default function OwnerProfilePage() {
 		fileInputRef.current?.click()
 	}
 
-	const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleAvatarChange = async (e: ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0]
 		if (!file) return
 

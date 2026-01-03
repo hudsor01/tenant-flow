@@ -171,7 +171,7 @@ export const tenantPaymentQueries = {
 			queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
 			queryFn: () =>
 				apiRequest<TenantPaymentHistoryResponse>(
-					`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
+					`/api/v1/tenants//payments?limit=${options?.limit ?? 20}`
 				),
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: options?.enabled ?? Boolean(tenant_id)
@@ -423,7 +423,7 @@ export function useOwnerTenantPayments(
 		queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
 		queryFn: () =>
 			apiRequest<TenantPaymentHistoryResponse>(
-				`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
+				`/api/v1/tenants//payments?limit=${options?.limit ?? 20}`
 			),
 		...QUERY_CACHE_TIMES.DETAIL,
 		enabled: options?.enabled ?? Boolean(tenant_id)

@@ -4,8 +4,7 @@ import type {
 	CallHandler
 } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
-import type { Observable } from 'rxjs'
-import { map } from 'rxjs/operators'
+import { map, type Observable } from 'rxjs'
 import type { Response } from 'express'
 
 /**

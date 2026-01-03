@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+
 export interface NavItem {
 	name: string
 	href: string
@@ -5,7 +7,7 @@ export interface NavItem {
 	dropdownItems?: { name: string; href: string; description?: string }[]
 }
 
-export interface NavbarProps extends React.ComponentProps<'nav'> {
+export interface NavbarProps extends ComponentProps<'nav'> {
 	logo?: string
 	navItems?: NavItem[]
 	ctaText?: string

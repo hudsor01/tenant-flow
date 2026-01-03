@@ -8,6 +8,8 @@
  * @vitest-environment jsdom
  */
 
+import type { ReactElement, ReactNode } from 'react'
+
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { vi } from 'vitest'
@@ -21,7 +23,7 @@ vi.mock('#components/ui/route-modal', async () => {
 		'#components/ui/dialog'
 	)
 	return {
-		RouteModal: ({ children }: { children: React.ReactNode }) => (
+		RouteModal: ({ children }: { children: ReactNode }) => (
 			<actual.Dialog open={true}>
 				<actual.DialogContent>{children} </actual.DialogContent>
 			</actual.Dialog>
@@ -53,7 +55,7 @@ vi.mock('#hooks/api/use-unit', () => ({
 	}
 }))
 
-function renderWithQueryClient(ui: React.ReactElement) {
+function renderWithQueryClient(ui: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },

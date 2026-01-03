@@ -5,7 +5,7 @@ import { CardLayout } from '#components/ui/card-layout'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { useErrorBoundary } from '#hooks/use-error-boundary'
 import { useErrorBoundaryStore } from '#stores/error-boundary-store'
-import type { ReactNode } from 'react'
+import type { ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { useRouter } from 'next/navigation'
@@ -36,7 +36,7 @@ export class ErrorBoundary extends Component<Props, State> {
 		return { hasError: true, error }
 	}
 
-	override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
 		// Log error locally for immediate debugging
 		logger.error('ErrorBoundary - Error caught by boundary', {
 			action: 'component_error_boundary',

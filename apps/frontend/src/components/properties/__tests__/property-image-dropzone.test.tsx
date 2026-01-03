@@ -12,6 +12,8 @@
  * @vitest-environment jsdom
  */
 
+import type { ReactNode } from 'react'
+
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { PropertyImageDropzone } from '../property-image-dropzone'
@@ -70,7 +72,7 @@ function createWrapper() {
 	})
 	// Mock the invalidateQueries method
 	queryClient.invalidateQueries = mockInvalidateQueries
-	return function Wrapper({ children }: { children: React.ReactNode }) {
+	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)

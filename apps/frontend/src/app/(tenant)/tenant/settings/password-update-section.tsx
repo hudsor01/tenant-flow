@@ -16,6 +16,7 @@ import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import { createClient } from '#lib/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'
+import type { FormEvent } from 'react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -66,7 +67,7 @@ export function PasswordUpdateSection() {
 		}
 	})
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		updatePasswordMutation.mutate()
 	}

@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Textarea } from '#components/ui/textarea'
@@ -30,16 +31,16 @@ export function AddExpenseDialog({
 	maintenanceId,
 	onSuccess
 }: AddExpenseDialogProps) {
-	const [open, setOpen] = React.useState(false)
-	const [isSubmitting, setIsSubmitting] = React.useState(false)
-	const [vendorName, setVendorName] = React.useState('')
-	const [amount, setAmount] = React.useState('')
-	const [expenseDate, setExpenseDate] = React.useState(
+	const [open, setOpen] = useState(false)
+	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [vendorName, setVendorName] = useState('')
+	const [amount, setAmount] = useState('')
+	const [expenseDate, setExpenseDate] = useState(
 		new Date().toISOString().split('T')[0]
 	)
-	const [description, setDescription] = React.useState('')
+	const [description, setDescription] = useState('')
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		if (!amount || parseFloat(amount) <= 0) {
 			toast.error('Please enter a valid amount')

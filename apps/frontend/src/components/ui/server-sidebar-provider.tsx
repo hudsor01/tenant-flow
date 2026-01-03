@@ -7,7 +7,7 @@
 
 import { cookies } from 'next/headers'
 import { SidebarProvider } from '#components/ui/sidebar/context'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 
@@ -16,7 +16,7 @@ interface ServerSidebarProviderProps {
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	className?: string
-	style?: React.CSSProperties
+	style?: CSSProperties
 	children: ReactNode
 }
 

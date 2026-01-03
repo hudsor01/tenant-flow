@@ -1,6 +1,12 @@
 'use client'
 
-import * as React from 'react'
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useSyncExternalStore
+} from 'react'
+import type { RefObject } from 'react'
 import { useLazyRef } from '#hooks/use-lazy-ref'
 import type {
 	Store,
@@ -10,12 +16,12 @@ import type {
 } from './types'
 import { ROOT_NAME } from './types'
 
-const StoreContext = React.createContext<Store | null>(null)
+const StoreContext = createContext<Store | null>(null)
 
 export { StoreContext }
 
 export function useStoreContext(consumerName: string): Store {
-	const context = React.useContext(StoreContext)
+	const context = useContext(StoreContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -29,7 +35,7 @@ export function useStore<T>(selector: (state: StoreState) => T): T {
 		() => null
 	)
 
-	const getSnapshot = React.useCallback(() => {
+	const getSnapshot = useCallback(() => {
 		const state = store.getState()
 		const prevValue = lastValueRef.current
 
@@ -42,13 +48,13 @@ export function useStore<T>(selector: (state: StoreState) => T): T {
 		return nextValue
 	}, [store, selector, lastValueRef])
 
-	return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
+	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
 export function createStoreReducer(
 	files: Map<File, import('./types').FileState>,
 	urlCache: WeakMap<File, string>,
-	propsRef: React.RefObject<FileUploadInternalPropsRef>
+	propsRef: RefObject<FileUploadInternalPropsRef>
 ) {
 	return function reducer(
 		state: StoreState,

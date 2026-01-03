@@ -4,7 +4,7 @@
  * Tests for the loading skeleton components used in the properties section.
  * Validates that skeletons match the final card layout and have proper animations.
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest'

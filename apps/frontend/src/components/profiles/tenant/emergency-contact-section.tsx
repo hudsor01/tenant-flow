@@ -1,15 +1,16 @@
 'use client'
 
+import type { FormEvent } from 'react'
+
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
-import { Mail, Phone } from 'lucide-react'
+import { Phone } from 'lucide-react'
 
 interface EmergencyContactFormData {
-	contactName: string
+	name: string
 	relationship: string
-	phoneNumber: string
-	email: string
+	phone: string
 }
 
 interface EmergencyContactSectionProps {
@@ -20,7 +21,7 @@ interface EmergencyContactSectionProps {
 	isSaving: boolean
 	onEditToggle: (editing: boolean) => void
 	onChange: (field: keyof EmergencyContactFormData, value: string) => void
-	onSave: (e: React.FormEvent) => void
+	onSave: (e: FormEvent) => void
 	onCancel: () => void
 	onDelete: () => void
 }
@@ -52,15 +53,15 @@ export function EmergencyContactSection({
 							type="text"
 							className="input w-full"
 							placeholder="Full name"
-							value={formData.contactName}
-							onChange={e => onChange('contactName', e.target.value)}
+							value={formData.name}
+							onChange={e => onChange('name', e.target.value)}
 							disabled={isDisabled}
 							required
 						/>
 					</Field>
 
 					<Field>
-						<FieldLabel>Relationship *</FieldLabel>
+						<FieldLabel>Relationship</FieldLabel>
 						<input
 							type="text"
 							className="input w-full"
@@ -68,7 +69,6 @@ export function EmergencyContactSection({
 							value={formData.relationship}
 							onChange={e => onChange('relationship', e.target.value)}
 							disabled={isDisabled}
-							required
 						/>
 					</Field>
 				</div>
@@ -84,27 +84,10 @@ export function EmergencyContactSection({
 						type="tel"
 						className="input w-full"
 						placeholder="(555) 123-4567"
-						value={formData.phoneNumber}
-						onChange={e => onChange('phoneNumber', e.target.value)}
+						value={formData.phone}
+						onChange={e => onChange('phone', e.target.value)}
 						disabled={isDisabled}
 						required
-					/>
-				</Field>
-
-				<Field>
-					<FieldLabel>
-						<div className="flex items-center gap-2">
-							<Mail className="size-4" />
-							<span>Email (optional)</span>
-						</div>
-					</FieldLabel>
-					<input
-						type="email"
-						className="input w-full"
-						placeholder="emergency@example.com"
-						value={formData.email}
-						onChange={e => onChange('email', e.target.value)}
-						disabled={isDisabled}
 					/>
 				</Field>
 

@@ -1,6 +1,6 @@
 /**
  * @vitest-environment jsdom
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  *
  * TDD Tests for Accept-Invite Page
  *

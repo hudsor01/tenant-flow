@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Button } from '#components/ui/button'
 import { Badge } from '#components/ui/badge'
@@ -40,7 +41,7 @@ const defaultClauses: ClauseItem[] = [
 ]
 
 export function PropertyInspectionTemplate() {
-	const [branding, setBranding] = React.useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding)
 	const form = useForm({
 		defaultValues: {
 			propertyName: 'Sunset Villas',
@@ -68,13 +69,13 @@ export function PropertyInspectionTemplate() {
 			}
 		}
 	})
-	const [photos, setPhotos] = React.useState<{ url: string; name: string }[]>(
+	const [photos, setPhotos] = useState<{ url: string; name: string }[]>(
 		[]
 	)
-	const [customFields, setCustomFields] = React.useState<CustomField[]>([])
-	const [clauses, setClauses] = React.useState<ClauseItem[]>(defaultClauses)
+	const [customFields, setCustomFields] = useState<CustomField[]>([])
+	const [clauses, setClauses] = useState<ClauseItem[]>(defaultClauses)
 
-	const baseFields = React.useMemo<DynamicField[]>(
+	const baseFields = useMemo<DynamicField[]>(
 		() => [
 			{
 				name: 'propertyName',
@@ -143,7 +144,7 @@ export function PropertyInspectionTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('property-inspection', baseFields, form as never)
 
-	const getPayload = React.useCallback(() => {
+	const getPayload = useCallback(() => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,
@@ -188,7 +189,7 @@ export function PropertyInspectionTemplate() {
 	} = useTemplatePdf('property-inspection', getPayload)
 
 	const handlePhotoUpload = async (
-		event: React.ChangeEvent<HTMLInputElement>
+		event: ChangeEvent<HTMLInputElement>
 	) => {
 		const files = Array.from(event.target.files ?? [])
 		if (files.length === 0) return
