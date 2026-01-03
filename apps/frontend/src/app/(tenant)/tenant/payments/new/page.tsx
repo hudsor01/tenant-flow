@@ -67,7 +67,7 @@ export default function PayRentPage() {
 	// Pay rent mutation
 	const payMutation = useMutation({
 		mutationFn: async (data: PayRentRequest) =>
-			apiRequest<{ success: boolean }>('/api/v1/tenants/payments/pay-rent', {
+			apiRequest<{ success: boolean }>('/api/v1/tenant-portal/payments/pay-rent', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),

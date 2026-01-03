@@ -1,5 +1,7 @@
 'use client'
 
+import type { ChangeEvent, FormEvent } from 'react'
+
 import { Spinner } from '#components/ui/loading-spinner'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -54,7 +56,7 @@ export function ConnectOnboardingDialog({
 	const createAccount = useCreateConnectedAccountMutation()
 	const refreshOnboarding = useRefreshOnboardingMutation()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		if (!displayName.trim()) {
@@ -154,7 +156,7 @@ export function ConnectOnboardingDialog({
 							placeholder="Your name or business name"
 							autoComplete="organization"
 							value={displayName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								setDisplayName(e.target.value)
 							}
 							required
@@ -169,7 +171,7 @@ export function ConnectOnboardingDialog({
 								placeholder="Legal business name"
 								autoComplete="organization"
 								value={businessName}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								onChange={(e: ChangeEvent<HTMLInputElement>) =>
 									setBusinessName(e.target.value)
 								}
 							/>

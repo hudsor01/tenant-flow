@@ -3,6 +3,8 @@
  * Requirements: 4.1, 4.2
  */
 
+import type { ReactElement } from 'react'
+
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -60,7 +62,7 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 	})
 }))
 
-function renderWithProviders(component: React.ReactElement) {
+function renderWithProviders(component: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },

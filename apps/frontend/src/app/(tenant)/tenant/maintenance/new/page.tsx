@@ -6,6 +6,8 @@
 
 'use client'
 
+import type { FormEvent } from 'react'
+
 import {
 	Dropzone,
 	DropzoneContent,
@@ -71,7 +73,7 @@ export default function NewMaintenanceRequestPage() {
 		upsert: false
 	})
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		// Validation

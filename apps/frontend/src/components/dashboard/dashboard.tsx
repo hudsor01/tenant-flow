@@ -71,7 +71,7 @@ export function Dashboard({
 					: 'vacant',
 		leaseEnd: null,
 		rent: prop.monthlyRevenue,
-		maintenanceOpen: Math.floor(Math.random() * 3)
+		maintenanceOpen: 0 // Not in current API response
 	}))
 
 	// Filter and sort data

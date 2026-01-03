@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import {
 	Bell,
@@ -26,7 +27,7 @@ type SettingsTab = 'general' | 'notifications' | 'security' | 'billing'
 interface SettingsSection {
 	id: SettingsTab
 	label: string
-	icon: React.ReactNode
+	icon: ReactNode
 	description: string
 }
 

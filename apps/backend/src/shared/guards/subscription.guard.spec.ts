@@ -203,4 +203,46 @@ describe('SubscriptionGuard', () => {
 		expect(result).toBe(true)
 		expect(supabaseService.rpcWithRetries).not.toHaveBeenCalled()
 	})
+
+	it('handles null/undefined RPC response gracefully', async () => {
+		mockMetadata()
+		supabaseService.rpcWithRetries.mockResolvedValue({
+			data: null,
+			error: null
+		})
+
+		// When RPC returns null without error, should deny access (not crash)
+		await expect(
+			guard.canActivate(
+				createContext({
+					user: createMockUser({
+						id: 'owner-6',
+						email: 'owner@example.com',
+						app_metadata: { user_type: 'OWNER' }
+					})
+				})
+			)
+		).rejects.toThrow(ForbiddenException)
+	})
+
+	it('handles undefined RPC data gracefully', async () => {
+		mockMetadata()
+		supabaseService.rpcWithRetries.mockResolvedValue({
+			data: undefined,
+			error: null
+		})
+
+		// When RPC returns undefined, should deny access (not crash)
+		await expect(
+			guard.canActivate(
+				createContext({
+					user: createMockUser({
+						id: 'owner-7',
+						email: 'owner@example.com',
+						app_metadata: { user_type: 'OWNER' }
+					})
+				})
+			)
+		).rejects.toThrow(ForbiddenException)
+	})
 })

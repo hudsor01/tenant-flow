@@ -1,6 +1,8 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
+
 import { Menu, X, Bell, MoreVertical, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -16,7 +18,7 @@ import {
 } from '#components/ui/dropdown-menu'
 
 export interface TenantShellProps {
-	children: React.ReactNode
+	children: ReactNode
 }
 
 // Mobile bottom navigation items

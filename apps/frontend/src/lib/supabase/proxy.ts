@@ -18,6 +18,27 @@ const MARKETING_ROUTES = new Set([
 	'/terms'
 ])
 
+// Static assets that should never trigger auth redirects
+// These files are served from /public and must be accessible without authentication
+const STATIC_ASSET_PATTERNS = [
+	'/manifest.json',
+	'/sw.js',
+	'/robots.txt',
+	'/sitemap.xml',
+	'/sitemap-index.xml',
+	'/structured-data.json',
+	'/browserconfig.xml',
+	'/.well-known/',
+	'/_redirects'
+]
+
+/**
+ * Check if a pathname is a static asset that should bypass auth
+ */
+function isStaticAsset(pathname: string): boolean {
+	return STATIC_ASSET_PATTERNS.some(pattern => pathname.startsWith(pattern))
+}
+
 function isMarketingRoute(pathname: string): boolean {
 	// Check exact match first
 	if (MARKETING_ROUTES.has(pathname)) return true
@@ -83,11 +104,14 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Redirect unauthenticated users from protected routes to login
+	// Skip static assets, marketing pages, and auth-related routes
 	if (
 		!user &&
+		!isStaticAsset(pathname) &&
 		!isMarketingRoute(pathname) &&
 		!pathname.startsWith('/login') &&
-		!pathname.startsWith('/auth')
+		!pathname.startsWith('/auth') &&
+		!pathname.startsWith('/accept-invite')
 	) {
 		const url = request.nextUrl.clone()
 		url.pathname = '/login'

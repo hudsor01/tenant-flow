@@ -43,7 +43,7 @@ import { TenantPortalController } from './tenant-portal.controller'
 		TenantSettingsModule,
 		RouterModule.register([
 			{
-				path: 'tenants',
+				path: 'tenant-portal',
 				children: [
 					{ path: 'payments', module: TenantPaymentsModule },
 					{ path: 'autopay', module: TenantAutopayModule },

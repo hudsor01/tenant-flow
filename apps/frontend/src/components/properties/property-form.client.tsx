@@ -2,7 +2,7 @@
 
 import { CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
@@ -237,7 +237,7 @@ export function PropertyForm({
 									autoComplete="organization"
 									placeholder="e.g. Sunset Apartments"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -292,7 +292,7 @@ export function PropertyForm({
 									autoComplete="street-address"
 									placeholder="123 Main St"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -315,7 +315,7 @@ export function PropertyForm({
 									name="address_line2"
 									placeholder="Apt, Suite, Unit, etc."
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -335,7 +335,7 @@ export function PropertyForm({
 										autoComplete="address-level2"
 										placeholder="City"
 										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											field.handleChange(e.target.value)
 										}
 										onBlur={field.handleBlur}
@@ -360,7 +360,7 @@ export function PropertyForm({
 										placeholder="CA"
 										maxLength={2}
 										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											field.handleChange(e.target.value.toUpperCase())
 										}
 										onBlur={field.handleBlur}
@@ -385,7 +385,7 @@ export function PropertyForm({
 										inputMode="numeric"
 										placeholder="12345"
 										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											field.handleChange(e.target.value)
 										}
 										onBlur={field.handleBlur}

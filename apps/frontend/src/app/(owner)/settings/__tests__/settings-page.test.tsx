@@ -3,6 +3,8 @@
  * Task Group 11: Settings Implementation
  */
 
+import type { ChangeEvent, ReactElement } from 'react'
+
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -180,7 +182,7 @@ vi.mock('#components/auth/password-strength', () => ({
 		id: string
 		placeholder: string
 		value: string
-		onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+		onChange: (e: ChangeEvent<HTMLInputElement>) => void
 		disabled: boolean
 	}) => (
 		<input
@@ -231,7 +233,7 @@ function createTestQueryClient() {
 	})
 }
 
-function renderWithProviders(component: React.ReactElement) {
+function renderWithProviders(component: ReactElement) {
 	const queryClient = createTestQueryClient()
 
 	return render(

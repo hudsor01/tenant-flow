@@ -236,8 +236,7 @@ export const tenantPortalKeys = {
 	},
 	notificationPreferences: {
 		all: () => [...tenantPortalKeys.all, 'notification-preferences'] as const,
-		detail: (tenantId: string) =>
-			[...tenantPortalKeys.all, 'notification-preferences', tenantId] as const
+		detail: () => [...tenantPortalKeys.all, 'notification-preferences', 'detail'] as const
 	}
 }
 
@@ -284,7 +283,7 @@ export const tenantPortalQueries = {
 		queryOptions({
 			queryKey: tenantPortalKeys.amountDue(),
 			queryFn: () =>
-				apiRequest<AmountDueResponse>('/api/v1/tenants/payments/amount-due'),
+				apiRequest<AmountDueResponse>('/api/v1/tenant-portal/payments/amount-due'),
 			...QUERY_CACHE_TIMES.STATS,
 			refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 			refetchIntervalInBackground: false,
@@ -302,7 +301,7 @@ export const tenantPortalQueries = {
 				apiRequest<{
 					payments: TenantPayment[]
 					methodsEndpoint: string
-				}>('/api/v1/tenants/payments'),
+				}>('/api/v1/tenant-portal/payments'),
 			...QUERY_CACHE_TIMES.LIST,
 			// No interval - SSE handles updates, tab focus catches missed events
 			refetchOnWindowFocus: true,
@@ -315,7 +314,7 @@ export const tenantPortalQueries = {
 	autopay: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.autopay.all(),
-			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenants/autopay'),
+			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenant-portal/autopay'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -331,7 +330,7 @@ export const tenantPortalQueries = {
 				apiRequest<{
 					requests: TenantMaintenanceRequest[]
 					summary: TenantMaintenanceStats
-				}>('/api/v1/tenants/maintenance'),
+				}>('/api/v1/tenant-portal/maintenance'),
 			...QUERY_CACHE_TIMES.LIST,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -343,7 +342,7 @@ export const tenantPortalQueries = {
 	lease: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.leases.all(),
-			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenants/leases'),
+			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenant-portal/leases'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -357,7 +356,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.documents.all(),
 			queryFn: () =>
 				apiRequest<{ documents: TenantDocument[] }>(
-					'/api/v1/tenants/leases/documents'
+					'/api/v1/tenant-portal/leases/documents'
 				),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
@@ -370,7 +369,7 @@ export const tenantPortalQueries = {
 	settings: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.settings.all(),
-			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenants/settings'),
+			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenant-portal/settings'),
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -378,15 +377,15 @@ export const tenantPortalQueries = {
 
 	/**
 	 * Tenant notification preferences (self-managed by tenant)
+	 * Uses authenticated context - no tenant ID needed in URL
 	 */
-	notificationPreferences: (tenantId: string) =>
+	notificationPreferences: () =>
 		queryOptions({
-			queryKey: tenantPortalKeys.notificationPreferences.detail(tenantId),
+			queryKey: tenantPortalKeys.notificationPreferences.detail(),
 			queryFn: () =>
 				apiRequest<TenantNotificationPreferences>(
-					`/api/v1/tenants/${tenantId}/notification-preferences`
+					'/api/v1/tenant-portal/settings/notification-preferences'
 				),
-			enabled: !!tenantId,
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
@@ -437,7 +436,7 @@ export function useMaintenanceRequestCreateMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.tenantPortal.createMaintenanceRequest,
 		mutationFn: (request: MaintenanceRequestCreate) =>
-			apiRequest<TenantMaintenanceRequest>('/api/v1/tenants/maintenance', {
+			apiRequest<TenantMaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
 				method: 'POST',
 				body: JSON.stringify(request)
 			}),
@@ -521,24 +520,26 @@ export function useTenantSettings() {
 // ============================================================================
 
 /**
- * Get notification preferences for a tenant (tenant self-service)
+ * Get notification preferences for authenticated tenant (self-service)
+ * Uses authenticated context - no tenant ID needed
  */
-export function useTenantNotificationPreferences(tenantId: string) {
-	return useQuery(tenantPortalQueries.notificationPreferences(tenantId))
+export function useTenantNotificationPreferences() {
+	return useQuery(tenantPortalQueries.notificationPreferences())
 }
 
 /**
  * Update notification preferences (tenant self-service)
  * Includes optimistic updates with rollback
+ * Uses authenticated context - no tenant ID needed
  */
-export function useUpdateTenantNotificationPreferences(tenantId: string) {
+export function useUpdateTenantNotificationPreferences() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantNotificationPreferences.update,
 		mutationFn: (preferences: Partial<TenantNotificationPreferences>) =>
 			apiRequest<TenantNotificationPreferences>(
-				`/api/v1/tenants/${tenantId}/notification-preferences`,
+				'/api/v1/tenant-portal/settings/notification-preferences',
 				{
 					method: 'PUT',
 					body: JSON.stringify(preferences)
@@ -547,19 +548,19 @@ export function useUpdateTenantNotificationPreferences(tenantId: string) {
 		onMutate: async (newPreferences: Partial<TenantNotificationPreferences>) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({
-				queryKey: tenantPortalKeys.notificationPreferences.detail(tenantId)
+				queryKey: tenantPortalKeys.notificationPreferences.detail()
 			})
 
 			// Snapshot previous state
 			const previousPreferences =
 				queryClient.getQueryData<TenantNotificationPreferences>(
-					tenantPortalKeys.notificationPreferences.detail(tenantId)
+					tenantPortalKeys.notificationPreferences.detail()
 				)
 
 			// Optimistically update
 			if (previousPreferences) {
 				queryClient.setQueryData<TenantNotificationPreferences>(
-					tenantPortalKeys.notificationPreferences.detail(tenantId),
+					tenantPortalKeys.notificationPreferences.detail(),
 					(old: TenantNotificationPreferences | undefined) =>
 						old ? { ...old, ...newPreferences } : undefined
 				)
@@ -571,7 +572,7 @@ export function useUpdateTenantNotificationPreferences(tenantId: string) {
 			// Rollback on error
 			if (context?.previousPreferences) {
 				queryClient.setQueryData(
-					tenantPortalKeys.notificationPreferences.detail(tenantId),
+					tenantPortalKeys.notificationPreferences.detail(),
 					context.previousPreferences
 				)
 			}
@@ -579,7 +580,6 @@ export function useUpdateTenantNotificationPreferences(tenantId: string) {
 			logger.error('Failed to update notification preferences', {
 				action: 'update_notification_preferences',
 				metadata: {
-					tenant_id: tenantId,
 					error: err instanceof Error ? err.message : String(err)
 				}
 			})
@@ -589,7 +589,7 @@ export function useUpdateTenantNotificationPreferences(tenantId: string) {
 		onSuccess: data => {
 			// Update cache with server response
 			queryClient.setQueryData<TenantNotificationPreferences>(
-				tenantPortalKeys.notificationPreferences.detail(tenantId),
+				tenantPortalKeys.notificationPreferences.detail(),
 				data
 			)
 
@@ -599,8 +599,7 @@ export function useUpdateTenantNotificationPreferences(tenantId: string) {
 			)
 
 			logger.info('Notification preferences updated', {
-				action: 'update_notification_preferences',
-				metadata: { tenant_id: tenantId }
+				action: 'update_notification_preferences'
 			})
 		}
 	})

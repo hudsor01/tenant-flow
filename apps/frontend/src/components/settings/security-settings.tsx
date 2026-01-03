@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import {
 	Shield,
 	CheckCircle,
@@ -26,10 +27,10 @@ import {
 
 export function SecuritySettings() {
 	const supabase = createClient()
-	const [showCurrentPassword, setShowCurrentPassword] = React.useState(false)
-	const [currentPassword, setCurrentPassword] = React.useState('')
-	const [newPassword, setNewPassword] = React.useState('')
-	const [confirmPassword, setConfirmPassword] = React.useState('')
+	const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+	const [currentPassword, setCurrentPassword] = useState('')
+	const [newPassword, setNewPassword] = useState('')
+	const [confirmPassword, setConfirmPassword] = useState('')
 
 	// Real MFA status from API
 	const { data: mfaStatus, isLoading: mfaLoading } = useMfaStatus()
@@ -40,8 +41,8 @@ export function SecuritySettings() {
 	const revokeSession = useRevokeSessionMutation()
 
 	// 2FA dialogs
-	const [show2FASetup, setShow2FASetup] = React.useState(false)
-	const [show2FADisable, setShow2FADisable] = React.useState(false)
+	const [show2FASetup, setShow2FASetup] = useState(false)
+	const [show2FADisable, setShow2FADisable] = useState(false)
 
 	const is2FAEnabled = mfaStatus?.isMfaEnabled ?? false
 	const verifiedFactor = mfaFactors?.find(f => f.status === 'verified')
@@ -88,7 +89,7 @@ export function SecuritySettings() {
 		}
 	})
 
-	const handlePasswordSubmit = (e: React.FormEvent) => {
+	const handlePasswordSubmit = (e: FormEvent) => {
 		e.preventDefault()
 		updatePassword.mutate()
 	}

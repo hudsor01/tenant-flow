@@ -4,6 +4,8 @@
  * Tests for the owner and tenant profile pages.
  */
 
+import type { ReactNode } from 'react'
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -149,7 +151,7 @@ function createTestQueryClient() {
 	})
 }
 
-function TestWrapper({ children }: { children: React.ReactNode }) {
+function TestWrapper({ children }: { children: ReactNode }) {
 	const queryClient = createTestQueryClient()
 
 	return (

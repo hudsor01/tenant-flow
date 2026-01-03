@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useState } from 'react'
 import { Download, RefreshCw, Calendar, FileText, Zap } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
@@ -49,12 +49,12 @@ export default function RentCollectionPage() {
 	const cancelSubscription = useCancelSubscriptionMutation()
 	const exportPayments = useExportPaymentsMutation()
 
-	const [actioningId, setActioningId] = React.useState<string | null>(null)
-	const [failedOpen, setFailedOpen] = React.useState(true)
-	const [overdueOpen, setOverdueOpen] = React.useState(true)
-	const [activeTab, setActiveTab] = React.useState('subscriptions')
+	const [actioningId, setActioningId] = useState<string | null>(null)
+	const [failedOpen, setFailedOpen] = useState(true)
+	const [overdueOpen, setOverdueOpen] = useState(true)
+	const [activeTab, setActiveTab] = useState('subscriptions')
 
-	const handlePause = React.useCallback(
+	const handlePause = useCallback(
 		async (id: string) => {
 			setActioningId(id)
 			try {
@@ -66,7 +66,7 @@ export default function RentCollectionPage() {
 		[pauseSubscription]
 	)
 
-	const handleResume = React.useCallback(
+	const handleResume = useCallback(
 		async (id: string) => {
 			setActioningId(id)
 			try {
@@ -78,7 +78,7 @@ export default function RentCollectionPage() {
 		[resumeSubscription]
 	)
 
-	const handleCancel = React.useCallback(
+	const handleCancel = useCallback(
 		async (id: string) => {
 			setActioningId(id)
 			try {
@@ -90,7 +90,7 @@ export default function RentCollectionPage() {
 		[cancelSubscription]
 	)
 
-	const handleExport = React.useCallback(async () => {
+	const handleExport = useCallback(async () => {
 		try {
 			await exportPayments.mutateAsync({})
 			toast.success('Payments exported successfully')
@@ -99,7 +99,7 @@ export default function RentCollectionPage() {
 		}
 	}, [exportPayments])
 
-	const getPaymentMethodInfo = React.useCallback(
+	const getPaymentMethodInfo = useCallback(
 		(paymentMethodId: string) => {
 			const paymentMethod = paymentMethods?.find(
 				(pm: PaymentMethodResponse) => pm.id === paymentMethodId

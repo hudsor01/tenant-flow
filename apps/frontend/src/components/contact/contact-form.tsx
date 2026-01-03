@@ -20,6 +20,7 @@ import { useFormWithProgress } from '#hooks/use-form-progress'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import { API_BASE_URL } from '#lib/api-config'
 
@@ -122,7 +123,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 		}
 	)
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		setErrors({})
 
@@ -290,7 +291,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 										type="text"
 										autoComplete="name"
 										value={formData.name}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('name', e.target.value)
 										}
 										placeholder="John Smith"
@@ -313,7 +314,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 										type="email"
 										autoComplete="email"
 										value={formData.email}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('email', e.target.value)
 										}
 										placeholder="john@propertyco.com"
@@ -334,7 +335,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 									type="text"
 									autoComplete="organization"
 									value={formData.company || ''}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										handleInputChange('company', e.target.value)
 									}
 									placeholder="Property Management Co"
@@ -353,7 +354,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 										type="tel"
 										autoComplete="tel"
 										value={formData.phone || ''}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											handleInputChange('phone', e.target.value)
 										}
 										placeholder="+1 (555) 123-4567"
@@ -433,7 +434,7 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 								name="message"
 								autoComplete="off"
 								value={formData.message}
-								onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+								onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 									handleInputChange('message', e.target.value)
 								}
 								placeholder="Tell us about your property portfolio, current challenges, or any specific questions you have about TenantFlow..."

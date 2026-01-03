@@ -7,7 +7,8 @@ import {
 	FileTextIcon,
 	FileVideoIcon
 } from 'lucide-react'
-import * as React from 'react'
+import { createElement } from 'react'
+import type { ReactElement } from 'react'
 
 export function formatBytes(bytes: number): string {
 	if (bytes === 0) return '0 B'
@@ -16,23 +17,23 @@ export function formatBytes(bytes: number): string {
 	return `${(bytes / 1024 ** i).toFixed(i ? 1 : 0)} ${sizes[i]}`
 }
 
-export function getFileIcon(file: File): React.ReactElement {
+export function getFileIcon(file: File): ReactElement {
 	const type = file.type
 	const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
 
 	if (type.startsWith('video/')) {
-		return React.createElement(FileVideoIcon)
+		return createElement(FileVideoIcon)
 	}
 
 	if (type.startsWith('audio/')) {
-		return React.createElement(FileAudioIcon)
+		return createElement(FileAudioIcon)
 	}
 
 	if (
 		type.startsWith('text/') ||
 		['txt', 'md', 'rtf', 'pdf'].includes(extension)
 	) {
-		return React.createElement(FileTextIcon)
+		return createElement(FileTextIcon)
 	}
 
 	if (
@@ -54,19 +55,19 @@ export function getFileIcon(file: File): React.ReactElement {
 			'cs'
 		].includes(extension)
 	) {
-		return React.createElement(FileCodeIcon)
+		return createElement(FileCodeIcon)
 	}
 
 	if (['zip', 'rar', '7z', 'tar', 'gz', 'bz2'].includes(extension)) {
-		return React.createElement(FileArchiveIcon)
+		return createElement(FileArchiveIcon)
 	}
 
 	if (
 		['exe', 'msi', 'app', 'apk', 'deb', 'rpm'].includes(extension) ||
 		type.startsWith('application/')
 	) {
-		return React.createElement(FileCogIcon)
+		return createElement(FileCogIcon)
 	}
 
-	return React.createElement(FileIcon)
+	return createElement(FileIcon)
 }

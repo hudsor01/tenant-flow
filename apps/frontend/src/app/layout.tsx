@@ -1,13 +1,17 @@
-import { Providers } from '#components/providers'
-import SeoJsonLd from '#components/seo/seo-json-ld'
-import RegisterServiceWorker from '#components/sw/register-sw'
-import { ErrorBoundary } from '#components/error-boundary/error-boundary'
-import { generateSiteMetadata } from '#lib/generate-metadata'
+import type { ReactNode } from 'react'
+
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata } from 'next'
 import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
+
+import { ErrorBoundary } from '#components/error-boundary/error-boundary'
+import { Providers } from '#components/providers'
+import SeoJsonLd from '#components/seo/seo-json-ld'
+import RegisterServiceWorker from '#components/sw/register-sw'
 import { Toaster } from '#components/ui/toast'
+import { generateSiteMetadata } from '#lib/generate-metadata'
+
 import './globals.css'
 
 const splineSans = Spline_Sans({
@@ -30,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({
 	children
 }: {
-	children: React.ReactNode
+	children: ReactNode
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>

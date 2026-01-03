@@ -1,9 +1,11 @@
 'use client'
 
+import type { KeyboardEvent } from 'react'
+
 import { cn } from '#lib/utils'
 import { ChevronDown } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { NavItem } from './types'
 
 interface NavbarDesktopNavProps {
@@ -15,6 +17,24 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null)
 	const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null)
 	const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null)
+	const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	const handleDropdownOpen = (itemName: string) => {
+		// Clear any pending close timeout
+		if (closeTimeoutRef.current) {
+			clearTimeout(closeTimeoutRef.current)
+			closeTimeoutRef.current = null
+		}
+		setOpenDropdown(itemName)
+	}
+
+	const handleDropdownClose = () => {
+		// Delay closing to allow mouse to move to dropdown
+		closeTimeoutRef.current = setTimeout(() => {
+			setOpenDropdown(null)
+			closeTimeoutRef.current = null
+		}, 150)
+	}
 
 	const isActiveLink = (href: string) => {
 		if (href === '/') return pathname === '/'
@@ -36,7 +56,7 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 	})
 
 	const handleKeyDown = (
-		event: React.KeyboardEvent,
+		event: KeyboardEvent,
 		item: NavItem,
 		dropdownIndex?: number
 	) => {
@@ -90,11 +110,11 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 					key={item.name}
 					className="relative"
 					onMouseEnter={() => {
-						if (item.hasDropdown) setOpenDropdown(item.name)
+						if (item.hasDropdown) handleDropdownOpen(item.name)
 						setHoveredNavItem(item.name)
 					}}
 					onMouseLeave={() => {
-						if (item.hasDropdown) setOpenDropdown(null)
+						if (item.hasDropdown) handleDropdownClose()
 						setHoveredNavItem(null)
 					}}
 				>
@@ -122,6 +142,8 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 								'absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2',
 								'enter-modal'
 							)}
+							onMouseEnter={() => handleDropdownOpen(item.name)}
+							onMouseLeave={handleDropdownClose}
 						>
 							{item.dropdownItems?.map((dropdownItem, index) => (
 								<div

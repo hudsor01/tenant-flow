@@ -1,6 +1,7 @@
-import * as React from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { Ref, RefCallback } from 'react'
 
-type PossibleRef<T> = React.Ref<T> | undefined
+type PossibleRef<T> = Ref<T> | undefined
 
 /**
  * Set a given ref to a given value
@@ -21,7 +22,7 @@ function setRef<T>(ref: PossibleRef<T>, value: T) {
  * A utility to compose multiple refs together
  * Accepts callback refs and RefObject(s)
  */
-function composeRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
+function composeRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 	return node => {
 		let hasCleanup = false
 		const cleanups = refs.map(ref => {
@@ -56,14 +57,14 @@ function composeRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
  * A custom hook that composes multiple refs
  * Accepts callback refs and RefObject(s)
  */
-function useComposedRefs<T>(...refs: PossibleRef<T>[]): React.RefCallback<T> {
+function useComposedRefs<T>(...refs: PossibleRef<T>[]): RefCallback<T> {
 	// Store refs in a ref to avoid dependency array issues with rest parameters
-	const refsRef = React.useRef(refs)
-	React.useEffect(() => {
+	const refsRef = useRef(refs)
+	useEffect(() => {
 		refsRef.current = refs
 	})
 
-	return React.useCallback(
+	return useCallback(
 		(node: T) => composeRefs(...refsRef.current)(node),
 		[]
 	)

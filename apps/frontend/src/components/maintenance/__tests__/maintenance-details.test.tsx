@@ -2,8 +2,10 @@
  * MaintenanceDetails Component Tests
  * Tests maintenance detail view including timeline, expenses, and status updates
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+
+import type { ReactNode } from 'react'
 
 import { screen, waitFor } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
@@ -46,7 +48,7 @@ const createWrapper = () => {
 			}
 		}
 	})
-	return ({ children }: { children: React.ReactNode }) => (
+	return ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 	)
 }

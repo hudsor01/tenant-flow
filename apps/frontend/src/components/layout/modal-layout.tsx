@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 /**
  * Standardized Modal Layout for CRUD Routes
  *
@@ -13,8 +15,8 @@ export default function ModalLayout({
 	children,
 	modal
 }: {
-	children: React.ReactNode
-	modal: React.ReactNode
+	children: ReactNode
+	modal: ReactNode
 }) {
 	return (
 		<>

@@ -7,7 +7,7 @@
 
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
 	leaseTemplateSchema,
 	renderLeaseHtmlBody,
@@ -71,20 +71,20 @@ function dollarsToCents(value: string) {
 }
 
 export function LeaseTemplateBuilder() {
-	const [state, setState] = React.useState<USState>(defaultState)
+	const [state, setState] = useState<USState>(defaultState)
 	const [includeStateDisclosures, setIncludeStateDisclosures] =
-		React.useState(true)
+		useState(true)
 	const [includeFederalDisclosures, setIncludeFederalDisclosures] =
-		React.useState(true)
-	const [selectedClauses, setSelectedClauses] = React.useState<string[]>(
+		useState(true)
+	const [selectedClauses, setSelectedClauses] = useState<string[]>(
 		() =>
 			getDefaultSelections(leaseTemplateSchema, defaultState).selectedClauses
 	)
-	const customClauses = React.useMemo<CustomClause[]>(() => [], [])
-	const [pdfPreview, setPdfPreview] = React.useState<string | null>(null)
-	const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false)
+	const customClauses = useMemo<CustomClause[]>(() => [], [])
+	const [pdfPreview, setPdfPreview] = useState<string | null>(null)
+	const [isGeneratingPdf, setIsGeneratingPdf] = useState(false)
 
-	const [builderInputs, setBuilderInputs] = React.useState<LeaseBuilderInputs>({
+	const [builderInputs, setBuilderInputs] = useState<LeaseBuilderInputs>({
 		ownerName: 'Property Management LLC',
 		ownerAddress: '456 Business Ave, Suite 400, San Francisco, CA 94108',
 		tenantNames: 'John Doe; Jane Doe',
@@ -98,7 +98,7 @@ export function LeaseTemplateBuilder() {
 		gracePeriodDays: '5'
 	})
 
-	const context: LeaseTemplateContext = React.useMemo(() => {
+	const context: LeaseTemplateContext = useMemo(() => {
 		return createDefaultContext({
 			ownerName: builderInputs.ownerName,
 			ownerAddress: builderInputs.ownerAddress,
@@ -115,7 +115,7 @@ export function LeaseTemplateBuilder() {
 		})
 	}, [builderInputs, state])
 
-	const selections: LeaseTemplateSelections = React.useMemo(
+	const selections: LeaseTemplateSelections = useMemo(
 		() => ({
 			state,
 			selectedClauses,
@@ -132,17 +132,17 @@ export function LeaseTemplateBuilder() {
 		]
 	)
 
-	const previewHtml = React.useMemo(() => {
+	const previewHtml = useMemo(() => {
 		return renderLeaseHtmlBody(leaseTemplateSchema, selections, context)
 	}, [context, selections])
 
-	const recommendedClauses = React.useMemo(() => {
+	const recommendedClauses = useMemo(() => {
 		return new Set(
 			leaseTemplateSchema.stateRules[state]?.recommendedClauses ?? []
 		)
 	}, [state])
 
-	const toggleClause = React.useCallback((clauseId: string) => {
+	const toggleClause = useCallback((clauseId: string) => {
 		setSelectedClauses(prev =>
 			prev.includes(clauseId)
 				? prev.filter(id => id !== clauseId)
@@ -150,7 +150,7 @@ export function LeaseTemplateBuilder() {
 		)
 	}, [])
 
-	const handlePreviewPdf = React.useCallback(async () => {
+	const handlePreviewPdf = useCallback(async () => {
 		setIsGeneratingPdf(true)
 		try {
 			const response = await fetch(

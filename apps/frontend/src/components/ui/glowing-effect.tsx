@@ -1,8 +1,8 @@
+import type { ReactNode } from 'react'
 import { cn } from '#lib/utils'
-import React from 'react'
 
 interface GlowingEffectProps {
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 	glowColor?: string
 	glowOpacity?: number

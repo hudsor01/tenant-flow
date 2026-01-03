@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
+import type { ElementType } from 'react'
 import {
 	Building2,
 	Wallet,
@@ -38,7 +39,7 @@ interface BalanceItem {
 
 interface BalanceSectionProps {
 	title: string
-	icon: React.ElementType
+	icon: ElementType
 	items: { label: string; items: BalanceItem[]; subtotal: number }[]
 	total: number
 	totalLabel: string
@@ -53,7 +54,7 @@ function BalanceSection({
 	totalLabel,
 	colorClass
 }: BalanceSectionProps) {
-	const [expanded, setExpanded] = React.useState<Record<string, boolean>>({})
+	const [expanded, setExpanded] = useState<Record<string, boolean>>({})
 
 	const toggleExpanded = (label: string) => {
 		setExpanded(prev => ({ ...prev, [label]: !prev[label] }))
@@ -121,8 +122,8 @@ function BalanceSection({
 }
 
 export default function BalanceSheetPage() {
-	const [year, setYear] = React.useState('2024')
-	const [month, setMonth] = React.useState('12')
+	const [year, setYear] = useState('2024')
+	const [month, setMonth] = useState('12')
 
 	// Calculate as-of date
 	const asOfDate = `${year}-${month}-${new Date(parseInt(year), parseInt(month), 0).getDate()}`
@@ -130,7 +131,7 @@ export default function BalanceSheetPage() {
 	const balanceData = data?.data
 
 	// Transform API data to section format
-	const assetsItems = React.useMemo(() => {
+	const assetsItems = useMemo(() => {
 		if (!balanceData) return []
 		return [
 			{
@@ -172,7 +173,7 @@ export default function BalanceSheetPage() {
 		]
 	}, [balanceData])
 
-	const liabilitiesItems = React.useMemo(() => {
+	const liabilitiesItems = useMemo(() => {
 		if (!balanceData) return []
 		return [
 			{
@@ -211,7 +212,7 @@ export default function BalanceSheetPage() {
 		]
 	}, [balanceData])
 
-	const equityItems = React.useMemo(() => {
+	const equityItems = useMemo(() => {
 		if (!balanceData) return []
 		return [
 			{ name: 'Owner Capital', amount: balanceData.equity.ownerCapital },

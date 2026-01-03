@@ -6,6 +6,7 @@
 
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, Check, X } from 'lucide-react'
 import { Button } from '#components/ui/button'
@@ -19,7 +20,7 @@ interface PaymentOptionCardProps {
 	cons: string[]
 	recommended?: boolean
 	tourId?: string
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export function PaymentOptionCard({

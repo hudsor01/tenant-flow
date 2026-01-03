@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { BrandingEditor } from './branding-editor'
@@ -23,7 +23,7 @@ const defaultBranding: BrandingInfo = {
 }
 
 export function RentalApplicationTemplate() {
-	const [branding, setBranding] = React.useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding)
 	const form = useForm({
 		defaultValues: {
 			applicantName: 'Taylor Morgan',
@@ -55,13 +55,13 @@ export function RentalApplicationTemplate() {
 			}
 		}
 	})
-	const [customFields, setCustomFields] = React.useState<CustomField[]>([])
-	const [clauses, setClauses] = React.useState<ClauseItem[]>([{
+	const [customFields, setCustomFields] = useState<CustomField[]>([])
+	const [clauses, setClauses] = useState<ClauseItem[]>([{
 		id: 'state-clause-1',
 		text: 'Application fee disclosures provided.'
 	}])
 
-	const baseFields = React.useMemo<DynamicField[]>(
+	const baseFields = useMemo<DynamicField[]>(
 		() => [
 			{
 				name: 'applicantName',
@@ -142,7 +142,7 @@ export function RentalApplicationTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('rental-application', baseFields, form as never)
 
-	const getPayload = React.useCallback(() => {
+	const getPayload = useCallback(() => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,

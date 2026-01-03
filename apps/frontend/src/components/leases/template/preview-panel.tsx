@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo } from 'react'
 import DOMPurify from 'dompurify'
 import {
 	Card,
@@ -17,7 +17,7 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({ html }: PreviewPanelProps) {
 	// Sanitize HTML to prevent XSS attacks
-	const sanitizedHtml = React.useMemo(() => {
+	const sanitizedHtml = useMemo(() => {
 		if (typeof window === 'undefined') return html
 		return DOMPurify.sanitize(html, {
 			ALLOWED_TAGS: [

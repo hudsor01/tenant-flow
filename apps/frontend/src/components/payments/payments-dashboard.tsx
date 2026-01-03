@@ -89,7 +89,8 @@ function getStatusConfig(status: PaymentStatus) {
 	return config[status]
 }
 
-function getInitials(name: string): string {
+function getInitials(name: string | null | undefined): string {
+	if (!name) return '??'
 	return name
 		.split(' ')
 		.map(n => n[0])
@@ -122,11 +123,11 @@ export function PaymentsDashboard({
 
 	// Filter
 	const filteredPayments = payments.filter(payment => {
-		if (
-			searchQuery &&
-			!payment.tenantName.toLowerCase().includes(searchQuery.toLowerCase())
-		) {
-			return false
+		if (searchQuery) {
+			const tenantName = payment.tenantName ?? ''
+			if (!tenantName.toLowerCase().includes(searchQuery.toLowerCase())) {
+				return false
+			}
 		}
 		if (statusFilter !== 'all' && payment.status !== statusFilter) {
 			return false

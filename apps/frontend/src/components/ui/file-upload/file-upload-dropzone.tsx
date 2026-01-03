@@ -1,7 +1,13 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
+import { useCallback } from 'react'
+import type {
+	ClipboardEvent,
+	DragEvent,
+	KeyboardEvent,
+	MouseEvent
+} from 'react'
 import { cn } from '#lib/utils'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useFileUploadContext } from './context'
@@ -38,8 +44,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		onKeyDown: onKeyDownProp
 	})
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<HTMLDivElement>) => {
+	const onClick = useCallback(
+		(event: MouseEvent<HTMLDivElement>) => {
 			propsRef.current.onClick?.(event)
 
 			if (event.defaultPrevented) return
@@ -57,8 +63,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[context.inputRef, propsRef]
 	)
 
-	const onDragOver = React.useCallback(
-		(event: React.DragEvent<HTMLDivElement>) => {
+	const onDragOver = useCallback(
+		(event: DragEvent<HTMLDivElement>) => {
 			propsRef.current.onDragOver?.(event)
 
 			if (event.defaultPrevented) return
@@ -69,8 +75,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[store, propsRef]
 	)
 
-	const onDragEnter = React.useCallback(
-		(event: React.DragEvent<HTMLDivElement>) => {
+	const onDragEnter = useCallback(
+		(event: DragEvent<HTMLDivElement>) => {
 			propsRef.current.onDragEnter?.(event)
 
 			if (event.defaultPrevented) return
@@ -81,8 +87,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[store, propsRef]
 	)
 
-	const onDragLeave = React.useCallback(
-		(event: React.DragEvent<HTMLDivElement>) => {
+	const onDragLeave = useCallback(
+		(event: DragEvent<HTMLDivElement>) => {
 			propsRef.current.onDragLeave?.(event)
 
 			if (event.defaultPrevented) return
@@ -102,8 +108,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[store, propsRef]
 	)
 
-	const onDrop = React.useCallback(
-		(event: React.DragEvent<HTMLDivElement>) => {
+	const onDrop = useCallback(
+		(event: DragEvent<HTMLDivElement>) => {
 			propsRef.current.onDrop?.(event)
 
 			if (event.defaultPrevented) return
@@ -126,8 +132,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[store, context.inputRef, propsRef]
 	)
 
-	const onPaste = React.useCallback(
-		(event: React.ClipboardEvent<HTMLDivElement>) => {
+	const onPaste = useCallback(
+		(event: ClipboardEvent<HTMLDivElement>) => {
 			propsRef.current.onPaste?.(event)
 
 			if (event.defaultPrevented) return
@@ -165,8 +171,8 @@ export function FileUploadDropzone(props: FileUploadDropzoneProps) {
 		[store, context.inputRef, propsRef]
 	)
 
-	const onKeyDown = React.useCallback(
-		(event: React.KeyboardEvent<HTMLDivElement>) => {
+	const onKeyDown = useCallback(
+		(event: KeyboardEvent<HTMLDivElement>) => {
 			propsRef.current.onKeyDown?.(event)
 
 			if (

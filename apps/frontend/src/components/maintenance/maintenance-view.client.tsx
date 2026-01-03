@@ -1,7 +1,6 @@
 'use client'
 
-import * as React from 'react'
-import { Suspense } from 'react'
+import { Suspense, useCallback, useMemo, useState } from 'react'
 import {
 	AlertTriangle,
 	BarChart3,
@@ -62,7 +61,7 @@ export function MaintenanceViewClient() {
 
 	// Tab state from URL
 	const tabFromUrl = searchParams.get('tab') || 'overview'
-	const [activeTab, setActiveTab] = React.useState(tabFromUrl)
+	const [activeTab, setActiveTab] = useState(tabFromUrl)
 
 	const handleTabChange = (value: string) => {
 		setActiveTab(value)
@@ -75,10 +74,10 @@ export function MaintenanceViewClient() {
 		router.replace(url.pathname + url.search, { scroll: false })
 	}
 
-	const [searchQuery, setSearchQuery] = React.useState('')
+	const [searchQuery, setSearchQuery] = useState('')
 
 	const { data: response, isLoading } = useQuery(maintenanceQueries.list())
-	const requests = React.useMemo(
+	const requests = useMemo(
 		() => (response?.data ?? []) as MaintenanceRequestWithRelations[],
 		[response?.data]
 	)
@@ -98,7 +97,7 @@ export function MaintenanceViewClient() {
 	).length
 
 	// Filter requests
-	const filteredRequests = React.useMemo(() => {
+	const filteredRequests = useMemo(() => {
 		if (!searchQuery) return requests
 
 		const query = searchQuery.toLowerCase()
@@ -115,11 +114,11 @@ export function MaintenanceViewClient() {
 	}, [requests, searchQuery])
 
 	// Quick action handlers
-	const handleExport = React.useCallback(() => {
+	const handleExport = useCallback(() => {
 		toast.info('Export functionality coming soon')
 	}, [])
 
-	const handleViewAnalytics = React.useCallback(() => {
+	const handleViewAnalytics = useCallback(() => {
 		router.push('/reports/analytics')
 	}, [router])
 

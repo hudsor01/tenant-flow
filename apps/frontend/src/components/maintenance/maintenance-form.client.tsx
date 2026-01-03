@@ -1,5 +1,6 @@
 'use client'
 
+import type { ChangeEvent } from 'react'
 import { useMemo } from 'react'
 import { Wrench } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -189,7 +190,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											name="tenant_id"
 											placeholder="Tenant ID"
 											value={field.state.value ?? ''}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											onChange={(e: ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
 											onBlur={field.handleBlur}
@@ -213,7 +214,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											name="title"
 											placeholder="Kitchen faucet leak"
 											value={field.state.value ?? ''}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											onChange={(e: ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
 											onBlur={field.handleBlur}
@@ -238,7 +239,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											placeholder="Describe the issue in detail"
 											rows={4}
 											value={field.state.value ?? ''}
-											onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+											onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 												field.handleChange(e.target.value)
 											}
 											onBlur={field.handleBlur}
@@ -298,7 +299,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											step="0.01"
 											placeholder="0.00"
 											value={field.state.value ?? ''}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											onChange={(e: ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
 											onBlur={field.handleBlur}
@@ -324,7 +325,7 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 											name="scheduled_date"
 											type="date"
 											value={field.state.value ?? ''}
-											onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+											onChange={(e: ChangeEvent<HTMLInputElement>) =>
 												field.handleChange(e.target.value)
 											}
 											onBlur={field.handleBlur}

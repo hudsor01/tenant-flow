@@ -1,4 +1,6 @@
 // Leases Section Types
+import type { ComponentType } from 'react'
+
 // Import database enums from shared types (single source of truth)
 import type { LeaseStatus, PaymentStatus } from '@repo/shared/types/core'
 
@@ -218,5 +220,5 @@ export interface LeaseFormData {
 export interface LeaseWizardStep {
 	id: string
 	label: string
-	icon: React.ComponentType<{ className?: string }>
+	icon: ComponentType<{ className?: string }>
 }

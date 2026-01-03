@@ -1,8 +1,15 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useRef } from 'react'
+import type {
+	ComponentProps,
+	FocusEvent,
+	KeyboardEvent as ReactKeyboardEvent,
+	MouseEvent,
+	ReactNode
+} from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { Check } from 'lucide-react'
-import * as React from 'react'
 import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
 import {
@@ -72,7 +79,7 @@ function StepperItem(props: StepperItemProps) {
 	const steps = useStore(state => state.steps)
 	const dataState = getDataState(value, itemValue, stepState, steps)
 
-	const itemContextValue = React.useMemo(
+	const itemContextValue = useMemo(
 		() => ({
 			value: itemValue,
 			stepState
@@ -134,12 +141,12 @@ function StepperTrigger(props: ButtonProps) {
 	const isTabStop = focusContext.tabStopId === triggerId
 	const dataState = getDataState(value, itemValue, stepState, steps)
 
-	const triggerRef = React.useRef<TriggerElement>(null)
+	const triggerRef = useRef<TriggerElement>(null)
 	const composedRef = useComposedRefs(ref, triggerRef)
-	const isArrowKeyPressedRef = React.useRef(false)
-	const isMouseClickRef = React.useRef(false)
+	const isArrowKeyPressedRef = useRef(false)
+	const isMouseClickRef = useRef(false)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
 			if (ARROW_KEYS.includes(event.key)) {
 				isArrowKeyPressedRef.current = true
@@ -178,8 +185,8 @@ function StepperTrigger(props: ButtonProps) {
 	}, [focusContext, triggerId, itemValue, isTabStop, isDisabled])
 
 	const handleTriggerClick = triggerProps.onClick
-	const onClick = React.useCallback(
-		async (event: React.MouseEvent<TriggerElement>) => {
+	const onClick = useCallback(
+		async (event: MouseEvent<TriggerElement>) => {
 			handleTriggerClick?.(event)
 			if (event.defaultPrevented) return
 
@@ -204,8 +211,8 @@ function StepperTrigger(props: ButtonProps) {
 	)
 
 	const handleTriggerFocus = triggerProps.onFocus
-	const onFocus = React.useCallback(
-		async (event: React.FocusEvent<TriggerElement>) => {
+	const onFocus = useCallback(
+		async (event: FocusEvent<TriggerElement>) => {
 			handleTriggerFocus?.(event)
 			if (event.defaultPrevented) return
 
@@ -246,8 +253,8 @@ function StepperTrigger(props: ButtonProps) {
 	)
 
 	const handleTriggerKeyDown = triggerProps.onKeyDown
-	const onKeyDown = React.useCallback(
-		async (event: React.KeyboardEvent<TriggerElement>) => {
+	const onKeyDown = useCallback(
+		async (event: ReactKeyboardEvent<TriggerElement>) => {
 			handleTriggerKeyDown?.(event)
 			if (event.defaultPrevented) return
 
@@ -348,8 +355,8 @@ function StepperTrigger(props: ButtonProps) {
 	)
 
 	const handleTriggerMouseDown = triggerProps.onMouseDown
-	const onMouseDown = React.useCallback(
-		(event: React.MouseEvent<TriggerElement>) => {
+	const onMouseDown = useCallback(
+		(event: MouseEvent<TriggerElement>) => {
 			handleTriggerMouseDown?.(event)
 			if (event.defaultPrevented) return
 
@@ -399,7 +406,7 @@ function StepperTrigger(props: ButtonProps) {
 }
 
 interface StepperIndicatorProps extends Omit<DivProps, 'children'> {
-	children?: React.ReactNode | ((dataState: DataState) => React.ReactNode)
+	children?: ReactNode | ((dataState: DataState) => ReactNode)
 }
 
 function StepperIndicator(props: StepperIndicatorProps) {
@@ -499,7 +506,7 @@ function StepperSeparator(props: StepperSeparatorProps) {
 	)
 }
 
-interface StepperTitleProps extends React.ComponentProps<'span'> {
+interface StepperTitleProps extends ComponentProps<'span'> {
 	asChild?: boolean
 }
 
@@ -525,7 +532,7 @@ function StepperTitle(props: StepperTitleProps) {
 	)
 }
 
-interface StepperDescriptionProps extends React.ComponentProps<'span'> {
+interface StepperDescriptionProps extends ComponentProps<'span'> {
 	asChild?: boolean
 }
 

@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import {
 	Wrench,
@@ -91,7 +92,7 @@ interface KanbanColumnProps {
 	title: string
 	count: number
 	colorClass: string
-	icon: React.ReactNode
+	icon: ReactNode
 	requests: MaintenanceRequest[]
 	onView?: ((id: string) => void) | undefined
 	onUpdateStatus?: ((id: string, status: RequestStatus) => void) | undefined

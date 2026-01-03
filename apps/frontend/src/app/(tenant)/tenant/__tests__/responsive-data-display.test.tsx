@@ -6,6 +6,8 @@
  * implementation and will guide the responsive refactor.
  */
 
+import type { ReactNode } from 'react'
+
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { BillingHistoryItem } from '@repo/shared/types/api-contracts'
@@ -142,7 +144,7 @@ vi.mock('next/link', () => ({
 		children,
 		href
 	}: {
-		children: React.ReactNode
+		children: ReactNode
 		href: string
 	}) => <a href={href}>{children}</a>
 }))

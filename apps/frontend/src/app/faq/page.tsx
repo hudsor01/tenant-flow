@@ -5,6 +5,7 @@ import { Button } from '#components/ui/button'
 
 import { faqData } from '../../data/faqs'
 import { ArrowRight } from 'lucide-react'
+import Link from 'next/link'
 
 export default function FAQPage() {
 	const baseUrl =
@@ -104,16 +105,19 @@ export default function FAQPage() {
 						ROI projection for your portfolio.
 					</p>
 					<div className="flex flex-col sm:flex-row gap-4 justify-center">
-						<Button size="lg" variant="secondary" className="px-8">
-							Schedule Expert Consultation
-							<ArrowRight className="size-5 ml-2" />
+						<Button asChild size="lg" variant="secondary" className="px-8">
+							<Link href="/contact">
+								Schedule Expert Consultation
+								<ArrowRight className="size-5 ml-2" />
+							</Link>
 						</Button>
 						<Button
+							asChild
 							size="lg"
 							variant="outline"
 							className="px-8 text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground hover:text-primary"
 						>
-							Get Custom ROI Report
+							<Link href="/pricing">Get Custom ROI Report</Link>
 						</Button>
 					</div>
 				</div>

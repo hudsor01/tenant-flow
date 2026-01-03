@@ -16,6 +16,7 @@ import { useForm } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 import { Phone, Save, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import type { ChangeEvent, FormEvent } from 'react'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
@@ -64,7 +65,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 		}
 	})
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = (e: FormEvent) => {
 		e.preventDefault()
 		form.handleSubmit()
 	}
@@ -108,7 +109,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 								<InputGroupInput
 									id="emergency_contact_name"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -137,7 +138,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 									id="emergency_contact_phone"
 									type="tel"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -162,7 +163,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 								<InputGroupInput
 									id="emergency_contact_relationship"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}

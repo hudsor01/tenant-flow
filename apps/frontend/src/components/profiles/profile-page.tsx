@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import {
 	Building2,
 	Calendar,
@@ -30,7 +32,7 @@ interface ActivityItem {
 	action: string
 	target: string
 	timestamp: string
-	icon: React.ReactNode
+	icon: ReactNode
 }
 
 const recentActivity: ActivityItem[] = [
@@ -74,7 +76,7 @@ const recentActivity: ActivityItem[] = [
 interface QuickLink {
 	label: string
 	description: string
-	icon: React.ReactNode
+	icon: ReactNode
 	href: string
 }
 

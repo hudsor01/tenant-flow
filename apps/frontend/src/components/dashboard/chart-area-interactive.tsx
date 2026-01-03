@@ -2,7 +2,7 @@
 
 import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react'
 import { Empty, EmptyDescription, EmptyTitle } from '#components/ui/empty'
-import * as React from 'react'
+import { useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import {
@@ -51,14 +51,14 @@ export function ChartAreaInteractive({
 }: {
 	className?: string
 } = {}) {
-	const [timeRange, setTimeRange] = React.useState<FinancialTimeRange>('6m')
+	const [timeRange, setTimeRange] = useState<FinancialTimeRange>('6m')
 	const isMobile = useMediaQuery('(max-width: 767px)')
 
 	// Fetch financial data with TanStack Query
 	const { data: chartData, isLoading, error } = useFinancialChartData(timeRange)
 
 	// Automatically switch to mobile-friendly time range
-	React.useEffect(() => {
+	useEffect(() => {
 		if (isMobile && timeRange === '1y') {
 			setTimeRange('6m')
 		}

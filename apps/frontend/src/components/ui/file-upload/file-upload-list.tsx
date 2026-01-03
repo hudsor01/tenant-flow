@@ -1,7 +1,7 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
+import { useId, useMemo } from 'react'
 import { cn } from '#lib/utils'
 import { useFileUploadContext, FileUploadItemContext } from './context'
 import { useStore } from './store'
@@ -50,7 +50,7 @@ export function FileUploadList(props: FileUploadListProps) {
 export function FileUploadItem(props: FileUploadItemProps) {
 	const { value, asChild, className, ...itemProps } = props
 
-	const id = React.useId()
+	const id = useId()
 	const statusId = `${id}-status`
 	const nameId = `${id}-name`
 	const sizeId = `${id}-size`
@@ -64,7 +64,7 @@ export function FileUploadItem(props: FileUploadItemProps) {
 		return files.indexOf(value) + 1
 	})
 
-	const itemContext = React.useMemo(
+	const itemContext = useMemo(
 		() => ({
 			id,
 			fileState,

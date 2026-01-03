@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useState } from 'react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	FileText,
@@ -101,13 +101,13 @@ function formatDate(dateString: string): string {
 }
 
 export default function TaxDocumentsPage() {
-	const [yearFilter, setYearFilter] = React.useState<string>('all')
-	const [statusFilter, setStatusFilter] = React.useState<string>('all')
-	const [searchQuery, setSearchQuery] = React.useState('')
-	const [isLoading, setIsLoading] = React.useState(true)
+	const [yearFilter, setYearFilter] = useState<string>('all')
+	const [statusFilter, setStatusFilter] = useState<string>('all')
+	const [searchQuery, setSearchQuery] = useState('')
+	const [isLoading, setIsLoading] = useState(true)
 
 	// Simulate loading
-	React.useEffect(() => {
+	useEffect(() => {
 		const timer = setTimeout(() => setIsLoading(false), 500)
 		return () => clearTimeout(timer)
 	}, [])
@@ -121,11 +121,12 @@ export default function TaxDocumentsPage() {
 	const filteredDocuments = documents.filter(doc => {
 		if (yearFilter !== 'all' && doc.year !== parseInt(yearFilter)) return false
 		if (statusFilter !== 'all' && doc.status !== statusFilter) return false
-		if (
-			searchQuery &&
-			!doc.name.toLowerCase().includes(searchQuery.toLowerCase())
-		)
-			return false
+		if (searchQuery) {
+			const docName = doc.name ?? ''
+			if (!docName.toLowerCase().includes(searchQuery.toLowerCase())) {
+				return false
+			}
+		}
 		return true
 	})
 

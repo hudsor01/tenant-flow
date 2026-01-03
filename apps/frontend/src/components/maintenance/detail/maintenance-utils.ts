@@ -8,37 +8,38 @@ import {
 	CheckCircle,
 	XCircle
 } from 'lucide-react'
-import * as React from 'react'
+import { createElement } from 'react'
+import type { ReactNode } from 'react'
 
 // Status configuration
 export const STATUS_CONFIG: Record<
 	MaintenanceStatus,
-	{ label: string; className: string; icon: React.ReactNode }
+	{ label: string; className: string; icon: ReactNode }
 > = {
 	open: {
 		label: 'Open',
 		className: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
-		icon: React.createElement(Clock, { className: 'size-3.5' })
+		icon: createElement(Clock, { className: 'size-3.5' })
 	},
 	in_progress: {
 		label: 'In Progress',
 		className: 'bg-primary/10 text-primary',
-		icon: React.createElement(AlertTriangle, { className: 'size-3.5' })
+		icon: createElement(AlertTriangle, { className: 'size-3.5' })
 	},
 	completed: {
 		label: 'Completed',
 		className: 'bg-green-500/10 text-green-600 dark:text-green-400',
-		icon: React.createElement(CheckCircle, { className: 'size-3.5' })
+		icon: createElement(CheckCircle, { className: 'size-3.5' })
 	},
 	on_hold: {
 		label: 'On Hold',
 		className: 'bg-muted text-muted-foreground',
-		icon: React.createElement(Clock, { className: 'size-3.5' })
+		icon: createElement(Clock, { className: 'size-3.5' })
 	},
 	cancelled: {
 		label: 'Cancelled',
 		className: 'bg-muted text-muted-foreground',
-		icon: React.createElement(XCircle, { className: 'size-3.5' })
+		icon: createElement(XCircle, { className: 'size-3.5' })
 	}
 }
 

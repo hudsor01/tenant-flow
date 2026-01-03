@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState, useTransition } from 'react'
 import {
 	DndContext,
@@ -40,7 +41,7 @@ interface ColumnConfig {
 	id: MaintenanceStatus
 	title: string
 	colorClass: string
-	icon: React.ReactNode
+	icon: ReactNode
 }
 
 const COLUMNS: ColumnConfig[] = [

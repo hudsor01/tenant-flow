@@ -1,5 +1,7 @@
 'use client'
 
+import type { ElementType } from 'react'
+
 import {
 	Building2,
 	Wallet,
@@ -82,7 +84,7 @@ function BalanceSection({
 	delay
 }: {
 	title: string
-	icon: React.ElementType
+	icon: ElementType
 	items: { label: string; items: BalanceItem[]; subtotal: number }[]
 	total: number
 	totalLabel: string

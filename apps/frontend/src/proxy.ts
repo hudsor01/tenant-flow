@@ -13,8 +13,10 @@ export const config = {
 		 * - _next/image (image optimization files)
 		 * - favicon.ico (favicon file)
 		 * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-		 * Feel free to modify this pattern to include more paths.
+		 * - manifest.json, sw.js, robots.txt (PWA/static assets)
+		 * - sitemap files
+		 * - .well-known directory
 		 */
-		'/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
+		'/((?!_next/static|_next/image|favicon.ico|manifest\\.json|sw\\.js|robots\\.txt|sitemap.*\\.xml|structured-data\\.json|browserconfig\\.xml|\\.well-known/|_redirects|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'
 	]
 }

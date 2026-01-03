@@ -15,8 +15,27 @@ import {
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+	useSyncExternalStore
+} from 'react'
+import type {
+	ComponentProps,
+	ComponentRef,
+	FocusEvent as ReactFocusEvent,
+	MouseEvent as ReactMouseEvent,
+	PointerEvent as ReactPointerEvent,
+	ReactElement,
+	ReactNode,
+	RefObject
+} from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '#components/ui/button'
 import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
@@ -63,16 +82,16 @@ interface ScrollOffset {
 
 type Boundary = Element | null
 
-interface DivProps extends React.ComponentProps<'div'> {
+interface DivProps extends ComponentProps<'div'> {
 	asChild?: boolean
 }
 
-type StepElement = React.ComponentRef<typeof TourStep>
-type CloseElement = React.ComponentRef<typeof TourClose>
-type PrevElement = React.ComponentRef<typeof TourPrev>
-type NextElement = React.ComponentRef<typeof TourNext>
-type SkipElement = React.ComponentRef<typeof TourSkip>
-type FooterElement = React.ComponentRef<typeof TourFooter>
+type StepElement = ComponentRef<typeof TourStep>
+type CloseElement = ComponentRef<typeof TourClose>
+type PrevElement = ComponentRef<typeof TourPrev>
+type NextElement = ComponentRef<typeof TourNext>
+type SkipElement = ComponentRef<typeof TourSkip>
+type FooterElement = ComponentRef<typeof TourFooter>
 
 const OPPOSITE_SIDE: Record<Side, Side> = {
 	top: 'bottom',
@@ -98,7 +117,7 @@ function createFocusGuard() {
 }
 
 function useFocusGuards() {
-	React.useEffect(() => {
+	useEffect(() => {
 		const edgeGuards = document.querySelectorAll('[data-tour-focus-guard]')
 		document.body.insertAdjacentElement(
 			'afterbegin',
@@ -123,18 +142,18 @@ function useFocusGuards() {
 }
 
 function useFocusTrap(
-	containerRef: React.RefObject<HTMLElement | null>,
+	containerRef: RefObject<HTMLElement | null>,
 	enabled: boolean,
 	tourOpen: boolean,
 	onOpenAutoFocus?: (event: OpenAutoFocusEvent) => void,
 	onCloseAutoFocus?: (event: CloseAutoFocusEvent) => void
 ) {
-	const lastFocusedElementRef = React.useRef<HTMLElement | null>(null)
+	const lastFocusedElementRef = useRef<HTMLElement | null>(null)
 	const onOpenAutoFocusRef = useAsRef(onOpenAutoFocus)
 	const onCloseAutoFocusRef = useAsRef(onCloseAutoFocus)
 	const tourOpenRef = useAsRef(tourOpen)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!enabled) return
 
 		const container = containerRef.current
@@ -285,7 +304,7 @@ function getDataState(open: boolean): string {
 }
 
 interface StepData {
-	target: string | React.RefObject<HTMLElement> | HTMLElement
+	target: string | RefObject<HTMLElement> | HTMLElement
 	align?: Align | undefined
 	alignOffset?: number | undefined
 	side?: Side | undefined
@@ -326,7 +345,7 @@ function useStore<T>(
 	selector: (state: StoreState) => T,
 	ogStore?: Store | null
 ): T {
-	const contextStore = React.useContext(StoreContext)
+	const contextStore = useContext(StoreContext)
 
 	const store = ogStore ?? contextStore
 
@@ -334,16 +353,16 @@ function useStore<T>(
 		throw new Error(`\`useStore\` must be used within \`${ROOT_NAME}\``)
 	}
 
-	const getSnapshot = React.useCallback(
+	const getSnapshot = useCallback(
 		() => selector(store.getState()),
 		[store, selector]
 	)
 
-	return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
+	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
 function getTargetElement(
-	target: string | React.RefObject<HTMLElement> | HTMLElement
+	target: string | RefObject<HTMLElement> | HTMLElement
 ): HTMLElement | null {
 	if (typeof target === 'string') {
 		return document.querySelector(target)
@@ -428,10 +447,10 @@ function updateMask(
 	store.setState('spotlightRect', { x, y, width, height })
 }
 
-const StoreContext = React.createContext<Store | null>(null)
+const StoreContext = createContext<Store | null>(null)
 
 function useStoreContext(consumerName: string) {
-	const context = React.useContext(StoreContext)
+	const context = useContext(StoreContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -445,17 +464,17 @@ interface TourContextValue {
 	spotlightPadding: number
 	dismissible: boolean
 	modal: boolean
-	stepFooter?: React.ReactElement | undefined
+	stepFooter?: ReactElement | undefined
 	onPointerDownOutside?: ((event: PointerDownOutsideEvent) => void) | undefined
 	onInteractOutside?: ((event: InteractOutsideEvent) => void) | undefined
 	onOpenAutoFocus?: ((event: OpenAutoFocusEvent) => void) | undefined
 	onCloseAutoFocus?: ((event: CloseAutoFocusEvent) => void) | undefined
 }
 
-const TourContext = React.createContext<TourContextValue | null>(null)
+const TourContext = createContext<TourContextValue | null>(null)
 
 function useTourContext(consumerName: string) {
-	const context = React.useContext(TourContext)
+	const context = useContext(TourContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -472,27 +491,27 @@ interface StepContextValue {
 	onFooterChange: (footer: FooterElement | null) => void
 }
 
-const StepContext = React.createContext<StepContextValue | null>(null)
+const StepContext = createContext<StepContextValue | null>(null)
 
 function useStepContext(consumerName: string) {
-	const context = React.useContext(StepContext)
+	const context = useContext(StepContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${STEP_NAME}\``)
 	}
 	return context
 }
 
-const DefaultFooterContext = React.createContext(false)
+const DefaultFooterContext = createContext(false)
 
 interface PortalContextValue {
 	portal: HTMLElement | null
 	onPortalChange: (node: HTMLElement | null) => void
 }
 
-const PortalContext = React.createContext<PortalContextValue | null>(null)
+const PortalContext = createContext<PortalContextValue | null>(null)
 
 function usePortalContext(consumerName: string) {
-	const context = React.useContext(PortalContext)
+	const context = useContext(PortalContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -500,7 +519,7 @@ function usePortalContext(consumerName: string) {
 }
 
 function useScrollLock(enabled: boolean) {
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!enabled) return
 
 		const originalStyle = window.getComputedStyle(document.body).overflow
@@ -549,7 +568,7 @@ interface TourProps extends DivProps {
 	scrollOffset?: ScrollOffset
 	dismissible?: boolean
 	modal?: boolean
-	stepFooter?: React.ReactElement
+	stepFooter?: ReactElement
 }
 
 function Tour(props: TourProps) {
@@ -583,9 +602,9 @@ function Tour(props: TourProps) {
 
 	const dir = useDirection(dirProp)
 
-	const [portal, setPortal] = React.useState<HTMLElement | null>(null)
-	const prevOpenRef = React.useRef<boolean | undefined>(undefined)
-	const previouslyFocusedElementRef = React.useRef<HTMLElement | null>(null)
+	const [portal, setPortal] = useState<HTMLElement | null>(null)
+	const prevOpenRef = useRef<boolean | undefined>(undefined)
+	const previouslyFocusedElementRef = useRef<HTMLElement | null>(null)
 
 	const stateRef = useLazyRef<StoreState>(() => ({
 		open: openProp ?? defaultOpen,
@@ -610,7 +629,7 @@ function Tour(props: TourProps) {
 		scrollOffset
 	})
 
-	const store: Store = React.useMemo(
+	const store: Store = useMemo(
 		() => ({
 			subscribe: cb => {
 				listenersRef.current.add(cb)
@@ -716,7 +735,7 @@ function Tour(props: TourProps) {
 
 	const open = useStore(state => state.open, store)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
 			if (open && event.key === 'Escape') {
 				if (propsRef.current.onEscapeKeyDown) {
@@ -780,7 +799,7 @@ function Tour(props: TourProps) {
 		}
 	}, [valueProp, store])
 
-	const contextValue = React.useMemo<TourContextValue>(
+	const contextValue = useMemo<TourContextValue>(
 		() => ({
 			dir,
 			alignOffset,
@@ -809,7 +828,7 @@ function Tour(props: TourProps) {
 		]
 	)
 
-	const portalContextValue = React.useMemo<PortalContextValue>(
+	const portalContextValue = useMemo<PortalContextValue>(
 		() => ({
 			portal,
 			onPortalChange: setPortal
@@ -833,7 +852,7 @@ function Tour(props: TourProps) {
 }
 
 interface TourStepProps extends DivProps {
-	target: string | React.RefObject<HTMLElement> | HTMLElement
+	target: string | RefObject<HTMLElement> | HTMLElement
 	side?: Side
 	sideOffset?: number
 	align?: Align
@@ -879,14 +898,14 @@ function TourStep(props: TourStepProps) {
 
 	const store = useStoreContext(STEP_NAME)
 
-	const [arrow, setArrow] = React.useState<HTMLSpanElement | null>(null)
-	const [footer, setFooter] = React.useState<FooterElement | null>(null)
+	const [arrow, setArrow] = useState<HTMLSpanElement | null>(null)
+	const [footer, setFooter] = useState<FooterElement | null>(null)
 
-	const stepRef = React.useRef<StepElement | null>(null)
-	const stepIdRef = React.useRef<string>('')
-	const stepOrderRef = React.useRef<number>(-1)
-	const isPointerInsideReactTreeRef = React.useRef(false)
-	const isFocusInsideReactTreeRef = React.useRef(false)
+	const stepRef = useRef<StepElement | null>(null)
+	const stepIdRef = useRef<string>('')
+	const stepOrderRef = useRef<number>(-1)
+	const isPointerInsideReactTreeRef = useRef(false)
+	const isFocusInsideReactTreeRef = useRef(false)
 
 	const open = useStore(state => state.open)
 	const value = useStore(state => state.value)
@@ -941,7 +960,7 @@ function TourStep(props: TourStepProps) {
 
 	const isCurrentStep = stepOrderRef.current === value
 
-	const middleware = React.useMemo(() => {
+	const middleware = useMemo(() => {
 		if (!stepData) return []
 
 		const mainAxisOffset = stepData.sideOffset ?? resolvedSideOffset
@@ -1027,7 +1046,7 @@ function TourStep(props: TourStepProps) {
 	const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0
 	const isHidden = hideWhenDetached && middlewareData.hide?.referenceHidden
 
-	const stepContextValue = React.useMemo<StepContextValue>(
+	const stepContextValue = useMemo<StepContextValue>(
 		() => ({
 			arrowX,
 			arrowY,
@@ -1040,7 +1059,7 @@ function TourStep(props: TourStepProps) {
 		[arrowX, arrowY, placedSide, placedAlign, cannotCenterArrow]
 	)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (open && targetElement && isCurrentStep) {
 			updateMask(store, targetElement, context.spotlightPadding)
 
@@ -1075,7 +1094,7 @@ function TourStep(props: TourStepProps) {
 		return undefined
 	}, [open, targetElement, isCurrentStep, store, context.spotlightPadding])
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!open || !isCurrentStep) return
 
 		const stepElement = stepRef.current
@@ -1120,7 +1139,7 @@ function TourStep(props: TourStepProps) {
 		}
 	}, [open, isCurrentStep, store, context])
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!open || !isCurrentStep) return
 
 		const stepElement = stepRef.current
@@ -1160,31 +1179,31 @@ function TourStep(props: TourStepProps) {
 		}
 	}, [open, isCurrentStep, store, context, targetElement])
 
-	const onPointerDownCapture = React.useCallback(
-		(event: React.PointerEvent<StepElement>) => {
+	const onPointerDownCapture = useCallback(
+		(event: ReactPointerEvent<StepElement>) => {
 			onPointerDownCaptureProp?.(event)
 			isPointerInsideReactTreeRef.current = true
 		},
 		[onPointerDownCaptureProp]
 	)
 
-	const onFocusCapture = React.useCallback(
-		(event: React.FocusEvent<StepElement>) => {
+	const onFocusCapture = useCallback(
+		(event: ReactFocusEvent<StepElement>) => {
 			onFocusCaptureProp?.(event)
 			isFocusInsideReactTreeRef.current = true
 		},
 		[onFocusCaptureProp]
 	)
 
-	const onBlurCapture = React.useCallback(
-		(event: React.FocusEvent<StepElement>) => {
+	const onBlurCapture = useCallback(
+		(event: ReactFocusEvent<StepElement>) => {
 			onBlurCaptureProp?.(event)
 			isFocusInsideReactTreeRef.current = false
 		},
 		[onBlurCaptureProp]
 	)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!open || !isCurrentStep || !targetElement) return
 
 		function onTargetPointerDownCapture() {
@@ -1341,7 +1360,7 @@ function TourSpotlightRing(props: TourSpotlightRingProps) {
 }
 
 interface TourPortalProps {
-	children?: React.ReactNode
+	children?: ReactNode
 	container?: HTMLElement | null
 }
 
@@ -1350,7 +1369,7 @@ function TourPortal(props: TourPortalProps) {
 
 	const portalContext = usePortalContext(PORTAL_NAME)
 
-	const [mounted, setMounted] = React.useState(false)
+	const [mounted, setMounted] = useState(false)
 
 	useIsomorphicLayoutEffect(() => {
 		setMounted(true)
@@ -1367,10 +1386,10 @@ function TourPortal(props: TourPortalProps) {
 
 	const portalContainer = container ?? portalContext?.portal ?? document.body
 
-	return ReactDOM.createPortal(children, portalContainer)
+	return createPortal(children, portalContainer)
 }
 
-interface TourArrowProps extends React.ComponentProps<'svg'> {
+interface TourArrowProps extends ComponentProps<'svg'> {
 	width?: number
 	height?: number
 	asChild?: boolean
@@ -1490,7 +1509,7 @@ function TourDescription(props: DivProps) {
 	)
 }
 
-interface TourCloseProps extends React.ComponentProps<'button'> {
+interface TourCloseProps extends ComponentProps<'button'> {
 	asChild?: boolean
 }
 
@@ -1504,8 +1523,8 @@ function TourClose(props: TourCloseProps) {
 
 	const store = useStoreContext(CLOSE_NAME)
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<CloseElement>) => {
+	const onClick = useCallback(
+		(event: ReactMouseEvent<CloseElement>) => {
 			onClickProp?.(event)
 			if (event.defaultPrevented) return
 
@@ -1532,14 +1551,14 @@ function TourClose(props: TourCloseProps) {
 	)
 }
 
-function TourPrev(props: React.ComponentProps<typeof Button>) {
+function TourPrev(props: ComponentProps<typeof Button>) {
 	const { children, onClick: onClickProp, ...prevButtonProps } = props
 
 	const store = useStoreContext(PREV_NAME)
 	const value = useStore(state => state.value)
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<PrevElement>) => {
+	const onClick = useCallback(
+		(event: ReactMouseEvent<PrevElement>) => {
 			onClickProp?.(event)
 			if (event.defaultPrevented) return
 
@@ -1570,7 +1589,7 @@ function TourPrev(props: React.ComponentProps<typeof Button>) {
 	)
 }
 
-function TourNext(props: React.ComponentProps<typeof Button>) {
+function TourNext(props: ComponentProps<typeof Button>) {
 	const { children, onClick: onClickProp, ...nextButtonProps } = props
 	const store = useStoreContext(NEXT_NAME)
 	const value = useStore(state => state.value)
@@ -1578,8 +1597,8 @@ function TourNext(props: React.ComponentProps<typeof Button>) {
 
 	const isLastStep = value === steps.length - 1
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<NextElement>) => {
+	const onClick = useCallback(
+		(event: ReactMouseEvent<NextElement>) => {
 			onClickProp?.(event)
 			if (event.defaultPrevented) return
 
@@ -1606,13 +1625,13 @@ function TourNext(props: React.ComponentProps<typeof Button>) {
 	)
 }
 
-function TourSkip(props: React.ComponentProps<typeof Button>) {
+function TourSkip(props: ComponentProps<typeof Button>) {
 	const { children, onClick: onClickProp, ...skipButtonProps } = props
 
 	const store = useStoreContext(SKIP_NAME)
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<SkipElement>) => {
+	const onClick = useCallback(
+		(event: ReactMouseEvent<SkipElement>) => {
 			onClickProp?.(event)
 			if (event.defaultPrevented) return
 
@@ -1668,7 +1687,7 @@ function TourFooter(props: DivProps) {
 	const { asChild, className, ref, ...footerProps } = props
 
 	const stepContext = useStepContext(FOOTER_NAME)
-	const hasDefaultFooter = React.useContext(DefaultFooterContext)
+	const hasDefaultFooter = useContext(DefaultFooterContext)
 	const context = useTourContext(FOOTER_NAME)
 
 	const composedRef = useComposedRefs(

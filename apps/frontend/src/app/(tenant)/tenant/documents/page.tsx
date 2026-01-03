@@ -174,9 +174,8 @@ export default function TenantDocumentsPage() {
 									<div className="flex items-center gap-4 text-muted mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
-											<span>
-												Signed on <Skeleton className="inline-block h-4 w-20" />
-											</span>
+											<span>Signed on</span>
+											<Skeleton className="inline-block h-4 w-20" />
 										</div>
 										<span>•</span>
 										<span>PDF, 1.2 MB</span>
@@ -210,9 +209,8 @@ export default function TenantDocumentsPage() {
 									<div className="flex items-center gap-4 text-muted mt-1">
 										<div className="flex items-center gap-1">
 											<Calendar className="size-3" />
-											<span>
-												Signed on <Skeleton className="inline-block h-4 w-20" />
-											</span>
+											<span>Signed on</span>
+											<Skeleton className="inline-block h-4 w-20" />
 										</div>
 										<span>•</span>
 										<span>PDF, 245 KB</span>
@@ -253,10 +251,8 @@ export default function TenantDocumentsPage() {
 								<div className="flex items-center gap-4 text-muted mt-1">
 									<div className="flex items-center gap-1">
 										<Calendar className="size-3" />
-										<span>
-											Completed on{' '}
-											<Skeleton className="inline-block h-4 w-20" />
-										</span>
+										<span>Completed on</span>
+										<Skeleton className="inline-block h-4 w-20" />
 									</div>
 									<span>•</span>
 									<span>PDF, 892 KB</span>

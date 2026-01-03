@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { useState, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import Image from 'next/image'
 import {
 	Building2,
@@ -169,7 +169,7 @@ export function PropertyTable({
 		children
 	}: {
 		field: SortField
-		children: React.ReactNode
+		children: ReactNode
 	}) => (
 		<button
 			onClick={() => handleSort(field)}

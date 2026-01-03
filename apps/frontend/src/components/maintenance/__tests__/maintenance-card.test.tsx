@@ -8,7 +8,7 @@
  * - Aging display (Today, X days) instead of formatted date
  * - Entire card wrapped in Link (no separate View/Edit buttons)
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import { screen } from '@testing-library/react'

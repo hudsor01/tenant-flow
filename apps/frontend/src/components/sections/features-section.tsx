@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { BlurFade } from '#components/ui/blur-fade'
 import { cn } from '#lib/utils'
 import {
@@ -95,7 +97,7 @@ export default function FeaturesSectionDemo({
 interface FeatureProps {
 	title: string
 	description: string
-	icon: React.ReactNode
+	icon: ReactNode
 }
 
 const Feature = ({ title, description, icon }: FeatureProps) => {

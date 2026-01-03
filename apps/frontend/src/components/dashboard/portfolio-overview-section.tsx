@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -60,18 +60,18 @@ export function PortfolioOverviewSection({
 	properties = [],
 	isLoading
 }: PortfolioOverviewSectionProps) {
-	const [viewMode, setViewMode] = React.useState<'table' | 'grid'>('table')
-	const [searchQuery, setSearchQuery] = React.useState('')
-	const [statusFilter, setStatusFilter] = React.useState<string>('all')
-	const [sortField, setSortField] = React.useState<string>('property')
-	const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>(
+	const [viewMode, setViewMode] = useState<'table' | 'grid'>('table')
+	const [searchQuery, setSearchQuery] = useState('')
+	const [statusFilter, setStatusFilter] = useState<string>('all')
+	const [sortField, setSortField] = useState<string>('property')
+	const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
 		'asc'
 	)
-	const [currentPage, setCurrentPage] = React.useState(1)
+	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 10
 
 	// Transform properties into portfolio rows
-	const portfolioData: PortfolioRow[] = React.useMemo(() => {
+	const portfolioData: PortfolioRow[] = useMemo(() => {
 		return properties.map(prop => {
 			const totalUnits = prop.totalUnits ?? 0
 			const occupiedUnits = prop.occupiedUnits ?? 0
@@ -94,7 +94,7 @@ export function PortfolioOverviewSection({
 	}, [properties])
 
 	// Filter and sort data
-	const filteredData = React.useMemo(() => {
+	const filteredData = useMemo(() => {
 		return portfolioData
 			.filter(row => {
 				if (searchQuery) {
@@ -139,7 +139,7 @@ export function PortfolioOverviewSection({
 	)
 
 	// Reset page when filters change
-	React.useEffect(() => {
+	useEffect(() => {
 		setCurrentPage(1)
 	}, [searchQuery, statusFilter])
 

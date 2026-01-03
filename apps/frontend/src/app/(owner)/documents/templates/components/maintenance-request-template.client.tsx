@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { BrandingEditor } from './branding-editor'
@@ -29,7 +29,7 @@ const priorities = [
 ]
 
 export function MaintenanceRequestTemplate() {
-	const [branding, setBranding] = React.useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding)
 	const form = useForm({
 		defaultValues: {
 			propertyName: 'Bayview Residences',
@@ -60,9 +60,9 @@ export function MaintenanceRequestTemplate() {
 			}
 		}
 	})
-	const [customFields, setCustomFields] = React.useState<CustomField[]>([])
+	const [customFields, setCustomFields] = useState<CustomField[]>([])
 
-	const baseFields = React.useMemo<DynamicField[]>(
+	const baseFields = useMemo<DynamicField[]>(
 		() => [
 			{
 				name: 'propertyName',
@@ -134,7 +134,7 @@ export function MaintenanceRequestTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('maintenance-request', baseFields, form as never)
 
-	const getPayload = React.useCallback(() => {
+	const getPayload = useCallback(() => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,

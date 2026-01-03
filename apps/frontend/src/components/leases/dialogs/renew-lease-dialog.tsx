@@ -7,6 +7,8 @@
 
 'use client'
 
+import type { FormEvent } from 'react'
+
 import {
 	Dialog,
 	DialogContent,
@@ -66,7 +68,7 @@ export function RenewLeaseDialog({
 	const rentIncreasePercent =
 		currentRent > 0 ? (rentIncreaseAmount / currentRent) * 100 : 0
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		// Validation

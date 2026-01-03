@@ -2,8 +2,10 @@
  * MaintenanceAnalytics Component Tests
  * Tests maintenance analytics charts and metrics display
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+
+import type { ReactNode } from 'react'
 
 import { render } from '#test/utils/test-render'
 import { MaintenanceAnalytics } from '../maintenance-analytics'
@@ -12,15 +14,15 @@ import { vi } from 'vitest'
 
 // Mock recharts components
 vi.mock('recharts', () => ({
-	ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
+	ResponsiveContainer: ({ children }: { children: ReactNode }) => (
 		<div data-testid="responsive-container">{children}</div>
 	),
-	PieChart: ({ children }: { children: React.ReactNode }) => (
+	PieChart: ({ children }: { children: ReactNode }) => (
 		<div data-testid="pie-chart">{children}</div>
 	),
 	Pie: () => <div data-testid="pie" />,
 	Cell: () => <div data-testid="cell" />,
-	BarChart: ({ children }: { children: React.ReactNode }) => (
+	BarChart: ({ children }: { children: ReactNode }) => (
 		<div data-testid="bar-chart">{children}</div>
 	),
 	Bar: () => <div data-testid="bar" />,
@@ -41,7 +43,7 @@ const createWrapper = () => {
 			}
 		}
 	})
-	return ({ children }: { children: React.ReactNode }) => (
+	return ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 	)
 }

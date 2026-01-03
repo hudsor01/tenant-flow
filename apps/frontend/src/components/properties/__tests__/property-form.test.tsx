@@ -2,8 +2,10 @@
  * PropertyForm Component Tests
  * Tests consolidated property form in both create and edit modes
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+
+import type { ReactElement } from 'react'
 
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
@@ -89,7 +91,7 @@ const DEFAULT_PROPERTY: Property = {
 	search_vector: null
 }
 
-function renderWithQueryClient(ui: React.ReactElement) {
+function renderWithQueryClient(ui: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },

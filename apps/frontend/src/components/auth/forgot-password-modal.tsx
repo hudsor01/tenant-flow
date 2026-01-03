@@ -1,5 +1,7 @@
 'use client'
 
+import type { FormEvent } from 'react'
+
 import { Alert, AlertDescription } from '#components/ui/alert'
 import { Button } from '#components/ui/button'
 import {
@@ -40,7 +42,7 @@ export function ForgotPasswordModal({
 		onOpenChange(open)
 	}
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		if (email) {
 			resetPasswordMutation.mutate(email, {

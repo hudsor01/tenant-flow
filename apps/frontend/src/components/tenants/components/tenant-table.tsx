@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import {
 	ArrowUpDown,
@@ -41,7 +42,7 @@ function SortHeader({
 	sortField: SortField
 	sortDirection: SortDirection
 	onSort: (field: SortField) => void
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 }) {
 	return (

@@ -43,7 +43,7 @@ interface PropertyCardProps {
 }
 
 import { cn } from '#lib/utils'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, type KeyboardEvent } from 'react'
 
 export const PropertyCard = memo(function PropertyCard({
 	property,
@@ -75,7 +75,7 @@ export const PropertyCard = memo(function PropertyCard({
 
 	// Handle keyboard navigation - Enter/Space to view details
 	const handleKeyDown = useCallback(
-		(e: React.KeyboardEvent) => {
+		(e: KeyboardEvent) => {
 			if (e.key === 'Enter' || e.key === ' ') {
 				// Don't navigate if focus is on an interactive element inside the card
 				const target = e.target as HTMLElement

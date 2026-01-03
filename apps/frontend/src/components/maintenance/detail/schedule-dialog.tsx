@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import {
@@ -31,13 +32,13 @@ export function ScheduleDialog({
 	currentDate,
 	onSuccess
 }: ScheduleDialogProps) {
-	const [open, setOpen] = React.useState(false)
+	const [open, setOpen] = useState(false)
 	const updateMutation = useMaintenanceRequestUpdateMutation()
-	const [scheduledDate, setScheduledDate] = React.useState(
+	const [scheduledDate, setScheduledDate] = useState(
 		currentDate ? new Date(currentDate).toISOString().split('T')[0] : ''
 	)
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		if (!scheduledDate) {
 			toast.error('Please select a date')

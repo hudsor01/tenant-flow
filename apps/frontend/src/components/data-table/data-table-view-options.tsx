@@ -2,7 +2,8 @@
 
 import type { Table } from '@tanstack/react-table'
 import { Check, Settings2 } from 'lucide-react'
-import * as React from 'react'
+import { useMemo } from 'react'
+import type { ComponentProps } from 'react'
 import { Button } from '#components/ui/button'
 import {
 	Command,
@@ -15,7 +16,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
 import { cn } from '#lib/utils'
 
-interface DataTableViewOptionsProps<TData> extends React.ComponentProps<
+interface DataTableViewOptionsProps<TData> extends ComponentProps<
 	typeof PopoverContent
 > {
 	table: Table<TData>
@@ -27,7 +28,7 @@ export function DataTableViewOptions<TData>({
 	disabled,
 	...props
 }: DataTableViewOptionsProps<TData>) {
-	const columns = React.useMemo(
+	const columns = useMemo(
 		() =>
 			table
 				.getAllColumns()

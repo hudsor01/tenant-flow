@@ -1,24 +1,8 @@
 'use client'
 
-import { PasswordStrength } from '#components/auth/password-strength'
-import { Alert, AlertDescription } from '#components/ui/alert'
-import { Button } from '#components/ui/button'
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle
-} from '#components/ui/card'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import { cn } from '#lib/utils'
-import { cardVariants } from '#components/ui/card'
-import { createClient } from '#lib/supabase/client'
+import type { ComponentPropsWithoutRef, FormEvent } from 'react'
+import { useState } from 'react'
+
 import { useMutation } from '@tanstack/react-query'
 import {
 	AlertTriangle,
@@ -29,14 +13,33 @@ import {
 	Shield
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
 import { toast } from 'sonner'
+
+import { PasswordStrength } from '#components/auth/password-strength'
+import { Alert, AlertDescription } from '#components/ui/alert'
+import { Button } from '#components/ui/button'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+	cardVariants
+} from '#components/ui/card'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
+import { cn } from '#lib/utils'
+import { createClient } from '#lib/supabase/client'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 export function UpdatePasswordForm({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<'div'>) {
+}: ComponentPropsWithoutRef<'div'>) {
 	const [password, setPassword] = useState('')
 	const [confirmPassword, setConfirmPassword] = useState('')
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -65,7 +68,7 @@ export function UpdatePasswordForm({
 		}
 	})
 
-	const handleUpdatePassword = async (e: React.FormEvent) => {
+	const handleUpdatePassword = async (e: FormEvent) => {
 		e.preventDefault()
 		updatePasswordMutation.mutate(password)
 	}

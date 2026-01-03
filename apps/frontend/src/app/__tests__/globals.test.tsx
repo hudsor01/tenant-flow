@@ -5,12 +5,14 @@
  * Ensures proper theme layer integration and variable usage
  */
 
+import type { CSSProperties, ReactNode } from 'react'
+
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
 
 // Test component that uses CSS variables properly
-function ThemeAwareComponent({ children }: { children: React.ReactNode }) {
+function ThemeAwareComponent({ children }: { children: ReactNode }) {
 	return (
 		<div
 			className="bg-card text-card-foreground border border-border rounded-lg p-4"
@@ -18,7 +20,7 @@ function ThemeAwareComponent({ children }: { children: React.ReactNode }) {
 				{
 					'--custom-color': 'var(--color-primary)',
 					'--custom-spacing': 'var(--spacing-4)'
-				} as React.CSSProperties
+				} as CSSProperties
 			}
 			data-testid="theme-aware-component"
 		>
@@ -28,7 +30,7 @@ function ThemeAwareComponent({ children }: { children: React.ReactNode }) {
 }
 
 // Test component that uses inline styles (should be avoided)
-function InlineStyledComponent({ children }: { children: React.ReactNode }) {
+function InlineStyledComponent({ children }: { children: ReactNode }) {
 	return (
 		<div
 			style={{
@@ -46,7 +48,7 @@ function InlineStyledComponent({ children }: { children: React.ReactNode }) {
 }
 
 // Test component that uses mixed inline and CSS variables
-function MixedStyledComponent({ children }: { children: React.ReactNode }) {
+function MixedStyledComponent({ children }: { children: ReactNode }) {
 	return (
 		<div
 			className="bg-card text-card-foreground"

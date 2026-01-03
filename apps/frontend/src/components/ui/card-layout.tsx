@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import {
 	Card,
 	CardContent,
@@ -14,15 +16,15 @@ import { cn } from '#lib/utils'
 interface CardLayoutProps {
 	title: string
 	description?: string
-	children?: React.ReactNode
-	footer?: React.ReactNode
+	children?: ReactNode
+	footer?: ReactNode
 	className?: string
 	isLoading?: boolean
 	error?: string | null
 }
 
 interface CardLayoutSectionProps {
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 }
 

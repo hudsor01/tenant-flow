@@ -5,6 +5,8 @@
  * Ensures consistent font hierarchy, spacing, and visual hierarchy
  */
 
+import type { ReactNode } from 'react'
+
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
@@ -15,7 +17,7 @@ function TypographyTestComponent({
 	children
 }: {
 	variant: string
-	children: React.ReactNode
+	children: ReactNode
 }) {
 	const classes = {
 		'display-2xl': 'text-5xl font-black leading-tight tracking-tight',

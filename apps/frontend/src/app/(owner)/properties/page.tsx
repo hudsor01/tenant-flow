@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
@@ -175,13 +175,13 @@ export default function PropertiesPage() {
 	const router = useRouter()
 	const searchParams = useSearchParams()
 	const queryClient = useQueryClient()
-	const [propertyToDelete, setPropertyToDelete] = React.useState<string | null>(
+	const [propertyToDelete, setPropertyToDelete] = useState<string | null>(
 		null
 	)
 
 	// Tab state from URL
 	const tabFromUrl = searchParams.get('tab') || 'overview'
-	const [activeTab, setActiveTab] = React.useState(tabFromUrl)
+	const [activeTab, setActiveTab] = useState(tabFromUrl)
 
 	const handleTabChange = (value: string) => {
 		setActiveTab(value)
@@ -198,7 +198,7 @@ export default function PropertiesPage() {
 	const { data: propertiesResponse, isLoading } = useQuery(
 		propertyQueries.list()
 	)
-	const rawProperties = React.useMemo(
+	const rawProperties = useMemo(
 		() => propertiesResponse?.data ?? [],
 		[propertiesResponse?.data]
 	)
@@ -215,7 +215,7 @@ export default function PropertiesPage() {
 	const unitsData = unitsQueriesResults.map(result => result.data)
 
 	// Get units map by property ID
-	const unitsMap = React.useMemo(() => {
+	const unitsMap = useMemo(() => {
 		const map: Record<string, Unit[]> = {}
 		rawProperties.forEach((p, i) => {
 			map[p.id] = unitsData[i] ?? []
@@ -234,7 +234,7 @@ export default function PropertiesPage() {
 	// Extract stable data from images queries
 	const imagesData = imagesQueriesResults.map(result => result.data)
 
-	const imagesMap = React.useMemo(() => {
+	const imagesMap = useMemo(() => {
 		const map: Record<string, string | undefined> = {}
 		rawProperties.forEach((p, i) => {
 			const images = imagesData[i]
@@ -244,7 +244,7 @@ export default function PropertiesPage() {
 	}, [rawProperties, imagesData])
 
 	// Transform to design-os format
-	const properties = React.useMemo(
+	const properties = useMemo(
 		() =>
 			rawProperties.map(p =>
 				transformToPropertyItem(p, unitsMap[p.id], imagesMap[p.id])
@@ -253,7 +253,7 @@ export default function PropertiesPage() {
 	)
 
 	// Calculate summary
-	const summary = React.useMemo(
+	const summary = useMemo(
 		() => calculateSummary(properties),
 		[properties]
 	)
@@ -274,32 +274,32 @@ export default function PropertiesPage() {
 	})
 
 	// Callbacks
-	const handleAddProperty = React.useCallback(() => {
+	const handleAddProperty = useCallback(() => {
 		router.push('/properties/new')
 	}, [router])
 
-	const handlePropertyClick = React.useCallback(
+	const handlePropertyClick = useCallback(
 		(propertyId: string) => {
 			router.push(`/properties/${propertyId}`)
 		},
 		[router]
 	)
 
-	const handlePropertyEdit = React.useCallback(
+	const handlePropertyEdit = useCallback(
 		(propertyId: string) => {
 			router.push(`/properties/${propertyId}/edit`)
 		},
 		[router]
 	)
 
-	const handlePropertyDelete = React.useCallback(
+	const handlePropertyDelete = useCallback(
 		(propertyId: string) => {
 			setPropertyToDelete(propertyId)
 		},
 		[]
 	)
 
-	const confirmDelete = React.useCallback(() => {
+	const confirmDelete = useCallback(() => {
 		if (propertyToDelete) {
 			deleteProperty(propertyToDelete)
 			setPropertyToDelete(null)

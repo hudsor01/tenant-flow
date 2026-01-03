@@ -1,5 +1,5 @@
 import { flexRender, type Table as TanstackTable } from '@tanstack/react-table'
-import type * as React from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import { DataTablePagination } from '#components/data-table/data-table-pagination'
 import {
@@ -13,9 +13,9 @@ import {
 import { getCommonPinningStyles } from '#lib/data-table'
 import { cn } from '#lib/utils'
 
-interface DataTableProps<TData> extends React.ComponentProps<'div'> {
+interface DataTableProps<TData> extends ComponentProps<'div'> {
 	table: TanstackTable<TData>
-	actionBar?: React.ReactNode
+	actionBar?: ReactNode
 }
 
 export function DataTable<TData>({

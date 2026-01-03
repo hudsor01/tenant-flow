@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { BrandingEditor } from './branding-editor'
@@ -29,7 +29,7 @@ const noticeTypes = [
 ]
 
 export function TenantNoticeTemplate() {
-	const [branding, setBranding] = React.useState(defaultBranding)
+	const [branding, setBranding] = useState(defaultBranding)
 	const form = useForm({
 		defaultValues: {
 			noticeType: 'late-rent',
@@ -58,13 +58,13 @@ export function TenantNoticeTemplate() {
 			}
 		}
 	})
-	const [customFields, setCustomFields] = React.useState<CustomField[]>([])
-	const [clauses, setClauses] = React.useState<ClauseItem[]>([{
+	const [customFields, setCustomFields] = useState<CustomField[]>([])
+	const [clauses, setClauses] = useState<ClauseItem[]>([{
 		id: 'notice-1',
 		text: 'Tenant has three business days to cure per state law.'
 	}])
 
-	const baseFields = React.useMemo<DynamicField[]>(
+	const baseFields = useMemo<DynamicField[]>(
 		() => [
 			{
 				name: 'noticeType',
@@ -125,7 +125,7 @@ export function TenantNoticeTemplate() {
 		save: saveFields
 	} = useTemplateDefinition('tenant-notice', baseFields, form as never)
 
-	const getPayload = React.useCallback(() => {
+	const getPayload = useCallback(() => {
 		const values = form.state.values as Record<string, unknown>
 		const dynamicFields = builderFields.map(field => ({
 			label: field.label,

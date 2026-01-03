@@ -1,7 +1,7 @@
-import * as React from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export function useMediaQuery(query: string) {
-	const getMatch = React.useCallback(() => {
+	const getMatch = useCallback(() => {
 		if (
 			typeof window === 'undefined' ||
 			typeof window.matchMedia === 'undefined'
@@ -11,9 +11,9 @@ export function useMediaQuery(query: string) {
 		return window.matchMedia(query).matches
 	}, [query])
 
-	const [value, setValue] = React.useState<boolean>(getMatch)
+	const [value, setValue] = useState<boolean>(getMatch)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		const mediaQueryList = window.matchMedia(query)
 
 		const onChange = (event: MediaQueryListEvent) => setValue(event.matches)

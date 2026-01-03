@@ -1,7 +1,7 @@
 'use client'
 
-import * as React from 'react'
 import { useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { toast } from 'sonner'
 import {
 	Building,
@@ -68,7 +68,7 @@ function ConnectOnboardingDialog({
 	const createAccount = useCreateConnectedAccountMutation()
 	const refreshOnboarding = useRefreshOnboardingMutation()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		if (!displayName.trim()) {
@@ -163,7 +163,7 @@ function ConnectOnboardingDialog({
 							placeholder="Your name or business name"
 							autoComplete="organization"
 							value={displayName}
-							onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+							onChange={(e: ChangeEvent<HTMLInputElement>) =>
 								setDisplayName(e.target.value)
 							}
 							required
@@ -178,7 +178,7 @@ function ConnectOnboardingDialog({
 								placeholder="Legal business name"
 								autoComplete="organization"
 								value={businessName}
-								onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+								onChange={(e: ChangeEvent<HTMLInputElement>) =>
 									setBusinessName(e.target.value)
 								}
 							/>

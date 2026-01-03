@@ -1,7 +1,7 @@
 'use client'
 
-import { Badge } from '#components/ui/badge'
-import { cn } from '#lib/utils'
+import type { ComponentType } from 'react'
+
 import type { UnitStatus } from '@repo/shared/types/core'
 import {
 	AlertTriangle,
@@ -9,7 +9,9 @@ import {
 	Home,
 	Users
 } from 'lucide-react'
-import type * as React from 'react'
+
+import { Badge } from '#components/ui/badge'
+import { cn } from '#lib/utils'
 
 /**
  * Enhanced status configuration with icons and semantic meaning
@@ -20,7 +22,7 @@ export const statusConfig: Record<
 	{
 		variant: 'default' | 'secondary' | 'destructive' | 'outline'
 		label: string
-		icon: React.ComponentType<{ className?: string }>
+		icon: ComponentType<{ className?: string }>
 		className: string
 		priority: number
 	}

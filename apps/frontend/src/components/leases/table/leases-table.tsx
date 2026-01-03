@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import {
 	Search,
 	ChevronLeft,
@@ -54,7 +56,7 @@ function SortHeader({
 }: {
 	field: SortField
 	sortField: SortField
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 	onSort: (field: SortField) => void
 }) {

@@ -28,7 +28,7 @@ import { formatDate } from '#lib/formatters/date'
 import { Calendar, Edit, Mail, Phone } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import React from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { TenantSkeleton } from './tenant-skeleton'
@@ -66,10 +66,10 @@ export function TenantDetails({ id }: TenantDetailsProps) {
 	const markAsMovedOut = useMarkTenantAsMovedOutMutation()
 
 	// Move-out dialog state
-	const [moveOutDialogOpen, setMoveOutDialogOpen] = React.useState(false)
-	const [moveOutDate, setMoveOutDate] = React.useState('')
-	const [moveOutReason, setMoveOutReason] = React.useState('')
-	const [additionalNotes, setAdditionalNotes] = React.useState('')
+	const [moveOutDialogOpen, setMoveOutDialogOpen] = useState(false)
+	const [moveOutDate, setMoveOutDate] = useState('')
+	const [moveOutReason, setMoveOutReason] = useState('')
+	const [additionalNotes, setAdditionalNotes] = useState('')
 
 	const handleMarkAsMovedOut = async () => {
 		// Validate move-out date before mutation

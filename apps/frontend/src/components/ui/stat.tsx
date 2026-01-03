@@ -1,9 +1,11 @@
+import type { ComponentProps } from 'react'
+
 import { cva, type VariantProps } from 'class-variance-authority'
-import type * as React from 'react'
+
 import { Separator } from '#components/ui/separator'
 import { cn } from '#lib/utils'
 
-function Stat({ className, ...props }: React.ComponentProps<'div'>) {
+function Stat({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="stat"
@@ -19,7 +21,7 @@ function Stat({ className, ...props }: React.ComponentProps<'div'>) {
 	)
 }
 
-function StatLabel({ className, ...props }: React.ComponentProps<'div'>) {
+function StatLabel({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="stat-label"
@@ -63,7 +65,7 @@ const statIndicatorVariants = cva(
 
 interface StatIndicatorProps
 	extends
-		Omit<React.ComponentProps<'div'>, 'color'>,
+		Omit<ComponentProps<'div'>, 'color'>,
 		VariantProps<typeof statIndicatorVariants> {}
 
 function StatIndicator({
@@ -83,7 +85,7 @@ function StatIndicator({
 	)
 }
 
-function StatValue({ className, ...props }: React.ComponentProps<'div'>) {
+function StatValue({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="stat-value"
@@ -97,7 +99,7 @@ function StatTrend({
 	className,
 	trend,
 	...props
-}: React.ComponentProps<'div'> & { trend?: 'up' | 'down' | 'neutral' }) {
+}: ComponentProps<'div'> & { trend?: 'up' | 'down' | 'neutral' }) {
 	return (
 		<div
 			data-slot="stat-trend"
@@ -116,11 +118,11 @@ function StatTrend({
 	)
 }
 
-function StatSeparator({ ...props }: React.ComponentProps<typeof Separator>) {
+function StatSeparator({ ...props }: ComponentProps<typeof Separator>) {
 	return <Separator data-slot="stat-separator" className="my-2" {...props} />
 }
 
-function StatDescription({ className, ...props }: React.ComponentProps<'div'>) {
+function StatDescription({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			data-slot="stat-description"

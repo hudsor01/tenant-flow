@@ -5,6 +5,8 @@
  * across different parts of the application.
  */
 
+import type { ComponentProps, ComponentType, ReactNode } from 'react'
+
 // Component prop types
 export interface ModernExplodedPieChartProps {
 	data: Array<{ name: string; value: number; fill?: string }>
@@ -15,7 +17,7 @@ export interface ModernExplodedPieChartProps {
 	showFooter?: boolean
 }
 
-export interface PaginationLinkProps extends React.ComponentProps<'a'> {
+export interface PaginationLinkProps extends ComponentProps<'a'> {
 	page?: number
 	currentPage?: number
 	onPageChange?: ((page: number) => void) | ((page: number) => Promise<void>)
@@ -53,9 +55,9 @@ export type TailwindRadiusValue = 0 | 0.3 | 0.5 | 0.65 | 0.75 | 1.0
 // UI Component types (merged from frontend-ui.ts)
 export interface HeroSectionProps {
 	trustBadge?: string
-	title: string | React.ReactNode
+	title: string | ReactNode
 	titleHighlight?: string
-	subtitle: string | React.ReactNode
+	subtitle: string | ReactNode
 	primaryCta: {
 		label: string
 		href: string
@@ -76,11 +78,11 @@ export interface MetricsCardProps {
 	value: string | number
 	description?: string
 	status?: string
-	statusIcon?: React.ComponentType<{
+	statusIcon?: ComponentType<{
 		className?: string
 		[key: string]: unknown
 	}>
-	icon?: React.ComponentType<{ className?: string; [key: string]: unknown }>
+	icon?: ComponentType<{ className?: string; [key: string]: unknown }>
 	colorVariant:
 		| 'success'
 		| 'primary'
@@ -94,7 +96,7 @@ export interface MetricsCardProps {
 }
 
 export type ComponentPropsWithChildren<P = unknown> = P & {
-	children?: React.ReactNode
+	children?: ReactNode
 }
 
 export interface BlurFadeVariant {
@@ -109,7 +111,7 @@ export interface BlurFadeProps extends Omit<
 	ComponentPropsWithChildren,
 	'children'
 > {
-	children: React.ReactNode
+	children: ReactNode
 	variant?: {
 		hidden: BlurFadeVariant
 		visible: BlurFadeVariant

@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useId } from 'react'
+import type { Dispatch, InputHTMLAttributes, SetStateAction } from 'react'
 import {
 	Card,
 	CardContent,
@@ -28,7 +29,7 @@ export interface LeaseBuilderInputs {
 
 interface ConfigurationPanelProps {
 	builderInputs: LeaseBuilderInputs
-	onChange: React.Dispatch<React.SetStateAction<LeaseBuilderInputs>>
+	onChange: Dispatch<SetStateAction<LeaseBuilderInputs>>
 	includeStateDisclosures: boolean
 	onToggleStateDisclosures: () => void
 	includeFederalDisclosures: boolean
@@ -180,13 +181,13 @@ export function ConfigurationPanel({
 }
 
 function LabeledInput(
-	props: React.InputHTMLAttributes<HTMLInputElement> & {
+	props: InputHTMLAttributes<HTMLInputElement> & {
 		label: string
 		helpText?: string
 	}
 ) {
 	const { label, helpText, ...inputProps } = props
-	const id = React.useId()
+	const id = useId()
 	return (
 		<div className="space-y-1 text-xs">
 			<label htmlFor={id} className="font-medium text-muted-foreground">

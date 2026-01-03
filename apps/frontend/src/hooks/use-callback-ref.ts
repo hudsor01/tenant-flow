@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 /**
  * @see https://github.com/radix-ui/primitives/blob/main/packages/react/use-callback-ref/src/useCallbackRef.tsx
@@ -11,14 +11,14 @@ import * as React from 'react'
 function useCallbackRef<T extends (...args: never[]) => unknown>(
 	callback: T | undefined
 ): T {
-	const callbackRef = React.useRef(callback)
+	const callbackRef = useRef(callback)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		callbackRef.current = callback
 	})
 
 	// https://github.com/facebook/react/issues/19240
-	return React.useMemo(
+	return useMemo(
 		() => ((...args) => callbackRef.current?.(...args)) as T,
 		[]
 	)

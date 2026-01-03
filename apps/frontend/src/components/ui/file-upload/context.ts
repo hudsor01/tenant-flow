@@ -1,16 +1,16 @@
 'use client'
 
-import * as React from 'react'
+import { createContext, useContext } from 'react'
 import type { FileUploadContextValue, FileUploadItemContextValue } from './types'
 import { ROOT_NAME, ITEM_NAME } from './types'
 
 export const FileUploadContext =
-	React.createContext<FileUploadContextValue | null>(null)
+	createContext<FileUploadContextValue | null>(null)
 
 export function useFileUploadContext(
 	consumerName: string
 ): FileUploadContextValue {
-	const context = React.useContext(FileUploadContext)
+	const context = useContext(FileUploadContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -18,12 +18,12 @@ export function useFileUploadContext(
 }
 
 export const FileUploadItemContext =
-	React.createContext<FileUploadItemContextValue | null>(null)
+	createContext<FileUploadItemContextValue | null>(null)
 
 export function useFileUploadItemContext(
 	consumerName: string
 ): FileUploadItemContextValue {
-	const context = React.useContext(FileUploadItemContext)
+	const context = useContext(FileUploadItemContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ITEM_NAME}\``)
 	}
