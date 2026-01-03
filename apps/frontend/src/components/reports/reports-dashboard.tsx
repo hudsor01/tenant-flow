@@ -1,5 +1,6 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useState } from 'react'
 import {
 	FileText,
@@ -33,7 +34,7 @@ import {
 } from '#components/ui/stat'
 import type { ReportsDashboardProps } from './types'
 
-const iconMap: Record<string, React.ReactNode> = {
+const iconMap: Record<string, ReactNode> = {
 	DollarSign: <DollarSign className="w-6 h-6" />,
 	FileText: <FileText className="w-6 h-6" />,
 	Building2: <Building2 className="w-6 h-6" />,

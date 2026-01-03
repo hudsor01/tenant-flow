@@ -12,6 +12,8 @@
  * by directly testing the mutation error callback rather than full form interaction.
  */
 
+import type { ReactNode } from 'react'
+
 import {
 	QueryClient,
 	QueryClientProvider,
@@ -48,7 +50,7 @@ function createTestQueryClient() {
 // Wrapper component for hooks
 function createWrapper() {
 	const queryClient = createTestQueryClient()
-	return ({ children }: { children: React.ReactNode }) => (
+	return ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={queryClient}> {children} </QueryClientProvider>
 	)
 }

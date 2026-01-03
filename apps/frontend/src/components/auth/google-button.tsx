@@ -1,121 +1,117 @@
 'use client'
 
+import type { ComponentProps, ReactNode, Ref } from 'react'
+
+import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
+
 import { Button } from '#components/ui/button'
 import { ButtonLoader } from '#components/ui/loading-spinner'
-
 import { cn } from '#lib/utils'
-import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
-import { forwardRef } from 'react'
 
-interface GoogleButtonProps extends React.ComponentProps<typeof Button> {
+interface GoogleButtonProps extends ComponentProps<typeof Button> {
 	isLoading?: boolean
 	loadingText?: string
-	children?: React.ReactNode
+	children?: ReactNode
 	showTrustIndicators?: boolean
 	mode?: 'login' | 'signup'
+	ref?: Ref<HTMLButtonElement>
 }
 
-export const GoogleButton = forwardRef<HTMLButtonElement, GoogleButtonProps>(
-	(
-		{
-			className,
-			isLoading = false,
-			loadingText = 'Connecting...',
-			children = 'Continue with Google',
-			showTrustIndicators = false,
-			mode = 'login',
-			...props
-		},
-		ref
-	) => {
-		const defaultText =
-			mode === 'signup' ? 'Continue with Google' : 'Sign in with Google'
-		const defaultLoadingText =
-			mode === 'signup' ? 'Creating your account...' : 'Signing you in...'
+export function GoogleButton({
+	className,
+	isLoading = false,
+	loadingText = 'Connecting...',
+	children = 'Continue with Google',
+	showTrustIndicators = false,
+	mode = 'login',
+	ref,
+	...props
+}: GoogleButtonProps) {
+	const defaultText =
+		mode === 'signup' ? 'Continue with Google' : 'Sign in with Google'
+	const defaultLoadingText =
+		mode === 'signup' ? 'Creating your account...' : 'Signing you in...'
 
-		return (
-			<div className="w-full">
-				<Button
-					ref={ref}
-					type="button"
-					variant="outline"
-					size="lg"
-					className={cn(
-						'border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8',
-						'w-full relative overflow-hidden group',
-						`transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
-						'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
-						'hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]',
-						'active:scale-[0.98] active:shadow-md',
-						'border-2 border-border hover:border-primary dark:hover:border-primary',
-						'focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background',
-						'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none',
-						isLoading && 'animate-pulse',
-						className
-					)}
-					disabled={isLoading || props.disabled}
-					{...props}
-				>
-					<div className="flex-center gap-3 relative z-10">
-						{isLoading ? (
-							<ButtonLoader />
-						) : (
-							<div className="transform group-hover:scale-110 transition-transform duration-200">
-								<HighResGoogleIcon />
-							</div>
-						)}
-						<div className="flex flex-col items-start">
-							<span
-								className={cn(
-									'font-semibold text-foreground group-hover:text-foreground',
-									`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`,
-									'text-base leading-normal'
-								)}
-							>
-								{isLoading
-									? loadingText || defaultLoadingText
-									: children || defaultText}
-							</span>
-							{showTrustIndicators && !isLoading && (
-								<span className="text-caption/75 leading-none mt-0.5">
-									Secure OAuth 2.0 authentication
-								</span>
-							)}
-						</div>
-					</div>
-
-					{/* Enhanced gradient hover effect */}
-					<div
-						className={cn(
-							'absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5',
-							'opacity-0 group-hover:opacity-100',
-							`transition-opacity duration-[${ANIMATION_DURATIONS.default}]`
-						)}
-					/>
-				</Button>
-
-				{showTrustIndicators && (
-					<div className="flex-center gap-4 mt-2 text-caption/60">
-						<div className="flex items-center gap-1">
-							<div className="size-2 rounded-full bg-primary" />
-							<span>Encrypted</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<div className="size-2 rounded-full bg-primary" />
-							<span>No password needed</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<div className="size-2 rounded-full bg-primary" />
-							<span>One-click access</span>
-						</div>
-					</div>
+	return (
+		<div className="w-full">
+			<Button
+				ref={ref}
+				type="button"
+				variant="outline"
+				size="lg"
+				className={cn(
+					'border border-input bg-background hover:bg-accent hover:text-accent-foreground h-11 rounded-md px-8',
+					'w-full relative overflow-hidden group',
+					`transition-all duration-[${ANIMATION_DURATIONS.default}] ease-out`,
+					'hover:bg-linear-to-r hover:from-primary/5 hover:to-accent/5 dark:hover:from-primary/10 dark:hover:to-accent/10',
+					'hover:shadow-lg hover:shadow-primary/10 hover:scale-[1.02]',
+					'active:scale-[0.98] active:shadow-md',
+					'border-2 border-border hover:border-primary dark:hover:border-primary',
+					'focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 dark:focus:ring-offset-background',
+					'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none',
+					isLoading && 'animate-pulse',
+					className
 				)}
-			</div>
-		)
-	}
-)
+				disabled={isLoading || props.disabled}
+				{...props}
+			>
+				<div className="flex-center gap-3 relative z-10">
+					{isLoading ? (
+						<ButtonLoader />
+					) : (
+						<div className="transform group-hover:scale-110 transition-transform duration-200">
+							<HighResGoogleIcon />
+						</div>
+					)}
+					<div className="flex flex-col items-start">
+						<span
+							className={cn(
+								'font-semibold text-foreground group-hover:text-foreground',
+								`transition-colors duration-[${ANIMATION_DURATIONS.fast}]`,
+								'text-base leading-normal'
+							)}
+						>
+							{isLoading
+								? loadingText || defaultLoadingText
+								: children || defaultText}
+						</span>
+						{showTrustIndicators && !isLoading && (
+							<span className="text-caption/75 leading-none mt-0.5">
+								Secure OAuth 2.0 authentication
+							</span>
+						)}
+					</div>
+				</div>
 
-GoogleButton.displayName = 'GoogleButton'
+				{/* Enhanced gradient hover effect */}
+				<div
+					className={cn(
+						'absolute inset-0 bg-linear-to-r from-primary/5 via-accent/5 to-primary/5',
+						'opacity-0 group-hover:opacity-100',
+						`transition-opacity duration-[${ANIMATION_DURATIONS.default}]`
+					)}
+				/>
+			</Button>
+
+			{showTrustIndicators && (
+				<div className="flex-center gap-4 mt-2 text-caption/60">
+					<div className="flex items-center gap-1">
+						<div className="size-2 rounded-full bg-primary" />
+						<span>Encrypted</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<div className="size-2 rounded-full bg-primary" />
+						<span>No password needed</span>
+					</div>
+					<div className="flex items-center gap-1">
+						<div className="size-2 rounded-full bg-primary" />
+						<span>One-click access</span>
+					</div>
+				</div>
+			)}
+		</div>
+	)
+}
 
 /**
  * High-resolution Google logo icon that matches Google's brand guidelines

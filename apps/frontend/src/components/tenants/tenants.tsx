@@ -98,9 +98,11 @@ export function Tenants({
 	const filteredTenants = tenants.filter(t => {
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
+			const fullName = t.fullName ?? ''
+			const email = t.email ?? ''
 			if (
-				!t.fullName.toLowerCase().includes(query) &&
-				!t.email.toLowerCase().includes(query)
+				!fullName.toLowerCase().includes(query) &&
+				!email.toLowerCase().includes(query)
 			) {
 				return false
 			}

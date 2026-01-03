@@ -1,7 +1,8 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
+import { useCallback } from 'react'
+import type { MouseEvent } from 'react'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useFileUploadContext } from './context'
 import { useStore, useStoreContext } from './store'
@@ -17,8 +18,8 @@ export function FileUploadTrigger(props: FileUploadTriggerProps) {
 		onClick: onClickProp
 	})
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<HTMLButtonElement>) => {
+	const onClick = useCallback(
+		(event: MouseEvent<HTMLButtonElement>) => {
 			propsRef.current.onClick?.(event)
 
 			if (event.defaultPrevented) return
@@ -58,8 +59,8 @@ export function FileUploadClear(props: FileUploadClearProps) {
 
 	const isDisabled = disabled || context.disabled
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<HTMLButtonElement>) => {
+	const onClick = useCallback(
+		(event: MouseEvent<HTMLButtonElement>) => {
 			onClickProp?.(event)
 
 			if (event.defaultPrevented) return

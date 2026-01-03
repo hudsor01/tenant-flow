@@ -1,6 +1,14 @@
 'use client'
 
-import * as React from 'react'
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState
+} from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { TooltipProvider } from '#components/ui/tooltip'
 import { useMediaQuery } from '#hooks/use-media-query'
 import { cn } from '#lib/utils'
@@ -22,12 +30,12 @@ export interface SidebarContextProps {
 	toggleSidebar: () => void
 }
 
-export const SidebarContext = React.createContext<SidebarContextProps | null>(
+export const SidebarContext = createContext<SidebarContextProps | null>(
 	null
 )
 
 export function useSidebar(): SidebarContextProps {
-	const context = React.useContext(SidebarContext)
+	const context = useContext(SidebarContext)
 	if (!context) {
 		throw new Error('useSidebar must be used within a SidebarProvider.')
 	}
@@ -35,7 +43,7 @@ export function useSidebar(): SidebarContextProps {
 	return context
 }
 
-export interface SidebarProviderProps extends React.ComponentProps<'div'> {
+export interface SidebarProviderProps extends ComponentProps<'div'> {
 	defaultOpen?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
@@ -51,10 +59,10 @@ export function SidebarProvider({
 	...props
 }: SidebarProviderProps) {
 	const isMobile = useMediaQuery('(max-width: 767px)')
-	const [openMobile, setOpenMobile] = React.useState(false)
+	const [openMobile, setOpenMobile] = useState(false)
 
 	// Read initial state from cookie to prevent SSR hydration mismatch
-	const getInitialOpenState = React.useCallback(() => {
+	const getInitialOpenState = useCallback(() => {
 		if (typeof window === 'undefined') {
 			return defaultOpen // Server-side default
 		}
@@ -71,9 +79,9 @@ export function SidebarProvider({
 
 	// This is the internal state of the sidebar.
 	// We use openProp and setOpenProp for control from outside the component.
-	const [_open, _setOpen] = React.useState(getInitialOpenState)
+	const [_open, _setOpen] = useState(getInitialOpenState)
 	const open = openProp ?? _open
-	const setOpen = React.useCallback(
+	const setOpen = useCallback(
 		(value: boolean | ((value: boolean) => boolean)) => {
 			const openState = typeof value === 'function' ? value(open) : value
 			if (setOpenProp) {
@@ -89,12 +97,12 @@ export function SidebarProvider({
 	)
 
 	// Helper to toggle the sidebar.
-	const toggleSidebar = React.useCallback(() => {
+	const toggleSidebar = useCallback(() => {
 		return isMobile ? setOpenMobile((o) => !o) : setOpen((o) => !o)
 	}, [isMobile, setOpen, setOpenMobile])
 
 	// Adds a keyboard shortcut to toggle the sidebar.
-	React.useEffect(() => {
+	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (
 				event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
@@ -113,7 +121,7 @@ export function SidebarProvider({
 	// This makes it easier to style the sidebar with Tailwind classes.
 	const state = open ? 'expanded' : 'collapsed'
 
-	const contextValue = React.useMemo<SidebarContextProps>(
+	const contextValue = useMemo<SidebarContextProps>(
 		() => ({
 			state,
 			open,
@@ -135,7 +143,7 @@ export function SidebarProvider({
 							'--sidebar-width': SIDEBAR_WIDTH,
 							'--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
 							...style
-						} as React.CSSProperties
+						} as CSSProperties
 					}
 					className={cn(
 						'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full',

@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { apiRequest } from '#lib/api-request'
 import { toast } from 'sonner'
 import type { DynamicField } from './dynamic-form'
@@ -23,11 +23,11 @@ export function useTemplateDefinition(
 	baseFields: DynamicField[],
 	form?: FormLike
 ) {
-	const [customFields, setCustomFields] = React.useState<DynamicField[]>([])
-	const [isLoading, setIsLoading] = React.useState(true)
-	const [isSaving, setIsSaving] = React.useState(false)
+	const [customFields, setCustomFields] = useState<DynamicField[]>([])
+	const [isLoading, setIsLoading] = useState(true)
+	const [isSaving, setIsSaving] = useState(false)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		let isActive = true
 
 		async function load() {
@@ -55,7 +55,7 @@ export function useTemplateDefinition(
 		}
 	}, [templateKey])
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (!form) return
 		customFields.forEach(field => {
 			if (form.state.values[field.name] !== undefined) return
@@ -70,12 +70,12 @@ export function useTemplateDefinition(
 		})
 	}, [customFields, form])
 
-	const allFields = React.useMemo(
+	const allFields = useMemo(
 		() => [...baseFields, ...customFields],
 		[baseFields, customFields]
 	)
 
-	const save = React.useCallback(async () => {
+	const save = useCallback(async () => {
 		setIsSaving(true)
 		try {
 			await apiRequest(`/documents/templates/${templateKey}/definition`, {

@@ -2,7 +2,8 @@
 
 import type { Column } from '@tanstack/react-table'
 import { Check, PlusCircle, XCircle } from 'lucide-react'
-import * as React from 'react'
+import { useCallback, useMemo, useState } from 'react'
+import type { MouseEvent } from 'react'
 
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
@@ -33,15 +34,15 @@ export function DataTableFacetedFilter<TData, TValue>({
 	options,
 	multiple
 }: DataTableFacetedFilterProps<TData, TValue>) {
-	const [open, setOpen] = React.useState(false)
+	const [open, setOpen] = useState(false)
 
 	const columnFilterValue = column?.getFilterValue()
-	const selectedValues = React.useMemo(
+	const selectedValues = useMemo(
 		() => new Set(Array.isArray(columnFilterValue) ? columnFilterValue : []),
 		[columnFilterValue]
 	)
 
-	const onItemSelect = React.useCallback(
+	const onItemSelect = useCallback(
 		(option: Option, isSelected: boolean) => {
 			if (!column) return
 
@@ -62,8 +63,8 @@ export function DataTableFacetedFilter<TData, TValue>({
 		[column, multiple, selectedValues]
 	)
 
-	const onReset = React.useCallback(
-		(event?: React.MouseEvent) => {
+	const onReset = useCallback(
+		(event?: MouseEvent) => {
 			event?.stopPropagation()
 			column?.setFilterValue(undefined)
 		},

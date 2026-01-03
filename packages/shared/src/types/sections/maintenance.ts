@@ -1,4 +1,6 @@
 // Maintenance Section Types
+import type { ReactElement } from 'react'
+
 import type { MaintenanceStatus, MaintenancePriority } from '../core.js'
 
 export interface MaintenanceProps {
@@ -170,7 +172,7 @@ export interface KanbanColumnProps {
 	title: string
 	count: number
 	colorClass: string
-	icon: React.ReactElement
+	icon: ReactElement
 	requests: MaintenanceRequestItem[]
 	onView?: ((id: string) => void) | undefined
 	onUpdateStatus?: (id: string, status: MaintenanceStatus) => void

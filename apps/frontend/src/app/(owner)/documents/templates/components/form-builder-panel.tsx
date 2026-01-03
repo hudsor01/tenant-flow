@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
@@ -68,7 +68,7 @@ export function FormBuilderPanel({
 	onSave,
 	isSaving
 }: FormBuilderPanelProps) {
-	const [fieldErrors, setFieldErrors] = React.useState<Record<number, string | null>>({})
+	const [fieldErrors, setFieldErrors] = useState<Record<number, string | null>>({})
 
 	const handleAdd = () => {
 		onChange([

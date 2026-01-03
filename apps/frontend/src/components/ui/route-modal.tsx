@@ -1,7 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import type { ReactNode } from 'react'
+
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden'
+import { useRouter } from 'next/navigation'
+
 import {
 	Dialog,
 	DialogContent,
@@ -11,7 +14,7 @@ import {
 import { cn } from '#lib/utils'
 
 interface RouteModalProps {
-	children: React.ReactNode
+	children: ReactNode
 	className?: string
 	intent?: DialogIntent
 	/** Accessible title for screen readers (visually hidden) */

@@ -1,5 +1,5 @@
 import { ArrowRightIcon } from '@radix-ui/react-icons'
-import type { ReactNode } from 'react'
+import type { ElementType, ReactNode } from 'react'
 import Link from 'next/link'
 import { Button } from '#components/ui/button'
 import { cn } from '#lib/utils'
@@ -13,7 +13,7 @@ interface BentoCardProps {
 	name: string
 	className?: string
 	background: ReactNode
-	Icon: React.ElementType
+	Icon: ElementType
 	description: string
 	href: string
 	cta: string

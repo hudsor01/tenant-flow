@@ -1,11 +1,12 @@
 'use client'
 
+import type { SVGProps } from 'react'
 import { useId, useMemo } from 'react'
 
 import { cn } from '#lib/utils'
 import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
 
-interface GridPatternProps extends React.SVGProps<SVGSVGElement> {
+interface GridPatternProps extends SVGProps<SVGSVGElement> {
 	width?: number
 	height?: number
 	x?: number

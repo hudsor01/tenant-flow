@@ -7,7 +7,7 @@
  * - Error handling
  * - Success notifications
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'

@@ -28,7 +28,7 @@ export function StatsSkeleton() {
 									<Skeleton
 										key={j}
 										className="w-1 rounded-full"
-										style={{ height: `${20 + Math.random() * 80}%` }}
+										style={{ height: `${20 + ((j * 17 + i * 23) % 80)}%` }}
 									/>
 								))}
 							</div>
@@ -56,7 +56,7 @@ export function ChartSkeleton() {
 					<div key={i} className="flex-1 flex flex-col items-center">
 						<Skeleton
 							className="w-full rounded-t-md"
-							style={{ height: `${40 + Math.random() * 60}%` }}
+							style={{ height: `${40 + ((i * 23) % 60)}%` }}
 						/>
 						<Skeleton className="w-10 h-4 mt-3" />
 					</div>

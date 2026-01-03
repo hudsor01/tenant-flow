@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 import {
 	Pencil,
 	Trash2,
@@ -134,9 +134,9 @@ export function TenantTable({
 	onViewLease
 }: TenantTableProps) {
 	const logger = createLogger({ component: 'TenantTable' })
-	const [sortField, setSortField] = React.useState<SortField>(null)
-	const [sortDirection, setSortDirection] = React.useState<SortDirection>(null)
-	const [pageIndex, setPageIndex] = React.useState(0)
+	const [sortField, setSortField] = useState<SortField>(null)
+	const [sortDirection, setSortDirection] = useState<SortDirection>(null)
+	const [pageIndex, setPageIndex] = useState(0)
 	const pageSize = 10
 
 	// Handle sorting
@@ -155,7 +155,7 @@ export function TenantTable({
 	}
 
 	// Sort and paginate tenants
-	const sortedTenants = React.useMemo(() => {
+	const sortedTenants = useMemo(() => {
 		if (!sortField || !sortDirection) return tenants
 
 		return [...tenants].sort((a, b) => {
