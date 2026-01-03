@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 import type {
 	BillingInsightsTimeline,
 	MonthlyFinancialMetric,
@@ -99,10 +99,10 @@ function EmptyState({ message }: { message: string }) {
 }
 
 export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
-	const [timeRange, setTimeRange] = React.useState('all')
+	const [timeRange, setTimeRange] = useState('all')
 
 	// Move all hooks before early return to comply with Rules of Hooks
-	const chartData = React.useMemo(() => {
+	const chartData = useMemo(() => {
 		if (!data || data.length === 0) return []
 		return data.map(item => ({
 			month: item.month,
@@ -113,7 +113,7 @@ export function RevenueExpenseChart({ data }: RevenueExpenseChartProps) {
 	}, [data])
 
 	// Filter data based on time range
-	const filteredData = React.useMemo(() => {
+	const filteredData = useMemo(() => {
 		if (timeRange === 'all' || chartData.length <= 3) {
 			return chartData
 		}
@@ -274,10 +274,10 @@ export function NetOperatingIncomeChart({
 }
 
 export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
-	const [timeRange, setTimeRange] = React.useState('all')
+	const [timeRange, setTimeRange] = useState('all')
 
 	// Move all hooks before early return to comply with Rules of Hooks
-	const chartData = React.useMemo(() => {
+	const chartData = useMemo(() => {
 		const timeline = data?.points ?? []
 		if (!timeline.length) return []
 		return timeline.map(point => ({
@@ -289,7 +289,7 @@ export function BillingTimelineChart({ data }: BillingTimelineChartProps) {
 	}, [data?.points])
 
 	// Filter data based on time range
-	const filteredData = React.useMemo(() => {
+	const filteredData = useMemo(() => {
 		if (timeRange === 'all' || chartData.length <= 3) {
 			return chartData
 		}

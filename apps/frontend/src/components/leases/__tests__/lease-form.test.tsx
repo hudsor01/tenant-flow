@@ -11,8 +11,10 @@
  * Note: The full LeaseFormFields component is pending restoration.
  * These tests cover the currently implemented functionality.
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+
+import type { ReactElement } from 'react'
 
 import { screen, waitFor } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
@@ -172,7 +174,7 @@ const mockLease: LeaseWithExtras = {
 	}
 }
 
-function renderWithQueryClient(ui: React.ReactElement) {
+function renderWithQueryClient(ui: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },

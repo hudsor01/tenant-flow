@@ -91,9 +91,10 @@ export class SubscriptionGuard implements CanActivate {
 	}
 
 	private normalizeBoolean(value: unknown): boolean {
+		if (value === null || value === undefined) return false
 		if (typeof value === 'boolean') return value
 		if (typeof value === 'number') return value === 1
-		if (typeof value === 'string') {
+		if (typeof value === 'string' && value.length > 0) {
 			const normalized = value.toLowerCase()
 			return normalized === 'true' || normalized === 't' || normalized === '1'
 		}

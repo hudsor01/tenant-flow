@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Bell, Building2, CreditCard, Shield, ChevronRight } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -14,7 +15,7 @@ type SettingsTab = 'general' | 'notifications' | 'security' | 'billing'
 interface SettingsSection {
 	id: SettingsTab
 	label: string
-	icon: React.ReactNode
+	icon: ReactNode
 	description: string
 }
 
@@ -49,7 +50,7 @@ export default function SettingsPage() {
 	const searchParams = useSearchParams()
 	const router = useRouter()
 	const tabParam = searchParams.get('tab') as SettingsTab | null
-	const [activeTab, setActiveTab] = React.useState<SettingsTab>(
+	const [activeTab, setActiveTab] = useState<SettingsTab>(
 		tabParam &&
 			['general', 'notifications', 'security', 'billing'].includes(tabParam)
 			? tabParam
@@ -57,7 +58,7 @@ export default function SettingsPage() {
 	)
 
 	// Update tab when URL changes
-	React.useEffect(() => {
+	useEffect(() => {
 		if (
 			tabParam &&
 			['general', 'notifications', 'security', 'billing'].includes(tabParam)

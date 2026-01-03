@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo } from 'react'
 import {
 	DollarSign,
 	Wallet,
@@ -107,7 +107,7 @@ export default function PayoutsPage() {
 		.filter(p => p.status === 'paid')
 		.reduce((sum, p) => sum + p.amount, 0)
 
-	const payoutColumns: ColumnDef<Payout>[] = React.useMemo(
+	const payoutColumns: ColumnDef<Payout>[] = useMemo(
 		() => [
 			{
 				accessorKey: 'created',
@@ -165,7 +165,7 @@ export default function PayoutsPage() {
 		[]
 	)
 
-	const transferColumns: ColumnDef<Transfer>[] = React.useMemo(
+	const transferColumns: ColumnDef<Transfer>[] = useMemo(
 		() => [
 			{
 				accessorKey: 'created',

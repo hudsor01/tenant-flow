@@ -1,4 +1,4 @@
-import * as React from 'react'
+import type { ComponentProps } from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '#lib/utils'
@@ -60,11 +60,11 @@ function Card({
 	className,
 	variant,
 	...props
-}: React.ComponentProps<'div'> & VariantProps<typeof cardVariants>) {
+}: ComponentProps<'div'> & VariantProps<typeof cardVariants>) {
 	return <div className={cn(cardVariants({ variant }), className)} {...props} />
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
+function CardHeader({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			className={cn(
@@ -76,13 +76,13 @@ function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
 	)
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
+function CardTitle({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div className={cn('leading-none font-semibold', className)} {...props} />
 	)
 }
 
-function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
+function CardDescription({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			className={cn('text-muted-foreground text-sm', className)}
@@ -91,7 +91,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<'div'>) {
 	)
 }
 
-function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
+function CardAction({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			className={cn(
@@ -103,11 +103,11 @@ function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
 	)
 }
 
-function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
+function CardContent({ className, ...props }: ComponentProps<'div'>) {
 	return <div className={cn('px-6', className)} {...props} />
 }
 
-function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
+function CardFooter({ className, ...props }: ComponentProps<'div'>) {
 	return (
 		<div
 			className={cn('flex items-center px-6 [.border-t]:pt-6', className)}

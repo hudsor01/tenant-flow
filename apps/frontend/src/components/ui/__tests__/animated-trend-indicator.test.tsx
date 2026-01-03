@@ -4,7 +4,7 @@
  * Tests for the trend indicator component used in property cards
  * and dashboard metrics to show revenue changes, occupancy trends, etc.
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import { describe, it, expect } from 'vitest'

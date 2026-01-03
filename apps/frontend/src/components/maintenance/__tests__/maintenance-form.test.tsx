@@ -2,8 +2,10 @@
  * MaintenanceForm Component Tests
  * Tests consolidated maintenance form in both create and edit modes
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+
+import type { ReactElement } from 'react'
 
 import { screen, waitFor } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
@@ -124,7 +126,7 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	updated_at: '2024-01-01T00:00:00Z'
 }
 
-function renderWithQueryClient(ui: React.ReactElement) {
+function renderWithQueryClient(ui: ReactElement) {
 	const queryClient = new QueryClient({
 		defaultOptions: {
 			queries: { retry: false },

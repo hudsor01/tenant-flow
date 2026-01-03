@@ -54,7 +54,7 @@ import {
 	ShowerHead,
 	TrashIcon
 } from 'lucide-react'
-import * as React from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { UnitStatusBadge, statusConfig } from './unit-status-badge'
 
@@ -64,10 +64,10 @@ interface UnitActionsProps {
 
 export function UnitActions({ unit }: UnitActionsProps) {
 	const logger = createLogger({ component: 'UnitActions' })
-	const [viewOpen, setViewOpen] = React.useState(false)
-	const [editOpen, setEditOpen] = React.useState(false)
-	const [deleteOpen, setDeleteOpen] = React.useState(false)
-	const [isDeleting, setIsDeleting] = React.useState(false)
+	const [viewOpen, setViewOpen] = useState(false)
+	const [editOpen, setEditOpen] = useState(false)
+	const [deleteOpen, setDeleteOpen] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	const deleteUnit = useDeleteUnitMutation()
 

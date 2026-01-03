@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
+import type { ElementType } from 'react'
 import Link from 'next/link'
 import {
 	TrendingUp,
@@ -44,7 +45,7 @@ import { formatCents } from '#lib/formatters/currency'
 
 interface QuickLinkCardProps {
 	href: string
-	icon: React.ElementType
+	icon: ElementType
 	title: string
 	description: string
 	value?: string
@@ -88,13 +89,13 @@ function QuickLinkCard({
 }
 
 export default function FinancialsPage() {
-	const [year, setYear] = React.useState(new Date().getFullYear().toString())
+	const [year, setYear] = useState(new Date().getFullYear().toString())
 
 	const { data: overview, isLoading, error, refetch } = useFinancialOverview()
 	const { data: monthlyMetrics } = useMonthlyMetrics()
 
 	// Calculate trends from monthly metrics
-	const recentMonths = React.useMemo(() => {
+	const recentMonths = useMemo(() => {
 		if (!monthlyMetrics || monthlyMetrics.length < 2) return null
 		const sorted = [...monthlyMetrics].sort((a, b) =>
 			a.month.localeCompare(b.month)

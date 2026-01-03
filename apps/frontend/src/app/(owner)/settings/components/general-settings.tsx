@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useState } from 'react'
 import { Mail, Smartphone, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
@@ -63,14 +63,14 @@ export function GeneralSettings() {
 		staleTime: 5 * 60 * 1000
 	})
 
-	const [businessName, setBusinessName] = React.useState('')
-	const [contactEmail, setContactEmail] = React.useState('')
-	const [phone, setPhone] = React.useState('')
-	const [timezone, setTimezone] = React.useState('America/Chicago')
-	const [language, setLanguage] = React.useState('en-US')
+	const [businessName, setBusinessName] = useState('')
+	const [contactEmail, setContactEmail] = useState('')
+	const [phone, setPhone] = useState('')
+	const [timezone, setTimezone] = useState('America/Chicago')
+	const [language, setLanguage] = useState('en-US')
 
 	// Update form when data loads
-	React.useEffect(() => {
+	useEffect(() => {
 		if (companyProfile?.business_name) {
 			setBusinessName(companyProfile.business_name)
 		}

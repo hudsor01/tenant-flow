@@ -24,6 +24,7 @@ import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Building2, Home, Mail, Phone, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
@@ -176,7 +177,7 @@ export function InviteTenantForm({
 									<InputGroupInput
 										id="first_name"
 										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											field.handleChange(e.target.value)
 										}
 										onBlur={field.handleBlur}
@@ -204,7 +205,7 @@ export function InviteTenantForm({
 									<InputGroupInput
 										id="last_name"
 										value={field.state.value}
-										onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
 											field.handleChange(e.target.value)
 										}
 										onBlur={field.handleBlur}
@@ -234,7 +235,7 @@ export function InviteTenantForm({
 									id="email"
 									type="email"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}
@@ -261,7 +262,7 @@ export function InviteTenantForm({
 									id="phone"
 									type="tel"
 									value={field.state.value}
-									onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										field.handleChange(e.target.value)
 									}
 									onBlur={field.handleBlur}

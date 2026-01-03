@@ -1,4 +1,7 @@
+import type { ComponentProps } from 'react'
+
 import { cva, type VariantProps } from 'class-variance-authority'
+
 import { cn } from '#lib/utils'
 
 const skeletonVariants = cva('animate-pulse bg-muted', {
@@ -34,7 +37,7 @@ function Skeleton({
 	variant,
 	size,
 	...props
-}: React.ComponentProps<'div'> & VariantProps<typeof skeletonVariants>) {
+}: ComponentProps<'div'> & VariantProps<typeof skeletonVariants>) {
 	return (
 		<div
 			className={cn(skeletonVariants({ variant, size }), className)}

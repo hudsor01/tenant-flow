@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 import {
 	DollarSign,
 	TrendingUp,
@@ -31,11 +31,11 @@ import { useIncomeStatement } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 export default function IncomeStatementPage() {
-	const [period, setPeriod] = React.useState('monthly')
-	const [year, setYear] = React.useState('2024')
+	const [period, setPeriod] = useState('monthly')
+	const [year, setYear] = useState('2024')
 
 	// Calculate date range based on period and year
-	const dateRange = React.useMemo(() => {
+	const dateRange = useMemo(() => {
 		const yearNum = parseInt(year)
 		if (period === 'yearly') {
 			return {

@@ -89,22 +89,20 @@ export default function TenantLeasePage() {
 					<div className="flex items-start gap-4">
 						<Home className="size-6 text-accent-main mt-1" />
 						<div>
-							<p className="font-semibold text-lg">
 								{isLoading || !lease ? (
-									<Skeleton className="h-7 w-64" />
-								) : (
-									`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unit_number ?? 'N/A'}`
-								)}
-							</p>
+								<Skeleton className="h-7 w-64" />
+							) : (
+								<p className="font-semibold text-lg">
+									{`${lease.unit?.property?.name ?? 'Property'} - Unit ${lease.unit?.unit_number ?? 'N/A'}`}
+								</p>
+							)}
 							<div className="flex items-center gap-2 text-muted-foreground mt-1">
 								<MapPin className="size-4" />
-								<span>
-									{isLoading || !lease ? (
-										<Skeleton className="h-4 w-48" />
-									) : (
-										formatPropertyAddress(lease.unit?.property)
-									)}
-								</span>
+								{isLoading || !lease ? (
+									<Skeleton className="h-4 w-48" />
+								) : (
+									<span>{formatPropertyAddress(lease.unit?.property)}</span>
+								)}
 							</div>
 						</div>
 					</div>

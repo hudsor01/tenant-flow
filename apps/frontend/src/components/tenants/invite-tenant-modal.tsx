@@ -1,5 +1,6 @@
 'use client'
 
+import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
 import { X, UserPlus, Mail, User, Loader2 } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -37,7 +38,7 @@ export function InviteTenantModal({
 
 	if (!isOpen) return null
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 		setIsSubmitting(true)
 
@@ -60,7 +61,7 @@ export function InviteTenantModal({
 
 	const handleChange =
 		(field: keyof typeof formData) =>
-		(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+		(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
 			setFormData(prev => ({ ...prev, [field]: e.target.value }))
 		}
 

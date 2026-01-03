@@ -1,5 +1,7 @@
 'use client'
 
+import type { FormEvent } from 'react'
+
 import { Button } from '#components/ui/button'
 import {
 	Dialog,
@@ -73,7 +75,7 @@ export function ChangePasswordDialog({
 		return errors
 	}
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		// Validation

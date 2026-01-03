@@ -1,5 +1,12 @@
 'use client'
 
+import type {
+	ButtonHTMLAttributes,
+	ComponentProps,
+	HTMLAttributes,
+	ReactNode
+} from 'react'
+
 import { cva, type VariantProps } from 'class-variance-authority'
 import { Loader2Icon } from 'lucide-react'
 
@@ -7,7 +14,7 @@ import { Button } from '#components/ui/button'
 import { cn } from '#lib/utils'
 
 // Basic spinner icon component
-function Spinner({ className, ...props }: React.ComponentProps<'svg'>) {
+function Spinner({ className, ...props }: ComponentProps<'svg'>) {
 	return (
 		<Loader2Icon
 			role="status"
@@ -78,7 +85,7 @@ function LoadingSpinner({
 	className,
 	text,
 	...props
-}: LoadingSpinnerProps & React.HTMLAttributes<HTMLDivElement>) {
+}: LoadingSpinnerProps & HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
 			className={cn('flex-center', text ? 'flex-col gap-3' : '', className)}
@@ -97,7 +104,7 @@ function PageLoader({
 	text = 'Loading...',
 	className,
 	...props
-}: { text?: string } & React.HTMLAttributes<HTMLDivElement>) {
+}: { text?: string } & HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div
 			className={cn('flex-center min-h-screen bg-background', className)}
@@ -125,7 +132,7 @@ function ButtonLoader({
 	variant,
 	...props
 }: LoadingSpinnerProps &
-	React.ButtonHTMLAttributes<HTMLButtonElement> & {
+	ButtonHTMLAttributes<HTMLButtonElement> & {
 		disabled?: boolean
 	}) {
 	return (
@@ -153,8 +160,8 @@ function SectionLoader({
 	...props
 }: {
 	text?: string
-	children?: React.ReactNode
-} & React.HTMLAttributes<HTMLDivElement>) {
+	children?: ReactNode
+} & HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div className={cn('relative', className)} {...props}>
 			{/* Glass Backdrop */}
@@ -181,7 +188,7 @@ function InlineLoader({
 	size = 'sm',
 	className,
 	...props
-}: LoadingSpinnerProps & React.HTMLAttributes<HTMLDivElement>) {
+}: LoadingSpinnerProps & HTMLAttributes<HTMLDivElement>) {
 	return (
 		<div className={cn('inline-flex items-center gap-2', className)} {...props}>
 			<LoadingSpinner size={size} variant="muted" />
@@ -232,7 +239,7 @@ function LoadingDots({
 	...props
 }: VariantProps<typeof dotsVariants> & {
 	asButton?: boolean
-} & React.HTMLAttributes<HTMLDivElement>) {
+} & HTMLAttributes<HTMLDivElement>) {
 	const dots = (
 		<div className={cn(dotsContainerVariants({ size }))} {...props}>
 			<div

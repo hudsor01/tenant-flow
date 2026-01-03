@@ -1,7 +1,8 @@
 'use client'
 
+import { useCallback } from 'react'
+import type { MouseEvent } from 'react'
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
 import {
 	NEXT_NAME,
 	PREV_NAME,
@@ -22,8 +23,8 @@ function StepperPrev(props: ButtonProps) {
 	const isDisabled = disabled || currentIndex <= 0
 
 	const handlePrevClick = prevProps.onClick
-	const onClick = React.useCallback(
-		async (event: React.MouseEvent<HTMLButtonElement>) => {
+	const onClick = useCallback(
+		async (event: MouseEvent<HTMLButtonElement>) => {
 			handlePrevClick?.(event)
 			if (event.defaultPrevented || isDisabled) return
 
@@ -63,8 +64,8 @@ function StepperNext(props: ButtonProps) {
 	const isDisabled = disabled || currentIndex >= stepKeys.length - 1
 
 	const handleNextClick = nextProps.onClick
-	const onClick = React.useCallback(
-		async (event: React.MouseEvent<HTMLButtonElement>) => {
+	const onClick = useCallback(
+		async (event: MouseEvent<HTMLButtonElement>) => {
 			handleNextClick?.(event)
 			if (event.defaultPrevented || isDisabled) return
 

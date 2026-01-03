@@ -2,6 +2,7 @@
 
 import type { Column } from '@tanstack/react-table'
 import { ChevronDown, ChevronsUpDown, ChevronUp, EyeOff, X } from 'lucide-react'
+import type { ComponentProps } from 'react'
 
 import {
 	DropdownMenu,
@@ -15,7 +16,7 @@ import { cn } from '#lib/utils'
 interface DataTableColumnHeaderProps<
 	TData,
 	TValue
-> extends React.ComponentProps<typeof DropdownMenuTrigger> {
+> extends ComponentProps<typeof DropdownMenuTrigger> {
 	column: Column<TData, TValue>
 	label: string
 }

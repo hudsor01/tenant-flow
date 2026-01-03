@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
 import { format } from 'date-fns'
 import { DollarSign, Plus, RefreshCw } from 'lucide-react'
 import { Input } from '#components/ui/input'
@@ -26,8 +27,8 @@ import { useRecordManualPaymentMutation } from '#hooks/api/use-payments'
 import { toast } from 'sonner'
 
 export function RecordPaymentDialog() {
-	const [open, setOpen] = React.useState(false)
-	const [formData, setFormData] = React.useState({
+	const [open, setOpen] = useState(false)
+	const [formData, setFormData] = useState({
 		lease_id: '',
 		tenant_id: '',
 		amount: '',
@@ -38,7 +39,7 @@ export function RecordPaymentDialog() {
 
 	const recordPayment = useRecordManualPaymentMutation()
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
 
 		try {

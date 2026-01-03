@@ -1,5 +1,7 @@
 'use client'
 
+import type { FormEvent } from 'react'
+
 import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import { Button } from '#components/ui/button'
@@ -46,7 +48,7 @@ export default function SettingsPage() {
 				? 'Failed to load tenant settings'
 				: null
 
-	const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleProfileSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
 		const formData = new FormData(e.currentTarget)
