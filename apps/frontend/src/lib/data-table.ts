@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 import type { Column } from '@tanstack/react-table'
 import { dataTableConfig } from '#config/data-table'
 import type {
@@ -12,7 +14,7 @@ export function getCommonPinningStyles<TData>({
 }: {
 	column: Column<TData>
 	withBorder?: boolean
-}): React.CSSProperties {
+}): CSSProperties {
 	const isPinned = column.getIsPinned()
 	const isLastLeftPinnedColumn =
 		isPinned === 'left' && column.getIsLastColumn('left')

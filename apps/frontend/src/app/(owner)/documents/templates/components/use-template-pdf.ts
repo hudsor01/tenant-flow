@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { apiRequest, apiRequestRaw } from '#lib/api-request'
 import { toast } from 'sonner'
 import type { TemplatePreviewOptions } from './template-types'
@@ -15,13 +15,13 @@ export function useTemplatePdf(
 	template: string,
 	getPayload: () => TemplatePreviewOptions
 ) {
-	const [previewUrl, setPreviewUrl] = React.useState<string | null>(null)
+	const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 	const [isGeneratingPreview, setIsGeneratingPreview] =
-		React.useState(false)
-	const [isExporting, setIsExporting] = React.useState(false)
-	const debounceTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+		useState(false)
+	const [isExporting, setIsExporting] = useState(false)
+	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	React.useEffect(() => {
+	useEffect(() => {
 		return () => {
 			if (previewUrl) {
 				URL.revokeObjectURL(previewUrl)
@@ -32,7 +32,7 @@ export function useTemplatePdf(
 		}
 	}, [previewUrl])
 
-	const handlePreview = React.useCallback(async () => {
+	const handlePreview = useCallback(async () => {
 		if (debounceTimerRef.current) {
 			clearTimeout(debounceTimerRef.current)
 		}
@@ -73,7 +73,7 @@ export function useTemplatePdf(
 		}, PREVIEW_DEBOUNCE_MS)
 	}, [getPayload, template])
 
-	const handleExport = React.useCallback(async () => {
+	const handleExport = useCallback(async () => {
 		setIsExporting(true)
 		try {
 			const payload = getPayload()

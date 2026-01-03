@@ -6,7 +6,8 @@ import {
 	useRef,
 	useState,
 	useEffect,
-	type ReactNode
+	type ReactNode,
+	type RefObject
 } from 'react'
 
 interface DeferredSectionProps {
@@ -91,7 +92,7 @@ export function DeferredSection({
  */
 export function useInViewport(
 	rootMargin = '100px'
-): [React.RefObject<HTMLDivElement | null>, boolean] {
+): [RefObject<HTMLDivElement | null>, boolean] {
 	const ref = useRef<HTMLDivElement>(null)
 	const [isInViewport, setIsInViewport] = useState(false)
 

@@ -1,7 +1,8 @@
 'use client'
 
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
+import { useCallback } from 'react'
+import type { MouseEvent } from 'react'
 import { cn } from '#lib/utils'
 import { useFileUploadContext, useFileUploadItemContext } from './context'
 import { useStoreContext } from './store'
@@ -25,7 +26,7 @@ export function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 	const itemContext = useFileUploadItemContext(ITEM_PREVIEW_NAME)
 	const context = useFileUploadContext(ITEM_PREVIEW_NAME)
 
-	const getDefaultRender = React.useCallback(
+	const getDefaultRender = useCallback(
 		(file: File) => {
 			if (itemContext.fileState?.file.type.startsWith('image/')) {
 				let url = context.urlCache.get(file)
@@ -45,7 +46,7 @@ export function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
 		[itemContext.fileState?.file.type, context.urlCache]
 	)
 
-	const onPreviewRender = React.useCallback(
+	const onPreviewRender = useCallback(
 		(file: File) => {
 			if (render) {
 				return render(file, () => getDefaultRender(file))
@@ -262,8 +263,8 @@ export function FileUploadItemDelete(props: FileUploadItemDeleteProps) {
 	const store = useStoreContext(ITEM_DELETE_NAME)
 	const itemContext = useFileUploadItemContext(ITEM_DELETE_NAME)
 
-	const onClick = React.useCallback(
-		(event: React.MouseEvent<HTMLButtonElement>) => {
+	const onClick = useCallback(
+		(event: MouseEvent<HTMLButtonElement>) => {
 			onClickProp?.(event)
 
 			if (!itemContext.fileState || event.defaultPrevented) return

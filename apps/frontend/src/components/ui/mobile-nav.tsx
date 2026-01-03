@@ -1,18 +1,21 @@
 'use client'
 
-import { Button } from '#components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
-import { cn } from '#lib/utils'
+import type { ComponentType } from 'react'
+import { memo, useMemo, useTransition } from 'react'
+
 import { Building2, Home, LogOut, Menu, Users, Wrench } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { memo, useMemo, useTransition } from 'react'
+
 import { signOut } from '#app/actions/auth'
+import { Button } from '#components/ui/button'
+import { Sheet, SheetContent, SheetTrigger } from '#components/ui/sheet'
+import { cn } from '#lib/utils'
 
 interface MobileNavItem {
 	label: string
 	href: string
-	icon: React.ComponentType<{ className?: string }>
+	icon: ComponentType<{ className?: string }>
 }
 
 const MOBILE_NAV_ITEMS: MobileNavItem[] = [

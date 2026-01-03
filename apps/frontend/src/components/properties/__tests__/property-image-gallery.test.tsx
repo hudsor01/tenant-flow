@@ -13,6 +13,8 @@
  * @vitest-environment jsdom
  */
 
+import type { ReactNode } from 'react'
+
 import { screen, waitFor } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { PropertyImageGallery } from '../property-image-gallery'
@@ -100,7 +102,7 @@ function createWrapper() {
 			mutations: { retry: false }
 		}
 	})
-	return function Wrapper({ children }: { children: React.ReactNode }) {
+	return function Wrapper({ children }: { children: ReactNode }) {
 		return (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)

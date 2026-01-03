@@ -2,7 +2,7 @@
  * LeaseSignatureStatus Component Tests
  * Tests the signature status display component in various states
  *
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import { screen } from '@testing-library/react'

@@ -1,6 +1,8 @@
 'use client'
 
+import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+
 import {
 	Menu,
 	X,
@@ -53,7 +55,7 @@ import {
 } from '#components/ui/dropdown-menu'
 
 export interface AppShellProps {
-	children: React.ReactNode
+	children: ReactNode
 	showQuickActionsDock?: boolean
 }
 

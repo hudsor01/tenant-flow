@@ -5,6 +5,8 @@
  * Ensures consistent class naming and removal of data-slot attributes
  */
 
+import type { ReactNode } from 'react'
+
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { describe, expect, it } from 'vitest'
@@ -47,7 +49,7 @@ describe('Component Naming Conventions', () => {
 	describe('Legacy Component Detection', () => {
 		it('should identify components using data-slot attributes', () => {
 			// Test component that uses data-slot (should be avoided)
-			function LegacyButton({ children }: { children: React.ReactNode }) {
+			function LegacyButton({ children }: { children: ReactNode }) {
 				return (
 					<button data-slot="button" data-testid="legacy-button">
 						{children}

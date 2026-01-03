@@ -7,7 +7,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { RenderOptions, RenderResult } from '@testing-library/react'
 import { render as rtlRender } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 
 /**
  * Custom render options extending RTL's RenderOptions
@@ -78,7 +78,7 @@ export function render(
 		? new QueryClient(queryClientConfig)
 		: createTestQueryClient()
 
-	function Wrapper({ children }: { children: React.ReactNode }) {
+	function Wrapper({ children }: { children: ReactNode }) {
 		const content = (
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 		)
@@ -114,7 +114,7 @@ export function render(
 export function createTestWrapper(queryClient?: QueryClient) {
 	const client = queryClient || createTestQueryClient()
 
-	const Wrapper = ({ children }: { children: React.ReactNode }) => (
+	const Wrapper = ({ children }: { children: ReactNode }) => (
 		<QueryClientProvider client={client}>{children}</QueryClientProvider>
 	)
 

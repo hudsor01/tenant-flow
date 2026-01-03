@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo } from 'react'
+import type { ComponentType, ReactNode } from 'react'
 import { Input } from '#components/ui/input'
 import { Textarea } from '#components/ui/textarea'
 import { Label } from '#components/ui/label'
@@ -59,12 +60,12 @@ interface DynamicFormProps {
 
 export function DynamicForm({ form, fields }: DynamicFormProps) {
 	const formApi = form as {
-		Field: React.ComponentType<{
+		Field: ComponentType<{
 			name: string
-			children: (fieldApi: FieldRenderProps) => React.ReactNode
+			children: (fieldApi: FieldRenderProps) => ReactNode
 		}>
 	}
-	const sections = React.useMemo(() => {
+	const sections = useMemo(() => {
 		const map = new Map<string, DynamicField[]>()
 		fields.forEach(field => {
 			const section = field.section ?? 'Details'

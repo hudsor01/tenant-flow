@@ -11,6 +11,8 @@
 
 'use client'
 
+import type { FormEvent } from 'react'
+
 import { ChangePasswordDialog } from '#components/auth/change-password-dialog'
 import {
 	AlertDialog,
@@ -29,7 +31,6 @@ import {
 } from '#hooks/api/use-tenant-portal'
 import {
 	useEmergencyContact,
-	useCreateEmergencyContact,
 	useUpdateEmergencyContact,
 	useDeleteEmergencyContact
 } from '#hooks/api/use-emergency-contact'
@@ -52,18 +53,16 @@ export default function TenantProfilePage() {
 	const { user, isLoading: authLoading } = useCurrentUser()
 	const updateProfile = useSupabaseUpdateProfileMutation()
 
-	// Notification preferences (get tenant ID from user)
-	const tenant_id = user?.id || ''
+	// Notification preferences (uses authenticated context - no tenant ID needed)
 	const { data: notificationPrefs, isLoading: prefsLoading } =
-		useTenantNotificationPreferences(tenant_id)
-	const updatePreferences = useUpdateTenantNotificationPreferences(tenant_id)
+		useTenantNotificationPreferences()
+	const updatePreferences = useUpdateTenantNotificationPreferences()
 
-	// Emergency contact
+	// Emergency contact (uses authenticated context - no tenant ID needed)
 	const { data: emergency_contact, isLoading: emergency_contactLoading } =
-		useEmergencyContact(tenant_id)
-	const createEmergencyContact = useCreateEmergencyContact(tenant_id)
-	const updateEmergencyContact = useUpdateEmergencyContact(tenant_id)
-	const deleteEmergencyContact = useDeleteEmergencyContact(tenant_id)
+		useEmergencyContact()
+	const updateEmergencyContact = useUpdateEmergencyContact()
+	const deleteEmergencyContact = useDeleteEmergencyContact()
 
 	// Form state
 	const [formData, setFormData] = useState({
@@ -75,10 +74,9 @@ export default function TenantProfilePage() {
 
 	// Emergency contact form state
 	const [emergency_contactForm, setEmergencyContactForm] = useState({
-		contactName: '',
+		name: '',
 		relationship: '',
-		phoneNumber: '',
-		email: ''
+		phone: ''
 	})
 
 	// Sync form with user data
@@ -99,15 +97,14 @@ export default function TenantProfilePage() {
 	useEffect(() => {
 		if (emergency_contact) {
 			setEmergencyContactForm({
-				contactName: emergency_contact.contactName,
-				relationship: emergency_contact.relationship,
-				phoneNumber: emergency_contact.phoneNumber,
-				email: emergency_contact.email || ''
+				name: emergency_contact.name || '',
+				relationship: emergency_contact.relationship || '',
+				phone: emergency_contact.phone || ''
 			})
 		}
 	}, [emergency_contact])
 
-	const handleSave = async (e: React.FormEvent) => {
+	const handleSave = async (e: FormEvent) => {
 		e.preventDefault()
 
 		// Validate email format if provided
@@ -176,35 +173,25 @@ export default function TenantProfilePage() {
 		setEmergencyContactForm(prev => ({ ...prev, [field]: value }))
 	}
 
-	const handleSaveEmergencyContact = async (e: React.FormEvent) => {
+	const handleSaveEmergencyContact = async (e: FormEvent) => {
 		e.preventDefault()
 
 		// Validate required fields
 		if (
-			!emergency_contactForm.contactName ||
-			!emergency_contactForm.relationship ||
-			!emergency_contactForm.phoneNumber
+			!emergency_contactForm.name ||
+			!emergency_contactForm.phone
 		) {
-			toast.error('Please fill in all required fields')
+			toast.error('Please fill in name and phone number')
 			return
 		}
 
 		try {
-			if (emergency_contact) {
-				await updateEmergencyContact.mutateAsync({
-					contactName: emergency_contactForm.contactName,
-					relationship: emergency_contactForm.relationship,
-					phoneNumber: emergency_contactForm.phoneNumber,
-					email: emergency_contactForm.email || null
-				})
-			} else {
-				await createEmergencyContact.mutateAsync({
-					contactName: emergency_contactForm.contactName,
-					relationship: emergency_contactForm.relationship,
-					phoneNumber: emergency_contactForm.phoneNumber,
-					email: emergency_contactForm.email || null
-				})
-			}
+			// Use PUT to upsert (create or update)
+			await updateEmergencyContact.mutateAsync({
+				name: emergency_contactForm.name,
+				phone: emergency_contactForm.phone,
+				relationship: emergency_contactForm.relationship || null
+			})
 			setEmergencyContactEditing(false)
 		} catch (error) {
 			handleMutationError(error, 'Save emergency contact')
@@ -222,10 +209,9 @@ export default function TenantProfilePage() {
 		try {
 			await deleteEmergencyContact.mutateAsync()
 			setEmergencyContactForm({
-				contactName: '',
+				name: '',
 				relationship: '',
-				phoneNumber: '',
-				email: ''
+				phone: ''
 			})
 			setEmergencyContactEditing(false)
 			setDeleteDialogOpen(false)
@@ -237,17 +223,15 @@ export default function TenantProfilePage() {
 	const handleCancelEmergencyContactEdit = () => {
 		if (emergency_contact) {
 			setEmergencyContactForm({
-				contactName: emergency_contact.contactName,
-				relationship: emergency_contact.relationship,
-				phoneNumber: emergency_contact.phoneNumber,
-				email: emergency_contact.email || ''
+				name: emergency_contact.name || '',
+				relationship: emergency_contact.relationship || '',
+				phone: emergency_contact.phone || ''
 			})
 		} else {
 			setEmergencyContactForm({
-				contactName: '',
+				name: '',
 				relationship: '',
-				phoneNumber: '',
-				email: ''
+				phone: ''
 			})
 		}
 		setEmergencyContactEditing(false)
@@ -277,9 +261,7 @@ export default function TenantProfilePage() {
 				hasExistingContact={!!emergency_contact}
 				isEditing={emergency_contactEditing}
 				isLoading={emergency_contactLoading || deleteEmergencyContact.isPending}
-				isSaving={
-					createEmergencyContact.isPending || updateEmergencyContact.isPending
-				}
+				isSaving={updateEmergencyContact.isPending}
 				onEditToggle={setEmergencyContactEditing}
 				onChange={handleEmergencyContactChange}
 				onSave={handleSaveEmergencyContact}

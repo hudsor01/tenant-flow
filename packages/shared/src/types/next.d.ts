@@ -4,6 +4,8 @@
  * but are manually defined here for now
  */
 
+import type { ReactNode } from 'react'
+
 declare global {
 	/**
 	 * Type helper for page component props with typed params
@@ -18,9 +20,9 @@ declare global {
 	 * Type helper for layout component props with typed params and parallel routes
 	 */
 	type LayoutProps<T extends string> = {
-		children: React.ReactNode
+		children: ReactNode
 		params?: ExtractRouteParams<T>
-		modal?: React.ReactNode
+		modal?: ReactNode
 	}
 
 	/**
