@@ -1,6 +1,6 @@
 'use client'
 
-import type * as React from 'react'
+import type { ComponentProps, ReactNode, RefObject } from 'react'
 
 export const ROOT_NAME = 'FileUpload'
 export const DROPZONE_NAME = 'FileUploadDropzone'
@@ -52,7 +52,7 @@ export interface FileUploadContextValue {
 	labelId: string
 	disabled: boolean
 	dir: Direction
-	inputRef: React.RefObject<HTMLInputElement | null>
+	inputRef: RefObject<HTMLInputElement | null>
 	urlCache: WeakMap<File, string>
 }
 
@@ -88,7 +88,7 @@ export interface FileUploadInternalPropsRef {
 }
 
 export interface FileUploadProps
-	extends Omit<React.ComponentProps<'div'>, 'defaultValue' | 'onChange'> {
+	extends Omit<ComponentProps<'div'>, 'defaultValue' | 'onChange'> {
 	value?: File[]
 	defaultValue?: File[]
 	onValueChange?: (files: File[]) => void
@@ -117,39 +117,39 @@ export interface FileUploadProps
 	required?: boolean
 }
 
-export interface FileUploadDropzoneProps extends React.ComponentProps<'div'> {
+export interface FileUploadDropzoneProps extends ComponentProps<'div'> {
 	asChild?: boolean
 }
 
 export interface FileUploadTriggerProps
-	extends React.ComponentProps<'button'> {
+	extends ComponentProps<'button'> {
 	asChild?: boolean
 }
 
-export interface FileUploadListProps extends React.ComponentProps<'div'> {
+export interface FileUploadListProps extends ComponentProps<'div'> {
 	orientation?: 'horizontal' | 'vertical'
 	asChild?: boolean
 	forceMount?: boolean
 }
 
-export interface FileUploadItemProps extends React.ComponentProps<'div'> {
+export interface FileUploadItemProps extends ComponentProps<'div'> {
 	value: File
 	asChild?: boolean
 }
 
-export interface FileUploadItemPreviewProps extends React.ComponentProps<'div'> {
-	render?: (file: File, fallback: () => React.ReactNode) => React.ReactNode
+export interface FileUploadItemPreviewProps extends ComponentProps<'div'> {
+	render?: (file: File, fallback: () => ReactNode) => ReactNode
 	asChild?: boolean
 }
 
 export interface FileUploadItemMetadataProps
-	extends React.ComponentProps<'div'> {
+	extends ComponentProps<'div'> {
 	asChild?: boolean
 	size?: 'default' | 'sm'
 }
 
 export interface FileUploadItemProgressProps
-	extends React.ComponentProps<'div'> {
+	extends ComponentProps<'div'> {
 	variant?: 'linear' | 'circular' | 'fill'
 	size?: number
 	asChild?: boolean
@@ -157,11 +157,11 @@ export interface FileUploadItemProgressProps
 }
 
 export interface FileUploadItemDeleteProps
-	extends React.ComponentProps<'button'> {
+	extends ComponentProps<'button'> {
 	asChild?: boolean
 }
 
-export interface FileUploadClearProps extends React.ComponentProps<'button'> {
+export interface FileUploadClearProps extends ComponentProps<'button'> {
 	forceMount?: boolean
 	asChild?: boolean
 }

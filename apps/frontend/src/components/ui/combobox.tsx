@@ -1,13 +1,14 @@
+import type { ComponentProps } from 'react'
+
 import * as ComboboxPrimitive from '@diceui/combobox'
 import { Check, ChevronDown, X } from 'lucide-react'
-import type * as React from 'react'
 
 import { cn } from '#lib/utils'
 
 const Combobox = (({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Root>) => {
+}: ComponentProps<typeof ComboboxPrimitive.Root>) => {
 	return (
 		<ComboboxPrimitive.Root
 			data-slot="combobox"
@@ -20,7 +21,7 @@ const Combobox = (({
 function ComboboxLabel({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Label>) {
+}: ComponentProps<typeof ComboboxPrimitive.Label>) {
 	return (
 		<ComboboxPrimitive.Label
 			data-slot="combobox-label"
@@ -33,7 +34,7 @@ function ComboboxLabel({
 function ComboboxAnchor({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Anchor>) {
+}: ComponentProps<typeof ComboboxPrimitive.Anchor>) {
 	return (
 		<ComboboxPrimitive.Anchor
 			data-slot="combobox-anchor"
@@ -49,7 +50,7 @@ function ComboboxAnchor({
 function ComboboxInput({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Input>) {
+}: ComponentProps<typeof ComboboxPrimitive.Input>) {
 	return (
 		<ComboboxPrimitive.Input
 			data-slot="combobox-input"
@@ -66,7 +67,7 @@ function ComboboxTrigger({
 	className,
 	children,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Trigger>) {
+}: ComponentProps<typeof ComboboxPrimitive.Trigger>) {
 	return (
 		<ComboboxPrimitive.Trigger
 			data-slot="combobox-trigger"
@@ -84,7 +85,7 @@ function ComboboxTrigger({
 function ComboboxCancel({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Cancel>) {
+}: ComponentProps<typeof ComboboxPrimitive.Cancel>) {
 	return (
 		<ComboboxPrimitive.Cancel
 			data-slot="combobox-cancel"
@@ -100,7 +101,7 @@ function ComboboxCancel({
 function ComboboxBadgeList({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.BadgeList>) {
+}: ComponentProps<typeof ComboboxPrimitive.BadgeList>) {
 	return (
 		<ComboboxPrimitive.BadgeList
 			data-slot="combobox-badge-list"
@@ -114,7 +115,7 @@ function ComboboxBadgeItem({
 	className,
 	children,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.BadgeItem>) {
+}: ComponentProps<typeof ComboboxPrimitive.BadgeItem>) {
 	return (
 		<ComboboxPrimitive.BadgeItem
 			data-slot="combobox-badge-item"
@@ -142,7 +143,7 @@ function ComboboxContent({
 	className,
 	children,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Content>) {
+}: ComponentProps<typeof ComboboxPrimitive.Content>) {
 	return (
 		<ComboboxPrimitive.Portal>
 			<ComboboxPrimitive.Content
@@ -163,7 +164,7 @@ function ComboboxContent({
 function ComboboxLoading({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Loading>) {
+}: ComponentProps<typeof ComboboxPrimitive.Loading>) {
 	return (
 		<ComboboxPrimitive.Loading
 			data-slot="combobox-loading"
@@ -178,7 +179,7 @@ function ComboboxLoading({
 function ComboboxEmpty({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Empty>) {
+}: ComponentProps<typeof ComboboxPrimitive.Empty>) {
 	return (
 		<ComboboxPrimitive.Empty
 			data-slot="combobox-empty"
@@ -191,7 +192,7 @@ function ComboboxEmpty({
 function ComboboxGroup({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Group>) {
+}: ComponentProps<typeof ComboboxPrimitive.Group>) {
 	return (
 		<ComboboxPrimitive.Group
 			data-slot="combobox-group"
@@ -204,7 +205,7 @@ function ComboboxGroup({
 function ComboboxGroupLabel({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.GroupLabel>) {
+}: ComponentProps<typeof ComboboxPrimitive.GroupLabel>) {
 	return (
 		<ComboboxPrimitive.GroupLabel
 			data-slot="combobox-group-label"
@@ -222,7 +223,7 @@ function ComboboxItem({
 	children,
 	outset,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Item> & {
+}: ComponentProps<typeof ComboboxPrimitive.Item> & {
 	outset?: boolean
 }) {
 	return (
@@ -251,7 +252,7 @@ function ComboboxItem({
 function ComboboxSeparator({
 	className,
 	...props
-}: React.ComponentProps<typeof ComboboxPrimitive.Separator>) {
+}: ComponentProps<typeof ComboboxPrimitive.Separator>) {
 	return (
 		<ComboboxPrimitive.Separator
 			data-slot="combobox-separator"

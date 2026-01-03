@@ -122,7 +122,7 @@ export const maintenanceQueries = {
 						inProgress: number
 						completed: number
 					}
-				}>('/api/v1/tenants/maintenance', { signal })
+				}>('/api/v1/tenant-portal/maintenance', { signal })
 				return {
 					requests: response.requests,
 					total: response.summary.total,

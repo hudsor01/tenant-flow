@@ -1,6 +1,7 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { ElementType } from 'react'
 import { format } from 'date-fns'
 import {
 	Receipt,
@@ -61,7 +62,7 @@ const EXPENSE_CATEGORIES = [
 	{ value: 'other', label: 'Other' }
 ]
 
-const categoryIcons: Record<string, React.ElementType> = {
+const categoryIcons: Record<string, ElementType> = {
 	maintenance: Wrench,
 	utilities: Building2,
 	insurance: Receipt,
@@ -99,16 +100,16 @@ function getCategoryBadge(category: string) {
 }
 
 export default function ExpensesPage() {
-	const [searchQuery, setSearchQuery] = React.useState('')
-	const [categoryFilter, setCategoryFilter] = React.useState('all')
-	const [currentPage, setCurrentPage] = React.useState(1)
+	const [searchQuery, setSearchQuery] = useState('')
+	const [categoryFilter, setCategoryFilter] = useState('all')
+	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 15
 
 	const { data: expenses, isLoading, error, refetch } = useExpenses()
 	const { data: summary, isLoading: summaryLoading } = useExpenseSummary()
 
 	// Filter expenses
-	const filteredExpenses = React.useMemo(() => {
+	const filteredExpenses = useMemo(() => {
 		if (!expenses) return []
 		return expenses.filter(expense => {
 			if (categoryFilter !== 'all' && expense.category !== categoryFilter) {
@@ -136,7 +137,7 @@ export default function ExpensesPage() {
 	)
 
 	// Reset page on filter change
-	React.useEffect(() => {
+	useEffect(() => {
 		setCurrentPage(1)
 	}, [searchQuery, categoryFilter])
 
@@ -151,7 +152,7 @@ export default function ExpensesPage() {
 	const yoyChange = summary?.year_over_year_change ?? null
 
 	// Calculate maintenance vs other ratio
-	const maintenanceTotal = React.useMemo(() => {
+	const maintenanceTotal = useMemo(() => {
 		if (!summary?.categories) return 0
 		const maintenance = summary.categories.find(
 			c => c.category === 'maintenance'

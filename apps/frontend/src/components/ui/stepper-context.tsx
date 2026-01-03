@@ -1,6 +1,15 @@
 'use client'
 
-import * as React from 'react'
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useSyncExternalStore
+} from 'react'
+import type { ComponentProps, KeyboardEvent, RefObject } from 'react'
 
 const ROOT_NAME = 'Stepper'
 const LIST_NAME = 'StepperList'
@@ -24,11 +33,11 @@ type NavigationDirection = 'next' | 'prev'
 type ActivationMode = 'automatic' | 'manual'
 type DataState = 'inactive' | 'active' | 'completed'
 
-interface DivProps extends React.ComponentProps<'div'> {
+interface DivProps extends ComponentProps<'div'> {
 	asChild?: boolean
 }
 
-interface ButtonProps extends React.ComponentProps<'button'> {
+interface ButtonProps extends ComponentProps<'button'> {
 	asChild?: boolean
 }
 
@@ -66,7 +75,7 @@ function getDirectionAwareKey(key: string, dir?: Direction) {
 }
 
 function getFocusIntent(
-	event: React.KeyboardEvent<TriggerElement>,
+	event: KeyboardEvent<TriggerElement>,
 	dir?: Direction,
 	orientation?: Orientation
 ) {
@@ -79,7 +88,7 @@ function getFocusIntent(
 }
 
 function focusFirst(
-	candidates: React.RefObject<TriggerElement | null>[],
+	candidates: RefObject<TriggerElement | null>[],
 	preventScroll = false
 ) {
 	const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement
@@ -99,10 +108,10 @@ function wrapArray<T>(array: T[], startIndex: number) {
 }
 
 const useIsomorphicLayoutEffect =
-	typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect
+	typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 function useAsRef<T>(props: T) {
-	const ref = React.useRef<T>(props)
+	const ref = useRef<T>(props)
 
 	useIsomorphicLayoutEffect(() => {
 		ref.current = props
@@ -112,13 +121,13 @@ function useAsRef<T>(props: T) {
 }
 
 function useLazyRef<T>(fn: () => T) {
-	const ref = React.useRef<T | null>(null)
+	const ref = useRef<T | null>(null)
 
 	if (ref.current === null) {
 		ref.current = fn()
 	}
 
-	return ref as React.RefObject<T>
+	return ref as RefObject<T>
 }
 
 function getDataState(
@@ -172,10 +181,10 @@ interface Store {
 	setStep: (value: string, completed: boolean, disabled: boolean) => void
 }
 
-const StoreContext = React.createContext<Store | null>(null)
+const StoreContext = createContext<Store | null>(null)
 
 function useStoreContext(consumerName: string) {
-	const context = React.useContext(StoreContext)
+	const context = useContext(StoreContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -185,17 +194,17 @@ function useStoreContext(consumerName: string) {
 function useStore<T>(selector: (state: StoreState) => T): T {
 	const store = useStoreContext('useStore')
 
-	const getSnapshot = React.useCallback(
+	const getSnapshot = useCallback(
 		() => selector(store.getState()),
 		[store, selector]
 	)
 
-	return React.useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
+	return useSyncExternalStore(store.subscribe, getSnapshot, getSnapshot)
 }
 
 interface ItemData {
 	id: string
-	ref: React.RefObject<TriggerElement | null>
+	ref: RefObject<TriggerElement | null>
 	value: string
 	active: boolean
 	disabled: boolean
@@ -211,10 +220,10 @@ interface StepperContextValue {
 	loop: boolean
 }
 
-const StepperContext = React.createContext<StepperContextValue | null>(null)
+const StepperContext = createContext<StepperContextValue | null>(null)
 
 function useStepperContext(consumerName: string) {
-	const context = React.useContext(StepperContext)
+	const context = useContext(StepperContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ROOT_NAME}\``)
 	}
@@ -226,12 +235,12 @@ interface StepperItemContextValue {
 	stepState: StepState | undefined
 }
 
-const StepperItemContext = React.createContext<StepperItemContextValue | null>(
+const StepperItemContext = createContext<StepperItemContextValue | null>(
 	null
 )
 
 function useStepperItemContext(consumerName: string) {
-	const context = React.useContext(StepperItemContext)
+	const context = useContext(StepperItemContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`${ITEM_NAME}\``)
 	}
@@ -249,10 +258,10 @@ interface FocusContextValue {
 	getItems: () => ItemData[]
 }
 
-const FocusContext = React.createContext<FocusContextValue | null>(null)
+const FocusContext = createContext<FocusContextValue | null>(null)
 
 function useFocusContext(consumerName: string) {
-	const context = React.useContext(FocusContext)
+	const context = useContext(FocusContext)
 	if (!context) {
 		throw new Error(`\`${consumerName}\` must be used within \`FocusProvider\``)
 	}

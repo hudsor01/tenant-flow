@@ -11,9 +11,7 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Skeleton } from '#components/ui/skeleton'
-
-import { ArrowRight, BadgeCheck } from 'lucide-react'
+import { ArrowRight, BadgeCheck, Loader2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
 	createCheckoutSession,
@@ -269,7 +267,7 @@ export function KiboStylePricing({
 								>
 									{subscriptionMutation.isPending ? (
 										<>
-											<Skeleton className="mr-2 size-4" />
+											<Loader2 className="mr-2 size-4 animate-spin" />
 											Processing...
 										</>
 									) : (

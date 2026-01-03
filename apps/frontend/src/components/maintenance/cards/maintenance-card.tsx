@@ -1,5 +1,7 @@
 'use client'
 
+import type { MouseEvent } from 'react'
+
 import { Clock, MapPin, MoreHorizontal, User } from 'lucide-react'
 import Link from 'next/link'
 import type {
@@ -87,7 +89,7 @@ export function MaintenanceCard({
 	const unitNumber = request.unit?.name ?? request.unit_id ?? ''
 	const tenantName = request.tenant?.name
 
-	const handleClick = (e: React.MouseEvent) => {
+	const handleClick = (e: MouseEvent) => {
 		if (onView) {
 			e.preventDefault()
 			onView(request.id)

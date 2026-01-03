@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useState } from 'react'
 import {
 	ArrowUpCircle,
 	ArrowDownCircle,
@@ -29,11 +29,11 @@ import { useCashFlow } from '#hooks/api/use-financials'
 import { formatCents } from '#lib/formatters/currency'
 
 export default function CashFlowPage() {
-	const [period, setPeriod] = React.useState('monthly')
-	const [year, setYear] = React.useState('2024')
+	const [period, setPeriod] = useState('monthly')
+	const [year, setYear] = useState('2024')
 
 	// Calculate date range based on period/year selection
-	const dateRange = React.useMemo(() => {
+	const dateRange = useMemo(() => {
 		const currentDate = new Date()
 		const selectedYear = parseInt(year)
 
@@ -64,7 +64,7 @@ export default function CashFlowPage() {
 	const cashFlowData = data?.data
 
 	// Transform to inflow/outflow categories with percentages
-	const inflowItems = React.useMemo(() => {
+	const inflowItems = useMemo(() => {
 		if (!cashFlowData) return []
 		const items = [
 			{
@@ -87,7 +87,7 @@ export default function CashFlowPage() {
 		}))
 	}, [cashFlowData])
 
-	const outflowItems = React.useMemo(() => {
+	const outflowItems = useMemo(() => {
 		if (!cashFlowData) return []
 		const items = [
 			{

@@ -13,6 +13,7 @@ import {
 } from '@stripe/react-stripe-js'
 import type { StripeElementsOptions, StripeError } from '@stripe/stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
+import type { FormEvent } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -71,7 +72,7 @@ function SetupForm({
 	}, [])
 
 	const handleSubmit = useCallback(
-		async (e: React.FormEvent) => {
+		async (e: FormEvent) => {
 			e.preventDefault()
 
 			// Guard: Stripe not loaded

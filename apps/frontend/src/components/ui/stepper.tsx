@@ -1,8 +1,9 @@
 'use client'
 
+import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import type { FocusEvent, MouseEvent } from 'react'
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
 import { useComposedRefs } from '#lib/compose-refs'
 import { cn } from '#lib/utils'
 import {
@@ -91,7 +92,7 @@ function StepperRoot(props: StepperRootProps) {
 		onValidate
 	})
 
-	const store = React.useMemo<Store>(() => {
+	const store = useMemo<Store>(() => {
 		return {
 			subscribe: cb => {
 				listenersRef.current.add(cb)
@@ -167,11 +168,11 @@ function StepperRoot(props: StepperRootProps) {
 
 	const dir = useDirection(dirProp)
 
-	const id = React.useId()
+	const id = useId()
 
 	const rootId = idProp ?? id
 
-	const contextValue = React.useMemo<StepperContextValue>(
+	const contextValue = useMemo<StepperContextValue>(
 		() => ({
 			id: rootId,
 			dir,
@@ -218,39 +219,39 @@ function StepperList(props: StepperListProps) {
 	const orientation = context.orientation
 	const currentValue = useStore(state => state.value)
 
-	const [tabStopId, setTabStopId] = React.useState<string | null>(null)
-	const [isTabbingBackOut, setIsTabbingBackOut] = React.useState(false)
-	const [focusableItemCount, setFocusableItemCount] = React.useState(0)
-	const isClickFocusRef = React.useRef(false)
-	const itemsRef = React.useRef<Map<string, ItemData>>(new Map())
-	const listRef = React.useRef<ListElement>(null)
+	const [tabStopId, setTabStopId] = useState<string | null>(null)
+	const [isTabbingBackOut, setIsTabbingBackOut] = useState(false)
+	const [focusableItemCount, setFocusableItemCount] = useState(0)
+	const isClickFocusRef = useRef(false)
+	const itemsRef = useRef<Map<string, ItemData>>(new Map())
+	const listRef = useRef<ListElement>(null)
 	const composedRef = useComposedRefs(ref, listRef)
 
-	const onItemFocus = React.useCallback((tabStopId: string) => {
+	const onItemFocus = useCallback((tabStopId: string) => {
 		setTabStopId(tabStopId)
 	}, [])
 
-	const onItemShiftTab = React.useCallback(() => {
+	const onItemShiftTab = useCallback(() => {
 		setIsTabbingBackOut(true)
 	}, [])
 
-	const onFocusableItemAdd = React.useCallback(() => {
+	const onFocusableItemAdd = useCallback(() => {
 		setFocusableItemCount(prevCount => prevCount + 1)
 	}, [])
 
-	const onFocusableItemRemove = React.useCallback(() => {
+	const onFocusableItemRemove = useCallback(() => {
 		setFocusableItemCount(prevCount => prevCount - 1)
 	}, [])
 
-	const onItemRegister = React.useCallback((item: ItemData) => {
+	const onItemRegister = useCallback((item: ItemData) => {
 		itemsRef.current.set(item.id, item)
 	}, [])
 
-	const onItemUnregister = React.useCallback((id: string) => {
+	const onItemUnregister = useCallback((id: string) => {
 		itemsRef.current.delete(id)
 	}, [])
 
-	const getItems = React.useCallback(() => {
+	const getItems = useCallback(() => {
 		return Array.from(itemsRef.current.values())
 			.filter(item => item.ref.current)
 			.sort((a, b) => {
@@ -269,8 +270,8 @@ function StepperList(props: StepperListProps) {
 	}, [])
 
 	const handleListBlur = listProps.onBlur
-	const onBlur = React.useCallback(
-		(event: React.FocusEvent<ListElement>) => {
+	const onBlur = useCallback(
+		(event: FocusEvent<ListElement>) => {
 			handleListBlur?.(event)
 			if (event.defaultPrevented) return
 
@@ -280,8 +281,8 @@ function StepperList(props: StepperListProps) {
 	)
 
 	const handleListFocus = listProps.onFocus
-	const onFocus = React.useCallback(
-		(event: React.FocusEvent<ListElement>) => {
+	const onFocus = useCallback(
+		(event: FocusEvent<ListElement>) => {
 			handleListFocus?.(event)
 			if (event.defaultPrevented) return
 
@@ -320,8 +321,8 @@ function StepperList(props: StepperListProps) {
 	)
 
 	const handleListMouseDown = listProps.onMouseDown
-	const onMouseDown = React.useCallback(
-		(event: React.MouseEvent<ListElement>) => {
+	const onMouseDown = useCallback(
+		(event: MouseEvent<ListElement>) => {
 			handleListMouseDown?.(event)
 
 			if (event.defaultPrevented) return
@@ -331,7 +332,7 @@ function StepperList(props: StepperListProps) {
 		[handleListMouseDown]
 	)
 
-	const focusContextValue = React.useMemo<FocusContextValue>(
+	const focusContextValue = useMemo<FocusContextValue>(
 		() => ({
 			tabStopId,
 			onItemFocus,

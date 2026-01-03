@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelLeftIcon } from 'lucide-react'
-import * as React from 'react'
+import type { ComponentProps } from 'react'
 import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Separator } from '#components/ui/separator'
@@ -12,7 +12,7 @@ export function SidebarTrigger({
 	className,
 	onClick,
 	...props
-}: React.ComponentProps<typeof Button>) {
+}: ComponentProps<typeof Button>) {
 	const { toggleSidebar } = useSidebar()
 
 	return (
@@ -36,7 +36,7 @@ export function SidebarTrigger({
 export function SidebarRail({
 	className,
 	...props
-}: React.ComponentProps<'button'>) {
+}: ComponentProps<'button'>) {
 	const { toggleSidebar } = useSidebar()
 
 	return (
@@ -60,7 +60,7 @@ export function SidebarRail({
 export function SidebarInset({
 	className,
 	...props
-}: React.ComponentProps<'main'>) {
+}: ComponentProps<'main'>) {
 	return (
 		<main
 			className={cn(
@@ -76,7 +76,7 @@ export function SidebarInset({
 export function SidebarInput({
 	className,
 	...props
-}: React.ComponentProps<typeof Input>) {
+}: ComponentProps<typeof Input>) {
 	return (
 		<Input
 			data-sidebar="input"
@@ -89,7 +89,7 @@ export function SidebarInput({
 export function SidebarHeader({
 	className,
 	...props
-}: React.ComponentProps<'div'>) {
+}: ComponentProps<'div'>) {
 	return (
 		<div
 			data-sidebar="header"
@@ -102,7 +102,7 @@ export function SidebarHeader({
 export function SidebarFooter({
 	className,
 	...props
-}: React.ComponentProps<'div'>) {
+}: ComponentProps<'div'>) {
 	return (
 		<div
 			data-sidebar="footer"
@@ -115,7 +115,7 @@ export function SidebarFooter({
 export function SidebarSeparator({
 	className,
 	...props
-}: React.ComponentProps<typeof Separator>) {
+}: ComponentProps<typeof Separator>) {
 	return (
 		<Separator
 			data-sidebar="separator"

@@ -5,6 +5,8 @@
  * See stores/leases-store.ts for state structure.
  */
 
+import type { ReactNode } from 'react'
+
 import {
 	FileText,
 	Search,
@@ -165,7 +167,7 @@ export function LeaseList({
 		className = ''
 	}: {
 		field: SortField
-		children: React.ReactNode
+		children: ReactNode
 		className?: string
 	}) => (
 		<button

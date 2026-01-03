@@ -119,9 +119,11 @@ export default function LeasesPage() {
 		return leases.filter(l => {
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
+				const tenantName = l.tenantName ?? ''
+				const propertyName = l.propertyName ?? ''
 				if (
-					!l.tenantName.toLowerCase().includes(query) &&
-					!l.propertyName.toLowerCase().includes(query)
+					!tenantName.toLowerCase().includes(query) &&
+					!propertyName.toLowerCase().includes(query)
 				) {
 					return false
 				}

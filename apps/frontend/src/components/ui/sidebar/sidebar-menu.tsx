@@ -2,7 +2,8 @@
 
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
-import * as React from 'react'
+import { useState } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Tooltip,
@@ -37,7 +38,7 @@ export const sidebarMenuButtonVariants = cva(
 export function SidebarMenu({
 	className,
 	...props
-}: React.ComponentProps<'ul'>) {
+}: ComponentProps<'ul'>) {
 	return (
 		<ul
 			data-sidebar="menu"
@@ -50,7 +51,7 @@ export function SidebarMenu({
 export function SidebarMenuItem({
 	className,
 	...props
-}: React.ComponentProps<'li'>) {
+}: ComponentProps<'li'>) {
 	return (
 		<li
 			data-sidebar="menu-item"
@@ -68,10 +69,10 @@ export function SidebarMenuButton({
 	tooltip,
 	className,
 	...props
-}: React.ComponentProps<'button'> & {
+}: ComponentProps<'button'> & {
 	asChild?: boolean
 	isActive?: boolean
-	tooltip?: string | React.ComponentProps<typeof TooltipContent>
+	tooltip?: string | ComponentProps<typeof TooltipContent>
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
 	const Comp = asChild ? Slot : 'button'
 	const { isMobile, state } = useSidebar()
@@ -111,7 +112,7 @@ export function SidebarMenuAction({
 	asChild = false,
 	showOnHover = false,
 	...props
-}: React.ComponentProps<'button'> & {
+}: ComponentProps<'button'> & {
 	asChild?: boolean
 	showOnHover?: boolean
 }) {
@@ -140,7 +141,7 @@ export function SidebarMenuAction({
 export function SidebarMenuBadge({
 	className,
 	...props
-}: React.ComponentProps<'div'>) {
+}: ComponentProps<'div'>) {
 	return (
 		<div
 			data-sidebar="menu-badge"
@@ -162,11 +163,11 @@ export function SidebarMenuSkeleton({
 	className,
 	showIcon = false,
 	...props
-}: React.ComponentProps<'div'> & {
+}: ComponentProps<'div'> & {
 	showIcon?: boolean
 }) {
 	// Random width between 50 to 90%.
-	const [width] = React.useState(
+	const [width] = useState(
 		() => `${Math.floor(Math.random() * 40) + 50}%`
 	)
 
@@ -188,7 +189,7 @@ export function SidebarMenuSkeleton({
 				style={
 					{
 						'--skeleton-width': width
-					} as React.CSSProperties
+					} as CSSProperties
 				}
 			/>
 		</div>
@@ -198,7 +199,7 @@ export function SidebarMenuSkeleton({
 export function SidebarMenuSub({
 	className,
 	...props
-}: React.ComponentProps<'ul'>) {
+}: ComponentProps<'ul'>) {
 	return (
 		<ul
 			data-sidebar="menu-sub"
@@ -215,7 +216,7 @@ export function SidebarMenuSub({
 export function SidebarMenuSubItem({
 	className,
 	...props
-}: React.ComponentProps<'li'>) {
+}: ComponentProps<'li'>) {
 	return (
 		<li
 			data-sidebar="menu-sub-item"
@@ -231,7 +232,7 @@ export function SidebarMenuSubButton({
 	isActive = false,
 	className,
 	...props
-}: React.ComponentProps<'a'> & {
+}: ComponentProps<'a'> & {
 	asChild?: boolean
 	size?: 'sm' | 'md'
 	isActive?: boolean

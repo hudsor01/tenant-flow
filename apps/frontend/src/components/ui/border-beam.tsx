@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react'
+
 import { cn } from '#lib/utils'
 
 interface BorderBeamProps {
@@ -63,7 +65,7 @@ export const BorderBeam = ({
 					'--color-from': finalColorFrom,
 					'--color-to': finalColorTo,
 					'--delay': `-${delay}s`
-				} as React.CSSProperties
+				} as CSSProperties
 			}
 			className={cn(
 				'pointer-events-none absolute inset-0 rounded-[inherit]',

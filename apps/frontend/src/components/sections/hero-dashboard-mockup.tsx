@@ -1,5 +1,7 @@
 'use client'
 
+import type { ReactNode } from 'react'
+
 import { cn } from '#lib/utils'
 import {
 	Building,
@@ -210,7 +212,7 @@ function StatCard({
 	value: string
 	trend: string
 	trendUp: boolean
-	icon: React.ReactNode
+	icon: ReactNode
 }) {
 	return (
 		<div className="card-standard p-2.5 hover:border-primary/20 transition-colors">
@@ -244,7 +246,7 @@ function QuickAction({
 	badge,
 	badgeColor
 }: {
-	icon: React.ReactNode
+	icon: ReactNode
 	label: string
 	badge?: string
 	badgeColor?: 'warning' | 'info' | 'success'

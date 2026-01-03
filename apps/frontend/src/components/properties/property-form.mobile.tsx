@@ -1,16 +1,19 @@
 'use client'
 
+import type { ComponentProps } from 'react'
+import { useEffect } from 'react'
+
+import type { Property } from '@repo/shared/types/core'
+import { Building2, WifiOff } from 'lucide-react'
+
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '#components/ui/card'
 import { useMobileAccessibility } from '#hooks/use-mobile-accessibility'
 import { useOfflineData } from '#hooks/use-offline-data'
 import { cn } from '#lib/utils'
-import type { Property } from '@repo/shared/types/core'
-import { Building2, WifiOff } from 'lucide-react'
-import { useEffect } from 'react'
 import { PropertyForm } from './property-form.client'
 
-type PropertyFormComponentProps = React.ComponentProps<typeof PropertyForm>
+type PropertyFormComponentProps = ComponentProps<typeof PropertyForm>
 
 interface MobilePropertyFormProps extends PropertyFormComponentProps {
 	offlineEntityKey?: string

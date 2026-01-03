@@ -2,7 +2,14 @@
 
 import { useDirection } from '@radix-ui/react-direction'
 import { Slot } from '@radix-ui/react-slot'
-import * as React from 'react'
+import {
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef
+} from 'react'
+import type { ChangeEvent } from 'react'
 import { cn } from '#lib/utils'
 import { useAsRef } from '#hooks/use-as-ref'
 import { useLazyRef } from '#hooks/use-lazy-ref'
@@ -42,16 +49,16 @@ export function FileUpload(props: FileUploadProps) {
 		...rootProps
 	} = props
 
-	const inputId = React.useId()
-	const dropzoneId = React.useId()
-	const listId = React.useId()
-	const labelId = React.useId()
+	const inputId = useId()
+	const dropzoneId = useId()
+	const listId = useId()
+	const labelId = useId()
 
 	const dir = useDirection(dirProp)
 	const listeners = useLazyRef(() => new Set<() => void>()).current
 	const files = useLazyRef<Map<File, FileState>>(() => new Map()).current
 	const urlCache = useLazyRef(() => new WeakMap<File, string>()).current
-	const inputRef = React.useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 	const isControlled = value !== undefined
 
 	const propsRef = useAsRef({
@@ -63,7 +70,7 @@ export function FileUpload(props: FileUploadProps) {
 		onUpload
 	})
 
-	const store = React.useMemo<Store>(() => {
+	const store = useMemo<Store>(() => {
 		let state: StoreState = {
 			files,
 			dragOver: false,
@@ -87,7 +94,7 @@ export function FileUpload(props: FileUploadProps) {
 		}
 	}, [listeners, files, invalid, propsRef, urlCache])
 
-	const acceptTypes = React.useMemo(
+	const acceptTypes = useMemo(
 		() => accept?.split(',').map((t) => t.trim()) ?? null,
 		[accept]
 	)
@@ -107,7 +114,7 @@ export function FileUpload(props: FileUploadProps) {
 		}
 	}).current
 
-	React.useEffect(() => {
+	useEffect(() => {
 		if (isControlled) {
 			store.dispatch({ type: 'SET_FILES', files: value })
 		} else if (
@@ -119,7 +126,7 @@ export function FileUpload(props: FileUploadProps) {
 		}
 	}, [value, defaultValue, isControlled, store])
 
-	React.useEffect(() => {
+	useEffect(() => {
 		return () => {
 			for (const file of files.keys()) {
 				const cachedUrl = urlCache.get(file)
@@ -130,7 +137,7 @@ export function FileUpload(props: FileUploadProps) {
 		}
 	}, [files, urlCache])
 
-	const onFilesUpload = React.useCallback(
+	const onFilesUpload = useCallback(
 		async (filesToUpload: File[]) => {
 			try {
 				for (const file of filesToUpload) {
@@ -171,7 +178,7 @@ export function FileUpload(props: FileUploadProps) {
 		[store, propsRef, onProgress]
 	)
 
-	const onFilesChange = React.useCallback(
+	const onFilesChange = useCallback(
 		(originalFiles: File[]) => {
 			if (disabled) return
 
@@ -296,8 +303,8 @@ export function FileUpload(props: FileUploadProps) {
 		]
 	)
 
-	const onInputChange = React.useCallback(
-		(event: React.ChangeEvent<HTMLInputElement>) => {
+	const onInputChange = useCallback(
+		(event: ChangeEvent<HTMLInputElement>) => {
 			const changedFiles = Array.from(event.target.files ?? [])
 			onFilesChange(changedFiles)
 			event.target.value = ''
@@ -305,7 +312,7 @@ export function FileUpload(props: FileUploadProps) {
 		[onFilesChange]
 	)
 
-	const contextValue = React.useMemo<FileUploadContextValue>(
+	const contextValue = useMemo<FileUploadContextValue>(
 		() => ({
 			dropzoneId,
 			inputId,

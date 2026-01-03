@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import type { ChangeEvent, RefObject } from 'react'
 import { Camera, Clock, Loader2, LogOut } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -26,13 +26,13 @@ interface ProfileData {
 
 interface ProfileCardProps {
 	profile: ProfileData
-	fileInputRef: React.RefObject<HTMLInputElement | null>
+	fileInputRef: RefObject<HTMLInputElement | null>
 	isPending: boolean
 	isUploadingAvatar: boolean
 	isRemovingAvatar: boolean
 	isSigningOut: boolean
 	onAvatarClick: () => void
-	onAvatarChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+	onAvatarChange: (e: ChangeEvent<HTMLInputElement>) => void
 	onRemoveAvatar: () => void
 	onSignOut: () => void
 }

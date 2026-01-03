@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { format } from 'date-fns'
 import {
 	ChevronLeft,
@@ -77,19 +77,21 @@ export function SubscriptionsTab({
 	onCancel,
 	actioningId
 }: SubscriptionsTabProps) {
-	const [searchQuery, setSearchQuery] = React.useState('')
-	const [statusFilter, setStatusFilter] = React.useState<string>('all')
-	const [currentPage, setCurrentPage] = React.useState(1)
+	const [searchQuery, setSearchQuery] = useState('')
+	const [statusFilter, setStatusFilter] = useState<string>('all')
+	const [currentPage, setCurrentPage] = useState(1)
 	const itemsPerPage = 10
 
 	// Filter subscriptions
-	const filteredSubscriptions = React.useMemo(() => {
+	const filteredSubscriptions = useMemo(() => {
 		return subscriptions.filter(sub => {
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
+				const tenantId = sub.tenantId ?? ''
+				const leaseId = sub.leaseId ?? ''
 				if (
-					!sub.tenantId.toLowerCase().includes(query) &&
-					!sub.leaseId.toLowerCase().includes(query)
+					!tenantId.toLowerCase().includes(query) &&
+					!leaseId.toLowerCase().includes(query)
 				) {
 					return false
 				}
@@ -109,7 +111,7 @@ export function SubscriptionsTab({
 	)
 
 	// Reset page when filters change
-	React.useEffect(() => {
+	useEffect(() => {
 		setCurrentPage(1)
 	}, [searchQuery, statusFilter])
 

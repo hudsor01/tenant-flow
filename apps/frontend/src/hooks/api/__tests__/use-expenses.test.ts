@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { createElement } from 'react'
 import {
 	useExpenses,
@@ -33,7 +34,7 @@ function createWrapper() {
 			}
 		}
 	})
-	return function Wrapper({ children }: { children: React.ReactNode }) {
+	return function Wrapper({ children }: { children: ReactNode }) {
 		return createElement(QueryClientProvider, { client: queryClient }, children)
 	}
 }

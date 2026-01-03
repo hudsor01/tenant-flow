@@ -1,6 +1,5 @@
 'use client'
 
-import * as React from 'react'
 import {
 	leaseTemplateSchema
 } from '@repo/shared/templates/lease-template'

@@ -1,5 +1,7 @@
 'use client'
 
+import type { FormEvent } from 'react'
+
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Field, FieldLabel } from '#components/ui/field'
@@ -18,7 +20,7 @@ interface PersonalInformationSectionProps {
 	isLoading: boolean
 	onEditToggle: (editing: boolean) => void
 	onChange: (field: keyof PersonalInfoFormData, value: string) => void
-	onSave: (e: React.FormEvent) => void
+	onSave: (e: FormEvent) => void
 	onCancel: () => void
 }
 

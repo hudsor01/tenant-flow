@@ -4,8 +4,7 @@ import type {
 	CallHandler
 } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
-import type { Observable } from 'rxjs'
-import { tap } from 'rxjs/operators'
+import { tap, type Observable } from 'rxjs'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { AppLogger } from '../../../logger/app-logger.service'
 
