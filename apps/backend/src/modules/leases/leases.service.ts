@@ -133,16 +133,7 @@ export class LeasesService {
 			throw new BadRequestException('Lead paint disclosure acknowledgment required for properties built before 1978')
 		}
 
-		let resolvedLeaseStatus: LeaseStatus = 'draft'
-		if (dto.lease_status !== undefined) {
-			try {
-				resolvedLeaseStatus = validateLeaseStatus(dto.lease_status) as LeaseStatus
-			} catch (error) {
-				throw new BadRequestException(
-					error instanceof Error ? error.message : 'Invalid lease status'
-				)
-			}
-		}
+		const resolvedLeaseStatus = dto.lease_status !== undefined ? validateLeaseStatus(dto.lease_status) : 'draft'
 
 		const insertData: LeaseInsert = {
 			primary_tenant_id: dto.primary_tenant_id,
@@ -152,7 +143,7 @@ export class LeasesService {
 			end_date: dto.end_date || '',
 			rent_amount: dto.rent_amount!,
 			security_deposit: dto.security_deposit || 0,
-			lease_status: resolvedLeaseStatus,
+			lease_status: resolvedLeaseStatus as LeaseStatus,
 			payment_day: dto.payment_day ?? 1,
 			rent_currency: dto.rent_currency || 'USD',
 			grace_period_days: dto.grace_period_days ?? null,

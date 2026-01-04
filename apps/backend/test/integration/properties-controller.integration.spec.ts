@@ -9,7 +9,7 @@ import { PropertiesController } from '../../src/modules/properties/properties.co
 import { PropertiesService } from '../../src/modules/properties/properties.service'
 import { PropertyBulkImportService } from '../../src/modules/properties/services/property-bulk-import.service'
 import { PropertyLifecycleService } from '../../src/modules/properties/services/property-lifecycle.service'
-import { DashboardStatsService } from '../../src/modules/dashboard/dashboard-stats.service'
+import { DashboardService } from '../../src/modules/dashboard/dashboard.service'
 import { AppLogger } from '../../src/logger/app-logger.service'
 import type { Database } from '@repo/shared/types/supabase'
 
@@ -56,8 +56,9 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 			reactivateProperty: jest.fn()
 		}
 
-		const mockDashboardStatsService = {
-			getStats: jest.fn()
+		const mockDashboardService = {
+			getDashboardStats: jest.fn(),
+			getRecentActivity: jest.fn()
 		}
 
 		const mockAppLogger = {
@@ -84,8 +85,8 @@ describe('PropertiesController (Integration - Production Validation)', () => {
 					useValue: mockPropertyLifecycleService
 				},
 				{
-					provide: DashboardStatsService,
-					useValue: mockDashboardStatsService
+					provide: DashboardService,
+					useValue: mockDashboardService
 				},
 				{
 					provide: AppLogger,
