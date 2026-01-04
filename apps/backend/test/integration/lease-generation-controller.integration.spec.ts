@@ -337,7 +337,7 @@ describe('LeaseGenerationController (Integration)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_user_id: 'owner-123'
+				owner_user_id: 'test-user-id'
 			}
 
 			const mockUnit = {
@@ -447,7 +447,7 @@ describe('LeaseGenerationController (Integration)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_user_id: 'owner-123'
+				owner_user_id: 'test-user-id'
 			}
 
 			let currentTable = ''
@@ -492,7 +492,7 @@ describe('LeaseGenerationController (Integration)', () => {
 				city: 'Austin',
 				state: 'TX',
 				postal_code: '78702',
-				owner_user_id: 'owner-123'
+				owner_user_id: 'test-user-id'
 			}
 
 			const mockUnit = {
