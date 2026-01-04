@@ -42,11 +42,12 @@ export function LeaseStepTenant({
 	onTenantSearchChange
 }: LeaseStepTenantProps) {
 	// Filter tenants by search
-	const filteredTenants = existingTenants.filter(
-		t =>
-			t.name.toLowerCase().includes(tenantSearch.toLowerCase()) ||
-			t.email.toLowerCase().includes(tenantSearch.toLowerCase())
-	)
+	const filteredTenants = existingTenants.filter(t => {
+		const query = tenantSearch.toLowerCase()
+		const name = t.name ?? ''
+		const email = t.email ?? ''
+		return name.toLowerCase().includes(query) || email.toLowerCase().includes(query)
+	})
 
 	const handleExistingTenantSelect = (tenantId: string) => {
 		const { newTenant: _removed, ...rest } = formData
