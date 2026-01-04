@@ -21,7 +21,8 @@ import {
 	ParseUUIDPipe,
 	Post,
 	Put,
-	Req
+	Req,
+	UnauthorizedException
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -60,8 +61,12 @@ export class TenantEmergencyContactController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const emergency_contact =
-			await this.emergencyContactService.getEmergencyContact(user_id, id)
+			await this.emergencyContactService.getEmergencyContact(user_id, id, token)
 
 		// Return null if not found (not an error - just no contact yet)
 		return emergency_contact
@@ -84,6 +89,10 @@ export class TenantEmergencyContactController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		const serviceDto = {
 			contact_name: dto.contactName,
@@ -94,7 +103,8 @@ export class TenantEmergencyContactController {
 			await this.emergencyContactService.createEmergencyContact(
 				user_id,
 				id,
-				serviceDto
+				serviceDto,
+				token
 			)
 
 		if (!emergency_contact) {
@@ -121,6 +131,10 @@ export class TenantEmergencyContactController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		// Filter out undefined values for exactOptionalPropertyTypes
 		const updated_data: {
@@ -141,7 +155,8 @@ export class TenantEmergencyContactController {
 			await this.emergencyContactService.updateEmergencyContact(
 				user_id,
 				id,
-				updated_data
+				updated_data,
+				token
 			)
 
 		if (!emergency_contact) {
@@ -166,9 +181,14 @@ export class TenantEmergencyContactController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const deleted = await this.emergencyContactService.deleteEmergencyContact(
 			user_id,
-			id
+			id,
+			token
 		)
 
 		if (!deleted) {

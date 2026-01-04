@@ -13,6 +13,7 @@ import { PropertyBulkImportService } from './services/property-bulk-import.servi
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
+import { PropertyAccessService } from './services/property-access.service'
 
 /**
  * Properties module
@@ -28,8 +29,9 @@ import { PropertyCacheInvalidationService } from './services/property-cache-inva
 		PropertyLifecycleService,
 		PropertyCacheInvalidationService,
 		PropertyBulkImportService,
-		PropertyAnalyticsService
+		PropertyAnalyticsService,
+		PropertyAccessService
 	],
-	exports: [PropertiesService]
+	exports: [PropertiesService, PropertyAccessService]
 })
 export class PropertiesModule {}

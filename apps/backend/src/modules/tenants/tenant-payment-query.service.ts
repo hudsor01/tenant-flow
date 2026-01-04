@@ -6,10 +6,12 @@
  */
 
 import {
+	BadRequestException,
 	ForbiddenException,
 	Injectable,
 	InternalServerErrorException,
-	NotFoundException
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type { RentPayment, PaymentStatus } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
@@ -22,11 +24,21 @@ export class TenantPaymentQueryService {
 		private readonly logger: AppLogger
 	) {}
 
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
 	/**
 	 * Get tenant record by auth user ID
 	 */
-	async getTenantByAuthUserId(authUserId: string): Promise<{ id: string }> {
-		const client = this.supabase.getAdminClient()
+	async getTenantByAuthUserId(
+		authUserId: string,
+		token: string
+	): Promise<{ id: string }> {
+		const client = this.requireUserClient(token)
 		const { data, error } = await client
 			.from('tenants')
 			.select('id')
@@ -127,8 +139,8 @@ export class TenantPaymentQueryService {
 	/**
 	 * Get property IDs owned by a user
 	 */
-	async getOwnerPropertyIds(authUserId: string): Promise<string[]> {
-		const client = this.supabase.getAdminClient()
+	async getOwnerPropertyIds(authUserId: string, token: string): Promise<string[]> {
+		const client = this.requireUserClient(token)
 
 		const { data, error } = await client
 			.from('properties')
@@ -152,14 +164,17 @@ export class TenantPaymentQueryService {
 	/**
 	 * Get tenant IDs for properties owned by a user
 	 */
-	async getTenantIdsForOwner(ownerId: string): Promise<string[]> {
-		const propertyIds = await this.getOwnerPropertyIds(ownerId)
+	async getTenantIdsForOwner(
+		ownerId: string,
+		token: string
+	): Promise<string[]> {
+		const propertyIds = await this.getOwnerPropertyIds(ownerId, token)
 
 		if (!propertyIds.length) {
 			return []
 		}
 
-		const client = this.supabase.getAdminClient()
+		const client = this.requireUserClient(token)
 		const { data, error } = await client
 			.from('leases')
 			.select(
@@ -194,6 +209,7 @@ export class TenantPaymentQueryService {
 	 */
 	async queryTenantPayments(
 		tenantId: string,
+		requesterUserId: string,
 		filters?: {
 			status?: PaymentStatus
 			startDate?: string
@@ -202,6 +218,11 @@ export class TenantPaymentQueryService {
 		}
 	): Promise<RentPayment[]> {
 		try {
+			if (!requesterUserId) {
+				throw new BadRequestException('User ID required')
+			}
+			await this.ensureTenantOwnedByUser(requesterUserId, tenantId)
+
 			const client = this.supabase.getAdminClient()
 			let queryBuilder = client
 				.from('rent_payments')

@@ -7,6 +7,7 @@
  */
 
 import { Module } from '@nestjs/common'
+import { PropertiesModule } from '../properties/properties.module'
 import { BalanceSheetController } from './balance-sheet.controller'
 import { BalanceSheetService } from './balance-sheet.service'
 import { CashFlowController } from './cash-flow.controller'
@@ -22,7 +23,7 @@ import { FinancialAnalyticsPublicController } from './financial-analytics.contro
 import { FinancialOverviewController } from './financial-overview.controller'
 
 @Module({
-	imports: [],
+	imports: [PropertiesModule],
 	controllers: [
 		FinancialOverviewController,
 		IncomeStatementController,

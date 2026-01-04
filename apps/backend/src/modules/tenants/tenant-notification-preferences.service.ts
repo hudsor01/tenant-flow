@@ -11,7 +11,8 @@
 import {
 	BadRequestException,
 	Injectable,
-	NotFoundException
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type { TenantNotificationPreferences } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
@@ -53,6 +54,13 @@ export class TenantNotificationPreferencesService {
 		private readonly supabase: SupabaseService
 	) {}
 
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
 	/**
 	 * Get notification preferences for a tenant
 	 * Queries notification_settings by user_id
@@ -60,7 +68,8 @@ export class TenantNotificationPreferencesService {
 	 */
 	async getPreferences(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<TenantNotificationPreferences | null> {
 		try {
 			this.logger.debug('Fetching notification preferences for tenant', {
@@ -69,7 +78,7 @@ export class TenantNotificationPreferencesService {
 			})
 
 			// First verify the tenant exists and belongs to this user
-			const client = this.supabase.getAdminClient()
+			const client = this.requireUserClient(token)
 			const { data: tenant, error: tenantError } = await client
 				.from('tenants')
 				.select('id, user_id')
@@ -146,7 +155,8 @@ export class TenantNotificationPreferencesService {
 	async updatePreferences(
 		user_id: string,
 		tenant_id: string,
-		preferences: Partial<TenantNotificationPreferences>
+		preferences: Partial<TenantNotificationPreferences>,
+		token: string
 	): Promise<TenantNotificationPreferences | null> {
 		try {
 			// Validate input
@@ -155,7 +165,11 @@ export class TenantNotificationPreferencesService {
 			}
 
 			// Get current preferences first (validates tenant access)
-			const currentPreferences = await this.getPreferences(user_id, tenant_id)
+			const currentPreferences = await this.getPreferences(
+				user_id,
+				tenant_id,
+				token
+			)
 
 			// Build DB update object from API preferences
 			const dbUpdate: Record<string, boolean> = {}
@@ -182,7 +196,7 @@ export class TenantNotificationPreferencesService {
 			}
 
 			// Upsert to notification_settings
-			const client = this.supabase.getAdminClient()
+			const client = this.requireUserClient(token)
 			const { data, error } = await client
 				.from('notification_settings')
 				.upsert({ user_id, ...dbUpdate }, { onConflict: 'user_id' })
@@ -240,12 +254,14 @@ export class TenantNotificationPreferencesService {
 	 */
 	async resetPreferences(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<TenantNotificationPreferences | null> {
 		return this.updatePreferences(
 			user_id,
 			tenant_id,
-			DEFAULT_NOTIFICATION_PREFERENCES
+			DEFAULT_NOTIFICATION_PREFERENCES,
+			token
 		)
 	}
 }
