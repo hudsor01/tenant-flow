@@ -22,11 +22,14 @@ import {
 	expectPermissionError,
 	getServiceRoleClient,
 	isTestUserAvailable,
+	shouldSkipRlsTests,
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './setup'
 
-describe('RLS: Payment Isolation', () => {
+const describeRls = shouldSkipRlsTests ? describe.skip : describe
+
+describeRls('RLS: Payment Isolation', () => {
 	const testLogger = new Logger('RLSPaymentIsolationTest')
 	let ownerA: AuthenticatedTestClient
 	let tenantA: AuthenticatedTestClient | null = null
