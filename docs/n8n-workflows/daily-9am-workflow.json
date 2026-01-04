@@ -1,0 +1,179 @@
+{
+  "name": "TenantFlow - Daily 9AM Jobs",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 9AM",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TENANTFLOW_API_URL }}/api/v1/webhooks/n8n/cron/payment-reminders",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-webhook-secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "payment-reminders",
+      "name": "Send Payment Reminders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, -100],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.TENANTFLOW_API_URL }}/api/v1/webhooks/n8n/cron/lease-expiry-check",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-n8n-webhook-secret",
+              "value": "={{ $env.N8N_WEBHOOK_SECRET }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "lease-expiry",
+      "name": "Check Lease Expiry",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [300, 100],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-reminders",
+              "leftValue": "={{ $('Send Payment Reminders').item.json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "check-lease",
+              "leftValue": "={{ $('Check Lease Expiry').item.json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "check-results",
+      "name": "All Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [600, 0]
+    },
+    {
+      "parameters": {
+        "content": "### Daily 9AM Jobs Completed\n\n**Payment Reminders:** {{ $('Send Payment Reminders').item.json.message || 'OK' }}\n\n**Lease Expiry Check:** {{ $('Check Lease Expiry').item.json.message || 'OK' }}",
+        "height": 200,
+        "width": 300
+      },
+      "id": "success-note",
+      "name": "Success",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [900, -100]
+    }
+  ],
+  "connections": {
+    "Daily 9AM": {
+      "main": [
+        [
+          {
+            "node": "Send Payment Reminders",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Lease Expiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Payment Reminders": {
+      "main": [
+        [
+          {
+            "node": "All Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Lease Expiry": {
+      "main": [
+        [
+          {
+            "node": "All Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "TenantFlow"
+    },
+    {
+      "name": "Cron"
+    }
+  ],
+  "pinData": {}
+}

@@ -1,0 +1,49 @@
+task_groups:
+  - name: foundation
+    claude_code_subagent: foundation
+    standards:
+      - all
+  - name: shell
+    claude_code_subagent: shell
+    standards:
+      - all
+  - name: dashboard
+    claude_code_subagent: dashboard
+    standards:
+      - all
+  - name: properties-and-units
+    claude_code_subagent: properties-and-units
+    standards:
+      - all
+  - name: tenants
+    claude_code_subagent: tenants
+    standards:
+      - all
+  - name: leases
+    claude_code_subagent: leases
+    standards:
+      - all
+  - name: payments
+    claude_code_subagent: payments
+    standards:
+      - all
+  - name: financials
+    claude_code_subagent: financials
+    standards:
+      - all
+  - name: maintenance
+    claude_code_subagent: maintenance
+    standards:
+      - all
+  - name: tenant-portal
+    claude_code_subagent: tenant-portal
+    standards:
+      - all
+  - name: settings
+    claude_code_subagent: settings
+    standards:
+      - all
+  - name: profiles
+    claude_code_subagent: profiles
+    standards:
+      - all
