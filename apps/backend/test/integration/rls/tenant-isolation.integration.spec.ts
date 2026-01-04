@@ -19,16 +19,13 @@ import {
 	expectEmptyResult,
 	expectPermissionError,
 	isTestUserAvailable,
-	shouldSkipRlsTests,
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './setup'
 
 const testLogger = new Logger('RLSTenantIsolationTest')
 
-const describeRls = shouldSkipRlsTests ? describe.skip : describe
-
-describeRls('RLS: Tenant Isolation', () => {
+describe('RLS: Tenant Isolation', () => {
 	let tenantA: AuthenticatedTestClient | null = null
 	let tenantB: AuthenticatedTestClient | null = null
 

@@ -19,7 +19,6 @@ import {
 	expectEmptyResult,
 	expectPermissionError,
 	isTestUserAvailable,
-	shouldSkipRlsTests,
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './setup'
@@ -30,9 +29,7 @@ type UnitRow = Database['public']['Tables']['units']['Row']
 
 const testLogger = new Logger('RLSPropertyIsolationTest')
 
-const describeRls = shouldSkipRlsTests ? describe.skip : describe
-
-describeRls('RLS: Property Isolation', () => {
+describe('RLS: Property Isolation', () => {
 	let ownerA: AuthenticatedTestClient
 	let ownerB: AuthenticatedTestClient | null = null
 	let tenantA: AuthenticatedTestClient | null = null
