@@ -77,42 +77,9 @@ const missingRequiredVars = REQUIRED_TEST_USER_VARS.filter(
 	varName => !process.env[varName]
 )
 
-function decodeJwtPayload(token: string): Record<string, unknown> | null {
-	const parts = token.split('.')
-	if (parts.length < 2) return null
-	const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-	const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
-	try {
-		return JSON.parse(Buffer.from(padded, 'base64').toString('utf8')) as Record<
-			string,
-			unknown
-		>
-	} catch {
-		return null
-	}
-}
-
-const publishableKey =
-	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-	process.env.SUPABASE_PUBLISHABLE_KEY ||
-	''
-const publishablePayload = publishableKey
-	? decodeJwtPayload(publishableKey)
-	: null
-const publishableRole =
-	typeof publishablePayload?.role === 'string'
-		? publishablePayload.role
-		: null
-
-const runRlsTests = process.env.RUN_RLS_TESTS === 'true'
-
 // Skip integration tests if required environment variables are not set
 // This allows unit tests to run without needing integration test credentials
 export const shouldSkipIntegrationTests = missingRequiredVars.length > 0
-export const shouldSkipRlsTests =
-	shouldSkipIntegrationTests ||
-	!runRlsTests ||
-	publishableRole === 'service_role'
 
 if (shouldSkipIntegrationTests) {
 	logger.warn(
@@ -120,18 +87,6 @@ if (shouldSkipIntegrationTests) {
   - ${missingRequiredVars.join('\n  - ')}
 
 To run integration tests, set these variables in your environment or .env.local file.`
-	)
-}
-
-if (publishableRole === 'service_role') {
-	logger.warn(
-		'[RLS Tests] SUPABASE_PUBLISHABLE_KEY appears to be a service role key. RLS checks will be skipped.'
-	)
-}
-
-if (!runRlsTests) {
-	logger.warn(
-		'[RLS Tests] RUN_RLS_TESTS is not set to true. RLS checks will be skipped.'
 	)
 }
 
