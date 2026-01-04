@@ -285,9 +285,8 @@ AGENTS.md
 
 # DOCUMENTATION & EXAMPLES
 docs/
-!docs/
 documentation/
-!docs/tenant-portal-api.md
+agent-os/
 !README.md
 !LICENSE.md
 !SECURITY.md
