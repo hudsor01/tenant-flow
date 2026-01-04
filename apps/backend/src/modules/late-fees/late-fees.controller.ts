@@ -42,37 +42,35 @@ export class LateFeesController {
 	 */
 	private async verifyLeaseOwnership(
 		lease_id: string,
-		user_id: string
+		user_id: string,
+		token: string
 	): Promise<boolean> {
-		const client = this.supabaseService!.getAdminClient()
+		const client = this.supabaseService!.getUserClient(token)
 
-		// Get lease with unit_id
-		const { data: lease } = await client
+		const { data, error } = await client
 			.from('leases')
-			.select('unit_id')
+			.select(
+				`
+				id,
+				unit:units!leases_unit_id_fkey(
+					property:property_id(owner_user_id)
+				)
+				`
+			)
 			.eq('id', lease_id)
-			.single()
+			.maybeSingle()
 
-		if (!lease?.unit_id) return false
+		if (error) {
+			this.logger.warn('Failed to verify lease ownership', {
+				user_id,
+				lease_id,
+				error: error.message
+			})
+			return false
+		}
 
-		// Get unit with property_id
-		const { data: unit } = await client
-			.from('units')
-			.select('property_id')
-			.eq('id', lease.unit_id)
-			.single()
-
-		if (!unit?.property_id) return false
-
-		// Verify property ownership
-		const { data: property } = await client
-			.from('properties')
-			.select('id')
-			.eq('id', unit.property_id)
-			.eq('owner_id', user_id)
-			.single()
-
-		return !!property
+		const ownerUserId = data?.unit?.property?.owner_user_id
+		return Boolean(ownerUserId && ownerUserId === user_id)
 	}
 
 	/**
@@ -100,7 +98,7 @@ export class LateFeesController {
 		this.logger.log('Getting late fee config', { lease_id, user_id })
 
 		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id, token)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
@@ -136,7 +134,7 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #1: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id, token)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
@@ -226,17 +224,18 @@ export class LateFeesController {
 			lease_id
 		})
 
+		// SECURITY FIX #2: Extract JWT token from request for RLS
+		const token = this.supabaseService!.getTokenFromRequest(req)
+
 		// SECURITY FIX #3: Verify lease ownership if lease_id provided
 		if (lease_id) {
-			const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
+			const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id, token ?? '')
 			if (!hasAccess) {
 				throw new BadRequestException('Lease not found or access denied')
 			}
 		}
 
 		// Get config if lease_id provided
-		// SECURITY FIX #2: Extract JWT token from request for RLS
-		const token = this.supabaseService!.getTokenFromRequest(req)
 		if (!token) {
 			throw new BadRequestException('JWT token not found')
 		}
@@ -277,7 +276,7 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id, token)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}
@@ -321,7 +320,7 @@ export class LateFeesController {
 		}
 
 		// SECURITY FIX #3: Verify lease ownership via unit → property ownership chain
-		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id)
+		const hasAccess = await this.verifyLeaseOwnership(lease_id, user_id, token)
 		if (!hasAccess) {
 			throw new BadRequestException('Lease not found or access denied')
 		}

@@ -7,6 +7,7 @@ import {
 	BadRequestException,
 	InternalServerErrorException,
 	NotFoundException,
+	UnauthorizedException,
 	Query,
 	Param
 } from '@nestjs/common'
@@ -111,9 +112,12 @@ export class StripeConnectController {
 	 * const stripeAccountId = await this.getStripeAccountId(req.user.id)
 	 * // Returns: "acct_1234567890"
 	 */
-	private async getStripeAccountId(userId: string): Promise<string> {
+	private async getStripeAccountId(
+		userId: string,
+		token: string
+	): Promise<string> {
 		const { data: propertyOwner, error } = await this.supabaseService
-			.getAdminClient()
+			.getUserClient(token)
 			.from('stripe_connected_accounts')
 			.select('stripe_account_id')
 			.eq('user_id', userId)
@@ -156,6 +160,10 @@ export class StripeConnectController {
 		@Body() body?: { country?: string }
 	) {
 		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const requestedCountry =
 			body && typeof body.country === 'string' ? body.country : undefined
 
@@ -169,7 +177,7 @@ export class StripeConnectController {
 		try {
 			// Get user info from users table
 			const { data: user, error: userError } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('users')
 				.select('email, first_name, last_name')
 				.eq('id', user_id)
@@ -181,7 +189,7 @@ export class StripeConnectController {
 
 			// Check if user already has a property_owner record with stripe_account_id
 			const { data: propertyOwner } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('stripe_connected_accounts')
 				.select('stripe_account_id')
 				.eq('user_id', user_id)
@@ -234,10 +242,14 @@ export class StripeConnectController {
 	@SkipSubscriptionCheck()
 	async refreshAccountLink(@Request() req: AuthenticatedRequest) {
 		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		try {
 			const { data: propertyOwner, error } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('stripe_connected_accounts')
 				.select('stripe_account_id')
 				.eq('user_id', user_id)
@@ -274,11 +286,15 @@ export class StripeConnectController {
 	@SkipSubscriptionCheck()
 	async getConnectedAccountStatus(@Request() req: AuthenticatedRequest) {
 		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		try {
 			// Get property owner record with Stripe Connect info
 			const { data: propertyOwner, error } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('stripe_connected_accounts')
 				.select(
 					'stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
@@ -312,7 +328,7 @@ export class StripeConnectController {
 
 			// Fetch updated status from property_owners
 			const { data: updatedOwner } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('stripe_connected_accounts')
 				.select(
 					'charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
@@ -378,10 +394,14 @@ export class StripeConnectController {
 	@Post('dashboard-link')
 	async getStripeDashboardLink(@Request() req: AuthenticatedRequest) {
 		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		try {
 			const { data: propertyOwner, error } = await this.supabaseService
-				.getAdminClient()
+				.getUserClient(token)
 				.from('stripe_connected_accounts')
 				.select('stripe_account_id, onboarding_status')
 				.eq('user_id', user_id)
@@ -420,7 +440,11 @@ export class StripeConnectController {
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get('balance')
 	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
-		const stripeAccountId = await this.getStripeAccountId(req.user.id)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id, token)
 
 		const balance =
 			await this.stripeConnectService.getConnectedAccountBalance(
@@ -458,7 +482,11 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const stripeAccountId = await this.getStripeAccountId(req.user.id)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id, token)
 
 		const parsedLimit = validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
@@ -503,7 +531,11 @@ export class StripeConnectController {
 		@Request() req: AuthenticatedRequest,
 		@Param('payoutId') payoutId: string
 	) {
-		const stripeAccountId = await this.getStripeAccountId(req.user.id)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id, token)
 
 		const payout = await this.stripeConnectService.getPayoutDetails(
 			stripeAccountId,
@@ -543,7 +575,11 @@ export class StripeConnectController {
 		@Query('limit') limit?: string,
 		@Query('starting_after') startingAfter?: string
 	) {
-		const stripeAccountId = await this.getStripeAccountId(req.user.id)
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id, token)
 
 		const parsedLimit = validateLimit(limit)
 		const options: { limit?: number; starting_after?: string } = {
