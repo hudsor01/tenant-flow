@@ -260,14 +260,14 @@ Each controller should have corresponding `.spec.ts` files:
 ```typescript
 describe('FinancialController', () => {
   let controller: FinancialController
-  let dashboardService: DashboardService
+  let dashboardTrendsService: DashboardTrendsService
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       controllers: [FinancialController],
       providers: [
         {
-          provide: DashboardService,
+          provide: DashboardTrendsService,
           useValue: {
             getBillingInsights: jest.fn()
           }
@@ -282,12 +282,14 @@ describe('FinancialController', () => {
     }).compile()
 
     controller = module.get<FinancialController>(FinancialController)
-    dashboardService = module.get<DashboardService>(DashboardService)
+    dashboardTrendsService = module.get<DashboardTrendsService>(DashboardTrendsService)
   })
 
   it('should return billing insights', async () => {
     const mockData = { revenue: 10000, customers: 50 }
-    jest.spyOn(dashboardService, 'getBillingInsights').mockResolvedValue(mockData)
+    jest
+      .spyOn(dashboardTrendsService, 'getBillingInsights')
+      .mockResolvedValue(mockData)
 
     const result = await controller.getBillingInsights(
       mockRequest,
@@ -341,7 +343,7 @@ The `/owner/analytics/page-data` endpoint combines multiple dashboard queries in
 - **40-50% improvement**
 
 ### 2. Caching Strategy
-All child controllers use `DashboardService` which implements caching at the service layer.
+All child controllers use the dashboard services which implement caching at the service layer.
 
 **Recommended TanStack Query Config**:
 ```typescript

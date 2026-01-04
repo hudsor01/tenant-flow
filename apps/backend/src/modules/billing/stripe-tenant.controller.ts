@@ -33,6 +33,7 @@ import { AppConfigService } from '../../config/app-config.service'
 @ApiTags('Stripe Tenant')
 @ApiBearerAuth('supabase-auth')
 @Controller('stripe/tenant')
+@UseGuards(TenantOwnershipGuard)
 export class StripeTenantController {
 	constructor(
 		private readonly stripeTenantService: StripeTenantService,
@@ -50,7 +51,6 @@ export class StripeTenantController {
 	@ApiResponse({ status: 400, description: 'Invalid request data' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('create-customer')
-	@UseGuards(TenantOwnershipGuard)
 	async createCustomer(
 		@Request() _req: AuthenticatedRequest,
 		@Body()

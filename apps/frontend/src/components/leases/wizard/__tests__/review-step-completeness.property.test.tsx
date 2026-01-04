@@ -115,9 +115,11 @@ describe('Property 9: ReviewStep Data Completeness', () => {
 					const financialQueries = within(financialSection)
 
 					// PROPERTY ASSERTION: Rent amount should be displayed correctly in Financial Terms
-					expect(
-						financialQueries.getByText(formatCurrency(rent_amount))
-					).toBeInTheDocument()
+					// Use getAllByText since rent_amount may equal security_deposit in generated test cases
+					const rentMatches = financialQueries.getAllByText(
+						formatCurrency(rent_amount)
+					)
+					expect(rentMatches.length).toBeGreaterThanOrEqual(1)
 
 					// PROPERTY ASSERTION: Security deposit should be displayed correctly
 					// Use getAllByText since security_deposit=0 ($0.00) may match '-' placeholder elsewhere
