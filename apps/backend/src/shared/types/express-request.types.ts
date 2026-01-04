@@ -11,7 +11,7 @@ export interface AuthenticatedRequest extends Request {
 	user: AuthUser
 	startTime?: number | undefined
 	authUserCache?: AuthUser | null
-	// Added by StripeConnectedGuard for ConnectedAccountId decorator
+	// Added by StripeConnectedGuard
 	connectedAccountId?: string
 	// Added by OwnerContextInterceptor
 	ownerContext?: {

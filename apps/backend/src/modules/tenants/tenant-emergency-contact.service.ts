@@ -62,13 +62,14 @@ export class TenantEmergencyContactService {
 	 */
 	async getEmergencyContact(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<EmergencyContactResponse> {
 		try {
 			// Verify user owns this tenant
-			await this._verifyTenantOwnership(user_id, tenant_id)
+			await this._verifyTenantOwnership(user_id, tenant_id, token)
 
-			const client = this.supabase.getAdminClient()
+			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('tenants')
 				.select('*')
@@ -113,11 +114,12 @@ export class TenantEmergencyContactService {
 			contact_name: string
 			relationship: string
 			phone_number: string
-		}
+		},
+		token: string
 	): Promise<EmergencyContactResponse> {
 		try {
 			// Verify user owns this tenant
-			await this._verifyTenantOwnership(user_id, tenant_id)
+			await this._verifyTenantOwnership(user_id, tenant_id, token)
 
 			// Validate input
 			if (!dto.contact_name?.trim()) {
@@ -130,7 +132,7 @@ export class TenantEmergencyContactService {
 				throw new BadRequestException('Phone number is required')
 			}
 
-			const client = this.supabase.getAdminClient()
+			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('tenants')
 				.update({
@@ -177,14 +179,15 @@ export class TenantEmergencyContactService {
 			contact_name?: string
 			relationship?: string
 			phone_number?: string
-		}
+		},
+		token: string
 	): Promise<EmergencyContactResponse> {
 		try {
 			// Verify user owns this tenant
-			await this._verifyTenantOwnership(user_id, tenant_id)
+			await this._verifyTenantOwnership(user_id, tenant_id, token)
 
 			// Check that tenant exists
-			const existing = await this.getEmergencyContact(user_id, tenant_id)
+			const existing = await this.getEmergencyContact(user_id, tenant_id, token)
 			if (!existing) {
 				throw new NotFoundException('Tenant not found')
 			}
@@ -204,7 +207,7 @@ export class TenantEmergencyContactService {
 				updateData.emergency_contact_phone = dto.phone_number?.trim() || null
 			}
 
-			const client = this.supabase.getAdminClient()
+			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('tenants')
 				.update(updateData)
@@ -242,13 +245,14 @@ export class TenantEmergencyContactService {
 	 */
 	async deleteEmergencyContact(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<{ success: boolean }> {
 		try {
 			// Verify user owns this tenant
-			await this._verifyTenantOwnership(user_id, tenant_id)
+			await this._verifyTenantOwnership(user_id, tenant_id, token)
 
-			const client = this.supabase.getAdminClient()
+			const client = this.supabase.getUserClient(token)
 			const { error } = await client
 				.from('tenants')
 				.update({
@@ -293,60 +297,38 @@ export class TenantEmergencyContactService {
 	 */
 	private async _verifyTenantOwnership(
 		user_id: string,
-		tenant_id: string
+		tenant_id: string,
+		token: string
 	): Promise<void> {
-		const client = this.supabase.getAdminClient()
+		const client = this.supabase.getUserClient(token)
+		const { data, error } = await client
+			.from('leases')
+			.select(
+				`
+				id,
+				unit:units!leases_unit_id_fkey(
+					property:property_id(owner_user_id)
+				)
+				`
+			)
+			.eq('primary_tenant_id', tenant_id)
+			.maybeSingle()
 
-		// Verify tenant exists
-		const { data: tenant, error: tenantError } = await client
-			.from('tenants')
-			.select('id')
-			.eq('id', tenant_id)
-			.single()
-
-		if (tenantError || !tenant) {
-			this.logger.warn('Tenant not found', { user_id, tenant_id })
+		if (error || !data) {
+			this.logger.warn('Tenant not found or inaccessible', {
+				user_id,
+				tenant_id,
+				error: error?.message
+			})
 			throw new NotFoundException('Tenant not found')
 		}
 
-		// Get lease associated with tenant
-		const { data: lease, error: leaseError } = await client
-			.from('leases')
-			.select('id, unit_id')
-			.eq('primary_tenant_id', tenant_id)
-			.single()
-
-		if (leaseError || !lease || !lease.unit_id) {
-			this.logger.warn('No lease found for tenant', { tenant_id })
-			throw new NotFoundException('No lease found for tenant')
-		}
-
-		// Get unit and property
-		const { data: unit, error: unitError } = await client
-			.from('units')
-			.select('property_id')
-			.eq('id', lease.unit_id)
-			.single()
-
-		if (unitError || !unit || !unit.property_id) {
-			this.logger.warn('Unit not found', { unit_id: lease.unit_id })
-			throw new NotFoundException('Unit not found')
-		}
-
-		// Verify property ownership
-		const { data: property, error: propertyError } = await client
-			.from('properties')
-			.select('owner_user_id')
-			.eq('id', unit.property_id)
-			.single()
-
-		if (propertyError || !property) {
-			this.logger.warn('Property not found', { property_id: unit.property_id })
+		const propertyOwnerUserId = data.unit?.property?.owner_user_id
+		if (!propertyOwnerUserId) {
+			this.logger.warn('Property not found for tenant', { tenant_id })
 			throw new NotFoundException('Property not found')
 		}
 
-		// Final check: property owner matches requesting user
-		const propertyOwnerUserId = property.owner_user_id
 		if (propertyOwnerUserId !== user_id) {
 			this.logger.warn('Access denied: Not property owner', {
 				user_id,

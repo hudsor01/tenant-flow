@@ -269,7 +269,7 @@ describe('TenantsController', () => {
 				expect(result).toEqual(mockPrefs)
 				expect(
 					mockNotificationPreferencesService.getPreferences
-				).toHaveBeenCalledWith('user-1', 'tenant-1')
+				).toHaveBeenCalledWith('user-1', 'tenant-1', 'test-token')
 			})
 		})
 
@@ -291,7 +291,7 @@ describe('TenantsController', () => {
 				expect(result).toEqual(mockPrefs)
 				expect(
 					mockNotificationPreferencesService.updatePreferences
-				).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto)
+				).toHaveBeenCalledWith('user-1', 'tenant-1', updateDto, 'test-token')
 			})
 		})
 	})

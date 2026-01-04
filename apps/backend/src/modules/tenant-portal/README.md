@@ -84,9 +84,8 @@ import { Controller, Get, UseGuards, UseInterceptors } from '@nestjs/common'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
-import { JwtToken } from '../../shared/decorators/jwt-token.decorator'
-import { User } from '../../shared/decorators/user.decorator'
-import type { AuthUser } from '@repo/shared/types/auth'
+import { Request } from '@nestjs/common'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 @Controller()
 @UseGuards(JwtAuthGuard, TenantAuthGuard)
@@ -94,9 +93,9 @@ import type { AuthUser } from '@repo/shared/types/auth'
 export class TenantPaymentsController {
   @Get()
   async getPayments(
-    @JwtToken() token: string,
-    @User() user: AuthUser
+    @Request() req: AuthenticatedRequest
   ) {
+    const token = req.headers.authorization?.replace('Bearer ', '')
     // Tenant role validated
     // Context available in request
     // RLS enforced at database
