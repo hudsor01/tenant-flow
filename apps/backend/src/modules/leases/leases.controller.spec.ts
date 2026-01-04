@@ -162,7 +162,7 @@ describe('LeasesController', () => {
 				}
 			)
 
-			// Note: Authentication is handled by @JwtToken() decorator and guards
+			// Note: Authentication is handled by @Request() and guards
 			expect(mockLeaseQueryService.findAll).toHaveBeenCalledWith('mock-jwt-token', {
 				tenant_id: undefined,
 				unit_id: undefined,

@@ -166,7 +166,7 @@ describe('TenantStatsService', () => {
 
 	describe('fetchPaymentStatuses', () => {
 		it('returns empty array when no tenant IDs provided', async () => {
-			const result = await service.fetchPaymentStatuses([])
+			const result = await service.fetchPaymentStatuses(mockUserId, mockToken, [])
 			expect(result).toEqual([])
 		})
 
@@ -191,6 +191,19 @@ describe('TenantStatsService', () => {
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1', 'tenant-2'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -199,10 +212,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses([
-				'tenant-1',
-				'tenant-2'
-			])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1', 'tenant-2']
+			)
 
 			expect(result).toHaveLength(2)
 			expect(result[0]?.tenant_id).toBe('tenant-1')
@@ -230,6 +244,19 @@ describe('TenantStatsService', () => {
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -238,7 +265,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses(['tenant-1'])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1']
+			)
 
 			// Should only return the most recent payment
 			expect(result).toHaveLength(1)
@@ -247,6 +278,19 @@ describe('TenantStatsService', () => {
 
 		it('returns empty array on query error', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -258,7 +302,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses(['tenant-1'])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1']
+			)
 
 			expect(result).toEqual([])
 		})

@@ -15,7 +15,7 @@ import { PropertiesService } from './properties.service'
 import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
-import { DashboardService } from '../dashboard/dashboard.service'
+import { DashboardStatsService } from '../dashboard/dashboard-stats.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -96,7 +96,7 @@ describe('PropertiesController', () => {
 				PropertyLifecycleService,
 				{ provide: PropertyBulkImportService, useValue: {} },
 				{ provide: PropertyAnalyticsService, useValue: {} },
-				{ provide: DashboardService, useValue: {} },
+				{ provide: DashboardStatsService, useValue: {} },
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
@@ -141,7 +141,7 @@ describe('PropertiesController', () => {
 			})
 		})
 
-		// Note: Authentication is handled by @JwtToken() decorator and guards
+			// Note: Authentication is handled by @Request() and guards
 		// Invalid tokens will be rejected before reaching the controller
 	})
 

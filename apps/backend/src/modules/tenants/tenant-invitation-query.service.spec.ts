@@ -11,6 +11,7 @@ describe('TenantInvitationQueryService', () => {
 
 	const mockUserId = 'user-123'
 	const mockOwnerId = 'owner-456'
+	const mockToken = 'token-123'
 
 	const mockRawInvitation = {
 		id: 'inv-1',
@@ -32,12 +33,12 @@ describe('TenantInvitationQueryService', () => {
 	}
 
 	beforeEach(async () => {
-		const mockAdminClient = {
+		const mockUserClient = {
 			from: jest.fn()
 		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+			getUserClient: jest.fn().mockReturnValue(mockUserClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module = await Test.createTestingModule({
@@ -60,17 +61,7 @@ describe('TenantInvitationQueryService', () => {
 
 	describe('getInvitations', () => {
 		it('returns paginated invitations for an owner', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-
-			// owner_user_id schema: query invitations directly
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: { id: mockOwnerId },
-					error: null
-				})
-			}
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			// Mock invitations query
 			const invitationsBuilder = {
@@ -90,7 +81,7 @@ describe('TenantInvitationQueryService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(invitationsBuilder)
 
-			const result = await service.getInvitations(mockUserId)
+			const result = await service.getInvitations(mockUserId, mockToken)
 
 			expect(result.data).toHaveLength(1)
 			expect(result.total).toBe(1)
@@ -101,7 +92,7 @@ describe('TenantInvitationQueryService', () => {
 		})
 
 		it('returns empty result when user is not an owner', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			// Mock invitations query returning empty results (user has no invitations)
 			const invitationsBuilder = {
@@ -117,29 +108,20 @@ describe('TenantInvitationQueryService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(invitationsBuilder)
 
-			const result = await service.getInvitations(mockUserId)
+			const result = await service.getInvitations(mockUserId, mockToken)
 
 			expect(result.data).toEqual([])
 			expect(result.total).toBe(0)
 		})
 
 		it('throws BadRequestException when user ID is missing', async () => {
-			await expect(service.getInvitations('')).rejects.toThrow(
+			await expect(service.getInvitations('', mockToken)).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
 		it('filters by status correctly', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: { id: mockOwnerId },
-					error: null
-				})
-			}
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const invitationsBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -158,7 +140,7 @@ describe('TenantInvitationQueryService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(invitationsBuilder)
 
-			await service.getInvitations(mockUserId, { status: 'expired' })
+			await service.getInvitations(mockUserId, mockToken, { status: 'expired' })
 
 			// Should filter for expired invitations
 			expect(invitationsBuilder.is).toHaveBeenCalledWith('accepted_at', null)
@@ -166,16 +148,7 @@ describe('TenantInvitationQueryService', () => {
 		})
 
 		it('applies pagination correctly', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: { id: mockOwnerId },
-					error: null
-				})
-			}
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const invitationsBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -194,23 +167,17 @@ describe('TenantInvitationQueryService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(invitationsBuilder)
 
-			await service.getInvitations(mockUserId, { page: 2, limit: 10 })
+			await service.getInvitations(mockUserId, mockToken, {
+				page: 2,
+				limit: 10
+			})
 
 			// Page 2 with limit 10 = offset 10, range 10-19
 			expect(invitationsBuilder.range).toHaveBeenCalledWith(10, 19)
 		})
 
 		it('throws BadRequestException on query error', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-
-			const ownerBuilder = {
-				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockReturnThis(),
-				maybeSingle: jest.fn().mockResolvedValue({
-					data: { id: mockOwnerId },
-					error: null
-				})
-			}
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
 
 			const invitationsBuilder = {
 				select: jest.fn().mockReturnThis(),
@@ -229,7 +196,7 @@ describe('TenantInvitationQueryService', () => {
 
 			;(mockClient.from as jest.Mock).mockReturnValueOnce(invitationsBuilder)
 
-			await expect(service.getInvitations(mockUserId)).rejects.toThrow(
+			await expect(service.getInvitations(mockUserId, mockToken)).rejects.toThrow(
 				BadRequestException
 			)
 		})

@@ -17,7 +17,8 @@
 import {
 	BadRequestException,
 	Injectable,
-	NotFoundException
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { randomBytes } from 'crypto'
@@ -49,19 +50,27 @@ export class TenantPlatformInvitationService {
 		private readonly config: AppConfigService
 	) {}
 
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
 	/**
 	 * Invite a tenant to join the platform (no lease required)
 	 */
 	async inviteToPlatform(
 		ownerId: string,
-		dto: InviteToPlatformRequest
+		dto: InviteToPlatformRequest,
+		token: string
 	): Promise<InviteToPlatformResponse> {
 		this.logger.log('Inviting tenant to platform', {
 			ownerId,
 			email: dto.email
 		})
 
-		const client = this.supabase.getAdminClient()
+		const client = this.requireUserClient(token)
 
 		try {
 			// Step 1: If property_id provided, verify ownership
@@ -226,10 +235,12 @@ export class TenantPlatformInvitationService {
 	/**
 	 * Cancel a pending invitation
 	 */
-	async cancelInvitation(ownerId: string, invitationId: string): Promise<void> {
-		const client = this.supabase.getAdminClient()
-
-		// Owner verification is implicit through RLS policies
+	async cancelInvitation(
+		ownerId: string,
+		invitationId: string,
+		token: string
+	): Promise<void> {
+		const client = this.requireUserClient(token)
 
 		// Get invitation
 		const { data: invitation, error: fetchError } = await client
@@ -266,10 +277,12 @@ export class TenantPlatformInvitationService {
 	/**
 	 * Resend an invitation (extends expiry)
 	 */
-	async resendInvitation(ownerId: string, invitationId: string): Promise<void> {
-		const client = this.supabase.getAdminClient()
-
-		// Owner verification is implicit through RLS policies
+	async resendInvitation(
+		ownerId: string,
+		invitationId: string,
+		token: string
+	): Promise<void> {
+		const client = this.requireUserClient(token)
 
 		// Get invitation
 		const { data: invitation, error: fetchError } = await client

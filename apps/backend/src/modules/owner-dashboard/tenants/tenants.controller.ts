@@ -18,7 +18,7 @@ import {
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import { DashboardService } from '../../dashboard/dashboard.service'
+import { DashboardTrendsService } from '../../dashboard/dashboard-trends.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
@@ -39,7 +39,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @Controller('')
 export class TenantsController {
 	constructor(
-		private readonly dashboardService: DashboardService,
+		private readonly dashboardTrendsService: DashboardTrendsService,
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger
 	) {}
@@ -67,7 +67,7 @@ export class TenantsController {
 			months: monthsNum
 		})
 
-		const data = await this.dashboardService.getOccupancyTrends(
+		const data = await this.dashboardTrendsService.getOccupancyTrends(
 			userId,
 			token,
 			monthsNum
