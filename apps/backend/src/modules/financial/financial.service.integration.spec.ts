@@ -4,6 +4,7 @@ import { FinancialService } from './financial.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { SupabaseService } from '../../database/supabase.service'
+import { PropertyAccessService } from '../properties/services/property-access.service'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'
 import { randomUUID } from 'crypto'
@@ -47,12 +48,21 @@ describe('FinancialService - N+1 Integration Tests', () => {
 			getUserClient: () => supabaseClient
 		}
 
+		const mockPropertyAccessService = {
+			getPropertyIds: jest.fn().mockResolvedValue([]),
+			getUnitIds: jest.fn().mockResolvedValue([])
+		}
+
 		// Create test module with real services and sub-services
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				FinancialService,
 				FinancialExpenseService,
 				FinancialRevenueService,
+				{
+					provide: PropertyAccessService,
+					useValue: mockPropertyAccessService
+				},
 				{
 					provide: SupabaseService,
 					useValue: mockSupabaseService
@@ -81,6 +91,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
 
 		// Create tenant user in public.users first (FK constraint tenants.user_id -> public.users.id)
 		const tenantUserId = randomUUID()
+		const tenantStripeCustomerId = `cus_integration_${tenantUserId.slice(0, 8)}`
 
 		// Insert into public.users (required for tenants FK constraint)
 		await pool.query(
@@ -95,7 +106,7 @@ describe('FinancialService - N+1 Integration Tests', () => {
        values ($1, $2)
        on conflict (user_id) do update set stripe_customer_id = excluded.stripe_customer_id
        returning id`,
-			[tenantUserId, 'cus_integration_tenant']
+			[tenantUserId, tenantStripeCustomerId]
 		)
 		tenantId = tenantRes.rows[0].id
 
