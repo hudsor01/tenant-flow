@@ -18,7 +18,7 @@ import {
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import { DashboardService } from '../../dashboard/dashboard.service'
+import { DashboardTrendsService } from '../../dashboard/dashboard-trends.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
@@ -40,7 +40,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @Controller('')
 export class FinancialController {
 	constructor(
-		private readonly dashboardService: DashboardService,
+		private readonly dashboardTrendsService: DashboardTrendsService,
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger
 	) {}
@@ -61,7 +61,7 @@ export class FinancialController {
 
 		this.logger.log('Getting billing insights', { user_id })
 
-		const data = await this.dashboardService.getBillingInsights(user_id)
+		const data = await this.dashboardTrendsService.getBillingInsights(user_id)
 
 		return {
 			success: true,
@@ -87,7 +87,8 @@ export class FinancialController {
 
 		this.logger.log('Checking billing insights availability', { user_id })
 
-		const available = await this.dashboardService.isBillingInsightsAvailable(
+		const available =
+			await this.dashboardTrendsService.isBillingInsightsAvailable(
 			user_id,
 			token
 		)
@@ -118,7 +119,8 @@ export class FinancialController {
 
 		this.logger.log('Checking billing health', { user_id })
 
-		const isAvailable = await this.dashboardService.isBillingInsightsAvailable(
+		const isAvailable =
+			await this.dashboardTrendsService.isBillingInsightsAvailable(
 			user_id,
 			token
 		)
@@ -168,7 +170,7 @@ export class FinancialController {
 			months: monthsNum
 		})
 
-		const data = await this.dashboardService.getRevenueTrends(
+		const data = await this.dashboardTrendsService.getRevenueTrends(
 			user_id,
 			token,
 			monthsNum

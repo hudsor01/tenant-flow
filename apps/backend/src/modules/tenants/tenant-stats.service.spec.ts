@@ -10,14 +10,20 @@ describe('TenantStatsService', () => {
 	let mockSupabaseService: jest.Mocked<SupabaseService>
 
 	const mockUserId = 'user-123'
+	const mockToken = 'token-123'
 
 	beforeEach(async () => {
 		const mockAdminClient = {
 			from: jest.fn()
 		}
+		const mockUserClient = {
+			from: jest.fn(),
+			rpc: jest.fn()
+		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockAdminClient)
+			getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
+			getUserClient: jest.fn().mockReturnValue(mockUserClient)
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const module = await Test.createTestingModule({
@@ -38,52 +44,68 @@ describe('TenantStatsService', () => {
 
 	describe('getStats', () => {
 		it('returns tenant statistics for user', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = {
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({ count: 5, error: null })
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-2', 'tenant-3'],
+				error: null
+			})
+			;(mockClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 
-			const result = await service.getStats(mockUserId)
+			const result = await service.getStats(mockUserId, mockToken)
 
-			expect(result.total).toBe(5)
-			expect(result.active).toBe(5)
+			expect(result.total).toBe(3)
+			expect(result.active).toBe(3)
 			expect(result.inactive).toBe(0)
-			expect(result.totalTenants).toBe(5)
-			expect(result.activeTenants).toBe(5)
+			expect(result.totalTenants).toBe(3)
+			expect(result.activeTenants).toBe(3)
 			expect(mockClient.from).toHaveBeenCalledWith('tenants')
 		})
 
 		it('throws BadRequestException when user ID is missing', async () => {
-			await expect(service.getStats('')).rejects.toThrow(BadRequestException)
+			await expect(service.getStats('', mockToken)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 
 		it('throws BadRequestException on query error', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = {
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: null,
+				error: { message: 'Database error' }
+			})
+			const mockTenantBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({
-					count: null,
-					error: { message: 'Database error' }
-				})
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 
-			await expect(service.getStats(mockUserId)).rejects.toThrow(
+			await expect(service.getStats(mockUserId, mockToken)).rejects.toThrow(
 				BadRequestException
 			)
 		})
 
 		it('returns zero counts when no tenants found', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = {
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({ count: 0, error: null })
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: [],
+				error: null
+			})
+			;(mockClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 
-			const result = await service.getStats(mockUserId)
+			const result = await service.getStats(mockUserId, mockToken)
 
 			expect(result.total).toBe(0)
 			expect(result.active).toBe(0)
@@ -92,17 +114,24 @@ describe('TenantStatsService', () => {
 
 	describe('getSummary', () => {
 		it('returns tenant summary for user', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = {
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({ count: 3, error: null })
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-2'],
+				error: null
+			})
+			;(mockClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 
-			const result = await service.getSummary(mockUserId)
+			const result = await service.getSummary(mockUserId, mockToken)
 
-			expect(result.total).toBe(3)
-			expect(result.active).toBe(3)
+			expect(result.total).toBe(2)
+			expect(result.active).toBe(2)
 			expect(result.invited).toBe(0)
 			expect(result.overdueBalanceCents).toBe(0)
 			expect(result.upcomingDueCents).toBe(0)
@@ -110,18 +139,25 @@ describe('TenantStatsService', () => {
 		})
 
 		it('throws BadRequestException when user ID is missing', async () => {
-			await expect(service.getSummary('')).rejects.toThrow(BadRequestException)
+			await expect(service.getSummary('', mockToken)).rejects.toThrow(
+				BadRequestException
+			)
 		})
 
 		it('returns zero counts when no tenants found', async () => {
-			const mockClient = mockSupabaseService.getAdminClient()
-			const mockBuilder = {
+			const mockClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
 				select: jest.fn().mockReturnThis(),
-				eq: jest.fn().mockResolvedValue({ count: 0, error: null })
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.rpc as jest.Mock).mockResolvedValue({
+				data: [],
+				error: null
+			})
+			;(mockClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 
-			const result = await service.getSummary(mockUserId)
+			const result = await service.getSummary(mockUserId, mockToken)
 
 			expect(result.total).toBe(0)
 			expect(result.active).toBe(0)
@@ -130,7 +166,7 @@ describe('TenantStatsService', () => {
 
 	describe('fetchPaymentStatuses', () => {
 		it('returns empty array when no tenant IDs provided', async () => {
-			const result = await service.fetchPaymentStatuses([])
+			const result = await service.fetchPaymentStatuses(mockUserId, mockToken, [])
 			expect(result).toEqual([])
 		})
 
@@ -155,6 +191,19 @@ describe('TenantStatsService', () => {
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1', 'tenant-2'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -163,10 +212,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses([
-				'tenant-1',
-				'tenant-2'
-			])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1', 'tenant-2']
+			)
 
 			expect(result).toHaveLength(2)
 			expect(result[0]?.tenant_id).toBe('tenant-1')
@@ -194,6 +244,19 @@ describe('TenantStatsService', () => {
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -202,7 +265,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses(['tenant-1'])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1']
+			)
 
 			// Should only return the most recent payment
 			expect(result).toHaveLength(1)
@@ -211,6 +278,19 @@ describe('TenantStatsService', () => {
 
 		it('returns empty array on query error', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
+			const mockUserClient = mockSupabaseService.getUserClient(mockToken)
+			const mockTenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { id: 'tenant-1' }, error: null })
+			}
+			;(mockUserClient.rpc as jest.Mock).mockResolvedValue({
+				data: ['tenant-1'],
+				error: null
+			})
+			;(mockUserClient.from as jest.Mock).mockReturnValue(mockTenantBuilder)
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				in: jest.fn().mockReturnThis(),
@@ -222,7 +302,11 @@ describe('TenantStatsService', () => {
 			}
 			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
 
-			const result = await service.fetchPaymentStatuses(['tenant-1'])
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				['tenant-1']
+			)
 
 			expect(result).toEqual([])
 		})

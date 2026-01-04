@@ -222,9 +222,12 @@ describe('TenantQueryService', () => {
 				mockStats as TenantStatsResponse
 			)
 
-			const result = await service.getStats(mockUserId)
+			const result = await service.getStats(mockUserId, mockToken)
 
-			expect(mockStatsService.getStats).toHaveBeenCalledWith(mockUserId)
+			expect(mockStatsService.getStats).toHaveBeenCalledWith(
+				mockUserId,
+				mockToken
+			)
 			expect(result).toEqual(mockStats)
 		})
 
@@ -241,9 +244,12 @@ describe('TenantQueryService', () => {
 				mockSummary as TenantSummaryResponse
 			)
 
-			const result = await service.getSummary(mockUserId)
+			const result = await service.getSummary(mockUserId, mockToken)
 
-			expect(mockStatsService.getSummary).toHaveBeenCalledWith(mockUserId)
+			expect(mockStatsService.getSummary).toHaveBeenCalledWith(
+				mockUserId,
+				mockToken
+			)
 			expect(result).toEqual(mockSummary)
 		})
 
@@ -256,9 +262,15 @@ describe('TenantQueryService', () => {
 			)
 
 			const tenantIds = [mockTenantId]
-			const result = await service.fetchPaymentStatuses(tenantIds)
+			const result = await service.fetchPaymentStatuses(
+				mockUserId,
+				mockToken,
+				tenantIds
+			)
 
 			expect(mockStatsService.fetchPaymentStatuses).toHaveBeenCalledWith(
+				mockUserId,
+				mockToken,
 				tenantIds
 			)
 			expect(result).toEqual(mockPayments)
@@ -298,10 +310,14 @@ describe('TenantQueryService', () => {
 				mockPayments as PaymentHistoryResponse
 			)
 
-			const result = await service.getTenantPaymentHistory(mockTenantId)
+			const result = await service.getTenantPaymentHistory(
+				mockTenantId,
+				mockUserId
+			)
 
 			expect(mockRelationService.getTenantPaymentHistory).toHaveBeenCalledWith(
 				mockTenantId,
+				mockUserId,
 				undefined
 			)
 			expect(result).toEqual(mockPayments)
@@ -310,10 +326,11 @@ describe('TenantQueryService', () => {
 		it('getTenantPaymentHistory passes limit to TenantRelationService', async () => {
 			mockRelationService.getTenantPaymentHistory.mockResolvedValue([])
 
-			await service.getTenantPaymentHistory(mockTenantId, 10)
+			await service.getTenantPaymentHistory(mockTenantId, mockUserId, 10)
 
 			expect(mockRelationService.getTenantPaymentHistory).toHaveBeenCalledWith(
 				mockTenantId,
+				mockUserId,
 				10
 			)
 		})
@@ -326,11 +343,13 @@ describe('TenantQueryService', () => {
 
 			const result = await service.getTenantPaymentHistoryForTenant(
 				mockTenantId,
+				mockUserId,
 				5
 			)
 
 			expect(mockRelationService.getTenantPaymentHistory).toHaveBeenCalledWith(
 				mockTenantId,
+				mockUserId,
 				5
 			)
 			expect(result).toEqual(mockPayments)
@@ -364,10 +383,11 @@ describe('TenantQueryService', () => {
 				mockInvitations as InvitationResponse
 			)
 
-			const result = await service.getInvitations(mockUserId)
+			const result = await service.getInvitations(mockUserId, mockToken)
 
 			expect(mockInvitationService.getInvitations).toHaveBeenCalledWith(
 				mockUserId,
+				mockToken,
 				undefined
 			)
 			expect(result).toEqual(mockInvitations)
@@ -380,10 +400,11 @@ describe('TenantQueryService', () => {
 			})
 
 			const filters = { status: 'sent' as const, page: 2, limit: 10 }
-			await service.getInvitations(mockUserId, filters)
+			await service.getInvitations(mockUserId, mockToken, filters)
 
 			expect(mockInvitationService.getInvitations).toHaveBeenCalledWith(
 				mockUserId,
+				mockToken,
 				filters
 			)
 		})

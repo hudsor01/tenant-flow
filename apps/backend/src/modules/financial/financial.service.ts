@@ -11,6 +11,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { PropertyAccessService } from '../properties/services/property-access.service'
 
 /**
  * Financial Service
@@ -28,6 +29,7 @@ export class FinancialService {
 		private readonly supabaseService: SupabaseService,
 		private readonly expenseService: FinancialExpenseService,
 		private readonly revenueService: FinancialRevenueService,
+		private readonly propertyAccessService: PropertyAccessService,
 		private readonly logger: AppLogger
 	) {}
 
@@ -39,7 +41,7 @@ export class FinancialService {
 		year?: number
 	): Promise<Record<string, unknown>> {
 		try {
-			const property_ids = await this.getUserPropertyIds(token)
+			const property_ids = await this.propertyAccessService.getPropertyIds(token)
 			return this.expenseService.getExpenseSummary(property_ids, year, token)
 		} catch (error) {
 			this.logger.error('Failed to get expense summary', {
@@ -62,12 +64,7 @@ export class FinancialService {
 			this.logger.log('Getting financial overview', { targetYear })
 
 			const client = this.supabaseService.getUserClient(token)
-
-			// Get user's property IDs - RLS automatically filters
-			const { data: properties } = await client.from('properties').select('id')
-
-			const propertyRows = (properties ?? []) as Array<{ id: string }>
-			const property_ids = propertyRows.map(p => p.id)
+			const property_ids = await this.propertyAccessService.getPropertyIds(token)
 
 			if (property_ids.length === 0) {
 				return this.getEmptyOverview(targetYear)
@@ -145,9 +142,9 @@ export class FinancialService {
 					occupancyRate
 				},
 				properties: {
-					total: propertyRows.length,
+					total: property_ids.length,
 					avgValue:
-						propertyRows.length > 0 ? totalRevenue / propertyRows.length : 0
+						property_ids.length > 0 ? totalRevenue / property_ids.length : 0
 				},
 				units: {
 					total: unitRows.length,
@@ -198,7 +195,7 @@ export class FinancialService {
 			this.logger.log('Getting lease financial summary')
 
 			const client = this.supabaseService.getUserClient(token)
-			const unit_ids = await this.getUserUnitIds(token)
+			const unit_ids = await this.propertyAccessService.getUnitIds(token)
 
 			if (unit_ids.length === 0) {
 				return this.getEmptyLeaseSummary()
@@ -280,8 +277,8 @@ export class FinancialService {
 		year?: number
 	): Promise<FinancialMetrics[]> {
 		try {
-			const property_ids = await this.getUserPropertyIds(token)
-			const unit_ids = await this.getUserUnitIds(token)
+			const property_ids = await this.propertyAccessService.getPropertyIds(token)
+			const unit_ids = await this.propertyAccessService.getUnitIds(token)
 			return this.revenueService.getRevenueTrends(
 				token,
 				property_ids,
@@ -328,29 +325,6 @@ export class FinancialService {
 	// -------------------------------------------------------------------------
 	// Private helpers
 	// -------------------------------------------------------------------------
-
-	private async getUserUnitIds(token: string): Promise<string[]> {
-		const client = this.supabaseService.getUserClient(token)
-
-		const { data: properties } = await client.from('properties').select('id')
-
-		const property_ids = properties?.map(p => p.id) || []
-		if (property_ids.length === 0) return []
-
-		const { data: units } = await client
-			.from('units')
-			.select('id')
-			.in('property_id', property_ids)
-
-		return units?.map(u => u.id) || []
-	}
-
-	private async getUserPropertyIds(token: string): Promise<string[]> {
-		const client = this.supabaseService.getUserClient(token)
-		const { data } = await client.from('properties').select('id')
-		const rows = (data ?? []) as Array<{ id: string }>
-		return rows.map(property => property.id)
-	}
 
 	private getEmptyOverview(targetYear: number) {
 		return {

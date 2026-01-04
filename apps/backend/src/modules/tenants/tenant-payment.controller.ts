@@ -74,6 +74,7 @@ export class TenantPaymentController {
 		const tenant = await this.queryService.getTenantByAuthUserId(user_id, token)
 		const payments = await this.queryService.getTenantPaymentHistory(
 			tenant.id,
+			user_id,
 			normalizedLimit
 		)
 		return { payments } as unknown as TenantPaymentHistoryResponse
@@ -92,10 +93,11 @@ export class TenantPaymentController {
 		@Request() req: AuthenticatedRequest
 	): Promise<OwnerPaymentSummaryResponse> {
 		// Defensive: Return empty response if no auth (e.g., SSR hydration)
-		if (!req.user?.id) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!req.user?.id || !token) {
 			return { lateFeeTotal: 0, unpaidTotal: 0, unpaidCount: 0, tenantCount: 0 }
 		}
-		return this.paymentService.getOwnerPaymentSummary(req.user.id)
+		return this.paymentService.getOwnerPaymentSummary(req.user.id, token)
 	}
 
 	/**
@@ -111,11 +113,13 @@ export class TenantPaymentController {
 	@Get(':id/payments')
 	async getPayments(
 		@Param('id', ParseUUIDPipe) id: string,
+		@Request() req: AuthenticatedRequest,
 		@Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number
 	): Promise<TenantPaymentHistoryResponse> {
 		const normalizedLimit = Math.min(Math.max(limit ?? 20, 1), 100)
 		const payments = await this.queryService.getTenantPaymentHistory(
 			id,
+			req.user.id,
 			normalizedLimit
 		)
 		return { payments } as unknown as TenantPaymentHistoryResponse

@@ -122,22 +122,26 @@ export class TenantQueryService {
 	/**
 	 * Get tenant count for a user
 	 */
-	async getStats(userId: string): Promise<TenantStats> {
-		return this.statsService.getStats(userId)
+	async getStats(userId: string, token: string): Promise<TenantStats> {
+		return this.statsService.getStats(userId, token)
 	}
 
 	/**
 	 * Get summary stats (active tenants, pending payments, etc.)
 	 */
-	async getSummary(userId: string): Promise<TenantSummary> {
-		return this.statsService.getSummary(userId)
+	async getSummary(userId: string, token: string): Promise<TenantSummary> {
+		return this.statsService.getSummary(userId, token)
 	}
 
 	/**
 	 * Get latest payment status for multiple tenants
 	 */
-	async fetchPaymentStatuses(tenantIds: string[]): Promise<RentPayment[]> {
-		return this.statsService.fetchPaymentStatuses(tenantIds)
+	async fetchPaymentStatuses(
+		userId: string,
+		token: string,
+		tenantIds: string[]
+	): Promise<RentPayment[]> {
+		return this.statsService.fetchPaymentStatuses(userId, token, tenantIds)
 	}
 
 	// ============================================================================
@@ -163,9 +167,14 @@ export class TenantQueryService {
 	 */
 	async getTenantPaymentHistory(
 		tenantId: string,
+		requesterUserId: string,
 		limit?: number
 	): Promise<RentPayment[]> {
-		return this.relationService.getTenantPaymentHistory(tenantId, limit)
+		return this.relationService.getTenantPaymentHistory(
+			tenantId,
+			requesterUserId,
+			limit
+		)
 	}
 
 	/**
@@ -173,9 +182,10 @@ export class TenantQueryService {
 	 */
 	async getTenantPaymentHistoryForTenant(
 		tenantId: string,
+		requesterUserId: string,
 		limit?: number
 	): Promise<RentPayment[]> {
-		return this.getTenantPaymentHistory(tenantId, limit)
+		return this.getTenantPaymentHistory(tenantId, requesterUserId, limit)
 	}
 
 	/**
@@ -191,8 +201,14 @@ export class TenantQueryService {
 	 * Get all leases (past and current) for a tenant
 	 * Used in tenant detail view for lease history
 	 */
-	async getTenantLeaseHistory(tenantId: string): Promise<LeaseHistoryItem[]> {
-		return this.relationService.getTenantLeaseHistory(tenantId)
+	async getTenantLeaseHistory(
+		tenantId: string,
+		requesterUserId: string
+	): Promise<LeaseHistoryItem[]> {
+		return this.relationService.getTenantLeaseHistory(
+			tenantId,
+			requesterUserId
+		)
 	}
 
 	// ============================================================================
@@ -204,8 +220,9 @@ export class TenantQueryService {
 	 */
 	async getInvitations(
 		userId: string,
+		token: string,
 		filters?: InvitationFilters
 	): Promise<{ data: TenantInvitation[]; total: number }> {
-		return this.invitationService.getInvitations(userId, filters)
+		return this.invitationService.getInvitations(userId, token, filters)
 	}
 }

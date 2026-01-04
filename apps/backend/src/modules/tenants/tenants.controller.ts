@@ -126,7 +126,11 @@ export class TenantsController {
 	@Get('stats')
 	async getStats(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user.id
-		return this.queryService.getStats(user_id)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		return this.queryService.getStats(user_id, token)
 	}
 
 	@ApiOperation({ summary: 'Get tenant summary', description: 'Returns tenant summary data' })
@@ -135,7 +139,11 @@ export class TenantsController {
 	@Get('summary')
 	async getSummary(@Req() req: AuthenticatedRequest) {
 		const user_id = req.user.id
-		return this.queryService.getSummary(user_id)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		return this.queryService.getSummary(user_id, token)
 	}
 
 	@ApiOperation({ summary: 'Get tenant with lease info', description: 'Get a tenant with their current lease information' })
@@ -186,9 +194,11 @@ export class TenantsController {
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Get(':id/leases')
 	async getLeaseHistory(
-		@Param('id', ParseUUIDPipe) id: string
+		@Param('id', ParseUUIDPipe) id: string,
+		@Req() req: AuthenticatedRequest
 	): Promise<{ leases: LeaseHistoryItem[] }> {
-		const leases = await this.queryService.getTenantLeaseHistory(id)
+		const user_id = req.user.id
+		const leases = await this.queryService.getTenantLeaseHistory(id, user_id)
 		return { leases }
 	}
 
@@ -360,8 +370,12 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 		const preferences =
-			await this.notificationPreferencesService.getPreferences(user_id, id)
+			await this.notificationPreferencesService.getPreferences(user_id, id, token)
 		if (!preferences) {
 			throw new NotFoundException('Tenant not found')
 		}
@@ -382,11 +396,16 @@ export class TenantsController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		const result = await this.notificationPreferencesService.updatePreferences(
 			user_id,
 			id,
-			dto as Record<string, boolean>
+			dto as Record<string, boolean>,
+			token
 		)
 		if (!result) {
 			throw new NotFoundException('Tenant not found')

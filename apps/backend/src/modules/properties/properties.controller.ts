@@ -38,7 +38,7 @@ import {
 import { PropertiesService } from './properties.service'
 import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
-import { DashboardService } from '../dashboard/dashboard.service'
+import { DashboardStatsService } from '../dashboard/dashboard-stats.service'
 import { CreatePropertyDto } from './dto/create-property.dto'
 import { UpdatePropertyDto } from './dto/update-property.dto'
 import { MarkPropertyAsSoldDto } from './dto/mark-sold.dto'
@@ -56,7 +56,7 @@ export class PropertiesController {
 		private readonly propertiesService: PropertiesService,
 		private readonly propertyLifecycleService: PropertyLifecycleService,
 		private readonly propertyBulkImportService: PropertyBulkImportService,
-		private readonly dashboardService: DashboardService,
+		private readonly dashboardStatsService: DashboardStatsService,
 		private readonly logger: AppLogger
 	) {}
 
@@ -109,7 +109,7 @@ export class PropertiesController {
 		if (!token) {
 			throw new UnauthorizedException('Authorization token required')
 		}
-		const dashboardStats = await this.dashboardService.getStats(
+		const dashboardStats = await this.dashboardStatsService.getStats(
 			undefined,
 			token
 		)

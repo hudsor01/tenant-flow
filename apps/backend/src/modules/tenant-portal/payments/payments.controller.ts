@@ -214,7 +214,7 @@ export class TenantPaymentsController {
 		periodEnd.setMonth(periodEnd.getMonth() + 1)
 
 		const { data: payment, error: paymentError } = await this.supabase
-			.getAdminClient()
+			.getUserClient(token)
 			.from('rent_payments')
 			.insert({
 				lease_id: lease.id,

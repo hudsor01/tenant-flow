@@ -57,6 +57,10 @@ export class MaintenanceAnalyticsController {
 		if (!user) {
 			throw new UnauthorizedException('User not authenticated')
 		}
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		// Validate property_id if provided
 		if (property_id && !isValidUUID(property_id)) {
@@ -65,6 +69,7 @@ export class MaintenanceAnalyticsController {
 
 		try {
 			const context = await this.loadMaintenanceContext(
+				token,
 				user.id,
 				timeframe,
 				property_id
@@ -113,6 +118,10 @@ export class MaintenanceAnalyticsController {
 		if (!user) {
 			throw new UnauthorizedException('User not authenticated')
 		}
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
 
 		// Validate property_id if provided
 		if (property_id && !isValidUUID(property_id)) {
@@ -121,6 +130,7 @@ export class MaintenanceAnalyticsController {
 
 		try {
 			const context = await this.loadMaintenanceContext(
+				token,
 				user.id,
 				timeframe,
 				property_id
@@ -169,6 +179,11 @@ export class MaintenanceAnalyticsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+
 		// Validate property_id if provided
 		if (property_id && !isValidUUID(property_id)) {
 			throw new BadRequestException('Invalid property ID')
@@ -176,6 +191,7 @@ export class MaintenanceAnalyticsController {
 
 		try {
 			const context = await this.loadMaintenanceContext(
+				token,
 				user.id,
 				timeframe,
 				property_id
@@ -242,16 +258,17 @@ export class MaintenanceAnalyticsController {
 	}
 
 	private async loadMaintenanceContext(
+		token: string,
 		user_id: string,
 		timeframe: string,
 		property_id?: string
 	) {
-		const client = this.supabaseService.getAdminClient()
+		const client = this.supabaseService.getUserClient(token)
 
 		const { data: propertyRows, error: propertyError } = await client
 			.from('properties')
 			.select('id, name')
-			.eq('owner_id', user_id)
+			.eq('owner_user_id', user_id)
 
 		if (propertyError) {
 			this.logger.error(

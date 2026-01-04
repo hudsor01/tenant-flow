@@ -21,13 +21,16 @@ import {
 import type { Request, Response } from 'express'
 import { z } from 'zod'
 import { ExportService } from './export.service'
-import { ReportsService } from './reports.service'
-import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
+import { ExecutiveReportService } from './executive-report.service'
+import { FinancialReportService } from './financial-report.service'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
+import { MaintenanceReportService } from './maintenance-report.service'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
+import { PropertyReportService } from './property-report.service'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
-import { TaxPreparationTemplate } from './templates/tax-preparation.template'
+import { TaxReportService } from './tax-report.service'
+import { TenantReportService } from './tenant-report.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
 interface AuthenticatedRequest extends Request {
@@ -71,13 +74,16 @@ type ExportRequestDto = z.infer<typeof exportRequestSchema>
 export class ReportsController {
 	constructor(
 		private readonly exportService: ExportService,
-		private readonly reportsService: ReportsService,
-		private readonly executiveMonthlyTemplate: ExecutiveMonthlyTemplate,
+		private readonly financialReportService: FinancialReportService,
+		private readonly propertyReportService: PropertyReportService,
+		private readonly tenantReportService: TenantReportService,
+		private readonly maintenanceReportService: MaintenanceReportService,
+		private readonly executiveReportService: ExecutiveReportService,
+		private readonly taxReportService: TaxReportService,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
 		private readonly maintenanceOperationsTemplate: MaintenanceOperationsTemplate,
-		private readonly taxPreparationTemplate: TaxPreparationTemplate,
 		private readonly logger: AppLogger
 	) {}
 
@@ -213,50 +219,19 @@ export class ReportsController {
 	) {
 		const { user_id, start_date, end_date, format = 'pdf' } = body
 
-		this.logger.log('Generating executive monthly report', { user_id, format })
-
-		const reportData = await this.executiveMonthlyTemplate.generateReportData(
-			user_id,
-			start_date,
-			end_date
-		)
-
-		if (format === 'excel') {
-			const excelData = this.executiveMonthlyTemplate.formatForExcel(reportData)
-			const buffer = await this.exportService.generateExcel(
-				excelData,
-				'Executive Report'
+		const { buffer, contentType, filename } =
+			await this.executiveReportService.generateMonthlyReport(
+				user_id,
+				start_date,
+				end_date,
+				format
 			)
 
-			// Note: Report storage feature requires database table that hasn't been created yet
+		// Note: Report storage feature requires database table that hasn't been created yet
 
-			res.setHeader(
-				'Content-Type',
-				'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-			)
-			res.setHeader(
-				'Content-Disposition',
-				'attachment; filename="executive-monthly-report.xlsx"'
-			)
-			res.send(buffer)
-		} else {
-			const pdfContent = this.executiveMonthlyTemplate.formatForPDF(reportData)
-			const buffer = await this.exportService.generatePDF(
-				pdfContent as unknown as
-					| Record<string, unknown>
-					| Record<string, unknown>[],
-				'Executive Monthly Report'
-			)
-
-			// Note: Report storage feature requires database table that hasn't been created yet
-
-			res.setHeader('Content-Type', 'application/pdf')
-			res.setHeader(
-				'Content-Disposition',
-				'attachment; filename="executive-monthly-report.pdf"'
-			)
-			res.send(buffer)
-		}
+		res.setHeader('Content-Type', contentType)
+		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+		res.send(buffer)
 	}
 
 	@ApiOperation({ summary: 'Generate financial performance report', description: 'Generate detailed financial performance analysis report' })
@@ -496,30 +471,17 @@ export class ReportsController {
 	) {
 		const { user_id, start_date, end_date } = body
 
-		this.logger.log('Generating tax preparation report', { user_id })
-
-		const reportData = await this.taxPreparationTemplate.generateReportData(
-			user_id,
-			start_date,
-			end_date
-		)
-
-		const excelData = this.taxPreparationTemplate.formatForExcel(reportData)
-		const buffer = await this.exportService.generateExcel(
-			excelData,
-			'Tax Preparation'
-		)
+		const { buffer, contentType, filename } =
+			await this.taxReportService.generateTaxPreparation(
+				user_id,
+				start_date,
+				end_date
+			)
 
 		// Note: Report storage feature requires database table that hasn't been created yet
 
-		res.setHeader(
-			'Content-Type',
-			'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-		)
-		res.setHeader(
-			'Content-Disposition',
-			'attachment; filename="tax-preparation-report.xlsx"'
-		)
+		res.setHeader('Content-Type', contentType)
+		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(buffer)
 	}
 
@@ -544,7 +506,7 @@ export class ReportsController {
 		}
 
 		const parsedMonths = months ? parseInt(months, 10) : 12
-		const data = await this.reportsService.getMonthlyRevenue(
+		const data = await this.financialReportService.getMonthlyRevenue(
 			user_id,
 			parsedMonths
 		)
@@ -575,7 +537,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getPaymentAnalytics(
+		const data = await this.financialReportService.getPaymentAnalytics(
 			user_id,
 			start_date,
 			end_date
@@ -601,7 +563,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getOccupancyMetrics(user_id)
+		const data = await this.propertyReportService.getOccupancyMetrics(user_id)
 
 		return {
 			success: true,
@@ -631,7 +593,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getFinancialReport(
+		const data = await this.financialReportService.getFinancialReport(
 			user_id,
 			start_date,
 			end_date
@@ -663,7 +625,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getPropertyReport(
+		const data = await this.propertyReportService.getPropertyReport(
 			user_id,
 			start_date,
 			end_date
@@ -695,7 +657,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getTenantReport(
+		const data = await this.tenantReportService.getTenantReport(
 			user_id,
 			start_date,
 			end_date
@@ -727,7 +689,7 @@ export class ReportsController {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const data = await this.reportsService.getMaintenanceReport(
+		const data = await this.maintenanceReportService.getMaintenanceReport(
 			user_id,
 			start_date,
 			end_date

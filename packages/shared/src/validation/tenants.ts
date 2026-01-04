@@ -209,8 +209,9 @@ export const inviteTenantSchema = z.object({
 	first_name: z.string().trim().min(1, 'First name is required').max(100),
 	last_name: z.string().trim().min(1, 'Last name is required').max(100),
 	phone: phoneSchema.optional(),
-	// Property is REQUIRED - can't invite tenant without a property
-	property_id: uuidSchema,
+	// Property is OPTIONAL - tenant can be invited without a property assignment
+	// Property/unit assignment can be done later when creating a lease
+	property_id: uuidSchema.optional(),
 	unit_id: uuidSchema.optional()
 })
 
@@ -223,11 +224,13 @@ export const inviteTenantRequestSchema = z.object({
 		last_name: z.string().trim().min(1, 'Last name is required').max(100),
 		phone: phoneSchema.optional()
 	}),
-	leaseData: z.object({
-		// Property is REQUIRED - can't invite tenant without a property
-		property_id: uuidSchema,
-		unit_id: uuidSchema.optional()
-	})
+	// Property assignment is OPTIONAL - can invite tenant without assigning to property
+	leaseData: z
+		.object({
+			property_id: uuidSchema.optional(),
+			unit_id: uuidSchema.optional()
+		})
+		.optional()
 })
 
 // Schema for inviting tenant to sign a specific lease

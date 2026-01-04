@@ -44,11 +44,16 @@ export class TenantAuthGuard implements CanActivate {
 			this.logger.warn('TenantAuthGuard: No authenticated user found')
 			throw new ForbiddenException('Authentication required')
 		}
+		const token = this.supabase.getTokenFromRequest(request)
+		if (!token) {
+			this.logger.warn('TenantAuthGuard: Missing auth token')
+			throw new ForbiddenException('Authentication required')
+		}
 
 		try {
 			// Query database for tenant record matching auth user
 			const { data: tenant, error } = await this.supabase
-				.getAdminClient()
+				.getUserClient(token)
 				.from('tenants')
 				.select('id, user_id')
 				.eq('user_id', user.id)

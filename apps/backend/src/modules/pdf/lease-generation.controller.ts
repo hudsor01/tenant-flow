@@ -13,7 +13,8 @@ import {
 	NotFoundException,
 	BadRequestException,
 	InternalServerErrorException,
-	UnauthorizedException
+	UnauthorizedException,
+	ForbiddenException
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -292,6 +293,9 @@ export class LeaseGenerationController {
 
 		if (!property) {
 			throw new NotFoundException(`Property not found: ${property_id}`)
+		}
+		if (property.owner_user_id !== user_id) {
+			throw new ForbiddenException('Access denied for this property')
 		}
 
 		// Now fetch unit, tenant, and owner user data in parallel

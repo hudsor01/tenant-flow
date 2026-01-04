@@ -43,16 +43,20 @@ describe('LateFeesController', () => {
 		return (targetMock: jest.Mock) => targetMock
 	}
 
-	const mockLeaseOwnershipSuccess = (lease_id?: string) => {
-		const unit_id = generateUUID()
-		const property_id = lease_id ?? generateUUID()
-
+	const mockLeaseOwnershipSuccess = (user_id?: string) => {
 		const inner = (targetMock?: jest.Mock) => {
-			enqueueSingleResponses(
-				{ data: { unit_id }, error: null },
-				{ data: { property_id }, error: null },
-				{ data: { id: property_id }, error: null }
-			)
+			// New query returns nested structure: leases -> unit -> property -> owner_user_id
+			enqueueSingleResponses({
+				data: {
+					id: generateUUID(),
+					unit: {
+						property: {
+							owner_user_id: user_id ?? generateUUID()
+						}
+					}
+				},
+				error: null
+			})
 
 			// If a mock is provided, return it so callers can chain mockResolvedValue
 			// otherwise return a no-op jest.fn() to keep chaining safe
@@ -73,6 +77,9 @@ describe('LateFeesController', () => {
 			select: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
 			single: jest.fn(
+				async () => singleResponses.shift() ?? { data: null, error: null }
+			),
+			maybeSingle: jest.fn(
 				async () => singleResponses.shift() ?? { data: null, error: null }
 			)
 		} as unknown as SupabaseClient<Database>
@@ -141,7 +148,7 @@ describe('LateFeesController', () => {
 				flatFeeAmount: 50
 			}
 
-			mockLeaseOwnershipSuccess()(
+			mockLeaseOwnershipSuccess(user_id)(
 				mockLateFeesService.getLateFeeConfig as jest.Mock
 			).mockResolvedValue(mockConfig)
 
@@ -182,7 +189,7 @@ describe('LateFeesController', () => {
 			const lease_id = generateUUID()
 			const user_id = generateUUID()
 
-			mockLeaseOwnershipSuccess()(
+			mockLeaseOwnershipSuccess(user_id)(
 				mockLateFeesService.updateLateFeeConfig as jest.Mock
 			).mockResolvedValue(undefined)
 
@@ -209,7 +216,7 @@ describe('LateFeesController', () => {
 		it('should reject invalid grace period (negative)', async () => {
 			const user_id = generateUUID()
 			const lease_id = generateUUID()
-			mockLeaseOwnershipSuccess(lease_id)
+			mockLeaseOwnershipSuccess(user_id)
 
 			await expect(
 				controller.updateConfig(
@@ -224,7 +231,7 @@ describe('LateFeesController', () => {
 		it('should reject invalid grace period (too large)', async () => {
 			const user_id = generateUUID()
 			const lease_id = generateUUID()
-			mockLeaseOwnershipSuccess(lease_id)
+			mockLeaseOwnershipSuccess(user_id)
 
 			await expect(
 				controller.updateConfig(
@@ -239,7 +246,7 @@ describe('LateFeesController', () => {
 		it('should reject invalid flat fee (negative)', async () => {
 			const user_id = generateUUID()
 			const lease_id = generateUUID()
-			mockLeaseOwnershipSuccess(lease_id)
+			mockLeaseOwnershipSuccess(user_id)
 
 			await expect(
 				controller.updateConfig(
@@ -254,7 +261,7 @@ describe('LateFeesController', () => {
 		it('should reject invalid flat fee (too large)', async () => {
 			const user_id = generateUUID()
 			const lease_id = generateUUID()
-			mockLeaseOwnershipSuccess(lease_id)
+			mockLeaseOwnershipSuccess(user_id)
 
 			await expect(
 				controller.updateConfig(
@@ -307,7 +314,7 @@ describe('LateFeesController', () => {
 				flatFeeAmount: 75
 			}
 
-			mockLeaseOwnershipSuccess(lease_id)(
+			mockLeaseOwnershipSuccess(user_id)(
 				mockLateFeesService.getLateFeeConfig as jest.Mock
 			).mockResolvedValue(mockConfig)
 			;(mockLateFeesService.calculateLateFee as jest.Mock).mockReturnValue({
@@ -390,7 +397,7 @@ describe('LateFeesController', () => {
 			;(mockLateFeesService.getLateFeeConfig as jest.Mock).mockResolvedValue(
 				mockConfig
 			)
-			mockLeaseOwnershipSuccess(lease_id)(
+			mockLeaseOwnershipSuccess(user_id)(
 				mockLateFeesService.getOverduePayments as jest.Mock
 			).mockResolvedValue(mockPayments)
 
@@ -418,7 +425,7 @@ describe('LateFeesController', () => {
 				]
 			}
 
-			mockLeaseOwnershipSuccess(lease_id)(
+			mockLeaseOwnershipSuccess(user_id)(
 				mockLateFeesService.processLateFees as jest.Mock
 			).mockResolvedValue(mockResult)
 

@@ -7,7 +7,7 @@
  * Usage:
  * @UseGuards(AuthGuard, StripeConnectedGuard)
  * @Post('tenants/invite')
- * async inviteTenant(@User() owner: AuthenticatedUser) {
+ * async inviteTenant(@Request() req: AuthenticatedRequest) {
  *   // Guaranteed owner has valid Stripe account
  * }
  */
@@ -92,8 +92,8 @@ export class StripeConnectedGuard implements CanActivate {
 			)
 		}
 
-		// Attach connected account ID to request for ConnectedAccountId decorator
-		// NestJS pattern: Guards validate, decorators extract
+		// Attach connected account ID to request for downstream handlers
+		// NestJS pattern: Guards validate, handlers extract
 		request.connectedAccountId = stripeAccount.stripe_account_id
 
 		return true

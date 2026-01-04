@@ -8,24 +8,6 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
-// Mock the JwtToken decorator to return our test token
-jest.mock('../../shared/decorators/jwt-token.decorator', () => ({
-	JwtToken:
-		() => (target: object, propertyKey: string, parameterIndex: number) => {
-			// Store metadata for the decorator
-			const existingParams =
-				Reflect.getMetadata('custom:jwt-token-params', target, propertyKey) ||
-				[]
-			existingParams.push(parameterIndex)
-			Reflect.defineMetadata(
-				'custom:jwt-token-params',
-				existingParams,
-				target,
-				propertyKey
-			)
-		}
-}))
-
 describe('BalanceSheetController', () => {
 	let controller: BalanceSheetController
 	let service: jest.Mocked<BalanceSheetService>

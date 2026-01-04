@@ -170,23 +170,17 @@ describe('Tenant Invitation Validation Logic - Unit Tests', () => {
 			}
 		})
 
-		it('should reject request missing property_id', () => {
+		it('should accept request without property_id (property is optional)', () => {
 			const result = inviteTenantRequestSchema.safeParse({
 				tenantData: {
 					email: 'user@example.com',
 					first_name: 'John',
 					last_name: 'Doe'
-				},
-				leaseData: {}
+				}
+				// leaseData is optional - tenant can be invited without property assignment
 			})
 
-			expect(result.success).toBe(false)
-			if (!result.success) {
-				const propertyIdError = result.error.issues.find(issue =>
-					issue.path.includes('property_id')
-				)
-				expect(propertyIdError).toBeDefined()
-			}
+			expect(result.success).toBe(true)
 		})
 
 		it('should reject empty string for first_name', () => {

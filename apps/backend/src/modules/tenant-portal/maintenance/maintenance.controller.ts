@@ -131,15 +131,8 @@ export class TenantMaintenanceController {
 			)
 		}
 
-		// Get unit to find property owner
-		const { data: unit, error: unitError } = await this.supabase
-			.getAdminClient()
-			.from('units')
-			.select('property:property_id(owner_user_id)')
-			.eq('id', lease.unit_id)
-			.single()
-
-		if (unitError || !unit?.property?.owner_user_id) {
+		const ownerUserId = lease.unit?.property?.owner_user_id
+		if (!ownerUserId) {
 			throw new BadRequestException('Unable to find property owner for unit')
 		}
 
@@ -152,7 +145,7 @@ export class TenantMaintenanceController {
 				requested_by: req.user.id,
 				tenant_id: tenant.id,
 				unit_id: lease.unit_id,
-				owner_user_id: unit.property.owner_user_id
+				owner_user_id: ownerUserId
 			}
 
 		const { data, error } = await this.supabase
@@ -195,7 +188,16 @@ export class TenantMaintenanceController {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('leases')
-			.select('id, unit_id')
+			.select(
+				`
+				id,
+				unit_id,
+				unit:units!leases_unit_id_fkey(
+					id,
+					property:property_id(owner_user_id)
+				)
+				`
+			)
 			.eq('tenant_id', tenant_id)
 			.eq('status', 'active')
 			.order('start_date', { ascending: false })

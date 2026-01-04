@@ -47,15 +47,17 @@ interface InviteTenantResponse {
 /**
  * Simplified Invite Tenant Form
  *
- * Collects basic tenant info + property assignment to send portal invitation.
- * Lease creation is handled separately after tenant onboards.
+ * Collects basic tenant info to send portal invitation.
+ * Property assignment is OPTIONAL - can be done later when creating a lease.
  *
- * Fields:
- * - Email (required) - for invitation
- * - First/Last name (required) - for tenant record
- * - Phone (optional)
- * - Property (required) - must assign to a property
- * - Unit (optional) - for multi-unit properties
+ * Required Fields:
+ * - Email - for invitation
+ * - First/Last name - for tenant record
+ *
+ * Optional Fields:
+ * - Phone
+ * - Property - assign to a property now or later
+ * - Unit - for multi-unit properties
  */
 export function InviteTenantForm({
 	properties,
@@ -88,14 +90,19 @@ export function InviteTenantForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
+				// Build payload - only include leaseData if property is selected
 				const payload: InviteTenantRequest = {
 					tenantData: {
 						email: value.email,
 						first_name: value.first_name,
 						last_name: value.last_name,
 						...(value.phone && { phone: value.phone })
-					},
-					leaseData: {
+					}
+				}
+
+				// Only add leaseData if property is selected
+				if (value.property_id) {
+					payload.leaseData = {
 						property_id: value.property_id,
 						...(value.unit_id && { unit_id: value.unit_id })
 					}
@@ -275,67 +282,40 @@ export function InviteTenantForm({
 				</form.Field>
 			</div>
 
-			{/* Property Assignment */}
-			<div className="space-y-4">
-				<div className="flex items-center gap-2 typography-large">
-					<Building2 className="size-5" />
-					Property Assignment
-				</div>
+			{/* Property Assignment - Optional */}
+			{properties.length > 0 && (
+				<div className="space-y-4">
+					<div className="flex items-center gap-2 typography-large">
+						<Building2 className="size-5" />
+						Property Assignment (Optional)
+					</div>
+					<p className="text-muted text-sm">
+						Assign tenant to a property now, or skip and assign later when creating a lease.
+					</p>
 
-				<form.Field
-					name="property_id"
-					validators={{
-						onChange: inviteTenantSchema.shape.property_id
-					}}
-				>
-					{field => (
-						<Field>
-							<FieldLabel htmlFor="property_id">Property</FieldLabel>
-							<Select
-								value={field.state.value}
-								onValueChange={value => {
-									field.handleChange(value)
-									setSelectedPropertyId(value)
-									// Reset unit selection when property changes
-									form.setFieldValue('unit_id', '')
-								}}
-							>
-								<SelectTrigger id="property_id">
-									<SelectValue placeholder="Select a property" />
-								</SelectTrigger>
-								<SelectContent>
-									{properties.map(property => (
-										<SelectItem key={property.id} value={property.id}>
-											<div className="flex items-center gap-2">
-												<Home className="size-4" />
-												{property.name}
-											</div>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-							<FieldError errors={field.state.meta.errors} />
-						</Field>
-					)}
-				</form.Field>
-
-				{/* Only show unit field if property has multiple units */}
-				{selectedPropertyId && availableUnits.length > 1 && (
-					<form.Field name="unit_id">
+					<form.Field name="property_id">
 						{field => (
 							<Field>
-								<FieldLabel htmlFor="unit_id">Unit (Optional)</FieldLabel>
+								<FieldLabel htmlFor="property_id">Property</FieldLabel>
 								<Select
 									value={field.state.value}
-									onValueChange={field.handleChange}
+									onValueChange={value => {
+										field.handleChange(value)
+										setSelectedPropertyId(value)
+										// Reset unit selection when property changes
+										form.setFieldValue('unit_id', '')
+									}}
 								>
-									<SelectTrigger id="unit_id">
-										<SelectValue placeholder="Select a unit" />
+									<SelectTrigger id="property_id">
+										<SelectValue placeholder="Select a property (optional)" />
 									</SelectTrigger>
 									<SelectContent>
-										{availableUnits.map(unit => (
-											<SelectItem key={unit.id} value={unit.id}>
-												{unit.unit_number}
+										{properties.map(property => (
+											<SelectItem key={property.id} value={property.id}>
+												<div className="flex items-center gap-2">
+													<Home className="size-4" />
+													{property.name}
+												</div>
 											</SelectItem>
 										))}
 									</SelectContent>
@@ -344,17 +324,54 @@ export function InviteTenantForm({
 							</Field>
 						)}
 					</form.Field>
-				)}
 
-				{/* Show message for single-family homes */}
-				{selectedPropertyId && availableUnits.length <= 1 && (
-					<p className="text-muted">
-						{availableUnits.length === 0
-							? 'This property has no units configured.'
-							: 'Single-unit property - unit will be assigned automatically.'}
+					{/* Only show unit field if property has multiple units */}
+					{selectedPropertyId && availableUnits.length > 1 && (
+						<form.Field name="unit_id">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="unit_id">Unit (Optional)</FieldLabel>
+									<Select
+										value={field.state.value}
+										onValueChange={field.handleChange}
+									>
+										<SelectTrigger id="unit_id">
+											<SelectValue placeholder="Select a unit" />
+										</SelectTrigger>
+										<SelectContent>
+											{availableUnits.map(unit => (
+												<SelectItem key={unit.id} value={unit.id}>
+													{unit.unit_number}
+												</SelectItem>
+											))}
+										</SelectContent>
+									</Select>
+									<FieldError errors={field.state.meta.errors} />
+								</Field>
+							)}
+						</form.Field>
+					)}
+
+					{/* Show message for single-family homes */}
+					{selectedPropertyId && availableUnits.length <= 1 && (
+						<p className="text-muted text-sm">
+							{availableUnits.length === 0
+								? 'This property has no units configured.'
+								: 'Single-unit property - unit will be assigned automatically.'}
+						</p>
+					)}
+				</div>
+			)}
+
+			{/* No properties message */}
+			{properties.length === 0 && (
+				<div className="rounded-lg border border-dashed p-4 text-center text-muted">
+					<Building2 className="size-8 mx-auto mb-2 opacity-50" />
+					<p className="text-sm">
+						No properties configured yet. You can still invite tenants and assign them to properties later.
 					</p>
-				)}
-			</div>
+				</div>
+			)}
 
 			{/* Form Actions */}
 			<div className="flex justify-end gap-4 pt-4 border-t">

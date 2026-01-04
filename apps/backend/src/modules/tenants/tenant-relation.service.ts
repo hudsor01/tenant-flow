@@ -4,7 +4,12 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	ForbiddenException,
+	Injectable,
+	NotFoundException
+} from '@nestjs/common'
 import type { RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -116,11 +121,16 @@ export class TenantRelationService {
 	 */
 	async getTenantPaymentHistory(
 		tenantId: string,
+		requesterUserId: string,
 		limit = DEFAULT_PAYMENT_HISTORY_LIMIT
 	): Promise<RentPayment[]> {
 		if (!tenantId) throw new BadRequestException('Tenant ID required')
+		if (!requesterUserId) {
+			throw new BadRequestException('User ID required')
+		}
 
 		try {
+			await this.ensureTenantAccess(requesterUserId, tenantId)
 			const { data, error } = await this.supabase
 				.getAdminClient()
 				.from('rent_payments')
@@ -195,10 +205,17 @@ export class TenantRelationService {
 	 * Get all leases (past and current) for a tenant
 	 * Used in tenant detail view for lease history
 	 */
-	async getTenantLeaseHistory(tenantId: string): Promise<LeaseHistoryItem[]> {
+	async getTenantLeaseHistory(
+		tenantId: string,
+		requesterUserId: string
+	): Promise<LeaseHistoryItem[]> {
 		if (!tenantId) throw new BadRequestException('Tenant ID required')
+		if (!requesterUserId) {
+			throw new BadRequestException('User ID required')
+		}
 
 		try {
+			await this.ensureTenantAccess(requesterUserId, tenantId)
 			const client = this.supabase.getAdminClient()
 
 			// Get all leases for this tenant via lease_tenants junction table
@@ -273,6 +290,91 @@ export class TenantRelationService {
 				tenantId
 			})
 			throw error
+		}
+	}
+
+	private async ensureTenantAccess(
+		requesterUserId: string,
+		tenantId: string
+	): Promise<void> {
+		const client = this.supabase.getAdminClient()
+
+		const { data: tenant, error: tenantError } = await client
+			.from('tenants')
+			.select('user_id')
+			.eq('id', tenantId)
+			.maybeSingle()
+
+		if (tenantError) {
+			this.logger.warn('Failed to verify tenant ownership', {
+				tenantId,
+				error: tenantError.message
+			})
+			throw new NotFoundException('Tenant not found')
+		}
+
+		if (tenant?.user_id === requesterUserId) {
+			return
+		}
+
+		const { data: lease, error: leaseError } = await client
+			.from('leases')
+			.select('id, unit_id')
+			.eq('primary_tenant_id', tenantId)
+			.order('start_date', { ascending: false })
+			.limit(1)
+			.maybeSingle()
+
+		if (leaseError || !lease) {
+			this.logger.warn('No lease found for tenant when checking access', {
+				tenantId,
+				error: leaseError
+			})
+			throw new NotFoundException('Lease not found for tenant')
+		}
+
+		if (!lease.unit_id) {
+			this.logger.warn('Tenant lease missing unit association', {
+				tenantId,
+				leaseId: lease.id
+			})
+			throw new NotFoundException('Property not associated with tenant lease')
+		}
+
+		const { data: unit, error: unitError } = await client
+			.from('units')
+			.select('property_id')
+			.eq('id', lease.unit_id)
+			.single()
+
+		if (unitError || !unit?.property_id) {
+			this.logger.warn('Unit missing property when verifying tenant access', {
+				unitId: lease.unit_id,
+				error: unitError
+			})
+			throw new NotFoundException('Property not found for tenant lease')
+		}
+
+		const { data: property, error: propertyError } = await client
+			.from('properties')
+			.select('owner_user_id')
+			.eq('id', unit.property_id)
+			.single()
+
+		if (propertyError || !property) {
+			this.logger.warn('Property not found during tenant access check', {
+				propertyId: unit.property_id,
+				error: propertyError
+			})
+			throw new NotFoundException('Property not found for tenant')
+		}
+
+		if (property.owner_user_id !== requesterUserId) {
+			this.logger.warn('User is not authorized for tenant data', {
+				requesterUserId,
+				propertyOwnerId: property.owner_user_id
+			})
+			throw new ForbiddenException('Access denied')
 		}
 	}
 }

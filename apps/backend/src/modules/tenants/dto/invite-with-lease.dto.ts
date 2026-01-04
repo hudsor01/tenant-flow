@@ -8,8 +8,9 @@ import { inviteTenantRequestSchema } from '@repo/shared/validation/tenants'
  * Uses Zod validation per CLAUDE.md guidelines
  *
  * ARCHITECTURE:
- * - Lease data context (property/unit) is REQUIRED
- * - Actual lease creation is a separate workflow after tenant accepts
+ * - Lease data context (property/unit) is OPTIONAL
+ * - Tenants can be invited without property assignment
+ * - Property/unit can be assigned later when creating a lease
  * - Stripe subscription created only when BOTH parties sign the lease
  */
 export class InviteWithLeaseDto extends createZodDto(

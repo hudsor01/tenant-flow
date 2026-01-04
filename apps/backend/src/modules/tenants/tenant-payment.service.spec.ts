@@ -296,7 +296,7 @@ describe('TenantPaymentService', () => {
 				)
 			)
 
-			const result = await service.getOwnerPaymentSummary('owner-1')
+			const result = await service.getOwnerPaymentSummary('owner-1', 'token-1')
 
 			expect(result).toBeDefined()
 			expect(result.lateFeeTotal).toBeDefined()
@@ -309,7 +309,7 @@ describe('TenantPaymentService', () => {
 			// Override the query service mock to return empty tenants
 			;(mockQueryService.getTenantIdsForOwner as jest.Mock).mockResolvedValueOnce([])
 
-			const result = await service.getOwnerPaymentSummary('owner-1')
+			const result = await service.getOwnerPaymentSummary('owner-1', 'token-1')
 
 			expect(result).toEqual({
 				lateFeeTotal: 0,
@@ -365,9 +365,9 @@ describe('TenantPaymentService', () => {
 		})
 	})
 
-	describe('getTenantPaymentHistoryForTenant', () => {
-		it('should return payment history for tenant portal view', async () => {
-			const mockPayments = [
+		describe('getTenantPaymentHistoryForTenant', () => {
+			it('should return payment history for tenant portal view', async () => {
+				const mockPayments = [
 				{
 					id: 'pi_1',
 					amount: 100000,
@@ -385,7 +385,7 @@ describe('TenantPaymentService', () => {
 			)
 
 			const result =
-				await service.getTenantPaymentHistoryForTenant('auth-user-1')
+				await service.getTenantPaymentHistoryForTenant('auth-user-1', 'token-1')
 
 			expect(result).toBeDefined()
 			expect(result.payments).toBeDefined()

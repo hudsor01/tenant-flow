@@ -213,15 +213,27 @@ describe('TenantRelationService', () => {
 			]
 
 			const mockClient = mockSupabaseService.getAdminClient()
+			const tenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { user_id: mockAuthUserId }, error: null })
+			}
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				order: jest.fn().mockReturnThis(),
 				limit: jest.fn().mockResolvedValue({ data: mockPayments, error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.from as jest.Mock).mockImplementation((table: string) =>
+				table === 'tenants' ? tenantBuilder : mockBuilder
+			)
 
-			const result = await service.getTenantPaymentHistory(mockTenantId)
+			const result = await service.getTenantPaymentHistory(
+				mockTenantId,
+				mockAuthUserId
+			)
 
 			expect(result).toEqual(mockPayments)
 			expect(mockClient.from).toHaveBeenCalledWith('rent_payments')
@@ -229,28 +241,44 @@ describe('TenantRelationService', () => {
 		})
 
 		it('throws BadRequestException when tenant ID is missing', async () => {
-			await expect(service.getTenantPaymentHistory('')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				service.getTenantPaymentHistory('', mockAuthUserId)
+			).rejects.toThrow(BadRequestException)
 		})
 
 		it('applies custom limit', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
+			const tenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { user_id: mockAuthUserId }, error: null })
+			}
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				order: jest.fn().mockReturnThis(),
 				limit: jest.fn().mockResolvedValue({ data: [], error: null })
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.from as jest.Mock).mockImplementation((table: string) =>
+				table === 'tenants' ? tenantBuilder : mockBuilder
+			)
 
-			await service.getTenantPaymentHistory(mockTenantId, 10)
+			await service.getTenantPaymentHistory(mockTenantId, mockAuthUserId, 10)
 
 			expect(mockBuilder.limit).toHaveBeenCalledWith(10)
 		})
 
 		it('throws BadRequestException on query error', async () => {
 			const mockClient = mockSupabaseService.getAdminClient()
+			const tenantBuilder = {
+				select: jest.fn().mockReturnThis(),
+				eq: jest.fn().mockReturnThis(),
+				maybeSingle: jest
+					.fn()
+					.mockResolvedValue({ data: { user_id: mockAuthUserId }, error: null })
+			}
 			const mockBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
@@ -260,10 +288,12 @@ describe('TenantRelationService', () => {
 					error: { message: 'Database error' }
 				})
 			}
-			;(mockClient.from as jest.Mock).mockReturnValue(mockBuilder)
+			;(mockClient.from as jest.Mock).mockImplementation((table: string) =>
+				table === 'tenants' ? tenantBuilder : mockBuilder
+			)
 
 			await expect(
-				service.getTenantPaymentHistory(mockTenantId)
+				service.getTenantPaymentHistory(mockTenantId, mockAuthUserId)
 			).rejects.toThrow(BadRequestException)
 		})
 	})

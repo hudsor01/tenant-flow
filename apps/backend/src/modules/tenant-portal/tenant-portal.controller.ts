@@ -109,7 +109,7 @@ export class TenantPortalController {
 			throw new UnauthorizedException('Authorization token required')
 		}
 		const user = req.user
-		const tenant = await this.resolveTenant(user)
+		const tenant = await this.resolveTenant(user, token)
 
 		const [lease, maintenanceSummary, payments, userData] = await Promise.all([
 			this.fetchActiveLease(token, tenant),
@@ -150,9 +150,12 @@ export class TenantPortalController {
 	// Private helpers for dashboard aggregation
 	// -------------------------------------------------------------------------
 
-	private async resolveTenant(user: AuthUser): Promise<TenantRow> {
+	private async resolveTenant(
+		user: AuthUser,
+		token: string
+	): Promise<TenantRow> {
 		const { data, error } = await this.supabase
-			.getAdminClient()
+			.getUserClient(token)
 			.from('tenants')
 			.select('id, user_id, stripe_customer_id')
 			.eq('user_id', user.id)

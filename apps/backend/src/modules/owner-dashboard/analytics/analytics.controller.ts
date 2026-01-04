@@ -18,7 +18,9 @@ import {
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import { DashboardService } from '../../dashboard/dashboard.service'
+import { DashboardPerformanceService } from '../../dashboard/dashboard-performance.service'
+import { DashboardStatsService } from '../../dashboard/dashboard-stats.service'
+import { DashboardTrendsService } from '../../dashboard/dashboard-trends.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
@@ -41,7 +43,9 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @Controller('')
 export class AnalyticsController {
 	constructor(
-		private readonly dashboardService: DashboardService,
+		private readonly dashboardStatsService: DashboardStatsService,
+		private readonly dashboardTrendsService: DashboardTrendsService,
+		private readonly dashboardPerformanceService: DashboardPerformanceService,
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger
 	) {}
@@ -58,7 +62,7 @@ export class AnalyticsController {
 
 		this.logger.log('Getting dashboard stats', { user_id })
 
-		const data = await this.dashboardService.getStats(user_id, token)
+		const data = await this.dashboardStatsService.getStats(user_id, token)
 
 		return {
 			success: true,
@@ -84,7 +88,7 @@ export class AnalyticsController {
 
 		this.logger.log('Getting dashboard activity', { user_id })
 
-		const data = await this.dashboardService.getActivity(user_id, token)
+		const data = await this.dashboardTrendsService.getActivity(user_id, token)
 
 		return {
 			success: true,
@@ -132,11 +136,11 @@ export class AnalyticsController {
 				occupancyTrends,
 				revenueTrends
 			] = await Promise.all([
-				this.dashboardService.getStats(user_id, token),
-				this.dashboardService.getActivity(user_id, token),
-				this.dashboardService.getPropertyPerformance(user_id, token),
-				this.dashboardService.getOccupancyTrends(user_id, token, 6),
-				this.dashboardService.getRevenueTrends(user_id, token, 6)
+				this.dashboardStatsService.getStats(user_id, token),
+				this.dashboardTrendsService.getActivity(user_id, token),
+				this.dashboardPerformanceService.getPropertyPerformance(user_id, token),
+				this.dashboardTrendsService.getOccupancyTrends(user_id, token, 6),
+				this.dashboardTrendsService.getRevenueTrends(user_id, token, 6)
 			])
 
 			// Calculate metric trends from stats (current vs previous period)
@@ -241,8 +245,8 @@ export class AnalyticsController {
 
 		try {
 			const [occupancyTrends, revenueTrends] = await Promise.all([
-				this.dashboardService.getOccupancyTrends(user_id, token, 6),
-				this.dashboardService.getRevenueTrends(user_id, token, 6)
+				this.dashboardTrendsService.getOccupancyTrends(user_id, token, 6),
+				this.dashboardTrendsService.getRevenueTrends(user_id, token, 6)
 			])
 
 			return {
@@ -269,7 +273,7 @@ export class AnalyticsController {
 	async getUptime(): Promise<ControllerApiResponse> {
 		this.logger.log('Getting system uptime metrics')
 
-		const data = await this.dashboardService.getUptime()
+		const data = await this.dashboardStatsService.getUptime()
 
 		return {
 			success: true,

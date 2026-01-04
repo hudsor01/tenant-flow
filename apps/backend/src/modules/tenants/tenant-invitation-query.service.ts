@@ -4,7 +4,11 @@
  * Extracted from TenantQueryService for SRP compliance
  */
 
-import { BadRequestException, Injectable } from '@nestjs/common'
+import {
+	BadRequestException,
+	Injectable,
+	UnauthorizedException
+} from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -59,11 +63,19 @@ export class TenantInvitationQueryService {
 		private readonly logger: AppLogger
 	) {}
 
+	private requireUserClient(token?: string) {
+		if (!token) {
+			throw new UnauthorizedException('Authentication token required')
+		}
+		return this.supabase.getUserClient(token)
+	}
+
 	/**
 	 * Get paginated tenant invitations for an owner
 	 */
 	async getInvitations(
 		userId: string,
+		token: string,
 		filters?: InvitationFilters
 	): Promise<{ data: TenantInvitation[]; total: number }> {
 		if (!userId) {
@@ -78,9 +90,7 @@ export class TenantInvitationQueryService {
 		const offset = (page - 1) * limit
 
 		try {
-			const client = this.supabase.getAdminClient()
-
-			// tenant_invitations now has owner_user_id directly, no need to query property_owners
+			const client = this.requireUserClient(token)
 
 			// Build the query
 			let query = client

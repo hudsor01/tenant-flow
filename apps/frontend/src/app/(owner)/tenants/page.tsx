@@ -68,7 +68,7 @@ function transformToTenantItem(
 	// Map API status to design-os LeaseStatus
 	let leaseStatus: LeaseStatus | undefined
 	if (tenant.lease_status) {
-		const status = tenant.lease_status.toLowerCase()
+		const status = String(tenant.lease_status).toLowerCase()
 		if (status === 'active') leaseStatus = 'active'
 		else if (status === 'pending' || status === 'pending_signature')
 			leaseStatus = 'pending_signature'

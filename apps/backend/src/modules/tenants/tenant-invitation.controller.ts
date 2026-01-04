@@ -22,6 +22,7 @@ import {
 	Query,
 	Req,
 	SetMetadata,
+	UnauthorizedException,
 	UseGuards
 } from '@nestjs/common'
 import {
@@ -69,7 +70,11 @@ export class TenantInvitationController {
 		@Query('limit', new DefaultValuePipe(25), ParseIntPipe) limit?: number
 	) {
 		const user_id = req.user.id
-		return this.queryService.getInvitations(user_id, {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		return this.queryService.getInvitations(user_id, token, {
 			...(status && { status }),
 			...(page && { page }),
 			...(limit && { limit })
@@ -91,7 +96,11 @@ export class TenantInvitationController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		await this.platformInvitationService.cancelInvitation(user_id, id)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		await this.platformInvitationService.cancelInvitation(user_id, id, token)
 		return { success: true }
 	}
 
@@ -138,7 +147,15 @@ export class TenantInvitationController {
 			request.property_id = body.leaseData.property_id
 		if (body.leaseData?.unit_id) request.unit_id = body.leaseData.unit_id
 
-		return this.platformInvitationService.inviteToPlatform(user_id, request)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		return this.platformInvitationService.inviteToPlatform(
+			user_id,
+			request,
+			token
+		)
 	}
 
 	/**
@@ -158,7 +175,11 @@ export class TenantInvitationController {
 		@Req() req: AuthenticatedRequest
 	) {
 		const user_id = req.user.id
-		await this.platformInvitationService.resendInvitation(user_id, id)
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		await this.platformInvitationService.resendInvitation(user_id, id, token)
 		return { success: true }
 	}
 
