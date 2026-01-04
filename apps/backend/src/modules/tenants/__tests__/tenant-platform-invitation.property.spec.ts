@@ -29,6 +29,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 	let mockLogger: jest.Mocked<AppLogger>
 	let mockConfig: jest.Mocked<AppConfigService>
 	let mockSupabaseClient: SupabaseClient<Database>
+	const token = 'token-123'
 
 	beforeEach(() => {
 		// Create mock Supabase client with chainable methods
@@ -45,7 +46,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 		// Create mock services
 		mockSupabaseService = {
-			getAdminClient: jest.fn().mockReturnValue(mockSupabaseClient)
+			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient)
 		} as unknown as SupabaseClient<Database>
 
 		mockEventEmitter = {
@@ -125,7 +126,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 							last_name: lastName
 						}
 
-						await service.inviteToPlatform(ownerId, dto)
+						await service.inviteToPlatform(ownerId, dto, token)
 
 						// Assert: Code is exactly 64 hex characters
 						expect(capturedInsertData.invitation_code).toHaveLength(64)
@@ -185,7 +186,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 							last_name: lastName
 						}
 
-						await service.inviteToPlatform(ownerId, dto)
+						await service.inviteToPlatform(ownerId, dto, token)
 
 						const afterCreation = new Date()
 						const expiresAt = new Date(capturedInsertData.expires_at)
@@ -244,7 +245,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect failure
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(BadRequestException)
 
 						// Assert: Failure logged with duplicate details
@@ -314,7 +315,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect failure
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(BadRequestException)
 
 						// Assert: Failure logged with ownership mismatch
@@ -367,7 +368,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect failure
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(BadRequestException)
 
 						// Assert: Failure logged with property_not_found reason
@@ -446,7 +447,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect failure
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(BadRequestException)
 
 						// Assert: Failure logged with unit_property_mismatch
@@ -532,7 +533,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 							unit_id: unitId
 						}
 
-						await service.inviteToPlatform(ownerId, dto)
+						await service.inviteToPlatform(ownerId, dto, token)
 
 						// Assert: Event emitted with correct data
 						expect(mockEventEmitter.emit).toHaveBeenCalledWith(
@@ -597,7 +598,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect failure
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(BadRequestException)
 
 						// Assert: Error logged with complete context
@@ -663,7 +664,7 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 						// Execute and expect wrapped error
 						await expect(
-							service.inviteToPlatform(ownerId, dto)
+							service.inviteToPlatform(ownerId, dto, token)
 						).rejects.toThrow(
 							'An unexpected error occurred while creating the invitation'
 						)

@@ -16,7 +16,7 @@ import {
 import type { ControllerApiResponse } from '@repo/shared/types/errors'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { SupabaseService } from '../../../database/supabase.service'
-import { DashboardService } from '../../dashboard/dashboard.service'
+import { DashboardPerformanceService } from '../../dashboard/dashboard-performance.service'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'
@@ -37,7 +37,7 @@ import { AppLogger } from '../../../logger/app-logger.service'
 @Controller('')
 export class PropertiesController {
 	constructor(
-		private readonly dashboardService: DashboardService,
+		private readonly dashboardPerformanceService: DashboardPerformanceService,
 		private readonly supabase: SupabaseService,
 		private readonly logger: AppLogger
 	) {}
@@ -58,7 +58,7 @@ export class PropertiesController {
 
 		this.logger.log('Getting property performance', { user_id })
 
-		const data = await this.dashboardService.getPropertyPerformance(
+		const data = await this.dashboardPerformanceService.getPropertyPerformance(
 			user_id,
 			token
 		)

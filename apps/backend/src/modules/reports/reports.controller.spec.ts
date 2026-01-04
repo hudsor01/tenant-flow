@@ -5,13 +5,16 @@ import { Reflector } from '@nestjs/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { ExportService } from './export.service'
 import { ReportsController } from './reports.controller'
-import { ReportsService } from './reports.service'
-import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
+import { ExecutiveReportService } from './executive-report.service'
+import { FinancialReportService } from './financial-report.service'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
+import { MaintenanceReportService } from './maintenance-report.service'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
+import { PropertyReportService } from './property-report.service'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
-import { TaxPreparationTemplate } from './templates/tax-preparation.template'
+import { TaxReportService } from './tax-report.service'
+import { TenantReportService } from './tenant-report.service'
 import { SilentLogger } from '../../__test__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
@@ -34,7 +37,7 @@ describe('ReportsController', () => {
 					useValue: exportService
 				},
 				{
-					provide: ReportsService,
+					provide: FinancialReportService,
 					useValue: {}
 				},
 				{
@@ -46,7 +49,23 @@ describe('ReportsController', () => {
 					useValue: { getAdminClient: jest.fn() }
 				},
 				{
-					provide: ExecutiveMonthlyTemplate,
+					provide: PropertyReportService,
+					useValue: {}
+				},
+				{
+					provide: TenantReportService,
+					useValue: {}
+				},
+				{
+					provide: MaintenanceReportService,
+					useValue: {}
+				},
+				{
+					provide: ExecutiveReportService,
+					useValue: {}
+				},
+				{
+					provide: TaxReportService,
 					useValue: {}
 				},
 				{
@@ -63,10 +82,6 @@ describe('ReportsController', () => {
 				},
 				{
 					provide: MaintenanceOperationsTemplate,
-					useValue: {}
-				},
-				{
-					provide: TaxPreparationTemplate,
 					useValue: {}
 				},
 				{

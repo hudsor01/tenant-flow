@@ -14,7 +14,8 @@ import {
 	BadRequestException,
 	Injectable,
 	InternalServerErrorException,
-	NotFoundException
+	NotFoundException,
+	UnauthorizedException
 } from '@nestjs/common'
 import type {
 	OwnerPaymentSummaryResponse,
@@ -113,10 +114,16 @@ export class TenantPaymentService {
 	 */
 	async getTenantPaymentHistoryForTenant(
 		authUserId: string,
+		token: string,
 		limit = 20
 	): Promise<{ payments: TenantPaymentRecord[] }> {
-		const { id: tenantId } =
-			await this.queryService.getTenantByAuthUserId(authUserId)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const { id: tenantId } = await this.queryService.getTenantByAuthUserId(
+			authUserId,
+			token
+		)
 		const payments = await this.fetchPaymentIntents(tenantId, limit)
 		return { payments }
 	}
@@ -238,6 +245,7 @@ export class TenantPaymentService {
 	 */
 	async getOwnerPaymentSummary(
 		userId: string,
+		token: string,
 		limitPerTenant = 50
 	): Promise<OwnerPaymentSummaryResponse> {
 		const emptyResponse: OwnerPaymentSummaryResponse = {
@@ -248,16 +256,16 @@ export class TenantPaymentService {
 		}
 
 		try {
-			if (!userId) {
+			if (!userId || !token) {
 				this.logger.warn(
-					'getOwnerPaymentSummary called without userId, returning empty response'
+					'getOwnerPaymentSummary called without user or token, returning empty response'
 				)
 				return emptyResponse
 			}
 
 			let tenantIds: string[]
 			try {
-				tenantIds = await this.queryService.getTenantIdsForOwner(userId)
+				tenantIds = await this.queryService.getTenantIdsForOwner(userId, token)
 			} catch (error) {
 				this.logger.warn(
 					'Failed to get tenant IDs for payment summary, returning zeros',
@@ -359,6 +367,7 @@ export class TenantPaymentService {
 	 */
 	async queryTenantPayments(
 		tenantId: string,
+		requesterUserId: string,
 		filters?: {
 			status?: PaymentStatus
 			startDate?: string
@@ -366,7 +375,11 @@ export class TenantPaymentService {
 			limit?: number
 		}
 	): Promise<RentPayment[]> {
-		return this.queryService.queryTenantPayments(tenantId, filters)
+		return this.queryService.queryTenantPayments(
+			tenantId,
+			requesterUserId,
+			filters
+		)
 	}
 
 	/**

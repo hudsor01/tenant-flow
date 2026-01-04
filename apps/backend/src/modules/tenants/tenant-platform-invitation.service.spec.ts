@@ -33,6 +33,7 @@ describe('TenantPlatformInvitationService', () => {
 	let mockSupabaseService: jest.Mocked<Partial<SupabaseService>>
 	let mockEventEmitter: jest.Mocked<Partial<EventEmitter2>>
 	let mockLogger: jest.Mocked<Partial<Logger>>
+	const token = 'token-123'
 
 	// Helper to create a flexible Supabase query chain
 	const createMockChain = (
@@ -169,10 +170,10 @@ describe('TenantPlatformInvitationService', () => {
 		}
 
 		mockSupabaseService = {
-			getAdminClient: jest.fn(() => ({
+			getUserClient: jest.fn(() => ({
 				from: jest.fn(() => createMockChain())
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 		}
 
@@ -214,7 +215,7 @@ describe('TenantPlatformInvitationService', () => {
 
 		it('should create invitation without requiring lease data', async () => {
 			// Setup: Owner exists in stripe_connected_accounts table
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -226,10 +227,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			const result = await service.inviteToPlatform(ownerId, validInviteRequest)
+			const result = await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			expect(result).toEqual(
 				expect.objectContaining({
@@ -243,7 +244,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should set invitation type to platform_access', async () => {
 			let capturedInsertData: TenantInvitationInsert | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -260,10 +261,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			expect(capturedInsertData).toEqual(
 				expect.objectContaining({
@@ -275,7 +276,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should NOT create any lease record', async () => {
 			let leaseInsertCalled = false
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'leases') {
 						const chain = createMockChain()
@@ -294,17 +295,17 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			expect(leaseInsertCalled).toBe(false)
 		})
 
 		it('should NOT create any Stripe customer or subscription', async () => {
 			// This service should have NO Stripe dependencies
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -315,10 +316,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			// Service should not inject or call any Stripe service
 			// This is verified by the service constructor not having StripeConnectService
@@ -326,7 +327,7 @@ describe('TenantPlatformInvitationService', () => {
 
 		it('should NOT require Stripe Connect to be setup', async () => {
 			// Owner does NOT have Stripe onboarded, but invitation should still work
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({
@@ -343,16 +344,16 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			// Should NOT throw - Stripe is not required for platform invitation
-			const result = await service.inviteToPlatform(ownerId, validInviteRequest)
+			const result = await service.inviteToPlatform(ownerId, validInviteRequest, token)
 			expect(result.success).toBe(true)
 		})
 
 		it('should emit tenant.platform_invitation.sent event', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -363,10 +364,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			expect(mockEventEmitter.emit).toHaveBeenCalledWith(
 				'tenant.platform_invitation.sent',
@@ -383,7 +384,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should generate secure 64-character hex invitation code', async () => {
 			let capturedInsertData: TenantInvitationInsert | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -400,10 +401,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			expect(capturedInsertData.invitation_code).toHaveLength(64)
 			expect(capturedInsertData.invitation_code).toMatch(/^[a-f0-9]+$/)
@@ -413,7 +414,7 @@ describe('TenantPlatformInvitationService', () => {
 			let capturedInsertData: TenantInvitationInsert | null = null
 			const now = new Date()
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -430,10 +431,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.inviteToPlatform(ownerId, validInviteRequest)
+			await service.inviteToPlatform(ownerId, validInviteRequest, token)
 
 			const expiresAt = new Date(capturedInsertData.expires_at)
 			const diffDays = Math.round(
@@ -445,7 +446,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should allow optional property_id context', async () => {
 			let capturedInsertData: TenantInvitationInsert | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -469,13 +470,13 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			await service.inviteToPlatform(ownerId, {
 				...validInviteRequest,
 				property_id: 'property-456'
-			})
+			}, token)
 
 			expect(capturedInsertData.property_id).toBe('property-456')
 		})
@@ -483,7 +484,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should allow optional unit_id context', async () => {
 			let capturedInsertData: TenantInvitationInsert | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -512,14 +513,14 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			await service.inviteToPlatform(ownerId, {
 				...validInviteRequest,
 				property_id: 'property-456',
 				unit_id: 'unit-789'
-			})
+			}, token)
 
 			expect(capturedInsertData.unit_id).toBe('unit-789')
 			expect(capturedInsertData.property_id).toBe('property-456')
@@ -530,7 +531,7 @@ describe('TenantPlatformInvitationService', () => {
 		// would require a foreign key constraint on tenant_invitations.owner_user_id.
 
 		it('should throw if property does not belong to owner', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -545,19 +546,23 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			await expect(
-				service.inviteToPlatform(ownerId, {
-					...validInviteRequest,
-					property_id: 'property-456'
-				})
+				service.inviteToPlatform(
+					ownerId,
+					{
+						...validInviteRequest,
+						property_id: 'property-456'
+					},
+					token
+				)
 			).rejects.toThrow(BadRequestException)
 		})
 
 		it('should prevent duplicate pending invitations for same email', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: ownerId })
@@ -588,11 +593,11 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			await expect(
-				service.inviteToPlatform(ownerId, validInviteRequest)
+				service.inviteToPlatform(ownerId, validInviteRequest, token)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -602,7 +607,7 @@ describe('TenantPlatformInvitationService', () => {
 			let updateCalled = false
 			let updateData: TenantInvitationUpdate | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
@@ -627,17 +632,17 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.cancelInvitation('owner-123', 'invitation-123')
+			await service.cancelInvitation('owner-123', 'invitation-123', token)
 
 			expect(updateCalled).toBe(true)
 			expect(updateData).toEqual({ status: 'cancelled' })
 		})
 
 		it('should not cancel an already accepted invitation', async () => {
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
@@ -652,11 +657,11 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
 			await expect(
-				service.cancelInvitation('owner-123', 'invitation-123')
+				service.cancelInvitation('owner-123', 'invitation-123', token)
 			).rejects.toThrow(BadRequestException)
 		})
 	})
@@ -665,7 +670,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should resend invitation and update expiry', async () => {
 			let updateData: TenantInvitationUpdate | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
@@ -694,10 +699,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.resendInvitation('owner-123', 'invitation-123')
+			await service.resendInvitation('owner-123', 'invitation-123', token)
 
 			// Should update expires_at
 			expect(updateData).toHaveProperty('expires_at')
@@ -715,7 +720,7 @@ describe('TenantPlatformInvitationService', () => {
 		it('should regenerate code for expired invitations', async () => {
 			let updateData: TenantInvitationUpdate | null = null
 
-			mockSupabaseService.getAdminClient = jest.fn(() => ({
+			mockSupabaseService.getUserClient = jest.fn(() => ({
 				from: jest.fn((table: string) => {
 					if (table === 'stripe_connected_accounts') {
 						return createMockChain({ id: 'owner-123', user_id: 'owner-123' })
@@ -742,10 +747,10 @@ describe('TenantPlatformInvitationService', () => {
 					return createMockChain()
 				})
 			})) as unknown as jest.MockedFunction<
-				() => ReturnType<SupabaseService['getAdminClient']>
+				() => ReturnType<SupabaseService['getUserClient']>
 			>
 
-			await service.resendInvitation('owner-123', 'invitation-123')
+			await service.resendInvitation('owner-123', 'invitation-123', token)
 
 			// Should generate new code for expired invitations
 			expect(updateData.invitation_code).not.toBe('old-code')

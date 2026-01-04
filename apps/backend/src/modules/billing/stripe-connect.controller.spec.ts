@@ -30,7 +30,11 @@ interface MockSupabaseQueryChain {
 
 describe('StripeConnectController', () => {
 	let controller: StripeConnectController
-	let supabaseService: { getAdminClient: jest.Mock }
+	let supabaseService: {
+		getAdminClient: jest.Mock
+		getUserClient: jest.Mock
+		getTokenFromRequest: jest.Mock
+	}
 
 	const buildModule = async (mockData: {
 		propertyOwner?: { stripe_account_id: string | null } | null
@@ -50,7 +54,9 @@ describe('StripeConnectController', () => {
 		}
 
 		supabaseService = {
-			getAdminClient: jest.fn(() => supabaseClient)
+			getAdminClient: jest.fn(() => supabaseClient),
+			getUserClient: jest.fn(() => supabaseClient),
+			getTokenFromRequest: jest.fn(() => 'mock-jwt-token')
 		}
 
 		const moduleRef = await Test.createTestingModule({
@@ -73,7 +79,10 @@ describe('StripeConnectController', () => {
 		it('returns stripe_account_id when found', async () => {
 			await buildModule({ propertyOwner: { stripe_account_id: 'acct_123456' } })
 
-			const result = await controller.getStripeAccountId('user_123')
+			const result = await controller.getStripeAccountId(
+				'user_123',
+				'mock-jwt-token'
+			)
 
 			expect(result).toBe('acct_123456')
 		})
@@ -84,20 +93,20 @@ describe('StripeConnectController', () => {
 				error: { message: 'Connection failed', code: 'PGRST301' }
 			})
 
-			await expect(controller.getStripeAccountId('user_123')).rejects.toThrow(
-				InternalServerErrorException
-			)
+			await expect(
+				controller.getStripeAccountId('user_123', 'mock-jwt-token')
+			).rejects.toThrow(InternalServerErrorException)
 
-			await expect(controller.getStripeAccountId('user_123')).rejects.toThrow(
-				'Failed to retrieve payment account'
-			)
+			await expect(
+				controller.getStripeAccountId('user_123', 'mock-jwt-token')
+			).rejects.toThrow('Failed to retrieve payment account')
 		})
 
 		it('throws BadRequestException when no stripe_account_id', async () => {
 			await buildModule({ propertyOwner: { stripe_account_id: null } })
 
 			await expect(
-				controller.getStripeAccountId('user_123')
+				controller.getStripeAccountId('user_123', 'mock-jwt-token')
 			).rejects.toMatchObject({
 				name: 'BadRequestException',
 				message:
@@ -108,9 +117,9 @@ describe('StripeConnectController', () => {
 		it('throws BadRequestException when property owner not found', async () => {
 			await buildModule({ propertyOwner: null })
 
-			await expect(controller.getStripeAccountId('user_123')).rejects.toThrow(
-				BadRequestException
-			)
+			await expect(
+				controller.getStripeAccountId('user_123', 'mock-jwt-token')
+			).rejects.toThrow(BadRequestException)
 		})
 	})
 })
