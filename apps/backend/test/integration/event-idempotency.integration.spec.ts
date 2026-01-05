@@ -25,7 +25,7 @@ const SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL ||
 	process.env.SUPABASE_URL
 const SUPABASE_SECRET_KEY =
-	process.env.TEST_SUPABASE_SECRET_KEY || process.env.SB_SECRET_KEY
+	process.env.TEST_SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY
 
 const missingEnv: string[] = []
 if (!SUPABASE_URL) missingEnv.push('TEST_SUPABASE_URL')

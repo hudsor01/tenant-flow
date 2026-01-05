@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { getQueueToken } from '@nestjs/bullmq'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { FailedNotificationsService } from './failed-notifications.service'

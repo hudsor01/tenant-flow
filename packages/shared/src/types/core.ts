@@ -49,7 +49,8 @@ export type PaymentStatus =
 	| 'processing'
 	| 'succeeded'
 	| 'failed'
-	| 'cancelled'
+	| 'canceled' // American spelling (app default, matches Stripe)
+	| 'cancelled' // British spelling (legacy/compatibility)
 	| 'requires_action'
 
 export type MaintenanceStatus =

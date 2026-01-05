@@ -8,6 +8,13 @@ import type {
 	FilterVariant
 } from '#types/data-table'
 
+/**
+ * Generates CSS styles for pinned table columns
+ *
+ * @param column - TanStack table column instance
+ * @param withBorder - Whether to add shadow border effect
+ * @returns CSS properties for sticky positioning and visual effects
+ */
 export function getCommonPinningStyles<TData>({
 	column,
 	withBorder = false
@@ -39,6 +46,12 @@ export function getCommonPinningStyles<TData>({
 	}
 }
 
+/**
+ * Gets available filter operators for a given filter variant
+ *
+ * @param filterVariant - The type of filter (text, number, date, etc.)
+ * @returns Array of operator options with label and value
+ */
 export function getFilterOperators(filterVariant: FilterVariant) {
 	const operatorMap: Record<
 		FilterVariant,
@@ -57,12 +70,24 @@ export function getFilterOperators(filterVariant: FilterVariant) {
 	return operatorMap[filterVariant] ?? dataTableConfig.textOperators
 }
 
+/**
+ * Gets the default filter operator for a given filter variant
+ *
+ * @param filterVariant - The type of filter (text, number, date, etc.)
+ * @returns Default operator value for the variant
+ */
 export function getDefaultFilterOperator(filterVariant: FilterVariant) {
 	const operators = getFilterOperators(filterVariant)
 
 	return operators[0]?.value ?? (filterVariant === 'text' ? 'iLike' : 'eq')
 }
 
+/**
+ * Filters out invalid/empty filter entries
+ *
+ * @param filters - Array of column filters to validate
+ * @returns Only filters with valid values (non-empty, or isEmpty/isNotEmpty operators)
+ */
 export function getValidFilters<TData>(
 	filters: ExtendedColumnFilter<TData>[]
 ): ExtendedColumnFilter<TData>[] {

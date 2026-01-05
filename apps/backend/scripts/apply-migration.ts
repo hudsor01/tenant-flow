@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
 	process.env.NEXT_PUBLIC_SUPABASE_URL!,
-	process.env.SB_SECRET_KEY!
+	process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 async function applyMigration() {

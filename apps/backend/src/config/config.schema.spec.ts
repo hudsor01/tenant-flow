@@ -7,7 +7,7 @@ const BASE_CONFIG = {
 	DATABASE_URL: 'postgresql://user:pass@localhost:5432/testdb',
 	JWT_SECRET: 'a'.repeat(32),
 	SUPABASE_URL: 'https://project.supabase.co',
-	SB_SECRET_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test_service_role_key',
+	SUPABASE_SERVICE_ROLE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test_service_role_key',
 	SUPABASE_PUBLISHABLE_KEY: 'publishable-key',
 	PROJECT_REF: 'project-ref',
 	REDIS_URL: 'redis://redis:6379',

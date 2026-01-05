@@ -5,7 +5,7 @@ import { SupabaseService } from '../../../database/supabase.service'
 import { PropertyCacheInvalidationService } from './property-cache-invalidation.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { PropertiesService } from '../properties.service'
-import { SilentLogger } from '../../../__test__/silent-logger'
+import { SilentLogger } from '../../../__tests__/silent-logger'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { Property } from '@repo/shared/types/core'
 

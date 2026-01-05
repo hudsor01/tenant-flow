@@ -6,7 +6,7 @@ import {
 import { StripeConnectController } from './stripe-connect.controller'
 import { StripeConnectService } from './stripe-connect.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Note: validateLimit tests moved to shared/utils/pagination.utils.spec.ts

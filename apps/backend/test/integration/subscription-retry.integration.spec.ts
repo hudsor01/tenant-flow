@@ -2,7 +2,7 @@
  * Integration Tests for Subscription Retry Service
  *
  * These tests verify that the subscription retry job correctly:
- * - Uses admin client (SB_SECRET_KEY) for database queries
+ * - Uses admin client (SUPABASE_SERVICE_ROLE_KEY) for database queries
  * - Handles missing Stripe accounts gracefully
  * - Calculates exponential backoff correctly
  * - Queries leases successfully using admin client
@@ -81,7 +81,7 @@ describeIf('SubscriptionRetryService Integration', () => {
 	const setMinimalRequiredEnv = () => {
 		// Supabase config
 		process.env.SUPABASE_URL = validSupabaseUrl
-		process.env.SB_SECRET_KEY = validSecretKey
+		process.env.SUPABASE_SERVICE_ROLE_KEY = validSecretKey
 		process.env.PROJECT_REF = validProjectRef
 		process.env.SUPABASE_PUBLISHABLE_KEY = validPublishableKey
 		process.env.VERIFY_DB_ON_STARTUP = 'false'
@@ -147,12 +147,12 @@ describeIf('SubscriptionRetryService Integration', () => {
 	})
 
 	describe('admin client usage', () => {
-		it('should use admin client (SB_SECRET_KEY) for database queries', async () => {
+		it('should use admin client (SUPABASE_SERVICE_ROLE_KEY) for database queries', async () => {
 			// Verify that the service uses getAdminClient()
 			const adminClient = supabaseService.getAdminClient()
 			expect(adminClient).toBeDefined()
 
-			// The admin client should be initialized with SB_SECRET_KEY
+			// The admin client should be initialized with SUPABASE_SERVICE_ROLE_KEY
 			// We can verify this by checking that queries work without user context
 			const spy = jest.spyOn(supabaseService, 'getAdminClient')
 

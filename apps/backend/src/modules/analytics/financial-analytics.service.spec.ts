@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing'
 import { FinancialAnalyticsService } from './financial-analytics.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import type {
 	FinancialMetricSummary,
 	NetOperatingIncomeByProperty

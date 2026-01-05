@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Mail, Smartphone, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
@@ -63,24 +63,17 @@ export function GeneralSettings() {
 		staleTime: 5 * 60 * 1000
 	})
 
-	const [businessName, setBusinessName] = useState('')
-	const [contactEmail, setContactEmail] = useState('')
-	const [phone, setPhone] = useState('')
+	// Derive display values directly from query data (no sync needed)
+	const businessName = companyProfile?.business_name ?? ''
+	const contactEmail = profile?.email ?? ''
+
+	// Only track user edits for saveable fields
+	const [phoneEdit, setPhoneEdit] = useState<string | null>(null)
+	const phone = phoneEdit ?? profile?.phone ?? ''
+
+	// UI-only preferences (not persisted to backend yet)
 	const [timezone, setTimezone] = useState('America/Chicago')
 	const [language, setLanguage] = useState('en-US')
-
-	// Update form when data loads
-	useEffect(() => {
-		if (companyProfile?.business_name) {
-			setBusinessName(companyProfile.business_name)
-		}
-		if (profile?.email) {
-			setContactEmail(profile.email)
-		}
-		if (profile?.phone) {
-			setPhone(profile.phone)
-		}
-	}, [companyProfile, profile])
 
 	const queryClient = useQueryClient()
 
@@ -112,12 +105,9 @@ export function GeneralSettings() {
 	}
 
 	const handleSaveChanges = () => {
-		const updates: { phone?: string; email?: string } = {}
-		if (phone !== profile?.phone) {
-			updates.phone = phone
-		}
-		if (Object.keys(updates).length > 0) {
-			updateProfile.mutate(updates)
+		// Only save if user made edits (phoneEdit is non-null)
+		if (phoneEdit !== null && phoneEdit !== profile?.phone) {
+			updateProfile.mutate({ phone: phoneEdit })
 		} else {
 			toast.info('No changes to save')
 		}
@@ -162,9 +152,9 @@ export function GeneralSettings() {
 								id="businessName"
 								type="text"
 								value={businessName}
-								onChange={e => setBusinessName(e.target.value)}
+								readOnly
 								placeholder="Your business name"
-								className="h-10 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+								className="h-10 rounded-lg border bg-muted px-3 text-sm text-muted-foreground cursor-not-allowed"
 							/>
 							<p className="text-xs text-muted-foreground">
 								Business name is managed through Stripe Connect
@@ -181,9 +171,9 @@ export function GeneralSettings() {
 									id="contactEmail"
 									type="email"
 									value={contactEmail}
-									onChange={e => setContactEmail(e.target.value)}
+									readOnly
 									placeholder="contact@example.com"
-									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+									className="h-10 flex-1 rounded-lg border bg-muted px-3 text-sm text-muted-foreground cursor-not-allowed"
 								/>
 							</div>
 						</div>
@@ -198,7 +188,7 @@ export function GeneralSettings() {
 									id="phone"
 									type="tel"
 									value={phone}
-									onChange={e => setPhone(e.target.value)}
+									onChange={e => setPhoneEdit(e.target.value)}
 									placeholder="(555) 123-4567"
 									className="h-10 flex-1 rounded-lg border bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
 								/>

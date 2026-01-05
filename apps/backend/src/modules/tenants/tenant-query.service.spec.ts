@@ -7,7 +7,7 @@ import { TenantListService } from './tenant-list.service'
 import { TenantStatsService } from './tenant-stats.service'
 import { TenantRelationService } from './tenant-relation.service'
 import { TenantInvitationQueryService } from './tenant-invitation-query.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']

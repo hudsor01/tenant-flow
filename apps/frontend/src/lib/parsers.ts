@@ -13,6 +13,16 @@ const sortingItemSchema = z.object({
 	desc: z.boolean()
 })
 
+/**
+ * Creates a nuqs parser for table sorting state
+ *
+ * @param columnIds - Optional list of valid column IDs to validate against
+ * @returns Parser that serializes/deserializes sorting state to/from URL
+ *
+ * @example
+ * const sortingParser = getSortingStateParser(['name', 'date'])
+ * // URL: ?sort=[{"id":"name","desc":true}]
+ */
 export const getSortingStateParser = <TData>(
 	columnIds?: string[] | Set<string>
 ) => {
@@ -59,6 +69,16 @@ const filterItemSchema = z.object({
 
 export type FilterItemSchema = z.infer<typeof filterItemSchema>
 
+/**
+ * Creates a nuqs parser for table filter state
+ *
+ * @param columnIds - Optional list of valid column IDs to validate against
+ * @returns Parser that serializes/deserializes filter state to/from URL
+ *
+ * @example
+ * const filterParser = getFiltersStateParser(['status', 'name'])
+ * // URL: ?filters=[{"id":"status","value":"active","variant":"select","operator":"eq"}]
+ */
 export const getFiltersStateParser = <TData>(
 	columnIds?: string[] | Set<string>
 ) => {

@@ -69,7 +69,7 @@ export class SupabaseHealthService {
 								keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20),
 								errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED
 							},
-							'[SUP-005] Invalid Supabase API key - check SB_SECRET_KEY environment variable'
+							'[SUP-005] Invalid Supabase API key - check SUPABASE_SERVICE_ROLE_KEY environment variable'
 						)
 						return {
 							status: 'unhealthy',
@@ -109,7 +109,7 @@ export class SupabaseHealthService {
 							keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20),
 							errorCode: SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED
 						},
-						'[SUP-005] Invalid Supabase API key - check SB_SECRET_KEY environment variable'
+						'[SUP-005] Invalid Supabase API key - check SUPABASE_SERVICE_ROLE_KEY environment variable'
 					)
 					return {
 						status: 'unhealthy',
@@ -169,7 +169,7 @@ export class SupabaseHealthService {
 							urlPrefix: this.config.getSupabaseUrl()?.substring(0, 35),
 							keyPrefix: this.config.getSupabaseSecretKey()?.substring(0, 20)
 						},
-						`[${SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED}] Invalid Supabase API key - check SB_SECRET_KEY environment variable`
+						`[${SUPABASE_ERROR_CODES.HEALTH_CHECK_FAILED}] Invalid Supabase API key - check SUPABASE_SERVICE_ROLE_KEY environment variable`
 					)
 				} else {
 					this.logger?.error(

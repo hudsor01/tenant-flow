@@ -4,7 +4,7 @@ import { UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { JwtAuthGuard } from './jwt-auth.guard'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('JwtAuthGuard', () => {

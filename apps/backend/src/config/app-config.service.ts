@@ -86,7 +86,7 @@ export class AppConfigService {
 	}
 
 	getSupabaseSecretKey(): string {
-		return this.get('SB_SECRET_KEY')
+		return this.get('SUPABASE_SERVICE_ROLE_KEY')
 	}
 
 	getSupabasePublishableKey(): string | undefined {

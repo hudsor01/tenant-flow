@@ -40,10 +40,10 @@ describe('Tenant Invitation Flow - Property-Based Integration Tests', () => {
 			`=== DEBUG: SUPABASE_URL: ${process.env.SUPABASE_URL?.substring(0, 35)}...\n`
 		)
 		process.stdout.write(
-			`=== DEBUG: SB_SECRET_KEY exists: ${!!process.env.SB_SECRET_KEY}\n`
+			`=== DEBUG: SUPABASE_SERVICE_ROLE_KEY exists: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}\n`
 		)
 		process.stdout.write(
-			`=== DEBUG: SB_SECRET_KEY prefix: ${process.env.SB_SECRET_KEY?.substring(0, 10)}...\n`
+			`=== DEBUG: SUPABASE_SERVICE_ROLE_KEY prefix: ${process.env.SUPABASE_SERVICE_ROLE_KEY?.substring(0, 10)}...\n`
 		)
 
 		// Test if service role bypasses RLS for a simple table

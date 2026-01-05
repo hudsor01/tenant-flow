@@ -2,18 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import type { MetricTypeValue, PeriodTypeValue } from './dto/reports-query.dto'
 import { AppLogger } from '../../../logger/app-logger.service'
-
-export interface MetricTrend {
-	current: number
-	previous: number | null
-	change: number
-	percentChange: number
-}
-
-export interface TimeSeriesDataPoint {
-	date: string
-	value: number
-}
+import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
 
 /**
  * ReportsService

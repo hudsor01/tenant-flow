@@ -3,7 +3,7 @@ import { HealthCheckService } from '@nestjs/terminus'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { AppLogger } from '../logger/app-logger.service'
 import { CircuitBreakerService } from './circuit-breaker.service'

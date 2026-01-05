@@ -135,7 +135,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
 		null
 	const serviceuser_typeKey =
-		process.env.TEST_SB_SECRET_KEY ?? process.env.SB_SECRET_KEY ?? null
+		process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null
 	const jwtSecret =
 		process.env.TEST_JWT_SECRET ?? process.env.JWT_SECRET ?? null
 
@@ -168,7 +168,7 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 	}
 	if (!serviceuser_typeKey) {
 		throw new Error(
-			'TEST_SB_SECRET_KEY or SB_SECRET_KEY environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!jwtSecret) {
@@ -316,7 +316,7 @@ export async function createTestModule(moduleMetadata: {
 	process.env.DATABASE_URL = testConfig.database.url
 	process.env.SUPABASE_URL = testConfig.supabase.url
 	process.env.SUPABASE_PUBLISHABLE_KEY = testConfig.supabase.publishableKey
-	process.env.SB_SECRET_KEY = testConfig.supabase.serviceuser_typeKey
+	process.env.SUPABASE_SERVICE_ROLE_KEY = testConfig.supabase.serviceuser_typeKey
 	process.env.JWT_SECRET = testConfig.supabase.jwtSecret
 	process.env.STRIPE_SECRET_KEY = testConfig.stripe.secretKey
 	process.env.STRIPE_WEBHOOK_SECRET = testConfig.stripe.webhookSecret
