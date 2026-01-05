@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing'
 import { PropertyPerformanceController } from './property-performance.controller'
 import { PropertyPerformanceService } from './property-performance.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('PropertyPerformanceController', () => {

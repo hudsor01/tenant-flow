@@ -106,7 +106,7 @@ describe('SupabaseConfigValidator', () => {
 
 				expect(result.isValid).toBe(false)
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 			})
 
@@ -119,7 +119,7 @@ describe('SupabaseConfigValidator', () => {
 
 				expect(result.isValid).toBe(false)
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 			})
 
@@ -132,7 +132,7 @@ describe('SupabaseConfigValidator', () => {
 
 				expect(result.isValid).toBe(false)
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 			})
 
@@ -145,7 +145,7 @@ describe('SupabaseConfigValidator', () => {
 
 				expect(result.isValid).toBe(false)
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 			})
 		})
@@ -211,7 +211,7 @@ describe('SupabaseConfigValidator', () => {
 				expect(result.errors.length).toBeGreaterThanOrEqual(2)
 				expect(result.errors).toContain('SUPABASE_URL must be a valid URL')
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 			})
 
@@ -224,7 +224,7 @@ describe('SupabaseConfigValidator', () => {
 
 				expect(result.isValid).toBe(false)
 				expect(result.errors).toContain(
-					'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+					'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 				)
 				expect(result.warnings).toContain(
 					'PROJECT_REF (projectxyz) does not match URL project (projectabc)'

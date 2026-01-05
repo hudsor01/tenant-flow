@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import { CompressionService } from './compression.service'
 import { PDFDocument, StandardFonts } from 'pdf-lib'
 import { performanceConfig } from '../../config/performance.config'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('CompressionService - PDF compression', () => {

@@ -51,7 +51,8 @@
 		"validate": "pnpm db:types && pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && pnpm test:unit && doppler run -- pnpm test:integration && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
 		"validate:quick": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
 		"validate:clean": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm --filter @repo/backend test:unit && echo '✅ CLEAN VALIDATION PASSED'",
-		"stripe:migrate": "doppler run -- pnpm --filter @repo/backend stripe:migrate"
+		"stripe:migrate": "doppler run -- pnpm --filter @repo/backend stripe:migrate",
+		"detect:types": "./scripts/check-duplicate-types.sh"
 	},
 	"commitlint": {
 		"extends": [

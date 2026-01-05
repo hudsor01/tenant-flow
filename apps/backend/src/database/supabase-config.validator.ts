@@ -44,7 +44,7 @@ export class SupabaseConfigValidator {
 		// Validate secret key format (modern or legacy)
 		if (!this.isValidSecretKey(config.secretKey)) {
 			errors.push(
-				'SB_SECRET_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
+				'SUPABASE_SERVICE_ROLE_KEY must be either a secret key (starts with "sb_secret_") or JWT (starts with "eyJ")'
 			)
 		}
 

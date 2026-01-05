@@ -74,7 +74,7 @@ const environmentSchema = z
 		 * WARNING: User-facing requests should use getUserClient(jwt) which respects RLS
 		 * If you're tempted to use getAdminClient() for user requests, your RLS policies are wrong
 		 */
-		SB_SECRET_KEY: z
+		SUPABASE_SERVICE_ROLE_KEY: z
 			.string()
 			.refine(
 				key => key.startsWith('sb_secret_') || key.startsWith('eyJ'),

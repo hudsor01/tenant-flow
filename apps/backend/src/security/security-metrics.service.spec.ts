@@ -2,7 +2,7 @@ import {
 	SecurityEventSeverity,
 	SecurityEventType
 } from '@repo/shared/types/security'
-import { createMockSupabaseService } from '../__test__/supabase-mock'
+import { createMockSupabaseService } from '../__tests__/supabase-mock'
 import { SupabaseService } from '../database/supabase.service'
 import { securityAuditLogFixture } from './__fixtures__/security-audit-logs.fixture'
 import { SecurityMetricsService } from './security-metrics.service'

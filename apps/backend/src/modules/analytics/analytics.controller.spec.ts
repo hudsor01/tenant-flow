@@ -4,7 +4,7 @@ import { AnalyticsController } from './analytics.controller'
 import { AnalyticsService } from './analytics.service'
 import type { MobileAnalyticsEventDto } from './dto/mobile-analytics-event.dto'
 import type { WebVitalMetric } from './dto/web-vital.dto'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock the AnalyticsService
