@@ -2,7 +2,7 @@ import { Test } from '@nestjs/testing'
 import type { TestingModule } from '@nestjs/testing'
 import { ReactLeasePDFService } from './react-lease-pdf.service'
 import type { LeaseGenerationFormData } from '@repo/shared/validation/lease-generation.schemas'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock NestJS Logger to suppress console output during tests

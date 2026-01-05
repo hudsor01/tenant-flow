@@ -6,7 +6,7 @@ import { TenantCrudService } from './tenant-crud.service'
 import { TenantBulkOperationsService } from './tenant-bulk-operations.service'
 import { TenantNotificationPreferencesService } from './tenant-notification-preferences.service'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 

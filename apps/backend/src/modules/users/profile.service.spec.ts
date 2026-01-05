@@ -17,7 +17,7 @@ import {
 	InternalServerErrorException,
 	NotFoundException
 } from '@nestjs/common'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 
 // Mock user data
 const mockUserData = {

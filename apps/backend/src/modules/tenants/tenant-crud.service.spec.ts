@@ -18,7 +18,7 @@ import type {
 	UpdateTenantRequest
 } from '@repo/shared/types/api-contracts'
 import type { Tenant } from '@repo/shared/types/core'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('TenantCrudService', () => {

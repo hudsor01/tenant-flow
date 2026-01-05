@@ -15,7 +15,7 @@ import { Test } from '@nestjs/testing'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { AppConfigService } from '../config/app-config.service'
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SUPABASE_ADMIN_CLIENT } from './supabase.constants'
 import { SupabaseRpcService } from './supabase-rpc.service'
@@ -36,8 +36,8 @@ describe('SupabaseService', () => {
 	beforeEach(async () => {
 		// Set up environment variables that SupabaseService actually uses
 		process.env.SUPABASE_URL = 'https://test-project.supabase.co'
-		// Use new SB_SECRET_KEY format (fall back still supported via SERVICE_ROLE)
-		process.env.SB_SECRET_KEY = 'sb_secret_test-service-key'
+		// Use new SUPABASE_SERVICE_ROLE_KEY format (fall back still supported via SERVICE_ROLE)
+		process.env.SUPABASE_SERVICE_ROLE_KEY = 'sb_secret_test-service-key'
 		process.env.SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_test-publishable-key'
 
 		// Create mock logger

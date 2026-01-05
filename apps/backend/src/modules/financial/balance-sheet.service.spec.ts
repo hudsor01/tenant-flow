@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { BalanceSheetService } from './balance-sheet.service'
 import * as ledgerHelpers from './financial-ledger.helpers'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('BalanceSheetService', () => {

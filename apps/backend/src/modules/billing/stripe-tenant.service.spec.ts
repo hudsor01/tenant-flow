@@ -4,7 +4,7 @@ import type Stripe from 'stripe'
 import { StripeTenantService } from './stripe-tenant.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 const createMockStripe = (): jest.Mocked<Stripe> => {

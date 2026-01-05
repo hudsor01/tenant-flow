@@ -65,7 +65,7 @@ describeIf('SupabaseModule Initialization Integration', () => {
 	const setMinimalRequiredEnv = () => {
 		// Supabase config
 		process.env.SUPABASE_URL = validSupabaseUrl
-		process.env.SB_SECRET_KEY = validSecretKey
+		process.env.SUPABASE_SERVICE_ROLE_KEY = validSecretKey
 		process.env.PROJECT_REF = validProjectRef
 		process.env.SUPABASE_PUBLISHABLE_KEY = validPublishableKey
 
@@ -135,7 +135,7 @@ describeIf('SupabaseModule Initialization Integration', () => {
 			// Set all required vars except SUPABASE_URL
 			delete process.env.SUPABASE_URL
 			delete process.env.NEXT_PUBLIC_SUPABASE_URL
-			process.env.SB_SECRET_KEY = validSecretKey
+			process.env.SUPABASE_SERVICE_ROLE_KEY = validSecretKey
 			process.env.PROJECT_REF = validProjectRef
 			process.env.SUPABASE_PUBLISHABLE_KEY = validPublishableKey
 
@@ -161,11 +161,11 @@ describeIf('SupabaseModule Initialization Integration', () => {
 		})
 	})
 
-	describe('failure with missing SB_SECRET_KEY environment variable', () => {
-		it('should fail with clear error message when SB_SECRET_KEY is missing', async () => {
-			// Set all required vars except SB_SECRET_KEY
+	describe('failure with missing SUPABASE_SERVICE_ROLE_KEY environment variable', () => {
+		it('should fail with clear error message when SUPABASE_SERVICE_ROLE_KEY is missing', async () => {
+			// Set all required vars except SUPABASE_SERVICE_ROLE_KEY
 			process.env.SUPABASE_URL = validSupabaseUrl
-			delete process.env.SB_SECRET_KEY
+			delete process.env.SUPABASE_SERVICE_ROLE_KEY
 			process.env.PROJECT_REF = validProjectRef
 			process.env.SUPABASE_PUBLISHABLE_KEY = validPublishableKey
 
@@ -187,15 +187,15 @@ describeIf('SupabaseModule Initialization Integration', () => {
 						}
 					]
 				}).compile()
-			}).rejects.toThrow(/SB_SECRET_KEY/)
+			}).rejects.toThrow(/SUPABASE_SERVICE_ROLE_KEY/)
 		})
 	})
 
-	describe('failure with invalid key format in SB_SECRET_KEY', () => {
-		it('should fail when SB_SECRET_KEY has invalid format', async () => {
+	describe('failure with invalid key format in SUPABASE_SERVICE_ROLE_KEY', () => {
+		it('should fail when SUPABASE_SERVICE_ROLE_KEY has invalid format', async () => {
 			// Set invalid key format (neither sb_secret_ nor eyJ)
 			process.env.SUPABASE_URL = validSupabaseUrl
-			process.env.SB_SECRET_KEY = 'invalid_key_format_12345'
+			process.env.SUPABASE_SERVICE_ROLE_KEY = 'invalid_key_format_12345'
 			process.env.PROJECT_REF = validProjectRef
 			process.env.SUPABASE_PUBLISHABLE_KEY = validPublishableKey
 

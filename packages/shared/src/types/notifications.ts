@@ -88,8 +88,12 @@ export interface UseOptions {
 	reconnectDelay?: number
 }
 
-// Notification preferences
-export interface NotificationPreferences {
+/**
+ * Notification Channel Preferences
+ * Controls HOW notifications are delivered (which channels)
+ * Used for real-time notification system configuration
+ */
+export interface NotificationChannelPreferences {
 	email: boolean
 	push: boolean
 	sms: boolean
@@ -101,9 +105,22 @@ export interface NotificationPreferences {
 	}
 }
 
-export type NotificationPreferencesWithVersion = NotificationPreferences & {
-	version?: number
-}
+export type NotificationChannelPreferencesWithVersion =
+	NotificationChannelPreferences & {
+		version?: number
+	}
+
+/**
+ * @deprecated Use NotificationChannelPreferences instead
+ * Kept for backwards compatibility during migration
+ */
+export type NotificationPreferences = NotificationChannelPreferences
+
+/**
+ * @deprecated Use NotificationChannelPreferencesWithVersion instead
+ */
+export type NotificationPreferencesWithVersion =
+	NotificationChannelPreferencesWithVersion
 
 // Notification priority constants
 export const NOTIFICATION_PRIORITY = {

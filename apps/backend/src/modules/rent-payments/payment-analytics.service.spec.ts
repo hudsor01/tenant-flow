@@ -6,7 +6,7 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { PaymentAnalyticsService } from './payment-analytics.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 
 describe('PaymentAnalyticsService', () => {
 	let service: PaymentAnalyticsService

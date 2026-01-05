@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import { HttpStatus } from '@nestjs/common'
 import { DatabaseExceptionFilter } from './database-exception.filter'
 import type { ArgumentsHost } from '@nestjs/common'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock NestJS Logger to suppress console output during tests

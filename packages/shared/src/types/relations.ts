@@ -25,10 +25,7 @@ type InvitationStatus = 'pending' | 'accepted' | 'expired' | 'CANCELLED'
 
 // Document type from database
 type Document = Database['public']['Tables']['documents']['Row']
-import type {
-	NotificationData,
-	NotificationPreferencesWithVersion as NotificationPreferencesWithVersionType
-} from './notifications.js'
+import type { NotificationData } from './notifications.js'
 
 // Property relations
 export interface PropertyWithDetails extends Property {
@@ -323,5 +320,4 @@ export type PropertyWithVersion = PropertyWithVersionType
 export type UnitWithVersion = UnitWithVersionType
 export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfoWithVersionType
 export type PaymentMethodResponseWithVersion = PaymentMethodResponseWithVersionType
-export type NotificationPreferencesWithVersion =
-	NotificationPreferencesWithVersionType
+

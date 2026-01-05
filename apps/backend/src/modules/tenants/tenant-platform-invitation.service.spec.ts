@@ -19,7 +19,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import type { Database } from '@repo/shared/types/supabase'
 

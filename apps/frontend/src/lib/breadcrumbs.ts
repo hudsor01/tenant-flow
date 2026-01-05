@@ -49,6 +49,18 @@ const LABEL_MAP: Record<string, string> = {
 	search: 'Search'
 }
 
+/**
+ * Generates breadcrumb items from a URL pathname
+ *
+ * @param pathname - The URL pathname (e.g., '/properties/123/edit')
+ * @returns Array of breadcrumb items with href and label
+ *
+ * @example
+ * generateBreadcrumbs('/properties/123/edit')
+ * // [{ href: '/properties', label: 'Properties' },
+ * //  { href: '/properties/123', label: 'Properties Details' },
+ * //  { href: '/properties/123/edit', label: 'Edit' }]
+ */
 export function generateBreadcrumbs(pathname: string): BreadcrumbItem[] {
 	const segments = pathname.split('/').filter(Boolean)
 	let currentPath = ''

@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing'
 import { GoneException } from '@nestjs/common'
 
 import { DashboardController } from './dashboard.controller'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('DashboardController', () => {

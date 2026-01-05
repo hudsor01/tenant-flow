@@ -139,7 +139,7 @@ describe('SupabaseConfigValidator - Property-Based Tests', () => {
 
 					// If JWT is invalid, should have JWT error
 					if (!config.secretKey.startsWith('eyJ')) {
-						expect(result.errors.some(e => e.includes('SB_SECRET_KEY'))).toBe(
+						expect(result.errors.some(e => e.includes('SUPABASE_SERVICE_ROLE_KEY'))).toBe(
 							true
 						)
 					}
@@ -288,7 +288,7 @@ describe('SupabaseConfigValidator - Property-Based Tests', () => {
 						result.errors.forEach(error => {
 							const mentionsField =
 								error.includes('SUPABASE_URL') ||
-								error.includes('SB_SECRET_KEY') ||
+								error.includes('SUPABASE_SERVICE_ROLE_KEY') ||
 								error.includes('PROJECT_REF')
 							expect(mentionsField).toBe(true)
 						})

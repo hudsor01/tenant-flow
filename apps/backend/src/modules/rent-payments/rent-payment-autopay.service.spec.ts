@@ -11,7 +11,7 @@ import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
 import type { Lease, Tenant, User } from './types'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('RentPaymentAutopayService', () => {

@@ -16,7 +16,7 @@ import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyBulkImportService } from './services/property-bulk-import.service'
 import { PropertyAnalyticsService } from './services/property-analytics.service'
 import { DashboardStatsService } from '../dashboard/dashboard-stats.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock the PropertiesService

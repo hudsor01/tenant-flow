@@ -8,7 +8,7 @@ import { SubscriptionsService } from './subscriptions.service'
 import { SubscriptionQueryService } from './subscription-query.service'
 import { SubscriptionBillingService } from './subscription-billing.service'
 import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 
 describe('SubscriptionsService (Facade)', () => {

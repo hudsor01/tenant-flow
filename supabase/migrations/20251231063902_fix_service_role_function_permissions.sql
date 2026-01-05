@@ -5,7 +5,7 @@
 -- Root Cause Analysis:
 --   The migration 20251230240000_fix_function_security.sql correctly secured functions
 --   by revoking PUBLIC access, but only granted EXECUTE to 'authenticated' role.
---   The backend uses the secret key (SB_SECRET_KEY) which authenticates as the
+--   The backend uses the service role key (SUPABASE_SERVICE_ROLE_KEY) which authenticates as the
 --   'service_role' PostgreSQL role. Even though service_role has bypassrls privilege,
 --   function EXECUTE permissions are separate and must be explicitly granted.
 --

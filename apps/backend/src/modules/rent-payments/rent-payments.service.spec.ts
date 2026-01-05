@@ -15,7 +15,7 @@ import { RentPaymentsService } from './rent-payments.service'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import { RentPaymentAutopayService } from './rent-payment-autopay.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']

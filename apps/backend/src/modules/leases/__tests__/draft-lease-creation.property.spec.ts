@@ -33,7 +33,7 @@ import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { LeasesService } from '../leases.service'
 import { SupabaseService } from '../../../database/supabase.service'
-import { SilentLogger } from '../../../__test__/silent-logger'
+import { SilentLogger } from '../../../__tests__/silent-logger'
 import { AppLogger } from '../../../logger/app-logger.service'
 import type { CreateLeaseDto } from '../dto/create-lease.dto'
 

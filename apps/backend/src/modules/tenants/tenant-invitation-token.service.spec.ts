@@ -15,7 +15,7 @@ import { BadRequestException, Logger, NotFoundException } from '@nestjs/common'
 import * as fc from 'fast-check'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('TenantInvitationTokenService', () => {

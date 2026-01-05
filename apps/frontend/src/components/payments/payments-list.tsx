@@ -61,11 +61,17 @@ function getStatusConfig(status: PaymentStatus) {
 			icon: XCircle,
 			label: 'Failed'
 		},
+		canceled: {
+			className:
+				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
+			icon: XCircle,
+			label: 'Canceled'
+		},
 		cancelled: {
 			className:
 				'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
 			icon: XCircle,
-			label: 'Cancelled'
+			label: 'Canceled'
 		},
 		requires_action: {
 			className:

@@ -3,6 +3,9 @@
  * Consolidated source for all stats, metrics, and statistical aggregations
  */
 
+// Import analytics types for internal use (NO re-export per CLAUDE.md rules)
+import type { MetricTrend } from './analytics.js'
+
 // Property statistics
 export interface PropertyStats {
 	total: number
@@ -183,19 +186,7 @@ export interface UserStats {
 	verifiedUsers: number
 }
 
-// Dashboard trend and time series types (merged from dashboard-repository.ts)
-export interface MetricTrend {
-	current: number
-	previous: number | null
-	change: number
-	percentChange: number
-}
-
-export interface TimeSeriesDataPoint {
-	date: string
-	value: number
-}
-
+// Dashboard trend data (uses MetricTrend from analytics.ts)
 export interface DashboardTrendData {
 	occupancyRate: MetricTrend
 	activeTenants: MetricTrend

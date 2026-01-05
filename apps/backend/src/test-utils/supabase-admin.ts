@@ -2,14 +2,14 @@ import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL =
 	process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SB_SECRET_KEY = process.env.SB_SECRET_KEY!
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-if (!SUPABASE_URL || !SB_SECRET_KEY) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 	// Allow tests to import the module even if env not set; runtime will throw when used.
 }
 
 export function createAdminClient() {
-	return createClient(SUPABASE_URL, SB_SECRET_KEY)
+	return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 }
 
 export async function createTestUser(email: string, password: string) {

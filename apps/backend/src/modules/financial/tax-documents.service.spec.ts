@@ -8,7 +8,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { SupabaseService } from '../../database/supabase.service'
 import { TaxDocumentsService } from './tax-documents.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 type RentPaymentRow = Database['public']['Tables']['rent_payments']['Row']

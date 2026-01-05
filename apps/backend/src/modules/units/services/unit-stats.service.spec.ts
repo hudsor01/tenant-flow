@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common'
 import { UnitStatsService } from './unit-stats.service'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
-import { SilentLogger } from '../../../__test__/silent-logger'
+import { SilentLogger } from '../../../__tests__/silent-logger'
 import type { Unit } from '@repo/shared/types/core'
 
 function createMockUnit(overrides?: Partial<Unit>): Unit {

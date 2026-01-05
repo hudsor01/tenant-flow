@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing'
 import { EventEmitter2 } from '@nestjs/event-emitter'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { createMockMaintenanceRequest } from '../../test-utils/mocks'

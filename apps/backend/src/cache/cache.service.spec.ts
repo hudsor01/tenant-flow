@@ -7,7 +7,7 @@
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { RedisCacheService } from './cache.service'
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { AppConfigService } from '../config/app-config.service'
 import { MODULE_OPTIONS_TOKEN } from './cache.module-definition'

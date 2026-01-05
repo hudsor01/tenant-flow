@@ -19,7 +19,7 @@ import { Test } from '@nestjs/testing'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { DocuSealWebhookService } from '../../src/modules/docuseal/docuseal-webhook.service'
 import { SupabaseService } from '../../src/database/supabase.service'
-import { SilentLogger } from '../../src/__test__/silent-logger'
+import { SilentLogger } from '../../src/__tests__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
 import { SseService } from '../../src/modules/notifications/sse/sse.service'
 

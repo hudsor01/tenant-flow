@@ -6,7 +6,7 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common'
 import { Test } from '@nestjs/testing'
 import type { Database } from '@repo/shared/types/supabase'
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 import { SupabaseService } from '../database/supabase.service'
 import { StripeClientService } from '../shared/stripe-client.service'

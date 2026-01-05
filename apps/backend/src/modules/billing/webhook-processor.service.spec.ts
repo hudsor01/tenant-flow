@@ -5,7 +5,7 @@ import { SubscriptionWebhookHandler } from './handlers/subscription-webhook.hand
 import { PaymentWebhookHandler } from './handlers/payment-webhook.handler'
 import { CheckoutWebhookHandler } from './handlers/checkout-webhook.handler'
 import { ConnectWebhookHandler } from './handlers/connect-webhook.handler'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('WebhookProcessor', () => {

@@ -2,7 +2,7 @@ import { Test, type TestingModule } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { LeaseValidationService } from './lease-validation.service'
 import type { LeaseFormData } from '@repo/shared/types/lease-generator.types'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('LeaseValidationService', () => {

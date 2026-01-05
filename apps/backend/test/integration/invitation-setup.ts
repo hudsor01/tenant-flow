@@ -119,11 +119,11 @@ export async function authenticateAs(
 export function getServiceClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	const serviceKey = process.env.SB_SECRET_KEY
+	const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 	if (!supabaseUrl || !serviceKey) {
 		throw new Error(
-			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SB_SECRET_KEY).'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY).'
 		)
 	}
 

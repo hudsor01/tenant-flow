@@ -33,11 +33,8 @@ import type {
 	PropertyPerformance,
 	FinancialMetrics
 } from '@repo/shared/types/core'
-import type {
-	MetricTrend,
-	TimeSeriesDataPoint,
-	DashboardTimeSeriesOptions
-} from '@repo/shared/types/stats'
+import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
+import type { DashboardTimeSeriesOptions } from '@repo/shared/types/stats'
 
 // ============================================================================
 // QUERY KEYS

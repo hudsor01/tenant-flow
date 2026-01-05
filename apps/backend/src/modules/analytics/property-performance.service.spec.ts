@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common'
 import { Test, type TestingModule } from '@nestjs/testing'
 import { PropertyPerformanceService } from './property-performance.service'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('PropertyPerformanceService - Trend Calculation', () => {
