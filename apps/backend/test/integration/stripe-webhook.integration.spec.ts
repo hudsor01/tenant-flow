@@ -23,7 +23,7 @@ import {
 	type AuthenticatedTestClient
 } from './rls/setup'
 import { AppLogger } from '../../src/logger/app-logger.service'
-import { SilentLogger } from '../../src/__test__/silent-logger'
+import { SilentLogger } from '../../src/__tests__/silent-logger'
 
 describe('Stripe Webhook Integration', () => {
 	let processor: WebhookProcessor

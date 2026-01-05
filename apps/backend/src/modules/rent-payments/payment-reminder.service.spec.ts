@@ -8,7 +8,7 @@ import { PaymentReminderService } from './payment-reminder.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 
 describe('PaymentReminderService', () => {
 	let service: PaymentReminderService

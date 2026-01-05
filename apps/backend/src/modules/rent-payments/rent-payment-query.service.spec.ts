@@ -8,7 +8,7 @@ import { Test } from '@nestjs/testing'
 import { SupabaseService } from '../../database/supabase.service'
 import { RentPaymentQueryService } from './rent-payment-query.service'
 import type { RentPayment, Lease } from './types'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('RentPaymentQueryService', () => {

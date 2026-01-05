@@ -1,6 +1,6 @@
 import { UserToursService } from './user-tours.service'
-import { createMockSupabaseService } from '../../__test__/supabase-mock'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { createMockSupabaseService } from '../../__tests__/supabase-mock'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import type { SupabaseService } from '../../database/supabase.service'
 
 const TOKEN = 'test-token'

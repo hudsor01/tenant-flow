@@ -14,7 +14,7 @@ import {
 } from '@nestjs/swagger'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { ReportsService } from './reports.service'
-import type { MetricTrend, TimeSeriesDataPoint } from './reports.service'
+import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { OwnerContextInterceptor } from '../interceptors/owner-context.interceptor'

@@ -4,7 +4,7 @@ import { QueryPerformanceInterceptor } from './query-performance.interceptor'
 import { of, throwError } from 'rxjs'
 import type { CallHandler, ExecutionContext, Logger } from '@nestjs/common'
 import { performance } from 'node:perf_hooks'
-import { SilentLogger } from '../__test__/silent-logger'
+import { SilentLogger } from '../__tests__/silent-logger'
 import { AppLogger } from '../logger/app-logger.service'
 
 describe('QueryPerformanceInterceptor', () => {

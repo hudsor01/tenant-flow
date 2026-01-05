@@ -540,7 +540,7 @@ export interface TenantProfile {
 
 export interface TenantSettings {
 	profile: TenantProfile
-	notification_preferences: TenantNotificationPreferences
+	notification_preferences: TenantNotificationSettingsResponse
 }
 
 export interface CreateMaintenanceRequestInput {
@@ -590,7 +590,12 @@ export interface PayRentResponse {
 	message?: string
 }
 
-export interface TenantNotificationPreferences {
+/**
+ * Tenant Notification Settings Response
+ * API response format for tenant notification settings in TenantSettings
+ * Note: Different from TenantNotificationPreferences in core.ts which is more extensive
+ */
+export interface TenantNotificationSettingsResponse {
 	emailNotifications: boolean
 	smsNotifications: boolean
 	maintenanceUpdates: boolean
@@ -685,7 +690,15 @@ export interface TenantPaymentStatusResponse {
 	isOverdue: boolean
 }
 
-export interface NotificationPreferences {
+/**
+ * Tenant Notification Toggles
+ * Simple boolean toggles for tenant notification preferences
+ * Used in tenant portal API responses
+ *
+ * Note: Different from TenantNotificationPreferences in core.ts which includes
+ * both channel preferences (email, sms, push) AND notification types
+ */
+export interface TenantNotificationToggles {
 	rentReminders: boolean
 	maintenanceUpdates: boolean
 	leaseNotifications: boolean

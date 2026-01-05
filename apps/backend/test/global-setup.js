@@ -40,7 +40,7 @@ module.exports = async () => {
 		NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
 		DATABASE_URL: 'postgresql://test:test@localhost:5432/test_db',
 		JWT_SECRET: 'test_jwt_secret_min_32_characters_long_for_testing_only',
-		SB_SECRET_KEY: 'sb_secret_test_key_for_unit_tests_not_real',
+		SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test_key_for_unit_tests_not_real',
 		STRIPE_SECRET_KEY: 'sk_test_mock_stripe_key_for_testing_not_real',
 		STRIPE_WEBHOOK_SECRET: 'whsec_test_webhook_secret_for_testing',
 		SUPPORT_EMAIL: 'support@test.local',

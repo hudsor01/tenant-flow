@@ -10,7 +10,7 @@ import { UnitsController } from './units.controller'
 import { UnitsService } from './units.service'
 import { UnitStatsService } from './services/unit-stats.service'
 import { UnitQueryService } from './services/unit-query.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock the services

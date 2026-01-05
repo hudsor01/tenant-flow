@@ -7,7 +7,7 @@ import type Stripe from 'stripe'
 import { StripeWebhookController } from './stripe-webhook.controller'
 import { StripeConnectService } from './stripe-connect.service'
 import { AppConfigService } from '../../config/app-config.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('StripeWebhookController', () => {

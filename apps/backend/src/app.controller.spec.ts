@@ -6,7 +6,7 @@ import type { Request } from 'express'
 import { of, throwError } from 'rxjs'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { SilentLogger } from './__test__/silent-logger'
+import { SilentLogger } from './__tests__/silent-logger'
 import { AppLogger } from './logger/app-logger.service'
 
 // Mock the AppService

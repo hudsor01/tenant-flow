@@ -21,7 +21,7 @@ import { LeaseSubscriptionService } from '../../src/modules/leases/lease-subscri
 import { SignatureValidationHelper } from '../../src/modules/leases/helpers/signature-validation.helper'
 import { LeasePdfHelper } from '../../src/modules/leases/helpers/lease-pdf.helper'
 import { SignatureNotificationHelper } from '../../src/modules/leases/helpers/signature-notification.helper'
-import { SilentLogger } from '../../src/__test__/silent-logger'
+import { SilentLogger } from '../../src/__tests__/silent-logger'
 import { AppLogger } from '../../src/logger/app-logger.service'
 
 describe('Property 11: DocuSeal Submission Creation', () => {

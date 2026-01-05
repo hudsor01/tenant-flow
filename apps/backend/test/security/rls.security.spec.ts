@@ -422,7 +422,7 @@ describeOrSkip('RLS Policy Security Tests', () => {
 
 		it('should allow RLS bypass for service role key (admin operations)', async () => {
 			// Arrange: Create service role client (if key available)
-			const serviceRoleKey = process.env.SB_SECRET_KEY
+			const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 			if (!serviceRoleKey) {
 				console.warn('Service role key not available, skipping test')
@@ -445,7 +445,7 @@ describeOrSkip('RLS Policy Security Tests', () => {
 
 		it('should prevent privilege escalation via RLS bypass attempts', async () => {
 			// Arrange: Attempt to use service role key in regular API call
-			const serviceRoleKey = process.env.SB_SECRET_KEY
+			const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 			if (!serviceRoleKey) {
 				return

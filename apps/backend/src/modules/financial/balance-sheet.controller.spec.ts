@@ -5,7 +5,7 @@ import type { BalanceSheetData } from '@repo/shared/types/financial-statements'
 import { BalanceSheetController } from './balance-sheet.controller'
 import { BalanceSheetService } from './balance-sheet.service'
 import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('BalanceSheetController', () => {

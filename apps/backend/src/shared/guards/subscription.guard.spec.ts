@@ -9,7 +9,7 @@ import {
 	SKIP_SUBSCRIPTION_CHECK_KEY
 } from './subscription.guard'
 import { SupabaseService } from '../../database/supabase.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('SubscriptionGuard', () => {

@@ -26,7 +26,7 @@ describe('Test Environment Configuration', () => {
 			TEST_TYPE: process.env.TEST_TYPE,
 			TEST_SUPABASE_URL: process.env.TEST_SUPABASE_URL,
 			TEST_SUPABASE_PUBLISHABLE_KEY: process.env.TEST_SUPABASE_PUBLISHABLE_KEY,
-			TEST_SB_SECRET_KEY: process.env.TEST_SB_SECRET_KEY,
+			TEST_SUPABASE_SERVICE_ROLE_KEY: process.env.TEST_SUPABASE_SERVICE_ROLE_KEY,
 			TEST_JWT_SECRET: process.env.TEST_JWT_SECRET,
 			TEST_STRIPE_SECRET_KEY: process.env.TEST_STRIPE_SECRET_KEY,
 			TEST_STRIPE_PUBLISHABLE_KEY: process.env.TEST_STRIPE_PUBLISHABLE_KEY,
@@ -119,7 +119,7 @@ describe('Test Environment Configuration', () => {
 			process.env.TEST_TYPE = 'integration'
 			process.env.TEST_SUPABASE_URL = 'https://test.supabase.co'
 			process.env.TEST_SUPABASE_PUBLISHABLE_KEY = 'test_publishable_key'
-			process.env.TEST_SB_SECRET_KEY = 'test_secret_key'
+			process.env.TEST_SUPABASE_SERVICE_ROLE_KEY = 'test_secret_key'
 			process.env.TEST_JWT_SECRET = 'test_jwt_secret'
 
 			const config = getTestSupabaseConfig()

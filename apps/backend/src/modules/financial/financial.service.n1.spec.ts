@@ -5,7 +5,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { PropertyAccessService } from '../properties/services/property-access.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('FinancialService - N+1 Query Prevention', () => {

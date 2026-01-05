@@ -15,7 +15,7 @@ import { PropertyReportService } from './property-report.service'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxReportService } from './tax-report.service'
 import { TenantReportService } from './tenant-report.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 describe('ReportsController', () => {

@@ -27,7 +27,7 @@ async function validateSupabaseKeys(): Promise<void> {
 
 	// Step 1: Check environment variables
 	const url = process.env.SUPABASE_URL
-	const secretKey = process.env.SB_SECRET_KEY
+	const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 	const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
 	const projectRef = process.env.PROJECT_REF
 
@@ -41,7 +41,7 @@ async function validateSupabaseKeys(): Promise<void> {
 		results.push({
 			step: 'Environment Variables',
 			status: 'fail',
-			message: 'SB_SECRET_KEY is not set'
+			message: 'SUPABASE_SERVICE_ROLE_KEY is not set'
 		})
 	} else {
 		results.push({
@@ -50,7 +50,7 @@ async function validateSupabaseKeys(): Promise<void> {
 			message: 'All required environment variables are set',
 			details: {
 				SUPABASE_URL: url.substring(0, 35) + '...',
-				SB_SECRET_KEY: secretKey.substring(0, 20) + '...',
+				SUPABASE_SERVICE_ROLE_KEY: secretKey.substring(0, 20) + '...',
 				SUPABASE_PUBLISHABLE_KEY: publishableKey
 					? publishableKey.substring(0, 20) + '...'
 					: 'not set',
@@ -141,7 +141,7 @@ async function validateSupabaseKeys(): Promise<void> {
 						message: 'ERROR API key is not registered for this project',
 						details: {
 							error: errorMessage,
-							hint: 'The SB_SECRET_KEY does not match the SUPABASE_URL project. Check that you are using the correct key from your Supabase project settings.'
+							hint: 'The SUPABASE_SERVICE_ROLE_KEY does not match the SUPABASE_URL project. Check that you are using the correct key from your Supabase project settings.'
 						}
 					})
 				} else if (
@@ -218,7 +218,7 @@ async function validateSupabaseKeys(): Promise<void> {
 			'   1. Make sure you are running with Doppler: doppler run -- pnpm dev'
 		)
 		console.log(
-			'   2. Check that SB_SECRET_KEY matches your SUPABASE_URL project'
+			'   2. Check that SUPABASE_SERVICE_ROLE_KEY matches your SUPABASE_URL project'
 		)
 		console.log(
 			'   3. Verify the key in your Supabase project settings: https://supabase.com/dashboard/project/YOUR_PROJECT/settings/api'

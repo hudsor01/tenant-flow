@@ -4,7 +4,7 @@ import { UnauthorizedException } from '@nestjs/common'
 import { MetricsController } from './metrics.controller'
 import type { Request, Response } from 'express'
 import { AppConfigService } from '../../config/app-config.service'
-import { SilentLogger } from '../../__test__/silent-logger'
+import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
 
 // Mock NestJS Logger to suppress console output during tests
