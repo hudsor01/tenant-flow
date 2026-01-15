@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 1 of 5 (Critical Security)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-01-15 — Roadmap initialized
+Plan: 01-01-PLAN.md (ready to execute)
+Status: Planned
+Last activity: 2026-01-15 — Phase 1 plans created (2 plans, 5 tasks)
 
 Progress: ░░░░░░░░░░ 0%
 
@@ -48,8 +48,15 @@ None yet.
 
 ### Blockers/Concerns
 
-- 35 skipped migrations may have interdependencies (assess during Phase 1)
+- ~~35 skipped migrations may have interdependencies~~ RESOLVED: No .sql.skip files exist; migrations were integrated
 - Go backend decision pending (Phase 5)
+
+### Planning Notes (Phase 1)
+
+- Identified 1 CRITICAL vulnerability: `active_entitlements` table uses `USING (true)`
+- Identified ~27 bare `auth.uid()` calls needing performance optimization
+- Most `USING (true)` policies are correctly for `service_role` (not vulnerabilities)
+- Reference implementation: `20260103120000_fix_properties_rls_comprehensive.sql`
 
 ## Session Continuity
 
