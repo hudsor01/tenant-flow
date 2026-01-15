@@ -14,8 +14,8 @@ None — internal codebase remediation using established patterns.
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Critical Security** - Fix RLS vulnerabilities in active_entitlements and UPDATE policies
-- [ ] **Phase 2: Database Stability** - Consolidate 35 skipped migrations and fix duplicate functions
+- [x] **Phase 1: Critical Security** - Fix RLS vulnerabilities in active_entitlements and UPDATE policies
+- [x] **Phase 2: Database Stability** - Consolidate 35 skipped migrations and fix duplicate functions
 - [ ] **Phase 3: Test Coverage** - Add tests for payment/lease systems, enable skipped E2E tests
 - [ ] **Phase 4: Code Quality** - Split StripeModule god module, delete dead code, refactor large files
 - [ ] **Phase 5: DevOps** - Standardize env vars, add backend CI/CD, decide Go backend fate
@@ -55,7 +55,7 @@ Reference: CODEBASE_HEALTH_REPORT.md Sections 1.1, 1.2, 5.3
 **Goal**: Increase backend coverage from 31% to 70% on critical paths
 **Depends on**: Phase 2
 **Research**: Unlikely (Jest/Vitest patterns documented in TESTING.md)
-**Plans**: TBD
+**Plans**: 3 (03-01: Stripe tests, 03-02: PDF tests, 03-03: E2E triage)
 
 Key tasks from health report:
 - Add tests for stripe-subscription.service.ts (232 lines, 0% coverage)
@@ -102,8 +102,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Critical Security | 0/TBD | Not started | - |
-| 2. Database Stability | 0/TBD | Not started | - |
-| 3. Test Coverage | 0/TBD | Not started | - |
+| 1. Critical Security | 2/2 | Complete | 2026-01-15 |
+| 2. Database Stability | 2/2 | Complete | 2026-01-15 |
+| 3. Test Coverage | 0/3 | Planned | - |
 | 4. Code Quality | 0/TBD | Not started | - |
 | 5. DevOps | 0/TBD | Not started | - |

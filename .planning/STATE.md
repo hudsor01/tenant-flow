@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Stabilize the foundation before shipping features — fix security vulnerabilities, consolidate migrations, increase test coverage
-**Current focus:** Phase 1 — Critical Security
+**Current focus:** Phase 3 — Test Coverage
 
 ## Current Position
 
-Phase: 1 of 5 (Critical Security)
-Plan: 01-01-PLAN.md (ready to execute)
-Status: Planned
-Last activity: 2026-01-15 — Phase 1 plans created (2 plans, 5 tasks)
+Phase: 3 of 5 (Test Coverage) - PLANNED
+Plan: 0/3 in current phase
+Status: Ready to execute 03-01-PLAN.md
+Last activity: 2026-01-15 — Created Phase 3 plans (03-01, 03-02, 03-03)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ████░░░░░░ 40%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: 0 hours
+- Total plans completed: 4
+- Average duration: 3.5 min
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| — | — | — | — |
+| 1. Critical Security | 2/2 | 10 min | 5 min |
+| 2. Database Stability | 2/2 | 4 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: —
-- Trend: —
+- Last 5 plans: 01-01 (6 min), 01-02 (4 min), 02-01 (3 min), 02-02 (1 min)
+- Trend: Improving
 
 ## Accumulated Context
 
@@ -40,7 +41,12 @@ Progress: ░░░░░░░░░░ 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-(None yet)
+| Phase | Decision | Rationale |
+|-------|----------|-----------|
+| 01-01 | Link entitlements via stripe.customers (email OR metadata) | Stripe schema doesn't have direct user_id; customer table provides linkage |
+| 01-02 | No new auth.uid() fixes needed | Later migrations (Dec 25-30) already applied optimizations |
+| 02-01 | Forward-looking safeguards only | Historical migrations not modified to avoid checksum issues |
+| 02-02 | Reusable workflow pattern for CI | Consistent with existing lint/typecheck/tests workflows |
 
 ### Deferred Issues
 
@@ -48,18 +54,28 @@ None yet.
 
 ### Blockers/Concerns
 
-- ~~35 skipped migrations may have interdependencies~~ RESOLVED: No .sql.skip files exist; migrations were integrated
 - Go backend decision pending (Phase 5)
 
-### Planning Notes (Phase 1)
+### Planning Notes (Phase 1) — COMPLETE
 
-- Identified 1 CRITICAL vulnerability: `active_entitlements` table uses `USING (true)`
-- Identified ~27 bare `auth.uid()` calls needing performance optimization
+- ~~Identified 1 CRITICAL vulnerability: `active_entitlements` table uses `USING (true)`~~ FIXED in 01-01
+- ~~Identified ~27 bare `auth.uid()` calls needing performance optimization~~ VERIFIED already fixed in 01-02
 - Most `USING (true)` policies are correctly for `service_role` (not vulnerabilities)
 - Reference implementation: `20260103120000_fix_properties_rls_comprehensive.sql`
 
+### Planning Notes (Phase 2) — COMPLETE
+
+**Resolved before planning (no work needed):**
+- ~~35 skipped migrations~~ RESOLVED: 0 .sql.skip files exist; already integrated
+- ~~property_owner_id cascade~~ RESOLVED: Production uses owner_user_id
+- Duplicate function definitions: Low priority (CREATE OR REPLACE handles gracefully)
+
+**Completed work:**
+- ~~02-01: Add stripe schema safeguards (16 migrations reference stripe.*)~~ COMPLETE
+- ~~02-02: Add CI migration validation (currently missing from pipeline)~~ COMPLETE
+
 ## Session Continuity
 
-Last session: 2026-01-15
-Stopped at: Roadmap initialization complete
+Last session: 2026-01-15T19:24:43Z
+Stopped at: Phase 2 complete
 Resume file: None
