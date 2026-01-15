@@ -67,16 +67,19 @@ Key tasks from health report:
 Reference: CODEBASE_HEALTH_REPORT.md Section 3
 
 ### Phase 4: Code Quality
-**Goal**: Reduce complexity by splitting god module and removing dead code
+**Goal**: Remove dead code and consolidate duplicates (large refactors deferred)
 **Depends on**: Phase 3
 **Research**: Unlikely (internal NestJS refactoring patterns)
-**Plans**: TBD
+**Plans**: 2 (04-01: Dead code + duplicates, 04-02: Documentation + deferred items)
 
-Key tasks from health report:
-- Split StripeModule into customers/, subscriptions/, webhooks/, connect/ sub-modules
-- Delete 5 dead services (property-stats, notification-formatter, etc.)
-- Refactor 5 largest files to <500 lines each
-- Rename 2 duplicate service names (tenant-stats, metrics)
+Key tasks:
+- Delete dead services (property-stats, notification-formatter)
+- Consolidate duplicate service names (tenant-stats, metrics)
+- Document deferred work (StripeModule split, large file refactoring)
+
+**Deferred to future milestone:**
+- Split StripeModule (9,000+ lines, 35 files - needs dedicated planning)
+- Refactor 10 largest files to <500 lines each
 
 Reference: CODEBASE_HEALTH_REPORT.md Section 2
 
@@ -105,5 +108,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Critical Security | 2/2 | Complete | 2026-01-15 |
 | 2. Database Stability | 2/2 | Complete | 2026-01-15 |
 | 3. Test Coverage | 3/3 | Complete | 2026-01-15 |
-| 4. Code Quality | 0/TBD | Not started | - |
+| 4. Code Quality | 0/2 | In progress | - |
 | 5. DevOps | 0/TBD | Not started | - |
