@@ -16,7 +16,7 @@ None — internal codebase remediation using established patterns.
 
 - [x] **Phase 1: Critical Security** - Fix RLS vulnerabilities in active_entitlements and UPDATE policies
 - [x] **Phase 2: Database Stability** - Consolidate 35 skipped migrations and fix duplicate functions
-- [ ] **Phase 3: Test Coverage** - Add tests for payment/lease systems, enable skipped E2E tests
+- [x] **Phase 3: Test Coverage** - Add tests for payment/lease systems, enable skipped E2E tests
 - [ ] **Phase 4: Code Quality** - Split StripeModule god module, delete dead code, refactor large files
 - [ ] **Phase 5: DevOps** - Standardize env vars, add backend CI/CD, decide Go backend fate
 
@@ -104,6 +104,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Critical Security | 2/2 | Complete | 2026-01-15 |
 | 2. Database Stability | 2/2 | Complete | 2026-01-15 |
-| 3. Test Coverage | 2/3 | In progress | - |
+| 3. Test Coverage | 3/3 | Complete | 2026-01-15 |
 | 4. Code Quality | 0/TBD | Not started | - |
 | 5. DevOps | 0/TBD | Not started | - |
