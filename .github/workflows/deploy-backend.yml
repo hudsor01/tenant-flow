@@ -45,3 +45,11 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway up --service backend --environment production
+
+      - name: Notify Sentry of Release
+        if: success()
+        run: |
+          curl -sS "${{ secrets.SENTRY_RELEASE_WEBHOOK }}" \
+            -X POST \
+            -H 'Content-Type: application/json' \
+            -d "{\"version\": \"${{ github.sha }}\"}"

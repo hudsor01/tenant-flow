@@ -120,6 +120,20 @@ export class HealthController {
 	}
 
 	/**
+	 * Sentry test endpoint - triggers intentional error for verification
+	 */
+	@ApiOperation({
+		summary: 'Test Sentry error tracking',
+		description: 'Throws an intentional error to verify Sentry is capturing exceptions'
+	})
+	@ApiResponse({ status: 500, description: 'Intentional error for Sentry testing' })
+	@Get('debug-sentry')
+	@SetMetadata('isPublic', true)
+	debugSentry() {
+		throw new Error('Sentry test error - verifying error tracking is working!')
+	}
+
+	/**
 	 * Main health endpoint - MUST be last to avoid intercepting specific routes
 	 * Delegates to HealthService for business logic
 	 */
