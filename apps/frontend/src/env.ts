@@ -10,12 +10,12 @@ export const env = createEnv({
       .enum(['development', 'test', 'production'])
       .default('development'),
     // Stripe price IDs (server-only for checkout sessions)
-    STRIPE_STARTER_MONTHLY_PRICE_ID: z.string().min(1),
-    STRIPE_STARTER_ANNUAL_PRICE_ID: z.string().min(1),
-    STRIPE_GROWTH_MONTHLY_PRICE_ID: z.string().min(1),
-    STRIPE_GROWTH_ANNUAL_PRICE_ID: z.string().min(1),
-    STRIPE_MAX_MONTHLY_PRICE_ID: z.string().min(1),
-    STRIPE_MAX_ANNUAL_PRICE_ID: z.string().min(1),
+    STRIPE_STARTER_MONTHLY: z.string().min(1),
+    STRIPE_STARTER_ANNUAL: z.string().min(1),
+    STRIPE_GROWTH_MONTHLY: z.string().min(1),
+    STRIPE_GROWTH_ANNUAL: z.string().min(1),
+    STRIPE_MAX_MONTHLY: z.string().min(1),
+    STRIPE_MAX_ANNUAL: z.string().min(1),
     // Vercel auto-injected (optional in development)
     VERCEL_URL: z.string().optional(),
   },
@@ -42,12 +42,12 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     // Server
-    STRIPE_STARTER_MONTHLY_PRICE_ID: process.env.STRIPE_STARTER_MONTHLY_PRICE_ID,
-    STRIPE_STARTER_ANNUAL_PRICE_ID: process.env.STRIPE_STARTER_ANNUAL_PRICE_ID,
-    STRIPE_GROWTH_MONTHLY_PRICE_ID: process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID,
-    STRIPE_GROWTH_ANNUAL_PRICE_ID: process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID,
-    STRIPE_MAX_MONTHLY_PRICE_ID: process.env.STRIPE_MAX_MONTHLY_PRICE_ID,
-    STRIPE_MAX_ANNUAL_PRICE_ID: process.env.STRIPE_MAX_ANNUAL_PRICE_ID,
+    STRIPE_STARTER_MONTHLY: process.env.STRIPE_STARTER_MONTHLY,
+    STRIPE_STARTER_ANNUAL: process.env.STRIPE_STARTER_ANNUAL,
+    STRIPE_GROWTH_MONTHLY: process.env.STRIPE_GROWTH_MONTHLY,
+    STRIPE_GROWTH_ANNUAL: process.env.STRIPE_GROWTH_ANNUAL,
+    STRIPE_MAX_MONTHLY: process.env.STRIPE_MAX_MONTHLY,
+    STRIPE_MAX_ANNUAL: process.env.STRIPE_MAX_ANNUAL,
     VERCEL_URL: process.env.VERCEL_URL,
     // Client
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
