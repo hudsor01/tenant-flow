@@ -13,8 +13,9 @@
 		"CI",
 		"NODE_ENV",
 		"npm_package_version",
+		"SENTRY_*",
 		"SKIP_ENV_VALIDATION",
-		
+
 		"SUPABASE_*",
 		"TEST_*",
 		"VITEST"
@@ -66,12 +67,16 @@
 				"src/**",
 				"public/**",
 				"next.config.ts",
+				"sentry.*.config.ts",
 				"tsconfig*.json",
 				"package.json"
 			],
 			"outputs": [".next/**", "!.next/cache/**", ".vercel/output/**"],
 			"env": [
 				"NEXT_PUBLIC_*",
+				"SENTRY_AUTH_TOKEN",
+				"SENTRY_ORG",
+				"SENTRY_PROJECT",
 				"VERCEL",
 				"VERCEL_ENV",
 				"SECURITY_MONITORING_WEBHOOK",

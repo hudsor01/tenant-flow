@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { SentryCron } from '@sentry/nestjs'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseExpiringEvent } from '../notifications/events/notification.events'
@@ -33,6 +34,12 @@ export class LeaseExpiryCheckerService {
 	 * Events are idempotently handled by LeaseExpiryNotificationListener.
 	 */
 	@Cron(CronExpression.EVERY_DAY_AT_9AM)
+	@SentryCron('lease-expiry-checker', {
+		schedule: { type: 'crontab', value: '0 9 * * *' },
+		checkinMargin: 5,
+		maxRuntime: 10,
+		timezone: 'UTC'
+	})
 	async checkLeaseExpiries(): Promise<void> {
 		const startTime = Date.now()
 

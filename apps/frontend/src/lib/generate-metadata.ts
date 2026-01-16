@@ -1,24 +1,19 @@
 import type { Metadata } from 'next'
+import { env } from '#env'
 
-const DEV_APP_URL = 'http://localhost:3000'
 const PRODUCTION_URL = 'https://tenantflow.app'
 
 // Use getter to ensure env var is read at runtime, not compile time
-// Falls back to VERCEL_URL during build, localhost in dev, or production URL as final fallback
+// Falls back to VERCEL_URL during build, or production URL as final fallback
 function getSiteUrl(): string {
-	// Primary: explicit app URL
-	if (process.env.NEXT_PUBLIC_APP_URL) {
-		return process.env.NEXT_PUBLIC_APP_URL
+	// Primary: explicit app URL (validated by t3-env)
+	if (env.NEXT_PUBLIC_APP_URL) {
+		return env.NEXT_PUBLIC_APP_URL
 	}
 
 	// Vercel provides this during build and runtime
-	if (process.env.VERCEL_URL) {
-		return `https://${process.env.VERCEL_URL}`
-	}
-
-	// Development fallback
-	if (process.env.NODE_ENV !== 'production') {
-		return DEV_APP_URL
+	if (env.VERCEL_URL) {
+		return `https://${env.VERCEL_URL}`
 	}
 
 	// Production fallback for static generation

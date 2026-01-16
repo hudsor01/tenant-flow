@@ -54,7 +54,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/__tests__/**\"",
+		"lint": "eslint \"src/**/*.ts\" --cache --cache-location node_modules/.cache/eslint/ --ignore-pattern \"**/__tests__/**\"",
 		"lint:fix": "pnpm lint --fix",
 		"clean": "rimraf dist .turbo && find src -name '*.js' -delete && find src -name '*.js.map' -delete",
 		"generate:schemas": "supazod -i src/types/supabase.ts -o src/validation/generated-schemas.ts -s public"

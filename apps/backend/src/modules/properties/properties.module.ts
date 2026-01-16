@@ -15,11 +15,18 @@ import { PropertyLifecycleService } from './services/property-lifecycle.service'
 import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
 import { PropertyAccessService } from './services/property-access.service'
 
+// Analytics sub-services (extracted Jan 2026)
+import { OccupancyAnalyticsService } from './services/analytics/occupancy-analytics.service'
+import { FinancialAnalyticsService } from './services/analytics/financial-analytics.service'
+
 /**
  * Properties module
  * Image uploads handled directly via Supabase Storage + RLS (Dec 2025 best practice)
  *
- * Analytics consolidated into single PropertyAnalyticsService (Dec 2025)
+ * Analytics decomposed into focused services (Jan 2026):
+ * - PropertyAnalyticsService: Orchestrator + performance/maintenance analytics
+ * - OccupancyAnalyticsService: Occupancy rates and trends
+ * - FinancialAnalyticsService: Revenue, expenses, profit metrics
  */
 @Module({
 	imports: [SupabaseModule, SharedModule, DashboardModule],
@@ -30,7 +37,9 @@ import { PropertyAccessService } from './services/property-access.service'
 		PropertyCacheInvalidationService,
 		PropertyBulkImportService,
 		PropertyAnalyticsService,
-		PropertyAccessService
+		PropertyAccessService,
+		OccupancyAnalyticsService,
+		FinancialAnalyticsService
 	],
 	exports: [PropertiesService, PropertyAccessService]
 })
