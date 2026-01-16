@@ -35,18 +35,18 @@ process.env.NEXT_PUBLIC_JWT_ALGORITHM =
 	process.env.NEXT_PUBLIC_JWT_ALGORITHM || 'ES256'
 
 // Additional environment variables for server-side validation (optional in tests)
-process.env.STRIPE_STARTER_MONTHLY_PRICE_ID =
-	process.env.STRIPE_STARTER_MONTHLY_PRICE_ID || 'price_starter_monthly'
-process.env.STRIPE_STARTER_ANNUAL_PRICE_ID =
-	process.env.STRIPE_STARTER_ANNUAL_PRICE_ID || 'price_starter_annual'
-process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID =
-	process.env.STRIPE_GROWTH_MONTHLY_PRICE_ID || 'price_growth_monthly'
-process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID =
-	process.env.STRIPE_GROWTH_ANNUAL_PRICE_ID || 'price_growth_annual'
-process.env.STRIPE_MAX_MONTHLY_PRICE_ID =
-	process.env.STRIPE_MAX_MONTHLY_PRICE_ID || 'price_max_monthly'
-process.env.STRIPE_MAX_ANNUAL_PRICE_ID =
-	process.env.STRIPE_MAX_ANNUAL_PRICE_ID || 'price_max_annual'
+process.env.STRIPE_STARTER_MONTHLY =
+	process.env.STRIPE_STARTER_MONTHLY || 'price_starter_monthly'
+process.env.STRIPE_STARTER_ANNUAL =
+	process.env.STRIPE_STARTER_ANNUAL || 'price_starter_annual'
+process.env.STRIPE_GROWTH_MONTHLY =
+	process.env.STRIPE_GROWTH_MONTHLY || 'price_growth_monthly'
+process.env.STRIPE_GROWTH_ANNUAL =
+	process.env.STRIPE_GROWTH_ANNUAL || 'price_growth_annual'
+process.env.STRIPE_MAX_MONTHLY =
+	process.env.STRIPE_MAX_MONTHLY || 'price_max_monthly'
+process.env.STRIPE_MAX_ANNUAL =
+	process.env.STRIPE_MAX_ANNUAL || 'price_max_annual'
 
 // Mark as unit test mode
 process.env.SKIP_INTEGRATION_TESTS = 'true'
