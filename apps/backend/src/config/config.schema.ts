@@ -236,15 +236,24 @@ const environmentSchema = z
 		REDISPORT: z.string().optional(),
 		VERCEL_ENV: z.string().optional(),
 		VERCEL_URL: z.string().optional(),
-		DOCKER_CONTAINER: z.coerce.boolean().default(false)
+		DOCKER_CONTAINER: z.coerce.boolean().default(false),
+
+		// Explicit opt-in to skip production validation (for local Docker testing only)
+		// WARNING: Never set this in actual production deployments
+		SKIP_PRODUCTION_VALIDATION: z.coerce.boolean().default(false)
 	})
 	.superRefine((config, ctx) => {
 		if (config.NODE_ENV !== 'production') return
 
-		// Skip strict production validation for local Docker testing (DOCKER_CONTAINER=true without Railway)
-		// Railway sets RAILWAY_PROJECT_ID, so if that's missing, we're in local Docker
-		const isLocalDocker = config.DOCKER_CONTAINER && !config.RAILWAY_PROJECT_ID
-		if (isLocalDocker) return
+		// Explicit opt-in to skip validation for local Docker testing
+		// This is safer than platform detection - requires conscious decision
+		if (config.SKIP_PRODUCTION_VALIDATION) {
+			console.warn(
+				'⚠️  SKIP_PRODUCTION_VALIDATION is set - skipping Redis/Resend validation. ' +
+					'This should ONLY be used for local Docker testing!'
+			)
+			return
+		}
 
 		// Production requirements (Railway only)
 		if (!config.RESEND_API_KEY) {
