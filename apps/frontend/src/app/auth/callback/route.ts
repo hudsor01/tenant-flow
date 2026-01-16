@@ -14,6 +14,7 @@ import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
 import type { Database } from '@repo/shared/types/supabase'
+import { env } from '#env'
 
 export async function GET(request: NextRequest) {
 	const { searchParams, origin } = new URL(request.url)
@@ -24,8 +25,8 @@ export async function GET(request: NextRequest) {
 		const cookieStore = await cookies()
 
 		const supabase = createServerClient<Database>(
-			process.env.NEXT_PUBLIC_SUPABASE_URL!,
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+			env.NEXT_PUBLIC_SUPABASE_URL,
+			env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 			{
 				cookies: {
 					getAll() {
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
 			const destination = userType === 'TENANT' ? '/tenant' : next
 
 			const forwardedHost = request.headers.get('x-forwarded-host')
-			const isLocalEnv = process.env.NODE_ENV === 'development'
+			const isLocalEnv = env.NODE_ENV === 'development'
 
 			if (isLocalEnv) {
 				// Local development - use origin directly

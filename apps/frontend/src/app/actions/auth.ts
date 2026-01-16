@@ -3,6 +3,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { env } from '#env'
 
 /**
  * Server Action: Sign out user
@@ -19,16 +20,9 @@ import { redirect } from 'next/navigation'
 export async function signOut() {
 	const cookieStore = await cookies()
 
-	if (
-		!process.env.NEXT_PUBLIC_SUPABASE_URL ||
-		!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-	) {
-		throw new Error('Missing Supabase configuration')
-	}
-
 	const supabase = createServerClient(
-		process.env.NEXT_PUBLIC_SUPABASE_URL,
-		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		env.NEXT_PUBLIC_SUPABASE_URL,
+		env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 		{
 			cookies: {
 				getAll() {

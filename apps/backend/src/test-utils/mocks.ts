@@ -285,9 +285,9 @@ export function createMockMaintenanceRequest(
 }
 
 /**
- * Create a mock StripeConnectService for testing
+ * Create a mock ConnectService for testing
  */
-export function createMockStripeConnectService(): jest.Mocked<{
+export function createMockConnectService(): jest.Mocked<{
 	getStripe: () => unknown
 }> {
 	return {

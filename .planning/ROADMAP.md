@@ -4,6 +4,11 @@
 
 This roadmap addresses critical technical debt in TenantFlow, progressing from security-critical RLS fixes through database stabilization, test coverage expansion, code quality improvements, and DevOps standardization. Each phase builds a more stable foundation for feature development.
 
+## Milestones
+
+- ✅ **v1.0 Health Remediation** - Phases 1-5 (shipped 2026-01-15)
+- ✅ **v1.1 Tech Debt Resolution** - Phases 6-10 (shipped 2026-01-15)
+
 ## Domain Expertise
 
 None — internal codebase remediation using established patterns.
@@ -14,99 +19,143 @@ None — internal codebase remediation using established patterns.
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
+<details>
+<summary>✅ v1.0 Health Remediation (Phases 1-5) - SHIPPED 2026-01-15</summary>
+
 - [x] **Phase 1: Critical Security** - Fix RLS vulnerabilities in active_entitlements and UPDATE policies
 - [x] **Phase 2: Database Stability** - Consolidate 35 skipped migrations and fix duplicate functions
 - [x] **Phase 3: Test Coverage** - Add tests for payment/lease systems, enable skipped E2E tests
-- [ ] **Phase 4: Code Quality** - Split StripeModule god module, delete dead code, refactor large files
-- [ ] **Phase 5: DevOps** - Standardize env vars, add backend CI/CD, decide Go backend fate
-
-## Phase Details
+- [x] **Phase 4: Code Quality** - Split StripeModule god module, delete dead code, refactor large files
+- [x] **Phase 5: DevOps** - Type-safe env validation, backend CI/CD automation
 
 ### Phase 1: Critical Security
 **Goal**: Eliminate RLS security vulnerabilities that could expose user data
-**Depends on**: Nothing (first phase)
-**Research**: Unlikely (RLS patterns established in codebase)
-**Plans**: TBD
-
-Key tasks from health report:
-- Fix active_entitlements `USING (true)` vulnerability (allows all users to see all entitlements)
-- Add `WITH CHECK` clause to 5 UPDATE policies missing validation
-- Wrap 16 bare `auth.uid()` calls in `(SELECT ...)` for performance
-- Review and re-enable security migrations from `.sql.skip` files
-
-Reference: CODEBASE_HEALTH_REPORT.md Section 1.3
+**Plans**: 2/2 complete
 
 ### Phase 2: Database Stability
 **Goal**: Clear migration backlog and establish stable schema foundation
-**Depends on**: Phase 1
-**Research**: Unlikely (internal migration consolidation)
-**Plans**: TBD
-
-Key tasks from health report:
-- Consolidate 9 duplicate function definitions (get_dashboard_stats, etc.)
-- Fix property_owner_id → owner_user_id column rename cascade (20+ broken references)
-- Add stripe schema existence checks to dependent migrations
-- Clear 35 `.sql.skip` migration backlog
-- Add migration validation to CI/CD pipeline
-
-Reference: CODEBASE_HEALTH_REPORT.md Sections 1.1, 1.2, 5.3
+**Plans**: 2/2 complete
 
 ### Phase 3: Test Coverage
 **Goal**: Increase backend coverage from 31% to 70% on critical paths
-**Depends on**: Phase 2
-**Research**: Unlikely (Jest/Vitest patterns documented in TESTING.md)
-**Plans**: 3 (03-01: Stripe tests, 03-02: PDF tests, 03-03: E2E triage)
-
-Key tasks from health report:
-- Add tests for stripe-subscription.service.ts (232 lines, 0% coverage)
-- Add tests for stripe-customer.service.ts (126 lines, 0% coverage)
-- Add tests for pdf-generator.service.ts (604 lines, 0% coverage)
-- Enable or delete 51 skipped E2E tests (~43% of E2E suite)
-- Add Go backend tests if decision is to keep it
-
-Reference: CODEBASE_HEALTH_REPORT.md Section 3
+**Plans**: 3/3 complete
 
 ### Phase 4: Code Quality
-**Goal**: Remove dead code and consolidate duplicates (large refactors deferred)
-**Depends on**: Phase 3
-**Research**: Unlikely (internal NestJS refactoring patterns)
-**Plans**: 2 (04-01: Dead code + duplicates, 04-02: Documentation + deferred items)
-
-Key tasks:
-- Delete dead services (property-stats, notification-formatter)
-- Consolidate duplicate service names (tenant-stats, metrics)
-- Document deferred work (StripeModule split, large file refactoring)
-
-**Deferred to future milestone:**
-- Split StripeModule (9,000+ lines, 35 files - needs dedicated planning)
-- Refactor 10 largest files to <500 lines each
-
-Reference: CODEBASE_HEALTH_REPORT.md Section 2
+**Goal**: Split StripeModule god module, delete dead code, refactor large files
+**Plans**: 6/6 complete
 
 ### Phase 5: DevOps
-**Goal**: Standardize configuration and automate deployment pipeline
-**Depends on**: Phase 4
-**Research**: Likely (CI/CD setup for Railway deployment)
-**Research topics**: GitHub Actions deployment to Railway, Docker registry patterns, migration validation in CI
+**Goal**: Type-safe env validation and automated deployment pipeline
+**Plans**: 4/4 complete
 
-Key tasks from health report:
-- Standardize env var naming (SUPABASE_URL vs NEXT_PUBLIC_*)
-- Add .env.local fallback for non-Doppler development
-- Add backend auto-deploy to CI/CD (currently manual)
-- Decide and act on Go backend status (remove, integrate, or mark experimental)
-- Document deployment topology
+</details>
 
-Reference: CODEBASE_HEALTH_REPORT.md Sections 4, 5
+<details>
+<summary>✅ v1.1 Tech Debt Resolution (Phases 6-10) - SHIPPED 2026-01-15</summary>
+
+**Milestone Goal:** Resolve remaining large controller/service files documented in TECH_DEBT.md
+
+- [x] **Phase 6: Stripe Controller Split** - stripe.controller.ts: 760 → 116 lines (-85%)
+- [x] **Phase 7: Reports Controller Split** - reports.controller.ts: 703 → 176 lines (-75%)
+- [x] **Phase 8: Service Decomposition** - utility.service.ts: 590 → 286 lines (-52%), PDF assessed acceptable
+- [x] **Phase 9: Connect Payouts** - connect.controller.ts: 605 → 460 lines (-24%)
+- [x] **Phase 10: Final Polish** - TECH_DEBT.md updated, documentation complete
+
+### Phase 6: Stripe Controller Split
+**Goal**: Break stripe.controller.ts into focused controllers
+**Plans**: 1/1 complete
+
+### Phase 7: Reports Controller Split
+**Goal**: Break reports.controller.ts into report-type controllers
+**Plans**: 1/1 complete
+
+### Phase 8: Service Decomposition
+**Goal**: Split utility.service.ts, assess pdf-generator.service.ts
+**Plans**: 1/1 complete
+
+### Phase 9: Connect Payouts
+**Goal**: Extract payouts from connect.controller.ts
+**Plans**: 1/1 complete
+
+### Phase 10: Final Polish
+**Goal**: Update documentation, verify improvements
+**Plans**: 1/1 complete
+
+</details>
+
+## Phase Details
+
+### Phase 6: Stripe Controller Split
+**Goal**: Break stripe.controller.ts (760 lines) into focused controllers by operation type
+**Depends on**: Phase 5 (v1.0 complete)
+**Research**: Unlikely (internal NestJS patterns)
+**Plans**: TBD
+
+Key tasks from TECH_DEBT.md:
+- Split into charges.controller.ts (charge and refund operations)
+- Split into checkout.controller.ts (checkout session operations)
+- Split into invoices.controller.ts (invoice operations)
+- Keep shared utilities in stripe.controller.ts or extract to shared
+
+### Phase 7: Reports Controller Split
+**Goal**: Break reports.controller.ts (703 lines) into report-type controllers
+**Depends on**: Phase 6
+**Research**: Unlikely (internal patterns)
+**Plans**: TBD
+
+Key tasks from TECH_DEBT.md:
+- Extract financial reports to financial-reports.controller.ts
+- Extract property reports to property-reports.controller.ts
+- Extract tenant reports to tenant-reports.controller.ts
+- Consider route module pattern for grouping
+
+### Phase 8: Service Decomposition
+**Goal**: Split oversized services into focused, single-responsibility services
+**Depends on**: Phase 7
+**Research**: Unlikely (internal patterns)
+**Plans**: TBD
+
+Key tasks from TECH_DEBT.md:
+- pdf-generator.service.ts (604 lines): Extract invoice/lease PDF generators
+- utility.service.ts (590 lines): Split into SearchService, PasswordService, UserTypeService
+
+### Phase 9: Connect Payouts
+**Goal**: Extract payouts functionality from connect.controller.ts (605 lines)
+**Depends on**: Phase 8
+**Research**: Unlikely (internal patterns)
+**Plans**: TBD
+
+Key tasks from TECH_DEBT.md:
+- Extract payouts.controller.ts for payout-specific operations
+- Keep account management in connect.controller.ts
+- Update ConnectModule imports
+
+### Phase 10: Final Polish
+**Goal**: Review remaining tech debt, update documentation, verify improvements
+**Depends on**: Phase 9
+**Research**: Unlikely (documentation)
+**Plans**: TBD
+
+Key tasks:
+- Update TECH_DEBT.md with resolved items
+- Verify all high-priority items addressed
+- Document any remaining low-priority items for future
+- Final typecheck and test verification
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Critical Security | 2/2 | Complete | 2026-01-15 |
-| 2. Database Stability | 2/2 | Complete | 2026-01-15 |
-| 3. Test Coverage | 3/3 | Complete | 2026-01-15 |
-| 4. Code Quality | 0/2 | In progress | - |
-| 5. DevOps | 0/TBD | Not started | - |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Critical Security | v1.0 | 2/2 | Complete | 2026-01-15 |
+| 2. Database Stability | v1.0 | 2/2 | Complete | 2026-01-15 |
+| 3. Test Coverage | v1.0 | 3/3 | Complete | 2026-01-15 |
+| 4. Code Quality | v1.0 | 6/6 | Complete | 2026-01-15 |
+| 5. DevOps | v1.0 | 4/4 | Complete | 2026-01-15 |
+| 6. Stripe Controller Split | v1.1 | 1/1 | Complete | 2026-01-15 |
+| 7. Reports Controller Split | v1.1 | 1/1 | Complete | 2026-01-15 |
+| 8. Service Decomposition | v1.1 | 1/1 | Complete | 2026-01-15 |
+| 9. Connect Payouts | v1.1 | 1/1 | Complete | 2026-01-15 |
+| 10. Final Polish | v1.1 | 1/1 | Complete | 2026-01-15 |

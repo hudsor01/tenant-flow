@@ -15,7 +15,7 @@ import { Test } from '@nestjs/testing'
 import { BadRequestException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import type { Request, Response } from 'express'
-import { StripeSubscriptionController } from './stripe-subscription.controller'
+import { SubscriptionController } from './subscriptions/subscription.controller'
 import { StripeService } from './stripe.service'
 import { StripeSharedService } from './stripe-shared.service'
 import { BillingService } from './billing.service'
@@ -50,7 +50,7 @@ const mockSupabaseService = {
 	getAdminClient: jest.fn()
 }
 
-describe('StripeSubscriptionController', () => {
+describe('SubscriptionController', () => {
 	type UpdateSubscriptionResponse = Awaited<
 		ReturnType<StripeService['updateSubscription']>
 	>
@@ -61,14 +61,14 @@ describe('StripeSubscriptionController', () => {
 		ReturnType<BillingService['findSubscriptionByStripeId']>
 	>
 
-	let controller: StripeSubscriptionController
+	let controller: SubscriptionController
 	let stripeService: jest.Mocked<StripeService>
 	let stripeSharedService: jest.Mocked<StripeSharedService>
 	let billingService: jest.Mocked<BillingService>
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			controllers: [StripeSubscriptionController],
+			controllers: [SubscriptionController],
 			providers: [
 				{ provide: StripeService, useValue: mockStripeService },
 				{ provide: StripeSharedService, useValue: mockStripeSharedService },
@@ -86,8 +86,8 @@ describe('StripeSubscriptionController', () => {
 			]
 		}).compile()
 
-		controller = module.get<StripeSubscriptionController>(
-			StripeSubscriptionController
+		controller = module.get<SubscriptionController>(
+			SubscriptionController
 		)
 		stripeService = module.get(StripeService)
 		stripeSharedService = module.get(StripeSharedService)

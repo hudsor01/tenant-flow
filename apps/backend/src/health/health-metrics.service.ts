@@ -1,0 +1,166 @@
+import type { OnModuleDestroy } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
+import type { ServiceHealth, SystemHealth } from '@repo/shared/types/health'
+import { AppConfigService } from '../config/app-config.service'
+import { evictOldestEntries } from '../utils/cache-eviction'
+
+export interface PerformanceMetrics {
+	uptime: number
+	memory: {
+		used: number
+		free: number
+		total: number
+		usagePercent: number
+	}
+	cpu: {
+		user: number
+		system: number
+	}
+}
+
+export interface DetailedPerformanceMetrics extends PerformanceMetrics {
+	healthCheckHistory: {
+		lastStatus: string
+		lastCheck: string
+	} | null
+	thresholds: {
+		memory: { warning: number; critical: number }
+		cache: { maxEntries: number }
+		responseTime: { warning: number; critical: number }
+	}
+	cache: {
+		cacheSize: number
+		heapUsageMb: number
+	}
+}
+
+export interface MetricsThresholds {
+	memory: { warning: number; critical: number }
+	cache: { maxEntries: number }
+	responseTime: { warning: number; critical: number }
+}
+
+@Injectable()
+export class HealthMetricsService implements OnModuleDestroy {
+	private lastHealthCheck: SystemHealth | null = null
+	private healthCheckCache = new Map<
+		string,
+		{ result: ServiceHealth; timestamp: number }
+	>()
+	/**
+	 * Health check thresholds for monitoring system resources
+	 * @property memory.warning - Memory usage % that triggers warning (default: 80%)
+	 * @property memory.critical - Memory usage % that triggers critical alert (default: 95%)
+	 * @property cache.maxEntries - Maximum number of cached health checks (default: 100)
+	 * @property responseTime.warning - Response time in ms that triggers warning (default: 100ms)
+	 * @property responseTime.critical - Response time in ms that triggers critical alert (default: 200ms)
+	 */
+	private readonly thresholds: MetricsThresholds
+
+	private readonly MAX_CACHE_SIZE: number
+
+	constructor(private readonly config: AppConfigService) {
+		this.thresholds = {
+			memory: {
+				warning: this.config.getHealthMemoryWarningThreshold(),
+				critical: this.config.getHealthMemoryCriticalThreshold()
+			},
+			cache: { maxEntries: this.config.getHealthCacheMaxEntries() },
+			responseTime: {
+				warning: this.config.getHealthResponseTimeWarningThreshold(),
+				critical: this.config.getHealthResponseTimeCriticalThreshold()
+			}
+		}
+		this.MAX_CACHE_SIZE = this.thresholds.cache.maxEntries
+	}
+
+	/**
+	 * Cleanup cache on module destruction to prevent memory leaks
+	 */
+	onModuleDestroy(): void {
+		this.healthCheckCache.clear()
+	}
+
+	/**
+	 * Get system performance metrics
+	 */
+	getPerformanceMetrics(): PerformanceMetrics {
+		const memoryUsage = process.memoryUsage()
+		const cpuUsage = process.cpuUsage()
+
+		return {
+			uptime: Math.round(process.uptime()),
+			memory: {
+				used: Math.round(memoryUsage.heapUsed / 1024 / 1024),
+				free: Math.round(
+					(memoryUsage.heapTotal - memoryUsage.heapUsed) / 1024 / 1024
+				),
+				total: Math.round(memoryUsage.heapTotal / 1024 / 1024),
+				usagePercent: Math.round(
+					(memoryUsage.heapUsed / memoryUsage.heapTotal) * 100
+				)
+			},
+			cpu: {
+				user: Math.round(cpuUsage.user / 1000),
+				system: Math.round(cpuUsage.system / 1000)
+			}
+		}
+	}
+
+	/**
+	 * Get performance metrics with thresholds and history
+	 */
+	getDetailedPerformanceMetrics(): DetailedPerformanceMetrics {
+		const performance = this.getPerformanceMetrics()
+
+		return {
+			...performance,
+			healthCheckHistory: this.lastHealthCheck
+				? {
+						lastStatus: this.lastHealthCheck.status,
+						lastCheck: this.lastHealthCheck.timestamp
+					}
+				: null,
+			thresholds: this.thresholds,
+			cache: {
+				cacheSize: this.healthCheckCache.size,
+				heapUsageMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024)
+			}
+		}
+	}
+
+	/**
+	 * Cache health check results for better performance
+	 */
+	async getCachedOrFresh<T>(
+		key: string,
+		fn: () => Promise<T>,
+		maxAge: number
+	): Promise<T> {
+		const cached = this.healthCheckCache.get(key) as
+			| { result: T; timestamp: number }
+			| undefined
+
+		if (cached && Date.now() - cached.timestamp < maxAge) {
+			return cached.result
+		}
+
+		const result = await fn()
+		this.healthCheckCache.set(key, {
+			result: result as ServiceHealth,
+			timestamp: Date.now()
+		})
+
+		// Prevent memory leaks by limiting cache size
+		evictOldestEntries(this.healthCheckCache, this.MAX_CACHE_SIZE)
+
+		return result
+	}
+
+	/**
+	 * Update last health check for tracking
+	 */
+	updateLastHealthCheck(healthCheck: SystemHealth) {
+		this.lastHealthCheck = healthCheck
+	}
+}

@@ -12,7 +12,7 @@ import { StripeSyncService } from '../modules/billing/stripe-sync.service'
 import { createThrottleDefaults } from '../config/throttle.config'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthService } from './health.service'
-import { MetricsService } from './metrics.service'
+import { HealthMetricsService } from './health-metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 import { AppLogger } from '../logger/app-logger.service'
 import { BullMqHealthIndicator } from './bullmq.health'
@@ -30,7 +30,7 @@ const HEALTH_THROTTLE = createThrottleDefaults({
 export class HealthController {
 	constructor(
 		private readonly healthService: HealthService,
-		private readonly metricsService: MetricsService,
+		private readonly metricsService: HealthMetricsService,
 		private readonly circuitBreakerService: CircuitBreakerService,
 		private readonly health: HealthCheckService,
 		private readonly supabase: SupabaseHealthIndicator,

@@ -9,7 +9,7 @@ import { AppLogger } from '../logger/app-logger.service'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
-import { MetricsService } from './metrics.service'
+import { HealthMetricsService } from './health-metrics.service'
 import { BullMqHealthIndicator } from './bullmq.health'
 import { SupabaseHealthIndicator } from './supabase.health'
 
@@ -56,7 +56,7 @@ describe('HealthController', () => {
 					}
 				},
 				{
-					provide: MetricsService,
+					provide: HealthMetricsService,
 					useValue: {
 						getDetailedPerformanceMetrics: jest.fn().mockReturnValue({
 							uptime: 120,

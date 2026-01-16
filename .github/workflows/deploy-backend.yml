@@ -1,0 +1,47 @@
+name: Deploy Backend to Railway
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'packages/shared/**'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch: # Allow manual trigger
+
+concurrency:
+  group: deploy-backend-${{ github.ref }}
+  cancel-in-progress: false # Don't cancel in-progress deploys
+
+permissions:
+  contents: read
+
+jobs:
+  # Run tests first
+  test:
+    uses: ./.github/workflows/tests.yml
+    with:
+      pnpm-version: '10.23.0'
+      node-version: '24'
+      test-script: 'pnpm --filter @repo/backend test:unit'
+    secrets: inherit
+
+  # Deploy only after tests pass
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway up --service backend --environment production
