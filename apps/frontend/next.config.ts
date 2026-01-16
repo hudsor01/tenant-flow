@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
 	poweredByHeader: false,
 	compress: true,
 
+	// Reduce build output verbosity
+	logging: {
+		fetches: {
+			fullUrl: false
+		}
+	},
+
 	// Disable for faster builds, enable in CI if needed
 	productionBrowserSourceMaps: false,
 
@@ -163,29 +170,12 @@ const nextConfig: NextConfig = {
 }
 
 export default withSentryConfig(nextConfig, {
-	// Sentry organization and project (required for source map upload)
 	org: process.env.SENTRY_ORG ?? '',
 	project: process.env.SENTRY_PROJECT ?? '',
-
-	// Suppress source map upload logs
-	silent: !process.env.CI,
-
-	// Upload source maps for better error stack traces
-	widenClientFileUpload: true,
-
-	// Tree-shake Sentry logger in production
-	disableLogger: true,
-
-	// Automatically instrument API routes and data fetching
-	autoInstrumentServerFunctions: true,
-	autoInstrumentMiddleware: true,
-	autoInstrumentAppDirectory: true,
-
-	// Source map handling - hide from client bundles but upload to Sentry
+	silent: true,
 	sourcemaps: {
 		deleteSourcemapsAfterUpload: true
 	},
-
-	// Tunneling to avoid ad blockers (optional)
-	tunnelRoute: '/monitoring'
+	tunnelRoute: '/monitoring',
+	disableLogger: true
 })
