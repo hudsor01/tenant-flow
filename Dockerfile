@@ -131,7 +131,7 @@ USER node
 EXPOSE ${PORT}
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-    CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+    CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health/ping',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/backend/dist/main.js"]

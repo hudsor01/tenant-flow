@@ -14,14 +14,14 @@ watchPatterns = [
 ]
 
 [deploy]
-healthcheckPath = "/health"
-healthcheckTimeout = 300
+# Use /health/ping for liveness check (no DB dependency, fast startup)
+# Full health check at /health/ready verifies DB connectivity
+healthcheckPath = "/health/ping"
+healthcheckTimeout = 120
 overlapSeconds = 10
 drainingSeconds = 30
 restartPolicyType = "ALWAYS"
 restartPolicyMaxRetries = 5
 
-# Run database migrations before deployment
-# CRITICAL: This must run before deployment to keep schema in sync with code
-# Deployment will fail if migrations fail (|| exit 1)
-preDeployCommand = "pnpm --filter @repo/database migrate:deploy || exit 1"
+# NOTE: Database migrations are managed via Supabase CLI, not pnpm
+# Run `pnpm db:push` locally or via CI before deploying code changes
