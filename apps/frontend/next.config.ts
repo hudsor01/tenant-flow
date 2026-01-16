@@ -1,4 +1,4 @@
-// Build trigger: Vercel env vars synced from Doppler (2025-01-16)
+// Build trigger: Added NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to Vercel (2025-01-16)
 import { withSentryConfig } from '@sentry/nextjs'
 import type { NextConfig } from 'next'
 import path from 'path'
