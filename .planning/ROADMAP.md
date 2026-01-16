@@ -101,31 +101,19 @@ This roadmap addresses critical technical debt in TenantFlow, progressing from s
 - Idempotency key generation untested (LOW)
 - Console.log debug statements in production scripts (LOW)
 
-- [ ] **Phase 11: Stripe Backend Test Coverage** - Add comprehensive unit tests for payment services
-- [ ] **Phase 12: Stripe Backend Hardening** - Fix pagination, monitoring, and debug logging
-- [ ] **Phase 13: Webhook Security & Reliability** - Fix race conditions, RLS enforcement, transactions
-- [ ] **Phase 14: Frontend Checkout & Subscriptions** - Checkout UI, subscription management, payment methods
-- [ ] **Phase 15: Stripe Connect & Payouts UI** - Connect onboarding, payout dashboard
-- [ ] **Phase 16: Stripe Documentation Alignment** - Align all code with official Stripe best practices
+**Phase Order:** Fix issues → Implement features → Align with docs → Test everything
+
+- [ ] **Phase 11: Stripe Backend Hardening** - Fix pagination, monitoring, and debug logging (1/4 plans)
+- [ ] **Phase 12: Webhook Security & Reliability** - Fix race conditions, RLS enforcement, transactions
+- [ ] **Phase 13: Frontend Checkout & Subscriptions** - Checkout UI, subscription management, payment methods
+- [ ] **Phase 14: Stripe Connect & Payouts UI** - Connect onboarding, payout dashboard
+- [ ] **Phase 15: Stripe Documentation Alignment** - Align all code with official Stripe best practices
+- [ ] **Phase 16: Stripe Backend Test Coverage** - Add comprehensive unit tests for payment services
 - [ ] **Phase 17: Stripe E2E & Production Readiness** - Full E2E tests, final polish, monitoring
 
-#### Phase 11: Stripe Backend Test Coverage
-**Goal**: Add comprehensive unit tests for all payment services (addresses TEST-002)
-**Depends on**: v1.1 complete
-**Research**: Likely (Stripe testing best practices)
-**Research topics**: Stripe test mode, mocking strategies, test clocks, idempotency testing
-**Plans**: TBD
-
-Key tasks:
-- Add unit tests for stripe-subscription.service.ts
-- Add unit tests for stripe-customer.service.ts
-- Add unit tests for connect-setup.service.ts
-- Test idempotency key generation and collision handling
-- Test error scenarios and retry logic
-
-#### Phase 12: Stripe Backend Hardening
+#### Phase 11: Stripe Backend Hardening
 **Goal**: Fix pagination limits, add Sync Engine monitoring, clean debug logs
-**Depends on**: Phase 11
+**Depends on**: v1.1 complete
 **Research**: Likely (Stripe API pagination, rate limits)
 **Research topics**: Stripe pagination best practices, rate limit handling, auto-pagination, error codes
 **Plans**: TBD
@@ -137,9 +125,9 @@ Key tasks:
 - Replace console.log with structured logging in scripts
 - Add metrics for Stripe API call latency and errors
 
-#### Phase 13: Webhook Security & Reliability
+#### Phase 12: Webhook Security & Reliability
 **Goal**: Fix race conditions, add RLS enforcement, wrap processing in transactions
-**Depends on**: Phase 12
+**Depends on**: Phase 11
 **Research**: Likely (Stripe webhook best practices)
 **Research topics**: Webhook idempotency, retry behavior, event ordering, signature verification, error handling
 **Plans**: TBD
@@ -151,9 +139,9 @@ Key tasks:
 - Add dead letter queue for failed webhooks
 - Implement webhook event replay capability
 
-#### Phase 14: Frontend Checkout & Subscriptions
+#### Phase 13: Frontend Checkout & Subscriptions
 **Goal**: Implement proper checkout UI, subscription management, payment method handling
-**Depends on**: Phase 13
+**Depends on**: Phase 12
 **Research**: Likely (Stripe.js, Elements, Checkout Sessions)
 **Research topics**: Stripe.js initialization, Elements styling, Checkout Sessions vs embedded, Customer Portal, Payment Element
 **Plans**: TBD
@@ -165,9 +153,9 @@ Key tasks:
 - Integrate Stripe Customer Portal for self-service
 - Handle SCA/3D Secure authentication flows
 
-#### Phase 15: Stripe Connect & Payouts UI
+#### Phase 14: Stripe Connect & Payouts UI
 **Goal**: Build Connect account onboarding and payout management dashboard
-**Depends on**: Phase 14
+**Depends on**: Phase 13
 **Research**: Likely (Stripe Connect documentation)
 **Research topics**: Connect account types (Express/Standard/Custom), onboarding flows, payout schedules, account capabilities
 **Plans**: TBD
@@ -179,9 +167,9 @@ Key tasks:
 - Build payout history and details view
 - Handle account verification requirements
 
-#### Phase 16: Stripe Documentation Alignment
+#### Phase 15: Stripe Documentation Alignment
 **Goal**: Comprehensive review and alignment with official Stripe documentation
-**Depends on**: Phase 15
+**Depends on**: Phase 14
 **Research**: Likely (full Stripe API reference)
 **Research topics**: Stripe integration checklist, API versioning, deprecation warnings, best practices guide
 **Plans**: TBD
@@ -192,6 +180,20 @@ Key tasks:
 - Implement Stripe's error handling best practices
 - Add proper API version pinning
 - Review and update metadata usage
+
+#### Phase 16: Stripe Backend Test Coverage
+**Goal**: Add comprehensive unit tests for all payment services (addresses TEST-002)
+**Depends on**: Phase 15
+**Research**: Likely (Stripe testing best practices)
+**Research topics**: Stripe test mode, mocking strategies, test clocks, idempotency testing
+**Plans**: TBD
+
+Key tasks:
+- Add unit tests for stripe-subscription.service.ts
+- Add unit tests for stripe-customer.service.ts
+- Add unit tests for connect-setup.service.ts
+- Test idempotency key generation and collision handling
+- Test error scenarios and retry logic
 
 #### Phase 17: Stripe E2E & Production Readiness
 **Goal**: Full E2E test coverage and production readiness verification
@@ -225,10 +227,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Service Decomposition | v1.1 | 1/1 | Complete | 2026-01-15 |
 | 9. Connect Payouts | v1.1 | 1/1 | Complete | 2026-01-15 |
 | 10. Final Polish | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 11. Stripe Backend Test Coverage | v2.0 | 0/? | Not started | - |
-| 12. Stripe Backend Hardening | v2.0 | 0/? | Not started | - |
-| 13. Webhook Security & Reliability | v2.0 | 0/? | Not started | - |
-| 14. Frontend Checkout & Subscriptions | v2.0 | 0/? | Not started | - |
-| 15. Stripe Connect & Payouts UI | v2.0 | 0/? | Not started | - |
-| 16. Stripe Documentation Alignment | v2.0 | 0/? | Not started | - |
+| 11. Stripe Backend Hardening | v2.0 | 1/4 | In progress | - |
+| 12. Webhook Security & Reliability | v2.0 | 0/? | Not started | - |
+| 13. Frontend Checkout & Subscriptions | v2.0 | 0/? | Not started | - |
+| 14. Stripe Connect & Payouts UI | v2.0 | 0/? | Not started | - |
+| 15. Stripe Documentation Alignment | v2.0 | 0/? | Not started | - |
+| 16. Stripe Backend Test Coverage | v2.0 | 0/? | Not started | - |
 | 17. Stripe E2E & Production Readiness | v2.0 | 0/? | Not started | - |
