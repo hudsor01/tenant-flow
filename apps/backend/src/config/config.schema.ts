@@ -190,8 +190,8 @@ const environmentSchema = z
 		SUPPORT_EMAIL: z.string().email('Must be a valid email address'),
 		SUPPORT_PHONE: z.string().optional(),
 
-		// Resend
-		RESEND_API_KEY: z.string(),
+		// Resend (optional for local Docker testing, required in Railway production)
+		RESEND_API_KEY: z.string().optional(),
 		RESEND_FROM_EMAIL: z
 			.string()
 			.email('Must be a valid email address')
@@ -236,10 +236,33 @@ const environmentSchema = z
 		REDISPORT: z.string().optional(),
 		VERCEL_ENV: z.string().optional(),
 		VERCEL_URL: z.string().optional(),
-		DOCKER_CONTAINER: z.coerce.boolean().default(false)
+		DOCKER_CONTAINER: z.coerce.boolean().default(false),
+
+		// Explicit opt-in to skip production validation (for local Docker testing only)
+		// WARNING: Never set this in actual production deployments
+		SKIP_PRODUCTION_VALIDATION: z.coerce.boolean().default(false)
 	})
 	.superRefine((config, ctx) => {
 		if (config.NODE_ENV !== 'production') return
+
+		// Explicit opt-in to skip validation for local Docker testing
+		// This is safer than platform detection - requires conscious decision
+		if (config.SKIP_PRODUCTION_VALIDATION) {
+			console.warn(
+				'⚠️  SKIP_PRODUCTION_VALIDATION is set - skipping Redis/Resend validation. ' +
+					'This should ONLY be used for local Docker testing!'
+			)
+			return
+		}
+
+		// Production requirements (Railway only)
+		if (!config.RESEND_API_KEY) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['RESEND_API_KEY'],
+				message: 'RESEND_API_KEY is required in production.'
+			})
+		}
 
 		const redisUrl = config.REDIS_URL
 		const redisHost = config.REDIS_HOST || config.REDISHOST
