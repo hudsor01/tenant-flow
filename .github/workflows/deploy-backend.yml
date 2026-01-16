@@ -44,7 +44,7 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up --service backend --environment production
+          railway up --service tenantflow-backend --environment production
 
       - name: Notify Sentry of Release
         if: success()
