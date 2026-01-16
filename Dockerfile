@@ -22,7 +22,7 @@ RUN apk add --no-cache \
         dumb-init \
         ca-certificates \
         curl && \
-    npm install -g pnpm@10 turbo@2.5.6 && \
+    npm install -g pnpm@10.28.0 turbo@2.7.4 && \
     rm -rf /var/cache/apk/* /tmp/*
 
 WORKDIR /app
@@ -131,7 +131,7 @@ USER node
 EXPOSE ${PORT}
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-    CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
+    CMD node -e "require('http').get('http://127.0.0.1:'+process.env.PORT+'/health/ping',(r)=>{process.exit(r.statusCode===200?0:1)}).on('error',()=>process.exit(1))"
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/backend/dist/main.js"]
