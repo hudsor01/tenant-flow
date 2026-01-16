@@ -11,7 +11,7 @@
 		"start": "doppler run -- node dist/main.js",
 		"start:dev": "doppler run -- node dist/main.js",
 		"start:prod": "doppler run -- NODE_ENV=production node dist/main.js",
-		"lint": "eslint \"src/**/*.ts\" --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
+		"lint": "eslint \"src/**/*.ts\" --cache --cache-location node_modules/.cache/eslint/ --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "pnpm lint --fix",
 		"typecheck": "tsc --noEmit",
 		"test": "pnpm run test:unit",
@@ -45,6 +45,8 @@
 		"@react-email/render": "2.0.0",
 		"@react-pdf/renderer": "4.3.1",
 		"@repo/shared": "workspace:*",
+		"@sentry/nestjs": "10.34.0",
+		"@sentry/profiling-node": "10.34.0",
 		"@supabase/stripe-sync-engine": "0.45.0",
 		"@supabase/supabase-js": "catalog:default",
 		"@types/jsonwebtoken": "9.0.10",
@@ -77,7 +79,7 @@
 		"ua-parser-js": "2.0.7",
 		"winston": "3.18.3",
 		"winston-daily-rotate-file": "5.0.0",
-		"zod": "4.1.13"
+		"zod": "catalog:default"
 	},
 	"devDependencies": {
 		"@golevelup/ts-jest": "0.7.0",

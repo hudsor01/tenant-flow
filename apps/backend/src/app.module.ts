@@ -8,7 +8,8 @@
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
-import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
 import { EventEmitterModule } from '@nestjs/event-emitter'
 import { HttpModule } from '@nestjs/axios'
 import { ScheduleModule } from '@nestjs/schedule'
@@ -72,6 +73,9 @@ import { DocumentsModule } from './modules/documents/documents.module'
  */
 @Module({
 	imports: [
+		// Sentry error tracking and performance monitoring
+		SentryModule.forRoot(),
+
 		ConfigModule.forRoot({
 			isGlobal: true,
 			validate
@@ -250,6 +254,11 @@ import { DocumentsModule } from './modules/documents/documents.module'
 	controllers: [AppController],
 	providers: [
 		AppService,
+		// Sentry global error filter - must be first to catch all exceptions
+		{
+			provide: APP_FILTER,
+			useClass: SentryGlobalFilter
+		},
 		{
 			provide: APP_PIPE,
 			useClass: ZodValidationPipe

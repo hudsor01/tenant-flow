@@ -19,7 +19,7 @@
 		"test:contracts": "doppler run --preserve-env=PLAYWRIGHT_BASE_URL -- pnpm exec playwright test tests/integration/api-contracts.spec.ts",
 		"test:stripe": "doppler run --preserve-env=PLAYWRIGHT_BASE_URL,E2E_OWNER_EMAIL,E2E_OWNER_PASSWORD,E2E_TENANT_EMAIL,E2E_TENANT_PASSWORD -- pnpm exec playwright test tests/stripe-payment-flow.e2e.spec.ts tests/stripe-disputes-fraud.e2e.spec.ts",
 		"lighthouse": "pnpm exec lhci autorun",
-		"lint": "pnpm exec eslint \"tests/**/*.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
+		"lint": "pnpm exec eslint \"tests/**/*.ts\" --cache --cache-location node_modules/.cache/eslint/ --no-error-on-unmatched-pattern --no-warn-ignored",
 		"typecheck": "tsc --noEmit"
 	},
 	"devDependencies": {

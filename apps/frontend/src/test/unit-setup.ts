@@ -16,6 +16,10 @@ configure({
 	asyncUtilTimeout: 5000
 })
 
+// Skip @t3-oss/env-nextjs validation in tests
+// This must be set BEFORE any env.ts imports
+process.env.SKIP_ENV_VALIDATION = 'true'
+
 // Set up required environment variables for tests
 process.env.NEXT_PUBLIC_APP_URL =
 	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'

@@ -2,6 +2,8 @@
  * Maintenance Service - Ultra-Native NestJS Implementation
  * Direct Supabase access, no repository abstractions
  * Simplified: Removed helper methods, consolidated status updates
+ *
+ * Expense operations delegated to MaintenanceExpenseService (Jan 2026)
  */
 
 import {
@@ -29,6 +31,7 @@ import {
 import { AppLogger } from '../../logger/app-logger.service'
 import { MaintenanceAssignmentService } from './maintenance-assignment.service'
 import { MaintenanceStatusService } from './maintenance-status.service'
+import { MaintenanceExpenseService } from './maintenance-expense.service'
 
 @Injectable()
 export class MaintenanceService {
@@ -37,7 +40,8 @@ export class MaintenanceService {
 		private readonly eventEmitter: EventEmitter2,
 		private readonly logger: AppLogger,
 		private readonly assignmentService: MaintenanceAssignmentService,
-		private readonly statusService: MaintenanceStatusService
+		private readonly statusService: MaintenanceStatusService,
+		private readonly expenseService: MaintenanceExpenseService
 	) {}
 
 	/**
@@ -507,9 +511,12 @@ export class MaintenanceService {
 		}
 	}
 
+	// ============================================
+	// EXPENSE OPERATIONS (delegated)
+	// ============================================
+
 	/**
-	 * Create expense for maintenance request
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * Create expense for maintenance request (delegated)
 	 */
 	async createExpense(
 		token: string,
@@ -520,140 +527,31 @@ export class MaintenanceService {
 			expense_date: string
 		}
 	): Promise<ExpenseRecord> {
-		try {
-			if (!token) {
-				throw new BadRequestException('Authentication token is required')
-			}
-
-			this.logger.log('Creating expense via RLS-protected query', {
-				expenseData
-			})
-
-			const client = this.supabase.getUserClient(token)
-
-			// Verify user has access to the maintenance request
-			const maintenanceRequest = await this.findOne(
-				token,
-				expenseData.maintenance_request_id
-			)
-			if (!maintenanceRequest) {
-				throw new BadRequestException('Maintenance request not found')
-			}
-
-			const { data, error } = await client
-				.from('expenses')
-				.insert({
-					maintenance_request_id: expenseData.maintenance_request_id,
-					vendor_name: expenseData.vendor_name,
-					amount: expenseData.amount,
-					expense_date: expenseData.expense_date,
-					owner_user_id: maintenanceRequest.owner_user_id
-				})
-				.select()
-				.single()
-
-			if (error) {
-				this.logger.error('Failed to create expense in Supabase', {
-					error: error.message,
-					expenseData
-				})
-				throw new BadRequestException('Failed to create expense')
-			}
-
-			return data as ExpenseRecord
-		} catch (error) {
-			this.logger.error('Maintenance service failed to create expense', {
-				error: error instanceof Error ? error.message : String(error),
-				expenseData
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to create expense'
-			)
+		// Verify user has access to the maintenance request
+		const maintenanceRequest = await this.findOne(
+			token,
+			expenseData.maintenance_request_id
+		)
+		if (!maintenanceRequest) {
+			throw new BadRequestException('Maintenance request not found')
 		}
+		return this.expenseService.createExpense(token, expenseData, maintenanceRequest)
 	}
 
 	/**
-	 * Get expenses for a maintenance request
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically filters to user's expenses
+	 * Get expenses for a maintenance request (delegated)
 	 */
 	async getExpenses(
 		token: string,
 		maintenanceId: string
 	): Promise<ExpenseRecord[]> {
-		try {
-			if (!token || !maintenanceId) {
-				this.logger.warn('Get expenses called with missing parameters', {
-					maintenanceId
-				})
-				return []
-			}
-
-			this.logger.log('Getting expenses via RLS-protected query', {
-				maintenanceId
-			})
-
-			const client = this.supabase.getUserClient(token)
-
-			const { data, error } = await client
-				.from('expenses')
-				.select('*')
-				.eq('maintenance_request_id', maintenanceId)
-				.order('expense_date', { ascending: false })
-
-			if (error) {
-				this.logger.error('Failed to fetch expenses from Supabase', {
-					error: error.message,
-					maintenanceId
-				})
-				return []
-			}
-
-			return data as ExpenseRecord[]
-		} catch (error) {
-			this.logger.error('Maintenance service failed to get expenses', {
-				error: error instanceof Error ? error.message : String(error),
-				maintenanceId
-			})
-			return []
-		}
+		return this.expenseService.getExpenses(token, maintenanceId)
 	}
 
 	/**
-	 * Delete an expense
-	 * RLS COMPLIANT: Uses getUserClient(token) - RLS automatically verifies ownership
+	 * Delete an expense (delegated)
 	 */
 	async deleteExpense(token: string, expenseId: string): Promise<void> {
-		try {
-			if (!token || !expenseId) {
-				throw new BadRequestException(
-					'Authentication token and expense ID are required'
-				)
-			}
-
-			this.logger.log('Deleting expense via RLS-protected query', { expenseId })
-
-			const client = this.supabase.getUserClient(token)
-
-			const { error } = await client
-				.from('expenses')
-				.delete()
-				.eq('id', expenseId)
-
-			if (error) {
-				this.logger.error('Failed to delete expense in Supabase', {
-					error: error.message,
-					expenseId
-				})
-				throw new BadRequestException('Failed to delete expense')
-			}
-		} catch (error) {
-			this.logger.error('Maintenance service failed to delete expense', {
-				error: error instanceof Error ? error.message : String(error),
-				expenseId
-			})
-			throw new BadRequestException(
-				error instanceof Error ? error.message : 'Failed to delete expense'
-			)
-		}
+		return this.expenseService.deleteExpense(token, expenseId)
 	}
 }

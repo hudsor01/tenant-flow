@@ -14,7 +14,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import type { SupabaseService } from '../../database/supabase.service'
-import { StripeConnectService } from '../billing/stripe-connect.service'
+import { ConnectService } from '../billing/connect/connect.service'
 import {
 	LEASE_SIGNATURE_ERROR_MESSAGES,
 	LEASE_SIGNATURE_ERROR_CODES
@@ -47,7 +47,7 @@ interface SignatureData {
 export class LeaseSubscriptionService {
 	constructor(
 		private readonly eventEmitter: EventEmitter2,
-		private readonly stripeConnectService: StripeConnectService,
+		private readonly connectService: ConnectService,
 		private readonly logger: AppLogger
 	) {}
 
@@ -205,7 +205,7 @@ export class LeaseSubscriptionService {
 				}
 
 				const customer =
-					await this.stripeConnectService.createCustomerOnConnectedAccount(
+					await this.connectService.createCustomerOnConnectedAccount(
 						connectedAccountId,
 						createCustomerParams
 					)
@@ -229,7 +229,7 @@ export class LeaseSubscriptionService {
 		// Create Stripe subscription with idempotency key for safe retries
 		try {
 			const subscription =
-				await this.stripeConnectService.createSubscriptionOnConnectedAccount(
+				await this.connectService.createSubscriptionOnConnectedAccount(
 					connectedAccountId,
 					{
 						customerId: stripeCustomerId,

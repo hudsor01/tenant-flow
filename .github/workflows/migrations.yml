@@ -1,0 +1,74 @@
+name: Migration Validation
+
+on:
+  workflow_call:
+    inputs:
+      pnpm-version:
+        type: string
+        default: '10.23.0'
+      node-version:
+        type: string
+        default: '24'
+
+jobs:
+  validate-migrations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: pnpm
+
+      - name: Install Supabase CLI
+        run: |
+          if command -v supabase &> /dev/null; then
+            echo "Supabase CLI already installed: $(supabase --version)"
+          else
+            mkdir -p /tmp/supabase-install
+            curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz -C /tmp/supabase-install
+            sudo mv /tmp/supabase-install/supabase /usr/local/bin/
+            rm -rf /tmp/supabase-install
+          fi
+
+      - name: Validate migration syntax
+        run: |
+          # Check all .sql files for basic syntax issues
+          for file in supabase/migrations/*.sql; do
+            echo "Checking: $file"
+            # Supabase CLI doesn't have a pure syntax check, so we verify:
+            # 1. File is valid UTF-8
+            # 2. File ends with newline
+            # 3. No Windows line endings
+            if ! file "$file" | grep -q "UTF-8\|ASCII"; then
+              echo "ERROR: $file is not valid UTF-8"
+              exit 1
+            fi
+            if [[ $(tail -c 1 "$file" | wc -l) -eq 0 ]]; then
+              echo "WARNING: $file does not end with newline"
+            fi
+            if grep -q $'\r' "$file"; then
+              echo "ERROR: $file contains Windows line endings (CRLF)"
+              exit 1
+            fi
+          done
+          echo "All migration files validated"
+
+      - name: Check migration naming convention
+        run: |
+          # Verify all migrations follow YYYYMMDDHHmmss_description.sql pattern
+          for file in supabase/migrations/*.sql; do
+            basename=$(basename "$file")
+            if ! echo "$basename" | grep -qE '^[0-9]{14}_[a-z0-9_]+\.sql$'; then
+              echo "ERROR: $basename does not follow naming convention (YYYYMMDDHHmmss_description.sql)"
+              exit 1
+            fi
+          done
+          echo "All migration names follow convention"

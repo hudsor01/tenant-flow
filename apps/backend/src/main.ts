@@ -1,3 +1,6 @@
+// Sentry instrumentation MUST be imported first before any other modules
+import './instrument'
+
 import { ClassSerializerInterceptor, RequestMethod } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ZodValidationPipe } from 'nestjs-zod'

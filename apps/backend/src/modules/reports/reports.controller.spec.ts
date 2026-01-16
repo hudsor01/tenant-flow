@@ -1,44 +1,44 @@
-import { BadRequestException } from '@nestjs/common'
+import { UnauthorizedException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import { Reflector } from '@nestjs/core'
 import { SupabaseService } from '../../database/supabase.service'
-import { ExportService } from './export.service'
 import { ReportsController } from './reports.controller'
-import { ExecutiveReportService } from './executive-report.service'
 import { FinancialReportService } from './financial-report.service'
-import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
-import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceReportService } from './maintenance-report.service'
-import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyReportService } from './property-report.service'
-import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
-import { TaxReportService } from './tax-report.service'
 import { TenantReportService } from './tenant-report.service'
-import { SilentLogger } from '../../__tests__/silent-logger'
-import { AppLogger } from '../../logger/app-logger.service'
 
 describe('ReportsController', () => {
 	let controller: ReportsController
-	let exportService: jest.Mocked<ExportService>
+	let financialReportService: jest.Mocked<FinancialReportService>
+	let propertyReportService: jest.Mocked<PropertyReportService>
+	let tenantReportService: jest.Mocked<TenantReportService>
+	let maintenanceReportService: jest.Mocked<MaintenanceReportService>
 
 	beforeEach(async () => {
-		exportService = {
-			generateExcel: jest.fn().mockResolvedValue(Buffer.from('excel')),
-			generateCSV: jest.fn().mockResolvedValue('csv'),
-			generatePDF: jest.fn().mockResolvedValue(Buffer.from('pdf'))
-		} as unknown as jest.Mocked<ExportService>
+		financialReportService = {
+			getFinancialReport: jest.fn().mockResolvedValue({ income: 1000 })
+		} as unknown as jest.Mocked<FinancialReportService>
+
+		propertyReportService = {
+			getPropertyReport: jest.fn().mockResolvedValue({ properties: [] })
+		} as unknown as jest.Mocked<PropertyReportService>
+
+		tenantReportService = {
+			getTenantReport: jest.fn().mockResolvedValue({ tenants: [] })
+		} as unknown as jest.Mocked<TenantReportService>
+
+		maintenanceReportService = {
+			getMaintenanceReport: jest.fn().mockResolvedValue({ requests: [] })
+		} as unknown as jest.Mocked<MaintenanceReportService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [ReportsController],
 			providers: [
 				{
-					provide: ExportService,
-					useValue: exportService
-				},
-				{
 					provide: FinancialReportService,
-					useValue: {}
+					useValue: financialReportService
 				},
 				{
 					provide: Reflector,
@@ -50,43 +50,15 @@ describe('ReportsController', () => {
 				},
 				{
 					provide: PropertyReportService,
-					useValue: {}
+					useValue: propertyReportService
 				},
 				{
 					provide: TenantReportService,
-					useValue: {}
+					useValue: tenantReportService
 				},
 				{
 					provide: MaintenanceReportService,
-					useValue: {}
-				},
-				{
-					provide: ExecutiveReportService,
-					useValue: {}
-				},
-				{
-					provide: TaxReportService,
-					useValue: {}
-				},
-				{
-					provide: FinancialPerformanceTemplate,
-					useValue: {}
-				},
-				{
-					provide: PropertyPortfolioTemplate,
-					useValue: {}
-				},
-				{
-					provide: LeasePortfolioTemplate,
-					useValue: {}
-				},
-				{
-					provide: MaintenanceOperationsTemplate,
-					useValue: {}
-				},
-				{
-					provide: AppLogger,
-					useValue: new SilentLogger()
+					useValue: maintenanceReportService
 				}
 			]
 		}).compile()
@@ -94,156 +66,125 @@ describe('ReportsController', () => {
 		controller = module.get(ReportsController)
 	})
 
-	function createResponseMock() {
+	function createAuthenticatedRequest(userId = 'test-user-id') {
 		return {
-			setHeader: jest.fn(),
-			send: jest.fn()
-		} as unknown as Parameters<typeof controller.exportExcel>[1]
+			user: { id: userId, email: 'test@example.com' }
+		} as never
 	}
 
-	describe('validation', () => {
-		it('throws when payload is missing', async () => {
+	function createUnauthenticatedRequest() {
+		return { user: undefined } as never
+	}
+
+	describe('authentication', () => {
+		it('throws UnauthorizedException when user is not authenticated for financial report', async () => {
 			await expect(
-				controller.exportCsv({} as never, createResponseMock())
-			).rejects.toBeInstanceOf(BadRequestException)
+				controller.getFinancialReport(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
 		})
 
-		it('enforces filename, sheet name, and title length constraints', async () => {
-			const tooLongFilename = `${'a'.repeat(121)}.csv`
+		it('throws UnauthorizedException when user is not authenticated for property report', async () => {
 			await expect(
-				controller.exportCsv(
-					{
-						filename: tooLongFilename,
-						payload: []
-					} as never,
-					createResponseMock()
-				)
-			).rejects.toThrow('Filename must be 120 characters or fewer')
+				controller.getPropertyReport(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
+		})
 
+		it('throws UnauthorizedException when user is not authenticated for tenant report', async () => {
 			await expect(
-				controller.exportExcel(
-					{
-						payload: [],
-						sheetName: 's'.repeat(61)
-					} as never,
-					createResponseMock()
-				)
-			).rejects.toThrow('Sheet name must be 60 characters or fewer')
+				controller.getTenantReport(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
+		})
 
+		it('throws UnauthorizedException when user is not authenticated for maintenance report', async () => {
 			await expect(
-				controller.exportPdf(
-					{
-						payload: [],
-						title: 't'.repeat(161)
-					} as never,
-					createResponseMock()
-				)
-			).rejects.toThrow('Title must be 160 characters or fewer')
+				controller.getMaintenanceReport(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
 		})
 	})
 
-	describe('exportExcel', () => {
-		it('generates excel export with sanitized filename', async () => {
-			const res = createResponseMock()
-
-			await controller.exportExcel(
-				{
-					filename: '../Portfolio Report',
-					sheetName: 'Detailed Metrics',
-					payload: { hello: 'world' }
-				},
-				res
+	describe('getFinancialReport', () => {
+		it('returns financial report data for authenticated user', async () => {
+			const result = await controller.getFinancialReport(
+				createAuthenticatedRequest()
 			)
 
-			expect(exportService.generateExcel).toHaveBeenCalledWith(
-				{ hello: 'world' },
-				'Detailed Metrics'
+			expect(financialReportService.getFinancialReport).toHaveBeenCalledWith(
+				'test-user-id',
+				undefined,
+				undefined
 			)
-			expect(res.setHeader).toHaveBeenCalledWith(
-				'Content-Disposition',
-				expect.stringContaining('portfolio-report.xlsx')
-			)
-			expect(res.send).toHaveBeenCalledWith(Buffer.from('excel'))
+			expect(result).toEqual({
+				success: true,
+				data: { income: 1000 }
+			})
 		})
 
-		it('accepts analytics data via the data alias and truncates sheet names', async () => {
-			const res = createResponseMock()
-			const sheetName =
-				'Quarterly Financial Snapshot FY2024 Metrics Overview 123456'
-
-			await controller.exportExcel(
-				{
-					filename: 'Financial Overview',
-					sheetName: sheetName,
-					data: [{ revenue: 100 }]
-				},
-				res
+		it('passes date filters to service', async () => {
+			await controller.getFinancialReport(
+				createAuthenticatedRequest(),
+				'2024-01-01',
+				'2024-12-31'
 			)
 
-			expect(exportService.generateExcel).toHaveBeenCalledWith(
-				[{ revenue: 100 }],
-				sheetName.slice(0, 60)
+			expect(financialReportService.getFinancialReport).toHaveBeenCalledWith(
+				'test-user-id',
+				'2024-01-01',
+				'2024-12-31'
 			)
 		})
 	})
 
-	describe('exportCsv', () => {
-		it('generates csv export', async () => {
-			const res = createResponseMock()
-
-			await controller.exportCsv(
-				{
-					filename: 'leases',
-					payload: [{ id: 1 }]
-				},
-				res
+	describe('getPropertyReport', () => {
+		it('returns property report data for authenticated user', async () => {
+			const result = await controller.getPropertyReport(
+				createAuthenticatedRequest()
 			)
 
-			expect(exportService.generateCSV).toHaveBeenCalledWith([{ id: 1 }])
-			expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv')
-			expect(res.send).toHaveBeenCalledWith('csv')
+			expect(propertyReportService.getPropertyReport).toHaveBeenCalledWith(
+				'test-user-id',
+				undefined,
+				undefined
+			)
+			expect(result).toEqual({
+				success: true,
+				data: { properties: [] }
+			})
 		})
 	})
 
-	describe('exportPdf', () => {
-		it('generates pdf export with title fallback', async () => {
-			const res = createResponseMock()
-
-			await controller.exportPdf(
-				{
-					title: 'Lease Summary',
-					payload: { leases: [] }
-				},
-				res
+	describe('getTenantReport', () => {
+		it('returns tenant report data for authenticated user', async () => {
+			const result = await controller.getTenantReport(
+				createAuthenticatedRequest()
 			)
 
-			expect(exportService.generatePDF).toHaveBeenCalledWith(
-				{ leases: [] },
-				'Lease Summary'
+			expect(tenantReportService.getTenantReport).toHaveBeenCalledWith(
+				'test-user-id',
+				undefined,
+				undefined
 			)
-			expect(res.setHeader).toHaveBeenCalledWith(
-				'Content-Type',
-				'application/pdf'
-			)
-			expect(res.send).toHaveBeenCalledWith(Buffer.from('pdf'))
+			expect(result).toEqual({
+				success: true,
+				data: { tenants: [] }
+			})
 		})
+	})
 
-		it('trims provided titles before rendering the PDF document', async () => {
-			const res = createResponseMock()
-			const titleWithWhitespace = 'Lease Performance Summary            '
-
-			await controller.exportPdf(
-				{
-					title: titleWithWhitespace,
-					payload: { records: [] }
-				},
-				res
+	describe('getMaintenanceReport', () => {
+		it('returns maintenance report data for authenticated user', async () => {
+			const result = await controller.getMaintenanceReport(
+				createAuthenticatedRequest()
 			)
 
-			expect(exportService.generatePDF).toHaveBeenCalledWith(
-				{ records: [] },
-				titleWithWhitespace.trim()
+			expect(maintenanceReportService.getMaintenanceReport).toHaveBeenCalledWith(
+				'test-user-id',
+				undefined,
+				undefined
 			)
+			expect(result).toEqual({
+				success: true,
+				data: { requests: [] }
+			})
 		})
 	})
 })
