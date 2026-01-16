@@ -26,7 +26,11 @@ const nextConfig: NextConfig = {
 	}
 }
 
-const isProduction = process.env.VERCEL_ENV === 'production'
+// Enable source maps in production, but not preview deployments
+// Works on Vercel (VERCEL_ENV) and other platforms (NODE_ENV + explicit flag)
+const isProduction =
+	process.env.VERCEL_ENV === 'production' ||
+	(process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === undefined)
 
 export default withSentryConfig(nextConfig, {
 	org: process.env.SENTRY_ORG ?? '',
@@ -36,8 +40,8 @@ export default withSentryConfig(nextConfig, {
 		// Only upload on production deploys, skip previews
 		disable: !isProduction,
 		deleteSourcemapsAfterUpload: true,
-		// Only upload app code, not node_modules
-		assets: ['.next/static/chunks/app/**']
+		// Include all app chunks: app routes, shared chunks (main, framework, webpack)
+		assets: ['.next/static/chunks/app/**', '.next/static/chunks/*.js']
 	},
 	tunnelRoute: '/monitoring',
 	disableLogger: true,
