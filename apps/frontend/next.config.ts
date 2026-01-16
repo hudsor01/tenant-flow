@@ -26,13 +26,26 @@ const nextConfig: NextConfig = {
 	}
 }
 
+const isProduction = process.env.VERCEL_ENV === 'production'
+
 export default withSentryConfig(nextConfig, {
 	org: process.env.SENTRY_ORG ?? '',
 	project: process.env.SENTRY_PROJECT ?? '',
 	silent: true,
 	sourcemaps: {
-		disable: true
+		// Only upload on production deploys, skip previews
+		disable: !isProduction,
+		deleteSourcemapsAfterUpload: true,
+		// Only upload app code, not node_modules
+		assets: ['.next/static/chunks/app/**']
 	},
 	tunnelRoute: '/monitoring',
-	disableLogger: true
+	disableLogger: true,
+	// Release tracking
+	release: {
+		setCommits: {
+			auto: true,
+			ignoreMissing: true
+		}
+	}
 })
