@@ -88,11 +88,6 @@ export const config = defineConfig([
 		files: ['**/*.ts', '**/*.tsx'],
 		ignores: ['**/*.d.ts'],
 		languageOptions: {
-			parserOptions: {
-				projectService: true,
-
-				tsconfigRootDir: import.meta.dirname
-			},
 			globals: {
 				...globals.node,
 				...globals.browser,
@@ -102,13 +97,7 @@ export const config = defineConfig([
 			}
 		},
 		rules: {
-			// Disable type-aware rules that cause issues
-			'@typescript-eslint/no-unsafe-argument': 'off',
-			'@typescript-eslint/no-unsafe-assignment': 'off',
-			'@typescript-eslint/no-unsafe-member-access': 'off',
-			'@typescript-eslint/no-unsafe-return': 'off',
-			'@typescript-eslint/no-unsafe-call': 'off',
-			// Keep non-type-aware rules
+			// Non-type-aware rules only (no projectService needed)
 			'@typescript-eslint/no-explicit-any': 'error',
 			'@typescript-eslint/no-unused-vars': [
 				'error',
