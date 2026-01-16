@@ -1,0 +1,460 @@
+import {
+	Body,
+	Controller,
+	Post,
+	Get,
+	Request,
+	BadRequestException,
+	InternalServerErrorException,
+	NotFoundException,
+	UnauthorizedException
+} from '@nestjs/common'
+import {
+	ApiBearerAuth,
+	ApiBody,
+	ApiOperation,
+	ApiResponse,
+	ApiTags
+} from '@nestjs/swagger'
+import { SkipSubscriptionCheck } from '../../../shared/guards/subscription.guard'
+import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
+import { ConnectService } from './connect.service'
+import { SupabaseService } from '../../../database/supabase.service'
+import { AppLogger } from '../../../logger/app-logger.service'
+
+/**
+ * Stripe-supported countries for Express accounts
+ * Source: https://stripe.com/docs/connect/accounts
+ */
+const STRIPE_SUPPORTED_COUNTRIES = new Set([
+	'US',
+	'CA',
+	'GB',
+	'AU',
+	'NZ',
+	'AT',
+	'BE',
+	'BG',
+	'HR',
+	'CY',
+	'CZ',
+	'DK',
+	'EE',
+	'FI',
+	'FR',
+	'DE',
+	'GR',
+	'HU',
+	'IE',
+	'IT',
+	'LV',
+	'LT',
+	'LU',
+	'MT',
+	'NL',
+	'NO',
+	'PL',
+	'PT',
+	'RO',
+	'SK',
+	'SI',
+	'ES',
+	'SE',
+	'CH',
+	'JP',
+	'SG',
+	'HK',
+	'MX',
+	'BR'
+])
+
+/**
+ * Validates if a country code is supported by Stripe Connect
+ */
+function isValidStripeCountry(country: string | undefined): boolean {
+	if (!country) return false
+	const normalized = country.trim().toUpperCase()
+	return STRIPE_SUPPORTED_COUNTRIES.has(normalized)
+}
+
+/**
+ * Stripe Connect Controller
+ *
+ * Handles Connected Account management for multi-owner SaaS platform.
+ * Payouts and transfers extracted to payouts.controller.ts.
+ */
+@ApiTags('Stripe Connect')
+@ApiBearerAuth('supabase-auth')
+@Controller('stripe/connect')
+export class ConnectController {
+	constructor(
+		private readonly connectService: ConnectService,
+		private readonly supabaseService: SupabaseService,
+		private readonly logger: AppLogger
+	) {}
+
+	/**
+	 * Retrieves the Stripe Connect account ID for the authenticated user
+	 *
+	 * This helper method looks up the property_owner record for the given user
+	 * and returns their associated Stripe Connect account ID.
+	 *
+	 * @param userId - The authenticated user's ID (from auth.users)
+	 * @returns The Stripe Connect account ID (e.g., "acct_...")
+	 * @throws InternalServerErrorException if database query fails
+	 * @throws BadRequestException if user has no Stripe Connect account
+	 *
+	 * @example
+	 * const stripeAccountId = await this.getStripeAccountId(req.user.id)
+	 * // Returns: "acct_1234567890"
+	 */
+	async getStripeAccountId(userId: string, token: string): Promise<string> {
+		const { data: propertyOwner, error } = await this.supabaseService
+			.getUserClient(token)
+			.from('stripe_connected_accounts')
+			.select('stripe_account_id')
+			.eq('user_id', userId)
+			.single()
+
+		// Separate database errors (500) from missing account (400)
+		if (error) {
+			this.logger.error('Failed to fetch Stripe account', {
+				error: error.message,
+				code: error.code,
+				userId
+			})
+			throw new InternalServerErrorException(
+				'Failed to retrieve payment account. Please try again or contact support if this persists.'
+			)
+		}
+
+		if (!propertyOwner?.stripe_account_id) {
+			throw new BadRequestException(
+				'No Stripe Connect account found. Please complete onboarding first.'
+			)
+		}
+
+		return propertyOwner.stripe_account_id
+	}
+
+	/**
+	 * Create a Stripe Connected Account and start onboarding
+	 * POST /api/v1/stripe/connect/onboard
+	 */
+	@ApiOperation({ summary: 'Start Connect onboarding', description: 'Create a Stripe Connected Account and get onboarding URL' })
+	@ApiBody({ schema: { type: 'object', properties: { country: { type: 'string', description: 'ISO 3166-1 alpha-2 country code' } } }, required: false })
+	@ApiResponse({ status: 200, description: 'Connected account created and onboarding URL generated' })
+	@ApiResponse({ status: 400, description: 'Invalid country code or user not found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('onboard')
+	@SkipSubscriptionCheck() // Allow onboarding before subscription is active
+	async createConnectedAccount(
+		@Request() req: AuthenticatedRequest,
+		@Body() body?: { country?: string }
+	) {
+		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const requestedCountry =
+			body && typeof body.country === 'string' ? body.country : undefined
+
+		// Validate country if provided
+		if (requestedCountry && !isValidStripeCountry(requestedCountry)) {
+			throw new BadRequestException(
+				`Invalid country code: ${requestedCountry}. Must be a valid ISO 3166-1 alpha-2 country code supported by Stripe Connect (e.g., US, CA, GB).`
+			)
+		}
+
+		try {
+			// Get user info from users table
+			const { data: user, error: userError } = await this.supabaseService
+				.getUserClient(token)
+				.from('users')
+				.select('email, first_name, last_name')
+				.eq('id', user_id)
+				.single()
+
+			if (userError || !user) {
+				throw new BadRequestException('User not found')
+			}
+
+			// Check if user already has a property_owner record with stripe_account_id
+			const { data: propertyOwner } = await this.supabaseService
+				.getUserClient(token)
+				.from('stripe_connected_accounts')
+				.select('stripe_account_id')
+				.eq('user_id', user_id)
+				.single()
+
+			// If already has connected account, create new account link
+			if (propertyOwner?.stripe_account_id) {
+				const accountLink = await this.connectService.createAccountLink(
+					propertyOwner.stripe_account_id
+				)
+
+				return {
+					accountId: propertyOwner.stripe_account_id,
+					onboardingUrl: accountLink.url,
+					existing: true
+				}
+			}
+
+			// Create new connected account
+			const result = await this.connectService.createConnectedAccount({
+				user_id,
+				email: user.email,
+				...(requestedCountry && { country: requestedCountry }),
+				...(user.first_name && { first_name: user.first_name }),
+				...(user.last_name && { last_name: user.last_name })
+			})
+
+			return {
+				...result,
+				existing: false
+			}
+		} catch (error) {
+			this.logger.error('Failed to create connected account', {
+				error,
+				user_id
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Refresh Account Link (when expired or onboarding needs restart)
+	 * POST /api/v1/stripe/connect/refresh-link
+	 */
+	@ApiOperation({ summary: 'Refresh account link', description: 'Generate a new onboarding URL for an existing Connected Account' })
+	@ApiResponse({ status: 200, description: 'New onboarding URL generated' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('refresh-link')
+	@SkipSubscriptionCheck()
+	async refreshAccountLink(@Request() req: AuthenticatedRequest) {
+		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+
+		try {
+			const { data: propertyOwner, error } = await this.supabaseService
+				.getUserClient(token)
+				.from('stripe_connected_accounts')
+				.select('stripe_account_id')
+				.eq('user_id', user_id)
+				.single()
+
+			if (error || !propertyOwner || !propertyOwner.stripe_account_id) {
+				throw new BadRequestException('No connected account found')
+			}
+
+			const accountLink = await this.connectService.createAccountLink(
+				propertyOwner.stripe_account_id
+			)
+
+			return {
+				onboardingUrl: accountLink.url
+			}
+		} catch (error) {
+			this.logger.error('Failed to refresh account link', {
+				error,
+				user_id
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Get Connected Account status
+	 * GET /api/v1/stripe/connect/status
+	 */
+	@ApiOperation({ summary: 'Get Connect status', description: 'Get Connected Account onboarding and verification status' })
+	@ApiResponse({ status: 200, description: 'Connected account status retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('status')
+	@SkipSubscriptionCheck()
+	async getConnectedAccountStatus(@Request() req: AuthenticatedRequest) {
+		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+
+		try {
+			// Get property owner record with Stripe Connect info
+			const { data: propertyOwner, error } = await this.supabaseService
+				.getUserClient(token)
+				.from('stripe_connected_accounts')
+				.select(
+					'stripe_account_id, charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
+				.eq('user_id', user_id)
+				.single()
+
+			if (error || !propertyOwner || !propertyOwner.stripe_account_id) {
+				return {
+					hasConnectedAccount: false,
+					onboardingComplete: false
+				}
+			}
+
+			// Update status from Stripe (in case it changed)
+			let staleSyncData = false
+			try {
+				await this.connectService.updateOnboardingStatus(
+					user_id,
+					propertyOwner.stripe_account_id
+				)
+			} catch (updateError) {
+				this.logger.error('Failed to update onboarding status from Stripe', {
+					user_id,
+					stripe_account_id: propertyOwner.stripe_account_id,
+					error: updateError
+				})
+				// Set flag but continue with cached data instead of throwing
+				staleSyncData = true
+			}
+
+			// Fetch updated status from property_owners
+			const { data: updatedOwner } = await this.supabaseService
+				.getUserClient(token)
+				.from('stripe_connected_accounts')
+				.select(
+					'charges_enabled, payouts_enabled, onboarding_status, onboarding_completed_at'
+				)
+				.eq('user_id', user_id)
+				.single()
+
+			const isOnboardingComplete =
+				updatedOwner?.onboarding_status === 'complete'
+
+			return {
+				hasConnectedAccount: true,
+				connectedAccountId: propertyOwner.stripe_account_id,
+				onboardingComplete: isOnboardingComplete,
+				chargesEnabled: updatedOwner?.charges_enabled || false,
+				payoutsEnabled: updatedOwner?.payouts_enabled || false,
+				onboardingCompletedAt: updatedOwner?.onboarding_completed_at,
+				staleSyncData
+			}
+		} catch (error) {
+			this.logger.error('Failed to get connected account status', {
+				error,
+				user_id
+			})
+			throw error
+		}
+	}
+
+	@ApiOperation({ summary: 'Get account details', description: 'Get detailed information about the Connected Account' })
+	@ApiResponse({ status: 200, description: 'Account details retrieved' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@ApiResponse({ status: 404, description: 'No connected account found' })
+	@Get('account')
+	async getConnectedAccountDetails(@Request() req: AuthenticatedRequest) {
+		const user_id = req.user.id
+
+		const account = await this.connectService.getConnectedAccount(user_id)
+
+		if (!account) {
+			throw new NotFoundException('No connected account found')
+		}
+
+		// Identity verification removed - service deleted in refactoring
+		const identityVerification = null
+
+		return {
+			success: true,
+			data: {
+				...account,
+				identityVerification
+			}
+		}
+	}
+
+	/**
+	 * Get Stripe Dashboard login link for the connected account
+	 * POST /api/v1/stripe/connect/dashboard-link
+	 */
+	@ApiOperation({ summary: 'Get dashboard link', description: 'Get a login link for the Stripe Express Dashboard' })
+	@ApiResponse({ status: 200, description: 'Dashboard link generated' })
+	@ApiResponse({ status: 400, description: 'No connected account found or onboarding incomplete' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('dashboard-link')
+	async getStripeDashboardLink(@Request() req: AuthenticatedRequest) {
+		const user_id = req.user.id
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+
+		try {
+			const { data: propertyOwner, error } = await this.supabaseService
+				.getUserClient(token)
+				.from('stripe_connected_accounts')
+				.select('stripe_account_id, onboarding_status')
+				.eq('user_id', user_id)
+				.single()
+
+			if (error || !propertyOwner?.stripe_account_id) {
+				throw new BadRequestException('No connected account found')
+			}
+
+			if (propertyOwner.onboarding_status !== 'complete') {
+				throw new BadRequestException('Complete onboarding first')
+			}
+
+			// Create Express Dashboard login link
+			const url = await this.connectService.createDashboardLoginLink(
+				propertyOwner.stripe_account_id
+			)
+
+			return { url }
+		} catch (error) {
+			this.logger.error('Failed to create dashboard link', {
+				error,
+				user_id
+			})
+			throw error
+		}
+	}
+
+	/**
+	 * Get connected account balance
+	 * GET /api/v1/stripe/connect/balance
+	 */
+	@ApiOperation({ summary: 'Get account balance', description: 'Get available and pending balance for the Connected Account' })
+	@ApiResponse({ status: 200, description: 'Balance retrieved' })
+	@ApiResponse({ status: 400, description: 'No connected account found' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('balance')
+	async getConnectedAccountBalance(@Request() req: AuthenticatedRequest) {
+		const token = this.supabaseService.getTokenFromRequest(req)
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const stripeAccountId = await this.getStripeAccountId(req.user.id, token)
+
+		const balance =
+			await this.connectService.getConnectedAccountBalance(stripeAccountId)
+
+		return {
+			success: true,
+			balance: {
+				available: balance.available.map(b => ({
+					amount: b.amount,
+					currency: b.currency
+				})),
+				pending: balance.pending.map(b => ({
+					amount: b.amount,
+					currency: b.currency
+				}))
+			}
+		}
+	}
+
+}

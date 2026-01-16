@@ -27,7 +27,8 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 		// Skip if connection fails (no Supabase in CI environment)
 		if (
 			error?.message?.includes('fetch failed') ||
-			error?.message?.includes('ECONNREFUSED')
+			error?.message?.includes('ECONNREFUSED') ||
+			error?.code === 'PGRST002' // Schema cache error - database starting up or unavailable
 		) {
 			console.warn(
 				'⚠️  Skipping: Supabase not available (expected in CI environment)'

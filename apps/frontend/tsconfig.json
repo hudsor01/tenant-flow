@@ -5,6 +5,7 @@
 		"baseUrl": ".",
 		"verbatimModuleSyntax": false,
 		"paths": {
+			"#env": ["./src/env.ts"],
 			"#app/*": ["./src/app/*"],
 			"#components/*": ["./src/components/*"],
 			"#contexts/*": ["./src/contexts/*"],

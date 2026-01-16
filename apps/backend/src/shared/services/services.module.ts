@@ -7,6 +7,8 @@
 
 import { Global, Module } from '@nestjs/common'
 import { UtilityService } from './utility.service'
+import { SearchService } from './search.service'
+import { PasswordService } from './password.service'
 import { AuthRequestCache } from './auth-request-cache.service'
 import { EventIdempotencyService } from './event-idempotency.service'
 import { N8nCronWebhookController } from '../controllers/n8n-cron-webhook.controller'
@@ -21,7 +23,19 @@ const N8N_CRON_MODE_ENABLED = process.env.N8N_CRON_MODE === 'true'
 @Module({
 	imports: [],
 	controllers: [...(N8N_CRON_MODE_ENABLED ? [N8nCronWebhookController] : [])],
-	providers: [UtilityService, AuthRequestCache, EventIdempotencyService],
-	exports: [UtilityService, AuthRequestCache, EventIdempotencyService]
+	providers: [
+		UtilityService,
+		SearchService,
+		PasswordService,
+		AuthRequestCache,
+		EventIdempotencyService
+	],
+	exports: [
+		UtilityService,
+		SearchService,
+		PasswordService,
+		AuthRequestCache,
+		EventIdempotencyService
+	]
 })
 export class ServicesModule {}

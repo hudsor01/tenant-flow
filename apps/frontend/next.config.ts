@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs'
 import { getCSPString } from '@repo/shared/security/csp-config'
 import type { NextConfig } from 'next'
 import path from 'path'
@@ -161,4 +162,30 @@ const nextConfig: NextConfig = {
 	}
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+	// Sentry organization and project (required for source map upload)
+	org: process.env.SENTRY_ORG ?? '',
+	project: process.env.SENTRY_PROJECT ?? '',
+
+	// Suppress source map upload logs
+	silent: !process.env.CI,
+
+	// Upload source maps for better error stack traces
+	widenClientFileUpload: true,
+
+	// Tree-shake Sentry logger in production
+	disableLogger: true,
+
+	// Automatically instrument API routes and data fetching
+	autoInstrumentServerFunctions: true,
+	autoInstrumentMiddleware: true,
+	autoInstrumentAppDirectory: true,
+
+	// Source map handling - hide from client bundles but upload to Sentry
+	sourcemaps: {
+		deleteSourcemapsAfterUpload: true
+	},
+
+	// Tunneling to avoid ad blockers (optional)
+	tunnelRoute: '/monitoring'
+})

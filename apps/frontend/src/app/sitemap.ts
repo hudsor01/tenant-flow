@@ -1,11 +1,13 @@
 import { createClient } from '#lib/supabase/server'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MetadataRoute } from 'next'
+import { env } from '#env'
 
 const logger = createLogger({ component: 'Sitemap' })
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://tenantflow.app'
+	// Use NEXT_PUBLIC_APP_URL as the primary base URL
+	const baseUrl = env.NEXT_PUBLIC_APP_URL || 'https://tenantflow.app'
 	const currentDate = new Date().toISOString()
 
 	// High-priority marketing pages

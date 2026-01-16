@@ -9,6 +9,7 @@
 
 import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { SentryCron } from '@sentry/nestjs'
 import { EventEmitter2 } from '@nestjs/event-emitter'
 import { SupabaseService } from '../../database/supabase.service'
 import { LeaseSubscriptionService } from './lease-subscription.service'
@@ -43,6 +44,12 @@ export class SubscriptionRetryService {
 	 * Max 5 retry attempts with exponential backoff
 	 */
 	@Cron(CronExpression.EVERY_5_MINUTES)
+	@SentryCron('subscription-retry', {
+		schedule: { type: 'crontab', value: '*/5 * * * *' },
+		checkinMargin: 2,
+		maxRuntime: 5,
+		timezone: 'UTC'
+	})
 	async retryFailedSubscriptions(): Promise<void> {
 		this.logger.log('Starting subscription retry job')
 

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { SentryCron } from '@sentry/nestjs'
 import * as crypto from 'crypto'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
@@ -207,6 +208,12 @@ export class EventIdempotencyService {
 	 * Runs daily at midnight
 	 */
 	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+	@SentryCron('event-idempotency-cleanup', {
+		schedule: { type: 'crontab', value: '0 0 * * *' },
+		checkinMargin: 5,
+		maxRuntime: 10,
+		timezone: 'UTC'
+	})
 	async handleScheduledCleanup(): Promise<void> {
 		try {
 			const client = this.supabaseService.getAdminClient()

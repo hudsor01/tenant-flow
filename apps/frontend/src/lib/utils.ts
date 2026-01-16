@@ -19,6 +19,9 @@ export function cn(...inputs: ClassValue[]) {
 /**
  * Check if Supabase environment variables are configured
  * Used by middleware to skip auth checks during local dev without env vars
+ *
+ * Note: Uses process.env directly to avoid circular dependency with env.ts
+ * during middleware initialization. The t3-env validation happens at build time.
  */
 export const hasEnvVars =
 	!!process.env.NEXT_PUBLIC_SUPABASE_URL &&

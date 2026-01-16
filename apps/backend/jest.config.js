@@ -56,6 +56,8 @@ module.exports = {
 		'^src/(.*)$': '<rootDir>/src/$1',
 		'^@react-pdf/renderer$': '<rootDir>/__mocks__/@react-pdf__renderer.js',
 		'^uuid$': '<rootDir>/__mocks__/uuid.js',
+		'^@sentry/nestjs/setup$': '<rootDir>/__mocks__/@sentry/nestjs/setup.js',
+		'^@sentry/nestjs$': '<rootDir>/__mocks__/@sentry/nestjs/index.js',
 		'^@repo/shared$': '<rootDir>/../../packages/shared/src/index.ts',
 		'^@repo/shared/(.*)$': '<rootDir>/../../packages/shared/src/$1',
 		'^@repo/testing/(.*)$': '<rootDir>/../../packages/testing/src/$1',

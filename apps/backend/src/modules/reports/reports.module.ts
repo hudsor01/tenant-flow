@@ -6,6 +6,9 @@ import { ExportService } from './export.service'
 import { FinancialReportService } from './financial-report.service'
 import { MaintenanceReportService } from './maintenance-report.service'
 import { PropertyReportService } from './property-report.service'
+import { ReportAnalyticsController } from './report-analytics.controller'
+import { ReportExportController } from './report-export.controller'
+import { ReportGenerationController } from './report-generation.controller'
 import { ReportsController } from './reports.controller'
 import { TaxReportService } from './tax-report.service'
 import { TenantReportService } from './tenant-report.service'
@@ -18,7 +21,12 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 
 @Module({
 	imports: [AnalyticsModule, SupabaseModule],
-	controllers: [ReportsController],
+	controllers: [
+		ReportsController,
+		ReportExportController,
+		ReportGenerationController,
+		ReportAnalyticsController
+	],
 	providers: [
 		ExportService,
 		FinancialReportService,

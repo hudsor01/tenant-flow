@@ -302,24 +302,9 @@ test.describe('Tenant Invitation Flow', () => {
 		).not.toBeVisible()
 	})
 
-	test.skip('[Expiry] Wait 7 days → Invitation Expired message', async ({
-		page,
-		context
-	}) => {
-		/**
-		 * SKIPPED: This test requires refactoring to match current invitation system
-		 *
-		 * Current invitation flow uses platform invitation tokens
-		 * URL pattern: /accept-invite?code={64-char-hex-token}
-		 *
-		 * TO FIX:
-		 * 1. Create expired invitation via API (or mock expiry check)
-		 * 2. Navigate to /accept-invite?code={expired-token}
-		 * 3. Verify error handling shows proper expired message
-		 *
-		 * Alternative: Test expiry in backend integration tests instead of E2E
-		 */
-	})
+	// NOTE: Invitation expiry testing moved to backend integration tests
+	// E2E tests cannot effectively test 7-day expiry without time manipulation
+	// See: apps/backend/test/integration/tenant-invitation-expiry.integration.spec.ts
 })
 
 test.describe('Email Template Tests', () => {

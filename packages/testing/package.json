@@ -21,7 +21,7 @@
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"typecheck": "tsc --noEmit",
-		"lint": "eslint \"src/**/*.ts\"",
+		"lint": "eslint \"src/**/*.ts\" --cache --cache-location node_modules/.cache/eslint/",
 		"lint:fix": "pnpm lint --fix",
 		"clean": "rimraf dist .turbo"
 	},

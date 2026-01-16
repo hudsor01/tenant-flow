@@ -5,8 +5,8 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { AppLogger } from '../../logger/app-logger.service'
 import { RedisCacheService } from '../../cache/cache.service'
 import { StripeCustomerService } from './stripe-customer.service'
-import { StripeSubscriptionService } from './stripe-subscription.service'
-import { StripePaymentMethodService } from './stripe-payment-method.service'
+import { SubscriptionService } from './subscriptions/subscription.service'
+import { PaymentMethodService } from './subscriptions/payment-method.service'
 
 /**
  * Ultra-Native Stripe Service
@@ -27,8 +27,8 @@ export class StripeService {
 		private readonly logger: AppLogger,
 		private readonly cache: RedisCacheService,
 		private readonly stripeCustomerService: StripeCustomerService,
-		private readonly stripeSubscriptionService: StripeSubscriptionService,
-		private readonly stripePaymentMethodService: StripePaymentMethodService
+		private readonly subscriptionService: SubscriptionService,
+		private readonly paymentMethodService: PaymentMethodService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe SDK initialized')
@@ -49,7 +49,7 @@ export class StripeService {
 		status?: Stripe.SubscriptionListParams.Status
 		limit?: number
 	}): Promise<Stripe.Subscription[]> {
-		return this.stripeSubscriptionService.listSubscriptions(params)
+		return this.subscriptionService.listSubscriptions(params)
 	}
 
 	/**
@@ -59,7 +59,7 @@ export class StripeService {
 		customer?: string
 		status?: Stripe.SubscriptionListParams.Status
 	}): Promise<Stripe.Subscription[]> {
-		return this.stripeSubscriptionService.getAllSubscriptions(params)
+		return this.subscriptionService.getAllSubscriptions(params)
 	}
 
 	/**
@@ -204,7 +204,7 @@ export class StripeService {
 	 * Search for resources using Stripe's search API
 	 */
 	async searchSubscriptions(query: string): Promise<Stripe.Subscription[]> {
-		return this.stripeSubscriptionService.searchSubscriptions(query)
+		return this.subscriptionService.searchSubscriptions(query)
 	}
 
 	/**
@@ -216,7 +216,7 @@ export class StripeService {
 		params: Stripe.PaymentIntentCreateParams,
 		idempotencyKey?: string
 	): Promise<Stripe.PaymentIntent> {
-		return this.stripePaymentMethodService.createPaymentIntent(
+		return this.paymentMethodService.createPaymentIntent(
 			params,
 			idempotencyKey
 		)
@@ -241,7 +241,7 @@ export class StripeService {
 		params: Stripe.SubscriptionCreateParams,
 		idempotencyKey?: string
 	): Promise<Stripe.Subscription> {
-		return this.stripeSubscriptionService.createSubscription(
+		return this.subscriptionService.createSubscription(
 			params,
 			idempotencyKey
 		)
@@ -256,7 +256,7 @@ export class StripeService {
 		params: Stripe.SubscriptionUpdateParams,
 		idempotencyKey?: string
 	): Promise<Stripe.Subscription> {
-		return this.stripeSubscriptionService.updateSubscription(
+		return this.subscriptionService.updateSubscription(
 			subscriptionId,
 			params,
 			idempotencyKey
@@ -271,7 +271,7 @@ export class StripeService {
 		params: Stripe.Checkout.SessionCreateParams,
 		idempotencyKey?: string
 	): Promise<Stripe.Checkout.Session> {
-		return this.stripePaymentMethodService.createCheckoutSession(
+		return this.paymentMethodService.createCheckoutSession(
 			params,
 			idempotencyKey
 		)
@@ -282,7 +282,7 @@ export class StripeService {
 	 * Used for retrieving charge details and failure messages
 	 */
 	async getCharge(chargeId: string): Promise<Stripe.Charge | null> {
-		return this.stripePaymentMethodService.getCharge(chargeId)
+		return this.paymentMethodService.getCharge(chargeId)
 	}
 
 	private buildCacheKey(prefix: string, params: unknown): string {

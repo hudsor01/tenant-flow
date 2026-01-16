@@ -11,6 +11,7 @@
 
 import { Injectable } from '@nestjs/common'
 import { Cron, CronExpression } from '@nestjs/schedule'
+import { SentryCron } from '@sentry/nestjs'
 import { InjectQueue } from '@nestjs/bullmq'
 import type { Queue } from 'bullmq'
 import { SupabaseService } from '../../database/supabase.service'
@@ -72,6 +73,12 @@ export class PaymentReminderService {
 	 * and queues reminder emails for tenants.
 	 */
 	@Cron(CronExpression.EVERY_DAY_AT_9AM)
+	@SentryCron('payment-reminders', {
+		schedule: { type: 'crontab', value: '0 9 * * *' },
+		checkinMargin: 5,
+		maxRuntime: 10,
+		timezone: 'UTC'
+	})
 	async sendPaymentReminders(): Promise<void> {
 		const startTime = Date.now()
 

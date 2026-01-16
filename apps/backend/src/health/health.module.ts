@@ -7,7 +7,7 @@ import { StripeModule } from '../modules/billing/stripe.module'
 import { CircuitBreakerService } from './circuit-breaker.service'
 import { HealthController } from './health.controller'
 import { HealthService } from './health.service'
-import { MetricsService } from './metrics.service'
+import { HealthMetricsService } from './health-metrics.service'
 import { SupabaseHealthIndicator } from './supabase.health'
 import { BullMqHealthIndicator } from './bullmq.health'
 
@@ -30,7 +30,7 @@ const SupabaseServiceFactory = {
 	controllers: [HealthController],
 	providers: [
 		HealthService,
-		MetricsService,
+		HealthMetricsService,
 		CircuitBreakerService,
 		SupabaseHealthIndicator,
 		BullMqHealthIndicator,
