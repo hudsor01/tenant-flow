@@ -1,5 +1,5 @@
 // Sentry instrumentation MUST be imported first before any other modules
-import './instrument.ts'
+import './instrument'
 
 import { ClassSerializerInterceptor, RequestMethod } from '@nestjs/common'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'

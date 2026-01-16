@@ -29,8 +29,14 @@ jobs:
 
       - name: Install Supabase CLI
         run: |
-          curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz
-          sudo mv supabase /usr/local/bin/
+          if command -v supabase &> /dev/null; then
+            echo "Supabase CLI already installed: $(supabase --version)"
+          else
+            mkdir -p /tmp/supabase-install
+            curl -sSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz | tar -xz -C /tmp/supabase-install
+            sudo mv /tmp/supabase-install/supabase /usr/local/bin/
+            rm -rf /tmp/supabase-install
+          fi
 
       - name: Validate migration syntax
         run: |
