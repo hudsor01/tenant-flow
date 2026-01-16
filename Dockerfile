@@ -22,7 +22,7 @@ RUN apk add --no-cache \
         dumb-init \
         ca-certificates \
         curl && \
-    npm install -g pnpm@10 turbo@2.5.6 && \
+    npm install -g pnpm@10.28.0 turbo@2.7.4 && \
     rm -rf /var/cache/apk/* /tmp/*
 
 WORKDIR /app

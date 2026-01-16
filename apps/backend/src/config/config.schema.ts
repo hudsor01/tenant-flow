@@ -190,8 +190,8 @@ const environmentSchema = z
 		SUPPORT_EMAIL: z.string().email('Must be a valid email address'),
 		SUPPORT_PHONE: z.string().optional(),
 
-		// Resend
-		RESEND_API_KEY: z.string(),
+		// Resend (optional for local Docker testing, required in Railway production)
+		RESEND_API_KEY: z.string().optional(),
 		RESEND_FROM_EMAIL: z
 			.string()
 			.email('Must be a valid email address')
@@ -240,6 +240,20 @@ const environmentSchema = z
 	})
 	.superRefine((config, ctx) => {
 		if (config.NODE_ENV !== 'production') return
+
+		// Skip strict production validation for local Docker testing (DOCKER_CONTAINER=true without Railway)
+		// Railway sets RAILWAY_PROJECT_ID, so if that's missing, we're in local Docker
+		const isLocalDocker = config.DOCKER_CONTAINER && !config.RAILWAY_PROJECT_ID
+		if (isLocalDocker) return
+
+		// Production requirements (Railway only)
+		if (!config.RESEND_API_KEY) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['RESEND_API_KEY'],
+				message: 'RESEND_API_KEY is required in production.'
+			})
+		}
 
 		const redisUrl = config.REDIS_URL
 		const redisHost = config.REDIS_HOST || config.REDISHOST

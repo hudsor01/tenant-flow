@@ -15,6 +15,12 @@
 **/.next
 **/.vite
 
+# Log files and directories (CRITICAL - can be 10+ GB)
+**/logs
+**/*.log
+**/*.log.*
+**/*.log.gz
+
 # Test artifacts
 **/coverage
 **/.nyc_output
