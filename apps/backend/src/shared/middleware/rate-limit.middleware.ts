@@ -30,42 +30,48 @@ interface ExtendedRateLimitConfig {
 	burst?: number
 }
 
+// Check if we're in development/test mode - use relaxed limits
+const isDevelopment = process.env.NODE_ENV !== 'production'
+
+// Multiplier for dev/test environments (10x higher limits)
+const devMultiplier = isDevelopment ? 10 : 1
+
 const RATE_LIMIT_CONFIGS: Record<string, ExtendedRateLimitConfig> = {
 	// General API endpoints
 	DEFAULT: {
 		windowMs: 15 * 60 * 1000, // 15 minutes
-		maxRequests: 1000,
-		burst: 50
+		maxRequests: 1000 * devMultiplier,
+		burst: 50 * devMultiplier
 	},
 
-	// Authentication endpoints (more restrictive)
+	// Authentication endpoints (more restrictive in prod)
 	AUTH: {
 		windowMs: 15 * 60 * 1000, // 15 minutes
-		maxRequests: 20, // Prevent brute force
-		burst: 5,
+		maxRequests: 20 * devMultiplier, // Prevent brute force in prod
+		burst: 5 * devMultiplier,
 		skipSuccessfulRequests: true // Only count failed attempts
 	},
 
-	// Payment endpoints (strict limits)
+	// Payment endpoints (strict limits in prod)
 	PAYMENT: {
 		windowMs: 60 * 60 * 1000, // 1 hour
-		maxRequests: 50,
-		burst: 10
+		maxRequests: 50 * devMultiplier,
+		burst: 10 * devMultiplier
 	},
 
 	// Webhook endpoints (generous for legitimate traffic)
 	WEBHOOK: {
 		windowMs: 5 * 60 * 1000, // 5 minutes
-		maxRequests: 500,
-		burst: 100,
+		maxRequests: 500 * devMultiplier,
+		burst: 100 * devMultiplier,
 		skipFailedRequests: true // Only count successful webhooks
 	},
 
 	// Public endpoints (moderate limits)
 	PUBLIC: {
 		windowMs: 15 * 60 * 1000, // 15 minutes
-		maxRequests: 200,
-		burst: 20
+		maxRequests: 200 * devMultiplier,
+		burst: 20 * devMultiplier
 	}
 }
 
