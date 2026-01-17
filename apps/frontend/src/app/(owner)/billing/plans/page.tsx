@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { PlanCard, type Plan } from '#components/billing/plan-card'
+import { UpgradeDialog } from '#components/billing/upgrade-dialog'
 import {
 	createCheckoutSession,
 	createCustomerPortalSession
@@ -86,11 +87,19 @@ const CURRENT_PLAN_ID: string | null = null // null means no subscription
 export default function BillingPlansPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
+	const [dialogOpen, setDialogOpen] = useState(false)
+	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
 
 	const currentPlan = PLANS.find(p => p.id === CURRENT_PLAN_ID) ?? null
 	const hasSubscription = currentPlan !== null
 
-	const handlePlanSelect = async (plan: Plan) => {
+	const handlePlanSelect = (plan: Plan) => {
+		// Open confirmation dialog
+		setSelectedPlan(plan)
+		setDialogOpen(true)
+	}
+
+	const handleConfirmPlanChange = async (plan: Plan) => {
 		setLoadingPlanId(plan.id)
 		setIsLoading(true)
 
@@ -104,6 +113,7 @@ export default function BillingPlansPage() {
 				// New subscriber - create checkout session
 				if (!plan.priceId) {
 					toast.error('This plan is not available for purchase')
+					setDialogOpen(false)
 					return
 				}
 
@@ -127,6 +137,7 @@ export default function BillingPlansPage() {
 			const message =
 				error instanceof Error ? error.message : 'An error occurred'
 			toast.error(message)
+			setDialogOpen(false)
 		} finally {
 			setIsLoading(false)
 			setLoadingPlanId(null)
@@ -146,6 +157,13 @@ export default function BillingPlansPage() {
 			toast.error(message)
 		} finally {
 			setIsLoading(false)
+		}
+	}
+
+	const handleDialogClose = () => {
+		if (!isLoading) {
+			setDialogOpen(false)
+			setSelectedPlan(null)
 		}
 	}
 
@@ -244,6 +262,15 @@ export default function BillingPlansPage() {
 					All plans include a 14-day free trial. Cancel anytime.
 				</p>
 			</div>
+
+			{/* Upgrade/Downgrade Confirmation Dialog */}
+			<UpgradeDialog
+				targetPlan={selectedPlan}
+				currentPlan={currentPlan}
+				isOpen={dialogOpen}
+				onClose={handleDialogClose}
+				onConfirm={handleConfirmPlanChange}
+			/>
 		</div>
 	)
 }
