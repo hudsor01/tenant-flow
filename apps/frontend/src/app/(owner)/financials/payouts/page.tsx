@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	DollarSign,
 	Wallet,
@@ -9,7 +9,11 @@ import {
 	CheckCircle,
 	ArrowDownRight,
 	XCircle,
-	Building2
+	Building2,
+	User,
+	Home,
+	CreditCard,
+	Landmark
 } from 'lucide-react'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -35,6 +39,8 @@ import {
 } from '#hooks/api/use-stripe-connect'
 import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
+import { PayoutDetailsModal } from '#components/connect/payout-details-modal'
+import { Badge } from '#components/ui/badge'
 
 function getPayoutStatusBadge(status: string) {
 	switch (status) {
@@ -77,6 +83,9 @@ function getPayoutStatusBadge(status: string) {
 }
 
 export default function PayoutsPage() {
+	const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
+	const [payoutModalOpen, setPayoutModalOpen] = useState(false)
+
 	const { data: balance, isLoading: balanceLoading } =
 		useConnectedAccountBalance()
 	const {
@@ -89,6 +98,11 @@ export default function PayoutsPage() {
 		useConnectedAccountTransfers({ limit: 100 })
 
 	const isLoading = balanceLoading || payoutsLoading || transfersLoading
+
+	const handlePayoutClick = (payout: Payout) => {
+		setSelectedPayout(payout)
+		setPayoutModalOpen(true)
+	}
 
 	// Get USD balance (primary)
 	const availableUSD =
@@ -112,15 +126,25 @@ export default function PayoutsPage() {
 			{
 				accessorKey: 'created',
 				header: 'Date',
-				cell: ({ row }) => formatDate(row.original.created)
+				cell: ({ row }) => (
+					<button
+						onClick={() => handlePayoutClick(row.original)}
+						className="text-left hover:text-primary transition-colors"
+					>
+						{formatDate(row.original.created)}
+					</button>
+				)
 			},
 			{
 				accessorKey: 'amount',
 				header: 'Amount',
 				cell: ({ row }) => (
-					<span className="font-medium tabular-nums">
+					<button
+						onClick={() => handlePayoutClick(row.original)}
+						className="font-medium tabular-nums text-left hover:text-primary transition-colors"
+					>
 						{formatCurrency(row.original.amount / 100)}
-					</span>
+					</button>
 				)
 			},
 			{
@@ -182,6 +206,83 @@ export default function PayoutsPage() {
 				)
 			},
 			{
+				id: 'tenant',
+				header: 'Tenant',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const tenantName = metadata?.tenant_name
+					const tenantId = metadata?.tenant_id
+
+					if (tenantName) {
+						return (
+							<div className="flex items-center gap-2">
+								<User className="size-4 text-muted-foreground" />
+								<span>{tenantName}</span>
+							</div>
+						)
+					}
+					if (tenantId) {
+						return (
+							<div className="flex items-center gap-2 text-muted-foreground">
+								<User className="size-4" />
+								<span className="font-mono text-xs">
+									{tenantId.slice(0, 8)}...
+								</span>
+							</div>
+						)
+					}
+					return <span className="text-muted-foreground">-</span>
+				}
+			},
+			{
+				id: 'property',
+				header: 'Property',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const propertyName = metadata?.property_name
+					const unitName = metadata?.unit_name
+
+					if (propertyName || unitName) {
+						return (
+							<div className="flex items-center gap-2">
+								<Home className="size-4 text-muted-foreground" />
+								<span>
+									{propertyName}
+									{unitName && ` · ${unitName}`}
+								</span>
+							</div>
+						)
+					}
+					return <span className="text-muted-foreground">-</span>
+				}
+			},
+			{
+				id: 'payment_method',
+				header: 'Method',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const paymentType = metadata?.payment_type
+
+					if (paymentType === 'us_bank_account' || paymentType === 'ach') {
+						return (
+							<Badge variant="outline" className="gap-1 text-xs">
+								<Landmark className="size-3" />
+								Bank
+							</Badge>
+						)
+					}
+					if (paymentType === 'card') {
+						return (
+							<Badge variant="outline" className="gap-1 text-xs">
+								<CreditCard className="size-3" />
+								Card
+							</Badge>
+						)
+					}
+					return <span className="text-muted-foreground text-xs">-</span>
+				}
+			},
+			{
 				accessorKey: 'description',
 				header: 'Description',
 				meta: {
@@ -190,15 +291,11 @@ export default function PayoutsPage() {
 					placeholder: 'Search description...'
 				},
 				enableColumnFilter: true,
-				cell: ({ row }) => row.original.description || 'Rent payment'
-			},
-			{
-				id: 'tenant',
-				header: 'Tenant',
-				cell: ({ row }) =>
-					row.original.metadata?.tenant_id
-						? `Tenant ID: ${row.original.metadata.tenant_id.slice(0, 8)}...`
-						: '-'
+				cell: ({ row }) => (
+					<span className="text-sm text-muted-foreground">
+						{row.original.description || 'Rent payment'}
+					</span>
+				)
 			}
 		],
 		[]
@@ -429,6 +526,13 @@ export default function PayoutsPage() {
 					)}
 				</div>
 			</BlurFade>
+
+			{/* Payout Details Modal */}
+			<PayoutDetailsModal
+				payout={selectedPayout}
+				open={payoutModalOpen}
+				onOpenChange={setPayoutModalOpen}
+			/>
 		</div>
 	)
 }
