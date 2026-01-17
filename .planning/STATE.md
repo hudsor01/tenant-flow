@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 14 of 17 (Stripe Connect & Payouts UI) - COMPLETE
-Plan: 2 of 2 in current phase - COMPLETE
-Status: Ready for Phase 15
-Last activity: 2026-01-17 — Completed 14-02-PLAN.md (Enhanced Payouts Dashboard)
+Phase: 15 of 17 (Stripe Documentation Alignment) - COMPLETE
+Plan: 1 of 1 in current phase - COMPLETE
+Status: Ready for Phase 16
+Last activity: 2026-01-17 — Completed 15-01-PLAN.md (Stripe Documentation Alignment)
 
-Progress: ████████░░ 80% (v2.0 - Phase 14 complete, Phase 15 next)
+Progress: █████████░ 85% (v2.0 - Phase 15 complete, Phase 16 next)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21 (17 v1.0 + 4 v1.1)
-- Average duration: ~4 min
-- Total execution time: ~1.7 hours
+- Total plans completed: 28 (17 v1.0 + 4 v1.1 + 7 v2.0)
+- Average duration: ~5 min
+- Total execution time: ~2.4 hours
 
 **By Phase (v1.0 + v1.1):**
 
@@ -41,6 +41,7 @@ Progress: ████████░░ 80% (v2.0 - Phase 14 complete, Phase 15
 | 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
 | 13. Frontend Checkout & Subscriptions | 3/3 | 33 min | ~11 min |
 | 14. Stripe Connect & Payouts UI | 2/2 | ~25 min | ~12 min |
+| 15. Stripe Documentation Alignment | 1/1 | ~10 min | ~10 min |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work:
 | 13-03 | ExpressCheckoutElement for wallet prominence | One-click Apple Pay/Google Pay above traditional form |
 | 14-01 | Reuse ConnectOnboardingDialog from tenant settings | Avoid duplication; same component works for owners |
 | 14-02 | Generic CSV export utility | Reusable across all export needs, not just payouts |
+| 15-01 | 429 for rate limits | Proper HTTP status enables client backoff strategies |
+| 15-01 | Webhook deduplication already implemented | Existing RPC-based locking exceeds requirements |
 
 ### v2.0 Issues to Address
 
@@ -104,5 +107,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed Phase 14 (Stripe Connect & Payouts UI) - Ready for Phase 15
+Stopped at: Completed Phase 15 (Stripe Documentation Alignment) - Ready for Phase 16
 Resume file: None
