@@ -200,6 +200,12 @@ vi.mock('#components/auth/password-strength', () => ({
 vi.mock('#hooks/api/use-stripe-connect', () => ({
 	useConnectedAccount: () => ({
 		data: null,
+		isLoading: false,
+		error: null,
+		refetch: vi.fn()
+	}),
+	useConnectedAccountBalance: () => ({
+		data: null,
 		isLoading: false
 	}),
 	useCreateConnectedAccountMutation: () => ({
