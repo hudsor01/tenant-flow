@@ -317,6 +317,11 @@ export class RentPaymentsService {
 		}
 
 		const amountInCents = this.normalizeAmount(amount)
+
+		// Generate payment period (YYYY-MM format) for reconciliation
+		const now = new Date()
+		const paymentPeriod = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
 		const paymentIntentPayload: Stripe.PaymentIntentCreateParams = {
 			amount: amountInCents,
 			currency: 'usd',
@@ -325,9 +330,14 @@ export class RentPaymentsService {
 			confirm: true,
 			off_session: true,
 			metadata: {
+				platform: 'tenantflow',
+				payment_type: 'rent',
 				tenant_id,
+				tenant_name: tenantUser.full_name || `${tenantUser.first_name || ''} ${tenantUser.last_name || ''}`.trim() || tenantUser.email,
 				lease_id,
-				paymentType
+				unit_id: lease.unit_id,
+				payment_method_type: paymentType,
+				payment_period: paymentPeriod
 			},
 			expand: ['latest_charge']
 		}
