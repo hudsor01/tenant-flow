@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 15 of 17 (Stripe Documentation Alignment) - COMPLETE
-Plan: 1 of 1 in current phase - COMPLETE
-Status: Ready for Phase 16
-Last activity: 2026-01-17 — Completed 15-01-PLAN.md (Stripe Documentation Alignment)
+Phase: 16 of 17 (Stripe Backend Test Coverage) - IN PROGRESS
+Plan: 1 of ? in current phase - COMPLETE
+Status: Human verification checkpoint
+Last activity: 2026-01-17 — Completed 16-01-PLAN.md (High-Priority Service Tests)
 
-Progress: █████████░ 85% (v2.0 - Phase 15 complete, Phase 16 next)
+Progress: █████████░ 88% (v2.0 - Phase 16 Plan 1 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28 (17 v1.0 + 4 v1.1 + 7 v2.0)
+- Total plans completed: 29 (17 v1.0 + 4 v1.1 + 8 v2.0)
 - Average duration: ~5 min
-- Total execution time: ~2.4 hours
+- Total execution time: ~2.6 hours
 
 **By Phase (v1.0 + v1.1):**
 
@@ -42,6 +42,7 @@ Progress: █████████░ 85% (v2.0 - Phase 15 complete, Phase 16
 | 13. Frontend Checkout & Subscriptions | 3/3 | 33 min | ~11 min |
 | 14. Stripe Connect & Payouts UI | 2/2 | ~25 min | ~12 min |
 | 15. Stripe Documentation Alignment | 1/1 | ~10 min | ~10 min |
+| 16. Stripe Backend Test Coverage | 1/? | ~15 min | ~15 min |
 
 ## Accumulated Context
 
@@ -78,12 +79,12 @@ From Stripe investigation (2026-01-16):
 
 | ID | Issue | Severity | Location |
 |----|-------|----------|----------|
-| TEST-002 | Payment services lack unit tests | HIGH | billing/subscriptions/, stripe-customer.service.ts |
+| ~~TEST-002~~ | ~~Payment services lack unit tests~~ | ~~HIGH~~ | ~~RESOLVED in 16-01: 89 new tests~~ |
 | ~~PAGINATION~~ | ~~Hard limit 1,000 items~~ | ~~HIGH~~ | ~~RESOLVED in 11-02~~ |
 | ~~WEBHOOK-RACE~~ | ~~Race condition in processing~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-01/12-02: Atomic RPCs~~ |
 | ~~WEBHOOK-RLS~~ | ~~RLS bypass without verification~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-02: Audit logging~~ |
 | SYNC-MONITOR | No Sync Engine monitoring | MEDIUM | stripe-sync.service.ts |
-| IDEMPOTENCY | Untested idempotency keys | LOW | stripe-shared.service.ts:31-59 |
+| ~~IDEMPOTENCY~~ | ~~Untested idempotency keys~~ | ~~LOW~~ | ~~RESOLVED in 16-01: 20 tests~~ |
 | DEBUG-LOGS | Console.log in scripts | LOW | backfill-stripe-customers.ts |
 
 ### Deferred Issues
@@ -107,5 +108,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed Phase 15 (Stripe Documentation Alignment) - Ready for Phase 16
+Stopped at: Completed Phase 16 Plan 1 - Human verification checkpoint
 Resume file: None
