@@ -9,6 +9,7 @@ import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { StripeSharedService } from './stripe-shared.service'
 
 type UserRow = Database['public']['Tables']['users']['Row']
 
@@ -61,7 +62,8 @@ export class StripeOwnerService {
 	constructor(
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -159,7 +161,12 @@ export class StripeOwnerService {
 
 			// Attempt to clean up orphaned Stripe customer
 			try {
-				await this.stripe.customers.del(customer.id)
+				const idempotencyKey = this.sharedService.generateIdempotencyKey(
+					'cus_del_orphan',
+					params.user_id,
+					customer.id
+				)
+				await this.stripe.customers.del(customer.id, { idempotencyKey })
 				this.logger.log('Successfully deleted orphaned Stripe customer', {
 					customerId: customer.id,
 					user_id: params.user_id

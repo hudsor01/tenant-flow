@@ -7,6 +7,7 @@ import { ConnectService } from './connect.service'
 import { ConnectSetupService } from './connect-setup.service'
 import { ConnectBillingService } from './connect-billing.service'
 import { ConnectPayoutsService } from './connect-payouts.service'
+import { StripeSharedService } from '../stripe-shared.service'
 
 /**
  * Connect Module
@@ -30,7 +31,8 @@ import { ConnectPayoutsService } from './connect-payouts.service'
 		ConnectService,
 		ConnectSetupService,
 		ConnectBillingService,
-		ConnectPayoutsService
+		ConnectPayoutsService,
+		StripeSharedService
 	],
 	exports: [
 		ConnectService,
