@@ -228,7 +228,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Connect Payouts | v1.1 | 1/1 | Complete | 2026-01-15 |
 | 10. Final Polish | v1.1 | 1/1 | Complete | 2026-01-15 |
 | 11. Stripe Backend Hardening | v2.0 | 4/4 | Complete | 2026-01-17 |
-| 12. Webhook Security & Reliability | v2.0 | 1/3 | In progress | - |
+| 12. Webhook Security & Reliability | v2.0 | 2/3 | In progress | - |
 | 13. Frontend Checkout & Subscriptions | v2.0 | 0/? | Not started | - |
 | 14. Stripe Connect & Payouts UI | v2.0 | 0/? | Not started | - |
 | 15. Stripe Documentation Alignment | v2.0 | 0/? | Not started | - |

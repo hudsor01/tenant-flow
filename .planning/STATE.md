@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 12 of 17 (Webhook Security & Reliability)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-17 — Completed 12-01-PLAN.md
+Last activity: 2026-01-17 — Completed 12-02-PLAN.md
 
-Progress: ███░░░░░░░ 29% (v2.0 - Phase 12 in progress)
+Progress: ████░░░░░░ 43% (v2.0 - Phase 12 in progress)
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Recent decisions affecting current work:
 | 09-01 | Extract payouts from connect | Financial operations vs account management |
 | 12-01 | SECURITY DEFINER with explicit search_path for RPCs | Standard security practice for RPC functions |
 | 12-01 | Implicit transaction wrapping via plpgsql | No explicit BEGIN/COMMIT needed in PostgreSQL functions |
+| 12-02 | Use RPC for all multi-step handler operations | Ensures atomicity without explicit transaction management |
+| 12-02 | Audit logging instead of runtime RLS for webhooks | Handlers use admin client; logging provides observability |
 
 ### v2.0 Issues to Address
 
@@ -63,8 +65,8 @@ From Stripe investigation (2026-01-16):
 |----|-------|----------|----------|
 | TEST-002 | Payment services lack unit tests | HIGH | billing/subscriptions/, stripe-customer.service.ts |
 | ~~PAGINATION~~ | ~~Hard limit 1,000 items~~ | ~~HIGH~~ | ~~RESOLVED in 11-02~~ |
-| WEBHOOK-RACE | Race condition in processing | MEDIUM | webhook.service.ts:135-204 |
-| WEBHOOK-RLS | RLS bypass without verification | MEDIUM | payment-webhook.handler.ts |
+| ~~WEBHOOK-RACE~~ | ~~Race condition in processing~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-01/12-02: Atomic RPCs~~ |
+| ~~WEBHOOK-RLS~~ | ~~RLS bypass without verification~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-02: Audit logging~~ |
 | SYNC-MONITOR | No Sync Engine monitoring | MEDIUM | stripe-sync.service.ts |
 | IDEMPOTENCY | Untested idempotency keys | LOW | stripe-shared.service.ts:31-59 |
 | DEBUG-LOGS | Console.log in scripts | LOW | backfill-stripe-customers.ts |
@@ -90,5 +92,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 12-01-PLAN.md (Webhook Transaction RPCs)
+Stopped at: Completed 12-02-PLAN.md (Handler RPC Refactor)
 Resume file: None
