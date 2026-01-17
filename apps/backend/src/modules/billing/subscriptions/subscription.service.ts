@@ -10,7 +10,6 @@ export class SubscriptionService {
 	private stripe: Stripe
 
 	private readonly STRIPE_DEFAULT_LIMIT = 100
-	private readonly STRIPE_MAX_TOTAL_ITEMS = 1000
 	private readonly SUBSCRIPTIONS_CACHE_TTL_MS = 90_000
 
 	constructor(
@@ -71,47 +70,27 @@ export class SubscriptionService {
 
 	/**
 	 * Get ALL subscriptions with complete pagination
+	 * Uses SDK auto-pagination for reliability
 	 */
 	async getAllSubscriptions(params?: {
 		customer?: string
 		status?: Stripe.SubscriptionListParams.Status
 	}): Promise<Stripe.Subscription[]> {
 		try {
-			const allSubscriptions: Stripe.Subscription[] = []
-			let hasMore = true
-			let startingAfter: string | undefined
-
-			while (hasMore && allSubscriptions.length < this.STRIPE_MAX_TOTAL_ITEMS) {
-				const requestParams: Stripe.SubscriptionListParams = {
-					limit: this.STRIPE_DEFAULT_LIMIT,
-					expand: ['data.customer', 'data.items']
-				}
-				if (params?.customer) {
-					requestParams.customer = params.customer
-				}
-				if (params?.status) {
-					requestParams.status = params.status
-				}
-				if (startingAfter) {
-					requestParams.starting_after = startingAfter
-				}
-
-				const subscriptions =
-					await this.stripe.subscriptions.list(requestParams)
-
-				allSubscriptions.push(...subscriptions.data)
-				hasMore = subscriptions.has_more
-
-				if (hasMore && subscriptions.data.length > 0) {
-					startingAfter = subscriptions.data[subscriptions.data.length - 1]?.id
-				}
+			const requestParams: Stripe.SubscriptionListParams = {
+				limit: this.STRIPE_DEFAULT_LIMIT,
+				expand: ['data.customer', 'data.items']
+			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.status) {
+				requestParams.status = params.status
 			}
 
-			if (allSubscriptions.length >= this.STRIPE_MAX_TOTAL_ITEMS) {
-				this.logger.warn(
-					`getAllSubscriptions hit max limit of ${this.STRIPE_MAX_TOTAL_ITEMS} items. Consider using listSubscriptions with pagination instead.`
-				)
-			}
+			const allSubscriptions = await this.stripe.subscriptions
+				.list(requestParams)
+				.autoPagingToArray({ limit: 10000 })
 
 			this.logger.log(`Fetched ${allSubscriptions.length} total subscriptions`)
 			return allSubscriptions
