@@ -81,25 +81,28 @@ function PaymentMethodCard({
 				icon: <CreditCard className="size-5 text-muted-foreground" />,
 				title: getCardBrandIcon(method.card.brand),
 				subtitle: `•••• ${method.card.last4}`,
-				detail: `Expires ${method.card.exp_month.toString().padStart(2, '0')}/${method.card.exp_year.toString().slice(-2)}`
+				detail: `Expires ${method.card.exp_month.toString().padStart(2, '0')}/${method.card.exp_year.toString().slice(-2)}`,
+				isLowerFees: false
 			}
 		}
 		if (method.type === 'us_bank_account' && method.us_bank_account) {
 			return {
-				icon: <Building2 className="size-5 text-muted-foreground" />,
+				icon: <Building2 className="size-5 text-success" />,
 				title: method.us_bank_account.bank_name,
 				subtitle: `•••• ${method.us_bank_account.last4}`,
 				detail:
 					method.us_bank_account.account_type === 'checking'
 						? 'Checking'
-						: 'Savings'
+						: 'Savings',
+				isLowerFees: true
 			}
 		}
 		return {
 			icon: <CreditCard className="size-5 text-muted-foreground" />,
 			title: 'Payment Method',
 			subtitle: '',
-			detail: ''
+			detail: '',
+			isLowerFees: false
 		}
 	}
 
@@ -123,6 +126,11 @@ function PaymentMethodCard({
 								<span className="font-medium text-foreground">
 									{display.title}
 								</span>
+								{display.isLowerFees && (
+									<Badge variant="outline" className="text-xs text-success border-success/50">
+										Lower fees
+									</Badge>
+								)}
 								{method.is_default && (
 									<Badge variant="success" className="text-xs">
 										Default
@@ -256,13 +264,16 @@ export function PaymentMethodsList({ onAddClick }: PaymentMethodsListProps) {
 			<Card>
 				<CardContent className="py-12 text-center">
 					<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-lg bg-muted">
-						<CreditCard className="size-8 text-muted-foreground" />
+						<Building2 className="size-8 text-success" />
 					</div>
 					<h3 className="mb-2 text-lg font-semibold text-foreground">
 						No payment methods
 					</h3>
-					<p className="mb-6 text-muted-foreground">
+					<p className="mb-2 text-muted-foreground">
 						Add a payment method to enable automatic rent payments.
+					</p>
+					<p className="mb-6 text-sm text-success">
+						Bank accounts save up to $39 per payment vs credit cards.
 					</p>
 					<Button onClick={onAddClick} className="min-h-11">
 						<Plus className="mr-2 size-4" />
@@ -273,9 +284,19 @@ export function PaymentMethodsList({ onAddClick }: PaymentMethodsListProps) {
 		)
 	}
 
+	// Sort: bank accounts first (lower fees), then cards
+	const sortedMethods = [...paymentMethods].sort((a, b) => {
+		if (a.type === 'us_bank_account' && b.type !== 'us_bank_account') return -1
+		if (a.type !== 'us_bank_account' && b.type === 'us_bank_account') return 1
+		// Within same type, default first
+		if (a.is_default && !b.is_default) return -1
+		if (!a.is_default && b.is_default) return 1
+		return 0
+	})
+
 	return (
 		<div className="space-y-3">
-			{paymentMethods.map(method => (
+			{sortedMethods.map(method => (
 				<PaymentMethodCard
 					key={method.id}
 					method={method}
