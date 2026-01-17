@@ -3,6 +3,7 @@ import { BullModule } from '@nestjs/bullmq'
 import { SupabaseModule } from '../../../database/supabase.module'
 import { EmailModule } from '../../email/email.module'
 import { SseModule } from '../../notifications/sse/sse.module'
+import { MetricsModule } from '../../metrics/metrics.module'
 
 import { WebhookController } from './webhook.controller'
 import { WebhookService } from './webhook.service'
@@ -42,6 +43,7 @@ const WORKERS_ENABLED =
 		SupabaseModule,
 		EmailModule,
 		SseModule,
+		MetricsModule,
 		forwardRef(() => StripeModule),
 		BullModule.registerQueue({
 			name: 'stripe-webhooks',
