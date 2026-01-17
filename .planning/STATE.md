@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 12 of 17 (Webhook Security & Reliability)
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-01-17 — Completed 12-03-PLAN.md
+Phase: 13 of 17 (Frontend Checkout & Subscriptions)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-01-17 — Completed 13-01-PLAN.md
 
-Progress: █████░░░░░ 50% (v2.0 - Phase 12 complete)
+Progress: ██████░░░░ 55% (v2.0 - Phase 13 started)
 
 ## Performance Metrics
 
@@ -37,6 +37,9 @@ Progress: █████░░░░░ 50% (v2.0 - Phase 12 complete)
 | 8. Service Decomposition | 1/1 | ~5 min | ~5 min |
 | 9. Connect Payouts | 1/1 | ~3 min | ~3 min |
 | 10. Final Polish | 1/1 | ~3 min | ~3 min |
+| 11. Stripe Backend Hardening | 4/4 | ~20 min | ~5 min |
+| 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
+| 13. Frontend Checkout & Subscriptions | 1/3 | 10 min | 10 min |
 
 ## Accumulated Context
 
@@ -57,6 +60,8 @@ Recent decisions affecting current work:
 | 12-02 | Use RPC for all multi-step handler operations | Ensures atomicity without explicit transaction management |
 | 12-02 | Audit logging instead of runtime RLS for webhooks | Handlers use admin client; logging provides observability |
 | 12-03 | Use Sentry + structured logs for DLQ alerts | Dual alerting: Sentry for tracking, structured logs for aggregators |
+| 13-01 | Static plan definitions for pricing page | Backend can be integrated later if dynamic pricing needed |
+| 13-01 | Customer Portal for tier changes | Leverage Stripe's built-in proration and confirmation UX |
 
 ### v2.0 Issues to Address
 
@@ -93,5 +98,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 12-03-PLAN.md (Webhook Observability) - Phase 12 complete
+Stopped at: Completed 13-01-PLAN.md (Subscription Plan Selection UI)
 Resume file: None
