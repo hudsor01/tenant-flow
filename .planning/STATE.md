@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 13 of 17 (Frontend Checkout & Subscriptions)
-Plan: 1 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-17 — Completed 13-01-PLAN.md
+Plan: 2 of 3 in current phase
+Status: Completed
+Last activity: 2026-01-17 — Completed 13-02-PLAN.md
 
-Progress: ██████░░░░ 55% (v2.0 - Phase 13 started)
+Progress: ██████░░░░ 60% (v2.0 - Phase 13 plan 2/3 complete)
 
 ## Performance Metrics
 
@@ -39,7 +39,7 @@ Progress: ██████░░░░ 55% (v2.0 - Phase 13 started)
 | 10. Final Polish | 1/1 | ~3 min | ~3 min |
 | 11. Stripe Backend Hardening | 4/4 | ~20 min | ~5 min |
 | 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
-| 13. Frontend Checkout & Subscriptions | 1/3 | 10 min | 10 min |
+| 13. Frontend Checkout & Subscriptions | 2/3 | 25 min | ~12.5 min |
 
 ## Accumulated Context
 
@@ -62,6 +62,8 @@ Recent decisions affecting current work:
 | 12-03 | Use Sentry + structured logs for DLQ alerts | Dual alerting: Sentry for tracking, structured logs for aggregators |
 | 13-01 | Static plan definitions for pricing page | Backend can be integrated later if dynamic pricing needed |
 | 13-01 | Customer Portal for tier changes | Leverage Stripe's built-in proration and confirmation UX |
+| 13-02 | Keep Stripe Connect for rent payments | Correct architecture for tenant→owner; handles payouts, 1099s, liability |
+| 13-02 | ACH-first payment method ordering | 0.8% capped $5 vs 2.9%+$0.30 saves $39+ per rent payment |
 
 ### v2.0 Issues to Address
 
@@ -98,5 +100,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 13-01-PLAN.md (Subscription Plan Selection UI)
+Stopped at: Completed 13-02-PLAN.md (Payment Method Management UI + ACH Prioritization)
 Resume file: None
