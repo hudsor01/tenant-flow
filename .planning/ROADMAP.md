@@ -232,5 +232,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 13. Frontend Checkout & Subscriptions | v2.0 | 3/3 | Complete | 2026-01-17 |
 | 14. Stripe Connect & Payouts UI | v2.0 | 2/2 | Complete | 2026-01-17 |
 | 15. Stripe Documentation Alignment | v2.0 | 1/1 | Complete | 2026-01-17 |
-| 16. Stripe Backend Test Coverage | v2.0 | 1/? | In progress | - |
+| 16. Stripe Backend Test Coverage | v2.0 | 2/? | In progress | - |
 | 17. Stripe E2E & Production Readiness | v2.0 | 0/? | Not started | - |
