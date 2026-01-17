@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 ## Current Position
 
 Phase: 12 of 17 (Webhook Security & Reliability)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-17 — Completed 12-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-17 — Completed 12-03-PLAN.md
 
-Progress: ████░░░░░░ 43% (v2.0 - Phase 12 in progress)
+Progress: █████░░░░░ 50% (v2.0 - Phase 12 complete)
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Recent decisions affecting current work:
 | 12-01 | Implicit transaction wrapping via plpgsql | No explicit BEGIN/COMMIT needed in PostgreSQL functions |
 | 12-02 | Use RPC for all multi-step handler operations | Ensures atomicity without explicit transaction management |
 | 12-02 | Audit logging instead of runtime RLS for webhooks | Handlers use admin client; logging provides observability |
+| 12-03 | Use Sentry + structured logs for DLQ alerts | Dual alerting: Sentry for tracking, structured logs for aggregators |
 
 ### v2.0 Issues to Address
 
@@ -92,5 +93,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 12-02-PLAN.md (Handler RPC Refactor)
+Stopped at: Completed 12-03-PLAN.md (Webhook Observability) - Phase 12 complete
 Resume file: None
