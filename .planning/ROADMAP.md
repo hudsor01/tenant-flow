@@ -106,7 +106,7 @@ This roadmap addresses critical technical debt in TenantFlow, progressing from s
 - [x] **Phase 11: Stripe Backend Hardening** - Fix pagination, monitoring, and debug logging (4/4 plans)
 - [x] **Phase 12: Webhook Security & Reliability** - Fix race conditions, RLS enforcement, transactions
 - [x] **Phase 13: Frontend Checkout & Subscriptions** - Checkout UI, subscription management, payment methods (3/3 plans)
-- [ ] **Phase 14: Stripe Connect & Payouts UI** - Connect onboarding, payout dashboard (1/2 plans)
+- [x] **Phase 14: Stripe Connect & Payouts UI** - Connect onboarding, payout dashboard (2/2 plans)
 - [ ] **Phase 15: Stripe Documentation Alignment** - Align all code with official Stripe best practices
 - [ ] **Phase 16: Stripe Backend Test Coverage** - Add comprehensive unit tests for payment services
 - [ ] **Phase 17: Stripe E2E & Production Readiness** - Full E2E tests, final polish, monitoring
@@ -230,7 +230,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 11. Stripe Backend Hardening | v2.0 | 4/4 | Complete | 2026-01-17 |
 | 12. Webhook Security & Reliability | v2.0 | 3/3 | Complete | 2026-01-17 |
 | 13. Frontend Checkout & Subscriptions | v2.0 | 3/3 | Complete | 2026-01-17 |
-| 14. Stripe Connect & Payouts UI | v2.0 | 1/2 | In progress | - |
+| 14. Stripe Connect & Payouts UI | v2.0 | 2/2 | Complete | 2026-01-17 |
 | 15. Stripe Documentation Alignment | v2.0 | 0/? | Not started | - |
 | 16. Stripe Backend Test Coverage | v2.0 | 0/? | Not started | - |
 | 17. Stripe E2E & Production Readiness | v2.0 | 0/? | Not started | - |

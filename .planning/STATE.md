@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 14 of 17 (Stripe Connect & Payouts UI)
-Plan: 1 of 2 in current phase - COMPLETE
-Status: Executing Plan 14-02
-Last activity: 2026-01-17 — Completed 14-01-PLAN.md (Connect Status Dashboard)
+Phase: 14 of 17 (Stripe Connect & Payouts UI) - COMPLETE
+Plan: 2 of 2 in current phase - COMPLETE
+Status: Ready for Phase 15
+Last activity: 2026-01-17 — Completed 14-02-PLAN.md (Enhanced Payouts Dashboard)
 
-Progress: ████████░░ 75% (v2.0 - Phase 14 in progress)
+Progress: ████████░░ 80% (v2.0 - Phase 14 complete, Phase 15 next)
 
 ## Performance Metrics
 
@@ -40,7 +40,7 @@ Progress: ████████░░ 75% (v2.0 - Phase 14 in progress)
 | 11. Stripe Backend Hardening | 4/4 | ~20 min | ~5 min |
 | 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
 | 13. Frontend Checkout & Subscriptions | 3/3 | 33 min | ~11 min |
-| 14. Stripe Connect & Payouts UI | 1/2 | ~10 min | ~10 min |
+| 14. Stripe Connect & Payouts UI | 2/2 | ~25 min | ~12 min |
 
 ## Accumulated Context
 
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 | 13-02 | Keep Stripe Connect for rent payments | Correct architecture for tenant→owner; handles payouts, 1099s, liability |
 | 13-02 | ACH-first payment method ordering | 0.8% capped $5 vs 2.9%+$0.30 saves $39+ per rent payment |
 | 13-03 | ExpressCheckoutElement for wallet prominence | One-click Apple Pay/Google Pay above traditional form |
+| 14-01 | Reuse ConnectOnboardingDialog from tenant settings | Avoid duplication; same component works for owners |
+| 14-02 | Generic CSV export utility | Reusable across all export needs, not just payouts |
 
 ### v2.0 Issues to Address
 
@@ -102,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed Plan 14-01 (Connect Status Dashboard) - Ready for Plan 14-02
+Stopped at: Completed Phase 14 (Stripe Connect & Payouts UI) - Ready for Phase 15
 Resume file: None
