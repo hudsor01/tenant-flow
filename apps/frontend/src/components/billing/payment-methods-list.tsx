@@ -1,0 +1,296 @@
+'use client'
+
+import { useState } from 'react'
+import {
+	Building2,
+	CreditCard,
+	MoreVertical,
+	Plus,
+	Star,
+	Trash2
+} from 'lucide-react'
+import { Badge } from '#components/ui/badge'
+import { Button } from '#components/ui/button'
+import { Card, CardContent } from '#components/ui/card'
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger
+} from '#components/ui/dropdown-menu'
+import { Skeleton } from '#components/ui/skeleton'
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle
+} from '#components/ui/alert-dialog'
+import {
+	usePaymentMethods,
+	useDeletePaymentMethod,
+	useSetDefaultPaymentMethod,
+	type PaymentMethod
+} from '#hooks/api/use-payment-methods'
+import { cn } from '#lib/utils'
+
+interface PaymentMethodsListProps {
+	onAddClick: () => void
+}
+
+function getCardBrandIcon(brand: string) {
+	const brandLower = brand.toLowerCase()
+	switch (brandLower) {
+		case 'visa':
+			return '💳 Visa'
+		case 'mastercard':
+			return '💳 Mastercard'
+		case 'amex':
+		case 'american_express':
+			return '💳 Amex'
+		case 'discover':
+			return '💳 Discover'
+		default:
+			return '💳 Card'
+	}
+}
+
+function PaymentMethodCard({
+	method,
+	onDelete,
+	onSetDefault,
+	isDeleting,
+	isSettingDefault
+}: {
+	method: PaymentMethod
+	onDelete: (id: string) => void
+	onSetDefault: (id: string) => void
+	isDeleting: boolean
+	isSettingDefault: boolean
+}) {
+	const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+	const isProcessing = isDeleting || isSettingDefault
+
+	const getMethodDisplay = () => {
+		if (method.type === 'card' && method.card) {
+			return {
+				icon: <CreditCard className="size-5 text-muted-foreground" />,
+				title: getCardBrandIcon(method.card.brand),
+				subtitle: `•••• ${method.card.last4}`,
+				detail: `Expires ${method.card.exp_month.toString().padStart(2, '0')}/${method.card.exp_year.toString().slice(-2)}`
+			}
+		}
+		if (method.type === 'us_bank_account' && method.us_bank_account) {
+			return {
+				icon: <Building2 className="size-5 text-muted-foreground" />,
+				title: method.us_bank_account.bank_name,
+				subtitle: `•••• ${method.us_bank_account.last4}`,
+				detail:
+					method.us_bank_account.account_type === 'checking'
+						? 'Checking'
+						: 'Savings'
+			}
+		}
+		return {
+			icon: <CreditCard className="size-5 text-muted-foreground" />,
+			title: 'Payment Method',
+			subtitle: '',
+			detail: ''
+		}
+	}
+
+	const display = getMethodDisplay()
+
+	return (
+		<>
+			<Card
+				className={cn(
+					'transition-colors',
+					method.is_default && 'border-primary/50 bg-primary/5'
+				)}
+			>
+				<CardContent className="flex items-center justify-between p-4">
+					<div className="flex items-center gap-4">
+						<div className="flex size-10 items-center justify-center rounded-lg bg-muted">
+							{display.icon}
+						</div>
+						<div>
+							<div className="flex items-center gap-2">
+								<span className="font-medium text-foreground">
+									{display.title}
+								</span>
+								{method.is_default && (
+									<Badge variant="success" className="text-xs">
+										Default
+									</Badge>
+								)}
+							</div>
+							<div className="flex items-center gap-2 text-sm text-muted-foreground">
+								<span>{display.subtitle}</span>
+								{display.detail && (
+									<>
+										<span>·</span>
+										<span>{display.detail}</span>
+									</>
+								)}
+							</div>
+						</div>
+					</div>
+
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild>
+							<Button
+								variant="ghost"
+								size="sm"
+								disabled={isProcessing}
+								className="size-8 p-0"
+							>
+								{isProcessing ? (
+									<div className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+								) : (
+									<MoreVertical className="size-4" />
+								)}
+								<span className="sr-only">Payment method actions</span>
+							</Button>
+						</DropdownMenuTrigger>
+						<DropdownMenuContent align="end">
+							{!method.is_default && (
+								<DropdownMenuItem
+									onClick={() => onSetDefault(method.id)}
+									disabled={isProcessing}
+								>
+									<Star className="mr-2 size-4" />
+									Set as Default
+								</DropdownMenuItem>
+							)}
+							{!method.is_default && <DropdownMenuSeparator />}
+							<DropdownMenuItem
+								onClick={() => setShowDeleteDialog(true)}
+								disabled={isProcessing}
+								className="text-destructive focus:text-destructive"
+							>
+								<Trash2 className="mr-2 size-4" />
+								Remove
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				</CardContent>
+			</Card>
+
+			<AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Remove Payment Method</AlertDialogTitle>
+						<AlertDialogDescription>
+							Are you sure you want to remove this payment method? This action
+							cannot be undone.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								onDelete(method.id)
+								setShowDeleteDialog(false)
+							}}
+							className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+						>
+							Remove
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	)
+}
+
+function PaymentMethodSkeleton() {
+	return (
+		<Card>
+			<CardContent className="flex items-center justify-between p-4">
+				<div className="flex items-center gap-4">
+					<Skeleton className="size-10 rounded-lg" />
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-24" />
+						<Skeleton className="h-3 w-32" />
+					</div>
+				</div>
+				<Skeleton className="size-8 rounded-md" />
+			</CardContent>
+		</Card>
+	)
+}
+
+export function PaymentMethodsList({ onAddClick }: PaymentMethodsListProps) {
+	const { data: paymentMethods, isLoading, error } = usePaymentMethods()
+	const deletePaymentMethod = useDeletePaymentMethod()
+	const setDefaultPaymentMethod = useSetDefaultPaymentMethod()
+
+	if (isLoading) {
+		return (
+			<div className="space-y-3">
+				<PaymentMethodSkeleton />
+				<PaymentMethodSkeleton />
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<Card>
+				<CardContent className="py-8 text-center">
+					<p className="text-muted-foreground">
+						Failed to load payment methods. Please try again.
+					</p>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	if (!paymentMethods || paymentMethods.length === 0) {
+		return (
+			<Card>
+				<CardContent className="py-12 text-center">
+					<div className="mx-auto mb-4 flex size-16 items-center justify-center rounded-lg bg-muted">
+						<CreditCard className="size-8 text-muted-foreground" />
+					</div>
+					<h3 className="mb-2 text-lg font-semibold text-foreground">
+						No payment methods
+					</h3>
+					<p className="mb-6 text-muted-foreground">
+						Add a payment method to enable automatic rent payments.
+					</p>
+					<Button onClick={onAddClick} className="min-h-11">
+						<Plus className="mr-2 size-4" />
+						Add Payment Method
+					</Button>
+				</CardContent>
+			</Card>
+		)
+	}
+
+	return (
+		<div className="space-y-3">
+			{paymentMethods.map(method => (
+				<PaymentMethodCard
+					key={method.id}
+					method={method}
+					onDelete={id => deletePaymentMethod.mutate(id)}
+					onSetDefault={id => setDefaultPaymentMethod.mutate(id)}
+					isDeleting={
+						deletePaymentMethod.isPending &&
+						deletePaymentMethod.variables === method.id
+					}
+					isSettingDefault={
+						setDefaultPaymentMethod.isPending &&
+						setDefaultPaymentMethod.variables === method.id
+					}
+				/>
+			))}
+		</div>
+	)
+}
