@@ -9,6 +9,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { StripeClientService } from '../../shared/stripe-client.service'
 import type { PostgrestError } from '@supabase/supabase-js'
 import { AppLogger } from '../../logger/app-logger.service'
+import { StripeSharedService } from './stripe-shared.service'
 
 type TenantRow = Database['public']['Tables']['tenants']['Row']
 
@@ -41,7 +42,8 @@ export class StripeTenantService {
 	constructor(
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabase: SupabaseService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 		this.logger.log('Stripe Tenant Customer Service initialized')
@@ -135,12 +137,19 @@ export class StripeTenantService {
 					error: updateError
 				})
 				// Attempt to delete the orphaned Customer
-				await this.stripe.customers.del(customer.id).catch(err => {
-					this.logger.error('Failed to delete orphaned customer', {
-						customerId: customer.id,
-						error: err
+				const idempotencyKey = this.sharedService.generateIdempotencyKey(
+					'cus_del_orphan_tenant',
+					params.tenant_id,
+					customer.id
+				)
+				await this.stripe.customers
+					.del(customer.id, { idempotencyKey })
+					.catch(err => {
+						this.logger.error('Failed to delete orphaned customer', {
+							customerId: customer.id,
+							error: err
+						})
 					})
-				})
 				throw updateError
 			}
 
