@@ -1,16 +1,9 @@
 'use client'
 
-import { Spinner } from '#components/ui/loading-spinner'
-import {
-	Building2,
-	Check,
-	CreditCard,
-	MoreVertical,
-	Plus,
-	Trash2
-} from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { ChevronDown, ChevronUp, CreditCard, Plus } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 import { Button } from '#components/ui/button'
 import {
@@ -21,230 +14,109 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+	Collapsible,
+	CollapsibleContent,
+	CollapsibleTrigger
+} from '#components/ui/collapsible'
+import { PaymentMethodSetupForm } from '#app/(tenant)/tenant/payments/methods/payment-method-setup-form'
+import { PaymentMethodsList } from '#components/billing/payment-methods-list'
 import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle
-} from '#components/ui/dialog'
+	paymentMethodsKeys,
+	usePaymentMethods
+} from '#hooks/api/use-payment-methods'
 
-import {
-	useDeletePaymentMethodMutation,
-	usePaymentMethods,
-	useSetDefaultPaymentMethodMutation
-} from '#hooks/api/use-payments'
-
-import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-method.client'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
-
-// Helper functions inlined from payment-methods-list.tsx
-function getCardBrandDisplay(brand: string) {
-	const brands: Record<string, string> = {
-		visa: 'Visa',
-		mastercard: 'Mastercard',
-		amex: 'American Express',
-		discover: 'Discover',
-		diners: 'Diners Club',
-		jcb: 'JCB',
-		unionpay: 'UnionPay'
-	}
-	return brands[brand.toLowerCase()] || brand
-}
-
-function formatPaymentMethod(paymentMethod: PaymentMethodResponse) {
-	if (paymentMethod.type === 'card') {
-		return {
-			icon: <CreditCard className="size-5" />,
-			label: `${getCardBrandDisplay(paymentMethod.brand || 'Card')} ••••${paymentMethod.last4}`,
-			details: null
-		}
-	} else if (paymentMethod.type === 'us_bank_account') {
-		return {
-			icon: <Building2 className="size-5" />,
-			label: `${paymentMethod.bankName || 'Bank Account'} ••••${paymentMethod.last4}`,
-			details: 'ACH Direct Debit'
-		}
-	}
-	return {
-		icon: <CreditCard className="size-5" />,
-		label: `Payment Method ••••${paymentMethod.last4}`,
-		details: null
-	}
-}
+const logger = createLogger({ component: 'PaymentMethodsContent' })
 
 export function PaymentMethodsContent() {
-	const [showAddDialog, setShowAddDialog] = useState(false)
-
-	const { data: paymentMethods, isLoading, refetch } = usePaymentMethods()
-	const setDefault = useSetDefaultPaymentMethodMutation()
-	const deleteMethod = useDeletePaymentMethodMutation()
-
-	const handleSetDefault = async (paymentMethodId: string) => {
-		try {
-			const result = await setDefault.mutateAsync(paymentMethodId)
-
-			if (result.success) {
-				toast.success('Default payment method updated')
-				refetch()
-			} else {
-				toast.error('Failed to set default payment method')
-			}
-		} catch {
-			toast.error('Failed to set default payment method')
-		}
-	}
-
-	const handleDelete = async (paymentMethodId: string) => {
-		try {
-			const result = await deleteMethod.mutateAsync(paymentMethodId)
-
-			if (result.success) {
-				toast.success('Payment method removed')
-				refetch()
-			} else {
-				toast.error('Failed to remove payment method')
-			}
-		} catch {
-			toast.error('Failed to remove payment method')
-		}
-	}
+	const [isAddOpen, setIsAddOpen] = useState(false)
+	const queryClient = useQueryClient()
+	const { data: paymentMethods } = usePaymentMethods()
 
 	const handleAddSuccess = () => {
-		refetch()
-		setShowAddDialog(false)
+		queryClient.invalidateQueries({ queryKey: paymentMethodsKeys.list() })
+		setIsAddOpen(false)
 	}
 
 	const hasPaymentMethods =
 		Array.isArray(paymentMethods) && paymentMethods.length > 0
 
 	return (
-		<>
-			<div className="container mx-auto py-8">
-				<div className="mb-8">
-					<h1 className="typography-h1">Payment Methods</h1>
-					<p className="text-muted-foreground mt-2">
-						Manage your payment methods for rent and fees
-					</p>
-				</div>
+		<div className="container mx-auto py-8 space-y-6">
+			<div className="mb-8">
+				<h1 className="typography-h1">Payment Methods</h1>
+				<p className="text-muted-foreground mt-2">
+					Manage your payment methods for rent and fees
+				</p>
+			</div>
 
-				<Card>
-					<CardHeader>
-						<div className="flex-between">
-							<div>
-								<CardTitle>Payment Methods</CardTitle>
-								<CardDescription>
-									Manage your cards and bank accounts for rent payments
-								</CardDescription>
-							</div>
-							<Button onClick={() => setShowAddDialog(true)} size="sm">
+			{/* Payment Methods List */}
+			<Card>
+				<CardHeader>
+					<div className="flex items-center justify-between">
+						<div>
+							<CardTitle>Saved Payment Methods</CardTitle>
+							<CardDescription>
+								Manage your cards and bank accounts for rent payments
+							</CardDescription>
+						</div>
+						{hasPaymentMethods && (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setIsAddOpen(!isAddOpen)}
+							>
 								<Plus className="mr-2 size-4" />
 								Add Payment Method
 							</Button>
-						</div>
-					</CardHeader>
-					<CardContent>
-						{isLoading ? (
-							<div className="flex-center py-8">
-								<Spinner className="size-8 animate-spin text-muted-foreground" />
-							</div>
-						) : !hasPaymentMethods ? (
-							<div className="text-center py-8">
-								<CreditCard className="mx-auto size-12 text-muted-foreground mb-4" />
-								<p className="text-muted mb-4">No payment methods saved yet</p>
-								<Button
-									onClick={() => setShowAddDialog(true)}
-									variant="outline"
-									size="sm"
-								>
-									<Plus className="mr-2 size-4" />
-									Add Your First Payment Method
-								</Button>
-							</div>
-						) : (
-							<div className="space-y-3">
-								{paymentMethods &&
-									paymentMethods.map(method => {
-										const display = formatPaymentMethod(method)
-
-										return (
-											<div
-												key={method.id}
-												className="flex-between p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-											>
-												<div className="flex items-center gap-4">
-													<div className="text-muted-foreground">
-														{display.icon}
-													</div>
-													<div>
-														<div className="flex items-center gap-2">
-															<span className="font-medium">
-																{display.label}
-															</span>
-															{method.isDefault && (
-																<span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-																	<Check className="size-3" />
-																	Default
-																</span>
-															)}
-														</div>
-														{display.details && (
-															<p className="text-muted">{display.details}</p>
-														)}
-													</div>
-												</div>
-
-												<DropdownMenu>
-													<DropdownMenuTrigger asChild>
-														<Button variant="ghost" size="sm">
-															<MoreVertical className="size-4" />
-														</Button>
-													</DropdownMenuTrigger>
-													<DropdownMenuContent align="end">
-														{!method.isDefault && (
-															<DropdownMenuItem
-																onClick={() => handleSetDefault(method.id)}
-																disabled={setDefault.isPending}
-															>
-																<Check className="mr-2 size-4" />
-																Set as Default
-															</DropdownMenuItem>
-														)}
-														<DropdownMenuItem
-															onClick={() => handleDelete(method.id)}
-															disabled={deleteMethod.isPending}
-															className="text-destructive focus:text-destructive"
-														>
-															<Trash2 className="mr-2 size-4" />
-															Remove
-														</DropdownMenuItem>
-													</DropdownMenuContent>
-												</DropdownMenu>
-											</div>
-										)
-									})}
-							</div>
 						)}
-					</CardContent>
-				</Card>
-			</div>
+					</div>
+				</CardHeader>
+				<CardContent>
+					<PaymentMethodsList onAddClick={() => setIsAddOpen(true)} />
+				</CardContent>
+			</Card>
 
-			<Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-				<DialogContent className="max-w-2xl">
-					<DialogHeader>
-						<DialogTitle>Add Payment Method</DialogTitle>
-						<DialogDescription>
-							Add a new payment method for your account.
-						</DialogDescription>
-					</DialogHeader>
-					<AddPaymentMethod onSuccess={handleAddSuccess} />
-				</DialogContent>
-			</Dialog>
-		</>
+			{/* Add Payment Method Section */}
+			<Collapsible open={isAddOpen} onOpenChange={setIsAddOpen}>
+				<Card>
+					<CardHeader className="pb-0">
+						<CollapsibleTrigger asChild>
+							<button className="flex w-full items-center justify-between text-left">
+								<div>
+									<CardTitle className="flex items-center gap-2">
+										<CreditCard className="size-5 text-primary" />
+										Add Payment Method
+									</CardTitle>
+									<CardDescription>
+										Add a new card or bank account for payments
+									</CardDescription>
+								</div>
+								<div className="flex size-8 items-center justify-center rounded-md hover:bg-muted">
+									{isAddOpen ? (
+										<ChevronUp className="size-4 text-muted-foreground" />
+									) : (
+										<ChevronDown className="size-4 text-muted-foreground" />
+									)}
+								</div>
+							</button>
+						</CollapsibleTrigger>
+					</CardHeader>
+					<CollapsibleContent>
+						<CardContent className="pt-6">
+							<PaymentMethodSetupForm
+								onSuccess={handleAddSuccess}
+								onError={error => {
+									logger.error('Payment method setup failed', { error })
+								}}
+							/>
+							<div className="mt-6 rounded-lg border border-muted-foreground/20 bg-muted/50 p-4 text-sm text-muted-foreground">
+								Powered by Stripe — your payment details are encrypted and never
+								stored on TenantFlow servers.
+							</div>
+						</CardContent>
+					</CollapsibleContent>
+				</Card>
+			</Collapsible>
+		</div>
 	)
 }
