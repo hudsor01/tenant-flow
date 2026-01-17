@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 11 of 17 (Stripe Backend Hardening)
-Plan: 4 of 4 in current phase
-Status: Phase complete
-Last activity: 2026-01-17 — Completed 11-04-PLAN.md
+Phase: 12 of 17 (Webhook Security & Reliability)
+Plan: 1 of ? in current phase
+Status: In progress
+Last activity: 2026-01-17 — Completed 12-01-PLAN.md
 
-Progress: ███░░░░░░░ 29% (v2.0 - Phase 11 complete, ready for Phase 12)
+Progress: ███░░░░░░░ 29% (v2.0 - Phase 12 in progress)
 
 ## Performance Metrics
 
@@ -52,6 +52,8 @@ Recent decisions affecting current work:
 | 08-01 | PDF service acceptable as-is | Already cohesive with 8 supporting services |
 | 08-01 | Extract search + password from utility | Clear single responsibilities |
 | 09-01 | Extract payouts from connect | Financial operations vs account management |
+| 12-01 | SECURITY DEFINER with explicit search_path for RPCs | Standard security practice for RPC functions |
+| 12-01 | Implicit transaction wrapping via plpgsql | No explicit BEGIN/COMMIT needed in PostgreSQL functions |
 
 ### v2.0 Issues to Address
 
@@ -88,5 +90,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 11-04-PLAN.md (Structured Logging) - Phase 11 complete
+Stopped at: Completed 12-01-PLAN.md (Webhook Transaction RPCs)
 Resume file: None
