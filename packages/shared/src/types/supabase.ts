@@ -1942,6 +1942,10 @@ export type Database = {
         Returns: number
       }
       cleanup_old_security_events: { Args: never; Returns: undefined }
+      confirm_lease_subscription: {
+        Args: { p_lease_id: string; p_subscription_id: string }
+        Returns: undefined
+      }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
       get_common_errors: {
         Args: { hours_back?: number; limit_count?: number }
@@ -2100,6 +2104,24 @@ export type Database = {
         }
         Returns: string
       }
+      process_payment_intent_failed: {
+        Args: {
+          p_amount: number
+          p_failure_reason: string
+          p_payment_intent_id: string
+          p_rent_payment_id: string
+        }
+        Returns: undefined
+      }
+      process_subscription_status_change: {
+        Args: {
+          p_new_status: string
+          p_subscription_failure_reason?: string
+          p_subscription_id: string
+        }
+        Returns: undefined
+      }
+      require_stripe_schema: { Args: never; Returns: boolean }
       revoke_user_session: {
         Args: { p_session_id: string; p_user_id: string }
         Returns: undefined
