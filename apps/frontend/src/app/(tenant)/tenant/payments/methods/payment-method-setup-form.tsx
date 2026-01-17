@@ -200,6 +200,17 @@ function SetupForm({
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
+			{/* ACH Cost Savings Banner */}
+			<div className="rounded-lg border border-success/30 bg-success/10 p-4">
+				<p className="text-sm font-medium text-success-foreground">
+					Bank accounts recommended for rent payments
+				</p>
+				<p className="mt-1 text-sm text-muted-foreground">
+					Save up to $39 per payment with ACH (0.8% capped at $5) vs cards
+					(2.9% + $0.30).
+				</p>
+			</div>
+
 			{/* Stripe PaymentElement - handles card + ACH + validation */}
 			<PaymentElement
 				options={{
@@ -208,7 +219,8 @@ function SetupForm({
 						defaultCollapsed: false,
 						spacedAccordionItems: true
 					},
-					paymentMethodOrder: ['card', 'us_bank_account'],
+					// ACH first - 0.8% capped at $5 vs 2.9% + $0.30 for cards
+					paymentMethodOrder: ['us_bank_account', 'card'],
 					fields: {
 						billingDetails: {
 							name: 'never',
