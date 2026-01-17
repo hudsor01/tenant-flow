@@ -34,9 +34,13 @@ const supabaseServiceKey =
 	SUPABASE_SECRET_KEY || SUPABASE_SERVICE_ROLE_KEY || SUPABASE_SERVICE_KEY
 
 if (!SUPABASE_URL || !supabaseServiceKey || !STRIPE_SECRET_KEY) {
-	console.error(
-		'Missing required env vars: SUPABASE_URL, STRIPE_SECRET_KEY, and one of SUPABASE_SECRET_KEY | SUPABASE_SERVICE_ROLE_KEY | SUPABASE_SERVICE_KEY'
-	)
+	logger.error('Missing required env vars', {
+		required: [
+			'SUPABASE_URL',
+			'STRIPE_SECRET_KEY',
+			'SUPABASE_SECRET_KEY | SUPABASE_SERVICE_ROLE_KEY | SUPABASE_SERVICE_KEY'
+		]
+	})
 	process.exit(1)
 }
 
@@ -70,8 +74,8 @@ async function ensureStripeCustomer(user: UserRow): Promise<string> {
 		.eq('id', user.id)
 
 	if (error) {
-		console.error('Failed to persist Stripe customer to users table', {
-			user_id: user.id,
+		logger.error('Failed to persist Stripe customer to users table', {
+			userId: user.id,
 			error
 		})
 	}
@@ -94,7 +98,7 @@ async function backfillUsers(): Promise<number> {
 			.range(start, end)
 
 		if (error) {
-			console.error('Error fetching users without Stripe ID', error)
+			logger.error('Error fetching users without Stripe ID', { error })
 			break
 		}
 
@@ -104,9 +108,9 @@ async function backfillUsers(): Promise<number> {
 			try {
 				await ensureStripeCustomer(user)
 				created += 1
-				console.log(`✔️  Backfilled Stripe customer for user ${user.id}`)
+				logger.log('Backfilled Stripe customer for user', { userId: user.id })
 			} catch (err) {
-				console.error(`Failed to backfill user ${user.id}`, err)
+				logger.error('Failed to backfill user', { userId: user.id, error: err })
 			}
 		}
 
@@ -133,7 +137,7 @@ async function backfillTenants(): Promise<number> {
 			.range(start, end)
 
 		if (error) {
-			console.error('Error fetching tenants without Stripe ID', error)
+			logger.error('Error fetching tenants without Stripe ID', { error })
 			break
 		}
 
@@ -149,9 +153,10 @@ async function backfillTenants(): Promise<number> {
 					.single()
 
 				if (userError || !user) {
-					console.warn(
-						`Skipping tenant ${tenant.id}: user ${tenant.user_id} not found`
-					)
+					logger.warn('Skipping tenant: user not found', {
+						tenantId: tenant.id,
+						userId: tenant.user_id
+					})
 					continue
 				}
 
@@ -163,19 +168,20 @@ async function backfillTenants(): Promise<number> {
 					.eq('id', tenant.id)
 
 				if (tenantUpdateError) {
-					console.error('Failed to update tenant with Stripe ID', {
-						tenant_id: tenant.id,
+					logger.error('Failed to update tenant with Stripe ID', {
+						tenantId: tenant.id,
 						error: tenantUpdateError
 					})
 					continue
 				}
 
 				updated += 1
-				console.log(
-					`✔️  Linked tenant ${tenant.id} to Stripe customer ${stripeId}`
-				)
+				logger.log('Linked tenant to Stripe customer', {
+					tenantId: tenant.id,
+					stripeCustomerId: stripeId
+				})
 			} catch (err) {
-				console.error(`Failed to backfill tenant ${tenant.id}`, err)
+				logger.error('Failed to backfill tenant', { tenantId: tenant.id, error: err })
 			}
 		}
 
@@ -187,18 +193,18 @@ async function backfillTenants(): Promise<number> {
 }
 
 async function main() {
-	console.log('Starting Stripe customer backfill...')
+	logger.log('Starting Stripe customer backfill')
 
 	const userCreates = await backfillUsers()
 	const tenantUpdates = await backfillTenants()
 
-	console.log('Backfill complete', {
-		users_created: userCreates,
-		tenants_updated: tenantUpdates
+	logger.log('Backfill complete', {
+		usersCreated: userCreates,
+		tenantsUpdated: tenantUpdates
 	})
 }
 
 main().catch(err => {
-	console.error('Backfill failed', err)
+	logger.error('Backfill failed', { error: err })
 	process.exit(1)
 })
