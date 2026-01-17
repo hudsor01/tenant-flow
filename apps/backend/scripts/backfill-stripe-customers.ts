@@ -17,7 +17,10 @@
 import 'dotenv/config'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { Logger } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
+
+const logger = new Logger('BackfillStripeCustomers')
 
 const {
 	SUPABASE_URL,
