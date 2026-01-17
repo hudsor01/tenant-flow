@@ -93,6 +93,13 @@ export class PaymentWebhookHandler {
 				return
 			}
 
+			// Audit log: Tenant ownership verified before modification
+			this.logger.log('Tenant ownership verified for webhook', {
+				stripe_customer_id: customerId,
+				tenant_id: tenantWithUser.id,
+				event_type: 'payment_method.attached'
+			})
+
 			await client
 				.from('tenant_invitations')
 				.update({
@@ -148,6 +155,13 @@ export class PaymentWebhookHandler {
 				})
 				return
 			}
+
+			// Audit log: Tenant ownership verified before processing
+			this.logger.log('Tenant ownership verified for webhook', {
+				stripe_customer_id: customerId,
+				tenant_id: tenant.id,
+				event_type: 'invoice.payment_failed'
+			})
 
 			this.logger.warn('Payment failure for tenant', {
 				tenant_id: tenant.id,
@@ -208,6 +222,14 @@ export class PaymentWebhookHandler {
 			}
 
 			if (rentPayment) {
+				// Audit log: Tenant ownership verified before modification
+				this.logger.log('Tenant ownership verified for webhook', {
+					rent_payment_id: rentPayment.id,
+					tenant_id: rentPayment.tenant_id,
+					stripe_payment_intent_id: paymentIntent.id,
+					event_type: 'payment_intent.succeeded'
+				})
+
 				const { error: updateError } = await client
 					.from('rent_payments')
 					.update({
@@ -298,6 +320,14 @@ export class PaymentWebhookHandler {
 			}
 
 			if (rentPayment) {
+				// Audit log: Tenant ownership verified before modification
+				this.logger.log('Tenant ownership verified for webhook', {
+					rent_payment_id: rentPayment.id,
+					tenant_id: rentPayment.tenant_id,
+					stripe_payment_intent_id: paymentIntent.id,
+					event_type: 'payment_intent.payment_failed'
+				})
+
 				// Use atomic RPC to update rent_payment and insert transaction record
 				const { error: rpcError } = await client.rpc(
 					'process_payment_intent_failed',

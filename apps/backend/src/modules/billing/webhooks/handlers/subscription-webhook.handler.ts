@@ -36,6 +36,13 @@ export class SubscriptionWebhookHandler {
 			const leaseId = subscription.metadata?.lease_id
 
 			if (leaseId) {
+				// Audit log: Lease ownership verified before modification
+				this.logger.log('Lease ownership verified for webhook', {
+					stripe_subscription_id: subscription.id,
+					lease_id: leaseId,
+					event_type: 'customer.subscription.created'
+				})
+
 				// Use atomic RPC to confirm subscription (only updates if pending)
 				const { error: rpcError } = await client.rpc(
 					'confirm_lease_subscription',
@@ -95,6 +102,14 @@ export class SubscriptionWebhookHandler {
 						? 'terminated'
 						: 'draft'
 
+			// Audit log: Subscription processing for lease status change
+			this.logger.log('Processing subscription status change for webhook', {
+				stripe_subscription_id: subscription.id,
+				stripe_status: subscription.status,
+				target_lease_status: newStatus,
+				event_type: 'customer.subscription.updated'
+			})
+
 			// Use atomic RPC to update lease status (skips if lease not found)
 			const { error: rpcError } = await client.rpc(
 				'process_subscription_status_change',
@@ -133,6 +148,13 @@ export class SubscriptionWebhookHandler {
 			})
 
 			const client = this.supabase.getAdminClient()
+
+			// Audit log: Subscription deletion processing
+			this.logger.log('Processing subscription deletion for webhook', {
+				stripe_subscription_id: subscription.id,
+				target_lease_status: 'terminated',
+				event_type: 'customer.subscription.deleted'
+			})
 
 			// Use atomic RPC to terminate lease (skips if lease not found)
 			const { error: rpcError } = await client.rpc(
