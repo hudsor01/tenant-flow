@@ -41,6 +41,7 @@ import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
 import { PayoutDetailsModal } from '#components/connect/payout-details-modal'
 import { Badge } from '#components/ui/badge'
+import { exportToCsv, type CsvColumnMapping } from '#lib/export-utils'
 
 function getPayoutStatusBadge(status: string) {
 	switch (status) {
@@ -102,6 +103,78 @@ export default function PayoutsPage() {
 	const handlePayoutClick = (payout: Payout) => {
 		setSelectedPayout(payout)
 		setPayoutModalOpen(true)
+	}
+
+	// Export column definitions
+	const payoutExportColumns: CsvColumnMapping<Payout>[] = [
+		{
+			header: 'Date',
+			accessor: row => formatDate(row.created)
+		},
+		{
+			header: 'Amount',
+			accessor: row => formatCurrency(row.amount / 100)
+		},
+		{
+			header: 'Status',
+			accessor: row => row.status.charAt(0).toUpperCase() + row.status.slice(1)
+		},
+		{
+			header: 'Arrival Date',
+			accessor: row => formatDate(row.arrival_date)
+		},
+		{
+			header: 'Method',
+			accessor: row => row.method.charAt(0).toUpperCase() + row.method.slice(1)
+		}
+	]
+
+	const transferExportColumns: CsvColumnMapping<Transfer>[] = [
+		{
+			header: 'Date',
+			accessor: row => formatDate(row.created)
+		},
+		{
+			header: 'Amount',
+			accessor: row => formatCurrency(row.amount / 100)
+		},
+		{
+			header: 'Tenant',
+			accessor: row => row.metadata?.tenant_name || row.metadata?.tenant_id || ''
+		},
+		{
+			header: 'Property',
+			accessor: row => row.metadata?.property_name || ''
+		},
+		{
+			header: 'Unit',
+			accessor: row => row.metadata?.unit_name || ''
+		},
+		{
+			header: 'Payment Method',
+			accessor: row => {
+				const type = row.metadata?.payment_type
+				if (type === 'us_bank_account' || type === 'ach') return 'Bank'
+				if (type === 'card') return 'Card'
+				return ''
+			}
+		},
+		{
+			header: 'Description',
+			accessor: row => row.description || 'Rent payment'
+		}
+	]
+
+	const handleExportPayouts = () => {
+		if (payouts.length > 0) {
+			exportToCsv(payouts, payoutExportColumns, 'payouts')
+		}
+	}
+
+	const handleExportTransfers = () => {
+		if (transfers.length > 0) {
+			exportToCsv(transfers, transferExportColumns, 'rent-payments')
+		}
 	}
 
 	// Get USD balance (primary)
@@ -382,9 +455,13 @@ export default function PayoutsPage() {
 							View your account balance and payout history.
 						</p>
 					</div>
-					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
+					<button
+						onClick={handleExportPayouts}
+						disabled={payouts.length === 0}
+						className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					>
 						<Download className="w-4 h-4" />
-						Export
+						Export Payouts
 					</button>
 				</div>
 			</BlurFade>
@@ -471,11 +548,22 @@ export default function PayoutsPage() {
 			{/* Payout History */}
 			<BlurFade delay={0.35} inView>
 				<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
-					<div className="p-4 border-b border-border">
-						<h3 className="font-medium text-foreground">Payout History</h3>
-						<p className="text-sm text-muted-foreground">
-							Recent payouts to your bank account
-						</p>
+					<div className="flex items-start justify-between p-4 border-b border-border">
+						<div>
+							<h3 className="font-medium text-foreground">Payout History</h3>
+							<p className="text-sm text-muted-foreground">
+								Recent payouts to your bank account
+							</p>
+						</div>
+						{payouts.length > 0 && (
+							<button
+								onClick={handleExportPayouts}
+								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded-md transition-colors"
+							>
+								<Download className="w-3.5 h-3.5" />
+								Export
+							</button>
+						)}
 					</div>
 					{payouts.length === 0 ? (
 						<div className="p-8 text-center">
@@ -500,13 +588,24 @@ export default function PayoutsPage() {
 			{/* Rent Payments Received */}
 			<BlurFade delay={0.4} inView>
 				<div className="bg-card border border-border rounded-lg overflow-hidden">
-					<div className="p-4 border-b border-border">
-						<h3 className="font-medium text-foreground">
-							Rent Payments Received
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Rent collected from tenants
-						</p>
+					<div className="flex items-start justify-between p-4 border-b border-border">
+						<div>
+							<h3 className="font-medium text-foreground">
+								Rent Payments Received
+							</h3>
+							<p className="text-sm text-muted-foreground">
+								Rent collected from tenants
+							</p>
+						</div>
+						{transfers.length > 0 && (
+							<button
+								onClick={handleExportTransfers}
+								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded-md transition-colors"
+							>
+								<Download className="w-3.5 h-3.5" />
+								Export
+							</button>
+						)}
 					</div>
 					{transfers.length === 0 ? (
 						<div className="p-8 text-center">
