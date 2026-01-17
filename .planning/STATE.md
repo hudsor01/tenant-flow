@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-15)
 
 ## Current Position
 
-Phase: 13 of 17 (Frontend Checkout & Subscriptions)
-Plan: 2 of 3 in current phase
-Status: Completed
-Last activity: 2026-01-17 — Completed 13-02-PLAN.md
+Phase: 13 of 17 (Frontend Checkout & Subscriptions) - COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase Complete
+Last activity: 2026-01-17 — Completed 13-03-PLAN.md (Phase 13 done)
 
-Progress: ██████░░░░ 60% (v2.0 - Phase 13 plan 2/3 complete)
+Progress: ███████░░░ 65% (v2.0 - Phase 13 complete, ready for Phase 14)
 
 ## Performance Metrics
 
@@ -39,7 +39,7 @@ Progress: ██████░░░░ 60% (v2.0 - Phase 13 plan 2/3 complete)
 | 10. Final Polish | 1/1 | ~3 min | ~3 min |
 | 11. Stripe Backend Hardening | 4/4 | ~20 min | ~5 min |
 | 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
-| 13. Frontend Checkout & Subscriptions | 2/3 | 25 min | ~12.5 min |
+| 13. Frontend Checkout & Subscriptions | 3/3 | 33 min | ~11 min |
 
 ## Accumulated Context
 
@@ -64,6 +64,7 @@ Recent decisions affecting current work:
 | 13-01 | Customer Portal for tier changes | Leverage Stripe's built-in proration and confirmation UX |
 | 13-02 | Keep Stripe Connect for rent payments | Correct architecture for tenant→owner; handles payouts, 1099s, liability |
 | 13-02 | ACH-first payment method ordering | 0.8% capped $5 vs 2.9%+$0.30 saves $39+ per rent payment |
+| 13-03 | ExpressCheckoutElement for wallet prominence | One-click Apple Pay/Google Pay above traditional form |
 
 ### v2.0 Issues to Address
 
@@ -100,5 +101,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed 13-02-PLAN.md (Payment Method Management UI + ACH Prioritization)
+Stopped at: Completed Phase 13 (Frontend Checkout & Subscriptions) - Ready for Phase 14
 Resume file: None
