@@ -42,40 +42,29 @@ export class StripeCustomerService {
 
 	/**
 	 * Get ALL customers with complete pagination
+	 * Uses SDK auto-pagination for reliability
 	 */
 	async getAllCustomers(params?: {
 		email?: string
 	}): Promise<Stripe.Customer[]> {
 		try {
-			const allCustomers: Stripe.Customer[] = []
-			let hasMore = true
-			let startingAfter: string | undefined
-
-			while (hasMore) {
-				const requestParams: Stripe.CustomerListParams = {
-					limit: this.STRIPE_DEFAULT_LIMIT,
-					expand: ['data.subscriptions']
-				}
-				if (params?.email) {
-					requestParams.email = params.email
-				}
-				if (startingAfter) {
-					requestParams.starting_after = startingAfter
-				}
-				const customers = await this.stripe.customers.list(requestParams)
-
-				// Filter out deleted customers
-				const activeCustomers = customers.data.filter(c => !('deleted' in c))
-				allCustomers.push(...activeCustomers)
-				hasMore = customers.has_more
-
-				if (hasMore && customers.data.length > 0) {
-					startingAfter = customers.data[customers.data.length - 1]?.id
-				}
+			const requestParams: Stripe.CustomerListParams = {
+				limit: this.STRIPE_DEFAULT_LIMIT,
+				expand: ['data.subscriptions']
+			}
+			if (params?.email) {
+				requestParams.email = params.email
 			}
 
-			this.logger.log(`Fetched ${allCustomers.length} total customers`)
-			return allCustomers
+			const allCustomers = await this.stripe.customers
+				.list(requestParams)
+				.autoPagingToArray({ limit: 10000 })
+
+			// Filter out deleted customers after pagination
+			const activeCustomers = allCustomers.filter(c => !('deleted' in c))
+
+			this.logger.log(`Fetched ${activeCustomers.length} total customers`)
+			return activeCustomers
 		} catch (error) {
 			this.logger.error('Failed to get all customers', { error })
 			throw error
