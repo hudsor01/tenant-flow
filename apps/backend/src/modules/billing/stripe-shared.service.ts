@@ -1,7 +1,9 @@
 import {
 	Injectable,
 	BadRequestException,
-	InternalServerErrorException
+	InternalServerErrorException,
+	HttpException,
+	HttpStatus
 } from '@nestjs/common'
 import { createHmac } from 'crypto'
 import type Stripe from 'stripe'
@@ -87,8 +89,9 @@ export class StripeSharedService {
 		}
 
 		if (error.type === 'StripeRateLimitError') {
-			throw new InternalServerErrorException(
-				'Too many requests. Please try again later.'
+			throw new HttpException(
+				'Too many requests. Please wait a moment and try again.',
+				HttpStatus.TOO_MANY_REQUESTS
 			)
 		}
 
