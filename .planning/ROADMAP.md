@@ -107,7 +107,7 @@ This roadmap addresses critical technical debt in TenantFlow, progressing from s
 - [x] **Phase 12: Webhook Security & Reliability** - Fix race conditions, RLS enforcement, transactions
 - [x] **Phase 13: Frontend Checkout & Subscriptions** - Checkout UI, subscription management, payment methods (3/3 plans)
 - [x] **Phase 14: Stripe Connect & Payouts UI** - Connect onboarding, payout dashboard (2/2 plans)
-- [ ] **Phase 15: Stripe Documentation Alignment** - Align all code with official Stripe best practices
+- [x] **Phase 15: Stripe Documentation Alignment** - Align all code with official Stripe best practices (1/1 plans)
 - [ ] **Phase 16: Stripe Backend Test Coverage** - Add comprehensive unit tests for payment services
 - [ ] **Phase 17: Stripe E2E & Production Readiness** - Full E2E tests, final polish, monitoring
 
