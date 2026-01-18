@@ -11,12 +11,12 @@
 import { Test } from '@nestjs/testing'
 import type Stripe from 'stripe'
 import type { TablesUpdate } from '@repo/shared/types/core'
-import { WebhookProcessor } from '../../src/modules/billing/webhook-processor.service'
+import { WebhookProcessor } from '../../src/modules/billing/webhooks/webhook-processor.service'
 import { SupabaseService } from '../../src/database/supabase.service'
-import { ConnectWebhookHandler } from '../../src/modules/billing/handlers/connect-webhook.handler'
-import { SubscriptionWebhookHandler } from '../../src/modules/billing/handlers/subscription-webhook.handler'
-import { PaymentWebhookHandler } from '../../src/modules/billing/handlers/payment-webhook.handler'
-import { CheckoutWebhookHandler } from '../../src/modules/billing/handlers/checkout-webhook.handler'
+import { ConnectWebhookHandler } from '../../src/modules/billing/webhooks/handlers/connect-webhook.handler'
+import { SubscriptionWebhookHandler } from '../../src/modules/billing/webhooks/handlers/subscription-webhook.handler'
+import { PaymentWebhookHandler } from '../../src/modules/billing/webhooks/handlers/payment-webhook.handler'
+import { CheckoutWebhookHandler } from '../../src/modules/billing/webhooks/handlers/checkout-webhook.handler'
 import {
 	authenticateAs,
 	TEST_USERS,

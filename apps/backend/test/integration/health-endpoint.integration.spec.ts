@@ -14,7 +14,7 @@ import { INestApplication, HttpStatus } from '@nestjs/common'
 import request from 'supertest'
 import { HealthController } from '../../src/health/health.controller'
 import { HealthService } from '../../src/health/health.service'
-import { MetricsService } from '../../src/health/metrics.service'
+import { HealthMetricsService } from '../../src/health/health-metrics.service'
 import { CircuitBreakerService } from '../../src/health/circuit-breaker.service'
 import { TerminusModule } from '@nestjs/terminus'
 import { SupabaseHealthIndicator } from '../../src/health/supabase.health'
@@ -110,7 +110,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
@@ -196,7 +196,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
@@ -283,7 +283,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
@@ -366,7 +366,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
@@ -447,7 +447,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
@@ -525,7 +525,7 @@ describeIf('Health Endpoint Integration', () => {
 						useValue: mockHealthService
 					},
 					{
-						provide: MetricsService,
+						provide: HealthMetricsService,
 						useValue: mockMetricsService
 					},
 					{
