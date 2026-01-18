@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-01-15)
 
 **Core value:** Stabilize the foundation before shipping features — fix security vulnerabilities, consolidate migrations, increase test coverage
-**Current focus:** v2.0 Stripe Integration Excellence — Full-stack Stripe perfection
+**Current focus:** v2.0 Stripe Integration Excellence — COMPLETE
 
 ## Current Position
 
-Phase: 16 of 17 (Stripe Backend Test Coverage) - COMPLETE
-Plan: 3 of 3 in current phase - COMPLETE
-Status: Human verification checkpoint
-Last activity: 2026-01-17 — Completed 16-03-PLAN.md (Connect Setup & Facade Tests)
+Phase: 17 of 17 (Stripe E2E & Production Readiness) - COMPLETE
+Plan: 2 of 2 in current phase - COMPLETE
+Status: v2.0 Milestone Complete
+Last activity: 2026-01-17 — Completed 17-02-PLAN.md (Production Readiness Verification)
 
-Progress: █████████░ 94% (v2.0 - Phase 16 complete, Phase 17 remaining)
+Progress: ██████████ 100% (v2.0 Complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31 (17 v1.0 + 4 v1.1 + 10 v2.0)
+- Total plans completed: 33 (17 v1.0 + 4 v1.1 + 12 v2.0)
 - Average duration: ~5 min
-- Total execution time: ~2.8 hours
+- Total execution time: ~3.0 hours
 
-**By Phase (v1.0 + v1.1):**
+**By Phase (v1.0 + v1.1 + v2.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -43,6 +43,7 @@ Progress: █████████░ 94% (v2.0 - Phase 16 complete, Phase 17
 | 14. Stripe Connect & Payouts UI | 2/2 | ~25 min | ~12 min |
 | 15. Stripe Documentation Alignment | 1/1 | ~10 min | ~10 min |
 | 16. Stripe Backend Test Coverage | 3/3 | ~33 min | ~11 min |
+| 17. Stripe E2E & Production Readiness | 2/2 | ~20 min | ~10 min |
 
 ## Accumulated Context
 
@@ -72,20 +73,22 @@ Recent decisions affecting current work:
 | 14-02 | Generic CSV export utility | Reusable across all export needs, not just payouts |
 | 15-01 | 429 for rate limits | Proper HTTP status enables client backoff strategies |
 | 15-01 | Webhook deduplication already implemented | Existing RPC-based locking exceeds requirements |
+| 17-01 | Mock-based E2E tests for Connect | Actual Stripe Express requires manual verification |
+| 17-02 | SYNC-MONITOR acceptable with existing monitoring | Sentry + structured logs + SDK event listeners sufficient |
 
-### v2.0 Issues to Address
+### v2.0 Issues - ALL RESOLVED
 
 From Stripe investigation (2026-01-16):
 
-| ID | Issue | Severity | Location |
-|----|-------|----------|----------|
-| ~~TEST-002~~ | ~~Payment services lack unit tests~~ | ~~HIGH~~ | ~~RESOLVED in 16-01: 89 new tests~~ |
-| ~~PAGINATION~~ | ~~Hard limit 1,000 items~~ | ~~HIGH~~ | ~~RESOLVED in 11-02~~ |
-| ~~WEBHOOK-RACE~~ | ~~Race condition in processing~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-01/12-02: Atomic RPCs~~ |
-| ~~WEBHOOK-RLS~~ | ~~RLS bypass without verification~~ | ~~MEDIUM~~ | ~~RESOLVED in 12-02: Audit logging~~ |
-| SYNC-MONITOR | No Sync Engine monitoring | MEDIUM | stripe-sync.service.ts |
-| ~~IDEMPOTENCY~~ | ~~Untested idempotency keys~~ | ~~LOW~~ | ~~RESOLVED in 16-01: 20 tests~~ |
-| DEBUG-LOGS | Console.log in scripts | LOW | backfill-stripe-customers.ts |
+| ID | Issue | Severity | Resolution |
+|----|-------|----------|------------|
+| ~~TEST-002~~ | ~~Payment services lack unit tests~~ | ~~HIGH~~ | RESOLVED in 16-01: 89 new tests |
+| ~~PAGINATION~~ | ~~Hard limit 1,000 items~~ | ~~HIGH~~ | RESOLVED in 11-02 |
+| ~~WEBHOOK-RACE~~ | ~~Race condition in processing~~ | ~~MEDIUM~~ | RESOLVED in 12-01/12-02: Atomic RPCs |
+| ~~WEBHOOK-RLS~~ | ~~RLS bypass without verification~~ | ~~MEDIUM~~ | RESOLVED in 12-02: Audit logging |
+| ~~SYNC-MONITOR~~ | ~~No Sync Engine monitoring~~ | ~~MEDIUM~~ | DOCUMENTED in 17-02: SDK event listeners + structured logs + Sentry |
+| ~~IDEMPOTENCY~~ | ~~Untested idempotency keys~~ | ~~LOW~~ | RESOLVED in 16-01: 20 tests |
+| ~~DEBUG-LOGS~~ | ~~Console.log in scripts~~ | ~~LOW~~ | VERIFIED in 17-02: Uses NestJS Logger |
 
 ### Deferred Issues
 
@@ -103,10 +106,10 @@ None.
 
 - v1.0 Health Remediation: 5 phases, 17 plans, shipped 2026-01-15
 - v1.1 Tech Debt Resolution: 5 phases (6-10), 4 plans, shipped 2026-01-15
-- v2.0 Stripe Integration Excellence: 7 phases (11-17), created 2026-01-16
+- v2.0 Stripe Integration Excellence: 7 phases (11-17), 12 plans, shipped 2026-01-17
 
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: Completed Phase 16 - Human verification checkpoint
+Stopped at: v2.0 Milestone Complete
 Resume file: None
