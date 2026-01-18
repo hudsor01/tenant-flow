@@ -92,11 +92,12 @@ From Stripe investigation (2026-01-16):
 
 ### Deferred Issues
 
-Testing improvements deferred from v1.1:
-- TEST-001: Review 51 skipped E2E tests
-- TEST-003: Add PDF generator unit tests
+None. All tech debt resolved as of 2026-01-17.
 
-See `.planning/TECH_DEBT.md` for full list.
+See `.planning/TECH_DEBT.md` for resolution details:
+- TEST-001: RESOLVED - Was broken imports, not skipped tests (975 tests now runnable)
+- TEST-002: RESOLVED in v2.0 Phase 16 (212 payment service tests)
+- TEST-003: RESOLVED - 82 PDF tests already existed (entry was outdated)
 
 ### Blockers/Concerns
 
