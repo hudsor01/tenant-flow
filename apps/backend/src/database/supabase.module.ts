@@ -1,3 +1,32 @@
+/**
+ * Supabase Module - Three-Tier Client Strategy (ADR-0004)
+ *
+ * This module provides Supabase clients following a three-tier pattern:
+ *
+ * 1. ADMIN CLIENT (SUPABASE_ADMIN_CLIENT token):
+ *    - Singleton, bypasses RLS
+ *    - Use for: webhooks, background jobs, health checks, admin operations
+ *    - Never for: user-initiated requests
+ *
+ * 2. USER CLIENT POOL (via SupabaseService.getUserClient):
+ *    - Per-user clients with RLS enforcement
+ *    - Use for: all user requests where permissions matter
+ *    - Config: 50 max clients, 5min TTL, health checks every 60s
+ *
+ * 3. RPC SERVICE (via SupabaseRpcService.rpc):
+ *    - Wraps RPC calls with retries, caching, instrumentation
+ *    - Use for: complex queries (>3 JOINs, >5 round trips, transactions)
+ *
+ * Quick reference:
+ * | Scenario                    | Client      |
+ * |-----------------------------|-------------|
+ * | Stripe webhook handler      | Admin       |
+ * | User fetches properties     | User Pool   |
+ * | Dashboard stats (complex)   | RPC Service |
+ * | Health check                | Admin       |
+ *
+ * @see .planning/adr/0004-supabase-client-patterns.md
+ */
 import type { DynamicModule } from '@nestjs/common'
 import { Global, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
