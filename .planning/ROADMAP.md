@@ -1,14 +1,17 @@
-# Roadmap: TenantFlow Health Remediation
+# Roadmap: TenantFlow
 
 ## Overview
 
-This roadmap addresses critical technical debt in TenantFlow, progressing from security-critical RLS fixes through database stabilization, test coverage expansion, code quality improvements, and DevOps standardization. Each phase builds a more stable foundation for feature development.
+This roadmap tracks the evolution of TenantFlow from initial health remediation through production-ready Stripe integration to backend architecture excellence. Each milestone builds on the previous foundation.
+
+**Current Milestone:** v3.0 Backend Architecture Excellence
 
 ## Milestones
 
 - ✅ [**v1.0 Health Remediation**](milestones/v1.0-ROADMAP.md) — Phases 1-5 (shipped 2026-01-15)
 - ✅ [**v1.1 Tech Debt Resolution**](milestones/v1.1-ROADMAP.md) — Phases 6-10 (shipped 2026-01-15)
 - ✅ [**v2.0 Stripe Integration Excellence**](milestones/v2.0-ROADMAP.md) — Phases 11-17 (shipped 2026-01-17)
+- 🚧 **v3.0 Backend Architecture Excellence** — Phases 18-23 (in progress)
 
 ## Domain Expertise
 
@@ -17,6 +20,9 @@ This roadmap addresses critical technical debt in TenantFlow, progressing from s
 - Stripe.js & Elements (https://stripe.com/docs/js)
 - Stripe Connect (https://stripe.com/docs/connect)
 - Stripe Webhooks (https://stripe.com/docs/webhooks)
+- Supabase Documentation (https://supabase.com/docs)
+- PostgreSQL Performance (https://www.postgresql.org/docs/current/performance-tips.html)
+- NestJS Documentation (https://docs.nestjs.com)
 
 ## Phases
 
@@ -78,29 +84,41 @@ This roadmap addresses critical technical debt in TenantFlow, progressing from s
 
 </details>
 
+### v3.0 Backend Architecture Excellence
+
+**Milestone Goal:** Apply Supabase and Stripe best practices to NestJS backend for performance, scalability, and maintainability.
+
+**Focus Areas:**
+- Supabase client optimization and connection pooling
+- Query performance, indexing, and RPC consolidation
+- API request/response standardization
+- Module architecture improvements (research-driven)
+- Cold start optimization
+
+- [ ] **Phase 18: Supabase Client & Connection Patterns** — Audit and optimize client creation, pooling, reuse [RESEARCH]
+- [ ] **Phase 19: Query Performance & RPC Consolidation** — Indexes, N+1 prevention, move complex ops to RPCs [RESEARCH]
+- [ ] **Phase 20: API Request/Response Standardization** — Consistent Zod validation, response formats, error handling
+- [ ] **Phase 21: Module Architecture Audit** — Research service boundaries, recommend improvements [RESEARCH]
+- [ ] **Phase 22: Cold Start & Performance Optimization** — Lazy loading, module optimization [RESEARCH]
+- [ ] **Phase 23: Documentation & Best Practices Guide** — Codify patterns for maintainability
+
+**Total:** 6 phases
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17
+Phases execute in numeric order: 1 → ... → 17 → 18 → 19 → 20 → 21 → 22 → 23
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 1. Critical Security | v1.0 | 2/2 | Complete | 2026-01-15 |
-| 2. Database Stability | v1.0 | 2/2 | Complete | 2026-01-15 |
-| 3. Test Coverage | v1.0 | 3/3 | Complete | 2026-01-15 |
-| 4. Code Quality | v1.0 | 6/6 | Complete | 2026-01-15 |
-| 5. DevOps | v1.0 | 4/4 | Complete | 2026-01-15 |
-| 6. Stripe Controller Split | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 7. Reports Controller Split | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 8. Service Decomposition | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 9. Connect Payouts | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 10. Final Polish | v1.1 | 1/1 | Complete | 2026-01-15 |
-| 11. Stripe Backend Hardening | v2.0 | 4/4 | Complete | 2026-01-17 |
-| 12. Webhook Security & Reliability | v2.0 | 3/3 | Complete | 2026-01-17 |
-| 13. Frontend Checkout & Subscriptions | v2.0 | 3/3 | Complete | 2026-01-17 |
-| 14. Stripe Connect & Payouts UI | v2.0 | 2/2 | Complete | 2026-01-17 |
-| 15. Stripe Documentation Alignment | v2.0 | 1/1 | Complete | 2026-01-17 |
-| 16. Stripe Backend Test Coverage | v2.0 | 3/3 | Complete | 2026-01-17 |
-| 17. Stripe E2E & Production Readiness | v2.0 | 2/2 | Complete | 2026-01-17 |
+| 1-5 | v1.0 | 17/17 | Complete | 2026-01-15 |
+| 6-10 | v1.1 | 4/4 | Complete | 2026-01-15 |
+| 11-17 | v2.0 | 18/18 | Complete | 2026-01-17 |
+| 18. Supabase Client & Connection Patterns | v3.0 | 0/? | Not Started | - |
+| 19. Query Performance & RPC Consolidation | v3.0 | 0/? | Not Started | - |
+| 20. API Request/Response Standardization | v3.0 | 0/? | Not Started | - |
+| 21. Module Architecture Audit | v3.0 | 0/? | Not Started | - |
+| 22. Cold Start & Performance Optimization | v3.0 | 0/? | Not Started | - |
+| 23. Documentation & Best Practices Guide | v3.0 | 0/? | Not Started | - |
 
-**All milestones complete. Run `/gsd:new-milestone` to define v3.0.**
+**Current:** Phase 18 (not yet planned)
