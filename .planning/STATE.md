@@ -2,102 +2,46 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-15)
+See: .planning/PROJECT.md (updated 2026-01-17)
 
-**Core value:** Stabilize the foundation before shipping features — fix security vulnerabilities, consolidate migrations, increase test coverage
-**Current focus:** v2.0 Stripe Integration Excellence — COMPLETE
+**Core value:** Production-ready Stripe integration with proper observability
+**Current focus:** All milestones complete — ready for v3.0 definition
 
 ## Current Position
 
-Phase: 17 of 17 (Stripe E2E & Production Readiness) - COMPLETE
-Plan: 2 of 2 in current phase - COMPLETE
-Status: v2.0 Milestone Complete
-Last activity: 2026-01-17 — Completed 17-02-PLAN.md (Production Readiness Verification)
+Phase: All complete (17 of 17)
+Plan: All complete
+Status: v2.0 Milestone Archived
+Last activity: 2026-01-17 — v2.0 milestone complete and archived
 
-Progress: ██████████ 100% (v2.0 Complete)
+Progress: ██████████ 100% (All Milestones Complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 33 (17 v1.0 + 4 v1.1 + 12 v2.0)
+- Total plans completed: 39 (17 v1.0 + 4 v1.1 + 18 v2.0)
 - Average duration: ~5 min
-- Total execution time: ~3.0 hours
+- Total execution time: ~3.5 hours
 
-**By Phase (v1.0 + v1.1 + v2.0):**
+**By Milestone:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 1. Critical Security | 2/2 | 10 min | 5 min |
-| 2. Database Stability | 2/2 | 4 min | 2 min |
-| 3. Test Coverage | 3/3 | 37 min | 12 min |
-| 4. Code Quality | 6/6 | ~15 min | ~2.5 min |
-| 5. DevOps | 4/4 | ~15 min | ~4 min |
-| 6. Stripe Controller Split | 1/1 | ~5 min | ~5 min |
-| 7. Reports Controller Split | 1/1 | ~5 min | ~5 min |
-| 8. Service Decomposition | 1/1 | ~5 min | ~5 min |
-| 9. Connect Payouts | 1/1 | ~3 min | ~3 min |
-| 10. Final Polish | 1/1 | ~3 min | ~3 min |
-| 11. Stripe Backend Hardening | 4/4 | ~20 min | ~5 min |
-| 12. Webhook Security & Reliability | 3/3 | ~15 min | ~5 min |
-| 13. Frontend Checkout & Subscriptions | 3/3 | 33 min | ~11 min |
-| 14. Stripe Connect & Payouts UI | 2/2 | ~25 min | ~12 min |
-| 15. Stripe Documentation Alignment | 1/1 | ~10 min | ~10 min |
-| 16. Stripe Backend Test Coverage | 3/3 | ~33 min | ~11 min |
-| 17. Stripe E2E & Production Readiness | 2/2 | ~20 min | ~10 min |
+| Milestone | Phases | Plans | Duration |
+|-----------|--------|-------|----------|
+| v1.0 Health Remediation | 1-5 | 17 | ~2 hours |
+| v1.1 Tech Debt Resolution | 6-10 | 4 | ~20 min |
+| v2.0 Stripe Integration Excellence | 11-17 | 18 | ~1.5 hours |
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-
-| Phase | Decision | Rationale |
-|-------|----------|-----------|
-| 06-01 | Split stripe.controller by operation type | Clear separation of concerns (charges, checkout, invoices) |
-| 07-01 | Split reports.controller by function | Export, generation, analytics are distinct operations |
-| 08-01 | PDF service acceptable as-is | Already cohesive with 8 supporting services |
-| 08-01 | Extract search + password from utility | Clear single responsibilities |
-| 09-01 | Extract payouts from connect | Financial operations vs account management |
-| 12-01 | SECURITY DEFINER with explicit search_path for RPCs | Standard security practice for RPC functions |
-| 12-01 | Implicit transaction wrapping via plpgsql | No explicit BEGIN/COMMIT needed in PostgreSQL functions |
-| 12-02 | Use RPC for all multi-step handler operations | Ensures atomicity without explicit transaction management |
-| 12-02 | Audit logging instead of runtime RLS for webhooks | Handlers use admin client; logging provides observability |
-| 12-03 | Use Sentry + structured logs for DLQ alerts | Dual alerting: Sentry for tracking, structured logs for aggregators |
-| 13-01 | Static plan definitions for pricing page | Backend can be integrated later if dynamic pricing needed |
-| 13-01 | Customer Portal for tier changes | Leverage Stripe's built-in proration and confirmation UX |
-| 13-02 | Keep Stripe Connect for rent payments | Correct architecture for tenant→owner; handles payouts, 1099s, liability |
-| 13-02 | ACH-first payment method ordering | 0.8% capped $5 vs 2.9%+$0.30 saves $39+ per rent payment |
-| 13-03 | ExpressCheckoutElement for wallet prominence | One-click Apple Pay/Google Pay above traditional form |
-| 14-01 | Reuse ConnectOnboardingDialog from tenant settings | Avoid duplication; same component works for owners |
-| 14-02 | Generic CSV export utility | Reusable across all export needs, not just payouts |
-| 15-01 | 429 for rate limits | Proper HTTP status enables client backoff strategies |
-| 15-01 | Webhook deduplication already implemented | Existing RPC-based locking exceeds requirements |
-| 17-01 | Mock-based E2E tests for Connect | Actual Stripe Express requires manual verification |
-| 17-02 | SYNC-MONITOR acceptable with existing monitoring | Sentry + structured logs + SDK event listeners sufficient |
-
-### v2.0 Issues - ALL RESOLVED
-
-From Stripe investigation (2026-01-16):
-
-| ID | Issue | Severity | Resolution |
-|----|-------|----------|------------|
-| ~~TEST-002~~ | ~~Payment services lack unit tests~~ | ~~HIGH~~ | RESOLVED in 16-01: 89 new tests |
-| ~~PAGINATION~~ | ~~Hard limit 1,000 items~~ | ~~HIGH~~ | RESOLVED in 11-02 |
-| ~~WEBHOOK-RACE~~ | ~~Race condition in processing~~ | ~~MEDIUM~~ | RESOLVED in 12-01/12-02: Atomic RPCs |
-| ~~WEBHOOK-RLS~~ | ~~RLS bypass without verification~~ | ~~MEDIUM~~ | RESOLVED in 12-02: Audit logging |
-| ~~SYNC-MONITOR~~ | ~~No Sync Engine monitoring~~ | ~~MEDIUM~~ | DOCUMENTED in 17-02: SDK event listeners + structured logs + Sentry |
-| ~~IDEMPOTENCY~~ | ~~Untested idempotency keys~~ | ~~LOW~~ | RESOLVED in 16-01: 20 tests |
-| ~~DEBUG-LOGS~~ | ~~Console.log in scripts~~ | ~~LOW~~ | VERIFIED in 17-02: Uses NestJS Logger |
+All decisions logged in PROJECT.md Key Decisions table.
 
 ### Deferred Issues
 
-None. All tech debt resolved as of 2026-01-17.
+None. All tech debt resolved as of v2.0.
 
-See `.planning/TECH_DEBT.md` for resolution details:
-- TEST-001: RESOLVED - Was broken imports, not skipped tests (975 tests now runnable)
-- TEST-002: RESOLVED in v2.0 Phase 16 (212 payment service tests)
-- TEST-003: RESOLVED - 82 PDF tests already existed (entry was outdated)
+See `.planning/TECH_DEBT.md` for resolution details.
 
 ### Blockers/Concerns
 
@@ -107,10 +51,14 @@ None.
 
 - v1.0 Health Remediation: 5 phases, 17 plans, shipped 2026-01-15
 - v1.1 Tech Debt Resolution: 5 phases (6-10), 4 plans, shipped 2026-01-15
-- v2.0 Stripe Integration Excellence: 7 phases (11-17), 12 plans, shipped 2026-01-17
+- v2.0 Stripe Integration Excellence: 7 phases (11-17), 18 plans, shipped 2026-01-17
 
 ## Session Continuity
 
 Last session: 2026-01-17
-Stopped at: v2.0 Milestone Complete
+Stopped at: All milestones complete, v2.0 archived
 Resume file: None
+
+## Next Steps
+
+Run `/gsd:discuss-milestone` or `/gsd:new-milestone` to define v3.0.
