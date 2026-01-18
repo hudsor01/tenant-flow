@@ -24,16 +24,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  * ```
  */
 
+// Worker-scoped fixtures for parallel test isolation
 export type AuthFixtures = {
-	/**
-	 * Page fixture with pre-loaded authentication state
-	 * Scoped to worker for parallel isolation
-	 */
 	authenticatedPage: Page
 }
-export const test = base.extend<AuthFixtures>({
+
+export const test = base.extend<object, AuthFixtures>({
 	authenticatedPage: [
-		async ({ browser }, use: (page: Page) => Promise<void>) => {
+		async ({ browser }, use) => {
 			// Get worker-specific auth file
 			// In multi-worker scenarios, each worker could use a different account
 			// For now, all workers use the same owner account

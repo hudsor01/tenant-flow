@@ -1,6 +1,17 @@
 import { test, expect, type Page } from '@playwright/test'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
+// Extend Window interface to include Supabase client
+declare global {
+	interface Window {
+		supabase?: {
+			auth: {
+				getSession: () => Promise<{ data: { session?: { access_token?: string } } }>
+			}
+		}
+	}
+}
+
 /**
  * CRITICAL PATH SMOKE TESTS
  *
