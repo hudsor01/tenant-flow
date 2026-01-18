@@ -16,7 +16,7 @@ import { loginAsOwner } from '../../auth-helpers'
 import {
 	createTestProperty,
 	createTestProperties
-} from '../../../frontend/tests/fixtures/property-data'
+} from '../fixtures/property-data'
 import {
 	TanStackQueryHelper,
 	NetworkSimulator,

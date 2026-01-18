@@ -272,9 +272,9 @@ test.describe('Stripe Connect Onboarding', () => {
 
 			// Intercept window.open to prevent actual navigation
 			await page.addInitScript(() => {
-				window.open = (url: string) => {
+				window.open = (url?: string | URL) => {
 					// Store URL for verification
-					;(window as unknown as { lastOpenedUrl: string }).lastOpenedUrl = url
+					;(window as unknown as { lastOpenedUrl: string }).lastOpenedUrl = url?.toString() ?? ''
 					return null
 				}
 			})
@@ -431,8 +431,8 @@ test.describe('Stripe Connect Onboarding', () => {
 
 			// Intercept window.open
 			await page.addInitScript(() => {
-				window.open = (url: string) => {
-					;(window as unknown as { lastOpenedUrl: string }).lastOpenedUrl = url
+				window.open = (url?: string | URL) => {
+					;(window as unknown as { lastOpenedUrl: string }).lastOpenedUrl = url?.toString() ?? ''
 					return null
 				}
 			})
