@@ -139,11 +139,26 @@ Payment-related services now have comprehensive unit test coverage:
 
 **Status:** RESOLVED in Phase 16 (Stripe Backend Test Coverage)
 
-#### TEST-003: PDF Generator Test Coverage
+#### TEST-003: PDF Generator Test Coverage (RESOLVED - Already Complete)
 
-`pdf-generator.service.ts` has no unit tests.
+**Original Issue:** `pdf-generator.service.ts` reportedly had no unit tests.
 
-**Priority:** Medium - lease generation bugs have legal impact
+**Investigation Findings (2026-01-17):**
+- `pdf-generator.service.spec.ts` already has **comprehensive tests** (812 lines)
+- Test coverage includes:
+  - Invoice PDF generation (7 tests)
+  - Lease agreement PDF generation (6 tests)
+  - React PDF generation (3 tests)
+  - HTML to PDF via Puppeteer (16+ tests)
+  - Template-based PDF generation (5 tests)
+  - Browser lifecycle management (2 tests)
+  - Error scenarios (5 tests)
+  - Edge cases (6+ tests)
+- Also: `lease-pdf-generator.service.spec.ts` exists with additional tests
+
+**Verification:** `pnpm test:unit -- pdf-generator.service.spec.ts` → **82 tests pass**
+
+**Status:** RESOLVED (tests existed, tech debt entry was outdated)
 
 ---
 
@@ -191,7 +206,7 @@ billing/
 
 1. ~~**Address TEST-001**: Review and fix/delete skipped E2E tests~~ - RESOLVED 2026-01-17 (was broken imports, not skipped tests)
 2. ~~**Address TEST-002**: Add unit tests for payment services~~ - RESOLVED v2.0
-3. **Address TEST-003**: Add unit tests for PDF generator
+3. ~~**Address TEST-003**: Add unit tests for PDF generator~~ - RESOLVED (already had 82 tests, entry was outdated)
 
 ### Long-term Improvements
 
@@ -215,3 +230,4 @@ billing/
 | 2026-01-15 | Updated for v1.1 completion (Phases 6-10) | Claude |
 | 2026-01-17 | Marked TEST-002 resolved (v2.0 Phase 16) | Claude |
 | 2026-01-17 | Resolved TEST-001: Fixed broken TanStack Query imports, 975 tests now runnable | Claude |
+| 2026-01-17 | Verified TEST-003 already resolved: 82 PDF tests exist, entry was outdated | Claude |
