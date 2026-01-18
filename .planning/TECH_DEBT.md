@@ -1,6 +1,6 @@
 # Technical Debt Backlog
 
-**Last Updated:** 2026-01-17
+**Last Updated:** 2026-01-17 (E2E test investigation complete)
 **Source:** Phase 4 Code Quality - Deferred items from CODEBASE_HEALTH_REPORT.md Section 2
 
 ## Overview
@@ -112,16 +112,22 @@ Global search extracted to `SearchService` in Phase 8.
 
 ### Testing
 
-#### TEST-001: Skipped E2E Tests (51 tests)
+#### TEST-001: Skipped E2E Tests (RESOLVED 2026-01-17)
 
-~43% of E2E tests are marked `.skip()` or `.todo()`.
+**Original Issue:** ~43% of E2E tests were reportedly marked `.skip()` or `.todo()`.
 
-**Action Required:** Review each skipped test:
-- Fix and enable if implementation complete
-- Delete if obsolete
-- Document blocker if waiting on feature
+**Investigation Findings:**
+- Only 3 conditional skips found (staging/production environment checks)
+- Real issue: 5 TanStack Query tests had broken imports referencing non-existent fixture
+- Tests couldn't even be listed by Playwright (0 tests reported)
 
-**Priority:** Medium - for future milestone
+**Resolution:**
+- Created `apps/e2e-tests/tests/fixtures/property-data.ts` with test data factories
+- Fixed imports in all 5 TanStack Query spec files
+- Fixed TypeScript errors in `auth.fixture.ts` and `critical-paths.smoke.spec.ts`
+- Result: **975 tests in 61 files** now recognized and runnable
+
+**Status:** RESOLVED
 
 #### TEST-002: Payment System Test Coverage (RESOLVED v2.0)
 
@@ -183,7 +189,7 @@ billing/
 
 ### For Future Milestones
 
-1. **Address TEST-001**: Review and fix/delete skipped E2E tests (51 tests)
+1. ~~**Address TEST-001**: Review and fix/delete skipped E2E tests~~ - RESOLVED 2026-01-17 (was broken imports, not skipped tests)
 2. ~~**Address TEST-002**: Add unit tests for payment services~~ - RESOLVED v2.0
 3. **Address TEST-003**: Add unit tests for PDF generator
 
@@ -208,3 +214,4 @@ billing/
 | 2026-01-15 | Initial creation from Phase 4 audit | Claude |
 | 2026-01-15 | Updated for v1.1 completion (Phases 6-10) | Claude |
 | 2026-01-17 | Marked TEST-002 resolved (v2.0 Phase 16) | Claude |
+| 2026-01-17 | Resolved TEST-001: Fixed broken TanStack Query imports, 975 tests now runnable | Claude |
