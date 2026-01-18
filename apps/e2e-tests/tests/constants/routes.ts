@@ -26,6 +26,8 @@ export const ROUTES = {
 	// Owner routes (protected by OWNER role)
 	OWNER_DASHBOARD: '/dashboard',
 	DASHBOARD_SETTINGS: '/dashboard/settings',
+	OWNER_SETTINGS: '/settings',
+	OWNER_SETTINGS_BILLING: '/settings?tab=billing',
 
 	// Properties
 	PROPERTIES: '/properties',
