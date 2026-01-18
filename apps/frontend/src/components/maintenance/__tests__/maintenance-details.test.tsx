@@ -23,9 +23,11 @@ vi.mock('next/navigation', () => ({
 	})
 }))
 
-// Mock the API request
+// Mock the API request - must reject to avoid "Query data cannot be undefined" warning
 vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn()
+	apiRequest: vi.fn().mockRejectedValue(
+		new Error('Not found')
+	)
 }))
 
 // Mock toast
