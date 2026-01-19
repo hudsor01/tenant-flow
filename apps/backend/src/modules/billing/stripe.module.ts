@@ -51,7 +51,8 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		SseModule,
 		forwardRef(() => WebhooksModule),
 		ConnectModule,
-		SubscriptionsModule
+		// Circular dependency: SubscriptionsModule imports StripeModule for services
+		forwardRef(() => SubscriptionsModule)
 	],
 	providers: [
 		StripeService,
