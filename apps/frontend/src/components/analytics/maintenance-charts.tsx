@@ -20,7 +20,8 @@ import {
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
-import { ChartEmptyState } from './chart-empty-state'
+import { Badge } from '#components/ui/badge'
+import { Empty, EmptyDescription, EmptyHeader } from '#components/ui/empty'
 
 const trendConfig = {
 	completed: {
@@ -51,7 +52,16 @@ type MaintenanceCostChartProps = {
 export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 	if (!points.length) {
 		return (
-			<ChartEmptyState message="Maintenance request trends are not available yet." />
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>
+						Maintenance request trends are not available yet.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
@@ -91,7 +101,16 @@ export function MaintenanceTrendChart({ points }: MaintenanceTrendChartProps) {
 export function MaintenanceCostChart({ entries }: MaintenanceCostChartProps) {
 	if (!entries.length) {
 		return (
-			<ChartEmptyState message="No maintenance cost data recorded for this period." />
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>
+						No maintenance cost data recorded for this period.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

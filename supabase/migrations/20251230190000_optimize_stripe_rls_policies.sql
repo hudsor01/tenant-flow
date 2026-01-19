@@ -3,65 +3,74 @@
 -- Purpose: Improve stripe RLS performance with helper function
 -- NOTE: This migration was SUPERSEDED by 20251230191000_simplify_rls_policies.sql
 --       The function created here was replaced with a better approach using private schema.
+-- NOTE: Only runs if stripe schema exists (created by Stripe Sync Engine in production)
 
--- ============================================================================
--- HELPER FUNCTION (SUPERSEDED)
--- ============================================================================
--- This function was replaced by private.get_my_stripe_customer_id() in the next migration
--- for better performance (O(1) lookup via stripe_customer_id column vs O(n) email scan)
+DO $$
+BEGIN
+  -- Only run if stripe schema exists (production only)
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
 
-create or replace function stripe.get_current_user_customer_ids()
-returns setof text
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select c.id
-  from stripe.customers c
-  where c.email = (
-    select email from auth.users where id = (select auth.uid())
-  )
-  or (c.metadata->>'user_id')::uuid = (select auth.uid())
-$$;
+    -- HELPER FUNCTION (SUPERSEDED)
+    -- This function was replaced by private.get_my_stripe_customer_id() in the next migration
+    EXECUTE '
+      CREATE OR REPLACE FUNCTION stripe.get_current_user_customer_ids()
+      RETURNS setof text
+      LANGUAGE sql
+      STABLE
+      SECURITY DEFINER
+      SET search_path = ''''
+      AS $fn$
+        SELECT c.id
+        FROM stripe.customers c
+        WHERE c.email = (
+          SELECT email FROM auth.users WHERE id = (SELECT auth.uid())
+        )
+        OR (c.metadata->>''user_id'')::uuid = (SELECT auth.uid())
+      $fn$';
 
-comment on function stripe.get_current_user_customer_ids() is
-  'DEPRECATED: Replaced by private.get_my_stripe_customer_id() in migration 20251230191000';
+    EXECUTE 'COMMENT ON FUNCTION stripe.get_current_user_customer_ids() IS
+      ''DEPRECATED: Replaced by private.get_my_stripe_customer_id() in migration 20251230191000''';
 
-grant execute on function stripe.get_current_user_customer_ids() to authenticated;
+    EXECUTE 'GRANT EXECUTE ON FUNCTION stripe.get_current_user_customer_ids() TO authenticated';
 
--- ============================================================================
--- POLICIES (SUPERSEDED)
--- ============================================================================
--- These policies were replaced in the next migration with optimized versions
--- using private.get_my_stripe_customer_id() instead.
+    -- POLICIES (SUPERSEDED)
+    DROP POLICY IF EXISTS "customers_select_own" ON stripe.customers;
+    EXECUTE '
+      CREATE POLICY "customers_select_own" ON stripe.customers
+      FOR SELECT TO authenticated
+      USING (id IN (SELECT stripe.get_current_user_customer_ids()))';
 
-drop policy if exists "customers_select_own" on stripe.customers;
-create policy "customers_select_own" on stripe.customers
-for select to authenticated
-using (id in (select stripe.get_current_user_customer_ids()));
+    DROP POLICY IF EXISTS "subscriptions_select_own" ON stripe.subscriptions;
+    EXECUTE '
+      CREATE POLICY "subscriptions_select_own" ON stripe.subscriptions
+      FOR SELECT TO authenticated
+      USING (customer IN (SELECT stripe.get_current_user_customer_ids()))';
 
-drop policy if exists "subscriptions_select_own" on stripe.subscriptions;
-create policy "subscriptions_select_own" on stripe.subscriptions
-for select to authenticated
-using (customer in (select stripe.get_current_user_customer_ids()));
+    DROP POLICY IF EXISTS "invoices_select_own" ON stripe.invoices;
+    EXECUTE '
+      CREATE POLICY "invoices_select_own" ON stripe.invoices
+      FOR SELECT TO authenticated
+      USING (customer IN (SELECT stripe.get_current_user_customer_ids()))';
 
-drop policy if exists "invoices_select_own" on stripe.invoices;
-create policy "invoices_select_own" on stripe.invoices
-for select to authenticated
-using (customer in (select stripe.get_current_user_customer_ids()));
+    DROP POLICY IF EXISTS "subscription_items_select_own" ON stripe.subscription_items;
+    EXECUTE '
+      CREATE POLICY "subscription_items_select_own" ON stripe.subscription_items
+      FOR SELECT TO authenticated
+      USING (
+        subscription IN (
+          SELECT s.id FROM stripe.subscriptions s
+          WHERE s.customer IN (SELECT stripe.get_current_user_customer_ids())
+        )
+      )';
 
-drop policy if exists "subscription_items_select_own" on stripe.subscription_items;
-create policy "subscription_items_select_own" on stripe.subscription_items
-for select to authenticated
-using (
-  subscription in (
-    select s.id from stripe.subscriptions s
-    where s.customer in (select stripe.get_current_user_customer_ids())
-  )
-);
+    DROP POLICY IF EXISTS "active_entitlements_select_own" ON stripe.active_entitlements;
+    EXECUTE '
+      CREATE POLICY "active_entitlements_select_own" ON stripe.active_entitlements
+      FOR SELECT TO authenticated
+      USING (customer IN (SELECT stripe.get_current_user_customer_ids()))';
 
-drop policy if exists "active_entitlements_select_own" on stripe.active_entitlements;
-create policy "active_entitlements_select_own" on stripe.active_entitlements
-for select to authenticated
-using (customer in (select stripe.get_current_user_customer_ids()));
+    RAISE NOTICE 'Applied stripe RLS optimization policies';
+  ELSE
+    RAISE NOTICE 'Skipping stripe RLS optimization - stripe schema does not exist (local dev)';
+  END IF;
+END $$;

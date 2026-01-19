@@ -34,71 +34,65 @@ create policy "service_role_only" on public.webhook_metrics
 for all to service_role using (true) with check (true);
 
 -- ============================================================================
--- PART 2: STRIPE SCHEMA BACKEND TABLES
+-- PART 2: STRIPE SCHEMA BACKEND TABLES (Only run if stripe schema exists)
 -- ============================================================================
 -- These are managed by the Stripe Supabase integration and should only be
 -- accessed by service_role (the sync engine) or via specific user-facing policies
+-- Note: Stripe schema is created by Stripe Sync Engine in production only
 
--- checkout_session_line_items
-create policy "service_role_only" on stripe.checkout_session_line_items
-for all to service_role using (true) with check (true);
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
+    -- checkout_session_line_items
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.checkout_session_line_items FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- checkout_sessions
-create policy "service_role_only" on stripe.checkout_sessions
-for all to service_role using (true) with check (true);
+    -- checkout_sessions
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.checkout_sessions FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- coupons
-create policy "service_role_only" on stripe.coupons
-for all to service_role using (true) with check (true);
+    -- coupons
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.coupons FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- credit_notes
-create policy "service_role_only" on stripe.credit_notes
-for all to service_role using (true) with check (true);
+    -- credit_notes
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.credit_notes FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- disputes
-create policy "service_role_only" on stripe.disputes
-for all to service_role using (true) with check (true);
+    -- disputes
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.disputes FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- early_fraud_warnings
-create policy "service_role_only" on stripe.early_fraud_warnings
-for all to service_role using (true) with check (true);
+    -- early_fraud_warnings
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.early_fraud_warnings FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- events (stripe webhook events)
-create policy "service_role_only" on stripe.events
-for all to service_role using (true) with check (true);
+    -- events (stripe webhook events)
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.events FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- features (product features)
-create policy "service_role_only" on stripe.features
-for all to service_role using (true) with check (true);
+    -- features (product features)
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.features FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- migrations (stripe sync migrations)
-create policy "service_role_only" on stripe.migrations
-for all to service_role using (true) with check (true);
+    -- migrations (stripe sync migrations)
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.migrations FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- payouts
-create policy "service_role_only" on stripe.payouts
-for all to service_role using (true) with check (true);
+    -- payouts
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.payouts FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- plans
-create policy "service_role_only" on stripe.plans
-for all to service_role using (true) with check (true);
+    -- plans
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.plans FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- reviews
-create policy "service_role_only" on stripe.reviews
-for all to service_role using (true) with check (true);
+    -- reviews
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.reviews FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- subscription_schedules
-create policy "service_role_only" on stripe.subscription_schedules
-for all to service_role using (true) with check (true);
+    -- subscription_schedules
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.subscription_schedules FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- tax_ids
-create policy "service_role_only" on stripe.tax_ids
-for all to service_role using (true) with check (true);
+    -- tax_ids
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.tax_ids FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- webhook_events (stripe webhook events)
-create policy "service_role_only" on stripe.webhook_events
-for all to service_role using (true) with check (true);
+    -- webhook_events (stripe webhook events)
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.webhook_events FOR ALL TO service_role USING (true) WITH CHECK (true)';
 
--- webhook_failures
-create policy "service_role_only" on stripe.webhook_failures
-for all to service_role using (true) with check (true);
+    -- webhook_failures
+    EXECUTE 'CREATE POLICY "service_role_only" ON stripe.webhook_failures FOR ALL TO service_role USING (true) WITH CHECK (true)';
+
+    RAISE NOTICE 'Applied stripe schema backend table policies';
+  ELSE
+    RAISE NOTICE 'Skipping stripe schema backend table policies - stripe schema does not exist (local dev)';
+  END IF;
+END $$;

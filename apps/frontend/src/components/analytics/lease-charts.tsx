@@ -20,7 +20,8 @@ import {
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
-import { ChartEmptyState } from './chart-empty-state'
+import { Badge } from '#components/ui/badge'
+import { Empty, EmptyDescription, EmptyHeader } from '#components/ui/empty'
 
 const lifecycleConfig = {
 	renewals: {
@@ -55,7 +56,16 @@ type LeaseStatusChartProps = {
 export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 	if (!points || !Array.isArray(points) || points.length === 0) {
 		return (
-			<ChartEmptyState message="No lifecycle events recorded for the selected leases." />
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>
+						No lifecycle events recorded for the selected leases.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 
@@ -101,7 +111,16 @@ export function LeaseLifecycleChart({ points }: LeaseLifecycleChartProps) {
 
 export function LeaseStatusChart({ breakdown }: LeaseStatusChartProps) {
 	if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
-		return <ChartEmptyState message="No lease status breakdown available." />
+		return (
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>No lease status breakdown available.</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	const chartData = breakdown.map(item => ({

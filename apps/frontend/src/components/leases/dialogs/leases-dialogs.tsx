@@ -1,7 +1,7 @@
 'use client'
 
-import { RenewLeaseDialog } from '#components/leases/renew-lease-dialog'
-import { TerminateLeaseDialog } from '#components/leases/terminate-lease-dialog'
+import { RenewLeaseDialog } from './renew-lease-dialog'
+import { TerminateLeaseDialog } from './terminate-lease-dialog'
 import { ConfirmDialog } from '#components/ui/confirm-dialog'
 import type { Lease } from '@repo/shared/types/core'
 

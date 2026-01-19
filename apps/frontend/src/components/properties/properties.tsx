@@ -16,7 +16,14 @@ import { PropertyActionBar } from './property-action-bar'
 import { PropertyStatsSection } from './property-stats-section'
 import { PropertyToolbar } from './property-toolbar'
 import { PropertyBulkEditDialog } from './property-bulk-edit-dialog'
-import { PropertyEmptyState, PropertyNoResults } from './property-empty-state'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Building2, Search } from 'lucide-react'
 
 import type { PropertiesProps, PropertyType } from './types'
 import {
@@ -184,7 +191,29 @@ export function Properties({
 	)
 
 	if (properties.length === 0 && !isLoading) {
-		return <PropertyEmptyState onAddProperty={onAddProperty} />
+		return (
+			<Empty>
+				<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+					<Building2 />
+				</EmptyMedia>
+				<EmptyHeader>
+					<EmptyTitle>No properties yet</EmptyTitle>
+					<EmptyDescription>
+						Add your first property to start managing your portfolio.
+					</EmptyDescription>
+				</EmptyHeader>
+				<div className="flex items-center gap-3 mt-2">
+					<Button
+						onClick={onAddProperty}
+						className="gap-2"
+						aria-label="Add your first property to the portfolio"
+					>
+						<Plus className="size-5" />
+						Add Your First Property
+					</Button>
+				</div>
+			</Empty>
+		)
 	}
 
 	return (
@@ -260,7 +289,23 @@ export function Properties({
 
 				{/* No results */}
 				{filteredProperties.length === 0 && properties.length > 0 && (
-					<PropertyNoResults onClearFilters={clearFilters} />
+					<Empty className="flex-none gap-3 py-12 border-0">
+						<EmptyMedia className="text-muted-foreground/40 mb-3 [&_svg]:size-10">
+							<Search />
+						</EmptyMedia>
+						<EmptyHeader>
+							<EmptyDescription>No properties match your filters</EmptyDescription>
+						</EmptyHeader>
+						<div className="flex items-center gap-3 mt-2">
+							<Button
+								variant="link"
+								onClick={clearFilters}
+								aria-label="Clear all filters"
+							>
+								Clear filters
+							</Button>
+						</div>
+					</Empty>
 				)}
 			</section>
 

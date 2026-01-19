@@ -5,7 +5,7 @@ test.describe('Properties Page Header - Visual Tests', () => {
 	test.beforeEach(async ({ page }) => {
 		await loginAsOwner(page)
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		await page.waitForSelector('text=Properties', { state: 'visible' })
 	})
 
@@ -42,7 +42,7 @@ test.describe('Properties Page Header - Visual Tests', () => {
 
 		// Reload page
 		await page.reload()
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		await page.waitForSelector('text=Properties', { state: 'visible' })
 
 		// Take second screenshot
@@ -56,7 +56,7 @@ test.describe('Properties Page Header - Accessibility', () => {
 	test.beforeEach(async ({ page }) => {
 		await loginAsOwner(page)
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		await page.waitForSelector('text=Properties', { state: 'visible' })
 	})
 

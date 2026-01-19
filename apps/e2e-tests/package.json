@@ -29,6 +29,7 @@
 		"@playwright/test": "1.57.0",
 		"@repo/eslint-config": "workspace:*",
 		"@types/node": "catalog:default",
+		"dotenv": "17.2.3",
 		"eslint": "catalog:default",
 		"fast-check": "^4.3.0",
 		"lighthouse": "13.0.1",

@@ -1,7 +1,8 @@
 -- ============================================================================
 -- Migration: Optimize Webhook Monitoring Infrastructure
 -- Purpose: Performance optimizations for high-volume webhook processing
--- Affected: stripe.webhook_events, stripe.webhook_failures, RPC functions
+-- Affected: public.webhook_events, public.webhook_failures, RPC functions
+-- Note: Uses public schema since stripe schema only exists in production
 -- ============================================================================
 
 -- ============================================================================
@@ -11,14 +12,14 @@
 -- ============================================================================
 
 -- Drop existing B-tree index on created_at (will replace with BRIN)
-drop index if exists stripe.idx_webhook_events_created;
+drop index if exists public.idx_webhook_events_created;
 
 -- BRIN index for time-range scans (much more efficient for large tables)
 create index idx_webhook_events_created_brin
-  on stripe.webhook_events using brin (created_at)
+  on public.webhook_events using brin (created_at)
   with (pages_per_range = 32);
 
-comment on index stripe.idx_webhook_events_created_brin is
+comment on index public.idx_webhook_events_created_brin is
   'BRIN index for efficient time-range queries on webhook events';
 
 -- ============================================================================
@@ -27,26 +28,26 @@ comment on index stripe.idx_webhook_events_created_brin is
 
 -- Composite index for health issue detection (success + time range)
 create index idx_webhook_events_failed_recent
-  on stripe.webhook_events (created_at desc)
+  on public.webhook_events (created_at desc)
   where success = false;
 
-comment on index stripe.idx_webhook_events_failed_recent is
+comment on index public.idx_webhook_events_failed_recent is
   'Partial index for failed webhooks ordered by time';
 
 -- Composite index for slow processing detection
 create index idx_webhook_events_slow
-  on stripe.webhook_events (created_at desc)
+  on public.webhook_events (created_at desc)
   where processing_duration_ms > 5000;
 
-comment on index stripe.idx_webhook_events_slow is
+comment on index public.idx_webhook_events_slow is
   'Partial index for slow webhook processing (>5s)';
 
 -- Composite index for cleanup operations
 create index idx_webhook_failures_cleanup
-  on stripe.webhook_failures (created_at)
+  on public.webhook_failures (created_at)
   where resolved_at is not null;
 
-comment on index stripe.idx_webhook_failures_cleanup is
+comment on index public.idx_webhook_failures_cleanup is
   'Partial index for resolved failures (cleanup target)';
 
 -- ============================================================================
@@ -54,7 +55,7 @@ comment on index stripe.idx_webhook_failures_cleanup is
 -- Remove inefficient CROSS JOIN, use CTEs instead
 -- ============================================================================
 
-create or replace function stripe.detect_webhook_health_issues()
+create or replace function public.detect_webhook_health_issues()
 returns table (
   issue_type text,
   severity text,
@@ -75,7 +76,7 @@ begin
       count(*) filter (where success = false) as failed,
       min(created_at) filter (where success = false) as first_fail,
       max(created_at) filter (where success = false) as last_fail
-    from stripe.webhook_events
+    from public.webhook_events
     where created_at > hour_ago
   )
   select
@@ -100,7 +101,7 @@ begin
     count(*)::bigint,
     min(created_at),
     max(created_at)
-  from stripe.webhook_events
+  from public.webhook_events
   where created_at > hour_ago
     and processing_duration_ms > 5000
   having count(*) > 0;
@@ -119,7 +120,7 @@ begin
     count(*)::bigint,
     min(created_at),
     max(created_at)
-  from stripe.webhook_failures
+  from public.webhook_failures
   where resolved_at is null
     and created_at < hour_ago
   having count(*) > 0;
@@ -131,7 +132,7 @@ $$;
 -- Add batch deletion to avoid long locks
 -- ============================================================================
 
-create or replace function stripe.cleanup_old_webhook_data(
+create or replace function public.cleanup_old_webhook_data(
   retention_days integer default 30,
   batch_size integer default 10000
 )
@@ -147,9 +148,9 @@ begin
   -- Delete webhook events in batches to avoid long locks
   loop
     with deleted as (
-      delete from stripe.webhook_events
+      delete from public.webhook_events
       where id in (
-        select id from stripe.webhook_events
+        select id from public.webhook_events
         where created_at < cutoff_date
         limit batch_size
         for update skip locked
@@ -168,9 +169,9 @@ begin
   -- Delete resolved failures in batches
   loop
     with deleted as (
-      delete from stripe.webhook_failures
+      delete from public.webhook_failures
       where id in (
-        select id from stripe.webhook_failures
+        select id from public.webhook_failures
         where created_at < cutoff_date
           and resolved_at is not null
         limit batch_size
@@ -187,29 +188,29 @@ begin
   end loop;
 
   -- Refresh materialized views concurrently (non-blocking)
-  refresh materialized view concurrently stripe.webhook_health_summary;
-  refresh materialized view concurrently stripe.webhook_event_type_summary;
+  refresh materialized view concurrently public.webhook_health_summary;
+  refresh materialized view concurrently public.webhook_event_type_summary;
 
   return query select 'webhook_events'::text, events_deleted
   union all select 'webhook_failures'::text, failures_deleted;
 end;
 $$;
 
-comment on function stripe.cleanup_old_webhook_data(integer, integer) is
+comment on function public.cleanup_old_webhook_data(integer, integer) is
   'Batch-deletes old webhook data to avoid long locks. Default batch size: 10000 rows.';
 
 -- ============================================================================
 -- 5. ADD BATCH INSERT FUNCTION FOR HIGH-THROUGHPUT SCENARIOS
 -- ============================================================================
 
-create or replace function stripe.record_webhook_metrics_batch(
+create or replace function public.record_webhook_metrics_batch(
   metrics jsonb
 )
 returns integer language plpgsql security definer as $$
 declare
   inserted_count integer;
 begin
-  insert into stripe.webhook_events (
+  insert into public.webhook_events (
     stripe_event_id,
     event_type,
     processing_duration_ms,
@@ -234,26 +235,26 @@ begin
 end;
 $$;
 
-comment on function stripe.record_webhook_metrics_batch(jsonb) is
+comment on function public.record_webhook_metrics_batch(jsonb) is
   'Batch insert webhook metrics. Ignores duplicates. Returns count of inserted rows.';
 
-grant execute on function stripe.record_webhook_metrics_batch(jsonb) to service_role;
+grant execute on function public.record_webhook_metrics_batch(jsonb) to service_role;
 
 -- ============================================================================
 -- 6. ADD STATISTICS TARGETS FOR BETTER QUERY PLANNING
 -- ============================================================================
 
-alter table stripe.webhook_events alter column event_type set statistics 1000;
-alter table stripe.webhook_events alter column created_at set statistics 1000;
-alter table stripe.webhook_events alter column success set statistics 100;
+alter table public.webhook_events alter column event_type set statistics 1000;
+alter table public.webhook_events alter column created_at set statistics 1000;
+alter table public.webhook_events alter column success set statistics 100;
 
-alter table stripe.webhook_failures alter column event_type set statistics 500;
-alter table stripe.webhook_failures alter column failure_reason set statistics 100;
-alter table stripe.webhook_failures alter column resolved_at set statistics 100;
+alter table public.webhook_failures alter column event_type set statistics 500;
+alter table public.webhook_failures alter column failure_reason set statistics 100;
+alter table public.webhook_failures alter column resolved_at set statistics 100;
 
 -- ============================================================================
 -- 7. ANALYZE TABLES FOR OPTIMIZER
 -- ============================================================================
 
-analyze stripe.webhook_events;
-analyze stripe.webhook_failures;
+analyze public.webhook_events;
+analyze public.webhook_failures;

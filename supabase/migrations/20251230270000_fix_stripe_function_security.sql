@@ -4,23 +4,42 @@
 -- Security Impact: HIGH - Prevents SQL injection via search_path manipulation
 --
 -- Also fixes SECURITY INVOKER functions in public schema for completeness
+-- Note: Stripe schema is created by Stripe Sync Engine in production only
 
 -- ============================================================================
 -- PART 1: STRIPE SCHEMA SECURITY DEFINER FUNCTIONS (CRITICAL)
 -- ============================================================================
+-- Only run if stripe schema exists (production only)
 
--- cleanup_old_webhook_data has two overloaded versions
-alter function stripe.cleanup_old_webhook_data(integer) set search_path = '';
-alter function stripe.cleanup_old_webhook_data(integer, integer) set search_path = '';
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
+    -- cleanup_old_webhook_data has two overloaded versions
+    IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'stripe' AND p.proname = 'cleanup_old_webhook_data') THEN
+      EXECUTE 'ALTER FUNCTION stripe.cleanup_old_webhook_data(integer) SET search_path = ''''';
+      EXECUTE 'ALTER FUNCTION stripe.cleanup_old_webhook_data(integer, integer) SET search_path = ''''';
+    END IF;
 
--- detect_webhook_health_issues - monitoring function
-alter function stripe.detect_webhook_health_issues() set search_path = '';
+    -- detect_webhook_health_issues - monitoring function
+    IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'stripe' AND p.proname = 'detect_webhook_health_issues') THEN
+      EXECUTE 'ALTER FUNCTION stripe.detect_webhook_health_issues() SET search_path = ''''';
+    END IF;
 
--- record_webhook_metrics_batch - metrics recording
-alter function stripe.record_webhook_metrics_batch(jsonb) set search_path = '';
+    -- record_webhook_metrics_batch - metrics recording
+    IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'stripe' AND p.proname = 'record_webhook_metrics_batch') THEN
+      EXECUTE 'ALTER FUNCTION stripe.record_webhook_metrics_batch(jsonb) SET search_path = ''''';
+    END IF;
 
--- refresh_webhook_views - view refresh
-alter function stripe.refresh_webhook_views() set search_path = '';
+    -- refresh_webhook_views - view refresh
+    IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON p.pronamespace = n.oid WHERE n.nspname = 'stripe' AND p.proname = 'refresh_webhook_views') THEN
+      EXECUTE 'ALTER FUNCTION stripe.refresh_webhook_views() SET search_path = ''''';
+    END IF;
+
+    RAISE NOTICE 'Applied stripe schema function security fixes';
+  ELSE
+    RAISE NOTICE 'Skipping stripe schema function security fixes - stripe schema does not exist (local dev)';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- PART 2: PUBLIC SCHEMA SECURITY INVOKER FUNCTIONS (GOOD PRACTICE)
@@ -28,10 +47,10 @@ alter function stripe.refresh_webhook_views() set search_path = '';
 -- These are SECURITY INVOKER so lower risk, but still good to set search_path
 
 -- notify_critical_error - error notification trigger
-alter function public.notify_critical_error() set search_path = '';
+ALTER FUNCTION public.notify_critical_error() SET search_path = '';
 
 -- update_property_search_vector - search vector update trigger
-alter function public.update_property_search_vector() set search_path = '';
+ALTER FUNCTION public.update_property_search_vector() SET search_path = '';
 
 -- update_updated_at_column - timestamp update trigger
-alter function public.update_updated_at_column() set search_path = '';
+ALTER FUNCTION public.update_updated_at_column() SET search_path = '';

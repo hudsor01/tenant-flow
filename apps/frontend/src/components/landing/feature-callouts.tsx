@@ -1,7 +1,6 @@
 'use client'
 
 import { BarChart3, Zap, Shield } from 'lucide-react'
-import { FeaturePill } from './feature-pill'
 
 const callouts = [
 	{
@@ -27,12 +26,22 @@ export function FeatureCallouts() {
 			<div className="max-w-7xl mx-auto px-6 lg:px-8">
 				<div className="grid gap-3 md:grid-cols-3">
 					{callouts.map(callout => (
-						<FeaturePill
+						<div
 							key={callout.title}
-							icon={callout.icon}
-							title={callout.title}
-							description={callout.description}
-						/>
+							className="flex items-center gap-3 card-standard px-4 py-3 hover:border-primary/30 hover:shadow-sm transition-all duration-200"
+						>
+							<div className="icon-container-md icon-container-primary">
+								{callout.icon}
+							</div>
+							<div>
+								<div className="font-semibold text-foreground text-sm">
+									{callout.title}
+								</div>
+								<div className="text-muted-foreground text-xs">
+									{callout.description}
+								</div>
+							</div>
+						</div>
 					))}
 				</div>
 			</div>

@@ -16,8 +16,15 @@ import { DateRangeSelector } from '#components/reports/sections/date-range-selec
 import { FinancialReportSection } from '#components/reports/sections/financial-report-section'
 import { MaintenanceReportSection } from '#components/reports/sections/maintenance-report-section'
 import { PropertyReportSection } from '#components/reports/sections/property-report-section'
-import { ReportsEmptyState } from '#components/reports/sections/reports-empty-state'
 import { TenantReportSection } from '#components/reports/sections/tenant-report-section'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { Download } from 'lucide-react'
 import { getDefaultDateRange } from '#components/reports/reports-utils'
 
 export default function ReportsPage() {
@@ -120,7 +127,26 @@ export default function ReportsPage() {
 				/>
 
 				{!hasAnyData ? (
-					<ReportsEmptyState />
+					<Empty>
+						<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+							<FileText />
+						</EmptyMedia>
+						<EmptyHeader>
+							<EmptyTitle>No report data yet</EmptyTitle>
+							<EmptyDescription>
+								Once payments, leases, and maintenance activity are recorded,
+								reports will populate here.
+							</EmptyDescription>
+						</EmptyHeader>
+						<div className="flex items-center gap-3 mt-2">
+							<Button asChild className="gap-2">
+								<Link href="/reports/generate">
+									<Download className="size-4" />
+									Generate a report
+								</Link>
+							</Button>
+						</div>
+					</Empty>
 				) : (
 					<div className="flex flex-col gap-8">
 						<FinancialReportSection

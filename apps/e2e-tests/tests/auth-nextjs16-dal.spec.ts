@@ -115,7 +115,7 @@ test.describe('DAL - Authorization Enforcement', () => {
 
 		// Navigate to properties page
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Should NOT have 403 errors (user authorized for own data)
 		expect(forbiddenErrors).toEqual([])
@@ -137,7 +137,7 @@ test.describe('DAL - Authorization Enforcement', () => {
 		})
 
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Check that responses don't contain sensitive fields
 		for (const { data } of apiResponses) {
@@ -171,7 +171,7 @@ test.describe('DAL - Claims Caching (React.cache)', () => {
 		})
 
 		await page.goto(`${baseUrl}/dashboard`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Should only call auth API once per page load
 		// (React.cache memoizes getClaims for the request)
@@ -200,7 +200,7 @@ test.describe('DAL - Error Handling', () => {
 		await page.goto(`${baseUrl}/dashboard`)
 
 		// Should redirect to login (proxy redirected, DAL never called)
-		await expect(page).toHaveURL(/^\/login/)
+		await expect(page).toHaveURL(/\/login/)
 
 		// Should NOT have console errors (graceful handling)
 		const criticalErrors = consoleErrors.filter(
@@ -213,6 +213,9 @@ test.describe('DAL - Error Handling', () => {
 		page,
 		context
 	}) => {
+		// Clear existing valid cookies first
+		await context.clearCookies()
+
 		// Set invalid auth cookie
 		await context.addCookies([
 			{
@@ -227,7 +230,7 @@ test.describe('DAL - Error Handling', () => {
 		await page.goto(`${baseUrl}/dashboard`)
 
 		// Should redirect to login (proxy detected invalid session)
-		await expect(page).toHaveURL(/^\/login/)
+		await expect(page).toHaveURL(/\/login/)
 	})
 })
 

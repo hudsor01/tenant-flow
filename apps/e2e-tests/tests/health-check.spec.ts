@@ -16,7 +16,7 @@ test.describe('TenantFlow Health Check', () => {
 		const backendHealthUrl =
 			process.env.PLAYWRIGHT_BACKEND_HEALTH_URL ||
 			process.env.BACKEND_HEALTH_URL ||
-			'http://localhost:4600/health'
+			'http://localhost:4650/health'
 
 		const response = await request.get(backendHealthUrl)
 

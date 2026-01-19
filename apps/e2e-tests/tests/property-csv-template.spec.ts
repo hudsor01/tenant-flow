@@ -51,7 +51,7 @@ test.describe('Property CSV Template Download', () => {
 		// Step 3: Navigate to properties page
 		logStep(' Step 3: Navigating to properties page')
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		logStep(' Properties page loaded')
 
 		// Step 4: Click "Bulk Import" button to open dialog

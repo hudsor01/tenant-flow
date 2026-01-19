@@ -106,14 +106,14 @@ BEGIN
     INSERT INTO public.maintenance_requests
       (unit_id, tenant_id, owner_user_id, status, priority, description, requested_by, created_at)
     VALUES
-      (v_unit, v_tenant, v_owner_user, 'open'::maintenance_status,       'normal'::maintenance_priority, 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
-      (v_unit, v_tenant, v_owner_user, 'completed'::maintenance_status,  'high'::maintenance_priority,   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
+      (v_unit, v_tenant, v_owner_user, 'open',       'normal', 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
+      (v_unit, v_tenant, v_owner_user, 'completed',  'high',   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
   ELSE
     INSERT INTO public.maintenance_requests
       (unit_id, tenant_id, property_owner_id, status, priority, description, requested_by, created_at)
     VALUES
-      (v_unit, v_tenant, v_owner, 'open'::maintenance_status,       'normal'::maintenance_priority, 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
-      (v_unit, v_tenant, v_owner, 'completed'::maintenance_status,  'high'::maintenance_priority,   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
+      (v_unit, v_tenant, v_owner, 'open',       'normal', 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
+      (v_unit, v_tenant, v_owner, 'completed',  'high',   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
   END IF;
 
   -- Mark completion for the completed request
@@ -241,8 +241,8 @@ BEGIN
         v_unit,
         v_tenant,
         v_owner_user,
-        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1]::maintenance_status AS status,
-        (ARRAY['low','normal','high','urgent'])[(g % 4)+1]::maintenance_priority AS priority,
+        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] AS status,
+        (ARRAY['low','normal','high','urgent'])[(g % 4)+1] AS priority,
         'Perf seed request #' || g AS description,
         v_tenant_user,
         now() - (g % 60) * interval '1 day' AS created_at,
@@ -275,8 +275,8 @@ BEGIN
         v_unit,
         v_tenant,
         v_owner,
-        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1]::maintenance_status AS status,
-        (ARRAY['low','normal','high','urgent'])[(g % 4)+1]::maintenance_priority AS priority,
+        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] AS status,
+        (ARRAY['low','normal','high','urgent'])[(g % 4)+1] AS priority,
         'Perf seed request #' || g AS description,
         v_tenant_user,
         now() - (g % 60) * interval '1 day' AS created_at,
