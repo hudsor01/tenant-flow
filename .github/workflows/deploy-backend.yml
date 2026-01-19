@@ -48,8 +48,14 @@ jobs:
 
       - name: Notify Sentry of Release
         if: success()
+        env:
+          SENTRY_WEBHOOK: ${{ secrets.SENTRY_RELEASE_WEBHOOK }}
         run: |
-          curl -sS "${{ secrets.SENTRY_RELEASE_WEBHOOK }}" \
-            -X POST \
-            -H 'Content-Type: application/json' \
-            -d "{\"version\": \"${{ github.sha }}\"}"
+          if [ -n "$SENTRY_WEBHOOK" ]; then
+            curl -sS "$SENTRY_WEBHOOK" \
+              -X POST \
+              -H 'Content-Type: application/json' \
+              -d "{\"version\": \"${{ github.sha }}\"}"
+          else
+            echo "Sentry webhook not configured, skipping notification"
+          fi
