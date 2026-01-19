@@ -30,73 +30,85 @@ $$;
 
 grant execute on function private.get_my_stripe_customer_id() to authenticated;
 
--- Drop superseded function from migration 20251230190000
-drop function if exists stripe.get_current_user_customer_ids();
-
 -- ============================================================================
--- PART 2: REMOVE REDUNDANT STRIPE SERVICE_ROLE POLICIES (28 policies)
+-- PART 2-3: STRIPE POLICIES (Only run if stripe schema exists)
 -- ============================================================================
 
-drop policy if exists "service_role_all" on stripe.active_entitlements;
-drop policy if exists "service_role_all" on stripe.charges;
-drop policy if exists "service_role_all" on stripe.checkout_session_line_items;
-drop policy if exists "service_role_all" on stripe.checkout_sessions;
-drop policy if exists "service_role_all" on stripe.coupons;
-drop policy if exists "service_role_all" on stripe.credit_notes;
-drop policy if exists "service_role_all" on stripe.customers;
-drop policy if exists "service_role_all" on stripe.disputes;
-drop policy if exists "service_role_all" on stripe.early_fraud_warnings;
-drop policy if exists "service_role_all" on stripe.events;
-drop policy if exists "service_role_all" on stripe.features;
-drop policy if exists "service_role_all" on stripe.invoices;
-drop policy if exists "service_role_all" on stripe.migrations;
-drop policy if exists "service_role_all" on stripe.payment_intents;
-drop policy if exists "service_role_all" on stripe.payment_methods;
-drop policy if exists "service_role_all" on stripe.payouts;
-drop policy if exists "service_role_all" on stripe.plans;
-drop policy if exists "service_role_all" on stripe.prices;
-drop policy if exists "service_role_all" on stripe.products;
-drop policy if exists "service_role_all" on stripe.refunds;
-drop policy if exists "service_role_all" on stripe.reviews;
-drop policy if exists "service_role_all" on stripe.setup_intents;
-drop policy if exists "service_role_all" on stripe.subscription_items;
-drop policy if exists "service_role_all" on stripe.subscription_schedules;
-drop policy if exists "service_role_all" on stripe.subscriptions;
-drop policy if exists "service_role_all" on stripe.tax_ids;
-drop policy if exists "Service role can manage webhook_events" on stripe.webhook_events;
-drop policy if exists "Service role can manage webhook_failures" on stripe.webhook_failures;
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
+    -- Drop superseded function from migration 20251230190000
+    DROP FUNCTION IF EXISTS stripe.get_current_user_customer_ids();
 
--- ============================================================================
--- PART 3: SIMPLIFY STRIPE USER POLICIES (use security definer)
--- ============================================================================
+    -- PART 2: REMOVE REDUNDANT STRIPE SERVICE_ROLE POLICIES (28 policies)
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.active_entitlements;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.charges;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.checkout_session_line_items;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.checkout_sessions;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.coupons;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.credit_notes;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.customers;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.disputes;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.early_fraud_warnings;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.events;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.features;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.invoices;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.migrations;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.payment_intents;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.payment_methods;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.payouts;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.plans;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.prices;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.products;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.refunds;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.reviews;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.setup_intents;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.subscription_items;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.subscription_schedules;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.subscriptions;
+    DROP POLICY IF EXISTS "service_role_all" ON stripe.tax_ids;
+    DROP POLICY IF EXISTS "Service role can manage webhook_events" ON stripe.webhook_events;
+    DROP POLICY IF EXISTS "Service role can manage webhook_failures" ON stripe.webhook_failures;
 
-drop policy if exists "customers_select_own" on stripe.customers;
-create policy "customers_select_own" on stripe.customers
-for select to authenticated
-using (id = (select private.get_my_stripe_customer_id()));
+    -- PART 3: SIMPLIFY STRIPE USER POLICIES (use security definer)
+    DROP POLICY IF EXISTS "customers_select_own" ON stripe.customers;
+    EXECUTE '
+      CREATE POLICY "customers_select_own" ON stripe.customers
+      FOR SELECT TO authenticated
+      USING (id = (SELECT private.get_my_stripe_customer_id()))';
 
-drop policy if exists "subscriptions_select_own" on stripe.subscriptions;
-create policy "subscriptions_select_own" on stripe.subscriptions
-for select to authenticated
-using (customer = (select private.get_my_stripe_customer_id()));
+    DROP POLICY IF EXISTS "subscriptions_select_own" ON stripe.subscriptions;
+    EXECUTE '
+      CREATE POLICY "subscriptions_select_own" ON stripe.subscriptions
+      FOR SELECT TO authenticated
+      USING (customer = (SELECT private.get_my_stripe_customer_id()))';
 
-drop policy if exists "invoices_select_own" on stripe.invoices;
-create policy "invoices_select_own" on stripe.invoices
-for select to authenticated
-using (customer = (select private.get_my_stripe_customer_id()));
+    DROP POLICY IF EXISTS "invoices_select_own" ON stripe.invoices;
+    EXECUTE '
+      CREATE POLICY "invoices_select_own" ON stripe.invoices
+      FOR SELECT TO authenticated
+      USING (customer = (SELECT private.get_my_stripe_customer_id()))';
 
-drop policy if exists "subscription_items_select_own" on stripe.subscription_items;
-create policy "subscription_items_select_own" on stripe.subscription_items
-for select to authenticated
-using (subscription in (
-  select id from stripe.subscriptions
-  where customer = (select private.get_my_stripe_customer_id())
-));
+    DROP POLICY IF EXISTS "subscription_items_select_own" ON stripe.subscription_items;
+    EXECUTE '
+      CREATE POLICY "subscription_items_select_own" ON stripe.subscription_items
+      FOR SELECT TO authenticated
+      USING (subscription IN (
+        SELECT id FROM stripe.subscriptions
+        WHERE customer = (SELECT private.get_my_stripe_customer_id())
+      ))';
 
-drop policy if exists "active_entitlements_select_own" on stripe.active_entitlements;
-create policy "active_entitlements_select_own" on stripe.active_entitlements
-for select to authenticated
-using (customer = (select private.get_my_stripe_customer_id()));
+    DROP POLICY IF EXISTS "active_entitlements_select_own" ON stripe.active_entitlements;
+    EXECUTE '
+      CREATE POLICY "active_entitlements_select_own" ON stripe.active_entitlements
+      FOR SELECT TO authenticated
+      USING (customer = (SELECT private.get_my_stripe_customer_id()))';
+
+    RAISE NOTICE 'Applied stripe policy simplifications';
+  ELSE
+    RAISE NOTICE 'Skipping stripe policy simplifications - stripe schema does not exist (local dev)';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- PART 4: REMOVE REDUNDANT PUBLIC SERVICE_ROLE POLICIES (48 policies)
@@ -191,5 +203,11 @@ drop index if exists public.idx_users_email;
 drop index if exists public.idx_users_stripe_customer_id;
 drop index if exists public.idx_webhook_events_source_external_id;
 
--- stripe schema (1 index)
-drop index if exists stripe.idx_webhook_events_stripe_id;
+-- stripe schema index (conditional)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
+    DROP INDEX IF EXISTS stripe.idx_webhook_events_stripe_id;
+    RAISE NOTICE 'Dropped stripe redundant indexes';
+  END IF;
+END $$;

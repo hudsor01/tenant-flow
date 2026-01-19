@@ -27,8 +27,14 @@ import {
 	type LeaseDisplay
 } from '#components/leases/table/lease-utils'
 import { LeasesPageSkeleton } from '#components/leases/table/leases-page-skeleton'
-import { LeasesEmptyState } from '#components/leases/table/leases-empty-state'
-import { LeasesStatsCards } from '#components/leases/table/leases-stats-cards'
+import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
+import { FileText, Check, AlertTriangle, Clock } from 'lucide-react'
 import { LeasesTable } from '#components/leases/table/leases-table'
 import { LeasesDialogs } from '#components/leases/dialogs/leases-dialogs'
 import { useLeasesStore } from '#stores/leases-store'
@@ -198,7 +204,31 @@ export default function LeasesPage() {
 		)
 	}
 
-	if (leases.length === 0) return <LeasesEmptyState />
+	if (leases.length === 0)
+		return (
+			<BlurFade delay={0.1} inView>
+				<Empty>
+					<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+						<FileText />
+					</EmptyMedia>
+					<EmptyHeader>
+						<EmptyTitle>No leases yet</EmptyTitle>
+						<EmptyDescription>
+							Create your first lease to start managing tenant agreements.
+						</EmptyDescription>
+					</EmptyHeader>
+					<div className="flex items-center gap-3 mt-2">
+						<Link
+							href="/leases/new"
+							className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
+						>
+							<Plus className="size-5" />
+							Create First Lease
+						</Link>
+					</div>
+				</Empty>
+			</BlurFade>
+		)
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -220,12 +250,53 @@ export default function LeasesPage() {
 				</div>
 			</BlurFade>
 
-			<LeasesStatsCards
-				totalLeases={totalLeases}
-				activeLeases={activeLeases}
-				expiringLeases={expiringLeases}
-				pendingLeases={pendingLeases}
-			/>
+			{/* Stats Cards */}
+			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+					<div className="flex items-center justify-between mb-2">
+						<p className="text-sm text-muted-foreground">Total Leases</p>
+					</div>
+					<div className="flex items-end justify-between">
+						<p className="text-2xl font-bold text-foreground">{totalLeases}</p>
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+							<FileText className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+				</div>
+				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+					<div className="flex items-center justify-between mb-2">
+						<p className="text-sm text-muted-foreground">Active</p>
+					</div>
+					<div className="flex items-end justify-between">
+						<p className="text-2xl font-bold text-foreground">{activeLeases}</p>
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+							<Check className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+				</div>
+				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+					<div className="flex items-center justify-between mb-2">
+						<p className="text-sm text-muted-foreground">Expiring Soon</p>
+					</div>
+					<div className="flex items-end justify-between">
+						<p className="text-2xl font-bold text-foreground">{expiringLeases}</p>
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+							<AlertTriangle className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+				</div>
+				<div className="bg-card border border-border rounded-sm p-4 hover:border-primary/30 hover:shadow-md transition-all group">
+					<div className="flex items-center justify-between mb-2">
+						<p className="text-sm text-muted-foreground">Pending</p>
+					</div>
+					<div className="flex items-end justify-between">
+						<p className="text-2xl font-bold text-foreground">{pendingLeases}</p>
+						<div className="w-9 h-9 rounded-sm bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+							<Clock className="w-4 h-4 text-primary" />
+						</div>
+					</div>
+				</div>
+			</div>
 
 			<Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
 				<TabsList className="mb-4">

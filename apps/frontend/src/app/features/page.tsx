@@ -1,5 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { Button } from '#components/ui/button'
+import { cn } from '#lib/utils'
 import { PageLayout } from '#components/layout/page-layout'
 import { LogoCloud } from '#components/sections/logo-cloud'
 import { ComparisonTable } from '#components/sections/comparison-table'
@@ -8,7 +13,6 @@ import { SectionSkeleton } from '#components/ui/section-skeleton'
 import { getBreadcrumbSchema } from '#components/landing/features-data'
 
 // Page sections
-import { StickyCta } from '#components/landing/sticky-cta'
 import { HeroSection } from '#components/landing/hero-section'
 import { FeatureCallouts } from '#components/landing/feature-callouts'
 import { TestimonialsSection } from '#components/landing/testimonials-section'
@@ -17,6 +21,16 @@ import { ResultsProofSection } from '#components/landing/results-proof-section'
 import { FinalCtaSection } from '#components/landing/final-cta-section'
 
 export default function FeaturesPage() {
+	const [stickyCtaVisible, setStickyCtaVisible] = useState(false)
+
+	useEffect(() => {
+		const handleScroll = () => {
+			setStickyCtaVisible(window.scrollY > 800)
+		}
+		window.addEventListener('scroll', handleScroll)
+		return () => window.removeEventListener('scroll', handleScroll)
+	}, [])
+
 	const baseUrl =
 		process.env.NEXT_PUBLIC_APP_URL ||
 		(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
@@ -32,7 +46,26 @@ export default function FeaturesPage() {
 				}}
 			/>
 
-			<StickyCta />
+			{/* Sticky CTA */}
+			<div
+				className={cn(
+					'fixed top-4 right-4 z-50 transition-all duration-500 transform',
+					stickyCtaVisible
+						? 'translate-y-0 opacity-100'
+						: '-translate-y-2 opacity-0 pointer-events-none'
+				)}
+			>
+				<Button
+					size="lg"
+					className="shadow-2xl shadow-primary/25 font-semibold"
+					asChild
+				>
+					<Link href="/pricing" aria-label="Get started free">
+						Start Free Trial
+						<ArrowRight className="size-4 ml-2" />
+					</Link>
+				</Button>
+			</div>
 			<HeroSection />
 			<FeatureCallouts />
 			<TestimonialsSection />

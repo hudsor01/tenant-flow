@@ -52,7 +52,7 @@ function EmptyMedia({
 }: ComponentProps<'div'> & VariantProps<typeof emptyMediaVariants>) {
 	return (
 		<div
-			data-slot="empty-icon"
+			data-slot="empty-media"
 			data-variant={variant}
 			className={cn(emptyMediaVariants({ variant, className }))}
 			{...props}
@@ -72,10 +72,10 @@ function EmptyTitle({ className, ...props }: ComponentProps<'div'>) {
 
 function EmptyDescription({ className, ...props }: ComponentProps<'p'>) {
 	return (
-		<div
+		<p
 			data-slot="empty-description"
 			className={cn(
-				'text-muted-foreground [&>a:hover]:text-primary text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4',
+				'text-muted-foreground text-sm/relaxed [&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary',
 				className
 			)}
 			{...props}
@@ -98,9 +98,9 @@ function EmptyContent({ className, ...props }: ComponentProps<'div'>) {
 
 export {
 	Empty,
-	EmptyHeader,
-	EmptyTitle,
-	EmptyDescription,
 	EmptyContent,
-	EmptyMedia
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
 }

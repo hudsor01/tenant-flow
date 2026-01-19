@@ -13,7 +13,7 @@
 
 import { test, expect } from '@playwright/test'
 
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4650'
 
 // Helper to validate response structure matches expected schema
 function validateSchema(actual: any, expected: Record<string, string>) {

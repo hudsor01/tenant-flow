@@ -19,7 +19,7 @@ test.describe('Route Reorganization Verification', () => {
 		await page.goto(`${baseUrl}/`)
 
 		// Should not get a 404
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		const title = await page.title()
 		expect(title).toBeTruthy()
 
@@ -44,7 +44,7 @@ test.describe('Route Reorganization Verification', () => {
 		await page.goto(`${baseUrl}/tenant`)
 
 		// Should load successfully
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 		const url = page.url()
 		expect(url).toContain('/tenant')
 
@@ -67,7 +67,7 @@ test.describe('Route Reorganization Verification', () => {
 		await page.goto(`${baseUrl}/`)
 
 		// Wait for page to load completely
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Check if navigation uses correct route group URLs
 		const content = await page.content()

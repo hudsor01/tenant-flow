@@ -25,7 +25,7 @@ declare global {
  */
 
 const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4650'
 const OWNER_EMAIL = process.env.E2E_OWNER_EMAIL!
 const OWNER_PASSWORD = process.env.E2E_OWNER_PASSWORD!
 const logger = createLogger({ component: 'CriticalPathsSmoke' })
@@ -167,6 +167,7 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await page.goto(`${BASE_URL}/dashboard`)
 
 		// Verify dashboard loads - accept any of these as success
+		// Note: Empty state shows "Welcome to TenantFlow" instead of stats
 		const dashboardLoaded = await Promise.race([
 			page
 				.locator('h1:has-text("Dashboard")')
@@ -178,6 +179,10 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 				.then(() => true),
 			page
 				.locator('text=Total Properties')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('text=Welcome to TenantFlow')
 				.waitFor({ timeout: 5000 })
 				.then(() => true)
 		]).catch(() => false)
@@ -191,7 +196,8 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		// Navigate to properties
 		await page.goto(`${BASE_URL}/properties`)
 
-		// Verify properties page loads
+		// Verify properties page loads - accept any of these as success
+		// Note: Empty state shows "No properties yet" instead of property list
 		const propertiesLoaded = await Promise.race([
 			page
 				.locator('h1:has-text("Properties")')
@@ -199,6 +205,14 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 				.then(() => true),
 			page
 				.locator('button:has-text("New Property")')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('text=No properties yet')
+				.waitFor({ timeout: 5000 })
+				.then(() => true),
+			page
+				.locator('button:has-text("Add Your First Property")')
 				.waitFor({ timeout: 5000 })
 				.then(() => true)
 		]).catch(() => false)
@@ -338,11 +352,15 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 		await loginAsOwner(page)
 
 		// Visit critical pages
+		// Using 'domcontentloaded' instead of 'networkidle' to avoid timeout
+		// issues with Next.js dev server HMR and background polling
 		await page.goto(`${BASE_URL}/dashboard`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
+		await page.waitForTimeout(1000) // Allow time for initial JS execution
 
 		await page.goto(`${BASE_URL}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
+		await page.waitForTimeout(1000)
 
 		// Filter out known acceptable errors
 		const criticalErrors = errors.filter(

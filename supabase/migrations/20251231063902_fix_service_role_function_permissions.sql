@@ -19,18 +19,9 @@
 
 -- Grant service_role EXECUTE permission on check_user_feature_access
 -- This function is called by SubscriptionGuard via rpcWithRetries using adminClient
-grant execute on function public.check_user_feature_access(text, text) to service_role;
-
--- Also grant on the UUID signature if it exists (for consistency)
--- Using DO block to handle case where function signature doesn't exist
-do $$
-begin
-    execute 'grant execute on function public.check_user_feature_access(uuid, text) to service_role';
-exception when undefined_function then
-    -- UUID signature doesn't exist, that's fine
-    null;
-end;
-$$;
+-- Note: The (text, text) signature was dropped in migration 20251110151620
+-- Only the (uuid, text) signature exists now
+grant execute on function public.check_user_feature_access(uuid, text) to service_role;
 
 -- ============================================================================
 -- PART 2: Fix other backend functions that may have been missed
