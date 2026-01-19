@@ -4,7 +4,7 @@ import { AdminSystemController } from './controllers/admin-system.controller'
 import { AdminService } from './services/admin.service'
 import { SupabaseModule } from '../../database/supabase.module'
 import { EmailModule } from '../email/email.module'
-import { StripeModule } from '../billing/stripe.module'
+import { WebhooksModule } from '../billing/webhooks/webhooks.module'
 
 /**
  * Admin Module
@@ -19,7 +19,12 @@ import { StripeModule } from '../billing/stripe.module'
  * Note: Bull Board dashboard configured in app.module.ts
  */
 @Module({
-	imports: [SupabaseModule, EmailModule, StripeModule],
+	imports: [
+		SupabaseModule,
+		EmailModule,
+		// Import WebhooksModule to get access to stripe-webhooks queue (exported via BullModule)
+		WebhooksModule
+	],
 	controllers: [AdminUsersController, AdminSystemController],
 	providers: [AdminService],
 	exports: [AdminService]
