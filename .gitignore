@@ -290,6 +290,7 @@ agent-os/
 !README.md
 !LICENSE.md
 !SECURITY.md
+!.planning/**/*.md
 
 # Keep .env.example files (template files with no secrets)
 !.env.example

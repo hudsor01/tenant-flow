@@ -2025,6 +2025,13 @@ export const publicCleanupOldSecurityEventsArgsSchema = z.never();
 
 export const publicCleanupOldSecurityEventsReturnsSchema = z.undefined();
 
+export const publicConfirmLeaseSubscriptionArgsSchema = z.object({
+  p_lease_id: z.string(),
+  p_subscription_id: z.string(),
+});
+
+export const publicConfirmLeaseSubscriptionReturnsSchema = z.undefined();
+
 export const publicCustomAccessTokenHookArgsSchema = z.object({
   event: jsonSchema,
 });
@@ -2292,6 +2299,27 @@ export const publicLogUserErrorArgsSchema = z.object({
 });
 
 export const publicLogUserErrorReturnsSchema = z.string();
+
+export const publicProcessPaymentIntentFailedArgsSchema = z.object({
+  p_amount: z.number(),
+  p_failure_reason: z.string(),
+  p_payment_intent_id: z.string(),
+  p_rent_payment_id: z.string(),
+});
+
+export const publicProcessPaymentIntentFailedReturnsSchema = z.undefined();
+
+export const publicProcessSubscriptionStatusChangeArgsSchema = z.object({
+  p_new_status: z.string(),
+  p_subscription_failure_reason: z.string().optional(),
+  p_subscription_id: z.string(),
+});
+
+export const publicProcessSubscriptionStatusChangeReturnsSchema = z.undefined();
+
+export const publicRequireStripeSchemaArgsSchema = z.never();
+
+export const publicRequireStripeSchemaReturnsSchema = z.boolean();
 
 export const publicRevokeUserSessionArgsSchema = z.object({
   p_session_id: z.string(),

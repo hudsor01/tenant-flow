@@ -21,6 +21,7 @@ import { StripeClientService } from '../shared/stripe-client.service'
 import { SubscriptionCacheService } from './subscription-cache.service'
 import { SubscriptionQueryService } from './subscription-query.service'
 import { AppLogger } from '../logger/app-logger.service'
+import { StripeSharedService } from '../modules/billing/stripe-shared.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
@@ -37,7 +38,8 @@ export class SubscriptionBillingService {
 		private readonly stripeClientService: StripeClientService,
 		private readonly cache: SubscriptionCacheService,
 		private readonly queryService: SubscriptionQueryService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -419,8 +421,15 @@ export class SubscriptionBillingService {
 	private async safeCancelStripeSubscription(
 		subscriptionId: string
 	): Promise<void> {
+		const idempotencyKey = this.sharedService.generateIdempotencyKey(
+			'sub_cancel_rollback',
+			subscriptionId
+		)
+
 		try {
-			await this.stripe.subscriptions.cancel(subscriptionId)
+			await this.stripe.subscriptions.cancel(subscriptionId, undefined, {
+				idempotencyKey
+			})
 		} catch (error) {
 			this.logger.error('Failed to roll back Stripe subscription', {
 				subscriptionId,

@@ -1,11 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { CheckCircle, Loader2, AlertTriangle } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
+import { ConnectAccountStatus } from '#components/connect/connect-account-status'
+import { ConnectRequirements } from '#components/connect/connect-requirements'
+import { ConnectOnboardingDialog } from '#app/(tenant)/tenant/settings/stripe-connect-onboarding'
 import { useSubscriptionStatus } from '#hooks/api/use-billing'
 import { useBillingHistory } from '#hooks/api/use-billing'
+import { useConnectedAccount } from '#hooks/api/use-stripe-connect'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { toast } from 'sonner'
@@ -13,10 +18,13 @@ import { createClient } from '#lib/supabase/client'
 
 export function BillingSettings() {
 	const supabase = createClient()
+	const [showOnboarding, setShowOnboarding] = useState(false)
 	const { data: subscriptionStatus, isLoading: statusLoading } =
 		useSubscriptionStatus()
 	const { data: paymentHistory, isLoading: historyLoading } =
 		useBillingHistory()
+	const { data: connectedAccount, isLoading: connectLoading } =
+		useConnectedAccount()
 
 	// Fetch payment methods
 	const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
@@ -52,7 +60,7 @@ export function BillingSettings() {
 		}
 	})
 
-	const isLoading = statusLoading || historyLoading || methodsLoading
+	const isLoading = statusLoading || historyLoading || methodsLoading || connectLoading
 
 	const getStatusBadge = (status: string | null) => {
 		switch (status) {
@@ -325,6 +333,33 @@ export function BillingSettings() {
 					)}
 				</section>
 			</BlurFade>
+
+			{/* Payment Account (Stripe Connect) */}
+			<BlurFade delay={0.45} inView>
+				<section className="space-y-4">
+					<div className="mb-2">
+						<h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+							Payment Account
+						</h3>
+						<p className="text-xs text-muted-foreground mt-1">
+							Receive rent payments from your tenants
+						</p>
+					</div>
+					<ConnectAccountStatus onSetupClick={() => setShowOnboarding(true)} />
+					{connectedAccount?.requirements_due &&
+						connectedAccount.requirements_due.length > 0 && (
+							<ConnectRequirements
+								requirements={connectedAccount.requirements_due}
+							/>
+						)}
+				</section>
+			</BlurFade>
+
+			{/* Stripe Connect Onboarding Dialog */}
+			<ConnectOnboardingDialog
+				open={showOnboarding}
+				onOpenChange={setShowOnboarding}
+			/>
 
 			{/* Danger Zone */}
 			<BlurFade delay={0.55} inView>

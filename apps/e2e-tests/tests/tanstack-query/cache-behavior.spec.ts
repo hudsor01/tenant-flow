@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test'
 import {
 	createTestProperty,
 	createTestProperties
-} from '../../../frontend/tests/fixtures/property-data'
+} from '../fixtures/property-data'
 import {
 	TanStackQueryHelper,
 	NetworkSimulator,

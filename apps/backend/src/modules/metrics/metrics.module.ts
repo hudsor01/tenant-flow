@@ -28,6 +28,17 @@ import { ConfigModule } from '@nestjs/config'
 			help: 'Total number of Stripe webhook events that failed processing',
 			labelNames: ['event_type', 'error_type']
 		}),
+		makeCounterProvider({
+			name: 'tenantflow_stripe_webhooks_dlq_total',
+			help: 'Total Stripe webhooks moved to dead letter queue after exhausting retries',
+			labelNames: ['event_type']
+		}),
+		makeHistogramProvider({
+			name: 'tenantflow_stripe_webhook_processing_duration_seconds',
+			help: 'Stripe webhook processing duration in seconds',
+			labelNames: ['event_type', 'status'],
+			buckets: [0.1, 0.25, 0.5, 1, 2, 5, 10]
+		}),
 
 		// Subscription metrics
 		makeGaugeProvider({

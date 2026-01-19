@@ -6,6 +6,7 @@ import { StripeClientService } from '../../../shared/stripe-client.service'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppConfigService } from '../../../config/app-config.service'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { StripeSharedService } from '../stripe-shared.service'
 
 /**
  * Stripe Connect Setup Service
@@ -206,7 +207,8 @@ export class ConnectSetupService {
 		private readonly stripeClientService: StripeClientService,
 		private readonly supabaseService: SupabaseService,
 		private readonly appConfigService: AppConfigService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		countries.registerLocale(enLocale)
 		this.stripe = this.stripeClientService.getClient()
@@ -489,8 +491,14 @@ export class ConnectSetupService {
 		accountId: string,
 		context: string
 	): Promise<void> {
+		const idempotencyKey = this.sharedService.generateIdempotencyKey(
+			'acct_del',
+			accountId,
+			context
+		)
+
 		try {
-			await this.stripe.accounts.del(accountId)
+			await this.stripe.accounts.del(accountId, { idempotencyKey })
 			this.logger.log(`Cleaned up orphaned Stripe account ${context}`, {
 				accountId,
 				context

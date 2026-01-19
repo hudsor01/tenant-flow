@@ -6,6 +6,7 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { StripeSharedService } from './stripe-shared.service'
 
 const createMockStripe = (): jest.Mocked<Stripe> => {
 	const mockStripe = {
@@ -71,7 +72,13 @@ describe('StripeTenantService.ensureStripeCustomer', () => {
 				StripeTenantService,
 				{ provide: StripeClientService, useValue: mockStripeClientService },
 				{ provide: SupabaseService, useValue: mockSupabaseService },
-				{ provide: AppLogger, useValue: new SilentLogger() }
+				{ provide: AppLogger, useValue: new SilentLogger() },
+				{
+					provide: StripeSharedService,
+					useValue: {
+						generateIdempotencyKey: jest.fn().mockReturnValue('test-idempotency-key')
+					}
+				}
 			]
 		}).compile()
 

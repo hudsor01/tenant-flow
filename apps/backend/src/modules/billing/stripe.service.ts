@@ -122,6 +122,7 @@ export class StripeService {
 
 	/**
 	 * Get ALL invoices with complete pagination
+	 * Uses SDK auto-pagination for reliability
 	 */
 	async getAllInvoices(params?: {
 		customer?: string
@@ -130,41 +131,26 @@ export class StripeService {
 		created?: { gte?: number; lte?: number }
 	}): Promise<Stripe.Invoice[]> {
 		try {
-			const allInvoices: Stripe.Invoice[] = []
-			let hasMore = true
-			let startingAfter: string | undefined
-
-			while (hasMore) {
-				const requestParams: Stripe.InvoiceListParams = {
-					limit: this.STRIPE_DEFAULT_LIMIT,
-					expand: ['data.subscription', 'data.customer']
-				}
-				if (params?.customer) {
-					requestParams.customer = params.customer
-				}
-				if (params?.subscription) {
-					requestParams.subscription = params.subscription
-				}
-				if (params?.status) {
-					requestParams.status =
-						params.status as Stripe.InvoiceListParams.Status
-				}
-				if (params?.created) {
-					requestParams.created = params.created
-				}
-				if (startingAfter) {
-					requestParams.starting_after = startingAfter
-				}
-
-				const invoices = await this.stripe.invoices.list(requestParams)
-
-				allInvoices.push(...invoices.data)
-				hasMore = invoices.has_more
-
-				if (hasMore && invoices.data.length > 0) {
-					startingAfter = invoices.data[invoices.data.length - 1]?.id
-				}
+			const requestParams: Stripe.InvoiceListParams = {
+				limit: this.STRIPE_DEFAULT_LIMIT,
+				expand: ['data.subscription', 'data.customer']
 			}
+			if (params?.customer) {
+				requestParams.customer = params.customer
+			}
+			if (params?.subscription) {
+				requestParams.subscription = params.subscription
+			}
+			if (params?.status) {
+				requestParams.status = params.status as Stripe.InvoiceListParams.Status
+			}
+			if (params?.created) {
+				requestParams.created = params.created
+			}
+
+			const allInvoices = await this.stripe.invoices
+				.list(requestParams)
+				.autoPagingToArray({ limit: 10000 })
 
 			this.logger.log(`Fetched ${allInvoices.length} total invoices`)
 			return allInvoices

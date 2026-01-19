@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
 import { StripeClientService } from '../../../shared/stripe-client.service'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { StripeSharedService } from '../stripe-shared.service'
 
 /**
  * Stripe Connect Billing Service
@@ -17,7 +18,8 @@ export class ConnectBillingService {
 
 	constructor(
 		private readonly stripeClientService: StripeClientService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -151,9 +153,16 @@ export class ConnectBillingService {
 		customerId: string,
 		connectedAccountId: string
 	): Promise<Stripe.DeletedCustomer> {
+		const idempotencyKey = this.sharedService.generateIdempotencyKey(
+			'cus_del_conn',
+			connectedAccountId,
+			customerId
+		)
+
 		try {
 			const deletedCustomer = await this.stripe.customers.del(customerId, {
-				stripeAccount: connectedAccountId
+				stripeAccount: connectedAccountId,
+				idempotencyKey
 			})
 
 			this.logger.log('Deleted Stripe customer on connected account', {
@@ -183,11 +192,17 @@ export class ConnectBillingService {
 		subscriptionId: string,
 		connectedAccountId: string
 	): Promise<Stripe.Subscription> {
+		const idempotencyKey = this.sharedService.generateIdempotencyKey(
+			'sub_cancel_conn',
+			connectedAccountId,
+			subscriptionId
+		)
+
 		try {
 			const canceledSubscription = await this.stripe.subscriptions.cancel(
 				subscriptionId,
 				{},
-				{ stripeAccount: connectedAccountId }
+				{ stripeAccount: connectedAccountId, idempotencyKey }
 			)
 
 			this.logger.log('Canceled Stripe subscription on connected account', {

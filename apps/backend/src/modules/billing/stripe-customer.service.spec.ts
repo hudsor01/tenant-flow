@@ -25,6 +25,10 @@ const createMockStripe = (): jest.Mocked<Stripe> => {
 	} as unknown as jest.Mocked<Stripe>
 }
 
+const createAutoPagingMock = (customers: Stripe.Customer[]) => ({
+	autoPagingToArray: jest.fn().mockResolvedValue(customers)
+})
+
 const createMockCustomer = (
 	id: string,
 	overrides: Partial<Stripe.Customer> = {}
@@ -179,61 +183,43 @@ describe('StripeCustomerService', () => {
 	})
 
 	describe('getAllCustomers', () => {
-		it('should return all customers with pagination', async () => {
-			const page1 = [createMockCustomer('cus_1'), createMockCustomer('cus_2')]
-			const page2 = [createMockCustomer('cus_3')]
+		it('should return all customers using auto-pagination', async () => {
+			const allCustomers = [
+				createMockCustomer('cus_1'),
+				createMockCustomer('cus_2'),
+				createMockCustomer('cus_3')
+			]
 
 			;(
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
+			).mockReturnValue(
+				createAutoPagingMock(allCustomers) as unknown as Stripe.ApiListPromise<Stripe.Customer>
 			)
-				.mockResolvedValueOnce({
-					data: page1,
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
-				.mockResolvedValueOnce({
-					data: page2,
-					has_more: false,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
 
 			const result = await service.getAllCustomers()
 
 			expect(result).toHaveLength(3)
 			expect(result[0]?.id).toBe('cus_1')
 			expect(result[2]?.id).toBe('cus_3')
-			expect(mockStripe.customers.list).toHaveBeenCalledTimes(2)
+			expect(mockStripe.customers.list).toHaveBeenCalledTimes(1)
 		})
 
-		it('should use starting_after for pagination', async () => {
-			const page1 = [createMockCustomer('cus_1')]
+		it('should use autoPagingToArray with limit of 10000', async () => {
+			const autoPagingMock = createAutoPagingMock([])
 
 			;(
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
-			)
-				.mockResolvedValueOnce({
-					data: page1,
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
-				.mockResolvedValueOnce({
-					data: [],
-					has_more: false,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
+			).mockReturnValue(autoPagingMock as unknown as Stripe.ApiListPromise<Stripe.Customer>)
 
 			await service.getAllCustomers()
 
-			expect(mockStripe.customers.list).toHaveBeenNthCalledWith(
-				2,
-				expect.objectContaining({
-					starting_after: 'cus_1'
-				})
-			)
+			expect(autoPagingMock.autoPagingToArray).toHaveBeenCalledWith({
+				limit: 10000
+			})
 		})
 
 		it('should filter by email when provided', async () => {
@@ -241,11 +227,9 @@ describe('StripeCustomerService', () => {
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
-			).mockResolvedValue({
-				data: [],
-				has_more: false,
-				object: 'list'
-			} as Stripe.ApiList<Stripe.Customer>)
+			).mockReturnValue(
+				createAutoPagingMock([]) as unknown as Stripe.ApiListPromise<Stripe.Customer>
+			)
 
 			await service.getAllCustomers({ email: 'filter@test.com' })
 
@@ -256,12 +240,10 @@ describe('StripeCustomerService', () => {
 			)
 		})
 
-		it('should filter out deleted customers across all pages', async () => {
-			const page1 = [
+		it('should filter out deleted customers after pagination', async () => {
+			const allCustomers = [
 				createMockCustomer('cus_active_1'),
-				createDeletedCustomer('cus_deleted_1') as unknown as Stripe.Customer
-			]
-			const page2 = [
+				createDeletedCustomer('cus_deleted_1') as unknown as Stripe.Customer,
 				createDeletedCustomer('cus_deleted_2') as unknown as Stripe.Customer,
 				createMockCustomer('cus_active_2')
 			]
@@ -270,17 +252,9 @@ describe('StripeCustomerService', () => {
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
+			).mockReturnValue(
+				createAutoPagingMock(allCustomers) as unknown as Stripe.ApiListPromise<Stripe.Customer>
 			)
-				.mockResolvedValueOnce({
-					data: page1,
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
-				.mockResolvedValueOnce({
-					data: page2,
-					has_more: false,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Customer>)
 
 			const result = await service.getAllCustomers()
 
@@ -288,16 +262,14 @@ describe('StripeCustomerService', () => {
 			expect(result.map(c => c.id)).toEqual(['cus_active_1', 'cus_active_2'])
 		})
 
-		it('should use default limit of 100 for pagination', async () => {
+		it('should use default limit of 100 for API request', async () => {
 			;(
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
-			).mockResolvedValue({
-				data: [],
-				has_more: false,
-				object: 'list'
-			} as Stripe.ApiList<Stripe.Customer>)
+			).mockReturnValue(
+				createAutoPagingMock([]) as unknown as Stripe.ApiListPromise<Stripe.Customer>
+			)
 
 			await service.getAllCustomers()
 
@@ -315,7 +287,9 @@ describe('StripeCustomerService', () => {
 				mockStripe.customers.list as jest.MockedFunction<
 					Stripe['customers']['list']
 				>
-			).mockRejectedValue(stripeError)
+			).mockReturnValue({
+				autoPagingToArray: jest.fn().mockRejectedValue(stripeError)
+			} as unknown as Stripe.ApiListPromise<Stripe.Customer>)
 
 			await expect(service.getAllCustomers()).rejects.toThrow(
 				'Stripe pagination error'

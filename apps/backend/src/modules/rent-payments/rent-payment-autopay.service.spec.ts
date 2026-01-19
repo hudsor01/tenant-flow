@@ -13,6 +13,7 @@ import { RentPaymentContextService } from './rent-payment-context.service'
 import type { Lease, Tenant, User } from './types'
 import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
+import { StripeSharedService } from '../billing/stripe-shared.service'
 
 describe('RentPaymentAutopayService', () => {
 	let service: RentPaymentAutopayService
@@ -153,6 +154,12 @@ describe('RentPaymentAutopayService', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: StripeSharedService,
+					useValue: {
+						generateIdempotencyKey: jest.fn().mockReturnValue('test-idempotency-key')
+					}
 				}
 			]
 		}).compile()
@@ -238,7 +245,9 @@ describe('RentPaymentAutopayService', () => {
 
 			const stripe = mockStripeClientService.getClient()
 			expect(stripe.subscriptions.cancel).toHaveBeenCalledWith(
-				mockSubscriptionId
+				mockSubscriptionId,
+				undefined,
+				expect.objectContaining({ idempotencyKey: expect.any(String) })
 			)
 		})
 
