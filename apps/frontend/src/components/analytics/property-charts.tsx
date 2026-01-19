@@ -12,7 +12,7 @@ import {
 	ChartTooltipContent,
 	type ChartConfig
 } from '#components/ui/chart'
-import { ChartEmptyState } from './chart-empty-state'
+import { Empty, EmptyDescription, EmptyHeader } from '#components/ui/empty'
 
 const occupancyConfig = {
 	occupancyRate: {
@@ -31,7 +31,18 @@ type VacancyListProps = {
 
 export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 	if (!data.length) {
-		return <ChartEmptyState message="Occupancy trend data is not available yet." />
+		return (
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>
+						Occupancy trend data is not available yet.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
+		)
 	}
 
 	const chartData = data.map(point => ({
@@ -63,7 +74,16 @@ export function OccupancyTrendChart({ data }: OccupancyTrendChartProps) {
 export function VacancySummaryList({ entries }: VacancyListProps) {
 	if (!entries.length) {
 		return (
-			<ChartEmptyState message="No vacancy analysis available for the selected filters." />
+			<Empty className="flex-none h-60 gap-3 rounded-lg border border-dashed p-6">
+				<EmptyHeader>
+					<Badge variant="outline" className="mb-1">
+						No data
+					</Badge>
+					<EmptyDescription>
+						No vacancy analysis available for the selected filters.
+					</EmptyDescription>
+				</EmptyHeader>
+			</Empty>
 		)
 	}
 

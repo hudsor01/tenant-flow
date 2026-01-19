@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
 
 /**
  * Playwright Configuration - TenantFlow E2E Tests
@@ -9,16 +10,31 @@ import { fileURLToPath } from 'url'
  * @see https://playwright.dev/docs/test-configuration
  * @see https://playwright.dev/docs/auth
  * @see https://playwright.dev/docs/test-webserver
+ *
+ * Environment Variables:
+ * This config loads .env.test for local Supabase configuration.
+ * The webServer commands override Doppler values with local Supabase URLs.
+ * @see https://nextjs.org/docs/pages/guides/environment-variables
  */
 
 // ESM-compatible __dirname
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
+// Load .env.test for test environment variables
+// Use override: true to ensure local Supabase URLs override Doppler production values
+dotenv.config({ path: path.join(__dirname, '.env.test'), override: true })
 
 // Dedicated test ports to avoid conflicts with development servers
 const TEST_FRONTEND_PORT = 3050
 const TEST_BACKEND_PORT = 4650
 const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
 const TEST_BACKEND_URL = `http://localhost:${TEST_BACKEND_PORT}`
+
+// Local Supabase configuration (from .env.test)
+// These MUST override Doppler values for local testing
+const LOCAL_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
+const LOCAL_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+const LOCAL_SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 // Auth state file paths (official Playwright pattern)
 // @see https://playwright.dev/docs/auth#basic-shared-account-in-all-tests
@@ -247,29 +263,42 @@ export default defineConfig({
 	//
 	// Uses dedicated ports (3050, 4650) to avoid conflicts
 	// with development servers (3001, 4600)
+	//
+	// IMPORTANT: Local Supabase URLs are passed via bash -c exports
+	// to override Doppler production values. This ensures E2E tests
+	// run against local Supabase instance.
 	// ===================
 	webServer: [
 		{
-			command: `doppler run -- pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}`,
+			// Backend: Override Supabase URLs after Doppler injection
+			command: `doppler run -- bash -c "export SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export SUPABASE_SERVICE_ROLE_KEY='${LOCAL_SUPABASE_SERVICE_KEY}' && exec pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}"`,
 			url: `${TEST_BACKEND_URL}/health/ping`,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
 			stdout: 'pipe',
 			stderr: 'pipe',
 			env: {
-				PORT: String(TEST_BACKEND_PORT)
+				PORT: String(TEST_BACKEND_PORT),
+				SUPABASE_URL: LOCAL_SUPABASE_URL,
+				SUPABASE_SERVICE_ROLE_KEY: LOCAL_SUPABASE_SERVICE_KEY
 			}
 		},
 		{
-			// Override API URL AFTER doppler injects its secrets
-			// bash -c ensures our export happens AFTER doppler injection
-			command: `cd apps/frontend && rm -rf .next && doppler run -- bash -c "export NEXT_PUBLIC_API_BASE_URL=${TEST_BACKEND_URL} && exec next dev --webpack --port ${TEST_FRONTEND_PORT}"`,
+			// Frontend: Override ALL NEXT_PUBLIC_* vars after Doppler injection
+			// rm -rf .next ensures fresh build with correct env vars
+			// Note: Using pnpm --filter instead of direct next call to ensure proper PATH
+			command: `cd apps/frontend && rm -rf .next && doppler run -- bash -c "export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_ANON_KEY}' && export NEXT_PUBLIC_API_BASE_URL='${TEST_BACKEND_URL}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
 			stdout: 'pipe',
 			stderr: 'pipe',
-			cwd: '/Users/richard/Developer/tenant-flow'
+			cwd: '/Users/richard/Developer/tenant-flow',
+			env: {
+				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
+				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_ANON_KEY,
+				NEXT_PUBLIC_API_BASE_URL: TEST_BACKEND_URL
+			}
 		}
 	],
 

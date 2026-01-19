@@ -22,7 +22,18 @@ const nextConfig: NextConfig = {
 		return [
 			{ source: '/terms-of-service', destination: '/terms', permanent: true },
 			{ source: '/privacy-policy', destination: '/privacy', permanent: true },
-			{ source: '/signup', destination: '/pricing', permanent: false }
+			{ source: '/signup', destination: '/pricing', permanent: false },
+			// Legacy /manage routes (deprecated, redirect to new routes)
+			{ source: '/manage', destination: '/dashboard', permanent: true },
+			{ source: '/manage/properties', destination: '/properties', permanent: true },
+			{ source: '/manage/properties/:path*', destination: '/properties/:path*', permanent: true },
+			{ source: '/manage/tenants', destination: '/tenants', permanent: true },
+			{ source: '/manage/tenants/:path*', destination: '/tenants/:path*', permanent: true },
+			{ source: '/manage/leases', destination: '/leases', permanent: true },
+			{ source: '/manage/leases/:path*', destination: '/leases/:path*', permanent: true },
+			{ source: '/manage/maintenance', destination: '/maintenance', permanent: true },
+			{ source: '/manage/maintenance/:path*', destination: '/maintenance/:path*', permanent: true },
+			{ source: '/manage/:path*', destination: '/:path*', permanent: true }
 		]
 	}
 }

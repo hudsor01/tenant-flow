@@ -292,7 +292,7 @@ $$;
 -- This function should only be called by webhooks with admin privileges
 GRANT EXECUTE ON FUNCTION public.upsert_rent_payment(uuid, uuid, integer, text, text, text, text, text, text, text, text, integer) TO service_role;
 
-COMMENT ON FUNCTION public.upsert_rent_payment IS 'Atomic upsert for rent payments. Idempotent for webhook retries. SERVICE_ROLE ONLY.';
+COMMENT ON FUNCTION public.upsert_rent_payment(uuid, uuid, integer, text, text, text, text, text, text, text, text, integer) IS 'Atomic upsert for rent payments. Idempotent for webhook retries. SERVICE_ROLE ONLY.';
 
 -- ============================================================================
 -- Add performance indexes

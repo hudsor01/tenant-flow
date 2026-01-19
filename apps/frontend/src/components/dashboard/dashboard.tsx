@@ -8,11 +8,18 @@
 import type { DashboardProps } from '@repo/shared/types/sections/dashboard'
 import {
 	formatDashboardCurrency,
+	quickActions,
 	type PortfolioRow,
 	type QuickActionType
 } from './dashboard-types'
 import { RevenueOverviewChart } from './components/revenue-overview-chart'
-import { QuickActionsCard } from './components/quick-actions-card'
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle
+} from '#components/ui/card'
 import { PortfolioToolbar } from './components/portfolio-toolbar'
 import { PortfolioTable } from './components/portfolio-table'
 import { PortfolioGrid } from './components/portfolio-grid'
@@ -151,7 +158,31 @@ export function Dashboard({
 			{/* Main Content: Chart (75%) + Quick Actions (25%) */}
 			<div className="grid gap-6 lg:grid-cols-4" data-tour="trends-section">
 				<RevenueOverviewChart revenueTrend={revenueTrend} />
-				<QuickActionsCard onAction={handleAction} />
+				<Card data-tour="quick-actions">
+					<CardHeader>
+						<CardTitle>Quick Actions</CardTitle>
+						<CardDescription>Common tasks</CardDescription>
+					</CardHeader>
+					<CardContent className="grid gap-3">
+						{quickActions.map(action => (
+							<button
+								key={action.action}
+								className="flex h-auto items-center gap-3 p-3 text-left border border-border rounded-lg hover:bg-muted/50 transition-colors"
+								onClick={() => handleAction(action.action)}
+							>
+								<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted">
+									<action.icon className="h-4 w-4" />
+								</div>
+								<div>
+									<div className="text-sm font-medium">{action.title}</div>
+									<div className="text-xs text-muted-foreground">
+										{action.description}
+									</div>
+								</div>
+							</button>
+						))}
+					</CardContent>
+				</Card>
 			</div>
 
 			{/* Portfolio Overview */}

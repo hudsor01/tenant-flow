@@ -12,13 +12,13 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import type { ExpenseRecord } from '@repo/shared/types/core'
 
+import { User, Edit2, Trash2 } from 'lucide-react'
+
 import { MaintenanceDetailsSkeleton } from './maintenance-details-skeleton'
 import { MaintenanceHeaderCard } from './maintenance-header-card'
 import { ExpensesCard } from './expenses-card'
 import { PhotosCard } from './photos-card'
-import { ContactInfoCard } from './contact-info-card'
 import { TimelineCard } from './timeline-card'
-import { QuickActionsCard } from './quick-actions-card'
 import { generateTimeline } from './maintenance-utils'
 
 interface MaintenanceDetailsProps {
@@ -148,14 +148,63 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 			{/* Sidebar */}
 			<div className="space-y-6">
-				<ContactInfoCard
-					requestedBy={request.requested_by}
-					assignedTo={request.assigned_to}
-				/>
+				{/* Contact Information */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-base">Contact Information</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						{request.requested_by && (
+							<div className="flex items-start gap-3">
+								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+									<User className="size-4 text-primary" />
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground">Requested by</p>
+									<p className="font-medium text-sm">{request.requested_by}</p>
+								</div>
+							</div>
+						)}
+						{request.assigned_to && (
+							<div className="flex items-start gap-3">
+								<div className="size-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+									<User className="size-4 text-primary" />
+								</div>
+								<div>
+									<p className="text-sm text-muted-foreground">Assigned to</p>
+									<p className="font-medium text-sm">{request.assigned_to}</p>
+								</div>
+							</div>
+						)}
+					</CardContent>
+				</Card>
 
 				<TimelineCard timeline={timeline} />
 
-				<QuickActionsCard maintenanceId={request.id} />
+				{/* Quick Actions */}
+				<Card>
+					<CardHeader>
+						<CardTitle className="text-base">Quick Actions</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						<Button
+							variant="outline"
+							className="w-full justify-start gap-2"
+							onClick={() => router.push(`/maintenance/${request.id}/edit`)}
+						>
+							<Edit2 className="size-4" />
+							Edit Request
+						</Button>
+						<Button
+							variant="outline"
+							className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+							onClick={() => toast.info('Delete functionality coming soon')}
+						>
+							<Trash2 className="size-4" />
+							Delete Request
+						</Button>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	)

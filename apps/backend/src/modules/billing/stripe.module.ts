@@ -24,8 +24,11 @@ import { WebhooksModule } from './webhooks/webhooks.module'
 // Connect sub-module (extracted for SRP)
 import { ConnectModule } from './connect/connect.module'
 
-// Subscriptions sub-module (extracted for SRP)
-import { SubscriptionsModule } from './subscriptions/subscriptions.module'
+// Subscription controllers and services (kept in StripeModule to avoid circular deps)
+import { SubscriptionController } from './subscriptions/subscription.controller'
+import { PaymentMethodsController } from './subscriptions/payment-methods.controller'
+import { SubscriptionService } from './subscriptions/subscription.service'
+import { PaymentMethodService } from './subscriptions/payment-method.service'
 
 /**
  * Production-Grade Stripe Module
@@ -36,10 +39,12 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
  * - Stripe Connect for multi-tenant payments (via ConnectModule)
  * - Type-safe DTOs with comprehensive validation
  *
- * Extracted sub-modules:
+ * Sub-modules:
  * - WebhooksModule: Webhook processing
  * - ConnectModule: Stripe Connect functionality
- * - SubscriptionsModule: Subscription and payment method management
+ *
+ * Note: Subscription controllers/services are kept in StripeModule (not extracted)
+ * to avoid circular dependency issues with forwardRef resolution.
  */
 @Module({
 	imports: [
@@ -50,9 +55,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		UsersModule,
 		SseModule,
 		forwardRef(() => WebhooksModule),
-		ConnectModule,
-		// Circular dependency: SubscriptionsModule imports StripeModule for services
-		forwardRef(() => SubscriptionsModule)
+		ConnectModule
 	],
 	providers: [
 		StripeService,
@@ -61,14 +64,20 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		BillingService,
 		StripeSyncService,
 		StripeTenantService,
-		StripeOwnerService
+		StripeOwnerService,
+		// Subscription services (kept here to avoid circular deps)
+		SubscriptionService,
+		PaymentMethodService
 	],
 	controllers: [
 		StripeController,
 		ChargesController,
 		CheckoutController,
 		InvoicesController,
-		StripeTenantController
+		StripeTenantController,
+		// Subscription controllers (kept here to avoid circular deps)
+		SubscriptionController,
+		PaymentMethodsController
 	],
 	exports: [
 		StripeService,
@@ -77,10 +86,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module'
 		StripeSyncService,
 		StripeTenantService,
 		StripeOwnerService,
+		SubscriptionService,
+		PaymentMethodService,
 		// Re-export ConnectModule services for external consumers
-		ConnectModule,
-		// Re-export SubscriptionsModule services for external consumers
-		SubscriptionsModule
+		ConnectModule
 	]
 })
 export class StripeModule {}
