@@ -139,7 +139,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
 
 			// Wait for navigation or content load
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			// Verify we're authenticated (not on login page)
 			const isLoginPage = await page
@@ -852,7 +852,7 @@ test.describe('Stripe Payment Flow - Comprehensive', () => {
 
 			// Payment methods should sync from Stripe via webhooks
 			await page.reload()
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			// Page should still show consistent data
 			await expect(page.locator('body')).toBeVisible()

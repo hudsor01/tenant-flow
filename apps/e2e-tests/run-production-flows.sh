@@ -31,7 +31,7 @@ fi
 
 # Set defaults
 export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-http://localhost:3050}"
-export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4600}"
+export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4650}"
 export E2E_TENANT_PASSWORD="${E2E_TENANT_PASSWORD:-TenantPass123!}"
 
 echo -e "${YELLOW}Configuration:${NC}"

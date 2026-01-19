@@ -147,49 +147,117 @@ async function authenticateViaAPI(
 }
 
 /**
+ * Supabase SSR cookie chunking constants (from @supabase/ssr/src/utils/chunker.ts)
+ */
+const MAX_CHUNK_SIZE = 3180
+
+/**
+ * Base64URL encode per RFC 4648 with "base64-" prefix
+ * This is what @supabase/ssr expects in cookies
+ * @see https://github.com/supabase/ssr/blob/main/src/utils/base64url.ts
+ */
+function toBase64UrlWithPrefix(jsonValue: string): string {
+	// Node.js Buffer works in both Node and modern browsers via bundlers
+	// Use btoa for browser compatibility
+	const base64 =
+		typeof Buffer !== 'undefined'
+			? Buffer.from(jsonValue).toString('base64')
+			: btoa(jsonValue)
+
+	// Convert to Base64URL: +→-, /→_, no padding
+	const base64Url = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
+
+	return `base64-${base64Url}`
+}
+
+/**
+ * Create chunks matching Supabase SSR format
+ * - Base64URL encode with "base64-" prefix
+ * - If encoded value ≤ MAX_CHUNK_SIZE: single cookie with key name (no suffix)
+ * - If larger: multiple cookies with .0, .1, .2 suffixes
+ */
+function createCookieChunks(
+	key: string,
+	sessionJson: string
+): Array<{ name: string; value: string }> {
+	// Encode session as Base64URL with prefix (matching @supabase/ssr format)
+	const encodedValue = toBase64UrlWithPrefix(sessionJson)
+
+	// If small enough, return single cookie without suffix
+	if (encodedValue.length <= MAX_CHUNK_SIZE) {
+		return [{ name: key, value: encodedValue }]
+	}
+
+	// Split into numbered chunks
+	const chunks: Array<{ name: string; value: string }> = []
+	for (let i = 0, chunkIndex = 0; i < encodedValue.length; i += MAX_CHUNK_SIZE, chunkIndex++) {
+		chunks.push({
+			name: `${key}.${chunkIndex}`,
+			value: encodedValue.slice(i, i + MAX_CHUNK_SIZE)
+		})
+	}
+
+	return chunks
+}
+
+/**
  * Inject session into browser context
  *
- * Sets up both cookies and localStorage to match what Supabase SSR expects.
- * This ensures the Next.js middleware can validate the session.
+ * Sets up cookies matching Supabase SSR format:
+ * - Small sessions: single cookie (sb-xxx-auth-token)
+ * - Large sessions: chunked cookies (sb-xxx-auth-token.0, .1, etc.)
+ * This ensures the Next.js proxy can validate the session via getClaims().
  */
 async function injectSessionIntoBrowser(
-	context: BrowserContext,
+	page: import('@playwright/test').Page,
 	session: SupabaseSession,
 	baseUrl: string
 ): Promise<void> {
 	const { projectRef } = getConfig()
-	const cookieName = `sb-${projectRef}-auth-token`
-	const cookieValue = JSON.stringify(session)
+	const cookieKey = `sb-${projectRef}-auth-token`
+	const sessionJson = JSON.stringify(session)
+	const context = page.context()
 
 	// Parse base URL to get domain
 	const url = new URL(baseUrl)
 	const domain = url.hostname
 
-	// Set the auth cookie - this is what Supabase SSR reads
-	await context.addCookies([
-		{
-			name: cookieName,
-			value: cookieValue,
-			domain: domain,
-			path: '/',
-			httpOnly: false, // Supabase browser client needs to read this
-			secure: url.protocol === 'https:',
-			sameSite: 'Lax',
-			expires: session.expires_at
-		}
-	])
+	// Create cookies matching Supabase SSR format
+	const cookieChunks = createCookieChunks(cookieKey, sessionJson)
+	const cookies = cookieChunks.map(({ name, value }) => ({
+		name,
+		value,
+		domain: domain,
+		path: '/',
+		httpOnly: false, // Supabase browser client needs to read this
+		secure: url.protocol === 'https:',
+		sameSite: 'Lax' as const,
+		expires: session.expires_at
+	}))
 
-	debugLog(` Cookie set: ${cookieName}`)
+	// First navigate to establish the domain context
+	await page.goto(baseUrl, { waitUntil: 'domcontentloaded' })
 
-	// Also set in localStorage for browser client
-	// This ensures the Supabase browser client can read the session
-	await context.addInitScript(
-		({ cookieName, session }) => {
-			localStorage.setItem(cookieName, JSON.stringify(session))
+	// Now set cookies via JavaScript in the page context (most reliable method)
+	// Note: value is already Base64URL encoded (safe for cookies, no special chars)
+	await page.evaluate(
+		({ chunks, expires }) => {
+			for (const { name, value } of chunks) {
+				document.cookie = `${name}=${value}; path=/; expires=${new Date(expires * 1000).toUTCString()}`
+			}
 		},
-		{ cookieName, session }
+		{ chunks: cookieChunks, expires: session.expires_at }
 	)
 
+	// Also set in localStorage for browser client
+	await page.evaluate(
+		({ cookieKey, session }) => {
+			localStorage.setItem(cookieKey, JSON.stringify(session))
+		},
+		{ cookieKey, session }
+	)
+
+	debugLog(` Cookies set via JS: ${cookieChunks.map(c => c.name).join(', ')}`)
 	debugLog(' Session injected into localStorage')
 }
 
@@ -237,16 +305,19 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 		debugLog(` Using cached session for: ${email}`)
 	}
 
-	// Inject session into browser context
-	await injectSessionIntoBrowser(context, session, baseUrl)
+	// Inject session into browser context (navigates to base URL first, then sets cookies)
+	await injectSessionIntoBrowser(page, session, baseUrl)
 
-	// Navigate to dashboard - session should be valid
+	// Navigate to dashboard - session should be valid now
 	await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
 
-	// Wait for auth to stabilize
-	await page.waitForLoadState('networkidle', { timeout: 15000 })
+	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
+	// (persistent connections like SSE/WebSocket can prevent networkidle)
+	await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+		debugLog(' networkidle timeout, continuing with domcontentloaded')
+	})
 
-	// Verify we're on the dashboard, not redirected to login
+	// Verify we're not redirected to login (tenant redirect is OK)
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
 		throw new Error(
@@ -299,14 +370,17 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 		debugLog(` Using cached tenant session for: ${email}`)
 	}
 
-	// Inject session into browser context
-	await injectSessionIntoBrowser(context, session, baseUrl)
+	// Inject session into browser context (navigates to base URL first, then sets cookies)
+	await injectSessionIntoBrowser(page, session, baseUrl)
 
-	// Navigate to tenant portal - session should be valid
+	// Navigate to tenant portal - session should be valid now
 	await page.goto(`${baseUrl}/tenant`, { waitUntil: 'domcontentloaded' })
 
-	// Wait for auth to stabilize
-	await page.waitForLoadState('networkidle', { timeout: 15000 })
+	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
+	// (persistent connections like SSE/WebSocket can prevent networkidle)
+	await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+		debugLog(' networkidle timeout, continuing with domcontentloaded')
+	})
 
 	// Verify we're on the tenant page, not redirected to login
 	const currentUrl = page.url()

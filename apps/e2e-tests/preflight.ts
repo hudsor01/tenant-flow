@@ -135,7 +135,7 @@ async function checkServer(url: string, name: string): Promise<void> {
  */
 async function checkServers(): Promise<void> {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const backendUrl = 'http://localhost:4600/api/v1/security/health'
+	const backendUrl = 'http://localhost:4650/api/v1/security/health'
 
 	await Promise.all([
 		checkServer(baseUrl, 'Frontend'),

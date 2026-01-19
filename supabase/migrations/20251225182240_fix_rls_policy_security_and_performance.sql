@@ -189,7 +189,7 @@ on public.tenant_invitations
 for select
 to authenticated
 using (
-  (select auth.uid()) = owner_user_id
+  (select auth.uid()) = property_owner_id
   OR email = (select auth.email())
 );
 
@@ -204,109 +204,124 @@ using ((select auth.uid()) = user_id);
 
 -- 2.6 Fix stripe schema policies with performance optimization
 -- These policies match the existing pattern but wrap auth.uid() in (select ...)
+-- Only apply if stripe schema exists (it's created by Stripe Sync Engine in production)
 
-drop policy if exists "customers_select_own" on stripe.customers;
-
-create policy "customers_select_own"
-on stripe.customers
-for select
-to authenticated
-using (
-  (email in (
-    select users.email
-    from auth.users
-    where users.id = (select auth.uid())
-  ))
-  or (((metadata ->> 'user_id'::text))::uuid = (select auth.uid()))
-);
-
-drop policy if exists "invoices_select_own" on stripe.invoices;
-
-create policy "invoices_select_own"
-on stripe.invoices
-for select
-to authenticated
-using (
-  customer in (
-    select customers.id
-    from stripe.customers
-    where (
-      (customers.email in (
-        select users.email
-        from auth.users
-        where users.id = (select auth.uid())
-      ))
-      or (((customers.metadata ->> 'user_id'::text))::uuid = (select auth.uid()))
-    )
-  )
-);
-
-drop policy if exists "payment_methods_select_own" on stripe.payment_methods;
-
-create policy "payment_methods_select_own"
-on stripe.payment_methods
-for select
-to authenticated
-using (
-  customer in (
-    select customers.id
-    from stripe.customers
-    where (
-      (customers.email in (
-        select users.email
-        from auth.users
-        where users.id = (select auth.uid())
-      ))
-      or (((customers.metadata ->> 'user_id'::text))::uuid = (select auth.uid()))
-    )
-  )
-);
-
-drop policy if exists "subscriptions_select_own" on stripe.subscriptions;
-
-create policy "subscriptions_select_own"
-on stripe.subscriptions
-for select
-to authenticated
-using (
-  customer in (
-    select customers.id
-    from stripe.customers
-    where (
-      (customers.email in (
-        select users.email
-        from auth.users
-        where users.id = (select auth.uid())
-      ))
-      or (((customers.metadata ->> 'user_id'::text))::uuid = (select auth.uid()))
-    )
-  )
-);
-
-drop policy if exists "subscription_items_select_own" on stripe.subscription_items;
-
-create policy "subscription_items_select_own"
-on stripe.subscription_items
-for select
-to authenticated
-using (
-  subscription in (
-    select subscriptions.id
-    from stripe.subscriptions
-    where subscriptions.customer in (
-      select customers.id
-      from stripe.customers
-      where (
-        (customers.email in (
-          select users.email
-          from auth.users
-          where users.id = (select auth.uid())
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'stripe') THEN
+    -- Drop and recreate customers policy
+    DROP POLICY IF EXISTS "customers_select_own" ON stripe.customers;
+    EXECUTE '
+      CREATE POLICY "customers_select_own"
+      ON stripe.customers
+      FOR SELECT
+      TO authenticated
+      USING (
+        (email IN (
+          SELECT users.email
+          FROM auth.users
+          WHERE users.id = (SELECT auth.uid())
         ))
-        or (((customers.metadata ->> 'user_id'::text))::uuid = (select auth.uid()))
-      )
-    )
-  )
-);
+        OR (((metadata ->> ''user_id''::text))::uuid = (SELECT auth.uid()))
+      )';
+
+    -- Drop and recreate invoices policy
+    DROP POLICY IF EXISTS "invoices_select_own" ON stripe.invoices;
+    EXECUTE '
+      CREATE POLICY "invoices_select_own"
+      ON stripe.invoices
+      FOR SELECT
+      TO authenticated
+      USING (
+        customer IN (
+          SELECT customers.id
+          FROM stripe.customers
+          WHERE (
+            (customers.email IN (
+              SELECT users.email
+              FROM auth.users
+              WHERE users.id = (SELECT auth.uid())
+            ))
+            OR (((customers.metadata ->> ''user_id''::text))::uuid = (SELECT auth.uid()))
+          )
+        )
+      )';
+
+    -- Drop and recreate payment_methods policy
+    DROP POLICY IF EXISTS "payment_methods_select_own" ON stripe.payment_methods;
+    EXECUTE '
+      CREATE POLICY "payment_methods_select_own"
+      ON stripe.payment_methods
+      FOR SELECT
+      TO authenticated
+      USING (
+        customer IN (
+          SELECT customers.id
+          FROM stripe.customers
+          WHERE (
+            (customers.email IN (
+              SELECT users.email
+              FROM auth.users
+              WHERE users.id = (SELECT auth.uid())
+            ))
+            OR (((customers.metadata ->> ''user_id''::text))::uuid = (SELECT auth.uid()))
+          )
+        )
+      )';
+
+    -- Drop and recreate subscriptions policy
+    DROP POLICY IF EXISTS "subscriptions_select_own" ON stripe.subscriptions;
+    EXECUTE '
+      CREATE POLICY "subscriptions_select_own"
+      ON stripe.subscriptions
+      FOR SELECT
+      TO authenticated
+      USING (
+        customer IN (
+          SELECT customers.id
+          FROM stripe.customers
+          WHERE (
+            (customers.email IN (
+              SELECT users.email
+              FROM auth.users
+              WHERE users.id = (SELECT auth.uid())
+            ))
+            OR (((customers.metadata ->> ''user_id''::text))::uuid = (SELECT auth.uid()))
+          )
+        )
+      )';
+
+    -- Drop and recreate subscription_items policy
+    DROP POLICY IF EXISTS "subscription_items_select_own" ON stripe.subscription_items;
+    EXECUTE '
+      CREATE POLICY "subscription_items_select_own"
+      ON stripe.subscription_items
+      FOR SELECT
+      TO authenticated
+      USING (
+        subscription IN (
+          SELECT subscriptions.id
+          FROM stripe.subscriptions
+          WHERE subscriptions.customer IN (
+            SELECT customers.id
+            FROM stripe.customers
+            WHERE (
+              (customers.email IN (
+                SELECT users.email
+                FROM auth.users
+                WHERE users.id = (SELECT auth.uid())
+              ))
+              OR (((customers.metadata ->> ''user_id''::text))::uuid = (SELECT auth.uid()))
+            )
+          )
+        )
+      )';
+
+    RAISE NOTICE 'Applied stripe schema policies';
+  ELSE
+    RAISE NOTICE 'Skipping stripe schema policies - stripe schema does not exist';
+  END IF;
+END $$;
 
 -- ============================================================================
 -- PART 3: Add performance indexes for RLS policy columns
@@ -337,9 +352,9 @@ begin
     create index idx_user_errors_user_id on public.user_errors(user_id);
   end if;
 
-  -- Index for tenant_invitations.owner_user_id
-  if not exists (select 1 from pg_indexes where indexname = 'idx_tenant_invitations_owner_user_id') then
-    create index idx_tenant_invitations_owner_user_id on public.tenant_invitations(owner_user_id);
+  -- Index for tenant_invitations.property_owner_id
+  if not exists (select 1 from pg_indexes where indexname = 'idx_tenant_invitations_property_owner_id') then
+    create index idx_tenant_invitations_property_owner_id on public.tenant_invitations(property_owner_id);
   end if;
 
   -- Index for tenant_invitations.email

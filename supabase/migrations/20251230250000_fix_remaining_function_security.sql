@@ -53,7 +53,7 @@ alter function public.get_user_profile(uuid) set search_path = '';
 alter function public.get_user_sessions(uuid) set search_path = '';
 alter function public.get_user_dashboard_activities(text, integer, integer) set search_path = '';
 alter function public.get_user_plan_limits(text) set search_path = '';
-alter function public.check_user_feature_access(text, text) set search_path = '';
+alter function public.check_user_feature_access(uuid, text) set search_path = '';
 alter function public.revoke_user_session(uuid, uuid) set search_path = '';
 alter function public.log_user_error(text, text, text, text, jsonb, text, inet) set search_path = '';
 

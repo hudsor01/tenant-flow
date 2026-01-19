@@ -44,7 +44,7 @@ test.describe('Authentication & JWT Validation', () => {
 		await page.waitForLoadState('load')
 
 		// Verify we're on dashboard (not redirected to login)
-		await expect(page).toHaveURL(/^\/$/)
+		await expect(page).toHaveURL(/\/dashboard/)
 
 		// Verify no auth errors occurred
 		expect(authErrors).toEqual([])
@@ -79,7 +79,7 @@ test.describe('Authentication & JWT Validation', () => {
 		await page.waitForLoadState('load')
 
 		// Verify we're on properties page
-		await expect(page).toHaveURL(/^\/properties/)
+		await expect(page).toHaveURL(/\/properties/)
 
 		// Wait a moment for any API calls to complete (don't require successful rendering)
 		await page.waitForTimeout(2000)

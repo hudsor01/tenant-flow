@@ -6,13 +6,13 @@ import { useSignOutMutation } from '#hooks/api/use-auth'
 import { useNavigation } from '#hooks/use-navigation'
 import { cn } from '#lib/utils'
 import { useAuth } from '#providers/auth-provider'
+import { Menu, X } from 'lucide-react'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { NavbarLogo } from './navbar/navbar-logo'
 import { NavbarDesktopNav } from './navbar/navbar-desktop-nav'
 import { NavbarDesktopAuth } from './navbar/navbar-desktop-auth'
 import { NavbarMobileMenu } from './navbar/navbar-mobile-menu'
-import { NavbarMobileToggle } from './navbar/navbar-mobile-toggle'
 import { DEFAULT_NAV_ITEMS, AUTH_NAV_ITEMS, type NavbarProps } from './navbar/types'
 
 export function Navbar({
@@ -27,6 +27,8 @@ export function Navbar({
 	const [isScrolled, setIsScrolled] = useState(false)
 	const [scrollProgress, setScrollProgress] = useState(0)
 	const [isMounted, setIsMounted] = useState(false)
+	const [logoHover, setLogoHover] = useState(false)
+	const [mobileButtonTap, setMobileButtonTap] = useState(false)
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigation()
@@ -92,7 +94,27 @@ export function Navbar({
 			</div>
 
 			<div className="flex-between">
-				<NavbarLogo logo={logo} />
+				{/* Logo */}
+				<div
+					onMouseEnter={() => setLogoHover(true)}
+					onMouseLeave={() => setLogoHover(false)}
+					className={cn(
+						'flex items-center space-x-2 transition-transform duration-fast',
+						logoHover && 'scale-105'
+					)}
+				>
+					<div className="size-11 rounded-lg overflow-hidden bg-background border border-border flex-center">
+						<Image
+							src="/tenant-flow-logo.png"
+							alt="TenantFlow"
+							width={24}
+							height={24}
+							className="size-6 object-contain"
+							priority
+						/>
+					</div>
+					<span className="text-xl font-bold text-foreground">{logo}</span>
+				</div>
 
 				<NavbarDesktopNav navItems={currentNavItems} pathname={pathname} />
 
@@ -107,10 +129,20 @@ export function Navbar({
 						onSignOut={handleSignOut}
 					/>
 
-					<NavbarMobileToggle
-						isOpen={isMobileMenuOpen}
-						onToggle={toggleMobileMenu}
-					/>
+					{/* Mobile Toggle */}
+					<button
+						onMouseDown={() => setMobileButtonTap(true)}
+						onMouseUp={() => setMobileButtonTap(false)}
+						onClick={toggleMobileMenu}
+						aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+						data-testid="mobile-nav-toggle"
+						className={cn(
+							'md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-fast',
+							mobileButtonTap && 'scale-95'
+						)}
+					>
+						{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+					</button>
 				</div>
 			</div>
 

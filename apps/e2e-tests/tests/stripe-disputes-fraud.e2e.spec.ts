@@ -94,7 +94,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			// Add fraudulent dispute test card
 			// This card succeeds on charge but triggers a dispute immediately
@@ -140,7 +140,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should handle early fraud warning card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			// This card triggers an early fraud warning (EFW) - no dispute yet
 			const addButton = page
@@ -178,7 +178,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -220,7 +220,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -258,7 +258,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -302,7 +302,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should fail CVC check with CVC fail card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -340,7 +340,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -381,7 +381,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should show clear error for generic decline', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -419,7 +419,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should show helpful message for lost card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -454,7 +454,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should show helpful message for stolen card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -489,7 +489,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should handle incorrect CVC error', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -530,7 +530,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should handle 3DS required card', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -580,7 +580,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			page
 		}) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -626,7 +626,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			await loginAsTenant(page)
 
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -657,7 +657,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			await loginAsTenant(page)
 
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -681,7 +681,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 			await loginAsTenant(page)
 
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			// Check that any displayed card numbers are masked
 			const cardDisplays = await page
@@ -703,7 +703,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should allow retry after decline', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(
@@ -749,7 +749,7 @@ test.describe('Stripe Disputes & Fraud Scenarios', () => {
 
 		test('should clear form after successful save', async ({ page }) => {
 			await page.goto(`${BASE_URL}/tenant/payments/methods`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 			const addButton = page
 				.locator(

@@ -9,10 +9,10 @@ test.describe('TenantFlow Seed - App Patterns', () => {
 		// Tests start already authenticated via storageState
 		// Navigate to tenant management
 		await page.goto('/tenants')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Verify we're on the page
-		await expect(page).toHaveURL(/^\/tenants/)
+		await expect(page).toHaveURL(/\/tenants/)
 	})
 
 	test('form interaction pattern', async ({ page }) => {

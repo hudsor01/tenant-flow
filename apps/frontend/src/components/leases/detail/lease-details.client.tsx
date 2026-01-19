@@ -8,16 +8,25 @@ import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useCancelSignatureRequestMutation } from '#hooks/api/use-lease'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { AlertTriangle } from 'lucide-react'
+import {
+	AlertTriangle,
+	DollarSign,
+	CreditCard,
+	CalendarDays,
+	Clock
+} from 'lucide-react'
 
 import { LeaseDetailsSkeleton } from './lease-details-skeleton'
 import { LeaseHeader } from './lease-header'
-import { LeaseMetricsCards } from './lease-metrics-cards'
+import {
+	formatCurrency,
+	getOrdinalSuffix,
+	generateTimelineEvents
+} from './lease-detail-utils'
 import { LeaseDetailsTab } from './lease-details-tab'
 import { LeaseTimelineTab } from './lease-timeline-tab'
 import { LeaseTermsTab } from './lease-terms-tab'
 import { LeaseSidebar } from './lease-sidebar'
-import { generateTimelineEvents } from './lease-detail-utils'
 
 interface LeaseDetailsProps {
 	id: string
@@ -84,12 +93,56 @@ export function LeaseDetails({ id }: LeaseDetailsProps) {
 				{/* Left column - Main details */}
 				<div className="lg:col-span-2 space-y-6">
 					{/* Key metrics */}
-					<LeaseMetricsCards
-						rentAmount={lease.rent_amount}
-						securityDeposit={lease.security_deposit}
-						paymentDay={lease.payment_day}
-						gracePeriodDays={lease.grace_period_days}
-					/>
+					<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+						<Card>
+							<CardContent className="p-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+									<DollarSign className="w-4 h-4" />
+									Monthly Rent
+								</div>
+								<p className="text-xl font-semibold tabular-nums">
+									{formatCurrency(lease.rent_amount)}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className="p-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+									<CreditCard className="w-4 h-4" />
+									Security Deposit
+								</div>
+								<p className="text-xl font-semibold tabular-nums">
+									{formatCurrency(lease.security_deposit)}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className="p-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+									<CalendarDays className="w-4 h-4" />
+									Payment Day
+								</div>
+								<p className="text-xl font-semibold">
+									{lease.payment_day
+										? `${lease.payment_day}${getOrdinalSuffix(lease.payment_day)} of month`
+										: 'N/A'}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className="p-4">
+								<div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+									<Clock className="w-4 h-4" />
+									Grace Period
+								</div>
+								<p className="text-xl font-semibold">
+									{lease.grace_period_days
+										? `${lease.grace_period_days} days`
+										: 'None'}
+								</p>
+							</CardContent>
+						</Card>
+					</div>
 
 					{/* Tabbed content */}
 					<Tabs defaultValue="details" className="w-full">

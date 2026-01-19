@@ -676,6 +676,9 @@ create trigger sync_unit_status_on_lease_change
 -- STEP 8: Recreate exclusion constraint with text comparison
 -- ============================================================================
 
+-- Create btree_gist extension if it doesn't exist (required for GIST with uuid)
+create extension if not exists btree_gist with schema extensions;
+
 -- Recreate the exclusion constraint to prevent overlapping active leases
 -- Now using text comparison instead of enum
 alter table public.leases

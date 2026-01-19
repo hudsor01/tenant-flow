@@ -79,7 +79,7 @@ async function collectWebVitals(page: any): Promise<PerformanceMetrics> {
 test.describe('Homepage Performance', () => {
 	test('should meet Core Web Vitals thresholds', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		const metrics = await collectWebVitals(page)
 
@@ -163,7 +163,7 @@ test.describe('Dashboard Performance', () => {
 		const startTime = Date.now()
 
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		const loadTime = Date.now() - startTime
 
@@ -182,7 +182,7 @@ test.describe('Dashboard Performance', () => {
 
 	test('data tables should render efficiently', async ({ page }) => {
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		const startTime = Date.now()
 
@@ -199,7 +199,7 @@ test.describe('Dashboard Performance', () => {
 test.describe('Image Optimization', () => {
 	test('images should be optimized', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Get all images
 		const images = await page.evaluate(() => {
@@ -238,7 +238,7 @@ test.describe('Image Optimization', () => {
 test.describe('Font Loading Performance', () => {
 	test('fonts should load efficiently', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Check font loading strategy
 		const fonts = await page.evaluate(() => {
@@ -264,7 +264,7 @@ test.describe('Font Loading Performance', () => {
 test.describe('JavaScript Bundle Performance', () => {
 	test('JavaScript bundle size should be reasonable', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Get all JavaScript resources
 		const jsResources = await page.evaluate(() => {
@@ -290,7 +290,7 @@ test.describe('JavaScript Bundle Performance', () => {
 
 	test('should use code splitting', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Get JavaScript chunks
 		const jsChunks = await page.evaluate(() => {
@@ -314,7 +314,7 @@ test.describe('Caching Performance', () => {
 	test('static assets should be cached', async ({ page }) => {
 		// First visit
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Get resource timings for first visit
 		const firstVisitResources = await page.evaluate(() => {
@@ -360,7 +360,7 @@ test.describe('Caching Performance', () => {
 test.describe('Network Performance', () => {
 	test('should minimize network requests', async ({ page }) => {
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {})
 
 		// Get total number of network requests
 		const requestCount = await page.evaluate(() => {

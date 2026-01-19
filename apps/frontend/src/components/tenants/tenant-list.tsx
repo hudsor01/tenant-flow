@@ -5,7 +5,7 @@
  * See stores/tenant-list-store.ts for state structure.
  */
 
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Users, Search } from 'lucide-react'
 import type { TenantItem } from '@repo/shared/types/sections/tenants'
 import type { LeaseStatus } from '@repo/shared/types/core'
 import { useTenantListStore } from '#stores/tenant-list-store'
@@ -14,10 +14,14 @@ import { TenantToolbar } from './components/tenant-toolbar'
 import { TenantBulkActions } from './components/tenant-bulk-actions'
 import { TenantTable } from './components/tenant-table'
 import { TenantPagination } from './components/tenant-pagination'
+import { Button } from '#components/ui/button'
 import {
-	NoTenantsEmptyState,
-	NoResultsEmptyState
-} from './components/tenant-empty-states'
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle
+} from '#components/ui/empty'
 
 interface TenantListProps {
 	tenants: TenantItem[]
@@ -111,7 +115,25 @@ export function TenantList({
 
 	// Empty state - no tenants at all
 	if (tenants.length === 0) {
-		return <NoTenantsEmptyState onInvite={onInvite} />
+		return (
+			<Empty>
+				<EmptyMedia className="bg-primary/10 text-primary size-16 rounded-sm mb-6 [&_svg]:size-8">
+					<Users />
+				</EmptyMedia>
+				<EmptyHeader>
+					<EmptyTitle>No tenants yet</EmptyTitle>
+					<EmptyDescription>
+						Invite your first tenant to get started with lease management.
+					</EmptyDescription>
+				</EmptyHeader>
+				<div className="flex items-center gap-3 mt-2">
+					<Button onClick={onInvite} className="gap-2">
+						<UserPlus className="size-5" />
+						Invite Your First Tenant
+					</Button>
+				</div>
+			</Empty>
+		)
 	}
 
 	return (
@@ -180,7 +202,19 @@ export function TenantList({
 
 				{/* No results from filtering */}
 				{sortedTenants.length === 0 && tenants.length > 0 && (
-					<NoResultsEmptyState onClearFilters={clearFilters} />
+					<Empty className="flex-none gap-3 py-12 border-0">
+						<EmptyMedia className="text-muted-foreground/40 mb-3 [&_svg]:size-10">
+							<Search />
+						</EmptyMedia>
+						<EmptyHeader>
+							<EmptyDescription>No tenants match your filters</EmptyDescription>
+						</EmptyHeader>
+						<div className="flex items-center gap-3 mt-2">
+							<Button variant="link" onClick={clearFilters}>
+								Clear filters
+							</Button>
+						</div>
+					</Empty>
 				)}
 			</div>
 		</div>
