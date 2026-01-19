@@ -11,7 +11,9 @@ import {
 	BadRequestException,
 	NotFoundException,
 	UnauthorizedException,
-	ParseUUIDPipe
+	ParseUUIDPipe,
+	Inject,
+	forwardRef
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -57,8 +59,11 @@ const UpdateSubscriptionRequestSchema = z.object({
 @Controller('stripe')
 export class SubscriptionController {
 	constructor(
+		@Inject(forwardRef(() => StripeService))
 		private readonly stripeService: StripeService,
+		@Inject(forwardRef(() => StripeSharedService))
 		private readonly stripeSharedService: StripeSharedService,
+		@Inject(forwardRef(() => BillingService))
 		private readonly billingService: BillingService,
 		private readonly securityService: SecurityService,
 		private readonly supabase: SupabaseService
