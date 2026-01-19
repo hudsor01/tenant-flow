@@ -11,7 +11,9 @@ import {
 	BadRequestException,
 	InternalServerErrorException,
 	NotFoundException,
-	UnauthorizedException
+	UnauthorizedException,
+	Inject,
+	forwardRef
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -55,9 +57,12 @@ const CreateCustomerRequestSchema = z.object({
 @Controller('stripe')
 export class PaymentMethodsController {
 	constructor(
+		@Inject(forwardRef(() => StripeService))
 		private readonly stripeService: StripeService,
+		@Inject(forwardRef(() => StripeSharedService))
 		private readonly stripeSharedService: StripeSharedService,
 		private readonly paymentMethodService: PaymentMethodService,
+		@Inject(forwardRef(() => BillingService))
 		private readonly billingService: BillingService,
 		private readonly securityService: SecurityService,
 		private readonly supabase: SupabaseService
