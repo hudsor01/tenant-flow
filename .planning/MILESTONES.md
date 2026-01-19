@@ -1,33 +1,5 @@
 # Project Milestones: TenantFlow
 
-## v3.0 Backend Architecture Excellence (Shipped: 2026-01-18)
-
-**Delivered:** Comprehensive architectural audit with 5 ADRs documenting Supabase client patterns, RPC usage, API standards, module architecture, and cold start optimization.
-
-**Phases completed:** 18-23 (6 plans total)
-
-**Key accomplishments:**
-
-- Three-tier Supabase client strategy documented (ADR-0004)
-- 40+ RPC functions inventoried with usage patterns (ADR-0005)
-- API response standards defined with consistency audit (ADR-0006)
-- Module architecture audit identifying oversized modules (ADR-0007)
-- Cold start baseline: 0.87s for 53 modules (ADR-0008)
-- Best practices documented via inline comments in source files
-
-**Stats:**
-
-- 28 files created/modified
-- 3,505 lines added, 45 removed
-- 6 phases, 6 plans
-- 1 day (2026-01-18)
-
-**Git range:** `748e67cdf` → `172024486`
-
-**What's next:** TBD — milestone complete, awaiting next milestone definition
-
----
-
 ## v2.0 Stripe Integration Excellence (Shipped: 2026-01-17)
 
 **Delivered:** Production-perfect Stripe integration with 212 unit tests, atomic webhook processing, ACH-first payment methods, and comprehensive Connect/payouts UI.
