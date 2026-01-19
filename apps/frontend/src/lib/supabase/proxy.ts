@@ -85,22 +85,20 @@ export async function updateSession(request: NextRequest) {
 	)
 
 	// Do not run code between createServerClient and
-	// supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+	// supabase.auth.getUser(). A simple mistake could make it very hard to debug
 	// issues with users being randomly logged out.
 
-	// IMPORTANT: If you remove getClaims() and you use server-side rendering
-	// with the Supabase client, your users may be randomly logged out.
-	const { data } = await supabase.auth.getClaims()
-	const user = data?.claims
+	// IMPORTANT: Use getUser() to validate the session with Supabase Auth server
+	// getClaims() only reads JWT locally without server validation
+	const { data: { user } } = await supabase.auth.getUser()
+
 	const pathname = request.nextUrl.pathname
 
-	// Redirect authenticated users from marketing pages to their dashboard
-	if (user && isMarketingRoute(pathname)) {
+	// Redirect authenticated users from marketing pages and login to their dashboard
+	if (user && (isMarketingRoute(pathname) || pathname.startsWith('/login'))) {
 		const url = request.nextUrl.clone()
-		const userType = (user as Record<string, unknown>).app_metadata as
-			| { user_type?: string }
-			| undefined
-		url.pathname = userType?.user_type === 'TENANT' ? '/tenant' : '/dashboard'
+		const userType = user.app_metadata?.user_type
+		url.pathname = userType === 'TENANT' ? '/tenant' : '/dashboard'
 		return NextResponse.redirect(url)
 	}
 
