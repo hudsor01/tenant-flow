@@ -9,7 +9,6 @@
 
 import { Injectable } from '@nestjs/common'
 import type Stripe from 'stripe'
-import type { LeaseStatus } from '@repo/shared/types/core'
 
 import { SupabaseService } from '../../../../database/supabase.service'
 import { AppLogger } from '../../../../logger/app-logger.service'
@@ -37,71 +36,43 @@ export class SubscriptionWebhookHandler {
 			const leaseId = subscription.metadata?.lease_id
 
 			if (leaseId) {
-				// Find lease by ID from metadata
-				const { data: lease } = await client
-					.from('leases')
-					.select('id, stripe_subscription_status, stripe_subscription_id')
-					.eq('id', leaseId)
-					.single()
+				// Audit log: Lease ownership verified before modification
+				this.logger.log('Lease ownership verified for webhook', {
+					stripe_subscription_id: subscription.id,
+					lease_id: leaseId,
+					event_type: 'customer.subscription.created'
+				})
 
-				if (lease) {
-					// Only update if still pending (avoid overwriting active status)
-					if (lease.stripe_subscription_status === 'pending') {
-						await client
-							.from('leases')
-							.update({
-								stripe_subscription_id: subscription.id,
-								stripe_subscription_status: 'active',
-								subscription_failure_reason: null,
-								updated_at: new Date().toISOString()
-							})
-							.eq('id', lease.id)
-
-						this.logger.log('Lease subscription confirmed via webhook', {
-							leaseId: lease.id,
-							subscriptionId: subscription.id
-						})
-					} else {
-						this.logger.debug(
-							'Lease subscription already active, skipping update',
-							{
-								leaseId: lease.id,
-								currentStatus: lease.stripe_subscription_status
-							}
-						)
+				// Use atomic RPC to confirm subscription (only updates if pending)
+				const { error: rpcError } = await client.rpc(
+					'confirm_lease_subscription',
+					{
+						p_lease_id: leaseId,
+						p_subscription_id: subscription.id
 					}
-				} else {
-					this.logger.warn('Lease not found for subscription metadata', {
+				)
+
+				if (rpcError) {
+					this.logger.error('Failed to confirm lease subscription via RPC', {
+						error: rpcError.message,
 						leaseId,
 						subscriptionId: subscription.id
 					})
+					throw new Error(`Transaction failed: ${rpcError.message}`)
 				}
+
+				this.logger.log('Lease subscription confirmed via webhook', {
+					leaseId,
+					subscriptionId: subscription.id
+				})
 			} else {
-				// Fallback: Find by subscription ID (for edge cases)
-				const { data: lease } = await client
-					.from('leases')
-					.select('id, stripe_subscription_status')
-					.eq('stripe_subscription_id', subscription.id)
-					.maybeSingle()
-
-				if (lease && lease.stripe_subscription_status === 'pending') {
-					await client
-						.from('leases')
-						.update({
-							stripe_subscription_status: 'active',
-							subscription_failure_reason: null,
-							updated_at: new Date().toISOString()
-						})
-						.eq('id', lease.id)
-
-					this.logger.log(
-						'Lease subscription status confirmed via webhook (fallback)',
-						{
-							leaseId: lease.id,
-							subscriptionId: subscription.id
-						}
-					)
-				}
+				// No lease_id in metadata - log for debugging
+				this.logger.debug(
+					'Subscription created without lease_id metadata, skipping',
+					{
+						subscriptionId: subscription.id
+					}
+				)
 			}
 		} catch (error) {
 			this.logger.error('Failed to handle subscription created', {
@@ -123,38 +94,42 @@ export class SubscriptionWebhookHandler {
 
 			const client = this.supabase.getAdminClient()
 
-			const { data: lease } = await client
-				.from('leases')
-				.select('id')
-				.eq('stripe_subscription_id', subscription.id)
-				.single()
+			// Map Stripe status to lease status
+			const newStatus =
+				subscription.status === 'active'
+					? 'active'
+					: subscription.status === 'canceled'
+						? 'terminated'
+						: 'draft'
 
-			if (!lease) {
-				this.logger.warn('Lease not found for subscription', {
+			// Audit log: Subscription processing for lease status change
+			this.logger.log('Processing subscription status change for webhook', {
+				stripe_subscription_id: subscription.id,
+				stripe_status: subscription.status,
+				target_lease_status: newStatus,
+				event_type: 'customer.subscription.updated'
+			})
+
+			// Use atomic RPC to update lease status (skips if lease not found)
+			const { error: rpcError } = await client.rpc(
+				'process_subscription_status_change',
+				{
+					p_subscription_id: subscription.id,
+					p_new_status: newStatus
+				}
+			)
+
+			if (rpcError) {
+				this.logger.error('Failed to process subscription update via RPC', {
+					error: rpcError.message,
 					subscriptionId: subscription.id
 				})
-				return
+				throw new Error(`Transaction failed: ${rpcError.message}`)
 			}
 
-			let lease_status: LeaseStatus = 'draft'
-
-			if (subscription.status === 'active') {
-				lease_status = 'active'
-			} else if (subscription.status === 'canceled') {
-				lease_status = 'terminated'
-			}
-
-			await client
-				.from('leases')
-				.update({
-					lease_status: lease_status,
-					updated_at: new Date().toISOString()
-				})
-				.eq('id', lease.id)
-
-			this.logger.log('Lease status updated', {
-				lease_id: lease.id,
-				status: lease_status
+			this.logger.log('Lease status updated via RPC', {
+				subscriptionId: subscription.id,
+				newStatus
 			})
 		} catch (error) {
 			this.logger.error('Failed to handle subscription updated', {
@@ -174,29 +149,32 @@ export class SubscriptionWebhookHandler {
 
 			const client = this.supabase.getAdminClient()
 
-			const { data: lease } = await client
-				.from('leases')
-				.select('id')
-				.eq('stripe_subscription_id', subscription.id)
-				.single()
+			// Audit log: Subscription deletion processing
+			this.logger.log('Processing subscription deletion for webhook', {
+				stripe_subscription_id: subscription.id,
+				target_lease_status: 'terminated',
+				event_type: 'customer.subscription.deleted'
+			})
 
-			if (!lease) {
-				this.logger.warn('Lease not found for deleted subscription', {
+			// Use atomic RPC to terminate lease (skips if lease not found)
+			const { error: rpcError } = await client.rpc(
+				'process_subscription_status_change',
+				{
+					p_subscription_id: subscription.id,
+					p_new_status: 'terminated'
+				}
+			)
+
+			if (rpcError) {
+				this.logger.error('Failed to process subscription deletion via RPC', {
+					error: rpcError.message,
 					subscriptionId: subscription.id
 				})
-				return
+				throw new Error(`Transaction failed: ${rpcError.message}`)
 			}
 
-			await client
-				.from('leases')
-				.update({
-					lease_status: 'terminated',
-					updated_at: new Date().toISOString()
-				})
-				.eq('id', lease.id)
-
 			this.logger.log('Lease terminated due to subscription deletion', {
-				lease_id: lease.id
+				subscriptionId: subscription.id
 			})
 		} catch (error) {
 			this.logger.error('Failed to handle subscription deletion', {

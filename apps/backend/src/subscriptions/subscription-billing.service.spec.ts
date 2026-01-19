@@ -15,6 +15,7 @@ import { SubscriptionQueryService } from './subscription-query.service'
 import type { LeaseContext } from './subscription-query.service'
 import { SubscriptionBillingService } from './subscription-billing.service'
 import { RedisCacheService } from '../cache/cache.service'
+import { StripeSharedService } from '../modules/billing/stripe-shared.service'
 
 type LeaseRow = Database['public']['Tables']['leases']['Row']
 type TenantRow = Database['public']['Tables']['tenants']['Row']
@@ -211,6 +212,12 @@ describe('SubscriptionBillingService', () => {
 				{
 					provide: AppLogger,
 					useValue: new SilentLogger()
+				},
+				{
+					provide: StripeSharedService,
+					useValue: {
+						generateIdempotencyKey: jest.fn().mockReturnValue('test-idempotency-key')
+					}
 				}
 			]
 		})

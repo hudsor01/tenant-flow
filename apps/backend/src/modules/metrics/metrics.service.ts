@@ -99,6 +99,10 @@ export class MetricsService {
 		private stripeWebhooksProcessedCounter: Counter<string>,
 		@InjectMetric('tenantflow_stripe_webhooks_failed_total')
 		private stripeWebhooksFailedCounter: Counter<string>,
+		@InjectMetric('tenantflow_stripe_webhooks_dlq_total')
+		private stripeWebhooksDlqCounter: Counter<string>,
+		@InjectMetric('tenantflow_stripe_webhook_processing_duration_seconds')
+		private stripeWebhookDurationHistogram: Histogram<string>,
 		@InjectMetric('tenantflow_active_subscriptions')
 		private activeSubscriptionsGauge: Gauge<string>,
 		@InjectMetric('tenantflow_subscription_changes_total')
@@ -151,6 +155,21 @@ export class MetricsService {
 			event_type: eventType,
 			error_type: normalizeErrorType(errorType)
 		})
+	}
+
+	recordStripeWebhookDlq(eventType: string): void {
+		this.stripeWebhooksDlqCounter.inc({ event_type: eventType })
+	}
+
+	recordStripeWebhookDuration(
+		eventType: string,
+		status: 'success' | 'failure',
+		durationMs: number
+	): void {
+		this.stripeWebhookDurationHistogram.observe(
+			{ event_type: eventType, status },
+			Math.max(durationMs, 0) / 1000
+		)
 	}
 
 	// Subscription metric methods

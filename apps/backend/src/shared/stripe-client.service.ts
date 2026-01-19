@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { Stripe } from 'stripe'
 import { AppConfigService } from '../config/app-config.service'
+import { AppLogger } from '../logger/app-logger.service'
 
 /**
  * Centralized Stripe Client Service
@@ -14,14 +15,56 @@ import { AppConfigService } from '../config/app-config.service'
 export class StripeClientService {
 	private readonly stripe: Stripe
 
-	constructor(private readonly config: AppConfigService) {
+	constructor(
+		private readonly config: AppConfigService,
+		private readonly logger: AppLogger
+	) {
 		const stripeSecretKey = this.config.getStripeSecretKey()
 
 		// Initialize Stripe client with recommended configuration
 		// Using pinned API version to prevent breaking changes (2025 best practice)
 		this.stripe = new Stripe(stripeSecretKey, {
 			apiVersion: '2025-11-17.clover',
-			typescript: true
+			typescript: true,
+			maxNetworkRetries: 2 // Automatic exponential backoff on transient failures
+		})
+
+		// Attach SDK event listeners for monitoring
+		this.setupMonitoring()
+	}
+
+	/**
+	 * Set up SDK event listeners for API call monitoring
+	 * Logs all API interactions with timing, status, and request IDs
+	 */
+	private setupMonitoring(): void {
+		this.stripe.on('response', response => {
+			const { method, path, status, elapsed, request_id } = response
+
+			this.logger.log('Stripe API response', {
+				method,
+				path,
+				status,
+				requestId: request_id,
+				elapsedMs: elapsed
+			})
+
+			// Warn on slow requests (>2 seconds)
+			if (elapsed > 2000) {
+				this.logger.warn('Slow Stripe request', {
+					path,
+					elapsedMs: elapsed,
+					requestId: request_id
+				})
+			}
+
+			// Error on rate limit hits
+			if (status === 429) {
+				this.logger.error('Stripe rate limit hit', {
+					path,
+					requestId: request_id
+				})
+			}
 		})
 	}
 

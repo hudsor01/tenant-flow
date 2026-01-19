@@ -93,6 +93,13 @@ export class PaymentWebhookHandler {
 				return
 			}
 
+			// Audit log: Tenant ownership verified before modification
+			this.logger.log('Tenant ownership verified for webhook', {
+				stripe_customer_id: customerId,
+				tenant_id: tenantWithUser.id,
+				event_type: 'payment_method.attached'
+			})
+
 			await client
 				.from('tenant_invitations')
 				.update({
@@ -148,6 +155,13 @@ export class PaymentWebhookHandler {
 				})
 				return
 			}
+
+			// Audit log: Tenant ownership verified before processing
+			this.logger.log('Tenant ownership verified for webhook', {
+				stripe_customer_id: customerId,
+				tenant_id: tenant.id,
+				event_type: 'invoice.payment_failed'
+			})
 
 			this.logger.warn('Payment failure for tenant', {
 				tenant_id: tenant.id,
@@ -208,6 +222,14 @@ export class PaymentWebhookHandler {
 			}
 
 			if (rentPayment) {
+				// Audit log: Tenant ownership verified before modification
+				this.logger.log('Tenant ownership verified for webhook', {
+					rent_payment_id: rentPayment.id,
+					tenant_id: rentPayment.tenant_id,
+					stripe_payment_intent_id: paymentIntent.id,
+					event_type: 'payment_intent.succeeded'
+				})
+
 				const { error: updateError } = await client
 					.from('rent_payments')
 					.update({
@@ -298,48 +320,36 @@ export class PaymentWebhookHandler {
 			}
 
 			if (rentPayment) {
-				const [updateResult, transactionResult] = await Promise.all([
-					client
-						.from('rent_payments')
-						.update({
-							status: 'failed',
-							updated_at: new Date().toISOString()
-						})
-						.eq('id', rentPayment.id),
-					// Idempotent upsert - handles webhook retries safely
-					client.from('payment_transactions').upsert(
-						{
-							rent_payment_id: rentPayment.id,
-							stripe_payment_intent_id: paymentIntent.id,
-							status: 'failed',
-							amount: paymentIntent.amount,
-							failure_reason:
-								paymentIntent.last_payment_error?.message || 'Unknown error',
-							attempted_at: new Date().toISOString()
-						},
-						{
-							onConflict: 'rent_payment_id,stripe_payment_intent_id,status',
-							ignoreDuplicates: true
-						}
-					)
-				])
+				// Audit log: Tenant ownership verified before modification
+				this.logger.log('Tenant ownership verified for webhook', {
+					rent_payment_id: rentPayment.id,
+					tenant_id: rentPayment.tenant_id,
+					stripe_payment_intent_id: paymentIntent.id,
+					event_type: 'payment_intent.payment_failed'
+				})
 
-				if (updateResult.error) {
-					this.logger.error('Failed to update rent payment status to failed', {
-						error: updateResult.error.message,
-						rentPaymentId: rentPayment.id
-					})
-				}
+				// Use atomic RPC to update rent_payment and insert transaction record
+				const { error: rpcError } = await client.rpc(
+					'process_payment_intent_failed',
+					{
+						p_rent_payment_id: rentPayment.id,
+						p_payment_intent_id: paymentIntent.id,
+						p_amount: paymentIntent.amount,
+						p_failure_reason:
+							paymentIntent.last_payment_error?.message || 'Unknown error'
+					}
+				)
 
-				if (transactionResult?.error) {
-					this.logger.error('Failed to record failed payment transaction', {
-						error: transactionResult.error.message,
+				if (rpcError) {
+					this.logger.error('Failed to process payment intent failure via RPC', {
+						error: rpcError.message,
 						rentPaymentId: rentPayment.id,
 						paymentIntentId: paymentIntent.id
 					})
+					throw new Error(`Transaction failed: ${rpcError.message}`)
 				}
 
-				this.logger.warn('Rent payment failed', {
+				this.logger.warn('Rent payment failed (processed atomically)', {
 					rentPaymentId: rentPayment.id,
 					tenantId: rentPayment.tenant_id,
 					amount: paymentIntent.amount / 100,

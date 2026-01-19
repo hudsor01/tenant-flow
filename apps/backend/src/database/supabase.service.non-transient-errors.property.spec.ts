@@ -232,10 +232,34 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 			'404'
 		]
 
+		// Transient patterns that should NOT appear in context to avoid false positives
+		const transientPatterns = [
+			'network',
+			'timeout',
+			'temporary',
+			'unavailable',
+			'try again',
+			'rate limit',
+			'429',
+			'503',
+			'connection reset',
+			'ECONNRESET'
+		]
+
+		// Generate context that doesn't accidentally contain transient patterns
+		const safeContextArbitrary = fc
+			.string({ minLength: 0, maxLength: 50 })
+			.filter(
+				s =>
+					!transientPatterns.some(pattern =>
+						s.toLowerCase().includes(pattern.toLowerCase())
+					)
+			)
+
 		await fc.assert(
 			fc.asyncProperty(
 				fc.constantFrom(...nonTransientPatterns),
-				fc.string({ minLength: 0, maxLength: 50 }),
+				safeContextArbitrary,
 				async (pattern, context) => {
 					let attemptCount = 0
 					const errorMessage = context

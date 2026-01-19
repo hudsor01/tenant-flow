@@ -3,7 +3,7 @@
  *
  * Unit tests for SubscriptionService covering:
  * - listSubscriptions: with caching, customer filter, status filter
- * - getAllSubscriptions: pagination, max items limit
+ * - getAllSubscriptions: SDK auto-pagination, customer/status filters
  * - searchSubscriptions: Stripe search API
  * - createSubscription: with params, idempotency key
  * - updateSubscription: updates, error handling
@@ -223,76 +223,46 @@ describe('SubscriptionService', () => {
 	})
 
 	describe('getAllSubscriptions', () => {
-		it('should return all subscriptions with pagination', async () => {
-			const page1 = [
-				createMockSubscription('sub_1'),
-				createMockSubscription('sub_2')
-			]
-			const page2 = [createMockSubscription('sub_3')]
+		// Helper to create mock paginated response with autoPagingToArray
+		const createMockListWithAutoPaging = (subscriptions: Stripe.Subscription[]) => {
+			const mockList = {
+				data: subscriptions,
+				has_more: false,
+				object: 'list',
+				autoPagingToArray: jest.fn().mockResolvedValue(subscriptions)
+			}
+			return mockList
+		}
 
+		it('should return all subscriptions using SDK auto-pagination', async () => {
+			const allSubscriptions = [
+				createMockSubscription('sub_1'),
+				createMockSubscription('sub_2'),
+				createMockSubscription('sub_3')
+			]
+
+			const mockList = createMockListWithAutoPaging(allSubscriptions)
 			;(
 				mockStripe.subscriptions.list as jest.MockedFunction<
 					Stripe['subscriptions']['list']
 				>
-			)
-				.mockResolvedValueOnce({
-					data: page1,
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Subscription>)
-				.mockResolvedValueOnce({
-					data: page2,
-					has_more: false,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Subscription>)
+			).mockReturnValue(mockList as unknown as Stripe.ApiListPromise<Stripe.Subscription>)
 
 			const result = await service.getAllSubscriptions()
 
 			expect(result).toHaveLength(3)
 			expect(result[0]?.id).toBe('sub_1')
 			expect(result[2]?.id).toBe('sub_3')
-			expect(mockStripe.subscriptions.list).toHaveBeenCalledTimes(2)
-		})
-
-		it('should use starting_after for pagination', async () => {
-			const page1 = [createMockSubscription('sub_1')]
-
-			;(
-				mockStripe.subscriptions.list as jest.MockedFunction<
-					Stripe['subscriptions']['list']
-				>
-			)
-				.mockResolvedValueOnce({
-					data: page1,
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Subscription>)
-				.mockResolvedValueOnce({
-					data: [],
-					has_more: false,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Subscription>)
-
-			await service.getAllSubscriptions()
-
-			expect(mockStripe.subscriptions.list).toHaveBeenNthCalledWith(
-				2,
-				expect.objectContaining({
-					starting_after: 'sub_1'
-				})
-			)
+			expect(mockList.autoPagingToArray).toHaveBeenCalledWith({ limit: 10000 })
 		})
 
 		it('should filter by customer when provided', async () => {
+			const mockList = createMockListWithAutoPaging([])
 			;(
 				mockStripe.subscriptions.list as jest.MockedFunction<
 					Stripe['subscriptions']['list']
 				>
-			).mockResolvedValue({
-				data: [],
-				has_more: false,
-				object: 'list'
-			} as Stripe.ApiList<Stripe.Subscription>)
+			).mockReturnValue(mockList as unknown as Stripe.ApiListPromise<Stripe.Subscription>)
 
 			await service.getAllSubscriptions({ customer: 'cus_filter' })
 
@@ -304,15 +274,12 @@ describe('SubscriptionService', () => {
 		})
 
 		it('should filter by status when provided', async () => {
+			const mockList = createMockListWithAutoPaging([])
 			;(
 				mockStripe.subscriptions.list as jest.MockedFunction<
 					Stripe['subscriptions']['list']
 				>
-			).mockResolvedValue({
-				data: [],
-				has_more: false,
-				object: 'list'
-			} as Stripe.ApiList<Stripe.Subscription>)
+			).mockReturnValue(mockList as unknown as Stripe.ApiListPromise<Stripe.Subscription>)
 
 			await service.getAllSubscriptions({ status: 'canceled' })
 
@@ -323,41 +290,34 @@ describe('SubscriptionService', () => {
 			)
 		})
 
-		it('should stop at max items limit', async () => {
-			// Create 100 subscriptions per page to simulate hitting the limit
-			const createPage = (startId: number): Stripe.Subscription[] =>
-				Array.from({ length: 100 }, (_, i) =>
-					createMockSubscription(`sub_${startId + i}`)
-				)
+		it('should use 10000 as auto-pagination limit (allows large datasets)', async () => {
+			const mockList = createMockListWithAutoPaging([])
+			;(
+				mockStripe.subscriptions.list as jest.MockedFunction<
+					Stripe['subscriptions']['list']
+				>
+			).mockReturnValue(mockList as unknown as Stripe.ApiListPromise<Stripe.Subscription>)
 
-			// Mock 11 pages (1100 items) but should stop at 1000
-			for (let i = 0; i < 11; i++) {
-				;(
-					mockStripe.subscriptions.list as jest.MockedFunction<
-						Stripe['subscriptions']['list']
-					>
-				).mockResolvedValueOnce({
-					data: createPage(i * 100),
-					has_more: true,
-					object: 'list'
-				} as Stripe.ApiList<Stripe.Subscription>)
-			}
+			await service.getAllSubscriptions()
 
-			const result = await service.getAllSubscriptions()
-
-			// Should stop at 1000 items (10 pages of 100)
-			expect(result.length).toBe(1000)
-			expect(mockStripe.subscriptions.list).toHaveBeenCalledTimes(10)
+			// Verify SDK handles pagination with 10000 limit (no arbitrary truncation)
+			expect(mockList.autoPagingToArray).toHaveBeenCalledWith({ limit: 10000 })
 		})
 
 		it('should throw error on Stripe API failure', async () => {
 			const stripeError = new Error('Stripe pagination error')
 
+			const mockList = {
+				data: [],
+				has_more: false,
+				object: 'list',
+				autoPagingToArray: jest.fn().mockRejectedValue(stripeError)
+			}
 			;(
 				mockStripe.subscriptions.list as jest.MockedFunction<
 					Stripe['subscriptions']['list']
 				>
-			).mockRejectedValue(stripeError)
+			).mockReturnValue(mockList as unknown as Stripe.ApiListPromise<Stripe.Subscription>)
 
 			await expect(service.getAllSubscriptions()).rejects.toThrow(
 				'Stripe pagination error'

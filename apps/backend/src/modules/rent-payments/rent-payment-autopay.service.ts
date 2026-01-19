@@ -24,6 +24,7 @@ import { StripeClientService } from '../../shared/stripe-client.service'
 import { StripeTenantService } from '../billing/stripe-tenant.service'
 import { RentPaymentContextService } from './rent-payment-context.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { StripeSharedService } from '../billing/stripe-shared.service'
 
 @Injectable()
 export class RentPaymentAutopayService {
@@ -34,7 +35,8 @@ export class RentPaymentAutopayService {
 		private readonly stripeClientService: StripeClientService,
 		private readonly stripeTenantService: StripeTenantService,
 		private readonly contextService: RentPaymentContextService,
-		private readonly logger: AppLogger
+		private readonly logger: AppLogger,
+		private readonly sharedService: StripeSharedService
 	) {
 		this.stripe = this.stripeClientService.getClient()
 	}
@@ -141,12 +143,19 @@ export class RentPaymentAutopayService {
 				subscriptionId: subscription.id,
 				error: updateError
 			})
-			await this.stripe.subscriptions.cancel(subscription.id).catch(err =>
-				this.logger.error('Failed to cancel orphaned subscription', {
-					subscriptionId: subscription.id,
-					error: err
-				})
+			const idempotencyKey = this.sharedService.generateIdempotencyKey(
+				'sub_cancel_orphan',
+				lease_id,
+				subscription.id
 			)
+			await this.stripe.subscriptions
+				.cancel(subscription.id, undefined, { idempotencyKey })
+				.catch(err =>
+					this.logger.error('Failed to cancel orphaned subscription', {
+						subscriptionId: subscription.id,
+						error: err
+					})
+				)
 			throw new BadRequestException('Failed to enable autopay')
 		}
 
@@ -189,7 +198,14 @@ export class RentPaymentAutopayService {
 			throw new BadRequestException('Autopay not enabled for this lease')
 		}
 
-		await this.stripe.subscriptions.cancel(subscriptionId)
+		const idempotencyKey = this.sharedService.generateIdempotencyKey(
+			'sub_cancel_autopay',
+			lease_id,
+			subscriptionId
+		)
+		await this.stripe.subscriptions.cancel(subscriptionId, undefined, {
+			idempotencyKey
+		})
 
 		const { error: updateError } = await adminClient
 			.from('leases')

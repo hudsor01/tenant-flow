@@ -1,3 +1,36 @@
+/**
+ * Supabase RPC Service (ADR-0005)
+ *
+ * When to use RPCs:
+ * - >3 JOINs in a single query
+ * - >5 round trips for a single operation
+ * - Atomic multi-table operations (transactions)
+ * - Idempotency/locking requirements
+ * - Access control queries (security-critical)
+ *
+ * When NOT to use RPCs:
+ * - Simple CRUD (use direct .select()/.insert())
+ * - Single-table queries
+ * - Operations needing external APIs (use service layer)
+ *
+ * RPC naming convention:
+ * - get_*: Read operations
+ * - check_*: Boolean checks
+ * - *_batch: Bulk operations
+ * - *_with_*: Joined data
+ *
+ * Features:
+ * - Automatic retries with exponential backoff (transient errors only)
+ * - Response caching with TTL
+ * - Full instrumentation (duration, hit rate)
+ *
+ * Example:
+ *   const result = await rpcService.rpc(client, 'get_dashboard_stats', {
+ *     user_id: userId
+ *   }, { cache: true, cacheTier: 'short' });
+ *
+ * @see .planning/adr/0005-rpc-usage-patterns.md
+ */
 import { Injectable } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'

@@ -1,3 +1,25 @@
+/**
+ * Supabase User Client Pool (ADR-0004)
+ *
+ * Caches per-user Supabase clients to avoid the ~50ms cost of creating
+ * new clients per request. Uses the accessToken callback pattern
+ * (recommended by Supabase docs) instead of deprecated headers.Authorization.
+ *
+ * Configuration:
+ * - maxPoolSize: 50 (max cached clients)
+ * - ttlMs: 5 minutes (client cache duration)
+ * - healthCheckIntervalMs: 60 seconds (validates cached tokens)
+ *
+ * Usage:
+ *   const client = this.pool.getClient(userJwtToken);
+ *   // client enforces RLS based on user's permissions
+ *
+ * Metrics exposed:
+ * - hits/misses: Cache effectiveness
+ * - evictions: Clients removed (TTL, health check failure, max size)
+ *
+ * @see .planning/adr/0004-supabase-client-patterns.md
+ */
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createClient } from '@supabase/supabase-js'

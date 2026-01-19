@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import {
 	DollarSign,
 	Wallet,
@@ -9,7 +9,11 @@ import {
 	CheckCircle,
 	ArrowDownRight,
 	XCircle,
-	Building2
+	Building2,
+	User,
+	Home,
+	CreditCard,
+	Landmark
 } from 'lucide-react'
 import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -35,6 +39,9 @@ import {
 } from '#hooks/api/use-stripe-connect'
 import { formatCurrency } from '#lib/formatters/currency'
 import { formatDate } from '#lib/formatters/date'
+import { PayoutDetailsModal } from '#components/connect/payout-details-modal'
+import { Badge } from '#components/ui/badge'
+import { exportToCsv, type CsvColumnMapping } from '#lib/export-utils'
 
 function getPayoutStatusBadge(status: string) {
 	switch (status) {
@@ -77,6 +84,9 @@ function getPayoutStatusBadge(status: string) {
 }
 
 export default function PayoutsPage() {
+	const [selectedPayout, setSelectedPayout] = useState<Payout | null>(null)
+	const [payoutModalOpen, setPayoutModalOpen] = useState(false)
+
 	const { data: balance, isLoading: balanceLoading } =
 		useConnectedAccountBalance()
 	const {
@@ -89,6 +99,83 @@ export default function PayoutsPage() {
 		useConnectedAccountTransfers({ limit: 100 })
 
 	const isLoading = balanceLoading || payoutsLoading || transfersLoading
+
+	const handlePayoutClick = (payout: Payout) => {
+		setSelectedPayout(payout)
+		setPayoutModalOpen(true)
+	}
+
+	// Export column definitions
+	const payoutExportColumns: CsvColumnMapping<Payout>[] = [
+		{
+			header: 'Date',
+			accessor: row => formatDate(row.created)
+		},
+		{
+			header: 'Amount',
+			accessor: row => formatCurrency(row.amount / 100)
+		},
+		{
+			header: 'Status',
+			accessor: row => row.status.charAt(0).toUpperCase() + row.status.slice(1)
+		},
+		{
+			header: 'Arrival Date',
+			accessor: row => formatDate(row.arrival_date)
+		},
+		{
+			header: 'Method',
+			accessor: row => row.method.charAt(0).toUpperCase() + row.method.slice(1)
+		}
+	]
+
+	const transferExportColumns: CsvColumnMapping<Transfer>[] = [
+		{
+			header: 'Date',
+			accessor: row => formatDate(row.created)
+		},
+		{
+			header: 'Amount',
+			accessor: row => formatCurrency(row.amount / 100)
+		},
+		{
+			header: 'Tenant',
+			accessor: row => row.metadata?.tenant_name || row.metadata?.tenant_id || ''
+		},
+		{
+			header: 'Property',
+			accessor: row => row.metadata?.property_name || ''
+		},
+		{
+			header: 'Unit',
+			accessor: row => row.metadata?.unit_name || ''
+		},
+		{
+			header: 'Payment Method',
+			accessor: row => {
+				const type = row.metadata?.payment_type
+				if (type === 'us_bank_account' || type === 'ach') return 'Bank'
+				if (type === 'card') return 'Card'
+				return ''
+			}
+		},
+		{
+			header: 'Description',
+			accessor: row => row.description || 'Rent payment'
+		}
+	]
+
+	const handleExportPayouts = () => {
+		if (payouts.length > 0) {
+			exportToCsv(payouts, payoutExportColumns, 'payouts')
+		}
+	}
+
+	const handleExportTransfers = () => {
+		if (transfers.length > 0) {
+			exportToCsv(transfers, transferExportColumns, 'rent-payments')
+		}
+	}
 
 	// Get USD balance (primary)
 	const availableUSD =
@@ -112,15 +199,25 @@ export default function PayoutsPage() {
 			{
 				accessorKey: 'created',
 				header: 'Date',
-				cell: ({ row }) => formatDate(row.original.created)
+				cell: ({ row }) => (
+					<button
+						onClick={() => handlePayoutClick(row.original)}
+						className="text-left hover:text-primary transition-colors"
+					>
+						{formatDate(row.original.created)}
+					</button>
+				)
 			},
 			{
 				accessorKey: 'amount',
 				header: 'Amount',
 				cell: ({ row }) => (
-					<span className="font-medium tabular-nums">
+					<button
+						onClick={() => handlePayoutClick(row.original)}
+						className="font-medium tabular-nums text-left hover:text-primary transition-colors"
+					>
 						{formatCurrency(row.original.amount / 100)}
-					</span>
+					</button>
 				)
 			},
 			{
@@ -182,6 +279,83 @@ export default function PayoutsPage() {
 				)
 			},
 			{
+				id: 'tenant',
+				header: 'Tenant',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const tenantName = metadata?.tenant_name
+					const tenantId = metadata?.tenant_id
+
+					if (tenantName) {
+						return (
+							<div className="flex items-center gap-2">
+								<User className="size-4 text-muted-foreground" />
+								<span>{tenantName}</span>
+							</div>
+						)
+					}
+					if (tenantId) {
+						return (
+							<div className="flex items-center gap-2 text-muted-foreground">
+								<User className="size-4" />
+								<span className="font-mono text-xs">
+									{tenantId.slice(0, 8)}...
+								</span>
+							</div>
+						)
+					}
+					return <span className="text-muted-foreground">-</span>
+				}
+			},
+			{
+				id: 'property',
+				header: 'Property',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const propertyName = metadata?.property_name
+					const unitName = metadata?.unit_name
+
+					if (propertyName || unitName) {
+						return (
+							<div className="flex items-center gap-2">
+								<Home className="size-4 text-muted-foreground" />
+								<span>
+									{propertyName}
+									{unitName && ` · ${unitName}`}
+								</span>
+							</div>
+						)
+					}
+					return <span className="text-muted-foreground">-</span>
+				}
+			},
+			{
+				id: 'payment_method',
+				header: 'Method',
+				cell: ({ row }) => {
+					const metadata = row.original.metadata
+					const paymentType = metadata?.payment_type
+
+					if (paymentType === 'us_bank_account' || paymentType === 'ach') {
+						return (
+							<Badge variant="outline" className="gap-1 text-xs">
+								<Landmark className="size-3" />
+								Bank
+							</Badge>
+						)
+					}
+					if (paymentType === 'card') {
+						return (
+							<Badge variant="outline" className="gap-1 text-xs">
+								<CreditCard className="size-3" />
+								Card
+							</Badge>
+						)
+					}
+					return <span className="text-muted-foreground text-xs">-</span>
+				}
+			},
+			{
 				accessorKey: 'description',
 				header: 'Description',
 				meta: {
@@ -190,15 +364,11 @@ export default function PayoutsPage() {
 					placeholder: 'Search description...'
 				},
 				enableColumnFilter: true,
-				cell: ({ row }) => row.original.description || 'Rent payment'
-			},
-			{
-				id: 'tenant',
-				header: 'Tenant',
-				cell: ({ row }) =>
-					row.original.metadata?.tenant_id
-						? `Tenant ID: ${row.original.metadata.tenant_id.slice(0, 8)}...`
-						: '-'
+				cell: ({ row }) => (
+					<span className="text-sm text-muted-foreground">
+						{row.original.description || 'Rent payment'}
+					</span>
+				)
 			}
 		],
 		[]
@@ -285,9 +455,13 @@ export default function PayoutsPage() {
 							View your account balance and payout history.
 						</p>
 					</div>
-					<button className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors">
+					<button
+						onClick={handleExportPayouts}
+						disabled={payouts.length === 0}
+						className="inline-flex items-center gap-2 px-4 py-2.5 bg-card border border-border hover:bg-muted text-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					>
 						<Download className="w-4 h-4" />
-						Export
+						Export Payouts
 					</button>
 				</div>
 			</BlurFade>
@@ -374,11 +548,22 @@ export default function PayoutsPage() {
 			{/* Payout History */}
 			<BlurFade delay={0.35} inView>
 				<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
-					<div className="p-4 border-b border-border">
-						<h3 className="font-medium text-foreground">Payout History</h3>
-						<p className="text-sm text-muted-foreground">
-							Recent payouts to your bank account
-						</p>
+					<div className="flex items-start justify-between p-4 border-b border-border">
+						<div>
+							<h3 className="font-medium text-foreground">Payout History</h3>
+							<p className="text-sm text-muted-foreground">
+								Recent payouts to your bank account
+							</p>
+						</div>
+						{payouts.length > 0 && (
+							<button
+								onClick={handleExportPayouts}
+								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded-md transition-colors"
+							>
+								<Download className="w-3.5 h-3.5" />
+								Export
+							</button>
+						)}
 					</div>
 					{payouts.length === 0 ? (
 						<div className="p-8 text-center">
@@ -403,13 +588,24 @@ export default function PayoutsPage() {
 			{/* Rent Payments Received */}
 			<BlurFade delay={0.4} inView>
 				<div className="bg-card border border-border rounded-lg overflow-hidden">
-					<div className="p-4 border-b border-border">
-						<h3 className="font-medium text-foreground">
-							Rent Payments Received
-						</h3>
-						<p className="text-sm text-muted-foreground">
-							Rent collected from tenants
-						</p>
+					<div className="flex items-start justify-between p-4 border-b border-border">
+						<div>
+							<h3 className="font-medium text-foreground">
+								Rent Payments Received
+							</h3>
+							<p className="text-sm text-muted-foreground">
+								Rent collected from tenants
+							</p>
+						</div>
+						{transfers.length > 0 && (
+							<button
+								onClick={handleExportTransfers}
+								className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded-md transition-colors"
+							>
+								<Download className="w-3.5 h-3.5" />
+								Export
+							</button>
+						)}
 					</div>
 					{transfers.length === 0 ? (
 						<div className="p-8 text-center">
@@ -429,6 +625,13 @@ export default function PayoutsPage() {
 					)}
 				</div>
 			</BlurFade>
+
+			{/* Payout Details Modal */}
+			<PayoutDetailsModal
+				payout={selectedPayout}
+				open={payoutModalOpen}
+				onOpenChange={setPayoutModalOpen}
+			/>
 		</div>
 	)
 }

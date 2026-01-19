@@ -1,10 +1,37 @@
 /**
- * @todo DOCS-002: Add README.md to each backend module.
- *       25/28 modules lack documentation.
- *       Include: architecture, API endpoints, dependencies.
- *       See TODO.md for details.
+ * TenantFlow App Module - Module Architecture (ADR-0007)
+ *
+ * Module size thresholds:
+ * | Metric      | Good   | Warning    | Action Required |
+ * |-------------|--------|------------|-----------------|
+ * | Lines       | <5,000 | 5,000-8,000| >8,000          |
+ * | Services    | <8     | 8-12       | >12             |
+ * | Controllers | <4     | 4-6        | >6              |
+ *
+ * Current oversized modules (see ADR-0007 for refactoring guidance):
+ * - billing: 14k lines (extract shared Stripe services)
+ * - tenants: 12k lines (audit and consolidate services)
+ * - leases: 10k lines (acceptable, monitor)
+ *
+ * Circular dependency signals:
+ * - forwardRef() usage indicates shared services should be extracted
+ * - See billing/ sub-modules for example of circular deps to resolve
+ *
+ * Performance baseline (ADR-0008):
+ * - Startup time: 0.87s (53 modules, excellent)
+ * - Lazy loading: not applicable (all candidates have controllers)
+ *
+ * API Response Standards (ADR-0006):
+ * - List: { data: T[], total, limit, offset, hasMore }
+ * - Detail: raw entity object
+ * - Create/Update: created/updated entity
+ * - Delete: { message: "X deleted successfully" }
+ * - Action: { success: true, ...result }
+ *
+ * @see .planning/adr/0006-api-response-standards.md
+ * @see .planning/adr/0007-module-architecture.md
+ * @see .planning/adr/0008-cold-start-optimization.md
  */
-
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
 import { Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'

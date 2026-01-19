@@ -13,7 +13,7 @@
 import type { Page } from '@playwright/test'
 import { test, expect } from '@playwright/test'
 import { loginAsOwner } from '../../auth-helpers'
-import { createTestProperty, basePropertyData } from '../../../frontend/tests/fixtures/property-data'
+import { createTestProperty, basePropertyData } from '../fixtures/property-data'
 import {
 	TanStackQueryHelper,
 	NetworkSimulator,

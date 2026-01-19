@@ -33,6 +33,9 @@ import { SubscriptionLifecycleService } from './subscription-lifecycle.service'
 // Facade service
 import { SubscriptionsService } from './subscriptions.service'
 
+// Stripe services
+import { StripeSharedService } from '../modules/billing/stripe-shared.service'
+
 @Module({
 	imports: [SharedModule],
 	controllers: [SubscriptionsController],
@@ -41,12 +44,14 @@ import { SubscriptionsService } from './subscriptions.service'
 		SubscriptionCacheService,
 		// Query service (depends on Cache)
 		SubscriptionQueryService,
-		// Billing service (depends on Query, Cache)
+		// Billing service (depends on Query, Cache, StripeSharedService)
 		SubscriptionBillingService,
 		// Lifecycle service (depends on Query, Cache)
 		SubscriptionLifecycleService,
 		// Facade service (coordinates all services)
-		SubscriptionsService
+		SubscriptionsService,
+		// Stripe shared utilities
+		StripeSharedService
 	],
 	exports: [
 		// Export specialized services for direct use if needed

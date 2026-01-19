@@ -6,12 +6,17 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	AddressElement,
 	Elements,
+	ExpressCheckoutElement,
 	LinkAuthenticationElement,
 	PaymentElement,
 	useElements,
 	useStripe
 } from '@stripe/react-stripe-js'
-import type { StripeElementsOptions, StripeError } from '@stripe/stripe-js'
+import type {
+	StripeElementsOptions,
+	StripeError,
+	StripeExpressCheckoutElementConfirmEvent
+} from '@stripe/stripe-js'
 import { loadStripe } from '@stripe/stripe-js'
 import type { FormEvent } from 'react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -46,6 +51,7 @@ function SetupForm({
 	const [isLoading, setIsLoading] = useState(true)
 	const [elementReady, setElementReady] = useState(false)
 	const [error, setError] = useState<string | null>(null)
+	const [expressCheckoutReady, setExpressCheckoutReady] = useState(false)
 
 	// Ref to track component mount state for async operations
 	const isMountedRef = useRef(true)
@@ -198,8 +204,151 @@ function SetupForm({
 		}
 	}, [])
 
+	// Handler for ExpressCheckoutElement confirmation (Apple Pay/Google Pay)
+	const handleExpressCheckoutConfirm = useCallback(
+		async (_event: StripeExpressCheckoutElementConfirmEvent) => {
+			if (!stripe || !elements) {
+				toast.error('Payment form not ready. Please wait.')
+				return
+			}
+
+			if (isProcessing) return
+
+			setIsProcessing(true)
+			setError(null)
+
+			// Create new AbortController for this submission
+			abortControllerRef.current?.abort()
+			const abortController = new AbortController()
+			abortControllerRef.current = abortController
+
+			try {
+				// Confirm the setup using the express checkout element
+				const { error: confirmError, setupIntent } =
+					await stripe.confirmSetup({
+						elements,
+						confirmParams: {
+							return_url: `${window.location.origin}/tenant/settings/payment-methods`
+						},
+						redirect: 'if_required'
+					})
+
+				if (abortController.signal.aborted || !isMountedRef.current) return
+
+				if (confirmError) {
+					const errorMessage = getStripeErrorMessage(confirmError)
+					setError(errorMessage)
+					onErrorRef.current?.(new Error(errorMessage))
+					setIsProcessing(false)
+					return
+				}
+
+				if (setupIntent?.payment_method) {
+					const paymentMethodId =
+						typeof setupIntent.payment_method === 'string'
+							? setupIntent.payment_method
+							: setupIntent.payment_method.id
+
+					// Attach payment method to customer via backend
+					const attachResponse = await fetch(
+						'/api/v1/stripe/attach-tenant-payment-method',
+						{
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								payment_method_id: paymentMethodId,
+								set_as_default: true
+							}),
+							signal: abortController.signal
+						}
+					)
+
+					if (abortController.signal.aborted || !isMountedRef.current) return
+
+					const attachResult = await attachResponse.json()
+
+					if (!attachResult.success) {
+						const message =
+							attachResult.error || 'Failed to save payment method'
+						setError(message)
+						onErrorRef.current?.(new Error(message))
+						setIsProcessing(false)
+						return
+					}
+
+					toast.success('Payment method saved successfully')
+					onSuccessRef.current(paymentMethodId)
+				}
+			} catch (err) {
+				if (err instanceof Error && err.name === 'AbortError') return
+				if (!isMountedRef.current) return
+
+				const error =
+					err instanceof Error ? err : new Error('An unexpected error occurred')
+				setError(error.message)
+				toast.error(error.message)
+				onErrorRef.current?.(error)
+			} finally {
+				if (isMountedRef.current) {
+					setIsProcessing(false)
+				}
+			}
+		},
+		[stripe, elements, isProcessing]
+	)
+
 	return (
 		<form onSubmit={handleSubmit} className="space-y-6">
+			{/* ACH Cost Savings Banner */}
+			<div className="rounded-lg border border-success/30 bg-success/10 p-4">
+				<p className="text-sm font-medium text-success-foreground">
+					Bank accounts recommended for rent payments
+				</p>
+				<p className="mt-1 text-sm text-muted-foreground">
+					Save up to $39 per payment with ACH (0.8% capped at $5) vs cards
+					(2.9% + $0.30).
+				</p>
+			</div>
+
+			{/* Express Checkout - Apple Pay / Google Pay / Link */}
+			<ExpressCheckoutElement
+				options={{
+					buttonType: {
+						applePay: 'add-money',
+						googlePay: 'plain'
+					},
+					buttonTheme: {
+						applePay: 'black',
+						googlePay: 'black'
+					},
+					layout: {
+						maxColumns: 3,
+						maxRows: 1
+					},
+					paymentMethods: {
+						applePay: 'auto',
+						googlePay: 'auto',
+						link: 'auto'
+					}
+				}}
+				onConfirm={handleExpressCheckoutConfirm}
+				onReady={() => setExpressCheckoutReady(true)}
+			/>
+
+			{/* Divider - only show if express checkout is available */}
+			{expressCheckoutReady && (
+				<div className="relative">
+					<div className="absolute inset-0 flex items-center">
+						<span className="w-full border-t" />
+					</div>
+					<div className="relative flex justify-center text-xs uppercase">
+						<span className="bg-background px-2 text-muted-foreground">
+							Or pay with bank account or card
+						</span>
+					</div>
+				</div>
+			)}
+
 			{/* Stripe PaymentElement - handles card + ACH + validation */}
 			<PaymentElement
 				options={{
@@ -208,7 +357,8 @@ function SetupForm({
 						defaultCollapsed: false,
 						spacedAccordionItems: true
 					},
-					paymentMethodOrder: ['card', 'us_bank_account'],
+					// ACH first - 0.8% capped at $5 vs 2.9% + $0.30 for cards
+					paymentMethodOrder: ['us_bank_account', 'card'],
 					fields: {
 						billingDetails: {
 							name: 'never',
