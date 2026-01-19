@@ -373,3 +373,19 @@ stripe-webhooks.log
 **/api-types.secret.ts
 .kiro/
 .kiro
+
+# Debug screenshots and temp files (accidentally committed)
+login-page
+login-page.png
+login-fresh
+landing-page.png
+after-signin-click.png
+tenants-page
+*-page
+*-page.png
+
+# Planning documents (local only)
+.planning/
+
+# Example env file (not needed in repo)
+.env.example
