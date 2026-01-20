@@ -3,6 +3,15 @@ import { withSentryConfig } from '@sentry/nextjs'
 import type { NextConfig } from 'next'
 import path from 'path'
 
+/**
+ * Build-time environment validation
+ * Importing env.ts here ensures validation runs during `next build`
+ * This catches missing/invalid env vars BEFORE deployment, not at runtime
+ *
+ * @see https://env.t3.gg/docs/nextjs#validate-schema-on-build
+ */
+import './src/env'
+
 const nextConfig: NextConfig = {
 	// Monorepo support
 	outputFileTracingRoot: path.join(__dirname, '../..'),
