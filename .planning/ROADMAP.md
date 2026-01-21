@@ -343,10 +343,10 @@ function createWrapper() {
 3. Form components with validation
 4. Dashboard components - use E2E instead
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 32-01: TBD
+- [ ] 32-01: Core domain hook tests (tenant, lease) + test utilities
 
 ---
 
