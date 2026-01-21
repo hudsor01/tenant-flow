@@ -8,7 +8,7 @@
  * 3. Running a simple query to verify the key works
  *
  * Usage:
- *   doppler run -- pnpm tsx apps/backend/scripts/validate-supabase-keys.ts
+ *   pnpm tsx apps/backend/scripts/validate-supabase-keys.ts
  */
 
 import { createClient } from '@supabase/supabase-js'
@@ -215,7 +215,7 @@ async function validateSupabaseKeys(): Promise<void> {
 		)
 		console.log('TIP Common fixes:')
 		console.log(
-			'   1. Make sure you are running with Doppler: doppler run -- pnpm dev'
+			'   1. Make sure you are running with pnpm dev'
 		)
 		console.log(
 			'   2. Check that SUPABASE_SERVICE_ROLE_KEY matches your SUPABASE_URL project'

@@ -9,8 +9,7 @@
  * - Database constraints verified
  *
  * PREREQUISITES:
- * - Backend running: `doppler run -- pnpm --filter @repo/backend dev`
- * - Test users configured in Doppler (E2E_OWNER_EMAIL, E2E_OWNER_PASSWORD, etc.)
+ * - Backend running: `pnpm --filter @repo/backend dev`
  * - Database migrations applied
  *
  * TDD WORKFLOW:
@@ -27,6 +26,7 @@ import { createHash } from 'crypto'
 import {
 	authenticateAs,
 	getServiceRoleClient,
+	shouldSkipIntegrationTests,
 	TEST_USERS,
 	isTestUserAvailable,
 	type AuthenticatedTestClient
@@ -44,7 +44,9 @@ const toUUID = (str: string): string => {
 	return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-a${hash.slice(17, 20)}-${hash.slice(20, 32)}`
 }
 
-describe('Lease Creation Integration (TDD)', () => {
+const describeIf = shouldSkipIntegrationTests ? describe.skip : describe
+
+describeIf('Lease Creation Integration (TDD)', () => {
 	jest.setTimeout(60000)
 
 	let app: INestApplication
@@ -118,7 +120,7 @@ describe('Lease Creation Integration (TDD)', () => {
 			)
 		} else {
 			throw new Error(
-				'E2E_TENANT_EMAIL not configured. Set E2E_TENANT_EMAIL and E2E_TENANT_PASSWORD in Doppler.'
+				'E2E_TENANT_EMAIL not configured. Set E2E_TENANT_EMAIL and E2E_TENANT_PASSWORD before running tests.'
 			)
 		}
 

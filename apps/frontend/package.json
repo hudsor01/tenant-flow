@@ -18,14 +18,14 @@
 		"#utils/*": "./src/utils/*"
 	},
 	"scripts": {
-		"dev": "rm -f .next/dev/lock && doppler run -- bash -c 'NEXT_PUBLIC_API_BASE_URL=http://localhost:4650 next dev --turbo --port 3050'",
+		"dev": "rm -f .next/dev/lock && bash -c 'NEXT_PUBLIC_API_BASE_URL=http://localhost:4650 next dev --turbo --port 3050'",
 		"dev:clean": "pnpm clean && pnpm dev",
 		"clean": "rm -rf .next",
 		"build": "next build",
-		"build:local": "doppler run -- next build",
-		"analyze": "doppler run -- ANALYZE=true next build --webpack",
+		"build:local": "next build",
+		"analyze": "ANALYZE=true next build --webpack",
 		"start": "next start",
-		"start:local": "doppler run -- next start",
+		"start:local": "next start",
 		"lint": "eslint \"src/**/*.{ts,tsx}\" --cache --cache-location node_modules/.cache/eslint/ --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"typecheck": "tsc --noEmit",

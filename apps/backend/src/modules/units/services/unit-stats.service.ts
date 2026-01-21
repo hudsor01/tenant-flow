@@ -2,10 +2,6 @@
  * Unit Stats Service
  * Handles unit statistics, analytics, and aggregate calculations
  * Extracted from UnitsService to maintain <300 line limit per CLAUDE.md
- *
- * @todo TEST-001: Add unit tests for this service.
- *       Coverage: getStats, getStatsByProperty, getOccupancyRate.
- *       See TODO.md for details.
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common'

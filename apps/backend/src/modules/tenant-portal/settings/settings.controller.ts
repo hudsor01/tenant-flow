@@ -23,24 +23,12 @@ import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { UpdateNotificationPreferencesDto } from '../../tenants/dto/notification-preferences.dto'
 
 type TenantRow = Pick<
 	Database['public']['Tables']['tenants']['Row'],
 	'id' | 'user_id'
 >
-
-/**
- * DTO for updating notification preferences
- */
-class UpdateNotificationPreferencesDto {
-	email?: boolean
-	sms?: boolean
-	push?: boolean
-	in_app?: boolean
-	general?: boolean
-	maintenance?: boolean
-	leases?: boolean
-}
 
 /**
  * DTO for updating emergency contact
@@ -176,17 +164,23 @@ export class TenantSettingsController {
 		}
 
 		// Upsert the notification settings
+		// Build upsert data, only including defined preference values
+		const upsertData: Database['public']['Tables']['notification_settings']['Insert'] = {
+			user_id: req.user.id,
+			updated_at: new Date().toISOString()
+		}
+		if (preferences.email !== undefined) upsertData.email = preferences.email
+		if (preferences.sms !== undefined) upsertData.sms = preferences.sms
+		if (preferences.push !== undefined) upsertData.push = preferences.push
+		if (preferences.in_app !== undefined) upsertData.in_app = preferences.in_app
+		if (preferences.general !== undefined) upsertData.general = preferences.general
+		if (preferences.maintenance !== undefined) upsertData.maintenance = preferences.maintenance
+		if (preferences.leases !== undefined) upsertData.leases = preferences.leases
+
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('notification_settings')
-			.upsert(
-				{
-					user_id: req.user.id,
-					...preferences,
-					updated_at: new Date().toISOString()
-				},
-				{ onConflict: 'user_id' }
-			)
+			.upsert(upsertData, { onConflict: 'user_id' })
 			.select()
 			.single()
 

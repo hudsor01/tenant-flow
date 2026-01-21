@@ -25,6 +25,8 @@ const STRIPE_WEBHOOK_BASE_PATHS = [
 	'/webhooks/stripe'
 ]
 
+const RESEND_WEBHOOK_BASE_PATHS = ['/webhooks/resend']
+
 const ensureLeadingSlash = (path: string): string =>
 	path.startsWith('/') ? path : `/${path}`
 
@@ -43,11 +45,14 @@ const normalizePrefix = (prefix?: string): string => {
 	return trimmed.length ? `/${trimmed}` : ''
 }
 
-const buildStripeWebhookPaths = (globalPrefix?: string): string[] => {
+const buildWebhookPaths = (
+	basePaths: string[],
+	globalPrefix?: string
+): string[] => {
 	const prefix = normalizePrefix(globalPrefix)
 	const uniquePaths = new Set<string>()
 
-	for (const basePath of STRIPE_WEBHOOK_BASE_PATHS) {
+	for (const basePath of basePaths) {
 		const normalizedBase = normalizeRoutePath(basePath)
 		uniquePaths.add(normalizedBase)
 		if (prefix) {
@@ -64,7 +69,7 @@ const sanitizeRequestPath = (req: Request): string => {
 	return normalizeRoutePath(pathOnly)
 }
 
-const isStripeWebhookRequest = (
+const isWebhookRequest = (
 	req: Request,
 	webhookPaths: string[]
 ): boolean => {
@@ -85,7 +90,14 @@ export async function registerExpressMiddleware(
 	appConfigService: AppConfigService,
 	options: ExpressMiddlewareOptions = {}
 ) {
-	const stripeWebhookPaths = buildStripeWebhookPaths(options.globalPrefix)
+	const stripeWebhookPaths = buildWebhookPaths(
+		STRIPE_WEBHOOK_BASE_PATHS,
+		options.globalPrefix
+	)
+	const resendWebhookPaths = buildWebhookPaths(
+		RESEND_WEBHOOK_BASE_PATHS,
+		options.globalPrefix
+	)
 
 	// Stripe webhooks need raw body for signature verification. Register middleware for both
 	// prefixed (e.g., /api/v1/...) and unprefixed routes to support local testing.
@@ -132,18 +144,25 @@ export async function registerExpressMiddleware(
 
 	// Body parsing limits - exclude Stripe webhook paths to preserve raw buffer
 	// FIX: Create middleware instances ONCE, not on every request
-	const jsonParser = express.json({ limit: '10mb' })
+	const jsonParser = express.json({
+		limit: '10mb',
+		verify: (req: RawBodyRequest, _res, buf) => {
+			if (!req.rawBody && isWebhookRequest(req, resendWebhookPaths)) {
+				req.rawBody = Buffer.from(buf)
+			}
+		}
+	})
 	const urlencodedParser = express.urlencoded({ extended: true, limit: '10mb' })
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (isStripeWebhookRequest(req, stripeWebhookPaths)) {
+		if (isWebhookRequest(req, stripeWebhookPaths)) {
 			return next() // Skip JSON parsing for webhooks
 		}
 		jsonParser(req, res, next)
 	})
 
 	app.use((req: Request, res: Response, next: NextFunction) => {
-		if (isStripeWebhookRequest(req, stripeWebhookPaths)) {
+		if (isWebhookRequest(req, stripeWebhookPaths)) {
 			return next() // Skip URL encoding for webhooks
 		}
 		urlencodedParser(req, res, next)

@@ -5,18 +5,17 @@ import { EmailRendererService } from './email-renderer.service'
 import { EmailSenderService } from './email-sender.service'
 import { EmailTemplateService } from './email-template.service'
 import { EmailProcessor } from './email.queue'
-import { N8nEmailWebhookController } from './n8n-email-webhook.controller'
+import { ResendWebhookController } from './resend-webhook.controller'
 
 const WORKERS_ENABLED =
 	process.env.BULLMQ_WORKERS_ENABLED !== 'false' &&
 	process.env.BULLMQ_WORKERS_ENABLED !== '0'
 
 /**
- * N8N Mode: When enabled, the n8n webhook controller handles email sending
- * via HTTP endpoints, allowing n8n to manage retries and orchestration.
- * BullMQ workers are disabled when using n8n mode.
+ * Resend Webhooks: Enable to receive email tracking events
+ * (delivered, bounced, opened, clicked)
  */
-const N8N_MODE_ENABLED = process.env.N8N_EMAIL_MODE === 'true'
+const RESEND_WEBHOOKS_ENABLED = process.env.RESEND_WEBHOOKS_ENABLED === 'true'
 
 @Module({
 	imports: [
@@ -38,14 +37,14 @@ const N8N_MODE_ENABLED = process.env.N8N_EMAIL_MODE === 'true'
 			}
 		})
 	],
-	controllers: [...(N8N_MODE_ENABLED ? [N8nEmailWebhookController] : [])],
+	controllers: [...(RESEND_WEBHOOKS_ENABLED ? [ResendWebhookController] : [])],
 	providers: [
 		EmailService,
 		EmailRendererService,
 		EmailSenderService,
 		EmailTemplateService,
-		...(WORKERS_ENABLED && !N8N_MODE_ENABLED ? [EmailProcessor] : [])
+		...(WORKERS_ENABLED ? [EmailProcessor] : [])
 	],
-	exports: [EmailService, BullModule]
+	exports: [EmailService, EmailSenderService, BullModule]
 })
 export class EmailModule {}

@@ -71,7 +71,9 @@ async function bootstrap() {
 	// Register Express middleware with full TypeScript support - moved before global prefix
 	logger.log('Registering Express middleware...', 'Bootstrap')
 	const appConfigService = app.get(AppConfigService)
-	await registerExpressMiddleware(app, appConfigService)
+	await registerExpressMiddleware(app, appConfigService, {
+		globalPrefix: GLOBAL_PREFIX
+	})
 	logger.log('Express middleware registered', 'Bootstrap')
 
 	// Global API prefix

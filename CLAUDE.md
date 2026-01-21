@@ -677,7 +677,6 @@ The following Model Context Protocol servers are configured for Claude Code:
 | **stripe** | `https://mcp.stripe.com` | ⚠ Needs auth | Payments, customers, subscriptions |
 | **sentry** | `https://mcp.sentry.dev/mcp` | ✓ Connected | Error tracking, issue management |
 | **Neon** | `https://mcp.neon.tech/mcp` | ✓ Connected | Database branching, SQL execution |
-| **n8n-mcp** | `npx -y n8n-mcp` | ✓ Connected | Workflow automation |
 | **shadcn** | `npx -y shadcn-ui-mcp-server` | ✓ Connected | UI component generation |
 | **context7** | `npx -y @upstash/context7-mcp` | ✓ Connected | Documentation lookup |
 | **serena** | `uvx serena start-mcp-server` | ✓ Connected | Semantic code tools |

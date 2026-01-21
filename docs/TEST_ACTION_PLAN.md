@@ -16,8 +16,7 @@
 ```typescript
 /**
  * Financial RLS Integration Tests
- * Validates that financial services respect Row Level Security policies
- * CRITICAL: Prevents cross-tenant data leakage in financial reports
+ * Validates expenses + maintenance_requests isolation via RLS policies.
  */
 
 import { describe, it, expect, beforeAll } from '@jest/globals'
@@ -27,165 +26,117 @@ import {
   authenticateAs,
   expectEmptyResult,
   expectPermissionError,
-  getServiceRoleClient,
+  isTestUserAvailable,
+  shouldSkipRlsTests,
   TEST_USERS,
   type AuthenticatedTestClient
 } from './setup'
 
-describe('RLS: Financial Isolation', () => {
+const describeRls = shouldSkipRlsTests ? describe.skip : describe
+
+type ExpenseRow = Database['public']['Tables']['expenses']['Row']
+type MaintenanceRequestRow =
+  Database['public']['Tables']['maintenance_requests']['Row']
+
+type ExpenseWithOwner = ExpenseRow & {
+  maintenance_requests?: Pick<MaintenanceRequestRow, 'owner_user_id'> | null
+}
+
+describeRls('RLS: Financial Isolation', () => {
+  const testLogger = new Logger('RLSFinancialIsolationTest')
   let ownerA: AuthenticatedTestClient
-  let ownerB: AuthenticatedTestClient
-  let serviceClient: ReturnType<typeof getServiceRoleClient>
+  let ownerB: AuthenticatedTestClient | null = null
+  let tenantA: AuthenticatedTestClient | null = null
 
   beforeAll(async () => {
     ownerA = await authenticateAs(TEST_USERS.OWNER_A)
-    ownerB = await authenticateAs(TEST_USERS.OWNER_B)
-    serviceClient = getServiceRoleClient()
+    if (isTestUserAvailable('OWNER_B')) {
+      ownerB = await authenticateAs(TEST_USERS.OWNER_B)
+    }
+    if (isTestUserAvailable('TENANT_A')) {
+      tenantA = await authenticateAs(TEST_USERS.TENANT_A)
+    }
   })
 
-  describe('Balance Sheet Isolation', () => {
-    it('should prevent Owner A from accessing Owner B balance sheet', async () => {
-      // Owner A queries balance sheet
-      const { data: ownerAData } = await ownerA.client
-        .rpc('get_balance_sheet', {
-          user_id: ownerA.user_id,
-          start_date: '2025-01-01',
-          end_date: '2025-12-31'
-        })
+  it('owner A can read expenses and sees only their own records', async () => {
+    const { data, error } = await ownerA.client
+      .from('expenses')
+      .select('id, maintenance_requests(owner_user_id)')
 
-      // Owner A tries to access Owner B's data with manipulated user_id
-      const { data: crossTenantData, error } = await ownerA.client
-        .rpc('get_balance_sheet', {
-          user_id: ownerB.user_id, // Malicious parameter
-          start_date: '2025-01-01',
-          end_date: '2025-12-31'
-        })
+    expect(error).toBeNull()
+    const rows = (data ?? []) as ExpenseWithOwner[]
+    if (rows.length === 0) {
+      testLogger.warn('Owner A has no expenses to validate ownership')
+      return
+    }
 
-      // Assertion: Should return empty or error, NOT Owner B's data
-      expectEmptyResult(crossTenantData)
-
-      // Verify Owner A only sees their own data
-      expect(ownerAData).toBeDefined()
-      expect(ownerAData.length).toBeGreaterThan(0)
-    })
-
-    it('should scope aggregate queries to authenticated user', async () => {
-      // Query total assets
-      const { data: assets } = await ownerA.client
-        .from('financial_accounts')
-        .select('balance')
-        .eq('account_type', 'asset')
-
-      // Verify all returned assets belong to Owner A
-      const ownerIds = assets?.map(a => a.owner_user_id).filter(Boolean)
-      const allOwnedByA = ownerIds?.every(id => id === ownerA.user_id)
-      expect(allOwnedByA).toBe(true)
+    rows.forEach(row => {
+      expect(row.maintenance_requests?.owner_user_id).toBe(ownerA.user_id)
     })
   })
 
-  describe('Income Statement Isolation', () => {
-    it('should filter revenue by user_id', async () => {
-      const { data: revenue } = await ownerA.client
-        .rpc('get_income_statement', {
-          user_id: ownerA.user_id,
-          period: 'monthly',
-          year: 2025
-        })
+  it('owner A cannot read owner B expenses', async () => {
+    if (!ownerB) return
+    const { data: ownerBExpense } = await ownerB.client
+      .from('expenses')
+      .select('id')
+      .limit(1)
+      .maybeSingle()
+    if (!ownerBExpense) return
 
-      // Verify revenue only includes Owner A's properties
-      expect(revenue).toBeDefined()
-      revenue?.forEach(record => {
-        expect(record.user_id).toBe(ownerA.user_id)
-      })
-    })
+    const { data, error } = await ownerA.client
+      .from('expenses')
+      .select('id')
+      .eq('id', ownerBExpense.id)
 
-    it('should not leak expenses across tenants', async () => {
-      // Owner B queries expenses
-      const { data: expensesB } = await ownerB.client
-        .from('expenses')
-        .select('*')
+    if (error) {
+      expectPermissionError(error, 'owner A querying owner B expense')
+    } else {
+      expectEmptyResult(data, 'owner A querying owner B expense')
+    }
+  })
 
-      // Verify none of Owner A's expenses are visible
-      const hasOwnerAExpenses = expensesB?.some(
-        exp => exp.user_id === ownerA.user_id
-      )
-      expect(hasOwnerAExpenses).toBe(false)
+  it('owner A can read maintenance requests and sees only their own records', async () => {
+    const { data, error } = await ownerA.client
+      .from('maintenance_requests')
+      .select('id, owner_user_id')
+
+    expect(error).toBeNull()
+    const rows = (data ?? []) as MaintenanceRequestRow[]
+    if (rows.length === 0) {
+      testLogger.warn('Owner A has no maintenance requests to validate ownership')
+      return
+    }
+
+    rows.forEach(row => {
+      expect(row.owner_user_id).toBe(ownerA.user_id)
     })
   })
 
-  describe('Cash Flow Isolation', () => {
-    it('should filter transactions by ownership', async () => {
-      const { data: cashFlow } = await ownerA.client
-        .rpc('get_cash_flow', {
-          user_id: ownerA.user_id,
-          start_date: '2025-01-01',
-          end_date: '2025-12-31'
-        })
+  it('tenant cannot read expenses', async () => {
+    if (!tenantA) return
+    const { data, error } = await tenantA.client
+      .from('expenses')
+      .select('id')
+      .limit(1)
 
-      // Verify all transactions belong to Owner A
-      cashFlow?.forEach(txn => {
-        expect(txn.owner_user_id).toBe(ownerA.user_id)
-      })
-    })
-
-    it('should respect RLS in payout aggregation', async () => {
-      // Query payouts
-      const { data: payouts } = await ownerA.client
-        .from('payouts')
-        .select('amount, stripe_transfer_id')
-
-      // Verify payouts are scoped to Owner A
-      expect(payouts).toBeDefined()
-      payouts?.forEach(payout => {
-        expect(payout.user_id).toBe(ownerA.user_id)
-      })
-    })
-  })
-
-  describe('Admin Client RLS Enforcement', () => {
-    it('should enforce user_id filtering even with admin client', async () => {
-      // Simulate financial service using admin client for performance
-      // BUT still filtering by user_id
-      const { data: adminData } = await serviceClient
-        .from('financial_accounts')
-        .select('*')
-        .eq('owner_user_id', ownerA.user_id)
-
-      // Verify filtering is applied
-      const allOwnedByA = adminData?.every(
-        acc => acc.owner_user_id === ownerA.user_id
-      )
-      expect(allOwnedByA).toBe(true)
-    })
-
-    it('should prevent accidental cross-tenant aggregation', async () => {
-      // Common anti-pattern: Admin client without user_id filter
-      const { data: unfiltered } = await serviceClient
-        .from('financial_accounts')
-        .select('SUM(balance) as total_balance')
-
-      // This test SHOULD FAIL if RLS is bypassed
-      // Proper implementation should throw error or return scoped data
-      expect(unfiltered).toBeDefined()
-
-      // Verify result is NOT aggregate of all users
-      // (exact assertion depends on RLS implementation)
-    })
+    if (error) {
+      expectPermissionError(error, 'tenant querying expenses')
+    } else {
+      expectEmptyResult(data, 'tenant querying expenses')
+    }
   })
 })
 ```
 
 **Acceptance Criteria:**
-- ✓ All 10 test cases pass
-- ✓ Tests fail when RLS bypassed (security regression)
-- ✓ Coverage for balance sheet, income statement, cash flow
-- ✓ Admin client enforcement verified
+- ✓ Expenses + maintenance_requests isolation validated
+- ✓ Cross-tenant access returns empty or permission error
+- ✓ Tenant expense access blocked
+- ✓ Tests skip cleanly when optional users/RLS flags are missing
 
 **Files to Test:**
-- `apps/backend/src/modules/financial/balance-sheet.service.ts`
-- `apps/backend/src/modules/financial/financial.service.ts`
-- `apps/backend/src/modules/financial/financial-revenue.service.ts`
-- `apps/backend/src/modules/financial/financial-expense.service.ts`
+- `apps/backend/test/integration/rls/financial-isolation.integration.spec.ts`
 
 ---
 
@@ -196,35 +147,27 @@ describe('RLS: Financial Isolation', () => {
 **Template:**
 ```typescript
 import { Test } from '@nestjs/testing'
-import { NotFoundException, BadRequestException } from '@nestjs/common'
+import { BadRequestException } from '@nestjs/common'
 import { PropertyLifecycleService } from './property-lifecycle.service'
 import { SupabaseService } from '../../../database/supabase.service'
-import { SilentLogger } from '../../../__test__/silent-logger'
+import { PropertyCacheInvalidationService } from './property-cache-invalidation.service'
+import { PropertiesService } from '../properties.service'
+import { SilentLogger } from '../../../__tests__/silent-logger'
 import { AppLogger } from '../../../logger/app-logger.service'
 
 describe('PropertyLifecycleService', () => {
   let service: PropertyLifecycleService
-  let mockSupabase: jest.Mocked<SupabaseService>
 
   beforeEach(async () => {
-    // Mock Supabase client
-    const mockClient = {
-      from: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      select: jest.fn().mockReturnThis(),
-      single: jest.fn()
-    }
-
-    mockSupabase = {
-      getUserClient: jest.fn(() => mockClient),
-      getAdminClient: jest.fn(() => mockClient)
-    } as unknown as jest.Mocked<SupabaseService>
-
     const module = await Test.createTestingModule({
       providers: [
         PropertyLifecycleService,
-        { provide: SupabaseService, useValue: mockSupabase },
+        { provide: SupabaseService, useValue: { getUserClient: jest.fn() } },
+        { provide: PropertiesService, useValue: { findOne: jest.fn() } },
+        {
+          provide: PropertyCacheInvalidationService,
+          useValue: { invalidatePropertyCaches: jest.fn() }
+        },
         { provide: AppLogger, useValue: new SilentLogger() }
       ]
     }).compile()
@@ -232,144 +175,27 @@ describe('PropertyLifecycleService', () => {
     service = module.get<PropertyLifecycleService>(PropertyLifecycleService)
   })
 
-  describe('archiveProperty', () => {
-    it('should transition active property to archived', async () => {
-      // Setup: Active property
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'active' },
-        error: null
-      })
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'archived' },
-        error: null
-      })
-
-      // Execute
-      const result = await service.archiveProperty(propertyId, userId)
-
-      // Verify
-      expect(result.status).toBe('archived')
-      expect(mockClient.update).toHaveBeenCalledWith({ status: 'archived' })
+  describe('remove', () => {
+    it('soft deletes property and invalidates caches', async () => {
+      // assert update payload includes status: inactive + updated_at
     })
 
-    it('should throw error when archiving already archived property', async () => {
-      // Setup: Already archived
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'archived' },
-        error: null
-      })
-
-      // Execute & Verify
+    it('throws when auth token is missing', async () => {
       await expect(
-        service.archiveProperty(propertyId, userId)
-      ).rejects.toThrow(BadRequestException)
-    })
-
-    it('should cascade archive to units when property archived', async () => {
-      // Setup: Property with units
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'active' },
-        error: null
-      })
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'archived' },
-        error: null
-      })
-
-      // Execute
-      await service.archiveProperty(propertyId, userId)
-
-      // Verify units were also archived
-      expect(mockClient.from).toHaveBeenCalledWith('units')
-      expect(mockClient.update).toHaveBeenCalledWith({ status: 'archived' })
-      expect(mockClient.eq).toHaveBeenCalledWith('property_id', propertyId)
-    })
-
-    it('should throw NotFoundException when property not found', async () => {
-      const propertyId = 'invalid-id'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: null,
-        error: { message: 'Not found' }
-      })
-
-      await expect(
-        service.archiveProperty(propertyId, userId)
-      ).rejects.toThrow(NotFoundException)
-    })
-  })
-
-  describe('activateProperty', () => {
-    it('should transition inactive property to active', async () => {
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'inactive' },
-        error: null
-      })
-      mockClient.single.mockResolvedValueOnce({
-        data: { id: propertyId, status: 'active' },
-        error: null
-      })
-
-      const result = await service.activateProperty(propertyId, userId)
-
-      expect(result.status).toBe('active')
-    })
-
-    it('should validate property is ready for activation', async () => {
-      // Setup: Property missing required fields (e.g., no units)
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: {
-          id: propertyId,
-          status: 'inactive',
-          unit_count: 0 // No units defined
-        },
-        error: null
-      })
-
-      // Execute & Verify
-      await expect(
-        service.activateProperty(propertyId, userId)
+        service.remove({} as never, 'prop-1')
       ).rejects.toThrow(BadRequestException)
     })
   })
 
-  describe('bulkArchiveProperties', () => {
-    it('should archive multiple properties in single transaction', async () => {
-      const propertyIds = ['prop-1', 'prop-2', 'prop-3']
-      const userId = 'user-123'
+  describe('markAsSold', () => {
+    it('marks property as sold with date + price', async () => {
+      // assert status, date_sold, sale_price set and message formatted
+    })
 
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValue({
-        data: { count: 3 },
-        error: null
-      })
-
-      const result = await service.bulkArchiveProperties(propertyIds, userId)
-
-      expect(result.archived_count).toBe(3)
-      expect(mockClient.update).toHaveBeenCalledWith({ status: 'archived' })
+    it('throws when property not found', async () => {
+      await expect(
+        service.markAsSold({} as never, 'prop-1', new Date(), 100000)
+      ).rejects.toThrow(BadRequestException)
     })
   })
 })
@@ -377,9 +203,9 @@ describe('PropertyLifecycleService', () => {
 
 **Acceptance Criteria:**
 - ✓ ≥80% statement coverage
-- ✓ All public methods tested
-- ✓ Edge cases covered (null, invalid state)
-- ✓ Integration with Supabase client verified
+- ✓ remove + markAsSold covered (success + error cases)
+- ✓ Edge cases covered (missing token, missing property, DB error)
+- ✓ Cache invalidation verified on remove
 
 ---
 
@@ -392,7 +218,7 @@ describe('PropertyLifecycleService', () => {
 import { Test } from '@nestjs/testing'
 import { UnitQueryService } from './unit-query.service'
 import { SupabaseService } from '../../../database/supabase.service'
-import { SilentLogger } from '../../../__test__/silent-logger'
+import { SilentLogger } from '../../../__tests__/silent-logger'
 import { AppLogger } from '../../../logger/app-logger.service'
 
 describe('UnitQueryService', () => {
@@ -425,79 +251,37 @@ describe('UnitQueryService', () => {
   })
 
   describe('findByProperty', () => {
-    it('should return all units for a property', async () => {
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.select.mockResolvedValueOnce({
-        data: [
-          { id: 'unit-1', property_id: propertyId },
-          { id: 'unit-2', property_id: propertyId }
-        ],
-        error: null
-      })
-
-      const result = await service.findByProperty(propertyId, userId)
-
-      expect(result).toHaveLength(2)
-      expect(mockClient.eq).toHaveBeenCalledWith('property_id', propertyId)
-    })
-
-    it('should filter by status when provided', async () => {
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-      const status = 'available'
-
-      await service.findByProperty(propertyId, userId, { status })
-
-      const mockClient = mockSupabase.getUserClient()
-      expect(mockClient.eq).toHaveBeenCalledWith('status', status)
-    })
-
-    it('should paginate results correctly', async () => {
-      const propertyId = 'prop-123'
-      const userId = 'user-123'
-      const page = 2
-      const limit = 10
-
-      await service.findByProperty(propertyId, userId, { page, limit })
-
-      const mockClient = mockSupabase.getUserClient()
-      expect(mockClient.range).toHaveBeenCalledWith(10, 19) // (page-1)*limit, page*limit-1
+    it('should return units for a property in unit_number order', async () => {
+      const result = await service.findByProperty('mock-token', 'property-123')
+      expect(Array.isArray(result)).toBe(true)
     })
   })
 
-  describe('searchUnits', () => {
-    it('should search by unit number', async () => {
-      const query = '101'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.select.mockResolvedValueOnce({
-        data: [{ id: 'unit-1', unit_number: '101' }],
-        error: null
+  describe('findAll', () => {
+    it('applies filters, pagination, and sorting', async () => {
+      await service.findAll('mock-token', {
+        property_id: 'property-123',
+        status: 'available',
+        search: 'A1',
+        limit: 25,
+        offset: 50,
+        sortBy: 'unit_number',
+        sortOrder: 'asc'
       })
-
-      const result = await service.searchUnits(query, userId)
-
-      expect(result).toHaveLength(1)
-      expect(result[0].unit_number).toBe('101')
     })
+  })
 
-    it('should handle empty search results', async () => {
-      const query = 'nonexistent'
-      const userId = 'user-123'
+  describe('findOne', () => {
+    it('throws when unit is missing or token is missing', async () => {
+      await expect(service.findOne('', 'unit-1')).rejects.toThrow()
+      await expect(service.findOne('mock-token', '')).rejects.toThrow()
+    })
+  })
 
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.select.mockResolvedValueOnce({
-        data: [],
-        error: null
-      })
-
-      const result = await service.searchUnits(query, userId)
-
-      expect(result).toHaveLength(0)
+  describe('getAvailable', () => {
+    it('returns available units for property', async () => {
+      const result = await service.getAvailable('mock-token', 'property-123')
+      expect(Array.isArray(result)).toBe(true)
     })
   })
 })
@@ -542,56 +326,33 @@ describe('UnitStatsService', () => {
     service = module.get<UnitStatsService>(UnitStatsService)
   })
 
-  describe('getOccupancyRate', () => {
-    it('should calculate occupancy rate correctly', async () => {
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { total_units: 10, occupied_units: 7 },
-        error: null
-      })
-
-      const result = await service.getOccupancyRate(userId)
-
-      expect(result.occupancy_rate).toBe(0.7) // 70%
-      expect(result.total_units).toBe(10)
-      expect(result.occupied_units).toBe(7)
+  describe('getStats', () => {
+    it('calculates totals, occupancy, and rent metrics', async () => {
+      const result = await service.getStats('mock-token')
+      expect(result).toHaveProperty('occupancyRate')
+      expect(result).toHaveProperty('totalPotentialRent')
     })
 
-    it('should handle zero units gracefully', async () => {
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.single.mockResolvedValueOnce({
-        data: { total_units: 0, occupied_units: 0 },
-        error: null
-      })
-
-      const result = await service.getOccupancyRate(userId)
-
-      expect(result.occupancy_rate).toBe(0)
+    it('throws when token is missing', async () => {
+      await expect(service.getStats('')).rejects.toThrow()
     })
   })
 
-  describe('getRevenueByUnit', () => {
-    it('should aggregate monthly revenue by unit', async () => {
-      const unitId = 'unit-123'
-      const userId = 'user-123'
-
-      const mockClient = mockSupabase.getUserClient()
-      mockClient.select.mockResolvedValueOnce({
-        data: [
-          { month: '2025-01', revenue: 150000 },
-          { month: '2025-02', revenue: 150000 }
-        ],
-        error: null
+  describe('getAnalytics', () => {
+    it('returns analytics rows and supports property filter', async () => {
+      const result = await service.getAnalytics('mock-token', {
+        timeframe: '12m',
+        property_id: 'property-123'
       })
+      expect(Array.isArray(result)).toBe(true)
+    })
+  })
 
-      const result = await service.getRevenueByUnit(unitId, userId)
-
-      expect(result).toHaveLength(2)
-      expect(result[0].revenue).toBe(150000) // $1,500.00 in cents
+  describe('getUnitStatistics', () => {
+    it('combines stats + analytics into summary/breakdown', async () => {
+      const result = await service.getUnitStatistics('mock-token')
+      expect(result).toHaveProperty('summary')
+      expect(result).toHaveProperty('financial')
     })
   })
 })
@@ -645,29 +406,23 @@ describe('UnitQueryService - N+1 Prevention', () => {
     service = module.get<UnitQueryService>(UnitQueryService)
   })
 
-  it('should batch query units instead of N queries per property', async () => {
-    queryCount = 0
-
-    // Setup: 10 properties
-    const propertyIds = Array.from({ length: 10 }, (_, i) => `prop-${i}`)
-    const userId = 'user-123'
-
-    // Execute: Get all units for multiple properties
-    await service.findByProperties(propertyIds, userId)
-
-    // Assertion: Should be 1 query with IN clause, not 10 separate queries
-    expect(queryCount).toBeLessThanOrEqual(1)
+  it('findAll uses a single query', async () => {
+    await service.findAll('mock-token', { status: 'available' })
+    expect(queryCount).toBe(1)
   })
 
-  it('should use single query for unit stats aggregation', async () => {
-    queryCount = 0
+  it('findByProperty uses a single query', async () => {
+    await service.findByProperty('mock-token', 'property-123')
+    expect(queryCount).toBe(1)
+  })
 
-    const userId = 'user-123'
+  it('getAvailable uses a single query', async () => {
+    await service.getAvailable('mock-token', 'property-123')
+    expect(queryCount).toBe(1)
+  })
 
-    // Execute: Get stats across all user's units
-    await service.getUnitStatsSummary(userId)
-
-    // Assertion: Single aggregate query
+  it('findOne uses a single query', async () => {
+    await service.findOne('mock-token', 'unit-123')
     expect(queryCount).toBe(1)
   })
 })

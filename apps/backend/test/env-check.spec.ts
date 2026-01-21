@@ -11,7 +11,7 @@ describe('Environment Variables Access', () => {
 	it('should access SUPABASE_URL from environment', () => {
 		testLogger.log('SUPABASE_URL:', process.env.SUPABASE_URL)
 
-		// Skip in CI environments without secrets (unit tests don't require Doppler)
+		// Skip in CI environments without secrets
 		if (process.env.CI && !process.env.SUPABASE_URL) {
 			testLogger.log(
 				'Skipping SUPABASE_URL check - not available in CI unit tests'
@@ -34,7 +34,7 @@ describe('Environment Variables Access', () => {
 			process.env.SECRET_KEY_SUPABASE?.substring(0, 20)
 		)
 
-		// SECRET_KEY_SUPABASE is only available when running with doppler run --
+		// SECRET_KEY_SUPABASE is only available when running with 
 		// Skip this check in CI/unit test environments without secrets
 		if (!process.env.SECRET_KEY_SUPABASE) {
 			testLogger.log(

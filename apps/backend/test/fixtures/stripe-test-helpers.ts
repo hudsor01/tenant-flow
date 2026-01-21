@@ -268,7 +268,17 @@ export async function waitForCondition(
  */
 export function isStripeTestModeAvailable(): boolean {
 	const secretKey = process.env.STRIPE_SECRET_KEY
-	return Boolean(secretKey && secretKey.startsWith('sk_test_'))
+	if (!secretKey || !secretKey.startsWith('sk_test_')) {
+		return false
+	}
+
+	const normalized = secretKey.toLowerCase()
+	const isPlaceholder =
+		normalized.includes('mock') ||
+		normalized.includes('placeholder') ||
+		normalized.includes('not_real')
+
+	return !isPlaceholder
 }
 
 /**

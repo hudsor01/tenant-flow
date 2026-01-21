@@ -30,7 +30,7 @@ echo ""
 # Validate DATABASE_URL
 if [ -z "$DATABASE_URL" ]; then
   echo -e "${RED}ERROR: DATABASE_URL environment variable not set${NC}"
-  echo "Run with: doppler run -- ./scripts/verify-seeds.sh $TIER"
+  echo "Run with: ./scripts/verify-seeds.sh $TIER"
   exit 1
 fi
 
