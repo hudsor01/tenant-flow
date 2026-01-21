@@ -307,11 +307,12 @@ Plans:
 
 ---
 
-#### Phase 32: Frontend Test Coverage Restoration
+#### Phase 32: Frontend Test Coverage Restoration ✅ COMPLETE
 
 **Goal**: Restore 70+ deleted frontend tests running against real QueryClient/stores with MSW
 **Depends on**: Phase 31
 **Research**: Complete ✅
+**Status**: Complete ✅
 
 **Research Findings:**
 - Test production parity: Real `QueryClient` (not mocked), real Zustand stores, MSW for network layer
@@ -346,7 +347,7 @@ function createWrapper() {
 **Plans**: 1 plan
 
 Plans:
-- [ ] 32-01: Core domain hook tests (tenant, lease) + test utilities
+- [x] 32-01: Core domain hook tests (tenant, lease) + test utilities
 
 ---
 
@@ -358,8 +359,8 @@ Plans:
 | v1.1 Tech Debt Resolution | 6-10 | 4 | Complete | 2026-01-15 |
 | v2.0 Stripe Integration Excellence | 11-17 | 18 | Complete | 2026-01-17 |
 | v3.0 Backend Architecture Excellence | 18-25 | 8 | Complete | 2026-01-20 |
-| v4.0 Production-Parity Testing & Observability | 26-32 | 5/? | In Progress | - |
+| v4.0 Production-Parity Testing & Observability | 26-32 | 9 | Complete | 2026-01-21 |
 
-**Total:** 27 phases, 52 plans shipped across 4 milestones
+**Total:** 32 phases, 56 plans shipped across 5 milestones
 
-**Current:** v4.0 in progress. Phase 30 complete. Phase 31 ready to plan.
+**Current:** v4.0 complete. Ready for milestone completion.
