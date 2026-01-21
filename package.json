@@ -58,7 +58,8 @@
 		"detect:types": "./scripts/check-duplicate-types.sh",
 		"docker:test": "bash scripts/docker-test.sh",
 		"docker:up": "docker compose up -d",
-		"docker:down": "docker compose down -v"
+		"docker:down": "docker compose down -v",
+		"test:smoke": "bash scripts/smoke-test.sh"
 	},
 	"commitlint": {
 		"extends": [
