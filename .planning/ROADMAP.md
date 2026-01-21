@@ -275,11 +275,12 @@ Plans:
 
 ---
 
-#### Phase 31: Synthetic Monitoring & Production Smoke Tests
+#### Phase 31: Synthetic Monitoring & Production Smoke Tests ✅ COMPLETE
 
 **Goal**: Post-deployment verification, scheduled health checks, alerting integration
 **Depends on**: Phase 30
 **Research**: Complete ✅
+**Status**: Complete ✅
 
 **Research Findings:**
 - Current health endpoints are solid: `/health/ping`, `/health/ready`, `/health`, `/health/stripe-sync` ✅
@@ -299,10 +300,10 @@ curl -sf "$BACKEND_URL/health/ready" || exit 1
 curl -sf "$BACKEND_URL/health/stripe-sync" | grep -q "healthy" || exit 1
 ```
 
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 31-01: TBD
+- [x] 31-01: Smoke test script, package.json integration, monitoring runbook
 
 ---
 
