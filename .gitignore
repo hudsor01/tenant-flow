@@ -367,3 +367,9 @@ after-signin-click.png
 tenants-page
 *-page
 *-page.png
+
+# Planning documents (local only)
+.planning/
+
+# Example env file (not needed in repo)
+.env.example
