@@ -109,7 +109,7 @@ Tests inherit from root `playwright.config.ts`:
 // Root config
 baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000'
 webServer: {
- command: 'doppler run -- pnpm --filter @repo/frontend dev',
+ command: 'pnpm --filter @repo/frontend dev',
  url: 'http://localhost:3000',
  reuseExistingServer: true,
 }

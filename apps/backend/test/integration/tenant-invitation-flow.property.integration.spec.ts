@@ -12,7 +12,18 @@ import request from 'supertest'
 import { AppModule } from '../../src/app.module'
 import { SupabaseService } from '../../src/database/supabase.service'
 
-describe('Tenant Invitation Flow - Property-Based Integration Tests', () => {
+const serviceRoleKey =
+	process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ??
+	process.env.SUPABASE_SERVICE_ROLE_KEY ??
+	process.env.SECRET_KEY_SUPABASE ??
+	process.env.SB_SECRET_KEY ??
+	process.env.SUPABASE_SECRET_KEY ??
+	''
+
+const isJwtServiceRoleKey = serviceRoleKey.split('.').length === 3
+const describeIf = isJwtServiceRoleKey ? describe : describe.skip
+
+describeIf('Tenant Invitation Flow - Property-Based Integration Tests', () => {
 	let app: INestApplication
 	let supabaseService: SupabaseService
 	let testUserId: string

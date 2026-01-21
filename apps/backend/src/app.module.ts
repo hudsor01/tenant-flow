@@ -50,6 +50,8 @@ import type { Request } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { randomUUID } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { validate } from './config/config.schema'
@@ -95,6 +97,17 @@ import { DocuSealModule } from './modules/docuseal/docuseal.module'
 import { AdminModule } from './modules/admin/admin.module'
 import { DocumentsModule } from './modules/documents/documents.module'
 
+const ENV_FILE_CANDIDATES = [
+	`.env.${process.env.NODE_ENV}.local`,
+	`.env.${process.env.NODE_ENV}`,
+	'.env.local',
+	'.env'
+]
+
+const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
+	resolve(process.cwd(), candidate)
+).filter(path => existsSync(path))
+
 /**
  * Core App Module - KISS principle
  * Essential business modules with simplified configuration
@@ -106,6 +119,7 @@ import { DocumentsModule } from './modules/documents/documents.module'
 
 		ConfigModule.forRoot({
 			isGlobal: true,
+			...(ENV_FILE_PATHS.length > 0 && { envFilePath: ENV_FILE_PATHS }),
 			validate
 		}),
 

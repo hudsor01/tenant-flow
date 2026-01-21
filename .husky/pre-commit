@@ -8,7 +8,7 @@ echo "🔍 Running pre-commit validation (db types + duplicate check + lockfile 
 # Step 1: Regenerate DB types from live schema (ensures types are always current)
 echo "🗄️ Regenerating DB types from Supabase..."
 if ! pnpm db:types > /dev/null 2>&1; then
-  echo "⚠️ DB type regeneration failed (Doppler/network issue) - continuing with existing types"
+  echo "⚠️ DB type regeneration failed - continuing with existing types"
 fi
 # Stage any type changes
 git add packages/shared/src/types/supabase.ts 2>/dev/null || true

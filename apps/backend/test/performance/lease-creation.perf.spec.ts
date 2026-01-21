@@ -7,7 +7,6 @@
  * - No N+1 query patterns
  *
  * PREREQUISITES:
- * - Backend running with doppler
  * - Test users configured
  * - Database populated with test data
  */

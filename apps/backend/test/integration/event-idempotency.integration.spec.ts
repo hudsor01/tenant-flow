@@ -10,9 +10,6 @@
  * PREREQUISITES:
  * - Local Supabase must be running: `supabase start`
  * - Migration must be applied: `supabase db push`
- * - Environment variables must be set in Doppler:
- *   - TEST_SUPABASE_URL (local: http://127.0.0.1:54321)
- *   - TEST_SUPABASE_SECRET_KEY (local: from `supabase status`)
  */
 
 import type { Database } from '@repo/shared/types/supabase'
@@ -36,7 +33,7 @@ const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
 if (missingEnv.length > 0 && shouldRunIntegration) {
 	throw new Error(
 		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
-			`Set these in Doppler or CI secrets:\n` +
+			`Set these in CI secrets:\n` +
 			`  - TEST_SUPABASE_URL (e.g., http://127.0.0.1:54321)\n` +
 			`  - TEST_SUPABASE_SECRET_KEY (from \`supabase status\`)`
 	)

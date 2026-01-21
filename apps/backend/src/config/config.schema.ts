@@ -43,7 +43,7 @@ const environmentSchema = z
 		JWT_PUBLIC_KEY_STANDBY: z.string().optional(),
 		JWT_EXPIRES_IN: z.string().default('7d'),
 
-		// Supabase (with fallback to NEXT_PUBLIC_* naming convention from Doppler)
+		// Supabase (with fallback to NEXT_PUBLIC_* naming convention)
 		SUPABASE_URL: z.preprocess(
 			val => val || process.env.NEXT_PUBLIC_SUPABASE_URL,
 			z
@@ -200,6 +200,10 @@ const environmentSchema = z
 			.email('Must be a valid email address')
 			.default('noreply@tenantflow.app'),
 		TEST_RESEND_API_KEY: z.string().optional(),
+		// Resend webhook secret for signature verification (from Resend dashboard)
+		RESEND_WEBHOOK_SECRET: z.string().optional(),
+		// Enable Resend webhook controller to receive email tracking events
+		RESEND_WEBHOOKS_ENABLED: z.coerce.boolean().default(false),
 
 		// DocuSeal (Self-hosted e-signature)
 		DOCUSEAL_API_URL: z
@@ -246,14 +250,24 @@ const environmentSchema = z
 		SKIP_PRODUCTION_VALIDATION: z.coerce.boolean().default(false)
 	})
 	.superRefine((config, ctx) => {
+		if (config.RESEND_WEBHOOKS_ENABLED && !config.RESEND_WEBHOOK_SECRET) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				path: ['RESEND_WEBHOOK_SECRET'],
+				message:
+					'RESEND_WEBHOOK_SECRET is required when RESEND_WEBHOOKS_ENABLED is true.'
+			})
+		}
+
 		if (config.NODE_ENV !== 'production') return
 
 		// Explicit opt-in to skip validation for local Docker testing
 		// This is safer than platform detection - requires conscious decision
 		if (config.SKIP_PRODUCTION_VALIDATION) {
-			console.warn(
+			// Use process.stderr.write during Zod validation (before NestJS Logger is available)
+			process.stderr.write(
 				'⚠️  SKIP_PRODUCTION_VALIDATION is set - skipping Redis/Resend validation. ' +
-					'This should ONLY be used for local Docker testing!'
+					'This should ONLY be used for local Docker testing!\n'
 			)
 			return
 		}

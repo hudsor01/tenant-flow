@@ -38,7 +38,7 @@ const shouldRunIntegration = process.env.CI || process.env.RUN_INTEGRATION_TESTS
 if (missingEnv.length > 0 && shouldRunIntegration) {
 	throw new Error(
 		`Integration tests FAILED - Missing required env vars: ${missingEnv.join(', ')}\n` +
-			`Set these in Doppler or CI secrets.`
+			`Set these in CI secrets.`
 	)
 }
 

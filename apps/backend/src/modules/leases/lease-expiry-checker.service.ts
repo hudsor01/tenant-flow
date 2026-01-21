@@ -17,6 +17,8 @@ import { AppLogger } from '../../logger/app-logger.service'
  *
  * Idempotency: The LeaseExpiryNotificationListener checks for existing notifications
  * before creating new ones, preventing duplicates.
+ *
+ * Runs daily at 9 AM via NestJS scheduler.
  */
 @Injectable()
 export class LeaseExpiryCheckerService {

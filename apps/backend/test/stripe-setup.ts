@@ -14,9 +14,16 @@ import { StripeTestFixtures } from './fixtures/stripe-test-fixtures'
  */
 export default async function globalTeardown(): Promise<void> {
 	// Only attempt cleanup if Stripe is configured
+	const secretKey = process.env.STRIPE_SECRET_KEY
+	if (!secretKey || !secretKey.startsWith('sk_test_')) {
+		return
+	}
+
+	const normalized = secretKey.toLowerCase()
 	if (
-		!process.env.STRIPE_SECRET_KEY ||
-		!process.env.STRIPE_SECRET_KEY.startsWith('sk_test_')
+		normalized.includes('mock') ||
+		normalized.includes('placeholder') ||
+		normalized.includes('not_real')
 	) {
 		return
 	}

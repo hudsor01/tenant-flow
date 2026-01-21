@@ -7,7 +7,7 @@
  * - Calculates exponential backoff correctly
  * - Queries leases successfully using admin client
  *
- * Run with: RUN_INTEGRATION_TESTS=true doppler run -- pnpm --filter @repo/backend exec jest subscription-retry.integration.spec.ts
+ * Run with: RUN_INTEGRATION_TESTS=true pnpm --filter @repo/backend exec jest subscription-retry.integration.spec.ts
  */
 
 import { Test, type TestingModule } from '@nestjs/testing'
