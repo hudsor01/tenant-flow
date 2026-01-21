@@ -1,300 +1,293 @@
 -- ========================================
--- TenantFlow Seed Data (Placeholder)
+-- TenantFlow Seed Data - Default (Smoke Tier)
 -- ========================================
--- Note: The original seed script was designed for a Prisma-style schema
--- with PascalCase table names. The current schema uses snake_case.
 --
--- For local development, you can:
--- 1. Create test data via the application
--- 2. Run integration tests which create their own fixtures
+-- This is the default seed file run by `supabase start`.
+-- It uses the SMOKE tier for fast CI and quick local startup.
 --
--- This file is intentionally minimal to allow supabase start to succeed.
+-- THREE-TIER SEED DATA SYSTEM:
+-- ============================================================================
+--
+-- 1. SMOKE (this file, via supabase start)
+--    - Minimal data for CI pipelines (<5 seconds)
+--    - 2 owners, 2 tenants, 4 properties, 8 units
+--    - RLS isolation test data
+--    - Run: `supabase start` or `pnpm db:seed:smoke`
+--
+-- 2. DEVELOPMENT
+--    - Realistic data for local development
+--    - 10 owners, 50 tenants, varied properties/units
+--    - 24-month temporal distribution
+--    - Run: `pnpm db:seed:dev`
+--
+-- 3. PERFORMANCE
+--    - Large-scale data for load testing
+--    - 100 owners, 500 tenants, 1000+ properties
+--    - 5000+ units, 10000+ leases, 50000+ maintenance requests
+--    - Run: `pnpm db:seed:perf`
+--
+-- Seed files location: supabase/seeds/
+-- - seed-common.sql    - Shared helpers and version tracking
+-- - seed-smoke.sql     - Minimal CI data
+-- - seed-development.sql - Realistic dev data
+-- - seed-performance.sql - Load test data
+--
+-- ============================================================================
 
--- Seed minimal graph to enable maintenance_requests analytics tests
-DO $$
-DECLARE
-  v_owner_user uuid;
-  v_tenant_user uuid;
-  v_owner      uuid;
-  v_property   uuid;
-  v_unit       uuid;
-  v_tenant     uuid;
-BEGIN
-  -- Owner user (idempotent by email)
-  SELECT id INTO v_owner_user FROM public.users WHERE email = 'owner.seed@example.com' LIMIT 1;
-  IF v_owner_user IS NULL THEN
-    INSERT INTO public.users (email, full_name, user_type)
-    VALUES ('owner.seed@example.com', 'Seed Owner', 'OWNER')
-    RETURNING id INTO v_owner_user;
-  END IF;
+-- ----------------------------------------------------------------------------
+-- Include seed-common.sql (helpers and version tracking)
+-- ----------------------------------------------------------------------------
 
-  -- Tenant user (idempotent by email)
-  SELECT id INTO v_tenant_user FROM public.users WHERE email = 'tenant.seed@example.com' LIMIT 1;
-  IF v_tenant_user IS NULL THEN
-    INSERT INTO public.users (email, full_name, user_type)
-    VALUES ('tenant.seed@example.com', 'Seed Tenant', 'TENANT')
-    RETURNING id INTO v_tenant_user;
-  END IF;
+-- Seed Version Tracking Table
+create table if not exists public.seed_versions (
+  version text primary key,
+  tier text not null check (tier in ('smoke', 'development', 'performance')),
+  applied_at timestamptz default now() not null,
+  notes text
+);
 
-  -- Property owner profile (idempotent by user_id)
-  IF to_regclass('public.stripe_connected_accounts') IS NOT NULL THEN
-    SELECT id INTO v_owner FROM public.stripe_connected_accounts WHERE user_id = v_owner_user LIMIT 1;
-    IF v_owner IS NULL THEN
-      INSERT INTO public.stripe_connected_accounts (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-      VALUES (v_owner_user, 'acct_seed_123', 'sole_prop', 'Seed Property Group', true, true)
-      RETURNING id INTO v_owner;
-    END IF;
-  ELSE
-    SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
-    IF v_owner IS NULL THEN
-      INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-      VALUES (v_owner_user, 'acct_seed_123', 'sole_prop', 'Seed Property Group', true, true)
-      RETURNING id INTO v_owner;
-    END IF;
-  END IF;
+alter table public.seed_versions enable row level security;
 
-  -- Property (idempotent by owner + name)
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'properties' AND column_name = 'owner_user_id'
-  ) THEN
-    SELECT id INTO v_property FROM public.properties WHERE owner_user_id = v_owner_user AND name = 'Seed Residence' LIMIT 1;
-    IF v_property IS NULL THEN
-      INSERT INTO public.properties (owner_user_id, name, address_line1, city, state, postal_code, property_type, status)
-      VALUES (v_owner_user, 'Seed Residence', '123 Seed St', 'Seedville', 'CA', '94000', 'residential', 'active')
-      RETURNING id INTO v_property;
-    END IF;
-  ELSE
-    SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Seed Residence' LIMIT 1;
-    IF v_property IS NULL THEN
-      INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
-      VALUES (v_owner, 'Seed Residence', '123 Seed St', 'Seedville', 'CA', '94000', 'residential', 'active')
-      RETURNING id INTO v_property;
-    END IF;
-  END IF;
+drop policy if exists "seed_versions_select_authenticated" on public.seed_versions;
+create policy "seed_versions_select_authenticated"
+  on public.seed_versions
+  for select
+  to authenticated
+  using (true);
 
-  -- Unit (idempotent by property + unit_number)
-  SELECT id INTO v_unit FROM public.units WHERE property_id = v_property AND unit_number = '1A' LIMIT 1;
-  IF v_unit IS NULL THEN
-    IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = 'units' AND column_name = 'owner_user_id'
-    ) THEN
-      INSERT INTO public.units (property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-      VALUES (v_property, v_owner_user, '1A', 2, 1.0, 900, 1800, 'available')
-      RETURNING id INTO v_unit;
-    ELSE
-      INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-      VALUES (v_property, v_owner, '1A', 2, 1.0, 900, 1800, 'available')
-      RETURNING id INTO v_unit;
-    END IF;
-  END IF;
+drop policy if exists "seed_versions_insert_service" on public.seed_versions;
+create policy "seed_versions_insert_service"
+  on public.seed_versions
+  for insert
+  to service_role
+  with check (true);
 
-  -- Tenant profile (idempotent by user_id)
-  SELECT id INTO v_tenant FROM public.tenants WHERE user_id = v_tenant_user LIMIT 1;
-  IF v_tenant IS NULL THEN
-    INSERT INTO public.tenants (user_id, identity_verified)
-    VALUES (v_tenant_user, true)
-    RETURNING id INTO v_tenant;
-  END IF;
+comment on table public.seed_versions is 'Tracks applied seed data versions for idempotency';
 
-  -- Maintenance requests (one open, one completed)
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
-  ) THEN
-    INSERT INTO public.maintenance_requests
-      (unit_id, tenant_id, owner_user_id, status, priority, description, requested_by, created_at)
-    VALUES
-      (v_unit, v_tenant, v_owner_user, 'open',       'normal', 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
-      (v_unit, v_tenant, v_owner_user, 'completed',  'high',   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
-  ELSE
-    INSERT INTO public.maintenance_requests
-      (unit_id, tenant_id, property_owner_id, status, priority, description, requested_by, created_at)
-    VALUES
-      (v_unit, v_tenant, v_owner, 'open',       'normal', 'Leaking faucet in kitchen', v_tenant_user, now() - interval '2 days'),
-      (v_unit, v_tenant, v_owner, 'completed',  'high',   'HVAC not cooling, replaced filter', v_tenant_user, now() - interval '10 days');
-  END IF;
+-- Helper functions
+create or replace function public.seed_random_date(months_back int default 24)
+returns timestamptz
+language sql
+as $$
+  select now() - (random() * months_back * interval '30 days')
+$$;
 
-  -- Mark completion for the completed request
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
-  ) THEN
-    UPDATE public.maintenance_requests
-    SET completed_at = created_at + interval '1 day'
-    WHERE status = 'completed' AND owner_user_id = v_owner_user;
-  ELSE
-    UPDATE public.maintenance_requests
-    SET completed_at = created_at + interval '1 day'
-    WHERE status = 'completed' AND property_owner_id = v_owner;
-  END IF;
-END $$;
+create or replace function public.seed_random_choice(choices text[])
+returns text
+language sql
+as $$
+  select choices[1 + floor(random() * array_length(choices, 1))::int]
+$$;
 
--- Bulk synthetic data for performance testing (large owner dataset)
-DO $$
-DECLARE
-  v_owner_user uuid;
-  v_tenant_user uuid;
-  v_owner      uuid;
-  v_property   uuid;
-  v_unit       uuid;
-  v_tenant     uuid;
-BEGIN
-  -- Owner user for load test (idempotent)
-  SELECT id INTO v_owner_user FROM public.users WHERE email = 'owner.perf@example.com' LIMIT 1;
-  IF v_owner_user IS NULL THEN
-    INSERT INTO public.users (email, full_name, user_type)
-    VALUES ('owner.perf@example.com', 'Perf Owner', 'OWNER')
-    RETURNING id INTO v_owner_user;
-  END IF;
+create or replace function public.seed_random_int(min_val int, max_val int)
+returns int
+language sql
+as $$
+  select min_val + floor(random() * (max_val - min_val + 1))::int
+$$;
 
-  -- Tenant user for load test (idempotent)
-  SELECT id INTO v_tenant_user FROM public.users WHERE email = 'tenant.perf@example.com' LIMIT 1;
-  IF v_tenant_user IS NULL THEN
-    INSERT INTO public.users (email, full_name, user_type)
-    VALUES ('tenant.perf@example.com', 'Perf Tenant', 'TENANT')
-    RETURNING id INTO v_tenant_user;
-  END IF;
+create or replace function public.seed_random_decimal(min_val numeric, max_val numeric)
+returns numeric
+language sql
+as $$
+  select round((min_val + random() * (max_val - min_val))::numeric, 2)
+$$;
 
-  -- Property owner profile (idempotent by user_id)
-  IF to_regclass('public.stripe_connected_accounts') IS NOT NULL THEN
-    SELECT id INTO v_owner FROM public.stripe_connected_accounts WHERE user_id = v_owner_user LIMIT 1;
-    IF v_owner IS NULL THEN
-      INSERT INTO public.stripe_connected_accounts (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-      VALUES (v_owner_user, 'acct_perf_123', 'sole_prop', 'Perf Property Group', true, true)
-      RETURNING id INTO v_owner;
-    END IF;
-  ELSE
-    SELECT id INTO v_owner FROM public.property_owners WHERE user_id = v_owner_user LIMIT 1;
-    IF v_owner IS NULL THEN
-      INSERT INTO public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled)
-      VALUES (v_owner_user, 'acct_perf_123', 'sole_prop', 'Perf Property Group', true, true)
-      RETURNING id INTO v_owner;
-    END IF;
-  END IF;
+create or replace function public.seed_random_address()
+returns text
+language sql
+as $$
+  select (100 + floor(random() * 9900)::int)::text || ' ' ||
+         public.seed_random_choice(ARRAY['Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Birch', 'Willow', 'Cherry']) || ' ' ||
+         public.seed_random_choice(ARRAY['Street', 'Avenue', 'Drive', 'Lane', 'Court', 'Boulevard', 'Way', 'Place'])
+$$;
 
-  -- Property (idempotent by owner + name)
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'properties' AND column_name = 'owner_user_id'
-  ) THEN
-    SELECT id INTO v_property FROM public.properties WHERE owner_user_id = v_owner_user AND name = 'Perf Residence' LIMIT 1;
-    IF v_property IS NULL THEN
-      INSERT INTO public.properties (owner_user_id, name, address_line1, city, state, postal_code, property_type, status)
-      VALUES (v_owner_user, 'Perf Residence', '999 Perf St', 'Perfville', 'CA', '94001', 'residential', 'active')
-      RETURNING id INTO v_property;
-    END IF;
-  ELSE
-    SELECT id INTO v_property FROM public.properties WHERE property_owner_id = v_owner AND name = 'Perf Residence' LIMIT 1;
-    IF v_property IS NULL THEN
-      INSERT INTO public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
-      VALUES (v_owner, 'Perf Residence', '999 Perf St', 'Perfville', 'CA', '94001', 'residential', 'active')
-      RETURNING id INTO v_property;
-    END IF;
-  END IF;
+create or replace function public.seed_random_phone()
+returns text
+language sql
+as $$
+  select '+1' ||
+         (200 + floor(random() * 800)::int)::text ||
+         (100 + floor(random() * 900)::int)::text ||
+         (1000 + floor(random() * 9000)::int)::text
+$$;
 
-  -- Unit (idempotent by property + unit_number)
-  SELECT id INTO v_unit FROM public.units WHERE property_id = v_property AND unit_number = 'Perf-1' LIMIT 1;
-  IF v_unit IS NULL THEN
-    IF EXISTS (
-      SELECT 1 FROM information_schema.columns
-      WHERE table_schema = 'public' AND table_name = 'units' AND column_name = 'owner_user_id'
-    ) THEN
-      INSERT INTO public.units (property_id, owner_user_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-      VALUES (v_property, v_owner_user, 'Perf-1', 3, 2.0, 1200, 2500, 'available')
-      RETURNING id INTO v_unit;
-    ELSE
-      INSERT INTO public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
-      VALUES (v_property, v_owner, 'Perf-1', 3, 2.0, 1200, 2500, 'available')
-      RETURNING id INTO v_unit;
-    END IF;
-  END IF;
+-- ----------------------------------------------------------------------------
+-- Include seed-smoke.sql (minimal CI data)
+-- ----------------------------------------------------------------------------
 
-  -- Tenant profile (idempotent by user_id)
-  SELECT id INTO v_tenant FROM public.tenants WHERE user_id = v_tenant_user LIMIT 1;
-  IF v_tenant IS NULL THEN
-    INSERT INTO public.tenants (user_id, identity_verified)
-    VALUES (v_tenant_user, true)
-    RETURNING id INTO v_tenant;
-  END IF;
+-- Track seed version (idempotent)
+insert into public.seed_versions (version, tier, notes)
+values ('smoke-v1.0.0', 'smoke', 'Minimal CI seed: 2 owners, 2 tenants, 4 properties, 8 units')
+on conflict (version) do update
+set applied_at = now(),
+    notes = excluded.notes;
 
-  -- Insert many maintenance requests for perf testing
-  -- Insert perf maintenance requests only if fewer than 2000 exist for this owner
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'maintenance_requests' AND column_name = 'owner_user_id'
-  ) THEN
-    IF (SELECT COUNT(*) FROM public.maintenance_requests WHERE owner_user_id = v_owner_user) < 2000 THEN
-      INSERT INTO public.maintenance_requests (
-        unit_id,
-        tenant_id,
-        owner_user_id,
-        status,
-        priority,
-        description,
-        requested_by,
-        created_at,
-        completed_at
-      )
-      SELECT
-        v_unit,
-        v_tenant,
-        v_owner_user,
-        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] AS status,
-        (ARRAY['low','normal','high','urgent'])[(g % 4)+1] AS priority,
-        'Perf seed request #' || g AS description,
-        v_tenant_user,
-        now() - (g % 60) * interval '1 day' AS created_at,
-        CASE
-          WHEN (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] = 'completed'
-          THEN (now() - (g % 60) * interval '1 day') + interval '12 hours'
-          ELSE NULL
-        END AS completed_at
-      FROM generate_series(1, 2000) AS g
-      WHERE NOT EXISTS (
-        SELECT 1 FROM public.maintenance_requests mr
-        WHERE mr.owner_user_id = v_owner_user
-          AND mr.description = 'Perf seed request #' || g
-      );
-    END IF;
-  ELSE
-    IF (SELECT COUNT(*) FROM public.maintenance_requests WHERE property_owner_id = v_owner) < 2000 THEN
-      INSERT INTO public.maintenance_requests (
-        unit_id,
-        tenant_id,
-        property_owner_id,
-        status,
-        priority,
-        description,
-        requested_by,
-        created_at,
-        completed_at
-      )
-      SELECT
-        v_unit,
-        v_tenant,
-        v_owner,
-        (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] AS status,
-        (ARRAY['low','normal','high','urgent'])[(g % 4)+1] AS priority,
-        'Perf seed request #' || g AS description,
-        v_tenant_user,
-        now() - (g % 60) * interval '1 day' AS created_at,
-        CASE
-          WHEN (ARRAY['open','in_progress','completed','cancelled'])[(g % 4)+1] = 'completed'
-          THEN (now() - (g % 60) * interval '1 day') + interval '12 hours'
-          ELSE NULL
-        END AS completed_at
-      FROM generate_series(1, 2000) AS g
-      WHERE NOT EXISTS (
-        SELECT 1 FROM public.maintenance_requests mr
-        WHERE mr.property_owner_id = v_owner
-          AND mr.description = 'Perf seed request #' || g
-      );
-    END IF;
-  END IF;
+-- OWNER A
+do $$
+declare
+  v_owner_a_user_id uuid;
+  v_owner_a_po_id uuid;
+  v_tenant_a_user_id uuid;
+  v_tenant_a_id uuid;
+  v_property_a1_id uuid;
+  v_property_a2_id uuid;
+  v_unit_a1_id uuid;
+begin
+  -- Create Owner A user
+  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  values ('owner-a@test.com', 'Alice Anderson', 'Alice', 'Anderson', 'OWNER', '+15551001001', 'active')
+  on conflict (email) do update set full_name = excluded.full_name, updated_at = now()
+  returning id into v_owner_a_user_id;
 
-  RAISE NOTICE 'Perf test owner_user_id: %', v_owner_user;
-END $$;
+  -- Create Owner A property_owners record
+  insert into public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled, onboarding_status)
+  values (v_owner_a_user_id, 'acct_smoke_owner_a', 'sole_prop', 'Anderson Properties LLC', true, true, 'completed')
+  on conflict (user_id) do update set business_name = excluded.business_name, updated_at = now()
+  returning id into v_owner_a_po_id;
 
-SELECT 1;
+  -- Create Tenant A user
+  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  values ('tenant-a@test.com', 'Tom Thompson', 'Tom', 'Thompson', 'TENANT', '+15552001001', 'active')
+  on conflict (email) do update set full_name = excluded.full_name, updated_at = now()
+  returning id into v_tenant_a_user_id;
+
+  -- Create Tenant A profile
+  insert into public.tenants (user_id, identity_verified, emergency_contact_name, emergency_contact_phone)
+  values (v_tenant_a_user_id, true, 'Jane Thompson', '+15552001002')
+  on conflict (user_id) do update set identity_verified = excluded.identity_verified
+  returning id into v_tenant_a_id;
+
+  -- Create Property A1
+  insert into public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+  values (v_owner_a_po_id, 'Sunset Apartments', '100 Sunset Blvd', 'Los Angeles', 'CA', '90001', 'residential', 'active')
+  on conflict on constraint properties_pkey do nothing
+  returning id into v_property_a1_id;
+  if v_property_a1_id is null then
+    select id into v_property_a1_id from public.properties where property_owner_id = v_owner_a_po_id and name = 'Sunset Apartments' limit 1;
+  end if;
+
+  -- Create Property A2
+  insert into public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+  values (v_owner_a_po_id, 'Downtown Office Plaza', '200 Main Street', 'Los Angeles', 'CA', '90002', 'commercial', 'active')
+  on conflict on constraint properties_pkey do nothing;
+
+  -- Create Units for Property A1
+  insert into public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+  values
+    (v_property_a1_id, v_owner_a_po_id, 'A101', 2, 1.0, 850, 180000, 'occupied'),
+    (v_property_a1_id, v_owner_a_po_id, 'A102', 3, 2.0, 1200, 240000, 'available')
+  on conflict on constraint units_pkey do nothing;
+
+  select id into v_unit_a1_id from public.units where property_id = v_property_a1_id and unit_number = 'A101' limit 1;
+
+  -- Create active lease for Tenant A
+  insert into public.leases (unit_id, primary_tenant_id, property_owner_id, start_date, end_date, rent_amount, security_deposit, payment_day, lease_status, owner_signed_at, tenant_signed_at)
+  values (v_unit_a1_id, v_tenant_a_id, v_owner_a_po_id, current_date - interval '6 months', current_date + interval '6 months', 180000, 180000, 1, 'active', current_timestamp - interval '6 months', current_timestamp - interval '6 months' + interval '1 day')
+  on conflict on constraint leases_pkey do nothing;
+
+  -- Create maintenance requests
+  insert into public.maintenance_requests (unit_id, tenant_id, property_owner_id, title, description, status, priority, requested_by, created_at)
+  values
+    (v_unit_a1_id, v_tenant_a_id, v_owner_a_po_id, 'Leaky Kitchen Faucet', 'Kitchen sink faucet is dripping constantly', 'open', 'normal', v_tenant_a_user_id, now() - interval '2 days'),
+    (v_unit_a1_id, v_tenant_a_id, v_owner_a_po_id, 'HVAC Filter Replacement', 'Annual HVAC maintenance completed', 'completed', 'low', v_tenant_a_user_id, now() - interval '30 days')
+  on conflict on constraint maintenance_requests_pkey do nothing;
+
+  update public.maintenance_requests set completed_at = created_at + interval '2 days' where status = 'completed' and property_owner_id = v_owner_a_po_id and completed_at is null;
+
+  raise notice '✓ Owner A seeded';
+end $$;
+
+-- OWNER B
+do $$
+declare
+  v_owner_b_user_id uuid;
+  v_owner_b_po_id uuid;
+  v_tenant_b_user_id uuid;
+  v_tenant_b_id uuid;
+  v_property_b1_id uuid;
+  v_unit_b1_id uuid;
+begin
+  -- Create Owner B user
+  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  values ('owner-b@test.com', 'Bob Baker', 'Bob', 'Baker', 'OWNER', '+15551002002', 'active')
+  on conflict (email) do update set full_name = excluded.full_name, updated_at = now()
+  returning id into v_owner_b_user_id;
+
+  -- Create Owner B property_owners record
+  insert into public.property_owners (user_id, stripe_account_id, business_type, business_name, charges_enabled, payouts_enabled, onboarding_status)
+  values (v_owner_b_user_id, 'acct_smoke_owner_b', 'llc', 'Baker Realty Group', true, true, 'completed')
+  on conflict (user_id) do update set business_name = excluded.business_name, updated_at = now()
+  returning id into v_owner_b_po_id;
+
+  -- Create Tenant B user
+  insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
+  values ('tenant-b@test.com', 'Sarah Smith', 'Sarah', 'Smith', 'TENANT', '+15552002002', 'active')
+  on conflict (email) do update set full_name = excluded.full_name, updated_at = now()
+  returning id into v_tenant_b_user_id;
+
+  -- Create Tenant B profile
+  insert into public.tenants (user_id, identity_verified, emergency_contact_name, emergency_contact_phone)
+  values (v_tenant_b_user_id, true, 'Mike Smith', '+15552002003')
+  on conflict (user_id) do update set identity_verified = excluded.identity_verified
+  returning id into v_tenant_b_id;
+
+  -- Create Property B1
+  insert into public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+  values (v_owner_b_po_id, 'Oak Tree Condos', '300 Oak Lane', 'San Francisco', 'CA', '94102', 'residential', 'active')
+  on conflict on constraint properties_pkey do nothing
+  returning id into v_property_b1_id;
+  if v_property_b1_id is null then
+    select id into v_property_b1_id from public.properties where property_owner_id = v_owner_b_po_id and name = 'Oak Tree Condos' limit 1;
+  end if;
+
+  -- Create Property B2
+  insert into public.properties (property_owner_id, name, address_line1, city, state, postal_code, property_type, status)
+  values (v_owner_b_po_id, 'Market Street Complex', '400 Market Street', 'San Francisco', 'CA', '94103', 'mixed_use', 'active')
+  on conflict on constraint properties_pkey do nothing;
+
+  -- Create Units for Property B1
+  insert into public.units (property_id, property_owner_id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, status)
+  values
+    (v_property_b1_id, v_owner_b_po_id, 'B101', 1, 1.0, 650, 150000, 'occupied'),
+    (v_property_b1_id, v_owner_b_po_id, 'B102', 2, 1.5, 950, 200000, 'available')
+  on conflict on constraint units_pkey do nothing;
+
+  select id into v_unit_b1_id from public.units where property_id = v_property_b1_id and unit_number = 'B101' limit 1;
+
+  -- Create active lease for Tenant B
+  insert into public.leases (unit_id, primary_tenant_id, property_owner_id, start_date, end_date, rent_amount, security_deposit, payment_day, lease_status, owner_signed_at, tenant_signed_at)
+  values (v_unit_b1_id, v_tenant_b_id, v_owner_b_po_id, current_date - interval '3 months', current_date + interval '9 months', 150000, 150000, 1, 'active', current_timestamp - interval '3 months', current_timestamp - interval '3 months' + interval '2 days')
+  on conflict on constraint leases_pkey do nothing;
+
+  -- Create maintenance request
+  insert into public.maintenance_requests (unit_id, tenant_id, property_owner_id, title, description, status, priority, requested_by, created_at)
+  values (v_unit_b1_id, v_tenant_b_id, v_owner_b_po_id, 'Broken Window Latch', 'Bedroom window latch is broken', 'in_progress', 'high', v_tenant_b_user_id, now() - interval '5 days')
+  on conflict on constraint maintenance_requests_pkey do nothing;
+
+  raise notice '✓ Owner B seeded';
+end $$;
+
+-- Verification summary
+do $$
+declare
+  v_user_count int;
+  v_property_count int;
+  v_unit_count int;
+  v_lease_count int;
+begin
+  select count(*) into v_user_count from public.users where email like '%@test.com';
+  select count(*) into v_property_count from public.properties;
+  select count(*) into v_unit_count from public.units;
+  select count(*) into v_lease_count from public.leases;
+
+  raise notice '========================================';
+  raise notice 'SMOKE SEED COMPLETE';
+  raise notice '========================================';
+  raise notice 'Users: %, Properties: %, Units: %, Leases: %', v_user_count, v_property_count, v_unit_count, v_lease_count;
+  raise notice '';
+  raise notice 'For more data, run:';
+  raise notice '  pnpm db:seed:dev   - Development (realistic)';
+  raise notice '  pnpm db:seed:perf  - Performance (load testing)';
+  raise notice '========================================';
+end $$;

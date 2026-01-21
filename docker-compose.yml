@@ -12,11 +12,11 @@
 services:
   # PostgreSQL 17 - matches supabase/config.toml major_version
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18.1.0
     container_name: tenantflow-postgres
     restart: unless-stopped
     ports:
-      - "54322:5432"
+      - "54332:5432"  # Use 54332 to avoid conflict with Supabase (54322)
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -31,11 +31,11 @@ services:
 
   # Redis 7 - for BullMQ job queues
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     container_name: tenantflow-redis
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "6380:6379"  # Use 6380 to avoid conflict with local Redis
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -56,7 +56,8 @@ services:
     ports:
       - "4650:4650"
     env_file:
-      - .env.docker
+      - path: .env.docker
+        required: false  # Optional - create from .env.docker.example when needed
     depends_on:
       postgres:
         condition: service_healthy
