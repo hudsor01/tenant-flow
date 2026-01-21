@@ -9,11 +9,15 @@ const setupFilesAfterEnv = fs.existsSync(setupFile) ? [setupFile] : []
 // Global setup runs BEFORE any test files are loaded (critical for env vars)
 const globalSetup = path.resolve(__dirname, 'test/global-setup.js')
 
+// Global teardown for Stripe test fixtures cleanup
+const globalTeardown = path.resolve(__dirname, 'test/stripe-setup.ts')
+
 module.exports = {
 	displayName: 'backend',
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	globalSetup,
+	globalTeardown,
 	rootDir: '.',
 	cacheDirectory: '<rootDir>/node_modules/.cache/jest',
 	testMatch: [
@@ -68,7 +72,7 @@ module.exports = {
 	extensionsToTreatAsEsm: ['.ts'],
 	resolver: '<rootDir>/jest.resolver.js',
 	setupFilesAfterEnv,
-	testTimeout: 10000,
+	testTimeout: 30000, // Increased for Stripe API integration tests
 	maxWorkers: 1,
 	verbose: false,
 	silent: true,
