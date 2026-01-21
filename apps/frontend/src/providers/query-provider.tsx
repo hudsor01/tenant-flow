@@ -1,5 +1,6 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { DehydratedState, DefaultOptions } from '@tanstack/react-query'
 import {
@@ -177,6 +178,52 @@ export function QueryProvider({
 			delete window.__TENANTFLOW_QUERY_DEFAULTS__
 			delete window.__TENANTFLOW_QUERY_CLIENT__
 			delete window.__TENANTFLOW_QUERY_CACHE_KEY__
+		}
+	}, [queryClient])
+
+	// Capture query and mutation errors to Sentry
+	useEffect(() => {
+		// Capture query errors to Sentry
+		const queryUnsubscribe = queryClient.getQueryCache().subscribe(event => {
+			if (event.type === 'updated' && event.query.state.status === 'error') {
+				const error = event.query.state.error
+				Sentry.captureException(error, {
+					tags: { source: 'react-query' },
+					contexts: {
+						react_query: {
+							queryKey: JSON.stringify(event.query.queryKey),
+							queryHash: event.query.queryHash
+						}
+					}
+				})
+			}
+		})
+
+		// Capture mutation errors to Sentry
+		const mutationUnsubscribe = queryClient
+			.getMutationCache()
+			.subscribe(event => {
+				if (
+					event.type === 'updated' &&
+					event.mutation.state.status === 'error'
+				) {
+					const error = event.mutation.state.error
+					Sentry.captureException(error, {
+						tags: { source: 'react-query-mutation' },
+						contexts: {
+							react_query: {
+								mutationKey: event.mutation.options.mutationKey
+									? JSON.stringify(event.mutation.options.mutationKey)
+									: undefined
+							}
+						}
+					})
+				}
+			})
+
+		return () => {
+			queryUnsubscribe()
+			mutationUnsubscribe()
 		}
 	}, [queryClient])
 
