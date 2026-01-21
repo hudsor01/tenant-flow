@@ -9,17 +9,17 @@ See: .planning/PROJECT.md (updated 2026-01-20)
 
 ## Current Position
 
-Phase: 31 of 32 (Synthetic Monitoring & Production Smoke Tests) — COMPLETE
+Phase: 32 of 32 (Frontend Test Coverage Restoration) — COMPLETE
 Plan: 1 of 1 in current phase
 Status: Complete
-Last activity: 2026-01-21 — Completed 31-01-PLAN.md (Synthetic Monitoring & Production Smoke Tests)
+Last activity: 2026-01-21 — Completed 32-01-PLAN.md (Core Domain Hook Tests)
 
-Progress: ██████░░░░ 86% (v4.0 - 6/7 phases complete)
+Progress: ██████████ 100% (v4.0 - 7/7 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 55 (17 v1.0 + 4 v1.1 + 18 v2.0 + 8 v3.0 + 8 v4.0)
+- Total plans completed: 56 (17 v1.0 + 4 v1.1 + 18 v2.0 + 8 v3.0 + 9 v4.0)
 - Average duration: ~5 min/plan
 - Total execution time: ~4.6 hours
 
@@ -31,7 +31,7 @@ Progress: ██████░░░░ 86% (v4.0 - 6/7 phases complete)
 | v1.1 Tech Debt Resolution | 6-10 | 4 | ~20 min | 2026-01-15 |
 | v2.0 Stripe Integration Excellence | 11-17 | 18 | ~1.5 hours | 2026-01-17 |
 | v3.0 Backend Architecture Excellence | 18-25 | 8 | ~30 min | 2026-01-20 |
-| v4.0 Production-Parity Testing & Observability | 26-32 | 8/? | In progress | - |
+| v4.0 Production-Parity Testing & Observability | 26-32 | 9 | Complete | 2026-01-21 |
 
 ## Accumulated Context
 
@@ -55,6 +55,7 @@ All decisions logged in PROJECT.md Key Decisions table.
 - Phase 29-01: Sentry context middleware, data scrubbing, transaction naming
 - Phase 30-01: Sentry frontend data scrubbing, query error capture, user context
 - Phase 31-01: Smoke test script, package.json integration, monitoring runbook
+- Phase 32-01: Core domain hook tests (tenant, lease) + api-test-utils module
 
 ### v4.0 Research Complete
 
@@ -65,7 +66,7 @@ All 7 phases have comprehensive research findings embedded in ROADMAP.md:
 - Phase 29: Sentry NestJS integration patterns ✓ COMPLETE
 - Phase 30: Sentry Next.js + session replay + Web Vitals ✓ COMPLETE
 - Phase 31: Synthetic monitoring + smoke tests ✓ COMPLETE
-- Phase 32: MSW + TanStack Query testing patterns
+- Phase 32: Frontend hook testing patterns ✓ COMPLETE
 
 ### Deferred Issues
 
@@ -86,13 +87,13 @@ None.
 ## Session Continuity
 
 Last session: 2026-01-21
-Stopped at: Completed 31-01-PLAN.md (Synthetic Monitoring & Production Smoke Tests)
+Stopped at: Completed 32-01-PLAN.md (Core Domain Hook Tests)
 Resume file: None
 
 ## Next Steps
 
-**v4.0 Production-Parity Testing & Observability — IN PROGRESS**
+**v4.0 Production-Parity Testing & Observability — COMPLETE**
 
-Ready for: `/gsd:plan-phase 32` (Frontend Test Coverage Restoration)
+Ready for: `/gsd:complete-milestone` (Archive v4.0 and prepare for v5.0)
 
 **YOLO mode enabled:** All gates set to false for auto-approval.
