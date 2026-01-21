@@ -13,10 +13,6 @@ import { PropertyCacheInvalidationService } from './property-cache-invalidation.
  * Property Lifecycle Service
  * Handles property status transitions: soft delete (inactive) and sold marking
  * Extracted from PropertiesService to maintain <300 line limit per CLAUDE.md
- *
- * @todo TEST-001: Add unit tests for this service.
- *       Coverage: softDelete, hardDelete, markAsSold, restore operations.
- *       See TODO.md for details.
  */
 @Injectable()
 export class PropertyLifecycleService {

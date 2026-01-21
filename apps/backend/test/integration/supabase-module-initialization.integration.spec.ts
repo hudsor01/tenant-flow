@@ -4,7 +4,7 @@
  * These tests verify that the SupabaseModule correctly validates configuration
  * and handles startup connectivity verification.
  *
- * Run with: RUN_INTEGRATION_TESTS=true doppler run -- pnpm --filter @repo/backend exec jest supabase-module-initialization.integration.spec.ts
+ * Run with: RUN_INTEGRATION_TESTS=true pnpm --filter @repo/backend exec jest supabase-module-initialization.integration.spec.ts
  */
 
 import { Test, type TestingModule } from '@nestjs/testing'

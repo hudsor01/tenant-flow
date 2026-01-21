@@ -6,7 +6,7 @@
  * 2. Document inserts succeed
  * 3. Event emission happens correctly
  *
- * Run with: RUN_INTEGRATION_TESTS=true doppler run -- pnpm --filter @repo/backend exec jest docuseal-webhook.service.integration.spec.ts
+ * Run with: RUN_INTEGRATION_TESTS=true pnpm --filter @repo/backend exec jest docuseal-webhook.service.integration.spec.ts
  */
 
 import { Test, type TestingModule } from '@nestjs/testing'

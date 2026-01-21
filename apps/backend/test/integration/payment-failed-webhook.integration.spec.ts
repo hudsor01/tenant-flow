@@ -14,13 +14,17 @@ import { SseService } from '../../src/modules/notifications/sse/sse.service'
 describe('payment_intent.payment_failed integration', () => {
 	let emailService: { sendPaymentFailedEmail: jest.Mock }
 	let processor: WebhookProcessor
-	let insertedTransaction: Record<string, unknown> | null
 	let emailQueue: { add: jest.Mock }
+	let rpcMock: jest.Mock
 
 	beforeEach(async () => {
-		insertedTransaction = null
+		rpcMock = jest.fn().mockResolvedValue({ error: null })
 
-		const rentPayment = { id: 'rent_123', tenant_id: 'tenant_123' }
+		const rentPayment = {
+			id: 'rent_123',
+			tenant_id: 'tenant_123',
+			tenants: { user_id: 'user_123' }
+		}
 		const rentPaymentsBuilder: {
 			mode: 'select' | 'update'
 			error: null
@@ -63,25 +67,11 @@ describe('payment_intent.payment_failed integration', () => {
 			error: null
 		}))
 
-		const paymentTransactionsBuilder: {
-			insert: jest.Mock
-			upsert: jest.Mock
-		} = {
-			insert: jest.fn(async (payload: Record<string, unknown>) => {
-				insertedTransaction = payload
-				return { data: null, error: null }
-			}),
-			upsert: jest.fn(async (payload: Record<string, unknown>) => {
-				insertedTransaction = payload
-				return { data: null, error: null }
-			})
-		}
-
 		const supabaseClient = {
+			rpc: rpcMock,
 			from: jest.fn((table: string) => {
 				if (table === 'rent_payments') return rentPaymentsBuilder
 				if (table === 'tenants') return tenantsBuilder
-				if (table === 'payment_transactions') return paymentTransactionsBuilder
 				return {}
 			})
 		} as unknown as ReturnType<SupabaseService['getAdminClient']>
@@ -164,15 +154,12 @@ describe('payment_intent.payment_failed integration', () => {
 			data: { object: paymentIntent }
 		} as Stripe.Event)
 
-		expect(insertedTransaction).toEqual(
-			expect.objectContaining({
-				rent_payment_id: 'rent_123',
-				stripe_payment_intent_id: 'pi_failed_1',
-				status: 'failed',
-				amount: 7500,
-				failure_reason: 'insufficient_funds'
-			})
-		)
+		expect(rpcMock).toHaveBeenCalledWith('process_payment_intent_failed', {
+			p_rent_payment_id: 'rent_123',
+			p_payment_intent_id: 'pi_failed_1',
+			p_amount: 7500,
+			p_failure_reason: 'insufficient_funds'
+		})
 
 		expect(emailQueue.add).toHaveBeenCalledTimes(1)
 		expect(emailQueue.add).toHaveBeenCalledWith(

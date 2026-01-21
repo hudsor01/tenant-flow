@@ -75,7 +75,7 @@ describe('N+1 Query Prevention (E2E with Local Supabase)', () => {
 				console.warn(
 					'⚠️  Skipping E2E test setup: Required tables not in schema cache.'
 				)
-				console.warn('   Run migrations or use Doppler for full test database.')
+				console.warn('   Run migrations for full test database.')
 				return false
 			}
 		} catch (err) {

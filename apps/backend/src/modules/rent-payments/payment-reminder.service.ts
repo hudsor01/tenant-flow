@@ -7,6 +7,8 @@
  * Sends reminders at two intervals:
  * - 7 days before due date (first reminder)
  * - 3 days before due date (urgent reminder)
+ *
+ * Runs daily at 9 AM via NestJS scheduler.
  */
 
 import { Injectable } from '@nestjs/common'

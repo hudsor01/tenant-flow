@@ -4,7 +4,7 @@
  * Retries failed Stripe subscription creations for activated leases.
  * Uses exponential backoff with a maximum of 5 retry attempts.
  *
- * Runs every 5 minutes via cron job.
+ * Runs every 5 minutes via NestJS scheduler.
  */
 
 import { Injectable } from '@nestjs/common'
@@ -50,7 +50,18 @@ export class SubscriptionRetryService {
 		maxRuntime: 5,
 		timezone: 'UTC'
 	})
-	async retryFailedSubscriptions(): Promise<void> {
+	retryFailedSubscriptions(): void {
+		this.doRetryFailedSubscriptions().catch((error) => {
+			this.logger.error('Unhandled error in subscription retry job', {
+				error: error instanceof Error ? error.message : String(error)
+			})
+		})
+	}
+
+	/**
+	 * Actual implementation of retrying failed subscriptions
+	 */
+	private async doRetryFailedSubscriptions(): Promise<void> {
 		this.logger.log('Starting subscription retry job')
 
 		// Check database connection health before proceeding

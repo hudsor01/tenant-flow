@@ -2,10 +2,6 @@
  * Unit Query Service
  * Handles all unit query operations: findAll with filtering, by property, available units, status updates
  * Extracted from UnitsService to maintain <300 line limit per CLAUDE.md
- *
- * @todo TEST-001: Add unit tests for this service.
- *       Coverage: findAll, findByProperty, findAvailable, updateStatus.
- *       See TODO.md for details.
  */
 
 import {

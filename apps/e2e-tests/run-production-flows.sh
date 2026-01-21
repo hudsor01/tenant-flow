@@ -51,7 +51,7 @@ fi
 
 if ! curl -s "$NEXT_PUBLIC_API_BASE_URL/health" > /dev/null; then
     echo -e "${RED}ERROR: Backend not running at $NEXT_PUBLIC_API_BASE_URL${NC}"
-    echo "Start with: doppler run -- pnpm --filter @repo/backend dev"
+    echo "Start with: pnpm --filter @repo/backend dev"
     exit 1
 fi
 

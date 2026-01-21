@@ -5,7 +5,6 @@ import { createClient } from '@supabase/supabase-js'
  * Run with: npx jest test/n1-real.integration.spec.ts --runInBand
  *
  * Note: Requires actual database schema with properties, units, leases tables.
- * Use Doppler to load proper test database credentials: doppler run -- pnpm test:unit
  */
 describe('N+1 Query Fixes - REAL Database Integration', () => {
 	const supabaseUrl = 'http://127.0.0.1:54321'
@@ -39,7 +38,7 @@ describe('N+1 Query Fixes - REAL Database Integration', () => {
 		// Skip if schema not loaded (local dev without migrations)
 		if (error?.code === 'PGRST205') {
 			console.warn(
-				'⚠️  Skipping: properties table not in schema. Run with Doppler for full test DB.'
+				'⚠️  Skipping: properties table not in schema. Run migrations for full test database.'
 			)
 			return
 		}

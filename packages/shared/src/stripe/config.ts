@@ -12,7 +12,7 @@ import type { BillingPeriod, PlanType } from '../types/stripe.js'
  * These would normally come from environment variables or database
  */
 export function getPriceId(plan: PlanType, period: BillingPeriod): string {
-	// Production price IDs from Doppler (using actual environment variable names)
+	// Production price IDs using actual environment variable names
 	const priceMap: Record<`${PlanType}_${BillingPeriod}`, string> = {
 		FREETRIAL_monthly: 'price_freetrial_monthly',
 		FREETRIAL_annual: 'price_freetrial_annual',

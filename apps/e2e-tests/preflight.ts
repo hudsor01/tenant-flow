@@ -71,7 +71,7 @@ function checkEnvironmentVariables(): void {
 			error: value ? undefined : `Missing required variable: ${name}`,
 			suggestion: value
 				? undefined
-				: `Set ${name} in Doppler or .env file. ${description}`
+				: `Set ${name} in .env file. ${description}`
 		})
 	}
 
@@ -125,7 +125,7 @@ async function checkServer(url: string, name: string): Promise<void> {
 			name: `Server: ${name}`,
 			passed: false,
 			error: `Cannot reach ${name}: ${message}`,
-			suggestion: `Start the server with: doppler run -- pnpm --filter @repo/${name === 'Backend' ? 'backend' : 'frontend'} dev`
+			suggestion: `Start the server with: pnpm --filter @repo/${name === 'Backend' ? 'backend' : 'frontend'} dev`
 		})
 	}
 }

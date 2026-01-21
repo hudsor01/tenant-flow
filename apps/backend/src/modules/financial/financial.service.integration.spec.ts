@@ -26,10 +26,14 @@ describe('FinancialService - N+1 Integration Tests', () => {
 	const testUnitIds: string[] = []
 	const testLeaseIds: string[] = []
 
+	const databaseUrl =
+		process.env.TEST_DATABASE_URL ||
+		process.env.E2E_DATABASE_URL ||
+		process.env.DATABASE_URL ||
+		'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+
 	const pool = new Pool({
-		connectionString:
-			process.env.DATABASE_URL ||
-			'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+		connectionString: databaseUrl
 	})
 
 	const SUPABASE_URL = process.env.SUPABASE_URL || 'http://127.0.0.1:54321'

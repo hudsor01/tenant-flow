@@ -173,11 +173,10 @@ export const env = createEnv({
 			})
 			.join('\n')
 
-		console.error('\n❌ Invalid environment variables:\n')
-		console.error(formatted)
-		console.error('\n📋 Check your .env.local file or deployment configuration.\n')
-
-		throw new Error(`Environment validation failed:\n${formatted}`)
+		// Include all details in the thrown error - no console needed
+		throw new Error(
+			`\n❌ Invalid environment variables:\n\n${formatted}\n\n📋 Check your .env.local file or deployment configuration.\n`
+		)
 	},
 
 	/**
