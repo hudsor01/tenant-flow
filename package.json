@@ -46,13 +46,19 @@
 		"db:pull": "doppler run -- supabase db pull",
 		"db:reset": "doppler run -- supabase db reset",
 		"db:types": "doppler run -- supabase gen types typescript --project-id bshjmbshupiibfiewpxb > packages/shared/src/types/supabase.ts && pnpm --filter @repo/shared generate:schemas",
+		"db:seed:smoke": "doppler run -- psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-smoke.sql",
+		"db:seed:dev": "doppler run -- psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-development.sql",
+		"db:seed:perf": "doppler run -- psql $DATABASE_URL -f supabase/seeds/seed-common.sql -f supabase/seeds/seed-performance.sql",
 		"clean": "turbo run clean",
 		"workspace:info": "pnpm list -r --depth -1",
 		"validate": "pnpm db:types && pnpm clean && pnpm build:shared && pnpm typecheck && pnpm lint && pnpm test:unit && doppler run -- pnpm test:integration && echo '✅ ALL VALIDATION PASSED - READY TO COMMIT'",
 		"validate:quick": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm test:unit && echo '✅ QUICK VALIDATION PASSED'",
 		"validate:clean": "pnpm db:types && pnpm typecheck && pnpm lint && pnpm --filter @repo/backend test:unit && echo '✅ CLEAN VALIDATION PASSED'",
 		"stripe:migrate": "doppler run -- pnpm --filter @repo/backend stripe:migrate",
-		"detect:types": "./scripts/check-duplicate-types.sh"
+		"detect:types": "./scripts/check-duplicate-types.sh",
+		"docker:test": "bash scripts/docker-test.sh",
+		"docker:up": "docker compose up -d",
+		"docker:down": "docker compose down -v"
 	},
 	"commitlint": {
 		"extends": [
