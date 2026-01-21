@@ -29,7 +29,6 @@ apps/backend/assets/generated-*.pdf
 *.pdf
 !apps/backend/src/modules/pdf/templates/**/*.pdf
 !apps/backend/src/modules/reports/templates/**/*.pdf
-*.md
 
 # Local environment files
 .env.local
@@ -275,26 +274,11 @@ playwright/.auth/
 temp/
 
 # Development files
-mcp.json
-.mcp.json
-.claude/
 backend_logs.json
-.claude/*
-CLAUDE.md
-AGENTS.md
+.claude/
 
 # DOCUMENTATION & EXAMPLES
-docs/
 documentation/
-agent-os/
-!README.md
-!LICENSE.md
-!SECURITY.md
-!.planning/**/*.md
-
-# Keep .env.example files (template files with no secrets)
-!.env.example
-!apps/*/.env.example
 
 # BACKUP & TEMP FILES
 *.backup

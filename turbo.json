@@ -1,393 +1,51 @@
 {
-	"$schema": "./node_modules/turbo/schema.json",
+	"$schema": "https://turborepo.dev/schema.json",
 	"ui": "tui",
-	"cacheDir": ".turbo",
-	"concurrency": "10",
-	"remoteCache": {
-		"enabled": true,
-		"signature": true
-	},
-	"envMode": "loose",
+	"globalDependencies": ["tsconfig.json", "**/.env.*"],
 	"globalEnv": [
-		"API_BASE_URL",
 		"CI",
 		"NODE_ENV",
-		"npm_package_version",
+		"DATABASE_URL",
+		"JWT_SECRET",
+		"NEXT_PUBLIC_*",
 		"SENTRY_*",
 		"SKIP_ENV_VALIDATION",
-
+		"STRIPE_*",
 		"SUPABASE_*",
-		"TEST_*",
-		"VITEST"
+		"VERCEL"
 	],
-	"globalPassThroughEnv": ["CI", "NODE_ENV", "VERCEL_*", "GITHUB_*"],
-	"globalDependencies": [
-		"**/.env.*",
-		".prettierrc",
-		"eslint.config.*",
-		"pnpm-lock.yaml",
-		"vercel.json"
-	],
+	"globalPassThroughEnv": ["VERCEL_*", "GITHUB_*", "PLAYWRIGHT_*"],
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": ["dist/**", ".next/**"]
+			"outputs": ["dist/**", ".next/**", "!.next/cache/**"]
 		},
-		"@repo/shared#build": {
-			"dependsOn": [],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
+		"test": {
+			"dependsOn": ["build"],
+			"outputs": ["coverage/**"]
 		},
-		"@repo/testing#build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"tsconfig*.json",
-				"package.json",
-				"!**/*.md",
-				"!**/*.test.*",
-				"!**/*.spec.*"
-			],
-			"outputs": ["dist/**"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/frontend#build": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**",
-				"public/**",
-				"next.config.ts",
-				"sentry.*.config.ts",
-				"tsconfig*.json",
-				"package.json"
-			],
-			"outputs": [".next/**", "!.next/cache/**", ".vercel/output/**"],
-			"env": [
-				"NEXT_PUBLIC_*",
-				"SENTRY_AUTH_TOKEN",
-				"SENTRY_ORG",
-				"SENTRY_PROJECT",
-				"VERCEL",
-				"VERCEL_ENV",
-				"SECURITY_MONITORING_WEBHOOK",
-				"SECURITY_MONITORING_TOKEN"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#build": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**", "tsconfig*.json", "package.json", "nest-cli.json"],
-			"outputs": ["dist/**"],
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"PROJECT_REF",
-				"JWT_SECRET"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#lint": {
-			"dependsOn": [],
-			"inputs": ["src/**/*.{ts,tsx,js,jsx}", "eslint.config.*", "package.json"],
-			"outputs": [],
-			"env": [
-				"BACKEND_TIMEOUT_MS",
-				"CORS_ORIGINS",
-				"DATABASE_DIRECT_URL",
-				"DATABASE_URL",
-				"DIRECT_URL",
-				"E2E_DATABASE_HOST",
-				"E2E_DATABASE_NAME",
-				"E2E_DATABASE_PASSWORD",
-				"E2E_DATABASE_PORT",
-				"E2E_DATABASE_URL",
-				"E2E_DATABASE_USER",
-				"ENABLE_DATA_VALIDATION_TESTS",
-				"ENABLE_REPORT_SCHEDULER",
-				"FRONTEND_URL",
-				"HEALTH_CHECK_FUNCTION",
-				"JWT_ALGORITHM",
-				"JWT_SECRET",
-				"NEXT_PUBLIC_APP_URL",
-				"PORT",
-				"PROJECT_REF",
-				"PUBLIC_CACHE_MAX_AGE",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"STRIPE_PUBLISHABLE_KEY",
-				"STRIPE_SECRET_KEY",
-				"STRIPE_SYNC_AUTO_EXPAND_LISTS",
-				"STRIPE_SYNC_DATABASE_SCHEMA",
-				"STRIPE_WEBHOOK_SECRET",
-				"SUPABASE_PUBLISHABLE_KEY",
-				"SUPABASE_URL",
-				"TEST_DATABASE_HOST",
-				"TEST_DATABASE_NAME",
-				"TEST_DATABASE_PASSWORD",
-				"TEST_DATABASE_PORT",
-				"TEST_DATABASE_URL",
-				"TEST_DATABASE_USER",
-				"TEST_EMAIL_FROM",
-				"TEST_JWT_SECRET",
-				"TEST_RESEND_API_KEY",
-				"TEST_SUPABASE_SERVICE_ROLE_KEY",
-				"TEST_STRIPE_SECRET_KEY",
-				"TEST_SUPABASE_PUBLISHABLE_KEY",
-				"TEST_SUPABASE_URL",
-				"TEST_USER_ID"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#test": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**/*.spec.ts",
-				"test/**/*.spec.ts",
-				"jest.config.*",
-				"package.json"
-			],
-			"outputs": ["coverage/**"],
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"JWT_SECRET"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#test:unit": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.{test,spec}.ts", "jest.config.*", "package.json"],
-			"outputs": [],
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"JWT_SECRET"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#test:integration": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"test/integration/**/*.integration.spec.ts",
-				"jest.config.*",
-				"package.json"
-			],
-			"outputs": ["coverage/**"],
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"JWT_SECRET"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/frontend#test": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**/*.{test,spec}.{ts,tsx}",
-				"vitest.config.*",
-				"package.json"
-			],
-			"outputs": ["coverage/**"],
-			"env": ["NEXT_PUBLIC_*"],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/frontend#test:unit": {
-			"dependsOn": ["^build"],
-			"inputs": [
-				"src/**/__tests__/**/*.{test,spec}.{ts,tsx}",
-				"vitest.config.js",
-				"package.json"
-			],
-			"outputs": [],
-			"env": ["NEXT_PUBLIC_*"],
-			"cache": true,
-			"persistent": false
-		},
-		"dev": {
-			"cache": false,
-			"persistent": true,
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"JWT_SECRET"
-			]
+		"test:unit": {
+			"outputs": ["coverage/**"]
 		},
 		"lint": {
 			"outputs": []
 		},
-		"lint:fix": {
-			"inputs": [
-				"src/**/*.{ts,tsx,js,jsx}",
-				"app/**/*.{ts,tsx,js,jsx}",
-				"eslint.config.*",
-				"!node_modules/**",
-				"!dist/**",
-				"!.next/**"
-			],
-			"outputs": [],
+		"typecheck": {
+			"dependsOn": ["^build"],
+			"outputs": []
+		},
+		"dev": {
 			"cache": false,
-			"persistent": false
-		},
-		"@repo/frontend#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/backend#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"env": [
-				"STRIPE_SECRET_KEY",
-				"STRIPE_WEBHOOK_SECRET",
-				"DATABASE_URL",
-				"SUPABASE_URL",
-				"SUPABASE_SERVICE_ROLE_KEY",
-				"JWT_SECRET"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/shared#typecheck": {
-			"dependsOn": [],
-			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
-			"outputs": ["dist/.tsbuildinfo"],
-			"env": [
-				
-				
-				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-				"NEXT_PUBLIC_SUPABASE_URL",
-				
-				"SUPABASE_SERVICE_ROLE_KEY",
-				
-				"SUPABASE_PUBLISHABLE_KEY",
-				"SUPABASE_URL"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/testing#typecheck": {
-			"dependsOn": ["^build"],
-			"inputs": ["src/**/*.ts", "tsconfig*.json", "package.json"],
-			"outputs": [],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/shared#lint": {
-			"dependsOn": [],
-			"inputs": ["src/**/*.ts", "eslint.config.*", "package.json"],
-			"outputs": [],
-			"env": [
-				"NEXT_PUBLIC_API_BASE_URL",
-				"NEXT_PUBLIC_APP_URL",
-				
-				
-				"NEXT_PUBLIC_STRIPE_ENTERPRISE_ANNUAL",
-				"NEXT_PUBLIC_STRIPE_ENTERPRISE_MONTHLY",
-				"NEXT_PUBLIC_STRIPE_GROWTH_ANNUAL",
-				"NEXT_PUBLIC_STRIPE_GROWTH_MONTHLY",
-				"NEXT_PUBLIC_STRIPE_STARTER_ANNUAL",
-				"NEXT_PUBLIC_STRIPE_STARTER_MONTHLY",
-				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-				"NEXT_PUBLIC_SUPABASE_URL",
-				
-				"SUPABASE_SERVICE_ROLE_KEY",
-				
-				"SUPABASE_PUBLISHABLE_KEY",
-				"SUPABASE_URL",
-				"VERCEL",
-				"VITEST_INTEGRATION"
-			],
-			"cache": true,
-			"persistent": false
-		},
-		"@repo/shared#lint:fix": {
-			"inputs": ["src/**/*.{ts,tsx}", "eslint.config.*", "package.json"],
-			"outputs": [],
-			"cache": false,
-			"persistent": false
-		},
-		"@repo/e2e-tests#lint": {
-			"dependsOn": [],
-			"inputs": [
-				"tests/**/*.{ts,tsx,js,jsx}",
-				"eslint.config.*",
-				"package.json"
-			],
-			"outputs": [],
-			"env": [
-				"NEXT_PUBLIC_SUPABASE_URL",
-				"NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
-				"NEXT_PUBLIC_API_BASE_URL",
-				"NEXT_PUBLIC_APP_URL",
-				"TEST_AUTH_TOKEN",
-				"PLAYWRIGHT_BACKEND_HEALTH_URL",
-				"BACKEND_HEALTH_URL",
-				"PROD_HEALTH_URL",
-				"STAGING_BASE_URL",
-				"PLAYWRIGHT_BASE_URL",
-				"E2E_BASE_URL",
-				"STAGING_ADMIN_EMAIL",
-				"E2E_ADMIN_EMAIL",
-				"STAGING_ADMIN_PASSWORD",
-				"E2E_ADMIN_PASSWORD",
-				"E2E_OWNER_EMAIL",
-				"TEST_OWNER_EMAIL",
-				"E2E_OWNER_PASSWORD",
-				"TEST_OWNER_PASSWORD",
-				"E2E_TENANT_EMAIL",
-				"TEST_TENANT_EMAIL",
-				"E2E_TENANT_PASSWORD",
-				"TEST_TENANT_PASSWORD",
-				"PROD_TENANT_EMAIL",
-				"PROD_TENANT_PASSWORD",
-				"TEST_ADMIN_EMAIL",
-				"TEST_ADMIN_PASSWORD",
-				"SHARD",
-				"TOTAL_SHARDS",
-				"CURRENT_SHARD",
-				"E2E_FORCE_RUN"
-			],
-			"cache": true,
-			"persistent": false
+			"persistent": true,
+			"interactive": true
 		},
 		"clean": {
-			"cache": false,
-			"outputs": [],
-			"persistent": false
+			"cache": false
 		}
+	},
+	"remoteCache": {
+		"enabled": true,
+		"signature": true,
+		"timeout": 30
 	}
 }

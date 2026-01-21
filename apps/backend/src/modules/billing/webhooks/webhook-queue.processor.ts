@@ -39,6 +39,18 @@ export class WebhookQueueProcessor extends WorkerHost {
 		const { eventId, eventType, stripeEvent } = job.data
 		const startTime = Date.now()
 
+		// Start Sentry transaction for this background job
+		const span = Sentry.startInactiveSpan({
+			name: `webhook.${eventType}.process`,
+			op: 'queue.process',
+			attributes: {
+				'job.id': job.id ?? 'unknown',
+				'job.attempts': job.attemptsMade + 1,
+				'stripe.event_id': eventId,
+				'stripe.event_type': eventType
+			}
+		})
+
 		this.logger.log(`Processing Stripe webhook: ${eventType}`, {
 			jobId: job.id,
 			eventId,
@@ -62,6 +74,9 @@ export class WebhookQueueProcessor extends WorkerHost {
 			// Record successful processing
 			this.metrics.recordStripeWebhookProcessed(eventType)
 			this.metrics.recordStripeWebhookDuration(eventType, 'success', durationMs)
+
+			// End span on success
+			span?.end()
 		} catch (error) {
 			const durationMs = Date.now() - startTime
 			const errorMessage = error instanceof Error ? error.message : String(error)
@@ -78,6 +93,9 @@ export class WebhookQueueProcessor extends WorkerHost {
 			// Record failure (will be retried unless exhausted)
 			this.metrics.recordStripeWebhookFailed(eventType, errorType)
 			this.metrics.recordStripeWebhookDuration(eventType, 'failure', durationMs)
+
+			// End span on failure
+			span?.end()
 
 			throw error // Let BullMQ handle retry
 		}
