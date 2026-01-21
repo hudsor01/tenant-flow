@@ -1,5 +1,6 @@
 'use client'
 
+import * as Sentry from '@sentry/nextjs'
 import { createClient } from '#lib/supabase/client'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
@@ -92,6 +93,18 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 	useEffect(() => {
 		queryClient.setQueryData(authQueryKeys.user, user)
 	}, [queryClient, user])
+
+	// Set Sentry user context for error tracking
+	useEffect(() => {
+		if (user) {
+			Sentry.setUser({
+				id: user.id,
+				...(user.email && { email: user.email })
+			})
+		} else {
+			Sentry.setUser(null)
+		}
+	}, [user])
 
 	const isLoading = isSessionLoading
 

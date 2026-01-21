@@ -85,6 +85,7 @@ import { RolesGuard } from './shared/guards/roles.guard'
 import { RequestIdMiddleware } from './shared/middleware/request-id.middleware'
 import { RequestLoggerMiddleware } from './shared/middleware/request-logger.middleware'
 import { RequestTimingMiddleware } from './shared/middleware/request-timing.middleware'
+import { SentryContextMiddleware } from './shared/middleware/sentry-context.middleware'
 import { ServicesModule } from './shared/services/services.module'
 import { SharedModule } from './shared/shared.module'
 import { SubscriptionsModule } from './subscriptions/subscriptions.module'
@@ -327,13 +328,15 @@ export class AppModule implements NestModule {
 	 * https://docs.nestjs.com/middleware#applying-middleware
 	 */
 	configure(consumer: MiddlewareConsumer) {
-		// Apply middleware in order: timing → ID → logging
+		// Apply middleware in order: timing → ID → Sentry context → logging
 		// Timing must run first to capture startTime
-		// ID must run before logging to include requestId in logs
+		// ID must run before Sentry/logging to include requestId
+		// Sentry context sets user/tenant tags for error correlation
 		consumer
 			.apply(
 				RequestTimingMiddleware,
 				RequestIdMiddleware,
+				SentryContextMiddleware,
 				RequestLoggerMiddleware
 			)
 			.forRoutes('*')

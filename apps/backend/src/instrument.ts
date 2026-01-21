@@ -39,12 +39,55 @@ Sentry.init({
 		'ETIMEDOUT',
 	],
 
-	// Add context to all events
+	// Add context to all events and scrub sensitive data
 	beforeSend(event) {
 		// Don't send events in test environment
 		if (process.env.NODE_ENV === 'test') {
 			return null
 		}
+
+		// Scrub sensitive headers from request
+		if (event.request?.headers) {
+			const sensitiveHeaders = [
+				'authorization',
+				'x-stripe-signature',
+				'cookie',
+				'x-api-key',
+				'x-supabase-auth'
+			]
+			for (const header of sensitiveHeaders) {
+				if (event.request.headers[header]) {
+					event.request.headers[header] = '[REDACTED]'
+				}
+			}
+		}
+
+		// Scrub sensitive data patterns from breadcrumbs
+		if (event.breadcrumbs) {
+			event.breadcrumbs = event.breadcrumbs.map(breadcrumb => {
+				if (breadcrumb.data) {
+					const scrubbed = { ...breadcrumb.data }
+					for (const [key, value] of Object.entries(scrubbed)) {
+						if (typeof value === 'string') {
+							// Card number pattern: 4 groups of 4 digits
+							if (/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/.test(value)) {
+								scrubbed[key] = '[CARD_REDACTED]'
+							}
+							// CVV pattern (only when key suggests it's CVV)
+							if (
+								/\b\d{3,4}\b/.test(value) &&
+								key.toLowerCase().includes('cvv')
+							) {
+								scrubbed[key] = '[CVV_REDACTED]'
+							}
+						}
+					}
+					return { ...breadcrumb, data: scrubbed }
+				}
+				return breadcrumb
+			})
+		}
+
 		return event
 	},
 
