@@ -3,18 +3,21 @@ import { z } from 'zod'
 
 /**
  * Notification Preferences Schema
- * Defines which notification channels and types a tenant wants to receive
+ * Matches the notification_settings database table structure
+ *
+ * Channels: email, sms, push, in_app
+ * Categories: general, maintenance, leases
  */
 export const NotificationPreferencesSchema = z.object({
-	rentReminders: z.boolean().describe('Receive reminders before rent is due'),
-	maintenanceUpdates: z
-		.boolean()
-		.describe('Receive updates on maintenance requests'),
-	propertyNotices: z
-		.boolean()
-		.describe('Receive important property announcements'),
-	emailNotifications: z.boolean().describe('Receive notifications via email'),
-	smsNotifications: z.boolean().describe('Receive notifications via SMS')
+	// Channels
+	email: z.boolean().describe('Receive notifications via email'),
+	sms: z.boolean().describe('Receive notifications via SMS'),
+	push: z.boolean().describe('Receive push notifications'),
+	in_app: z.boolean().describe('Receive in-app notifications'),
+	// Categories
+	general: z.boolean().describe('Receive general announcements'),
+	maintenance: z.boolean().describe('Receive maintenance updates'),
+	leases: z.boolean().describe('Receive lease-related notifications'),
 })
 
 /**
@@ -36,7 +39,7 @@ export class NotificationPreferencesDto extends createZodDto(
 ) {}
 
 /**
- * Type export for TypeScript usage
+ * Type exports
  */
 export type NotificationPreferences = z.infer<
 	typeof NotificationPreferencesSchema

@@ -25,18 +25,20 @@ const logger = new Logger('InvitationSetup')
 
 const missingVars = REQUIRED_VARS.filter(varName => !process.env[varName])
 
-if (missingVars.length > 0) {
-	throw new Error(
-		`Missing required environment variables for invitation integration tests:
+export const shouldSkipInvitationTests = missingVars.length > 0
+
+if (shouldSkipInvitationTests) {
+	logger.warn(
+		`Skipping invitation integration tests due to missing environment variables:
   - ${missingVars.join('\n  - ')}
 
-Please set these variables via Doppler before running integration tests.`
+Set these variables before running the integration suite.`
 	)
 }
 
 export const TEST_OWNER = {
-	email: process.env.E2E_OWNER_EMAIL!,
-	password: process.env.E2E_OWNER_PASSWORD!,
+	email: process.env.E2E_OWNER_EMAIL ?? '',
+	password: process.env.E2E_OWNER_PASSWORD ?? '',
 	user_type: 'OWNER' as const
 }
 
@@ -85,6 +87,12 @@ export async function authenticateAs(
 ): Promise<AuthenticatedTestClient> {
 	const client = createTestClient()
 
+	if (!credentials.email || !credentials.password) {
+		throw new Error(
+			'Missing test credentials for invitation integration tests.'
+		)
+	}
+
 	const authData = await client.auth.signInWithPassword({
 		email: credentials.email,
 		password: credentials.password
@@ -111,19 +119,20 @@ export async function authenticateAs(
 /**
  * Get service role client for cleanup operations
  * NOTE: Prefer NEXT_PUBLIC_* vars first since test/setup.ts may set mock SUPABASE_URL
- *
- * WARNING: The SERVICE_ROLE may not actually bypass RLS. If tests fail with
- * "permission denied" errors, the SERVICE_ROLE in Doppler needs to be updated
- * to the actual Supabase service_role JWT key (starts with eyJ...).
  */
 export function getServiceClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+	const serviceKey =
+		process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ||
+		process.env.SUPABASE_SERVICE_ROLE_KEY ||
+		process.env.SB_SECRET_KEY ||
+		process.env.SECRET_KEY_SUPABASE ||
+		process.env.SUPABASE_SECRET_KEY
 
 	if (!supabaseUrl || !serviceKey) {
 		throw new Error(
-			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY).'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY/SB_SECRET_KEY/SECRET_KEY_SUPABASE/SUPABASE_SECRET_KEY).'
 		)
 	}
 

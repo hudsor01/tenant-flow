@@ -129,13 +129,23 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 
 	// Integration and E2E tests use real test Supabase project
 	// Require explicit environment variables - no silent fallbacks
-	const url = process.env.TEST_SUPABASE_URL ?? process.env.SUPABASE_URL ?? null
+	const url =
+		process.env.TEST_SUPABASE_URL ??
+		process.env.SUPABASE_URL ??
+		process.env.NEXT_PUBLIC_SUPABASE_URL ??
+		null
 	const publishableKey =
 		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ??
 		process.env.SUPABASE_PUBLISHABLE_KEY ??
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
 		null
 	const serviceuser_typeKey =
-		process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? null
+		process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ??
+		process.env.SUPABASE_SERVICE_ROLE_KEY ??
+		process.env.SB_SECRET_KEY ??
+		process.env.SECRET_KEY_SUPABASE ??
+		process.env.SUPABASE_SECRET_KEY ??
+		null
 	const jwtSecret =
 		process.env.TEST_JWT_SECRET ?? process.env.JWT_SECRET ?? null
 
@@ -158,17 +168,17 @@ export function getTestSupabaseConfig(): TestEnvironmentConfig['supabase'] {
 	// Outside CI, preserve existing behavior: throw descriptive errors per-variable
 	if (!url) {
 		throw new Error(
-			'TEST_SUPABASE_URL or SUPABASE_URL environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_URL, SUPABASE_URL, or NEXT_PUBLIC_SUPABASE_URL environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!publishableKey) {
 		throw new Error(
-			'TEST_SUPABASE_PUBLISHABLE_KEY or SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEY, or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!serviceuser_typeKey) {
 		throw new Error(
-			'TEST_SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SERVICE_ROLE_KEY environment variable is required for integration/e2e tests'
+			'TEST_SUPABASE_SERVICE_ROLE_KEY, SUPABASE_SERVICE_ROLE_KEY, SB_SECRET_KEY, SECRET_KEY_SUPABASE, or SUPABASE_SECRET_KEY environment variable is required for integration/e2e tests'
 		)
 	}
 	if (!jwtSecret) {

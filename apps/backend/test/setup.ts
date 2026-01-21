@@ -58,6 +58,29 @@ if (!process.env.DEBUG) {
 global.console.error = jest.fn()
 global.console.warn = jest.fn()
 
+// Provide describe/it/test.skipIf helpers for conditional integration suites
+type DescribeFn = typeof describe
+type ItFn = typeof it
+
+const describeWithSkipIf = describe as DescribeFn & {
+	skipIf?: (condition: boolean) => DescribeFn
+}
+if (!describeWithSkipIf.skipIf) {
+	describeWithSkipIf.skipIf = (condition: boolean) =>
+		condition ? describe.skip : describe
+}
+
+const itWithSkipIf = it as ItFn & { skipIf?: (condition: boolean) => ItFn }
+if (!itWithSkipIf.skipIf) {
+	itWithSkipIf.skipIf = (condition: boolean) => (condition ? it.skip : it)
+}
+
+const testWithSkipIf = test as ItFn & { skipIf?: (condition: boolean) => ItFn }
+if (!testWithSkipIf.skipIf) {
+	testWithSkipIf.skipIf = (condition: boolean) =>
+		condition ? test.skip : test
+}
+
 // Setup global test utilities
 declare global {
   namespace NodeJS {

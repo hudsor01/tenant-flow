@@ -16,6 +16,7 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals'
 import { Logger } from '@nestjs/common'
 import {
 	authenticateAs,
+	shouldSkipInvitationTests,
 	TEST_OWNER,
 	type AuthenticatedTestClient
 } from './invitation-setup'
@@ -23,7 +24,9 @@ import * as crypto from 'crypto'
 
 const testLogger = new Logger('TenantInvitationIntegrationTest')
 
-describe('Tenant Invitation Flow', () => {
+const describeIf = shouldSkipInvitationTests ? describe.skip : describe
+
+describeIf('Tenant Invitation Flow', () => {
 	let ownerA: AuthenticatedTestClient
 	let ownerAPropertyOwnerId: string | null = null
 

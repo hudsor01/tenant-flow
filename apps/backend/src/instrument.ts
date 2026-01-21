@@ -13,25 +13,25 @@ import * as Sentry from '@sentry/nestjs'
 import { nodeProfilingIntegration } from '@sentry/profiling-node'
 
 const isProduction = process.env.NODE_ENV === 'production'
-const isStaging = process.env.NODE_ENV === 'staging'
 
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
-	environment: process.env.NODE_ENV || 'development',
-	release: process.env.RAILWAY_GIT_COMMIT_SHA || process.env.GIT_COMMIT_SHA,
+	environment: process.env.NODE_ENV ?? 'development',
+	release: process.env.RAILWAY_GIT_COMMIT_SHA ?? process.env.GIT_COMMIT_SHA,
 
-	integrations: [
-		// CPU/memory profiling
-		nodeProfilingIntegration(),
-	],
+	// Profiling integration - only active in production
+	integrations: isProduction ? [nodeProfilingIntegration()] : [],
 
-	// Performance Monitoring
-	tracesSampleRate: isProduction ? 0.2 : 1.0, // 20% in prod, 100% in dev/staging
+	// Performance: 20% sampling in prod, 100% in dev
+	tracesSampleRate: isProduction ? 0.2 : 1.0,
 
-	// Profiling (only in production to reduce overhead)
+	// Profiling: 10% in prod, 50% in dev (no-op if integration not loaded)
 	profilesSampleRate: isProduction ? 0.1 : 0.5,
 
-	// Filter out noisy/expected errors
+	// Suppress verbose instrumentation logs
+	debug: false,
+
+	// Expected errors that don't need tracking
 	ignoreErrors: [
 		'NotFoundException',
 		'UnauthorizedException',
@@ -39,21 +39,28 @@ Sentry.init({
 		'ETIMEDOUT',
 	],
 
-	// Add context to all events and scrub sensitive data
+	// Distributed tracing targets
+	tracePropagationTargets: [
+		'localhost',
+		/^https:\/\/api\.tenantflow\.app/,
+		/^https:\/\/.*\.supabase\.co/,
+		/^https:\/\/api\.stripe\.com/,
+	],
+
 	beforeSend(event) {
-		// Don't send events in test environment
+		// Skip test environment
 		if (process.env.NODE_ENV === 'test') {
 			return null
 		}
 
-		// Scrub sensitive headers from request
+		// Scrub sensitive headers
 		if (event.request?.headers) {
 			const sensitiveHeaders = [
 				'authorization',
 				'x-stripe-signature',
 				'cookie',
 				'x-api-key',
-				'x-supabase-auth'
+				'x-supabase-auth',
 			]
 			for (const header of sensitiveHeaders) {
 				if (event.request.headers[header]) {
@@ -62,43 +69,30 @@ Sentry.init({
 			}
 		}
 
-		// Scrub sensitive data patterns from breadcrumbs
+		// Scrub PCI data from breadcrumbs
 		if (event.breadcrumbs) {
-			event.breadcrumbs = event.breadcrumbs.map(breadcrumb => {
-				if (breadcrumb.data) {
-					const scrubbed = { ...breadcrumb.data }
-					for (const [key, value] of Object.entries(scrubbed)) {
-						if (typeof value === 'string') {
-							// Card number pattern: 4 groups of 4 digits
-							if (/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/.test(value)) {
-								scrubbed[key] = '[CARD_REDACTED]'
-							}
-							// CVV pattern (only when key suggests it's CVV)
-							if (
-								/\b\d{3,4}\b/.test(value) &&
-								key.toLowerCase().includes('cvv')
-							) {
-								scrubbed[key] = '[CVV_REDACTED]'
-							}
-						}
+			event.breadcrumbs = event.breadcrumbs.map((breadcrumb) => {
+				if (!breadcrumb.data) return breadcrumb
+
+				const scrubbed = { ...breadcrumb.data }
+				for (const [key, value] of Object.entries(scrubbed)) {
+					if (typeof value !== 'string') continue
+
+					// Card numbers (16 digits with optional separators)
+					if (/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/.test(value)) {
+						scrubbed[key] = '[CARD_REDACTED]'
 					}
-					return { ...breadcrumb, data: scrubbed }
+
+					// CVV (3-4 digits when key indicates CVV)
+					if (/\b\d{3,4}\b/.test(value) && key.toLowerCase().includes('cvv')) {
+						scrubbed[key] = '[CVV_REDACTED]'
+					}
 				}
-				return breadcrumb
+
+				return { ...breadcrumb, data: scrubbed }
 			})
 		}
 
 		return event
 	},
-
-	// Trace propagation for distributed tracing
-	tracePropagationTargets: [
-		'localhost',
-		/^https:\/\/api\.tenantflow\.app/,
-		/^https:\/\/.*\.supabase\.co/,
-		/^https:\/\/api\.stripe\.com/,
-	],
-
-	// Enable debug logging in development
-	debug: !isProduction && !isStaging,
 })

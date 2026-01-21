@@ -19,13 +19,16 @@ import { PaymentWebhookHandler } from '../../src/modules/billing/webhooks/handle
 import { CheckoutWebhookHandler } from '../../src/modules/billing/webhooks/handlers/checkout-webhook.handler'
 import {
 	authenticateAs,
+	shouldSkipIntegrationTests,
 	TEST_USERS,
 	type AuthenticatedTestClient
 } from './rls/setup'
 import { AppLogger } from '../../src/logger/app-logger.service'
 import { SilentLogger } from '../../src/__tests__/silent-logger'
 
-describe('Stripe Webhook Integration', () => {
+const describeIf = shouldSkipIntegrationTests ? describe.skip : describe
+
+describeIf('Stripe Webhook Integration', () => {
 	let processor: WebhookProcessor
 	let ownerAuth: AuthenticatedTestClient
 

@@ -5,7 +5,7 @@
  * These tests connect to real Supabase database to verify RLS policies work correctly.
  *
  * PREREQUISITES:
- * - Backend must be running: `doppler run -- pnpm --filter @repo/backend dev`
+ * - Backend must be running: `pnpm --filter @repo/backend dev`
  * - Test accounts must exist in Supabase Auth (see .env.test for credentials)
  * - Database must have latest migrations applied
  */
@@ -142,9 +142,7 @@ const missingOptionalVars = OPTIONAL_TEST_USER_VARS.filter(
 if (missingOptionalVars.length > 0) {
 	logger.warn(
 		`[RLS Tests] Some multi-user test accounts are not configured. Tests requiring these users will be skipped:
-  - ${missingOptionalVars.join('\n  - ')}
-
-To run full RLS isolation tests, configure these in Doppler.`
+  - ${missingOptionalVars.join('\n  - ')}`
 	)
 }
 
@@ -264,11 +262,16 @@ export async function authenticateAs(
 export function getServiceRoleClient(): SupabaseClient<Database> {
 	const supabaseUrl =
 		process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-	const secretKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+	const secretKey =
+		process.env.TEST_SUPABASE_SERVICE_ROLE_KEY ||
+		process.env.SUPABASE_SERVICE_ROLE_KEY ||
+		process.env.SB_SECRET_KEY ||
+		process.env.SECRET_KEY_SUPABASE ||
+		process.env.SUPABASE_SECRET_KEY
 
 	if (!supabaseUrl || !secretKey) {
 		throw new Error(
-			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY). Cannot run tests.'
+			'Missing Supabase credentials (NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY/SB_SECRET_KEY/SECRET_KEY_SUPABASE/SUPABASE_SECRET_KEY). Cannot run tests.'
 		)
 	}
 
@@ -495,7 +498,7 @@ export async function ensureTestLease(
 		if (tenantRecordError) {
 			throw new Error(
 				`Failed to create tenant record for test setup: ${tenantRecordError.message}. ` +
-					`Ensure SERVICE_ROLE is configured correctly in Doppler.`
+					`Ensure SERVICE_ROLE is configured correctly.`
 			)
 		}
 		actualTenantRecordId = testTenantRecordId

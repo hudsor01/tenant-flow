@@ -5,8 +5,8 @@
  * Run before E2E tests to validate environment and catch issues early.
  *
  * Usage:
- *   doppler run -- npx tsx scripts/preflight.ts
- *   doppler run -- pnpm preflight
+ *   npx tsx scripts/preflight.ts
+ *   pnpm preflight
  */
 
 interface CheckResult {
@@ -66,13 +66,13 @@ async function main(): Promise<void> {
 	check(
 		'E2E_OWNER_EMAIL',
 		!!process.env.E2E_OWNER_EMAIL,
-		'Missing E2E_OWNER_EMAIL - set in Doppler or .env'
+		'Missing E2E_OWNER_EMAIL - set in .env'
 	)
 
 	check(
 		'E2E_OWNER_PASSWORD',
 		!!process.env.E2E_OWNER_PASSWORD,
-		'Missing E2E_OWNER_PASSWORD - set in Doppler or .env'
+		'Missing E2E_OWNER_PASSWORD - set in .env'
 	)
 
 	check(

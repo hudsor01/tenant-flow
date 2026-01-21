@@ -24,20 +24,11 @@ import { LeaseQueryService } from './lease-query.service'
 import { SubscriptionRetryService } from './subscription-retry.service'
 import { SubscriptionAlertListener } from './listeners/subscription-alert.listener'
 import { PdfGenerationProcessor } from '../pdf/pdf-generation.processor'
-import { N8nPdfWebhookController } from '../pdf/n8n-pdf-webhook.controller'
-import { N8nLeaseCronWebhookController } from './n8n-lease-cron-webhook.controller'
 import { TenantsModule } from '../tenants/tenants.module'
 import { SignatureValidationHelper } from './helpers/signature-validation.helper'
 import { LeasePdfHelper } from './helpers/lease-pdf.helper'
 import { SignatureNotificationHelper } from './helpers/signature-notification.helper'
 
-/**
- * N8N Mode: When enabled, the n8n webhook controller handles PDF generation
- * via HTTP endpoints, allowing n8n to manage retries and orchestration.
- * BullMQ workers are disabled when using n8n mode.
- */
-const N8N_PDF_MODE_ENABLED = process.env.N8N_PDF_MODE === 'true'
-const N8N_CRON_MODE_ENABLED = process.env.N8N_CRON_MODE === 'true'
 const WORKERS_ENABLED =
 	process.env.BULLMQ_WORKERS_ENABLED !== 'false' &&
 	process.env.BULLMQ_WORKERS_ENABLED !== '0'
@@ -95,9 +86,7 @@ const WORKERS_ENABLED =
 		LeasesController,
 		LeaseSignatureController,
 		LeasePdfController,
-		LeasesPdfQueueController,
-		...(N8N_PDF_MODE_ENABLED ? [N8nPdfWebhookController] : []),
-		...(N8N_CRON_MODE_ENABLED ? [N8nLeaseCronWebhookController] : [])
+		LeasesPdfQueueController
 	],
 	providers: [
 		LeasesService,
@@ -114,8 +103,7 @@ const WORKERS_ENABLED =
 		LeaseSubscriptionService, // Handles Stripe subscription creation (SRP split)
 		SubscriptionRetryService, // Background job for retrying failed subscriptions
 		SubscriptionAlertListener, // Event listener for subscription failure alerts
-		// Only include PDF processor when NOT using n8n mode and workers are enabled
-		...(WORKERS_ENABLED && !N8N_PDF_MODE_ENABLED ? [PdfGenerationProcessor] : [])
+		...(WORKERS_ENABLED ? [PdfGenerationProcessor] : [])
 	],
 	exports: [
 		LeasesService,
