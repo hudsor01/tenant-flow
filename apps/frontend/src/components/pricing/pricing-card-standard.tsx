@@ -3,7 +3,13 @@
 import NumberFlow from '@number-flow/react'
 import { Button } from '#components/ui/button'
 import { OwnerSubscribeDialog } from './owner-subscribe-dialog'
-import { ArrowRight, BadgeCheck, Loader2, MessageSquare } from 'lucide-react'
+import {
+	ArrowRight,
+	BadgeCheck,
+	ChevronDown,
+	Loader2,
+	MessageSquare
+} from 'lucide-react'
 import { useState } from 'react'
 import {
 	createCheckoutSession,
@@ -46,6 +52,7 @@ export function PricingCardStandard({
 	className
 }: PricingCardStandardProps) {
 	const [subscribeDialogOpen, setSubscribeDialogOpen] = useState(false)
+	const [showAllFeatures, setShowAllFeatures] = useState(false)
 	const isEnterprise = variant === 'enterprise'
 
 	const subscriptionMutation = useMutation({
@@ -132,7 +139,11 @@ export function PricingCardStandard({
 	}
 
 	const currentPrice = plan.price[billingCycle]
-	const displayFeatures = plan.features.slice(0, 6) // Show fewer features in compact cards
+	const initialFeatureCount = 6
+	const displayFeatures = showAllFeatures
+		? plan.features
+		: plan.features.slice(0, initialFeatureCount)
+	const hiddenFeatureCount = plan.features.length - initialFeatureCount
 
 	return (
 		<>
@@ -189,18 +200,35 @@ export function PricingCardStandard({
 							<span>{feature}</span>
 						</div>
 					))}
-					{plan.features.length > 6 && (
-						<p className="text-xs text-muted-foreground pl-6">
-							+{plan.features.length - 6} more features
-						</p>
+					{hiddenFeatureCount > 0 && (
+						<button
+							type="button"
+							onClick={() => setShowAllFeatures(!showAllFeatures)}
+							className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 pl-6 transition-colors"
+						>
+							<ChevronDown
+								className={cn(
+									'size-3 transition-transform duration-200',
+									showAllFeatures && 'rotate-180'
+								)}
+							/>
+							{showAllFeatures
+								? 'Show less'
+								: `+${hiddenFeatureCount} more features`}
+						</button>
 					)}
 				</div>
 
 				{/* CTA */}
 				<Button
-					variant="outline"
+					variant={isEnterprise ? 'outline' : 'default'}
 					size="lg"
-					className="w-full group hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
+					className={cn(
+						'w-full group transition-all duration-300',
+						isEnterprise
+							? 'hover:bg-primary/5 hover:border-primary/50'
+							: 'bg-foreground text-background hover:bg-foreground/90'
+					)}
 					disabled={subscriptionMutation.isPending}
 					onClick={handleSubscribe}
 				>

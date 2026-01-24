@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { PricingCardFeatured } from './pricing-card-featured'
 import { PricingCardStandard } from './pricing-card-standard'
 import { PricingComparisonTable } from './pricing-comparison-table'
-import { PricingTrustBadges } from './pricing-trust-badges'
 import { Switch } from '#components/ui/switch'
 import { Label } from '#components/ui/label'
 import { Badge } from '#components/ui/badge'
@@ -150,11 +149,8 @@ export function BentoPricingSection({
 					)}
 				</div>
 
-				{/* Trust Badges */}
-				<PricingTrustBadges className="mt-8" />
-
 				{/* Feature Comparison Table */}
-				<PricingComparisonTable className="mt-16" />
+				<PricingComparisonTable className="mt-12" />
 			</div>
 		</div>
 	)
