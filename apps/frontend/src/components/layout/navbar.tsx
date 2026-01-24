@@ -8,6 +8,7 @@ import { cn } from '#lib/utils'
 import { useAuth } from '#providers/auth-provider'
 import { Menu, X } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { NavbarDesktopNav } from './navbar/navbar-desktop-nav'
@@ -25,10 +26,7 @@ export function Navbar({
 	...props
 }: NavbarProps & { ref?: Ref<HTMLElement> }) {
 	const [isScrolled, setIsScrolled] = useState(false)
-	const [scrollProgress, setScrollProgress] = useState(0)
 	const [isMounted, setIsMounted] = useState(false)
-	const [logoHover, setLogoHover] = useState(false)
-	const [mobileButtonTap, setMobileButtonTap] = useState(false)
 
 	const { isMobileMenuOpen, toggleMobileMenu, closeMobileMenu } =
 		useNavigation()
@@ -43,14 +41,6 @@ export function Navbar({
 	useEffect(() => {
 		const handleScroll = () => {
 			setIsScrolled(window.scrollY > 20)
-
-			const windowHeight = window.innerHeight
-			const documentHeight = document.documentElement.scrollHeight
-			const scrollTop = window.scrollY
-			const scrollableHeight = documentHeight - windowHeight
-			const progress =
-				scrollableHeight > 0 ? (scrollTop / scrollableHeight) * 100 : 0
-			setScrollProgress(progress)
 		}
 
 		window.addEventListener('scroll', handleScroll)
@@ -76,45 +66,30 @@ export function Navbar({
 			data-site-navbar
 			ref={ref}
 			className={cn(
-				'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-normal rounded-xl px-6 py-3 w-auto',
+				'fixed left-1/2 transform translate-x-[-50%] z-50 transition-all duration-normal rounded-2xl px-6 py-3 w-auto',
 				isScrolled
-					? 'top-2 bg-card backdrop-blur-2xl shadow-2xl border border-fill-secondary/30 scale-[0.98]'
-					: 'top-4 bg-card/90 backdrop-blur-xl shadow-lg border border-fill-secondary/20',
-				'hover:bg-card hover:shadow-xl',
+					? 'top-2 bg-card/95 backdrop-blur-2xl shadow-xl border border-border/40'
+					: 'top-4 bg-card/80 backdrop-blur-xl shadow-lg border border-border/20',
 				className
 			)}
 			{...props}
 		>
-			{/* Scroll Progress Bar */}
-			<div className="absolute bottom-0 left-0 right-0 h-0.5 bg-fill-secondary rounded-full overflow-hidden">
-				<div
-					className="h-full bg-accent-main transition-all duration-instant ease-out"
-					style={{ width: `${scrollProgress}%` }}
-				/>
-			</div>
-
 			<div className="flex-between">
-				{/* Logo */}
-				<div
-					onMouseEnter={() => setLogoHover(true)}
-					onMouseLeave={() => setLogoHover(false)}
-					className={cn(
-						'flex items-center space-x-2 transition-transform duration-fast',
-						logoHover && 'scale-105'
-					)}
+				{/* Logo - Clean, no container */}
+				<Link
+					href="/"
+					className="flex items-center gap-2.5 transition-opacity duration-fast hover:opacity-80"
 				>
-					<div className="size-11 rounded-lg overflow-hidden bg-background border border-border flex-center">
-						<Image
-							src="/tenant-flow-logo.png"
-							alt="TenantFlow"
-							width={24}
-							height={24}
-							className="size-6 object-contain"
-							priority
-						/>
-					</div>
-					<span className="text-xl font-bold text-foreground">{logo}</span>
-				</div>
+					<Image
+						src="/tenant-flow-logo.png"
+						alt="TenantFlow"
+						width={28}
+						height={28}
+						className="size-7 object-contain"
+						priority
+					/>
+					<span className="text-lg font-semibold text-foreground">{logo}</span>
+				</Link>
 
 				<NavbarDesktopNav navItems={currentNavItems} pathname={pathname} />
 
@@ -131,15 +106,10 @@ export function Navbar({
 
 					{/* Mobile Toggle */}
 					<button
-						onMouseDown={() => setMobileButtonTap(true)}
-						onMouseUp={() => setMobileButtonTap(false)}
 						onClick={toggleMobileMenu}
 						aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
 						data-testid="mobile-nav-toggle"
-						className={cn(
-							'md:hidden p-2 text-foreground/80 hover:text-foreground hover:bg-muted/50 rounded-lg transition-all duration-fast',
-							mobileButtonTap && 'scale-95'
-						)}
+						className="md:hidden p-2 text-foreground/70 hover:text-foreground hover:bg-muted/50 rounded-lg transition-colors duration-fast"
 					>
 						{isMobileMenuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
 					</button>
