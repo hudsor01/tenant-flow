@@ -53,13 +53,13 @@ export class SubscriptionGuard implements CanActivate {
 		}
 
 		// Trust the RPC for subscription verification - no fallback to avoid N+1 queries
-		const { data, error } = await this.supabaseService.rpcWithRetries(
+		const { data, error } = await this.supabaseService.rpc(
 			'check_user_feature_access',
 			{
 				p_user_id: user.id,
 				p_feature: 'basic_properties'
 			},
-			2
+			{ maxAttempts: 2 }
 		)
 
 		if (error) {

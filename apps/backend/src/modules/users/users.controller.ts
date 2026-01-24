@@ -95,10 +95,10 @@ export class UsersController {
 		let stripe_customer_id: string | null = null
 
 		try {
-			const { data, error } = await this.supabaseService!.rpcWithRetries(
+			const { data, error } = await this.supabaseService!.rpc(
 				'get_stripe_customer_by_user_id',
 				{ p_user_id: authuser_id },
-				2 // Only 2 attempts for fast failure
+				{ maxAttempts: 2 }
 			)
 
 			if (error) {

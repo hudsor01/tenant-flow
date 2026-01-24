@@ -18,7 +18,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 				{
 					provide: SupabaseService,
 					useValue: {
-						rpcWithCache: jest.fn()
+						rpc: jest.fn()
 					}
 				},
 				{
@@ -71,7 +71,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 			]
 
 			jest
-				.spyOn(supabaseService, 'rpcWithCache')
+				.spyOn(supabaseService, 'rpc')
 				.mockResolvedValueOnce({ data: mockProperties, error: null })
 
 			const result = await service.getPropertyPerformance(mockuser_id)
@@ -101,7 +101,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 		it('returns empty array on RPC error', async () => {
 			jest
-				.spyOn(supabaseService, 'rpcWithCache')
+				.spyOn(supabaseService, 'rpc')
 				.mockResolvedValueOnce({
 					data: null,
 					error: { message: 'Database error' }
@@ -114,7 +114,7 @@ describe('PropertyPerformanceService - Trend Calculation', () => {
 
 		it('calls consolidated RPC with expected payload', async () => {
 			const rpcSpy = jest
-				.spyOn(supabaseService, 'rpcWithCache')
+				.spyOn(supabaseService, 'rpc')
 				.mockResolvedValueOnce({ data: [], error: null })
 
 			await service.getPropertyPerformance(mockuser_id)
