@@ -69,7 +69,7 @@ export function HowItWorks({ className }: HowItWorksProps) {
 						<p className="typography-small text-primary uppercase tracking-wider mb-3">
 							Get Started in Minutes
 						</p>
-						<h2 className="text-3xl lg:typography-h1 tracking-tight text-foreground mb-4">
+						<h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold tracking-tight text-foreground mb-4">
 							How TenantFlow Works
 						</h2>
 						<p className="text-muted-foreground text-lg max-w-2xl mx-auto">

@@ -99,16 +99,34 @@ const comparisonData: FeatureCategory[] = [
 	}
 ]
 
-function FeatureCell({ value }: { value: FeatureValue }) {
+function FeatureCell({
+	value,
+	highlight = false
+}: {
+	value: FeatureValue
+	highlight?: boolean
+}) {
 	if (typeof value === 'boolean') {
 		return value ? (
-			<Check className="size-5 text-success mx-auto" />
+			<Check
+				className={cn(
+					'size-5 mx-auto',
+					highlight ? 'text-primary' : 'text-success'
+				)}
+			/>
 		) : (
 			<Minus className="size-5 text-muted-foreground/50 mx-auto" />
 		)
 	}
 	return (
-		<span className="text-sm font-medium text-foreground">{value}</span>
+		<span
+			className={cn(
+				'text-sm font-medium',
+				highlight ? 'text-primary' : 'text-foreground'
+			)}
+		>
+			{value}
+		</span>
 	)
 }
 
@@ -150,8 +168,8 @@ function CategorySection({
 						<div className="text-center">
 							<FeatureCell value={feature.starter} />
 						</div>
-						<div className="text-center">
-							<FeatureCell value={feature.growth} />
+						<div className="text-center bg-primary/5 -my-3 py-3 border-x border-primary/10">
+							<FeatureCell value={feature.growth} highlight />
 						</div>
 						<div className="text-center">
 							<FeatureCell value={feature.max} />
@@ -187,9 +205,9 @@ export function PricingComparisonTable({
 						<div className="text-sm font-semibold text-foreground">Starter</div>
 						<div className="text-xs text-muted-foreground">$29/mo</div>
 					</div>
-					<div className="text-center">
+					<div className="text-center bg-primary/5 -my-4 py-4 border-x border-primary/10">
 						<div className="text-sm font-semibold text-primary">Growth</div>
-						<div className="text-xs text-muted-foreground">$79/mo</div>
+						<div className="text-xs text-primary/70">$79/mo</div>
 					</div>
 					<div className="text-center">
 						<div className="text-sm font-semibold text-foreground">Max</div>
