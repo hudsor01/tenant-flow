@@ -2,8 +2,9 @@ import type { ReactNode } from 'react'
 
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { GeistMono } from 'geist/font/mono'
 import type { Metadata } from 'next'
-import { JetBrains_Mono, Spline_Sans } from 'next/font/google'
+import { Inter } from 'next/font/google'
 
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Providers } from '#components/providers'
@@ -14,17 +15,11 @@ import { generateSiteMetadata } from '#lib/generate-metadata'
 
 import './globals.css'
 
-const splineSans = Spline_Sans({
-	subsets: ['latin'],
-	weight: ['400', '500', '600', '700'],
-	display: 'swap',
-	variable: '--font-spline'
-})
-
-const jetbrainsMono = JetBrains_Mono({
+// Inter - the industry-standard SaaS font (used by Linear, Notion, Figma)
+const inter = Inter({
 	subsets: ['latin'],
 	display: 'swap',
-	variable: '--font-mono'
+	variable: '--font-sans'
 })
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -52,7 +47,7 @@ export default async function RootLayout({
 				<SeoJsonLd />
 			</head>
 			<body
-				className={`${splineSans.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+				className={`${inter.variable} ${GeistMono.variable} font-sans antialiased`}
 			>
 				<Providers>
 					<div className="min-h-screen bg-background text-foreground flex flex-col">

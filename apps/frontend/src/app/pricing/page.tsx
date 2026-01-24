@@ -178,7 +178,7 @@ export default async function PricingPage() {
 							<span className="hero-highlight">every portfolio</span>
 						</h1>
 
-						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground">
+						<p className="mx-auto max-w-2xl text-balance text-lg text-muted-foreground text-sm-foreground">
 							Choose your plan and start your 14-day free trial. Upgrade anytime
 							as your portfolio grows.
 						</p>
@@ -190,7 +190,7 @@ export default async function PricingPage() {
 					</div>
 
 					{/* Trust Indicators Below Pricing */}
-					<div className="flex flex-wrap items-center justify-center gap-6 text-muted">
+					<div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground text-sm-foreground">
 						<div className="flex items-center gap-2">
 							<CheckCircle2 className="h-4 w-4 text-success" />
 							No credit card required
@@ -240,13 +240,13 @@ export default async function PricingPage() {
 									<div className="mb-4 typography-h2 text-primary">
 										<stat.icon className="h-8 w-8" />
 									</div>
-									<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+									<p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground text-sm-foreground mb-2">
 										{stat.label}
 									</p>
 									<p className="mb-3 typography-h1 tracking-tight text-foreground">
 										{stat.value}
 									</p>
-									<p className="text-sm leading-relaxed text-muted-foreground">
+									<p className="text-sm leading-relaxed text-muted-foreground text-sm-foreground">
 										{stat.description}
 									</p>
 								</div>
@@ -267,7 +267,7 @@ export default async function PricingPage() {
 							<h2 className="text-section-title tracking-tight text-foreground">
 								Frequently asked questions
 							</h2>
-							<p className="mt-4 text-base text-muted-foreground sm:text-lg">
+							<p className="mt-4 text-base text-muted-foreground text-sm-foreground sm:text-lg">
 								Details on trials, billing, switching plans, and how access
 								works for teams and tenants.
 							</p>
@@ -287,7 +287,7 @@ export default async function PricingPage() {
 										<AccordionTrigger className="text-left text-base font-medium leading-7 text-foreground hover:no-underline sm:text-lg sm:leading-8">
 											{faq.question}
 										</AccordionTrigger>
-										<AccordionContent className="pb-5 text-sm leading-6 text-muted-foreground sm:text-base sm:leading-7">
+										<AccordionContent className="pb-5 text-sm leading-6 text-muted-foreground text-sm-foreground sm:text-base sm:leading-7">
 											{faq.answer}
 										</AccordionContent>
 									</AccordionItem>
@@ -299,7 +299,7 @@ export default async function PricingPage() {
 								<p className="text-base font-medium text-foreground">
 									Still unsure which plan fits best?
 								</p>
-								<p className="text-muted sm:text-base">
+								<p className="text-sm text-muted-foreground text-sm-foreground sm:text-base">
 									Our team can walk through your portfolio and recommend the
 									right setup.
 								</p>
@@ -323,7 +323,7 @@ export default async function PricingPage() {
 							<h2 className="text-section-title tracking-tight text-foreground">
 								Ready to centralize your portfolio and automate the busywork?
 							</h2>
-							<p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+							<p className="text-base leading-relaxed text-muted-foreground text-sm-foreground sm:text-lg">
 								Start with the workflow templates built for self-managing
 								owners, then add teammates, vendors, and integrations as your
 								units grow. Your data and automations stay intact across every
@@ -348,7 +348,7 @@ export default async function PricingPage() {
 									<p className="font-medium text-foreground">
 										14-day trial, all features
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground text-sm">
 										Add properties, send invites, test automations—keep
 										everything when you subscribe.
 									</p>
@@ -360,7 +360,7 @@ export default async function PricingPage() {
 									<p className="font-medium text-foreground">
 										Billing that flexes with you
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground text-sm">
 										Switch plans whenever you want. Monthly and annual billing
 										are available on every tier.
 									</p>
@@ -372,7 +372,7 @@ export default async function PricingPage() {
 									<p className="font-medium text-foreground">
 										Guided onboarding
 									</p>
-									<p className="text-muted">
+									<p className="text-muted-foreground text-sm">
 										Our implementation team and resource hub help migrate
 										leases, payments, and documents in days.
 									</p>

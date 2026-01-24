@@ -27,7 +27,7 @@ export default function MarketingHomePage() {
 							{/* Content */}
 							<div className="flex flex-col justify-center space-y-8">
 								<div className="space-y-6">
-									<h1 className="text-responsive-display-xl font-bold text-foreground tracking-tight leading-[1.1]">
+									<h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-foreground tracking-tight leading-[1.05]">
 										Stop juggling{' '}
 										<span className="hero-highlight">multiple tools</span>
 									</h1>
@@ -69,7 +69,7 @@ export default function MarketingHomePage() {
 									</a>
 								</div>
 
-								<p className="text-muted font-medium">
+								<p className="text-muted-foreground text-sm">
 									Join 10,000+ property managers already using TenantFlow
 								</p>
 							</div>
