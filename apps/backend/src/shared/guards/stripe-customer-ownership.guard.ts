@@ -69,10 +69,10 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 	): Promise<boolean> {
 		try {
 			// Use RPC function to get user_id associated with the Stripe customer
-			const rpcResult = await this.supabase.rpcWithRetries(
+			const rpcResult = await this.supabase.rpc(
 				'get_user_id_by_stripe_customer',
 				{ p_stripe_customer_id: customerId },
-				3 // retry attempts
+				{ maxAttempts: 3 }
 			)
 
 			// Validate response with Zod schema

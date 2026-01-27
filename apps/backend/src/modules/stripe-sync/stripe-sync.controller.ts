@@ -441,7 +441,7 @@ export class StripeSyncController {
 		}
 
 		// Call the database function to link customer to user
-		const { data, error } = await this.supabaseService.rpcWithRetries(
+		const { data, error } = await this.supabaseService.rpc(
 			'link_stripe_customer_to_user',
 			{
 				p_stripe_customer_id: customer.id,

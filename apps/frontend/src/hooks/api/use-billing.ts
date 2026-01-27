@@ -436,7 +436,3 @@ export function useHasActiveSubscription(lease_id?: string): boolean {
 		s => s.leaseId === lease_id && s.status === 'active'
 	)
 }
-
-// Re-export legacy key names for backwards compatibility during migration
-export const billingHistoryKeys = billingKeys
-export const billingHistoryQueries = billingQueries
