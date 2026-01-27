@@ -122,6 +122,50 @@ export class SupabaseService implements OnModuleDestroy {
 	}
 
 	/**
+	 * Execute an RPC call with automatic retries, caching, and instrumentation
+	 *
+	 * Use this method for complex queries (>3 JOINs, >5 round trips, transactions).
+	 * For simple CRUD, use getAdminClient().from(...) directly.
+	 *
+	 * @example
+	 * // With caching
+	 * const result = await this.supabaseService.rpc('get_dashboard_stats', {
+	 *   user_id: userId
+	 * }, { cache: true, cacheTier: 'short' });
+	 *
+	 * // With retries only
+	 * const result = await this.supabaseService.rpc('update_user_settings', {
+	 *   user_id: userId,
+	 *   settings: newSettings
+	 * }, { maxAttempts: 5, backoffMs: 1000 });
+	 */
+	async rpc<T extends RpcFunctionName>(
+		fn: T,
+		args: RpcFunctionArgs<T>,
+		options?: RpcOptions
+	): Promise<{
+		data: unknown
+		error?: { message?: string } | null | undefined
+		attempts: number
+	}>
+	async rpc(
+		fn: string,
+		args: Record<string, unknown>,
+		options?: RpcOptions
+	): Promise<{
+		data: unknown
+		error?: { message?: string } | null | undefined
+		attempts: number
+	}>
+	async rpc(
+		fn: string,
+		args: Record<string, unknown>,
+		options?: RpcOptions
+	) {
+		return this.rpcService.rpc(this.adminClient, fn, args, options)
+	}
+
+	/**
 	 * @deprecated Use rpc() instead. Will be removed in next major version.
 	 */
 	async rpcWithRetries<T extends RpcFunctionName>(

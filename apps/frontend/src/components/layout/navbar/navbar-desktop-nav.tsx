@@ -15,12 +15,9 @@ interface NavbarDesktopNavProps {
 
 export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) {
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null)
-	const [hoveredNavItem, setHoveredNavItem] = useState<string | null>(null)
-	const [hoveredDropdownItem, setHoveredDropdownItem] = useState<string | null>(null)
 	const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
 	const handleDropdownOpen = (itemName: string) => {
-		// Clear any pending close timeout
 		if (closeTimeoutRef.current) {
 			clearTimeout(closeTimeoutRef.current)
 			closeTimeoutRef.current = null
@@ -29,7 +26,6 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 	}
 
 	const handleDropdownClose = () => {
-		// Delay closing to allow mouse to move to dropdown
 		closeTimeoutRef.current = setTimeout(() => {
 			setOpenDropdown(null)
 			closeTimeoutRef.current = null
@@ -40,20 +36,6 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 		if (href === '/') return pathname === '/'
 		return pathname === href || pathname.startsWith(`${href}/`)
 	}
-
-	const getNavItemStyle = (itemName: string) => ({
-		transform:
-			hoveredNavItem === itemName ? `scale(var(--scale-hover))` : 'scale(1)',
-		transition: `transform var(--duration-fast) var(--ease-out)`
-	})
-
-	const getDropdownItemStyle = (itemName: string) => ({
-		transform:
-			hoveredDropdownItem === itemName
-				? `translateX(var(--translate-hover-x))`
-				: 'translateX(0)',
-		transition: `transform var(--duration-fast) var(--ease-out)`
-	})
 
 	const handleKeyDown = (
 		event: KeyboardEvent,
@@ -104,63 +86,50 @@ export function NavbarDesktopNav({ navItems, pathname }: NavbarDesktopNavProps) 
 	}
 
 	return (
-		<div className="hidden md:flex items-center space-x-1">
+		<div className="hidden md:flex items-center gap-1">
 			{navItems.map(item => (
 				<div
 					key={item.name}
 					className="relative"
-					onMouseEnter={() => {
-						if (item.hasDropdown) handleDropdownOpen(item.name)
-						setHoveredNavItem(item.name)
-					}}
-					onMouseLeave={() => {
-						if (item.hasDropdown) handleDropdownClose()
-						setHoveredNavItem(null)
-					}}
+					onMouseEnter={() => item.hasDropdown && handleDropdownOpen(item.name)}
+					onMouseLeave={() => item.hasDropdown && handleDropdownClose()}
 				>
-					<div style={getNavItemStyle(item.name)}>
-						<Link
-							href={item.href}
-							onKeyDown={e => handleKeyDown(e, item)}
-							className={cn(
-								'relative flex items-center px-4 py-2 text-muted-foreground hover:text-foreground font-medium text-sm rounded-xl hover:bg-muted/50 transition-all duration-fast',
-								isActiveLink(item.href) &&
-									'text-foreground after:absolute after:bottom-0 after:left-4 after:right-4 after:h-0.5 after:bg-accent-main after:animate-in after:slide-in-from-bottom-1'
-							)}
-						>
-							{item.name}
-							{item.hasDropdown && (
-								<ChevronDown className="ml-1 size-4 transition-transform duration-fast" />
-							)}
-						</Link>
-					</div>
+					<Link
+						href={item.href}
+						onKeyDown={e => handleKeyDown(e, item)}
+						className={cn(
+							'flex items-center px-3 py-2 text-foreground/70 hover:text-foreground font-medium text-sm rounded-lg transition-colors duration-fast',
+							isActiveLink(item.href) && 'text-foreground'
+						)}
+					>
+						{item.name}
+						{item.hasDropdown && (
+							<ChevronDown
+								className={cn(
+									'ml-1 size-3.5 transition-transform duration-fast',
+									openDropdown === item.name && 'rotate-180'
+								)}
+							/>
+						)}
+					</Link>
 
 					{/* Dropdown Menu */}
 					{item.hasDropdown && openDropdown === item.name && (
 						<div
-							className={cn(
-								'absolute top-full left-0 mt-2 w-56 bg-background/98 backdrop-blur-lg rounded-xl shadow-xl border border-border/50 py-2',
-								'enter-modal'
-							)}
+							className="absolute top-full left-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg py-1 animate-in fade-in-0 zoom-in-95 duration-150"
 							onMouseEnter={() => handleDropdownOpen(item.name)}
 							onMouseLeave={handleDropdownClose}
 						>
 							{item.dropdownItems?.map((dropdownItem, index) => (
-								<div
+								<Link
 									key={dropdownItem.name}
-									style={getDropdownItemStyle(dropdownItem.name)}
-									onMouseEnter={() => setHoveredDropdownItem(dropdownItem.name)}
-									onMouseLeave={() => setHoveredDropdownItem(null)}
+									href={dropdownItem.href}
+									data-dropdown-item={`${item.name}-${index}`}
+									onKeyDown={e => handleKeyDown(e, item, index)}
+									className="block px-4 py-2 text-foreground/70 hover:text-foreground hover:bg-muted/50 transition-colors duration-fast text-sm"
 								>
-									<Link
-										href={dropdownItem.href}
-										data-dropdown-item={`${item.name}-${index}`}
-										onKeyDown={e => handleKeyDown(e, item, index)}
-										className="block px-4 py-2.5 text-foreground hover:bg-primary/5 hover:text-primary transition-all duration-fast font-medium text-sm"
-									>
-										{dropdownItem.name}
-									</Link>
-								</div>
+									{dropdownItem.name}
+								</Link>
 							))}
 						</div>
 					)}

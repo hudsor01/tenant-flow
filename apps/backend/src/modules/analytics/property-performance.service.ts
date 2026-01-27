@@ -76,8 +76,10 @@ export class PropertyPerformanceService {
 		payload: Record<string, unknown>
 	): Promise<T | null> {
 		try {
-			const result = await this.supabase.rpcWithCache(functionName, payload, {
-				cacheTier: 'short' })
+			const result = await this.supabase.rpc(functionName, payload, {
+				cache: true,
+				cacheTier: 'short'
+			})
 			// result may be an object with data/error similar to client.rpc
 			const res = result as {
 				data?: T
@@ -104,10 +106,10 @@ export class PropertyPerformanceService {
 		user_id: string
 	): Promise<PropertyPerformanceEntry[]> {
 		// Use consolidated RPC function (1 call instead of 2)
-		const result = await this.supabase.rpcWithCache(
+		const result = await this.supabase.rpc(
 			'get_property_performance_with_trends',
 			{ p_user_id: user_id, p_timeframe: '30d', p_limit: 100 },
-			{ cacheTier: 'short',  }
+			{ cache: true, cacheTier: 'short' }
 		)
 
 		if (!result || (result as { error?: unknown }).error) {

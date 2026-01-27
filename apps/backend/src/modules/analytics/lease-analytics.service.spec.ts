@@ -6,9 +6,7 @@ import { AppLogger } from '../../logger/app-logger.service'
 
 describe('LeaseAnalyticsService', () => {
 	let service: LeaseAnalyticsService
-	let mockSupabase: jest.Mocked<
-		Pick<SupabaseService, 'getAdminClient' | 'rpcWithCache'>
-	>
+	let mockSupabase: jest.Mocked<Pick<SupabaseService, 'getAdminClient' | 'rpc'>>
 	let mockRpc: jest.Mock
 
 	beforeEach(async () => {
@@ -17,12 +15,12 @@ describe('LeaseAnalyticsService', () => {
 		const mockAdminClient = { rpc: mockRpc } as unknown as AdminClient
 		mockSupabase = {
 			getAdminClient: jest.fn().mockReturnValue(mockAdminClient),
-			rpcWithCache: jest
+			rpc: jest
 				.fn()
 				.mockImplementation((fn: string, payload: Record<string, unknown>) => {
 					return mockAdminClient.rpc(fn, payload)
 				})
-		} as jest.Mocked<Pick<SupabaseService, 'getAdminClient' | 'rpcWithCache'>>
+		} as jest.Mocked<Pick<SupabaseService, 'getAdminClient' | 'rpc'>>
 
 		const module = await Test.createTestingModule({
 			providers: [

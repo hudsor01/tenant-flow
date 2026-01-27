@@ -46,10 +46,10 @@ export class UserSessionsService {
 
 			// Try to query via RPC function (uses string overload to avoid type issues)
 			const { data: rpcData, error: rpcError } =
-				await this.supabase.rpcWithRetries(
+				await this.supabase.rpc(
 					'get_user_sessions',
 					{ p_user_id: userId },
-					2 // Only 2 attempts for fast failure
+					{ maxAttempts: 2 }
 				)
 
 			if (!rpcError && rpcData) {
@@ -88,13 +88,13 @@ export class UserSessionsService {
 	async revokeSession(userId: string, sessionId: string): Promise<boolean> {
 		try {
 			// Use RPC function to revoke session from auth.sessions
-			const { error } = await this.supabase.rpcWithRetries(
+			const { error } = await this.supabase.rpc(
 				'revoke_user_session',
 				{
 					p_user_id: userId,
 					p_session_id: sessionId
 				},
-				2 // Only 2 attempts
+				{ maxAttempts: 2 }
 			)
 
 			if (error) {

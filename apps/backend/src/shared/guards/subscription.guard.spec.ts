@@ -23,7 +23,7 @@ describe('SubscriptionGuard', () => {
 		}
 
 		const mockSupabaseService = {
-			rpcWithRetries: jest.fn()
+			rpc: jest.fn()
 		}
 
 		const module = await Test.createTestingModule({
@@ -74,7 +74,7 @@ describe('SubscriptionGuard', () => {
 
 	it('allows tenant user_type regardless of subscription state', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: false,
 			error: null
 		})
@@ -90,12 +90,12 @@ describe('SubscriptionGuard', () => {
 		)
 
 		expect(result).toBe(true)
-		expect(supabaseService.rpcWithRetries).not.toHaveBeenCalled()
+		expect(supabaseService.rpc).not.toHaveBeenCalled()
 	})
 
 	it('allows owner access when feature access RPC returns true', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: true,
 			error: null
 		})
@@ -111,10 +111,10 @@ describe('SubscriptionGuard', () => {
 		)
 
 		expect(result).toBe(true)
-		expect(supabaseService.rpcWithRetries).toHaveBeenCalledWith(
+		expect(supabaseService.rpc).toHaveBeenCalledWith(
 			'check_user_feature_access',
 			{ p_user_id: 'owner-1', p_feature: 'basic_properties' },
-			2
+			{ maxAttempts: 2 }
 		)
 	})
 
@@ -132,7 +132,7 @@ describe('SubscriptionGuard', () => {
 		)
 
 		expect(result).toBe(true)
-		expect(supabaseService.rpcWithRetries).not.toHaveBeenCalled()
+		expect(supabaseService.rpc).not.toHaveBeenCalled()
 	})
 
 	test.each([
@@ -142,7 +142,7 @@ describe('SubscriptionGuard', () => {
 		'/api/v1/documents'
 	])('blocks unpaid owners from %s', async path => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: false,
 			error: null
 		})
@@ -160,16 +160,16 @@ describe('SubscriptionGuard', () => {
 			)
 		).rejects.toThrow(ForbiddenException)
 
-		expect(supabaseService.rpcWithRetries).toHaveBeenCalledWith(
+		expect(supabaseService.rpc).toHaveBeenCalledWith(
 			'check_user_feature_access',
 			{ p_user_id: 'owner-3', p_feature: 'basic_properties' },
-			2
+			{ maxAttempts: 2 }
 		)
 	})
 
 	it('throws ServiceUnavailableException when RPC fails', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: null,
 			error: { message: 'Database connection failed' }
 		})
@@ -201,12 +201,12 @@ describe('SubscriptionGuard', () => {
 		)
 
 		expect(result).toBe(true)
-		expect(supabaseService.rpcWithRetries).not.toHaveBeenCalled()
+		expect(supabaseService.rpc).not.toHaveBeenCalled()
 	})
 
 	it('handles null/undefined RPC response gracefully', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: null,
 			error: null
 		})
@@ -227,7 +227,7 @@ describe('SubscriptionGuard', () => {
 
 	it('handles undefined RPC data gracefully', async () => {
 		mockMetadata()
-		supabaseService.rpcWithRetries.mockResolvedValue({
+		supabaseService.rpc.mockResolvedValue({
 			data: undefined,
 			error: null
 		})
