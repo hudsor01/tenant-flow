@@ -70,8 +70,8 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
 				{
 					provide: SupabaseRpcService,
 					useValue: {
-						rpcWithRetries: jest.fn(),
-						rpcWithCache: jest.fn()
+						rpc: jest.fn()
+						
 					}
 				},
 				{
