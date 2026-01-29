@@ -6,7 +6,7 @@ export interface LeasesProps {
 	leases: LeaseItem[]
 
 	// Selected lease detail
-	selectedLease?: LeaseDetail
+	selectedLease?: LeaseSectionDetail
 
 	// Filters
 	statusFilter: LeaseStatus | 'all'
@@ -40,7 +40,7 @@ export interface LeaseItem {
 	daysUntilExpiry?: number
 }
 
-export interface LeaseDetail extends LeaseItem {
+export interface LeaseSectionDetail extends LeaseItem {
 	propertyId: string
 	unitId: string
 	primaryTenantId: string
@@ -71,7 +71,7 @@ export interface LeaseTenant {
 
 export interface LeaseDocument {
 	id: string
-	documentType: DocumentType
+	documentType: LeaseDocumentType
 	fileName: string
 	fileSize: number
 	uploadedAt: string
@@ -90,7 +90,7 @@ export interface LeasePayment {
 
 export interface LeaseTimelineEvent {
 	id: string
-	type: TimelineEventType
+	type: LeaseTimelineEventType
 	title: string
 	description: string
 	timestamp: string
@@ -112,14 +112,14 @@ export interface LeaseWizardData {
 }
 
 // App-specific types (not DB enums)
-export type DocumentType =
+export type LeaseDocumentType =
 	| 'lease_agreement'
 	| 'addendum'
 	| 'amendment'
 	| 'notice'
 	| 'receipt'
 	| 'other'
-export type TimelineEventType =
+export type LeaseTimelineEventType =
 	| 'created'
 	| 'sent_for_signature'
 	| 'owner_signed'
@@ -130,8 +130,6 @@ export type TimelineEventType =
 	| 'terminated'
 	| 'ended'
 
-// Aliases for component compatibility
-export type Lease = LeaseItem
 export interface LeaseListProps {
 	leases: LeaseItem[]
 	onView?: (leaseId: string) => void

@@ -11,7 +11,7 @@ export interface DashboardProps {
 	propertyPerformance: PropertyPerformanceItem[]
 
 	// Recent activity (optional for simplified dashboard)
-	activities?: ActivityItem[]
+	activities?: DashboardActivityItem[]
 
 	// Expiring leases (optional for simplified dashboard)
 	expiringLeases?: ExpiringLeaseItem[]
@@ -56,7 +56,7 @@ export interface PropertyPerformanceItem {
 	openMaintenance: number
 }
 
-export interface ActivityItem {
+export interface DashboardActivityItem {
 	id: string
 	type: 'payment' | 'maintenance' | 'lease' | 'tenant'
 	title: string

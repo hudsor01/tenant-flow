@@ -36,7 +36,7 @@ export interface PropertyBasic {
 }
 
 /** Unit with property relationship */
-export interface UnitWithProperty {
+export interface UnitWithPropertyResult {
 	id: string
 	unit_number: string | null
 	property_id: string
@@ -64,7 +64,7 @@ export interface LeaseWithTenantAndUnit {
 	lease_status: string
 	primary_tenant_id: string | null
 	unit_id: string | null
-	units: UnitWithProperty | null
+	units: UnitWithPropertyResult | null
 	tenants: TenantForPayment | null
 }
 

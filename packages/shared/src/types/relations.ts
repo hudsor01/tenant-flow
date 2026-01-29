@@ -6,13 +6,6 @@
 import type { PropertyType } from '../constants/status-types.js'
 import type { Database } from './supabase.js'
 import type { User } from '@supabase/supabase-js'
-import type {
-	PaymentMethodResponseWithVersion as PaymentMethodResponseWithVersionType,
-	PropertyWithVersion as PropertyWithVersionType,
-	TenantWithLeaseInfo as TenantWithLeaseInfoType,
-	TenantWithLeaseInfoWithVersion as TenantWithLeaseInfoWithVersionType,
-	UnitWithVersion as UnitWithVersionType
-} from './core.js'
 
 // Define types properly from Database schema
 type Property = Database['public']['Tables']['properties']['Row']
@@ -312,12 +305,4 @@ export interface PropertyFilters {
 	state?: string
 }
 
-// TenantWithLeaseInfo alias to comply with import location requirements
-export type TenantWithLeaseInfo = TenantWithLeaseInfoType
-
-// WithVersion types for optimistic locking
-export type PropertyWithVersion = PropertyWithVersionType
-export type UnitWithVersion = UnitWithVersionType
-export type TenantWithLeaseInfoWithVersion = TenantWithLeaseInfoWithVersionType
-export type PaymentMethodResponseWithVersion = PaymentMethodResponseWithVersionType
 

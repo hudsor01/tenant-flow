@@ -54,15 +54,6 @@ export interface ContactFormResponse {
 	contactId?: string
 }
 
-export const NotificationType = {
-	PAYMENT: 'payment',
-	BILLING: 'billing',
-	SYSTEM: 'system'
-} as const satisfies Record<string, string>
-
-export type NotificationTypeValue =
-	(typeof NotificationType)[keyof typeof NotificationType]
-
 export const WebVitalMetricName = {
 	CLS: 'CLS',
 	FCP: 'FCP',

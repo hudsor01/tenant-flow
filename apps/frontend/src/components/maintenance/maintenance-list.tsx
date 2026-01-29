@@ -21,10 +21,10 @@ import {
 } from 'lucide-react'
 import type {
 	MaintenanceListProps,
-	MaintenanceRequest,
-	Priority,
-	RequestStatus
+	MaintenanceRequestItem,
+	Priority
 } from '@repo/shared/types/sections/maintenance'
+import type { MaintenanceStatus } from '@repo/shared/types/core'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -93,9 +93,9 @@ interface KanbanColumnProps {
 	count: number
 	colorClass: string
 	icon: ReactNode
-	requests: MaintenanceRequest[]
+	requests: MaintenanceRequestItem[]
 	onView?: ((id: string) => void) | undefined
-	onUpdateStatus?: ((id: string, status: RequestStatus) => void) | undefined
+	onUpdateStatus?: ((id: string, status: MaintenanceStatus) => void) | undefined
 	columnIndex: number
 }
 

@@ -15,8 +15,8 @@ import {
 } from 'lucide-react'
 import { Button } from '#components/ui/button'
 import type {
-	TenantDetail,
-	PaymentHistoryItem
+	TenantSectionDetail,
+	TenantPaymentHistoryItem
 } from '@repo/shared/types/sections/tenants'
 
 // ============================================================================
@@ -24,7 +24,7 @@ import type {
 // ============================================================================
 
 interface TenantDetailSheetProps {
-	tenant: TenantDetail | null
+	tenant: TenantSectionDetail | null
 	isOpen: boolean
 	onOpenChange: (open: boolean) => void
 	onEdit: (tenantId: string) => void
@@ -59,7 +59,7 @@ function formatDate(dateString: string): string {
 function PaymentStatusIcon({
 	status
 }: {
-	status: PaymentHistoryItem['status']
+	status: TenantPaymentHistoryItem['status']
 }) {
 	switch (status) {
 		case 'succeeded':

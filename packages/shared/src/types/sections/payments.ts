@@ -1,5 +1,6 @@
 // Payments Section Types
 import type { PaymentStatus } from '../core.js'
+import type { DateRange } from './dashboard.js'
 
 export interface PaymentsProps {
 	// Payment list
@@ -12,7 +13,7 @@ export interface PaymentsProps {
 	selectedPayment?: PaymentDetail
 
 	// Analytics
-	analytics: PaymentAnalytics
+	analytics: PaymentCollectionAnalytics
 
 	// Filters
 	statusFilter: PaymentStatus | 'all'
@@ -37,7 +38,7 @@ export interface PaymentItem {
 	unitNumber: string
 	amount: number
 	status: PaymentStatus
-	paymentMethodType?: PaymentMethodType
+	paymentMethodType?: PaymentsSectionMethodType
 	dueDate: string
 	paidDate?: string
 	periodStart: string
@@ -85,7 +86,7 @@ export interface UpcomingPayment {
 	paymentMethodConfigured: boolean
 }
 
-export interface PaymentAnalytics {
+export interface PaymentCollectionAnalytics {
 	totalCollected: number
 	totalPending: number
 	totalOverdue: number
@@ -140,13 +141,7 @@ export interface ManualPaymentData {
 	notes?: string
 }
 
-export interface DateRange {
-	start: string
-	end: string
-	preset?: 'week' | 'month' | 'quarter' | 'year' | 'custom'
-}
-
-export type PaymentMethodType =
+export type PaymentsSectionMethodType =
 	| 'card'
 	| 'bank_account'
 	| 'ach'

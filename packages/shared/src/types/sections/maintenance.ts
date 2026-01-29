@@ -8,7 +8,7 @@ export interface MaintenanceProps {
 	requests: MaintenanceRequestItem[]
 
 	// Selected request detail
-	selectedRequest?: MaintenanceRequestDetail
+	selectedRequest?: MaintenanceSectionRequestDetail
 
 	// Analytics
 	analytics: MaintenanceAnalytics
@@ -57,7 +57,7 @@ export interface MaintenanceRequestItem {
 	updatedAt: string
 }
 
-export interface MaintenanceRequestDetail extends MaintenanceRequestItem {
+export interface MaintenanceSectionRequestDetail extends MaintenanceRequestItem {
 	propertyId: string
 	unitId: string
 	tenantId?: string
@@ -99,7 +99,7 @@ export interface NoteItem {
 
 export interface TimelineEvent {
 	id: string
-	type: TimelineEventType
+	type: MaintenanceTimelineEventType
 	title: string
 	description?: string
 	timestamp: string
@@ -153,7 +153,7 @@ export interface ExpenseData {
 	description?: string
 }
 
-export type TimelineEventType =
+export type MaintenanceTimelineEventType =
 	| 'created'
 	| 'assigned'
 	| 'status_change'
@@ -163,10 +163,8 @@ export type TimelineEventType =
 	| 'scheduled'
 	| 'completed'
 
-// Aliases for component compatibility
-export type MaintenanceRequest = MaintenanceRequestItem
+// Alias for component compatibility
 export type Priority = MaintenancePriority
-export type RequestStatus = MaintenanceStatus
 
 export interface KanbanColumnProps {
 	title: string

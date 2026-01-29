@@ -4,7 +4,6 @@
  */
 
 import type { USER_user_type } from '../constants/auth.js'
-import type { SubscriptionStatus as SubscriptionStatusType } from '../constants/status-types.js'
 import type {
 	Session as SupabaseSession,
 	User as SupabaseAuthUserType
@@ -16,9 +15,6 @@ export type AuthUser = SupabaseAuthUser
 
 // User role from database constants
 export type UserRole = (typeof USER_user_type)[keyof typeof USER_user_type]
-
-// Subscription status for Stripe
-export type SubscriptionStatus = SubscriptionStatusType
 
 // Session from Supabase Auth
 export type AuthSession = SupabaseSession

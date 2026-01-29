@@ -16,20 +16,20 @@ export interface TenantPortalProps {
 	nextPayment: NextPaymentInfo
 
 	// Payment history
-	payments: PaymentHistoryItem[]
+	payments: TenantPortalPaymentHistory[]
 
 	// Payment methods
 	paymentMethods: PaymentMethodItem[]
 
 	// Maintenance requests
-	maintenanceRequests: MaintenanceRequestItem[]
+	maintenanceRequests: TenantMaintenanceRequestItem[]
 
 	// Documents
 	documents: DocumentItem[]
 
 	// Extended props for TenantPortal component
 	rentSummary?: RentSummary
-	paymentHistory?: PaymentHistoryItem[]
+	paymentHistory?: TenantPortalPaymentHistory[]
 	profile?: TenantInfo
 
 	// Callbacks
@@ -98,7 +98,7 @@ export interface RentSummary {
 	dueDate: string
 }
 
-export interface PaymentHistoryItem {
+export interface TenantPortalPaymentHistory {
 	id: string
 	amount: number
 	status: PaymentStatus
@@ -112,7 +112,7 @@ export interface PaymentHistoryItem {
 
 export interface PaymentMethodItem {
 	id: string
-	type: PaymentMethodType
+	type: TenantPaymentMethodType
 	last4: string
 	brand?: string
 	expMonth?: number
@@ -121,7 +121,7 @@ export interface PaymentMethodItem {
 	isDefault: boolean
 }
 
-export interface MaintenanceRequestItem {
+export interface TenantMaintenanceRequestItem {
 	id: string
 	title: string
 	description: string
@@ -136,7 +136,7 @@ export interface MaintenanceRequestItem {
 export interface DocumentItem {
 	id: string
 	name: string
-	documentType: DocumentType
+	documentType: TenantDocumentType
 	fileName: string
 	fileSize: number
 	uploadedAt: string
@@ -165,7 +165,7 @@ export interface ProfileUpdateData {
 	emergencyContactRelationship?: string
 }
 
-export type PaymentMethodType = 'card' | 'bank_account'
+export type TenantPaymentMethodType = 'card' | 'bank_account'
 export type RentStatus = 'upcoming' | 'due_today' | 'overdue' | 'paid'
 export type RequestStatus =
 	| 'open'
@@ -173,7 +173,7 @@ export type RequestStatus =
 	| 'completed'
 	| 'cancelled'
 	| 'on_hold'
-export type DocumentType =
+export type TenantDocumentType =
 	| 'lease_agreement'
 	| 'addendum'
 	| 'receipt'
