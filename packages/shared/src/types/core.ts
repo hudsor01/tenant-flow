@@ -92,10 +92,6 @@ import type {
 	PropertyType as PropertyTypeFromConstants
 } from '../constants/status-types.js'
 
-export type DiscriminatedApiResponse<T = unknown> =
-	| { success: true; data: T; error?: never }
-	| { success: false; error: string; data?: never }
-
 export interface StripeSessionStatusResponse {
 	status: string
 	payment_intent_id: string | null

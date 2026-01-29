@@ -79,7 +79,6 @@ describe('SupabaseService', () => {
 
 		mockRpcService = {
 			rpc: jest.fn()
-			
 		} as unknown as jest.Mocked<SupabaseRpcService>
 
 		mockInstrumentation = {

@@ -21,10 +21,9 @@ import {
 } from 'lucide-react'
 import type {
 	MaintenanceListProps,
-	MaintenanceRequestItem,
-	Priority
+	MaintenanceRequestItem
 } from '@repo/shared/types/sections/maintenance'
-import type { MaintenanceStatus } from '@repo/shared/types/core'
+import type { MaintenancePriority, MaintenanceStatus } from '@repo/shared/types/core'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -70,8 +69,8 @@ function getAgingDisplay(timestamp: string) {
 	}
 }
 
-function getPriorityBadge(priority: Priority) {
-	const config: Record<Priority, string> = {
+function getPriorityBadge(priority: MaintenancePriority) {
+	const config: Record<MaintenancePriority, string> = {
 		low: 'bg-muted text-muted-foreground',
 		normal: 'bg-muted text-muted-foreground',
 		medium: 'bg-primary/10 text-primary',

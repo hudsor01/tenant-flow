@@ -163,9 +163,6 @@ export type MaintenanceTimelineEventType =
 	| 'scheduled'
 	| 'completed'
 
-// Alias for component compatibility
-export type Priority = MaintenancePriority
-
 export interface KanbanColumnProps {
 	title: string
 	count: number

@@ -304,5 +304,3 @@ export interface PropertyFilters {
 	city?: string
 	state?: string
 }
-
-
