@@ -11,9 +11,9 @@
 import { queryOptions } from '@tanstack/react-query'
 import type {
 	Tenant,
-	TenantWithLeaseInfo,
-	TenantStats
+	TenantWithLeaseInfo
 } from '@repo/shared/types/core'
+import type { TenantStats } from '@repo/shared/types/stats'
 import type {
 	PaginatedResponse,
 	TenantFilters,

@@ -26,7 +26,7 @@ import {
 import { Tenants } from '#components/tenants/tenants'
 import type {
 	TenantItem,
-	TenantDetail
+	TenantSectionDetail
 } from '@repo/shared/types/sections/tenants'
 import type { LeaseStatus } from '@repo/shared/types/core'
 
@@ -35,7 +35,7 @@ import type { LeaseStatus } from '@repo/shared/types/core'
 // ============================================================================
 
 type TenantPaymentStatus = NonNullable<
-	TenantDetail['paymentHistory']
+	TenantSectionDetail['paymentHistory']
 >[number]['status']
 
 function normalizePaymentStatus(status: string | null | undefined): TenantPaymentStatus {
@@ -91,13 +91,13 @@ function transformToTenantItem(
 }
 
 /**
- * Transform API tenant to design-os TenantDetail format
+ * Transform API tenant to design-os TenantSectionDetail format
  */
-function transformToTenantDetail(
+function transformToTenantSectionDetail(
 	tenant: TenantWithLeaseInfo,
 	totalPaidByTenant?: Map<string, number>,
-	paymentHistory?: TenantDetail['paymentHistory']
-): TenantDetail {
+	paymentHistory?: TenantSectionDetail['paymentHistory']
+): TenantSectionDetail {
 	const base = transformToTenantItem(tenant, totalPaidByTenant)
 
 	return {
@@ -217,7 +217,7 @@ export default function TenantsPage() {
 		if (!selectedTenantId) return undefined
 		const raw = rawTenants.find(t => t.id === selectedTenantId)
 		return raw
-			? transformToTenantDetail(
+			? transformToTenantSectionDetail(
 					raw,
 					totalPaidByTenant,
 					selectedTenantPaymentHistory

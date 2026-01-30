@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
+import type { DashboardStats } from '@repo/shared/types/stats'
 import type {
-	DashboardStats,
 	DashboardMetricsResponse,
 	DashboardSummaryResponse,
 	SystemUptime

@@ -1,8 +1,4 @@
-import type {
-	PropertyStats,
-	TenantStats,
-	UnitStats
-} from '@repo/shared/types/core'
+import type { PropertyStats, TenantStats, UnitStats } from '@repo/shared/types/stats'
 import type {
 	Lease,
 	MaintenanceRequest,

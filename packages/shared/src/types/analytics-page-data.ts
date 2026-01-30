@@ -9,10 +9,8 @@ import type {
 	LeaseAnalyticsPageResponse,
 	LeaseLifecyclePoint,
 	MaintenanceAnalyticsPageResponse,
-	MaintenanceTrendPoint as MaintenanceTrendPointType,
 	OccupancyAnalyticsPageResponse,
-	PropertyPerformancePageResponse,
-	VisitorAnalyticsResponse as VisitorAnalyticsResponseType
+	PropertyPerformancePageResponse
 } from './analytics.js'
 
 // ============================================================================
@@ -38,7 +36,7 @@ export interface PreventiveMaintenanceEntry {
 // Property Performance Analytics Types
 // ============================================================================
 
-export interface PropertyPerformanceEntry {
+export interface OccupancyPropertyPerformance {
 	property_id: string
 	propertyName: string
 	occupancyRate: number
@@ -109,9 +107,6 @@ export interface MaintenanceCostEntry {
 	percentage: number
 }
 
-// Maintenance trend point alias for compatibility
-export type MaintenanceTrendPoint = MaintenanceTrendPointType
-
 /**
  * Maintenance Insights Page Data
  * Aggregates all maintenance analytics data for the maintenance insights page
@@ -137,7 +132,7 @@ export interface MaintenanceInsightsPageData {
 export interface OccupancyAnalyticsPageData {
 	metrics: OccupancyAnalyticsPageResponse['metrics']
 	trends: OccupancyAnalyticsPageResponse['trends']
-	propertyPerformance: PropertyPerformanceEntry[]
+	propertyPerformance: OccupancyPropertyPerformance[]
 	seasonalPatterns: SeasonalPatternEntry[]
 	vacancyAnalysis: OccupancyAnalyticsPageResponse['vacancyAnalysis']
 }
@@ -217,12 +212,6 @@ export interface UnitStatsSummary {
 	avgRent: number
 }
 
-export interface UnitStatisticEntry {
-	label: string
-	value: number
-	trend: number | null
-}
-
 export interface PropertyPerformanceDetail {
 	property_id: string
 	propertyName: string
@@ -236,7 +225,7 @@ export interface PropertyPerformanceDetail {
 	maintenanceScore: number
 }
 
-export interface UnitDetail {
+export interface LeasesPageUnitDetail {
 	unit_id: string
 	unit_number: string
 	unitNumber: string
@@ -251,7 +240,7 @@ export interface UnitDetail {
 	tenantName: string | null
 }
 
-export interface RevenueTrendPoint {
+export interface PropertyRevenueTrend {
 	period: string
 	revenue: number
 	expenses: number
@@ -265,17 +254,14 @@ export interface RevenueTrendPoint {
  */
 export interface PropertyPerformancePageData extends PropertyPerformancePageResponse {
 	// Additional fields for analytics-page-data compatibility
-	revenueTrends: RevenueTrendPoint[]
+	revenueTrends: PropertyRevenueTrend[]
 }
-
-// Visitor analytics response alias for compatibility
-export type VisitorAnalyticsResponse = VisitorAnalyticsResponseType
 
 // ============================================================================
 // Leases Page Data
 // ============================================================================
 
-export interface LeaseListItem {
+export interface LeasesPageLeaseItem {
 	id: string
 	tenant_id: string
 	primary_tenant_id: string | null
@@ -290,14 +276,14 @@ export interface LeaseListItem {
 	status: string
 }
 
-export interface TenantListItem {
+export interface LeasesPageTenantItem {
 	id: string
 	fullName: string
 	email: string
 	phone: string | null
 }
 
-export interface PropertyListItem {
+export interface LeasesPagePropertyItem {
 	id: string
 	name: string
 	address: string
@@ -315,8 +301,8 @@ export interface LeaseMetricsSummary {
  * Aggregates all lease data for the leases page
  */
 export interface LeasesPageData {
-	leases: LeaseListItem[]
-	tenants: TenantListItem[]
-	properties: PropertyListItem[]
+	leases: LeasesPageLeaseItem[]
+	tenants: LeasesPageTenantItem[]
+	properties: LeasesPagePropertyItem[]
 	metrics: LeaseMetricsSummary
 }

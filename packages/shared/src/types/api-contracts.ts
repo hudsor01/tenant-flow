@@ -353,7 +353,7 @@ export interface SignatureStatusResponse {
 	docuseal_submission_id: string | null
 }
 
-export interface PropertyFilters {
+export interface PropertyApiFilters {
 	status?: 'active' | 'SOLD' | 'inactive'
 	property_type?: string
 	search?: string
@@ -609,7 +609,7 @@ export interface LateFeeConfig {
 	grace_period_days: number
 }
 
-export interface OverduePayment {
+export interface ApiOverduePayment {
 	id: string
 	lease_id: string
 	tenant_id: string
@@ -674,7 +674,7 @@ export interface EmergencyContactResponse {
 }
 
 /** Basic payment status for tenant portal */
-export interface PaymentStatus {
+export interface TenantPaymentStatusInfo {
 	status: 'paid' | 'DUE' | 'OVERDUE' | 'pending'
 	due_date: string
 	amount: number

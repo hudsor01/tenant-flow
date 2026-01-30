@@ -26,7 +26,7 @@ import type {
 	ListReportsResponse,
 	Report as ReportType,
 	RevenueData,
-	PaymentAnalytics,
+	ReportPaymentAnalytics,
 	OccupancyMetrics,
 	FinancialReport,
 	PropertyReport,
@@ -133,7 +133,7 @@ export const reportsQueries = {
 				if (start_date) params.append('start_date', start_date)
 				if (end_date) params.append('end_date', end_date)
 				const queryString = params.toString() ? `?${params.toString()}` : ''
-				return apiRequest<PaymentAnalytics>(
+				return apiRequest<ReportPaymentAnalytics>(
 					`/api/v1/reports/analytics/payments${queryString}`
 				)
 			}

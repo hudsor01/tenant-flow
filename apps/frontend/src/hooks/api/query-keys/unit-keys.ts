@@ -12,7 +12,8 @@ import { queryOptions } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
-import type { Unit, UnitStats } from '@repo/shared/types/core'
+import type { Unit } from '@repo/shared/types/core'
+import type { UnitStats } from '@repo/shared/types/stats'
 
 // ============================================================================
 // TYPES

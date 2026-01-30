@@ -9,11 +9,11 @@ import type {
 	DashboardStats,
 	MaintenanceStats,
 	PropertyStats,
-	SystemUptime,
 	TenantStats,
 	UnitStats,
 	LeaseStats
-} from '../types/core.js'
+} from '../types/stats.js'
+import type { SystemUptime } from '../types/core.js'
 
 /** Empty property statistics */
 export const EMPTY_PROPERTY_STATS: PropertyStats = {

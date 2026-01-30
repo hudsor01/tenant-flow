@@ -22,7 +22,7 @@ import { SupabaseHealthService } from './supabase-health.service'
 import type { Database } from '@repo/shared/types/supabase'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
+describe('SupabaseService.rpc() - Property-Based Tests', () => {
 	let service: SupabaseService
 	let mockAdminClient: SupabaseClient<Database>
 	let mockLogger: jest.Mocked<
@@ -228,12 +228,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 
 					// Execute RPC with retries (use very short backoff for faster tests)
 					const startTime = Date.now()
-					const result = await service.rpcWithRetries(
+					const result = await service.rpc(
 						'test_function',
 						{ arg: 'value' },
-						5, // max attempts
-						5, // Very short backoff (5ms instead of default 100ms)
-						100 // timeout
+						{ maxAttempts: 5, backoffMs: 5, timeoutMs: 100 }
 					)
 					const duration = Date.now() - startTime
 
@@ -313,12 +311,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					// Execute RPC with retries (limited attempts)
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						'test_function',
 						{ arg: 'value' },
-						maxAttempts,
-						5, // Very short backoff for faster test
-						50 // Short timeout
+						{ maxAttempts, backoffMs: 5, timeoutMs: 50 }
 					)
 
 					// Property 1: Should attempt exactly maxAttempts times
@@ -385,12 +381,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					// Execute RPC with retries
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						'test_function',
 						{},
-						3,
-						5, // Very short backoff
-						100
+						{ maxAttempts: 3, backoffMs: 5, timeoutMs: 100 }
 					)
 
 					// Property: Should retry and eventually succeed
@@ -437,12 +431,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					const baseBackoff = 30 // Use shorter backoff for faster tests
-					await testService.rpcWithRetries(
+					await testService.rpc(
 						'test_function',
 						{},
-						5,
-						baseBackoff,
-						1000
+						{ maxAttempts: 5, backoffMs: baseBackoff, timeoutMs: 1000 }
 					)
 
 					// Property: Should have correct number of attempts
@@ -492,7 +484,7 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 					})
 
 					// Execute RPC with retries
-					const result = await service.rpcWithRetries(functionName, args)
+					const result = await service.rpc(functionName, args)
 
 					// Property 1: Should only attempt once
 					expect(attemptCount).toBe(1)
@@ -562,12 +554,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 
 						const testService = module.get<SupabaseService>(SupabaseService)
 
-						const result = await testService.rpcWithRetries(
+						const result = await testService.rpc(
 							'test_function',
 							{},
-							5,
-							5, // Very short backoff
-							100
+							{ maxAttempts: 5, backoffMs: 5, timeoutMs: 100 }
 						)
 
 						results.push({
@@ -634,12 +624,10 @@ describe('SupabaseService.rpcWithRetries() - Property-Based Tests', () => {
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					// Execute with short timeout
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						'test_function',
 						{},
-						2, // Max 2 attempts
-						5, // Very short backoff
-						timeoutMs // Use the generated timeout
+						{ maxAttempts: 2, backoffMs: 5, timeoutMs }
 					)
 
 					// Property: Should call abortSignal if it exists

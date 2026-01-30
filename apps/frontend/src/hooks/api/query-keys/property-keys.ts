@@ -15,9 +15,9 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type {
 	Property,
-	PropertyStats,
 	PropertyPerformance
 } from '@repo/shared/types/core'
+import type { PropertyStats } from '@repo/shared/types/stats'
 import type { Tables } from '@repo/shared/types/supabase'
 
 // ============================================================================

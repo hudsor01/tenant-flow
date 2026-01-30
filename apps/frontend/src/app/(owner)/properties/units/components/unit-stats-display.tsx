@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '#lib/utils'
-import type { UnitStats } from '@repo/shared/types/core'
+import type { UnitStats } from '@repo/shared/types/stats'
 
 interface UnitStatsDisplayProps {
 	stats: UnitStats

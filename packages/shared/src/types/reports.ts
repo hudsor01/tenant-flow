@@ -37,7 +37,7 @@ export interface RevenueData {
 	occupiedUnits: number
 }
 
-export interface PaymentAnalytics {
+export interface ReportPaymentAnalytics {
 	totalPayments: number
 	successfulPayments: number
 	failedPayments: number

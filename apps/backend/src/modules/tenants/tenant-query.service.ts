@@ -11,10 +11,9 @@
  */
 
 import { Injectable } from '@nestjs/common'
+import type { TenantStats, TenantSummary } from '@repo/shared/types/stats'
 import type {
 	Tenant,
-	TenantStats,
-	TenantSummary,
 	TenantWithLeaseInfo,
 	RentPayment
 } from '@repo/shared/types/core'
