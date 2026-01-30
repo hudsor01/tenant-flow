@@ -9,11 +9,8 @@ import {
 	Injectable,
 	UnauthorizedException
 } from '@nestjs/common'
-import type {
-	TenantStats,
-	TenantSummary,
-	RentPayment
-} from '@repo/shared/types/core'
+import type { TenantStats, TenantSummary } from '@repo/shared/types/stats'
+import type { RentPayment } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
 

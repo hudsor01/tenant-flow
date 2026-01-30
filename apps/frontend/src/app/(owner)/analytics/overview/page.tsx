@@ -19,8 +19,8 @@ import {
 } from '#components/ui/stat'
 import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
 import { EMPTY_PAYMENT_SUMMARY } from '@repo/shared/types/api-contracts'
+import type { DashboardStats } from '@repo/shared/types/stats'
 import type {
-	DashboardStats,
 	DashboardSummary,
 	PropertyPerformance
 } from '@repo/shared/types/core'

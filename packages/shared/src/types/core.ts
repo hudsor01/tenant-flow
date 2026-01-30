@@ -3,31 +3,13 @@
  * Only exports types that are actually used across the codebase.
  */
 
-import type { DashboardActivity, ActivityItem as ActivityItemType } from './activity.js'
+import type { DashboardActivity } from './activity.js'
 import type {
 	Tables,
 	TablesInsert,
 	TablesUpdate,
 	Database
 } from './supabase.js'
-import type {
-	CacheEntry as CacheEntryType,
-	CacheStats as CacheStatsType,
-	DashboardFinancialStats as DashboardFinancialStatsType,
-	DashboardStats as DashboardStatsType,
-	LeaseStats as LeaseStatsType,
-	MaintenanceAnalyticsData as MaintenanceAnalyticsDataType,
-	MaintenanceStats as MaintenanceStatsType,
-	PropertyStats as PropertyStatsType,
-	TenantStats as TenantStatsType,
-	TenantSummary as TenantSummaryType,
-	UnitStats as UnitStatsType,
-	UserStats as UserStatsType
-} from './stats.js'
-import type { ExpenseSummaryResponse as ExpenseSummaryResponseType } from './analytics.js'
-
-// Activity item alias for use across the app
-export type ActivityItem = ActivityItemType
 
 // ============================================================================
 // DB STATUS TYPE EXPORTS - String literal unions matching CHECK constraints
@@ -110,10 +92,6 @@ import type {
 	PropertyType as PropertyTypeFromConstants
 } from '../constants/status-types.js'
 
-export type ApiResponse<T = unknown> =
-	| { success: true; data: T; error?: never }
-	| { success: false; error: string; data?: never }
-
 export interface StripeSessionStatusResponse {
 	status: string
 	payment_intent_id: string | null
@@ -161,7 +139,6 @@ export type MaintenanceRequest = Tables<'maintenance_requests'>
 export type RentPayment = Tables<'rent_payments'>
 export type ExpenseRecord = Tables<'expenses'>
 export type ConnectedAccount = Tables<'stripe_connected_accounts'>
-export type PropertyInsert = TablesInsert<'properties'>
 
 export type TenantInput = TablesInsert<'tenants'>
 export type TenantUpdate = Partial<TenantInput>
@@ -169,7 +146,6 @@ export type TenantUpdate = Partial<TenantInput>
 // Insert/Update types - only export what's actually used
 export type UserInsert = TablesInsert<'users'>
 export type UserUpdate = TablesUpdate<'users'>
-export type MaintenanceRequestUpdate = TablesUpdate<'maintenance_requests'>
 
 // ============================================================================
 // EXTENDED TYPES - With relations/computed fields
@@ -269,20 +245,6 @@ export type EntityType =
 export type ActionType = 'create' | 'update' | 'delete' | 'view'
 export type Permission = `${EntityType}:${ActionType}`
 
-// Stats types from stats.ts
-export type PropertyStats = PropertyStatsType
-export type TenantStats = TenantStatsType
-export type TenantSummary = TenantSummaryType
-export type UnitStats = UnitStatsType
-export type LeaseStats = LeaseStatsType
-export type MaintenanceStats = MaintenanceStatsType
-export type MaintenanceAnalyticsData = MaintenanceAnalyticsDataType
-export type DashboardStats = DashboardStatsType
-export type DashboardFinancialStats = DashboardFinancialStatsType
-export type CacheStats = CacheStatsType
-export type CacheEntry = CacheEntryType
-export type UserStats = UserStatsType
-
 export interface FinancialOverviewResponse {
 	chartData: Array<{
 		month: string
@@ -299,8 +261,6 @@ export interface FinancialOverviewResponse {
 	}
 	year: number
 }
-
-export type ExpenseSummaryResponse = ExpenseSummaryResponseType
 
 export interface LeaseStatsResponse {
 	totalLeases: number
@@ -536,12 +496,6 @@ export type SubscriptionStatus =
 	| 'canceled'
 	| 'unpaid'
 	| 'paused'
-
-export interface UpdateSubscriptionRequest {
-	amount?: number
-	paymentMethodId?: string
-	billingDayOfMonth?: number
-}
 
 export interface TenantNotificationPreferences {
 	pushNotifications?: boolean

@@ -26,13 +26,12 @@ import {
 } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { Activity } from '@repo/shared/types/activity'
+import type { Activity, ActivityItem } from '@repo/shared/types/activity'
 import type {
-	DashboardStats,
-	ActivityItem,
 	PropertyPerformance,
 	FinancialMetrics
 } from '@repo/shared/types/core'
+import type { DashboardStats } from '@repo/shared/types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
 import type { DashboardTimeSeriesOptions } from '@repo/shared/types/stats'
 

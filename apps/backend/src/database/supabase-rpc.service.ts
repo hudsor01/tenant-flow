@@ -236,26 +236,6 @@ export class SupabaseRpcService {
 		return this.rpc<T>(client, fn, args, { ...options, cache: true })
 	}
 
-	/**
-	 * @deprecated Use rpc() instead. Will be removed in next major version.
-	 */
-	async rpcWithRetries<T = unknown>(
-		client: SupabaseClient<Database>,
-		fn: string,
-		args: Record<string, unknown>,
-		maxAttempts?: number,
-		backoffMs?: number,
-		timeoutMs?: number,
-		options?: { cache?: boolean; cacheKey?: string; cacheTier?: CacheTier; cacheTtlMs?: number }
-	): Promise<RpcAttemptResult<T>> {
-		return this.rpc<T>(client, fn, args, {
-			...(maxAttempts !== undefined && { maxAttempts }),
-			...(backoffMs !== undefined && { backoffMs }),
-			...(timeoutMs !== undefined && { timeoutMs }),
-			...options
-		})
-	}
-
 	private isTransientError(msg: string): boolean {
 		const m = msg.toLowerCase()
 		return (

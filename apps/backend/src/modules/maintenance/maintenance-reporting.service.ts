@@ -5,10 +5,8 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common'
-import type {
-	MaintenanceRequest,
-	MaintenanceStats
-} from '@repo/shared/types/core'
+import type { MaintenanceStats } from '@repo/shared/types/stats'
+import type { MaintenanceRequest } from '@repo/shared/types/core'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'

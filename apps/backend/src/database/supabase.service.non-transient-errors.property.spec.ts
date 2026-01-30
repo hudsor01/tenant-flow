@@ -22,7 +22,7 @@ import { SupabaseHealthService } from './supabase-health.service'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 
-describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () => {
+describe('SupabaseService.rpc() - Non-Transient Error Handling', () => {
 	let mockLogger: jest.Mocked<
 		Pick<AppLogger, 'debug' | 'error' | 'warn' | 'log'>
 	>
@@ -173,12 +173,10 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 
 					// Execute RPC with retries (allow up to 5 attempts, but should only try once)
 					const startTime = Date.now()
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						'test_function',
 						{ arg: 'value' },
-						5, // max attempts (should not reach this)
-						10, // backoff (should not be used)
-						100 // timeout
+						{ maxAttempts: 5, backoffMs: 10, timeoutMs: 100 }
 					)
 					const duration = Date.now() - startTime
 
@@ -282,12 +280,10 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					// Execute RPC with retries
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						'test_function',
 						{},
-						5,
-						10,
-						100
+						{ maxAttempts: 5, backoffMs: 10, timeoutMs: 100 }
 					)
 
 					// Property: Should only attempt once
@@ -361,12 +357,10 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 
 					const transientService =
 						transientModule.get<SupabaseService>(SupabaseService)
-					const transientResult = await transientService.rpcWithRetries(
+					const transientResult = await transientService.rpc(
 						'test_function',
 						{},
-						3,
-						5,
-						100
+						{ maxAttempts: 3, backoffMs: 5, timeoutMs: 100 }
 					)
 
 					// Test 2: Non-transient error should NOT retry
@@ -384,12 +378,10 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 
 					const nonTransientService =
 						nonTransientModule.get<SupabaseService>(SupabaseService)
-					const nonTransientResult = await nonTransientService.rpcWithRetries(
+					const nonTransientResult = await nonTransientService.rpc(
 						'test_function',
 						{},
-						3,
-						5,
-						100
+						{ maxAttempts: 3, backoffMs: 5, timeoutMs: 100 }
 					)
 
 					// Property 1: Transient error should retry and succeed
@@ -432,12 +424,10 @@ describe('SupabaseService.rpcWithRetries() - Non-Transient Error Handling', () =
 					const testService = module.get<SupabaseService>(SupabaseService)
 
 					// Execute RPC
-					const result = await testService.rpcWithRetries(
+					const result = await testService.rpc(
 						functionName,
 						args,
-						3,
-						10,
-						100
+						{ maxAttempts: 3, backoffMs: 10, timeoutMs: 100 }
 					)
 
 					// Property 1: Should have null data

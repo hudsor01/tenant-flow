@@ -3,8 +3,6 @@
  * Centralized health monitoring interfaces
  */
 
-import type { SecurityEvent as SecurityEventType } from './security.js'
-
 export interface ServiceHealth {
 	healthy: boolean
 	responseTime?: number
@@ -69,9 +67,6 @@ export interface HealthCheckResponse {
 	}
 	error?: string
 }
-
-// Security monitoring types
-export type SecurityEvent = SecurityEventType
 
 // Performance monitoring types
 export interface PerformanceMetrics {

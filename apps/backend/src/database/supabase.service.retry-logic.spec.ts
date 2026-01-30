@@ -106,12 +106,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
 			const startTime = Date.now()
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{ arg: 'value' },
-				5, // maxAttempts
-				10, // backoffMs - short for testing
-				1000 // timeoutMs
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			const duration = Date.now() - startTime
@@ -136,12 +134,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 			)
 
 			const startTime = Date.now()
-			await service.rpcWithRetries(
+			await service.rpc(
 				'test_function',
 				{},
-				3, // maxAttempts
-				50, // backoffMs
-				1000
+				{ maxAttempts: 3, backoffMs: 50, timeoutMs: 1000 }
 			)
 			const duration = Date.now() - startTime
 
@@ -163,12 +159,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				.mockReturnValueOnce(Promise.resolve({ data: null, error: resetError }))
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ result: 'ok' })
@@ -184,12 +178,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				.mockReturnValueOnce(Promise.resolve({ data: null, error: resetError }))
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ value: 42 })
@@ -203,12 +195,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				Promise.resolve({ data: null, error: resetError })
 			)
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				3, // maxAttempts
-				10,
-				1000
+				{ maxAttempts: 3, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toBeNull()
@@ -231,12 +221,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				)
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ status: 'ok' })
@@ -255,12 +243,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				)
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ done: true })
@@ -276,12 +262,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				Promise.resolve({ data: null, error: authError })
 			)
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toBeNull()
@@ -296,12 +280,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				Promise.resolve({ data: null, error: permError })
 			)
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toBeNull()
@@ -321,12 +303,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				)
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ recovered: true })
@@ -343,12 +323,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				)
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ connected: true })
@@ -365,12 +343,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				)
 				.mockReturnValueOnce(Promise.resolve(successResult))
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				5,
-				10,
-				1000
+				{ maxAttempts: 5, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toEqual({ success: true })
@@ -388,12 +364,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				Promise.resolve({ data: null, error: transientError })
 			)
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				4, // maxAttempts
-				10,
-				1000
+				{ maxAttempts: 4, backoffMs: 10, timeoutMs: 1000 }
 			)
 
 			expect(result.data).toBeNull()
@@ -411,12 +385,10 @@ describe('SupabaseService - Enhanced Retry Logic', () => {
 				Promise.resolve({ data: null, error: networkError })
 			)
 
-			const result = await service.rpcWithRetries(
+			const result = await service.rpc(
 				'test_function',
 				{},
-				7, // maxAttempts
-				5,
-				1000
+				{ maxAttempts: 7, backoffMs: 5, timeoutMs: 1000 }
 			)
 
 			expect(result.attempts).toBe(7)

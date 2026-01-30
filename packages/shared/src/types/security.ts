@@ -3,10 +3,8 @@
  */
 
 import { USER_user_type as USER_user_typeValue } from '../constants/auth.js'
-import type { SupabaseAuthUser as SupabaseAuthUserType } from './auth.js'
 
 export const USER_user_type = USER_user_typeValue
-export type SupabaseAuthUser = SupabaseAuthUserType
 
 /**
  * Comprehensive security event types for monitoring

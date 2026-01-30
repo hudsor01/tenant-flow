@@ -11,7 +11,7 @@
 import type { OnModuleDestroy } from '@nestjs/common'
 import { Inject, Injectable } from '@nestjs/common'
 import Redis from 'ioredis'
-import type { CacheStats } from '@repo/shared/types/core'
+import type { CacheStats } from '@repo/shared/types/stats'
 import { AppConfigService } from '../config/app-config.service'
 import { AppLogger } from '../logger/app-logger.service'
 import {

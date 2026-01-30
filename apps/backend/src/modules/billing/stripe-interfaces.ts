@@ -6,10 +6,12 @@
 import type Stripe from 'stripe'
 import type {
 	CreateCheckoutSessionRequest as CreateCheckoutSessionRequestType,
-	CreateConnectedPaymentRequest as CreateConnectedPaymentRequestType,
-	UpdateSubscriptionRequest as UpdateSubscriptionRequestType
+	CreateConnectedPaymentRequest as CreateConnectedPaymentRequestType
 } from '@repo/shared/types/core'
-import type { CreateSubscriptionRequest as CreateSubscriptionRequestType } from '@repo/shared/types/api-contracts'
+import type {
+	UpdateSubscriptionRequest as UpdateSubscriptionRequestType,
+	CreateSubscriptionRequest as CreateSubscriptionRequestType
+} from '@repo/shared/types/api-contracts'
 
 // Type helper for Invoice with subscription field
 // The subscription field exists but may be null for one-off invoices

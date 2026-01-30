@@ -3,8 +3,6 @@
  * Centralized error handling types for consistent error management
  */
 
-import type { ApiResponse as ApiResponseType } from './core.js'
-
 // React node type definition for error boundaries - avoiding React dependency
 export type ReactNodeType = unknown
 
@@ -140,9 +138,6 @@ export interface StandardApiResponse<T = unknown> {
 	requestId?: string
 	timestamp?: Date
 }
-
-// Generic API response - union type for type-safe error handling (imported from base-types)
-export type ApiResponse = ApiResponseType
 
 // Export StandardApiResponse as ApiResponse for backend controllers
 export type ControllerApiResponse = StandardApiResponse

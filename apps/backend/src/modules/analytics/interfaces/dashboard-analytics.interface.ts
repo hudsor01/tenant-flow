@@ -1,7 +1,5 @@
-import type {
-	DashboardStats,
-	PropertyPerformance
-} from '@repo/shared/types/core'
+import type { DashboardStats } from '@repo/shared/types/stats'
+import type { PropertyPerformance } from '@repo/shared/types/core'
 import type {
 	OccupancyTrendResponse,
 	RevenueTrendResponse

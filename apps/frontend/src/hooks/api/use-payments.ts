@@ -37,7 +37,7 @@ import type {
 	TenantPaymentHistoryResponse
 } from '@repo/shared/types/api-contracts'
 import type {
-	PaymentAnalytics,
+	PaymentCollectionAnalytics,
 	UpcomingPayment,
 	OverduePayment,
 	PaymentFilters,
@@ -125,10 +125,10 @@ export const rentCollectionQueries = {
 	analytics: () =>
 		queryOptions({
 			queryKey: rentCollectionKeys.analytics(),
-			queryFn: async (): Promise<PaymentAnalytics> => {
+			queryFn: async (): Promise<PaymentCollectionAnalytics> => {
 				const response = await apiRequest<{
 					success: boolean
-					analytics: PaymentAnalytics
+					analytics: PaymentCollectionAnalytics
 				}>('/api/v1/rent-payments/analytics')
 				return response.analytics
 			},

@@ -5,7 +5,8 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common'
-import type { Unit, UnitStats } from '@repo/shared/types/core'
+import type { Unit } from '@repo/shared/types/core'
+import type { UnitStats } from '@repo/shared/types/stats'
 import { SupabaseService } from '../../../database/supabase.service'
 import { AppLogger } from '../../../logger/app-logger.service'
 

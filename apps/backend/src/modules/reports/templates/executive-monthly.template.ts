@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import type { DashboardStats } from '@repo/shared/types/core'
+import type { DashboardStats } from '@repo/shared/types/stats'
 import { DashboardAnalyticsService } from '../../analytics/dashboard-analytics.service'
 import { FinancialAnalyticsService } from '../../analytics/financial-analytics.service'
 import { AppLogger } from '../../../logger/app-logger.service'

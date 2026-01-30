@@ -6,10 +6,10 @@ export interface TenantsProps {
 	tenants: TenantItem[]
 
 	// Pending invitations
-	invitations: TenantInvitation[]
+	invitations: TenantSectionInvitation[]
 
 	// Selected tenant detail
-	selectedTenant?: TenantDetail | undefined
+	selectedTenant?: TenantSectionDetail | undefined
 
 	// Callbacks
 	onInviteTenant: (data: InviteTenantData) => void
@@ -39,7 +39,7 @@ export interface TenantItem {
 	lastPaymentDate?: string
 }
 
-export interface TenantDetail extends TenantItem {
+export interface TenantSectionDetail extends TenantItem {
 	firstName?: string
 	lastName?: string
 	dateOfBirth?: string
@@ -50,7 +50,7 @@ export interface TenantDetail extends TenantItem {
 	stripeCustomerId?: string
 	currentLease?: CurrentLeaseInfo
 	leaseHistory?: LeaseHistoryItem[]
-	paymentHistory?: PaymentHistoryItem[]
+	paymentHistory?: TenantPaymentHistoryItem[]
 	createdAt?: string
 	updatedAt?: string
 }
@@ -76,7 +76,7 @@ export interface LeaseHistoryItem {
 	status: LeaseStatus
 }
 
-export interface PaymentHistoryItem {
+export interface TenantPaymentHistoryItem {
 	id: string
 	amount: number
 	status: PaymentStatus
@@ -86,7 +86,7 @@ export interface PaymentHistoryItem {
 	periodEnd?: string
 }
 
-export interface TenantInvitation {
+export interface TenantSectionInvitation {
 	id: string
 	email: string
 	propertyName?: string

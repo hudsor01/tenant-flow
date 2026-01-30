@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import type {
 	FinancialReport,
-	PaymentAnalytics,
+	ReportPaymentAnalytics,
 	RevenueData
 } from '@repo/shared/types/reports'
 import { SupabaseService } from '../../database/supabase.service'
@@ -38,7 +38,7 @@ export class FinancialReportService {
 		}
 	}
 
-	private getEmptyPaymentAnalytics(): PaymentAnalytics {
+	private getEmptyPaymentAnalytics(): ReportPaymentAnalytics {
 		return {
 			totalPayments: 0,
 			successfulPayments: 0,
@@ -169,7 +169,7 @@ export class FinancialReportService {
 		user_id: string,
 		start_date?: string,
 		end_date?: string
-	): Promise<PaymentAnalytics> {
+	): Promise<ReportPaymentAnalytics> {
 		try {
 			// Get user's properties
 			const { data: properties } = await this.sb
@@ -227,7 +227,7 @@ export class FinancialReportService {
 			}
 
 			// Calculate analytics
-			const analytics: PaymentAnalytics = {
+			const analytics: ReportPaymentAnalytics = {
 				totalPayments: payments.length,
 				successfulPayments: payments.filter(p => p.status === 'succeeded')
 					.length,

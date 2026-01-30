@@ -172,7 +172,7 @@ export interface IncomeStatementData {
 	}
 }
 
-export interface PropertyPerformanceData {
+export interface FinancialPropertyPerformance {
 	property_id: string
 	property_name: string
 	occupancy_rate: number // percentage (0-100)
