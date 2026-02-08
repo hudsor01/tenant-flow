@@ -17,7 +17,7 @@ export default function EditPropertyPage({
 	params: Promise<{ id: string }>
 }) {
 	const { id } = use(params)
-	const { data: property, isLoading } = useQuery(propertyQueries.detail(id))
+	const { data: property, isLoading, error } = useQuery(propertyQueries.detail(id))
 
 	if (isLoading) {
 		return (
@@ -30,6 +30,21 @@ export default function EditPropertyPage({
 					</div>
 				</div>
 				<Skeleton className="h-96 w-full rounded-xl" />
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className="space-y-6">
+				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+					<h2 className="text-lg font-semibold text-destructive mb-2">
+						Error Loading Property
+					</h2>
+					<p className="text-muted-foreground">
+						{error instanceof Error ? error.message : 'Failed to load property'}
+					</p>
+				</div>
 			</div>
 		)
 	}

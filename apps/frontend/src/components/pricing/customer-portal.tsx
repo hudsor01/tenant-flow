@@ -5,6 +5,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { useUser } from '#hooks/api/use-auth'
 import { API_BASE_URL } from '#lib/api-config'
+import { createClient } from '#lib/supabase/client'
 import { cn } from '#lib/utils'
 import { useMutation } from '@tanstack/react-query'
 import { cardVariants } from '#components/ui/card'
@@ -59,8 +60,9 @@ export function CustomerPortalButton({
 				throw new Error('No active subscription found')
 			}
 
-			const authToken = localStorage.getItem('auth-token')
-			if (!authToken) {
+			const supabase = createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			if (!session?.access_token) {
 				window.location.href = '/login'
 				throw new Error('Please sign in to access your account')
 			}
@@ -68,17 +70,13 @@ export function CustomerPortalButton({
 			toast.loading('Opening customer portal...', { id: 'portal' })
 
 			const response = await fetch(
-				`${API_BASE_URL}/stripe/create-billing-portal`,
+				`${API_BASE_URL}/stripe/create-billing-portal-session`,
 				{
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
-						Authorization: `Bearer ${authToken}`
-					},
-					body: JSON.stringify({
-						customerId: user.stripe_customer_id,
-						returnUrl: window.location.href
-					})
+						Authorization: `Bearer ${session.access_token}`
+					}
 				}
 			)
 
