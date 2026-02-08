@@ -130,8 +130,8 @@ function DashboardContent() {
 	const router = useRouter()
 
 	// API Hooks
-	const { data: statsData, isLoading: statsLoading } = useDashboardStats()
-	const { data: chartsData, isLoading: chartsLoading } = useDashboardCharts()
+	const { data: statsData, isLoading: statsLoading, isError: statsError } = useDashboardStats()
+	const { data: chartsData, isLoading: chartsLoading, isError: chartsError } = useDashboardCharts()
 	const { data: performanceData, isLoading: performanceLoading } =
 		usePropertyPerformance()
 
@@ -222,6 +222,29 @@ function DashboardContent() {
 
 	if (isLoading) {
 		return <DashboardLoadingSkeleton />
+	}
+
+	// Error state - show actionable error instead of misleading empty state
+	if (statsError || chartsError) {
+		return (
+			<div data-testid="dashboard-stats" className="flex flex-1 items-center justify-center p-6">
+				<div className="text-center py-16 max-w-md">
+					<p className="text-lg font-medium text-foreground mb-2">
+						Unable to load dashboard data
+					</p>
+					<p className="text-sm text-muted-foreground mb-4">
+						There was a problem loading your dashboard. Please try again.
+					</p>
+					<button
+						type="button"
+						onClick={() => window.location.reload()}
+						className="inline-flex items-center gap-2 px-4 py-2 min-h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
+					>
+						Refresh Page
+					</button>
+				</div>
+			</div>
+		)
 	}
 
 	// Check for empty state

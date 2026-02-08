@@ -252,10 +252,13 @@ export default function PropertiesPage() {
 		[rawProperties, unitsMap, imagesMap]
 	)
 
-	// Calculate summary
+	// Calculate summary (use API total for accurate count across pages)
 	const summary = useMemo(
-		() => calculateSummary(properties),
-		[properties]
+		() => ({
+			...calculateSummary(properties),
+			totalProperties: propertiesResponse?.total ?? properties.length
+		}),
+		[properties, propertiesResponse?.total]
 	)
 
 	// Delete mutation
