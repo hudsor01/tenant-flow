@@ -1958,8 +1958,20 @@ export type Database = {
         }[]
       }
       get_current_owner_user_id: { Args: never; Returns: string }
+      get_current_property_owner_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
+      get_dashboard_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          leases: Database["public"]["CompositeTypes"]["lease_stats_type"]
+          maintenance: Database["public"]["CompositeTypes"]["maintenance_stats_type"]
+          properties: Database["public"]["CompositeTypes"]["property_stats_type"]
+          revenue: Database["public"]["CompositeTypes"]["revenue_stats_type"]
+          tenants: Database["public"]["CompositeTypes"]["tenant_stats_type"]
+          units: Database["public"]["CompositeTypes"]["unit_stats_type"]
+        }[]
+      }
       get_error_prone_users: {
         Args: { hours_back?: number; min_errors?: number }
         Returns: {
@@ -2006,6 +2018,10 @@ export type Database = {
           total_expenses: number
           total_revenue: number
         }[]
+      }
+      get_property_performance_cached: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       get_property_performance_trends: {
         Args: { p_user_id: string }
