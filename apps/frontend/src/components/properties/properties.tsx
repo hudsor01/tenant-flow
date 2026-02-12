@@ -203,6 +203,7 @@ export function Properties({
 					</EmptyDescription>
 				</EmptyHeader>
 				<div className="flex items-center gap-3 mt-2">
+					<PropertyBulkImportDialog />
 					<Button
 						onClick={onAddProperty}
 						className="gap-2"
