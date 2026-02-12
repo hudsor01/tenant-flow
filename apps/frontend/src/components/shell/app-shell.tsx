@@ -7,7 +7,6 @@ import {
 	Menu,
 	X,
 	Bell,
-	MoreVertical,
 	ChevronRight,
 	Sparkles,
 	Search,
@@ -50,6 +49,7 @@ import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
+	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger
 } from '#components/ui/dropdown-menu'
@@ -204,22 +204,26 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 				`}
 			>
 				{/* Logo */}
-				<div className="flex items-center gap-2.5 px-4 py-4">
-					<Sparkles className="w-7 h-7 text-primary" />
-					<span className="font-semibold text-foreground text-lg tracking-tight">
-						TenantFlow
-					</span>
-					{/* Mobile close button */}
+				<div className="flex items-center gap-3 px-4 h-14 shrink-0">
+					<Link href="/dashboard" className="flex items-center gap-3">
+						<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+							<Sparkles className="w-4 h-4 text-primary-foreground" />
+						</div>
+						<span className="font-semibold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
 					<button
-						className="ml-auto lg:hidden p-1 rounded-md hover:bg-muted"
+						className="ml-auto lg:hidden p-1.5 rounded-md hover:bg-muted"
 						onClick={() => setSidebarOpen(false)}
+						aria-label="Close sidebar"
 					>
-						<X className="w-5 h-5 text-muted-foreground" />
+						<X className="w-4 h-4 text-muted-foreground" />
 					</button>
 				</div>
 
 				{/* Command Palette Trigger */}
-				<div className="px-3 pb-4">
+				<div className="px-3 py-3">
 					<button
 						onClick={() => setCommandOpen(true)}
 						className="w-full flex items-center gap-2 px-3 py-2 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground text-sm rounded-md border border-border transition-colors"
@@ -239,7 +243,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 			{/* Main content area */}
 			<div className="lg:pl-56 flex flex-col min-h-screen">
 				{/* Top header */}
-				<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 py-3 bg-card border-b border-border">
+				<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
 					{/* Left side - mobile menu + breadcrumbs */}
 					<div className="flex items-center gap-3">
 						<button
@@ -287,42 +291,33 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 
 						{/* User profile */}
 						{user && (
-							<div className="flex items-center gap-2 ml-2 pl-3 border-l border-border">
-								<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-									<span className="text-xs font-medium text-muted-foreground">
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<button
+										className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+										aria-label="User menu"
+									>
 										{userInitials}
-									</span>
-								</div>
-								<div className="hidden sm:block">
-									<p className="text-sm font-medium text-foreground">
-										{userName}
-									</p>
-									{userEmail && (
-										<p className="text-xs text-muted-foreground truncate max-w-32">
-											{userEmail}
-										</p>
-									)}
-								</div>
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<button className="p-1 hover:bg-muted rounded transition-colors">
-											<MoreVertical className="w-4 h-4 text-muted-foreground" />
-										</button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="end" className="w-48">
-										<DropdownMenuItem asChild>
-											<Link href="/settings">Settings</Link>
-										</DropdownMenuItem>
-										<DropdownMenuItem asChild>
-											<Link href="/profile">Profile</Link>
-										</DropdownMenuItem>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem onClick={() => signOutMutation.mutate()}>
-											Sign out
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</div>
+									</button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end" className="w-56">
+									<DropdownMenuLabel className="font-normal">
+										<p className="text-sm font-medium">{userName}</p>
+										<p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+									</DropdownMenuLabel>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem asChild>
+										<Link href="/profile">Profile</Link>
+									</DropdownMenuItem>
+									<DropdownMenuItem asChild>
+										<Link href="/settings">Settings</Link>
+									</DropdownMenuItem>
+									<DropdownMenuSeparator />
+									<DropdownMenuItem onClick={() => signOutMutation.mutate()}>
+										Sign out
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						)}
 					</div>
 				</header>

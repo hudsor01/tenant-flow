@@ -220,14 +220,22 @@ describe('AppShell', () => {
 			expect(screen.getByText('JS')).toBeInTheDocument()
 		})
 
-		it('should display user name', () => {
+		it('should display user name in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<AppShell>Content</AppShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('Jane Smith')).toBeInTheDocument()
 		})
 
-		it('should display user email', () => {
+		it('should display user email in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<AppShell>Content</AppShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('owner@example.com')).toBeInTheDocument()
 		})

@@ -237,14 +237,22 @@ describe('TenantShell', () => {
 			expect(screen.getByText('JD')).toBeInTheDocument()
 		})
 
-		it('should display user name', () => {
+		it('should display user name in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<TenantShell>Content</TenantShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('John Doe')).toBeInTheDocument()
 		})
 
-		it('should display user email', () => {
+		it('should display user email in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<TenantShell>Content</TenantShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('tenant@example.com')).toBeInTheDocument()
 		})
