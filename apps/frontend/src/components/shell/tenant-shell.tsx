@@ -3,19 +3,13 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 
-import { Menu, X, Bell, MoreVertical, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
+import { Menu, X, Bell, ChevronRight, Sparkles, Home, CreditCard, Wrench, Settings, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { TenantNav } from './tenant-nav'
 import { generateBreadcrumbs } from '#lib/breadcrumbs'
 import { useSupabaseUser, useSignOutMutation } from '#hooks/api/use-auth'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+import { UserProfileMenu } from './user-profile-menu'
 
 export interface TenantShellProps {
 	children: ReactNode
@@ -77,16 +71,21 @@ export function TenantShell({ children }: TenantShellProps) {
 				`}
 			>
 				{/* Logo */}
-				<div className="flex items-center gap-2.5 px-4 py-4">
-					<Sparkles className="w-7 h-7 text-primary" />
-					<span className="font-semibold text-foreground text-lg tracking-tight">
-						TenantFlow
-					</span>
+				<div className="flex items-center gap-3 px-4 h-14 shrink-0">
+					<Link href="/tenant" className="flex items-center gap-3">
+						<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
+							<Sparkles className="w-4 h-4 text-primary-foreground" />
+						</div>
+						<span className="font-semibold text-foreground tracking-tight">
+							TenantFlow
+						</span>
+					</Link>
 					<button
-						className="ml-auto lg:hidden p-1 rounded-md hover:bg-muted"
+						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
 						onClick={() => setSidebarOpen(false)}
+						aria-label="Close sidebar"
 					>
-						<X className="w-5 h-5 text-muted-foreground" />
+						<X className="w-4 h-4 text-muted-foreground" />
 					</button>
 				</div>
 
@@ -97,7 +96,7 @@ export function TenantShell({ children }: TenantShellProps) {
 			{/* Main content area */}
 			<div className="lg:pl-56 flex flex-col min-h-screen pb-16 lg:pb-0">
 				{/* Top header */}
-				<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 py-3 bg-card border-b border-border">
+				<header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 h-14 bg-card border-b border-border">
 					{/* Left side - mobile menu + breadcrumbs */}
 					<div className="flex items-center gap-3">
 						<button
@@ -144,42 +143,14 @@ export function TenantShell({ children }: TenantShellProps) {
 
 						{/* User profile */}
 						{user && (
-							<div className="flex items-center gap-2 ml-2 pl-3 border-l border-border">
-								<div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-									<span className="text-xs font-medium text-muted-foreground">
-										{userInitials}
-									</span>
-								</div>
-								<div className="hidden sm:block">
-									<p className="text-sm font-medium text-foreground">
-										{userName}
-									</p>
-									{userEmail && (
-										<p className="text-xs text-muted-foreground truncate max-w-32">
-											{userEmail}
-										</p>
-									)}
-								</div>
-								<DropdownMenu>
-									<DropdownMenuTrigger asChild>
-										<button className="p-1 hover:bg-muted rounded transition-colors">
-											<MoreVertical className="w-4 h-4 text-muted-foreground" />
-										</button>
-									</DropdownMenuTrigger>
-									<DropdownMenuContent align="end" className="w-48">
-										<DropdownMenuItem asChild>
-											<Link href="/tenant/settings">Settings</Link>
-										</DropdownMenuItem>
-										<DropdownMenuItem asChild>
-											<Link href="/tenant/profile">Profile</Link>
-										</DropdownMenuItem>
-										<DropdownMenuSeparator />
-										<DropdownMenuItem onClick={() => signOutMutation.mutate()}>
-											Sign out
-										</DropdownMenuItem>
-									</DropdownMenuContent>
-								</DropdownMenu>
-							</div>
+							<UserProfileMenu
+								userInitials={userInitials}
+								userName={userName}
+								userEmail={userEmail}
+								profileHref="/tenant/profile"
+								settingsHref="/tenant/settings"
+								onSignOut={() => signOutMutation.mutate()}
+							/>
 						)}
 					</div>
 				</header>

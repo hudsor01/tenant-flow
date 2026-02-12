@@ -167,9 +167,8 @@ describe('AppShell', () => {
 			await user.click(menuButton as HTMLElement)
 
 			// Find close button (X icon) in the sidebar by its class
-			const closeButton = container.querySelector('button.ml-auto.lg\\:hidden')
-			expect(closeButton).toBeInTheDocument()
-			await user.click(closeButton as HTMLElement)
+			const closeButton = screen.getByRole('button', { name: /close sidebar/i })
+			await user.click(closeButton)
 
 			// Sidebar should be hidden again
 			const sidebar = screen.getByRole('complementary')
@@ -220,14 +219,22 @@ describe('AppShell', () => {
 			expect(screen.getByText('JS')).toBeInTheDocument()
 		})
 
-		it('should display user name', () => {
+		it('should display user name in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<AppShell>Content</AppShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('Jane Smith')).toBeInTheDocument()
 		})
 
-		it('should display user email', () => {
+		it('should display user email in dropdown', async () => {
+			const user = userEvent.setup()
 			render(<AppShell>Content</AppShell>)
+
+			const avatarButton = screen.getByRole('button', { name: /user menu/i })
+			await user.click(avatarButton)
 
 			expect(screen.getByText('owner@example.com')).toBeInTheDocument()
 		})
