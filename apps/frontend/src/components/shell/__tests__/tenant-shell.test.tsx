@@ -182,9 +182,8 @@ describe('TenantShell', () => {
 			await user.click(menuButton as HTMLElement)
 
 			// Find close button (X icon) in the sidebar by its class
-			const closeButton = container.querySelector('button.ml-auto.lg\\:hidden')
-			expect(closeButton).toBeInTheDocument()
-			await user.click(closeButton as HTMLElement)
+			const closeButton = screen.getByRole('button', { name: /close sidebar/i })
+			await user.click(closeButton)
 
 			// Sidebar should be hidden again
 			const sidebar = screen.getByRole('complementary')

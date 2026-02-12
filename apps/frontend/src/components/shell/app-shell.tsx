@@ -45,14 +45,7 @@ import {
 	CommandSeparator,
 	CommandShortcut
 } from '#components/ui/command'
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger
-} from '#components/ui/dropdown-menu'
+import { UserProfileMenu } from './user-profile-menu'
 
 export interface AppShellProps {
 	children: ReactNode
@@ -214,7 +207,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 						</span>
 					</Link>
 					<button
-						className="ml-auto lg:hidden p-1.5 rounded-md hover:bg-muted"
+						className="ml-auto lg:hidden min-h-11 min-w-11 flex items-center justify-center rounded-md hover:bg-muted"
 						onClick={() => setSidebarOpen(false)}
 						aria-label="Close sidebar"
 					>
@@ -291,33 +284,14 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 
 						{/* User profile */}
 						{user && (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<button
-										className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
-										aria-label="User menu"
-									>
-										{userInitials}
-									</button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-56">
-									<DropdownMenuLabel className="font-normal">
-										<p className="text-sm font-medium">{userName}</p>
-										<p className="text-xs text-muted-foreground truncate">{userEmail}</p>
-									</DropdownMenuLabel>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem asChild>
-										<Link href="/profile">Profile</Link>
-									</DropdownMenuItem>
-									<DropdownMenuItem asChild>
-										<Link href="/settings">Settings</Link>
-									</DropdownMenuItem>
-									<DropdownMenuSeparator />
-									<DropdownMenuItem onClick={() => signOutMutation.mutate()}>
-										Sign out
-									</DropdownMenuItem>
-								</DropdownMenuContent>
-							</DropdownMenu>
+							<UserProfileMenu
+								userInitials={userInitials}
+								userName={userName}
+								userEmail={userEmail}
+								profileHref="/profile"
+								settingsHref="/settings"
+								onSignOut={() => signOutMutation.mutate()}
+							/>
 						)}
 					</div>
 				</header>
