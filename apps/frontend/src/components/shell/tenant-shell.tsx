@@ -72,11 +72,11 @@ export function TenantShell({ children }: TenantShellProps) {
 			>
 				{/* Logo */}
 				<div className="flex items-center gap-3 px-4 h-14 shrink-0">
-					<Link href="/tenant" className="flex items-center gap-3">
+					<Link href="/tenant" className="flex items-center gap-3 rounded-lg focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none hover:opacity-80 transition-opacity">
 						<div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary">
 							<Sparkles className="w-4 h-4 text-primary-foreground" />
 						</div>
-						<span className="font-semibold text-foreground tracking-tight">
+						<span className="font-semibold text-foreground text-lg tracking-tight">
 							TenantFlow
 						</span>
 					</Link>
