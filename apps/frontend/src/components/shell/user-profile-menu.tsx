@@ -31,7 +31,7 @@ export function UserProfileMenu({
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<button
-					className="relative flex items-center justify-center -m-1.5 p-1.5 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+					className="relative flex items-center justify-center min-h-11 min-w-11 rounded-full focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
 					aria-label="User menu"
 				>
 					<span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors">
@@ -41,8 +41,8 @@ export function UserProfileMenu({
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="w-56">
 				<DropdownMenuLabel className="font-normal">
-					<p className="text-sm font-medium">{userName}</p>
-					<p className="text-xs text-muted-foreground truncate">{userEmail}</p>
+					<span className="block text-sm font-medium">{userName}</span>
+					<span className="block text-xs text-muted-foreground truncate">{userEmail}</span>
 				</DropdownMenuLabel>
 				<DropdownMenuSeparator />
 				<DropdownMenuItem asChild>
