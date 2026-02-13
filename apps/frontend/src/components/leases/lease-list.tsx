@@ -109,8 +109,8 @@ export function LeaseList({
 	const filteredLeases = leases.filter(l => {
 		if (
 			searchQuery &&
-			!l.tenantName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-			!l.propertyName.toLowerCase().includes(searchQuery.toLowerCase())
+			!(l.tenantName ?? '').toLowerCase().includes(searchQuery.toLowerCase()) &&
+			!(l.propertyName ?? '').toLowerCase().includes(searchQuery.toLowerCase())
 		) {
 			return false
 		}

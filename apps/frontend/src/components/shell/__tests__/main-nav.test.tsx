@@ -186,8 +186,6 @@ describe('MainNav', () => {
 			await user.click(settingsButton)
 
 			expect(screen.getByRole('link', { name: /help & support/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /documentation/i })).toBeInTheDocument()
-			expect(screen.getByRole('link', { name: /send feedback/i })).toBeInTheDocument()
 		})
 
 		it('should show keyboard shortcuts item in dropdown', async () => {

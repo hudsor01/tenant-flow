@@ -240,7 +240,7 @@ export function MaintenanceList({
 	const filteredRequests = requests.filter(r => {
 		if (
 			searchQuery &&
-			!r.title.toLowerCase().includes(searchQuery.toLowerCase())
+			!(r.title ?? '').toLowerCase().includes(searchQuery.toLowerCase())
 		) {
 			return false
 		}

@@ -15,8 +15,6 @@ import {
 	FilePlus,
 	FileCheck,
 	HelpCircle,
-	MessageSquare,
-	BookOpen,
 	Keyboard,
 	ClipboardList,
 	type LucideIcon
@@ -119,22 +117,6 @@ function SettingsMenu({ onNavigate }: { onNavigate: () => void }) {
 							>
 								<HelpCircle className="w-4 h-4 text-muted-foreground" />
 								Help & Support
-							</Link>
-							<Link
-								href="/docs"
-								onClick={handleLinkClick}
-								className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-							>
-								<BookOpen className="w-4 h-4 text-muted-foreground" />
-								Documentation
-							</Link>
-							<Link
-								href="/feedback"
-								onClick={handleLinkClick}
-								className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-muted transition-colors"
-							>
-								<MessageSquare className="w-4 h-4 text-muted-foreground" />
-								Send Feedback
 							</Link>
 							<div className="my-1 border-t border-border" />
 							<button
