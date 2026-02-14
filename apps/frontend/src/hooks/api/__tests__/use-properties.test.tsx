@@ -398,15 +398,17 @@ describe('Mutation Hooks', () => {
 			await result.current.mutateAsync({
 				id: 'prop-123',
 				dateSold: saleDate,
-				salePrice: 500000,
-				saleNotes: 'Good sale'
+				salePrice: 500000
 			})
 
 			expect(mockFetch).toHaveBeenCalledWith(
 				'http://localhost:4600/api/v1/properties/prop-123/mark-sold',
 				expect.objectContaining({
 					method: 'PUT',
-					body: expect.stringContaining('500000')
+					body: JSON.stringify({
+						sale_date: saleDate.toISOString(),
+						sale_price: 500000
+					})
 				})
 			)
 		})

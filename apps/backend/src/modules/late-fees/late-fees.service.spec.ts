@@ -32,6 +32,7 @@ describe('LateFeesService', () => {
 			insert: jest.fn().mockReturnThis(),
 			update: jest.fn().mockReturnThis(),
 			eq: jest.fn().mockReturnThis(),
+			is: jest.fn().mockReturnThis(),
 			in: jest.fn().mockReturnThis(),
 			order: jest.fn().mockReturnThis(),
 			single: jest.fn()
@@ -217,8 +218,11 @@ describe('LateFeesService', () => {
 				mockInvoiceItem
 			)
 
-			// Mock the full chain for update
-			mockAdminClient.eq.mockResolvedValue({ data: {}, error: null })
+			// Mock the claim chain: .update().eq().is().select() -> returns claimed row
+			;(mockAdminClient.select as jest.Mock).mockResolvedValueOnce({
+				data: [{ id: rentPaymentId }],
+				error: null
+			})
 
 			const result = await service.applyLateFeeToInvoice(
 				customerId,
@@ -256,6 +260,12 @@ describe('LateFeesService', () => {
 			;(mockStripe.invoiceItems!.create as jest.Mock).mockRejectedValue(
 				new Error('Stripe error')
 			)
+
+			// Mock the claim to succeed, so Stripe is called and fails
+			;(mockAdminClient.select as jest.Mock).mockResolvedValueOnce({
+				data: [{ id: 'payment-123' }],
+				error: null
+			})
 
 			await expect(
 				service.applyLateFeeToInvoice(

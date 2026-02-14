@@ -173,11 +173,7 @@ export class RentPaymentsService {
 		const dueDate = new Date(paid_date)
 
 		// Insert the payment record using admin client
-		// Note: stripe_payment_intent_id is nullable after migration 20251226164649
-		// and notes column is added by the same migration
-		// We use a placeholder ID for manual payments since the column is required in current schema
 		const adminClient = this.supabase.getAdminClient()
-		const manualPaymentId = `MANUAL_${Date.now()}_${Math.random().toString(36).substring(7)}`
 		const insertPayload = {
 			tenant_id,
 			lease_id,
@@ -195,8 +191,7 @@ export class RentPaymentsService {
 				0
 			).toISOString(),
 			status: 'succeeded' as PaymentStatus,
-			// Use placeholder ID until migration makes this column nullable
-			stripe_payment_intent_id: manualPaymentId
+			stripe_payment_intent_id: null
 		}
 
 		const { data: payment, error: insertError } = await adminClient

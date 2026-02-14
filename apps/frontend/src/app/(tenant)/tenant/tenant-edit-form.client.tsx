@@ -116,7 +116,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 									placeholder="John Doe"
 								/>
 							</InputGroup>
-							{field.state.meta.errors?.length && (
+							{field.state.meta.errors?.length > 0 && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 							)}
 						</Field>
@@ -145,7 +145,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 									placeholder="(555) 123-4567"
 								/>
 							</InputGroup>
-							{field.state.meta.errors?.length && (
+							{field.state.meta.errors?.length > 0 && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 							)}
 						</Field>
@@ -170,7 +170,7 @@ export function TenantEditForm({ id }: TenantEditFormProps) {
 									placeholder="e.g., Mother, Spouse, Friend"
 								/>
 							</InputGroup>
-							{field.state.meta.errors?.length && (
+							{field.state.meta.errors?.length > 0 && (
 								<FieldError>{String(field.state.meta.errors[0])}</FieldError>
 							)}
 						</Field>

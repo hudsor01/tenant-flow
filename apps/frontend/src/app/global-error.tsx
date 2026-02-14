@@ -17,14 +17,15 @@ export default function GlobalError({
 	return (
 		<html lang="en">
 			<body>
-				<div className="min-h-screen flex flex-col items-center justify-center gap-4 font-sans p-8">
-					<h2 className="text-2xl font-bold mb-4">Something went wrong!</h2>
-					<p className="text-gray-600 mb-4">
+				<div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
+					<h2 className="text-xl font-semibold mb-4">Something went wrong!</h2>
+					<p className="text-sm text-muted-foreground mb-4">
 						We&apos;ve been notified and are working to fix the issue.
 					</p>
 					<button
+						type="button"
 						onClick={() => reset()}
-						className="px-6 py-3 text-white border-none rounded-lg text-base cursor-pointer bg-blue-600 hover:bg-blue-700"
+						className="min-h-11 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors"
 					>
 						Try again
 					</button>

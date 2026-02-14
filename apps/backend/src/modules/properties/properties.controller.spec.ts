@@ -120,11 +120,15 @@ describe('PropertiesController', () => {
 	describe('findAll', () => {
 		it('should return properties with default parameters', async () => {
 			const mockProperties = [createMockProperty({ id: 'property-1' })]
-			mockPropertiesServiceInstance.findAll.mockResolvedValue(mockProperties)
+			mockPropertiesServiceInstance.findAll.mockResolvedValue({
+				data: mockProperties,
+				count: 1
+			})
 
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findAll(
 				null, // search
+				null, // status
 				10, // limit
 				0, // offset
 				mockRequest
@@ -134,7 +138,7 @@ describe('PropertiesController', () => {
 			// Controller wraps service response in PaginatedResponse format
 			expect(result).toEqual({
 				data: mockProperties,
-				total: mockProperties.length,
+				total: 1,
 				limit: 10,
 				offset: 0,
 				hasMore: false
@@ -161,6 +165,7 @@ describe('PropertiesController', () => {
 			const mockRequest = createMockRequest({ user: mockUser })
 			const result = await controller.findAllWithUnits(
 				null, // search
+				null, // status
 				10, // limit
 				0, // offset
 				mockRequest
@@ -170,6 +175,7 @@ describe('PropertiesController', () => {
 				mockPropertiesServiceInstance.findAllWithUnits
 			).toHaveBeenCalledWith(mockRequest, {
 				search: null,
+				status: null,
 				limit: 10,
 				offset: 0
 			})

@@ -53,6 +53,11 @@ Sentry.init({
 			return null
 		}
 
+		// Skip development unless explicitly enabled (parity with frontend config)
+		if (process.env.NODE_ENV === 'development' && !process.env.SENTRY_DEBUG) {
+			return null
+		}
+
 		// Scrub sensitive headers
 		if (event.request?.headers) {
 			const sensitiveHeaders = [

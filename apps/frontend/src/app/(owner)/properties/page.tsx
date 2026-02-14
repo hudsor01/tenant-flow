@@ -195,7 +195,7 @@ export default function PropertiesPage() {
 	}
 
 	// Fetch properties
-	const { data: propertiesResponse, isLoading } = useQuery(
+	const { data: propertiesResponse, isLoading, error } = useQuery(
 		propertyQueries.list()
 	)
 	const rawProperties = useMemo(
@@ -252,10 +252,13 @@ export default function PropertiesPage() {
 		[rawProperties, unitsMap, imagesMap]
 	)
 
-	// Calculate summary
+	// Calculate summary (use API total for accurate count across pages)
 	const summary = useMemo(
-		() => calculateSummary(properties),
-		[properties]
+		() => ({
+			...calculateSummary(properties),
+			totalProperties: propertiesResponse?.total ?? properties.length
+		}),
+		[properties, propertiesResponse?.total]
 	)
 
 	// Delete mutation
@@ -308,6 +311,21 @@ export default function PropertiesPage() {
 
 	if (isLoading) {
 		return <PropertiesLoadingSkeleton />
+	}
+
+	if (error) {
+		return (
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+					<h2 className="text-lg font-semibold text-destructive mb-2">
+						Error Loading Properties
+					</h2>
+					<p className="text-muted-foreground">
+						{error instanceof Error ? error.message : 'Failed to load properties'}
+					</p>
+				</div>
+			</div>
+		)
 	}
 
 	return (

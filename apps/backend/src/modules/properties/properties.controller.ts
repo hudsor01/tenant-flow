@@ -66,6 +66,7 @@ export class PropertiesController {
 
 	@ApiOperation({ summary: 'List all properties', description: 'Get all properties for the authenticated user with pagination' })
 	@ApiQuery({ name: 'search', required: false, description: 'Search term for filtering properties' })
+	@ApiQuery({ name: 'status', required: false, description: 'Filter by property status (active, inactive, sold). Defaults to excluding inactive.' })
 	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
 	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
 	@ApiResponse({ status: 200, description: 'List of properties with pagination info' })
@@ -74,6 +75,7 @@ export class PropertiesController {
 	@Get()
 	async findAll(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
+		@Query('status', new DefaultValuePipe(null)) status: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
@@ -85,18 +87,19 @@ export class PropertiesController {
 		const safeLimit = normalizeLimit(limit)
 		const safeOffset = normalizeOffset(offset)
 
-		const data = await this.propertiesService.findAll(token, {
+		const result = await this.propertiesService.findAll(token, {
 			search,
+			status,
 			limit: safeLimit,
 			offset: safeOffset
 		})
 
 		return {
-			data,
-			total: data.length,
+			data: result.data,
+			total: result.count,
 			limit: safeLimit,
 			offset: safeOffset,
-			hasMore: data.length >= safeLimit
+			hasMore: result.data.length >= safeLimit
 		}
 	}
 
@@ -110,7 +113,7 @@ export class PropertiesController {
 			throw new UnauthorizedException('Authorization token required')
 		}
 		const dashboardStats = await this.dashboardStatsService.getStats(
-			undefined,
+			req.user.id,
 			token
 		)
 		return dashboardStats.properties
@@ -118,6 +121,7 @@ export class PropertiesController {
 
 	@ApiOperation({ summary: 'List properties with units', description: 'Get all properties with their associated units for stat calculations' })
 	@ApiQuery({ name: 'search', required: false, description: 'Search term for filtering' })
+	@ApiQuery({ name: 'status', required: false, description: 'Filter by property status (active, inactive, sold). Defaults to excluding inactive.' })
 	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
 	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
 	@ApiResponse({ status: 200, description: 'List of properties with their units' })
@@ -125,6 +129,7 @@ export class PropertiesController {
 	@Get('with-units')
 	async findAllWithUnits(
 		@Query('search', new DefaultValuePipe(null)) search: string | null,
+		@Query('status', new DefaultValuePipe(null)) status: string | null,
 		@Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
@@ -133,6 +138,7 @@ export class PropertiesController {
 		const safeOffset = normalizeOffset(offset)
 		return this.propertiesService.findAllWithUnits(req, {
 			search,
+			status,
 			limit: safeLimit,
 			offset: safeOffset
 		})

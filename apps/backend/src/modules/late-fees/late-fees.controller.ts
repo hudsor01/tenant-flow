@@ -410,6 +410,10 @@ export class LateFeesController {
 			token
 		)
 
+		if (!invoiceItem) {
+			throw new BadRequestException('Late fee was already applied to this payment')
+		}
+
 		return {
 			success: true,
 			data: {
