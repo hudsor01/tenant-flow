@@ -22,8 +22,6 @@ import {
 	FileCheck,
 	Settings,
 	HelpCircle,
-	BookOpen,
-	MessageSquare,
 	LogOut
 } from 'lucide-react'
 import Link from 'next/link'
@@ -151,9 +149,7 @@ export function AppShell({ children, showQuickActionsDock = true }: AppShellProp
 			{ label: 'Notifications', href: '/settings?tab=notifications', icon: Bell },
 			{ label: 'Settings', href: '/settings', icon: Settings },
 			{ label: 'Profile', href: '/profile', icon: Settings },
-			{ label: 'Help & Support', href: '/help', icon: HelpCircle },
-			{ label: 'Documentation', href: '/docs', icon: BookOpen },
-			{ label: 'Send Feedback', href: '/feedback', icon: MessageSquare }
+			{ label: 'Help & Support', href: '/help', icon: HelpCircle }
 		],
 		[]
 	)

@@ -109,8 +109,8 @@ export function LeaseList({
 	const filteredLeases = leases.filter(l => {
 		if (
 			searchQuery &&
-			!l.tenantName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-			!l.propertyName.toLowerCase().includes(searchQuery.toLowerCase())
+			!(l.tenantName ?? '').toLowerCase().includes(searchQuery.toLowerCase()) &&
+			!(l.propertyName ?? '').toLowerCase().includes(searchQuery.toLowerCase())
 		) {
 			return false
 		}
@@ -125,10 +125,10 @@ export function LeaseList({
 		let comparison = 0
 		switch (sortField) {
 			case 'tenant':
-				comparison = a.tenantName.localeCompare(b.tenantName)
+				comparison = (a.tenantName ?? '').localeCompare(b.tenantName ?? '')
 				break
 			case 'property':
-				comparison = a.propertyName.localeCompare(b.propertyName)
+				comparison = (a.propertyName ?? '').localeCompare(b.propertyName ?? '')
 				break
 			case 'startDate':
 				comparison =

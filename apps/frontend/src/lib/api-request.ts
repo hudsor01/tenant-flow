@@ -109,14 +109,27 @@ export async function apiRequest<T>(
 	} = await supabase.auth.getSession()
 
 	try {
+		// Properly handle headers without unsafe type assertion
+		const headers = new Headers({
+			'Content-Type': 'application/json'
+		})
+
+		// Merge custom headers if provided
+		if (fetchOptions?.headers) {
+			const customHeaders = new Headers(fetchOptions.headers)
+			customHeaders.forEach((value, key) => {
+				headers.set(key, value)
+			})
+		}
+
+		if (session?.access_token) {
+			headers.set('Authorization', `Bearer ${session.access_token}`)
+		}
+
 		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
 			...fetchOptions,
 			...(signal ? { signal } : {}),
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${session?.access_token}`,
-				...fetchOptions?.headers
-			}
+			headers
 		})
 
 		if (!res.ok) {
@@ -178,14 +191,27 @@ export async function apiRequestFormData<T>(
 	} = await supabase.auth.getSession()
 
 	try {
+		// Properly handle headers without unsafe type assertion
+		// Note: Don't set Content-Type - browser auto-sets multipart/form-data with boundary
+		const headers = new Headers()
+
+		// Merge custom headers if provided
+		if (fetchOptions?.headers) {
+			const customHeaders = new Headers(fetchOptions.headers)
+			customHeaders.forEach((value, key) => {
+				headers.set(key, value)
+			})
+		}
+
+		if (session?.access_token) {
+			headers.set('Authorization', `Bearer ${session.access_token}`)
+		}
+
 		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
 			method: 'POST',
 			...fetchOptions,
 			...(signal ? { signal } : {}),
-			headers: {
-				Authorization: `Bearer ${session?.access_token}`,
-				...fetchOptions?.headers
-			},
+			headers,
 			body: formData
 		})
 
@@ -239,13 +265,25 @@ export async function apiRequestRaw(
 	} = await supabase.auth.getSession()
 
 	try {
+		// Properly handle headers without unsafe type assertion
+		const headers = new Headers()
+
+		// Merge custom headers if provided
+		if (fetchOptions?.headers) {
+			const customHeaders = new Headers(fetchOptions.headers)
+			customHeaders.forEach((value, key) => {
+				headers.set(key, value)
+			})
+		}
+
+		if (session?.access_token) {
+			headers.set('Authorization', `Bearer ${session.access_token}`)
+		}
+
 		const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
 			...fetchOptions,
 			...(signal ? { signal } : {}),
-			headers: {
-				Authorization: `Bearer ${session?.access_token}`,
-				...fetchOptions?.headers
-			}
+			headers
 		})
 
 		if (!res.ok) {
