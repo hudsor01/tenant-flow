@@ -33,13 +33,25 @@ export class StripeCustomerOwnershipGuard implements CanActivate {
 		}
 
 		// Extract customer ID from request parameters
-		const customerId = request.params?.id || request.params?.customerId
+		const customerIdRaw = request.params?.id || request.params?.customerId
 
-		if (!customerId) {
+		if (!customerIdRaw) {
 			this.logger.warn(
 				'StripeCustomerOwnershipGuard: No customer ID in request'
 			)
 			throw new ForbiddenException('Customer ID required')
+		}
+
+		// Ensure customerId is a string (Express params can be string | string[])
+		const customerId = Array.isArray(customerIdRaw)
+			? customerIdRaw[0]
+			: customerIdRaw
+
+		if (!customerId) {
+			this.logger.warn(
+				'StripeCustomerOwnershipGuard: Invalid customer ID in request'
+			)
+			throw new ForbiddenException('Valid customer ID required')
 		}
 
 		// Verify ownership using RPC function
