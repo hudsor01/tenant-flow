@@ -49,7 +49,7 @@ export function TaxDocuments({ documents, onDownload }: TaxDocumentsProps) {
 		if (statusFilter !== 'all' && doc.status !== statusFilter) return false
 		if (
 			searchQuery &&
-			!doc.name.toLowerCase().includes(searchQuery.toLowerCase())
+			!(doc.name ?? '').toLowerCase().includes(searchQuery.toLowerCase())
 		)
 			return false
 		return true

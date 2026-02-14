@@ -276,44 +276,49 @@ export type LeaseDetailsStepData = z.infer<typeof leaseDetailsStepSchema>
 // ============================================================================
 
 /**
- * Complete lease creation wizard data
+ * Base lease wizard object schema (without refinements)
+ * Used as foundation for both wizard and API schemas
+ */
+const leaseWizardBaseSchema = z.object({
+	// Step 1: Selection
+	property_id: uuidSchema,
+	unit_id: uuidSchema,
+	primary_tenant_id: uuidSchema,
+
+	// Step 2: Terms
+	start_date: dateStringSchema,
+	end_date: dateStringSchema,
+	rent_amount: positiveNumberSchema.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE),
+	security_deposit: nonNegativeNumberSchema.max(
+		VALIDATION_LIMITS.RENT_MAXIMUM_VALUE
+	),
+	payment_day: z.number().int().min(1).max(31).default(1),
+	grace_period_days: z.number().int().min(0).max(30).default(3),
+	late_fee_amount: nonNegativeNumberSchema
+		.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE)
+		.default(0),
+
+	// Step 3: Lease Details
+	max_occupants: z.number().int().min(1).max(20).optional(),
+	pets_allowed: z.boolean().default(false),
+	pet_deposit: nonNegativeNumberSchema.optional(),
+	pet_rent: nonNegativeNumberSchema.optional(),
+	utilities_included: z.array(z.string()).default([]),
+	tenant_responsible_utilities: z.array(z.string()).default([]),
+	property_rules: z.string().max(5000).optional(),
+	property_built_before_1978: z.boolean().default(false),
+	lead_paint_disclosure_acknowledged: z.boolean().optional(),
+	governing_state: usStateSchema.default('TX'),
+
+	// Status (always draft for new leases)
+	lease_status: z.literal('draft').default('draft')
+})
+
+/**
+ * Complete lease creation wizard data with validation refinements
  * Combines all steps for final submission
  */
-export const leaseWizardSchema = z
-	.object({
-		// Step 1: Selection
-		property_id: uuidSchema,
-		unit_id: uuidSchema,
-		primary_tenant_id: uuidSchema,
-
-		// Step 2: Terms
-		start_date: dateStringSchema,
-		end_date: dateStringSchema,
-		rent_amount: positiveNumberSchema.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE),
-		security_deposit: nonNegativeNumberSchema.max(
-			VALIDATION_LIMITS.RENT_MAXIMUM_VALUE
-		),
-		payment_day: z.number().int().min(1).max(31).default(1),
-		grace_period_days: z.number().int().min(0).max(30).default(3),
-		late_fee_amount: nonNegativeNumberSchema
-			.max(VALIDATION_LIMITS.RENT_MAXIMUM_VALUE)
-			.default(0),
-
-		// Step 3: Lease Details
-		max_occupants: z.number().int().min(1).max(20).optional(),
-		pets_allowed: z.boolean().default(false),
-		pet_deposit: nonNegativeNumberSchema.optional(),
-		pet_rent: nonNegativeNumberSchema.optional(),
-		utilities_included: z.array(z.string()).default([]),
-		tenant_responsible_utilities: z.array(z.string()).default([]),
-		property_rules: z.string().max(5000).optional(),
-		property_built_before_1978: z.boolean().default(false),
-		lead_paint_disclosure_acknowledged: z.boolean().optional(),
-		governing_state: usStateSchema.default('TX'),
-
-		// Status (always draft for new leases)
-		lease_status: z.literal('draft').default('draft')
-	})
+export const leaseWizardSchema = leaseWizardBaseSchema
 	.refine(
 		data => {
 			const start = new Date(`${data.start_date}T00:00:00.000Z`)
@@ -347,8 +352,12 @@ export type LeaseWizardData = z.infer<typeof leaseWizardSchema>
 
 /**
  * Create lease request schema (sent to backend)
+ * Omits lease_status and adds rent_currency
+ *
+ * Note: Uses base schema (before refinements) to allow .omit()
+ * Zod v4 doesn't allow .omit() on schemas with refinements
  */
-export const createLeaseWizardRequestSchema = leaseWizardSchema
+export const createLeaseWizardRequestSchema = leaseWizardBaseSchema
 	.omit({
 		lease_status: true
 	})

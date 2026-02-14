@@ -24,14 +24,14 @@
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.0",
-		"@faker-js/faker": "10.1.0",
+		"@faker-js/faker": "10.2.0",
 		"@lhci/cli": "0.15.1",
 		"@playwright/test": "1.57.0",
 		"@repo/eslint-config": "workspace:*",
 		"@types/node": "catalog:default",
 		"dotenv": "17.2.3",
 		"eslint": "catalog:default",
-		"fast-check": "^4.3.0",
+		"fast-check": "^4.5.3",
 		"lighthouse": "13.0.1",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"

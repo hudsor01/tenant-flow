@@ -100,8 +100,8 @@ export function PortfolioOverviewSection({
 				if (searchQuery) {
 					const query = searchQuery.toLowerCase()
 					if (
-						!row.property.toLowerCase().includes(query) &&
-						!row.address.toLowerCase().includes(query)
+						!(row.property ?? '').toLowerCase().includes(query) &&
+						!(row.address ?? '').toLowerCase().includes(query)
 					) {
 						return false
 					}

@@ -59,7 +59,12 @@
 		"docker:test": "bash scripts/docker-test.sh",
 		"docker:up": "docker compose up -d",
 		"docker:down": "docker compose down -v",
-		"test:smoke": "bash scripts/smoke-test.sh"
+		"test:smoke": "bash scripts/smoke-test.sh",
+		"health": "bash scripts/health-check.sh",
+		"changelog": "git cliff --output CHANGELOG.md",
+		"scan:secrets": "gitleaks detect --source . --no-git -v",
+		"scan:vulns": "trivy fs --severity HIGH,CRITICAL --scanners vuln .",
+		"scan:typos": "typos --format brief"
 	},
 	"commitlint": {
 		"extends": [
@@ -95,8 +100,8 @@
 		]
 	},
 	"dependencies": {
-		"@commitlint/cli": "20.1.0",
-		"@commitlint/config-conventional": "20.0.0",
+		"@commitlint/cli": "20.3.1",
+		"@commitlint/config-conventional": "20.3.1",
 		"@repo/eslint-config": "workspace:*",
 		"husky": "9.1.7",
 		"prettier": "catalog:default",
@@ -104,12 +109,12 @@
 		"typescript": "^5.9.3"
 	},
 	"devDependencies": {
-		"@next/eslint-plugin-next": "~16.0.10",
+		"@next/eslint-plugin-next": "~16.1.4",
 		"@playwright/test": "1.57.0",
 		"eslint": "catalog:default",
-		"globals": "16.5.0",
+		"globals": "17.0.0",
 		"playwright": "1.57.0",
-		"turbo": "2.6.3",
+		"turbo": "2.7.5",
 		"vercel": "50.15.1"
 	}
 }

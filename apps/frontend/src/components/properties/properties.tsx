@@ -162,9 +162,9 @@ export function Properties({
 			if (searchQuery) {
 				const query = searchQuery.toLowerCase()
 				if (
-					!p.name.toLowerCase().includes(query) &&
-					!p.addressLine1.toLowerCase().includes(query) &&
-					!p.city.toLowerCase().includes(query)
+					!(p.name ?? '').toLowerCase().includes(query) &&
+					!(p.addressLine1 ?? '').toLowerCase().includes(query) &&
+					!(p.city ?? '').toLowerCase().includes(query)
 				) {
 					return false
 				}

@@ -43,7 +43,7 @@ interface PaymentMethodsListProps {
 }
 
 function getCardBrandIcon(brand: string) {
-	const brandLower = brand.toLowerCase()
+	const brandLower = (brand ?? '').toLowerCase()
 	switch (brandLower) {
 		case 'visa':
 			return '💳 Visa'

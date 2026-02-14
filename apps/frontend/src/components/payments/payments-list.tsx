@@ -135,8 +135,8 @@ export function PaymentsList({
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
 			if (
-				!payment.tenantName.toLowerCase().includes(query) &&
-				!payment.propertyName.toLowerCase().includes(query)
+				!(payment.tenantName ?? '').toLowerCase().includes(query) &&
+				!(payment.propertyName ?? '').toLowerCase().includes(query)
 			) {
 				return false
 			}
