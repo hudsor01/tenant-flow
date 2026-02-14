@@ -28,7 +28,7 @@ import type { Tables } from '@repo/shared/types/supabase'
  * Property query filters
  */
 export interface PropertyFilters {
-	status?: 'active' | 'SOLD' | 'inactive'
+	status?: 'active' | 'sold' | 'inactive'
 	property_type?:
 		| 'SINGLE_FAMILY'
 		| 'MULTI_FAMILY'

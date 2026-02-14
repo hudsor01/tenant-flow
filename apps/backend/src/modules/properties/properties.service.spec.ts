@@ -214,9 +214,10 @@ describe('PropertiesService', () => {
 			const mockQueryBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
+				neq: jest.fn().mockReturnThis(),
 				order: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
-				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })
+				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null, count: 1 })
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
@@ -227,7 +228,7 @@ describe('PropertiesService', () => {
 				offset: 0
 			})
 
-			expect(result).toEqual(mockProperties)
+			expect(result).toEqual({ data: mockProperties, count: 1 })
 			expect(mockUserClient.from).toHaveBeenCalledWith('properties')
 			// RLS enforces ownership, so no manual .eq('owner_id') filter needed
 			expect(mockQueryBuilder.or).toHaveBeenCalledWith(
@@ -239,10 +240,11 @@ describe('PropertiesService', () => {
 			const mockQueryBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
-				order: jest.fn().mockReturnThis(),
-				range: jest
+				neq: jest
 					.fn()
-					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
+					.mockResolvedValue({ data: null, error: { message: 'DB error' } }),
+				order: jest.fn().mockReturnThis(),
+				range: jest.fn().mockReturnThis()
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
@@ -468,6 +470,7 @@ describe('PropertiesService', () => {
 			const mockQueryBuilder = {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
+				neq: jest.fn().mockReturnThis(),
 				order: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
 				or: jest.fn().mockResolvedValue({ data: mockProperties, error: null })

@@ -524,7 +524,7 @@ export function useInviteTenantMutation() {
 
 			if (data.lease_id) {
 				await apiRequest(`/api/v1/leases/${data.lease_id}`, {
-					method: 'PATCH',
+					method: 'PUT',
 					body: JSON.stringify({ tenant_id: response.id })
 				})
 			}
@@ -537,6 +537,7 @@ export function useInviteTenantMutation() {
 			})
 
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 
 			logger.info('Tenant invitation sent', {
 				action: 'invite_tenant',

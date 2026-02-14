@@ -171,7 +171,7 @@ export default function TenantsPage() {
 	const [tenantToDelete, setTenantToDelete] = useState<string | null>(null)
 
 	// Fetch tenants list
-	const { data: tenantsResponse, isLoading } = useQuery(tenantQueries.list())
+	const { data: tenantsResponse, isLoading, error } = useQuery(tenantQueries.list())
 	const rawTenants = useMemo(
 		() => tenantsResponse?.data ?? [],
 		[tenantsResponse?.data]
@@ -310,6 +310,21 @@ export default function TenantsPage() {
 
 	if (isLoading) {
 		return <TenantsLoadingSkeleton />
+	}
+
+	if (error) {
+		return (
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+					<h2 className="text-lg font-semibold text-destructive mb-2">
+						Error Loading Tenants
+					</h2>
+					<p className="text-muted-foreground">
+						{error instanceof Error ? error.message : 'Failed to load tenants'}
+					</p>
+				</div>
+			</div>
+		)
 	}
 
 	return (

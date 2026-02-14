@@ -12,7 +12,7 @@ interface LeaseEditPageProps {
 
 export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 	const { id } = use(params)
-	const { data: lease, isLoading } = useQuery(leaseQueries.detail(id))
+	const { data: lease, isLoading, error } = useQuery(leaseQueries.detail(id))
 
 	if (isLoading) {
 		return (
@@ -22,6 +22,21 @@ export default function LeaseEditPage({ params }: LeaseEditPageProps) {
 					<Skeleton className="h-5 w-80" />
 				</div>
 				<Skeleton className="h-96 w-full rounded-xl" />
+			</div>
+		)
+	}
+
+	if (error) {
+		return (
+			<div className="mx-auto w-full max-w-4xl space-y-10">
+				<div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-center">
+					<h2 className="text-lg font-semibold text-destructive mb-2">
+						Error Loading Lease
+					</h2>
+					<p className="text-muted-foreground">
+						{error instanceof Error ? error.message : 'Failed to load lease'}
+					</p>
+				</div>
 			</div>
 		)
 	}

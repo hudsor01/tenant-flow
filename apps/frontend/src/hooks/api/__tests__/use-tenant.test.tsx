@@ -514,7 +514,7 @@ describe('Mutation Hooks', () => {
 				2,
 				'http://localhost:4600/api/v1/leases/lease-456',
 				expect.objectContaining({
-					method: 'PATCH'
+					method: 'PUT'
 				})
 			)
 		})

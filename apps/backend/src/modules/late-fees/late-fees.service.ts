@@ -143,7 +143,7 @@ export class LateFeesService {
 		late_fee_amount: number,
 		reason: string,
 		token: string
-	): Promise<Stripe.InvoiceItem> {
+	): Promise<Stripe.InvoiceItem | null> {
 		try {
 			if (!token) {
 				this.logger.warn('Apply late fee to invoice requested without token')
@@ -158,31 +158,62 @@ export class LateFeesService {
 				reason
 			})
 
-			// Create invoice item (will be added to next invoice)
-			const invoiceItem = await this.stripe.invoiceItems.create({
-				customer: customerId,
-				amount: Math.round(late_fee_amount * 100), // Convert to cents
-				currency: 'usd',
-				description: `Late Fee: ${reason}`,
-				metadata: {
-					type: 'late_fee',
-					lease_id,
-					rentPaymentId,
-					reason
-				}
-			})
-
 			// RLS SECURITY: User-scoped client automatically filters to user's rent payments
 			const client = this.supabase.getUserClient(token)
 
-			// Update RentPayment to mark late fee applied
-			await client
+			// RACE CONDITION FIX: Claim the payment before charging Stripe.
+			// The .is('late_fee_amount', null) condition ensures only one concurrent
+			// request can claim a payment, preventing double late-fee charges.
+			const lateFeeInCents = Math.round(late_fee_amount * 100)
+			const { data: claimed, error: claimError } = await client
 				.from('rent_payments')
 				.update({
-					late_fee_amount: Math.round(late_fee_amount * 100), // Store in cents
+					late_fee_amount: lateFeeInCents,
 					updated_at: new Date().toISOString()
 				})
 				.eq('id', rentPaymentId)
+				.is('late_fee_amount', null)
+				.select('id')
+
+			if (claimError) {
+				throw new BadRequestException('Failed to claim payment for late fee')
+			}
+
+			// If no rows updated, another request already applied the fee
+			if (!claimed || claimed.length === 0) {
+				this.logger.warn('Late fee already applied by concurrent request, skipping', {
+					rentPaymentId,
+					lease_id
+				})
+				return null
+			}
+
+			// Payment claimed - now safe to charge via Stripe
+			let invoiceItem: Stripe.InvoiceItem
+			try {
+				invoiceItem = await this.stripe.invoiceItems.create({
+					customer: customerId,
+					amount: lateFeeInCents,
+					currency: 'usd',
+					description: `Late Fee: ${reason}`,
+					metadata: {
+						type: 'late_fee',
+						lease_id,
+						rentPaymentId,
+						reason
+					}
+				})
+			} catch (stripeError) {
+				// Rollback DB claim if Stripe charge fails
+				await client
+					.from('rent_payments')
+					.update({
+						late_fee_amount: null,
+						updated_at: new Date().toISOString()
+					})
+					.eq('id', rentPaymentId)
+				throw stripeError
+			}
 
 			this.logger.log('Late fee applied successfully', {
 				invoiceItemId: invoiceItem.id,
@@ -386,7 +417,7 @@ export class LateFeesService {
 				chunk: typeof paymentsWithFees
 			): Promise<void> => {
 				const chunkPromises = chunk.map(async ({ payment, calculation }) => {
-					await this.applyLateFeeToInvoice(
+					const invoiceItem = await this.applyLateFeeToInvoice(
 						stripeCustomerId,
 						lease_id,
 						payment.id,
@@ -394,6 +425,8 @@ export class LateFeesService {
 						calculation.reason,
 						token
 					)
+					// null means another concurrent request already applied the fee
+					if (!invoiceItem) return null
 					return {
 						paymentId: payment.id,
 						late_fee_amount: calculation.late_fee_amount,
@@ -404,9 +437,9 @@ export class LateFeesService {
 				const settled = await Promise.allSettled(chunkPromises)
 
 				for (const result of settled) {
-					if (result.status === 'fulfilled') {
+					if (result.status === 'fulfilled' && result.value !== null) {
 						results.push(result.value)
-					} else {
+					} else if (result.status === 'rejected') {
 						// Log failure but continue processing other payments
 						this.logger.error(
 							'Failed to apply late fee to individual payment',
@@ -419,6 +452,7 @@ export class LateFeesService {
 							}
 						)
 					}
+					// fulfilled with null = already claimed by concurrent request, skip
 				}
 			}
 

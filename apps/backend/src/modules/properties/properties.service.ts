@@ -33,15 +33,22 @@ export class PropertiesService {
 
 	async findAll(
 		userToken: string,
-		query: { search?: string | null; limit: number; offset: number }
-	): Promise<Property[]> {
+		query: { search?: string | null; status?: string | null; limit: number; offset: number }
+	): Promise<{ data: Property[]; count: number }> {
 		const userClient = this.supabase.getUserClient(userToken)
 
 		let queryBuilder = userClient
 			.from('properties')
-			.select('*')
+			.select('*', { count: 'exact' })
 			.order('created_at', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
+
+		// Filter by status: exclude soft-deleted ('inactive') by default
+		if (query.status) {
+			queryBuilder = queryBuilder.eq('status', query.status)
+		} else {
+			queryBuilder = queryBuilder.neq('status', 'inactive')
+		}
 
 		if (query.search) {
 			const sanitized = sanitizeSearchInput(query.search)
@@ -52,14 +59,14 @@ export class PropertiesService {
 			}
 		}
 
-		const { data, error } = await queryBuilder
+		const { data, error, count } = await queryBuilder
 
 		if (error) {
 			this.logger.error('Failed to fetch properties', { error })
 			throw new InternalServerErrorException('Failed to fetch properties')
 		}
 
-		return (data || []) as Property[]
+		return { data: (data || []) as Property[], count: count ?? 0 }
 	}
 
 	async findOne(
@@ -232,7 +239,7 @@ export class PropertiesService {
 
 	async findAllWithUnits(
 		req: AuthenticatedRequest,
-		query: { search: string | null; limit: number; offset: number }
+		query: { search: string | null; status?: string | null; limit: number; offset: number }
 	): Promise<{
 		data: Property[]
 		total: number
@@ -255,6 +262,13 @@ export class PropertiesService {
 			.select('*, units:unit(*, lease(*))', { count: 'exact' })
 			.order('created_at', { ascending: false })
 			.range(offset, offset + limit - 1)
+
+		// Filter by status: exclude soft-deleted ('inactive') by default
+		if (query.status) {
+			queryBuilder = queryBuilder.eq('status', query.status)
+		} else {
+			queryBuilder = queryBuilder.neq('status', 'inactive')
+		}
 
 		if (query.search) {
 			const sanitized = sanitizeSearchInput(query.search)

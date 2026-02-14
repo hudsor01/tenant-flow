@@ -29,6 +29,7 @@ import type {
 import { propertyQueries, type PropertyFilters } from './query-keys/property-keys'
 import { unitQueries } from './query-keys/unit-keys'
 import { mutationKeys } from './mutation-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 
 /**
  * Extract data array from paginated response
@@ -168,22 +169,19 @@ export function useMarkPropertySoldMutation() {
 		mutationFn: async ({
 			id,
 			dateSold,
-			salePrice,
-			saleNotes
+			salePrice
 		}: {
 			id: string
 			dateSold: Date
 			salePrice: number
-			saleNotes?: string
 		}): Promise<{ success: boolean; message: string }> => {
 			return apiRequest<{ success: boolean; message: string }>(
 				`/api/v1/properties/${id}/mark-sold`,
 				{
 					method: 'PUT',
 					body: JSON.stringify({
-						dateSold: dateSold.toISOString(),
-						salePrice,
-						saleNotes
+						sale_date: dateSold.toISOString(),
+						sale_price: salePrice
 					})
 				}
 			)
@@ -233,6 +231,7 @@ export function useMarkPropertySoldMutation() {
 			queryClient.invalidateQueries({
 				queryKey: propertyQueries.stats().queryKey
 			})
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		}
 	})
 }
@@ -276,6 +275,7 @@ export function useCreatePropertyMutation() {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property created successfully')
 		},
 		onError: error => {
@@ -312,6 +312,7 @@ export function useUpdatePropertyMutation() {
 			)
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Property updated successfully')
 		},
 		onError: error => {
@@ -337,6 +338,7 @@ export function useDeletePropertyMutation() {
 			})
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property deleted successfully')
 		},
 		onError: error => {
