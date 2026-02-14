@@ -65,6 +65,15 @@ vi.mock('#lib/supabase/client', () => ({
 	})
 }))
 
+// Helper to convert Headers to plain object for testing
+function headersToObject(headers: Headers): Record<string, string> {
+	const obj: Record<string, string> = {}
+	headers.forEach((value, key) => {
+		obj[key] = value
+	})
+	return obj
+}
+
 // Wrapper for hooks
 function createWrapper() {
 	const queryClient = new QueryClient({
@@ -117,13 +126,19 @@ describe('useUpdatePropertyMutation', () => {
 			'http://localhost:4600/api/v1/properties/prop-123',
 			expect.objectContaining({
 				method: 'PUT',
-				headers: expect.objectContaining({
-					'Content-Type': 'application/json',
-					Authorization: 'Bearer test-token'
-				}),
 				body: JSON.stringify({ name: 'Updated Property' })
 			})
 		)
+
+		// Verify headers separately (Headers is not a plain object)
+		const callArgs = mockFetch.mock.calls[0]
+		const headers = callArgs?.[1]?.headers as Headers
+		expect(headers).toBeInstanceOf(Headers)
+		const headersObj = headersToObject(headers)
+		expect(headersObj).toMatchObject({
+			'content-type': 'application/json',
+			authorization: 'Bearer test-token'
+		})
 	})
 
 	it('should include version in body when provided', async () => {
@@ -215,12 +230,19 @@ describe('useDeletePropertyMutation', () => {
 		expect(mockFetch).toHaveBeenCalledWith(
 			'http://localhost:4600/api/v1/properties/prop-123',
 			expect.objectContaining({
-				method: 'DELETE',
-				headers: expect.objectContaining({
-					Authorization: 'Bearer test-token'
-				})
+				method: 'DELETE'
 			})
 		)
+
+		// Verify headers separately (Headers is not a plain object)
+		const callArgs = mockFetch.mock.calls[0]
+		const headers = callArgs?.[1]?.headers as Headers
+		expect(headers).toBeInstanceOf(Headers)
+		const headersObj = headersToObject(headers)
+		expect(headersObj).toMatchObject({
+			'content-type': 'application/json',
+			authorization: 'Bearer test-token'
+		})
 	})
 
 	it('should show success toast on successful delete', async () => {

@@ -188,6 +188,31 @@ describe('MainNav', () => {
 			expect(screen.getByRole('link', { name: /help & support/i })).toBeInTheDocument()
 		})
 
+		it('should render Help & Support link with correct href', async () => {
+			const user = userEvent.setup()
+			render(<MainNav />)
+
+			const settingsButton = screen.getByRole('button', { name: /settings/i })
+			await user.click(settingsButton)
+
+			const helpLink = screen.getByRole('link', { name: /help & support/i })
+			expect(helpLink).toHaveAttribute('href', '/help')
+		})
+
+		it('should call onNavigate when Help & Support is clicked', async () => {
+			const user = userEvent.setup()
+			const onNavigate = vi.fn()
+			render(<MainNav onNavigate={onNavigate} />)
+
+			const settingsButton = screen.getByRole('button', { name: /settings/i })
+			await user.click(settingsButton)
+
+			const helpLink = screen.getByRole('link', { name: /help & support/i })
+			await user.click(helpLink)
+
+			expect(onNavigate).toHaveBeenCalledTimes(1)
+		})
+
 		it('should show keyboard shortcuts item in dropdown', async () => {
 			const user = userEvent.setup()
 			render(<MainNav />)
@@ -196,6 +221,35 @@ describe('MainNav', () => {
 			await user.click(settingsButton)
 
 			expect(screen.getByText(/keyboard shortcuts/i)).toBeInTheDocument()
+		})
+
+		it('should show keyboard shortcut indicator "?"', async () => {
+			const user = userEvent.setup()
+			render(<MainNav />)
+
+			const settingsButton = screen.getByRole('button', { name: /settings/i })
+			await user.click(settingsButton)
+
+			expect(screen.getByText('?')).toBeInTheDocument()
+		})
+
+		it('should close dropdown when clicking outside', async () => {
+			const user = userEvent.setup()
+			render(<MainNav />)
+
+			const settingsButton = screen.getByRole('button', { name: /settings/i })
+			await user.click(settingsButton)
+
+			// Verify dropdown is open
+			expect(screen.getByRole('link', { name: /help & support/i })).toBeInTheDocument()
+
+			// Click outside (on the backdrop)
+			const backdrop = document.querySelector('.fixed.inset-0')
+			expect(backdrop).toBeInTheDocument()
+			await user.click(backdrop!)
+
+			// Verify dropdown is closed
+			expect(screen.queryByRole('link', { name: /help & support/i })).not.toBeInTheDocument()
 		})
 	})
 
