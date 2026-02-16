@@ -101,7 +101,8 @@ export async function apiRequest<T>(
 	endpoint: string,
 	options?: RequestInit & { signal?: AbortSignal }
 ): Promise<T> {
-	const { signal, ...fetchOptions } = options ?? {}
+	// Extract signal and headers to avoid duplication/conflicts
+	const { signal, headers: customHeaders, ...fetchOptions } = options ?? {}
 
 	const supabase = createClient()
 	const {
@@ -115,9 +116,9 @@ export async function apiRequest<T>(
 		})
 
 		// Merge custom headers if provided
-		if (fetchOptions?.headers) {
-			const customHeaders = new Headers(fetchOptions.headers)
-			customHeaders.forEach((value, key) => {
+		if (customHeaders) {
+			const custom = new Headers(customHeaders)
+			custom.forEach((value, key) => {
 				headers.set(key, value)
 			})
 		}
@@ -183,7 +184,8 @@ export async function apiRequestFormData<T>(
 	formData: FormData,
 	options?: Omit<RequestInit, 'body'> & { signal?: AbortSignal }
 ): Promise<T> {
-	const { signal, ...fetchOptions } = options ?? {}
+	// Extract signal and headers to avoid duplication/conflicts
+	const { signal, headers: customHeaders, ...fetchOptions } = options ?? {}
 
 	const supabase = createClient()
 	const {
@@ -196,9 +198,9 @@ export async function apiRequestFormData<T>(
 		const headers = new Headers()
 
 		// Merge custom headers if provided
-		if (fetchOptions?.headers) {
-			const customHeaders = new Headers(fetchOptions.headers)
-			customHeaders.forEach((value, key) => {
+		if (customHeaders) {
+			const custom = new Headers(customHeaders)
+			custom.forEach((value, key) => {
 				headers.set(key, value)
 			})
 		}
@@ -257,7 +259,8 @@ export async function apiRequestRaw(
 	endpoint: string,
 	options?: RequestInit & { signal?: AbortSignal }
 ): Promise<Response> {
-	const { signal, ...fetchOptions } = options ?? {}
+	// Extract signal and headers to avoid duplication/conflicts
+	const { signal, headers: customHeaders, ...fetchOptions } = options ?? {}
 
 	const supabase = createClient()
 	const {
@@ -269,9 +272,9 @@ export async function apiRequestRaw(
 		const headers = new Headers()
 
 		// Merge custom headers if provided
-		if (fetchOptions?.headers) {
-			const customHeaders = new Headers(fetchOptions.headers)
-			customHeaders.forEach((value, key) => {
+		if (customHeaders) {
+			const custom = new Headers(customHeaders)
+			custom.forEach((value, key) => {
 				headers.set(key, value)
 			})
 		}

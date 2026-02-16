@@ -1,0 +1,2872 @@
+## [unreleased]
+
+### Features
+
+- V4.0 Production-Parity Testing & Observability ([#501](https://github.com/hudsor01/tenant-flow/issues/501))
+
+### Enhancements
+
+- *(ui)* Polish sidebar header and compact user profile dropdown
+- *(ui)* Polish sidebar header and compact user profile dropdown ([#509](https://github.com/hudsor01/tenant-flow/issues/509))
+
+### Other
+
+- Resolve conflicts with origin/main (PR [#509](https://github.com/hudsor01/tenant-flow/issues/509))
+
+### Bug Fixes
+
+- Eliminate circular dependency and cleanup ([#500](https://github.com/hudsor01/tenant-flow/issues/500))
+- *(frontend)* Improve pricing page UI/UX and text contrast
+- *(deps)* Resolve 10 security vulnerabilities ([#508](https://github.com/hudsor01/tenant-flow/issues/508))
+- *(ui)* Extract UserProfileMenu, fix touch targets, improve test selectors
+- *(ui)* Show bulk import button in properties empty state
+- *(ui)* Improve logo link a11y, restore text-lg, fix touch target and HTML nesting
+
+### Refactor
+
+- [**breaking**] Remove n8n integration and doppler dependency
+- Remove n8n integration and doppler dependency ([#502](https://github.com/hudsor01/tenant-flow/issues/502))
+- *(frontend)* Simplify typography system to 5-level hierarchy
+- Remove n8n/doppler deps + simplify typography ([#503](https://github.com/hudsor01/tenant-flow/issues/503))
+- Remove n8n/doppler deps + UI/UX improvements ([#504](https://github.com/hudsor01/tenant-flow/issues/504))
+- Remove n8n integration, deprecated RPCs, and eliminate all 55 duplicate types ([#507](https://github.com/hudsor01/tenant-flow/issues/507))
+## [4.0] - 2026-01-21
+
+### Features
+
+- *(26-01)* Create docker-compose.yml with all services
+- *(27-01)* Create three-tier seed data system
+- *(28-01)* Create StripeTestFixtures class for real API testing
+- *(28-01)* Create Stripe test helpers for common patterns
+- *(28-02)* Create Stripe customer lifecycle integration test
+- *(28-02)* Create Stripe subscription lifecycle integration test
+- *(28-02)* Create Stripe Connect integration test
+- *(29-01)* Create SentryContextMiddleware for tenant context
+- *(29-01)* Enhance Sentry beforeSend with data scrubbing
+- *(29-01)* Add Sentry transaction naming for webhook jobs
+- *(29-01)* Register SentryContextMiddleware in app module
+- *(30-01)* Add Sentry user context on auth state change
+- *(30-01)* Add data scrubbing to Sentry client config
+- *(30-01)* Add data scrubbing to Sentry server config
+- *(30-01)* Add TanStack Query error capture to Sentry
+- *(31-01)* Create post-deploy smoke test script
+
+### Other
+
+- Resolve conflicts with main, keep circular dependency fix
+
+### Bug Fixes
+
+- *(auth)* Use getUser() instead of getClaims() in proxy
+- *(admin)* Import WebhooksModule for stripe-webhooks queue access
+- *(stripe)* Use forwardRef on both sides of circular dependency
+- *(stripe)* Use forwardRef injection for circularly-dependent services
+- *(stripe)* Eliminate circular dependency by keeping subscriptions in StripeModule
+- *(ci)* Skip Sentry notification when webhook not configured
+
+### Documentation
+
+- Create milestone v4.0 Production-Parity Testing & Observability (7 phases)
+- *(26)* Create phase plan for test environment parity
+- *(26-01)* Complete Docker Compose infrastructure plan
+- *(27)* Create phase plan for production-like seed data
+- *(28)* Create phase plans for real service integration tests
+- *(28-02)* Complete Real Stripe Integration Tests plan
+- *(29-01)* Complete Sentry Backend Integration Enhancement plan
+- *(30-01)* Complete Sentry Frontend Integration Enhancement plan
+- *(31)* Create phase plan for Synthetic Monitoring
+- *(31-01)* Create monitoring runbook documentation
+- *(31-01)* Complete synthetic monitoring phase
+- *(32)* Create phase plan for frontend test restoration
+- *(32-01)* Complete Core Domain Hook Tests plan
+
+### Testing
+
+- *(32-01)* Add use-tenant.ts hook tests
+- *(32-01)* Add use-lease.ts hook tests
+- *(32-01)* Create API test utilities module
+
+### Miscellaneous
+
+- Remove debug files, untrack .planning/ and .env.example
+- Complete v3.0 Backend Architecture Excellence milestone
+- *(28-01)* Add Jest globalTeardown for Stripe cleanup
+- *(31-01)* Add test:smoke script to package.json
+## [3.0] - 2026-01-18
+
+### Bug Fixes
+
+- *(22-01)* Add SB_SECRET_KEY fallback for SUPABASE_SERVICE_ROLE_KEY
+
+### Documentation
+
+- Create milestone v3.0 Backend Architecture Excellence (6 phases)
+- *(18)* Capture phase context
+- *(18)* Complete phase research
+- *(18-01)* Plan supabase configuration audit & documentation
+- *(18-01)* Create supabase client patterns ADR
+- *(18-01)* Complete supabase configuration audit plan
+- *(19)* Create phase plan
+- *(19-01)* Create ADR-0005 RPC usage patterns
+- *(19-01)* Complete query performance audit plan
+- *(20)* Create API standardization phase plan
+- *(20-01)* Complete API response standards audit & documentation
+- *(21-01)* Create module architecture audit plan
+- *(21-01)* Create module architecture ADR
+- *(21-01)* Log module architecture improvements
+- *(21-01)* Complete module architecture audit plan
+- *(22-01)* Create cold start optimization ADR
+- *(22-01)* Complete cold start performance audit plan
+- *(23)* Create phase plan
+- *(23-01)* Add inline best practices comments to Supabase modules
+- *(23-01)* Add module architecture and API standards to app.module.ts
+## [2.0] - 2026-01-18
+
+### Features
+
+- *(frontend)* Migrate to T3 Env for type-safe environment variables
+- Add production testing infrastructure and fix properties RLS policies
+- Comprehensive e2e test suite and Supabase integration
+- Comprehensive e2e test suite and Supabase integration ([#432](https://github.com/hudsor01/tenant-flow/issues/432))
+- *(backend)* Add DocuSeal e-signature integration and simplify lease validation
+- Extract component utility functions to design system
+- Migrate CSS to Tailwind v4 patterns and reorganize UI components
+- Migrate CSS to Tailwind v4 patterns and reorganize UI components ([#437](https://github.com/hudsor01/tenant-flow/issues/437))
+- *(properties)* Complete UI enhancement spec with accessibility and… ([#448](https://github.com/hudsor01/tenant-flow/issues/448))
+- Add document templates for PDF generation ([#477](https://github.com/hudsor01/tenant-flow/issues/477))
+- Add full Sentry observability for backend and frontend
+- *(11-01)* Add Stripe SDK monitoring and configure retries
+- *(11-02)* Replace manual pagination with SDK auto-pagination
+- *(11-03)* Replace getAllCustomers with SDK auto-pagination
+- *(11-03)* Replace getAllInvoices with SDK auto-pagination
+- *(11-04)* Replace console.log with structured logging
+- *(12-01)* Add webhook transaction RPC functions
+- *(12-02)* Refactor PaymentWebhookHandler to use RPC
+- *(12-02)* Refactor SubscriptionWebhookHandler to use RPCs
+- *(12-02)* Add tenant verification audit logging to handlers
+- *(12-03)* Add DLQ alerting and webhook metrics
+- *(13-01)* Create subscription pricing page with plan cards
+- *(13-01)* Add upgrade/downgrade confirmation dialog
+- *(13-02)* Create payment methods list component and hooks
+- *(13-02)* Update payment methods page with improved UX
+- *(13-02)* Prioritize ACH over cards with cost savings messaging
+- *(13-03)* Add ExpressCheckoutElement for Apple Pay/Google Pay
+- *(13-03)* Create checkout success and cancel result pages
+- *(14-01)* Create Connect account status card component
+- *(14-01)* Create verification requirements display component
+- *(14-01)* Integrate Connect status into billing settings
+- *(14-02)* Create payout details modal component
+- *(14-02)* Enhance payouts page with details modal and transfer info
+- *(14-02)* Add CSV export for payouts and rent payments
+- *(15-01)* Add idempotency keys to destructive Stripe operations
+- *(15-01)* Add enriched metadata to rent payment intents
+
+### Other
+
+- Fix body-parser DoS vulnerability
+
+### Bug Fixes
+
+- Resolve lint warnings and TypeScript errors
+- Add case-insensitive role comparison in RolesGuard
+- Standardize user_type handling to uppercase
+- Add health_check RPC function for backend monitoring
+- Improve authentication flow and API client reliability
+- Map legacy property_owner user_type to OWNER for backward compatibility
+- Migrate to Next.js 16 cacheComponents for production builds
+- Remove 'use cache' from analytics pages for Next.js 16 compatibility
+- Add Suspense boundaries and connection() for Next.js 16 Cache Components
+- Temporarily disable Cache Components to unblock build
+- Add shared brand colors for OG image Satori compatibility
+- Add shared brand colors for OG image Satori compatibility ([#421](https://github.com/hudsor01/tenant-flow/issues/421))
+- WebhookRetryService now calls controller directly instead of EventEmitter
+- WebhookRetryService now calls controller directly instead of Eve… ([#422](https://github.com/hudsor01/tenant-flow/issues/422))
+- Resolve lint, typecheck, and unit test failures
+- Critical security fix for JWT auth claims and add tenant portal logout
+- Critical security fix for JWT auth claims and add tenant portal … ([#426](https://github.com/hudsor01/tenant-flow/issues/426))
+- Make build work without Doppler and fix import path
+- Resolve build errors and configure Vercel CLI
+- Use Turbo build command in vercel.json to build shared package first
+- Resolve type errors and lint issues for production readiness
+- Update /portal redirects to /tenant and remove dev config
+- Remove bundle analyzer and simplify homepage
+- Resolve property_owner_id mapping and centralize dashboard styling
+- Resolve property service test failures in CI/CD
+- Resolve property_owner_id mapping and centralize dashboard styling ([#429](https://github.com/hudsor01/tenant-flow/issues/429))
+- Correct dashboard.css import path for build
+- Correct Supabase environment variable names
+- Auth hook defaults to OWNER instead of TENANT
+- Resolve authentication token resolution and property owner ID lookups
+- Resolve property images RLS issues and hydration mismatch
+- Comprehensive security audit and bug fixes
+- Comprehensive security audit and bug fixes ([#433](https://github.com/hudsor01/tenant-flow/issues/433))
+- Resolve Vercel build issues and unify supabase-js version
+- Address PR review issues for security and code quality
+- Address PR review type safety and code quality issues
+- Address PR review issues - DB-level filtering and input validation
+- Rename env vars for Doppler compatibility
+- Remove unused HTTP auth webhook controller
+- Improve RLS test setup and fix empty src warning
+- Migrate to SB_SECRET_KEY and add browser client utility
+- Address PR review issues - DB-level filtering and input validation
+- Address PR review - SQL injection, dead code, and env consistency
+- Eliminate N+1 query pattern and improve error handling
+- Resolve Vercel build issues and unify supabase-js version ([#434](https://github.com/hudsor01/tenant-flow/issues/434))
+- Address code quality issues from PR review
+- Revert problematic nested PostgREST filters causing production errors
+- Use secure RPC functions for tenant queries with auth checks
+- Use InternalServerErrorException for RPC errors and add tests
+- Exclude test files from production build
+- *(backend)* Fix bugs and optimize queries in notifications and rent-payments
+- Apply documentation-based improvements to decomposed services
+- Resolve NestJS DI conflicts with ESLint type-import rules
+- Update CI pnpm version to match package.json (10.23.0)
+- Resolve CI test failures and TypeScript errors
+- Resolve remaining CI test failures
+- Resolve backend build failures for Railway deployment
+- Resolve TenantCrudService DI error - Logger was type-only import
+- Resolve remaining type-only Logger imports breaking NestJS DI
+- Resolve all type-only imports breaking NestJS DI
+- Restore Railway cache mount ID prefixes
+- Resolve NestJS DI errors caused by type-only imports
+- Improve error serialization in NestJS logging
+- Resolve Next.js Server Component Date() prerender error
+- Improve frontend-logger timestamp comment
+- Resolve flaky QueryPerformanceInterceptor test
+- Resolve Next.js Server Component Date() prerender error ([#440](https://github.com/hudsor01/tenant-flow/issues/440))
+- Update Field component to official shadcn version
+- Standardize status values to lowercase across codebase
+- Resolve Docker build TypeScript errors
+- Handle null completedDate to allow clearing completion date
+- Resolve Docker build TypeScript errors ([#442](https://github.com/hudsor01/tenant-flow/issues/442))
+- Platform invitation handler, security patches, and codebase cleanup ([#443](https://github.com/hudsor01/tenant-flow/issues/443))
+- Resolve all ESLint warnings and errors in frontend ([#445](https://github.com/hudsor01/tenant-flow/issues/445))
+- Remove doppler from frontend build script for Vercel compatibility
+- Use TanStack Query mutations for property deletion and fix Speed Insights in dev
+- Resolve lease signature authorization and lifecycle status edge cases ([#454](https://github.com/hudsor01/tenant-flow/issues/454))
+- Code quality improvements and Node.js 24 migration ([#459](https://github.com/hudsor01/tenant-flow/issues/459))
+- Use correct Tailwind 4 prefix for duration utilities
+- Remove deprecated middleware.ts causing manifest.json redirect
+- Add graceful degradation to RedisCacheService when Redis is unavailable ([#473](https://github.com/hudsor01/tenant-flow/issues/473))
+- *(security)* Upgrade qs to 6.14.1 to fix DoS vulnerability ([#479](https://github.com/hudsor01/tenant-flow/issues/479))
+- Lazy init Supabase client to fix Vercel SSG build ([#480](https://github.com/hudsor01/tenant-flow/issues/480))
+- Comprehensive RLS policies for properties and units tables
+- Correct Railway service name in deploy workflow ([#488](https://github.com/hudsor01/tenant-flow/issues/488))
+- Correct Railway service name in deploy workflow
+- Align Stripe env var names with Doppler prod config
+- Simplify next.config.ts and silence build spam ([#489](https://github.com/hudsor01/tenant-flow/issues/489))
+- Optimize Docker build and fix Railway deployment ([#490](https://github.com/hudsor01/tenant-flow/issues/490))
+- *(15-01)* Return 429 for Stripe rate limit errors
+- Relax rate limits 10x in development/test mode
+- *(e2e)* Resolve broken TanStack Query test imports
+- *(backend)* Prevent false positives in non-transient error property test
+- *(frontend)* Resolve 'Query data cannot be undefined' test warning
+- *(backend)* Update stale imports in integration tests
+
+### Documentation
+
+- Create milestone v2.0 Stripe Integration Excellence (7 phases)
+- *(11)* Complete phase research
+- *(11)* Create execution plans for Stripe backend hardening
+- *(11-01)* Complete SDK monitoring plan
+- *(11-02)* Complete auto-pagination plan
+- *(11-03)* Complete customer & invoice auto-pagination plan
+- *(11-04)* Complete structured logging plan
+- *(12)* Complete webhook security & reliability research
+- *(12)* Create webhook security & reliability phase plans
+- *(12-01)* Complete webhook transaction RPCs plan
+- *(12-02)* Complete handler-rpc-refactor plan
+- *(12-03)* Complete webhook-observability plan
+- *(13)* Complete frontend checkout research
+- *(13)* Create frontend checkout & subscriptions plans
+- *(13-01)* Complete subscription plan selection UI plan
+- *(13-02)* Complete payment method management UI plan
+- *(13-03)* Complete express checkout and result pages plan
+- *(14)* Create Phase 14 context and plans
+- *(14-01)* Complete Connect account status dashboard plan
+- *(14-02)* Complete enhanced payouts dashboard plan
+- *(15-01)* Complete Stripe documentation alignment plan
+- *(16-01)* Complete high-priority service tests plan
+- *(16-02)* Complete medium-priority service tests plan
+- *(16-03)* Complete Phase 16 Stripe Backend Test Coverage
+- *(17-02)* Complete production readiness verification
+- Update TECH_DEBT.md for v2.0 completion
+- Update TECH_DEBT.md - TEST-001 resolved
+- Update STATE.md - all tech debt resolved
+
+### Performance
+
+- Optimize Dockerfile for faster builds and smaller runtime
+
+### Refactor
+
+- Phase 1 - Delete unnecessary Stripe services
+- Phase 2 - Remove EventEmitter from webhooks
+- Improve TailwindCSS 4 syntax and CSS organization
+- Improve TailwindCSS 4 syntax and CSS organization ([#420](https://github.com/hudsor01/tenant-flow/issues/420))
+- Complete backend Phase 2-4 refactoring
+- Complete backend Phase 5 - Remove TenantsService facade
+- Centralize styling in globals.css and eliminate helper files
+- Remove Doppler from build/start scripts
+- Simplify dashboard controller to remove redirect logic
+- Centralize styling in globals.css and eliminate helper files ([#427](https://github.com/hudsor01/tenant-flow/issues/427))
+- *(billing)* Decompose StripeConnectService into 3 focused services
+- Extract reporting services from Maintenance and Leases modules
+- Extract workflow and lifecycle services from Maintenance, Leases, and Notifications modules
+- *(tenants)* Decompose TenantQueryService into 5 focused services
+- *(subscriptions)* Decompose SubscriptionsService into 3 focused services
+- *(rent-payments)* Decompose RentPaymentsService into 4 focused services
+- *(notifications)* Refactor NotificationsService to delegate to decomposed services
+- *(notifications)* Remove facade and formatter abstraction
+- Frontend cleanup - fix anti-patterns and standardize dialogs
+- *(backend)* Decompose oversized services into SRP-compliant modules ([#438](https://github.com/hudsor01/tenant-flow/issues/438))
+- Standardize subscription types to camelCase
+
+### Testing
+
+- Add comprehensive unit tests for RolesGuard
+- Improve legacy dashboard route tests
+- *(16-01)* Add unit tests for high-priority Stripe services
+- *(16-02)* Add unit tests for medium-priority payment services
+- *(16-03)* Add unit tests for Connect setup and facade services
+- *(17-01)* Add Connect onboarding E2E tests
+
+### Miscellaneous
+
+- Clean up project root files
+- Remove unused Sentry dependencies
+- Update CSS variable references in dashboard components
+- Add TODO comments for critical issues
+- Update turbo to 2.6.3 and clean up global installations
+- Trigger Vercel deployment with synced env vars ([#491](https://github.com/hudsor01/tenant-flow/issues/491))
+- Add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to Vercel ([#492](https://github.com/hudsor01/tenant-flow/issues/492))
+- *(11-04)* Add NestJS Logger to backfill script
+- Update phase 12 plan count to 1/3
+- Complete v2.0 Stripe Integration Excellence milestone
+## [pre-deletion-backup] - 2025-11-22
+
+### Features
+
+- *(dashboard)* Redesign empty state with sidebar-aware layout
+- Standardize active states with primary blue across all UI components
+- Enhance onboarding UX with centered layout, skip button, and primary blue design ([#264](https://github.com/hudsor01/tenant-flow/issues/264))
+- Implement production-ready Stripe subscription flow per official best practices
+- Production-grade Stripe Sync Engine with hybrid user mapping
+- Add automatic tax calculation and 14-day free trials
+- Add subscription management with proration support
+- Complete production-grade Stripe integration with access control
+- Add automated Stripe webhook configuration script
+- Production-ready Stripe Sync Engine with comprehensive testing and API audit fixes
+- Enhance dashboard UI/UX and fix critical IndexedDB persistence errors
+- Enhance sidebar navigation spacing and apply validator security patch
+- Enhance tenant dashboard UI with modern design patterns
+- Add property image upload with automatic compression and cleanup
+- Replace hardcoded Loading... with Skeleton components in tenant portal
+- Enforce 44px minimum touch targets globally for accessibility
+- Replace all mock data with real lease data in tenant portal
+- Dashboard UI/UX improvements - Fix tenant creation, loading states, touch targets, and remove mock data ([#277](https://github.com/hudsor01/tenant-flow/issues/277))
+- Complete CLAUDE.md compliance - remove mock data, fix touch targets, implement email notifications
+- Add property sold/archive tracking with 7-year retention compliance
+- Add Vercel deployment check notifications
+- Implement tenant soft delete with 7-year retention policy
+- Implement tenant soft delete with 7-year retention policy ([#279](https://github.com/hudsor01/tenant-flow/issues/279))
+- Replace FAQ with animated react-spring accordion
+- Implement tenant invitation system with email integration
+- Standardize API layer and fix critical issues
+- Add occupancy trends area chart to dashboard
+- Implement View Patterns (Phases 1-3) with comprehensive tests
+- Add prominent Invite Tenant button to Tenants page header
+- Add prominent Invite Tenant button to Tenants page header ([#298](https://github.com/hudsor01/tenant-flow/issues/298))
+- Create dedicated MarketingNav component for homepage
+- Enhance ESLint rule with comprehensive coverage and automated testing
+- *(backend)* Authorize and implement native NestJS DTOs with nestjs-zod
+- Implement Turborepo best practices and resolve Vercel warnings
+- Implement database-backed email retry queue with NestJS scheduling
+- Expand test coverage and optimize Next.js config
+- Add optimistic locking utilities and fix Vercel function size limits
+- Migrate to modern Supabase API keys and fix TypeScript any types
+- Implement production-ready API pattern for properties
+- Consolidate dashboard functions, fix architecture violations, add missing financial RPC functions
+- Implement real payment status with N+1 query fix
+- Add idempotency keys to Stripe mutations and remove PII from logs
+- Add idempotency keys to Stripe mutations and remove PII from logs ([#374](https://github.com/hudsor01/tenant-flow/issues/374))
+- *(profile)* Implement password change flow
+- *(profile)* Implement notification preferences backend (Task 2.2 - Part 1)
+- *(profile)* Complete notification preferences frontend (Task 2.2)
+- *(profile)* Implement emergency contact feature (Task 2.1 - Complete)
+- *(phase2)* Complete Tasks 2.4 and 2.5 - Phase 2 100% complete
+- *(backend)* Complete RLS integration test infrastructure (Task 3.4)
+- Enhance security and type safety
+- Enhance security and type safety
+- Enhance security and type safety ([#378](https://github.com/hudsor01/tenant-flow/issues/378))
+- *(auth)* Enable custom access token hook for local development
+- *(tenant-portal)* Standardize terminology and implement portal foundation
+- *(tenant-portal)* Complete security guards, modal routes, and settings
+- *(tenant-portal)* Complete TenantGuard coverage for all routes
+- *(auth)* Complete migration to ES256 JWT signing keys via JWKS
+- Add dark mode toggle and fix PR review issues
+- Add Prometheus metrics and enhanced webhook error handling
+- Add modular owner dashboard and tenant portal with monitoring integration
+- Add Texas lease PDF generation with template filling
+- Implement Texas lease PDF generation with E2E tests
+- Implement on-demand Texas lease PDF generation + fix metrics endpoint
+- Add Texas lease PDF generation with template filling ([#386](https://github.com/hudsor01/tenant-flow/issues/386))
+- Add centralized Supabase error handling infrastructure
+- Migrate properties.service.ts to use centralized error handlers
+- Migrate units.service.ts to use centralized error handlers
+- Migrate leases.service.ts to use centralized error handlers
+- Migrate tenants.service.ts findOne() to use centralized error handlers
+- Migrate maintenance.service.ts to use centralized error handlers
+- Migrate rent-payments.service.ts to use centralized error handlers
+- Migrate payment-methods.service.ts to use centralized error handlers
+- Migrate users.service.ts to use centralized error handlers
+- Complete UI/UX overhaul and security enhancements
+- Complete UI/UX overhaul and security enhancements ([#390](https://github.com/hudsor01/tenant-flow/issues/390))
+- Migrate notifications and reports services to centralized error handlers
+- Migrate scheduled-report service to centralized error handlers
+- Migrate FAQ and late-fees services to centralized error handlers
+- Migrate stripe-data service to centralized error handlers
+- Migrate stripe-connect service to centralized error handlers
+- Migrate lease-transformation service to centralized error handlers
+- Migrate remaining services to centralized error handlers
+- Enhance pricing page with premium UI/UX and fix signup flow
+- Add grid snapping and window edge constraints to maintenance kanban
+- Tech stack review analysis ([#394](https://github.com/hudsor01/tenant-flow/issues/394))
+- Enhance pricing page UI/UX and fix signup flow ([#393](https://github.com/hudsor01/tenant-flow/issues/393))
+- Implement autopay feature for tenants
+- Move Claude workflows to docs directory and complete validation fixes
+- Add rent amount validation to prevent constraint violations
+- Add rent amount validation to RPC function and tenant invitation service
+- Add comprehensive logging to login page and form
+- Implement JWKS-based JWT authentication for Supabase
+- Redesign dashboard with combined metrics chart and semantic spacing
+- Add Stepper and Wizard components for lease builder redesign
+- Complete lease builder wizard with 4-step guided process
+- Migrate environment variables from SUPABASE_* to SB_* prefix
+
+### Other
+
+- Resolve 22 routing 404 errors + API validation + Railway 2025 config
+- Supabase client pooling for 30-40% memory reduction ([#270](https://github.com/hudsor01/tenant-flow/issues/270))
+- Restore explicit secrets to deploy workflow
+- Pass Vercel token via --token flag (not env var)
+- Verify Vercel deployment with updated token
+- Property form 400 error and button underline ([#275](https://github.com/hudsor01/tenant-flow/issues/275))
+- CLAUDE.md compliance - Remove emojis, improve loading states ([#278](https://github.com/hudsor01/tenant-flow/issues/278))
+- Database table case sensitivity and frontend optimizations ([#280](https://github.com/hudsor01/tenant-flow/issues/280))
+- Fix esbuild vulnerability and document validator.js CVE
+- [**breaking**] Replace vulnerable xlsx package with native CSV parsing
+- Implement webhook signature verification and consolidate documentation
+- Bring in latest main branch changes
+- Feat/centralize supabase error handling ([#391](https://github.com/hudsor01/tenant-flow/issues/391)) - test infrastructure needs rework
+- Resolve all typecheck, linting, and test failures
+- Correct build output paths for NestJS backend build
+
+### Bug Fixes
+
+- *(frontend)* Correct tenant list API endpoint from /all to base route
+- Avoid TS tuple error in test setup compile call
+- *(dashboard)* Use snake_case column names for unit queries
+- Test setup TS tuple cast + formatting ([#266](https://github.com/hudsor01/tenant-flow/issues/266))
+- Correct Customer Portal endpoint path and add implementation guide
+- Stripe Sync Engine initialization and database migration compatibility
+- Remove invalid Stripe API version from webhook configuration
+- Remove validate-stripe-schema.ts causing TypeScript errors
+- Restore health check validation
+- Use proper log levels in StripeAccessControlService
+- Improve form accessibility with proper label associations and autocomplete
+- Remove underline hover effect from button links
+- Validate user authentication before property creation
+- Remove validator-patch causing backend crash and fix tenant invite
+- Remove duplicate SupabaseService provider in LateFeesModule
+- Remove duplicate SupabaseService provider in FinancialModule
+- Remove validator-patch crash and duplicate SupabaseService instances ([#276](https://github.com/hudsor01/tenant-flow/issues/276))
+- Resolve tenant creation 400 error by removing userId from client payload
+- Remove emojis, replace Loading text with Skeleton, delete orphaned files
+- Add missing React Hook dependencies to satisfy exhaustive-deps
+- Update pnpm version to 10.18.3 in CI workflow
+- Add statuses:write permission to lint and typecheck workflows
+- Use type imports and remove unused eslint-disable directives
+- Remove incompatible Vercel notification steps that broke CI/CD for 40+ hours
+- Restore working CI/CD and resolve all test failures
+- Replace console.error with structured logger in Server Actions
+- Require MOVED_OUT status before permanent tenant deletion
+- Database table case sensitivity and frontend optimizations
+- CSS import order and Vercel middleware configuration
+- Replace explicit grid columns with container-aware responsive layout
+- CSS import order and Vercel middleware configuration ([#281](https://github.com/hudsor01/tenant-flow/issues/281))
+- Complete Hook-First Architecture refactoring and type safety improvements
+- Correct API response shape in useTenantMaintenanceRequests hook
+- Use FlatCompat for Next.js ESLint plugin detection
+- Remove middleware functions config from vercel.json
+- Restore runtime nodejs for Supabase SSR compatibility
+- Disable pre-commit validation hooks
+- Critical React lint violations (batch 2)
+- Resolve all React linting errors (182 → 0 errors)
+- Use date_sold field instead of status for sold property check
+- Correct Supabase environment variable name
+- Correct auth redirect path from /auth/login to /login
+- Critical production fixes + performance optimizations ([#285](https://github.com/hudsor01/tenant-flow/issues/285))
+- Consolidate Supabase middleware to single source of truth
+- Consolidate Supabase middleware - fix home page redirect ([#286](https://github.com/hudsor01/tenant-flow/issues/286))
+- Resolve ESLint Next.js plugin warning and document known issues
+- Resolve ESLint Next.js plugin warning and document known issues ([#287](https://github.com/hudsor01/tenant-flow/issues/287))
+- Remove unused type imports to resolve ESLint errors
+- Resolve Vercel build failures (TypeScript + API client)
+- Use canonical Tailwind CSS descendant selector syntax in command.tsx
+- Remove obsolete eslintConfig from package.json
+- Eliminate infinite loop by caching user profile in middleware
+- Migrate to Turbopack and fix critical dev environment issues
+- Move TanStack Table column definitions to client components
+- Remove 'use client' from protected pages causing infinite redirect loops
+- Create client component wrappers for Properties and Maintenance tables
+- Resolve infinite redirect loop and overlapping sidebars
+- Resolve TypeScript compilation errors preventing backend startup
+- Add missing 'use client' directive and enable tenant deletion
+- Add missing 'use client' directives to fix build errors
+- Redirect authenticated users to dashboard instead of forced property creation
+- Remove artificial width constraints on properties page for full-width layout
+- Fix backend test mock setup to reduce test failures from 34 to 25
+- Resolve backend test failures and remove Prettier organize-imports
+- Correct authentication redirect route from /sign-in to /login
+- Replace any[] with Tenant[] type in tenants.service.ts
+- Map supabaseId to users.id for property ownership
+- Resolve property creation bug and TypeScript errors
+- Resolve ESLint errors caught by CI/CD
+- Map Supabase Auth ID to internal users.id in DashboardService
+- Complete user ID mapping in DashboardService for RLS policies
+- Correct tenant and rent_payment queries in DashboardService
+- Remove duplicate sidebar and add ZIP API to CSP whitelist
+- Resolve property creation showing 400 error on successful 201 response
+- Remove unused CardContent import and replace console.error with structured logging
+- Resolve frontend design violations and backend unit test failures
+- Resolve frontend design violations and backend unit test failures ([#293](https://github.com/hudsor01/tenant-flow/issues/293))
+- Resolve property edit infinite loading and image upload issues
+- Complete E2E auth optimization with baseURL fix
+- Remove auth-helpers.ts from gitignore and complete E2E optimization
+- Export DEFAULT_MAINTENANCE_REQUEST from test utils
+- Add multer to production dependencies
+- Update pnpm lockfile to reflect multer in backend dependencies
+- E2E Authentication Optimization with Session Reuse (42% Faster) ([#294](https://github.com/hudsor01/tenant-flow/issues/294))
+- Trigger Vercel deployment with clean environment variables
+- Trigger Vercel deployment with clean environment variables ([#296](https://github.com/hudsor01/tenant-flow/issues/296))
+- Fix form error display issues - remove "[object Object]" and "0" bugs
+- Fix form error display issues - remove "[object Object]" and "0"… ([#297](https://github.com/hudsor01/tenant-flow/issues/297))
+- Replace <a> tag with Next.js Link component in tenants page
+- Make unitId optional for single-family properties
+- Update contact form to call backend directly
+- Update subscription service test mocks for nullable unitId
+- Add missing /api/v1/ prefix to contact form endpoint
+- Remove unused mobileMenuTransition variable from navbar
+- Make unitId optional for single-family properties ([#299](https://github.com/hudsor01/tenant-flow/issues/299))
+- Consolidate duplicate API URL fallbacks to use centralized constant
+- Remove duplicate imports in next.config.ts
+- Remove xlsx package and migrate to native CSV, fix Zustand hydration bug
+- *(frontend)* Remove ZIP code auto-fill feature to resolve missing module
+- *(frontend)* Remove setProperties from useEffect dependency array
+- *(frontend)* Resolve React error [#185](https://github.com/hudsor01/tenant-flow/issues/185) infinite loop in properties table ([#301](https://github.com/hudsor01/tenant-flow/issues/301))
+- *(frontend)* Add explanatory comment for Zustand selector in useEffect
+- *(frontend)* Use React 19.2 useEffectEvent to prevent infinite loop
+- Resolve Vercel deployment warnings
+- Remove obsolete webpack/typeCheck configs to resolve dev warnings
+- Resolve critical security vulnerabilities and test configuration
+- Resolve integration test failure and enhance security
+- Add production monitoring Playwright configuration
+- Resolve critical leases page crash and security deposit validation
+- Resolve frontend/backend response shape mismatch causing forEach crashes
+- Replace native anchor tags with Next.js Link in table components
+- Replace all remaining anchor tags with Next.js Link components
+- Add missing environment variables to Supabase integration test
+- Add production monitoring Playwright configuration
+- Migrate from SUPABASE_SERVICE_ROLE_KEY to SUPABASE_SECRET_KEY
+- Update turbo.json, test environment, and analytics tests to use SUPABASE_SECRET_KEY
+- Make test environment resilient to missing Supabase env vars in CI
+- Add production monitoring Playwright configuration ([#365](https://github.com/hudsor01/tenant-flow/issues/365))
+- Merge main with SUPABASE_SECRET_KEY migration and resolve conflicts
+- Resolve merge conflicts and update dependencies
+- Add SUPABASE_PUBLISHABLE_KEY to turbo.json and fix property images test
+- Remove unused imports, fix netIncome calculation, and improve type safety
+- Remove lint/typecheck dependencies from build tasks to ensure Railway builds complete
+- Add explicit build verification to Dockerfile to diagnose Railway deployment failures
+- Type safety, SQL security, and build improvements
+- Revert backend build changes to restore working configuration
+- Add explicit date cast in cleanup_dashboard_history for reliable comparison
+- Include test directory in backend TypeScript compilation
+- Ensure session established before rendering property creation form
+- Ensure session established before rendering property creation form ([#367](https://github.com/hudsor01/tenant-flow/issues/367))
+- Align testing with Next.js docs and replace /dashboard routes
+- Update Supabase and dependencies to resolve JWT authentication
+- Pin Node.js to v22.14.0 LTS for class-transformer compatibility
+- Resolve JWT authentication failures and clean up unused code
+- Use Authorization headers for cross-domain API calls
+- Migrate dashboard page to use api() helper
+- Production critical fixes - RLS, security, API routing, HEIC support, and webhook monitoring
+- Remove problematic test file causing TypeScript errors in CI
+- Notifications INSERT policy security vulnerability
+- Address code review feedback - security, performance, and consistency
+- Implement dashboard trends metrics and API config validation
+- Improve API config with single warning and environment-aware fallback
+- Production Critical Fixes - RLS Security, API Routing, HEIC Support & Webhook Monitoring ([#368](https://github.com/hudsor01/tenant-flow/issues/368))
+- Migrate all TanStack Query hooks to use clientFetch with automatic auth
+- Resolve lint errors and improve code quality
+- Prevent null description in property creation
+- Prevent null description in property creation ([#370](https://github.com/hudsor01/tenant-flow/issues/370))
+- Resolve property creation failures
+- Improve HEIC upload handling and resolve lint errors
+- Resolve Docker undefined variable linting errors
+- Resolve property creation failures ([#371](https://github.com/hudsor01/tenant-flow/issues/371))
+- Resolve COEP error and 400 bad request on property creation
+- Resolve all PR review issues - security, type safety, and error handling
+- Return tenants without leases in findOneWithLease
+- Normalize dates to UTC in payment status calculation
+- Improve UUID mock validation and version detection
+- Call super() before accessing this in SupabaseStrategy constructor
+- Properly initialize utilityService after super() in SupabaseStrategy
+- Add resetCounters() to UUID mock for test isolation
+- Add resetCounters() to UUID mock for test isolation ([#373](https://github.com/hudsor01/tenant-flow/issues/373))
+- Enable validation error messages in all environments
+- Resolve critical memory leaks and race conditions across frontend and backend
+- Add SSR guard and image support to blog sanitizer, fix test expectations for idempotency keys
+- Address PR review comments - webhook cleanup, PII removal, import spacing
+- Remove final PII (email) from auth success logs in supabase.service
+- Address PR review feedback - improve JWT validation and remove workflow cruft
+- Replace ValidationPipe with ZodValidationPipe for nestjs-zod compatibility
+- Use users.id from ensureUserExists() for RLS policy compatibility
+- Update SubscriptionGuard to query by users.id instead of supabaseId
+- Resolve code quality issues across backend, frontend, and E2E tests
+- *(ci)* Build shared package before running tests
+- *(backend)* Correct RPC parameter names for dashboard stats
+- *(security)* Add critical RLS policies for payment tables and fix tenant onboarding
+- *(tenant-portal)* Populate lease page with actual property and unit data
+- *(security)* Enforce user ID in financial RPC calls for defense-in-depth
+- Resolve git commit hanging and 23 code quality issues across backend, frontend, tests, and database migrations
+- Resolve git hooks and vitest watch mode issues
+- Resolve all PR [#375](https://github.com/hudsor01/tenant-flow/issues/375) review comments
+- *(migration)* Change tenant_emergency_contact IDs from UUID to TEXT
+- *(emergency-contact)* Change ownerId to userId for tenant ownership
+- *(emergency-contact)* Use auth_user_id for tenant self-management
+- *(security)* Address PR [#376](https://github.com/hudsor01/tenant-flow/issues/376) critical security feedback
+- *(security)* Apply RLS policies with correct identity mapping
+- Complete TenantFlow remediation roadmap fixes
+- *(security)* Use getUser() instead of getSession() for auth validation
+- *(security)* Use getUser() for session validation across all auth contexts
+- *(backend)* Add TypeScript declarations for i18n-iso-countries
+- Resolve Docker build issue with missing main.js
+- *(docker)* Use pnpm filter instead of direct nest CLI invocation
+- *(backend)* Consolidate TypeScript config for correct build output
+- *(backend)* Separate build and lint TypeScript configs
+- *(backend)* Update paths to use dist/src/main.js output structure
+- *(tenant-portal)* Resolve TypeScript and ESLint issues
+- Address all PR [#377](https://github.com/hudsor01/tenant-flow/issues/377) review comments
+- *(auth)* Use HS256 JWT secret verification instead of JWKS
+- *(auth)* Use HS256 JWT secret verification instead of JWKS ([#379](https://github.com/hudsor01/tenant-flow/issues/379))
+- Comprehensive remediation of critical issues
+- *(backend)* Eliminate any types in JWT authentication strategy
+- *(frontend)* Replace console.warn with structured logging and fix scope issue
+- *(frontend)* Disable non-functional buttons and fix logging/scope issues
+- *(db)* Eliminate race conditions and optimize FAQ analytics functions
+- *(security)* Fix empty string validation and optimize sanitization performance
+- Resolve TypeScript type errors in dashboard service
+- Address all CodeRabbit PR [#380](https://github.com/hudsor01/tenant-flow/issues/380) review comments
+- Comprehensive remediation of critical issues ([#380](https://github.com/hudsor01/tenant-flow/issues/380))
+- Metrics service optimization
+- Metrics service optimization ([#381](https://github.com/hudsor01/tenant-flow/issues/381))
+- Metrics security, stats consolidation, and tenant portal TypeScript fixes
+- Backend core services improvements
+- Backend shared & security improvements
+- Security hardening, type safety improvements, and validation enhancements
+- Resolve React key warning and optimize serverFetch performance
+- Address PR review issues - validation, error handling, and syntax fixes
+- Address production readiness issues and optimize data loading
+- Address PR review feedback - routes, types, validation, performance
+- Adjust RPC params to satisfy exactOptionalPropertyTypes
+- Resolve critical auth, performance, and image upload issues
+- Add missing dashboard_stats_mv migration file
+- Paginate through all auth users for tenant invitation check
+- Paginate through all auth users for tenant invitation check
+- Resolve tenant portal maintenance request form bugs
+- Implement JWT signature verification and RLS authorization fixes
+- Complete auth security + fix backend TypeScript and test errors
+- Resolve TypeScript build errors and update RPC parameter names
+- Replace Date.now() with crypto.randomUUID() for lease ID generation
+- Address code review feedback from PR [#384](https://github.com/hudsor01/tenant-flow/issues/384)
+- Address code review feedback - issues [#2](https://github.com/hudsor01/tenant-flow/issues/2), [#3](https://github.com/hudsor01/tenant-flow/issues/3), [#4](https://github.com/hudsor01/tenant-flow/issues/4), [#5](https://github.com/hudsor01/tenant-flow/issues/5)
+- Address code review feedback - issues [#2](https://github.com/hudsor01/tenant-flow/issues/2), [#3](https://github.com/hudsor01/tenant-flow/issues/3), [#4](https://github.com/hudsor01/tenant-flow/issues/4), [#6](https://github.com/hudsor01/tenant-flow/issues/6)
+- Implement real property performance trends and improve dashboard error handling
+- Resolve production crash loop - NestJS dependency injection errors
+- Address PR feedback - type safety, error handling, and validation
+- Production readiness - DI, security, and ownership verification
+- Formatting and validate script issues
+- Resolve StripeWebhookListener dependency injection error
+- Make PrometheusService optional injection per official NestJS pattern
+- Resolve critical auth, performance, and image upload issues ([#384](https://github.com/hudsor01/tenant-flow/issues/384))
+- Address code review feedback - issues [#2](https://github.com/hudsor01/tenant-flow/issues/2), [#3](https://github.com/hudsor01/tenant-flow/issues/3), [#4](https://github.com/hudsor01/tenant-flow/issues/4), [#6](https://github.com/hudsor01/tenant-flow/issues/6) ([#385](https://github.com/hudsor01/tenant-flow/issues/385))
+- Resolve TypeScript and linting errors across codebase
+- Remove invalid StubbedInstance import from @suites/unit
+- Add email config to ContactModule imports
+- Import PrometheusModule in MetricsModule
+- Remove duplicate PrometheusModule registration
+- Refactor MetricsController to extend PrometheusController
+- Make E2E test error assertion conditional
+- Grant write permissions for Claude Code Review workflow
+- Comprehensive codebase improvements and security enhancements
+- Resolve notification preferences field mismatch and validation clarity ([#387](https://github.com/hudsor01/tenant-flow/issues/387))
+- Enhance validation, security, and code quality across frontend and backend
+- Resolve CodeRabbit review findings
+- Sync claude-code-review.yml with main branch
+- Enhance lease generation validation and error handling
+- Implement timezone-safe lease date validation
+- Resolve code review findings - security, licensing, conventions, linting
+- Resolve pre-existing TypeScript errors blocking commits
+- Resolve production issues - CORS, metrics endpoint, RPC ambiguity
+- Exclude eslint.config.mjs from type-aware linting
+- Implement CodeRabbit review suggestions
+- Remove duplicate Logger import and add null check for errorCall
+- Add stats invalidation to useUpdateMaintenanceRequest
+- Critical security issues in payment method endpoints
+- Critical security issues in payment method endpoints ([#392](https://github.com/hudsor01/tenant-flow/issues/392))
+- Migrate final unmigrated query in leases.service.ts
+- Configure vitest to use vmThreads pool for stability
+- Improve vitest stability and remove documentation files
+- Address code review feedback
+- Remove browser-only frontend-logger import from cors-config to resolve Node.js ESM module resolution error preventing backend startup during tests
+- Resolve TypeScript errors and add ES module support to shared package
+- Update Dockerfile paths to match NestJS build output
+- Add default value for SUPABASE_PROJECT_REF and include in build env
+- Remove empty signup page and update Next.js 16 compatibility
+- Resolve pricing page circular navigation and add Next.js 16 support
+- Apply Stripe webhook migration and resolve all lint/type/test issues
+- Resolve Next.js 16 prerendering issue and correct build paths
+- Update Dockerfile to remove database build step and adjust package.json scripts; enhance Stripe webhook service with type predicate for lock acquisition; refine financial analytics page styles; improve payment verification response handling; add Stripe checkout session response type; update shared package clean script and react-query version; enforce Row Level Security in SQL migration
+- Comprehensive security and TypeScript configuration improvements
+- Remove empty signup page and update Next.js 16 compatibility ([#395](https://github.com/hudsor01/tenant-flow/issues/395))
+- Resolve all TypeScript compilation errors and build issues
+- Resolve all TypeScript compilation errors and PR review comments
+- Complete identity verification property name updates for tests
+- Address remaining PR review comments
+- Update type imports after merge (authUser → AuthUser, backend-domain for ExpressTypeProvider)
+- Address remaining PR review comments
+- Resolve additional type errors
+- Remove token parameters from scheduled report service calls
+- Resolve all test file type errors
+- Apply PR review feedback for error handling and optimistic locking
+- Correct optimistic locking type safety in query helpers ([#399](https://github.com/hudsor01/tenant-flow/issues/399))
+- Remove corrupted autopay files and fix TypeScript errors
+- Resolve TypeScript compilation errors by adding missing imports and fixing spread operator type issues in leases, maintenance, payment methods, and scheduled report services
+- Align pnpm versions across GitHub workflows to match package.json (10.20.0)
+- Address PR review comments for error handling and type safety
+- Resolve SupabaseQueryHelpers DI dependencies in tests and modules
+- Resolve SupabaseQueryHelpers DI in remaining modules and tests
+- Clean up documentation and test mock patterns
+- Resolve TypeScript syntax errors in stripe-data.service.ts
+- Resolve all lint and typecheck errors for CI/CD
+- Add missing SupabaseQueryHelpers mocks to failing tests
+- Update units.controller.spec.ts to throw NotFoundException instead of returning null
+- Complete SupabaseQueryHelpers migration and fix test mocks
+- Use BadRequestException for missing token in leases.service.ts
+- Correct Supabase JWT JWKS endpoint and add audience validation
+- Remove unused ExpenseRow and RentPaymentRow type imports from balance-sheet.service.ts
+- Resolve Supabase auth RLS 403 Forbidden error
+- Add missing usePropertyImages mock to property-form.test.tsx
+- Resolve Supabase auth RLS 403 Forbidden error ([#404](https://github.com/hudsor01/tenant-flow/issues/404))
+- Update auth hook to properly include user_type, subscription_status, stripe_customer_id in JWT claims
+- Clean up middleware comments and improve code clarity
+- Address Copilot code review comments across frontend and backend
+- Resolve Supabase auth RLS 403 Forbidden error ([#405](https://github.com/hudsor01/tenant-flow/issues/405))
+- Bulletproof auth hook and fix query cache invalidation
+- Bulletproof auth hook and fix query cache invalidation ([#406](https://github.com/hudsor01/tenant-flow/issues/406))
+- Update pnpm catalog to use @supabase/supabase-js 2.83.0 consistently
+- Add proper middleware.ts at root of src directory
+- Make auth hook bulletproof and clean up duplicate migrations
+- Remove incorrect middleware.ts - use proxy.ts for Next.js 15
+- Simplify auth system using Supabase getUser() and fix all pre-commit checks
+- Simplify auth system using Supabase getUser() and fix all pre-co… ([#408](https://github.com/hudsor01/tenant-flow/issues/408))
+- Correct NestJS build output path in Dockerfile for Railway deployment
+- Correct NestJS build output path in Dockerfile for Railway deplo… ([#409](https://github.com/hudsor01/tenant-flow/issues/409))
+- Resolve duplicate API prefix routing in HealthController
+- Set user_type='TENANT' when tenants accept invitations and default OWNER on signup
+- Set user_type='TENANT' for invited tenants and OWNER for new signups ([#410](https://github.com/hudsor01/tenant-flow/issues/410))
+- Improve JWT auth guard error messaging for bulk import and file operations
+- Resolve frontend dashboard issues - ActivityFeed infinite loop and API routing
+- Improve E2E authentication and resolve JWT strategy TypeScript errors
+- Resolve JWT strategy TypeScript error and improve auth error handling
+- Resolve 4 identified bugs and complete validation suite
+- Allow backend startup without JWT_PUBLIC_KEY_CURRENT in Doppler
+- Update broken /dashboard route references to /manage
+- Add title field to maintenance requests and align JWT algorithm config with strategy implementation
+- Correct controller routing paths for properties and reports
+- Resolve identified bugs and TODO.md issues ([#412](https://github.com/hudsor01/tenant-flow/issues/412))
+- CRITICAL - Resolve JWKS auth failure, routing breakage, and frontend white screen
+- CRITICAL - Resolve JWKS auth failure, routing breakage, and fron… ([#413](https://github.com/hudsor01/tenant-flow/issues/413))
+- Add missing image field to merchant listings structured data
+- Add error handling to requireSession and complete maintenance title field support
+- Replace full page reloads with Next.js router navigation in ViewTransitionsProvider
+- Correct JWKS discovery URL for Supabase authentication
+- Remove incorrect .jsx extension from mini-trend-chart import
+- Add NEXT_PUBLIC_SB_* env vars for Next.js SSR support
+- Resolve authentication and cookie type issues
+- NestJS dependency injection for auth services
+- Export auth services from AuthModule for dependency injection
+
+### Documentation
+
+- Update PERFORMANCE_OPTIMIZATION_TODO.md with completed items
+- Update health check comments and security documentation
+- Add SECURITY.md with vulnerability documentation
+- Reorganize CLAUDE.md + remove emojis (778→362 lines, 53% reduction)
+- *(security)* Complete RLS testing analysis for Phase 1
+- *(testing)* Add comprehensive testing verification for Phase 1
+- *(phase2)* Add comprehensive status tracking
+- *(phase2)* Update status - Task 2.2 complete (60% overall)
+- *(phase2)* Update status - Task 2.1 complete (80% overall)
+- *(migration)* Update with production-verified SQL
+- *(phase2)* Update status - emergency contact migration applied
+- *(security)* Complete service role permission verification (Task 3.5)
+- *(security)* Create end-to-end security verification guide (Task 3.6)
+- *(phase3)* Complete Phase 3 status documentation (Task 3.7)
+- Create comprehensive migration application guide
+- Create comprehensive Phase 4 implementation plan
+- Create comprehensive PR summary
+- Add custom access token auth hook verification to Phase 4 plan
+- Create comprehensive auth hook setup and troubleshooting guide
+- Create comprehensive Phase 4 completion summary
+- Create comprehensive Phase 4 testing guide
+- Create comprehensive PR description
+- Fix stale JWKS comment in auth strategy
+- Add comprehensive financial reporting implementation plan
+- Add schema comment documenting intentional RLS disable on webhook_failures table
+- Add centralized Supabase error handling design
+- Add comprehensive migration summary
+- Update MIGRATION_SUMMARY.md with all completed migrations
+- Add tech stack review analysis documentation
+- Fix inconsistencies and update to match implementation
+- Fix markdown violations and align metrics with completed work
+- Add TODO comments for maintenance title field database migration
+
+### Performance
+
+- Optimize frontend performance with lazy loading and font optimization
+- Optimize E2E tests with session reuse per worker (42% faster)
+- Optimize CI/CD and production builds
+- Optimize CI/CD and production builds ([#304](https://github.com/hudsor01/tenant-flow/issues/304))
+- Implement comprehensive database and application optimizations
+- *(migrations)* Optimize auth.uid() calls for RLS performance
+- Optimize pre-commit hook Turbo cache configuration
+- Optimize Vercel deployment to reduce serverless function size
+
+### Refactor
+
+- Consolidate to single Stripe Sync Engine webhook system
+- Consolidate Supabase client implementations across monorepo
+- Consolidate Stripe client implementations via NestJS DI
+- Consolidate Phase 1 critical duplicate types (5 types, 17→5 definitions)
+- Consolidate Phase 2 medium duplicate types (13 types consolidated)
+- Consolidate Document type from supabase.ts
+- [**breaking**] Remove type re-exports and fix test DI issues
+- Consolidate duplicate type definitions with re-exports
+- Complete type consolidation - eliminate all remaining duplicates
+- Complete type consolidation and architecture cleanup ([#288](https://github.com/hudsor01/tenant-flow/issues/288))
+- Add backend empty states and base dialog components
+- Add backend empty states and base dialog components ([#289](https://github.com/hudsor01/tenant-flow/issues/289))
+- Migrate Leases create-dialog to inline base component
+- Convert lease action dialogs to use base EditDialog
+- Move domain-specific components to page directories
+- Migrate Leases create-dialog to inline base component ([#290](https://github.com/hudsor01/tenant-flow/issues/290))
+- Modernize Tailwind CSS to 4.1 standards across frontend
+- Modernize Tailwind CSS to 4.1 standards across frontend ([#291](https://github.com/hudsor01/tenant-flow/issues/291))
+- Convert data-heavy pages to Server Components (Phase 2B)
+- Remove dead code and unnecessary abstractions
+- Implement code review recommendations for API URL consolidation
+- Migrate Express middleware to NestJS middleware classes
+- *(backend)* Move compression to main.ts per NestJS official docs
+- Consolidate state management and fix backend test mocks
+- Migrate to hybrid PDF generation strategy
+- Consolidate state management and fix backend test mocks ([#302](https://github.com/hudsor01/tenant-flow/issues/302))
+- Centralize user ID mapping to eliminate DRY violation
+- Improve code organization in UtilityService
+- Rename dashboard API endpoints to /api/v1/manage for consistency
+- Streamline supabase auth handling and properties flow
+- Eliminate API abstraction layers and fix all TypeScript errors
+- Inline API_BASE_URL environment variable in api-config
+- Use structured logging in api-config
+- Extract LeaseWithUnitAndProperty interface to reduce type duplication
+- Consolidate property CRUD forms and improve UX
+- Remove all 'landlord' references and replace with 'owner'
+- Extract useUserProfile to dedicated module
+- *(scripts)* Improve password validation in create-test-users
+- Extract error logging utility to eliminate duplication (DRY)
+- Extract error logging utility to eliminate duplication (DRY)
+- Extract inline mutation to use existing password reset hook
+- *(phase-4)* Eliminate DRY violations + migrate to receiptUrl
+- *(remediation)* Complete Phase 4 & Phase 5 - DRY violations and configuration improvements
+- *(leases)* Implement lease-to-form-data transformation layer
+- Replace 'landlord' terminology with 'owner' or 'property owner'
+- Implement CodeRabbit review suggestions
+- Apply Zod validation consistently to all RPC calls
+- Break down extremely long button base class string
+- Consolidate HttpMethod type to single source of truth
+- Update imports to api-contracts and remove FAQ module
+- Remove emojis, improve test config, and enhance Kanban UX
+- Complete migration to single source of truth for API contracts
+- Complete migration to single source of truth for API contracts ([#396](https://github.com/hudsor01/tenant-flow/issues/396))
+- Improve type safety and reduce UI duplication
+- Remove redundant @Global module imports and use barrel exports
+- Remove aggressive type casts and extract inline types for maintainability
+- Remove type-bypassing cast in generated-report.service.ts
+- Consolidate environment defaults into config.schema.ts
+- *(dashboard)* Complete dashboard redesign with improved component organization
+- Simplify OAuth callback to official Supabase pattern
+- Migrate authentication from Passport to jose library
+
+### Testing
+
+- *(analytics)* Mock rpcWithRetries to delegate to admin client rpc for assertions
+- *(analytics)* Mock rpcWithRetries to delegate to admin client rpc for assertions ([#267](https://github.com/hudsor01/tenant-flow/issues/267))
+- Add comprehensive E2E testing suite for Stripe integration
+- Fix tenants service spec setup
+- Add comprehensive controller tests for properties and units modules
+- Add comprehensive E2E tests for View Patterns with real login
+- Add CSV import test fixtures and utilities
+- *(financial)* Fix broken tests after RPC security changes
+- Fix lease generator tests to work with LeasesService dependency
+- Ensure consistent RpcResult mock structure globally
+- Align late-fees.service.spec.ts with production SupabaseQueryHelpers usage
+
+### Miscellaneous
+
+- *(deploy)* Align railway.toml with official Railway documentation
+- Update pnpm-lock.yaml to match package manifests
+- Remove unused n8n workflow files
+- Trigger Vercel deployment
+- Update lockfile to match package.json dependency versions
+- Comprehensive dependency cleanup - remove 24+ unused frontend packages
+- Approve build scripts for sharp and unrs-resolver
+- Trigger CI re-run after build fixes
+- Remove unused dialog files
+- Update lockfile to match manifest dependency versions
+- Update dependencies and improve error handling
+- Trigger CI rebuild with clean state
+- Remove duplicate export and cleanup test files
+- Update lockfile after dependency install
+- Add lint to pre-commit hook and fix ESLint config
+- Update pnpm lockfile
+- Add pnpm lockfile verification to pre-commit hook
+- Cleanup and remove unused FAQ backend module
+
+### Security
+
+- Update CI/CD workflows to October 2025 best practices ([#271](https://github.com/hudsor01/tenant-flow/issues/271))
+- Remove SVG from data URL validation to prevent XSS attacks
+- Integrate origin/main with centralized error handling
+- Add real-time subscription verification to prevent stale JWT bypass
+## [tenantflow-full] - 2025-10-12
+
+### Features
+
+- Add NestJS backend deployment configuration for api.tenantflow.app
+- Configure Vercel monorepo for frontend + NestJS backend
+- Remove outdated Stripe demo code and add comprehensive testing suite
+- Comprehensive security hardening with defense-in-depth architecture
+- Add debug logging for Supabase auth flow
+- Aggressive migration from Hono to pure NestJS backend
+- Major auth system consolidation and production readiness improvements
+- Configure monorepo for Railway backend and Vercel frontend deployment
+- Comprehensive production deployment and infrastructure improvements
+- Comprehensive test suite cleanup and security workflow overhaul
+- Configure monorepo for Railway backend and Vercel frontend deployment ([#99](https://github.com/hudsor01/tenant-flow/issues/99))
+- Major auth system consolidation and production readiness improvements ([#102](https://github.com/hudsor01/tenant-flow/issues/102))
+- *(vercel)* Add dedicated frontend build script
+- *(vercel)* Add dedicated frontend build scripts
+- [**breaking**] Optimize CI/CD pipeline for 70% faster deployments
+- Optimize bundle size with CDN images and improved build
+- Optimize CI/CD pipeline for 70% faster deployments ([#105](https://github.com/hudsor01/tenant-flow/issues/105))
+- Optimize CI/CD pipeline for 70% faster deployments
+- Optimize CI/CD pipeline for 70% faster deployments ([#106](https://github.com/hudsor01/tenant-flow/issues/106))
+- Comprehensive deployment optimization pipeline
+- Configure Railway deployment for NestJS backend
+- Complete BaseCrudService refactoring and achieve 100% build success
+- Add CI performance bottleneck test workflow
+- Optimize GitHub workflows for speed and Vercel deployment
+- Optimize GitHub workflows for speed and Vercel deployment ([#116](https://github.com/hudsor01/tenant-flow/issues/116))
+- Major UI/UX cleanup - remove all duplicate components and hooks
+- Major UI/UX cleanup - remove all duplicate components and hooks ([#121](https://github.com/hudsor01/tenant-flow/issues/121))
+- Reconfigure Vercel for frontend-only deployment with self-hosted backend
+- Improve landing page typography and readability
+- Increase CTA button text size to text-5xl and larger padding for better visibility
+- Enhance landing page with conversion optimization and trust elements
+- Complete monorepo configuration alignment and Prisma migration
+- Add webhook module for Stripe webhook handling
+- Complete frontend type safety transformation
+- Complete Frontend Type Safety Transformation ([#133](https://github.com/hudsor01/tenant-flow/issues/133))
+- Complete monorepo configuration alignment and Prisma migration ([#132](https://github.com/hudsor01/tenant-flow/issues/132))
+- Add AuthProvider to protect app at root level
+- Simplify Dockerfile with clean 2-stage build
+- Optimize deployment with railway.toml + simplified Docker
+- Finalize Railway deployment with optimized Docker build
+- Massive update to improve type safety and fix bugs
+- Massive update to improve type safety and fix bugs ([#144](https://github.com/hudsor01/tenant-flow/issues/144))
+- Complete Next.js 15 + React 19 architectural refactor
+- Implement React Query global integration
+- Enhance auth pages UI/UX with improved visual design
+- Complete Vite to Next.js migration
+- Major codebase cleanup and feature enhancements
+- Comprehensive codebase cleanup and GitHub alignment
+- Comprehensive security hardening and testing infrastructure overhaul
+- Comprehensive CI/CD fixes and test infrastructure overhaul
+- Major codebase cleanup and feature enhancements ([#164](https://github.com/hudsor01/tenant-flow/issues/164))
+- Major codebase cleanup and feature enhancements ([#164](https://github.com/hudsor01/tenant-flow/issues/164)) ([#165](https://github.com/hudsor01/tenant-flow/issues/165))
+- Enhance marketing pages with modern design system
+- Implement complete Stripe subscription system with automatic signup flow
+- Implement complete Stripe subscription system with automatic si… ([#180](https://github.com/hudsor01/tenant-flow/issues/180))
+- Add verbose memory warnings for Railway free tier limits
+- Configure CSRF protection for production security
+- Complete CSRF protection implementation for production
+- Improve name validation and add automated signup testing
+- Refactor RequestUtilsService with composition pattern and hardening foundation
+- Complete frontend development and CI/CD fixes
+- Massive codebase cleanup and simplification
+- Replace broken tests with minimal smoke tests for CI/CD
+- Implement isomorphic lockfile architecture for cross-platform compatibility
+- Implement isomorphic lockfile architecture for cross-platform CI/CD
+- Nuclear fix for turbo EBADPLATFORM - block Darwin binary in CI
+- Optimize CI with Turbo best practices
+- Complete frontend production readiness review and runtime fixes
+- Configure monorepo for Railway backend and Vercel frontend deployment ([#99](https://github.com/hudsor01/tenant-flow/issues/99))
+- Major auth system consolidation and production readiness improvements ([#102](https://github.com/hudsor01/tenant-flow/issues/102))
+- *(vercel)* Add dedicated frontend build script
+- *(vercel)* Add dedicated frontend build scripts
+- [**breaking**] Optimize CI/CD pipeline for 70% faster deployments
+- Optimize bundle size with CDN images and improved build
+- Optimize CI/CD pipeline for 70% faster deployments ([#105](https://github.com/hudsor01/tenant-flow/issues/105))
+- Optimize CI/CD pipeline for 70% faster deployments
+- Optimize CI/CD pipeline for 70% faster deployments ([#106](https://github.com/hudsor01/tenant-flow/issues/106))
+- Comprehensive deployment optimization pipeline
+- Configure Railway deployment for NestJS backend
+- Complete BaseCrudService refactoring and achieve 100% build success
+- Add CI performance bottleneck test workflow
+- Optimize GitHub workflows for speed and Vercel deployment
+- Optimize GitHub workflows for speed and Vercel deployment ([#116](https://github.com/hudsor01/tenant-flow/issues/116))
+- Major UI/UX cleanup - remove all duplicate components and hooks
+- Major UI/UX cleanup - remove all duplicate components and hooks ([#121](https://github.com/hudsor01/tenant-flow/issues/121))
+- Reconfigure Vercel for frontend-only deployment with self-hosted backend
+- Improve landing page typography and readability
+- Increase CTA button text size to text-5xl and larger padding for better visibility
+- Enhance landing page with conversion optimization and trust elements
+- Complete monorepo configuration alignment and Prisma migration
+- Add webhook module for Stripe webhook handling
+- Complete frontend type safety transformation
+- Complete Frontend Type Safety Transformation ([#133](https://github.com/hudsor01/tenant-flow/issues/133))
+- Complete monorepo configuration alignment and Prisma migration ([#132](https://github.com/hudsor01/tenant-flow/issues/132))
+- Add AuthProvider to protect app at root level
+- Simplify Dockerfile with clean 2-stage build
+- Optimize deployment with railway.toml + simplified Docker
+- Finalize Railway deployment with optimized Docker build
+- Massive update to improve type safety and fix bugs
+- Massive update to improve type safety and fix bugs ([#144](https://github.com/hudsor01/tenant-flow/issues/144))
+- Complete Next.js 15 + React 19 architectural refactor
+- Implement React Query global integration
+- Enhance auth pages UI/UX with improved visual design
+- Complete Vite to Next.js migration
+- Major codebase cleanup and feature enhancements
+- Comprehensive codebase cleanup and GitHub alignment
+- Comprehensive security hardening and testing infrastructure overhaul
+- Comprehensive CI/CD fixes and test infrastructure overhaul
+- Major codebase cleanup and feature enhancements ([#164](https://github.com/hudsor01/tenant-flow/issues/164))
+- Major codebase cleanup and feature enhancements ([#164](https://github.com/hudsor01/tenant-flow/issues/164)) ([#165](https://github.com/hudsor01/tenant-flow/issues/165))
+- Enhance marketing pages with modern design system
+- Implement complete Stripe subscription system with automatic signup flow
+- Implement complete Stripe subscription system with automatic si… ([#180](https://github.com/hudsor01/tenant-flow/issues/180))
+- Add verbose memory warnings for Railway free tier limits
+- Configure CSRF protection for production security
+- Complete CSRF protection implementation for production
+- Improve name validation and add automated signup testing
+- Refactor RequestUtilsService with composition pattern and hardening foundation
+- Complete frontend development and CI/CD fixes
+- Massive codebase cleanup and simplification
+- Replace broken tests with minimal smoke tests for CI/CD
+- Resolve massive merge conflicts from main to test branch
+- Revolutionary frontend transformation - 100% DRY/KISS compliance achieved
+- Add simplified CI/CD pipeline with Node 24
+- Add comprehensive CI/CD pipeline with quality gates
+- Add pre-commit hooks with GitGuardian
+- Add design preview pages for TenantFlow transformation showcase
+- Implement webhook idempotency with processed events tracking and testing
+- Fix UnoCSS integration and add UI/UX improvements
+- Add magicui components and enhance global CSS utilities
+- Enhance code generation and validation schemas
+- Refactor API endpoints for leases, tenants, and units to use constants
+- Implement dynamic rendering for dashboard pages to support runtime-authenticated data
+- UnoCSS integration and UI/UX improvements ([#203](https://github.com/hudsor01/tenant-flow/issues/203))
+- *(eslint)* Add custom ESLint rules for anti-duplication enforcement
+- Add additional redirects for sign-up paths in configuration
+- Implement webhook idempotency with processed events tracking an… ([#205](https://github.com/hudsor01/tenant-flow/issues/205))
+- Implement consolidated landing page components and navigation structure
+- Implement lease generation and validation features
+- Implement lease generation and validation features ([#207](https://github.com/hudsor01/tenant-flow/issues/207))
+- Implement unified CORS and CSP configurations across the application
+- Implement unified CORS and CSP configurations across the application ([#208](https://github.com/hudsor01/tenant-flow/issues/208))
+- Remove obsolete health check and Stripe product enhancement scripts
+- Add PostHog client provider for analytics tracking
+- Integrate Doppler CLI for environment management and update build scripts
+- Update build command to use Doppler for environment management in Vercel configuration
+- Update metadata and hero section content for improved clarity and SEO; enhance pricing section layout
+- Enhance Features Page with new design elements and typography
+- Enhance database optimization service with improved index and query statistics retrieval; refactor related hooks for better type safety
+- *(enterprise-hero)* Remove hard-coded placeholders; wire up React Query data for KPIs, top properties via units, and revenue trend via financial overview; add robust skeletons
+- Enhance financial dashboard with occupancy change and property performance metrics
+- Integrate real API data in enterprise hero section
+- Add comprehensive tenant analytics RPC functions and fix dashboard RPC functions
+- Enhance CI/CD workflow with additional Doppler token handling for improved configuration management
+- Improve Doppler token handling in CI/CD workflow for enhanced build flexibility
+- Implement fallback data handling for dashboard and properties metrics retrieval
+- Add shadcn-prose package and update axios version
+- Refactor bootstrap function to streamline Fastify route schema attachment and enhance ESLint configuration
+- *(security)* Add comprehensive security hardening script and test runner
+- *(ci-cd)* Add DOPPLER_TOKEN to build packages environment variables
+- Implement zero-downtime backend architecture for Apple engineering standards
+- Implement Apple-inspired component library (Issue [#216](https://github.com/hudsor01/tenant-flow/issues/216))
+- Implement obsession-critical performance testing for Issue [#218](https://github.com/hudsor01/tenant-flow/issues/218)
+- Implement comprehensive production security architecture
+- Implement 2025 modern testing infrastructure and achieve 79% test pass rate
+- Implement optimized CI/CD pipeline with Turbo caching and parallel jobs
+- Apple HIG-compliant components with 44px touch targets ([#225](https://github.com/hudsor01/tenant-flow/issues/225))
+- Implement comprehensive production security architecture
+- Implement Stripe FDW integration and email template system
+- Major lint improvements - reduce errors from 43 to 7
+- Comprehensive ESLint alignment and codebase quality improvements
+- Massive lint cleanup - 157→5 problems (96.8% reduction)
+- Improve backend deployment and optional dependency handling
+- Implement comprehensive color token system with Apple-inspired design
+- Transform pricing page to Apple-inspired clean design
+- Massive CI/CD workflow optimization - 85% reduction in complexity
+- Optimize next.config.ts and remove i18n/PWA dependencies
+- Remove obsolete run-with-optional-doppler.cjs script
+- Optimize CI/CD workflow based on GitHub Actions best practices
+- Production-ready API configuration and security improvements
+- Merge main into unified consolidation using our version
+- Unified consolidation - complete tw- prefix removal and design system alignment ([#249](https://github.com/hudsor01/tenant-flow/issues/249))
+- Migrate from Next.js lint to ESLint CLI
+- Optimize deployment by reducing env vars and using native approaches
+- Support both /health and /api/v1/health endpoints
+- Add DotPattern component with proper type centralization
+- Implement ShadCN Dashboard 01 block consolidation
+- Implement complete ShadCN Dashboard 01 with API-ready structure
+- Remove all static data from Dashboard 01 components
+- Implement official ShadCN Dashboard 01 with Lucide icons
+- Implement document pages and fix login redirect logic
+- Implement document pages and fix auth redirects
+- Implement comprehensive enum standardization and resolve all critical linting errors
+- Implement Phase 1 ESLint architecture enforcement and form progress system
+- Implement comprehensive schema centralization and resolve all TypeScript compilation errors
+- [**breaking**] Implement complete dashboard API integration and native platform features
+- Standardize dashboard UI consistency and navigation
+- Complete Phase 1 and Phase 2 - Analytics Platform Foundation and Export Functionality
+- Implement Analytics Platform Phase 1 & 2 with comprehensive error fixes
+- Add financial analytics services with comprehensive reporting
+- Complete Phase 4 - Financials Section (4/4 pages)
+- Implement user authentication in report generation
+- Install 5 new shadcn/ui components
+- Enhance API error handling and add E2E tests for reports auth
+- *(ui)* Upgrade reports library empty state with Empty component
+- *(ui)* Upgrade all dashboard pages with Empty component for new users
+- Implement 5 new shadcn components globally across application
+- Implement 5 new shadcn components globally across application ([#252](https://github.com/hudsor01/tenant-flow/issues/252))
+- *(payments)* Phase 2 - Payment Methods & Stripe Connect implementation
+- *(payments)* Phase 3 - Frontend Stripe Elements integration
+- *(subscriptions)* Implement Phase 4 autopay subscriptions backend
+- *(payments)* Stripe Connect tenant payments; enforce invite-only onboarding; add DB migration and form typings
+- Complete Stripe Connect tenant payments implementation ([#259](https://github.com/hudsor01/tenant-flow/issues/259))
+- Improve onboarding UX and fix TypeScript incremental mode
+- Enhance welcome page with primary blue accents and micro-interactions
+
+### Revert
+
+- Remove duplicate CI workflow - keep single optimized CI
+- Remove duplicate CI workflow - keep single optimized CI
+
+### Other
+
+- Force new deployment
+- Fix user conversion blockers in signup flow
+- Remove rewrite rules to test API functions directly
+- Successful monorepo build with shared package fix
+- Add dist folders for shared and types packages
+- Test CI with Vercel credentials configured
+- Merge conflicts with main branch
+- Add comprehensive startup diagnostics to identify routing issues
+- Drastically simplify GitHub workflows to prevent failures
+- Add verbose debugging to GitHub workflows
+- Remove remaining Railway references
+- Resolve all Vercel deployment warnings ([#120](https://github.com/hudsor01/tenant-flow/issues/120))
+- Resolve React.Children undefined error causing production loading spinner ([#128](https://github.com/hudsor01/tenant-flow/issues/128))
+- Merge conflicts with main branch
+- Vercel deployment path issue in workflow ([#148](https://github.com/hudsor01/tenant-flow/issues/148))
+- Proper auth callback component with OAuth processing
+- Fix Railway API deployment - remove /api/v1 prefix
+- Restore API deployment fix that was reverted
+- Exclude health endpoint from api/v1 prefix for Railway
+- Fix Railway health check endpoint
+- Fix health endpoint exclusion from global prefix
+- Implement auto-signin after signup and dashboard redirect
+- Trigger Railway deployment with timestamp
+- Add specific health endpoint to test rewrites
+- *(docker)* Optimize with Node.js 24 Alpine and Distroless runtime
+- Verify all Vercel deployment fixes are working correctly
+- Remove unused development files
+- Merge conflicts with main branch
+- Add comprehensive startup diagnostics to identify routing issues
+- Drastically simplify GitHub workflows to prevent failures
+- Add verbose debugging to GitHub workflows
+- Remove remaining Railway references
+- Resolve all Vercel deployment warnings ([#120](https://github.com/hudsor01/tenant-flow/issues/120))
+- Resolve React.Children undefined error causing production loading spinner ([#128](https://github.com/hudsor01/tenant-flow/issues/128))
+- Merge conflicts with main branch
+- Vercel deployment path issue in workflow ([#148](https://github.com/hudsor01/tenant-flow/issues/148))
+- Proper auth callback component with OAuth processing
+- Fix Railway API deployment - remove /api/v1 prefix
+- Restore API deployment fix that was reverted
+- Exclude health endpoint from api/v1 prefix for Railway
+- Fix Railway health check endpoint
+- Fix health endpoint exclusion from global prefix
+- Implement auto-signin after signup and dashboard redirect
+- Trigger Railway deployment with timestamp
+- Add specific health endpoint to test rewrites
+- *(docker)* Optimize with Node.js 24 Alpine and Distroless runtime
+- Verify all Vercel deployment fixes are working correctly
+- Remove unused imports and streamline code in financial components
+- *(vercel)* Ensure Linux Tailwind Oxide bindings available and force clean install with npm ci to avoid cross-platform cache issues
+- *(tailwind)* Force WASI fallback for @tailwindcss/oxide (NAPI_RS_FORCE_WASI=1) during Next build to avoid native binding issues on Vercel
+- Partial lint fixes
+- All merge conflicts and fix unused imports
+- Complete merge of main branch with production fixes
+- Force Railway redeploy after environment variable update
+- Fix authentication redirects by updating Supabase cookie detection
+- Add authentication debugging to serverFetch
+- Resolve authentication, API paths, UI issues, and export functionality ([#251](https://github.com/hudsor01/tenant-flow/issues/251))
+- Feature/stripe-connect-tenant-payments — preserve work before rebase/push
+- Restore WIP from stash (pre-clean-branch) - analytics page + chart tweaks
+- Feature/stripe-connect-tenant-payments full updates ([#256](https://github.com/hudsor01/tenant-flow/issues/256))
+
+### Bug Fixes
+
+- Stripe webhook critical fixes - disable body parser, handle Buffer properly
+- Update vercel.json to remove non-existent function reference
+- Correct try-catch syntax error in usePropertyAnalytics
+- Resolve ESLint errors, TypeScript issues, and build failures
+- Add @prisma/client dependency and prisma generate to build script
+- Resolve auth callback timeout error
+- *(vercel)* Use correct build command for monorepo
+- *(vercel)* Update output directory to apps/frontend/dist
+- Improve git hooks to prevent false positives and blocking issues
+- Remove tracked .gemini/settings.json from git
+- Repair pre-push hook integer comparison and conflict detection
+- Comprehensive security, linting, and TypeScript fixes
+- Update pre-commit hook to properly handle TypeScript/React files
+- Resolve all TypeScript errors in monorepo
+- Remove invalid api function reference from vercel.json
+- Specify project name in vercel.json for correct GitHub integration
+- Add exports field to backend package.json for TRPC type imports
+- Remove circular dependency in shared package TRPC types
+- Critical production fixes for CSP and CI workflow ([#83](https://github.com/hudsor01/tenant-flow/issues/83))
+- Resolve auth flow issues and Stripe color warnings
+- Update supabase export after removing duplicate client
+- Remove duplicate react() plugin in vite config
+- Add detailed logging to auth session creation
+- Resolve session propagation race condition
+- Increase auth timeout and add performance logging
+- Resolve RLS blocking user authentication sync
+- Resolve TypeScript errors and rebuild TRPC types
+- Resolve RLS blocking user authentication sync ([#85](https://github.com/hudsor01/tenant-flow/issues/85))
+- Resolve all TypeScript errors with strict typing rules ([#86](https://github.com/hudsor01/tenant-flow/issues/86))
+- Remove circular dependency blocking Vercel builds ([#89](https://github.com/hudsor01/tenant-flow/issues/89))
+- Resolve shared package build dependency issues
+- Resolve CI build failure - shared package resolution and build order
+- Correct signup route paths from /auth/signup to /auth/Signup
+- Correct GitHub CI workflow script name
+- Update GitHub workflows for correct script names and realistic configurations
+- Resolve Vercel deployment environment variable warnings
+- Resolve turbo environment variable warnings in Vercel deployment
+- Properly scope environment variables in turbo.json to eliminate Vercel warnings
+- Use proper wildcard patterns for environment variables in turbo.json
+- Resolve Vercel environment variable warnings using proper Turborepo patterns
+- Resolve Vercel deployment environment variable warnings with proper turbo.json configuration
+- Correct backend build dependency reference
+- Resolve Vercel environment variable warnings in turbo.json
+- Switch turbo.json to loose env mode to resolve Vercel warnings
+- Improve email confirmation flow and user experience
+- Handle expired email links with existing sessions
+- Resolve variable name conflict in auth processor
+- Handle Supabase setSession timeout issues
+- Add missing /me endpoint to AuthController
+- Resolve JSX syntax error in concurrent utils
+- Ensure Prisma client generation before typecheck and build
+- Correct PlanType import from shared package instead of @prisma/client
+- Increase timeout in app-store test to prevent flaky timestamp comparison
+- Complete Jest to Vitest migration for RLS tests
+- Skip RLS database tests in CI environment
+- Improve CI detection for RLS tests with GitHub Actions variables
+- Resolve CI failures with comprehensive database and script fixes
+- Comprehensive CI fixes for deployment readiness
+- Update leases.service.test.ts to match actual service interface
+- Resolve failing tests in MultiTenantPrismaService test suite
+- Production deployment improvements
+- Explicitly set webpack mode to production
+- Remove specific service name from Railway deploy - use default service
+- Move Vite back to production dependencies for Vercel builds
+- Use npx vite for reliable binary execution in monorepo
+- Add Vite to devDependencies for vite.config.ts resolution
+- Bypass Turborepo for frontend build - direct npm install/build in frontend dir
+- Update vercel.json to use direct npm build instead of Turborepo
+- Replace complex vite.config.ts with minimal vite.config.js
+- Bypass Turborepo for frontend build - direct npm install/build
+- Bypass Turborepo for frontend build - direct npm install
+- *(vercel)* Remove invalid rootDirectory from vercel.json
+- *(frontend)* Correct package.json syntax
+- *(frontend)* Restore missing vite.config.ts for Vercel deployment
+- *(frontend)* Move vite and build deps to dependencies for Vercel
+- *(frontend)* Remove vercel.json to use dashboard config
+- *(frontend)* Move CSS build dependencies to dependencies
+- *(frontend)* Lazy load React Query devtools for production builds
+- *(ci)* Add service name to Railway deployment command
+- *(ci)* Remove service name from Railway deployment
+- *(frontend)* Remove non-existent App.tsx from vite warmup config
+- Resolve Railway deployment and frontend production issues
+- *(frontend)* Restore manual chunks to fix module initialization error
+- Simplify vite config to resolve production build issues
+- Add proper nixpacks.toml and .node-version for Railway Node.js 22
+- Install all dependencies for Railway build (prisma is needed)
+- Restore original vite config with proper build setup
+- Remove serverless functions config from vercel.json
+- Production-harden Dockerfile with critical improvements
+- Increase CI bundle size limit from 5MB to 20MB
+- Use npx for NestJS CLI commands to resolve Vercel build issues
+- Resolve merge conflicts and ensure Vercel only builds frontend
+- Use npx turbo for all turbo commands to ensure Vercel compatibility
+- Resolve GitHub Actions workflow validation errors
+- Use npx turbo in Vercel build command
+- Use npm run build:frontend for Vercel build
+- Update Railway healthcheck to use simpler endpoint without DB dependency
+- Resolve CI pipeline failures
+- Use Supabase cloud database for CI instead of local PostgreSQL
+- Ensure shared package builds before typecheck in CI
+- Ensure shared package builds before frontend typecheck
+- Resolve all deployment errors - TypeScript config and Docker push
+- Resolve deployment errors - TypeScript and Docker configuration ([#108](https://github.com/hudsor01/tenant-flow/issues/108))
+- Finalize deployment configuration for Railway and Supabase
+- Critical CORS_ORIGINS environment variable mismatch
+- Update all hardcoded URLs to use correct domains
+- Resolve deployment and build issues
+- Railway deployment configuration
+- Resolve Vercel deployment configuration issues
+- Correct turbo E2E test command to pass --grep to Playwright
+- Exclude vercel.json from pre-commit secret scanning
+- Railway health check endpoint - remove database dependency
+- Ultra-simple Railway health check
+- Use PAT for GitHub Container Registry and update TypeScript config
+- Comprehensive deployment fixes to resolve all build failures
+- Revert verbatimModuleSyntax to fix TypeScript build errors
+- Core deployment configuration fixes for Railway and Vercel
+- Resolve deployment failures with TypeScript configuration
+- Clean up CI workflow for reliable deployments
+- Resolve TypeScript errors in frontend
+- Resolve deployment conflicts - simplify Dockerfile and streamline railway config
+- Railway deployment debugging for 404 issue - add environment logging and Fastify config
+- TypeScript errors in main.ts - logger scope and fetch timeout
+- Correct npm ci syntax in Dockerfile
+- Remove non-existent routes property from Fastify debugging
+- Add CORS debugging logs to verify environment configuration
+- Bind to IPv6 for Railway health checks
+- Shared package exports and Docker build process
+- Railway deployment configuration with Turborepo and bcrypt externalization
+- Remove accidentally committed JS files from shared package
+- Resolve Vercel deployment issues
+- Resolve Vercel multiple-function-regions error
+- Correct Vercel output directory path
+- GitHub workflow Docker validation with required environment variables
+- Railway configuration validation requirements
+- URL consistency and Docker configuration
+- Resolve PR [#111](https://github.com/hudsor01/tenant-flow/issues/111) deployment failures - security audit and SQL injection patterns
+- Resolve test failures in properties and maintenance services
+- Add missing types and update shared package exports
+- Resolve all frontend TypeScript compilation errors
+- Resolve TypeScript ESLint errors and test configuration issues
+- Resolve security monitoring and form validation issues
+- Convert Express middleware to Fastify and fix remaining TypeScript errors
+- Remove Express dependency and complete Fastify migration
+- Replace console.log with console.warn in main.ts
+- Resolve ESLint @typescript-eslint/no-explicit-any violations in backend
+- Resolve TypeScript compilation errors and improve type safety
+- Resolve all ESLint non-null assertion warnings
+- Resolve ESLint errors in frontend performance monitor and console statements
+- Resolve TypeScript compilation errors in BaseCrudService and Stripe integrations
+- Resolve test failures in properties and maintenance services ([#113](https://github.com/hudsor01/tenant-flow/issues/113))
+- Simplify CI/CD workflows and remove failing test requirements
+- Build shared package and fix TypeScript errors in security-monitor.service.ts
+- Resolve TypeScript errors across all packages
+- Optimize CI/CD pipeline for faster builds
+- Simplify CI/CD workflows and confirm all tests passing ([#114](https://github.com/hudsor01/tenant-flow/issues/114))
+- Add loading state and error handler to index.html for debugging white screen
+- Correct EnvironmentCheck component rendering logic to properly show app when env vars are present
+- Change backend to listen on IPv4 (0.0.0.0) for Railway compatibility and correct API_URL
+- Replace complex CI performance test with simple working version
+- Ultra-minimal CI - just build, no checks, 3 min timeout
+- Add root endpoint and enhanced debugging for Railway healthcheck
+- Correct Dockerfile WORKDIR path to prevent nested directories
+- Correct EnvironmentCheck rendering logic in main.tsx
+- Resolve white screen issue on landing page
+- Remove @stripe/stripe-js from external dependencies in Vite config
+- Resolve frontend loading issues and render home page
+- Replace process.env with import.meta.env in frontend code
+- Clean up deprecated packages and update Stripe API to 2025-07-30
+- Simplify Railway deployment with minimal health check
+- Convert shared package to CommonJS to resolve Railway deployment issues
+- Add safety checks for Prisma Accelerate middleware initialization
+- Add Railway service ID to GitHub Actions deployment
+- Increase workflow timeouts to 3 minutes
+- Add missing Node.js setup step to PR workflow
+- Add --yes flag to Vercel deploy command
+- Correct ternary conditional in Dashboard.tsx to resolve TypeScript syntax error
+- Correct ternary conditional in Dashboard.tsx to resolve TypeScri… ([#117](https://github.com/hudsor01/tenant-flow/issues/117))
+- Use .js extension for dynamic import in Vercel serverless handler
+- Use .js extension for dynamic import in Vercel serverless handler ([#118](https://github.com/hudsor01/tenant-flow/issues/118))
+- Resolve all Vercel deployment warnings
+- Remove invalid buildEnv property from vercel.json
+- Correct function runtime to @vercel/node@3
+- Remove functions configuration for frontend-only deployment
+- Simplify vercel.json for frontend-only deployment
+- Use explicit turbo command in vercel.json
+- Update package-lock.json to include path-match override
+- Match build and deploy environments in GitHub Actions
+- Complete Vercel fullstack deployment configuration
+- Remove runtime specification from vercel.json to use auto-detection
+- Use correct Node.js runtime format in vercel.json
+- Remove functions configuration to use Vercel auto-detection
+- Add package.json to api directory for Vercel deployment
+- Resolve ESLint errors - React hooks rules and syntax errors
+- Resolve homepage loading spinner and JSX syntax errors
+- Resolve homepage loading spinner and JSX syntax errors ([#122](https://github.com/hudsor01/tenant-flow/issues/122))
+- Resolve "You must be logged in to subscribe" error and backend startup issues
+- Resolve homepage loading spinner issue
+- Remove .js extension from TypeScript import in serverless handler
+- Configure Vercel for proper Turborepo monorepo support
+- Remove FastifyHooksService import from serverless handler
+- Refactor StripeModule to resolve application hanging issue
+- Refactor StripeModule to resolve application hanging issue ([#124](https://github.com/hudsor01/tenant-flow/issues/124))
+- Resolve TypeScript build errors after StripeModule refactoring
+- Add Stripe type import to resolve TypeScript namespace errors
+- Resolve TypeScript build errors after StripeModule refactoring ([#125](https://github.com/hudsor01/tenant-flow/issues/125))
+- Resolve landing page loading spinner and React.Children error
+- Resolve landing page loading spinner and React.Children error ([#126](https://github.com/hudsor01/tenant-flow/issues/126))
+- Pin Node.js version to prevent auto-upgrades on Vercel
+- Resolve all TypeScript errors and ESLint warnings for clean build
+- Update package-lock.json to sync with package.json dependencies
+- Resolve React.Children undefined error causing production loading spinner
+- Move React global assignment before all imports to prevent initialization error
+- Resolve React.Children error and clean up lint/TypeScript issues
+- Improve navigation typography for better readability
+- Increase CTA button text sizes from text-2xl to text-4xl for better readability
+- Resolve MfaGuard health endpoint issues and improve backend stability
+- Update Dockerfile with working multi-stage production build
+- Update Dockerfile with working multi-stage production build ([#129](https://github.com/hudsor01/tenant-flow/issues/129))
+- Resolve TypeScript lint errors properly
+- Remove MfaGuard from compliance controller to fix health endpoint
+- Disable SecurityMonitoringInterceptor to fix dependency injection issue
+- Improve React initialization to prevent Children undefined error
+- Add React.Children polyfill in index.html to prevent undefined errors
+- Remove deleted webhook module and fix lint errors
+- Improve React.Children polyfill to prevent circular reference
+- Prevent React from being split into separate chunk to fix Children undefined error
+- Resolve TypeScript errors in compliance controller and MFA guard
+- Correct Stripe service error handler method calls
+- Resolve all ESLint errors - replace any types with proper types
+- Eliminate all 'any' types in backend - replace with proper shared types
+- Resolve all TypeScript and ESLint errors from merge with main
+- Resolve lint errors and duplicate export after merge
+- Set package-ecosystem to npm in dependabot.yml
+- Remove regions property from edge function config in vercel.json
+- Resolve all security vulnerabilities identified by GitHub scanning
+- Set Vercel framework to vite instead of null
+- Remove @prisma/extension-accelerate dependency
+- Correct Vercel edge function runtime configuration
+- Use nodejs18.x runtime instead of invalid 'edge' for Vercel functions
+- Update to nodejs20.x runtime to match Node.js 22.x environment
+- Remove functions section causing Vercel deployment errors
+- Correct Vite entry module path to resolve build error
+- Remove explicit input path, let Vite auto-detect index.html
+- Resolve TypeScript config issues for Vercel deployment
+- Use standalone tsconfig for shared package to resolve Vercel build
+- Use standalone TypeScript config for frontend to resolve Vercel build
+- Resolve TypeScript configuration issues for Vercel deployment
+- Update web-vitals imports to use v5 API
+- Replace FID with INP in web-vitals monitoring
+- Align WebVitalsMonitor with web-vitals v4.2.4 API
+- Resolve Vercel deployment failures with proper Turborepo configuration
+- Move prisma to dependencies to resolve Vercel build failures
+- Resolve all frontend TypeScript compilation errors
+- Use npx for prisma commands to resolve Vercel build failures
+- Add id parameter to all Docker cache mounts
+- Resolve Vercel deployment and GTM configuration issues
+- Use npm script for Vercel build command instead of turbo filter
+- Use npx turbo build:frontend for Vercel build command
+- Revert to npm run build:frontend for Vercel
+- Use direct turbo command without npx for Vercel
+- Update vercel.json to use rootDirectory config and remove broken cache warming step
+- Revert vercel.json to use npm run build:frontend without filter
+- Restore cache warming and fix Vercel deployment
+- Align TypeScript API types with backend expectations
+- Disable remote caching and fix shared package build
+- Resolve critical TypeScript configuration issues across monorepo
+- Resolve Dependabot config and failing auth tests
+- Resolve authentication system unavailable error
+- Resolve Vercel build dependency resolution error
+- Resolve package.json deployment script issues and shared package build
+- Use Turbo commands in Vercel build for monorepo compatibility
+- Build dependencies before Vercel CLI build in GitHub Action
+- Consolidate and optimize GitHub Actions workflows
+- Optimize Vite chunking strategy to prevent React initialization errors
+- Resolve React.Children undefined error and complete Docker slim conversion
+- Resolve build dependencies and React.Children error
+- Regenerate clean package-lock.json to resolve npm corruption
+- Regenerate clean package-lock.json to resolve npm corruption
+- Resolve build dependencies and React.Children error
+- Resolve React.Children undefined error and complete Docker slim conversion
+- Resolve SWC native binding error by switching to standard React plugin
+- Add npm prune to Vercel build to resolve extraneous package errors
+- Remove corrupted npm metadata in Vercel build
+- Implement proper npm error solution for Vercel deployments
+- Implement proper solution for npm extraneous error based on root cause analysis
+- Nuclear option - force complete npm clean install on Vercel
+- Bypass turbo to avoid npm metadata corruption
+- Remove conflicting .vercel and .turbo directories
+- Update Vercel configuration for Turborepo monorepo deployment
+- Force fresh npm install on Vercel to avoid package-lock corruption
+- Simplify Vercel configuration to use automatic detection
+- Add typescript as direct dependency to shared package
+- Use npx for tsc in shared package build script
+- Revert TypeScript to 5.8.3 in backend to fix npm ci errors
+- Resolve TypeScript composite configuration and backend errors
+- Add LightningCSS Linux binary for CI/CD builds
+- Update package-lock.json for LightningCSS Linux binary
+- Resolve LightningCSS Linux binary installation in CI/CD
+- Update PostCSS config for Tailwind v4 compatibility
+- Resolve ESLint and shellcheck warnings
+- Add missing @tanstack/react-query dependency to shared package for Railway deployment
+- Simplify Dockerfile to handle Prisma client generation and database package build correctly
+- Add explicit backend build step and debug output to Dockerfile
+- Rewrite Dockerfile with proper NestJS build process and verification
+- Prevent infinite loading spinner on public routes including homepage
+- Update Dockerfile to use Turborepo for building backend
+- Resolve React.Children undefined error in production
+- Docker build path and add missing React/Vite conventions
+- Resolve TypeScript errors in frontend stores architecture
+- Railway deployment Prisma client and TypeScript issues
+- Generate Prisma client before TypeScript build in Docker
+- Correct railway.toml startCommand path
+- Resolve Prisma schema path in root package.json
+- Comprehensive Docker build optimization and dependency resolution
+- Restore correct Docker image name to tenantflow-backend
+- Production config to not require .env files in Docker
+- Comprehensive React.Children bootstrap system for production
+- *(build)* Resolve production build initialization error
+- *(build)* Resolve production build initialization error ([#143](https://github.com/hudsor01/tenant-flow/issues/143))
+- Update package-lock.json
+- Update tsconfig to include missing files
+- Resolve Railway deployment crashes
+- Skip Prisma generation on Vercel frontend builds
+- Simplify Vercel build command to bypass Turbo issues
+- Vercel already in apps/frontend directory, simplify build command
+- Deploy from monorepo root to access shared packages
+- Remove apps/frontend/.vercel directory with wrong rootDirectory setting
+- Build shared package before frontend
+- Work around Vercel's stuck rootDirectory setting
+- Inline TypeScript config to avoid module resolution issues in Vercel
+- Fix TypeScript schema URLs for production readiness
+- Resolve TypeScript compilation errors in property management and dashboard components
+- Add missing shared package exports for CI/CD
+- Resolve type-adapters module import path in shared package
+- Change type-adapters import to direct path to resolve CI build error
+- Resolve CI/CD module resolution issue by using barrel export
+- Standardize all utils imports to use barrel exports for CI consistency
+- Implement barrel export pattern to resolve CI module resolution issues
+- Resolve CI/CD module resolution issues with systematic approach
+- Resolve Vercel build failure by adding lightningcss native binaries
+- Resolve all CI failures with comprehensive dependency and build fixes
+- Resolve TypeScript module resolution errors in CI by adding index files
+- Remove problematic index files and add TailwindCSS v4 native binaries
+- Sync package-lock.json with TailwindCSS oxide dependencies
+- Resolve Next.js build errors by restructuring pages and adding use client directive
+- Resolve case sensitivity issues with Navigation component imports
+- Install lightningcss for TailwindCSS optimization support
+- Align deployment type checking with PR validation workflow
+- Resolve case sensitivity issue in breadcrumbs filename
+- Resolve Vercel deployment issues for monorepo
+- Add Supabase environment variables to GitHub Actions build step
+- Resolve CI/CD workflow issues
+- Resolve all ESLint errors in frontend code
+- Resolve workflow failures in CI/CD pipelines
+- Allow ESLint warnings in PR checks and configure Next.js-specific rules
+- Correct package name in frontend typecheck workflow
+- Standardize package naming to @repo namespace
+- Remove redundant build test from PR check
+- Add continue-on-error to artifact download in Performance & Security Validation
+- Remove working-directory from Vercel deployment steps
+- Resolve build errors in Vercel deployment
+- Resolve build errors in Vercel deployment ([#149](https://github.com/hudsor01/tenant-flow/issues/149))
+- Replace all @repo/shared/utils imports with @repo/shared
+- Add await to mutateAsync call to fix TypeScript linting error
+- Resolve Vercel deployment build error with SubscriptionStatus import
+- Resolve Vercel deployment build error with SubscriptionStatus im… ([#151](https://github.com/hudsor01/tenant-flow/issues/151))
+- Resolve auth page routing and CSP issues
+- Resolve auth page routing and CSP issues ([#152](https://github.com/hudsor01/tenant-flow/issues/152))
+- Resolve OAuth redirect to dashboard after Google login
+- Remove invalid retry option from dashboard queries
+- Add tenantflow.app to CSP script-src to allow Next.js scripts in production
+- Resolve GitHub Actions deployment path duplication error
+- Add tenantflow.app to CSP style-src to allow stylesheets
+- Resolve remaining file updates after npm install
+- Resolve all backend test failures (421/421 passing)
+- Resolve CI/CD failures and security alerts
+- Resolve package synchronization and test token security issues
+- Comprehensive CI/CD and security improvements
+- Obfuscate remaining test credentials to resolve GitGuardian alerts
+- Properly configure GitGuardian to ignore test files
+- Correct GitGuardian configuration to ignore test files
+- Sync package-lock.json and correct GitHub Actions outputs
+- Prevent package-lock.json sync issues
+- Replace broken CI/CD with minimal working PR check
+- Nuclear option - delete and regenerate package-lock.json
+- Add missing fsevents dependency to lock file
+- Resolve TypeScript strict mode violations in backend
+- Resolve TypeScript strict mode violations in backend
+- Correct Docker startup paths for Railway deployment
+- Resolve Docker deployment issues for Railway
+- Enhance OAuth authentication and improve auth page styling
+- Enhance OAuth error messages for better UX
+- Make OAuth debug logging conditional on NODE_ENV
+- Enhance OAuth authentication and improve auth page styling ([#167](https://github.com/hudsor01/tenant-flow/issues/167))
+- Resolve CSP errors and TypeScript import issues
+- Resolve CSP errors and TypeScript import issues ([#169](https://github.com/hudsor01/tenant-flow/issues/169))
+- Update OAuth divider styling to prevent line through text
+- Update OAuth divider styling to prevent line through text ([#170](https://github.com/hudsor01/tenant-flow/issues/170))
+- Remove build artifacts and improve security
+- Remove exposed database credential from workflow
+- Remove standalone output for Vercel compatibility
+- Update vercel buildCommand for monorepo compatibility
+- Configure proper Turborepo monorepo deployment for Vercel
+- Correct Turborepo cache configuration for Next.js builds
+- Use Vercel auto-detection for monorepo builds
+- Use proper monorepo build command pattern
+- Resolve production authentication errors
+- Revert to main's working Vercel configuration
+- Secure GitHub workflow configuration
+- Resolve Vercel deployment failures on fix/auth-flow branch
+- Move vercel.json to apps/frontend for proper monorepo deployment
+- Configure Vercel deployment with build-time Supabase environment variables
+- Move vercel.json to root and correct monorepo paths
+- Remove ignoreCommand that was canceling Vercel builds
+- Add PostHog API key to resolve build error
+- Remove unnecessary functions config and rootDirectory from vercel.json
+- Secure GitHub workflow configuration ([#173](https://github.com/hudsor01/tenant-flow/issues/173))
+- Remove standalone output for Vercel compatibility ([#174](https://github.com/hudsor01/tenant-flow/issues/174))
+- Resolve production authentication errors
+- Resolve production authentication errors ([#175](https://github.com/hudsor01/tenant-flow/issues/175))
+- Enhance Supabase auth with rate limiting and PKCE improvements
+- Resolve framer-motion server/client component boundary issues
+- Remove all any types and unused imports for linter compliance
+- Correct API base URL to resolve 400 token errors
+- Resolve all TypeScript and lint errors for clean build
+- Enhance Supabase auth with rate limiting and PKCE improvements ([#177](https://github.com/hudsor01/tenant-flow/issues/177))
+- Resolve framer-motion server/client component boundary issues ([#178](https://github.com/hudsor01/tenant-flow/issues/178))
+- Remove all any types and unused imports for linter compliance ([#179](https://github.com/hudsor01/tenant-flow/issues/179))
+- *(backend)* Correct backend build output path for Docker/Railway deployment
+- *(backend)* Correct backend build output path for Docker/Railway de… ([#182](https://github.com/hudsor01/tenant-flow/issues/182))
+- *(backend)* Align all backend build output references to dist/apps/backend/src/main.js
+- *(backend)* Align all backend build output references to dist/apps/… ([#183](https://github.com/hudsor01/tenant-flow/issues/183))
+- *(backend)* Correct Docker production dist path to dist/src/main.js for backend
+- *(backend)* Unify all backend build output references to dist/src/main.js for Docker and Railway
+- Correct backend dist path for Docker, Railway, and scripts; verify API health
+- Correct Dockerfile backend main.js path check for production
+- Correct backend start command for Railway deployment and verify backend API health
+- Always generate Prisma client for correct platform in production Docker build
+- Prevent overwriting Linux Prisma client in production Docker build
+- Update Dockerfile for correct backend dist path in production
+- Set backend port and healthcheck to 3002 in Dockerfile
+- Set backend port and healthcheck to 4600 for Railway
+- Use node:20-alpine for Docker build compatibility
+- *(docker)* Update to node:20-alpine and node:20-slim for security
+- *(backend)* Remove API prefix to match frontend expectations
+- *(backend)* Resolve circular dependency in auth controller
+- *(backend)* CRITICAL - fix NODE_ENV defaulting to development in production
+- *(docker)* CRITICAL - fix working directory path for production
+- Add UsersModule import to AuthModule to resolve dependency injection
+- *(deployment)* Fix NODE_ENV defaulting to production in Railway
+- Restore /api/v1 prefix to match frontend configuration
+- Optimize Docker build for Railway 1GB memory limit
+- Add Railway memory warnings and optimize build
+- Resolve TypeScript and lint errors for production deployment
+- Remove memory issue callouts from Dockerfile
+- Signup button now redirects after successful registration
+- Implement critical security remediation following OWASP best practices
+- Resolve signup form submission and field name issues
+- Remove duplicate logger imports causing build failures
+- Implement CSRF protection and security hardening for production deployment
+- Resolve syntax errors in billing-actions.ts blocking Vercel deployment
+- Add enhanced logging and error handling to signup action
+- CRITICAL - checkbox state reset on form submit
+- Signup button now redirects after successful registration
+- Add missing logger import in boundary-hooks.ts to resolve build failure
+- Resolve logger TypeScript error blocking Vercel build
+- Add missing trust-badges component for pricing page build
+- Correct import path for trust-badges-server module to resolve build error
+- Install @types/dompurify to resolve TypeScript build errors
+- Add missing logger imports across multiple files to resolve build errors
+- Resolve all TypeScript build errors for production deployment
+- Resolve TypeScript and lint errors in backend production exception filter
+- Handle both sync and async searchParams in verify-email page
+- Resolve TypeScript compilation and ESLint errors
+- Resolve TypeScript and ESLint errors in properties components
+- Resolve TypeScript and lint errors for production build
+- Resolve Supabase Edge Runtime compatibility and TypeScript errors
+- Resolve Vercel deployment issues with missing properties-client module
+- Resolve critical Vercel deployment failures
+- Restore correct vercel.json and clean up disabled workflows
+- Complete deployment readiness and code quality improvements
+- Resolve Railway health check failures and remove deprecated package
+- Use CORS_ORIGINS from config when available
+- Remove strict CORS requirement in production
+- Access CORS_ORIGINS directly from ConfigService
+- Remove unused TypeScript path mappings that break production
+- Bull Redis configuration for production deployment
+- Configure Bull to use Railway Redis properly
+- Prevent Redis failures from crashing EmailQueueService
+- Prevent Redis failures from crashing EmailQueueService
+- Add API proxy for iOS cookie compatibility
+- Add CORS headers to API proxy configuration
+- Use correct :path* wildcard syntax for Vercel rewrites
+- Change API proxy to /backend-api to avoid route conflicts
+- Resolve deployment startup failures
+- Correct SEO component import path
+- Add 'use client' directive to SEO component
+- Simplify auth health route to prevent build failures
+- Simplify metrics route to prevent build failures
+- Add dynamic export to properties edit modal
+- Remove duplicate dynamic export
+- Convert properties modal to client component
+- Add ALL test files to gitignore to prevent security issues
+- [**breaking**] Production deployment readiness and monitoring setup
+- Resolve Vercel deployment issues and TypeScript errors
+- Resolve all ESLint errors and optimize CI/CD pipeline
+- Remove unnecessary Stripe setup and fix Docker build target
+- Add TypeScript declarations for posthog-js
+- Add ESLint disable for posthog type declarations
+- Add posthog types to shared directory
+- Improve TypeScript configuration and add missing types
+- Add Prometheus /metrics endpoint for Railway monitoring
+- Railway deployment path and metrics endpoint
+- Resolve CI/CD pipeline issues and improve test stability
+- Resolve CI/CD pipeline dependencies and platform compatibility
+- Railway deployment with Turborepo build optimization
+- Resolve TypeScript build errors and improve type safety
+- Update TypeScript path mapping for Docker build environment
+- Resolve Docker module resolution and TypeScript build issues
+- Resolve ESLint and formatting issues
+- Resolve Docker build TypeScript compilation errors in email system
+- Resolve CI/CD and Railway deployment TypeScript errors
+- Resolve deployment TypeScript and build errors
+- Resolve deployment TypeScript and build errors
+- Resolve Docker build and TypeScript module resolution issues
+- Resolve TypeScript build errors for Railway deployment
+- Add missing repository file and correct gitignore pattern
+- Resolve DocumentType import issue in backend DTOs
+- Update Railway startCommand for distroless node executable
+- Railway health check configuration and NestJS optimizations
+- Resolve TypeScript build error in LoggerService for Railway deployment
+- Optimize Railway deployment strategy and clean up codebase
+- Update Railway environment variable configuration
+- Resolve NestJS circular dependencies and module wiring issues
+- Complete file reorganization and import path resolution
+- Resolve GitHub workflow validation failures
+- Correct Node.js version to 24 across workflows and resolve all format/lint issues
+- Resolve TypeScript config path references for monorepo builds
+- Complete TypeScript config path resolution for all apps
+- Resolve all Vercel deployment errors in PR [#190](https://github.com/hudsor01/tenant-flow/issues/190)
+- Resolve all Vercel deployment errors in PR [#190](https://github.com/hudsor01/tenant-flow/issues/190) ([#192](https://github.com/hudsor01/tenant-flow/issues/192))
+- Resolve TypeScript config inheritance and Jest types for production builds
+- Resolve Vercel deployment issues
+- Update Vercel build command to use Turbo dependency graph
+- Comprehensive deployment configuration fixes for Vercel and Railway
+- Resolve npm dependency deprecation warnings and cleanup monorepo
+- Correct ESLint config extends syntax for plugin:@typescript-eslint
+- Comprehensive Railway deployment fixes
+- Remove test files causing CI linting errors
+- Resolve Railway cache mount ID conflicts and CI linting issues
+- Improve CI workflow build order and dependency management
+- Comprehensive backend improvements and deployment preparation
+- Regenerate package-lock.json to resolve Vercel deployment sync issue
+- Resolve Railway cache mount ID prefix and frontend build errors
+- Use proper Railway cache mount syntax with hardcoded service ID
+- Use hardcoded service ID with proper cache mount format and remove EXPOSE
+- Regenerate package-lock.json to resolve npm ci sync issue
+- Update Vercel configuration for proper build process
+- Regenerate package-lock.json and update Vercel configuration
+- Regenerate package-lock.json to remove legacy Jotai dependencies
+- Sync package-lock.json with package.json to resolve deployment failures
+- Simplify Vercel build configuration for deployment stability
+- Update GitHub Actions workflows to use npm install instead of npm ci
+- Resolve ESLint no-constant-binary-expression errors in shared package
+- Remove tests from quality check to fix CI/CD
+- Remove problematic ref parameter from GitHub Actions workflows
+- Make workflow-lint job work with act locally
+- Use npm ci instead of npm install in CI/CD workflows
+- Use macOS runners for CI/CD to match development environment
+- Update package-lock.json to include Turbo binary for macOS ARM64
+- Install turbo-darwin-arm64 platform binary for consistent local development
+- Add missing auth-token.decorator.ts file
+- Add exception for auth-token.decorator.ts in gitignore
+- Recreate missing auth-token.decorator.ts file
+- Remove --omit=optional flag from CI workflow to install Turbo binaries
+- Resolve remaining merge conflicts and cleanup repository
+- Implement bulletproof Vercel deployment architecture
+- Implement bulletproof platform dependency handling in CI
+- Simplify deployment validation for MVP testing
+- Include GitHub Actions scripts in repository
+- Resolve ESLint configuration issue in frontend
+- Resolve Docker build platform and Node.js version issues
+- Resolve CI/CD pipeline security check issues
+- Resolve all ESLint warnings in frontend
+- Resolve CI/CD pipeline issues and simplify code implementation
+- Add missing CSRF files that were blocked by overly broad gitignore
+- Resolve all CI/CD linting and TypeScript errors
+- Resolve remaining linting issues
+- Resolve CI/CD pipeline issues
+- Resolve Jest test setup file configuration for CI
+- Resolve all ESLint warnings and TypeScript errors for production deployment
+- Exclude optional platform-specific dependencies in CI workflows
+- Configure Vercel to skip optional platform-specific dependencies
+- Add --omit=optional to ALL GitHub workflow npm ci commands
+- Remove turbo from dependencies, use npx turbo instead
+- Force Linux package-lock.json generation for cross-platform compatibility
+- Remove platform-specific turbo-darwin-arm64 dependency
+- Resolve CI failures with packageManager and SWC binary issues
+- Resolve Docker build failures
+- Restore packageManager field for Docker Turbo resolution
+- Correct Docker build order based on turbo.json dependencies
+- Resolve remaining CI/CD workflow conflicts
+- Add missing check-types scripts and turbo.json task
+- Remove application dependencies from root package.json
+- Remove root tsconfig files (Turbo anti-pattern)
+- Clean root package.json and remove duplicate turbo dependencies
+- Resolve Corepack/packageManager CI issues
+- Remove invalid npm config commands from CI
+- Add missing build scripts to root package.json
+- Restore packageManager field for workspace resolution
+- Add packageManager field to all workspace packages
+- Clean up monorepo structure and regenerate package-lock
+- Remove problematic ignoreCommand causing all Vercel deployments to cancel
+- Simplify build command and remove unnecessary memory settings
+- Add Linux turbo binaries for Vercel deployment
+- Regenerate package-lock.json with Linux turbo binaries
+- Resolve Vercel deployment build errors
+- Production readiness improvements
+- Resolve all TypeScript errors and warnings
+- Resolve all TypeScript errors and warnings
+- Production readiness - resolve all CI/CD blockers
+- Complete production readiness - native Fastify validation
+- Repair corrupted configuration files causing act failures
+- Resolve turbo platform dependency issues for CI/CD
+- Remove platform-specific turbo dependencies for CI compatibility
+- Resolve turbo binary platform architecture conflicts in CI
+- *(test-utils)* Add @repo/typescript-config devDependency so tsconfig extends resolves in isolated package builds
+- Resolve TypeScript config path resolution and turbo binary issues
+- Explicitly set webpack mode to production
+- Remove specific service name from Railway deploy - use default service
+- Move Vite back to production dependencies for Vercel builds
+- Use npx vite for reliable binary execution in monorepo
+- Add Vite to devDependencies for vite.config.ts resolution
+- Bypass Turborepo for frontend build - direct npm install/build in frontend dir
+- Update vercel.json to use direct npm build instead of Turborepo
+- Replace complex vite.config.ts with minimal vite.config.js
+- Bypass Turborepo for frontend build - direct npm install/build
+- Bypass Turborepo for frontend build - direct npm install
+- *(vercel)* Remove invalid rootDirectory from vercel.json
+- *(frontend)* Correct package.json syntax
+- *(frontend)* Restore missing vite.config.ts for Vercel deployment
+- *(frontend)* Move vite and build deps to dependencies for Vercel
+- *(frontend)* Remove vercel.json to use dashboard config
+- *(frontend)* Move CSS build dependencies to dependencies
+- *(frontend)* Lazy load React Query devtools for production builds
+- *(ci)* Add service name to Railway deployment command
+- *(ci)* Remove service name from Railway deployment
+- *(frontend)* Remove non-existent App.tsx from vite warmup config
+- Resolve Railway deployment and frontend production issues
+- *(frontend)* Restore manual chunks to fix module initialization error
+- Simplify vite config to resolve production build issues
+- Add proper nixpacks.toml and .node-version for Railway Node.js 22
+- Install all dependencies for Railway build (prisma is needed)
+- Restore original vite config with proper build setup
+- Remove serverless functions config from vercel.json
+- Production-harden Dockerfile with critical improvements
+- Increase CI bundle size limit from 5MB to 20MB
+- Use npx for NestJS CLI commands to resolve Vercel build issues
+- Resolve merge conflicts and ensure Vercel only builds frontend
+- Use npx turbo for all turbo commands to ensure Vercel compatibility
+- Resolve GitHub Actions workflow validation errors
+- Use npx turbo in Vercel build command
+- Use npm run build:frontend for Vercel build
+- Update Railway healthcheck to use simpler endpoint without DB dependency
+- Resolve CI pipeline failures
+- Use Supabase cloud database for CI instead of local PostgreSQL
+- Ensure shared package builds before typecheck in CI
+- Ensure shared package builds before frontend typecheck
+- Resolve all deployment errors - TypeScript config and Docker push
+- Resolve deployment errors - TypeScript and Docker configuration ([#108](https://github.com/hudsor01/tenant-flow/issues/108))
+- Finalize deployment configuration for Railway and Supabase
+- Critical CORS_ORIGINS environment variable mismatch
+- Update all hardcoded URLs to use correct domains
+- Resolve deployment and build issues
+- Railway deployment configuration
+- Resolve Vercel deployment configuration issues
+- Correct turbo E2E test command to pass --grep to Playwright
+- Exclude vercel.json from pre-commit secret scanning
+- Railway health check endpoint - remove database dependency
+- Ultra-simple Railway health check
+- Use PAT for GitHub Container Registry and update TypeScript config
+- Comprehensive deployment fixes to resolve all build failures
+- Revert verbatimModuleSyntax to fix TypeScript build errors
+- Core deployment configuration fixes for Railway and Vercel
+- Resolve deployment failures with TypeScript configuration
+- Clean up CI workflow for reliable deployments
+- Resolve TypeScript errors in frontend
+- Resolve deployment conflicts - simplify Dockerfile and streamline railway config
+- Railway deployment debugging for 404 issue - add environment logging and Fastify config
+- TypeScript errors in main.ts - logger scope and fetch timeout
+- Correct npm ci syntax in Dockerfile
+- Remove non-existent routes property from Fastify debugging
+- Add CORS debugging logs to verify environment configuration
+- Bind to IPv6 for Railway health checks
+- Shared package exports and Docker build process
+- Railway deployment configuration with Turborepo and bcrypt externalization
+- Remove accidentally committed JS files from shared package
+- Resolve Vercel deployment issues
+- Resolve Vercel multiple-function-regions error
+- Correct Vercel output directory path
+- GitHub workflow Docker validation with required environment variables
+- Railway configuration validation requirements
+- URL consistency and Docker configuration
+- Resolve PR [#111](https://github.com/hudsor01/tenant-flow/issues/111) deployment failures - security audit and SQL injection patterns
+- Resolve test failures in properties and maintenance services
+- Add missing types and update shared package exports
+- Resolve all frontend TypeScript compilation errors
+- Resolve TypeScript ESLint errors and test configuration issues
+- Resolve security monitoring and form validation issues
+- Convert Express middleware to Fastify and fix remaining TypeScript errors
+- Remove Express dependency and complete Fastify migration
+- Replace console.log with console.warn in main.ts
+- Resolve ESLint @typescript-eslint/no-explicit-any violations in backend
+- Resolve TypeScript compilation errors and improve type safety
+- Resolve all ESLint non-null assertion warnings
+- Resolve ESLint errors in frontend performance monitor and console statements
+- Resolve TypeScript compilation errors in BaseCrudService and Stripe integrations
+- Resolve test failures in properties and maintenance services ([#113](https://github.com/hudsor01/tenant-flow/issues/113))
+- Simplify CI/CD workflows and remove failing test requirements
+- Build shared package and fix TypeScript errors in security-monitor.service.ts
+- Resolve TypeScript errors across all packages
+- Optimize CI/CD pipeline for faster builds
+- Simplify CI/CD workflows and confirm all tests passing ([#114](https://github.com/hudsor01/tenant-flow/issues/114))
+- Add loading state and error handler to index.html for debugging white screen
+- Correct EnvironmentCheck component rendering logic to properly show app when env vars are present
+- Change backend to listen on IPv4 (0.0.0.0) for Railway compatibility and correct API_URL
+- Replace complex CI performance test with simple working version
+- Ultra-minimal CI - just build, no checks, 3 min timeout
+- Add root endpoint and enhanced debugging for Railway healthcheck
+- Correct Dockerfile WORKDIR path to prevent nested directories
+- Correct EnvironmentCheck rendering logic in main.tsx
+- Resolve white screen issue on landing page
+- Remove @stripe/stripe-js from external dependencies in Vite config
+- Resolve frontend loading issues and render home page
+- Replace process.env with import.meta.env in frontend code
+- Clean up deprecated packages and update Stripe API to 2025-07-30
+- Simplify Railway deployment with minimal health check
+- Convert shared package to CommonJS to resolve Railway deployment issues
+- Add safety checks for Prisma Accelerate middleware initialization
+- Add Railway service ID to GitHub Actions deployment
+- Increase workflow timeouts to 3 minutes
+- Add missing Node.js setup step to PR workflow
+- Add --yes flag to Vercel deploy command
+- Correct ternary conditional in Dashboard.tsx to resolve TypeScript syntax error
+- Correct ternary conditional in Dashboard.tsx to resolve TypeScri… ([#117](https://github.com/hudsor01/tenant-flow/issues/117))
+- Use .js extension for dynamic import in Vercel serverless handler
+- Use .js extension for dynamic import in Vercel serverless handler ([#118](https://github.com/hudsor01/tenant-flow/issues/118))
+- Resolve all Vercel deployment warnings
+- Remove invalid buildEnv property from vercel.json
+- Correct function runtime to @vercel/node@3
+- Remove functions configuration for frontend-only deployment
+- Simplify vercel.json for frontend-only deployment
+- Use explicit turbo command in vercel.json
+- Update package-lock.json to include path-match override
+- Match build and deploy environments in GitHub Actions
+- Complete Vercel fullstack deployment configuration
+- Remove runtime specification from vercel.json to use auto-detection
+- Use correct Node.js runtime format in vercel.json
+- Remove functions configuration to use Vercel auto-detection
+- Add package.json to api directory for Vercel deployment
+- Resolve ESLint errors - React hooks rules and syntax errors
+- Resolve homepage loading spinner and JSX syntax errors
+- Resolve homepage loading spinner and JSX syntax errors ([#122](https://github.com/hudsor01/tenant-flow/issues/122))
+- Resolve "You must be logged in to subscribe" error and backend startup issues
+- Resolve homepage loading spinner issue
+- Remove .js extension from TypeScript import in serverless handler
+- Configure Vercel for proper Turborepo monorepo support
+- Remove FastifyHooksService import from serverless handler
+- Refactor StripeModule to resolve application hanging issue
+- Refactor StripeModule to resolve application hanging issue ([#124](https://github.com/hudsor01/tenant-flow/issues/124))
+- Resolve TypeScript build errors after StripeModule refactoring
+- Add Stripe type import to resolve TypeScript namespace errors
+- Resolve TypeScript build errors after StripeModule refactoring ([#125](https://github.com/hudsor01/tenant-flow/issues/125))
+- Resolve landing page loading spinner and React.Children error
+- Resolve landing page loading spinner and React.Children error ([#126](https://github.com/hudsor01/tenant-flow/issues/126))
+- Pin Node.js version to prevent auto-upgrades on Vercel
+- Resolve all TypeScript errors and ESLint warnings for clean build
+- Update package-lock.json to sync with package.json dependencies
+- Resolve React.Children undefined error causing production loading spinner
+- Move React global assignment before all imports to prevent initialization error
+- Resolve React.Children error and clean up lint/TypeScript issues
+- Improve navigation typography for better readability
+- Increase CTA button text sizes from text-2xl to text-4xl for better readability
+- Resolve MfaGuard health endpoint issues and improve backend stability
+- Update Dockerfile with working multi-stage production build
+- Update Dockerfile with working multi-stage production build ([#129](https://github.com/hudsor01/tenant-flow/issues/129))
+- Resolve TypeScript lint errors properly
+- Remove MfaGuard from compliance controller to fix health endpoint
+- Disable SecurityMonitoringInterceptor to fix dependency injection issue
+- Improve React initialization to prevent Children undefined error
+- Add React.Children polyfill in index.html to prevent undefined errors
+- Remove deleted webhook module and fix lint errors
+- Improve React.Children polyfill to prevent circular reference
+- Prevent React from being split into separate chunk to fix Children undefined error
+- Resolve TypeScript errors in compliance controller and MFA guard
+- Correct Stripe service error handler method calls
+- Resolve all ESLint errors - replace any types with proper types
+- Eliminate all 'any' types in backend - replace with proper shared types
+- Resolve all TypeScript and ESLint errors from merge with main
+- Resolve lint errors and duplicate export after merge
+- Set package-ecosystem to npm in dependabot.yml
+- Remove regions property from edge function config in vercel.json
+- Resolve all security vulnerabilities identified by GitHub scanning
+- Set Vercel framework to vite instead of null
+- Remove @prisma/extension-accelerate dependency
+- Correct Vercel edge function runtime configuration
+- Use nodejs18.x runtime instead of invalid 'edge' for Vercel functions
+- Update to nodejs20.x runtime to match Node.js 22.x environment
+- Remove functions section causing Vercel deployment errors
+- Correct Vite entry module path to resolve build error
+- Remove explicit input path, let Vite auto-detect index.html
+- Resolve TypeScript config issues for Vercel deployment
+- Use standalone tsconfig for shared package to resolve Vercel build
+- Use standalone TypeScript config for frontend to resolve Vercel build
+- Resolve TypeScript configuration issues for Vercel deployment
+- Update web-vitals imports to use v5 API
+- Replace FID with INP in web-vitals monitoring
+- Align WebVitalsMonitor with web-vitals v4.2.4 API
+- Resolve Vercel deployment failures with proper Turborepo configuration
+- Move prisma to dependencies to resolve Vercel build failures
+- Resolve all frontend TypeScript compilation errors
+- Use npx for prisma commands to resolve Vercel build failures
+- Add id parameter to all Docker cache mounts
+- Resolve Vercel deployment and GTM configuration issues
+- Use npm script for Vercel build command instead of turbo filter
+- Use npx turbo build:frontend for Vercel build command
+- Revert to npm run build:frontend for Vercel
+- Use direct turbo command without npx for Vercel
+- Update vercel.json to use rootDirectory config and remove broken cache warming step
+- Revert vercel.json to use npm run build:frontend without filter
+- Restore cache warming and fix Vercel deployment
+- Align TypeScript API types with backend expectations
+- Disable remote caching and fix shared package build
+- Resolve critical TypeScript configuration issues across monorepo
+- Resolve Dependabot config and failing auth tests
+- Resolve authentication system unavailable error
+- Resolve Vercel build dependency resolution error
+- Resolve package.json deployment script issues and shared package build
+- Use Turbo commands in Vercel build for monorepo compatibility
+- Build dependencies before Vercel CLI build in GitHub Action
+- Consolidate and optimize GitHub Actions workflows
+- Optimize Vite chunking strategy to prevent React initialization errors
+- Resolve React.Children undefined error and complete Docker slim conversion
+- Resolve build dependencies and React.Children error
+- Regenerate clean package-lock.json to resolve npm corruption
+- Regenerate clean package-lock.json to resolve npm corruption
+- Resolve build dependencies and React.Children error
+- Resolve React.Children undefined error and complete Docker slim conversion
+- Resolve SWC native binding error by switching to standard React plugin
+- Add npm prune to Vercel build to resolve extraneous package errors
+- Remove corrupted npm metadata in Vercel build
+- Implement proper npm error solution for Vercel deployments
+- Implement proper solution for npm extraneous error based on root cause analysis
+- Nuclear option - force complete npm clean install on Vercel
+- Bypass turbo to avoid npm metadata corruption
+- Remove conflicting .vercel and .turbo directories
+- Update Vercel configuration for Turborepo monorepo deployment
+- Force fresh npm install on Vercel to avoid package-lock corruption
+- Simplify Vercel configuration to use automatic detection
+- Add typescript as direct dependency to shared package
+- Use npx for tsc in shared package build script
+- Revert TypeScript to 5.8.3 in backend to fix npm ci errors
+- Resolve TypeScript composite configuration and backend errors
+- Add LightningCSS Linux binary for CI/CD builds
+- Update package-lock.json for LightningCSS Linux binary
+- Resolve LightningCSS Linux binary installation in CI/CD
+- Update PostCSS config for Tailwind v4 compatibility
+- Resolve ESLint and shellcheck warnings
+- Add missing @tanstack/react-query dependency to shared package for Railway deployment
+- Simplify Dockerfile to handle Prisma client generation and database package build correctly
+- Add explicit backend build step and debug output to Dockerfile
+- Rewrite Dockerfile with proper NestJS build process and verification
+- Prevent infinite loading spinner on public routes including homepage
+- Update Dockerfile to use Turborepo for building backend
+- Resolve React.Children undefined error in production
+- Docker build path and add missing React/Vite conventions
+- Resolve TypeScript errors in frontend stores architecture
+- Railway deployment Prisma client and TypeScript issues
+- Generate Prisma client before TypeScript build in Docker
+- Correct railway.toml startCommand path
+- Resolve Prisma schema path in root package.json
+- Comprehensive Docker build optimization and dependency resolution
+- Restore correct Docker image name to tenantflow-backend
+- Production config to not require .env files in Docker
+- Comprehensive React.Children bootstrap system for production
+- *(build)* Resolve production build initialization error
+- *(build)* Resolve production build initialization error ([#143](https://github.com/hudsor01/tenant-flow/issues/143))
+- Update package-lock.json
+- Update tsconfig to include missing files
+- Resolve Railway deployment crashes
+- Skip Prisma generation on Vercel frontend builds
+- Simplify Vercel build command to bypass Turbo issues
+- Vercel already in apps/frontend directory, simplify build command
+- Deploy from monorepo root to access shared packages
+- Remove apps/frontend/.vercel directory with wrong rootDirectory setting
+- Build shared package before frontend
+- Work around Vercel's stuck rootDirectory setting
+- Inline TypeScript config to avoid module resolution issues in Vercel
+- Fix TypeScript schema URLs for production readiness
+- Resolve TypeScript compilation errors in property management and dashboard components
+- Add missing shared package exports for CI/CD
+- Resolve type-adapters module import path in shared package
+- Change type-adapters import to direct path to resolve CI build error
+- Resolve CI/CD module resolution issue by using barrel export
+- Standardize all utils imports to use barrel exports for CI consistency
+- Implement barrel export pattern to resolve CI module resolution issues
+- Resolve CI/CD module resolution issues with systematic approach
+- Resolve Vercel build failure by adding lightningcss native binaries
+- Resolve all CI failures with comprehensive dependency and build fixes
+- Resolve TypeScript module resolution errors in CI by adding index files
+- Remove problematic index files and add TailwindCSS v4 native binaries
+- Sync package-lock.json with TailwindCSS oxide dependencies
+- Resolve Next.js build errors by restructuring pages and adding use client directive
+- Resolve case sensitivity issues with Navigation component imports
+- Install lightningcss for TailwindCSS optimization support
+- Align deployment type checking with PR validation workflow
+- Resolve case sensitivity issue in breadcrumbs filename
+- Resolve Vercel deployment issues for monorepo
+- Add Supabase environment variables to GitHub Actions build step
+- Resolve CI/CD workflow issues
+- Resolve all ESLint errors in frontend code
+- Resolve workflow failures in CI/CD pipelines
+- Allow ESLint warnings in PR checks and configure Next.js-specific rules
+- Correct package name in frontend typecheck workflow
+- Standardize package naming to @repo namespace
+- Remove redundant build test from PR check
+- Add continue-on-error to artifact download in Performance & Security Validation
+- Remove working-directory from Vercel deployment steps
+- Resolve build errors in Vercel deployment
+- Resolve build errors in Vercel deployment ([#149](https://github.com/hudsor01/tenant-flow/issues/149))
+- Replace all @repo/shared/utils imports with @repo/shared
+- Add await to mutateAsync call to fix TypeScript linting error
+- Resolve Vercel deployment build error with SubscriptionStatus import
+- Resolve Vercel deployment build error with SubscriptionStatus im… ([#151](https://github.com/hudsor01/tenant-flow/issues/151))
+- Resolve auth page routing and CSP issues
+- Resolve auth page routing and CSP issues ([#152](https://github.com/hudsor01/tenant-flow/issues/152))
+- Resolve OAuth redirect to dashboard after Google login
+- Remove invalid retry option from dashboard queries
+- Add tenantflow.app to CSP script-src to allow Next.js scripts in production
+- Resolve GitHub Actions deployment path duplication error
+- Add tenantflow.app to CSP style-src to allow stylesheets
+- Resolve remaining file updates after npm install
+- Resolve all backend test failures (421/421 passing)
+- Resolve CI/CD failures and security alerts
+- Resolve package synchronization and test token security issues
+- Comprehensive CI/CD and security improvements
+- Obfuscate remaining test credentials to resolve GitGuardian alerts
+- Properly configure GitGuardian to ignore test files
+- Correct GitGuardian configuration to ignore test files
+- Sync package-lock.json and correct GitHub Actions outputs
+- Prevent package-lock.json sync issues
+- Replace broken CI/CD with minimal working PR check
+- Nuclear option - delete and regenerate package-lock.json
+- Add missing fsevents dependency to lock file
+- Resolve TypeScript strict mode violations in backend
+- Resolve TypeScript strict mode violations in backend
+- Correct Docker startup paths for Railway deployment
+- Resolve Docker deployment issues for Railway
+- Enhance OAuth authentication and improve auth page styling
+- Enhance OAuth error messages for better UX
+- Make OAuth debug logging conditional on NODE_ENV
+- Enhance OAuth authentication and improve auth page styling ([#167](https://github.com/hudsor01/tenant-flow/issues/167))
+- Resolve CSP errors and TypeScript import issues
+- Resolve CSP errors and TypeScript import issues ([#169](https://github.com/hudsor01/tenant-flow/issues/169))
+- Update OAuth divider styling to prevent line through text
+- Update OAuth divider styling to prevent line through text ([#170](https://github.com/hudsor01/tenant-flow/issues/170))
+- Remove build artifacts and improve security
+- Remove exposed database credential from workflow
+- Remove standalone output for Vercel compatibility
+- Update vercel buildCommand for monorepo compatibility
+- Configure proper Turborepo monorepo deployment for Vercel
+- Correct Turborepo cache configuration for Next.js builds
+- Use Vercel auto-detection for monorepo builds
+- Use proper monorepo build command pattern
+- Resolve production authentication errors
+- Revert to main's working Vercel configuration
+- Secure GitHub workflow configuration
+- Resolve Vercel deployment failures on fix/auth-flow branch
+- Move vercel.json to apps/frontend for proper monorepo deployment
+- Configure Vercel deployment with build-time Supabase environment variables
+- Move vercel.json to root and correct monorepo paths
+- Remove ignoreCommand that was canceling Vercel builds
+- Add PostHog API key to resolve build error
+- Remove unnecessary functions config and rootDirectory from vercel.json
+- Secure GitHub workflow configuration ([#173](https://github.com/hudsor01/tenant-flow/issues/173))
+- Remove standalone output for Vercel compatibility ([#174](https://github.com/hudsor01/tenant-flow/issues/174))
+- Resolve production authentication errors
+- Resolve production authentication errors ([#175](https://github.com/hudsor01/tenant-flow/issues/175))
+- Enhance Supabase auth with rate limiting and PKCE improvements
+- Resolve framer-motion server/client component boundary issues
+- Remove all any types and unused imports for linter compliance
+- Correct API base URL to resolve 400 token errors
+- Resolve all TypeScript and lint errors for clean build
+- Enhance Supabase auth with rate limiting and PKCE improvements ([#177](https://github.com/hudsor01/tenant-flow/issues/177))
+- Resolve framer-motion server/client component boundary issues ([#178](https://github.com/hudsor01/tenant-flow/issues/178))
+- Remove all any types and unused imports for linter compliance ([#179](https://github.com/hudsor01/tenant-flow/issues/179))
+- *(backend)* Correct backend build output path for Docker/Railway deployment
+- *(backend)* Correct backend build output path for Docker/Railway de… ([#182](https://github.com/hudsor01/tenant-flow/issues/182))
+- *(backend)* Align all backend build output references to dist/apps/backend/src/main.js
+- *(backend)* Align all backend build output references to dist/apps/… ([#183](https://github.com/hudsor01/tenant-flow/issues/183))
+- *(backend)* Correct Docker production dist path to dist/src/main.js for backend
+- *(backend)* Unify all backend build output references to dist/src/main.js for Docker and Railway
+- Correct backend dist path for Docker, Railway, and scripts; verify API health
+- Correct Dockerfile backend main.js path check for production
+- Correct backend start command for Railway deployment and verify backend API health
+- Always generate Prisma client for correct platform in production Docker build
+- Prevent overwriting Linux Prisma client in production Docker build
+- Update Dockerfile for correct backend dist path in production
+- Set backend port and healthcheck to 3002 in Dockerfile
+- Set backend port and healthcheck to 4600 for Railway
+- Use node:20-alpine for Docker build compatibility
+- *(docker)* Update to node:20-alpine and node:20-slim for security
+- *(backend)* Remove API prefix to match frontend expectations
+- *(backend)* Resolve circular dependency in auth controller
+- *(backend)* CRITICAL - fix NODE_ENV defaulting to development in production
+- *(docker)* CRITICAL - fix working directory path for production
+- Add UsersModule import to AuthModule to resolve dependency injection
+- *(deployment)* Fix NODE_ENV defaulting to production in Railway
+- Restore /api/v1 prefix to match frontend configuration
+- Optimize Docker build for Railway 1GB memory limit
+- Add Railway memory warnings and optimize build
+- Resolve TypeScript and lint errors for production deployment
+- Remove memory issue callouts from Dockerfile
+- Signup button now redirects after successful registration
+- Implement critical security remediation following OWASP best practices
+- Resolve signup form submission and field name issues
+- Remove duplicate logger imports causing build failures
+- Implement CSRF protection and security hardening for production deployment
+- Resolve syntax errors in billing-actions.ts blocking Vercel deployment
+- Add enhanced logging and error handling to signup action
+- CRITICAL - checkbox state reset on form submit
+- Signup button now redirects after successful registration
+- Add missing logger import in boundary-hooks.ts to resolve build failure
+- Resolve logger TypeScript error blocking Vercel build
+- Add missing trust-badges component for pricing page build
+- Correct import path for trust-badges-server module to resolve build error
+- Install @types/dompurify to resolve TypeScript build errors
+- Add missing logger imports across multiple files to resolve build errors
+- Resolve all TypeScript build errors for production deployment
+- Resolve TypeScript and lint errors in backend production exception filter
+- Handle both sync and async searchParams in verify-email page
+- Resolve TypeScript compilation and ESLint errors
+- Resolve TypeScript and ESLint errors in properties components
+- Resolve TypeScript and lint errors for production build
+- Resolve Supabase Edge Runtime compatibility and TypeScript errors
+- Resolve Vercel deployment issues with missing properties-client module
+- Resolve critical Vercel deployment failures
+- Restore correct vercel.json and clean up disabled workflows
+- Complete deployment readiness and code quality improvements
+- Resolve Railway health check failures and remove deprecated package
+- Use CORS_ORIGINS from config when available
+- Remove strict CORS requirement in production
+- Access CORS_ORIGINS directly from ConfigService
+- Remove unused TypeScript path mappings that break production
+- Bull Redis configuration for production deployment
+- Configure Bull to use Railway Redis properly
+- Prevent Redis failures from crashing EmailQueueService
+- Prevent Redis failures from crashing EmailQueueService
+- Add API proxy for iOS cookie compatibility
+- Add CORS headers to API proxy configuration
+- Use correct :path* wildcard syntax for Vercel rewrites
+- Change API proxy to /backend-api to avoid route conflicts
+- Resolve deployment startup failures
+- Correct SEO component import path
+- Add 'use client' directive to SEO component
+- Simplify auth health route to prevent build failures
+- Simplify metrics route to prevent build failures
+- Add dynamic export to properties edit modal
+- Remove duplicate dynamic export
+- Convert properties modal to client component
+- Add ALL test files to gitignore to prevent security issues
+- [**breaking**] Production deployment readiness and monitoring setup
+- Resolve Vercel deployment issues and TypeScript errors
+- Resolve all ESLint errors and optimize CI/CD pipeline
+- Remove unnecessary Stripe setup and fix Docker build target
+- Add TypeScript declarations for posthog-js
+- Add ESLint disable for posthog type declarations
+- Add posthog types to shared directory
+- Improve TypeScript configuration and add missing types
+- Add Prometheus /metrics endpoint for Railway monitoring
+- Railway deployment path and metrics endpoint
+- Resolve CI/CD pipeline issues and improve test stability
+- Resolve CI/CD pipeline dependencies and platform compatibility
+- Railway deployment with Turborepo build optimization
+- Resolve TypeScript build errors and improve type safety
+- Update TypeScript path mapping for Docker build environment
+- Resolve Docker module resolution and TypeScript build issues
+- Resolve ESLint and formatting issues
+- Resolve Docker build TypeScript compilation errors in email system
+- Resolve CI/CD and Railway deployment TypeScript errors
+- Resolve deployment TypeScript and build errors
+- Resolve deployment TypeScript and build errors
+- Resolve Docker build and TypeScript module resolution issues
+- Resolve TypeScript build errors for Railway deployment
+- Add missing repository file and correct gitignore pattern
+- Resolve DocumentType import issue in backend DTOs
+- Update Railway startCommand for distroless node executable
+- Railway health check configuration and NestJS optimizations
+- Resolve TypeScript build error in LoggerService for Railway deployment
+- Optimize Railway deployment strategy and clean up codebase
+- Update Railway environment variable configuration
+- Resolve NestJS circular dependencies and module wiring issues
+- Complete file reorganization and import path resolution
+- Resolve GitHub workflow validation failures
+- Correct Node.js version to 24 across workflows and resolve all format/lint issues
+- Resolve TypeScript config path references for monorepo builds
+- Complete TypeScript config path resolution for all apps
+- Resolve all Vercel deployment errors in PR [#190](https://github.com/hudsor01/tenant-flow/issues/190)
+- Resolve all Vercel deployment errors in PR [#190](https://github.com/hudsor01/tenant-flow/issues/190) ([#192](https://github.com/hudsor01/tenant-flow/issues/192))
+- Resolve TypeScript config inheritance and Jest types for production builds
+- Resolve Vercel deployment issues
+- Update Vercel build command to use Turbo dependency graph
+- Comprehensive deployment configuration fixes for Vercel and Railway
+- Resolve npm dependency deprecation warnings and cleanup monorepo
+- Correct ESLint config extends syntax for plugin:@typescript-eslint
+- Comprehensive Railway deployment fixes
+- Remove test files causing CI linting errors
+- Resolve Railway cache mount ID conflicts and CI linting issues
+- Improve CI workflow build order and dependency management
+- Comprehensive backend improvements and deployment preparation
+- Regenerate package-lock.json to resolve Vercel deployment sync issue
+- Resolve Railway cache mount ID prefix and frontend build errors
+- Use proper Railway cache mount syntax with hardcoded service ID
+- Use hardcoded service ID with proper cache mount format and remove EXPOSE
+- Regenerate package-lock.json to resolve npm ci sync issue
+- Update Vercel configuration for proper build process
+- Regenerate package-lock.json and update Vercel configuration
+- Regenerate package-lock.json to remove legacy Jotai dependencies
+- Sync package-lock.json with package.json to resolve deployment failures
+- Simplify Vercel build configuration for deployment stability
+- Update GitHub Actions workflows to use npm install instead of npm ci
+- Resolve ESLint no-constant-binary-expression errors in shared package
+- Remove tests from quality check to fix CI/CD
+- Remove problematic ref parameter from GitHub Actions workflows
+- Make workflow-lint job work with act locally
+- Use npm ci instead of npm install in CI/CD workflows
+- Use macOS runners for CI/CD to match development environment
+- Update package-lock.json to include Turbo binary for macOS ARM64
+- Install turbo-darwin-arm64 platform binary for consistent local development
+- Add missing auth-token.decorator.ts file
+- Add exception for auth-token.decorator.ts in gitignore
+- Recreate missing auth-token.decorator.ts file
+- Remove --omit=optional flag from CI workflow to install Turbo binaries
+- Resolve remaining merge conflicts and cleanup repository
+- Implement bulletproof Vercel deployment architecture
+- Implement bulletproof platform dependency handling in CI
+- Resolve remaining merge conflict in tailwind-config package.json
+- Clean up remaining merge conflict markers in JSON files
+- Add missing exports for post-transformation compatibility
+- Sync package-lock.json with package.json
+- *(deps)* Resolve cache-manager dependency conflict
+- *(deps)* Update jspdf to resolve security vulnerability
+- *(deps)* Include cross-platform optional dependencies in package-lock.json
+- Resolve TypeScript errors for CI pipeline
+- Improve CI workflow to handle TypeScript checks properly
+- Remove duplicate FormState export from api types
+- Remove blocking branch protection and fix CI workflow
+- Resolve TypeScript errors for CI/CD pipeline
+- Resolve additional TypeScript errors
+- Resolve TypeScript errors and prepare CI/CD pipeline
+- Resolve ESLint type safety errors in backend
+- Resolve TypeScript compilation errors across monorepo
+- Correct GitGuardian ggshield command syntax in CI workflow
+- Temporarily skip frontend linting in CI due to minimatch/ESLint compatibility issue
+- Resolve CI/CD pipeline npm installation issues
+- Resolve CI workflow issues with linting and memory
+- Simplify CI workflow to avoid memory issues
+- Replace complex CI/CD with minimal working pipeline
+- Simplify main.yml workflow to match minimal CI approach
+- Resolve TypeScript compilation errors and simplify API hooks
+- Remove non-existent tailwind-config package from Dockerfile
+- Resolve TypeScript unsafe argument warnings in backend auth
+- Inline TypeScript config to resolve Vercel build failure
+- Update Jest config path and improve email confirmation handling; refactor NavigationLink icon rendering
+- Make Jest configuration resilient to missing setup file
+- Remove cssChunking experimental config to resolve client reference manifest issues
+- Disable problematic CSS chunking in Next.js config for improved Vercel compatibility
+- Add client reference manifest fix script for Vercel deployment
+- Resolve TypeScript linting error in gradient-dashboard-example
+- Allow fix-client-manifest.js script in Vercel deployment
+- Remove all design preview files and gradient components
+- Use native Fastify under-pressure plugin for Railway health checks
+- Use correct health endpoint path for Railway
+- Increase build memory and simplify build steps for Railway
+- Remove memory limits - let Node.js handle memory automatically
+- Resolve all Vercel build warnings and errors
+- Remove ALL memory limits causing Railway build failures
+- Complete Railway deployment fixes - all changes
+- Remove postbuild script causing Vercel deployment failure
+- Update Stripe module to include PaymentNotificationService and adjust Redis port transformation
+- Update app module to include StripeService and adjust exports; remove health route; clean up next.config and package.json
+- Remove all references to fix-client-manifest.js script
+- PERMANENTLY remove ALL references to fix-client-manifest.js
+- Properly handle Next.js 15 client-reference-manifest issue
+- Completely remove all fix-client-manifest.js references
+- Correct @fastify/rate-limit allowList configuration for TypeScript compliance
+- Add temporary type assertions for processed_stripe_events table
+- Resolve TypeScript module import errors and build issues
+- Update build command to use npm run build instead of turbo build
+- Update build command and output directory in Vercel configuration
+- Remove Doppler command from build script in Vercel configuration
+- *(vercel,ci)* Resolve Lightning CSS build on Linux, make middleware Edge-safe, and enforce Doppler token in CI\n\n- Add lightningcss and Linux binary optional deps to ensure PostCSS works on Vercel\n- Refactor middleware to cookie-based auth (no Node APIs in Edge)\n- CI: early guard for missing DOPPLER_TOKEN and job-level env
+- *(stripe)* Avoid module-scope Stripe init in API route; lazy-init in handler and force node runtime
+- *(shared)* Avoid exporting browser-only api-client from root to prevent '@supabase/ssr' being required in backend runtime
+- *(backend)* Remove unused @supabase/ssr dep; shared no longer exports browser api-client so backend avoids SSR import
+- *(frontend)* Add explicit type for property in dashboard table map to satisfy noImplicitAny
+- *(frontend)* Apply theme colors to marketing layout
+- Add CI-specific build script without Doppler
+- *(tests)* Add missing SERVICE_ROLE_KEY environment variable for tests
+- *(backend)* Resolve TypeScript compilation errors
+- Remove invalid --yes flag from railway up command in CI/CD
+- *(frontend)* Resolve all ESLint and TypeScript compilation errors
+- Commit latest changes before merge conflict resolution
+- Aggregate dashboard stats from services
+- Remove Doppler from build scripts for CI compatibility
+- Remove test files from git and prevent tracking
+- Remove component-test-utils from git tracking
+- Ensure all code paths return in auth-provider useEffect
+- Remove Doppler from test scripts for CI compatibility
+- Add DOPPLER_TOKEN to CI/CD workflow ([#215](https://github.com/hudsor01/tenant-flow/issues/215))
+- Merge main and resolve conflicts for CI compatibility
+- Aggregate dashboard stats from services ([#214](https://github.com/hudsor01/tenant-flow/issues/214))
+- *(frontend)* Resolve TypeScript compilation errors in properties.ts and shimmer-button.tsx
+- *(frontend)* Apply theme colors to marketing layout ([#213](https://github.com/hudsor01/tenant-flow/issues/213))
+- *(ci)* Remove deprecated --yes flag from Railway CLI v3 deployment
+- *(ci)* Specify backend service for Railway deployment
+- *(ci)* Use correct Railway service name format
+- *(ci)* Use Railway environment flag instead of service flag
+- Railway deployment command with service and environment flags
+- Switch to Railway automatic deployment
+- Implement Railway's official GitHub Actions deployment pattern
+- Use simple Railway CLI with correct service name
+- Update Railway health check endpoint from /health/ping to /health
+- Add /health/ping endpoint for Railway compatibility
+- Resolve frontend build error and simplify Railway deployment
+- Specify correct Railway service name in CI/CD deployment
+- Railway deployment configuration issues
+- Resolve TypeScript errors in marketing components - title property conflicts
+- Add Railway healthcheck.railway.app to CORS allowed origins
+- Railway deployment configuration for monorepo
+- Prioritize SUPABASE_SERVICE_ROLE_KEY env variable for Railway
+- Update loading component in LeasesPage to use LoadingSpinner
+- Health check permissions with SECURITY DEFINER
+- Disable mock auth in production for Google OAuth
+- Resolve TypeScript errors and update imports for Apple design system
+- Regex syntax and add missing dependencies
+- Resolve all TypeScript errors and build issues for production security architecture
+- Complete NestJS Logger migration for production deployment
+- Track husky hooks in git and fix pre-push validation
+- Resolve merge conflicts and fix all CI/CD errors
+- Add npm ci step to Quick Checks job in CI pipeline
+- Disable redundant CI/CD workflows to speed up pipeline
+- Resolve PR 224 merge conflicts and dependency issues
+- Resolve TypeScript type mismatches in health and security interfaces
+- Resolve backend startup issues and enforce type safety
+- Resolve ESLint module resolution issues for CI/CD compatibility
+- Resolve TypeScript import issues and export missing types
+- Resolve TypeScript build errors and critical lint issues
+- Resolve Jest test configuration and ESLint module warnings
+- Resolve critical lint errors in validation scripts
+- Remove non-existent cron jobs from vercel.json
+- Resolve critical production-breaking issues
+- Resolve TypeScript undefined access error in pagination
+- Resolve vercel.json header regex patterns and deployment config
+- Resolve Vercel invalid route source pattern errors
+- Use workspace protocol for internal dependencies
+- Align pnpm version to 10.0.0 across all configs
+- Add missing @types/react-dom to shared package
+- Critical security vulnerabilities and build errors
+- Resolve shared package build issues and centralize types
+- Remove duplicate SubscriptionStatus type export from auth
+- Railway deployment with service ID cache mounts and turbo
+- Install TypeScript globally in Docker for shared package build
+- Railway Docker build by ensuring workspace dependencies
+- Remove unused React import in shared types
+- Resolve P1 security issue with client sanitization errors
+- Resolve TypeScript errors for deployment
+- Resolve Docker build issue with node_modules cache mount
+- Update Node engine requirement to support >=22.0.0 for compatibility
+- Resolve Node version compatibility and authentication routes
+- Railway deployment configuration
+- Resolve Docker production build failure with HUSKY=0
+- Resolve Railway deployment by ensuring husky preparation script exists
+- Remove invalid pnpm directory copy in Docker build
+- Use prefer-offline instead of offline for pnpm build install
+- Remove unused database package from Docker build
+- Comprehensive Docker build fixes for production deployment
+- Remove unsupported verbatimModuleSyntax from database tsconfig
+- Resolve NestJS dependency injection error in TenantsModule
+- Skip Husky installation in Vercel and CI environments
+- Remove unnecessary CI checks - husky is dev-only dependency
+- Critical CI bug - capture exit codes from all parallel jobs
+- Production deployment issues
+- Remove all hardcoded visitor analytics and implement real calculations
+- Update CI/CD workflow and resolve diagnostics
+- Enforce architectural rules and remove violations
+- *(critical)* Homepage should redirect users, not show marketing
+- Enable unauthenticated Stripe checkout and UI improvements
+- Resolve all critical ESLint errors to enable commits
+- Use optional doppler helper for CI scripts
+- Replace all npm references with pnpm in package.json files
+- Complete pnpm migration and resolve all linting issues
+- Resolve TypeScript errors after Express migration
+- Align posthog-js versions using pnpm catalog
+- Align React type versions using pnpm catalog
+- Add Doppler CLI installation to CI/CD workflow
+- Add Doppler CLI to PATH in CI workflow
+- Install Doppler CLI to user directory in CI
+- Use direct binary download for Doppler CLI in CI
+- Downgrade Node.js from v22 to v20 in CI/CD workflow
+- Resolve pnpm cache configuration causing exit code 8
+- Remove conflicting pnpm cache setup causing exit code 8
+- Comprehensive CI/CD workflow improvements with Node.js 22
+- Pin Doppler CLI to specific version with correct filename format
+- Make Doppler optional for resilient CI/CD builds
+- Proper TypeScript error handling with type safety
+- Use optional doppler wrapper for test:unit script
+- Install Doppler CLI in CI workflow for test execution
+- Use official Doppler CLI installation command
+- Use DOPPLER_PERSONAL_TOKEN instead of DOPPLER_TOKEN
+- Move DOPPLER_TOKEN to job-level environment
+- Explicitly export DOPPLER_TOKEN for parallel processes
+- Update lockfile after removing PWA dependencies
+- Remove Doppler from CI and use GitHub secrets directly
+- Use pnpm turbo commands in CI workflow
+- Resolve all build warnings for clean CI
+- Update pnpm lockfile to match package.json dependencies
+- Remove invalid @nestjs/swagger reference from backend package.json
+- Remove unused _event parameter in handleExpressCheckout
+- Resolve Vercel build issues for successful deployment
+- Resolve broken navigation links and routing issues
+- Prevent Express JSON parser from overwriting Stripe webhook raw buffer
+- Optimize Dockerfile build process for Railway deployment
+- Use local TypeScript version in Dockerfile build
+- Remove missing color-tokens ESLint plugin dependency
+- Add database package build to Docker compilation step
+- Allow ESLint config files in Vercel deployment
+- Remove reference to frontend app in TypeScript configuration
+- Resolve all TypeScript errors (289 → 0) across backend test suite
+- Improve TypeScript type safety and standardize logging in tests
+- Resolve TypeScript compilation error in auth webhook controller test
+- Resolve ES module directory import issue in shared package
+- Implement TypeScript Node16 ES modules + resolve production deployment errors
+- URGENT - resolve PostHog CSP blocking in production
+- Resolve all TypeScript and ESLint errors across codebase
+- CRITICAL - resolve InputSanitizationMiddleware read-only property error in production
+- Resolve critical production errors in Stripe billing and middleware
+- Resolve validation flow and ESLint/TypeScript strict mode issues
+- Resolve Stripe provider imports and enhance CSP configuration
+- Add environment variable indicators to health check
+- Update lockfile and verify deployment environments
+- Update health controller tests for env_vars_loaded field
+- Remove non-existent env vars and fix test mocks
+- Resolve Stripe webhook test idempotency mock behavior
+- Correct Stripe webhook test expectations for idempotency
+- Resolve all build errors and test failures
+- Use forceExit flag in pre-push hook to prevent Jest hanging
+- Add forceExit to Jest commands to prevent hanging
+- Restore setup.ts with safe mock keys
+- Improve Railway deployment in GitHub Actions
+- Update GitHub Actions pnpm version to match package.json
+- Update contact page with consistent design system classes
+- Remove Node 20 from CI/CD tests - only use Node 22
+- Resolve Railway 502 errors by fixing health check configuration
+- Expose port 8080 explicitly for Railway deployment
+- Change Docker default PORT from 8080 to 4600 to match Railway domain configuration
+- Correct port in health controller tests
+- Correct health controller route ordering to resolve 502 errors
+- Remove non-existent AUTH_HEALTH_CHECK_TOKEN from frontend script
+- Correct health check endpoint URL back to /health
+- Resolve Railway deployment and contact form implementation
+- Resolve TypeScript errors and complete pricing page design system migration
+- Resolve CI/CD failures by removing unused variables and skipping flaky test
+- Add web-vitals API endpoint with proper logging and type centralization
+- Implement client-side authentication with correct Supabase cookie handling
+- Implement production-only Supabase authentication with official SSR pattern
+- Resolve all Vercel deployment warnings and clean up code
+- Improve OAuth callback error logging and redirect to dashboard
+- Remove invalid functions runtime configuration from vercel.json
+- Resolve all linting and type errors, align utils.ts with design system
+- Resolve type errors in backend test files by adding Express Request imports
+- Resolve test failures by adding SupabaseService mocks to controller tests
+- Dashboard API routes and data structure alignment
+- Resolve TypeScript errors in dashboard component
+- Resolve React hydration error [#418](https://github.com/hudsor01/tenant-flow/issues/418) by separating server and client components
+- Resolve hydration error by removing locale-dependent APIs in SSR
+- Add error boundaries to prevent Server Component crashes
+- Improve session validation in middleware to prevent error page on Sign In
+- Resolve Server Components function serialization and improve error logging
+- Resolve TypeScript errors preventing production push
+- Resolve TypeScript and test errors for auth refactoring
+- Properly resolve ESLint and TypeScript errors
+- Remove failing integration tests and fix TypeScript types
+- Resolve all TypeScript and test errors
+- Resolve dashboard navigation and component issues
+- Resolve critical sidebar navigation issues across all dashboard pages
+- Implement complete authentication architecture and design system compliance
+- GoogleOAuthUser extends authUser type reference
+- Add 'use client' to lease template page
+- Configure Vercel for automatic production deployment
+- Resolve most TypeScript test errors
+- Remove invalid production property from vercel.json
+- Improve error handling for Server Components in production
+- Resolve all TypeScript compilation errors and type centralization
+- Update lockfile and enforce schema generation rule as error
+- Resolve all TypeScript compilation errors and validation import violations
+- Remove TasksController and redundant FinancialController
+- Complete TypeScript type fixes and remove barrel exports
+- Resolve CI/CD issues by updating lockfile and fixing duplicate type exports
+- Resolve all TypeScript type errors and ESLint violations
+- Wrap domLogger context properties in metadata object
+- Add missing restrict-document-access ESLint rule for CI/CD
+- Resolve all TypeScript and ESLint errors
+- Use server-side API for dashboard data fetching
+- Resolve 400 errors and security vulnerability in API endpoints
+- Resolve dashboard errors and API endpoint mismatches
+- Add 'use client' directive to Next.js error boundaries
+- Add use client to tenants error boundary
+- Improve analytics service error logging format
+- Remove non-existent ESLint rule references
+- Update Stripe API version and create frontend test setup
+- Resolve authentication, API paths, UI issues, and export functionality
+- *(auth)* Remove unused showPassword state from signup form
+- Resolve PostHog mobx-state-tree errors and blob URL console warnings
+- *(billing)* Align Stripe apiVersion with types to satisfy typecheck
+- *(auth)* Implement role-based redirects for tenant portal
+- Remove sample data for new users and add empty state
+- Remove unused parameters in useUpdateTenant onSuccess handler
+- Remove all sample/demo data and add production-ready features
+- Update Quick Actions navigation paths and clean up backend
+- Remove PDF templates copy from Dockerfile
+- Add template directories and reports folder to Dockerfile
+- Remove duplicate CSS variable definitions causing grayscale override
+- *(auth)* Implement role-based redirects for tenant portal ([#260](https://github.com/hudsor01/tenant-flow/issues/260))
+- Resolve React Hooks conditional call violations and add Empty state
+- Update all /dashboard/ routes to /manage/ and enable TypeScript project references
+- Correct provider import paths and component syntax errors
+- Add sidebar to all /manage/ pages
+- Production testing fixes and Dockerfile improvements ([#261](https://github.com/hudsor01/tenant-flow/issues/261))
+- Correct provider import paths and component syntax errors ([#262](https://github.com/hudsor01/tenant-flow/issues/262))
+
+### Documentation
+
+- Add deployment configurations to README
+- Clarify Vercel root directory setting
+- Update CLAUDE.md with current project state
+- Update Railway deployment structure and naming conventions
+- Add deployment configurations to README
+- Clarify Vercel root directory setting
+- Update CLAUDE.md with current project state
+- Update Railway deployment structure and naming conventions
+- Streamline CLAUDE.md examples for readability
+
+### Performance
+
+- Add database indexes on foreign key columns for better query performance
+- Phase 1.2 dependency optimization - reduce deployment bloat by 40%+
+- Phase 1.2 dependency optimization - reduce deployment bloat by … ([#103](https://github.com/hudsor01/tenant-flow/issues/103))
+- Phase 1.3 Turborepo optimization - eliminate 70% of task overhead
+- Optimize CI for faster runs - move checks after build, add quick CI for feature branches
+- *(docker)* Improve build performance with layer caching and reduced dependencies
+- Phase 1.2 dependency optimization - reduce deployment bloat by 40%+
+- Phase 1.2 dependency optimization - reduce deployment bloat by … ([#103](https://github.com/hudsor01/tenant-flow/issues/103))
+- Phase 1.3 Turborepo optimization - eliminate 70% of task overhead
+- Optimize CI for faster runs - move checks after build, add quick CI for feature branches
+- *(docker)* Improve build performance with layer caching and reduced dependencies
+- Optimize pre-push hook for faster pushes
+- Optimize CI/CD workflow for 50%+ faster execution
+
+### Refactor
+
+- Clean up redundant TypeScript configurations
+- Eliminate 7 config duplications for cleaner codebase
+- Consolidate duplicate implementations and fix naming patterns
+- Massive legacy code migration and build warning fixes
+- Clean up redundant TypeScript configurations
+- Eliminate 7 config duplications for cleaner codebase
+- Consolidate duplicate implementations and fix naming patterns
+- Massive legacy code migration and build warning fixes
+- Massive refactoring and project cleanup
+- Clean and simplify CI/CD workflows
+- Update SWC compatibility settings and improve type definitions in StripeDataService
+- Rename SUPABASE_SERVICE_ROLE_KEY to SERVICE_ROLE_KEY across the codebase
+- Replace unsafe glob usage with native Node.js fs operations in security audit
+- Massive component deduplication and type safety improvements
+- Complete design system consolidation and Apple reference removal
+- Remove all tw- prefixes and align with design system
+- Comprehensive codebase improvements and TypeScript migrations
+- Clean up health controller using service delegation pattern
+- [**breaking**] Simplify auth forms from 850+ to 380 lines using TanStack Form
+- Phase 1 - remove DRY violations and improve consistency
+- Improve leases/maintenance services and add dashboard error boundaries
+- Update form schemas and validation for maintenance and property management
+- Streamline maintenance request form submission and default values
+- [**breaking**] Migrate all forms from react-hook-form to TanStack Form
+- *(auth)* Modernize login form with Field + InputGroup components
+- *(auth)* Modernize update-password-form with Field + PasswordStrength
+- *(settings)* Simplify password-update-section with new components
+- Address PR [#252](https://github.com/hudsor01/tenant-flow/issues/252) review feedback and code quality improvements
+- Remove verbose debug logging from health service
+- Remove verbose debug logging from health service ([#263](https://github.com/hudsor01/tenant-flow/issues/263))
+
+### Styling
+
+- Fix prettier formatting in config validator
+- Fix prettier formatting in config validator
+
+### Testing
+
+- Add webhook body debugging endpoint
+- Verify pre-commit hook
+- Temporarily simplify auth callback to debug 404 issue
+- Verify CI/CD pipeline with all fixes
+- Version bump to trigger CI platform compatibility test
+- Trigger CI/CD with Supabase env vars configured
+- Temporarily simplify auth callback to debug 404 issue
+- Verify husky hooks
+- Add comprehensive backend controller test coverage
+- Add comprehensive financial statement service tests
+- Add comprehensive visual regression tests for EmptyIcon component
+
+### Miscellaneous
+
+- Include .vercel project settings for Vercel CLI local builds
+- Remove test comment from BlogContentSection
+- Add .turbo/cache/ to .gitignore to prevent cache bloat
+- Add generated SEO files from pre-commit hook
+- Temporarily enable full logging to debug typecheck failure
+- Trigger Vercel deployment
+- Remove CI performance test workflow
+- Replace jest-mock-extended with native Jest mocking
+- Sync package-lock.json with package.json after Next.js 15 refactoring
+- Remove obsolete CI/CD workflows for backend, frontend, and testing
+- Bump backend version to trigger Railway deployment
+- Remove unused modal components
+- Update .gitignore to explicitly ignore .next and build artifacts
+- Remove obsolete or sensitive files
+- Commit all unstaged changes for backend Docker build diagnostics
+- Simplify Docker healthcheck to use curl for /health endpoint
+- Increase Docker healthcheck start-period and retries for slow backend startup
+- Update dependencies for Railway deployment fixes
+- Trigger Railway deployment with auth fixes
+- Disable Storybook CI workflows
+- Disable dashboard-tests workflow
+- Remove DRY analysis workflow
+- *(tsconfig)* Update TypeScript configurations
+- *(ts)* Update TypeScript configuration
+- *(ts)* Update TypeScript config
+- *(ts)* Update TypeScript configur
+- Apply prettier formatting to all files
+- Format auth-token.decorator.ts with Prettier
+- Remove local development files from git tracking
+- Remove unnecessary files for lean production repo
+- Update package-lock.json for turbo binary fixes
+- Temporarily enable full logging to debug typecheck failure
+- Trigger Vercel deployment
+- Remove CI performance test workflow
+- Replace jest-mock-extended with native Jest mocking
+- Sync package-lock.json with package.json after Next.js 15 refactoring
+- Remove obsolete CI/CD workflows for backend, frontend, and testing
+- Bump backend version to trigger Railway deployment
+- Remove unused modal components
+- Update .gitignore to explicitly ignore .next and build artifacts
+- Remove obsolete or sensitive files
+- Commit all unstaged changes for backend Docker build diagnostics
+- Simplify Docker healthcheck to use curl for /health endpoint
+- Increase Docker healthcheck start-period and retries for slow backend startup
+- Update dependencies for Railway deployment fixes
+- Trigger Railway deployment with auth fixes
+- Disable Storybook CI workflows
+- Disable dashboard-tests workflow
+- Remove DRY analysis workflow
+- *(tsconfig)* Update TypeScript configurations
+- *(ts)* Update TypeScript configuration
+- *(ts)* Update TypeScript config
+- *(ts)* Update TypeScript configur
+- Apply prettier formatting to all files
+- Format auth-token.decorator.ts with Prettier
+- Remove local development files from git tracking
+- Remove unnecessary files for lean production repo
+- Add simplified CI/CD workflow to replace complex security scan
+- Update package-lock.json to sync dependencies
+- Update shared package dependencies and improve React compatibility
+- *(eslint)* Update ignore patterns to exclude frontend-only types and production API tests
+- Update generated auth schema timestamp
+- Update package dependencies and improve build scripts
+- Increase CI/CD build timeout to 20 minutes and add lint check step
+- *(doppler)* Support personal token auth and use project/config secrets; avoid nested doppler run by calling scripts directly
+- *(doppler)* Fallback to repository variables if secrets are not set
+- Fix schema warnings; move on triggers to top, add branch filters for PRs, remove top-level secret envs, and avoid invalid context usage in run
+- Add workflow_dispatch, minimal permissions, concurrency; use npm ci with cache-dependency-path
+- Skip job when Doppler tokens are not present to avoid failing pushes
+- Target environment 'tenantflow-backend' so Environment-scoped secrets are available
+- *(stripe)* Mark webhook routes as node runtime to avoid Edge env; keep lazy init
+- *(deploy)* Add Railway backend deploy job using Dockerfile + railway.toml (manual or on main)
+- Complete pnpm migration and fix Stripe types
+- Clean up repository files and update package dependencies
+- Add eslint-env comment to prepare-husky script
+- Update ESLint configuration and add support for CommonJS files
+- Trigger Railway deployment with husky fix
+- Update package configurations and scripts
+- Improve gitignore comment formatting
+- Complete auth system type improvements
+- Update TypeScript and ESLint configurations, add testing libraries, and enhance CORS handling
+- Update shadcn components to latest versions
+- Update export-buttons with latest shadcn patterns
+- *(reviews)* Annotate subscription auth & schema issues; fix chart typings to satisfy tsc
+- Remove Claude Code Review workflows that were causing CI failures
+- Update pnpm-lock.yaml to sync with eslint version
+- Remove integration tests from CI/CD pipeline
+
+### Security
+
+- Add extensive logging to diagnose white screen issue
+- Comprehensive .gitignore security patterns and .env.example files
+- Fix CWE-310 GCM authentication tag length vulnerability
+- Replace realistic test API key with dummy value
+- Add extensive logging to diagnose white screen issue
+- Comprehensive .gitignore security patterns and .env.example files
+- Fix CWE-310 GCM authentication tag length vulnerability

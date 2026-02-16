@@ -139,9 +139,12 @@ describe('PropertiesController', () => {
 			expect(result).toEqual({
 				data: mockProperties,
 				total: 1,
-				limit: 10,
-				offset: 0,
-				hasMore: false
+				pagination: {
+					page: 1,
+					limit: 10,
+					total: 1,
+					totalPages: 1
+				}
 			})
 		})
 

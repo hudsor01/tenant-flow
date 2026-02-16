@@ -94,12 +94,19 @@ export class PropertiesController {
 			offset: safeOffset
 		})
 
+		// Calculate pagination metadata
+		const page = Math.floor(safeOffset / safeLimit) + 1
+		const totalPages = Math.ceil(result.count / safeLimit)
+
 		return {
 			data: result.data,
 			total: result.count,
-			limit: safeLimit,
-			offset: safeOffset,
-			hasMore: result.data.length >= safeLimit
+			pagination: {
+				page,
+				limit: safeLimit,
+				total: result.count,
+				totalPages
+			}
 		}
 	}
 
