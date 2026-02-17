@@ -266,7 +266,7 @@ export default defineConfig({
 	webServer: [
 		{
 			// Backend: Override Supabase URLs after injection
-			command: `bash -c "export SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export SUPABASE_SERVICE_ROLE_KEY='${LOCAL_SUPABASE_SERVICE_KEY}' && exec pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}"`,
+			command: `bash -c "export SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export SUPABASE_SERVICE_ROLE_KEY='${LOCAL_SUPABASE_SERVICE_KEY}' && export SUPABASE_JWT_SECRET='super-secret-jwt-token-with-at-least-32-characters-long' && exec pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}"`,
 			url: `${TEST_BACKEND_URL}/health/ping`,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
@@ -275,13 +275,15 @@ export default defineConfig({
 			env: {
 				PORT: String(TEST_BACKEND_PORT),
 				SUPABASE_URL: LOCAL_SUPABASE_URL,
-				SUPABASE_SERVICE_ROLE_KEY: LOCAL_SUPABASE_SERVICE_KEY
+				SUPABASE_SERVICE_ROLE_KEY: LOCAL_SUPABASE_SERVICE_KEY,
+				SUPABASE_JWT_SECRET: 'super-secret-jwt-token-with-at-least-32-characters-long'
 			}
 		},
 		{
 			// rm -rf .next ensures fresh build with correct env vars
+			// rm .env.local prevents production config from overriding test config
 			// Note: Using pnpm --filter instead of direct next call to ensure proper PATH
-			command: `cd apps/frontend && rm -rf .next && bash -c "export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_ANON_KEY}' && export NEXT_PUBLIC_API_BASE_URL='${TEST_BACKEND_URL}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
+			command: `cd apps/frontend && rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_ANON_KEY}' && export NEXT_PUBLIC_API_BASE_URL='${TEST_BACKEND_URL}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,

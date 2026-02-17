@@ -22,7 +22,9 @@ export default async function NewPropertyPage() {
 			<div className="hidden md:block">
 				<PropertyForm mode="create" />
 			</div>
-			<MobilePropertyForm mode="create" />
+			<div className="md:hidden">
+				<MobilePropertyForm mode="create" />
+			</div>
 		</div>
 	)
 }
