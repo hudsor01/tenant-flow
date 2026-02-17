@@ -148,7 +148,10 @@ export const propertyQuerySchema = z.object({
 // Property creation schema
 // Note: propertyInputSchema already has status with default('active')
 // id, created_at, updated_at are server-generated and not in propertyInputSchema
-export const propertyCreateSchema = propertyInputSchema
+// property_owner_id is set by the backend from authenticated user, not sent by client
+export const propertyCreateSchema = propertyInputSchema.omit({
+	property_owner_id: true
+})
 
 // Property address validation schema
 export const propertyAddressSchema = z.object({
