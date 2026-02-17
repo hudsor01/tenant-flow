@@ -11,9 +11,10 @@ const __dirname = dirname(__filename)
 test.describe('Property Image Upload', () => {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 	let testImagePath: string
+	let testImagePaths: string[]
 
 	test.beforeAll(() => {
-		// Create a test image (1x1 red PNG)
+		// Create test images (1x1 PNG files with different colors)
 		const testImagesDir = path.join(__dirname, '../../fixtures/images')
 		if (!fs.existsSync(testImagesDir)) {
 			fs.mkdirSync(testImagesDir, { recursive: true })
@@ -32,11 +33,154 @@ test.describe('Property Image Upload', () => {
 		])
 
 		fs.writeFileSync(testImagePath, pngData)
+
+		// Create additional test images for creation test
+		testImagePaths = [
+			path.join(testImagesDir, 'test-property-front.png'),
+			path.join(testImagesDir, 'test-property-side.png'),
+			path.join(testImagesDir, 'test-property-back.png')
+		]
+
+		testImagePaths.forEach(imagePath => {
+			fs.writeFileSync(imagePath, pngData)
+		})
 	})
 
 	test.beforeEach(async ({ page }) => {
 		// Login using the existing auth helper
 		await loginAsOwner(page)
+
+		// Debug: Check auth state
+		const cookies = await page.context().cookies()
+		const authCookie = cookies.find(c => c.name.includes('auth-token'))
+		console.log('🔍 Auth cookie after login:', authCookie?.name, authCookie ? 'SET' : 'MISSING')
+
+		// Debug: Check localStorage
+		const storageKeys = await page.evaluate(() => Object.keys(localStorage))
+		console.log('🔍 LocalStorage keys:', storageKeys.filter(k => k.includes('auth')))
+	})
+
+	test('should create property with images during creation (NEW FEATURE)', async ({
+		page
+	}) => {
+		// Navigate to property creation page
+		await page.goto(`${baseUrl}/properties/new`, { waitUntil: 'domcontentloaded' })
+
+		// Verify we're on the create page (this also waits for the page to be interactive)
+		await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
+
+		// Wait for form to be fully loaded
+		await page.waitForTimeout(1000)
+
+		// Fill out required property fields (click first, then fill to ensure focus)
+		const nameInput = page.getByLabel(/property name/i).first()
+		await nameInput.click()
+		await nameInput.fill('E2E Test Property with Images')
+
+		const addressInput = page.getByLabel(/address/i).first()
+		await addressInput.click()
+		await addressInput.fill('789 Creation Test Blvd')
+
+		const cityInput = page.getByLabel(/city/i).first()
+		await cityInput.click()
+		await cityInput.fill('Los Angeles')
+
+		const stateInput = page.getByLabel(/state/i).first()
+		await stateInput.click()
+		await stateInput.fill('CA')
+
+		const zipInput = page.getByLabel(/zip/i).first()
+		await zipInput.click()
+		await zipInput.fill('90001')
+
+		// Upload multiple test images before submitting (use first() to target desktop form only)
+		const fileInput = page.locator('input[type="file"]').first()
+		await fileInput.setInputFiles(testImagePaths)
+
+		// Verify files are selected - check for file count indicator or preview
+		await page.waitForTimeout(500) // Brief wait for React state update
+		const fileCountText = await page.textContent('body')
+		const hasFileIndicator = fileCountText?.includes('3 image') ||
+		                        fileCountText?.includes('selected') ||
+		                        (await page.locator('img[src^="blob:"]').count()) === 3
+
+		expect(hasFileIndicator).toBeTruthy()
+
+		// Debug: Listen for console messages
+		page.on('console', msg => console.log('🔍 Browser:', msg.text()))
+
+		// Debug: Capture network requests
+		page.on('request', request => {
+			if (request.url().includes('/api/v1/properties')) {
+				const authHeader = request.headers()['authorization']
+				console.log('🔍 API Request to:', request.url())
+				console.log('🔍 Authorization header:', authHeader ? `Bearer ${authHeader.substring(0, 50)}...` : 'MISSING')
+			}
+		})
+
+		// Debug: Check button state before clicking
+		const button = page.getByRole('button', { name: /create property/i })
+		const isDisabled = await button.isDisabled()
+		const isVisible = await button.isVisible()
+		console.log('🔍 Create Property button:', { isDisabled, isVisible })
+
+		// Submit the form
+		await button.click()
+		console.log('🔍 Button clicked')
+
+		// Wait for property creation AND image upload to complete
+		// Look for success message
+		await page.waitForFunction(
+			() => {
+				const text = document.body.textContent || ''
+				return (
+					text.includes('Property created') ||
+					text.includes('image(s) uploaded') ||
+					text.includes('successfully')
+				)
+			},
+			{ timeout: 15000 }
+		)
+
+		// Wait for upload overlay statuses to complete (uploading -> success)
+		await page.waitForFunction(
+			() => {
+				const text = document.body.textContent || ''
+				// Wait until no more "Uploading..." statuses
+				return !text.includes('Uploading...')
+			},
+			{ timeout: 10000 }
+		)
+
+		// Verify success toast appeared
+		const bodyText = await page.textContent('body')
+		const hasSuccessMessage =
+			bodyText?.includes('Property created with') ||
+			bodyText?.includes('image(s)') ||
+			bodyText?.includes('3 image')
+
+		expect(hasSuccessMessage).toBeTruthy()
+
+		// Navigate to properties list to verify creation
+		await page.goto(`${baseUrl}/properties`)
+		await page.waitForLoadState('domcontentloaded')
+
+		// Find the newly created property card
+		const newPropertyCard = page.locator('[data-testid="property-card"]').filter({
+			hasText: 'E2E Test Property with Images'
+		})
+
+		await expect(newPropertyCard).toBeVisible()
+
+		// Verify the card has an image (not just placeholder)
+		const cardImage = newPropertyCard.locator('img')
+		const imgSrc = await cardImage.getAttribute('src')
+
+		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
+		expect(imgSrc).toBeTruthy()
+		console.log('Property card image src:', imgSrc)
+
+		console.log('✅ Property creation with images test completed!')
 	})
 
 	test('should upload image and display it on property card', async ({
@@ -44,7 +188,7 @@ test.describe('Property Image Upload', () => {
 	}) => {
 		// Navigate to /properties
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Find existing property card
 		const propertyCards = page.locator('[data-testid="property-card"]')
@@ -68,7 +212,7 @@ test.describe('Property Image Upload', () => {
 			// Submit
 			await page.getByRole('button', { name: /create property/i }).click()
 			await page.waitForTimeout(2000)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		}
 
 		// Get the first property card
@@ -83,7 +227,7 @@ test.describe('Property Image Upload', () => {
 			page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 			viewDetailsBtn.click()
 		])
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify we're on the property details page (URL has property ID)
 		expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/)
@@ -91,7 +235,7 @@ test.describe('Property Image Upload', () => {
 		// Click Edit button to go to edit page - wait for navigation
 		const editLink = page.getByRole('link', { name: /edit/i }).first()
 		await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify we're on the edit page
 		expect(page.url()).toContain('/edit')
@@ -139,7 +283,7 @@ test.describe('Property Image Upload', () => {
 
 		// Navigate back to /properties
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		await page.waitForTimeout(1000)
 
 		// Verify the uploaded image now appears on the property card
@@ -168,7 +312,7 @@ test.describe('Property Image Upload', () => {
 	test('should show compression statistics during upload', async ({ page }) => {
 		// Navigate to a property edit page
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
@@ -181,12 +325,12 @@ test.describe('Property Image Upload', () => {
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 				viewDetailsBtn.click()
 			])
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Click Edit with proper wait for navigation
 			const editLink = page.getByRole('link', { name: /edit/i }).first()
 			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Scroll to images section
 			const imagesSection = page.getByRole('heading', {
@@ -213,7 +357,7 @@ test.describe('Property Image Upload', () => {
 		page
 	}) => {
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
@@ -226,7 +370,7 @@ test.describe('Property Image Upload', () => {
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
 				viewDetailsBtn.click()
 			])
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Verify details page loaded (URL has property ID)
 			expect(page.url()).toMatch(/\/properties\/[a-f0-9-]+/)
@@ -234,7 +378,7 @@ test.describe('Property Image Upload', () => {
 			// Click Edit with proper wait for navigation
 			const editLink = page.getByRole('link', { name: /edit/i }).first()
 			await Promise.all([page.waitForURL(/\/edit$/), editLink.click()])
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Verify edit page loaded
 			expect(page.url()).toContain('/edit')

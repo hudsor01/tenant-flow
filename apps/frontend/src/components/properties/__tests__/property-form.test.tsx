@@ -134,7 +134,10 @@ describe('PropertyForm', () => {
 			renderWithQueryClient(<PropertyForm mode="create" />)
 
 			expect(
-				screen.getByText(/save property first to upload images/i)
+				screen.getByText(/property images \(optional\)/i)
+			).toBeInTheDocument()
+			expect(
+				screen.getByText(/drag & drop images here, or click to browse/i)
 			).toBeInTheDocument()
 		})
 

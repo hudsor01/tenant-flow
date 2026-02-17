@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle } from 'lucide-react'
+import { CheckCircle, Upload, Loader2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
@@ -17,6 +17,8 @@ import {
 
 import { PropertyImageGallery } from './property-image-gallery'
 import { PropertyImageDropzone } from './property-image-dropzone'
+import { createClient } from '#lib/supabase/client'
+import { useDropzone } from 'react-dropzone'
 
 import {
 	useCreatePropertyMutation,
@@ -42,6 +44,14 @@ interface PropertyFormProps {
 	className?: string
 }
 
+type FileUploadStatus = 'pending' | 'uploading' | 'success' | 'error'
+
+interface FileWithStatus {
+	file: File
+	status: FileUploadStatus
+	error?: string
+}
+
 /**
  * Consolidated Property Form Component
  *
@@ -60,16 +70,38 @@ export function PropertyForm({
 	className
 }: PropertyFormProps) {
 	const [isSubmitted, setIsSubmitted] = useState(false)
+	const [uploadingImages, setUploadingImages] = useState(false)
+	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([])
 	const { data: user } = useSupabaseUser()
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'PropertyForm' })
+	const supabase = createClient()
 
 	const createPropertyMutation = useCreatePropertyMutation()
 	const updatePropertyMutation = useUpdatePropertyMutation()
 
 	const mutation =
 		mode === 'create' ? createPropertyMutation : updatePropertyMutation
+
+	// Image dropzone for create mode - store files locally, upload after property created
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		accept: {
+			'image/jpeg': ['.jpg', '.jpeg'],
+			'image/png': ['.png'],
+			'image/webp': ['.webp'],
+			'image/gif': ['.gif']
+		},
+		maxSize: 10 * 1024 * 1024, // 10MB per file
+		maxFiles: 10,
+		onDrop: acceptedFiles => {
+			const newFiles: FileWithStatus[] = acceptedFiles.map(file => ({
+				file,
+				status: 'pending' as const
+			}))
+			setFilesWithStatus(prev => [...prev, ...newFiles].slice(0, 10))
+		}
+	})
 
 	// Use shared validation schema (partial for form fields only)
 	const validationSchema = propertyFormSchema.pick({
@@ -120,19 +152,109 @@ export function PropertyForm({
 						postal_code: value.postal_code,
 						country: value.country,
 						property_type: value.property_type,
-						property_owner_id: user.id,
 						status: 'active' as const,
 						...(value.address_line2
 							? { address_line2: value.address_line2 }
 							: {})
+						// Note: owner_user_id is set by backend from authenticated user
 					}
 					logger.info('Creating property', {
 						action: 'formSubmission',
 						data: createData
 					})
 
-					await createPropertyMutation.mutateAsync(createData)
-					toast.success('Property created successfully')
+					const newProperty = await createPropertyMutation.mutateAsync(createData)
+
+					// Upload selected images if any
+					if (filesWithStatus.length > 0) {
+						setUploadingImages(true)
+						try {
+							const uploadPromises = filesWithStatus.map(async (fileWithStatus, index) => {
+								const { file } = fileWithStatus
+
+								// Update status to uploading
+								setFilesWithStatus(prev =>
+									prev.map((f, i) =>
+										i === index ? { ...f, status: 'uploading' as const } : f
+									)
+								)
+
+								try {
+									const fileExt = file.name.split('.').pop()
+									const fileName = `${crypto.randomUUID()}.${fileExt}`
+									const filePath = `${newProperty.id}/${fileName}`
+
+									const { error: uploadError } = await supabase.storage
+										.from('property-images')
+										.upload(filePath, file, {
+											cacheControl: '3600',
+											upsert: false
+										})
+
+									if (uploadError) throw uploadError
+
+									// Update status to success
+									setFilesWithStatus(prev =>
+										prev.map((f, i) =>
+											i === index ? { ...f, status: 'success' as const } : f
+										)
+									)
+								} catch (error) {
+									// Update status to error
+									setFilesWithStatus(prev =>
+										prev.map((f, i) =>
+											i === index
+												? {
+														...f,
+														status: 'error' as const,
+														error: error instanceof Error ? error.message : 'Upload failed'
+													}
+												: f
+										)
+									)
+									throw error
+								}
+							})
+
+							await Promise.allSettled(uploadPromises)
+
+							const successCount = filesWithStatus.filter(f => f.status === 'success').length
+							const errorCount = filesWithStatus.filter(f => f.status === 'error').length
+
+							logger.info('Images upload completed', {
+								propertyId: newProperty.id,
+								successCount,
+								errorCount
+							})
+
+							// Invalidate property images query to show new images
+							queryClient.invalidateQueries({
+								queryKey: propertyQueries.detail(newProperty.id).queryKey
+							})
+
+							if (errorCount === 0) {
+								toast.success(
+									`Property created with ${successCount} image(s)`
+								)
+							} else if (successCount > 0) {
+								toast.warning(
+									`Property created. ${successCount} image(s) uploaded, ${errorCount} failed`
+								)
+							} else {
+								toast.error('Property created but all images failed to upload')
+							}
+						} catch (error) {
+							logger.error('Failed to upload images', { error })
+						} finally {
+							setUploadingImages(false)
+							// Clear files after a delay so user can see final status
+							setTimeout(() => {
+								setFilesWithStatus([])
+							}, 2000)
+						}
+					} else {
+						toast.success('Property created successfully')
+					}
 
 					if (showSuccessState) {
 						setIsSubmitted(true)
@@ -441,13 +563,115 @@ export function PropertyForm({
 					</div>
 				)}
 
-				{/* Create mode message */}
+				{/* Create mode - image upload */}
 				{mode === 'create' && (
-					<div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-						<p className="text-sm text-blue-800">
-							Save property first to upload images. Images help attract tenants
-							and showcase your property.
+					<div className="space-y-4 border rounded-lg p-6">
+						<h3 className="typography-large">Property Images (Optional)</h3>
+						<p className="text-sm text-muted-foreground">
+							Add photos to showcase your property. Images will be uploaded after
+							property creation. (Max 10 files, 10MB each)
 						</p>
+
+						<div
+							{...getRootProps()}
+							className={cn(
+								'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+								isDragActive
+									? 'border-primary bg-primary/5'
+									: 'border-muted-foreground/25 hover:border-primary/50',
+								uploadingImages && 'pointer-events-none opacity-60'
+							)}
+						>
+							<input {...getInputProps()} disabled={uploadingImages} />
+							{filesWithStatus.length === 0 ? (
+								<div className="space-y-2">
+									<Upload className="mx-auto h-12 w-12 text-muted-foreground" />
+									<p className="text-sm font-medium">
+										{isDragActive
+											? 'Drop images here...'
+											: 'Drag & drop images here, or click to browse'}
+									</p>
+									<p className="text-xs text-muted-foreground">
+										JPG, PNG, WebP, or GIF (max 10MB each)
+									</p>
+								</div>
+							) : (
+								<div className="space-y-3">
+									<p className="text-sm font-medium">
+										{filesWithStatus.length} image(s) selected
+									</p>
+									<p className="text-xs text-muted-foreground">
+										{uploadingImages
+											? 'Uploading...'
+											: 'Click or drag to add more (max 10 total)'}
+									</p>
+								</div>
+							)}
+						</div>
+
+						{/* Selected files preview with upload status */}
+						{filesWithStatus.length > 0 && (
+							<div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+								{filesWithStatus.map(({ file, status }, index) => (
+									<div
+										key={index}
+										className="relative aspect-square rounded-lg border overflow-hidden group"
+									>
+										<img
+											src={URL.createObjectURL(file)}
+											alt={file.name}
+											className="w-full h-full object-cover"
+										/>
+
+										{/* Remove button - only show when not uploading */}
+										{status === 'pending' && (
+											<button
+												type="button"
+												onClick={e => {
+													e.stopPropagation()
+													setFilesWithStatus(prev =>
+														prev.filter((_, i) => i !== index)
+													)
+												}}
+												className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+												aria-label="Remove image"
+											>
+												×
+											</button>
+										)}
+
+										{/* Upload status overlay */}
+										{status !== 'pending' && (
+											<div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+												{status === 'uploading' && (
+													<div className="flex flex-col items-center gap-2 text-white">
+														<Loader2 className="h-6 w-6 animate-spin" />
+														<span className="text-xs font-medium">Uploading...</span>
+													</div>
+												)}
+												{status === 'success' && (
+													<div className="flex flex-col items-center gap-2 text-green-400">
+														<CheckCircle className="h-6 w-6" />
+														<span className="text-xs font-medium">Uploaded</span>
+													</div>
+												)}
+												{status === 'error' && (
+													<div className="flex flex-col items-center gap-2 text-red-400">
+														<X className="h-6 w-6" />
+														<span className="text-xs font-medium">Failed</span>
+													</div>
+												)}
+											</div>
+										)}
+
+										{/* Filename - always visible */}
+										<div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs p-1 truncate">
+											{file.name}
+										</div>
+									</div>
+								))}
+							</div>
+						)}
 					</div>
 				)}
 
@@ -463,17 +687,19 @@ export function PropertyForm({
 
 					<Button
 						type="submit"
-						disabled={mutation.isPending}
+						disabled={mutation.isPending || uploadingImages}
 						className="flex items-center gap-2"
 					>
 						<CheckCircle className="size-4" />
-						{mutation.isPending
-							? mode === 'create'
-								? 'Creating...'
-								: 'Updating...'
-							: mode === 'create'
-								? 'Create Property'
-								: 'Update Property'}
+						{uploadingImages
+							? 'Uploading images...'
+							: mutation.isPending
+								? mode === 'create'
+									? 'Creating...'
+									: 'Updating...'
+								: mode === 'create'
+									? 'Create Property'
+									: 'Update Property'}
 					</Button>
 				</div>
 			</form>
