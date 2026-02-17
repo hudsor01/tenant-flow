@@ -152,11 +152,11 @@ export function PropertyForm({
 						postal_code: value.postal_code,
 						country: value.country,
 						property_type: value.property_type,
-						property_owner_id: user.id,
 						status: 'active' as const,
 						...(value.address_line2
 							? { address_line2: value.address_line2 }
 							: {})
+						// Note: owner_user_id is set by backend from authenticated user
 					}
 					logger.info('Creating property', {
 						action: 'formSubmission',

@@ -47,7 +47,7 @@ begin
   returning id into v_owner_test_user_id;
 
   -- Create auth.users record (for authentication)
-  -- Password is 'password123' (bcrypt hash with cost=10)
+  -- Password is 'TestPassword123!' (matches E2E_OWNER_PASSWORD in .env.test)
   insert into auth.users (
     instance_id,
     id,
@@ -72,7 +72,7 @@ begin
     'authenticated',
     'authenticated',
     'test-admin@tenantflow.app',
-    '$2a$10$rqiCKLjKkKvJxJWQxGjmO.F3a5NpXxD3/uX8FbKqE3IlD5jg6Kc5K',
+    crypt('TestPassword123!', gen_salt('bf')),
     now(),
     null,
     now(),
@@ -86,9 +86,29 @@ begin
     ''
   )
   on conflict (id) do update
-  set encrypted_password = excluded.encrypted_password,
+  set encrypted_password = crypt('TestPassword123!', gen_salt('bf')),
       email = excluded.email,
+      raw_app_meta_data = excluded.raw_app_meta_data,
+      raw_user_meta_data = excluded.raw_user_meta_data,
       updated_at = now();
+
+  -- Create Stripe connected account for test owner (required for RLS)
+  insert into public.stripe_connected_accounts (
+    user_id,
+    stripe_account_id,
+    business_type,
+    onboarding_status,
+    charges_enabled,
+    payouts_enabled
+  ) values (
+    v_owner_test_user_id,
+    'acct_test_e2e_owner',
+    'individual',
+    'completed',
+    true,
+    true
+  )
+  on conflict (user_id) do nothing;
 
   raise notice '✓ E2E test owner created: test-admin@tenantflow.app';
 end $$;
@@ -375,6 +395,6 @@ begin
   raise notice 'Active Leases: %', v_lease_count;
   raise notice 'Maintenance Requests: %', v_maintenance_count;
   raise notice '========================================';
-  raise notice 'E2E Test Account: test-admin@tenantflow.app / password123';
+  raise notice 'E2E Test Account: test-admin@tenantflow.app / TestPassword123!';
   raise notice '========================================';
 end $$;
