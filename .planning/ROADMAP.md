@@ -56,7 +56,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 34-01: TBD
+- [ ] 34-01: Verify and fix Stripe Connect onboarding CTA, dialog, backend, and webhook
 
 #### Phase 35: Subscription Enforcement
 
@@ -66,7 +66,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 35-01: TBD
+- [ ] 35-01: Audit plan limits, implement property/tenant count enforcement, add upgrade prompts
 
 #### Phase 36: Tenant Onboarding Flow
 
@@ -76,7 +76,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 36-01: TBD
+- [ ] 36-01: Verify invitation → accept → activate → tenant portal → pay rent flow
 
 #### Phase 37: Financial Page Wiring
 
@@ -86,7 +86,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 37-01: TBD
+- [ ] 37-01: Replace tax-documents placeholder, verify all financial pages, fix empty states
 
 ## Progress
 
@@ -95,7 +95,7 @@ Plans:
 | 18-25. Architecture & Testing | v3.0 | 8/8 | Complete | 2026-01-20 |
 | 26-32. Observability | v4.0 | 9/9 | Complete | 2026-01-21 |
 | 33. Full Smoke Test | v5.0 | 0/2 | Not started | - |
-| 34. Stripe Connect End-to-End | v5.0 | 0/? | Not started | - |
-| 35. Subscription Enforcement | v5.0 | 0/? | Not started | - |
-| 36. Tenant Onboarding Flow | v5.0 | 0/? | Not started | - |
-| 37. Financial Page Wiring | v5.0 | 0/? | Not started | - |
+| 34. Stripe Connect End-to-End | v5.0 | 0/1 | Not started | - |
+| 35. Subscription Enforcement | v5.0 | 0/1 | Not started | - |
+| 36. Tenant Onboarding Flow | v5.0 | 0/1 | Not started | - |
+| 37. Financial Page Wiring | v5.0 | 0/1 | Not started | - |
