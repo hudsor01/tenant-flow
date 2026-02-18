@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner } from '../../auth-helpers'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
@@ -46,19 +45,9 @@ test.describe('Property Image Upload', () => {
 		})
 	})
 
-	test.beforeEach(async ({ page }) => {
-		// Login using the existing auth helper
-		await loginAsOwner(page)
-
-		// Debug: Check auth state
-		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(c => c.name.includes('auth-token'))
-		console.log('🔍 Auth cookie after login:', authCookie?.name, authCookie ? 'SET' : 'MISSING')
-
-		// Debug: Check localStorage
-		const storageKeys = await page.evaluate(() => Object.keys(localStorage))
-		console.log('🔍 LocalStorage keys:', storageKeys.filter(k => k.includes('auth')))
-	})
+	// No beforeEach needed — the chromium project injects storageState: OWNER_AUTH_FILE
+	// before every test. Adding loginAsOwner() here causes a double-auth loop:
+	// storageState already sets auth cookies → /login redirects to /dashboard → timeout.
 
 	test('should create property with images during creation (NEW FEATURE)', async ({
 		page
@@ -106,30 +95,11 @@ test.describe('Property Image Upload', () => {
 
 		expect(hasFileIndicator).toBeTruthy()
 
-		// Debug: Listen for console messages
-		page.on('console', msg => console.log('🔍 Browser:', msg.text()))
-
-		// Debug: Capture network requests
-		page.on('request', request => {
-			if (request.url().includes('/api/v1/properties')) {
-				const authHeader = request.headers()['authorization']
-				console.log('🔍 API Request to:', request.url())
-				console.log('🔍 Authorization header:', authHeader ? `Bearer ${authHeader.substring(0, 50)}...` : 'MISSING')
-			}
-		})
-
-		// Debug: Check button state before clicking
-		const button = page.getByRole('button', { name: /create property/i })
-		const isDisabled = await button.isDisabled()
-		const isVisible = await button.isVisible()
-		console.log('🔍 Create Property button:', { isDisabled, isVisible })
-
 		// Submit the form
+		const button = page.getByRole('button', { name: /create property/i })
 		await button.click()
-		console.log('🔍 Button clicked')
 
 		// Wait for property creation AND image upload to complete
-		// Look for success message
 		await page.waitForFunction(
 			() => {
 				const text = document.body.textContent || ''
@@ -146,7 +116,6 @@ test.describe('Property Image Upload', () => {
 		await page.waitForFunction(
 			() => {
 				const text = document.body.textContent || ''
-				// Wait until no more "Uploading..." statuses
 				return !text.includes('Uploading...')
 			},
 			{ timeout: 10000 }
@@ -178,9 +147,6 @@ test.describe('Property Image Upload', () => {
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
 		expect(imgSrc).toBeTruthy()
-		console.log('Property card image src:', imgSrc)
-
-		console.log('✅ Property creation with images test completed!')
 	})
 
 	test('should upload image and display it on property card', async ({
@@ -252,13 +218,11 @@ test.describe('Property Image Upload', () => {
 		await fileInput.setInputFiles(testImagePath)
 
 		// Wait for auto-upload to complete (compression + upload happens automatically)
-		// Look for "Uploading..." or "Uploaded!" status indicators
 		await page.waitForTimeout(1000) // Brief wait for compression to start
 
-		// Wait for upload to complete - look for success indicator or wait for file to disappear
+		// Wait for upload to complete
 		await page.waitForFunction(
 			() => {
-				// Check if "Uploaded!" appears or if processing is done
 				const uploaded =
 					document.body.textContent?.includes('Uploaded!') ||
 					document.body.textContent?.includes('Image uploaded successfully')
@@ -287,7 +251,6 @@ test.describe('Property Image Upload', () => {
 		await page.waitForTimeout(1000)
 
 		// Verify the uploaded image now appears on the property card
-		// (Should have an img with supabase URL, not just the Building2 placeholder)
 		const cardWithImage = page.locator('[data-testid="property-card"]').first()
 		await expect(cardWithImage).toBeVisible()
 
@@ -297,16 +260,12 @@ test.describe('Property Image Upload', () => {
 
 		if (hasImage) {
 			const imgSrc = await cardImage.getAttribute('src')
-			console.log('Property card image src:', imgSrc)
-			// Verify it's a real image URL (contains supabase storage or nextjs image proxy)
 			expect(imgSrc).toBeTruthy()
 		} else {
 			// Check if Building2 placeholder is shown (acceptable if no images)
 			const placeholder = cardWithImage.locator('svg')
 			expect(await placeholder.count()).toBeGreaterThan(0)
 		}
-
-		console.log('Property image upload test completed!')
 	})
 
 	test('should show compression statistics during upload', async ({ page }) => {

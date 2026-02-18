@@ -2,7 +2,7 @@
 
 import { CheckCircle, Upload, Loader2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
@@ -123,6 +123,34 @@ export function PropertyForm({
 		}
 	}, [mode, property, queryClient])
 
+	// Cache object URLs to avoid recreating them on every render and memory leaks
+	const objectUrlsRef = useRef<Map<File, string>>(new Map())
+	useEffect(() => {
+		const currentFiles = new Set(filesWithStatus.map(f => f.file))
+
+		// Revoke URLs for files that were removed
+		for (const [file, url] of objectUrlsRef.current) {
+			if (!currentFiles.has(file)) {
+				URL.revokeObjectURL(url)
+				objectUrlsRef.current.delete(file)
+			}
+		}
+
+		// Create URLs only for newly added files
+		for (const { file } of filesWithStatus) {
+			if (!objectUrlsRef.current.has(file)) {
+				objectUrlsRef.current.set(file, URL.createObjectURL(file))
+			}
+		}
+
+		return () => {
+			for (const url of objectUrlsRef.current.values()) {
+				URL.revokeObjectURL(url)
+			}
+			objectUrlsRef.current.clear()
+		}
+	}, [filesWithStatus])
+
 	// Initialize form
 	const form = useForm({
 		defaultValues: {
@@ -216,10 +244,10 @@ export function PropertyForm({
 								}
 							})
 
-							await Promise.allSettled(uploadPromises)
+							const results = await Promise.allSettled(uploadPromises)
 
-							const successCount = filesWithStatus.filter(f => f.status === 'success').length
-							const errorCount = filesWithStatus.filter(f => f.status === 'error').length
+							const successCount = results.filter(r => r.status === 'fulfilled').length
+							const errorCount = results.filter(r => r.status === 'rejected').length
 
 							logger.info('Images upload completed', {
 								propertyId: newProperty.id,
@@ -618,7 +646,7 @@ export function PropertyForm({
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
-											src={URL.createObjectURL(file)}
+											src={objectUrlsRef.current.get(file) ?? ""}
 											alt={file.name}
 											className="w-full h-full object-cover"
 										/>

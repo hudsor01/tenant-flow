@@ -179,14 +179,7 @@ export class PropertiesController {
 		@Body() dto: CreatePropertyDto,
 		@Request() req: AuthenticatedRequest
 	) {
-		console.log('🔥 BACKEND: Property create endpoint called!', {
-			name: dto.name,
-			user: req.user?.id,
-			timestamp: new Date().toISOString()
-		})
-		const result = await this.propertiesService.create(req, dto)
-		console.log('🔥 BACKEND: Property created!', { id: result.id, name: result.name })
-		return result
+		return this.propertiesService.create(req, dto)
 	}
 
 	@ApiOperation({ summary: 'Bulk import properties', description: 'Import multiple properties from a CSV file. Maximum file size: 5MB' })

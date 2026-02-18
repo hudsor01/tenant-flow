@@ -201,12 +201,13 @@ function createCookieChunks(
 }
 
 /**
- * Inject session into browser context
+ * Inject session into browser context via localStorage
  *
- * Sets up cookies matching Supabase SSR format:
- * - Small sessions: single cookie (sb-xxx-auth-token)
- * - Large sessions: chunked cookies (sb-xxx-auth-token.0, .1, etc.)
- * This ensures the Next.js proxy can validate the session via getClaims().
+ * Supabase browser client reads session from localStorage first,
+ * then syncs to cookies automatically. This is the recommended
+ * approach for Playwright E2E tests.
+ *
+ * @see https://mokkapps.de/blog/login-at-supabase-via-rest-api-in-playwright-e2e-test
  */
 async function injectSessionIntoBrowser(
 	page: import('@playwright/test').Page,
@@ -214,62 +215,35 @@ async function injectSessionIntoBrowser(
 	baseUrl: string
 ): Promise<void> {
 	const { projectRef } = getConfig()
-	const cookieKey = `sb-${projectRef}-auth-token`
-	const sessionJson = JSON.stringify(session)
-	const context = page.context()
-
-	// Parse base URL to get domain
-	const url = new URL(baseUrl)
-	const domain = url.hostname
-
-	// Create cookies matching Supabase SSR format
-	const cookieChunks = createCookieChunks(cookieKey, sessionJson)
-	const cookies = cookieChunks.map(({ name, value }) => ({
-		name,
-		value,
-		domain: domain,
-		path: '/',
-		httpOnly: false, // Supabase browser client needs to read this
-		secure: url.protocol === 'https:',
-		sameSite: 'Lax' as const,
-		expires: session.expires_at
-	}))
+	const storageKey = `sb-${projectRef}-auth-token`
 
 	// First navigate to establish the domain context
 	await page.goto(baseUrl, { waitUntil: 'domcontentloaded' })
 
-	// Now set cookies via JavaScript in the page context (most reliable method)
-	// Note: value is already Base64URL encoded (safe for cookies, no special chars)
+	// Set session in localStorage - Supabase client will read this and sync to cookies
 	await page.evaluate(
-		({ chunks, expires }) => {
-			for (const { name, value } of chunks) {
-				document.cookie = `${name}=${value}; path=/; expires=${new Date(expires * 1000).toUTCString()}`
-			}
+		({ key, value }) => {
+			localStorage.setItem(key, JSON.stringify(value))
 		},
-		{ chunks: cookieChunks, expires: session.expires_at }
+		{ key: storageKey, value: session }
 	)
 
-	// Also set in localStorage for browser client
-	await page.evaluate(
-		({ cookieKey, session }) => {
-			localStorage.setItem(cookieKey, JSON.stringify(session))
-		},
-		{ cookieKey, session }
-	)
+	debugLog(` Session stored in localStorage: ${storageKey}`)
 
-	debugLog(` Cookies set via JS: ${cookieChunks.map(c => c.name).join(', ')}`)
-	debugLog(' Session injected into localStorage')
+	// Reload the page so Supabase client picks up the session from localStorage
+	await page.reload({ waitUntil: 'domcontentloaded' })
+
+	debugLog(' Page reloaded to activate session')
 }
 
 /**
- * Login as property owner via API
+ * Login as property owner via UI (for session initialization)
+ *
+ * This function performs a real UI login to properly initialize the Supabase session.
+ * After the first login, the session can be reused via context storage.
  *
  * @param page - Playwright Page instance
- * @param options - Login credentials and cache control
- *
- * Performance:
- * - First call: ~200ms (API call)
- * - Subsequent calls: ~50ms (cached session injection)
+ * @param options - Login credentials
  */
 export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const email =
@@ -281,51 +255,47 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			throw new Error('E2E_OWNER_PASSWORD environment variable is required')
 		})()
 	const password = rawPassword.replace(/\\!/g, '!')
-	const cacheKey = `owner:${email}`
 
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const context = page.context()
 
-	// Check cache first
-	let session = sessionCache.get(cacheKey)
+	debugLog(` Logging in as owner via UI: ${email}`)
 
-	if (!session || options.forceLogin) {
-		debugLog(` Authenticating via API: ${email}`)
+	// Navigate to login page
+	await page.goto(`${baseUrl}/login`)
+	await page.waitForLoadState('domcontentloaded')
 
-		try {
-			session = await authenticateViaAPI(email, password)
-			sessionCache.set(cacheKey, session)
-			debugLog(` API authentication successful`)
-		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error)
-			debugLog(` API authentication failed: ${message}`)
-			throw error
-		}
-	} else {
-		debugLog(` Using cached session for: ${email}`)
-	}
+	// Fill in email field and wait for validation
+	const emailInput = page.getByLabel(/email/i)
+	await emailInput.click()
+	await emailInput.fill(email)
+	await emailInput.blur() // Trigger validation
+	await page.waitForTimeout(500) // Wait for validation to complete
 
-	// Inject session into browser context (navigates to base URL first, then sets cookies)
-	await injectSessionIntoBrowser(page, session, baseUrl)
+	// Fill in password field
+	const passwordInput = page.getByLabel(/password/i)
+	await passwordInput.click()
+	await passwordInput.fill(password)
 
-	// Navigate to dashboard - session should be valid now
-	await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
+	// Click sign in button and wait for it to become enabled
+	const signInButton = page.getByRole('button', { name: /sign in/i })
+	await signInButton.waitFor({ state: 'attached' })
+	await signInButton.click()
 
-	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
-	// (persistent connections like SSE/WebSocket can prevent networkidle)
+	// Wait for navigation to dashboard
+	await page.waitForURL(/\/(dashboard|tenant)/, { timeout: 15000 })
+
+	// Wait for page to stabilize
 	await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-		debugLog(' networkidle timeout, continuing with domcontentloaded')
+		debugLog(' networkidle timeout, continuing')
 	})
 
-	// Verify we're not redirected to login (tenant redirect is OK)
+	// Verify we're not on login page
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
-		throw new Error(
-			`Login failed: Redirected to login page. Session may be invalid.`
-		)
+		throw new Error(`Login failed: Still on login page`)
 	}
 
-	debugLog(` Logged in as owner (${email})`)
+	debugLog(` Successfully logged in as owner`)
 }
 
 /**
