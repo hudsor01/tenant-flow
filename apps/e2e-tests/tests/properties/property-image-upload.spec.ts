@@ -134,15 +134,22 @@ test.describe('Property Image Upload', () => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
-		// Find the newly created property card
+		// Switch to grid view if currently in table view (Zustand persists view mode)
+		const gridButton = page.getByRole('button', { name: /grid/i })
+		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await gridButton.click()
+			await page.waitForTimeout(300)
+		}
+
+		// Find the newly created property card (use first() to handle duplicate names from repeated test runs)
 		const newPropertyCard = page.locator('[data-testid="property-card"]').filter({
 			hasText: 'E2E Test Property with Images'
-		})
+		}).first()
 
 		await expect(newPropertyCard).toBeVisible()
 
 		// Verify the card has an image (not just placeholder)
-		const cardImage = newPropertyCard.locator('img')
+		const cardImage = newPropertyCard.locator('img').first()
 		const imgSrc = await cardImage.getAttribute('src')
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
@@ -156,28 +163,51 @@ test.describe('Property Image Upload', () => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
+		// Switch to grid view if currently in table view
+		const gridButton = page.getByRole('button', { name: /grid/i })
+		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await gridButton.click()
+			await page.waitForTimeout(300)
+		}
+
+		// Wait for TanStack Query to load property data (avoid SSR race condition)
+		// Note: SSR renders "No properties yet" before hydration — only wait for actual cards
+		await page.waitForFunction(
+			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
+			{ timeout: 15000 }
+		).catch(() => null)
+
 		// Find existing property card
 		const propertyCards = page.locator('[data-testid="property-card"]')
 		const cardCount = await propertyCards.count()
 
 		if (cardCount === 0) {
 			// Create a new property first
-			await page.getByRole('button', { name: /new property/i }).click()
-			await page.waitForTimeout(500)
+			await page.getByRole('button', { name: /add.*property/i }).click()
+			await page.waitForLoadState('domcontentloaded')
+			await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
 
 			// Fill the form
-			await page.getByLabel(/property name/i).fill('Test Property for Images')
-			await page
-				.getByLabel(/address/i)
-				.first()
-				.fill('123 Test Street')
-			await page.getByLabel(/city/i).fill('San Francisco')
-			await page.getByLabel(/state/i).fill('CA')
-			await page.getByLabel(/zip/i).fill('94102')
+			const nameInput = page.getByLabel(/property name/i).first()
+			await nameInput.click()
+			await nameInput.fill('Test Property for Images')
+			const addrInput = page.getByLabel(/address/i).first()
+			await addrInput.click()
+			await addrInput.fill('123 Test Street')
+			const cityInput = page.getByLabel(/city/i).first()
+			await cityInput.click()
+			await cityInput.fill('San Francisco')
+			const stateInput = page.getByLabel(/state/i).first()
+			await stateInput.click()
+			await stateInput.fill('CA')
+			const zipInput = page.getByLabel(/zip/i).first()
+			await zipInput.click()
+			await zipInput.fill('94102')
 
 			// Submit
 			await page.getByRole('button', { name: /create property/i }).click()
 			await page.waitForTimeout(2000)
+			await page.goto(`${baseUrl}/properties`)
 			await page.waitForLoadState('domcontentloaded')
 		}
 
@@ -185,9 +215,9 @@ test.describe('Property Image Upload', () => {
 		const propertyCard = propertyCards.first()
 		await expect(propertyCard).toBeVisible()
 
-		// Click View Details button WITHIN the first property card with navigation wait
-		const viewDetailsBtn = propertyCard.getByRole('link', {
-			name: 'View Details'
+		// Click View Details button WITHIN the first property card (property-select-card uses button not link)
+		const viewDetailsBtn = propertyCard.getByRole('button', {
+			name: /view details/i
 		})
 		await Promise.all([
 			page.waitForURL(/\/properties\/[a-f0-9-]+$/),
@@ -273,12 +303,25 @@ test.describe('Property Image Upload', () => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
+		// Switch to grid view if in table mode
+		const gridBtnCompression = page.getByRole('button', { name: /grid/i })
+		if (await gridBtnCompression.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await gridBtnCompression.click()
+			await page.waitForTimeout(300)
+		}
+
+		// Wait for TanStack Query to load property data
+		await page.waitForFunction(
+			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
+			{ timeout: 15000 }
+		).catch(() => null)
+
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
 		if ((await propertyCard.count()) > 0) {
-			// Navigate to details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', {
-				name: 'View Details'
+			// Navigate to details with navigation wait (property-select-card uses button not link)
+			const viewDetailsBtn = propertyCard.getByRole('button', {
+				name: /view details/i
 			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
@@ -318,12 +361,25 @@ test.describe('Property Image Upload', () => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
+		// Switch to grid view if in table mode
+		const gridBtnNav = page.getByRole('button', { name: /grid/i })
+		if (await gridBtnNav.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await gridBtnNav.click()
+			await page.waitForTimeout(300)
+		}
+
+		// Wait for TanStack Query to load property data
+		await page.waitForFunction(
+			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
+			{ timeout: 15000 }
+		).catch(() => null)
+
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
 		if ((await propertyCard.count()) > 0) {
-			// Click View Details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', {
-				name: 'View Details'
+			// Click View Details with navigation wait (property-select-card uses button not link)
+			const viewDetailsBtn = propertyCard.getByRole('button', {
+				name: /view details/i
 			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
