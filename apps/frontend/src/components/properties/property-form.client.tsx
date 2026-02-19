@@ -72,6 +72,13 @@ export function PropertyForm({
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const [uploadingImages, setUploadingImages] = useState(false)
 	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([])
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
 	const { data: user } = useSupabaseUser()
 	const router = useRouter()
 	const queryClient = useQueryClient()
@@ -277,7 +284,7 @@ export function PropertyForm({
 							setUploadingImages(false)
 							// Clear files after a delay so user can see final status
 							setTimeout(() => {
-								setFilesWithStatus([])
+								if (isMountedRef.current) setFilesWithStatus([])
 							}, 2000)
 						}
 					} else {

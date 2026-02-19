@@ -328,15 +328,10 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
 			}
 
-			// Set up from() to return different mocks based on call order
-			let propertiesCallCount = 0
-			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'properties') {
-					propertiesCallCount++
-					return propertiesCallCount === 1 ? mockCountQuery : mockPropertiesQuery
-				}
-				return mockPropertiesQuery
-			})
+			// First call: count check; second call: insert
+			mockUserClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
 
 			const payload = {
 				name: 'Park View',
@@ -392,15 +387,10 @@ describe('PropertiesService', () => {
 					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
 			}
 
-			// Set up from() to return count mock on first call, insert mock on second
-			let propertiesCallCount = 0
-			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'properties') {
-					propertiesCallCount++
-					return propertiesCallCount === 1 ? mockCountQuery : mockPropertiesQuery
-				}
-				return mockPropertiesQuery
-			})
+			// First call: count check; second call: insert
+			mockUserClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
 
 			await expect(
 				service.create(createMockRequest('user-123'), {
