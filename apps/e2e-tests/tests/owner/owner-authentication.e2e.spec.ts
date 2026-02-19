@@ -183,7 +183,7 @@ test.describe('Owner Authentication', () => {
 		await loginAsOwner(page)
 
 		// Wait for page to fully load
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify no console errors
 		if (consoleErrors.length > 0) {
@@ -209,7 +209,7 @@ test.describe('Owner Authentication', () => {
 
 		// Navigate to different page
 		await page.goto(`${baseUrl}${ROUTES.PROPERTIES}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Get cookies after navigation
 		const afterNavigationCookies = await context.cookies()
@@ -300,7 +300,7 @@ test.describe('Owner Authentication', () => {
 
 		// Navigate to a different page
 		await page.goto(`${baseUrl}${ROUTES.TENANTS}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should still be authenticated (not redirected to login)
 		expect(page.url()).not.toContain('/login')

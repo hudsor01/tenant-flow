@@ -12,7 +12,7 @@ const logger = createLogger({ component: 'NavigationHelpers' })
  */
 export async function navigateToPage(page: Page, path: string): Promise<void> {
 	await page.goto(path)
-	await page.waitForLoadState('networkidle')
+	await page.waitForLoadState('domcontentloaded')
 }
 
 /**
@@ -23,7 +23,7 @@ export async function clickSidebarLink(
 	linkName: string
 ): Promise<void> {
 	await page.getByRole('link', { name: new RegExp(linkName, 'i') }).click()
-	await page.waitForLoadState('networkidle')
+	await page.waitForLoadState('domcontentloaded')
 }
 
 /**
@@ -174,5 +174,5 @@ export async function verifyPageLoaded(
 	})
 
 	// Wait for network to be idle
-	await page.waitForLoadState('networkidle')
+	await page.waitForLoadState('domcontentloaded')
 }

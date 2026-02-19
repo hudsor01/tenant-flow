@@ -334,11 +334,11 @@ test.describe('Owner Dashboard', () => {
 
 		// Navigate away
 		await page.goto(`${baseUrl}${ROUTES.PROPERTIES}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Navigate back
 		await page.goto(dashboardUrl)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify dashboard loaded again
 		await expect(page.getByRole('heading', { name: /dashboard/i })).toBeVisible(

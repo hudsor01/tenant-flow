@@ -63,7 +63,7 @@ test.describe('Owner Tenants', () => {
 	})
 
 	test('should display tenants table', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const tableExists = (await page.getByRole('table').count()) > 0
 
@@ -342,7 +342,7 @@ test.describe('Owner Tenants', () => {
 	})
 
 	test('should display tenant status badges', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for status indicators (active, inactive, etc.)
 		const statusBadges = page
@@ -358,7 +358,7 @@ test.describe('Owner Tenants', () => {
 	})
 
 	test('should display lease status for each tenant', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const tableRows = page.getByRole('row')
 		const rowCount = await tableRows.count()
@@ -407,7 +407,7 @@ test.describe('Owner Tenants', () => {
 	test('should display tenant contact information in table', async ({
 		page
 	}) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const tableRows = page.getByRole('row')
 		const rowCount = await tableRows.count()
@@ -429,7 +429,7 @@ test.describe('Owner Tenants', () => {
 	})
 
 	test('should handle tenant without lease gracefully', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should not show errors for tenants without active leases
 		const errorMessages = page
@@ -443,7 +443,7 @@ test.describe('Owner Tenants', () => {
 	test('should display property/unit assignment if available', async ({
 		page
 	}) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const tableRows = page.getByRole('row')
 		const rowCount = await tableRows.count()

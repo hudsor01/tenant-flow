@@ -282,7 +282,7 @@ test.describe('Browser Console Errors', () => {
 		})
 
 		await page.goto(PROD_URL)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Allow some third-party errors but flag unexpected ones
 		const criticalErrors = consoleErrors.filter(

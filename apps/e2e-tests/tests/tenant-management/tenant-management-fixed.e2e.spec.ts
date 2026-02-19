@@ -5,7 +5,6 @@
 
 import { faker } from '@faker-js/faker'
 import { expect, test } from '@playwright/test'
-import { loginAsOwner } from '../../auth-helpers'
 
 // Test data generators
 const generateTenantData = () => ({
@@ -18,13 +17,10 @@ const generateTenantData = () => ({
 
 test.describe('Tenant Management E2E Workflows', () => {
 	test.beforeEach(async ({ page }) => {
-		// Login as property owner
-		await loginAsOwner(page)
-
-		// Navigate to tenant management page
+		// Auth provided by chromium project storageState (OWNER_AUTH_FILE)
 		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 		await page.goto(`${baseUrl}/tenants`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 	})
 
 	test('complete tenant lifecycle - create, view, edit, delete', async ({
@@ -35,7 +31,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 		// STEP 1: Navigate to tenant management page
 		await test.step('Navigate to tenant management page', async () => {
 			await page.goto('/tenants')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		// STEP 2: Create new tenant
@@ -49,7 +45,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 			if ((await createButton.count()) > 0) {
 				await createButton.click()
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 
 				// Fill out form using correct selectors from the actual component
 				await page.fill('input#first_name', tenantData.first_name)
@@ -127,7 +123,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 
 				if ((await editButton.count()) > 0) {
 					await editButton.click()
-					await page.waitForLoadState('networkidle')
+					await page.waitForLoadState('domcontentloaded')
 
 					// Update some field (use a simple one that's likely to exist)
 					if (await page.locator('input#phone').count()) {
@@ -156,14 +152,14 @@ test.describe('Tenant Management E2E Workflows', () => {
 		// STEP 5: Navigate back to tenant list
 		await test.step('Navigate back to tenant list', async () => {
 			await page.goto('/tenants')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 	})
 
 	test('search and filter tenants', async ({ page }) => {
 		await test.step('Navigate to tenant management', async () => {
 			await page.goto('/tenants')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Search by name', async () => {
@@ -176,7 +172,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 				await page.waitForTimeout(500) // Debounce
 
 				// Verify search happened (results may vary)
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 			}
 		})
 
@@ -190,7 +186,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 				await page.waitForTimeout(500)
 
 				// Verify search cleared
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 			}
 		})
 	})
@@ -198,7 +194,7 @@ test.describe('Tenant Management E2E Workflows', () => {
 	test('tenant dashboard navigation', async ({ page }) => {
 		await test.step('Navigate to tenant management', async () => {
 			await page.goto('/tenants')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Test navigation to tenant details', async () => {
@@ -208,29 +204,32 @@ test.describe('Tenant Management E2E Workflows', () => {
 				// Skip header row
 				const firstTenantRow = tenantRows.nth(1)
 				await firstTenantRow.click()
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 
 				// Should navigate to tenant details
 				await expect(page).toHaveURL(/^\/tenants\/[a-f0-9-]+/)
 
 				// Go back to list
 				await page.goBack()
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 			}
 		})
 	})
 })
 
 test.describe('Tenant Management Error Scenarios', () => {
+	test.use({ storageState: 'playwright/.auth/owner.json' })
+
 	test.beforeEach(async ({ page }) => {
-		// Login as property owner
-		await loginAsOwner(page)
+		const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
+		await page.goto(`${baseUrl}/tenants`)
+		await page.waitForLoadState('domcontentloaded')
 	})
 
 	test('handle network errors gracefully', async ({ page, context }) => {
 		// Navigate to tenant management first
 		await page.goto('/tenants')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Simulate offline mode
 		await context.setOffline(true)
@@ -250,7 +249,7 @@ test.describe('Tenant Management Error Scenarios', () => {
 	test('handle API errors gracefully', async ({ page }) => {
 		// Navigate to tenant management first
 		await page.goto('/tenants')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Intercept API calls and return errors
 		await page.route('**/api/v1/tenants**', route => {

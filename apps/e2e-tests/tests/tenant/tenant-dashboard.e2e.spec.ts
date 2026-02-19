@@ -372,11 +372,11 @@ test.describe('Tenant Dashboard', () => {
 
 		// Navigate away (use relative path - baseURL is set in playwright config)
 		await page.goto(ROUTES.TENANT_LEASE)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Navigate back
 		await page.goto(dashboardUrl)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify dashboard loaded again
 		await expect(

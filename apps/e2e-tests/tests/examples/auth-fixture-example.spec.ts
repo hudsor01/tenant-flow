@@ -35,7 +35,7 @@ test.describe('Auth Fixture Example', () => {
 		await authenticatedPage.goto('/')
 
 		// Wait for auth to initialize
-		await authenticatedPage.waitForLoadState('networkidle')
+		await authenticatedPage.waitForLoadState('domcontentloaded')
 
 		// Verify authenticated user data is available
 		const userMenuButton = authenticatedPage.locator(
