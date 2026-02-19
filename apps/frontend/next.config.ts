@@ -23,9 +23,13 @@ const nextConfig: NextConfig = {
 			{ protocol: 'https', hostname: 'images.unsplash.com' },
 			{ protocol: 'https', hostname: 'api.dicebear.com' },
 			{ protocol: 'https', hostname: '*.googleusercontent.com' },
-			// Local Supabase development
-			{ protocol: 'http', hostname: '127.0.0.1' },
-			{ protocol: 'http', hostname: 'localhost' }
+			// Local Supabase development (excluded from production builds)
+			...(process.env.NODE_ENV !== 'production'
+				? [
+						{ protocol: 'http' as const, hostname: '127.0.0.1' },
+						{ protocol: 'http' as const, hostname: 'localhost' }
+					]
+				: [])
 		]
 	},
 

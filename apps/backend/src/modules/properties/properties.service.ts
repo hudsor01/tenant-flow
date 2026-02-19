@@ -115,9 +115,13 @@ export class PropertiesService {
 		const client = this.supabase.getUserClient(token)
 
 		// Check plan limit before creating
-		const { data: limits } = await this.supabase
+		const { data: limits, error: limitsError } = await this.supabase
 			.getAdminClient()
 			.rpc('get_user_plan_limits', { p_user_id: user_id })
+		if (limitsError) {
+			this.logger.error('Failed to fetch plan limits', { error: limitsError })
+			throw new InternalServerErrorException('Could not verify plan limits')
+		}
 		const propertyLimit: number = (limits as Array<{ property_limit: number }> | null)?.[0]?.property_limit ?? 5
 
 		const { count: currentCount } = await client

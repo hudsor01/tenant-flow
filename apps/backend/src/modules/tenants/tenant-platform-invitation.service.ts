@@ -18,6 +18,7 @@ import {
 	BadRequestException,
 	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
@@ -126,9 +127,13 @@ export class TenantPlatformInvitationService {
 			}
 
 			// Step 3b: Check plan limit before allowing invitation
-			const { data: limits } = await this.supabase
+			const { data: limits, error: limitsError } = await this.supabase
 				.getAdminClient()
 				.rpc('get_user_plan_limits', { p_user_id: ownerId })
+			if (limitsError) {
+				this.logger.error('Failed to fetch plan limits', { error: limitsError })
+				throw new InternalServerErrorException('Could not verify plan limits')
+			}
 			const tenantLimit: number = (limits as Array<{ tenant_limit: number }> | null)?.[0]?.tenant_limit ?? 25
 
 			// Count active tenants owned by this owner (via leases)
