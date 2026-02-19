@@ -43,7 +43,6 @@ begin
   )
   on conflict (email) do update
   set full_name = excluded.full_name,
-      user_type = excluded.user_type,
       updated_at = now()
   returning id into v_owner_test_user_id;
 
@@ -78,7 +77,7 @@ begin
     null,
     now(),
     '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
-    '{"full_name":"Test Admin","user_type":"OWNER"}'::jsonb,
+    '{"full_name":"Test Admin"}'::jsonb,
     now(),
     now(),
     '',
@@ -92,14 +91,6 @@ begin
       raw_app_meta_data = excluded.raw_app_meta_data,
       raw_user_meta_data = excluded.raw_user_meta_data,
       updated_at = now();
-
-  -- The ensure_public_user_for_auth trigger fires on auth.users INSERT and reads
-  -- user_type from raw_user_meta_data (not raw_app_meta_data), defaulting to TENANT.
-  -- Explicitly correct the user_type after auth.users is created.
-  update public.users
-  set user_type = 'OWNER'
-  where id = v_owner_test_user_id
-    and user_type != 'OWNER';
 
   -- Create Stripe connected account for test owner (required for RLS)
   insert into public.stripe_connected_accounts (

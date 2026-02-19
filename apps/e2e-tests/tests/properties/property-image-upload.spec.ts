@@ -154,6 +154,9 @@ test.describe('Property Image Upload', () => {
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
 		expect(imgSrc).toBeTruthy()
+		console.log('Property card image src:', imgSrc)
+
+		console.log('✅ Property creation with images test completed!')
 	})
 
 	test('should upload image and display it on property card', async ({
@@ -162,20 +165,6 @@ test.describe('Property Image Upload', () => {
 		// Navigate to /properties
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
-
-		// Switch to grid view if currently in table view
-		const gridButton = page.getByRole('button', { name: /grid/i })
-		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await gridButton.click()
-			await page.waitForTimeout(300)
-		}
-
-		// Wait for TanStack Query to load property data (avoid SSR race condition)
-		// Note: SSR renders "No properties yet" before hydration — only wait for actual cards
-		await page.waitForFunction(
-			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
-			{ timeout: 15000 }
-		).catch(() => null)
 
 		// Find existing property card
 		const propertyCards = page.locator('[data-testid="property-card"]')
@@ -207,7 +196,6 @@ test.describe('Property Image Upload', () => {
 			// Submit
 			await page.getByRole('button', { name: /create property/i }).click()
 			await page.waitForTimeout(2000)
-			await page.goto(`${baseUrl}/properties`)
 			await page.waitForLoadState('domcontentloaded')
 		}
 
@@ -303,19 +291,6 @@ test.describe('Property Image Upload', () => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
-		// Switch to grid view if in table mode
-		const gridBtnCompression = page.getByRole('button', { name: /grid/i })
-		if (await gridBtnCompression.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await gridBtnCompression.click()
-			await page.waitForTimeout(300)
-		}
-
-		// Wait for TanStack Query to load property data
-		await page.waitForFunction(
-			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
-			{ timeout: 15000 }
-		).catch(() => null)
-
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
 		if ((await propertyCard.count()) > 0) {
@@ -360,19 +335,6 @@ test.describe('Property Image Upload', () => {
 	}) => {
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
-
-		// Switch to grid view if in table mode
-		const gridBtnNav = page.getByRole('button', { name: /grid/i })
-		if (await gridBtnNav.isVisible({ timeout: 2000 }).catch(() => false)) {
-			await gridBtnNav.click()
-			await page.waitForTimeout(300)
-		}
-
-		// Wait for TanStack Query to load property data
-		await page.waitForFunction(
-			() => document.querySelectorAll('[data-testid="property-card"]').length > 0,
-			{ timeout: 15000 }
-		).catch(() => null)
 
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 

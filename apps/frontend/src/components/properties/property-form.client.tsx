@@ -244,10 +244,10 @@ export function PropertyForm({
 								}
 							})
 
-							const results = await Promise.allSettled(uploadPromises)
+							await Promise.allSettled(uploadPromises)
 
-							const successCount = results.filter(r => r.status === 'fulfilled').length
-							const errorCount = results.filter(r => r.status === 'rejected').length
+							const successCount = filesWithStatus.filter(f => f.status === 'success').length
+							const errorCount = filesWithStatus.filter(f => f.status === 'error').length
 
 							logger.info('Images upload completed', {
 								propertyId: newProperty.id,
@@ -646,7 +646,7 @@ export function PropertyForm({
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
-											src={objectUrlsRef.current.get(file) ?? ""}
+											src={URL.createObjectURL(file)}
 											alt={file.name}
 											className="w-full h-full object-cover"
 										/>
