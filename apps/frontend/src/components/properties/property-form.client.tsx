@@ -151,10 +151,11 @@ export function PropertyForm({
 		}
 
 		return () => {
-			for (const url of objectUrlsRef.current.values()) {
+			const urlMap = objectUrlsRef.current
+			for (const url of urlMap.values()) {
 				URL.revokeObjectURL(url)
 			}
-			objectUrlsRef.current.clear()
+			urlMap.clear()
 		}
 	}, [filesWithStatus])
 
