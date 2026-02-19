@@ -38,11 +38,53 @@ COMMENT ON SCHEMA public IS 'Removed Stripe sync tables - using Stripe API direc
 
 CREATE FUNCTION public.check_user_feature_access(p_user_id text, p_feature text) RETURNS boolean
     LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = ''
     AS $$
-BEGIN
-  -- All users have all features for now (can be restricted by plan later)
-  RETURN true;
-END;
+declare
+  v_stripe_customer_id text;
+  v_price_id           text;
+  v_plan_tier          text;
+begin
+  if exists (select 1 from pg_namespace where nspname = 'stripe')
+     and to_regclass('stripe.customers') is not null
+     and to_regclass('stripe.subscriptions') is not null
+  then
+    select id into v_stripe_customer_id
+    from stripe.customers
+    where (metadata->>'user_id')::uuid = p_user_id::uuid
+    limit 1;
+
+    if v_stripe_customer_id is not null then
+      select si.price into v_price_id
+      from stripe.subscriptions s
+      join stripe.subscription_items si on si.subscription = s.id
+      where s.customer = v_stripe_customer_id
+        and s.status in ('active', 'trialing')
+      order by s.created desc
+      limit 1;
+    end if;
+  end if;
+
+  v_plan_tier := case v_price_id
+    when 'price_1RtWFcP3WCR53Sdo5Li5xHiC' then 'FREETRIAL'
+    when 'price_1RtWFcP3WCR53SdoCxiVldhb' then 'STARTER'
+    when 'price_1RtWFdP3WCR53SdoArRRXYrL' then 'STARTER'
+    when 'price_1SPGCNP3WCR53SdorjDpiSy5' then 'GROWTH'
+    when 'price_1SPGCRP3WCR53SdonqLUTJgK' then 'GROWTH'
+    when 'price_1SPGCjP3WCR53SdoIpidDn0T' then 'TENANTFLOW_MAX'
+    when 'price_1SPGCoP3WCR53SdoID50geIC' then 'TENANTFLOW_MAX'
+    else 'STARTER'
+  end;
+
+  return case p_feature
+    when 'basic_properties'  then true
+    when 'maintenance'       then true
+    when 'financial_reports' then true
+    when 'api_access'        then v_plan_tier in ('GROWTH', 'TENANTFLOW_MAX')
+    when 'white_label'       then v_plan_tier = 'TENANTFLOW_MAX'
+    else true
+  end;
+end;
 $$;
 
 

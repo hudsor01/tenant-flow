@@ -145,6 +145,27 @@ export type Database = {
         }
         Relationships: []
       }
+      email_suppressions: {
+        Row: {
+          email: string
+          reason: string
+          suppressed_at: string
+          updated_at: string
+        }
+        Insert: {
+          email: string
+          reason: string
+          suppressed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          email?: string
+          reason?: string
+          suppressed_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
