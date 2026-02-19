@@ -155,3 +155,63 @@ Key areas to check:
 1. Fix seed user_type first (ISSUE-001) — needed for all manual testing
 2. Walk owner flow: dashboard → properties → tenants → leases → financials
 3. Walk tenant flow: portal → lease → payments
+
+---
+
+## Phase 33-02: Manual Flow Verification (Code Inspection)
+
+Date: 2026-02-18
+Method: Static code inspection of all route files (browser automation unavailable — Chrome extension not connected)
+
+### Owner Flow Results (25 flows → 16 unique pages checked)
+
+| # | Flow | Route | Status | Notes |
+|---|------|-------|--------|-------|
+| 1 | Dashboard loads | `/dashboard` | ✅ PASS | Full API integration, stat cards, loading states |
+| 2 | Occupancy/revenue metrics | `/dashboard` | ✅ PASS | Uses real hooks with data fallbacks |
+| 3 | Properties list | `/properties` | ✅ PASS | Cards, units, images — all wired |
+| 4 | Create property | `/properties/new` | ✅ PASS | Modal-based form with image upload |
+| 5 | Edit property | `/properties/[id]/edit` | ✅ PASS | Individual property edit form |
+| 6 | Property detail | `/properties/[id]` | ✅ PASS | All sections load |
+| 7 | Tenants list | `/tenants` | ✅ PASS | Full list with invite/cancel |
+| 8 | Invite tenant | `/tenants/new` | ✅ PASS | Invitation form exists |
+| 9 | Leases list | `/leases` | ✅ PASS | List, filter, sort, dialog management |
+| 10 | Create lease | `/leases` | ✅ PASS | Dialog-based creation |
+| 11 | Maintenance list | `/maintenance` | ✅ PASS | Delegates to MaintenanceViewClient |
+| 12 | Status filters | `/maintenance` | ✅ PASS | Filter component present |
+| 13 | Billing plans | `/billing/plans` | ⚠️ PARTIAL | **Hardcoded PLANS array; CURRENT_PLAN_ID=null** |
+| 14 | Upgrade button | `/billing/plans` | ⚠️ PARTIAL | Button exists but Stripe checkout not wired |
+| 15 | Settings billing tab | `/settings?tab=billing` | ⚠️ PARTIAL | Tab system works; Connect section exists |
+| 16 | Subscription plan shown | `/settings?tab=billing` | ⚠️ PARTIAL | Needs real subscription data |
+| 17 | Stripe Connect visible | `/settings?tab=billing` | ✅ PASS | `ConnectAccountStatus` component present |
+| 18 | Connect button | `/settings?tab=billing` | ✅ PASS | Button renders; redirects to backend endpoint |
+| 19 | Connect dialog/redirect | `/settings?tab=billing` | ⚠️ PARTIAL | Backend endpoint exists; E2E not verified |
+| 20 | Financials overview | `/financials` | ✅ PASS | Full dashboard with API hooks |
+| 21 | Expenses | `/financials/expenses` | ✅ PASS | Expense tracking, filters, export |
+| 22 | Payouts | `/financials/payouts` | ⚠️ PARTIAL | Works when Connect active; no empty state |
+| 23 | Tax documents | `/financials/tax-documents` | ❌ FAIL | **Hardcoded sampleDocuments array (lines 36-93)** |
+| 24 | Reports | `/reports` | ✅ PASS | Report sections and PDF export |
+| 25 | Analytics | `/analytics` | ✅ PASS | Redirects to /analytics/overview; sub-routes exist |
+
+**Owner summary: 18/25 PASS, 5/25 PARTIAL, 1/25 FAIL (tax-documents mock data), 1/25 not tested**
+
+---
+
+### Tenant Flow Results (12 flows)
+
+| # | Flow | Route | Status | Notes |
+|---|------|-------|--------|-------|
+| 1 | Tenant portal loads | `/tenant` | ✅ PASS | Portal dashboard component present |
+| 2 | Current lease displayed | `/tenant` | ✅ PASS | Lease card with property name, dates |
+| 3 | Rent amount shown | `/tenant` | ✅ PASS | Monthly payment visible |
+| 4 | Payments page | `/tenant/payments` | ✅ PASS | Autopay + payment history |
+| 5 | Pay Rent button | `/tenant/payments` | ✅ PASS | Payment CTA exists |
+| 6 | Stripe Checkout redirect | `/tenant/payments` | ⚠️ PARTIAL | Wired to backend; E2E requires Connect setup |
+| 7 | Lease details | `/tenant/lease` | ✅ PASS | Lease terms, property info, financial details |
+| 8 | Key terms shown | `/tenant/lease` | ⚠️ PARTIAL | **"Signed on loading..." placeholder text (line 191)** |
+| 9 | Maintenance list | `/tenant/maintenance` | ✅ PASS | Active requests + history |
+| 10 | Submit maintenance request | `/tenant/maintenance` | ✅ PASS | Form and submission flow present |
+| 11 | Documents page | `/tenant/documents` | ✅ PASS | Document sections with URL validation |
+| 12 | Profile/settings | `/tenant/profile` | ✅ PASS | Full profile edit form |
+
+**Tenant summary: 9/12 PASS, 3/12 PARTIAL, 0/12 FAIL**

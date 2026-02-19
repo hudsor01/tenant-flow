@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import {
 	FileText,
-	Download,
-	Clock,
-	CheckCircle,
+	TrendingDown,
+	TrendingUp,
 	Calendar,
-	Search
+	AlertCircle,
+	RefreshCw
 } from 'lucide-react'
-import { Input } from '#components/ui/input'
 import { Skeleton } from '#components/ui/skeleton'
+import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import {
 	Select,
@@ -20,216 +20,73 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
+import { useTaxDocuments } from '#hooks/api/use-financials'
+import { formatCents } from '@repo/shared/lib/format'
 
 const logger = createLogger({ component: 'TaxDocumentsPage' })
 
-interface TaxDocument {
-	id: string
-	name: string
-	year: number
-	status: 'ready' | 'pending' | 'filed'
-	downloadUrl?: string
-	estimatedDate?: string
-}
-
-// Sample data - in production this would come from an API
-const sampleDocuments: TaxDocument[] = [
-	{
-		id: '1',
-		name: 'Form 1099-MISC',
-		year: 2024,
-		status: 'pending',
-		estimatedDate: '2025-01-31'
-	},
-	{
-		id: '2',
-		name: 'Schedule E (Rental Income)',
-		year: 2024,
-		status: 'pending',
-		estimatedDate: '2025-02-15'
-	},
-	{
-		id: '3',
-		name: 'Property Tax Statement',
-		year: 2024,
-		status: 'ready',
-		downloadUrl: '#'
-	},
-	{
-		id: '4',
-		name: 'Depreciation Schedule',
-		year: 2024,
-		status: 'ready',
-		downloadUrl: '#'
-	},
-	{
-		id: '5',
-		name: 'Form 1099-MISC',
-		year: 2023,
-		status: 'filed',
-		downloadUrl: '#'
-	},
-	{
-		id: '6',
-		name: 'Schedule E (Rental Income)',
-		year: 2023,
-		status: 'filed',
-		downloadUrl: '#'
-	},
-	{
-		id: '7',
-		name: 'Property Tax Statement',
-		year: 2023,
-		status: 'filed',
-		downloadUrl: '#'
-	},
-	{
-		id: '8',
-		name: 'Depreciation Schedule',
-		year: 2023,
-		status: 'filed',
-		downloadUrl: '#'
-	}
-]
-
-function formatDate(dateString: string): string {
-	return new Date(dateString).toLocaleDateString('en-US', {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric'
-	})
-}
+const TAX_YEARS = Array.from(
+	{ length: 5 },
+	(_, i) => new Date().getFullYear() - i
+)
 
 export default function TaxDocumentsPage() {
-	const [yearFilter, setYearFilter] = useState<string>('all')
-	const [statusFilter, setStatusFilter] = useState<string>('all')
-	const [searchQuery, setSearchQuery] = useState('')
-	const [isLoading, setIsLoading] = useState(true)
-
-	// Simulate loading
-	useEffect(() => {
-		const timer = setTimeout(() => setIsLoading(false), 500)
-		return () => clearTimeout(timer)
-	}, [])
-
-	const documents = sampleDocuments
-
-	// Get unique years for filter
-	const years = [...new Set(documents.map(d => d.year))].sort((a, b) => b - a)
-
-	// Filter documents
-	const filteredDocuments = documents.filter(doc => {
-		if (yearFilter !== 'all' && doc.year !== parseInt(yearFilter)) return false
-		if (statusFilter !== 'all' && doc.status !== statusFilter) return false
-		if (searchQuery) {
-			const docName = doc.name ?? ''
-			if (!docName.toLowerCase().includes(searchQuery.toLowerCase())) {
-				return false
-			}
-		}
-		return true
-	})
-
-	// Group documents by year
-	const documentsByYear = filteredDocuments.reduce<
-		Record<number, TaxDocument[]>
-	>((acc, doc) => {
-		const yearDocs = acc[doc.year] ?? []
-		yearDocs.push(doc)
-		acc[doc.year] = yearDocs
-		return acc
-	}, {})
-
-	const statusConfig = {
-		ready: {
-			icon: CheckCircle,
-			label: 'Ready',
-			className:
-				'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
-			iconClass: 'text-emerald-600'
-		},
-		pending: {
-			icon: Clock,
-			label: 'Pending',
-			className:
-				'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-			iconClass: 'text-amber-600'
-		},
-		filed: {
-			icon: CheckCircle,
-			label: 'Filed',
-			className:
-				'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-			iconClass: 'text-blue-600'
-		}
-	}
-
-	// Summary counts
-	const readyCount = documents.filter(d => d.status === 'ready').length
-	const pendingCount = documents.filter(d => d.status === 'pending').length
-	const filedCount = documents.filter(d => d.status === 'filed').length
-
-	const handleDownload = (documentId: string) => {
-		const doc = documents.find(document => document.id === documentId)
-		if (!doc?.downloadUrl) {
-			logger.error('Missing download URL for tax document', {
-				metadata: { documentId }
-			})
-			return
-		}
-
-		try {
-			const url = new URL(doc.downloadUrl, window.location.origin)
-			if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-				logger.error('Invalid download URL protocol', {
-					metadata: { documentId, protocol: url.protocol }
-				})
-				return
-			}
-
-			const anchor = document.createElement('a')
-			anchor.href = url.href
-			anchor.download = doc.name || 'tax-document'
-			document.body.appendChild(anchor)
-			anchor.click()
-			document.body.removeChild(anchor)
-			logger.debug('Downloading document', { documentId, url: url.href })
-		} catch (error) {
-			logger.error('Failed to download tax document', {
-				metadata: {
-					documentId,
-					error: error instanceof Error ? error.message : String(error)
-				}
-			})
-		}
-	}
+	const [taxYear, setTaxYear] = useState(new Date().getFullYear())
+	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear)
 
 	if (isLoading) {
 		return (
 			<div className="p-6 lg:p-8 bg-background min-h-full">
-				{/* Header skeleton */}
 				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
 					<div>
 						<Skeleton className="h-8 w-40 mb-2" />
 						<Skeleton className="h-4 w-64" />
 					</div>
+					<Skeleton className="h-10 w-32" />
 				</div>
-				{/* Stats skeleton */}
 				<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
 					{[1, 2, 3].map(i => (
 						<Skeleton key={i} className="h-24 rounded-lg" />
 					))}
 				</div>
-				{/* Content skeleton */}
-				<Skeleton className="h-12 w-full mb-6 rounded-lg" />
-				<div className="space-y-6">
-					{[1, 2].map(i => (
-						<Skeleton key={i} className="h-48 rounded-lg" />
+				<div className="space-y-4">
+					{[1, 2, 3].map(i => (
+						<Skeleton key={i} className="h-16 rounded-lg" />
 					))}
 				</div>
 			</div>
 		)
 	}
+
+	if (error) {
+		logger.error('Failed to load tax documents', { error })
+		return (
+			<div className="p-6 lg:p-8 bg-background min-h-full">
+				<div className="flex items-center gap-2 mb-6">
+					<h1 className="typography-h1">Tax Documents</h1>
+				</div>
+				<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 flex flex-col items-center gap-4 text-center">
+					<AlertCircle className="size-10 text-destructive" />
+					<div>
+						<p className="font-medium text-destructive">Failed to load tax documents</p>
+						<p className="text-sm text-muted-foreground mt-1">
+							{error instanceof Error ? error.message : 'An unexpected error occurred'}
+						</p>
+					</div>
+					<Button variant="outline" onClick={() => refetch()}>
+						<RefreshCw className="mr-2 size-4" />
+						Try Again
+					</Button>
+				</div>
+			</div>
+		)
+	}
+
+	const hasData = data && (
+		data.totals.totalIncome > 0 ||
+		data.totals.totalDeductions > 0 ||
+		data.expenseCategories.length > 0
+	)
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
@@ -239,215 +96,168 @@ export default function TaxDocumentsPage() {
 					<div>
 						<h1 className="typography-h1">Tax Documents</h1>
 						<p className="text-muted-foreground">
-							Download and manage tax-related documents.
+							Tax summary and deductions for your rental properties.
 						</p>
 					</div>
-				</div>
-			</BlurFade>
-
-			{/* Summary Cards */}
-			<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-				<BlurFade delay={0.15} inView>
-					<button
-						onClick={() =>
-							setStatusFilter(statusFilter === 'ready' ? 'all' : 'ready')
-						}
-						className={`p-4 rounded-lg border transition-colors text-left ${
-							statusFilter === 'ready'
-								? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
-						}`}
+					<Select
+						value={taxYear.toString()}
+						onValueChange={v => setTaxYear(parseInt(v, 10))}
 					>
-						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-								<CheckCircle className="w-5 h-5 text-emerald-600" />
-							</div>
-							<div>
-								<p className="text-2xl font-semibold tabular-nums">
-									{readyCount}
-								</p>
-								<p className="text-sm text-muted-foreground">
-									Ready to Download
-								</p>
-							</div>
-						</div>
-					</button>
-				</BlurFade>
-
-				<BlurFade delay={0.2} inView>
-					<button
-						onClick={() =>
-							setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')
-						}
-						className={`p-4 rounded-lg border transition-colors text-left ${
-							statusFilter === 'pending'
-								? 'border-amber-500 bg-amber-50 dark:bg-amber-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
-						}`}
-					>
-						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-								<Clock className="w-5 h-5 text-amber-600" />
-							</div>
-							<div>
-								<p className="text-2xl font-semibold tabular-nums">
-									{pendingCount}
-								</p>
-								<p className="text-sm text-muted-foreground">
-									Pending Generation
-								</p>
-							</div>
-						</div>
-					</button>
-				</BlurFade>
-
-				<BlurFade delay={0.25} inView>
-					<button
-						onClick={() =>
-							setStatusFilter(statusFilter === 'filed' ? 'all' : 'filed')
-						}
-						className={`p-4 rounded-lg border transition-colors text-left ${
-							statusFilter === 'filed'
-								? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-								: 'border-border bg-card hover:bg-muted/50'
-						}`}
-					>
-						<div className="flex items-center gap-3">
-							<div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-								<FileText className="w-5 h-5 text-blue-600" />
-							</div>
-							<div>
-								<p className="text-2xl font-semibold tabular-nums">
-									{filedCount}
-								</p>
-								<p className="text-sm text-muted-foreground">
-									Filed / Archived
-								</p>
-							</div>
-						</div>
-					</button>
-				</BlurFade>
-			</div>
-
-			{/* Filters */}
-			<BlurFade delay={0.3} inView>
-				<div className="flex flex-col sm:flex-row gap-3 mb-6">
-					<div className="relative flex-1">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-						<Input
-							type="text"
-							placeholder="Search documents..."
-							value={searchQuery}
-							onChange={e => setSearchQuery(e.target.value)}
-							className="pl-10"
-						/>
-					</div>
-					<Select value={yearFilter} onValueChange={setYearFilter}>
 						<SelectTrigger className="w-[130px]">
-							<SelectValue placeholder="All Years" />
+							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="all">All Years</SelectItem>
-							{years.map(year => (
-								<SelectItem key={year} value={year.toString()}>
-									{year}
+							{TAX_YEARS.map(y => (
+								<SelectItem key={y} value={y.toString()}>
+									{y}
 								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
-					{statusFilter !== 'all' && (
-						<button
-							onClick={() => setStatusFilter('all')}
-							className="text-sm text-muted-foreground hover:text-foreground px-3 py-2"
-						>
-							Clear filter
-						</button>
-					)}
 				</div>
 			</BlurFade>
 
-			{/* Documents List */}
-			<BlurFade delay={0.35} inView>
-				<div className="space-y-6">
-					{Object.entries(documentsByYear)
-						.sort(([a], [b]) => Number(b) - Number(a))
-						.map(([year, docs]) => (
-							<div
-								key={year}
-								className="bg-card border border-border rounded-lg overflow-hidden"
-							>
-								<div className="p-4 border-b border-border bg-muted/30">
-									<div className="flex items-center gap-2">
-										<Calendar className="w-4 h-4 text-muted-foreground" />
-										<h3 className="font-medium text-foreground">
-											Tax Year {year}
-										</h3>
-										<span className="text-sm text-muted-foreground">
-											({docs.length} documents)
-										</span>
+			{!hasData ? (
+				<BlurFade delay={0.15} inView>
+					<div className="flex flex-col items-center justify-center py-16 text-center">
+						<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+							<FileText className="w-8 h-8 text-muted-foreground" />
+						</div>
+						<h3 className="text-lg font-medium mb-1">No data for {taxYear}</h3>
+						<p className="text-sm text-muted-foreground">
+							No rental income or expenses recorded for tax year {taxYear}.
+						</p>
+					</div>
+				</BlurFade>
+			) : (
+				<>
+					{/* Summary Cards */}
+					<BlurFade delay={0.15} inView>
+						<div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+							<div className="p-4 rounded-lg border border-border bg-card">
+								<div className="flex items-center gap-3">
+									<div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+										<TrendingUp className="w-5 h-5 text-emerald-600" />
+									</div>
+									<div>
+										<p className="text-xl font-semibold tabular-nums">
+											{formatCents(data.totals.totalIncome)}
+										</p>
+										<p className="text-sm text-muted-foreground">Gross Income</p>
 									</div>
 								</div>
-								<div className="divide-y divide-border">
-									{docs.map(doc => {
-										const status = statusConfig[doc.status]
-										const StatusIcon = status.icon
-										return (
-											<div
-												key={doc.id}
-												className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
-											>
-												<div className="flex items-center gap-4">
-													<div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-														<FileText className="w-5 h-5 text-muted-foreground" />
-													</div>
-													<div>
-														<p className="text-sm font-medium">{doc.name}</p>
-														{doc.status === 'pending' && doc.estimatedDate && (
-															<p className="text-xs text-muted-foreground">
-																Expected: {formatDate(doc.estimatedDate)}
-															</p>
-														)}
-													</div>
-												</div>
-												<div className="flex items-center gap-3">
-													<span
-														className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${status.className}`}
-													>
-														<StatusIcon className="w-3.5 h-3.5" />
-														{status.label}
-													</span>
-													{doc.status !== 'pending' && (
-														<button
-															onClick={() => handleDownload(doc.id)}
-															className="p-2 hover:bg-muted rounded-lg transition-colors"
-															title="Download"
-														>
-															<Download className="w-4 h-4 text-muted-foreground" />
-														</button>
-													)}
-												</div>
-											</div>
-										)
-									})}
+							</div>
+
+							<div className="p-4 rounded-lg border border-border bg-card">
+								<div className="flex items-center gap-3">
+									<div className="w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+										<TrendingDown className="w-5 h-5 text-rose-600" />
+									</div>
+									<div>
+										<p className="text-xl font-semibold tabular-nums">
+											{formatCents(data.totals.totalDeductions)}
+										</p>
+										<p className="text-sm text-muted-foreground">Total Deductions</p>
+									</div>
 								</div>
 							</div>
-						))}
-				</div>
-			</BlurFade>
 
-			{/* Empty State */}
-			{filteredDocuments.length === 0 && (
-				<div className="flex flex-col items-center justify-center py-12 text-center">
-					<div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-						<FileText className="w-8 h-8 text-muted-foreground" />
-					</div>
-					<h3 className="text-lg font-medium mb-1">No documents found</h3>
-					<p className="text-sm text-muted-foreground">
-						{searchQuery || statusFilter !== 'all' || yearFilter !== 'all'
-							? 'Try adjusting your filters to see more results.'
-							: 'Tax documents will appear here as they become available.'}
-					</p>
-				</div>
+							<div className="p-4 rounded-lg border border-border bg-card">
+								<div className="flex items-center gap-3">
+									<div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+										<Calendar className="w-5 h-5 text-blue-600" />
+									</div>
+									<div>
+										<p className="text-xl font-semibold tabular-nums">
+											{formatCents(data.totals.netTaxableIncome)}
+										</p>
+										<p className="text-sm text-muted-foreground">Net Taxable Income</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					</BlurFade>
+
+					{/* Expense Categories */}
+					{data.expenseCategories.length > 0 && (
+						<BlurFade delay={0.2} inView>
+							<div className="bg-card border border-border rounded-lg overflow-hidden mb-6">
+								<div className="p-4 border-b border-border bg-muted/30">
+									<h3 className="font-medium text-foreground">
+										Deductible Expenses — Schedule E
+									</h3>
+								</div>
+								<div className="divide-y divide-border">
+									{data.expenseCategories
+										.filter(cat => cat.deductible)
+										.map(cat => (
+											<div
+												key={cat.category}
+												className="flex items-center justify-between p-4"
+											>
+												<div>
+													<p className="text-sm font-medium capitalize">
+														{cat.category.replace(/_/g, ' ')}
+													</p>
+													{cat.notes && (
+														<p className="text-xs text-muted-foreground">
+															{cat.notes}
+														</p>
+													)}
+												</div>
+												<div className="text-right">
+													<p className="text-sm font-medium tabular-nums">
+														{formatCents(cat.amount)}
+													</p>
+													<p className="text-xs text-muted-foreground">
+														{cat.percentage.toFixed(1)}% of expenses
+													</p>
+												</div>
+											</div>
+										))}
+								</div>
+							</div>
+						</BlurFade>
+					)}
+
+					{/* Property Depreciation */}
+					{data.propertyDepreciation.length > 0 && (
+						<BlurFade delay={0.25} inView>
+							<div className="bg-card border border-border rounded-lg overflow-hidden">
+								<div className="p-4 border-b border-border bg-muted/30">
+									<h3 className="font-medium text-foreground">
+										Property Depreciation
+									</h3>
+								</div>
+								<div className="divide-y divide-border">
+									{data.propertyDepreciation.map(prop => (
+										<div
+											key={prop.property_id}
+											className="flex items-center justify-between p-4"
+										>
+											<div>
+												<p className="text-sm font-medium">
+													{prop.propertyName}
+												</p>
+												<p className="text-xs text-muted-foreground">
+													Basis: {formatCents(prop.propertyValue)}
+												</p>
+											</div>
+											<div className="text-right">
+												<p className="text-sm font-medium tabular-nums">
+													{formatCents(prop.annualDepreciation)}/yr
+												</p>
+												<p className="text-xs text-muted-foreground">
+													Accumulated: {formatCents(prop.accumulatedDepreciation)}
+												</p>
+											</div>
+										</div>
+									))}
+								</div>
+							</div>
+						</BlurFade>
+					)}
+				</>
 			)}
 		</div>
 	)

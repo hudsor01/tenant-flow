@@ -71,11 +71,26 @@ export function handleMutationError(
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message
 
+	// Extract error code from body for structured errors (e.g. PLAN_LIMIT_EXCEEDED)
+	const errorCode = (
+		(error as Record<string, unknown>)?.body as Record<string, unknown>
+	)?.code
+
 	// Customize toast based on status code
 	if (status === 409) {
 		toast.error('Conflict', {
 			description:
 				displayMessage || 'This item already exists or has been modified'
+		})
+	} else if (status === 403 && errorCode === 'PLAN_LIMIT_EXCEEDED') {
+		toast.error('Plan limit reached', {
+			description: displayMessage,
+			action: {
+				label: 'Upgrade',
+				onClick: () => {
+					window.location.href = '/billing/plans'
+				}
+			}
 		})
 	} else if (status === 403) {
 		toast.error('Access Denied', {

@@ -18,8 +18,9 @@ test.describe('Minimal Smoke Test', () => {
 		// Navigate directly to dashboard - should work because we're pre-authenticated
 		await page.goto(`${BASE_URL}/dashboard`)
 
-		// Wait for page to load
-		await page.waitForLoadState('networkidle')
+		// Wait for page to load - use domcontentloaded to avoid timeout from
+		// TanStack Query background refetch polling keeping the network busy
+		await page.waitForLoadState('domcontentloaded')
 
 		// Check we're on the dashboard (not redirected to login)
 		const currentURL = page.url()
