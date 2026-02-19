@@ -233,10 +233,11 @@ export class TenantPlatformInvitationService {
 				message: `${dto.first_name} ${dto.last_name} has been invited to join the platform`
 			}
 		} catch (error) {
-			// Re-throw known exceptions (NotFoundException, BadRequestException)
+			// Re-throw known exceptions (NotFoundException, BadRequestException, ForbiddenException)
 			if (
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException
+				error instanceof BadRequestException ||
+				error instanceof ForbiddenException
 			) {
 				throw error
 			}

@@ -110,19 +110,31 @@ export default function PayRentPage() {
 		)
 	}
 
-	// Error state
+	// No active lease or error state
 	if (amountError) {
+		const isNoLease =
+			amountError instanceof Error &&
+			amountError.message.includes('No active lease')
 		return (
 			<div className="container mx-auto max-w-2xl py-12">
 				<Card>
 					<CardHeader>
-						<CardTitle className="text-destructive flex items-center gap-2">
+						<CardTitle
+							className={
+								isNoLease
+									? 'flex items-center gap-2'
+									: 'text-destructive flex items-center gap-2'
+							}
+						>
 							<AlertTriangle className="size-5" />
-							Unable to Load Payment Details
+							{isNoLease
+								? 'No Active Lease'
+								: 'Unable to Load Payment Details'}
 						</CardTitle>
 						<CardDescription>
-							There was an error loading your payment information. Please try
-							again later.
+							{isNoLease
+								? 'You do not have an active lease yet. Contact your property manager to get set up.'
+								: 'There was an error loading your payment information. Please try again later.'}
 						</CardDescription>
 					</CardHeader>
 				</Card>
@@ -219,7 +231,7 @@ export default function PayRentPage() {
 									variant="link"
 									size="sm"
 									onClick={() =>
-										router.push('/tenant/settings/payment-methods')
+										router.push('/tenant/payments/methods')
 									}
 								>
 									Add a payment method
