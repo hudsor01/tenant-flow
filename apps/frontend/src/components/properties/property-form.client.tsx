@@ -654,7 +654,7 @@ export function PropertyForm({
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
-											src={URL.createObjectURL(file)}
+											src={objectUrlsRef.current.get(file) ?? ''}
 											alt={file.name}
 											className="w-full h-full object-cover"
 										/>
