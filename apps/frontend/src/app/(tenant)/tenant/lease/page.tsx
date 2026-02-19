@@ -188,7 +188,11 @@ export default function TenantLeasePage() {
 							<FileText className="size-5 text-accent-main" />
 							<div>
 								<p className="font-medium">Lease Agreement</p>
-								<p className="text-muted">Signed on loading...</p>
+								<p className="text-muted">
+								{lease?.start_date
+									? `Signed on ${formatDate(lease.start_date)}`
+									: 'Not yet signed'}
+							</p>
 							</div>
 						</div>
 						<Button variant="outline" size="sm">

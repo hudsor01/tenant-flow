@@ -167,6 +167,25 @@ export function useMaintenanceRequestCreateMutation() {
 }
 
 /**
+ * Delete maintenance request mutation
+ */
+export function useDeleteMaintenanceRequest() {
+	const queryClient = useQueryClient()
+
+	return useMutation({
+		mutationKey: mutationKeys.maintenance.delete,
+		mutationFn: (id: string) =>
+			apiRequest<void>(`/api/v1/maintenance/${id}`, { method: 'DELETE' }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+		},
+		onError: error => {
+			handleMutationError(error, 'Delete maintenance request')
+		}
+	})
+}
+
+/**
  * Update maintenance request mutation
  */
 export function useMaintenanceRequestUpdateMutation() {

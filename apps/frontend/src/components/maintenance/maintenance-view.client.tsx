@@ -6,17 +6,14 @@ import {
 	BarChart3,
 	CheckCircle,
 	Clock,
-	Download,
 	LayoutGrid,
 	List,
 	Plus,
 	Search,
-	UserCheck,
 	Wrench
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
 import { Skeleton } from '#components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import { BlurFade } from '#components/ui/blur-fade'
@@ -114,10 +111,6 @@ export function MaintenanceViewClient() {
 	}, [requests, searchQuery])
 
 	// Quick action handlers
-	const handleExport = useCallback(() => {
-		toast.info('Export functionality coming soon')
-	}, [])
-
 	const handleViewAnalytics = useCallback(() => {
 		router.push('/reports/analytics')
 	}, [router])
@@ -306,34 +299,6 @@ export function MaintenanceViewClient() {
 									</div>
 								</div>
 							</Link>
-							<button
-								className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-								onClick={() => toast.info('Bulk assign coming soon')}
-							>
-								<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-									<UserCheck className="w-4 h-4" />
-								</div>
-								<div className="text-left">
-									<div className="text-sm font-medium">Assign Vendor</div>
-									<div className="text-xs text-muted-foreground">
-										Bulk assign
-									</div>
-								</div>
-							</button>
-							<button
-								onClick={handleExport}
-								className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
-							>
-								<div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center">
-									<Download className="w-4 h-4" />
-								</div>
-								<div className="text-left">
-									<div className="text-sm font-medium">Export</div>
-									<div className="text-xs text-muted-foreground">
-										Download data
-									</div>
-								</div>
-							</button>
 							<button
 								onClick={handleViewAnalytics}
 								className="flex items-center gap-2 px-4 py-2.5 border border-border rounded-lg hover:bg-muted/50 transition-colors shrink-0"
