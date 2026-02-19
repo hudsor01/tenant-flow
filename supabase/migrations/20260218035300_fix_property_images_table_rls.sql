@@ -15,6 +15,11 @@
 --
 -- Affected table: public.property_images
 
+-- Drop existing policies first to make this migration idempotent
+DROP POLICY IF EXISTS "property_images_select_owner" ON public.property_images;
+DROP POLICY IF EXISTS "property_images_insert_owner" ON public.property_images;
+DROP POLICY IF EXISTS "property_images_delete_owner" ON public.property_images;
+
 -- Policy: Authenticated property owners can view images for their properties
 CREATE POLICY "property_images_select_owner"
 ON public.property_images

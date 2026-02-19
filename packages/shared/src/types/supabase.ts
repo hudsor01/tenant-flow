@@ -2086,8 +2086,8 @@ export type Database = {
           property_limit: number
           storage_gb: number
           support_level: string
+          tenant_limit: number
           unit_limit: number
-          user_limit: number
         }[]
       }
       get_user_sessions: {
