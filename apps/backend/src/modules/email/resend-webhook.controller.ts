@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiExcludeEndpoint } from '@nestjs/
 import type { Request } from 'express'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { AppLogger } from '../../logger/app-logger.service'
+import { SupabaseService } from '../../database/supabase.service'
 
 /**
  * Resend webhook event types
@@ -86,7 +87,10 @@ export interface ProcessedEmailEvent {
 export class ResendWebhookController {
 	private readonly webhookSecret: string | undefined
 
-	constructor(private readonly logger: AppLogger) {
+	constructor(
+		private readonly logger: AppLogger,
+		private readonly supabaseService: SupabaseService
+	) {
 		// Webhook secret is set when creating webhook in Resend dashboard
 		this.webhookSecret = process.env.RESEND_WEBHOOK_SECRET
 		if (!this.webhookSecret) {
@@ -294,7 +298,10 @@ export class ResendWebhookController {
 					recipient: processedEvent.recipient,
 					metadata: processedEvent.metadata
 				})
-				// TODO: Mark email address as bounced, trigger notification
+				// Record suppression so this address is excluded from future sends
+				for (const email of processedEvent.recipient) {
+					await this.recordEmailSuppression(email, 'bounced')
+				}
 				break
 
 			case 'email.complained':
@@ -302,7 +309,10 @@ export class ResendWebhookController {
 					emailId: processedEvent.emailId,
 					recipient: processedEvent.recipient
 				})
-				// TODO: Add to suppression list
+				// Record suppression so this address is excluded from future sends
+				for (const email of processedEvent.recipient) {
+					await this.recordEmailSuppression(email, 'complained')
+				}
 				break
 
 			case 'email.opened':
@@ -335,6 +345,34 @@ export class ResendWebhookController {
 					eventType: processedEvent.eventType,
 					emailId: processedEvent.emailId
 				})
+		}
+	}
+
+	/**
+	 * Record an email address in the suppression list so it is excluded from future sends.
+	 * Errors are caught and logged — webhook processing must not fail due to a DB write error.
+	 */
+	private async recordEmailSuppression(
+		email: string,
+		reason: 'bounced' | 'complained'
+	): Promise<void> {
+		try {
+			const adminClient = this.supabaseService.getAdminClient()
+			const { error } = await adminClient
+				.from('email_suppressions')
+				.upsert(
+					{ email, reason, suppressed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+					{ onConflict: 'email' }
+				)
+			if (error) {
+				this.logger.error('Failed to record email suppression', { email, reason, error })
+			}
+		} catch (err) {
+			this.logger.error('Unexpected error recording email suppression', {
+				email,
+				reason,
+				error: err instanceof Error ? err.message : String(err)
+			})
 		}
 	}
 }

@@ -6,12 +6,23 @@ import {
 	ResendWebhookEvent
 } from '../resend-webhook.controller'
 import { AppLogger } from '../../../logger/app-logger.service'
+import { SupabaseService } from '../../../database/supabase.service'
 
 describe('ResendWebhookController', () => {
 	let controller: ResendWebhookController
 	let mockLogger: Partial<AppLogger>
 
 	const webhookSecret = 'whsec_test_secret_key_base64encoded=='
+
+	const mockSupabaseAdminClient = {
+		from: jest.fn().mockReturnValue({
+			upsert: jest.fn().mockResolvedValue({ error: null })
+		})
+	}
+
+	const mockSupabaseService = {
+		getAdminClient: jest.fn().mockReturnValue(mockSupabaseAdminClient)
+	}
 
 	beforeEach(async () => {
 		mockLogger = {
@@ -26,7 +37,10 @@ describe('ResendWebhookController', () => {
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [ResendWebhookController],
-			providers: [{ provide: AppLogger, useValue: mockLogger }]
+			providers: [
+				{ provide: AppLogger, useValue: mockLogger },
+				{ provide: SupabaseService, useValue: mockSupabaseService }
+			]
 		}).compile()
 
 		controller = module.get<ResendWebhookController>(ResendWebhookController)
@@ -79,7 +93,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const controllerWithoutSecret =
@@ -125,7 +142,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -155,7 +175,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -192,7 +215,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -236,7 +262,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -282,7 +311,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -312,7 +344,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			const ctrl =
@@ -370,7 +405,10 @@ describe('ResendWebhookController', () => {
 
 			const module: TestingModule = await Test.createTestingModule({
 				controllers: [ResendWebhookController],
-				providers: [{ provide: AppLogger, useValue: mockLogger }]
+				providers: [
+					{ provide: AppLogger, useValue: mockLogger },
+					{ provide: SupabaseService, useValue: mockSupabaseService }
+				]
 			}).compile()
 
 			// Just verify it creates without errors

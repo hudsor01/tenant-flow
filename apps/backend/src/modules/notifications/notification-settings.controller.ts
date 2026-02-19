@@ -16,42 +16,11 @@ import {
 } from '@nestjs/swagger'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
+import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
-/**
- * TODO [LOW PRIORITY]: Regenerate Supabase types to include notification_settings table.
- *
- * The notification_settings table exists in the database but was added after the last
- * type generation. This manual type definition is a maintenance burden and can drift
- * from the actual schema.
- *
- * Steps to fix:
- * 1. Run `pnpm supabase:types` to regenerate packages/shared/src/types/supabase.ts
- * 2. Import the generated type: `import type { Database } from '@repo/shared/types/supabase'`
- * 3. Replace NotificationSettingsRow with: `Database['public']['Tables']['notification_settings']['Row']`
- * 4. Update SupabaseService.getUserClient() return type to use the generated Database type
- * 5. Remove the manual NotificationSettingsRow type below
- * 6. Remove the `as unknown as SupabaseClient` cast in getUserClientFromRequest()
- *
- * Related migration: Check supabase/migrations/ for the notification_settings table creation
- */
-
-// Type for notification_settings table row (table exists in DB but not yet in generated types)
-type NotificationSettingsRow = {
-	id: string
-	user_id: string
-	email: boolean | null
-	sms: boolean | null
-	push: boolean | null
-	in_app: boolean | null
-	maintenance: boolean | null
-	leases: boolean | null
-	general: boolean | null
-	version?: number | null
-	created_at?: string | null
-	updated_at?: string | null
-}
+type NotificationSettingsRow = Database['public']['Tables']['notification_settings']['Row']
 
 const DEFAULT_SETTINGS: NotificationPreferences = {
 	email: true,
@@ -71,14 +40,13 @@ const DEFAULT_SETTINGS: NotificationPreferences = {
 export class NotificationSettingsController {
 	constructor(private readonly supabase: SupabaseService) {}
 
-	private getUserClientFromRequest(req: AuthenticatedRequest): SupabaseClient {
+	private getUserClientFromRequest(req: AuthenticatedRequest) {
 		const authHeader = req.headers.authorization
 		if (!authHeader?.startsWith('Bearer ')) {
 			throw new UnauthorizedException('Missing or invalid authorization header')
 		}
 		const token = authHeader.slice(7)
-		// Cast to any to avoid compile-time coupling to generated Supabase types for new table
-		return this.supabase.getUserClient(token) as unknown as SupabaseClient
+		return this.supabase.getUserClient(token)
 	}
 
 	private mapRowToPreferences(
