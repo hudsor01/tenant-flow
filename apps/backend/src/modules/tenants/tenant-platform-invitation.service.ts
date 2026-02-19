@@ -137,13 +137,18 @@ export class TenantPlatformInvitationService {
 			const tenantLimit: number = (limits as Array<{ tenant_limit: number }> | null)?.[0]?.tenant_limit ?? 25
 
 			// Count active tenants owned by this owner (via leases)
-			const { count: currentTenantCount } = await client
+			const { count: currentTenantCount, error: countError } = await client
 				.from('leases')
 				.select('primary_tenant_id', { count: 'exact', head: true })
 				.eq('owner_user_id', ownerId)
 				.eq('lease_status', 'active')
 
-			if (currentTenantCount !== null && currentTenantCount >= tenantLimit) {
+			if (countError || currentTenantCount === null) {
+				this.logger.error('Failed to fetch tenant count', { error: countError })
+				throw new InternalServerErrorException('Could not verify tenant count')
+			}
+
+			if (currentTenantCount >= tenantLimit) {
 				throw new ForbiddenException({
 					code: 'PLAN_LIMIT_EXCEEDED',
 					message: `Your plan allows up to ${tenantLimit} tenant${tenantLimit === 1 ? '' : 's'}. Upgrade to invite more.`,

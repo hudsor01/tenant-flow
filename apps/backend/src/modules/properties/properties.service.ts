@@ -124,12 +124,17 @@ export class PropertiesService {
 		}
 		const propertyLimit: number = (limits as Array<{ property_limit: number }> | null)?.[0]?.property_limit ?? 5
 
-		const { count: currentCount } = await client
+		const { count: currentCount, error: countError } = await client
 			.from('properties')
 			.select('*', { count: 'exact', head: true })
 			.neq('status', 'inactive')
 
-		if (currentCount !== null && currentCount >= propertyLimit) {
+		if (countError || currentCount === null) {
+			this.logger.error('Failed to fetch property count', { error: countError })
+			throw new InternalServerErrorException('Could not verify property count')
+		}
+
+		if (currentCount >= propertyLimit) {
 			throw new ForbiddenException({
 				code: 'PLAN_LIMIT_EXCEEDED',
 				message: `Your plan allows up to ${propertyLimit} propert${propertyLimit === 1 ? 'y' : 'ies'}. Upgrade to add more.`,
