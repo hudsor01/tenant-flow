@@ -46,7 +46,11 @@ describe('TenantPlatformInvitationService - Property Tests', () => {
 
 		// Create mock services
 		mockSupabaseService = {
-			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient)
+			getUserClient: jest.fn().mockReturnValue(mockSupabaseClient),
+			// getAdminClient: used for plan limit checks — return generous limits so property tests focus on other logic
+			getAdminClient: jest.fn().mockReturnValue({
+				rpc: jest.fn().mockResolvedValue({ data: [{ tenant_limit: 9999 }], error: null })
+			})
 		} as unknown as SupabaseClient<Database>
 
 		mockEventEmitter = {

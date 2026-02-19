@@ -305,18 +305,16 @@ describe('PropertiesService', () => {
 				address_line1: '123 Main St'
 			})
 
-			// Mock stripe_connected_accounts query - use function binding for proper 'this' context
-			const mockPropertyOwnerQuery = {
-				select: jest.fn(function () {
-					return this
-				}),
-				eq: jest.fn(function () {
-					return this
-				}),
-				single: jest.fn().mockResolvedValue({
-					data: { id: 'property-owner-123' },
-					error: null
-				})
+			// Mock plan limits RPC (admin client)
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			// Mock properties count query (first from('properties') call)
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 
 			// Mock properties insert query - use function binding for proper 'this' context
@@ -330,13 +328,12 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
 			}
 
-			// Set up from() to return different mocks based on table name
+			// Set up from() to return different mocks based on call order
+			let propertiesCallCount = 0
 			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'stripe_connected_accounts') {
-					return mockPropertyOwnerQuery
-				}
 				if (table === 'properties') {
-					return mockPropertiesQuery
+					propertiesCallCount++
+					return propertiesCallCount === 1 ? mockCountQuery : mockPropertiesQuery
 				}
 				return mockPropertiesQuery
 			})
@@ -370,18 +367,16 @@ describe('PropertiesService', () => {
 		})
 
 		it('should throw BadRequestException on database error', async () => {
-			// Mock stripe_connected_accounts query (successful) - use function binding
-			const mockPropertyOwnerQuery = {
-				select: jest.fn(function () {
-					return this
-				}),
-				eq: jest.fn(function () {
-					return this
-				}),
-				single: jest.fn().mockResolvedValue({
-					data: { id: 'property-owner-123' },
-					error: null
-				})
+			// Mock plan limits RPC (admin client)
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			// Mock properties count query (first call — within limit)
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 
 			// Mock properties insert query (failure) - use function binding
@@ -397,13 +392,12 @@ describe('PropertiesService', () => {
 					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
 			}
 
-			// Set up from() to return different mocks based on table name
+			// Set up from() to return count mock on first call, insert mock on second
+			let propertiesCallCount = 0
 			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'stripe_connected_accounts') {
-					return mockPropertyOwnerQuery
-				}
 				if (table === 'properties') {
-					return mockPropertiesQuery
+					propertiesCallCount++
+					return propertiesCallCount === 1 ? mockCountQuery : mockPropertiesQuery
 				}
 				return mockPropertiesQuery
 			})

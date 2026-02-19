@@ -16,6 +16,7 @@
 
 import {
 	BadRequestException,
+	ForbiddenException,
 	Injectable,
 	NotFoundException,
 	UnauthorizedException
@@ -122,6 +123,29 @@ export class TenantPlatformInvitationService {
 						'Unit does not belong to the specified property'
 					)
 				}
+			}
+
+			// Step 3b: Check plan limit before allowing invitation
+			const { data: limits } = await this.supabase
+				.getAdminClient()
+				.rpc('get_user_plan_limits', { p_user_id: ownerId })
+			const tenantLimit: number = (limits as Array<{ tenant_limit: number }> | null)?.[0]?.tenant_limit ?? 25
+
+			// Count active tenants owned by this owner (via leases)
+			const { count: currentTenantCount } = await client
+				.from('leases')
+				.select('primary_tenant_id', { count: 'exact', head: true })
+				.eq('owner_user_id', ownerId)
+				.eq('lease_status', 'active')
+
+			if (currentTenantCount !== null && currentTenantCount >= tenantLimit) {
+				throw new ForbiddenException({
+					code: 'PLAN_LIMIT_EXCEEDED',
+					message: `Your plan allows up to ${tenantLimit} tenant${tenantLimit === 1 ? '' : 's'}. Upgrade to invite more.`,
+					limit: tenantLimit,
+					current: currentTenantCount,
+					resource: 'tenants'
+				})
 			}
 
 			// Step 4: Check for existing pending invitation
