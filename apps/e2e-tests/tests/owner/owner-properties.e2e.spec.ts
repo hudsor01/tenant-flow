@@ -68,7 +68,7 @@ test.describe('Owner Properties', () => {
 
 	test('should display properties table', async ({ page }) => {
 		// Wait for table to load
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Verify table exists
 		const tableExists = (await page.getByRole('table').count()) > 0
@@ -204,7 +204,7 @@ test.describe('Owner Properties', () => {
 
 		// Wait for modal to close and table to refresh
 		await page.waitForTimeout(2000)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Search for the created property
 		const searchInput = page
@@ -408,7 +408,7 @@ test.describe('Owner Properties', () => {
 		await submitModalForm(page, 'Create')
 
 		await page.waitForTimeout(2000)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Open edit modal
 		const editButton = page.getByRole('button', { name: /edit/i }).first()

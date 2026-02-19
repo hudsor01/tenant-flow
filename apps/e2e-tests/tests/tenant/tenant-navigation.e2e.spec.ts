@@ -205,7 +205,7 @@ test.describe('Tenant Navigation', () => {
 	test('should maintain active state on current page', async ({ page }) => {
 		// Navigate to Profile
 		await page.goto(ROUTES.TENANT_PROFILE)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Check if Profile link has active state
 		const profileLink = page.getByRole('link', { name: /profile/i }).first()
@@ -238,12 +238,12 @@ test.describe('Tenant Navigation', () => {
 
 		// Go back
 		await page.goBack()
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		expect(page.url()).toContain(ROUTES.TENANT_PROFILE)
 
 		// Go forward
 		await page.goForward()
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		expect(page.url()).toContain(ROUTES.TENANT_LEASE)
 	})
 
@@ -313,7 +313,7 @@ test.describe('Tenant Navigation', () => {
 	}) => {
 		// Navigate to dashboard
 		await page.goto(ROUTES.TENANT_DASHBOARD)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for common quick action buttons (if they exist)
 		const quickActions = [
@@ -346,7 +346,7 @@ test.describe('Tenant Navigation', () => {
 	test('should verify breadcrumb navigation if present', async ({ page }) => {
 		// Navigate to a nested route
 		await page.goto(ROUTES.TENANT_PAYMENTS_HISTORY)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Check if breadcrumbs exist
 		const breadcrumbs = page
