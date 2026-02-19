@@ -17,7 +17,8 @@ import { mutationKeys } from './mutation-keys'
 import type {
 	IncomeStatementData,
 	CashFlowData,
-	BalanceSheetData
+	BalanceSheetData,
+	TaxDocumentsData
 } from '@repo/shared/types/financial-statements'
 import type { ApiResponse } from '@repo/shared/types/api-contracts'
 import type { ExpenseCategorySummary } from '@repo/shared/types/analytics'
@@ -328,5 +329,29 @@ export function useDeleteExpenseMutation() {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
 		}
+	})
+}
+
+// ============================================================================
+// Tax Documents
+// ============================================================================
+
+export const taxDocumentKeys = {
+	all: ['taxDocuments'] as const,
+	byYear: (taxYear: number) => [...taxDocumentKeys.all, taxYear] as const
+}
+
+export function useTaxDocuments(taxYear?: number) {
+	const year = taxYear ?? new Date().getFullYear()
+
+	return useQuery({
+		queryKey: taxDocumentKeys.byYear(year),
+		queryFn: async (): Promise<TaxDocumentsData> => {
+			const response = await apiRequest<{ success: boolean; data: TaxDocumentsData }>(
+				`/api/v1/financials/tax-documents?taxYear=${year}`
+			)
+			return response.data
+		},
+		...QUERY_CACHE_TIMES.STATS
 	})
 }

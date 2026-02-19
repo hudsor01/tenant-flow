@@ -2,7 +2,7 @@
  * TanStack Query hooks for Stripe Connect API
  * Phase 6: Frontend Integration for owner Payment Collection
  */
-import { apiRequest } from '#lib/api-request'
+import { apiRequest, ApiError } from '#lib/api-request'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -37,16 +37,24 @@ export const stripeConnectKeys = {
 }
 
 /**
- * Hook to fetch owner's connected account details
+ * Hook to fetch owner's connected account details.
+ * Returns null when no account exists yet (404 from backend).
  */
 export function useConnectedAccount() {
 	return useQuery({
 		queryKey: stripeConnectKeys.account(),
-		queryFn: async (): Promise<ConnectedAccountWithIdentity> => {
-			const response = await apiRequest<ConnectAccountResponse>(
-				'/api/v1/stripe/connect/account'
-			)
-			return response.data
+		queryFn: async (): Promise<ConnectedAccountWithIdentity | null> => {
+			try {
+				const response = await apiRequest<ConnectAccountResponse>(
+					'/api/v1/stripe/connect/account'
+				)
+				return response.data
+			} catch (err) {
+				if (err instanceof ApiError && err.isNotFound) {
+					return null
+				}
+				throw err
+			}
 		},
 		...QUERY_CACHE_TIMES.DETAIL,
 		retryOnMount: false
