@@ -181,15 +181,19 @@ describe('BalanceSheetService', () => {
 				expectedPropertyValue
 			)
 
-			// Verify depreciation calculation (15% of property value)
-			const expectedDepreciation = expectedPropertyValue * 0.15
-			expect(result.assets.fixedAssets.accumulatedDepreciation).toBe(
-				expectedDepreciation
+			// Verify depreciation calculation (straight-line 27.5-year residential schedule)
+			const expectedDepreciation = expectedPropertyValue * (1 / 27.5)
+			expect(result.assets.fixedAssets.accumulatedDepreciation).toBeCloseTo(
+				expectedDepreciation,
+				2
 			)
 
 			// Verify net property value
 			const expectedNetValue = expectedPropertyValue - expectedDepreciation
-			expect(result.assets.fixedAssets.netPropertyValue).toBe(expectedNetValue)
+			expect(result.assets.fixedAssets.netPropertyValue).toBeCloseTo(
+				expectedNetValue,
+				2
+			)
 		})
 
 		it('should validate balance sheet correctly', async () => {

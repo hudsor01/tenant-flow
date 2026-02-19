@@ -68,7 +68,7 @@ export class BalanceSheetService {
 				(sum, prop) => sum + safeNumber(prop.noi),
 				0
 			)
-			const assumedCapRate = 0.06 // 6% cap rate for property valuation
+			const assumedCapRate = 0.06 // industry standard; replace with stored appraisal value when available
 			const estimatedPropertyValue =
 				totalNOI > 0 ? totalNOI / assumedCapRate : 0
 
@@ -81,7 +81,9 @@ export class BalanceSheetService {
 
 			// Fixed Assets
 			const propertyValues = estimatedPropertyValue
-			const accumulatedDepreciation = estimatedPropertyValue * 0.15 // Assume 15% depreciation
+			// Use straight-line residential depreciation (27.5 years, same as TaxDocumentsService)
+			const annualDepreciationRate = 1 / 27.5
+			const accumulatedDepreciation = estimatedPropertyValue * annualDepreciationRate
 			const netPropertyValue = propertyValues - accumulatedDepreciation
 			const fixedAssetsTotal = netPropertyValue
 

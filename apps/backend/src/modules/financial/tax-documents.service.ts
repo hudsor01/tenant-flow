@@ -78,9 +78,10 @@ export class TaxDocumentsService {
 				(sum, prop) => sum + prop.annualDepreciation,
 				0
 			)
-			const mortgageInterest = totalExpenses * 0.3
-			const taxableIncome =
-				netOperatingIncome - totalDepreciation - mortgageInterest
+			// Mortgage interest tracking requires mortgage data entered by the user.
+			// Until mortgage tracking is added to the schema, this is not deducted.
+			const mortgageInterest = 0
+			const taxableIncome = netOperatingIncome - totalDepreciation
 			const totalDeductions = totalExpenses + totalDepreciation
 
 			return {

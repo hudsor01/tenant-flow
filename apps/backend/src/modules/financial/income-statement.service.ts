@@ -60,25 +60,22 @@ export class IncomeStatementService {
 			const summary = this.summarizeIncome(ledger, range)
 
 			const totalRevenue = safeNumber(summary.totalRevenue)
-			const rentalIncome = totalRevenue * 0.95 // Estimate 95% from rent
-			const lateFeesIncome = totalRevenue * 0.03 // Estimate 3% from late fees
-			const otherIncome = totalRevenue * 0.02 // Estimate 2% from other
+			// Revenue: show total as rental income. Subcategory breakdown requires
+			// expense categorization which is not yet tracked in the database.
+			const rentalIncome = totalRevenue
+			const lateFeesIncome = 0
+			const otherIncome = 0
 
 			const operatingExpenses = safeNumber(summary.operatingExpenses)
 			const maintenanceCosts = safeNumber(summary.maintenanceCosts)
-			const propertyManagement = operatingExpenses * 0.1 // Estimate 10% management
-			const utilities = operatingExpenses * 0.15 // Estimate 15% utilities
-			const insurance = operatingExpenses * 0.1 // Estimate 10% insurance
-			const propertyTax = operatingExpenses * 0.2 // Estimate 20% property tax
-			const mortgage = operatingExpenses * 0.3 // Estimate 30% mortgage
-			const other =
-				operatingExpenses -
-				(propertyManagement +
-					utilities +
-					insurance +
-					propertyTax +
-					mortgage +
-					maintenanceCosts)
+			// Expenses: show total as 'other'. Subcategory breakdown requires
+			// expense categorization which is not yet tracked in the database.
+			const propertyManagement = 0
+			const utilities = 0
+			const insurance = 0
+			const propertyTax = 0
+			const mortgage = 0
+			const other = operatingExpenses
 
 			const totalExpenses = operatingExpenses + maintenanceCosts
 			const grossProfit = totalRevenue - totalExpenses
