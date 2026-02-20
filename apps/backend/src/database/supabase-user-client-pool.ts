@@ -118,11 +118,10 @@ export class SupabaseUserClientPool {
 
 		this.metrics.misses++
 
-		// Use global.headers.Authorization to set the JWT for all requests,
-		// including PostgREST database requests. This is the reliable approach
-		// that ensures auth.uid() resolves correctly in RLS policies.
-		// The accessToken callback pattern has inconsistent PostgREST support
-		// across supabase-js versions and can cause auth.uid() to return null.
+		// Use global.headers.Authorization to pass the user JWT to PostgREST.
+		// fetchWithAuth (supabase-js) only sets Authorization if not already
+		// present, so this header is preserved for all PostgREST requests and
+		// ensures auth.uid() resolves correctly in RLS policies.
 		const client = createClient<Database>(
 			this.options.supabaseUrl,
 			this.options.supabasePublishableKey,
