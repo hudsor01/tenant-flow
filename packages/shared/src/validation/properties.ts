@@ -25,10 +25,7 @@ import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
 export const propertyStatusSchema = z.enum([
 	'active',
 	'inactive',
-	'maintenance',
-	'sold',
-	'leased',
-	'under_construction'
+	'sold'
 ])
 
 // Property type enum validation - must match PROPERTY_TYPES constant
@@ -86,24 +83,7 @@ export const propertyInputSchema = z.object({
 
 	status: propertyStatusSchema.default('active'),
 
-	property_owner_id: uuidSchema,
-
-	bedrooms: positiveNumberSchema
-		.int('Bedrooms must be a whole number')
-		.max(
-			VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS,
-			`Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BEDROOMS} bedrooms allowed`
-		)
-		.optional(),
-
-	bathrooms: positiveNumberSchema
-		.max(
-			VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS,
-			`Maximum ${VALIDATION_LIMITS.PROPERTY_UNIT_MAX_BATHROOMS} bathrooms allowed`
-		)
-		.optional()
-
-	// Note: square footage is not in the database schema based on the supabase.ts file
+	owner_user_id: uuidSchema
 })
 
 // Full property schema (includes server-generated fields)
@@ -117,7 +97,7 @@ export const propertySchema = propertyInputSchema.extend({
 export const propertyUpdateSchema = propertyInputSchema.partial().extend({
 	id: uuidSchema.optional(),
 	status: propertyStatusSchema.optional(),
-	property_owner_id: uuidSchema.optional()
+	owner_user_id: uuidSchema.optional()
 })
 
 // Property query schema (for search/filtering)
@@ -127,13 +107,9 @@ export const propertyQuerySchema = z.object({
 	city: z.string().optional(),
 	state: z.string().optional(),
 	status: propertyStatusSchema.optional(),
-	property_owner_id: uuidSchema.optional(),
-	min_bedrooms: positiveNumberSchema.int().optional(),
-	max_bedrooms: positiveNumberSchema.int().optional(),
-	min_bathrooms: positiveNumberSchema.optional(),
-	max_bathrooms: positiveNumberSchema.optional(),
+	owner_user_id: uuidSchema.optional(),
 	sort_by: z
-		.enum(['name', 'created_at', 'city', 'status', 'bedrooms', 'bathrooms'])
+		.enum(['name', 'created_at', 'city', 'status', 'property_type'])
 		.optional(),
 	sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
 	page: z.coerce.number().int().positive().default(1),
@@ -148,9 +124,9 @@ export const propertyQuerySchema = z.object({
 // Property creation schema
 // Note: propertyInputSchema already has status with default('active')
 // id, created_at, updated_at are server-generated and not in propertyInputSchema
-// property_owner_id is set by the backend from authenticated user, not sent by client
+// owner_user_id is set by the backend from authenticated user, not sent by client
 export const propertyCreateSchema = propertyInputSchema.omit({
-	property_owner_id: true
+	owner_user_id: true
 })
 
 // Property address validation schema
@@ -187,7 +163,7 @@ export const propertyStatsSchema = z.object({
 	total: nonNegativeNumberSchema,
 	active: nonNegativeNumberSchema,
 	inactive: nonNegativeNumberSchema,
-	maintenance: nonNegativeNumberSchema,
+	sold: nonNegativeNumberSchema,
 	units: nonNegativeNumberSchema,
 	occupied_units: nonNegativeNumberSchema,
 	vacant_units: nonNegativeNumberSchema,
@@ -230,9 +206,7 @@ export const propertyFormSchema = z.object({
 	postal_code: requiredString,
 	country: z.string().optional().default('US'),
 	property_type: propertyTypeSchema,
-	property_owner_id: requiredString,
-	bedrooms: z.string().optional(),
-	bathrooms: z.string().optional()
+	owner_user_id: requiredString
 })
 
 export const propertyUpdateFormSchema = propertyFormSchema.partial()
@@ -247,9 +221,7 @@ export const transformPropertyFormData = (data: PropertyFormData) => ({
 	postal_code: data.postal_code,
 	country: data.country || 'US',
 	property_type: data.property_type,
-	property_owner_id: data.property_owner_id,
-	bedrooms: data.bedrooms ? parseInt(data.bedrooms, 10) : undefined,
-	bathrooms: data.bathrooms ? parseFloat(data.bathrooms) : undefined
+	owner_user_id: data.owner_user_id
 })
 
 export type PropertyFormData = z.infer<typeof propertyFormSchema>

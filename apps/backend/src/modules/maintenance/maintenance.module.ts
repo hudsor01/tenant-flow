@@ -9,6 +9,7 @@ import { MaintenanceWorkflowService } from './maintenance-workflow.service'
 import { MaintenanceAssignmentService } from './maintenance-assignment.service'
 import { MaintenanceStatusService } from './maintenance-status.service'
 import { MaintenanceExpenseService } from './maintenance-expense.service'
+import { VendorsModule } from './vendors/vendors.module'
 
 /**
  * Maintenance module
@@ -20,9 +21,12 @@ import { MaintenanceExpenseService } from './maintenance-expense.service'
  * - MaintenanceAssignmentService: Assignment logic
  * - MaintenanceStatusService: Status updates
  * - MaintenanceReportingService: Stats and reporting
+ *
+ * Sub-modules (Feb 2026):
+ * - VendorsModule: Contractor/vendor management
  */
 @Module({
-	imports: [SupabaseModule, AnalyticsModule],
+	imports: [SupabaseModule, AnalyticsModule, VendorsModule],
 	controllers: [MaintenanceController, MaintenanceAnalyticsController],
 	providers: [
 		MaintenanceService,
@@ -38,7 +42,8 @@ import { MaintenanceExpenseService } from './maintenance-expense.service'
 		MaintenanceWorkflowService,
 		MaintenanceAssignmentService,
 		MaintenanceStatusService,
-		MaintenanceExpenseService
+		MaintenanceExpenseService,
+		VendorsModule
 	]
 })
 export class MaintenanceModule {}

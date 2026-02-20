@@ -94,9 +94,9 @@ export const unitQuerySchema = z.object({
 	max_rent_amount: nonNegativeNumberSchema.optional(),
 	bedrooms: positiveNumberSchema.int().optional(),
 	bathrooms: positiveNumberSchema.optional(),
-	minsquare_feet: positiveNumberSchema.int().optional(),
-	maxsquare_feet: positiveNumberSchema.int().optional(),
-	sortBy: z
+	min_square_feet: positiveNumberSchema.int().optional(),
+	max_square_feet: positiveNumberSchema.int().optional(),
+	sort_by: z
 		.enum([
 			'unit_number',
 			'rent_amount',
@@ -106,7 +106,7 @@ export const unitQuerySchema = z.object({
 			'created_at'
 		])
 		.optional(),
-	sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+	sort_order: z.enum(['asc', 'desc']).optional().default('asc'),
 	page: z.coerce
 		.number()
 		.int()

@@ -20,6 +20,7 @@ import {
 	type QueryKey
 } from '@tanstack/react-query'
 import { apiRequest, apiRequestRaw } from '#lib/api-request'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
 import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
@@ -278,6 +279,9 @@ export function useRecordManualPaymentMutation() {
 		mutationFn: (data: ManualPaymentInput) => recordManualPayment(data),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: rentCollectionKeys.all })
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Record manual payment')
 		}
 	})
 }
@@ -301,6 +305,9 @@ export function useExportPaymentsMutation() {
 			document.body.removeChild(a)
 
 			return blob
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Export payments')
 		}
 	})
 }
@@ -477,6 +484,9 @@ export function useSendTenantPaymentReminderMutation() {
 					queryKey: rentPaymentKeys.ownerView(variables.request.tenant_id)
 				})
 			}
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Send payment reminder')
 		}
 	})
 }

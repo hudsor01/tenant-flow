@@ -2,7 +2,9 @@ import {
 	Body,
 	Controller,
 	Post,
-	Res
+	Req,
+	Res,
+	UnauthorizedException
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -11,7 +13,7 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
-import type { Response } from 'express'
+import type { Request, Response } from 'express'
 import { ExecutiveReportService } from './executive-report.service'
 import { ExportService } from './export.service'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
@@ -19,7 +21,12 @@ import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxReportService } from './tax-report.service'
+import { YearEndReportService } from './year-end-report.service'
 import { AppLogger } from '../../logger/app-logger.service'
+
+interface AuthenticatedGenerationRequest extends Request {
+	user?: { id: string; email: string }
+}
 
 /**
  * Report Generation Controller
@@ -35,6 +42,7 @@ export class ReportGenerationController {
 		private readonly exportService: ExportService,
 		private readonly executiveReportService: ExecutiveReportService,
 		private readonly taxReportService: TaxReportService,
+		private readonly yearEndReportService: YearEndReportService,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
@@ -323,5 +331,55 @@ export class ReportGenerationController {
 		res.setHeader('Content-Type', contentType)
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(buffer)
+	}
+
+	@ApiOperation({ summary: 'Download year-end summary as CSV', description: 'Download year-end income and expense summary as CSV' })
+	@ApiBody({ schema: { type: 'object', properties: { year: { type: 'number' } } } })
+	@ApiResponse({ status: 200, description: 'CSV downloaded successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('generate/year-end-csv')
+	async generateYearEndCsv(
+		@Body() body: { year?: number },
+		@Req() req: AuthenticatedGenerationRequest,
+		@Res({ passthrough: true }) res: Response
+	) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+
+		const year = body.year ?? new Date().getFullYear()
+		this.logger.log('Generating year-end CSV', { user_id, year })
+
+		const summary = await this.yearEndReportService.getYearEndSummary(user_id, year)
+		const rows = this.yearEndReportService.formatYearEndForCsv(summary)
+		const csv = await this.exportService.generateCSV(rows)
+
+		res.setHeader('Content-Type', 'text/csv')
+		res.setHeader('Content-Disposition', `attachment; filename="year-end-${year}.csv"`)
+		res.send(csv)
+	}
+
+	@ApiOperation({ summary: 'Download 1099-NEC vendor data as CSV', description: 'Download vendors paid over $600 for 1099-NEC reporting as CSV' })
+	@ApiBody({ schema: { type: 'object', properties: { year: { type: 'number' } } } })
+	@ApiResponse({ status: 200, description: 'CSV downloaded successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('generate/1099-csv')
+	async generate1099Csv(
+		@Body() body: { year?: number },
+		@Req() req: AuthenticatedGenerationRequest,
+		@Res({ passthrough: true }) res: Response
+	) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+
+		const year = body.year ?? new Date().getFullYear()
+		this.logger.log('Generating 1099 CSV', { user_id, year })
+
+		const summary = await this.yearEndReportService.get1099Vendors(user_id, year)
+		const rows = this.yearEndReportService.format1099ForCsv(summary)
+		const csv = await this.exportService.generateCSV(rows)
+
+		res.setHeader('Content-Type', 'text/csv')
+		res.setHeader('Content-Disposition', `attachment; filename="1099-vendors-${year}.csv"`)
+		res.send(csv)
 	}
 }
