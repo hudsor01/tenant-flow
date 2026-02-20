@@ -33,6 +33,8 @@ import { Skeleton } from '#components/ui/skeleton'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { useDeleteUnitMutation } from '#hooks/api/use-unit'
 import type { Unit, UnitStatus } from '@repo/shared/types/core'
+import { SINGLE_UNIT_PROPERTY_TYPES } from '@repo/shared/constants/status-types'
+import type { PropertyType } from '@repo/shared/constants/status-types'
 import { useQuery } from '@tanstack/react-query'
 import {
 	Bath,
@@ -55,6 +57,7 @@ import { EditUnitPanel } from './edit-unit-panel'
 interface PropertyUnitsTableProps {
 	propertyId: string
 	propertyName: string
+	propertyType?: string
 }
 
 // Status badge configuration matching spec
@@ -100,12 +103,16 @@ function formatCurrency(amount: number): string {
 /**
  * PropertyUnitsTable - Displays units belonging to a property
  *
- * Per spec: "Units table below header" with columns for
- * Unit #, Beds/Baths, Sqft, Rent, Status, Current Tenant, Actions
+ * For single-unit property types (SINGLE_FAMILY, CONDO, TOWNHOUSE):
+ *   Shows a compact unit details card with edit action
+ *
+ * For multi-unit property types:
+ *   Shows full table with add/edit/delete actions
  */
 export function PropertyUnitsTable({
 	propertyId,
-	propertyName
+	propertyName,
+	propertyType
 }: PropertyUnitsTableProps) {
 	const [addUnitOpen, setAddUnitOpen] = useState(false)
 	const [editingUnit, setEditingUnit] = useState<Unit | null>(null)
@@ -133,20 +140,23 @@ export function PropertyUnitsTable({
 		}
 	}
 
+	const isSingleUnit = SINGLE_UNIT_PROPERTY_TYPES.includes(
+		(propertyType ?? '') as PropertyType
+	)
+	const unitList = units ?? []
+
 	// Loading skeleton
 	if (isLoading) {
 		return (
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between">
-					<CardTitle>Units</CardTitle>
-					<Skeleton className="h-10 w-28" />
+					<CardTitle className="flex items-center gap-2">
+						<Home className="size-5" />
+						Unit Details
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
-						{[1, 2, 3].map(i => (
-							<Skeleton key={i} className="h-16 w-full" />
-						))}
-					</div>
+					<Skeleton className="h-16 w-full" />
 				</CardContent>
 			</Card>
 		)
@@ -157,19 +167,131 @@ export function PropertyUnitsTable({
 		return (
 			<Card>
 				<CardHeader>
-					<CardTitle>Units</CardTitle>
+					<CardTitle className="flex items-center gap-2">
+						<Home className="size-5" />
+						Unit Details
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className="text-muted-foreground text-center py-8">
-						Failed to load units. Please try again.
+					<p className="text-muted-foreground text-center py-4">
+						Failed to load unit details. Please try again.
 					</p>
 				</CardContent>
 			</Card>
 		)
 	}
 
-	const unitList = units ?? []
+	// Single-unit property type: compact card view
+	if (isSingleUnit) {
+		const unit = unitList[0]
 
+		if (!unit) {
+			// Legacy data: single-unit property without auto-created unit
+			return (
+				<>
+					<Card>
+						<CardHeader>
+							<CardTitle className="flex items-center gap-2">
+								<Home className="size-5" />
+								Unit Details
+							</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<p className="text-sm text-muted-foreground">
+								No unit configured yet.{' '}
+								<button
+									type="button"
+									onClick={() => setAddUnitOpen(true)}
+									className="text-primary hover:underline"
+								>
+									Set up unit details
+								</button>
+							</p>
+						</CardContent>
+					</Card>
+					<AddUnitPanel
+						propertyId={propertyId}
+						propertyName={propertyName}
+						open={addUnitOpen}
+						onOpenChange={setAddUnitOpen}
+					/>
+				</>
+			)
+		}
+
+		const status = (unit.status as UnitStatus) || 'available'
+		const config = statusConfig[status]
+		const StatusIcon = config.icon
+
+		return (
+			<>
+				<Card>
+					<CardHeader className="flex flex-row items-center justify-between">
+						<CardTitle className="flex items-center gap-2">
+							<Home className="size-5" />
+							Unit Details
+						</CardTitle>
+						<Button
+							variant="outline"
+							size="sm"
+							className="gap-2 min-h-11"
+							onClick={() => setEditingUnit(unit)}
+						>
+							<Pencil className="size-4" />
+							Edit
+						</Button>
+					</CardHeader>
+					<CardContent>
+						<div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+							<span className="flex items-center gap-1.5">
+								<Bed className="size-4 text-muted-foreground" />
+								{unit.bedrooms ?? 0} bed
+							</span>
+							<span className="flex items-center gap-1.5">
+								<Bath className="size-4 text-muted-foreground" />
+								{unit.bathrooms ?? 0} bath
+							</span>
+							{unit.square_feet ? (
+								<span className="flex items-center gap-1.5">
+									<Ruler className="size-4 text-muted-foreground" />
+									{unit.square_feet.toLocaleString()} sqft
+								</span>
+							) : null}
+							<span className="flex items-center gap-1.5">
+								<DollarSign className="size-4 text-muted-foreground" />
+								{unit.rent_amount > 0
+									? `${formatCurrency(unit.rent_amount)}/mo`
+									: 'Rent not set'}
+							</span>
+							<Badge
+								variant="outline"
+								className={cn(
+									'flex items-center gap-1.5 w-fit border-0',
+									config.className
+								)}
+							>
+								<StatusIcon className="size-3" />
+								{config.label}
+							</Badge>
+						</div>
+					</CardContent>
+				</Card>
+
+				{editingUnit && (
+					<EditUnitPanel
+						unit={editingUnit}
+						propertyName={propertyName}
+						open={!!editingUnit}
+						onOpenChange={open => {
+							if (!open) setEditingUnit(null)
+						}}
+					/>
+				)}
+			</>
+		)
+	}
+
+	// Multi-unit property type: full table view
 	return (
 		<>
 			<Card>
@@ -188,8 +310,7 @@ export function PropertyUnitsTable({
 				</CardHeader>
 				<CardContent>
 					{unitList.length === 0 ? (
-						<div className="text-center py-12">
-							<Home className="size-12 text-muted-foreground/40 mx-auto mb-4" />
+						<div className="text-center py-8">
 							<p className="text-muted-foreground mb-4">
 								No units added to this property yet.
 							</p>
@@ -274,7 +395,6 @@ export function PropertyUnitsTable({
 												<TableCell className="hidden lg:table-cell">
 													{status === 'occupied' ? (
 														<span className="text-muted-foreground">
-															{/* Tenant info would come from lease relation */}
 															Tenant assigned
 														</span>
 													) : (

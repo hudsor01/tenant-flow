@@ -456,6 +456,158 @@ describe('PropertiesService', () => {
 			expect(response.resource).toBe('properties')
 		})
 
+		it('should auto-create default unit for single-unit property types', async () => {
+			const mockCreated = createMockProperty({
+				id: 'prop-single',
+				name: 'My House',
+				property_type: 'SINGLE_FAMILY'
+			})
+
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
+			}
+
+			const mockPropertiesQuery = {
+				insert: jest.fn(function () { return this }),
+				select: jest.fn(function () { return this }),
+				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+			}
+
+			const mockUnitsQuery = {
+				insert: jest.fn().mockResolvedValue({ data: null, error: null })
+			}
+
+			mockAdminClient.from
+				.mockImplementationOnce(() => mockCountQuery)      // count check
+				.mockImplementationOnce(() => mockPropertiesQuery)  // property insert
+				.mockImplementationOnce(() => mockUnitsQuery)       // unit insert
+
+			const result = await service.create(
+				createMockRequest('user-123'),
+				{
+					name: 'My House',
+					address_line1: '456 Oak Ave',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78702',
+					property_type: 'SINGLE_FAMILY'
+				}
+			)
+
+			expect(result).toEqual(mockCreated)
+			expect(mockUnitsQuery.insert).toHaveBeenCalledWith(
+				expect.objectContaining({
+					property_id: 'prop-single',
+					owner_user_id: 'user-123',
+					unit_number: '1',
+					bedrooms: 1,
+					bathrooms: 1,
+					rent_amount: 0,
+					status: 'available'
+				})
+			)
+		})
+
+		it('should NOT auto-create unit for multi-unit property types', async () => {
+			const mockCreated = createMockProperty({
+				id: 'prop-multi',
+				name: 'Big Apartment',
+				property_type: 'APARTMENT'
+			})
+
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
+			}
+
+			const mockPropertiesQuery = {
+				insert: jest.fn(function () { return this }),
+				select: jest.fn(function () { return this }),
+				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+			}
+
+			mockAdminClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
+
+			await service.create(
+				createMockRequest('user-123'),
+				{
+					name: 'Big Apartment',
+					address_line1: '789 Main St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78703',
+					property_type: 'APARTMENT'
+				}
+			)
+
+			// Should only call from() twice: count + insert. No units insert.
+			expect(mockAdminClient.from).toHaveBeenCalledTimes(2)
+		})
+
+		it('should not fail property creation if auto-unit creation fails', async () => {
+			const mockCreated = createMockProperty({
+				id: 'prop-unit-fail',
+				name: 'Condo',
+				property_type: 'CONDO'
+			})
+
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
+			}
+
+			const mockPropertiesQuery = {
+				insert: jest.fn(function () { return this }),
+				select: jest.fn(function () { return this }),
+				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
+			}
+
+			const mockUnitsQuery = {
+				insert: jest.fn().mockRejectedValue(new Error('Unit insert failed'))
+			}
+
+			mockAdminClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
+				.mockImplementationOnce(() => mockUnitsQuery)
+
+			// Should still succeed even though unit creation failed
+			const result = await service.create(
+				createMockRequest('user-123'),
+				{
+					name: 'Condo',
+					address_line1: '100 Beach Rd',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78704',
+					property_type: 'CONDO'
+				}
+			)
+
+			expect(result).toEqual(mockCreated)
+		})
+
 		it('should throw InternalServerErrorException when plan limits RPC fails', async () => {
 			mockAdminClient.rpc.mockResolvedValue({
 				data: null,
