@@ -19,7 +19,6 @@ import {
 	sanitizeSearchInput
 } from '../../shared/utils/sql-safe.utils'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import { getTokenFromRequest } from '../../database/auth-token.utils'
 import { VALID_PROPERTY_TYPES } from './utils/csv-normalizer'
 import { AppLogger } from '../../logger/app-logger.service'
 import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
@@ -33,14 +32,17 @@ export class PropertiesService {
 	) {}
 
 	async findAll(
-		userToken: string,
+		user_id: string,
 		query: { search?: string | null; status?: string | null; limit: number; offset: number }
 	): Promise<{ data: Property[]; count: number }> {
-		const userClient = this.supabase.getUserClient(userToken)
+		// Use admin client with explicit owner filter — user client's JWT auth
+		// against PostgREST is unreliable with the sb_publishable_* key format.
+		const adminClient = this.supabase.getAdminClient()
 
-		let queryBuilder = userClient
+		let queryBuilder = adminClient
 			.from('properties')
 			.select('*', { count: 'exact' })
+			.eq('owner_user_id', user_id)
 			.order('created_at', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
 
@@ -74,20 +76,14 @@ export class PropertiesService {
 		req: AuthenticatedRequest,
 		property_id: string
 	): Promise<Property> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.warn('Property lookup requested without auth token', {
-				property_id
-			})
-			throw new BadRequestException('Authentication required')
-		}
+		const user_id = req.user.id
+		const adminClient = this.supabase.getAdminClient()
 
-		const client = this.supabase.getUserClient(token)
-
-		const { data, error } = await client
+		const { data, error } = await adminClient
 			.from('properties')
 			.select('*')
 			.eq('id', property_id)
+			.eq('owner_user_id', user_id)
 			.single()
 
 		if (error || !data) {
@@ -198,13 +194,8 @@ export class PropertiesService {
 		request: UpdatePropertyDto,
 		expectedVersion?: number
 	): Promise<Property> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
-		const client = this.supabase.getUserClient(token)
+		const user_id = req.user.id
+		const adminClient = this.supabase.getAdminClient()
 
 		// Verify property exists and user has access (throws if not found)
 		await this.findOne(req, property_id)
@@ -234,10 +225,11 @@ export class PropertiesService {
 			updated_data.property_type = request.property_type as PropertyType
 		}
 
-		let query = client
+		let query = adminClient
 			.from('properties')
 			.update(updated_data)
 			.eq('id', property_id)
+			.eq('owner_user_id', user_id)
 
 		if (expectedVersion !== undefined) {
 			query = query.eq('version', expectedVersion)
@@ -263,8 +255,6 @@ export class PropertiesService {
 			throw new BadRequestException('Failed to update property')
 		}
 
-		// Invalidate caches using the current user's ID
-		const user_id = req.user.id
 		this.cacheInvalidation.invalidatePropertyCaches(user_id, property_id)
 
 		return data as Property
@@ -279,20 +269,16 @@ export class PropertiesService {
 		limit: number
 		offset: number
 	}> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			return { data: [], total: 0, limit: query.limit, offset: query.offset }
-		}
-
-		const client = this.supabase.getUserClient(token)
+		const user_id = req.user.id
+		const adminClient = this.supabase.getAdminClient()
 
 		const limit = Math.min(Math.max(query.limit || 10, 1), 100)
 		const offset = Math.max(query.offset || 0, 0)
 
-		let queryBuilder = client
+		let queryBuilder = adminClient
 			.from('properties')
 			.select('*, units:unit(*, lease(*))', { count: 'exact' })
+			.eq('owner_user_id', user_id)
 			.order('created_at', { ascending: false })
 			.range(offset, offset + limit - 1)
 
@@ -333,19 +319,14 @@ export class PropertiesService {
 		req: AuthenticatedRequest,
 		property_id: string
 	): Promise<unknown[]> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
+		const adminClient = this.supabase.getAdminClient()
 
-		const client = this.supabase.getUserClient(token)
-
+		// findOne verifies ownership (throws NotFoundException if not owner)
 		const property = await this.findOne(req, property_id)
 		if (!property)
 			throw new BadRequestException('Property not found or access denied')
 
-		const { data, error } = await client
+		const { data, error } = await adminClient
 			.from('units')
 			.select('*')
 			.eq('property_id', property_id)

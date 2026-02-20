@@ -80,14 +80,10 @@ export class PropertiesController {
 		@Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
 		@Request() req: AuthenticatedRequest
 	) {
-		const token = req.headers.authorization?.replace('Bearer ', '')
-		if (!token) {
-			throw new UnauthorizedException('Authorization token required')
-		}
 		const safeLimit = normalizeLimit(limit)
 		const safeOffset = normalizeOffset(offset)
 
-		const result = await this.propertiesService.findAll(token, {
+		const result = await this.propertiesService.findAll(req.user.id, {
 			search,
 			status,
 			limit: safeLimit,
