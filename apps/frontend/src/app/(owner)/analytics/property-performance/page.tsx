@@ -2,7 +2,6 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { analyticsQueries } from '#hooks/api/use-analytics'
-import { Badge } from '#components/ui/badge'
 import { BlurFade } from '#components/ui/blur-fade'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -14,11 +13,6 @@ import {
 	StatTrend,
 	StatDescription
 } from '#components/ui/stat'
-import { DataTable } from '#components/data-table/data-table'
-import { DataTableToolbar } from '#components/data-table/data-table-toolbar'
-import { useDataTable } from '#hooks/use-data-table'
-import type { ColumnDef } from '@tanstack/react-table'
-import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
 	EmptyHeader,
@@ -26,11 +20,7 @@ import {
 	EmptyTitle,
 	EmptyDescription
 } from '#components/ui/empty'
-import {
-	formatCurrency,
-	formatNumber,
-	formatPercentage
-} from '#lib/formatters/currency'
+import { formatNumber } from '#lib/formatters/currency'
 import type {
 	PropertyPerformanceSummary,
 	PropertyPerformanceEntry,
@@ -42,6 +32,10 @@ import {
 	PropertyOccupancyChart,
 	VisitorAnalyticsChart
 } from './property-charts'
+import { TopPropertiesTable } from './top-properties-table'
+import { ActiveUnitsTable } from './active-units-table'
+import { PropertyPerformanceSkeleton } from './property-performance-skeleton'
+import { PortfolioKPIs } from './portfolio-kpis'
 import {
 	Building2,
 	TrendingUp,
@@ -50,244 +44,6 @@ import {
 	Users,
 	Home
 } from 'lucide-react'
-import { useMemo } from 'react'
-
-function TopPropertiesTable({
-	properties
-}: {
-	properties: PropertyPerformanceEntry[]
-}) {
-	const columns: ColumnDef<PropertyPerformanceEntry>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'propertyName',
-				header: 'Property',
-				meta: {
-					label: 'Property Name',
-					variant: 'text',
-					placeholder: 'Search property...'
-				},
-				enableColumnFilter: true
-			},
-			{
-				accessorKey: 'occupancyRate',
-				header: 'Occupancy',
-				meta: {
-					label: 'Occupancy Rate',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatPercentage(row.original.occupancyRate)}
-					</div>
-				)
-			},
-			{
-				id: 'units',
-				header: 'Units',
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatNumber(row.original.occupiedUnits)}/
-						{formatNumber(row.original.totalUnits)}
-					</div>
-				)
-			},
-			{
-				accessorKey: 'monthlyRevenue',
-				header: 'Monthly revenue',
-				meta: {
-					label: 'Monthly Revenue',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{formatCurrency(row.original.monthlyRevenue)}
-					</div>
-				)
-			}
-		],
-		[]
-	)
-
-	const { table } = useDataTable({
-		data: properties,
-		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 6
-			}
-		}
-	})
-
-	if (!properties.length) {
-		return (
-			<div className="text-center text-muted-foreground py-8">
-				No property data available
-			</div>
-		)
-	}
-
-	return (
-		<DataTable table={table}>
-			<DataTableToolbar table={table} />
-		</DataTable>
-	)
-}
-
-function ActiveUnitsTable({ units }: { units: PropertyUnitDetail[] }) {
-	const columns: ColumnDef<PropertyUnitDetail>[] = useMemo(
-		() => [
-			{
-				accessorKey: 'unit_number',
-				header: 'Unit',
-				meta: {
-					label: 'Unit Number',
-					variant: 'text',
-					placeholder: 'Search unit...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="flex flex-col">
-						<span className="font-medium">{row.original.unit_number}</span>
-						<span className="text-caption">{row.original.property_id}</span>
-					</div>
-				)
-			},
-			{
-				accessorKey: 'status',
-				header: 'Status',
-				meta: {
-					label: 'Status',
-					variant: 'text',
-					placeholder: 'Search status...'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<Badge variant="outline">{row.original.status}</Badge>
-				)
-			},
-			{
-				accessorKey: 'bedrooms',
-				header: 'Bedrooms',
-				meta: {
-					label: 'Bedrooms',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{row.original.bedrooms !== null &&
-						row.original.bedrooms !== undefined
-							? formatNumber(row.original.bedrooms)
-							: '-'}
-					</div>
-				)
-			},
-			{
-				accessorKey: 'bathrooms',
-				header: 'Bathrooms',
-				meta: {
-					label: 'Bathrooms',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{row.original.bathrooms !== null &&
-						row.original.bathrooms !== undefined
-							? formatNumber(row.original.bathrooms)
-							: '-'}
-					</div>
-				)
-			},
-			{
-				accessorKey: 'rent',
-				header: 'Rent',
-				meta: {
-					label: 'Monthly Rent',
-					variant: 'number'
-				},
-				enableColumnFilter: true,
-				cell: ({ row }) => (
-					<div className="text-right">
-						{row.original.rent !== null && row.original.rent !== undefined
-							? formatCurrency(row.original.rent)
-							: '-'}
-					</div>
-				)
-			}
-		],
-		[]
-	)
-
-	const { table } = useDataTable({
-		data: units,
-		columns,
-		pageCount: -1,
-		enableAdvancedFilter: true,
-		initialState: {
-			pagination: {
-				pageIndex: 0,
-				pageSize: 8
-			}
-		}
-	})
-
-	if (!units.length) {
-		return (
-			<div className="text-center text-muted-foreground py-8">
-				No unit data available
-			</div>
-		)
-	}
-
-	return (
-		<DataTable table={table}>
-			<DataTableToolbar table={table} />
-		</DataTable>
-	)
-}
-
-function PropertyPerformanceSkeleton() {
-	return (
-		<div className="p-6 lg:p-8 bg-background min-h-full">
-			<div className="flex flex-col gap-2 mb-6">
-				<Skeleton className="h-7 w-48" />
-				<Skeleton className="h-5 w-96" />
-			</div>
-			<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-				{Array.from({ length: 4 }).map((_, i) => (
-					<div key={i} className="rounded-sm border bg-card p-4 shadow-sm">
-						<Skeleton className="h-4 w-24 mb-2" />
-						<Skeleton className="h-8 w-20 mb-2" />
-						<Skeleton className="h-4 w-32" />
-					</div>
-				))}
-			</div>
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-				<div className="lg:col-span-2 bg-card border border-border rounded-lg p-6">
-					<Skeleton className="h-5 w-48 mb-2" />
-					<Skeleton className="h-4 w-64 mb-6" />
-					<Skeleton className="h-64 w-full" />
-				</div>
-				<div className="bg-card border border-border rounded-lg p-6">
-					<Skeleton className="h-5 w-32 mb-2" />
-					<Skeleton className="h-4 w-40 mb-6" />
-					<div className="space-y-3">
-						{Array.from({ length: 4 }).map((_, i) => (
-							<Skeleton key={i} className="h-10 w-full" />
-						))}
-					</div>
-				</div>
-			</div>
-		</div>
-	)
-}
 
 export default function PropertyPerformancePage() {
 	const { data, isLoading } = useQuery(
@@ -298,7 +54,6 @@ export default function PropertyPerformancePage() {
 		return <PropertyPerformanceSkeleton />
 	}
 
-	// Type assertions for property performance data
 	const metrics = (data?.metrics ?? {}) as PropertyPerformanceSummary
 	const performance = (data?.performance ?? []) as PropertyPerformanceEntry[]
 	const units = (data?.units ?? []) as PropertyUnitDetail[]
@@ -313,7 +68,6 @@ export default function PropertyPerformancePage() {
 		timeline: []
 	}) as VisitorAnalyticsResponse
 
-	// Show empty state when no meaningful data exists
 	const hasData =
 		metrics.totalProperties > 0 ||
 		metrics.totalUnits > 0 ||
@@ -478,27 +232,7 @@ export default function PropertyPerformancePage() {
 							</div>
 							<TrendingUp className="w-5 h-5 text-muted-foreground" />
 						</div>
-						<div className="space-y-3">
-							{unitStats.slice(0, 6).map(stat => (
-								<div
-									key={stat.label}
-									className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
-								>
-									<span className="text-muted-foreground">{stat.label}</span>
-									<span className="font-medium tabular-nums">
-										{formatNumber(stat.value)}
-										{stat.trend !== null && stat.trend !== undefined && (
-											<Badge
-												variant={stat.trend >= 0 ? 'outline' : 'destructive'}
-												className="ml-2"
-											>
-												{formatPercentage(Math.abs(stat.trend))}
-											</Badge>
-										)}
-									</span>
-								</div>
-							))}
-						</div>
+						<PortfolioKPIs unitStats={unitStats} />
 					</div>
 				</BlurFade>
 			</div>
