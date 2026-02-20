@@ -16,7 +16,7 @@ import {
 	AlertDialogTitle
 } from '#components/ui/dialog'
 import type { Property } from '@repo/shared/types/core'
-import { Building, Calendar, Edit, MapPin, Trash2 } from 'lucide-react'
+import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { PropertyImageGallery } from '#components/properties/property-image-gallery'
@@ -32,9 +32,10 @@ interface PropertyDetailsProps {
  * PropertyDetails - Full property detail view with units table
  *
  * Per spec:
- * - Property header with image, name, address, type, status
+ * - Property header with name, address, inline metadata
  * - Edit/Delete actions in header
- * - Units table below header
+ * - Units section (card for single-unit, table for multi-unit)
+ * - Property images gallery
  */
 export function PropertyDetails({ property }: PropertyDetailsProps) {
 	const [deleteOpen, setDeleteOpen] = useState(false)
@@ -51,7 +52,6 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 		}
 	}
 
-	// Get status badge styling
 	const getStatusBadgeClass = (status: string | null) => {
 		switch (status?.toLowerCase()) {
 			case 'active':
@@ -71,12 +71,42 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 			<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
 				<div>
 					<h1 className="typography-h2 tracking-tight">{property.name}</h1>
-					<div className="flex items-center gap-2 mt-2 text-muted-foreground">
+					<div className="flex items-center gap-2 mt-1 text-muted-foreground">
 						<MapPin className="size-4 shrink-0" />
 						<span>
 							{property.address_line1}, {property.city}, {property.state}{' '}
 							{property.postal_code}
 						</span>
+					</div>
+					{/* Compact metadata row */}
+					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-sm text-muted-foreground">
+						<span className="flex items-center gap-1.5">
+							<Building className="size-3.5" />
+							<span className="capitalize">
+								{property.property_type?.toLowerCase().replace(/_/g, ' ') ||
+									'Not specified'}
+							</span>
+						</span>
+						<span className="text-border">·</span>
+						<Badge
+							variant="outline"
+							className={`border-0 text-xs px-2 py-0 ${getStatusBadgeClass(property.status)}`}
+						>
+							{property.status || 'Active'}
+						</Badge>
+						{property.created_at && (
+							<>
+								<span className="text-border">·</span>
+								<span>
+									Added{' '}
+									{new Date(property.created_at).toLocaleDateString('en-US', {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric'
+									})}
+								</span>
+							</>
+						)}
 					</div>
 				</div>
 				<ButtonGroup>
@@ -98,58 +128,11 @@ export function PropertyDetails({ property }: PropertyDetailsProps) {
 				</ButtonGroup>
 			</div>
 
-			{/* Property Overview Cards */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Property Type</CardTitle>
-						<Building className="size-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-lg font-semibold capitalize">
-							{property.property_type?.toLowerCase().replace(/_/g, ' ') ||
-								'Not specified'}
-						</div>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Status</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<Badge
-							variant="outline"
-							className={`border-0 ${getStatusBadgeClass(property.status)}`}
-						>
-							{property.status || 'Active'}
-						</Badge>
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="typography-small">Added</CardTitle>
-						<Calendar className="size-4 text-muted-foreground" />
-					</CardHeader>
-					<CardContent>
-						<div className="text-lg font-semibold">
-							{property.created_at
-								? new Date(property.created_at).toLocaleDateString('en-US', {
-										year: 'numeric',
-										month: 'short',
-										day: 'numeric'
-									})
-								: 'Unknown'}
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-
-			{/* Units Table - Per spec: "Units table below header" */}
+			{/* Units Section */}
 			<PropertyUnitsTable
 				propertyId={property.id}
 				propertyName={property.name}
+				propertyType={property.property_type ?? ''}
 			/>
 
 			{/* Property Images Gallery */}

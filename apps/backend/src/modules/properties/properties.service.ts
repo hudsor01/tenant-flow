@@ -20,6 +20,7 @@ import {
 } from '../../shared/utils/sql-safe.utils'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { VALID_PROPERTY_TYPES } from './utils/csv-normalizer'
+import { SINGLE_UNIT_PROPERTY_TYPES } from '@repo/shared/constants/status-types'
 import { AppLogger } from '../../logger/app-logger.service'
 import { PropertyCacheInvalidationService } from './services/property-cache-invalidation.service'
 
@@ -181,6 +182,30 @@ export class PropertiesService {
 		}
 
 		this.cacheInvalidation.invalidatePropertyCaches(user_id, data.id)
+
+		// Auto-create a default unit for single-unit property types
+		if (SINGLE_UNIT_PROPERTY_TYPES.includes(request.property_type as PropertyType)) {
+			try {
+				await adminClient.from('units').insert({
+					property_id: data.id,
+					owner_user_id: user_id,
+					unit_number: '1',
+					bedrooms: 1,
+					bathrooms: 1,
+					rent_amount: 0,
+					status: 'available'
+				})
+				this.logger.debug('Auto-created default unit for single-unit property', {
+					property_id: data.id,
+					property_type: request.property_type
+				})
+			} catch (unitError) {
+				this.logger.warn('Failed to auto-create default unit', {
+					property_id: data.id,
+					error: unitError
+				})
+			}
+		}
 
 		this.logger.log('Property created successfully', {
 			property_id: data.id
