@@ -154,7 +154,7 @@ describe('PropertyUnitsTable', () => {
 				{ wrapper: createWrapper() }
 			)
 			// Should show skeleton placeholders
-			expect(screen.getByText('Units')).toBeInTheDocument()
+			expect(screen.getByText('Unit Details')).toBeInTheDocument()
 		})
 	})
 
@@ -170,7 +170,7 @@ describe('PropertyUnitsTable', () => {
 				<PropertyUnitsTable propertyId="prop-1" propertyName="Test Property" />,
 				{ wrapper: createWrapper() }
 			)
-			expect(screen.getByText(/failed to load units/i)).toBeInTheDocument()
+			expect(screen.getByText(/failed to load unit details/i)).toBeInTheDocument()
 		})
 	})
 

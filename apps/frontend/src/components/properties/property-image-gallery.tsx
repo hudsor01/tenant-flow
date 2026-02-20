@@ -111,15 +111,13 @@ export function PropertyImageGallery({
 	// Empty state
 	if (!images || images.length === 0) {
 		return (
-			<div className="flex flex-col items-center justify-center py-12 px-4 border-2 border-dashed rounded-lg bg-muted/30">
-				<ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
-				<p className="typography-small text-muted-foreground">No images yet</p>
-				{editable && (
-					<p className="text-caption mt-1">
-						Upload images below to showcase this property
-					</p>
-				)}
-			</div>
+			<p className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+				<ImageIcon className="size-4 shrink-0" />
+				No images yet
+				{editable
+					? ' — upload images below to showcase this property'
+					: ' — add photos from the Edit page'}
+			</p>
 		)
 	}
 
