@@ -20,22 +20,12 @@ import { useRouter } from 'next/navigation'
 import { BlurFade } from '#components/ui/blur-fade'
 import { MaintenanceCard } from '../cards/maintenance-card'
 import { MaintenanceSortableCard } from '../cards/maintenance-sortable-card'
-import type {
-	MaintenanceRequest,
-	MaintenanceStatus
-} from '@repo/shared/types/core'
+import type { MaintenanceStatus } from '@repo/shared/types/core'
+import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })
-
-// Extended type with optional relations for display
-type MaintenanceRequestWithRelations = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-	tenant?: { name: string } | null
-}
 
 interface ColumnConfig {
 	id: MaintenanceStatus
@@ -87,7 +77,7 @@ function getDaysOpen(timestamp: string | null | undefined): number {
 
 interface KanbanColumnProps {
 	column: ColumnConfig
-	requests: MaintenanceRequestWithRelations[]
+	requests: MaintenanceDisplayRequest[]
 	columnIndex: number
 	onView: (id: string) => void
 }
@@ -158,16 +148,16 @@ function KanbanColumn({
 }
 
 interface MaintenanceKanbanProps {
-	initialRequests: MaintenanceRequestWithRelations[]
+	initialRequests: MaintenanceDisplayRequest[]
 }
 
 export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 	const router = useRouter()
-	const [requests, setRequests] = useState<MaintenanceRequestWithRelations[]>(
+	const [requests, setRequests] = useState<MaintenanceDisplayRequest[]>(
 		initialRequests || []
 	)
 	const [activeRequest, setActiveRequest] =
-		useState<MaintenanceRequestWithRelations | null>(null)
+		useState<MaintenanceDisplayRequest | null>(null)
 	const [, startTransition] = useTransition()
 
 	const sensors = useSensors(
@@ -189,7 +179,7 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 			if (status) acc[status].push(request)
 			return acc
 		},
-		{} as Record<MaintenanceStatus, MaintenanceRequestWithRelations[]>
+		{} as Record<MaintenanceStatus, MaintenanceDisplayRequest[]>
 	)
 
 	const handleDragStart = (event: DragStartEvent) => {
