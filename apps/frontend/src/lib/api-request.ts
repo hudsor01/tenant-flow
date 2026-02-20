@@ -135,12 +135,16 @@ export async function apiRequest<T>(
 
 		if (!res.ok) {
 			const body = await res.json().catch(() => ({}))
-			throw new ApiError(
-				(body as { message?: string }).message || res.statusText || `HTTP ${res.status}`,
-				res.status,
-				res.statusText,
-				body
-			)
+			// NestJS can serialize body.message as an object (e.g. ForbiddenException with payload).
+			// Extract the human-readable string from body.message or body.message.message.
+			const rawMessage = (body as Record<string, unknown>)?.message
+			const message =
+				typeof rawMessage === 'string'
+					? rawMessage
+					: typeof rawMessage === 'object' && rawMessage !== null
+						? String((rawMessage as Record<string, unknown>).message ?? res.statusText)
+						: res.statusText || `HTTP ${res.status}`
+			throw new ApiError(message, res.status, res.statusText, body)
 		}
 
 		const text = await res.text()
