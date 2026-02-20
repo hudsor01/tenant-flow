@@ -61,8 +61,8 @@ describe('TenantListService', () => {
 		} as unknown as jest.Mocked<SupabaseService>
 
 		const mockLeaseQueryService: Partial<TenantLeaseQueryService> = {
-			findAllWithLeaseInfo: jest.fn().mockResolvedValue([]),
-			findByProperty: jest.fn().mockResolvedValue([])
+			findAllWithLeaseInfo: jest.fn().mockResolvedValue({ data: [], count: 0 }),
+			findByProperty: jest.fn().mockResolvedValue({ data: [], count: 0 })
 		}
 
 		const module = await Test.createTestingModule({

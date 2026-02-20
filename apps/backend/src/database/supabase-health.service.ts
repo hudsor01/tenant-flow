@@ -137,7 +137,7 @@ export class SupabaseHealthService {
 			const table: PublicTableName = 'users'
 			const { error } = await this.adminClient
 				.from(table)
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 
 			if (error) {
 				interface SupabaseError {

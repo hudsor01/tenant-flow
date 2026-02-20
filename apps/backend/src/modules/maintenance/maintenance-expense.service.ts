@@ -97,7 +97,7 @@ export class MaintenanceExpenseService {
 
 			const { data, error } = await client
 				.from('expenses')
-				.select('*')
+				.select('id, maintenance_request_id, amount, expense_date, vendor_name, created_at, updated_at')
 				.eq('maintenance_request_id', maintenanceId)
 				.order('expense_date', { ascending: false })
 

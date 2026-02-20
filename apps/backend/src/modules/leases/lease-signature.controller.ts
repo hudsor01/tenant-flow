@@ -36,6 +36,7 @@ import {
 import { Throttle } from '@nestjs/throttler'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { LeaseSignatureService } from './lease-signature.service'
+import { RejectLeaseDto } from './dto/reject-lease.dto'
 
 @ApiTags('Leases')
 @ApiBearerAuth('supabase-auth')
@@ -205,11 +206,11 @@ export class LeaseSignatureController {
 	async resendSignatureRequest(
 		@Param('id', ParseUUIDPipe) id: string,
 		@Req() req: AuthenticatedRequest,
-		@Body() body?: { message?: string }
+		@Body() body: RejectLeaseDto
 	) {
 		// Build options object only with defined values for exactOptionalPropertyTypes
 		const options: { message?: string } = {}
-		if (body?.message !== undefined) {
+		if (body.message !== undefined) {
 			options.message = body.message
 		}
 		await this.signatureService.resendSignatureRequest(req.user.id, id, options)

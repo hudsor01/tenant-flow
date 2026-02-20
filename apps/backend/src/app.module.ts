@@ -33,7 +33,7 @@
  * @see .planning/adr/0008-cold-start-optimization.md
  */
 import type { MiddlewareConsumer, NestModule } from '@nestjs/common'
-import { Module } from '@nestjs/common'
+import { Logger, Module } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup'
@@ -46,7 +46,7 @@ import { BullBoardModule } from '@bull-board/nestjs'
 import { ExpressAdapter } from '@bull-board/express'
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { ThrottlerProxyGuard } from './shared/guards/throttler-proxy.guard'
-import type { Request } from 'express'
+import type { Request, Response, NextFunction } from 'express'
 import { ClsModule } from 'nestjs-cls'
 import { ZodValidationPipe } from 'nestjs-zod'
 import { randomUUID } from 'node:crypto'
@@ -59,6 +59,7 @@ import { AppConfigService } from './config/app-config.service'
 import { LoggerModule } from './logger/winston.module'
 import { CacheConfigurationModule } from './cache/cache.module'
 import { SupabaseModule } from './database/supabase.module'
+import { SupabaseService } from './database/supabase.service'
 import { HealthModule } from './health/health.module'
 import { CacheControlInterceptor } from './interceptors/cache-control.interceptor'
 import { TimeoutInterceptor } from './interceptors/timeout.interceptor'
@@ -337,11 +338,34 @@ const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
 	exports: []
 })
 export class AppModule implements NestModule {
+	private readonly logger = new Logger(AppModule.name)
+
+	constructor(private readonly supabaseService: SupabaseService) {}
+
 	/**
 	 * Configure middleware using official NestJS pattern
 	 * https://docs.nestjs.com/middleware#applying-middleware
 	 */
 	configure(consumer: MiddlewareConsumer) {
+		// Bull Board auth middleware - protects /admin/queues from unauthenticated access
+		// Bull Board uses Express directly, bypassing NestJS guards, so we must
+		// use Express middleware to enforce authentication on these routes.
+		consumer
+			.apply(
+				async (req: Request, res: Response, next: NextFunction) => {
+					const user = await this.supabaseService.getUser(req)
+					if (!user) {
+						this.logger.warn(
+							`Unauthorized Bull Board access attempt from ${req.ip}`
+						)
+						res.status(401).json({ message: 'Authentication required' })
+						return
+					}
+					next()
+				}
+			)
+			.forRoutes('/admin/queues')
+
 		// Apply middleware in order: timing → ID → Sentry context → logging
 		// Timing must run first to capture startTime
 		// ID must run before Sentry/logging to include requestId

@@ -213,7 +213,7 @@ export class TenantInvitationTokenService {
 				// Check if tenant already exists for this user
 				const { data: existingTenant } = await client
 					.from('tenants')
-					.select('*')
+					.select('id, user_id, stripe_customer_id, date_of_birth, ssn_last_four, identity_verified, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, created_at, updated_at')
 					.eq('user_id', user_id)
 					.maybeSingle()
 

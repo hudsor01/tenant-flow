@@ -3,6 +3,7 @@ import {
 	Get,
 	Patch,
 	Param,
+	ParseUUIDPipe,
 	Query,
 	Body,
 	UseGuards
@@ -20,6 +21,7 @@ import {
 	AdminService,
 	type AdminUserListResponse
 } from '../services/admin.service'
+import { AdminUpdateUserDto } from '../dto/update-user.dto'
 import { AppLogger } from '../../../logger/app-logger.service'
 import { Roles } from '../../../shared/decorators/roles.decorator'
 import { RolesGuard } from '../../../shared/guards/roles.guard'
@@ -86,7 +88,7 @@ export class AdminUsersController {
 	@ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
 	@ApiResponse({ status: 404, description: 'User not found' })
 	@Get(':id')
-	async getUserDetails(@Param('id') userId: string) {
+	async getUserDetails(@Param('id', ParseUUIDPipe) userId: string) {
 		this.logger.log('Admin: Getting user details', { userId })
 		return this.adminService.getUserDetails(userId)
 	}
@@ -104,8 +106,8 @@ export class AdminUsersController {
 	@ApiResponse({ status: 404, description: 'User not found' })
 	@Patch(':id')
 	async updateUser(
-		@Param('id') userId: string,
-		@Body() updates: { role?: string; status?: string }
+		@Param('id', ParseUUIDPipe) userId: string,
+		@Body() updates: AdminUpdateUserDto
 	) {
 		this.logger.log('Admin: Updating user', { userId, updates })
 		return this.adminService.updateUser(userId, updates)
@@ -123,7 +125,7 @@ export class AdminUsersController {
 	@ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
 	@Get(':id/activity')
 	async getUserActivity(
-		@Param('id') userId: string,
+		@Param('id', ParseUUIDPipe) userId: string,
 		@Query('limit') limit = '50'
 	) {
 		this.logger.log('Admin: Getting user activity', { userId, limit })

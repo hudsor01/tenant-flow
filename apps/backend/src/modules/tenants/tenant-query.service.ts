@@ -20,24 +20,18 @@ import type {
 import { TenantDetailService } from './tenant-detail.service'
 import {
 	TenantListService,
-	type ListFilters as ListFiltersType
+	type ListFilters
 } from './tenant-list.service'
 import { TenantStatsService } from './tenant-stats.service'
 import {
 	TenantRelationService,
-	type LeaseHistoryItem as LeaseHistoryItemType
+	type LeaseHistoryItem
 } from './tenant-relation.service'
 import {
 	TenantInvitationQueryService,
-	type TenantInvitation as TenantInvitationType,
-	type InvitationFilters as InvitationFiltersType
+	type TenantInvitation,
+	type InvitationFilters
 } from './tenant-invitation-query.service'
-
-// Re-export types for backwards compatibility without barrel re-exports
-export type ListFilters = ListFiltersType
-export type TenantInvitation = TenantInvitationType
-export type InvitationFilters = InvitationFiltersType
-export type LeaseHistoryItem = LeaseHistoryItemType
 
 @Injectable()
 export class TenantQueryService {
@@ -62,23 +56,25 @@ export class TenantQueryService {
 
 	/**
 	 * Get all tenants with active lease details
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findAllWithLeaseInfo(
 		userId: string,
 		filters: Omit<ListFilters, 'status'> = {}
-	): Promise<TenantWithLeaseInfo[]> {
+	): Promise<{ data: TenantWithLeaseInfo[]; count: number }> {
 		return this.listService.findAllWithLeaseInfo(userId, filters)
 	}
 
 	/**
 	 * Get all tenants invited to a specific property
 	 * Excludes tenants who already have an active lease (one property per tenant)
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findByProperty(
 		userId: string,
 		propertyId: string,
 		filters: ListFilters = {}
-	): Promise<Tenant[]> {
+	): Promise<{ data: Tenant[]; count: number }> {
 		return this.listService.findByProperty(userId, propertyId, filters)
 	}
 

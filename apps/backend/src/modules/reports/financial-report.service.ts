@@ -113,9 +113,10 @@ export class FinancialReportService {
 				})
 			}
 
-			// Aggregate payments by month
+			// Aggregate payments by month (only succeeded payments contribute to revenue)
 			if (payments) {
 				payments.forEach(payment => {
+					if (payment.status !== 'succeeded') return
 					const monthKey = payment.created_at?.substring(0, 7)
 					if (!monthKey) return
 
