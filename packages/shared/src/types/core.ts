@@ -269,7 +269,7 @@ export interface LeaseStatsResponse {
 	terminatedLeases: number
 	totalMonthlyRent: number
 	averageRent: number
-	totalsecurity_deposits: number
+	total_security_deposits: number
 	expiringLeases: number
 }
 

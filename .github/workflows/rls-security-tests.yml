@@ -1,0 +1,62 @@
+name: RLS Security Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'supabase/migrations/**'
+      - 'packages/shared/**'
+  workflow_dispatch: # Allow manual trigger
+
+concurrency:
+  group: rls-security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  rls-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.23.0'
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build shared package
+        run: pnpm --filter @repo/shared build
+
+      - name: Run RLS security tests
+        # Tests skip gracefully if secrets are not configured (shouldSkipIntegrationTests in setup.ts)
+        # Multi-user isolation tests (OWNER_B, TENANT_A, TENANT_B) are optional but recommended
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+          E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
+          E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
+          E2E_TENANT_A_EMAIL: ${{ secrets.E2E_TENANT_A_EMAIL }}
+          E2E_TENANT_A_PASSWORD: ${{ secrets.E2E_TENANT_A_PASSWORD }}
+          E2E_TENANT_B_EMAIL: ${{ secrets.E2E_TENANT_B_EMAIL }}
+          E2E_TENANT_B_PASSWORD: ${{ secrets.E2E_TENANT_B_PASSWORD }}
+        run: pnpm --filter @repo/backend test:security

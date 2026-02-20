@@ -17,6 +17,7 @@ import { FinancialReportService } from './financial-report.service'
 import { MaintenanceReportService } from './maintenance-report.service'
 import { PropertyReportService } from './property-report.service'
 import { TenantReportService } from './tenant-report.service'
+import { YearEndReportService } from './year-end-report.service'
 
 interface AuthenticatedRequest extends Request {
 	user?: { id: string; email: string }
@@ -41,7 +42,8 @@ export class ReportsController {
 		private readonly financialReportService: FinancialReportService,
 		private readonly propertyReportService: PropertyReportService,
 		private readonly tenantReportService: TenantReportService,
-		private readonly maintenanceReportService: MaintenanceReportService
+		private readonly maintenanceReportService: MaintenanceReportService,
+		private readonly yearEndReportService: YearEndReportService
 	) {}
 
 	// ==================== REPORT DATA ENDPOINTS ====================
@@ -167,6 +169,60 @@ export class ReportsController {
 			start_date,
 			end_date
 		)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/year-end
+	 * Year-end income/expense summary for tax purposes
+	 */
+	@ApiOperation({ summary: 'Get year-end summary', description: 'Get year-end income and expense summary for the given tax year' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Tax year (defaults to current year)' })
+	@ApiResponse({ status: 200, description: 'Year-end summary retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('year-end')
+	async getYearEndSummary(
+		@Req() req: AuthenticatedRequest,
+		@Query('year') year?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
+		const data = await this.yearEndReportService.getYearEndSummary(user_id, taxYear)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
+	/**
+	 * GET /reports/year-end/1099
+	 * 1099-NEC vendor data for vendors paid over $600 threshold
+	 */
+	@ApiOperation({ summary: 'Get 1099-NEC vendor data', description: 'Get vendors paid over $600 threshold for 1099-NEC reporting' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Tax year (defaults to current year)' })
+	@ApiResponse({ status: 200, description: '1099 vendor data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('year-end/1099')
+	async get1099Vendors(
+		@Req() req: AuthenticatedRequest,
+		@Query('year') year?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
+		const data = await this.yearEndReportService.get1099Vendors(user_id, taxYear)
 
 		return {
 			success: true,

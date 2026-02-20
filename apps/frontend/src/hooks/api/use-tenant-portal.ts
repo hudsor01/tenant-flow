@@ -446,6 +446,9 @@ export function useMaintenanceRequestCreateMutation() {
 			queryClient.invalidateQueries({
 				queryKey: tenantPortalKeys.maintenance.list()
 			})
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Create maintenance request')
 		}
 	})
 }

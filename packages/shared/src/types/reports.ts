@@ -174,3 +174,34 @@ export interface MaintenanceReport {
 		jobs: number
 	}>
 }
+
+export interface YearEndSummary {
+	year: number
+	grossRentalIncome: number
+	operatingExpenses: number
+	netIncome: number
+	byProperty: Array<{
+		propertyId: string
+		propertyName: string
+		income: number
+		expenses: number
+		netIncome: number
+	}>
+	expenseByCategory: Array<{
+		category: string
+		amount: number
+	}>
+}
+
+export interface Year1099Recipient {
+	vendorName: string
+	totalPaid: number
+	jobCount: number
+}
+
+export interface Year1099Summary {
+	year: number
+	threshold: number
+	recipients: Year1099Recipient[]
+	totalReported: number
+}

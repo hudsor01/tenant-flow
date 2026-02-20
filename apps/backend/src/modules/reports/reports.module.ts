@@ -12,6 +12,7 @@ import { ReportGenerationController } from './report-generation.controller'
 import { ReportsController } from './reports.controller'
 import { TaxReportService } from './tax-report.service'
 import { TenantReportService } from './tenant-report.service'
+import { YearEndReportService } from './year-end-report.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
@@ -35,6 +36,7 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 		MaintenanceReportService,
 		ExecutiveReportService,
 		TaxReportService,
+		YearEndReportService,
 		ExecutiveMonthlyTemplate,
 		FinancialPerformanceTemplate,
 		PropertyPortfolioTemplate,

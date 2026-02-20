@@ -8,6 +8,7 @@ import { FinancialReportService } from './financial-report.service'
 import { MaintenanceReportService } from './maintenance-report.service'
 import { PropertyReportService } from './property-report.service'
 import { TenantReportService } from './tenant-report.service'
+import { YearEndReportService } from './year-end-report.service'
 
 describe('ReportsController', () => {
 	let controller: ReportsController
@@ -15,6 +16,7 @@ describe('ReportsController', () => {
 	let propertyReportService: jest.Mocked<PropertyReportService>
 	let tenantReportService: jest.Mocked<TenantReportService>
 	let maintenanceReportService: jest.Mocked<MaintenanceReportService>
+	let yearEndReportService: jest.Mocked<YearEndReportService>
 
 	beforeEach(async () => {
 		financialReportService = {
@@ -32,6 +34,11 @@ describe('ReportsController', () => {
 		maintenanceReportService = {
 			getMaintenanceReport: jest.fn().mockResolvedValue({ requests: [] })
 		} as unknown as jest.Mocked<MaintenanceReportService>
+
+		yearEndReportService = {
+			getYearEndSummary: jest.fn().mockResolvedValue({ year: 2025, grossRentalIncome: 0, operatingExpenses: 0, netIncome: 0, byProperty: [], expenseByCategory: [] }),
+			get1099Vendors: jest.fn().mockResolvedValue({ year: 2025, threshold: 600, recipients: [] })
+		} as unknown as jest.Mocked<YearEndReportService>
 
 		const module: TestingModule = await Test.createTestingModule({
 			controllers: [ReportsController],
@@ -59,6 +66,10 @@ describe('ReportsController', () => {
 				{
 					provide: MaintenanceReportService,
 					useValue: maintenanceReportService
+				},
+				{
+					provide: YearEndReportService,
+					useValue: yearEndReportService
 				}
 			]
 		}).compile()
@@ -185,6 +196,55 @@ describe('ReportsController', () => {
 				success: true,
 				data: { requests: [] }
 			})
+		})
+	})
+
+	describe('getYearEndSummary', () => {
+		it('returns year-end summary for authenticated user', async () => {
+			const result = await controller.getYearEndSummary(
+				createAuthenticatedRequest()
+			)
+
+			expect(yearEndReportService.getYearEndSummary).toHaveBeenCalledWith(
+				'test-user-id',
+				new Date().getFullYear()
+			)
+			expect(result.success).toBe(true)
+		})
+
+		it('uses provided year parameter', async () => {
+			await controller.getYearEndSummary(createAuthenticatedRequest(), '2024')
+
+			expect(yearEndReportService.getYearEndSummary).toHaveBeenCalledWith(
+				'test-user-id',
+				2024
+			)
+		})
+
+		it('throws UnauthorizedException when user is not authenticated', async () => {
+			await expect(
+				controller.getYearEndSummary(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
+		})
+	})
+
+	describe('get1099Vendors', () => {
+		it('returns 1099 vendor data for authenticated user', async () => {
+			const result = await controller.get1099Vendors(
+				createAuthenticatedRequest()
+			)
+
+			expect(yearEndReportService.get1099Vendors).toHaveBeenCalledWith(
+				'test-user-id',
+				new Date().getFullYear()
+			)
+			expect(result.success).toBe(true)
+		})
+
+		it('throws UnauthorizedException when user is not authenticated', async () => {
+			await expect(
+				controller.get1099Vendors(createUnauthenticatedRequest())
+			).rejects.toBeInstanceOf(UnauthorizedException)
 		})
 	})
 })
