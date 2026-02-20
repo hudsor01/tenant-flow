@@ -58,8 +58,8 @@ test.describe('Property Image Upload', () => {
 		// Verify we're on the create page (this also waits for the page to be interactive)
 		await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
 
-		// Wait for form to be fully loaded
-		await page.waitForTimeout(1000)
+		// Wait for form to be fully interactive
+		await expect(page.getByLabel(/property name/i).first()).toBeVisible()
 
 		// Fill out required property fields (click first, then fill to ensure focus)
 		const nameInput = page.getByLabel(/property name/i).first()
@@ -87,7 +87,7 @@ test.describe('Property Image Upload', () => {
 		await fileInput.setInputFiles(testImagePaths)
 
 		// Verify files are selected - check for file count indicator or preview
-		await page.waitForTimeout(500) // Brief wait for React state update
+		await page.waitForFunction(() => document.querySelector('img[src^="blob:"]') !== null)
 		const fileCountText = await page.textContent('body')
 		const hasFileIndicator = fileCountText?.includes('3 image') ||
 		                        fileCountText?.includes('selected') ||
@@ -138,7 +138,7 @@ test.describe('Property Image Upload', () => {
 		const gridButton = page.getByRole('button', { name: /grid/i })
 		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
 			await gridButton.click()
-			await page.waitForTimeout(300)
+			await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
 		}
 
 		// Find the newly created property card (use first() to handle duplicate names from repeated test runs)
@@ -154,9 +154,6 @@ test.describe('Property Image Upload', () => {
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
 		expect(imgSrc).toBeTruthy()
-		console.log('Property card image src:', imgSrc)
-
-		console.log('✅ Property creation with images test completed!')
 	})
 
 	test('should upload image and display it on property card', async ({
@@ -195,7 +192,6 @@ test.describe('Property Image Upload', () => {
 
 			// Submit
 			await page.getByRole('button', { name: /create property/i }).click()
-			await page.waitForTimeout(2000)
 			await page.waitForLoadState('domcontentloaded')
 		}
 
@@ -229,15 +225,13 @@ test.describe('Property Image Upload', () => {
 			name: /property images/i
 		})
 		await propertyImagesSection.scrollIntoViewIfNeeded()
-		await page.waitForTimeout(500)
+		await expect(propertyImagesSection).toBeVisible()
 
 		// Upload a test image using PropertyImageUpload dropzone (use first() to avoid mobile duplicate)
 		const fileInput = page.locator('input[type="file"]').first()
 		await fileInput.setInputFiles(testImagePath)
 
 		// Wait for auto-upload to complete (compression + upload happens automatically)
-		await page.waitForTimeout(1000) // Brief wait for compression to start
-
 		// Wait for upload to complete
 		await page.waitForFunction(
 			() => {
@@ -266,7 +260,7 @@ test.describe('Property Image Upload', () => {
 		// Navigate back to /properties
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000)
+		await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
 
 		// Verify the uploaded image now appears on the property card
 		const cardWithImage = page.locator('[data-testid="property-card"]').first()
@@ -319,8 +313,8 @@ test.describe('Property Image Upload', () => {
 			const fileInput = page.locator('input[type="file"]').first()
 			await fileInput.setInputFiles(testImagePath)
 
-			// Wait for compression
-			await page.waitForTimeout(2000)
+			// Wait for file to appear in the UI
+			await page.waitForFunction(() => document.querySelector('img[src^="blob:"], [class*="preview"]') !== null, { timeout: 5000 }).catch(() => {})
 
 			// Verify file was selected (compression may show "smaller" stats)
 			const fileSelected = page

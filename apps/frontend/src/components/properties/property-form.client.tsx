@@ -50,6 +50,7 @@ interface FileWithStatus {
 	file: File
 	status: FileUploadStatus
 	error?: string
+	objectUrl: string
 }
 
 /**
@@ -104,7 +105,8 @@ export function PropertyForm({
 		onDrop: acceptedFiles => {
 			const newFiles: FileWithStatus[] = acceptedFiles.map(file => ({
 				file,
-				status: 'pending' as const
+				status: 'pending' as const,
+				objectUrl: URL.createObjectURL(file)
 			}))
 			setFilesWithStatus(prev => [...prev, ...newFiles].slice(0, 10))
 		}
@@ -130,34 +132,16 @@ export function PropertyForm({
 		}
 	}, [mode, property, queryClient])
 
-	// Cache object URLs to avoid recreating them on every render and memory leaks
-	const objectUrlsRef = useRef<Map<File, string>>(new Map())
+	// Track latest filesWithStatus for unmount cleanup (avoids stale closure)
+	const filesWithStatusRef = useRef<FileWithStatus[]>([])
+	filesWithStatusRef.current = filesWithStatus
 	useEffect(() => {
-		const currentFiles = new Set(filesWithStatus.map(f => f.file))
-
-		// Revoke URLs for files that were removed
-		for (const [file, url] of objectUrlsRef.current) {
-			if (!currentFiles.has(file)) {
-				URL.revokeObjectURL(url)
-				objectUrlsRef.current.delete(file)
-			}
-		}
-
-		// Create URLs only for newly added files
-		for (const { file } of filesWithStatus) {
-			if (!objectUrlsRef.current.has(file)) {
-				objectUrlsRef.current.set(file, URL.createObjectURL(file))
-			}
-		}
-
 		return () => {
-			const urlMap = objectUrlsRef.current
-			for (const url of urlMap.values()) {
-				URL.revokeObjectURL(url)
+			for (const { objectUrl } of filesWithStatusRef.current) {
+				URL.revokeObjectURL(objectUrl)
 			}
-			urlMap.clear()
 		}
-	}, [filesWithStatus])
+	}, [])
 
 	// Initialize form
 	const form = useForm({
@@ -252,10 +236,10 @@ export function PropertyForm({
 								}
 							})
 
-							await Promise.allSettled(uploadPromises)
+							const results = await Promise.allSettled(uploadPromises)
 
-							const successCount = filesWithStatus.filter(f => f.status === 'success').length
-							const errorCount = filesWithStatus.filter(f => f.status === 'error').length
+							const successCount = results.filter(r => r.status === 'fulfilled').length
+							const errorCount = results.filter(r => r.status === 'rejected').length
 
 							logger.info('Images upload completed', {
 								propertyId: newProperty.id,
@@ -285,7 +269,14 @@ export function PropertyForm({
 							setUploadingImages(false)
 							// Clear files after a delay so user can see final status
 							setTimeout(() => {
-								if (isMountedRef.current) setFilesWithStatus([])
+								if (isMountedRef.current) {
+									setFilesWithStatus(prev => {
+										for (const { objectUrl } of prev) {
+											URL.revokeObjectURL(objectUrl)
+										}
+										return []
+									})
+								}
 							}, 2000)
 						}
 					} else {
@@ -648,13 +639,13 @@ export function PropertyForm({
 						{/* Selected files preview with upload status */}
 						{filesWithStatus.length > 0 && (
 							<div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-								{filesWithStatus.map(({ file, status }, index) => (
+								{filesWithStatus.map(({ file, status, objectUrl }, index) => (
 									<div
 										key={index}
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
-											src={objectUrlsRef.current.get(file) ?? ''}
+											src={objectUrl}
 											alt={file.name}
 											className="w-full h-full object-cover"
 										/>
@@ -665,9 +656,11 @@ export function PropertyForm({
 												type="button"
 												onClick={e => {
 													e.stopPropagation()
-													setFilesWithStatus(prev =>
-														prev.filter((_, i) => i !== index)
-													)
+													setFilesWithStatus(prev => {
+														const removed = prev[index]
+														if (removed) URL.revokeObjectURL(removed.objectUrl)
+														return prev.filter((_, i) => i !== index)
+													})
 												}}
 												className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
 												aria-label="Remove image"
