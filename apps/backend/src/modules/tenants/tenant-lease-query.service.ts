@@ -57,11 +57,12 @@ export class TenantLeaseQueryService {
 
 	/**
 	 * Get all tenants with active lease details using optimized single-query approach
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findAllWithLeaseInfo(
 		userId: string,
 		filters: LeaseQueryFilters = {}
-	): Promise<TenantWithLeaseInfo[]> {
+	): Promise<{ data: TenantWithLeaseInfo[]; count: number }> {
 		if (!userId) throw new BadRequestException('User ID required')
 
 		const limit = Math.min(filters.limit ?? DEFAULT_LIMIT, MAX_LIMIT)
@@ -82,13 +83,87 @@ export class TenantLeaseQueryService {
 				}
 			}
 
-			return Array.from(deduped.values())
+			const data = Array.from(deduped.values())
+
+			// Get accurate total count via lightweight count query
+			const count = await this.countAllTenantsWithLease(userId, filters)
+
+			return { data, count }
 		} catch (error) {
 			this.logger.error('Error finding tenants with lease', {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
 			throw error
+		}
+	}
+
+	/**
+	 * Count total tenants with lease info for accurate pagination
+	 * Runs lightweight count-only queries (no data fetching)
+	 */
+	private async countAllTenantsWithLease(
+		userId: string,
+		filters: LeaseQueryFilters
+	): Promise<number> {
+		const client = this.requireUserClient(filters.token)
+
+		try {
+			// Count tenants where user is the tenant
+			const tenantByUserQuery = client
+				.from('tenants')
+				.select('id', { count: 'exact', head: true })
+				.eq('user_id', userId)
+
+			// Count tenants via owner RPC
+			const tenantIdsByOwnerQuery = client.rpc(
+				'get_tenants_with_lease_by_owner',
+				{ p_user_id: userId }
+			)
+
+			const [userCountResult, ownerIdsResult] = await Promise.all([
+				tenantByUserQuery,
+				tenantIdsByOwnerQuery
+			])
+
+			const userCount = userCountResult.count ?? 0
+			const ownerTenantIds = (ownerIdsResult.data as string[] | null) ?? []
+
+			// Combine unique tenant IDs for total count
+			// The user's own tenant ID could overlap with owner results
+			// For accuracy, we count unique IDs
+			const uniqueIds = new Set<string>()
+
+			// Add owner tenant IDs
+			for (const id of ownerTenantIds) {
+				uniqueIds.add(id)
+			}
+
+			// The user count represents tenants where user_id = userId
+			// These may already be in the owner set, so we use the set size + any additional user tenants
+			// Since we don't have the user's tenant IDs here, use the larger of the two as a conservative estimate
+			// Actually, fetch the user's tenant IDs for accurate dedup
+			if (userCount > 0) {
+				const { data: userTenantIds } = await client
+					.from('tenants')
+					.select('id')
+					.eq('user_id', userId)
+
+				if (userTenantIds) {
+					for (const row of userTenantIds) {
+						uniqueIds.add(row.id)
+					}
+				}
+			}
+
+			return uniqueIds.size
+		} catch (error) {
+			this.logger.error('Error counting tenants with lease', {
+				error: error instanceof Error ? error.message : String(error),
+				userId
+			})
+			// Fall back to 0 on error - the data query will still work
+			return 0
 		}
 	}
 
@@ -317,12 +392,13 @@ export class TenantLeaseQueryService {
 	 * Get all tenants invited to a specific property
 	 * Queries tenant_invitations to find accepted invitations for the property
 	 * Excludes tenants who already have an active lease (one property per tenant)
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findByProperty(
 		userId: string,
 		propertyId: string,
 		filters: LeaseQueryFilters = {}
-	): Promise<Tenant[]> {
+	): Promise<{ data: Tenant[]; count: number }> {
 		if (!userId) throw new BadRequestException('User ID required')
 		if (!propertyId) throw new BadRequestException('Property ID required')
 
@@ -367,7 +443,7 @@ export class TenantLeaseQueryService {
 				this.logger.log('No accepted invitations found for property', {
 					propertyId
 				})
-				return []
+				return { data: [], count: 0 }
 			}
 
 			const rawData = invitationData as unknown as InvitationWithTenant[]
@@ -409,7 +485,9 @@ export class TenantLeaseQueryService {
 				availableCount: availableTenants.length
 			})
 
-			return availableTenants
+			// No server-side pagination on this query (post-filter removes active leases),
+			// so total count equals the filtered result length
+			return { data: availableTenants, count: availableTenants.length }
 		} catch (error) {
 			this.logger.error('Error finding tenants by property', {
 				error: error instanceof Error ? error.message : String(error),

@@ -197,7 +197,7 @@ export class RentPaymentsService {
 		const { data: payment, error: insertError } = await adminClient
 			.from('rent_payments')
 			.insert(insertPayload)
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.single()
 
 		if (insertError || !payment) {
@@ -475,7 +475,7 @@ export class RentPaymentsService {
 		const { data, error } = await adminClient
 			.from('rent_payments')
 			.insert(insertPayload)
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.single()
 
 		if (error || !data) {

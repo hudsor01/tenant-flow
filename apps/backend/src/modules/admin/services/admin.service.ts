@@ -53,11 +53,11 @@ export class AdminService {
 			{ count: activeLeases },
 			{ count: activeSubscriptions }
 		] = await Promise.all([
-			client.from('users').select('*', { count: 'exact', head: true }),
-			client.from('properties').select('*', { count: 'exact', head: true }),
+			client.from('users').select('id', { count: 'exact', head: true }),
+			client.from('properties').select('id', { count: 'exact', head: true }),
 			client
 				.from('leases')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 				.eq('status', 'active'),
 			stripeClient
 				.schema('stripe')
@@ -157,7 +157,7 @@ export class AdminService {
 		// Get user basic info
 		const { data: user, error } = await client
 			.from('users')
-			.select('*')
+			.select('id, email, full_name, first_name, last_name, phone, avatar_url, status, user_type, stripe_customer_id, onboarding_status, onboarding_completed_at, identity_verification_status, identity_verification_session_id, identity_verified_at, identity_verification_data, identity_verification_error, created_at, updated_at')
 			.eq('id', userId)
 			.single()
 
@@ -169,13 +169,13 @@ export class AdminService {
 		// Get user's properties count
 		const { count: propertiesCount } = await client
 			.from('properties')
-			.select('*', { count: 'exact', head: true })
+			.select('id', { count: 'exact', head: true })
 			.eq('owner_id', userId)
 
 		// Get user's leases count
 		const { count: leasesCount } = await client
 			.from('lease_tenants')
-			.select('*', { count: 'exact', head: true })
+			.select('id', { count: 'exact', head: true })
 			.eq('tenant_id', userId)
 
 		return {
@@ -191,8 +191,8 @@ export class AdminService {
 	async updateUser(
 		userId: string,
 		updates: {
-			role?: string
-			status?: string
+			role?: string | undefined
+			status?: string | undefined
 		}
 	) {
 		const client = this.supabase.getAdminClient()
@@ -235,7 +235,7 @@ export class AdminService {
 
 		let query = client
 			.from('security_events')
-			.select('*', { count: 'exact' })
+			.select('id, event_type, severity, message, user_id, user_email, user_type, ip_address, user_agent, resource_type, resource_id, request_id, metadata, tags, created_at', { count: 'exact' })
 			.order('created_at', { ascending: false })
 			.range(filters.offset, filters.offset + filters.limit - 1)
 
@@ -266,7 +266,7 @@ export class AdminService {
 
 		const { data, error, count } = await client
 			.from('security_events')
-			.select('*', { count: 'exact' })
+			.select('id, event_type, severity, message, user_id, user_email, user_type, ip_address, user_agent, resource_type, resource_id, request_id, metadata, tags, created_at', { count: 'exact' })
 			.eq('user_id', userId)
 			.order('created_at', { ascending: false })
 			.limit(limit)

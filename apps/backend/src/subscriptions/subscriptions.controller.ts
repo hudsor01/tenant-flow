@@ -30,14 +30,8 @@ import type {
 	SubscriptionActionResponse,
 	UpdateSubscriptionRequest
 } from '@repo/shared/types/api-contracts'
-import type { Request as ExpressRequest } from 'express'
 import { SubscriptionsService } from './subscriptions.service'
-
-interface AuthenticatedRequest extends ExpressRequest {
-	user?: {
-		id: string
-	}
-}
+import type { AuthenticatedRequest } from '../shared/types/express-request.types'
 
 @ApiTags('Subscriptions')
 @ApiBearerAuth('supabase-auth')

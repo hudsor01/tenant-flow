@@ -135,7 +135,7 @@ describe('UnitsController', () => {
 	describe('findAll', () => {
 		it('should return units with default parameters', async () => {
 			const mockUnits = [createMockUnit({ id: 'unit-1' })]
-			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
+			mockQueryServiceInstance.findAll.mockResolvedValue({ data: mockUnits, count: 1 })
 
 			const result = await controller.findAll(createMockRequest({ user: mockUser }), {
 				property_id: null,
@@ -151,7 +151,7 @@ describe('UnitsController', () => {
 			// Controller wraps service response in PaginatedResponse format
 			expect(result).toEqual({
 				data: mockUnits,
-				total: mockUnits.length,
+				total: 1,
 				limit: 10,
 				offset: 0,
 				hasMore: false
@@ -180,7 +180,7 @@ describe('UnitsController', () => {
 
 		it('should accept uppercase unit status and normalize to lowercase', async () => {
 			const mockUnits = [createMockUnit({ status: 'occupied' })]
-			mockQueryServiceInstance.findAll.mockResolvedValue(mockUnits)
+			mockQueryServiceInstance.findAll.mockResolvedValue({ data: mockUnits, count: 1 })
 
 			const result = await controller.findAll(createMockRequest({ user: mockUser }), {
 				property_id: null,
@@ -196,7 +196,7 @@ describe('UnitsController', () => {
 			expect(mockQueryServiceInstance.findAll).toHaveBeenCalled()
 			expect(result).toEqual({
 				data: mockUnits,
-				total: mockUnits.length,
+				total: 1,
 				limit: 10,
 				offset: 0,
 				hasMore: false

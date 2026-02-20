@@ -93,11 +93,14 @@ describe('TenantsController', () => {
 			it('should return all tenants with lease info in PaginatedResponse format', async () => {
 				const mockReq = createMockAuthRequest()
 				const mockTenants = [{ id: 'tenant-1', first_name: 'John' }]
-				mockQueryService.findAllWithLeaseInfo.mockResolvedValue(mockTenants)
+				mockQueryService.findAllWithLeaseInfo.mockResolvedValue({
+					data: mockTenants,
+					count: 25
+				})
 
 				const result = await controller.findAll(mockReq)
 
-				expect(result).toEqual({ data: mockTenants, total: mockTenants.length })
+				expect(result).toEqual({ data: mockTenants, total: 25 })
 				expect(mockQueryService.findAllWithLeaseInfo).toHaveBeenCalledWith(
 					'user-1',
 					{ token: 'test-token' }

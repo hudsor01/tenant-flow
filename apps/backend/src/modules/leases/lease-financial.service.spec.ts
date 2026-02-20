@@ -85,7 +85,7 @@ describe('LeaseFinancialService', () => {
 				terminatedLeases: 0,
 				totalMonthlyRent: 0,
 				averageRent: 0,
-				totalsecurity_deposits: 0,
+				total_security_deposits: 0,
 				expiringLeases: 0
 			})
 		})
@@ -139,7 +139,7 @@ describe('LeaseFinancialService', () => {
 			expect(result.expiredLeases).toBe(1)
 			expect(result.terminatedLeases).toBe(1)
 			expect(result.totalMonthlyRent).toBe(2500) // 1000 + 1500 (active only)
-			expect(result.totalsecurity_deposits).toBe(2250) // sum of all
+			expect(result.total_security_deposits).toBe(2250) // sum of all
 		})
 	})
 

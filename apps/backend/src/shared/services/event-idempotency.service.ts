@@ -254,12 +254,12 @@ export class EventIdempotencyService {
 			// Get total count
 			const { count: totalEvents } = await client
 				.from('processed_internal_events')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 
 			// Get today's count
 			const { count: todayEvents } = await client
 				.from('processed_internal_events')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 				.gte('created_at', todayStart.toISOString())
 
 			// Get counts by status
