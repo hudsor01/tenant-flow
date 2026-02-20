@@ -70,7 +70,9 @@ export class UnitsService {
 				bedrooms: createRequest.bedrooms || 1,
 				bathrooms: createRequest.bathrooms || 1,
 				square_feet: createRequest.square_feet || null,
-				rent_amount: createRequest.rent ?? 0,
+				rent_amount: createRequest.rent_amount ?? 0,
+				rent_currency: createRequest.rent_currency ?? 'usd',
+				rent_period: createRequest.rent_period ?? 'monthly',
 				status: createRequest.status ?? 'available',
 				owner_user_id: property.owner_user_id
 			}
@@ -145,8 +147,14 @@ export class UnitsService {
 				...(updateRequest.square_feet !== undefined && {
 					square_feet: updateRequest.square_feet
 				}),
-				...(updateRequest.rent !== undefined && {
-					rent_amount: updateRequest.rent
+				...(updateRequest.rent_amount !== undefined && {
+					rent_amount: updateRequest.rent_amount
+				}),
+				...(updateRequest.rent_currency !== undefined && {
+					rent_currency: updateRequest.rent_currency
+				}),
+				...(updateRequest.rent_period !== undefined && {
+					rent_period: updateRequest.rent_period
 				}),
 				...(updateRequest.status !== undefined && {
 					status: updateRequest.status
