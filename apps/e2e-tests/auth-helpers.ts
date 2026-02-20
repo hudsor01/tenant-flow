@@ -201,12 +201,13 @@ function createCookieChunks(
 }
 
 /**
- * Inject session into browser context
+ * Inject session into browser context via localStorage
  *
- * Sets up cookies matching Supabase SSR format:
- * - Small sessions: single cookie (sb-xxx-auth-token)
- * - Large sessions: chunked cookies (sb-xxx-auth-token.0, .1, etc.)
- * This ensures the Next.js proxy can validate the session via getClaims().
+ * Supabase browser client reads session from localStorage first,
+ * then syncs to cookies automatically. This is the recommended
+ * approach for Playwright E2E tests.
+ *
+ * @see https://mokkapps.de/blog/login-at-supabase-via-rest-api-in-playwright-e2e-test
  */
 async function injectSessionIntoBrowser(
 	page: import('@playwright/test').Page,
@@ -214,62 +215,36 @@ async function injectSessionIntoBrowser(
 	baseUrl: string
 ): Promise<void> {
 	const { projectRef } = getConfig()
-	const cookieKey = `sb-${projectRef}-auth-token`
-	const sessionJson = JSON.stringify(session)
-	const context = page.context()
-
-	// Parse base URL to get domain
-	const url = new URL(baseUrl)
-	const domain = url.hostname
-
-	// Create cookies matching Supabase SSR format
-	const cookieChunks = createCookieChunks(cookieKey, sessionJson)
-	const cookies = cookieChunks.map(({ name, value }) => ({
-		name,
-		value,
-		domain: domain,
-		path: '/',
-		httpOnly: false, // Supabase browser client needs to read this
-		secure: url.protocol === 'https:',
-		sameSite: 'Lax' as const,
-		expires: session.expires_at
-	}))
+	const storageKey = `sb-${projectRef}-auth-token`
 
 	// First navigate to establish the domain context
 	await page.goto(baseUrl, { waitUntil: 'domcontentloaded' })
 
-	// Now set cookies via JavaScript in the page context (most reliable method)
-	// Note: value is already Base64URL encoded (safe for cookies, no special chars)
+	// Set session in localStorage - Supabase client will read this and sync to cookies
 	await page.evaluate(
-		({ chunks, expires }) => {
-			for (const { name, value } of chunks) {
-				document.cookie = `${name}=${value}; path=/; expires=${new Date(expires * 1000).toUTCString()}`
-			}
+		({ key, value }) => {
+			localStorage.setItem(key, JSON.stringify(value))
 		},
-		{ chunks: cookieChunks, expires: session.expires_at }
+		{ key: storageKey, value: session }
 	)
 
-	// Also set in localStorage for browser client
-	await page.evaluate(
-		({ cookieKey, session }) => {
-			localStorage.setItem(cookieKey, JSON.stringify(session))
-		},
-		{ cookieKey, session }
-	)
+	debugLog(` Session stored in localStorage: ${storageKey}`)
 
-	debugLog(` Cookies set via JS: ${cookieChunks.map(c => c.name).join(', ')}`)
-	debugLog(' Session injected into localStorage')
+	// Reload the page so Supabase client picks up the session from localStorage
+	await page.reload({ waitUntil: 'domcontentloaded' })
+
+	debugLog(' Page reloaded to activate session')
 }
 
 /**
  * Login as property owner via API
  *
+ * Uses the same fast API-based approach as loginAsTenant: calls Supabase
+ * /auth/v1/token directly then injects the session into the browser context.
+ * ~200ms vs ~3s for UI-based login.
+ *
  * @param page - Playwright Page instance
  * @param options - Login credentials and cache control
- *
- * Performance:
- * - First call: ~200ms (API call)
- * - Subsequent calls: ~50ms (cached session injection)
  */
 export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const email =
@@ -284,44 +259,42 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const cacheKey = `owner:${email}`
 
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const context = page.context()
 
 	// Check cache first
 	let session = sessionCache.get(cacheKey)
 
 	if (!session || options.forceLogin) {
-		debugLog(` Authenticating via API: ${email}`)
+		debugLog(` Authenticating owner via API: ${email}`)
 
 		try {
 			session = await authenticateViaAPI(email, password)
 			sessionCache.set(cacheKey, session)
-			debugLog(` API authentication successful`)
+			debugLog(` Owner API authentication successful`)
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error)
-			debugLog(` API authentication failed: ${message}`)
+			debugLog(` Owner API authentication failed: ${message}`)
 			throw error
 		}
 	} else {
-		debugLog(` Using cached session for: ${email}`)
+		debugLog(` Using cached owner session for: ${email}`)
 	}
 
-	// Inject session into browser context (navigates to base URL first, then sets cookies)
+	// Inject session into browser context (navigates to base URL first, then sets localStorage)
 	await injectSessionIntoBrowser(page, session, baseUrl)
 
 	// Navigate to dashboard - session should be valid now
 	await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
 
-	// Wait for auth to stabilize - use shorter timeout and don't fail if networkidle not reached
-	// (persistent connections like SSE/WebSocket can prevent networkidle)
+	// Wait for auth to stabilize
 	await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
 		debugLog(' networkidle timeout, continuing with domcontentloaded')
 	})
 
-	// Verify we're not redirected to login (tenant redirect is OK)
+	// Verify we're not on login page
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
 		throw new Error(
-			`Login failed: Redirected to login page. Session may be invalid.`
+			`Owner login failed: Redirected to login page. Session may be invalid.`
 		)
 	}
 
@@ -349,7 +322,6 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const cacheKey = `tenant:${email}`
 
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const context = page.context()
 
 	// Check cache first
 	let session = sessionCache.get(cacheKey)

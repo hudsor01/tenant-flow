@@ -145,6 +145,27 @@ export type Database = {
         }
         Relationships: []
       }
+      email_suppressions: {
+        Row: {
+          email: string
+          reason: string
+          suppressed_at: string
+          updated_at: string
+        }
+        Insert: {
+          email: string
+          reason: string
+          suppressed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          email?: string
+          reason?: string
+          suppressed_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
@@ -2086,8 +2107,8 @@ export type Database = {
           property_limit: number
           storage_gb: number
           support_level: string
+          tenant_limit: number
           unit_limit: number
-          user_limit: number
         }[]
       }
       get_user_sessions: {

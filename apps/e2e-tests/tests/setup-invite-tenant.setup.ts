@@ -39,7 +39,7 @@ setup('invite e2e test tenant', async ({ page }) => {
 
 	// Step 2: Navigate to tenants page
 	await page.goto(`${baseUrl}${ROUTES.TENANTS}`)
-	await page.waitForLoadState('networkidle')
+	await page.waitForLoadState('domcontentloaded')
 	logger.info('✅ Navigated to tenants page')
 
 	// Step 3: Wait for content to load (skeleton to disappear)

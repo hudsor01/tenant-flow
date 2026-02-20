@@ -197,6 +197,7 @@ function AcceptInviteContent() {
 
 	async function acceptInvitation(authUserId: string) {
 		const apiUrl = getApiBaseUrl()
+		const supabase = createClient()
 		const response = await fetch(
 			`${apiUrl}/api/v1/tenants/invitation/${code}/accept`,
 			{
@@ -212,6 +213,11 @@ function AcceptInviteContent() {
 		}
 
 		logger.info('Invitation accepted successfully')
+
+		// Refresh session so the JWT picks up updated app_metadata.user_type = 'TENANT'
+		// set by the backend during invitation acceptance.
+		await supabase.auth.refreshSession()
+
 		setPageState('accepted')
 
 		// Redirect to tenant dashboard after short delay

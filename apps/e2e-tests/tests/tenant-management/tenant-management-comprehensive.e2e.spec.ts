@@ -14,7 +14,7 @@ test.describe('Tenant Management - Empty State and UI', () => {
 
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Verify page title and breadcrumbs', async () => {
@@ -64,7 +64,7 @@ test.describe('Tenant Management - Empty State and UI', () => {
 
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Click Invite Tenant button', async () => {
@@ -146,7 +146,7 @@ test.describe('Tenant Management - Empty State and UI', () => {
 
 		await test.step('Open invite tenant modal', async () => {
 			await page.goto(`${baseUrl}/tenants/new`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Click property dropdown', async () => {
@@ -170,7 +170,7 @@ test.describe('Tenant Management - Empty State and UI', () => {
 
 		await test.step('Navigate to tenants page', async () => {
 			await page.goto(`${baseUrl}/tenants`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Type in search filter', async () => {
@@ -195,7 +195,7 @@ test.describe('Property Management - Empty State and UI', () => {
 
 		await test.step('Navigate to properties page', async () => {
 			await page.goto(`${baseUrl}/properties`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Verify page title and heading', async () => {
@@ -260,7 +260,7 @@ test.describe('Property Management - Empty State and UI', () => {
 
 		await test.step('Navigate to properties page', async () => {
 			await page.goto(`${baseUrl}/properties`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Click New Property button', async () => {
@@ -322,7 +322,7 @@ test.describe('Property Management - Empty State and UI', () => {
 
 		await test.step('Open new property modal', async () => {
 			await page.goto(`${baseUrl}/properties/new`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		})
 
 		await test.step('Verify property type dropdown default', async () => {
@@ -349,13 +349,13 @@ test.describe('Navigation Between Pages', () => {
 
 		await test.step('Start at dashboard', async () => {
 			await page.goto(`${baseUrl}/dashboard`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page).toHaveURL(/^\/$/)
 		})
 
 		await test.step('Navigate to Tenants via sidebar', async () => {
 			await page.getByRole('link', { name: /Tenants/i }).click()
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page).toHaveURL(/^\/tenants/)
 			await expect(
 				page.getByRole('heading', { name: 'Tenants', level: 1 })
@@ -364,7 +364,7 @@ test.describe('Navigation Between Pages', () => {
 
 		await test.step('Navigate to Properties via sidebar', async () => {
 			await page.getByRole('link', { name: /Properties/i }).click()
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page).toHaveURL(/^\/properties/)
 			await expect(
 				page.getByRole('heading', { name: 'Properties', level: 1 })
@@ -373,19 +373,19 @@ test.describe('Navigation Between Pages', () => {
 
 		await test.step('Navigate back to Dashboard via sidebar', async () => {
 			await page.getByRole('link', { name: /Dashboard/i }).click()
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page).toHaveURL(/^\/$/)
 		})
 
 		await test.step('Navigate using breadcrumbs', async () => {
 			await page.goto(`${baseUrl}/tenants/new`)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const tenantsLink = page
 				.getByRole('navigation', { name: /breadcrumb/i })
 				.getByRole('link', { name: /Tenants/i })
 			await tenantsLink.click()
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page).toHaveURL(/^\/tenants$/)
 		})
 	})

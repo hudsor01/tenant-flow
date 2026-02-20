@@ -439,6 +439,7 @@ export interface BillingHistoryItem {
 export interface SubscriptionStatusResponse {
 	subscriptionStatus: 'active' | 'trialing' | 'cancelled' | 'past_due' | null
 	stripeCustomerId: string | null
+	stripePriceId: string | null
 }
 
 /**

@@ -16,7 +16,9 @@
 
 import {
 	BadRequestException,
+	ForbiddenException,
 	Injectable,
+	InternalServerErrorException,
 	NotFoundException,
 	UnauthorizedException
 } from '@nestjs/common'
@@ -124,6 +126,38 @@ export class TenantPlatformInvitationService {
 				}
 			}
 
+			// Step 3b: Check plan limit before allowing invitation
+			const { data: limits, error: limitsError } = await this.supabase
+				.getAdminClient()
+				.rpc('get_user_plan_limits', { p_user_id: ownerId })
+			if (limitsError) {
+				this.logger.error('Failed to fetch plan limits', { error: limitsError })
+				throw new InternalServerErrorException('Could not verify plan limits')
+			}
+			const tenantLimit: number = (limits as Array<{ tenant_limit: number }> | null)?.[0]?.tenant_limit ?? 25
+
+			// Count active tenants owned by this owner (via leases)
+			const { count: currentTenantCount, error: countError } = await client
+				.from('leases')
+				.select('primary_tenant_id', { count: 'exact', head: true })
+				.eq('owner_user_id', ownerId)
+				.eq('lease_status', 'active')
+
+			if (countError || currentTenantCount === null) {
+				this.logger.error('Failed to fetch tenant count', { error: countError })
+				throw new InternalServerErrorException('Could not verify tenant count')
+			}
+
+			if (currentTenantCount >= tenantLimit) {
+				throw new ForbiddenException({
+					code: 'PLAN_LIMIT_EXCEEDED',
+					message: `Your plan allows up to ${tenantLimit} tenant${tenantLimit === 1 ? '' : 's'}. Upgrade to invite more.`,
+					limit: tenantLimit,
+					current: currentTenantCount,
+					resource: 'tenants'
+				})
+			}
+
 			// Step 4: Check for existing pending invitation
 			const { data: existingInvite } = await client
 				.from('tenant_invitations')
@@ -209,10 +243,11 @@ export class TenantPlatformInvitationService {
 				message: `${dto.first_name} ${dto.last_name} has been invited to join the platform`
 			}
 		} catch (error) {
-			// Re-throw known exceptions (NotFoundException, BadRequestException)
+			// Re-throw known exceptions (NotFoundException, BadRequestException, ForbiddenException)
 			if (
 				error instanceof NotFoundException ||
-				error instanceof BadRequestException
+				error instanceof BadRequestException ||
+				error instanceof ForbiddenException
 			) {
 				throw error
 			}

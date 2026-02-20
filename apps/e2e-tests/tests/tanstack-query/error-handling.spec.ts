@@ -43,7 +43,7 @@ test.describe('TanStack Query Error Handling', () => {
 
 		// Navigate to properties page
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Expose retry count for testing
 		await page.addInitScript(() => {
@@ -136,7 +136,7 @@ test.describe('TanStack Query Error Handling', () => {
 				// Reset for next iteration
 				await networkSim.resetNetworkMocks()
 				await page.reload()
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 				await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 				const finalCount = await tableHelper.getPropertyCount()
@@ -487,7 +487,7 @@ test.describe('TanStack Query Error Handling', () => {
 				// Reset for next scenario
 				await networkSim.resetNetworkMocks()
 				await page.reload()
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 				await expect(page.locator('table tbody tr').first()).toBeVisible()
 			}
 		})

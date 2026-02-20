@@ -19,7 +19,7 @@ test.describe('Property Bulk Import', () => {
 	}) => {
 		// Navigate to properties page
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Get initial property count
 		const initialCount = await page

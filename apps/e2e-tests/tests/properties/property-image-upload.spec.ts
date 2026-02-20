@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test'
-import { loginAsOwner } from '../../auth-helpers'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
@@ -46,19 +45,9 @@ test.describe('Property Image Upload', () => {
 		})
 	})
 
-	test.beforeEach(async ({ page }) => {
-		// Login using the existing auth helper
-		await loginAsOwner(page)
-
-		// Debug: Check auth state
-		const cookies = await page.context().cookies()
-		const authCookie = cookies.find(c => c.name.includes('auth-token'))
-		console.log('🔍 Auth cookie after login:', authCookie?.name, authCookie ? 'SET' : 'MISSING')
-
-		// Debug: Check localStorage
-		const storageKeys = await page.evaluate(() => Object.keys(localStorage))
-		console.log('🔍 LocalStorage keys:', storageKeys.filter(k => k.includes('auth')))
-	})
+	// No beforeEach needed — the chromium project injects storageState: OWNER_AUTH_FILE
+	// before every test. Adding loginAsOwner() here causes a double-auth loop:
+	// storageState already sets auth cookies → /login redirects to /dashboard → timeout.
 
 	test('should create property with images during creation (NEW FEATURE)', async ({
 		page
@@ -69,8 +58,8 @@ test.describe('Property Image Upload', () => {
 		// Verify we're on the create page (this also waits for the page to be interactive)
 		await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
 
-		// Wait for form to be fully loaded
-		await page.waitForTimeout(1000)
+		// Wait for form to be fully interactive
+		await expect(page.getByLabel(/property name/i).first()).toBeVisible()
 
 		// Fill out required property fields (click first, then fill to ensure focus)
 		const nameInput = page.getByLabel(/property name/i).first()
@@ -98,7 +87,7 @@ test.describe('Property Image Upload', () => {
 		await fileInput.setInputFiles(testImagePaths)
 
 		// Verify files are selected - check for file count indicator or preview
-		await page.waitForTimeout(500) // Brief wait for React state update
+		await page.waitForFunction(() => document.querySelector('img[src^="blob:"]') !== null)
 		const fileCountText = await page.textContent('body')
 		const hasFileIndicator = fileCountText?.includes('3 image') ||
 		                        fileCountText?.includes('selected') ||
@@ -106,81 +95,46 @@ test.describe('Property Image Upload', () => {
 
 		expect(hasFileIndicator).toBeTruthy()
 
-		// Debug: Listen for console messages
-		page.on('console', msg => console.log('🔍 Browser:', msg.text()))
-
-		// Debug: Capture network requests
-		page.on('request', request => {
-			if (request.url().includes('/api/v1/properties')) {
-				const authHeader = request.headers()['authorization']
-				console.log('🔍 API Request to:', request.url())
-				console.log('🔍 Authorization header:', authHeader ? `Bearer ${authHeader.substring(0, 50)}...` : 'MISSING')
-			}
-		})
-
-		// Debug: Check button state before clicking
-		const button = page.getByRole('button', { name: /create property/i })
-		const isDisabled = await button.isDisabled()
-		const isVisible = await button.isVisible()
-		console.log('🔍 Create Property button:', { isDisabled, isVisible })
-
 		// Submit the form
+		const button = page.getByRole('button', { name: /create property/i })
 		await button.click()
-		console.log('🔍 Button clicked')
 
-		// Wait for property creation AND image upload to complete
-		// Look for success message
-		await page.waitForFunction(
-			() => {
-				const text = document.body.textContent || ''
-				return (
-					text.includes('Property created') ||
-					text.includes('image(s) uploaded') ||
-					text.includes('successfully')
-				)
-			},
-			{ timeout: 15000 }
-		)
+		// Wait for property creation AND image upload to complete (toast appears)
+		await expect(
+			page.getByText(/Property created|image\(s\) uploaded|successfully/i).first()
+		).toBeVisible({ timeout: 15000 })
 
-		// Wait for upload overlay statuses to complete (uploading -> success)
-		await page.waitForFunction(
-			() => {
-				const text = document.body.textContent || ''
-				// Wait until no more "Uploading..." statuses
-				return !text.includes('Uploading...')
-			},
-			{ timeout: 10000 }
-		)
+		// Wait for upload overlay statuses to complete (uploading -> success/error)
+		await expect(page.getByText('Uploading...')).not.toBeVisible({ timeout: 10000 })
 
 		// Verify success toast appeared
-		const bodyText = await page.textContent('body')
-		const hasSuccessMessage =
-			bodyText?.includes('Property created with') ||
-			bodyText?.includes('image(s)') ||
-			bodyText?.includes('3 image')
-
-		expect(hasSuccessMessage).toBeTruthy()
+		const successToast = page.getByText(/Property created with|image\(s\)|3 image/i).first()
+		await expect(successToast).toBeVisible()
 
 		// Navigate to properties list to verify creation
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
 
-		// Find the newly created property card
+		// Switch to grid view if currently in table view (Zustand persists view mode)
+		const gridButton = page.getByRole('button', { name: /grid/i })
+		if (await gridButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+			await gridButton.click()
+			await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
+		}
+
+		// Find the newly created property card (use first() to handle duplicate names from repeated test runs)
 		const newPropertyCard = page.locator('[data-testid="property-card"]').filter({
 			hasText: 'E2E Test Property with Images'
-		})
+		}).first()
 
 		await expect(newPropertyCard).toBeVisible()
 
 		// Verify the card has an image (not just placeholder)
-		const cardImage = newPropertyCard.locator('img')
+		const cardImage = newPropertyCard.locator('img').first()
 		const imgSrc = await cardImage.getAttribute('src')
 
 		// Image should be from Supabase storage or Next.js image proxy (not just building icon)
 		expect(imgSrc).toBeTruthy()
-		console.log('Property card image src:', imgSrc)
-
-		console.log('✅ Property creation with images test completed!')
 	})
 
 	test('should upload image and display it on property card', async ({
@@ -196,22 +150,29 @@ test.describe('Property Image Upload', () => {
 
 		if (cardCount === 0) {
 			// Create a new property first
-			await page.getByRole('button', { name: /new property/i }).click()
-			await page.waitForTimeout(500)
+			await page.getByRole('button', { name: /add.*property/i }).click()
+			await page.waitForLoadState('domcontentloaded')
+			await expect(page.getByRole('heading', { name: /add new property/i })).toBeVisible()
 
 			// Fill the form
-			await page.getByLabel(/property name/i).fill('Test Property for Images')
-			await page
-				.getByLabel(/address/i)
-				.first()
-				.fill('123 Test Street')
-			await page.getByLabel(/city/i).fill('San Francisco')
-			await page.getByLabel(/state/i).fill('CA')
-			await page.getByLabel(/zip/i).fill('94102')
+			const nameInput = page.getByLabel(/property name/i).first()
+			await nameInput.click()
+			await nameInput.fill('Test Property for Images')
+			const addrInput = page.getByLabel(/address/i).first()
+			await addrInput.click()
+			await addrInput.fill('123 Test Street')
+			const cityInput = page.getByLabel(/city/i).first()
+			await cityInput.click()
+			await cityInput.fill('San Francisco')
+			const stateInput = page.getByLabel(/state/i).first()
+			await stateInput.click()
+			await stateInput.fill('CA')
+			const zipInput = page.getByLabel(/zip/i).first()
+			await zipInput.click()
+			await zipInput.fill('94102')
 
 			// Submit
 			await page.getByRole('button', { name: /create property/i }).click()
-			await page.waitForTimeout(2000)
 			await page.waitForLoadState('domcontentloaded')
 		}
 
@@ -219,9 +180,9 @@ test.describe('Property Image Upload', () => {
 		const propertyCard = propertyCards.first()
 		await expect(propertyCard).toBeVisible()
 
-		// Click View Details button WITHIN the first property card with navigation wait
-		const viewDetailsBtn = propertyCard.getByRole('link', {
-			name: 'View Details'
+		// Click View Details button WITHIN the first property card (property-select-card uses button not link)
+		const viewDetailsBtn = propertyCard.getByRole('button', {
+			name: /view details/i
 		})
 		await Promise.all([
 			page.waitForURL(/\/properties\/[a-f0-9-]+$/),
@@ -245,20 +206,16 @@ test.describe('Property Image Upload', () => {
 			name: /property images/i
 		})
 		await propertyImagesSection.scrollIntoViewIfNeeded()
-		await page.waitForTimeout(500)
+		await expect(propertyImagesSection).toBeVisible()
 
 		// Upload a test image using PropertyImageUpload dropzone (use first() to avoid mobile duplicate)
 		const fileInput = page.locator('input[type="file"]').first()
 		await fileInput.setInputFiles(testImagePath)
 
 		// Wait for auto-upload to complete (compression + upload happens automatically)
-		// Look for "Uploading..." or "Uploaded!" status indicators
-		await page.waitForTimeout(1000) // Brief wait for compression to start
-
-		// Wait for upload to complete - look for success indicator or wait for file to disappear
+		// Wait for upload to complete
 		await page.waitForFunction(
 			() => {
-				// Check if "Uploaded!" appears or if processing is done
 				const uploaded =
 					document.body.textContent?.includes('Uploaded!') ||
 					document.body.textContent?.includes('Image uploaded successfully')
@@ -284,10 +241,9 @@ test.describe('Property Image Upload', () => {
 		// Navigate back to /properties
 		await page.goto(`${baseUrl}/properties`)
 		await page.waitForLoadState('domcontentloaded')
-		await page.waitForTimeout(1000)
+		await expect(page.locator('[data-testid="property-card"]').first()).toBeVisible()
 
 		// Verify the uploaded image now appears on the property card
-		// (Should have an img with supabase URL, not just the Building2 placeholder)
 		const cardWithImage = page.locator('[data-testid="property-card"]').first()
 		await expect(cardWithImage).toBeVisible()
 
@@ -297,16 +253,12 @@ test.describe('Property Image Upload', () => {
 
 		if (hasImage) {
 			const imgSrc = await cardImage.getAttribute('src')
-			console.log('Property card image src:', imgSrc)
-			// Verify it's a real image URL (contains supabase storage or nextjs image proxy)
 			expect(imgSrc).toBeTruthy()
 		} else {
 			// Check if Building2 placeholder is shown (acceptable if no images)
 			const placeholder = cardWithImage.locator('svg')
 			expect(await placeholder.count()).toBeGreaterThan(0)
 		}
-
-		console.log('Property image upload test completed!')
 	})
 
 	test('should show compression statistics during upload', async ({ page }) => {
@@ -317,9 +269,9 @@ test.describe('Property Image Upload', () => {
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
 		if ((await propertyCard.count()) > 0) {
-			// Navigate to details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', {
-				name: 'View Details'
+			// Navigate to details with navigation wait (property-select-card uses button not link)
+			const viewDetailsBtn = propertyCard.getByRole('button', {
+				name: /view details/i
 			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),
@@ -342,8 +294,8 @@ test.describe('Property Image Upload', () => {
 			const fileInput = page.locator('input[type="file"]').first()
 			await fileInput.setInputFiles(testImagePath)
 
-			// Wait for compression
-			await page.waitForTimeout(2000)
+			// Wait for file to appear in the UI
+			await page.waitForFunction(() => document.querySelector('img[src^="blob:"], [class*="preview"]') !== null, { timeout: 5000 }).catch(() => {})
 
 			// Verify file was selected (compression may show "smaller" stats)
 			const fileSelected = page
@@ -362,9 +314,9 @@ test.describe('Property Image Upload', () => {
 		const propertyCard = page.locator('[data-testid="property-card"]').first()
 
 		if ((await propertyCard.count()) > 0) {
-			// Click View Details with navigation wait
-			const viewDetailsBtn = propertyCard.getByRole('link', {
-				name: 'View Details'
+			// Click View Details with navigation wait (property-select-card uses button not link)
+			const viewDetailsBtn = propertyCard.getByRole('button', {
+				name: /view details/i
 			})
 			await Promise.all([
 				page.waitForURL(/\/properties\/[a-f0-9-]+$/),

@@ -7,6 +7,7 @@ import type {
 import {
 	BadRequestException,
 	ConflictException,
+	ForbiddenException,
 	Injectable,
 	InternalServerErrorException,
 	NotFoundException
@@ -112,6 +113,36 @@ export class PropertiesService {
 
 		const user_id = req.user.id
 		const client = this.supabase.getUserClient(token)
+
+		// Check plan limit before creating
+		const { data: limits, error: limitsError } = await this.supabase
+			.getAdminClient()
+			.rpc('get_user_plan_limits', { p_user_id: user_id })
+		if (limitsError) {
+			this.logger.error('Failed to fetch plan limits', { error: limitsError })
+			throw new InternalServerErrorException('Could not verify plan limits')
+		}
+		const propertyLimit: number = (limits as Array<{ property_limit: number }> | null)?.[0]?.property_limit ?? 5
+
+		const { count: currentCount, error: countError } = await client
+			.from('properties')
+			.select('*', { count: 'exact', head: true })
+			.neq('status', 'inactive')
+
+		if (countError || currentCount === null) {
+			this.logger.error('Failed to fetch property count', { error: countError })
+			throw new InternalServerErrorException('Could not verify property count')
+		}
+
+		if (currentCount >= propertyLimit) {
+			throw new ForbiddenException({
+				code: 'PLAN_LIMIT_EXCEEDED',
+				message: `Your plan allows up to ${propertyLimit} propert${propertyLimit === 1 ? 'y' : 'ies'}. Upgrade to add more.`,
+				limit: propertyLimit,
+				current: currentCount,
+				resource: 'properties'
+			})
+		}
 
 		const insertData: PropertyInsert = {
 			name: request.name,

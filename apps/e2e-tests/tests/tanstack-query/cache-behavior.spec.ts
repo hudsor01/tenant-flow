@@ -50,7 +50,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 
 		// Navigate to properties page
 		await page.goto('/properties')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Expose cache state for testing
 		await page.addInitScript(() => {
@@ -97,7 +97,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 	test.describe('Cache Population and Retrieval', () => {
 		test('should populate cache on initial load', async () => {
 			// Wait for table to load and display properties
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// Verify cache contains data
@@ -112,7 +112,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 
 		test('should serve data from cache on subsequent visits', async () => {
 			// Wait for initial load
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// Record network requests
@@ -125,9 +125,9 @@ test.describe('TanStack Query Cache Behavior', () => {
 
 			// Navigate away and back
 			await page.goto('/')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await page.goto('/properties')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// Data should be visible immediately from cache
@@ -176,7 +176,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 	test.describe('Cache Invalidation', () => {
 		test('should invalidate cache after successful mutations', async () => {
 			// Wait for initial load
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 			const initialData = await queryHelper.getQueryData(['properties', 'ALL'])
 
@@ -532,7 +532,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 	test.describe('Cache Persistence Across Routes', () => {
 		test('should maintain cache during route navigation', async () => {
 			// Wait for initial load
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			const initialData = await queryHelper.getQueryData(['properties', 'ALL'])
@@ -540,11 +540,11 @@ test.describe('TanStack Query Cache Behavior', () => {
 
 			// Navigate through different routes
 			await page.goto('/units')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await page.goto('/tenants')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await page.goto('/properties')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// Cache should be preserved

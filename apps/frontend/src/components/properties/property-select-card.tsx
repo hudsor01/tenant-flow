@@ -47,6 +47,7 @@ export function PropertyCard({
 }: PropertyCardProps) {
 	return (
 		<div
+			data-testid="property-card"
 			className={cn(
 				'bg-card border rounded-sm overflow-hidden',
 				'hover:shadow-xl hover:shadow-primary/5 hover:border-primary/30 hover:-translate-y-1',

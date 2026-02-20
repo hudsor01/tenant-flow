@@ -1,4 +1,4 @@
-import { BadRequestException, Logger } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, InternalServerErrorException, Logger } from '@nestjs/common'
 import { RedisCacheService } from '../../cache/cache.service'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -305,18 +305,16 @@ describe('PropertiesService', () => {
 				address_line1: '123 Main St'
 			})
 
-			// Mock stripe_connected_accounts query - use function binding for proper 'this' context
-			const mockPropertyOwnerQuery = {
-				select: jest.fn(function () {
-					return this
-				}),
-				eq: jest.fn(function () {
-					return this
-				}),
-				single: jest.fn().mockResolvedValue({
-					data: { id: 'property-owner-123' },
-					error: null
-				})
+			// Mock plan limits RPC (admin client)
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			// Mock properties count query (first from('properties') call)
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 
 			// Mock properties insert query - use function binding for proper 'this' context
@@ -330,16 +328,10 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
 			}
 
-			// Set up from() to return different mocks based on table name
-			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'stripe_connected_accounts') {
-					return mockPropertyOwnerQuery
-				}
-				if (table === 'properties') {
-					return mockPropertiesQuery
-				}
-				return mockPropertiesQuery
-			})
+			// First call: count check; second call: insert
+			mockUserClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
 
 			const payload = {
 				name: 'Park View',
@@ -370,18 +362,16 @@ describe('PropertiesService', () => {
 		})
 
 		it('should throw BadRequestException on database error', async () => {
-			// Mock stripe_connected_accounts query (successful) - use function binding
-			const mockPropertyOwnerQuery = {
-				select: jest.fn(function () {
-					return this
-				}),
-				eq: jest.fn(function () {
-					return this
-				}),
-				single: jest.fn().mockResolvedValue({
-					data: { id: 'property-owner-123' },
-					error: null
-				})
+			// Mock plan limits RPC (admin client)
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: 5 }],
+				error: null
+			})
+
+			// Mock properties count query (first call — within limit)
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 
 			// Mock properties insert query (failure) - use function binding
@@ -397,16 +387,10 @@ describe('PropertiesService', () => {
 					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
 			}
 
-			// Set up from() to return different mocks based on table name
-			mockUserClient.from.mockImplementation((table: string) => {
-				if (table === 'stripe_connected_accounts') {
-					return mockPropertyOwnerQuery
-				}
-				if (table === 'properties') {
-					return mockPropertiesQuery
-				}
-				return mockPropertiesQuery
-			})
+			// First call: count check; second call: insert
+			mockUserClient.from
+				.mockImplementationOnce(() => mockCountQuery)
+				.mockImplementationOnce(() => mockPropertiesQuery)
 
 			await expect(
 				service.create(createMockRequest('user-123'), {
@@ -418,6 +402,59 @@ describe('PropertiesService', () => {
 					property_type: 'APARTMENT'
 				})
 			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw ForbiddenException when plan property limit is reached', async () => {
+			const propertyLimit = 3
+
+			// Plan allows 3 properties; user already has 3
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: propertyLimit }],
+				error: null
+			})
+
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: propertyLimit, error: null })
+			}
+
+			mockUserClient.from.mockImplementationOnce(() => mockCountQuery)
+
+			const error = await service
+				.create(createMockRequest('user-123'), {
+					name: 'One Too Many',
+					address_line1: '1 Extra St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78701',
+					property_type: 'APARTMENT'
+				})
+				.catch(e => e)
+
+			expect(error).toBeInstanceOf(ForbiddenException)
+			const response = (error as ForbiddenException).getResponse() as Record<string, unknown>
+			expect(response.code).toBe('PLAN_LIMIT_EXCEEDED')
+			expect(response.limit).toBe(propertyLimit)
+			expect(response.current).toBe(propertyLimit)
+			expect(response.resource).toBe('properties')
+		})
+
+		it('should throw InternalServerErrorException when plan limits RPC fails', async () => {
+			mockAdminClient.rpc.mockResolvedValue({
+				data: null,
+				error: { message: 'RPC error' }
+			})
+
+			await expect(
+				service.create(createMockRequest('user-123'), {
+					name: 'Test',
+					address_line1: '1 Main St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78701',
+					property_type: 'APARTMENT'
+				})
+			).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 

@@ -28,7 +28,7 @@ test.describe('Owner Leases', () => {
 	})
 
 	test('should display leases table', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		const tableExists = (await page.getByRole('table').count()) > 0
 		if (tableExists) {
 			await verifyTableRenders(page)
@@ -66,7 +66,7 @@ test.describe('Owner Leases', () => {
 
 	test('should navigate to lease generation wizard', async ({ page }) => {
 		await page.goto(`${baseUrl}${ROUTES.LEASES_GENERATE}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Should show lease generation form/wizard
 		const hasWizard = page.url().includes('/leases/generate')
@@ -74,7 +74,7 @@ test.describe('Owner Leases', () => {
 	})
 
 	test('should display lease status filters', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const statusFilter = page
 			.getByRole('combobox', { name: /status|filter/i })
@@ -86,7 +86,7 @@ test.describe('Owner Leases', () => {
 	})
 
 	test('should display lease details in table', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const tableRows = page.getByRole('row')
 		const rowCount = await tableRows.count()
@@ -176,7 +176,7 @@ test.describe('Owner Leases', () => {
 				await page.waitForTimeout(1000)
 
 				// Table should update
-				await page.waitForLoadState('networkidle')
+				await page.waitForLoadState('domcontentloaded')
 			}
 		}
 	})
@@ -189,12 +189,12 @@ test.describe('Owner Leases', () => {
 		if ((await searchInput.count()) > 0) {
 			await searchInput.fill('test')
 			await page.waitForTimeout(1000)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 		}
 	})
 
 	test('should display lease expiration warnings', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		// Look for expiration indicators or warnings
 		const expirationWarnings = page.getByText(

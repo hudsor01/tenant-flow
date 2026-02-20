@@ -253,7 +253,8 @@ export class SubscriptionController {
 		if (!subscription || !subscription.stripe_subscription_id) {
 			return {
 				subscriptionStatus: null,
-				stripeCustomerId: subscription?.stripe_customer_id || null
+				stripeCustomerId: subscription?.stripe_customer_id || null,
+				stripePriceId: null
 			}
 		}
 
@@ -261,12 +262,17 @@ export class SubscriptionController {
 		// Throws on failure (fail-closed security - deny access on any error)
 		const stripe = this.stripeService.getStripe()
 		const stripeSubscription = await stripe.subscriptions.retrieve(
-			subscription.stripe_subscription_id
+			subscription.stripe_subscription_id,
+			{ expand: ['items.data.price'] }
 		)
+
+		// Extract the price ID from the first subscription item
+		const stripePriceId = stripeSubscription.items.data[0]?.price?.id ?? null
 
 		return {
 			subscriptionStatus: stripeSubscription.status,
-			stripeCustomerId: subscription.stripe_customer_id
+			stripeCustomerId: subscription.stripe_customer_id,
+			stripePriceId
 		}
 	}
 }

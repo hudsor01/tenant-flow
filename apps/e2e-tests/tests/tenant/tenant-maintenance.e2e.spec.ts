@@ -59,7 +59,7 @@ test.describe('Tenant Maintenance', () => {
 
 	test('should navigate to new maintenance request page', async ({ page }) => {
 		await page.goto(`${baseUrl}${ROUTES.TENANT_MAINTENANCE_NEW}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		expect(page.url()).toContain('/maintenance/new')
 	})
@@ -82,7 +82,7 @@ test.describe('Tenant Maintenance', () => {
 
 	test('should display request form fields', async ({ page }) => {
 		await page.goto(`${baseUrl}${ROUTES.TENANT_MAINTENANCE_NEW}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		const formFields = page.getByLabel(/title|description|category|priority/i)
 		const count = await formFields.count()
