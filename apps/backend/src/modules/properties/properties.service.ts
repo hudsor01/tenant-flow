@@ -172,7 +172,9 @@ export class PropertiesService {
 
 		if (error) {
 			this.logger.error('Failed to create property', { error })
-			throw new BadRequestException('Failed to create property')
+			throw new BadRequestException(
+				`Failed to create property: ${error.message} (code: ${error.code})`
+			)
 		}
 
 		if (!data) {
