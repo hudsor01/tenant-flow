@@ -93,7 +93,7 @@
 			"tar": ">=7.5.8",
 			"@commitlint/config-validator>ajv": ">=8.18.0",
 			"axios": ">=1.13.5",
-			"hono": ">=4.11.7",
+			"hono": ">=4.11.10",
 			"@isaacs/brace-expansion": ">=5.0.1"
 		},
 		"onlyBuiltDependencies": [
