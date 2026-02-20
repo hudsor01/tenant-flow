@@ -109,6 +109,23 @@ export function PropertyForm({
 				objectUrl: URL.createObjectURL(file)
 			}))
 			setFilesWithStatus(prev => [...prev, ...newFiles].slice(0, 10))
+		},
+		onDropRejected: fileRejections => {
+			for (const { file, errors } of fileRejections) {
+				for (const error of errors) {
+					if (error.code === 'file-too-large') {
+						toast.error(`"${file.name}" is too large (max 10MB)`)
+					} else if (error.code === 'file-invalid-type') {
+						toast.error(
+							`"${file.name}" is not supported. Use JPEG, PNG, WebP, or GIF.`
+						)
+					} else if (error.code === 'too-many-files') {
+						toast.error('Maximum 10 images per property')
+					} else {
+						toast.error(`"${file.name}" could not be added`)
+					}
+				}
+			}
 		}
 	})
 
