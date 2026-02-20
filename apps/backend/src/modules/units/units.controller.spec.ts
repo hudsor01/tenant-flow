@@ -81,7 +81,7 @@ describe('UnitsController', () => {
 	const validUnitInput: UnitInput = {
 		property_id: 'property-123',
 		unit_number: '101',
-		rent: 150000,
+		rent_amount: 150000,
 		bedrooms: 2,
 		bathrooms: 1
 	}
