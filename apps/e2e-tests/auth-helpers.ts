@@ -237,13 +237,14 @@ async function injectSessionIntoBrowser(
 }
 
 /**
- * Login as property owner via UI (for session initialization)
+ * Login as property owner via API
  *
- * This function performs a real UI login to properly initialize the Supabase session.
- * After the first login, the session can be reused via context storage.
+ * Uses the same fast API-based approach as loginAsTenant: calls Supabase
+ * /auth/v1/token directly then injects the session into the browser context.
+ * ~200ms vs ~3s for UI-based login.
  *
  * @param page - Playwright Page instance
- * @param options - Login credentials
+ * @param options - Login credentials and cache control
  */
 export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 	const email =
@@ -255,47 +256,49 @@ export async function loginAsOwner(page: Page, options: LoginOptions = {}) {
 			throw new Error('E2E_OWNER_PASSWORD environment variable is required')
 		})()
 	const password = rawPassword.replace(/\\!/g, '!')
+	const cacheKey = `owner:${email}`
 
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
 
-	debugLog(` Logging in as owner via UI: ${email}`)
+	// Check cache first
+	let session = sessionCache.get(cacheKey)
 
-	// Navigate to login page
-	await page.goto(`${baseUrl}/login`)
-	await page.waitForLoadState('domcontentloaded')
+	if (!session || options.forceLogin) {
+		debugLog(` Authenticating owner via API: ${email}`)
 
-	// Fill in email field and wait for validation
-	const emailInput = page.getByLabel(/email/i)
-	await emailInput.click()
-	await emailInput.fill(email)
-	await emailInput.blur() // Trigger validation
-	await page.waitForTimeout(500) // Wait for validation to complete
+		try {
+			session = await authenticateViaAPI(email, password)
+			sessionCache.set(cacheKey, session)
+			debugLog(` Owner API authentication successful`)
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error)
+			debugLog(` Owner API authentication failed: ${message}`)
+			throw error
+		}
+	} else {
+		debugLog(` Using cached owner session for: ${email}`)
+	}
 
-	// Fill in password field
-	const passwordInput = page.getByLabel(/password/i)
-	await passwordInput.click()
-	await passwordInput.fill(password)
+	// Inject session into browser context (navigates to base URL first, then sets localStorage)
+	await injectSessionIntoBrowser(page, session, baseUrl)
 
-	// Click sign in button and wait for it to become enabled
-	const signInButton = page.getByRole('button', { name: /sign in/i })
-	await signInButton.waitFor({ state: 'attached' })
-	await signInButton.click()
+	// Navigate to dashboard - session should be valid now
+	await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' })
 
-	// Wait for navigation to dashboard
-	await page.waitForURL(/\/(dashboard|tenant)/, { timeout: 15000 })
-
-	// Wait for page to stabilize
+	// Wait for auth to stabilize
 	await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-		debugLog(' networkidle timeout, continuing')
+		debugLog(' networkidle timeout, continuing with domcontentloaded')
 	})
 
 	// Verify we're not on login page
 	const currentUrl = page.url()
 	if (currentUrl.includes('/login')) {
-		throw new Error(`Login failed: Still on login page`)
+		throw new Error(
+			`Owner login failed: Redirected to login page. Session may be invalid.`
+		)
 	}
 
-	debugLog(` Successfully logged in as owner`)
+	debugLog(` Logged in as owner (${email})`)
 }
 
 /**
