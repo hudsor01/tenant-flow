@@ -3,14 +3,7 @@
 import { Button } from '#components/ui/button'
 import { AlertCircle, XCircle } from 'lucide-react'
 import Link from 'next/link'
-
-export type PageState =
-	| 'loading'
-	| 'valid'
-	| 'invalid'
-	| 'expired'
-	| 'error'
-	| 'accepted'
+import type { PageState } from './accept-invite-form-types'
 
 interface ErrorStateProps {
 	state: PageState

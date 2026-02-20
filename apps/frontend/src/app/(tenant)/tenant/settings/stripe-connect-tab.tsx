@@ -1,6 +1,6 @@
 'use client'
 
-import { StripeConnectStatus } from './stripe-connect-onboarding'
+import { StripeConnectStatus } from './stripe-connect-status'
 
 export function StripeConnectTab() {
 	return (

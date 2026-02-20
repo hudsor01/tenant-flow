@@ -1,4 +1,4 @@
-import { StripeConnectStatus } from '../stripe-connect-onboarding'
+import { StripeConnectStatus } from '../stripe-connect-status'
 
 // Next.js 16: Dynamic behavior is controlled by cacheComponents
 // Remove force-dynamic as it's incompatible with cacheComponents
