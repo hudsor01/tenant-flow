@@ -172,9 +172,13 @@ export class PropertiesService {
 
 		if (error) {
 			this.logger.error('Failed to create property', { error })
-			throw new BadRequestException(
-				`Failed to create property: ${error.message} (code: ${error.code})`
-			)
+			if (error.code === '23505') {
+				throw new BadRequestException('A property with this address already exists')
+			}
+			if (error.code === '23503') {
+				throw new BadRequestException('Invalid reference — check property type or owner')
+			}
+			throw new BadRequestException('Failed to create property')
 		}
 
 		if (!data) {
