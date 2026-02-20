@@ -1,4 +1,14 @@
 // Financials Section Types
+// Note: Core financial statement types (RevenueBreakdown, ExpenseBreakdown, MonthlyCashFlow,
+// CashFlowCategory, PropertyPL, MonthlyData) are defined in @repo/shared/types/financial-statements.
+// Only domain-specific UI types that are unique to this module are defined here.
+
+import type {
+	IncomeStatementRevenueBreakdown,
+	IncomeStatementExpenseBreakdown,
+	CashFlowCategory,
+	MonthlyCashFlow
+} from '@repo/shared/types/financial-statements'
 
 export interface FinancialsProps {
 	// Overview metrics
@@ -8,7 +18,7 @@ export interface FinancialsProps {
 	incomeStatement: IncomeStatement
 
 	// Cash flow data
-	cashFlow: CashFlowData
+	cashFlow: CashFlowDataShape
 
 	// Payouts
 	payouts: PayoutItem[]
@@ -43,26 +53,11 @@ export interface FinancialOverview {
 }
 
 export interface IncomeStatement {
-	revenue: RevenueBreakdown
-	expenses: ExpenseBreakdown
+	revenue: IncomeStatementRevenueBreakdown
+	expenses: IncomeStatementExpenseBreakdown
 	netIncome: number
 	byProperty: PropertyFinancials[]
 	byMonth: MonthlyFinancials[]
-}
-
-export interface RevenueBreakdown {
-	rentCollected: number
-	lateFees: number
-	otherIncome: number
-	total: number
-}
-
-export interface ExpenseBreakdown {
-	maintenance: number
-	platformFees: number
-	processingFees: number
-	otherExpenses: number
-	total: number
 }
 
 export interface PropertyFinancials {
@@ -81,26 +76,13 @@ export interface MonthlyFinancials {
 	netIncome: number
 }
 
-export interface CashFlowData {
-	inflows: CashFlowItem[]
-	outflows: CashFlowItem[]
+export interface CashFlowDataShape {
+	inflows: CashFlowCategory[]
+	outflows: CashFlowCategory[]
 	netCashFlow: number
 	openingBalance: number
 	closingBalance: number
 	byMonth: MonthlyCashFlow[]
-}
-
-export interface CashFlowItem {
-	category: string
-	amount: number
-	percentage: number
-}
-
-export interface MonthlyCashFlow {
-	month: string
-	inflows: number
-	outflows: number
-	netCashFlow: number
 }
 
 export interface PayoutItem {

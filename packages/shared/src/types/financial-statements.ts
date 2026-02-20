@@ -13,6 +13,74 @@ export interface FinancialLineItem {
 	amount: number
 }
 
+/**
+ * Property-level profit & loss summary for income statement views
+ * Used across: income-statement.tsx, income-statement-property-table.tsx, profit-loss.tsx
+ */
+export interface PropertyPL {
+	propertyId: string
+	propertyName: string
+	revenue: number
+	expenses: number
+	netIncome: number
+	occupancyRate: number
+}
+
+/**
+ * Monthly revenue/expense/income data for trend charts
+ * Used across: income-statement.tsx, income-statement-monthly-trend.tsx, profit-loss.tsx
+ */
+export interface MonthlyData {
+	month: string
+	revenue: number
+	expenses: number
+	netIncome: number
+}
+
+/**
+ * Income statement revenue breakdown by category
+ * Used across: income-statement.tsx, types.ts
+ */
+export interface IncomeStatementRevenueBreakdown {
+	rentCollected: number
+	lateFees: number
+	otherIncome: number
+	total: number
+}
+
+/**
+ * Income statement expense breakdown by category
+ * Used across: income-statement.tsx, types.ts
+ */
+export interface IncomeStatementExpenseBreakdown {
+	maintenance: number
+	platformFees: number
+	processingFees: number
+	otherExpenses: number
+	total: number
+}
+
+/**
+ * Cash flow category (inflow or outflow item with percentage)
+ * Used across: cash-flow.tsx, types.ts
+ */
+export interface CashFlowCategory {
+	category: string
+	amount: number
+	percentage: number
+}
+
+/**
+ * Monthly cash flow data for trend charts
+ * Used across: cash-flow.tsx, types.ts
+ */
+export interface MonthlyCashFlow {
+	month: string
+	inflows: number
+	outflows: number
+	netCashFlow: number
+}
+
 export interface TaxDocumentsData {
 	period: { start_date: string; end_date: string; label: string }
 	taxYear: number

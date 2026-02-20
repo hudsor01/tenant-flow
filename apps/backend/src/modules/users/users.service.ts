@@ -4,10 +4,8 @@ import {
 	NotFoundException
 } from '@nestjs/common'
 import type { Database } from '@repo/shared/types/supabase'
+import type { UserInsert, UserUpdate } from '@repo/shared/types/core'
 import { SupabaseService } from '../../database/supabase.service'
-
-type UserInsert = Database['public']['Tables']['users']['Insert']
-type UserUpdate = Database['public']['Tables']['users']['Update']
 
 export interface UserDataExport {
 	exported_at: string
