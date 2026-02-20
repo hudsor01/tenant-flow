@@ -310,9 +310,10 @@ describe('PropertiesService', () => {
 				error: null
 			})
 
-			// Mock properties count query (first from('properties') call)
+			// Mock properties count query (first from('properties') call on admin client)
 			const mockCountQuery = {
 				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
 				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 
@@ -327,8 +328,8 @@ describe('PropertiesService', () => {
 				single: jest.fn().mockResolvedValue({ data: mockCreated, error: null })
 			}
 
-			// First call: count check; second call: insert
-			mockUserClient.from
+			// Both calls go through adminClient now (count check + insert)
+			mockAdminClient.from
 				.mockImplementationOnce(() => mockCountQuery)
 				.mockImplementationOnce(() => mockPropertiesQuery)
 
@@ -367,6 +368,7 @@ describe('PropertiesService', () => {
 			})
 			const mockCountQuery = {
 				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
 				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
 			const mockPropertiesQuery = {
@@ -374,7 +376,7 @@ describe('PropertiesService', () => {
 				select: jest.fn(function () { return this }),
 				single: jest.fn().mockResolvedValue({ data: null, error: pgError })
 			}
-			mockUserClient.from
+			mockAdminClient.from
 				.mockImplementationOnce(() => mockCountQuery)
 				.mockImplementationOnce(() => mockPropertiesQuery)
 		}
@@ -429,10 +431,11 @@ describe('PropertiesService', () => {
 
 			const mockCountQuery = {
 				select: jest.fn(function () { return this }),
+				eq: jest.fn(function () { return this }),
 				neq: jest.fn().mockResolvedValue({ count: propertyLimit, error: null })
 			}
 
-			mockUserClient.from.mockImplementationOnce(() => mockCountQuery)
+			mockAdminClient.from.mockImplementationOnce(() => mockCountQuery)
 
 			const error = await service
 				.create(createMockRequest('user-123'), {

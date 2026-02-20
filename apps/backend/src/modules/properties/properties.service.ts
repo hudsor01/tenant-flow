@@ -105,18 +105,11 @@ export class PropertiesService {
 		req: AuthenticatedRequest,
 		request: CreatePropertyDto
 	): Promise<Property> {
-		const token = getTokenFromRequest(req)
-		if (!token) {
-			this.logger.error('No authentication token found in request')
-			throw new BadRequestException('Authentication required')
-		}
-
 		const user_id = req.user.id
-		const client = this.supabase.getUserClient(token)
+		const adminClient = this.supabase.getAdminClient()
 
 		// Check plan limit before creating
-		const { data: limits, error: limitsError } = await this.supabase
-			.getAdminClient()
+		const { data: limits, error: limitsError } = await adminClient
 			.rpc('get_user_plan_limits', { p_user_id: user_id })
 		if (limitsError) {
 			this.logger.error('Failed to fetch plan limits', { error: limitsError })
@@ -124,9 +117,12 @@ export class PropertiesService {
 		}
 		const propertyLimit: number = (limits as Array<{ property_limit: number }> | null)?.[0]?.property_limit ?? 5
 
-		const { count: currentCount, error: countError } = await client
+		// Use admin client with explicit owner filter — user client's JWT auth
+		// against PostgREST is unreliable with the sb_publishable_* key format.
+		const { count: currentCount, error: countError } = await adminClient
 			.from('properties')
 			.select('*', { count: 'exact', head: true })
+			.eq('owner_user_id', user_id)
 			.neq('status', 'inactive')
 
 		if (countError || currentCount === null) {
@@ -164,7 +160,7 @@ export class PropertiesService {
 
 		this.logger.debug('Attempting to create property', { insertData })
 
-		const { data, error } = await client
+		const { data, error } = await adminClient
 			.from('properties')
 			.insert(insertData)
 			.select()
