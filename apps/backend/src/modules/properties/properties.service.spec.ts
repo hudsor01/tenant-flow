@@ -361,47 +361,62 @@ describe('PropertiesService', () => {
 			)
 		})
 
-		it('should throw BadRequestException on database error', async () => {
-			// Mock plan limits RPC (admin client)
+		function setupCreateErrorTest(pgError: { message: string; code?: string }) {
 			mockAdminClient.rpc.mockResolvedValue({
 				data: [{ property_limit: 5 }],
 				error: null
 			})
-
-			// Mock properties count query (first call — within limit)
 			const mockCountQuery = {
 				select: jest.fn(function () { return this }),
 				neq: jest.fn().mockResolvedValue({ count: 0, error: null })
 			}
-
-			// Mock properties insert query (failure) - use function binding
 			const mockPropertiesQuery = {
-				insert: jest.fn(function () {
-					return this
-				}),
-				select: jest.fn(function () {
-					return this
-				}),
-				single: jest
-					.fn()
-					.mockResolvedValue({ data: null, error: { message: 'DB error' } })
+				insert: jest.fn(function () { return this }),
+				select: jest.fn(function () { return this }),
+				single: jest.fn().mockResolvedValue({ data: null, error: pgError })
 			}
-
-			// First call: count check; second call: insert
 			mockUserClient.from
 				.mockImplementationOnce(() => mockCountQuery)
 				.mockImplementationOnce(() => mockPropertiesQuery)
+		}
+
+		const validCreateDto = {
+			name: 'Test',
+			address_line1: '123 Main',
+			city: 'Austin',
+			state: 'TX',
+			postal_code: '78701',
+			property_type: 'APARTMENT'
+		}
+
+		it('should throw BadRequestException on generic database error', async () => {
+			setupCreateErrorTest({ message: 'DB error', code: '42000' })
 
 			await expect(
-				service.create(createMockRequest('user-123'), {
-					name: 'Test',
-					address_line1: '123 Main',
-					city: 'Austin',
-					state: 'TX',
-					postal_code: '78701',
-					property_type: 'APARTMENT'
-				})
-			).rejects.toThrow(BadRequestException)
+				service.create(createMockRequest('user-123'), validCreateDto)
+			).rejects.toThrow(new BadRequestException('Failed to create property'))
+		})
+
+		it('should return user-friendly message for unique constraint violation (23505)', async () => {
+			setupCreateErrorTest({
+				message: 'duplicate key value violates unique constraint "properties_address_user_id_key"',
+				code: '23505'
+			})
+
+			await expect(
+				service.create(createMockRequest('user-123'), validCreateDto)
+			).rejects.toThrow(new BadRequestException('A property with this address already exists'))
+		})
+
+		it('should return user-friendly message for foreign key violation (23503)', async () => {
+			setupCreateErrorTest({
+				message: 'insert or update on table "properties" violates foreign key constraint "properties_owner_user_id_fkey"',
+				code: '23503'
+			})
+
+			await expect(
+				service.create(createMockRequest('user-123'), validCreateDto)
+			).rejects.toThrow(new BadRequestException('Invalid reference — check property type or owner'))
 		})
 
 		it('should throw ForbiddenException when plan property limit is reached', async () => {
