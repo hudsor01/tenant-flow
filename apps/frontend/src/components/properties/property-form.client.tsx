@@ -237,6 +237,14 @@ export function PropertyForm({
 										)
 									)
 								} catch (error) {
+									logger.error('Storage upload failed', {
+										action: 'image_upload_error',
+										metadata: {
+											fileName: file.name,
+											propertyId: newProperty.id,
+											error: error instanceof Error ? error.message : String(error)
+										}
+									})
 									// Update status to error
 									setFilesWithStatus(prev =>
 										prev.map((f, i) =>
@@ -264,9 +272,12 @@ export function PropertyForm({
 								errorCount
 							})
 
-							// Invalidate property images query to show new images
+							// Invalidate property detail and images queries to show new images
 							queryClient.invalidateQueries({
 								queryKey: propertyQueries.detail(newProperty.id).queryKey
+							})
+							queryClient.invalidateQueries({
+								queryKey: propertyQueries.images(newProperty.id).queryKey
 							})
 
 							if (errorCount === 0) {

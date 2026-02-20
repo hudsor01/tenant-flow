@@ -37,6 +37,17 @@ export const PROPERTY_TYPES = {
 export type PropertyType = (typeof PROPERTY_TYPES)[keyof typeof PROPERTY_TYPES]
 
 /**
+ * SINGLE-UNIT PROPERTY TYPES - Property types that have exactly one unit
+ * Used to auto-create a default unit on property creation and
+ * to show simplified unit UI (card instead of table).
+ */
+export const SINGLE_UNIT_PROPERTY_TYPES: readonly PropertyType[] = [
+	PROPERTY_TYPES.SINGLE_FAMILY,
+	PROPERTY_TYPES.CONDO,
+	PROPERTY_TYPES.TOWNHOUSE
+] as const
+
+/**
  * MAINTENANCE CATEGORY ENUMERATION - App-level categorization
  */
 export const MAINTENANCE_CATEGORIES = {
