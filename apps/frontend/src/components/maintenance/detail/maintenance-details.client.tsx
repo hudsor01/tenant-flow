@@ -10,6 +10,7 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useDeleteMaintenanceRequest } from '#hooks/api/use-maintenance'
 import type { ExpenseRecord } from '@repo/shared/types/core'
 
 import { User, Edit2, Trash2 } from 'lucide-react'
@@ -30,6 +31,7 @@ const logger = createLogger({ component: 'MaintenanceDetails' })
 export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const deleteMutation = useDeleteMaintenanceRequest()
 	const {
 		data: request,
 		isLoading,
@@ -198,7 +200,12 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 						<Button
 							variant="outline"
 							className="w-full justify-start gap-2 text-destructive hover:text-destructive"
-							onClick={() => toast.info('Delete functionality coming soon')}
+							disabled={deleteMutation.isPending}
+							onClick={async () => {
+								if (!confirm('Are you sure you want to delete this maintenance request? This cannot be undone.')) return
+								await deleteMutation.mutateAsync(id)
+								router.push('/maintenance')
+							}}
 						>
 							<Trash2 className="size-4" />
 							Delete Request

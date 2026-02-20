@@ -97,19 +97,10 @@ export const env = createEnv({
 			.enum(['ES256', 'RS256', 'HS256'])
 			.default('ES256'),
 
-		// Feature flags (optional, default to false)
-		// Uses string->boolean transform pattern from t3-env recipes
-		NEXT_PUBLIC_ENABLE_ANALYTICS: z
-			.string()
-			.optional()
-			.default('false')
-			.transform(s => s === 'true'),
-
-		NEXT_PUBLIC_MAINTENANCE_MODE: z
-			.string()
-			.optional()
-			.default('false')
-			.transform(s => s === 'true')
+		// Stripe price IDs (client-side, for plan identification on billing page)
+		NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID: z.string().optional(),
+		NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID: z.string().optional(),
+		NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: z.string().optional()
 	},
 
 	/**
@@ -140,8 +131,9 @@ export const env = createEnv({
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM,
-		NEXT_PUBLIC_ENABLE_ANALYTICS: process.env.NEXT_PUBLIC_ENABLE_ANALYTICS,
-		NEXT_PUBLIC_MAINTENANCE_MODE: process.env.NEXT_PUBLIC_MAINTENANCE_MODE
+		NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_STARTER_PRICE_ID,
+		NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_PROFESSIONAL_PRICE_ID,
+		NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID: process.env.NEXT_PUBLIC_STRIPE_ENTERPRISE_PRICE_ID
 	},
 
 	/**

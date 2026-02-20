@@ -5,6 +5,7 @@ import { Settings, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
+import { Skeleton } from '#components/ui/skeleton'
 import { PlanCard, type Plan } from '#components/billing/plan-card'
 import { UpgradeDialog } from '#components/billing/upgrade-dialog'
 import {
@@ -12,6 +13,7 @@ import {
 	createCustomerPortalSession
 } from '#lib/stripe/stripe-client'
 import { cn } from '#lib/utils'
+import { useSubscriptionStatus } from '#hooks/api/use-billing'
 
 // Static plans definition - these would typically come from an API or configuration
 const PLANS: Plan[] = [
@@ -81,16 +83,19 @@ const PLANS: Plan[] = [
 	}
 ]
 
-// Simulated current subscription - in production, this would come from an API/context
-const CURRENT_PLAN_ID: string | null = null // null means no subscription
-
 export default function BillingPlansPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [loadingPlanId, setLoadingPlanId] = useState<string | null>(null)
 	const [dialogOpen, setDialogOpen] = useState(false)
 	const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null)
 
-	const currentPlan = PLANS.find(p => p.id === CURRENT_PLAN_ID) ?? null
+	const { data: subscriptionStatus, isLoading: subscriptionLoading } = useSubscriptionStatus()
+	const hasActiveSubscription =
+		subscriptionStatus?.subscriptionStatus === 'active' ||
+		subscriptionStatus?.subscriptionStatus === 'trialing'
+	const currentPlan = hasActiveSubscription && subscriptionStatus?.stripePriceId
+		? PLANS.find(p => p.priceId === subscriptionStatus.stripePriceId) ?? null
+		: null
 	const hasSubscription = currentPlan !== null
 
 	const handlePlanSelect = (plan: Plan) => {
@@ -167,6 +172,14 @@ export default function BillingPlansPage() {
 		}
 	}
 
+	if (subscriptionLoading) {
+		return (
+			<div className="container max-w-7xl py-8">
+				<Skeleton className="h-96 w-full" />
+			</div>
+		)
+	}
+
 	return (
 		<div className="container max-w-7xl py-8">
 			{/* Header */}
@@ -238,7 +251,7 @@ export default function BillingPlansPage() {
 					<PlanCard
 						key={plan.id}
 						plan={plan}
-						isCurrentPlan={plan.id === CURRENT_PLAN_ID}
+						isCurrentPlan={plan.id === currentPlan?.id}
 						isMostPopular={plan.id === 'professional'}
 						currentTier={currentPlan?.tier ?? null}
 						onSelect={handlePlanSelect}

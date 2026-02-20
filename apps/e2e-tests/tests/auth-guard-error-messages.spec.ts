@@ -12,7 +12,7 @@ const __dirname = dirname(__filename)
  * 1. Use role-based locators (getByRole) instead of CSS selectors
  * 2. Rely on auto-waiting instead of explicit networkidle waits
  * 3. Use web-first assertions (await expect().toBeVisible())
- * 4. Avoid flaky waitForLoadState('networkidle') - use element waits instead
+ * 4. Avoid flaky waitForLoadState('domcontentloaded') - use element waits instead
  * Reference: https://playwright.dev/docs/best-practices
  */
 

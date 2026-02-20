@@ -174,7 +174,11 @@ describe('TenantPlatformInvitationService', () => {
 				from: jest.fn(() => createMockChain())
 			})) as unknown as jest.MockedFunction<
 				() => ReturnType<SupabaseService['getUserClient']>
-			>
+			>,
+			// getAdminClient used for plan limit checks — return generous limits so invitation tests focus on their own logic
+			getAdminClient: jest.fn(() => ({
+				rpc: jest.fn().mockResolvedValue({ data: [{ tenant_limit: 9999 }], error: null })
+			}))
 		}
 
 		const module: TestingModule = await Test.createTestingModule({

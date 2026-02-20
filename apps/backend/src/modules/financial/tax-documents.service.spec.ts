@@ -317,7 +317,7 @@ describe('TaxDocumentsService', () => {
 			expect(property.annualDepreciation).toBeCloseTo(20000 / 0.06 / 27.5, 2)
 		})
 
-		it('should calculate mortgage interest estimate (30% of expenses)', async () => {
+		it('should report zero mortgage interest (not fabricated from expenses)', async () => {
 			const customLedger: LedgerData = {
 				rentPayments: [],
 				expenses: [
@@ -341,8 +341,8 @@ describe('TaxDocumentsService', () => {
 
 			const result = await service.generateTaxDocuments('mock-token', 'user-123', 2024)
 
-			// Mortgage interest = 30% of total expenses (30000 * 0.3 = 9000)
-			expect(result.incomeBreakdown.mortgageInterest).toBe(9000)
+			// Mortgage interest is not known from rent/expense data; report 0 rather than fabricate
+			expect(result.incomeBreakdown.mortgageInterest).toBe(0)
 		})
 
 		it('should calculate taxable income correctly', async () => {
@@ -353,23 +353,19 @@ describe('TaxDocumentsService', () => {
 			// Expenses = 20000
 			// NOI = 60000 - 20000 = 40000
 			// Depreciation = 1000000 / 27.5 ≈ 36363.64
-			// Mortgage Interest = 20000 * 0.3 = 6000
-			// Taxable Income = 40000 - 36363.64 - 6000 ≈ -2363.64
+			// Mortgage Interest = 0 (not fabricated from expense data)
+			// Taxable Income = 40000 - 36363.64 ≈ 3636.36
 
 			const expectedNOI = 40000
 			const expectedDepreciation = 1000000 / 27.5
-			const expectedMortgageInterest = 6000
-			const expectedTaxable =
-				expectedNOI - expectedDepreciation - expectedMortgageInterest
+			const expectedTaxable = expectedNOI - expectedDepreciation
 
 			expect(result.incomeBreakdown.netOperatingIncome).toBe(expectedNOI)
 			expect(result.incomeBreakdown.depreciation).toBeCloseTo(
 				expectedDepreciation,
 				2
 			)
-			expect(result.incomeBreakdown.mortgageInterest).toBe(
-				expectedMortgageInterest
-			)
+			expect(result.incomeBreakdown.mortgageInterest).toBe(0)
 			expect(result.incomeBreakdown.taxableIncome).toBeCloseTo(
 				expectedTaxable,
 				2
@@ -435,11 +431,10 @@ describe('TaxDocumentsService', () => {
 			const expectedDeductions = 20000 + 1000000 / 27.5
 			expect(result.totals.totalDeductions).toBeCloseTo(expectedDeductions, 2)
 
-			// Net taxable income = NOI - depreciation - mortgage interest
+			// Net taxable income = NOI - depreciation (mortgage interest is 0)
 			const noi = 60000 - 20000
 			const depreciation = 1000000 / 27.5
-			const mortgageInterest = 20000 * 0.3
-			const expectedNetTaxable = noi - depreciation - mortgageInterest
+			const expectedNetTaxable = noi - depreciation
 			expect(result.totals.netTaxableIncome).toBeCloseTo(expectedNetTaxable, 2)
 		})
 
@@ -451,11 +446,10 @@ describe('TaxDocumentsService', () => {
 			expect(scheduleE.totalExpenses).toBe(20000)
 			expect(scheduleE.depreciation).toBeCloseTo(1000000 / 27.5, 2)
 
-			// Net income = NOI - depreciation - mortgage interest
+			// Net income = NOI - depreciation (mortgage interest is 0)
 			const noi = 60000 - 20000
 			const depreciation = 1000000 / 27.5
-			const mortgageInterest = 20000 * 0.3
-			const expectedNetIncome = noi - depreciation - mortgageInterest
+			const expectedNetIncome = noi - depreciation
 			expect(scheduleE.netIncome).toBeCloseTo(expectedNetIncome, 2)
 		})
 	})

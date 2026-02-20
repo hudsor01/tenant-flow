@@ -424,5 +424,5 @@ export async function verifyActiveTab(
  */
 export async function clickTab(page: Page, tabName: string): Promise<void> {
 	await page.getByRole('tab', { name: new RegExp(tabName, 'i') }).click()
-	await page.waitForLoadState('networkidle')
+	await page.waitForLoadState('domcontentloaded')
 }

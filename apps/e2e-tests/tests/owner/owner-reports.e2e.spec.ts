@@ -46,7 +46,7 @@ test.describe('Owner Reports', () => {
 
 	test('should navigate to generate reports page', async ({ page }) => {
 		await page.goto(`${baseUrl}${ROUTES.REPORTS_GENERATE}`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 
 		expect(page.url()).toContain('/reports/generate')
 	})

@@ -60,7 +60,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Find the billing toggle switch
 			const billingToggle = page.locator('#billing-toggle')
@@ -105,7 +105,7 @@ test.describe('Owner Subscription Flow', () => {
 		}) => {
 			// Navigate directly (authenticated via storageState)
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Find and click the Starter plan button
 			const starterButton = page
@@ -136,7 +136,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Find and click the Growth plan button
 			const growthButton = page
@@ -163,7 +163,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Find MAX plan contact button
 			const maxButton = page.locator('button:has-text("Contact Sales")').first()
@@ -182,7 +182,7 @@ test.describe('Owner Subscription Flow', () => {
 		}) => {
 			// Go to pricing page WITHOUT logging in
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Try to subscribe to Starter
 			const subscribeButton = page
@@ -216,7 +216,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
@@ -242,7 +242,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should create checkout session and redirect', async ({ page }) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const growthButton = page
 				.locator('button:has-text("Subscribe to Growth")')
@@ -271,7 +271,7 @@ test.describe('Owner Subscription Flow', () => {
 	test.describe('4. Subscription Success & Complete Pages', () => {
 		test('should display success page', async ({ page }) => {
 			await page.goto(ROUTES.PRICING_SUCCESS)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Verify success page content
 			await expect(
@@ -282,7 +282,7 @@ test.describe('Owner Subscription Flow', () => {
 		test('should display complete page with session info', async ({ page }) => {
 			// Complete page requires session_id parameter
 			await page.goto('/pricing/complete?session_id=test_session')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Should show payment status or error for invalid session
 			const hasStatusContent = await page
@@ -297,7 +297,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Look for subscription/billing section
 			const billingSection = page.locator('text=/billing|subscription|plan/i')
@@ -318,7 +318,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should display current subscription details', async ({ page }) => {
 			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Look for subscription info
 			const subscriptionInfo = page
@@ -332,7 +332,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should allow accessing Stripe Customer Portal', async ({ page }) => {
 			await page.goto(ROUTES.DASHBOARD_SETTINGS)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Look for manage subscription button
 			const manageButton = page.locator(
@@ -368,7 +368,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Mock a failed checkout session creation by intercepting the API
 			await page.route('**/stripe/create-checkout-session', route => {
@@ -397,7 +397,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should prevent double submission', async ({ page }) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const starterButton = page
 				.locator('button:has-text("Subscribe to Starter")')
@@ -418,7 +418,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should handle rate limiting', async ({ page }) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Mock rate limit response
 			await page.route('**/stripe/create-checkout-session', route => {
@@ -451,7 +451,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Look for secure checkout indicators (trust badges, SSL mentions)
 			const secureIndicator = page.locator(
@@ -467,7 +467,7 @@ test.describe('Owner Subscription Flow', () => {
 			page
 		}) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			// Get visible text content
 			const bodyText = (await page.locator('body').textContent()) || ''
@@ -478,7 +478,7 @@ test.describe('Owner Subscription Flow', () => {
 
 		test('should use HTTPS for Stripe redirect', async ({ page }) => {
 			await page.goto(ROUTES.PRICING)
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const growthButton = page
 				.locator('button:has-text("Subscribe to Growth")')

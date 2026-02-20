@@ -25,7 +25,7 @@ test.describe('Owner Maintenance', () => {
 	})
 
 	test('should display maintenance requests table', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		const tableExists = (await page.getByRole('table').count()) > 0
 		if (tableExists) {
 			await verifyTableRenders(page)
@@ -74,7 +74,7 @@ test.describe('Owner Maintenance', () => {
 	})
 
 	test('should display maintenance categories', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		const categories = page.getByText(/plumbing|electrical|hvac|general/i)
 		const count = await categories.count()
 		if (count > 0) {
@@ -83,7 +83,7 @@ test.describe('Owner Maintenance', () => {
 	})
 
 	test('should display priority badges', async ({ page }) => {
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		const priorities = page.getByText(/high|medium|low|urgent/i)
 		const count = await priorities.count()
 		if (count > 0) {

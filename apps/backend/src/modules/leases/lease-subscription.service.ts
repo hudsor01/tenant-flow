@@ -180,6 +180,15 @@ export class LeaseSubscriptionService {
 		// Create Stripe customer on connected account if needed
 		if (!stripeCustomerId) {
 			try {
+				if (!user?.email) {
+					await this.markSubscriptionFailed(
+						client,
+						lease.id,
+						`Tenant ${tenant.id} has no email address. Cannot create Stripe customer.`
+					)
+					return
+				}
+
 				const customerName = user
 					? `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
 						undefined
@@ -191,7 +200,7 @@ export class LeaseSubscriptionService {
 					phone?: string
 					metadata?: Record<string, string>
 				} = {
-					email: user?.email || `tenant-${tenant.id}@placeholder.local`,
+					email: user.email,
 					metadata: {
 						tenant_id: tenant.id,
 						user_id: tenant.user_id

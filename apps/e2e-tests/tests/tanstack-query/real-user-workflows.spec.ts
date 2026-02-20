@@ -49,7 +49,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		// Start with authenticated session
 		await loginAsOwner(page)
 		await page.goto('/')
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 	})
 
 	test.afterEach(async () => {
@@ -61,7 +61,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 		test('should handle complete property lifecycle workflow', async () => {
 			// 1. Navigate to properties from manage dashboard
 			await page.click('a[href*="properties"], nav a:has-text("Properties")')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 
 			const initialCount = await tableHelper.getPropertyCount()
 			const initialStats = await statsHelper.getTotalPropertiesCount()
@@ -139,7 +139,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 		test('should handle rapid property management operations', async () => {
 			await page.goto('/properties')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			const initialCount = await tableHelper.getPropertyCount()
@@ -167,9 +167,9 @@ test.describe('TanStack Query Real User Workflows', () => {
 
 			// Navigate away and back
 			await page.goto('/')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await page.goto('/properties')
-			await page.waitForLoadState('networkidle')
+			await page.waitForLoadState('domcontentloaded')
 			await expect(page.locator('table tbody tr').first()).toBeVisible()
 
 			// All properties should persist
@@ -432,7 +432,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 				for (const route of navigationRoutes) {
 					const startTime = Date.now()
 					await page.goto(route)
-					await page.waitForLoadState('networkidle')
+					await page.waitForLoadState('domcontentloaded')
 					const navigationTime = Date.now() - startTime
 
 					navigationTimes.push(navigationTime)
@@ -537,7 +537,7 @@ test.describe('TanStack Query Real User Workflows', () => {
 			// Open second tab
 			const secondTab = await page.context().newPage()
 			await secondTab.goto('/properties')
-			await secondTab.waitForLoadState('networkidle')
+			await secondTab.waitForLoadState('domcontentloaded')
 
 			const property1 = createTestProperty({ name: 'Tab 1 Property' })
 			const property2 = createTestProperty({ name: 'Tab 2 Property' })

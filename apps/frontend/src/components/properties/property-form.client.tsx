@@ -2,7 +2,7 @@
 
 import { CheckCircle, Upload, Loader2, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Field, FieldError, FieldLabel } from '#components/ui/field'
@@ -50,6 +50,7 @@ interface FileWithStatus {
 	file: File
 	status: FileUploadStatus
 	error?: string
+	objectUrl: string
 }
 
 /**
@@ -72,6 +73,13 @@ export function PropertyForm({
 	const [isSubmitted, setIsSubmitted] = useState(false)
 	const [uploadingImages, setUploadingImages] = useState(false)
 	const [filesWithStatus, setFilesWithStatus] = useState<FileWithStatus[]>([])
+	const isMountedRef = useRef(true)
+	useEffect(() => {
+		isMountedRef.current = true
+		return () => {
+			isMountedRef.current = false
+		}
+	}, [])
 	const { data: user } = useSupabaseUser()
 	const router = useRouter()
 	const queryClient = useQueryClient()
@@ -97,7 +105,8 @@ export function PropertyForm({
 		onDrop: acceptedFiles => {
 			const newFiles: FileWithStatus[] = acceptedFiles.map(file => ({
 				file,
-				status: 'pending' as const
+				status: 'pending' as const,
+				objectUrl: URL.createObjectURL(file)
 			}))
 			setFilesWithStatus(prev => [...prev, ...newFiles].slice(0, 10))
 		}
@@ -122,6 +131,17 @@ export function PropertyForm({
 			)
 		}
 	}, [mode, property, queryClient])
+
+	// Track latest filesWithStatus for unmount cleanup (avoids stale closure)
+	const filesWithStatusRef = useRef<FileWithStatus[]>([])
+	filesWithStatusRef.current = filesWithStatus
+	useEffect(() => {
+		return () => {
+			for (const { objectUrl } of filesWithStatusRef.current) {
+				URL.revokeObjectURL(objectUrl)
+			}
+		}
+	}, [])
 
 	// Initialize form
 	const form = useForm({
@@ -216,10 +236,10 @@ export function PropertyForm({
 								}
 							})
 
-							await Promise.allSettled(uploadPromises)
+							const results = await Promise.allSettled(uploadPromises)
 
-							const successCount = filesWithStatus.filter(f => f.status === 'success').length
-							const errorCount = filesWithStatus.filter(f => f.status === 'error').length
+							const successCount = results.filter(r => r.status === 'fulfilled').length
+							const errorCount = results.filter(r => r.status === 'rejected').length
 
 							logger.info('Images upload completed', {
 								propertyId: newProperty.id,
@@ -245,11 +265,19 @@ export function PropertyForm({
 							}
 						} catch (error) {
 							logger.error('Failed to upload images', { error })
+							toast.error('An unexpected error occurred during image upload')
 						} finally {
 							setUploadingImages(false)
 							// Clear files after a delay so user can see final status
 							setTimeout(() => {
-								setFilesWithStatus([])
+								if (isMountedRef.current) {
+									setFilesWithStatus(prev => {
+										for (const { objectUrl } of prev) {
+											URL.revokeObjectURL(objectUrl)
+										}
+										return []
+									})
+								}
 							}, 2000)
 						}
 					} else {
@@ -612,13 +640,13 @@ export function PropertyForm({
 						{/* Selected files preview with upload status */}
 						{filesWithStatus.length > 0 && (
 							<div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-								{filesWithStatus.map(({ file, status }, index) => (
+								{filesWithStatus.map(({ file, status, objectUrl }, index) => (
 									<div
-										key={index}
+										key={objectUrl}
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
-											src={URL.createObjectURL(file)}
+											src={objectUrl}
 											alt={file.name}
 											className="w-full h-full object-cover"
 										/>
@@ -629,9 +657,11 @@ export function PropertyForm({
 												type="button"
 												onClick={e => {
 													e.stopPropagation()
-													setFilesWithStatus(prev =>
-														prev.filter((_, i) => i !== index)
-													)
+													setFilesWithStatus(prev => {
+														const removed = prev[index]
+														if (removed) URL.revokeObjectURL(removed.objectUrl)
+														return prev.filter((_, i) => i !== index)
+													})
 												}}
 												className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
 												aria-label="Remove image"

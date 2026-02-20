@@ -51,17 +51,17 @@ test.describe('Owner Core Navigation', () => {
 	test('can navigate between core pages', async ({ page }) => {
 		// Properties
 		await page.goto(`${baseUrl}/properties`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		expect(page.url()).toContain('/properties')
 
 		// Tenants
 		await page.goto(`${baseUrl}/tenants`)
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		expect(page.url()).toContain('/tenants')
 
 		// Back/forward
 		await page.goBack()
-		await page.waitForLoadState('networkidle')
+		await page.waitForLoadState('domcontentloaded')
 		expect(page.url()).toContain('/properties')
 	})
 })
