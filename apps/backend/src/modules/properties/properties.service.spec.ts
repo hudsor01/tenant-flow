@@ -1,4 +1,4 @@
-import { BadRequestException, ForbiddenException, InternalServerErrorException, Logger } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common'
 import { RedisCacheService } from '../../cache/cache.service'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -8,7 +8,6 @@ import { UtilityService } from '../../shared/services/utility.service'
 import { buildMultiColumnSearch } from '../../shared/utils/sql-safe.utils'
 import { SilentLogger } from '../../__tests__/silent-logger'
 import { AppLogger } from '../../logger/app-logger.service'
-import { NotFoundException } from '@nestjs/common'
 import type { Property } from '@repo/shared/types/core'
 // Define createMockProperty locally since it doesn't exist in mocks
 function createMockProperty(overrides?: Partial<Property>): Property {
