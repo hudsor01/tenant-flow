@@ -322,7 +322,6 @@ export async function loginAsTenant(page: Page, options: LoginOptions = {}) {
 	const cacheKey = `tenant:${email}`
 
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const context = page.context()
 
 	// Check cache first
 	let session = sessionCache.get(cacheKey)

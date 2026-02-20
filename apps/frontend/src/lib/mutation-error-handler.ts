@@ -71,10 +71,13 @@ export function handleMutationError(
 	// Show user-friendly toast notification
 	const displayMessage = customMessage || message
 
-	// Extract error code from body for structured errors (e.g. PLAN_LIMIT_EXCEEDED)
-	const errorCode = (
-		(error as Record<string, unknown>)?.body as Record<string, unknown>
-	)?.code
+	// Extract error code from body for structured errors (e.g. PLAN_LIMIT_EXCEEDED).
+	// NestJS serializes new ForbiddenException({ code, ... }) as { message: { code, ... } }
+	// so the code lives at body.message.code, not body.code.
+	const bodyObj = (error as Record<string, unknown>)?.body as Record<string, unknown> | undefined
+	const errorCode =
+		bodyObj?.code ??
+		(bodyObj?.message as Record<string, unknown> | undefined)?.code
 
 	// Customize toast based on status code
 	if (status === 409) {

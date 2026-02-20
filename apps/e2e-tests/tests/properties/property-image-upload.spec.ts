@@ -99,36 +99,17 @@ test.describe('Property Image Upload', () => {
 		const button = page.getByRole('button', { name: /create property/i })
 		await button.click()
 
-		// Wait for property creation AND image upload to complete
-		await page.waitForFunction(
-			() => {
-				const text = document.body.textContent || ''
-				return (
-					text.includes('Property created') ||
-					text.includes('image(s) uploaded') ||
-					text.includes('successfully')
-				)
-			},
-			{ timeout: 15000 }
-		)
+		// Wait for property creation AND image upload to complete (toast appears)
+		await expect(
+			page.getByText(/Property created|image\(s\) uploaded|successfully/i).first()
+		).toBeVisible({ timeout: 15000 })
 
-		// Wait for upload overlay statuses to complete (uploading -> success)
-		await page.waitForFunction(
-			() => {
-				const text = document.body.textContent || ''
-				return !text.includes('Uploading...')
-			},
-			{ timeout: 10000 }
-		)
+		// Wait for upload overlay statuses to complete (uploading -> success/error)
+		await expect(page.getByText('Uploading...')).not.toBeVisible({ timeout: 10000 })
 
 		// Verify success toast appeared
-		const bodyText = await page.textContent('body')
-		const hasSuccessMessage =
-			bodyText?.includes('Property created with') ||
-			bodyText?.includes('image(s)') ||
-			bodyText?.includes('3 image')
-
-		expect(hasSuccessMessage).toBeTruthy()
+		const successToast = page.getByText(/Property created with|image\(s\)|3 image/i).first()
+		await expect(successToast).toBeVisible()
 
 		// Navigate to properties list to verify creation
 		await page.goto(`${baseUrl}/properties`)

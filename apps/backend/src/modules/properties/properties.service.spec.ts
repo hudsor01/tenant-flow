@@ -1,4 +1,4 @@
-import { BadRequestException, Logger } from '@nestjs/common'
+import { BadRequestException, ForbiddenException, InternalServerErrorException, Logger } from '@nestjs/common'
 import { RedisCacheService } from '../../cache/cache.service'
 import { Test, type TestingModule } from '@nestjs/testing'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
@@ -402,6 +402,59 @@ describe('PropertiesService', () => {
 					property_type: 'APARTMENT'
 				})
 			).rejects.toThrow(BadRequestException)
+		})
+
+		it('should throw ForbiddenException when plan property limit is reached', async () => {
+			const propertyLimit = 3
+
+			// Plan allows 3 properties; user already has 3
+			mockAdminClient.rpc.mockResolvedValue({
+				data: [{ property_limit: propertyLimit }],
+				error: null
+			})
+
+			const mockCountQuery = {
+				select: jest.fn(function () { return this }),
+				neq: jest.fn().mockResolvedValue({ count: propertyLimit, error: null })
+			}
+
+			mockUserClient.from.mockImplementationOnce(() => mockCountQuery)
+
+			const error = await service
+				.create(createMockRequest('user-123'), {
+					name: 'One Too Many',
+					address_line1: '1 Extra St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78701',
+					property_type: 'APARTMENT'
+				})
+				.catch(e => e)
+
+			expect(error).toBeInstanceOf(ForbiddenException)
+			const response = (error as ForbiddenException).getResponse() as Record<string, unknown>
+			expect(response.code).toBe('PLAN_LIMIT_EXCEEDED')
+			expect(response.limit).toBe(propertyLimit)
+			expect(response.current).toBe(propertyLimit)
+			expect(response.resource).toBe('properties')
+		})
+
+		it('should throw InternalServerErrorException when plan limits RPC fails', async () => {
+			mockAdminClient.rpc.mockResolvedValue({
+				data: null,
+				error: { message: 'RPC error' }
+			})
+
+			await expect(
+				service.create(createMockRequest('user-123'), {
+					name: 'Test',
+					address_line1: '1 Main St',
+					city: 'Austin',
+					state: 'TX',
+					postal_code: '78701',
+					property_type: 'APARTMENT'
+				})
+			).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 

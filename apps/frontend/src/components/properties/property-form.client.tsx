@@ -265,6 +265,7 @@ export function PropertyForm({
 							}
 						} catch (error) {
 							logger.error('Failed to upload images', { error })
+							toast.error('An unexpected error occurred during image upload')
 						} finally {
 							setUploadingImages(false)
 							// Clear files after a delay so user can see final status
@@ -641,7 +642,7 @@ export function PropertyForm({
 							<div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
 								{filesWithStatus.map(({ file, status, objectUrl }, index) => (
 									<div
-										key={index}
+										key={objectUrl}
 										className="relative aspect-square rounded-lg border overflow-hidden group"
 									>
 										<img
