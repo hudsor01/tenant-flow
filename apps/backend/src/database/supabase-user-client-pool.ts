@@ -93,7 +93,13 @@ export class SupabaseUserClientPool {
 	}
 
 	getClient(userToken: string): SupabaseClient<Database> {
-		const tokenKey = userToken.slice(0, 16)
+		// Use the JWT signature (third segment) as the cache key.
+		// All Supabase JWTs share the same base64-encoded header (first 16+ chars),
+		// so slicing the start causes every token to collide on the same key.
+		// The signature is unique per token and per user, preventing cross-user
+		// client sharing and stale-token cache hits after token refresh.
+		const sig = userToken.split('.')[2] ?? userToken
+		const tokenKey = sig.slice(-32)
 		const cached = this.clients.get(tokenKey)
 
 		if (cached) {
@@ -112,18 +118,25 @@ export class SupabaseUserClientPool {
 
 		this.metrics.misses++
 
-		// Use accessToken callback pattern (recommended by Supabase docs)
-		// The deprecated global.headers.Authorization pattern doesn't properly
-		// integrate with Supabase's internal token handling for RLS
+		// Use global.headers.Authorization to set the JWT for all requests,
+		// including PostgREST database requests. This is the reliable approach
+		// that ensures auth.uid() resolves correctly in RLS policies.
+		// The accessToken callback pattern has inconsistent PostgREST support
+		// across supabase-js versions and can cause auth.uid() to return null.
 		const client = createClient<Database>(
 			this.options.supabaseUrl,
 			this.options.supabasePublishableKey,
 			{
 				auth: {
 					persistSession: false,
-					autoRefreshToken: false
+					autoRefreshToken: false,
+					detectSessionInUrl: false
 				},
-				accessToken: async () => userToken
+				global: {
+					headers: {
+						Authorization: `Bearer ${userToken}`
+					}
+				}
 			}
 		)
 
