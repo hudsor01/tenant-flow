@@ -224,6 +224,13 @@ export type UpdateTourProgress = z.infer<typeof updateTourProgressSchema>
 export type UpdatePhone = z.infer<typeof updatePhoneSchema>
 // UpdateEmergencyContact type - import from tenants.ts instead
 
+// Onboarding update schema (for PATCH /users/me/onboarding)
+export const onboardingUpdateSchema = z.object({
+	status: z.enum(['started', 'completed', 'skipped'])
+})
+
+export type OnboardingUpdate = z.infer<typeof onboardingUpdateSchema>
+
 // Frontend-specific form schemas
 export const userFormSchema = z.object({
 	email: requiredString,
