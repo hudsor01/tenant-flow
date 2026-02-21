@@ -3,6 +3,9 @@
  * TanStack Query hooks for lease management
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
+ * CRUD mutations use PostgREST direct via supabase-js.
+ * DocuSeal/signature mutations retain apiRequest with TODO(phase-55) comments.
+ *
  * Query keys are in a separate file to avoid circular dependencies.
  */
 
@@ -11,8 +14,9 @@ import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Lease } from '@repo/shared/types/core'
 import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { createClient } from '#lib/supabase/client'
 import { apiRequest } from '#lib/api-request'
-import { useUser } from '#hooks/api/use-auth'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
@@ -130,9 +134,14 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 	return useMutation({
 		mutationKey: mutationKeys.leases.delete,
 		mutationFn: async (id: string): Promise<string> => {
-			await apiRequest(`/api/v1/leases/${id}`, {
-				method: 'DELETE'
-			})
+			const supabase = createClient()
+			// Soft-delete: set lease_status to inactive (financial record retention)
+			const { error } = await supabase
+				.from('leases')
+				.update({ lease_status: 'inactive' })
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'leases')
 			return id
 		},
 		onMutate: async (id: string) => {
@@ -211,18 +220,27 @@ export function useDeleteLeaseOptimisticMutation(options?: {
  */
 export function useCreateLeaseMutation() {
 	const queryClient = useQueryClient()
-	const { data: user } = useUser()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.create,
-		mutationFn: (data: LeaseCreate) =>
-			apiRequest<Lease>('/api/v1/leases', {
-				method: 'POST',
-				body: JSON.stringify({
-					...data,
-					owner_user_id: user?.id
-				})
-			}),
+		mutationFn: async (data: LeaseCreate): Promise<Lease> => {
+			const supabase = createClient()
+			const { data: authData } = await supabase.auth.getUser()
+			const userId = authData.user?.id
+
+			// Omit tenant_ids (form-only field) before inserting into DB
+			const { tenant_ids: _tenant_ids, ...leaseData } = data
+
+			const { data: created, error } = await supabase
+				.from('leases')
+				.insert({ ...leaseData, owner_user_id: userId })
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'leases')
+
+			return created as unknown as Lease
+		},
 		onSuccess: _newLease => {
 			// Invalidate lease, tenant, and unit lists
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
@@ -245,7 +263,7 @@ export function useUpdateLeaseMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.update,
-		mutationFn: ({
+		mutationFn: async ({
 			id,
 			data,
 			version
@@ -253,11 +271,20 @@ export function useUpdateLeaseMutation() {
 			id: string
 			data: LeaseUpdate
 			version?: number
-		}) =>
-			apiRequest<Lease>(`/api/v1/leases/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(version ? { ...data, version } : data)
-			}),
+		}): Promise<Lease> => {
+			const supabase = createClient()
+			const payload = version ? { ...data, version } : { ...data }
+			const { data: updated, error } = await supabase
+				.from('leases')
+				.update(payload)
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'leases')
+
+			return updated as unknown as Lease
+		},
 		onSuccess: updatedLease => {
 			// Update the specific lease in cache
 			queryClient.setQueryData(
@@ -285,10 +312,19 @@ export function useTerminateLeaseMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.terminate,
-		mutationFn: (id: string) =>
-			apiRequest<Lease>(`/api/v1/leases/${id}/terminate`, {
-				method: 'POST'
-			}),
+		mutationFn: async (id: string): Promise<Lease> => {
+			const supabase = createClient()
+			const { data: updated, error } = await supabase
+				.from('leases')
+				.update({ lease_status: 'terminated', end_date: new Date().toISOString() })
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'leases')
+
+			return updated as unknown as Lease
+		},
 		onSuccess: _terminatedLease => {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
@@ -310,11 +346,19 @@ export function useRenewLeaseMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.renew,
-		mutationFn: ({ id, data }: { id: string; data: { end_date: string } }) =>
-			apiRequest<Lease>(`/api/v1/leases/${id}/renew`, {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
+		mutationFn: async ({ id, data }: { id: string; data: { end_date: string } }): Promise<Lease> => {
+			const supabase = createClient()
+			const { data: updated, error } = await supabase
+				.from('leases')
+				.update({ end_date: data.end_date, lease_status: 'active' })
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'leases')
+
+			return updated as unknown as Lease
+		},
 		onSuccess: renewedLease => {
 			queryClient.setQueryData(
 				leaseQueries.detail(renewedLease.id).queryKey,
@@ -339,10 +383,16 @@ export function useDeleteLeaseMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.delete,
-		mutationFn: (id: string) =>
-			apiRequest(`/api/v1/leases/${id}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			// Soft-delete: set lease_status to inactive (financial record retention)
+			const { error } = await supabase
+				.from('leases')
+				.update({ lease_status: 'inactive' })
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'leases')
+		},
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
 			queryClient.removeQueries({
@@ -377,6 +427,7 @@ export function usePrefetchLeaseDetail(id: string) {
 
 // ============================================================================
 // LEASE SIGNATURE WORKFLOW HOOKS
+// DocuSeal signature operations stay on NestJS until Phase 55 (Edge Functions)
 // ============================================================================
 
 /**
@@ -388,12 +439,14 @@ export function useLeaseSignatureStatus(leaseId: string) {
 
 /**
  * Hook to send a lease for signature (owner action)
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useSendLeaseForSignatureMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sendForSignature,
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: ({
 			leaseId,
 			message,
@@ -432,12 +485,14 @@ export function useSendLeaseForSignatureMutation() {
 
 /**
  * Hook for owner to sign a lease
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useSignLeaseAsOwnerMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sign,
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
 			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/owner`, {
 				method: 'POST'
@@ -461,12 +516,14 @@ export function useSignLeaseAsOwnerMutation() {
 
 /**
  * Hook for tenant to sign a lease
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useSignLeaseAsTenantMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sign,
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
 			apiRequest<{ success: boolean }>(
 				`/api/v1/leases/${leaseId}/sign/tenant`,
@@ -496,12 +553,14 @@ export function useSignLeaseAsTenantMutation() {
 
 /**
  * Cancel a pending signature request - reverts lease to draft status
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useCancelSignatureRequestMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.cancelSignature,
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
 			apiRequest<{ success: boolean }>(
 				`/api/v1/leases/${leaseId}/cancel-signature`,
@@ -528,12 +587,14 @@ export function useCancelSignatureRequestMutation() {
 
 /**
  * Resend signature request - cancels existing and creates fresh submission
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useResendSignatureRequestMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.resendSignature,
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
 			apiRequest<{ success: boolean }>(
 				`/api/v1/leases/${leaseId}/resend-signature`,
@@ -561,10 +622,12 @@ export function useResendSignatureRequestMutation() {
 
 /**
  * Hook to get signed document URL for download
+ * TODO(phase-55): migrate to DocuSeal Edge Function
  */
 export function useSignedDocumentUrl(leaseId: string, enabled = true) {
 	return useQuery({
 		queryKey: ['lease', leaseId, 'signed-document'],
+		// TODO(phase-55): migrate to DocuSeal Edge Function
 		queryFn: () =>
 			apiRequest<{ document_url: string | null }>(
 				`/api/v1/leases/${leaseId}/signed-document`
