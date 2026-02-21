@@ -7,13 +7,13 @@
  * - Query hooks for property data fetching
  * - Analytics hooks for performance, occupancy, financial, maintenance
  * - Prefetch hooks for route-level data loading
+ * - Mutations use Supabase PostgREST directly (no apiRequest calls)
  */
 
 import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import { apiRequest } from '#lib/api-request'
-import { handleMutationError } from '#lib/mutation-error-handler'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createClient } from '#lib/supabase/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
@@ -159,7 +159,7 @@ export function usePropertyImages(property_id: string) {
 
 /**
  * Mark property as sold (7-year retention compliance)
- * Updates status to SOLD with required date_sold and sale_price fields
+ * Updates status to 'sold' with required date_sold and sale_price fields
  */
 export function useMarkPropertySoldMutation() {
 	const queryClient = useQueryClient()
@@ -175,16 +175,22 @@ export function useMarkPropertySoldMutation() {
 			dateSold: Date
 			salePrice: number
 		}): Promise<{ success: boolean; message: string }> => {
-			return apiRequest<{ success: boolean; message: string }>(
-				`/api/v1/properties/${id}/mark-sold`,
-				{
-					method: 'PUT',
-					body: JSON.stringify({
-						sale_date: dateSold.toISOString(),
-						sale_price: salePrice
-					})
-				}
-			)
+			const supabase = createClient()
+			const { data: updated, error } = await supabase
+				.from('properties')
+				.update({
+					status: 'sold',
+					date_sold: dateSold.toISOString(),
+					sale_price: salePrice
+				})
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'properties')
+
+			logger.info('Property marked as sold', { property_id: id, updated })
+			return { success: true, message: 'Property marked as sold' }
 		},
 		onMutate: async ({ id }) => {
 			// Cancel outgoing queries
@@ -268,18 +274,25 @@ export function useCreatePropertyMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.properties.create,
-		mutationFn: (data: PropertyCreate) =>
-			apiRequest<Property>('/api/v1/properties', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
+		mutationFn: async (data: PropertyCreate): Promise<Property> => {
+			const supabase = createClient()
+			const { data: user } = await supabase.auth.getUser()
+			const userId = user.user?.id
+
+			const { data: created, error } = await supabase
+				.from('properties')
+				.insert({ ...data, owner_user_id: userId })
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'properties')
+
+			return created as Property
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property created successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Create property')
 		}
 	})
 }
@@ -300,11 +313,20 @@ export function useUpdatePropertyMutation() {
 			id: string
 			data: PropertyUpdate
 			version?: number
-		}) =>
-			apiRequest<Property>(`/api/v1/properties/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(version ? { ...data, version } : data)
-			}),
+		}): Promise<Property> => {
+			const supabase = createClient()
+			const updatePayload = version ? { ...data, version } : { ...data }
+			const { data: updated, error } = await supabase
+				.from('properties')
+				.update(updatePayload)
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'properties')
+
+			return updated as Property
+		},
 		onSuccess: updatedProperty => {
 			queryClient.setQueryData(
 				propertyQueries.detail(updatedProperty.id).queryKey,
@@ -314,23 +336,28 @@ export function useUpdatePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Property updated successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Update property')
 		}
 	})
 }
 
 /**
  * Delete property mutation
+ * Soft-delete: sets status to 'inactive' (7-year data retention policy)
  */
 export function useDeletePropertyMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.properties.delete,
-		mutationFn: async (id: string) =>
-			apiRequest<void>(`/api/v1/properties/${id}`, { method: 'DELETE' }),
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('properties')
+				.update({ status: 'inactive' })
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'properties')
+		},
 		onSuccess: (_result, deletedId) => {
 			// Remove from cache
 			queryClient.removeQueries({
@@ -340,9 +367,6 @@ export function useDeletePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property deleted successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Delete property')
 		}
 	})
 }
@@ -398,9 +422,6 @@ export function useDeletePropertyImageMutation() {
 			// Invalidate property list (primary image may have been deleted)
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			toast.success('Image deleted successfully')
-		},
-		onError: error => {
-			handleMutationError(error, 'Delete image')
 		}
 	})
 }
