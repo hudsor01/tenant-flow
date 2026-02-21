@@ -17,10 +17,6 @@ function escapeHtml(str: string): string {
 		.replace(/'/g, '&#x27;')
 }
 
-// Type helpers for Supabase join responses (moved to file scope to avoid inline type aliases)
-type PaymentLease = { unit?: { property_id?: string } | null }
-type MaintenanceUnit = { property_id?: string } | null
-
 @Injectable()
 export class YearEndReportService {
 	constructor(
@@ -33,6 +29,7 @@ export class YearEndReportService {
 	async getYearEndSummary(userId: string, year: number): Promise<YearEndSummary> {
 		const startDate = `${year}-01-01T00:00:00.000Z`
 		const endDate = `${year}-12-31T23:59:59.999Z`
+		const client = this.supabase.getAdminClient()
 
 		const propertyIds = await loadPropertyIdsByOwner(
 			this.supabase,
@@ -51,40 +48,54 @@ export class YearEndReportService {
 			}
 		}
 
-		const { data: properties } = await this.supabase
-			.getAdminClient()
+		// Fetch properties for display names
+		const { data: properties } = await client
 			.from('properties')
 			.select('id, name')
 			.in('id', propertyIds)
 
-		const { data: payments } = await this.supabase
-			.getAdminClient()
-			.from('rent_payments')
-			.select(
-				`
-				amount, status,
-				lease:leases!rent_payments_lease_id_fkey(
-					unit:units!leases_unit_id_fkey(property_id)
-				)
-			`
-			)
-			.eq('status', 'succeeded')
-			.in('lease.unit.property_id', propertyIds)
-			.gte('created_at', startDate)
-			.lte('created_at', endDate)
+		// Resolve units for the owner's properties (direct column filter — no nested join)
+		const { data: units } = await client
+			.from('units')
+			.select('id, property_id')
+			.in('property_id', propertyIds)
 
-		const { data: maintenance } = await this.supabase
-			.getAdminClient()
-			.from('maintenance_requests')
-			.select(
-				`
-				actual_cost, estimated_cost,
-				unit:units!maintenance_requests_unit_id_fkey(property_id)
-			`
-			)
-			.in('unit.property_id', propertyIds)
-			.gte('created_at', startDate)
-			.lte('created_at', endDate)
+		const unitIdToPropertyId = new Map(
+			(units ?? []).map(u => [u.id, u.property_id])
+		)
+		const unitIds = Array.from(unitIdToPropertyId.keys())
+
+		// Resolve lease IDs for those units (direct column filter)
+		const { data: leases } = unitIds.length > 0
+			? await client.from('leases').select('id, unit_id').in('unit_id', unitIds)
+			: { data: [] }
+
+		const leaseIdToPropertyId = new Map(
+			(leases ?? []).map(l => [l.id, unitIdToPropertyId.get(l.unit_id) ?? ''])
+		)
+		const leaseIds = Array.from(leaseIdToPropertyId.keys())
+
+		// Fetch payments filtered by lease_id — PostgREST does not support
+		// filtering on nested join columns (.in('lease.unit.property_id', ...))
+		const { data: payments } = leaseIds.length > 0
+			? await client
+				.from('rent_payments')
+				.select('amount, lease_id')
+				.eq('status', 'succeeded')
+				.in('lease_id', leaseIds)
+				.gte('created_at', startDate)
+				.lte('created_at', endDate)
+			: { data: [] }
+
+		// Fetch maintenance costs filtered by unit_id (direct column)
+		const { data: maintenance } = unitIds.length > 0
+			? await client
+				.from('maintenance_requests')
+				.select('actual_cost, estimated_cost, unit_id')
+				.in('unit_id', unitIds)
+				.gte('created_at', startDate)
+				.lte('created_at', endDate)
+			: { data: [] }
 
 		const incomeByProperty = new Map<string, number>()
 		const expensesByProperty = new Map<string, number>()
@@ -96,7 +107,7 @@ export class YearEndReportService {
 		for (const payment of payments ?? []) {
 			const amount = (payment.amount ?? 0) / 100
 			grossRentalIncome += amount
-			const propertyId = (payment.lease as PaymentLease)?.unit?.property_id
+			const propertyId = leaseIdToPropertyId.get(payment.lease_id)
 			if (propertyId) {
 				incomeByProperty.set(
 					propertyId,
@@ -108,7 +119,7 @@ export class YearEndReportService {
 		for (const request of maintenance ?? []) {
 			const cost = ((request.actual_cost ?? request.estimated_cost ?? 0) as number) / 100
 			operatingExpenses += cost
-			const propertyId = (request.unit as MaintenanceUnit)?.property_id
+			const propertyId = unitIdToPropertyId.get(request.unit_id)
 			if (propertyId) {
 				expensesByProperty.set(
 					propertyId,
@@ -148,6 +159,8 @@ export class YearEndReportService {
 	}
 
 	async get1099Vendors(userId: string, year: number): Promise<Year1099Summary> {
+		const client = this.supabase.getAdminClient()
+
 		const propertyIds = await loadPropertyIdsByOwner(
 			this.supabase,
 			this.logger,
@@ -158,18 +171,36 @@ export class YearEndReportService {
 			return { year, threshold: 600, recipients: [], totalReported: 0 }
 		}
 
-		const { data: expenses } = await this.supabase
-			.getAdminClient()
+		// Resolve units for the owner's properties (direct column filter)
+		const { data: units } = await client
+			.from('units')
+			.select('id')
+			.in('property_id', propertyIds)
+
+		const unitIds = (units ?? []).map(u => u.id)
+
+		if (unitIds.length === 0) {
+			return { year, threshold: 600, recipients: [], totalReported: 0 }
+		}
+
+		// Resolve maintenance request IDs for those units (direct column filter)
+		const { data: maintenanceRequests } = await client
+			.from('maintenance_requests')
+			.select('id')
+			.in('unit_id', unitIds)
+
+		const maintenanceIds = (maintenanceRequests ?? []).map(r => r.id)
+
+		if (maintenanceIds.length === 0) {
+			return { year, threshold: 600, recipients: [], totalReported: 0 }
+		}
+
+		// Fetch expenses filtered by maintenance_request_id — PostgREST does not
+		// support filtering on nested join columns (.in('maintenance_requests.units.property_id', ...))
+		const { data: expenses } = await client
 			.from('expenses')
-			.select(
-				`
-				amount, vendor_name,
-				maintenance_requests!expenses_maintenance_request_id_fkey(
-					units!maintenance_requests_unit_id_fkey(property_id)
-				)
-			`
-			)
-			.in('maintenance_requests.units.property_id', propertyIds)
+			.select('amount, vendor_name')
+			.in('maintenance_request_id', maintenanceIds)
 			.gte('expense_date', `${year}-01-01`)
 			.lte('expense_date', `${year}-12-31`)
 

@@ -4,6 +4,7 @@ import { Test } from '@nestjs/testing'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import { InspectionsService } from './inspections.service'
 
 type InspectionRow = Database['public']['Tables']['inspections']['Row']
@@ -72,7 +73,8 @@ describe('InspectionsService', () => {
 		const module: TestingModule = await Test.createTestingModule({
 			providers: [
 				InspectionsService,
-				{ provide: SupabaseService, useValue: supabaseServiceMock }
+				{ provide: SupabaseService, useValue: supabaseServiceMock },
+				{ provide: AppLogger, useValue: { log: jest.fn(), warn: jest.fn(), error: jest.fn() } }
 			]
 		}).compile()
 

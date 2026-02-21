@@ -40,6 +40,9 @@ function buildSupabaseMock(responses: Record<string, unknown[]>) {
 const USER_ID = 'user-123'
 const YEAR = 2024
 const PROPERTY_ID = 'prop-abc'
+const UNIT_ID = 'unit-1'
+const LEASE_ID = 'lease-1'
+const MAINTENANCE_ID = 'mr-1'
 
 describe('YearEndReportService', () => {
 	let service: YearEndReportService
@@ -105,17 +108,16 @@ describe('YearEndReportService', () => {
 		it('calculates gross rental income from payments in cents', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			// amounts in cents
-			const payments = [
-				{ amount: 120000, status: 'succeeded', lease: { unit: { property_id: PROPERTY_ID } } },
-				{ amount: 80000, status: 'succeeded', lease: { unit: { property_id: PROPERTY_ID } } }
-			]
-
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
-				rent_payments: payments,
-				maintenance_requests: [],
-				expenses: []
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [{ id: LEASE_ID, unit_id: UNIT_ID }],
+				// amounts in cents — flat shape: no nested lease/unit join
+				rent_payments: [
+					{ amount: 120000, lease_id: LEASE_ID },
+					{ amount: 80000, lease_id: LEASE_ID }
+				],
+				maintenance_requests: []
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -128,16 +130,16 @@ describe('YearEndReportService', () => {
 		it('calculates operating expenses from maintenance requests', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const maintenance = [
-				{ actual_cost: 50000, estimated_cost: null, unit: { property_id: PROPERTY_ID } },
-				{ actual_cost: null, estimated_cost: 25000, unit: { property_id: PROPERTY_ID } }
-			]
-
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [],
 				rent_payments: [],
-				maintenance_requests: maintenance,
-				expenses: []
+				// flat shape: no nested unit join — uses unit_id directly
+				maintenance_requests: [
+					{ actual_cost: 50000, estimated_cost: null, unit_id: UNIT_ID },
+					{ actual_cost: null, estimated_cost: 25000, unit_id: UNIT_ID }
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -148,21 +150,16 @@ describe('YearEndReportService', () => {
 		})
 
 		it('does not double-count expenses table against maintenance_requests costs', async () => {
-			// expenses.amount represents costs already captured in maintenance_requests.actual_cost.
-			// The expenses table is NOT queried by getYearEndSummary to avoid double-counting.
+			// getYearEndSummary does NOT query the expenses table to avoid double-counting.
+			// Operating expenses derive solely from maintenance_requests.actual_cost / estimated_cost.
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [],
 				rent_payments: [],
-				maintenance_requests: [],
-				expenses: [
-					{
-						amount: 30000,
-						vendor_name: 'ACME Plumbing',
-						maintenance_requests: { units: { property_id: PROPERTY_ID } }
-					}
-				]
+				maintenance_requests: [] // no maintenance costs
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -177,12 +174,13 @@ describe('YearEndReportService', () => {
 
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [],
 				rent_payments: [],
 				maintenance_requests: [
-					{ actual_cost: 10000, estimated_cost: null, unit: { property_id: PROPERTY_ID } },
-					{ actual_cost: 5000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
-				],
-				expenses: []
+					{ actual_cost: 10000, estimated_cost: null, unit_id: UNIT_ID },
+					{ actual_cost: 5000, estimated_cost: null, unit_id: UNIT_ID }
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -195,15 +193,14 @@ describe('YearEndReportService', () => {
 		it('groups maintenance costs under Maintenance category', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const maintenance = [
-				{ actual_cost: 20000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
-			]
-
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [],
 				rent_payments: [],
-				maintenance_requests: maintenance,
-				expenses: []
+				maintenance_requests: [
+					{ actual_cost: 20000, estimated_cost: null, unit_id: UNIT_ID }
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -214,24 +211,32 @@ describe('YearEndReportService', () => {
 
 		it('provides property breakdown with income and expenses', async () => {
 			const PROP_B = 'prop-bbb'
+			const UNIT_A = 'unit-a'
+			const UNIT_B = 'unit-b'
+			const LEASE_A = 'lease-a'
+			const LEASE_B = 'lease-b'
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID, PROP_B])
-
-			const payments = [
-				{ amount: 100000, status: 'succeeded', lease: { unit: { property_id: PROPERTY_ID } } },
-				{ amount: 60000, status: 'succeeded', lease: { unit: { property_id: PROP_B } } }
-			]
-			const maintenance = [
-				{ actual_cost: 10000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
-			]
 
 			await createService({
 				properties: [
 					{ id: PROPERTY_ID, name: 'Property A' },
 					{ id: PROP_B, name: 'Property B' }
 				],
-				rent_payments: payments,
-				maintenance_requests: maintenance,
-				expenses: []
+				units: [
+					{ id: UNIT_A, property_id: PROPERTY_ID },
+					{ id: UNIT_B, property_id: PROP_B }
+				],
+				leases: [
+					{ id: LEASE_A, unit_id: UNIT_A },
+					{ id: LEASE_B, unit_id: UNIT_B }
+				],
+				rent_payments: [
+					{ amount: 100000, lease_id: LEASE_A },
+					{ amount: 60000, lease_id: LEASE_B }
+				],
+				maintenance_requests: [
+					{ actual_cost: 10000, estimated_cost: null, unit_id: UNIT_A }
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -256,18 +261,16 @@ describe('YearEndReportService', () => {
 		it('calculates totals correctly from payments and maintenance_requests', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const payments = [
-				{ amount: 200000, status: 'succeeded', lease: { unit: { property_id: PROPERTY_ID } } }
-			]
-			const maintenance = [
-				{ actual_cost: 30000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
-			]
-
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
-				rent_payments: payments,
-				maintenance_requests: maintenance,
-				expenses: []
+				units: [{ id: UNIT_ID, property_id: PROPERTY_ID }],
+				leases: [{ id: LEASE_ID, unit_id: UNIT_ID }],
+				rent_payments: [
+					{ amount: 200000, lease_id: LEASE_ID }
+				],
+				maintenance_requests: [
+					{ actual_cost: 30000, estimated_cost: null, unit_id: UNIT_ID }
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
@@ -296,17 +299,12 @@ describe('YearEndReportService', () => {
 		it('excludes vendors below $600 threshold', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const expenses = [
-				{
-					amount: 50000, // $500 — below threshold
-					vendor_name: 'Small Vendor',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
-
 			await createService({
-				properties: [],
-				expenses
+				units: [{ id: UNIT_ID }],
+				maintenance_requests: [{ id: MAINTENANCE_ID }],
+				expenses: [
+					{ amount: 50000, vendor_name: 'Small Vendor' } // $500 — below threshold
+				]
 			})
 
 			const result = await service.get1099Vendors(USER_ID, YEAR)
@@ -317,15 +315,13 @@ describe('YearEndReportService', () => {
 		it('includes vendors at exactly $600 threshold', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const expenses = [
-				{
-					amount: 60000, // exactly $600
-					vendor_name: 'Threshold Vendor',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
-
-			await createService({ properties: [], expenses })
+			await createService({
+				units: [{ id: UNIT_ID }],
+				maintenance_requests: [{ id: MAINTENANCE_ID }],
+				expenses: [
+					{ amount: 60000, vendor_name: 'Threshold Vendor' } // exactly $600
+				]
+			})
 
 			const result = await service.get1099Vendors(USER_ID, YEAR)
 
@@ -337,20 +333,14 @@ describe('YearEndReportService', () => {
 		it('aggregates payments for the same vendor across multiple jobs', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const expenses = [
-				{
-					amount: 40000,
-					vendor_name: 'Multi-Job Plumber',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 40000,
-					vendor_name: 'Multi-Job Plumber',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
-
-			await createService({ properties: [], expenses })
+			await createService({
+				units: [{ id: UNIT_ID }],
+				maintenance_requests: [{ id: MAINTENANCE_ID }],
+				expenses: [
+					{ amount: 40000, vendor_name: 'Multi-Job Plumber' },
+					{ amount: 40000, vendor_name: 'Multi-Job Plumber' }
+				]
+			})
 
 			const result = await service.get1099Vendors(USER_ID, YEAR)
 
@@ -362,25 +352,15 @@ describe('YearEndReportService', () => {
 		it('sorts recipients by totalPaid descending', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const expenses = [
-				{
-					amount: 70000, // $700
-					vendor_name: 'Medium Vendor',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 150000, // $1500
-					vendor_name: 'Big Vendor',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 90000, // $900
-					vendor_name: 'Another Vendor',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
-
-			await createService({ properties: [], expenses })
+			await createService({
+				units: [{ id: UNIT_ID }],
+				maintenance_requests: [{ id: MAINTENANCE_ID }],
+				expenses: [
+					{ amount: 70000, vendor_name: 'Medium Vendor' },  // $700
+					{ amount: 150000, vendor_name: 'Big Vendor' },    // $1500
+					{ amount: 90000, vendor_name: 'Another Vendor' }  // $900
+				]
+			})
 
 			const result = await service.get1099Vendors(USER_ID, YEAR)
 
@@ -392,20 +372,14 @@ describe('YearEndReportService', () => {
 		it('calculates totalReported as sum of all qualifying recipients', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
-			const expenses = [
-				{
-					amount: 100000, // $1000
-					vendor_name: 'Vendor A',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 80000, // $800
-					vendor_name: 'Vendor B',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
-
-			await createService({ properties: [], expenses })
+			await createService({
+				units: [{ id: UNIT_ID }],
+				maintenance_requests: [{ id: MAINTENANCE_ID }],
+				expenses: [
+					{ amount: 100000, vendor_name: 'Vendor A' }, // $1000
+					{ amount: 80000, vendor_name: 'Vendor B' }   // $800
+				]
+			})
 
 			const result = await service.get1099Vendors(USER_ID, YEAR)
 

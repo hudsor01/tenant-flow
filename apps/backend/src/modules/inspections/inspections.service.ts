@@ -5,6 +5,7 @@ import {
   NotFoundException
 } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
+import { AppLogger } from '../../logger/app-logger.service'
 import type {
   CreateInspectionInput,
   UpdateInspectionInput,
@@ -38,7 +39,10 @@ export interface InspectionListItem extends InspectionRow {
 
 @Injectable()
 export class InspectionsService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly logger: AppLogger
+  ) {}
 
   async findAll(userId: string): Promise<InspectionListItem[]> {
     const client = this.supabase.getAdminClient()
@@ -472,7 +476,7 @@ export class InspectionsService {
     const { error: storageError } = await client.storage.from('inspection-photos').remove([photo.storage_path])
     if (storageError) {
       // Log but don't throw — storage removal is non-critical if the DB record is deleted
-      console.error('Storage removal failed for photo', photoId, storageError.message)
+      this.logger.error('Storage removal failed for photo', { photoId, error: storageError.message })
     }
 
     // Remove DB record

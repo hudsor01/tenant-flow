@@ -201,8 +201,11 @@ describe('ReportsController', () => {
 
 	describe('getYearEndSummary', () => {
 		it('returns year-end summary for authenticated user', async () => {
+			// In unit tests, pipes (DefaultValuePipe, ParseIntPipe) do not run.
+			// Pass the already-resolved value that DefaultValuePipe would provide.
 			const result = await controller.getYearEndSummary(
-				createAuthenticatedRequest()
+				createAuthenticatedRequest(),
+				new Date().getFullYear()
 			)
 
 			expect(yearEndReportService.getYearEndSummary).toHaveBeenCalledWith(
@@ -213,7 +216,8 @@ describe('ReportsController', () => {
 		})
 
 		it('uses provided year parameter', async () => {
-			await controller.getYearEndSummary(createAuthenticatedRequest(), '2024')
+			// ParseIntPipe converts to number in production; pass the number directly in tests.
+			await controller.getYearEndSummary(createAuthenticatedRequest(), 2024)
 
 			expect(yearEndReportService.getYearEndSummary).toHaveBeenCalledWith(
 				'test-user-id',
@@ -230,8 +234,10 @@ describe('ReportsController', () => {
 
 	describe('get1099Vendors', () => {
 		it('returns 1099 vendor data for authenticated user', async () => {
+			// In unit tests, pipes do not run — pass the DefaultValuePipe result directly.
 			const result = await controller.get1099Vendors(
-				createAuthenticatedRequest()
+				createAuthenticatedRequest(),
+				new Date().getFullYear()
 			)
 
 			expect(yearEndReportService.get1099Vendors).toHaveBeenCalledWith(
