@@ -2,68 +2,67 @@
 
 ## Current Position
 
-Phase: 49 of 49 complete — v6.0 SHIPPED
-Status: v6.0 Complete
-Last activity: 2026-02-20 — All 12 v6.0 phases complete (38-49)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-21 — Milestone v7.0 started (Backend Elimination: NestJS → Supabase Direct)
 
-Progress: ██████████ 100% (12 of 12 v6.0 phases done)
+Progress: ░░░░░░░░░░ 0% (0 of N v7.0 phases done)
 
 ## Active Milestone
 
-**v6.0 Production Grade Completion — COMPLETE**
+**v7.0 Backend Elimination: NestJS → Supabase Direct — IN PROGRESS**
 
-Phases 38-49. All phases shipped 2026-02-20.
+Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase PostgREST direct. Move Stripe webhooks, PDF, DocuSeal to Edge Functions. Add pg_cron for scheduled jobs. Wire n8n via DB Webhooks. Delete apps/backend/.
 
 ### Completed This Milestone
 
-- **Phase 38** — Code Quality: replaced all `select('*')` with explicit columns, compression middleware, tenants.controller route ordering
-- **Phase 39** — GDPR/CCPA: `DELETE /users/me` (deleteAccount cascade), `GET /users/me/export`, account-data-section UI in settings
-- **Phase 40** — Security: per-endpoint rate limiting on auth routes, MIME validation hardening
-- **Phase 41** — Test Coverage (Financial/Billing): financial.service, billing.service, rent-payments.service unit tests
-- **Phase 42** — Test Coverage (Infrastructure): report, dashboard, lease, maintenance, tenant, user service tests (2229 backend tests total)
-- **Phase 43** — CI/CD: Sentry backend source maps on deploy, RLS integration test suite
-- **Phase 44** — DocuSeal E-Signature Integration: confirmed production-ready (25/25 tests passing, 8 endpoints, full frontend, DB migrations applied)
-- **Phase 45** — Vendor Management: vendors table + RLS, CRUD API (VendorsModule), maintenance request assignment, vendor list UI
-- **Phase 46** — Financial Reporting: year-end summary report, 1099 vendor data, PDF export, acquisition cost/date columns on properties table, Schedule E tax document scaffold
-- **Phase 47** — Component Refactoring: 32 components >300 lines split into 161 focused sub-components across all domains
-- **Phase 48** — Move-In/Move-Out Inspection: inspections table + RLS migrations, full backend module (InspectionsModule), inspection rooms, photo upload, tenant review/signature, 21 unit tests
-- **Phase 49** — Landlord Onboarding Wizard: multi-step dialog wizard (welcome → property → Stripe → tenant → complete), backend PATCH /users/me/onboarding endpoint, onboarding status tracking, wired to dashboard
+None yet.
 
 ### Pending This Milestone
 
-None — milestone complete.
+TBD — roadmap being defined.
 
 ## Accumulated Context
 
-### Key Decisions (carried from v5.0)
+### Key Decisions (carried forward)
 
-- Auth: Supabase session cookie → `Authorization: Bearer` header to NestJS (ADR-0004)
-- Per-request Supabase user client via `accessToken` callback (ADR-0004)
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
 - Stripe: Platform billing via Stripe Subscriptions; rent collection via Stripe Connect Express
 - Property images: direct Supabase Storage upload from frontend, `property_images` table tracks metadata
 - E2E auth: `storageState` injects cookies — do NOT call `loginAsOwner()` in tests using the chromium project
+- **NEW**: No NestJS. Frontend uses supabase-js PostgREST directly. Edge Functions for Stripe/PDF/DocuSeal.
+- **NEW**: pg_cron for scheduled jobs (late fees, reminders). DB Webhooks → n8n for background workflows.
 
-### Known Gaps (current)
+### Architecture Transition
 
-None identified — all v6.0 gaps closed.
+**From:** Frontend → apiRequest() → NestJS (Railway) → Supabase PostgREST
+**To:** Frontend → supabase-js → Supabase PostgREST (RLS enforced)
+                                ↳ Edge Functions (Stripe, PDF, DocuSeal)
+                                ↳ pg_cron (scheduled jobs)
+                                ↳ DB Webhooks → k3s n8n
 
-### Dropped Phases (intentional)
+### Known Gaps
 
-- ~~Phase 46: In-App Messaging~~ — removed; not required for monetization
-- ~~Phase 48: SMS Notifications (Twilio)~~ — removed; `sms.service.ts` deleted; email covers this
+- All frontend hooks using `apiRequest()` need to be migrated to `supabase.from()` calls
+- Stripe webhook handler (NestJS) needs to become an Edge Function
+- StirlingPDF and DocuSeal calls (NestJS services) need to become Edge Functions
+- pg_cron jobs need to be created for late fee calculation and rent reminders
+- DB Webhook configurations need to be set up for n8n triggers
+- All NestJS backend unit tests (2229+) will be deleted as part of cleanup
 
 ## Roadmap Evolution
 
 - Milestone v3.0 created: Backend Architecture Excellence, 8 phases (18-25)
 - Milestone v4.0 created: Production-Parity Testing & Observability, 7 phases (26-32)
 - Milestone v5.0 created: Production Hardening & Revenue Completion, 5 phases (33-37)
-- Milestone v6.0 created: Production Grade Completion, 12 phases (38-49, skipping none)
+- Milestone v6.0 created: Production Grade Completion, 12 phases (38-49)
 - Milestone v6.0 shipped: 2026-02-20 — all 12 phases complete
+- Milestone v7.0 started: 2026-02-21 — Backend Elimination: NestJS → Supabase Direct
 
 ## Session Continuity
 
-Last session: 2026-02-20
-Completed: All v6.0 phases (38-49) — milestone complete
+Last session: 2026-02-21
+Completed: v6.0 shipped; decided to eliminate NestJS; starting v7.0 milestone definition
 Resume file: None
