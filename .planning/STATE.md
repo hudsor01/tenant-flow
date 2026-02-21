@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 51-core-crud-migration-properties-units-tenants-leases
-Plan: 03 (complete) — next: 04
-Status: In progress
-Last activity: 2026-02-21 — Phase 51-03 complete: tenants domain confirmed migrated to PostgREST + test suite fixed
+Plan: 04 (complete) — Phase 51 COMPLETE
+Status: Complete — next phase: 52
+Last activity: 2026-02-21 — Phase 51-04 complete: leases migrated to PostgREST + tenants/leases NestJS modules deleted
 
-Progress: ▓▓▓░░░░░░░ ~18% (Phase 51 in progress, plan 03 of ~5 done)
+Progress: ▓▓▓▓░░░░░░ ~25% (Phase 51 complete, Phase 52 next)
 
 ## Active Milestone
 
@@ -20,6 +20,7 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Phase 51-01: handlePostgrestError utility + Properties domain migrated to PostgREST (property-keys.ts, use-properties.ts)
 - Phase 51-02: Units domain migrated to PostgREST (unit-keys.ts, use-unit.ts) + NestJS properties/units modules deleted
 - Phase 51-03: Tenants domain verified migrated to PostgREST (tenant-keys.ts, use-tenant.ts) + test suite fixed
+- Phase 51-04: Leases domain migrated to PostgREST (lease-keys.ts, use-lease.ts) + NestJS tenants/leases modules deleted (~26k lines removed)
 
 ### Pending This Milestone
 
@@ -56,6 +57,16 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `useDeleteTenantMutation` removes `lease_tenants` rows (not `tenants.status` update) — preserves record per 7-year retention
 - `useInviteTenantMutation` creates `tenant_invitations` record via PostgREST; email sending deferred to Phase 55
 - Notification preferences: two-step query (tenants → user_id → notification_settings table)
+
+**Phase 51-04 decisions:**
+- Lease DB status column is `lease_status` (not `status`) — all filters use this column name
+- Signature status derived from `owner_signed_at`, `tenant_signed_at` columns (no boolean `owner_signed` DB column)
+- `lease_status: 'inactive'` for soft-delete — 7-year financial records retention requirement
+- `tenant_ids` is a frontend-only form field (excluded from DB insert in `useCreateLeaseMutation`)
+- `TenantPortalLease.unit` typed as optional (`unit?`) not `| null` to match `formatPropertyAddress` signature
+- Analytics stubs return `{}` with `TODO(phase-53)` — no analytics RPCs exist in DB yet
+- `UpdateNotificationPreferencesDto` inlined into `settings.controller.ts` (single consumer — simpler than shared location)
+- 5 additional test files deleted that imported from deleted leases/tenants modules (docuseal-submission-creation, n1-queries.e2e, subscription-retry.integration, pdf-generation.processor specs)
 
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
@@ -94,5 +105,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-21
-Completed: Phase 51-03 — tenants domain PostgREST migration verified + test suite fixed (2 failing tests corrected)
+Completed: Phase 51-04 — leases domain migrated to PostgREST + NestJS tenants/leases modules deleted (89 files changed, ~26k lines removed)
 Resume file: None

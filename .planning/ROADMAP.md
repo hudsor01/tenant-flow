@@ -290,7 +290,7 @@ Plans:
 | 48. Move-In/Move-Out Inspection | v6.0 | ✅ Complete | 2026-02-20 |
 | 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |
 | 50. Infrastructure + User/Profile CRUD | v7.0 | Pending | — |
-| 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | In Progress | 2026-02-21 |
+| 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Pending | — |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Pending | — |
