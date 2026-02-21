@@ -187,7 +187,7 @@ Plans:
 
 **Requirements**: CRUD-03, CRUD-04
 
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 **Success criteria**:
 1. `use-maintenance.ts` and `use-vendor.ts` use PostgREST for all queries and mutations including vendor assignment to maintenance requests; `apiRequest` removed from both files.
@@ -298,7 +298,7 @@ Plans:
 | 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |
 | 50. Infrastructure + User/Profile CRUD | v7.0 | Pending | — |
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
-| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | ✅ Complete | 2026-02-21 |
+| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Pending | — |
 | 55. External Services — StirlingPDF & DocuSeal | v7.0 | Pending | — |
