@@ -176,8 +176,8 @@ Plans:
 - [x] 51-01-PLAN.md — Shared handlePostgrestError utility + migrate properties (query keys + mutations)
 - [x] 51-02-PLAN.md — Migrate units (query keys + mutations) + delete NestJS properties/units modules
 - [x] 51-03-PLAN.md — Migrate tenants (query keys + mutations)
-- [ ] 51-04-PLAN.md — Migrate leases (query keys + mutations) + delete NestJS tenants/leases modules
-- [ ] 51-05-PLAN.md — Bootstrap apps/integration-tests/ + RLS isolation tests for all four domains
+- [x] 51-04-PLAN.md — Migrate leases (query keys + mutations) + delete NestJS tenants/leases modules
+- [x] 51-05-PLAN.md — Bootstrap apps/integration-tests/ + RLS isolation tests for all four domains
 
 ---
 
