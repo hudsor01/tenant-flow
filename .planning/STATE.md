@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-21 — Milestone v7.0 started (Backend Elimination: NestJS → Supabase Direct)
+Phase: 51-core-crud-migration-properties-units-tenants-leases
+Plan: 01 (complete) — next: 02
+Status: In progress
+Last activity: 2026-02-21 — Phase 51-01 complete: handlePostgrestError utility + properties domain migrated to PostgREST
 
-Progress: ░░░░░░░░░░ 0% (0 of 8 v7.0 phases done)
+Progress: ▓░░░░░░░░░ ~6% (Phase 51 in progress, plan 01 of ~5 done)
 
 ## Active Milestone
 
@@ -17,7 +17,7 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 
 ### Completed This Milestone
 
-None yet.
+- Phase 51-01: handlePostgrestError utility + Properties domain migrated to PostgREST (property-keys.ts, use-properties.ts)
 
 ### Pending This Milestone
 
@@ -33,6 +33,13 @@ None yet.
 ## Accumulated Context
 
 ### Key Decisions (carried forward)
+
+**Phase 51-01 decisions:**
+- `useDeletePropertyMutation` soft-deletes via `update({ status: 'inactive' })` — no hard delete (7-year retention)
+- `useCreatePropertyMutation` gets `owner_user_id` from `supabase.auth.getUser()` — RLS still enforces on server
+- Analytics RPCs (occupancy, financial, maintenance, performance) return empty stubs — require `p_user_id` — deferred to Phase 53
+- `PaginatedResponse` shape requires `pagination: { page, limit, total, totalPages }` not flat offset/limit fields
+- `handlePostgrestError` already existed in `apps/frontend/src/lib/postgrest-error-handler.ts` from prior work
 
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
