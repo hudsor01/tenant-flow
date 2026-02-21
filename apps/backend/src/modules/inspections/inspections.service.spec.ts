@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common'
+import { ForbiddenException, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import type { TestingModule } from '@nestjs/testing'
 import { Test } from '@nestjs/testing'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -197,11 +197,11 @@ describe('InspectionsService', () => {
 			expect(result.owner_user_id).toBe(USER_ID)
 		})
 
-		it('throws NotFoundException when insert fails', async () => {
+		it('throws InternalServerErrorException when insert fails', async () => {
 			const chain = makeQueryChain({ data: null, error: null })
 			adminClient.from.mockReturnValue(chain as never)
 
-			await expect(service.create(createDto, USER_ID)).rejects.toThrow(NotFoundException)
+			await expect(service.create(createDto, USER_ID)).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 
@@ -287,11 +287,11 @@ describe('InspectionsService', () => {
 			await expect(service.remove(INSPECTION_ID, USER_ID)).resolves.toBeUndefined()
 		})
 
-		it('throws NotFoundException when query errors', async () => {
+		it('throws InternalServerErrorException when delete fails', async () => {
 			const chain = makeQueryChain({ data: null, error: { message: 'DB error' } })
 			adminClient.from.mockReturnValue(chain as never)
 
-			await expect(service.remove(INSPECTION_ID, USER_ID)).rejects.toThrow(NotFoundException)
+			await expect(service.remove(INSPECTION_ID, USER_ID)).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 
@@ -333,14 +333,14 @@ describe('InspectionsService', () => {
 			await expect(service.createRoom(createRoomDto, USER_ID)).rejects.toThrow(ForbiddenException)
 		})
 
-		it('throws NotFoundException when room insert fails', async () => {
+		it('throws InternalServerErrorException when room insert fails', async () => {
 			const inspectionChain = makeQueryChain({ data: { id: INSPECTION_ID }, error: null })
 			const insertChain = makeQueryChain({ data: null, error: null })
 			adminClient.from
 				.mockReturnValueOnce(inspectionChain as never)
 				.mockReturnValueOnce(insertChain as never)
 
-			await expect(service.createRoom(createRoomDto, USER_ID)).rejects.toThrow(NotFoundException)
+			await expect(service.createRoom(createRoomDto, USER_ID)).rejects.toThrow(InternalServerErrorException)
 		})
 	})
 })

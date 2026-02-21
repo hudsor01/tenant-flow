@@ -16,6 +16,7 @@ import { UpdateInspectionDto } from './dto/update-inspection.dto'
 import { CreateInspectionRoomDto } from './dto/create-inspection-room.dto'
 import { UpdateInspectionRoomDto } from './dto/update-inspection-room.dto'
 import { TenantReviewDto } from './dto/tenant-review.dto'
+import { RecordPhotoDto } from './dto/record-photo.dto'
 
 @Controller('inspections')
 export class InspectionsController {
@@ -60,16 +61,7 @@ export class InspectionsController {
 
   @Post('photos')
   recordPhoto(
-    @Body()
-    dto: {
-      inspection_room_id: string
-      inspection_id: string
-      storage_path: string
-      file_name: string
-      file_size?: number
-      mime_type: string
-      caption?: string
-    },
+    @Body() dto: RecordPhotoDto,
     @Request() req: AuthenticatedRequest
   ) {
     return this.inspectionsService.recordPhoto(dto, req.user.id)
