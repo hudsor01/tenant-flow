@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import Image from 'next/image'
 import { Building2, Eye, MapPin, Pencil, Trash2, Wrench } from 'lucide-react'
 import { Button } from '#components/ui/button'
@@ -21,7 +22,7 @@ interface PropertyTableRowProps {
 	onDelete: ((id: string) => void) | undefined
 }
 
-export function PropertyTableRow({
+export const PropertyTableRow = memo(function PropertyTableRow({
 	property,
 	isSelected,
 	visibleColumns,
@@ -198,4 +199,4 @@ export function PropertyTableRow({
 			</td>
 		</tr>
 	)
-}
+})

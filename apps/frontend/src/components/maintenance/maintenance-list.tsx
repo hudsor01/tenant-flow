@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Clock, AlertTriangle, CheckCircle, Plus, XCircle } from 'lucide-react'
 import type {
 	MaintenanceListProps,
@@ -32,30 +32,41 @@ export function MaintenanceList({
 	const [searchQuery, setSearchQuery] = useState('')
 	const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban')
 
-	// Calculate stats
-	const openCount = requests.filter(r => r.status === 'open').length
-	const inProgressCount = requests.filter(r => r.status === 'in_progress').length
-	const completedCount = requests.filter(r => r.status === 'completed').length
-	const urgentCount = requests.filter(
-		r => r.priority === 'urgent' && r.status !== 'completed'
-	).length
+	// Single-pass stats + filter computation
+	const { openCount, inProgressCount, completedCount, urgentCount, filteredRequests } =
+		useMemo(() => {
+			let open = 0
+			let inProgress = 0
+			let completed = 0
+			let urgent = 0
+			const filtered: MaintenanceRequestItem[] = []
+			const lowerSearch = searchQuery.toLowerCase()
 
-	// Filter by search
-	const filteredRequests = requests.filter(r => {
-		if (
-			searchQuery &&
-			!(r.title ?? '').toLowerCase().includes(searchQuery.toLowerCase())
-		) {
-			return false
-		}
-		return true
-	})
+			for (const r of requests) {
+				if (r.status === 'open') open++
+				else if (r.status === 'in_progress') inProgress++
+				else if (r.status === 'completed') completed++
+				if (r.priority === 'urgent' && r.status !== 'completed') urgent++
+
+				if (!searchQuery || (r.title ?? '').toLowerCase().includes(lowerSearch)) {
+					filtered.push(r)
+				}
+			}
+
+			return {
+				openCount: open,
+				inProgressCount: inProgress,
+				completedCount: completed,
+				urgentCount: urgent,
+				filteredRequests: filtered
+			}
+		}, [requests, searchQuery])
+
+	const grouped = useMemo(() => groupByStatus(filteredRequests), [filteredRequests])
 
 	if (requests.length === 0) {
 		return <MaintenanceListEmpty onCreate={onCreate} />
 	}
-
-	const grouped = groupByStatus(filteredRequests)
 
 	return (
 		<div className="p-6 lg:p-8 bg-background min-h-full">
