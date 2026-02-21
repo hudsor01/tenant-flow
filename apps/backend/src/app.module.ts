@@ -10,7 +10,7 @@
  *
  * Current oversized modules (see ADR-0007 for refactoring guidance):
  * - billing: 14k lines (extract shared Stripe services)
- * Note: tenants and leases modules deleted in Phase 51 (migrated to PostgREST direct)
+ * Note: tenants, leases, maintenance, and inspections modules deleted in Phase 51-52 (migrated to PostgREST direct)
  *
  * Circular dependency signals:
  * - forwardRef() usage indicates shared services should be extracted
@@ -68,9 +68,7 @@ import { StripeModule } from './modules/billing/stripe.module'
 import { ContactModule } from './modules/contact/contact.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { FinancialModule } from './modules/financial/financial.module'
-import { InspectionsModule } from './modules/inspections/inspections.module'
 import { LateFeesModule } from './modules/late-fees/late-fees.module'
-import { MaintenanceModule } from './modules/maintenance/maintenance.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { OwnerDashboardModule } from './modules/owner-dashboard/owner-dashboard.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
@@ -275,8 +273,6 @@ const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
 		OwnerDashboardModule,
 		TenantPortalModule,
 		LateFeesModule,
-		MaintenanceModule,
-		InspectionsModule,
 		NotificationsModule,
 		RentPaymentsModule,
 		SubscriptionsModule,
