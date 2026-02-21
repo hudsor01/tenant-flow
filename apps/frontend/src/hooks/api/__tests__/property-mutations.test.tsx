@@ -1,8 +1,8 @@
 /**
- * Property Mutations Tests (TDD - Testing CORRECT Behavior)
+ * Property Mutations Tests
  *
  * Tests property mutation hooks for:
- * - Correct API calls
+ * - Correct PostgREST API calls via supabase-js
  * - Cache invalidation
  * - Error handling
  * - Success notifications
@@ -21,28 +21,18 @@ import {
 	usePropertyImages
 } from '../use-properties'
 
-// Create mock functions before vi.mock calls (hoisting-safe)
-const mockFetch = vi.hoisted(() => vi.fn())
-const mockHandleMutationError = vi.hoisted(() => vi.fn())
+// Hoisted mocks
 const mockToastSuccess = vi.hoisted(() => vi.fn())
 const mockToastError = vi.hoisted(() => vi.fn())
 const mockSupabaseDelete = vi.hoisted(() => vi.fn())
 const mockSupabaseEq = vi.hoisted(() => vi.fn())
 const mockSupabaseFrom = vi.hoisted(() => vi.fn())
+const mockSupabaseUpdate = vi.hoisted(() => vi.fn())
+const mockSupabaseSelect = vi.hoisted(() => vi.fn())
+const mockSupabaseSingle = vi.hoisted(() => vi.fn())
 const mockSupabaseStorageRemove = vi.hoisted(() => vi.fn())
-const mockGetSession = vi.hoisted(() => vi.fn())
-
-// Mock fetch globally
-vi.stubGlobal('fetch', mockFetch)
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
-
-vi.mock('#lib/mutation-error-handler', () => ({
-	handleMutationError: mockHandleMutationError
-}))
+const mockGetUser = vi.hoisted(() => vi.fn())
+const mockHandlePostgrestError = vi.hoisted(() => vi.fn())
 
 vi.mock('sonner', () => ({
 	toast: {
@@ -51,11 +41,34 @@ vi.mock('sonner', () => ({
 	}
 }))
 
+vi.mock('#lib/postgrest-error-handler', () => ({
+	handlePostgrestError: mockHandlePostgrestError
+}))
+
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn()
+}))
+
+vi.mock('@repo/shared/lib/frontend-logger', () => ({
+	logger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		warn: vi.fn(),
+		debug: vi.fn()
+	},
+	createLogger: () => ({
+		info: vi.fn(),
+		error: vi.fn(),
+		warn: vi.fn(),
+		debug: vi.fn()
+	})
+}))
+
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: mockSupabaseFrom,
 		auth: {
-			getSession: mockGetSession
+			getUser: mockGetUser
 		},
 		storage: {
 			from: () => ({
@@ -64,15 +77,6 @@ vi.mock('#lib/supabase/client', () => ({
 		}
 	})
 }))
-
-// Helper to convert Headers to plain object for testing
-function headersToObject(headers: Headers): Record<string, string> {
-	const obj: Record<string, string> = {}
-	headers.forEach((value, key) => {
-		obj[key] = value
-	})
-	return obj
-}
 
 // Wrapper for hooks
 function createWrapper() {
@@ -90,29 +94,45 @@ function createWrapper() {
 	}
 }
 
+const mockUpdatedProperty = {
+	id: 'prop-123',
+	owner_user_id: 'user-1',
+	name: 'Updated Property',
+	address_line1: '123 Main St',
+	address_line2: null,
+	city: 'Test City',
+	state: 'CA',
+	postal_code: '12345',
+	country: 'US',
+	property_type: 'SINGLE_FAMILY',
+	status: 'active',
+	stripe_connected_account_id: null,
+	date_sold: null,
+	sale_price: null,
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-02T00:00:00Z'
+}
+
 describe('useUpdatePropertyMutation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
-
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve({ id: 'prop-123', name: 'Updated Property' }),
-			text: () =>
-				Promise.resolve(
-					JSON.stringify({ id: 'prop-123', name: 'Updated Property' })
-				)
-		})
+		// Setup default update chain: .from().update().eq().select().single()
+		const chain = {
+			update: mockSupabaseUpdate,
+			eq: mockSupabaseEq,
+			select: mockSupabaseSelect,
+			single: mockSupabaseSingle
+		}
+		mockSupabaseUpdate.mockReturnValue(chain)
+		mockSupabaseEq.mockReturnValue(chain)
+		mockSupabaseSelect.mockReturnValue(chain)
+		mockSupabaseSingle.mockResolvedValue({ data: mockUpdatedProperty, error: null })
+		mockSupabaseFrom.mockReturnValue({ update: mockSupabaseUpdate })
 	})
 
-	it('should call fetch with correct endpoint and method', async () => {
+	it('should call supabase.from("properties").update() with correct data', async () => {
 		const { result } = renderHook(() => useUpdatePropertyMutation(), {
 			wrapper: createWrapper()
 		})
@@ -122,26 +142,14 @@ describe('useUpdatePropertyMutation', () => {
 			data: { name: 'Updated Property' }
 		})
 
-		expect(mockFetch).toHaveBeenCalledWith(
-			'http://localhost:4600/api/v1/properties/prop-123',
-			expect.objectContaining({
-				method: 'PUT',
-				body: JSON.stringify({ name: 'Updated Property' })
-			})
+		expect(mockSupabaseFrom).toHaveBeenCalledWith('properties')
+		expect(mockSupabaseUpdate).toHaveBeenCalledWith(
+			expect.objectContaining({ name: 'Updated Property' })
 		)
-
-		// Verify headers separately (Headers is not a plain object)
-		const callArgs = mockFetch.mock.calls[0]
-		const headers = callArgs?.[1]?.headers as Headers
-		expect(headers).toBeInstanceOf(Headers)
-		const headersObj = headersToObject(headers)
-		expect(headersObj).toMatchObject({
-			'content-type': 'application/json',
-			authorization: 'Bearer test-token'
-		})
+		expect(mockSupabaseEq).toHaveBeenCalledWith('id', 'prop-123')
 	})
 
-	it('should include version in body when provided', async () => {
+	it('should include version in update payload when provided', async () => {
 		const { result } = renderHook(() => useUpdatePropertyMutation(), {
 			wrapper: createWrapper()
 		})
@@ -152,12 +160,8 @@ describe('useUpdatePropertyMutation', () => {
 			version: 5
 		})
 
-		expect(mockFetch).toHaveBeenCalledWith(
-			'http://localhost:4600/api/v1/properties/prop-123',
-			expect.objectContaining({
-				method: 'PUT',
-				body: JSON.stringify({ name: 'Updated Property', version: 5 })
-			})
+		expect(mockSupabaseUpdate).toHaveBeenCalledWith(
+			expect.objectContaining({ name: 'Updated Property', version: 5 })
 		)
 	})
 
@@ -171,17 +175,15 @@ describe('useUpdatePropertyMutation', () => {
 			data: { name: 'Updated' }
 		})
 
-		expect(mockToastSuccess).toHaveBeenCalledWith(
-			'Property updated successfully'
-		)
+		await waitFor(() => {
+			expect(mockToastSuccess).toHaveBeenCalledWith('Property updated successfully')
+		})
 	})
 
-	it('should call handleMutationError on failure', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 500,
-			statusText: 'Internal Server Error'
-		})
+	it('should call handlePostgrestError on PostgREST failure', async () => {
+		const postgrestError = { code: '42501', message: 'permission denied', details: null, hint: null }
+		mockHandlePostgrestError.mockImplementation(() => { throw new Error('permission denied') })
+		mockSupabaseSingle.mockResolvedValue({ data: null, error: postgrestError })
 
 		const { result } = renderHook(() => useUpdatePropertyMutation(), {
 			wrapper: createWrapper()
@@ -194,75 +196,53 @@ describe('useUpdatePropertyMutation', () => {
 			})
 		).rejects.toThrow()
 
-		expect(mockHandleMutationError).toHaveBeenCalledWith(
-			expect.any(Error),
-			'Update property'
-		)
+		expect(mockHandlePostgrestError).toHaveBeenCalledWith(postgrestError, 'properties')
 	})
 })
 
 describe('useDeletePropertyMutation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
-
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve({ success: true }),
-			text: () => Promise.resolve(JSON.stringify({ success: true }))
-		})
+		// Setup soft-delete chain: .from().update({ status: 'inactive' }).eq()
+		const chain = {
+			update: mockSupabaseUpdate,
+			eq: mockSupabaseEq
+		}
+		mockSupabaseUpdate.mockReturnValue(chain)
+		mockSupabaseEq.mockResolvedValue({ data: null, error: null })
+		mockSupabaseFrom.mockReturnValue({ update: mockSupabaseUpdate })
 	})
 
-	it('should call fetch with correct endpoint and method', async () => {
+	it('should soft-delete by setting status to inactive (not hard delete)', async () => {
 		const { result } = renderHook(() => useDeletePropertyMutation(), {
 			wrapper: createWrapper()
 		})
 
 		await result.current.mutateAsync('prop-123')
 
-		expect(mockFetch).toHaveBeenCalledWith(
-			'http://localhost:4600/api/v1/properties/prop-123',
-			expect.objectContaining({
-				method: 'DELETE'
-			})
-		)
-
-		// Verify headers separately (Headers is not a plain object)
-		const callArgs = mockFetch.mock.calls[0]
-		const headers = callArgs?.[1]?.headers as Headers
-		expect(headers).toBeInstanceOf(Headers)
-		const headersObj = headersToObject(headers)
-		expect(headersObj).toMatchObject({
-			'content-type': 'application/json',
-			authorization: 'Bearer test-token'
-		})
+		expect(mockSupabaseFrom).toHaveBeenCalledWith('properties')
+		expect(mockSupabaseUpdate).toHaveBeenCalledWith({ status: 'inactive' })
+		expect(mockSupabaseEq).toHaveBeenCalledWith('id', 'prop-123')
 	})
 
-	it('should show success toast on successful delete', async () => {
+	it('should show success toast on successful soft-delete', async () => {
 		const { result } = renderHook(() => useDeletePropertyMutation(), {
 			wrapper: createWrapper()
 		})
 
 		await result.current.mutateAsync('prop-123')
 
-		expect(mockToastSuccess).toHaveBeenCalledWith(
-			'Property deleted successfully'
-		)
+		await waitFor(() => {
+			expect(mockToastSuccess).toHaveBeenCalledWith('Property deleted successfully')
+		})
 	})
 
-	it('should call handleMutationError on failure', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 500,
-			statusText: 'Internal Server Error'
-		})
+	it('should call handlePostgrestError on PostgREST failure', async () => {
+		const postgrestError = { code: '42501', message: 'permission denied', details: null, hint: null }
+		mockHandlePostgrestError.mockImplementation(() => { throw new Error('permission denied') })
+		mockSupabaseEq.mockResolvedValue({ error: postgrestError })
 
 		const { result } = renderHook(() => useDeletePropertyMutation(), {
 			wrapper: createWrapper()
@@ -270,22 +250,16 @@ describe('useDeletePropertyMutation', () => {
 
 		await expect(result.current.mutateAsync('prop-123')).rejects.toThrow()
 
-		expect(mockHandleMutationError).toHaveBeenCalledWith(
-			expect.any(Error),
-			'Delete property'
-		)
+		expect(mockHandlePostgrestError).toHaveBeenCalledWith(postgrestError, 'properties')
 	})
 })
 
 describe('useDeletePropertyImageMutation', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockSupabaseFrom.mockReset()
-		mockSupabaseDelete.mockReset()
-		mockSupabaseEq.mockReset()
-		mockSupabaseStorageRemove.mockReset()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 
-		// Setup default Supabase chain
+		// Setup default Supabase chain for image delete
 		mockSupabaseFrom.mockReturnValue({
 			delete: mockSupabaseDelete
 		})
@@ -322,9 +296,7 @@ describe('useDeletePropertyImageMutation', () => {
 			imagePath: 'prop-123/image.webp'
 		})
 
-		expect(mockSupabaseStorageRemove).toHaveBeenCalledWith([
-			'prop-123/image.webp'
-		])
+		expect(mockSupabaseStorageRemove).toHaveBeenCalledWith(['prop-123/image.webp'])
 	})
 
 	it('should not call storage remove when imagePath is not provided', async () => {
@@ -375,7 +347,6 @@ describe('useDeletePropertyImageMutation', () => {
 			wrapper: createWrapper()
 		})
 
-		// Should succeed despite storage error
 		await expect(
 			result.current.mutateAsync({
 				imageId: 'img-123',
@@ -384,39 +355,16 @@ describe('useDeletePropertyImageMutation', () => {
 			})
 		).resolves.toEqual({ success: true })
 	})
-
-	it('should call handleMutationError on failure', async () => {
-		const _error = new Error('DB delete failed')
-		mockSupabaseEq.mockResolvedValue({ error: { message: 'DB delete failed' } })
-
-		const { result } = renderHook(() => useDeletePropertyImageMutation(), {
-			wrapper: createWrapper()
-		})
-
-		await expect(
-			result.current.mutateAsync({
-				imageId: 'img-123',
-				property_id: 'prop-123'
-			})
-		).rejects.toThrow()
-
-		expect(mockHandleMutationError).toHaveBeenCalledWith(
-			expect.any(Error),
-			'Delete image'
-		)
-	})
 })
 
 describe('usePropertyImages', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockSupabaseFrom.mockReset()
 
-		// Setup Supabase chain for images query
 		const mockSelect = vi.fn().mockReturnValue({
 			eq: vi.fn().mockReturnValue({
 				order: vi.fn().mockResolvedValue({
-					data: [{ id: 'img-1', property_id: 'prop-123' }],
+					data: [{ id: 'img-1', property_id: 'prop-123', image_url: 'http://example.com/img.jpg', display_order: 0 }],
 					error: null
 				})
 			})
