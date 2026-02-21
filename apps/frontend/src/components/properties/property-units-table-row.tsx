@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import {
@@ -24,7 +25,7 @@ interface UnitTableRowProps {
 	onDelete: (unit: Unit) => void
 }
 
-export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
+export const UnitTableRow = memo(function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 	const status = (unit.status as UnitStatus) || 'available'
 	const config = statusConfig[status]
 	const StatusIcon = config.icon
@@ -120,4 +121,4 @@ export function UnitTableRow({ unit, onEdit, onDelete }: UnitTableRowProps) {
 			</TableCell>
 		</TableRow>
 	)
-}
+})
