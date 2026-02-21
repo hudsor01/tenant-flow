@@ -99,8 +99,9 @@ export class TenantLeaseQueryService {
 	}
 
 	/**
-	 * Count total tenants with lease info for accurate pagination
-	 * Runs lightweight count-only queries (no data fetching)
+	 * Count total tenants with lease info for accurate pagination.
+	 * Fetches user tenant IDs and owner tenant IDs in parallel, then deduplicates.
+	 * Single parallel pass — no sequential 3rd query.
 	 */
 	private async countAllTenantsWithLease(
 		userId: string,
@@ -109,52 +110,27 @@ export class TenantLeaseQueryService {
 		const client = this.requireUserClient(filters.token)
 
 		try {
-			// Count tenants where user is the tenant
-			const tenantByUserQuery = client
-				.from('tenants')
-				.select('id', { count: 'exact', head: true })
-				.eq('user_id', userId)
-
-			// Count tenants via owner RPC
-			const tenantIdsByOwnerQuery = client.rpc(
-				'get_tenants_with_lease_by_owner',
-				{ p_user_id: userId }
-			)
-
-			const [userCountResult, ownerIdsResult] = await Promise.all([
-				tenantByUserQuery,
-				tenantIdsByOwnerQuery
-			])
-
-			const userCount = userCountResult.count ?? 0
-			const ownerTenantIds = (ownerIdsResult.data as string[] | null) ?? []
-
-			// Combine unique tenant IDs for total count
-			// The user's own tenant ID could overlap with owner results
-			// For accuracy, we count unique IDs
-			const uniqueIds = new Set<string>()
-
-			// Add owner tenant IDs
-			for (const id of ownerTenantIds) {
-				uniqueIds.add(id)
-			}
-
-			// The user count represents tenants where user_id = userId
-			// These may already be in the owner set, so we use the set size + any additional user tenants
-			// Since we don't have the user's tenant IDs here, use the larger of the two as a conservative estimate
-			// Actually, fetch the user's tenant IDs for accurate dedup
-			if (userCount > 0) {
-				const { data: userTenantIds } = await client
+			// Fetch both sets of tenant IDs in parallel
+			const [userTenantsResult, ownerIdsResult] = await Promise.all([
+				client
 					.from('tenants')
 					.select('id')
-					.eq('user_id', userId)
+					.eq('user_id', userId),
+				client.rpc('get_tenants_with_lease_by_owner', {
+					p_user_id: userId
+				})
+			])
 
-				if (userTenantIds) {
-					for (const row of userTenantIds) {
-						uniqueIds.add(row.id)
-					}
-				}
-			}
+			const userTenantIds = (userTenantsResult.data ?? []).map(
+				(row: { id: string }) => row.id
+			)
+			const ownerTenantIds = (ownerIdsResult.data as string[] | null) ?? []
+
+			// Deduplicate across both sets for accurate total count
+			const uniqueIds = new Set<string>([
+				...userTenantIds,
+				...ownerTenantIds
+			])
 
 			return uniqueIds.size
 		} catch (error) {
@@ -162,7 +138,7 @@ export class TenantLeaseQueryService {
 				error: error instanceof Error ? error.message : String(error),
 				userId
 			})
-			// Fall back to 0 on error - the data query will still work
+			// Fall back to 0 on error — the data query will still work
 			return 0
 		}
 	}

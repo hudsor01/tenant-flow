@@ -14,16 +14,12 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
-import type { Request } from 'express'
 import { FinancialReportService } from './financial-report.service'
 import { MaintenanceReportService } from './maintenance-report.service'
 import { PropertyReportService } from './property-report.service'
 import { TenantReportService } from './tenant-report.service'
 import { YearEndReportService } from './year-end-report.service'
-
-interface AuthenticatedRequest extends Request {
-	user?: { id: string; email: string }
-}
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 /**
  * Reports Controller

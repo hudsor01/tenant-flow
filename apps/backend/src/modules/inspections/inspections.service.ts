@@ -11,6 +11,7 @@ import type {
   UpdateInspectionRoomInput,
   TenantReviewInput
 } from '@repo/shared/validation/inspections'
+import type { RecordPhotoDto } from './dto/record-photo.dto'
 import type { Database } from '@repo/shared/types/supabase'
 
 type InspectionInsert = Database['public']['Tables']['inspections']['Insert']
@@ -400,15 +401,7 @@ export class InspectionsService {
 
   // Photo record management (actual file upload is done client-side to Supabase Storage)
   async recordPhoto(
-    dto: {
-      inspection_room_id: string
-      inspection_id: string
-      storage_path: string
-      file_name: string
-      file_size?: number
-      mime_type: string
-      caption?: string
-    },
+    dto: RecordPhotoDto,
     userId: string
   ): Promise<InspectionPhotoRow> {
     const client = this.supabase.getAdminClient()

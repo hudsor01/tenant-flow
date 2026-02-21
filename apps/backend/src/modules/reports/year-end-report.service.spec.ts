@@ -147,62 +147,49 @@ describe('YearEndReportService', () => {
 			expect(result.netIncome).toBe(-750)
 		})
 
-		it('includes vendor expenses in operating expenses', async () => {
+		it('does not double-count expenses table against maintenance_requests costs', async () => {
+			// expenses.amount represents costs already captured in maintenance_requests.actual_cost.
+			// The expenses table is NOT queried by getYearEndSummary to avoid double-counting.
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
-
-			const expenses = [
-				{
-					amount: 30000,
-					vendor_name: 'ACME Plumbing',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
 
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
 				rent_payments: [],
 				maintenance_requests: [],
-				expenses
+				expenses: [
+					{
+						amount: 30000,
+						vendor_name: 'ACME Plumbing',
+						maintenance_requests: { units: { property_id: PROPERTY_ID } }
+					}
+				]
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
 
-			expect(result.operatingExpenses).toBe(300)
+			// expenses table not counted separately — operatingExpenses comes only from maintenance_requests
+			expect(result.operatingExpenses).toBe(0)
 		})
 
-		it('groups expenses by category with vendor name prefix', async () => {
+		it('groups maintenance costs under Maintenance category only', async () => {
+			// Without the expenses loop, all expense categories derive from maintenance_requests
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
-
-			const expenses = [
-				{
-					amount: 10000,
-					vendor_name: 'ACME Plumbing',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 5000,
-					vendor_name: 'ACME Plumbing',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				},
-				{
-					amount: 8000,
-					vendor_name: null,
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
 
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
 				rent_payments: [],
-				maintenance_requests: [],
-				expenses
+				maintenance_requests: [
+					{ actual_cost: 10000, estimated_cost: null, unit: { property_id: PROPERTY_ID } },
+					{ actual_cost: 5000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
+				],
+				expenses: []
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
 			const categoryMap = new Map(result.expenseByCategory.map(c => [c.category, c.amount]))
 
-			expect(categoryMap.get('Vendor: ACME Plumbing')).toBe(150) // 10000+5000 = 15000 cents = $150
-			expect(categoryMap.get('Other Expenses')).toBe(80) // 8000 cents = $80
+			expect(categoryMap.get('Maintenance')).toBe(150) // 10000+5000 = 15000 cents = $150
+			expect(categoryMap.size).toBe(1) // only Maintenance category
 		})
 
 		it('groups maintenance costs under Maintenance category', async () => {
@@ -266,7 +253,7 @@ describe('YearEndReportService', () => {
 			})
 		})
 
-		it('calculates totals correctly combining all sources', async () => {
+		it('calculates totals correctly from payments and maintenance_requests', async () => {
 			mockLoadPropertyIdsByOwner.mockResolvedValue([PROPERTY_ID])
 
 			const payments = [
@@ -275,26 +262,19 @@ describe('YearEndReportService', () => {
 			const maintenance = [
 				{ actual_cost: 30000, estimated_cost: null, unit: { property_id: PROPERTY_ID } }
 			]
-			const expenses = [
-				{
-					amount: 20000,
-					vendor_name: 'Bob the Plumber',
-					maintenance_requests: { units: { property_id: PROPERTY_ID } }
-				}
-			]
 
 			await createService({
 				properties: [{ id: PROPERTY_ID, name: 'Test Property' }],
 				rent_payments: payments,
 				maintenance_requests: maintenance,
-				expenses
+				expenses: []
 			})
 
 			const result = await service.getYearEndSummary(USER_ID, YEAR)
 
 			expect(result.grossRentalIncome).toBe(2000) // $2000
-			expect(result.operatingExpenses).toBe(500) // $300 maintenance + $200 vendor
-			expect(result.netIncome).toBe(1500) // $2000 - $500
+			expect(result.operatingExpenses).toBe(300) // $300 from maintenance_requests only
+			expect(result.netIncome).toBe(1700) // $2000 - $300
 		})
 	})
 

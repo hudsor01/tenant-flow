@@ -15,10 +15,10 @@ interface OnboardingStepTenantProps {
 	onSkip: () => void
 }
 
-interface CreateTenantResponse {
-	id: string
-	email: string | null
-	name: string | null
+interface InviteTenantResponse {
+	success: boolean
+	tenant_id: string
+	message: string
 }
 
 /**
@@ -34,15 +34,17 @@ export function OnboardingStepTenant({
 	const [firstName, setFirstName] = useState('')
 	const [lastName, setLastName] = useState('')
 
-	const createTenant = useMutation({
-		mutationFn: (data: { email: string; name: string }) =>
-			apiRequest<CreateTenantResponse>('/api/v1/tenants', {
+	const inviteTenant = useMutation({
+		mutationFn: (data: {
+			tenantData: { email: string; first_name: string; last_name: string }
+		}) =>
+			apiRequest<InviteTenantResponse>('/api/v1/tenants/invite', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			}),
-		onSuccess: data => {
+		onSuccess: () => {
 			toast.success('Invitation sent', {
-				description: `${data?.name ?? data?.email ?? 'Tenant'} will receive an email invitation`
+				description: `${firstName.trim()} ${lastName.trim()} will receive an email invitation`
 			})
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			onNext()
@@ -59,9 +61,12 @@ export function OnboardingStepTenant({
 			return
 		}
 
-		createTenant.mutate({
-			email: email.trim(),
-			name: `${firstName.trim()} ${lastName.trim()}`
+		inviteTenant.mutate({
+			tenantData: {
+				email: email.trim(),
+				first_name: firstName.trim(),
+				last_name: lastName.trim()
+			}
 		})
 	}
 
@@ -121,10 +126,10 @@ export function OnboardingStepTenant({
 				<div className="flex gap-2 pt-2">
 					<Button
 						type="submit"
-						disabled={createTenant.isPending}
+						disabled={inviteTenant.isPending}
 						className="min-h-11 flex-1"
 					>
-						{createTenant.isPending ? 'Sending...' : 'Send Invitation'}
+						{inviteTenant.isPending ? 'Sending...' : 'Send Invitation'}
 					</Button>
 					<Button
 						type="button"

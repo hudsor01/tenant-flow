@@ -7,6 +7,20 @@ import { PDFGeneratorService } from '../pdf/pdf-generator.service'
 import { TaxDocumentsService } from '../financial/tax-documents.service'
 import { loadPropertyIdsByOwner } from './reports.utils'
 
+// Escape HTML special chars to prevent XSS/injection in Puppeteer-rendered PDFs
+function escapeHtml(str: string): string {
+	return str
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#x27;')
+}
+
+// Type helpers for Supabase join responses (moved to file scope to avoid inline type aliases)
+type PaymentLease = { unit?: { property_id?: string } | null }
+type MaintenanceUnit = { property_id?: string } | null
+
 @Injectable()
 export class YearEndReportService {
 	constructor(
@@ -72,21 +86,6 @@ export class YearEndReportService {
 			.gte('created_at', startDate)
 			.lte('created_at', endDate)
 
-		const { data: expenses } = await this.supabase
-			.getAdminClient()
-			.from('expenses')
-			.select(
-				`
-				amount, vendor_name,
-				maintenance_requests!expenses_maintenance_request_id_fkey(
-					units!maintenance_requests_unit_id_fkey(property_id)
-				)
-			`
-			)
-			.in('maintenance_requests.units.property_id', propertyIds)
-			.gte('expense_date', `${year}-01-01`)
-			.lte('expense_date', `${year}-12-31`)
-
 		const incomeByProperty = new Map<string, number>()
 		const expensesByProperty = new Map<string, number>()
 		const expenseByCategoryMap = new Map<string, number>()
@@ -97,7 +96,6 @@ export class YearEndReportService {
 		for (const payment of payments ?? []) {
 			const amount = (payment.amount ?? 0) / 100
 			grossRentalIncome += amount
-			type PaymentLease = { unit?: { property_id?: string } | null }
 			const propertyId = (payment.lease as PaymentLease)?.unit?.property_id
 			if (propertyId) {
 				incomeByProperty.set(
@@ -110,7 +108,6 @@ export class YearEndReportService {
 		for (const request of maintenance ?? []) {
 			const cost = ((request.actual_cost ?? request.estimated_cost ?? 0) as number) / 100
 			operatingExpenses += cost
-			type MaintenanceUnit = { property_id?: string } | null
 			const propertyId = (request.unit as MaintenanceUnit)?.property_id
 			if (propertyId) {
 				expensesByProperty.set(
@@ -121,28 +118,6 @@ export class YearEndReportService {
 			expenseByCategoryMap.set(
 				'Maintenance',
 				(expenseByCategoryMap.get('Maintenance') ?? 0) + cost
-			)
-		}
-
-		for (const expense of expenses ?? []) {
-			const amount = (expense.amount ?? 0) / 100
-			operatingExpenses += amount
-			type ExpenseMR = { units?: { property_id?: string } | null }
-			const propertyId = (
-				expense.maintenance_requests as ExpenseMR
-			)?.units?.property_id
-			if (propertyId) {
-				expensesByProperty.set(
-					propertyId,
-					(expensesByProperty.get(propertyId) ?? 0) + amount
-				)
-			}
-			const category = expense.vendor_name
-				? `Vendor: ${expense.vendor_name}`
-				: 'Other Expenses'
-			expenseByCategoryMap.set(
-				category,
-				(expenseByCategoryMap.get(category) ?? 0) + amount
 			)
 		}
 
@@ -198,6 +173,10 @@ export class YearEndReportService {
 			.gte('expense_date', `${year}-01-01`)
 			.lte('expense_date', `${year}-12-31`)
 
+		// Known limitation: vendors are aggregated by vendor_name string.
+		// Records with identical names are treated as the same vendor; typos
+		// or name variations lead to undercounting. A vendor_id FK on the
+		// expenses table would provide a reliable unique key.
 		const byVendor = new Map<string, { totalPaid: number; jobCount: number }>()
 
 		for (const expense of expenses ?? []) {
@@ -325,7 +304,7 @@ export class YearEndReportService {
     <tbody>
       ${summary.byProperty.map(p => `
         <tr>
-          <td>${p.propertyName}</td>
+          <td>${escapeHtml(p.propertyName)}</td>
           <td class="amount">$${fmt(p.income)}</td>
           <td class="amount">$${fmt(p.expenses)}</td>
           <td class="amount">$${fmt(p.netIncome)}</td>
@@ -351,7 +330,7 @@ export class YearEndReportService {
     <tbody>
       ${summary.expenseByCategory.map(e => `
         <tr>
-          <td>${e.category}</td>
+          <td>${escapeHtml(e.category)}</td>
           <td class="amount">$${fmt(e.amount)}</td>
         </tr>
       `).join('')}
@@ -389,7 +368,7 @@ export class YearEndReportService {
 <body>
   <div class="header">
     <h1>Tax Documents — ${taxData.taxYear}</h1>
-    <p style="color:#666">Period: ${taxData.period.label} | Prepared by TenantFlow</p>
+    <p style="color:#666">Period: ${escapeHtml(taxData.period.label)} | Prepared by TenantFlow</p>
     <p style="color:#888;font-size:10px">This document is provided for informational purposes. Consult a tax professional before filing.</p>
   </div>
 
@@ -416,7 +395,7 @@ export class YearEndReportService {
     <tbody>
       ${taxData.expenseCategories.map(cat => `
         <tr>
-          <td>${cat.category}</td>
+          <td>${escapeHtml(cat.category)}</td>
           <td class="amount">$${fmt(cat.amount)}</td>
           <td class="amount">${cat.percentage.toFixed(1)}%</td>
           <td>${cat.deductible ? 'Yes' : 'No'}</td>
@@ -439,7 +418,7 @@ export class YearEndReportService {
     <tbody>
       ${taxData.propertyDepreciation.map(p => `
         <tr>
-          <td>${p.propertyName}</td>
+          <td>${escapeHtml(p.propertyName)}</td>
           <td class="amount">$${fmt(p.propertyValue)}</td>
           <td class="amount">$${fmt(p.annualDepreciation)}</td>
           <td class="amount">$${fmt(p.accumulatedDepreciation)}</td>
