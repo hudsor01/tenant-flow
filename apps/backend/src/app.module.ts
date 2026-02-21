@@ -10,8 +10,7 @@
  *
  * Current oversized modules (see ADR-0007 for refactoring guidance):
  * - billing: 14k lines (extract shared Stripe services)
- * - tenants: 12k lines (audit and consolidate services)
- * - leases: 10k lines (acceptable, monitor)
+ * Note: tenants and leases modules deleted in Phase 51 (migrated to PostgREST direct)
  *
  * Circular dependency signals:
  * - forwardRef() usage indicates shared services should be extracted
@@ -71,14 +70,12 @@ import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { FinancialModule } from './modules/financial/financial.module'
 import { InspectionsModule } from './modules/inspections/inspections.module'
 import { LateFeesModule } from './modules/late-fees/late-fees.module'
-import { LeasesModule } from './modules/leases/leases.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { OwnerDashboardModule } from './modules/owner-dashboard/owner-dashboard.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
 import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module'
-import { TenantsModule } from './modules/tenants/tenants.module'
 import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
@@ -276,9 +273,7 @@ const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
 		DashboardModule,
 		FinancialModule,
 		OwnerDashboardModule,
-		TenantsModule,
 		TenantPortalModule,
-		LeasesModule,
 		LateFeesModule,
 		MaintenanceModule,
 		InspectionsModule,
