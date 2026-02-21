@@ -69,6 +69,7 @@ import { StripeModule } from './modules/billing/stripe.module'
 import { ContactModule } from './modules/contact/contact.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { FinancialModule } from './modules/financial/financial.module'
+import { InspectionsModule } from './modules/inspections/inspections.module'
 import { LateFeesModule } from './modules/late-fees/late-fees.module'
 import { LeasesModule } from './modules/leases/leases.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
@@ -284,6 +285,7 @@ const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
 		LeasesModule,
 		LateFeesModule,
 		MaintenanceModule,
+		InspectionsModule,
 		NotificationsModule,
 		RentPaymentsModule,
 		SubscriptionsModule,
