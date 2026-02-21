@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 51-core-crud-migration-properties-units-tenants-leases
-Plan: 01 (complete) — next: 02
+Plan: 03 (complete) — next: 04
 Status: In progress
-Last activity: 2026-02-21 — Phase 51-01 complete: handlePostgrestError utility + properties domain migrated to PostgREST
+Last activity: 2026-02-21 — Phase 51-03 complete: tenants domain confirmed migrated to PostgREST + test suite fixed
 
-Progress: ▓░░░░░░░░░ ~6% (Phase 51 in progress, plan 01 of ~5 done)
+Progress: ▓▓▓░░░░░░░ ~18% (Phase 51 in progress, plan 03 of ~5 done)
 
 ## Active Milestone
 
@@ -18,6 +18,8 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ### Completed This Milestone
 
 - Phase 51-01: handlePostgrestError utility + Properties domain migrated to PostgREST (property-keys.ts, use-properties.ts)
+- Phase 51-02: Units domain migrated to PostgREST (unit-keys.ts, use-unit.ts) + NestJS properties/units modules deleted
+- Phase 51-03: Tenants domain verified migrated to PostgREST (tenant-keys.ts, use-tenant.ts) + test suite fixed
 
 ### Pending This Milestone
 
@@ -40,6 +42,20 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Analytics RPCs (occupancy, financial, maintenance, performance) return empty stubs — require `p_user_id` — deferred to Phase 53
 - `PaginatedResponse` shape requires `pagination: { page, limit, total, totalPages }` not flat offset/limit fields
 - `handlePostgrestError` already existed in `apps/frontend/src/lib/postgrest-error-handler.ts` from prior work
+
+**Phase 51-02 decisions:**
+- `useCreateUnitMutation` gets `owner_user_id` via `supabase.auth.getUser()` — consistent with properties pattern
+- `useDeleteUnitMutation` soft-deletes via `status: 'inactive'` — consistent with properties pattern
+- `UNIT_SELECT_COLUMNS` corrected: `floor` and `deposit_amount` don't exist in DB; `rent_currency` and `rent_period` do
+- `PropertyAccessService` relocated to `apps/backend/src/modules/financial/` (its only consumer was financial module)
+- Backend `tsconfig.json` missing `"multer"` type — added to fix pre-existing Multer namespace errors blocking zero-error typecheck
+
+**Phase 51-03 decisions:**
+- `tenant-keys.ts` was already fully migrated to PostgREST from prior work (joins users, lease_tenants, leases, units, properties)
+- `use-tenant.ts` was already fully migrated — only `useResendInvitationMutation` and `useCancelInvitationMutation` retain `apiRequest` with `TODO(phase-55)` comments
+- `useDeleteTenantMutation` removes `lease_tenants` rows (not `tenants.status` update) — preserves record per 7-year retention
+- `useInviteTenantMutation` creates `tenant_invitations` record via PostgREST; email sending deferred to Phase 55
+- Notification preferences: two-step query (tenants → user_id → notification_settings table)
 
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
@@ -78,5 +94,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-21
-Completed: v6.0 shipped; decided to eliminate NestJS; starting v7.0 milestone definition
+Completed: Phase 51-03 — tenants domain PostgREST migration verified + test suite fixed (2 failing tests corrected)
 Resume file: None
