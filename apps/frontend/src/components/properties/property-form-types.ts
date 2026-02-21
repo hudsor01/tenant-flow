@@ -18,6 +18,8 @@ export interface PropertyFormValues {
 	state: string
 	postal_code: string
 	country: string
+	acquisition_cost: number | null
+	acquisition_date: string
 }
 
 /**

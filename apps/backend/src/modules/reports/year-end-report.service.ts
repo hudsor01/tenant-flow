@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common'
 import type { YearEndSummary, Year1099Summary } from '@repo/shared/types/reports'
+import type { TaxDocumentsData } from '@repo/shared/types/financial-statements'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { PDFGeneratorService } from '../pdf/pdf-generator.service'
+import { TaxDocumentsService } from '../financial/tax-documents.service'
 import { loadPropertyIdsByOwner } from './reports.utils'
 
 @Injectable()
 export class YearEndReportService {
 	constructor(
 		private readonly logger: AppLogger,
-		private readonly supabase: SupabaseService
+		private readonly supabase: SupabaseService,
+		private readonly pdfGeneratorService: PDFGeneratorService,
+		private readonly taxDocumentsService: TaxDocumentsService
 	) {}
 
 	async getYearEndSummary(userId: string, year: number): Promise<YearEndSummary> {
@@ -225,6 +230,231 @@ export class YearEndReportService {
 				recipients.reduce((sum, r) => sum + r.totalPaid, 0).toFixed(2)
 			),
 		}
+	}
+
+	/**
+	 * Generate a year-end summary PDF for download.
+	 * Uses Puppeteer to render an HTML template to PDF.
+	 */
+	async generateYearEndPdf(userId: string, year: number): Promise<Buffer> {
+		const summary = await this.getYearEndSummary(userId, year)
+		const html = this.buildYearEndHtml(summary)
+		return this.pdfGeneratorService.generatePDF(html, {
+			format: 'A4',
+			margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+		})
+	}
+
+	/**
+	 * Generate tax documents PDF for download.
+	 * Uses Puppeteer to render an HTML template to PDF.
+	 */
+	async generateTaxDocumentPdf(
+		token: string,
+		userId: string,
+		taxYear: number
+	): Promise<Buffer> {
+		const taxData = await this.taxDocumentsService.generateTaxDocuments(
+			token,
+			userId,
+			taxYear
+		)
+		const html = this.buildTaxDocumentHtml(taxData)
+		return this.pdfGeneratorService.generatePDF(html, {
+			format: 'A4',
+			margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+		})
+	}
+
+	private buildYearEndHtml(summary: YearEndSummary): string {
+		const fmt = (n: number) =>
+			n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+		return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #333; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    h2 { font-size: 14px; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f5f5f5; text-align: left; padding: 8px; font-size: 11px; }
+    td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+    .amount { text-align: right; font-family: monospace; }
+    .total { font-weight: bold; border-top: 2px solid #333; }
+    .header { margin-bottom: 24px; }
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+    .summary-card { border: 1px solid #ddd; padding: 12px; border-radius: 4px; }
+    .summary-card h3 { margin: 0 0 4px; font-size: 11px; color: #666; }
+    .summary-card p { margin: 0; font-size: 18px; font-weight: bold; }
+    .disclaimer { font-size: 10px; color: #888; margin-top: 32px; border-top: 1px solid #ddd; padding-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Year-End Financial Summary ${summary.year}</h1>
+    <p style="color:#666">Prepared by TenantFlow</p>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <h3>Gross Rental Income</h3>
+      <p>$${fmt(summary.grossRentalIncome)}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Operating Expenses</h3>
+      <p>$${fmt(summary.operatingExpenses)}</p>
+    </div>
+    <div class="summary-card">
+      <h3>Net Income</h3>
+      <p>$${fmt(summary.netIncome)}</p>
+    </div>
+  </div>
+
+  <h2>Income by Property</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th class="amount">Income</th>
+        <th class="amount">Expenses</th>
+        <th class="amount">Net Income</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${summary.byProperty.map(p => `
+        <tr>
+          <td>${p.propertyName}</td>
+          <td class="amount">$${fmt(p.income)}</td>
+          <td class="amount">$${fmt(p.expenses)}</td>
+          <td class="amount">$${fmt(p.netIncome)}</td>
+        </tr>
+      `).join('')}
+      <tr class="total">
+        <td>Total</td>
+        <td class="amount">$${fmt(summary.grossRentalIncome)}</td>
+        <td class="amount">$${fmt(summary.operatingExpenses)}</td>
+        <td class="amount">$${fmt(summary.netIncome)}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Expenses by Category</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th class="amount">Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${summary.expenseByCategory.map(e => `
+        <tr>
+          <td>${e.category}</td>
+          <td class="amount">$${fmt(e.amount)}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <div class="disclaimer">
+    Generated by TenantFlow. Consult a Certified Public Accountant (CPA) before filing your tax return.
+  </div>
+</body>
+</html>`
+	}
+
+	private buildTaxDocumentHtml(taxData: TaxDocumentsData): string {
+		const fmt = (n: number) =>
+			n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+		return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #333; }
+    h1 { font-size: 20px; margin-bottom: 4px; }
+    h2 { font-size: 14px; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-top: 24px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { background: #f5f5f5; text-align: left; padding: 8px; font-size: 11px; }
+    td { padding: 6px 8px; border-bottom: 1px solid #eee; }
+    .amount { text-align: right; font-family: monospace; }
+    .total { font-weight: bold; border-top: 2px solid #333; }
+    .header { margin-bottom: 24px; }
+    .disclaimer { font-size: 10px; color: #888; margin-top: 32px; border-top: 1px solid #ddd; padding-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Tax Documents — ${taxData.taxYear}</h1>
+    <p style="color:#666">Period: ${taxData.period.label} | Prepared by TenantFlow</p>
+    <p style="color:#888;font-size:10px">This document is provided for informational purposes. Consult a tax professional before filing.</p>
+  </div>
+
+  <h2>Schedule E Summary</h2>
+  <table>
+    <tbody>
+      <tr><td>Gross Rental Income</td><td class="amount">$${fmt(taxData.schedule.scheduleE.grossRentalIncome)}</td></tr>
+      <tr><td>Total Expenses</td><td class="amount">($${fmt(taxData.schedule.scheduleE.totalExpenses)})</td></tr>
+      <tr><td>Depreciation</td><td class="amount">($${fmt(taxData.schedule.scheduleE.depreciation)})</td></tr>
+      <tr class="total"><td>Net Income (Loss)</td><td class="amount">$${fmt(taxData.schedule.scheduleE.netIncome)}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Expense Categories</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th class="amount">Amount</th>
+        <th class="amount">% of Total</th>
+        <th>Deductible</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${taxData.expenseCategories.map(cat => `
+        <tr>
+          <td>${cat.category}</td>
+          <td class="amount">$${fmt(cat.amount)}</td>
+          <td class="amount">${cat.percentage.toFixed(1)}%</td>
+          <td>${cat.deductible ? 'Yes' : 'No'}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <h2>Property Depreciation (Schedule E)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th class="amount">Cost Basis</th>
+        <th class="amount">Annual Depreciation</th>
+        <th class="amount">Accumulated</th>
+        <th class="amount">Remaining Basis</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${taxData.propertyDepreciation.map(p => `
+        <tr>
+          <td>${p.propertyName}</td>
+          <td class="amount">$${fmt(p.propertyValue)}</td>
+          <td class="amount">$${fmt(p.annualDepreciation)}</td>
+          <td class="amount">$${fmt(p.accumulatedDepreciation)}</td>
+          <td class="amount">$${fmt(p.remainingBasis)}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>
+
+  <div class="disclaimer">
+    Generated by TenantFlow. This is not tax advice. Consult a Certified Public Accountant (CPA) before filing your tax return.
+    Depreciation calculated at residential rate (27.5 years straight-line).
+  </div>
+</body>
+</html>`
 	}
 
 	formatYearEndForCsv(summary: YearEndSummary): Record<string, unknown>[] {

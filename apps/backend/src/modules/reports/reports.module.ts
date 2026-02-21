@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
+import { FinancialModule } from '../financial/financial.module'
+import { PDFModule } from '../pdf/pdf.module'
 import { ExecutiveReportService } from './executive-report.service'
 import { ExportService } from './export.service'
 import { FinancialReportService } from './financial-report.service'
@@ -21,7 +23,7 @@ import { PropertyPortfolioTemplate } from './templates/property-portfolio.templa
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 
 @Module({
-	imports: [AnalyticsModule, SupabaseModule],
+	imports: [AnalyticsModule, SupabaseModule, PDFModule, FinancialModule],
 	controllers: [
 		ReportsController,
 		ReportExportController,
