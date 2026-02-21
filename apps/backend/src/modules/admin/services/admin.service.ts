@@ -15,7 +15,6 @@ type AdminUserListItem = Pick<
 	| 'status'
 	| 'created_at'
 	| 'onboarding_status'
-	| 'stripe_customer_id'
 >
 
 export type AdminUserListResponse = {
@@ -99,7 +98,7 @@ export class AdminService {
 		let query = client
 			.from('users')
 			.select(
-				'id, email, full_name, user_type, status, created_at, onboarding_status, stripe_customer_id',
+				'id, email, full_name, user_type, status, created_at, onboarding_status',
 				{ count: 'exact' }
 			)
 			.order('created_at', { ascending: false })
@@ -157,7 +156,7 @@ export class AdminService {
 		// Get user basic info
 		const { data: user, error } = await client
 			.from('users')
-			.select('id, email, full_name, first_name, last_name, phone, avatar_url, status, user_type, stripe_customer_id, onboarding_status, onboarding_completed_at, identity_verification_status, identity_verification_session_id, identity_verified_at, identity_verification_data, identity_verification_error, created_at, updated_at')
+			.select('id, email, full_name, first_name, last_name, phone, avatar_url, status, user_type, onboarding_status, onboarding_completed_at, identity_verification_status, identity_verified_at, created_at, updated_at')
 			.eq('id', userId)
 			.single()
 
