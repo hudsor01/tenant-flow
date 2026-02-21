@@ -21,8 +21,8 @@ import type {
 
 // Import query keys from separate file to avoid circular dependency
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'
-import { apiRequest } from '#lib/api-request'
-import { useUser } from '#hooks/api/use-auth'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
@@ -144,18 +144,24 @@ export function usePrefetchMaintenanceRequestDetail(id: string) {
  */
 export function useMaintenanceRequestCreateMutation() {
 	const queryClient = useQueryClient()
-	const { data: user } = useUser()
 
 	return useMutation({
 		mutationKey: mutationKeys.maintenance.create,
-		mutationFn: (data: MaintenanceRequestCreate) =>
-			apiRequest<MaintenanceRequest>('/api/v1/maintenance', {
-				method: 'POST',
-				body: JSON.stringify({
-					...data,
-					owner_user_id: user?.id
-				})
-			}),
+		mutationFn: async (data: MaintenanceRequestCreate): Promise<MaintenanceRequest> => {
+			const supabase = createClient()
+			const { data: { user } } = await supabase.auth.getUser()
+			const userId = user?.id
+
+			const { data: created, error } = await supabase
+				.from('maintenance_requests')
+				.insert({ ...data, owner_user_id: userId })
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'maintenance_requests')
+
+			return created as MaintenanceRequest
+		},
 		onSuccess: _newRequest => {
 			// Invalidate and refetch maintenance lists
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
@@ -170,14 +176,22 @@ export function useMaintenanceRequestCreateMutation() {
 
 /**
  * Delete maintenance request mutation
+ * Hard delete — maintenance requests are not financial records requiring 7-year retention
  */
 export function useDeleteMaintenanceRequest() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.maintenance.delete,
-		mutationFn: (id: string) =>
-			apiRequest<void>(`/api/v1/maintenance/${id}`, { method: 'DELETE' }),
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('maintenance_requests')
+				.delete()
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'maintenance_requests')
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -196,13 +210,23 @@ export function useMaintenanceRequestUpdateMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.maintenance.update,
-		mutationFn: ({ id, data, version }: MaintenanceUpdateMutationVariables) =>
-			apiRequest<MaintenanceRequest>(`/api/v1/maintenance/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(
-					version !== undefined ? { ...data, version } : data
-				)
-			}),
+		mutationFn: async ({ id, data, version: _version }: MaintenanceUpdateMutationVariables): Promise<MaintenanceRequest> => {
+			// Note: version is intentionally unused — optimistic locking via version
+			// is not implemented in the DB schema. The parameter is kept in the
+			// interface for future compatibility.
+			const supabase = createClient()
+
+			const { data: updated, error } = await supabase
+				.from('maintenance_requests')
+				.update(data)
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'maintenance_requests')
+
+			return updated as MaintenanceRequest
+		},
 		onSuccess: updatedRequest => {
 			// Update the specific maintenance request in cache
 			queryClient.setQueryData(
