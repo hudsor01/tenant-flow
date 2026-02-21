@@ -11,7 +11,7 @@ import { SupabaseService } from '../../database/supabase.service'
 import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { AppLogger } from '../../logger/app-logger.service'
-import { PropertyAccessService } from '../properties/services/property-access.service'
+import { PropertyAccessService } from './property-access.service'
 
 /**
  * Financial Service
