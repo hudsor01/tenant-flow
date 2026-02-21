@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { Dashboard } from '#components/dashboard/dashboard'
 import { OwnerOnboardingTour } from '#components/tours/owner-onboarding-tour'
+import { OnboardingWizard } from '#components/onboarding/onboarding-wizard'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	Empty,
@@ -283,6 +284,7 @@ function DashboardContent() {
 export default function DashboardPage() {
 	return (
 		<>
+			<OnboardingWizard />
 			<OwnerOnboardingTour />
 			<div className="@container/main flex min-h-screen w-full flex-col bg-background">
 				<ErrorBoundary

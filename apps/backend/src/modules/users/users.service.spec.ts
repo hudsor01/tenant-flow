@@ -319,6 +319,84 @@ describe('UsersService', () => {
 	})
 
 	// ================================================================
+	// updateOnboarding
+	// ================================================================
+	describe('updateOnboarding', () => {
+		it('updates onboarding status to started', async () => {
+			const qb = createQueryBuilder({ data: null, error: null })
+			qb.update = jest.fn().mockReturnValue(qb)
+			qb.eq = jest.fn().mockResolvedValue({ error: null })
+			mockAdminClient.from.mockReturnValue(qb)
+
+			await expect(
+				service.updateOnboarding(mockUserId, 'started')
+			).resolves.toBeUndefined()
+
+			expect(mockAdminClient.from).toHaveBeenCalledWith('users')
+			expect(qb.update).toHaveBeenCalledWith(
+				expect.objectContaining({ onboarding_status: 'started' })
+			)
+			// Does NOT set onboarding_completed_at for non-completed status
+			expect(qb.update).not.toHaveBeenCalledWith(
+				expect.objectContaining({ onboarding_completed_at: expect.any(String) })
+			)
+		})
+
+		it('updates onboarding status to skipped', async () => {
+			const qb = createQueryBuilder({ data: null, error: null })
+			qb.update = jest.fn().mockReturnValue(qb)
+			qb.eq = jest.fn().mockResolvedValue({ error: null })
+			mockAdminClient.from.mockReturnValue(qb)
+
+			await expect(
+				service.updateOnboarding(mockUserId, 'skipped')
+			).resolves.toBeUndefined()
+
+			expect(qb.update).toHaveBeenCalledWith(
+				expect.objectContaining({ onboarding_status: 'skipped' })
+			)
+			expect(qb.update).not.toHaveBeenCalledWith(
+				expect.objectContaining({ onboarding_completed_at: expect.any(String) })
+			)
+		})
+
+		it('sets onboarding_completed_at when status is completed', async () => {
+			const beforeTest = new Date().toISOString()
+			const qb = createQueryBuilder({ data: null, error: null })
+			qb.update = jest.fn().mockReturnValue(qb)
+			qb.eq = jest.fn().mockResolvedValue({ error: null })
+			mockAdminClient.from.mockReturnValue(qb)
+
+			await expect(
+				service.updateOnboarding(mockUserId, 'completed')
+			).resolves.toBeUndefined()
+
+			const updateCall = qb.update.mock.calls[0][0] as Record<string, string>
+			expect(updateCall.onboarding_status).toBe('completed')
+			expect(updateCall.onboarding_completed_at).toBeDefined()
+			expect(new Date(updateCall.onboarding_completed_at).getTime()).toBeGreaterThanOrEqual(
+				new Date(beforeTest).getTime()
+			)
+		})
+
+		it('throws InternalServerErrorException when database update fails', async () => {
+			const qb = createQueryBuilder({ data: null, error: null })
+			qb.update = jest.fn().mockReturnValue(qb)
+			qb.eq = jest
+				.fn()
+				.mockResolvedValue({ error: { message: 'DB connection failed' } })
+			mockAdminClient.from.mockReturnValue(qb)
+
+			await expect(
+				service.updateOnboarding(mockUserId, 'completed')
+			).rejects.toThrow(InternalServerErrorException)
+			await expect(
+				service.updateOnboarding(mockUserId, 'completed')
+			).rejects.toThrow('Failed to update onboarding status: DB connection failed')
+		})
+	})
+
+	// ================================================================
 	// deleteAccount
 	// ================================================================
 	describe('deleteAccount', () => {

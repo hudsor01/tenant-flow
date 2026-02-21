@@ -68,6 +68,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto'
 import { UpdateTourProgressDto } from './dto/update-tour-progress.dto'
 import { UpdatePhoneDto } from './dto/update-phone.dto'
 import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto'
+import { UpdateOnboardingDto } from './dto/update-onboarding.dto'
 import { AppLogger } from '../../logger/app-logger.service'
 import { UserToursService } from './user-tours.service'
 import { UserSessionsService } from './user-sessions.service'
@@ -114,6 +115,42 @@ export class UsersController {
 		res.setHeader('Content-Type', 'application/json')
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(jsonString)
+	}
+
+	/**
+	 * Update onboarding status for current user
+	 *
+	 * Marks onboarding as started, completed, or skipped.
+	 * Sets onboarding_completed_at when status is 'completed'.
+	 */
+	@ApiOperation({ summary: 'Update onboarding status', description: 'Update onboarding wizard progress for the current user' })
+	@ApiBody({ schema: { type: 'object', properties: { status: { type: 'string', enum: ['started', 'completed', 'skipped'] } }, required: ['status'] } })
+	@ApiResponse({ status: 200, description: 'Onboarding status updated successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Patch('me/onboarding')
+	@SkipSubscriptionCheck()
+	async updateOnboarding(
+		@Req() req: AuthenticatedRequest,
+		@Body() dto: UpdateOnboardingDto
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Updating onboarding status', {
+			user_id: req.user.id,
+			status: dto.status
+		})
+
+		await this.usersService.updateOnboarding(req.user.id, dto.status)
+
+		this.logger.log('Onboarding status updated', {
+			user_id: req.user.id,
+			status: dto.status
+		})
+
+		return { success: true, status: dto.status }
 	}
 
 	/**

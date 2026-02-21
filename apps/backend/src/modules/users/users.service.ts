@@ -128,6 +128,28 @@ export class UsersService {
 		return data
 	}
 
+	async updateOnboarding(userId: string, status: string): Promise<void> {
+		const updateData: Record<string, string | null> = {
+			onboarding_status: status
+		}
+
+		if (status === 'completed') {
+			updateData.onboarding_completed_at = new Date().toISOString()
+		}
+
+		const { error } = await this.supabase
+			.getAdminClient()
+			.from('users')
+			.update(updateData as unknown as UserUpdate)
+			.eq('id', userId)
+
+		if (error) {
+			throw new InternalServerErrorException(
+				`Failed to update onboarding status: ${error.message}`
+			)
+		}
+	}
+
 	async deleteAccount(user_id: string): Promise<void> {
 		const adminClient = this.supabase.getAdminClient()
 
