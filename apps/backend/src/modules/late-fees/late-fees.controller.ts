@@ -10,9 +10,11 @@ import {
 	BadRequestException,
 	Body,
 	Controller,
+	Get,
 	Param,
 	ParseUUIDPipe,
 	Post,
+	Put,
 	Req
 } from '@nestjs/common'
 import {
@@ -78,6 +80,11 @@ export class LateFeesController {
 	 * SECURITY: Requires authentication via JwtAuthGuard (global)
 	 * SECURITY: Verifies lease ownership before returning config
 	 */
+	@ApiOperation({ summary: 'Get late fee config', description: 'Get late fee configuration for a specific lease' })
+	@ApiResponse({ status: 200, description: 'Late fee config retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get(':lease_id/config')
 	async getConfig(
 		@Req() req: AuthenticatedRequest,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string
@@ -114,6 +121,12 @@ export class LateFeesController {
 	/**
 	 * Update late fee configuration for a lease
 	 */
+	@ApiOperation({ summary: 'Update late fee config', description: 'Update late fee configuration for a specific lease' })
+	@ApiBody({ schema: { type: 'object', properties: { gracePeriodDays: { type: 'number', description: 'Grace period in days (0-30)' }, flatFeeAmount: { type: 'number', description: 'Flat fee amount in dollars (0-500)' } } } })
+	@ApiResponse({ status: 200, description: 'Late fee config updated successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Put(':lease_id/config')
 	async updateConfig(
 		@Req() req: AuthenticatedRequest,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string,
@@ -258,6 +271,11 @@ export class LateFeesController {
 	/**
 	 * Get overdue payments for a lease
 	 */
+	@ApiOperation({ summary: 'Get overdue payments', description: 'Get all overdue payments for a specific lease' })
+	@ApiResponse({ status: 200, description: 'Overdue payments retrieved successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get(':lease_id/overdue')
 	async getOverduePayments(
 		@Req() req: AuthenticatedRequest,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string
@@ -302,6 +320,11 @@ export class LateFeesController {
 	/**
 	 * Process late fees for all overdue payments on a lease
 	 */
+	@ApiOperation({ summary: 'Process late fees', description: 'Process and apply late fees for all overdue payments on a lease' })
+	@ApiResponse({ status: 201, description: 'Late fees processed successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post(':lease_id/process')
 	async processLateFees(
 		@Req() req: AuthenticatedRequest,
 		@Param('lease_id', ParseUUIDPipe) lease_id: string
@@ -343,6 +366,12 @@ export class LateFeesController {
 	/**
 	 * Apply late fee to specific payment
 	 */
+	@ApiOperation({ summary: 'Apply late fee', description: 'Apply a late fee charge to a specific payment' })
+	@ApiBody({ schema: { type: 'object', required: ['late_fee_amount', 'reason'], properties: { late_fee_amount: { type: 'number', description: 'Late fee amount in dollars' }, reason: { type: 'string', description: 'Reason for late fee' } } } })
+	@ApiResponse({ status: 201, description: 'Late fee applied successfully' })
+	@ApiResponse({ status: 400, description: 'Invalid input or access denied' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post(':paymentId/apply')
 	async applyLateFee(
 		@Req() req: AuthenticatedRequest,
 		@Param('paymentId', ParseUUIDPipe) paymentId: string,

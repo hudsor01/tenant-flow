@@ -84,7 +84,12 @@ export class InspectionsService {
     const client = this.supabase.getAdminClient()
     const { data, error } = await client
       .from('inspections')
-      .select('*')
+      .select(`
+        id, lease_id, property_id, unit_id, inspection_type, status,
+        scheduled_date, completed_at, created_at, updated_at,
+        owner_user_id, tenant_reviewed_at, tenant_signature_data,
+        overall_condition, owner_notes, tenant_notes
+      `)
       .eq('id', id)
       .eq('owner_user_id', userId)
       .single()
@@ -93,7 +98,7 @@ export class InspectionsService {
     return data
   }
 
-  async findOneWithRooms(id: string, userId: string): Promise<unknown> {
+  async findOneWithRooms(id: string, userId: string): Promise<InspectionWithRelations> {
     const client = this.supabase.getAdminClient()
     const { data, error } = await client
       .from('inspections')
@@ -111,14 +116,19 @@ export class InspectionsService {
       .single()
 
     if (error || !data) throw new NotFoundException('Inspection not found')
-    return data
+    return data as unknown as InspectionWithRelations
   }
 
   async findByLease(leaseId: string, userId: string): Promise<InspectionRow[]> {
     const client = this.supabase.getAdminClient()
     const { data, error } = await client
       .from('inspections')
-      .select('*')
+      .select(`
+        id, lease_id, property_id, unit_id, inspection_type, status,
+        scheduled_date, completed_at, created_at, updated_at,
+        owner_user_id, tenant_reviewed_at, tenant_signature_data,
+        overall_condition, owner_notes, tenant_notes
+      `)
       .eq('lease_id', leaseId)
       .eq('owner_user_id', userId)
       .order('created_at', { ascending: true })
