@@ -187,11 +187,18 @@ Plans:
 
 **Requirements**: CRUD-03, CRUD-04
 
+**Plans:** 3 plans
+
 **Success criteria**:
 1. `use-maintenance.ts` and `use-vendor.ts` use PostgREST for all queries and mutations including vendor assignment to maintenance requests; `apiRequest` removed from both files.
 2. `use-inspections.ts` uses PostgREST for all inspection CRUD including room creation, photo upload metadata, and tenant-review operations.
 3. Supabase Storage direct upload (already used for property images) extended to inspection photos — no NestJS file proxy.
 4. Maintenance and inspection list pages load correctly; vendor dropdown populates from PostgREST in under 300 ms on cold start.
+
+Plans:
+- [ ] 52-01-PLAN.md — DB migration (new maintenance statuses) + migrate maintenance-keys.ts, use-maintenance.ts, use-vendor.ts to PostgREST
+- [ ] 52-02-PLAN.md — Migrate inspection-keys.ts and use-inspections.ts to PostgREST + Storage
+- [ ] 52-03-PLAN.md — Delete NestJS maintenance and inspections modules + RLS integration tests for 3 domains
 
 ---
 
