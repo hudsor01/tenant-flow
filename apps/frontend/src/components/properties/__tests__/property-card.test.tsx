@@ -34,6 +34,8 @@ const mockProperty: Property = {
 	status: 'active',
 	stripe_connected_account_id: null,
 	owner_user_id: 'owner-1',
+	acquisition_cost: null,
+	acquisition_date: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
 	date_sold: null,

@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing'
 import { YearEndReportService } from './year-end-report.service'
 import { SupabaseService } from '../../database/supabase.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import { PDFGeneratorService } from '../pdf/pdf-generator.service'
+import { TaxDocumentsService } from '../financial/tax-documents.service'
 import * as reportsUtils from './reports.utils'
 
 // Spy on loadPropertyIdsByOwner so we can control it per-test
@@ -63,6 +65,18 @@ describe('YearEndReportService', () => {
 						log: jest.fn(),
 						warn: jest.fn(),
 						error: jest.fn()
+					}
+				},
+				{
+					provide: PDFGeneratorService,
+					useValue: {
+						generateFromHtml: jest.fn().mockResolvedValue(Buffer.from('pdf'))
+					}
+				},
+				{
+					provide: TaxDocumentsService,
+					useValue: {
+						generateTaxDocuments: jest.fn().mockResolvedValue({})
 					}
 				}
 			]

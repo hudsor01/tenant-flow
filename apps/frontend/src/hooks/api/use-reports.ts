@@ -565,3 +565,52 @@ export function useDownload1099Csv() {
 	})
 }
 
+/**
+ * Mutation hook to download year-end summary as a PDF file
+ */
+export function useDownloadYearEndPdf() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.downloadYearEndPdf,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw(
+				`/api/v1/reports/year-end/pdf?year=${year}`
+			)
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `year-end-${year}.pdf`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => toast.success('Year-end report downloaded'),
+		onError: (err: unknown) => handleMutationError(err, 'Download year-end PDF')
+	})
+}
+
+/**
+ * Mutation hook to download tax documents as a PDF file
+ */
+export function useDownloadTaxDocumentPdf() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw(
+				`/api/v1/reports/tax-documents/pdf?year=${year}`
+			)
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `tax-documents-${year}.pdf`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => toast.success('Tax documents downloaded'),
+		onError: (err: unknown) => handleMutationError(err, 'Download tax documents PDF')
+	})
+}

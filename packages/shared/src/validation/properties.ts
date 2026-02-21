@@ -206,7 +206,9 @@ export const propertyFormSchema = z.object({
 	postal_code: requiredString,
 	country: z.string().optional().default('US'),
 	property_type: propertyTypeSchema,
-	owner_user_id: requiredString
+	owner_user_id: requiredString,
+	acquisition_cost: z.number().positive('Purchase price must be positive').optional().nullable(),
+	acquisition_date: z.string().optional().nullable()
 })
 
 export const propertyUpdateFormSchema = propertyFormSchema.partial()

@@ -32,6 +32,8 @@ import {
 import { PropertyFormActions } from './sections/property-form-actions'
 import { uploadPropertyImages } from './property-form-upload'
 import { usePropertyImageDropzone } from './use-property-image-dropzone'
+import { Label } from '#components/ui/label'
+import { Input } from '#components/ui/input'
 
 interface PropertyFormProps {
 	mode: 'create' | 'edit'
@@ -124,7 +126,11 @@ export function PropertyForm({
 			city: property?.city ?? '',
 			state: property?.state ?? '',
 			postal_code: property?.postal_code ?? '',
-			country: property?.country ?? 'US'
+			country: property?.country ?? 'US',
+			acquisition_cost: (property?.acquisition_cost !== null && property?.acquisition_cost !== undefined
+				? Number(property.acquisition_cost)
+				: null) as number | null,
+			acquisition_date: property?.acquisition_date ?? ''
 		},
 		onSubmit: async ({ value }) => {
 			try {
@@ -176,7 +182,13 @@ export function PropertyForm({
 			country: value.country,
 			property_type: value.property_type,
 			status: 'active' as const,
-			...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+			...(value.address_line2 ? { address_line2: value.address_line2 } : {}),
+			...(value.acquisition_cost !== null
+				? { acquisition_cost: value.acquisition_cost }
+				: {}),
+			...(value.acquisition_date
+				? { acquisition_date: value.acquisition_date }
+				: {})
 		}
 		logger.info('Creating property', { action: 'formSubmission', data: createData })
 
@@ -217,7 +229,13 @@ export function PropertyForm({
 			postal_code: value.postal_code,
 			country: value.country,
 			property_type: value.property_type,
-			...(value.address_line2 ? { address_line2: value.address_line2 } : {})
+			...(value.address_line2 ? { address_line2: value.address_line2 } : {}),
+			...(value.acquisition_cost !== null
+				? { acquisition_cost: value.acquisition_cost }
+				: { acquisition_cost: null }),
+			...(value.acquisition_date
+				? { acquisition_date: value.acquisition_date }
+				: { acquisition_date: null })
 		}
 		logger.info('Updating property', {
 			action: 'formSubmission',
@@ -257,6 +275,64 @@ export function PropertyForm({
 				<div className="space-y-4 border rounded-lg p-6">
 					<PropertyInfoSection form={form} />
 					<PropertyAddressSection form={form} />
+				</div>
+
+				{/* Acquisition Details (optional) */}
+				<div className="space-y-4 border rounded-lg p-6">
+					<div>
+						<h3 className="text-sm font-medium">Acquisition Details</h3>
+						<p className="text-xs text-muted-foreground mt-1">
+							Optional. Used for accurate depreciation calculations in your tax documents.
+						</p>
+					</div>
+
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<form.Field name="acquisition_cost">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="acquisition_cost">Purchase Price</Label>
+									<Input
+										id="acquisition_cost"
+										type="number"
+										step="0.01"
+										min="0"
+										placeholder="e.g. 250000"
+										value={field.state.value ?? ''}
+										onChange={e => {
+											const raw = e.target.value
+											field.handleChange(raw === '' ? null : parseFloat(raw))
+										}}
+										onBlur={field.handleBlur}
+									/>
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
+										<p className="text-xs text-destructive">
+											{String(field.state.meta.errors[0])}
+										</p>
+									)}
+								</div>
+							)}
+						</form.Field>
+
+						<form.Field name="acquisition_date">
+							{field => (
+								<div className="space-y-2">
+									<Label htmlFor="acquisition_date">Purchase Date</Label>
+									<Input
+										id="acquisition_date"
+										type="date"
+										value={field.state.value ?? ''}
+										onChange={e => field.handleChange(e.target.value)}
+										onBlur={field.handleBlur}
+									/>
+									{(field.state.meta.errors?.length ?? 0) > 0 && (
+										<p className="text-xs text-destructive">
+											{String(field.state.meta.errors[0])}
+										</p>
+									)}
+								</div>
+							)}
+						</form.Field>
+					</div>
 				</div>
 
 				{mode === 'edit' && property?.id && (

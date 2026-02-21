@@ -1,8 +1,10 @@
 import {
 	Controller,
 	Get,
+	ParseIntPipe,
 	Query,
 	Req,
+	StreamableFile,
 	UnauthorizedException
 } from '@nestjs/common'
 import {
@@ -33,6 +35,9 @@ interface AuthenticatedRequest extends Request {
  * - ReportExportController: File export operations (Excel, CSV, PDF)
  * - ReportGenerationController: Complex report generation with templates
  * - ReportAnalyticsController: Analytics data for dashboards
+ *
+ * Route ordering: static routes (year-end/pdf, tax-documents/pdf, year-end/1099)
+ * are declared BEFORE any dynamic /:id routes.
  */
 @ApiTags('Reports')
 @ApiBearerAuth('supabase-auth')
@@ -176,6 +181,62 @@ export class ReportsController {
 		}
 	}
 
+	// NOTE: Static sub-routes (year-end/pdf, year-end/1099) must be declared
+	// BEFORE the parent route (year-end) to avoid route shadowing issues.
+
+	/**
+	 * GET /reports/year-end/pdf
+	 * Download year-end financial summary as a PDF file
+	 */
+	@ApiOperation({ summary: 'Download year-end PDF', description: 'Generate and download year-end financial summary as a PDF file' })
+	@ApiQuery({ name: 'year', required: true, type: Number, description: 'Tax year to generate PDF for' })
+	@ApiResponse({ status: 200, description: 'PDF file downloaded successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('year-end/pdf')
+	async downloadYearEndPdf(
+		@Req() req: AuthenticatedRequest,
+		@Query('year', ParseIntPipe) year: number
+	): Promise<StreamableFile> {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const pdf = await this.yearEndReportService.generateYearEndPdf(user_id, year)
+
+		return new StreamableFile(pdf, {
+			type: 'application/pdf',
+			disposition: `attachment; filename="year-end-${year}.pdf"`
+		})
+	}
+
+	/**
+	 * GET /reports/year-end/1099
+	 * 1099-NEC vendor data for vendors paid over $600 threshold
+	 */
+	@ApiOperation({ summary: 'Get 1099-NEC vendor data', description: 'Get vendors paid over $600 threshold for 1099-NEC reporting' })
+	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Tax year (defaults to current year)' })
+	@ApiResponse({ status: 200, description: '1099 vendor data retrieved successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('year-end/1099')
+	async get1099Vendors(
+		@Req() req: AuthenticatedRequest,
+		@Query('year') year?: string
+	) {
+		const user_id = req.user?.id
+		if (!user_id) {
+			throw new UnauthorizedException('User not authenticated')
+		}
+
+		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
+		const data = await this.yearEndReportService.get1099Vendors(user_id, taxYear)
+
+		return {
+			success: true,
+			data
+		}
+	}
+
 	/**
 	 * GET /reports/year-end
 	 * Year-end income/expense summary for tax purposes
@@ -204,29 +265,33 @@ export class ReportsController {
 	}
 
 	/**
-	 * GET /reports/year-end/1099
-	 * 1099-NEC vendor data for vendors paid over $600 threshold
+	 * GET /reports/tax-documents/pdf
+	 * Download tax documents as a PDF file
 	 */
-	@ApiOperation({ summary: 'Get 1099-NEC vendor data', description: 'Get vendors paid over $600 threshold for 1099-NEC reporting' })
-	@ApiQuery({ name: 'year', required: false, type: Number, description: 'Tax year (defaults to current year)' })
-	@ApiResponse({ status: 200, description: '1099 vendor data retrieved successfully' })
+	@ApiOperation({ summary: 'Download tax documents PDF', description: 'Generate and download tax documents (Schedule E, depreciation) as a PDF file' })
+	@ApiQuery({ name: 'year', required: true, type: Number, description: 'Tax year to generate PDF for' })
+	@ApiResponse({ status: 200, description: 'PDF file downloaded successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
-	@Get('year-end/1099')
-	async get1099Vendors(
+	@Get('tax-documents/pdf')
+	async downloadTaxDocumentPdf(
 		@Req() req: AuthenticatedRequest,
-		@Query('year') year?: string
-	) {
+		@Query('year', ParseIntPipe) year: number
+	): Promise<StreamableFile> {
 		const user_id = req.user?.id
 		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
-		const data = await this.yearEndReportService.get1099Vendors(user_id, taxYear)
+		const token = req.headers.authorization?.split(' ')[1] ?? ''
+		const pdf = await this.yearEndReportService.generateTaxDocumentPdf(
+			token,
+			user_id,
+			year
+		)
 
-		return {
-			success: true,
-			data
-		}
+		return new StreamableFile(pdf, {
+			type: 'application/pdf',
+			disposition: `attachment; filename="tax-documents-${year}.pdf"`
+		})
 	}
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useYearEndSummary, use1099Summary } from '#hooks/api/use-reports'
+import { useYearEndSummary, use1099Summary, useDownloadYearEndPdf } from '#hooks/api/use-reports'
 import { YearEndReportSection } from '#components/reports/sections/year-end-report-section'
 import {
 	Select,
@@ -10,7 +10,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { FileText, ChevronLeft } from 'lucide-react'
+import { FileText, ChevronLeft, Download, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '#components/ui/button'
 import { toast } from 'sonner'
@@ -65,6 +65,14 @@ export default function YearEndReportsPage() {
 		useYearEndSummary(selectedYear)
 	const { data: data1099Response, isLoading: isLoading1099 } =
 		use1099Summary(selectedYear)
+
+	const downloadPdfMutation = useDownloadYearEndPdf()
+
+	const hasData = yearEndResponse && (
+		yearEndResponse.grossRentalIncome > 0 ||
+		yearEndResponse.operatingExpenses > 0 ||
+		yearEndResponse.byProperty.length > 0
+	)
 
 	const handleDownloadYearEndCsv = () => {
 		if (!yearEndResponse) return
@@ -178,6 +186,22 @@ export default function YearEndReportsPage() {
 							))}
 						</SelectContent>
 					</Select>
+
+					<Button
+						variant="outline"
+						size="sm"
+						className="gap-1.5 min-h-11"
+						onClick={() => downloadPdfMutation.mutate(selectedYear)}
+						disabled={downloadPdfMutation.isPending || isLoadingYearEnd || !hasData}
+						aria-label="Download year-end report as PDF"
+					>
+						{downloadPdfMutation.isPending ? (
+							<Loader2 className="size-4 animate-spin" />
+						) : (
+							<Download className="size-4" />
+						)}
+						{downloadPdfMutation.isPending ? 'Generating...' : 'Download PDF'}
+					</Button>
 				</div>
 			</div>
 
