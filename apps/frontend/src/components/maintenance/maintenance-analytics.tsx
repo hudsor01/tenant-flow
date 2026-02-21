@@ -63,7 +63,7 @@ const COLORS = {
 export function MaintenanceAnalytics() {
 	const { data: stats, isLoading } = useQuery({
 		...maintenanceQueries.stats(),
-		select: data => data as MaintenanceStats
+		select: data => data as unknown as MaintenanceStats
 	})
 
 	if (isLoading) {
