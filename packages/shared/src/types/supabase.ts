@@ -616,6 +616,7 @@ export type Database = {
           title: string
           unit_id: string
           updated_at: string | null
+          vendor_id: string | null
         }
         Insert: {
           actual_cost?: number | null
@@ -637,6 +638,7 @@ export type Database = {
           title?: string
           unit_id: string
           updated_at?: string | null
+          vendor_id?: string | null
         }
         Update: {
           actual_cost?: number | null
@@ -658,6 +660,7 @@ export type Database = {
           title?: string
           unit_id?: string
           updated_at?: string | null
+          vendor_id?: string | null
         }
         Relationships: [
           {
@@ -693,6 +696,13 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
             referencedColumns: ["id"]
           },
         ]
@@ -1980,6 +1990,48 @@ export type Database = {
           stripe_customer_id?: string | null
           updated_at?: string | null
           user_type?: string
+        }
+        Relationships: []
+      }
+      vendors: {
+        Row: {
+          created_at: string
+          email: string | null
+          hourly_rate: number | null
+          id: string
+          name: string
+          notes: string | null
+          owner_user_id: string
+          phone: string | null
+          status: string
+          trade: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_user_id: string
+          phone?: string | null
+          status?: string
+          trade: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_user_id?: string
+          phone?: string | null
+          status?: string
+          trade?: string
+          updated_at?: string
         }
         Relationships: []
       }

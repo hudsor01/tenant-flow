@@ -272,6 +272,7 @@ export function createMockMaintenanceRequest(
 		inspector_id: overrides?.inspector_id || null,
 		inspection_date: overrides?.inspection_date || null,
 		inspection_findings: overrides?.inspection_findings || null,
+		vendor_id: overrides?.vendor_id ?? null,
 		owner_user_id: overrides?.owner_user_id || 'owner-123',
 		created_at: new Date().toISOString(),
 		updated_at: new Date().toISOString(),
