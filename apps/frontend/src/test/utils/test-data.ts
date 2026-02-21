@@ -212,6 +212,7 @@ export const DEFAULT_MAINTENANCE_REQUEST = {
 	inspector_id: null,
 	inspection_date: null,
 	inspection_findings: null,
+	vendor_id: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z',
 	property: {

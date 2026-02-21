@@ -49,6 +49,7 @@ describe('MaintenanceService', () => {
 		inspection_date: null,
 		inspection_findings: null,
 		inspector_id: null,
+		vendor_id: null,
 		created_at: '2024-01-15T10:00:00Z',
 		updated_at: '2024-01-15T10:00:00Z'
 	}
