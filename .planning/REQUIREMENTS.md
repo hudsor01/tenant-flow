@@ -81,8 +81,13 @@ Eliminate the NestJS/Railway backend entirely. Migrate all 26 frontend hook file
 
 ## Traceability
 
-*To be filled by roadmapper — maps phases to REQ-IDs.*
-
-| Phase | Requirements Covered |
-|-------|---------------------|
-| TBD | TBD |
+| Phase | Name | Requirements Covered |
+|-------|------|---------------------|
+| 50 | Infrastructure & Auth Foundation + User/Profile CRUD | CRUD-05 |
+| 51 | Core CRUD Migration — Properties, Units, Tenants, Leases | CRUD-01, CRUD-02 |
+| 52 | Operations CRUD Migration — Maintenance, Vendors, Inspections | CRUD-03, CRUD-04 |
+| 53 | Analytics, Reports & Tenant Portal — RPCs + pg_graphql | REPT-01, REPT-02, REPT-03, GRAPH-01, GRAPH-02 |
+| 54 | Payments & Billing — PostgREST + Stripe Edge Functions | PAY-01, PAY-02, PAY-03, PAY-04 |
+| 55 | External Services Edge Functions — StirlingPDF & DocuSeal | EXT-01, EXT-02 |
+| 56 | Scheduled Jobs & DB Webhooks — pg_cron + n8n | SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02 |
+| 57 | Cleanup & Deletion — Remove NestJS Entirely | CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04, CLEAN-05 |

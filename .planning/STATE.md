@@ -7,7 +7,7 @@ Plan: —
 Status: Defining requirements
 Last activity: 2026-02-21 — Milestone v7.0 started (Backend Elimination: NestJS → Supabase Direct)
 
-Progress: ░░░░░░░░░░ 0% (0 of N v7.0 phases done)
+Progress: ░░░░░░░░░░ 0% (0 of 8 v7.0 phases done)
 
 ## Active Milestone
 
@@ -21,7 +21,14 @@ None yet.
 
 ### Pending This Milestone
 
-TBD — roadmap being defined.
+- Phase 50: Infrastructure & Auth Foundation + User/Profile CRUD (CRUD-05)
+- Phase 51: Core CRUD Migration — Properties, Units, Tenants, Leases (CRUD-01, CRUD-02)
+- Phase 52: Operations CRUD Migration — Maintenance, Vendors, Inspections (CRUD-03, CRUD-04)
+- Phase 53: Analytics, Reports & Tenant Portal — RPCs + pg_graphql (REPT-01, REPT-02, REPT-03, GRAPH-01, GRAPH-02)
+- Phase 54: Payments & Billing — PostgREST + Stripe Edge Functions (PAY-01, PAY-02, PAY-03, PAY-04)
+- Phase 55: External Services Edge Functions — StirlingPDF & DocuSeal (EXT-01, EXT-02)
+- Phase 56: Scheduled Jobs & DB Webhooks — pg_cron + n8n (SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02)
+- Phase 57: Cleanup & Deletion — Remove NestJS Entirely (CLEAN-01, CLEAN-02, CLEAN-03, CLEAN-04, CLEAN-05)
 
 ## Accumulated Context
 
