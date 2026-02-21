@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/r
 import { apiRequest } from '#lib/api-request'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 import { toast } from 'sonner'
 
 // ============================================================================
@@ -129,6 +130,7 @@ export function useCreateVendorMutation() {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor added successfully')
 		},
 		onError: (error) => handleMutationError(error, 'Add vendor'),
@@ -146,6 +148,7 @@ export function useUpdateVendorMutation() {
 		onSuccess: (vendor) => {
 			queryClient.setQueryData(vendorKeys.detail(vendor.id).queryKey, vendor)
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor updated successfully')
 		},
 		onError: (error) => handleMutationError(error, 'Update vendor'),
@@ -159,6 +162,7 @@ export function useDeleteVendorMutation() {
 			apiRequest<void>(`/api/v1/vendors/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor removed')
 		},
 		onError: (error) => handleMutationError(error, 'Remove vendor'),
