@@ -2,17 +2,17 @@
 
 ## Current Position
 
-Phase: 47 of 49 (Component Refactoring complete — 3 phases remain)
-Status: v6.0 In Progress
-Last activity: 2026-02-20 — Phases 38-43, 45, 47 complete; phases 44, 46, 48, 49 pending
+Phase: 49 of 49 complete — v6.0 SHIPPED
+Status: v6.0 Complete
+Last activity: 2026-02-20 — All 12 v6.0 phases complete (38-49)
 
-Progress: ████████░░ 80% (8 of 12 v6.0 phases done, counting 33-37 as shipped)
+Progress: ██████████ 100% (12 of 12 v6.0 phases done)
 
 ## Active Milestone
 
-**v6.0 Production Grade Completion**
+**v6.0 Production Grade Completion — COMPLETE**
 
-Phases 38-49. Focus: complete every remaining gap so TenantFlow is genuinely production-grade and ready to monetize.
+Phases 38-49. All phases shipped 2026-02-20.
 
 ### Completed This Milestone
 
@@ -22,15 +22,16 @@ Phases 38-49. Focus: complete every remaining gap so TenantFlow is genuinely pro
 - **Phase 41** — Test Coverage (Financial/Billing): financial.service, billing.service, rent-payments.service unit tests
 - **Phase 42** — Test Coverage (Infrastructure): report, dashboard, lease, maintenance, tenant, user service tests (2229 backend tests total)
 - **Phase 43** — CI/CD: Sentry backend source maps on deploy, RLS integration test suite
+- **Phase 44** — DocuSeal E-Signature Integration: confirmed production-ready (25/25 tests passing, 8 endpoints, full frontend, DB migrations applied)
 - **Phase 45** — Vendor Management: vendors table + RLS, CRUD API (VendorsModule), maintenance request assignment, vendor list UI
+- **Phase 46** — Financial Reporting: year-end summary report, 1099 vendor data, PDF export, acquisition cost/date columns on properties table, Schedule E tax document scaffold
 - **Phase 47** — Component Refactoring: 32 components >300 lines split into 161 focused sub-components across all domains
+- **Phase 48** — Move-In/Move-Out Inspection: inspections table + RLS migrations, full backend module (InspectionsModule), inspection rooms, photo upload, tenant review/signature, 21 unit tests
+- **Phase 49** — Landlord Onboarding Wizard: multi-step dialog wizard (welcome → property → Stripe → tenant → complete), backend PATCH /users/me/onboarding endpoint, onboarding status tracking, wired to dashboard
 
 ### Pending This Milestone
 
-- **Phase 44** — DocuSeal E-Signature Integration
-- **Phase 46** — Financial Reporting — Year-End + Tax Documents
-- **Phase 48** — Move-In/Move-Out Inspection — Database-Backed Implementation
-- **Phase 49** — Landlord Onboarding Wizard
+None — milestone complete.
 
 ## Accumulated Context
 
@@ -44,12 +45,9 @@ Phases 38-49. Focus: complete every remaining gap so TenantFlow is genuinely pro
 - Property images: direct Supabase Storage upload from frontend, `property_images` table tracks metadata
 - E2E auth: `storageState` injects cookies — do NOT call `loginAsOwner()` in tests using the chromium project
 
-### Known Gaps (from v6.0 audit)
+### Known Gaps (current)
 
-1. **DocuSeal** — PDF_GENERATION_DOCUSEAL_INTEGRATION.md doc exists; implementation not started
-2. **Financial year-end reports** — tax-documents page is placeholder; no 1099 or annual summary generation
-3. **Move-in/move-out inspection** — stub only; no real form, photo upload, or PDF report
-4. **Landlord onboarding wizard** — no wizard exists; new owners are dropped into blank dashboard
+None identified — all v6.0 gaps closed.
 
 ### Dropped Phases (intentional)
 
@@ -62,9 +60,10 @@ Phases 38-49. Focus: complete every remaining gap so TenantFlow is genuinely pro
 - Milestone v4.0 created: Production-Parity Testing & Observability, 7 phases (26-32)
 - Milestone v5.0 created: Production Hardening & Revenue Completion, 5 phases (33-37)
 - Milestone v6.0 created: Production Grade Completion, 12 phases (38-49, skipping none)
+- Milestone v6.0 shipped: 2026-02-20 — all 12 phases complete
 
 ## Session Continuity
 
 Last session: 2026-02-20
-Completed: Phase 47 (component refactoring committed — 161 files)
+Completed: All v6.0 phases (38-49) — milestone complete
 Resume file: None
