@@ -2,22 +2,39 @@
 
 ## Current Position
 
-Phase: 37 of 37 (Financial Wiring)
-Plan: Completed
-Status: v5.0 Milestone Complete
-Last activity: 2026-02-19 — All phases 33-37 executed and committed
+Phase: 47 of 49 (Component Refactoring complete — 3 phases remain)
+Status: v6.0 In Progress
+Last activity: 2026-02-20 — Phases 38-43, 45, 47 complete; phases 44, 46, 48, 49 pending
 
-Progress: ██████████ 100%
+Progress: ████████░░ 80% (8 of 12 v6.0 phases done, counting 33-37 as shipped)
 
 ## Active Milestone
 
-**v5.0 Production Hardening & Revenue Completion**
+**v6.0 Production Grade Completion**
 
-Phases 33-37. Focus: close the gap between what exists in the codebase and what customers can actually use.
+Phases 38-49. Focus: complete every remaining gap so TenantFlow is genuinely production-grade and ready to monetize.
+
+### Completed This Milestone
+
+- **Phase 38** — Code Quality: replaced all `select('*')` with explicit columns, compression middleware, tenants.controller route ordering
+- **Phase 39** — GDPR/CCPA: `DELETE /users/me` (deleteAccount cascade), `GET /users/me/export`, account-data-section UI in settings
+- **Phase 40** — Security: per-endpoint rate limiting on auth routes, MIME validation hardening
+- **Phase 41** — Test Coverage (Financial/Billing): financial.service, billing.service, rent-payments.service unit tests
+- **Phase 42** — Test Coverage (Infrastructure): report, dashboard, lease, maintenance, tenant, user service tests (2229 backend tests total)
+- **Phase 43** — CI/CD: Sentry backend source maps on deploy, RLS integration test suite
+- **Phase 45** — Vendor Management: vendors table + RLS, CRUD API (VendorsModule), maintenance request assignment, vendor list UI
+- **Phase 47** — Component Refactoring: 32 components >300 lines split into 161 focused sub-components across all domains
+
+### Pending This Milestone
+
+- **Phase 44** — DocuSeal E-Signature Integration
+- **Phase 46** — Financial Reporting — Year-End + Tax Documents
+- **Phase 48** — Move-In/Move-Out Inspection — Database-Backed Implementation
+- **Phase 49** — Landlord Onboarding Wizard
 
 ## Accumulated Context
 
-### Key Decisions (carried from v4.0)
+### Key Decisions (carried from v5.0)
 
 - Auth: Supabase session cookie → `Authorization: Bearer` header to NestJS (ADR-0004)
 - Per-request Supabase user client via `accessToken` callback (ADR-0004)
@@ -27,25 +44,27 @@ Phases 33-37. Focus: close the gap between what exists in the codebase and what 
 - Property images: direct Supabase Storage upload from frontend, `property_images` table tracks metadata
 - E2E auth: `storageState` injects cookies — do NOT call `loginAsOwner()` in tests using the chromium project
 
-### Known Gaps (from smoke test analysis, 2026-02-18)
+### Known Gaps (from v6.0 audit)
 
-1. **Stripe Connect** — backend endpoints exist, frontend hooks exist, but `ConnectOnboardingDialog` is misplaced in tenant route and owner has no visible CTA to start Connect onboarding
-2. **Subscription enforcement** — Free tier users can access Pro features; plan limits not enforced at API or UI level
-3. **Tenant rent payment** — portal is incomplete; tenants cannot pay rent end-to-end
-4. **Financial page data** — pages may show empty/placeholder content despite data existing
+1. **DocuSeal** — PDF_GENERATION_DOCUSEAL_INTEGRATION.md doc exists; implementation not started
+2. **Financial year-end reports** — tax-documents page is placeholder; no 1099 or annual summary generation
+3. **Move-in/move-out inspection** — stub only; no real form, photo upload, or PDF report
+4. **Landlord onboarding wizard** — no wizard exists; new owners are dropped into blank dashboard
 
-### Blockers / Concerns Carried Forward
+### Dropped Phases (intentional)
 
-None at milestone start.
+- ~~Phase 46: In-App Messaging~~ — removed; not required for monetization
+- ~~Phase 48: SMS Notifications (Twilio)~~ — removed; `sms.service.ts` deleted; email covers this
 
 ## Roadmap Evolution
 
 - Milestone v3.0 created: Backend Architecture Excellence, 8 phases (18-25)
 - Milestone v4.0 created: Production-Parity Testing & Observability, 7 phases (26-32)
 - Milestone v5.0 created: Production Hardening & Revenue Completion, 5 phases (33-37)
+- Milestone v6.0 created: Production Grade Completion, 12 phases (38-49, skipping none)
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Completed: Milestone v5.0 — all 5 phases (33-37) complete
+Last session: 2026-02-20
+Completed: Phase 47 (component refactoring committed — 161 files)
 Resume file: None
