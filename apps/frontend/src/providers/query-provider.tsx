@@ -16,6 +16,7 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
+import { isApiError } from '#lib/api-request'
 import { createQueryErrorHandlers } from './query-error-handler'
 import { buildPersistOptions, createIdbPersister } from './query-persistence'
 
@@ -183,10 +184,12 @@ export function QueryProvider({
 
 	// Capture query and mutation errors to Sentry
 	useEffect(() => {
-		// Capture query errors to Sentry
+		// Capture query errors to Sentry (skip expected 4xx client errors)
 		const queryUnsubscribe = queryClient.getQueryCache().subscribe(event => {
 			if (event.type === 'updated' && event.query.state.status === 'error') {
 				const error = event.query.state.error
+				// 4xx errors are expected (auth errors, validation, not found) - not bugs
+				if (isApiError(error) && error.isClientError) return
 				Sentry.captureException(error, {
 					tags: { source: 'react-query' },
 					contexts: {
@@ -199,7 +202,7 @@ export function QueryProvider({
 			}
 		})
 
-		// Capture mutation errors to Sentry
+		// Capture mutation errors to Sentry (skip expected 4xx client errors)
 		const mutationUnsubscribe = queryClient
 			.getMutationCache()
 			.subscribe(event => {
@@ -208,6 +211,8 @@ export function QueryProvider({
 					event.mutation.state.status === 'error'
 				) {
 					const error = event.mutation.state.error
+					// 4xx errors are expected (validation, conflicts) - not bugs
+					if (isApiError(error) && error.isClientError) return
 					Sentry.captureException(error, {
 						tags: { source: 'react-query-mutation' },
 						contexts: {
