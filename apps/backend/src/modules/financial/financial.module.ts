@@ -7,7 +7,6 @@
  */
 
 import { Module } from '@nestjs/common'
-import { PropertiesModule } from '../properties/properties.module'
 import { BalanceSheetController } from './balance-sheet.controller'
 import { BalanceSheetService } from './balance-sheet.service'
 import { CashFlowController } from './cash-flow.controller'
@@ -21,9 +20,10 @@ import { FinancialExpenseService } from './financial-expense.service'
 import { FinancialRevenueService } from './financial-revenue.service'
 import { FinancialAnalyticsPublicController } from './financial-analytics.controller'
 import { FinancialOverviewController } from './financial-overview.controller'
+import { PropertyAccessService } from './property-access.service'
 
 @Module({
-	imports: [PropertiesModule],
+	imports: [],
 	controllers: [
 		FinancialOverviewController,
 		IncomeStatementController,
@@ -33,6 +33,7 @@ import { FinancialOverviewController } from './financial-overview.controller'
 		FinancialAnalyticsPublicController
 	],
 	providers: [
+		PropertyAccessService,
 		FinancialExpenseService,
 		FinancialRevenueService,
 		FinancialService,
@@ -42,6 +43,7 @@ import { FinancialOverviewController } from './financial-overview.controller'
 		TaxDocumentsService
 	],
 	exports: [
+		PropertyAccessService,
 		FinancialExpenseService,
 		FinancialRevenueService,
 		FinancialService,

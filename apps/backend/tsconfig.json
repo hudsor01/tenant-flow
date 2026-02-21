@@ -6,7 +6,7 @@
 		"baseUrl": ".",
 		"outDir": "./dist",
 		"tsBuildInfoFile": "./.tsbuildinfo",
-		"types": ["node", "jest", "express"],
+		"types": ["node", "jest", "express", "multer"],
 		"composite": false,
 		"declaration": true,
 		"declarationMap": true,

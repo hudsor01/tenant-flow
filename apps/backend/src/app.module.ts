@@ -75,12 +75,10 @@ import { LeasesModule } from './modules/leases/leases.module'
 import { MaintenanceModule } from './modules/maintenance/maintenance.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { OwnerDashboardModule } from './modules/owner-dashboard/owner-dashboard.module'
-import { PropertiesModule } from './modules/properties/properties.module'
 import { RentPaymentsModule } from './modules/rent-payments/rent-payments.module'
 import { ReportsModule } from './modules/reports/reports.module'
 import { StripeSyncModule } from './modules/stripe-sync/stripe-sync.module'
 import { TenantsModule } from './modules/tenants/tenants.module'
-import { UnitsModule } from './modules/units/units.module'
 import { UsersModule } from './modules/users/users.module'
 import { SecurityModule } from './security/security.module'
 import { JwtAuthGuard } from './shared/auth/jwt-auth.guard'
@@ -278,8 +276,6 @@ const ENV_FILE_PATHS = ENV_FILE_CANDIDATES.map(candidate =>
 		DashboardModule,
 		FinancialModule,
 		OwnerDashboardModule,
-		PropertiesModule,
-		UnitsModule,
 		TenantsModule,
 		TenantPortalModule,
 		LeasesModule,
