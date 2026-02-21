@@ -27,13 +27,10 @@ import {
 	ApiResponse,
 	ApiTags,
 } from '@nestjs/swagger'
-import { createZodDto } from 'nestjs-zod'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import { VendorsService } from './vendors.service'
-import { vendorCreateSchema, vendorUpdateSchema } from '@repo/shared/validation/vendors'
-
-export class CreateVendorDto extends createZodDto(vendorCreateSchema) {}
-export class UpdateVendorDto extends createZodDto(vendorUpdateSchema) {}
+import { CreateVendorDto } from './dto/create-vendor.dto'
+import { UpdateVendorDto } from './dto/update-vendor.dto'
 
 @ApiTags('Vendors')
 @ApiBearerAuth('supabase-auth')

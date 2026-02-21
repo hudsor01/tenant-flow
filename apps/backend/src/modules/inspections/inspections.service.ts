@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException
 } from '@nestjs/common'
 import { SupabaseService } from '../../database/supabase.service'
@@ -155,7 +156,7 @@ export class InspectionsService {
       .select()
       .single()
 
-    if (error || !data) throw new NotFoundException('Failed to create inspection')
+    if (error || !data) throw new InternalServerErrorException('Failed to create inspection')
     return data
   }
 
@@ -308,7 +309,7 @@ export class InspectionsService {
       .eq('id', id)
       .eq('owner_user_id', userId)
 
-    if (error) throw new NotFoundException('Failed to delete inspection')
+    if (error) throw new InternalServerErrorException('Failed to delete inspection')
   }
 
   // Room management
@@ -338,7 +339,7 @@ export class InspectionsService {
       .select()
       .single()
 
-    if (error || !data) throw new NotFoundException('Failed to create room')
+    if (error || !data) throw new InternalServerErrorException('Failed to create room')
     return data
   }
 
@@ -406,7 +407,7 @@ export class InspectionsService {
       .delete()
       .eq('id', roomId)
 
-    if (error) throw new NotFoundException('Failed to delete room')
+    if (error) throw new InternalServerErrorException('Failed to delete room')
   }
 
   // Photo record management (actual file upload is done client-side to Supabase Storage)
@@ -467,10 +468,15 @@ export class InspectionsService {
 
     if (!inspection) throw new ForbiddenException('Access denied')
 
-    // Remove file from storage
-    await client.storage.from('inspection-photos').remove([photo.storage_path])
+    // Remove file from storage (best-effort: file may already be gone)
+    const { error: storageError } = await client.storage.from('inspection-photos').remove([photo.storage_path])
+    if (storageError) {
+      // Log but don't throw — storage removal is non-critical if the DB record is deleted
+      console.error('Storage removal failed for photo', photoId, storageError.message)
+    }
 
     // Remove DB record
-    await client.from('inspection_photos').delete().eq('id', photoId)
+    const { error: dbError } = await client.from('inspection_photos').delete().eq('id', photoId)
+    if (dbError) throw new InternalServerErrorException('Failed to delete photo record')
   }
 }
