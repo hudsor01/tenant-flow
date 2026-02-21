@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 51-core-crud-migration-properties-units-tenants-leases
-Plan: 04 (complete) — Phase 51 COMPLETE
+Plan: 05 (complete) — Phase 51 COMPLETE
 Status: Complete — next phase: 52
-Last activity: 2026-02-21 — Phase 51-04 complete: leases migrated to PostgREST + tenants/leases NestJS modules deleted
+Last activity: 2026-02-21 — Phase 51-05 complete: apps/integration-tests/ bootstrapped + 4 RLS isolation tests (properties, units, tenants, leases)
 
 Progress: ▓▓▓▓░░░░░░ ~25% (Phase 51 complete, Phase 52 next)
 
@@ -21,11 +21,11 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Phase 51-02: Units domain migrated to PostgREST (unit-keys.ts, use-unit.ts) + NestJS properties/units modules deleted
 - Phase 51-03: Tenants domain verified migrated to PostgREST (tenant-keys.ts, use-tenant.ts) + test suite fixed
 - Phase 51-04: Leases domain migrated to PostgREST (lease-keys.ts, use-lease.ts) + NestJS tenants/leases modules deleted (~26k lines removed)
+- Phase 51-05: apps/integration-tests/ bootstrapped (Jest + @supabase/supabase-js) + 4 RLS cross-tenant isolation test suites (properties, units, tenants, leases)
 
 ### Pending This Milestone
 
 - Phase 50: Infrastructure & Auth Foundation + User/Profile CRUD (CRUD-05)
-- Phase 51: Core CRUD Migration — Properties, Units, Tenants, Leases (CRUD-01, CRUD-02)
 - Phase 52: Operations CRUD Migration — Maintenance, Vendors, Inspections (CRUD-03, CRUD-04)
 - Phase 53: Analytics, Reports & Tenant Portal — RPCs + pg_graphql (REPT-01, REPT-02, REPT-03, GRAPH-01, GRAPH-02)
 - Phase 54: Payments & Billing — PostgREST + Stripe Edge Functions (PAY-01, PAY-02, PAY-03, PAY-04)
@@ -68,6 +68,14 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `UpdateNotificationPreferencesDto` inlined into `settings.controller.ts` (single consumer — simpler than shared location)
 - 5 additional test files deleted that imported from deleted leases/tenants modules (docuseal-submission-creation, n1-queries.e2e, subscription-retry.integration, pdf-generation.processor specs)
 
+**Phase 51-05 decisions:**
+- `pnpm-workspace.yaml` unchanged — workspace already uses `apps/*` glob that covers `apps/integration-tests`
+- `--testPathPatterns` (plural) used in `test:rls` script — Jest 30 renamed from singular `--testPathPattern`
+- `useESM: false` + `module: 'commonjs'` in ts-jest inline config — avoids ESM/CJS conflicts without changing base tsconfig
+- Integration tests have their own `tsconfig.json` with `"module": "CommonJS"` and `"moduleResolution": "node"` for Jest compatibility
+- `leases.rls.test.ts` filters by `lease_status` (not `status`) — consistent with Phase 51-04 DB column discovery
+- `getTestCredentials()` throws loudly if env vars missing — no silent test skipping
+
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
 - Stripe: Platform billing via Stripe Subscriptions; rent collection via Stripe Connect Express
@@ -105,5 +113,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-21
-Completed: Phase 51-04 — leases domain migrated to PostgREST + NestJS tenants/leases modules deleted (89 files changed, ~26k lines removed)
+Completed: Phase 51-05 — apps/integration-tests/ bootstrapped + 4 RLS cross-tenant isolation test suites. Phase 51 fully complete.
 Resume file: None
