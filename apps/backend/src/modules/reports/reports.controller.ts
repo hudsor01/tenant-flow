@@ -1,5 +1,6 @@
 import {
 	Controller,
+	DefaultValuePipe,
 	Get,
 	ParseIntPipe,
 	Query,
@@ -217,15 +218,14 @@ export class ReportsController {
 	@Get('year-end/1099')
 	async get1099Vendors(
 		@Req() req: AuthenticatedRequest,
-		@Query('year') year?: string
+		@Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number
 	) {
 		const user_id = req.user?.id
 		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
-		const data = await this.yearEndReportService.get1099Vendors(user_id, taxYear)
+		const data = await this.yearEndReportService.get1099Vendors(user_id, year)
 
 		return {
 			success: true,
@@ -244,15 +244,14 @@ export class ReportsController {
 	@Get('year-end')
 	async getYearEndSummary(
 		@Req() req: AuthenticatedRequest,
-		@Query('year') year?: string
+		@Query('year', new DefaultValuePipe(new Date().getFullYear()), ParseIntPipe) year: number
 	) {
 		const user_id = req.user?.id
 		if (!user_id) {
 			throw new UnauthorizedException('User not authenticated')
 		}
 
-		const taxYear = year ? parseInt(year, 10) : new Date().getFullYear()
-		const data = await this.yearEndReportService.getYearEndSummary(user_id, taxYear)
+		const data = await this.yearEndReportService.getYearEndSummary(user_id, year)
 
 		return {
 			success: true,

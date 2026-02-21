@@ -110,21 +110,49 @@ export class TenantLeaseQueryService {
 		const client = this.requireUserClient(filters.token)
 
 		try {
+			// Build search filter consistent with the data queries
+			let searchFilter: string | undefined
+			if (filters.search) {
+				const sanitized = sanitizeSearchInput(filters.search)
+				if (sanitized) {
+					searchFilter = buildMultiColumnSearch(sanitized, [
+						'emergency_contact_name',
+						'emergency_contact_phone'
+					])
+				}
+			}
+
+			// User-side: apply search filter so count matches filtered data
+			let userTenantsQuery = client
+				.from('tenants')
+				.select('id')
+				.eq('user_id', userId)
+			if (searchFilter) {
+				userTenantsQuery = userTenantsQuery.or(searchFilter)
+			}
+
 			// Fetch both sets of tenant IDs in parallel
 			const [userTenantsResult, ownerIdsResult] = await Promise.all([
-				client
-					.from('tenants')
-					.select('id')
-					.eq('user_id', userId),
-				client.rpc('get_tenants_with_lease_by_owner', {
-					p_user_id: userId
-				})
+				userTenantsQuery,
+				client.rpc('get_tenants_with_lease_by_owner', { p_user_id: userId })
 			])
 
 			const userTenantIds = (userTenantsResult.data ?? []).map(
 				(row: { id: string }) => row.id
 			)
-			const ownerTenantIds = (ownerIdsResult.data as string[] | null) ?? []
+			const allOwnerTenantIds = (ownerIdsResult.data as string[] | null) ?? []
+
+			// When search is active, filter owner-side IDs through the same search
+			// constraint so the count reflects what the data query actually returns
+			let ownerTenantIds = allOwnerTenantIds
+			if (searchFilter && allOwnerTenantIds.length > 0) {
+				const { data: filtered } = await client
+					.from('tenants')
+					.select('id')
+					.in('id', allOwnerTenantIds)
+					.or(searchFilter)
+				ownerTenantIds = (filtered ?? []).map((t: { id: string }) => t.id)
+			}
 
 			// Deduplicate across both sets for accurate total count
 			const uniqueIds = new Set<string>([
