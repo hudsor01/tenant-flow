@@ -208,12 +208,21 @@ Plans:
 
 **Requirements**: REPT-01, REPT-02, REPT-03, GRAPH-01, GRAPH-02
 
+**Plans:** 5 plans
+
 **Success criteria**:
 1. `use-owner-dashboard.ts` and `use-analytics.ts` call `supabase.rpc('get_dashboard_stats', ...)` and related RPCs directly; zero `apiRequest()` calls remain.
 2. pg_graphql is enabled on the Supabase project; complex dashboard aggregations (portfolio overview, occupancy trends, revenue by property) use `supabase.rpc('graphql.resolve', { query })` reducing multiple round-trips to one.
 3. `use-reports.ts` and `use-financials.ts` use `supabase.rpc()` for all data queries; CSV download calls a new `supabase/functions/export-report` Edge Function returning a blob.
 4. `use-tenant-portal.ts` uses PostgREST for all tenant dashboard data (lease details, payment history, maintenance status).
 5. All financial and analytics pages render with real data and no console errors; report CSV downloads successfully in the browser.
+
+Plans:
+- [ ] 53-01-PLAN.md — Migrate use-owner-dashboard.ts + use-analytics.ts to supabase.rpc()
+- [ ] 53-02-PLAN.md — Migrate use-reports.ts + use-financials.ts to supabase.rpc() + PostgREST
+- [ ] 53-03-PLAN.md — Migrate use-tenant-portal.ts to PostgREST + 4-section tenant portal dashboard + read-only kanban
+- [ ] 53-04-PLAN.md — Enable pg_graphql portfolio overview query (GRAPH-01, GRAPH-02)
+- [ ] 53-05-PLAN.md — Create export-report Supabase Edge Function + wire download mutations
 
 ---
 
