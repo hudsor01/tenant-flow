@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 52-operations-crud-migration-maintenance-vendors-inspections
-Plan: 02 (complete) — inspection hooks PostgREST migration complete
-Status: In progress — 52-01 complete (maintenance/vendor hooks), 52-02 complete (inspection hooks), 52-03 pending
-Last activity: 2026-02-21 — Phase 52-02 complete: inspection-keys.ts and use-inspections.ts migrated to PostgREST + Storage
+Plan: 03 (complete) — NestJS maintenance, vendors, inspections modules deleted + RLS tests added
+Status: COMPLETE — all 3 plans done (52-01 maintenance/vendor hooks, 52-02 inspection hooks, 52-03 module deletion + RLS tests)
+Last activity: 2026-02-21 — Phase 52-03 complete: deleted 31 NestJS files, updated app.module.ts, added 3 RLS test suites (7 total)
 
 Progress: ▓▓▓▓░░░░░░ ~25% (Phase 51 complete, Phase 52 next)
 
@@ -91,6 +91,12 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `useCompleteInspection` pre-validates all `inspection_rooms.condition_rating` are set before updating status to 'completed' — throws descriptive Error with count if unassessed rooms remain
 - PostgREST join inference fix: cast `row.properties as unknown as { name; address_line1 } | null` (not direct cast) to avoid TS2352 array-to-object overlap error
 - Photo storage cleanup in `useDeleteInspectionRoom` and `useDeleteInspectionPhoto` is non-blocking try/catch — DB delete is authoritative
+
+**Phase 52-03 decisions:**
+- No `.neq('status', 'inactive')` filter in maintenance RLS tests — maintenance_requests are hard-deleted, not soft-deleted (confirmed from Phase 52-01)
+- `owner-dashboard/maintenance/maintenance.module.ts` and `tenant-portal/maintenance/maintenance.module.ts` are independent analytics-only modules (different class names) — NOT deleted in this phase
+- VendorsModule was inside the maintenance module directory — deleted with it, no separate cleanup needed
+- 7 total RLS cross-tenant isolation test suites now: properties, units, tenants, leases, maintenance_requests, vendors, inspections
 
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`

@@ -198,7 +198,7 @@ Plans:
 Plans:
 - [x] 52-01-PLAN.md — DB migration (new maintenance statuses) + migrate maintenance-keys.ts, use-maintenance.ts, use-vendor.ts to PostgREST
 - [x] 52-02-PLAN.md — Migrate inspection-keys.ts and use-inspections.ts to PostgREST + Storage
-- [ ] 52-03-PLAN.md — Delete NestJS maintenance and inspections modules + RLS integration tests for 3 domains
+- [x] 52-03-PLAN.md — Delete NestJS maintenance and inspections modules + RLS integration tests for 3 domains
 
 ---
 
@@ -298,7 +298,7 @@ Plans:
 | 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |
 | 50. Infrastructure + User/Profile CRUD | v7.0 | Pending | — |
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
-| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Pending | — |
+| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | ✅ Complete | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Pending | — |
 | 55. External Services — StirlingPDF & DocuSeal | v7.0 | Pending | — |
