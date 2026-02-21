@@ -28,6 +28,7 @@ import { unitQueries } from './query-keys/unit-keys'
 import { propertyQueries } from './query-keys/property-keys'
 import { leaseQueries } from './query-keys/lease-keys'
 import { mutationKeys } from './mutation-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 
 /**
  * Extract data array from paginated response
@@ -164,6 +165,7 @@ export function useCreateUnitMutation() {
 		onSuccess: _newUnit => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Unit created successfully')
 		},
 		onError: error => {
@@ -201,6 +203,7 @@ export function useUpdateUnitMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Unit updated successfully')
 		},
 		onError: error => {
@@ -228,6 +231,7 @@ export function useDeleteUnitMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Unit deleted successfully')
 		},
 		onError: error => {

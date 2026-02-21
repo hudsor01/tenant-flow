@@ -90,9 +90,13 @@ const useSupabaseUpload = (options: UseSupabaseUploadOptions) => {
 
 		const responses = await Promise.all(
 			filesToUpload.map(async file => {
+				// Generate unique filename to prevent "resource already exists" errors
+				const ext = file.name.split('.').pop() || 'jpg'
+				const uniqueName = `${crypto.randomUUID()}.${ext}`
+				const uploadPath = path ? `${path}/${uniqueName}` : uniqueName
 				const { error } = await supabase.storage
 					.from(bucketName)
-					.upload(path ? `${path}/${file.name}` : file.name, file, {
+					.upload(uploadPath, file, {
 						cacheControl: cacheControl.toString(),
 						upsert
 					})

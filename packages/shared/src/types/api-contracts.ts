@@ -744,7 +744,7 @@ export interface CreateLeaseInput {
 	// Selection (Step 1)
 	unit_id: string
 	primary_tenant_id: string
-	property_owner_id?: string
+	owner_user_id?: string
 
 	// Terms (Step 2)
 	start_date: string
@@ -823,7 +823,7 @@ export interface CreatePropertyInput {
 	postal_code: string
 	country?: string
 	property_type?: string
-	property_owner_id: string
+	owner_user_id: string
 	units_count?: number
 }
 
@@ -847,7 +847,7 @@ export interface CreateUnitInput {
 	square_feet?: number | null | undefined
 	rent_amount?: number | null | undefined
 	rent_currency?: string | null | undefined
-	status?: 'vacant' | 'occupied' | 'maintenance' | 'RESERVED' | null | undefined
+	status?: 'available' | 'occupied' | 'maintenance' | 'reserved' | null | undefined
 }
 
 export interface UpdateUnitInput {
@@ -858,7 +858,7 @@ export interface UpdateUnitInput {
 	square_feet?: number | null
 	rent_amount?: number | null
 	rent_currency?: string | null
-	status?: 'vacant' | 'occupied' | 'maintenance' | 'RESERVED' | null
+	status?: 'available' | 'occupied' | 'maintenance' | 'reserved' | null
 }
 
 // Pagination response wrapper

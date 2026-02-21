@@ -92,11 +92,31 @@ interface Property { ... }
 ```
 
 Type file purposes:
-- `core.ts` - API patterns, entities, utilities (PRIMARY)
-- `domain.ts` - Domain-specific types
+- `core.ts` - DB row aliases, enum string unions, insert/update helpers (PRIMARY)
+- `relations.ts` - Joined types with eager-loaded relations
+- `api-contracts.ts` - API request/response shapes
+- `financial-statements.ts` - Income statement, cash flow, balance sheet types
+- `analytics.ts` - Dashboard KPIs, occupancy, revenue chart types
+- `database-rpc.ts` - Supabase RPC function return types
+- `stripe.ts` - Stripe Connect account and subscription types
+- `domain.ts` - Cross-domain business objects
 - `auth.ts` - Authentication types
 - `supabase.ts` - Generated database types (DO NOT EDIT)
 - `frontend.ts` - UI-specific types only
+- `sections/<domain>.ts` - Display types for complex joined shapes (e.g. `MaintenanceDisplayRequest`)
+
+### Type Lookup Protocol (MANDATORY)
+
+Before defining any new type, check in this exact order:
+
+1. Search `packages/shared/src/types/TYPES.md` — master lookup table for all shared types
+2. Check `packages/shared/src/types/supabase.ts` — raw DB rows via `Tables<'tablename'>`
+3. Check `packages/shared/src/types/core.ts` — named row aliases and enum string unions
+4. Check `packages/shared/src/types/relations.ts` — joined types with relations
+5. Check `packages/shared/src/types/api-contracts.ts` — API shapes
+6. Check `packages/shared/src/types/sections/<domain>.ts` — display types for that domain
+
+**Zero tolerance**: If a type exists in shared, you MUST use it. Creating a local duplicate type that mirrors a shared type is a blocking violation. If you need a new shared type, add it to the appropriate shared file.
 
 ### Naming Conventions
 

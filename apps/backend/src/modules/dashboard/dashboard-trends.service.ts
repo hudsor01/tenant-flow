@@ -173,7 +173,7 @@ export class DashboardTrendsService {
 			// RLS will automatically filter to user's data
 			const { count, error } = await client
 				.from('rent_payments')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 				.limit(1)
 
 			if (error) {

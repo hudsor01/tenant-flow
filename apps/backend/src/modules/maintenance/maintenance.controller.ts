@@ -126,7 +126,7 @@ export class MaintenanceController {
 		const safeOffset = normalizeOffset(offset ?? 0)
 
 		// RLS: Pass JWT token to service layer
-		const data = await this.maintenanceService.findAll(token, {
+		const { data, count } = await this.maintenanceService.findAll(token, {
 			unit_id,
 			property_id,
 			priority,
@@ -139,12 +139,13 @@ export class MaintenanceController {
 		})
 
 		// Return PaginatedResponse format expected by frontend
+		// Use count from Supabase { count: 'exact' } for accurate total
 		return {
 			data,
-			total: data.length,
+			total: count,
 			limit: safeLimit,
 			offset: safeOffset,
-			hasMore: data.length >= safeLimit
+			hasMore: safeOffset + data.length < count
 		}
 	}
 

@@ -18,19 +18,10 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-
-interface CashFlowCategory {
-	category: string
-	amount: number
-	percentage: number
-}
-
-interface MonthlyCashFlow {
-	month: string
-	inflows: number
-	outflows: number
-	netCashFlow: number
-}
+import type {
+	CashFlowCategory,
+	MonthlyCashFlow
+} from '@repo/shared/types/financial-statements'
 
 interface CashFlowProps {
 	inflows: CashFlowCategory[]

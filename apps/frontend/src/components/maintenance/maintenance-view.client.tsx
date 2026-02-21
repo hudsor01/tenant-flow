@@ -36,16 +36,9 @@ import { MaintenanceTableClient } from './table/maintenance-table.client'
 import { columns } from './table/columns'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 import { useQuery } from '@tanstack/react-query'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 
 type ViewType = 'kanban' | 'table'
-
-// Extended type for display
-type MaintenanceRequestWithRelations = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-}
 
 export function MaintenanceViewClient() {
 	const router = useRouter()
@@ -75,7 +68,7 @@ export function MaintenanceViewClient() {
 
 	const { data: response, isLoading } = useQuery(maintenanceQueries.list())
 	const requests = useMemo(
-		() => (response?.data ?? []) as MaintenanceRequestWithRelations[],
+		() => (response?.data ?? []) as MaintenanceDisplayRequest[],
 		[response?.data]
 	)
 

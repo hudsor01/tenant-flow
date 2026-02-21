@@ -1,0 +1,67 @@
+'use client'
+
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+
+interface PortfolioPaginationProps {
+	currentPage: number
+	totalPages: number
+	totalItems: number
+	itemsPerPage: number
+	onPageChange: (page: number) => void
+}
+
+export function PortfolioPagination({
+	currentPage,
+	totalPages,
+	totalItems,
+	itemsPerPage,
+	onPageChange
+}: PortfolioPaginationProps) {
+	if (totalItems === 0 || totalPages <= 1) return null
+
+	const rangeStart = (currentPage - 1) * itemsPerPage + 1
+	const rangeEnd = Math.min(currentPage * itemsPerPage, totalItems)
+	const pageNumbers = Array.from(
+		{ length: Math.min(totalPages, 5) },
+		(_, i) => i + 1
+	)
+
+	return (
+		<div className="px-4 py-3 border-t border-border flex items-center justify-between">
+			<span className="text-sm text-muted-foreground">
+				Showing {rangeStart}–{rangeEnd} of {totalItems}
+			</span>
+			<div className="flex items-center gap-1">
+				<button
+					onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+					disabled={currentPage === 1}
+					className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label="Previous page"
+				>
+					<ChevronLeft className="w-4 h-4" />
+				</button>
+				{pageNumbers.map(page => (
+					<button
+						key={page}
+						onClick={() => onPageChange(page)}
+						className={`min-w-8 h-8 px-2 text-sm font-medium rounded-md transition-colors ${
+							page === currentPage
+								? 'bg-primary text-primary-foreground'
+								: 'hover:bg-muted text-muted-foreground'
+						}`}
+					>
+						{page}
+					</button>
+				))}
+				<button
+					onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+					disabled={currentPage === totalPages}
+					className="p-2 rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+					aria-label="Next page"
+				>
+					<ChevronRight className="w-4 h-4" />
+				</button>
+			</div>
+		</div>
+	)
+}

@@ -42,7 +42,7 @@ export class PropertiesService {
 
 		let queryBuilder = adminClient
 			.from('properties')
-			.select('*', { count: 'exact' })
+			.select('id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at', { count: 'exact' })
 			.eq('owner_user_id', user_id)
 			.order('created_at', { ascending: false })
 			.range(query.offset, query.offset + query.limit - 1)
@@ -82,7 +82,7 @@ export class PropertiesService {
 
 		const { data, error } = await adminClient
 			.from('properties')
-			.select('*')
+			.select('id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at')
 			.eq('id', property_id)
 			.eq('owner_user_id', user_id)
 			.single()
@@ -118,7 +118,7 @@ export class PropertiesService {
 		// against PostgREST is unreliable with the sb_publishable_* key format.
 		const { count: currentCount, error: countError } = await adminClient
 			.from('properties')
-			.select('*', { count: 'exact', head: true })
+			.select('id', { count: 'exact', head: true })
 			.eq('owner_user_id', user_id)
 			.neq('status', 'inactive')
 
@@ -353,7 +353,7 @@ export class PropertiesService {
 
 		const { data, error } = await adminClient
 			.from('units')
-			.select('*')
+			.select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 			.eq('property_id', property_id)
 			.order('unit_number', { ascending: true })
 

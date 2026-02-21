@@ -173,7 +173,7 @@ export const leaseRenewalSchema = z.object({
 	),
 	renewal_notes: z
 		.string()
-		.max(2000, 'Renewal notes cannot exceed 200 characters')
+		.max(2000, 'Renewal notes cannot exceed 2000 characters')
 		.optional()
 })
 
@@ -277,3 +277,10 @@ export const transformLeaseFormData = (data: LeaseFormData) => ({
 export type LeaseFormData = z.infer<typeof leaseFormSchema>
 export type LeaseCreateFormData = z.infer<typeof leaseCreateFormSchema>
 export type TransformedLeaseData = ReturnType<typeof transformLeaseFormData>
+
+// Schema for rejecting/declining a lease signature request
+export const rejectLeaseSchema = z.object({
+	message: z.string().max(1000, 'Rejection message cannot exceed 1000 characters').optional()
+})
+
+export type RejectLease = z.infer<typeof rejectLeaseSchema>

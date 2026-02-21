@@ -247,7 +247,7 @@ export class SubscriptionQueryService {
 		const { data, error } = await this.supabase
 			.getAdminClient()
 			.from('payment_methods')
-			.select('*')
+			.select('id, tenant_id, stripe_payment_method_id, type, brand, last_four, exp_month, exp_year, bank_name, is_default, created_at, updated_at')
 			.eq('id', id)
 			.single<PaymentMethodRow>()
 

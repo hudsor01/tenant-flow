@@ -127,11 +127,11 @@ export class ProfileService {
 			// Owner profile - count properties and units
 			const { count: propertiesCount } = await client
 				.from('properties')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 
 			const { count: unitsCount } = await client
 				.from('units')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 
 			// Check Stripe connection
 			const { data: stripeAccount } = await client

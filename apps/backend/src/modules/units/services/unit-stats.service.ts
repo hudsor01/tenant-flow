@@ -99,7 +99,7 @@ export class UnitStatsService {
 
 			const client = this.supabase.getUserClient(token)
 
-			let queryBuilder = client.from('units').select('*')
+			let queryBuilder = client.from('units').select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 
 			if (options.property_id) {
 				queryBuilder = queryBuilder.eq('property_id', options.property_id)

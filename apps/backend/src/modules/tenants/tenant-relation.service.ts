@@ -172,7 +172,7 @@ export class TenantRelationService {
 			const { data, error } = await this.supabase
 				.getAdminClient()
 				.from('rent_payments')
-				.select('*')
+				.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 				.in('tenant_id', tenantIds)
 				.order('created_at', { ascending: false })
 				.limit(tenantIds.length) // One most recent per tenant max
@@ -317,54 +317,35 @@ export class TenantRelationService {
 			return
 		}
 
-		const { data: lease, error: leaseError } = await client
+		const { data: leaseWithProperty, error: leaseError } = await client
 			.from('leases')
-			.select('id, unit_id')
+			.select('id, units!inner(property_id, properties!inner(owner_user_id))')
 			.eq('primary_tenant_id', tenantId)
-			.order('start_date', { ascending: false })
+			.eq('lease_status', 'active')
 			.limit(1)
 			.maybeSingle()
 
-		if (leaseError || !lease) {
-			this.logger.warn('No lease found for tenant when checking access', {
+		if (leaseError || !leaseWithProperty) {
+			this.logger.warn('No active lease found for tenant when checking access', {
 				tenantId,
 				error: leaseError
 			})
 			throw new NotFoundException('Lease not found for tenant')
 		}
 
-		if (!lease.unit_id) {
+		const unit = (leaseWithProperty as { id: string; units: { property_id: string; properties: { owner_user_id: string } } }).units
+		if (!unit?.property_id) {
 			this.logger.warn('Tenant lease missing unit association', {
 				tenantId,
-				leaseId: lease.id
+				leaseId: leaseWithProperty.id
 			})
 			throw new NotFoundException('Property not associated with tenant lease')
 		}
 
-		const { data: unit, error: unitError } = await client
-			.from('units')
-			.select('property_id')
-			.eq('id', lease.unit_id)
-			.single()
-
-		if (unitError || !unit?.property_id) {
-			this.logger.warn('Unit missing property when verifying tenant access', {
-				unitId: lease.unit_id,
-				error: unitError
-			})
-			throw new NotFoundException('Property not found for tenant lease')
-		}
-
-		const { data: property, error: propertyError } = await client
-			.from('properties')
-			.select('owner_user_id')
-			.eq('id', unit.property_id)
-			.single()
-
-		if (propertyError || !property) {
+		const property = unit.properties
+		if (!property) {
 			this.logger.warn('Property not found during tenant access check', {
-				propertyId: unit.property_id,
-				error: propertyError
+				propertyId: unit.property_id
 			})
 			throw new NotFoundException('Property not found for tenant')
 		}

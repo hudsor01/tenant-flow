@@ -12,13 +12,14 @@ export function parseDateRange(start_date?: string, end_date?: string) {
 
 export function buildMonthBuckets(start: Date, end: Date) {
 	const buckets = new Map<string, { income: number; expenses: number }>()
-	const cursor = new Date(start.getFullYear(), start.getMonth(), 1)
-	const last = new Date(end.getFullYear(), end.getMonth(), 1)
+	// Use UTC methods to avoid local-timezone shifts on UTC-midnight date strings
+	const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1))
+	const last = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1))
 
 	while (cursor <= last) {
 		const key = cursor.toISOString().substring(0, 7)
 		buckets.set(key, { income: 0, expenses: 0 })
-		cursor.setMonth(cursor.getMonth() + 1)
+		cursor.setUTCMonth(cursor.getUTCMonth() + 1)
 	}
 
 	return buckets

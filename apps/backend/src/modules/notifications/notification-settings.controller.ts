@@ -108,7 +108,7 @@ export class NotificationSettingsController {
 	): Promise<NotificationSettingsRow> {
 		const { data, error } = await client
 			.from('notification_settings')
-			.select('*')
+			.select('id, user_id, email, sms, push, in_app, general, maintenance, leases, version, created_at, updated_at')
 			.eq('user_id', userId)
 			.limit(1)
 

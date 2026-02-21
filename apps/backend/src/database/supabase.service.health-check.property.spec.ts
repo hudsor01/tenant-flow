@@ -230,7 +230,7 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
 					// Verify table ping was called when RPC failed
 					if (!rpcExists || rpcThrows) {
 						expect(mockAdminClient.from).toHaveBeenCalledWith('users')
-						expect(mockSelect).toHaveBeenCalledWith('*', {
+						expect(mockSelect).toHaveBeenCalledWith('id', {
 							count: 'exact',
 							head: true
 						})
@@ -279,7 +279,7 @@ describe('SupabaseService.checkConnection() - Property-Based Tests', () => {
 
 					// Verify table ping was called
 					expect(mockAdminClient.from).toHaveBeenCalledWith('users')
-					expect(mockSelect).toHaveBeenCalledWith('*', {
+					expect(mockSelect).toHaveBeenCalledWith('id', {
 						count: 'exact',
 						head: true
 					})

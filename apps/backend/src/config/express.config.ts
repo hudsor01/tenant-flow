@@ -2,13 +2,14 @@
  * Express Configuration
  * Centralized middleware registration with full TypeScript support
  *
- * NOTE: Compression is handled in main.ts (NestJS official pattern)
  * NOTE: Rate limiting is handled by @nestjs/throttler (see app.module.ts)
  * Removed redundant express-rate-limit in favor of native NestJS solution
  */
 
 import type { NestExpressApplication } from '@nestjs/platform-express'
 import { AppConfigService } from './app-config.service'
+import { performanceConfig } from './performance.config'
+import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import express, {
 	type NextFunction,
@@ -138,6 +139,9 @@ export async function registerExpressMiddleware(
 			}
 		})
 	)
+
+	// Response compression (gzip) - uses settings from performance.config.ts
+	app.use(compression(performanceConfig.optimization.compression))
 
 	// Cookie parsing
 	app.use(cookieParser(appConfigService.getJwtSecret()))

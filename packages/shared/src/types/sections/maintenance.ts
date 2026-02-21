@@ -1,7 +1,7 @@
 // Maintenance Section Types
 import type { ReactElement } from 'react'
 
-import type { MaintenanceStatus, MaintenancePriority } from '../core.js'
+import type { MaintenanceRequest, MaintenanceStatus, MaintenancePriority } from '../core.js'
 
 export interface MaintenanceProps {
 	// Request list
@@ -162,6 +162,17 @@ export type MaintenanceTimelineEventType =
 	| 'photo_added'
 	| 'scheduled'
 	| 'completed'
+
+/**
+ * Flat display type for maintenance requests with optional related entity names.
+ * Used by maintenance table, kanban, and card components.
+ */
+export type MaintenanceDisplayRequest = MaintenanceRequest & {
+	property?: { name: string } | null
+	unit?: { name: string } | null
+	assignedTo?: { name: string } | null
+	tenant?: { name: string } | null
+}
 
 export interface KanbanColumnProps {
 	title: string

@@ -86,13 +86,19 @@ export class FinancialService {
 				return this.getEmptyOverview(targetYear)
 			}
 
-			// Fetch leases and maintenance data using unit IDs
-			const [leasesData, maintenanceData] = await Promise.all([
-				client.from('leases').select('*').in('unit_id', unit_ids),
+			// Fetch leases, maintenance data, and expenses in parallel
+			const [leasesData, maintenanceData, expenses] = await Promise.all([
+				client.from('leases').select('auto_pay_enabled, created_at, docuseal_submission_id, end_date, governing_state, grace_period_days, id, late_fee_amount, late_fee_days, lead_paint_disclosure_acknowledged, lease_status, max_occupants, owner_signature_ip, owner_signature_method, owner_signed_at, owner_user_id, payment_day, pet_deposit, pet_rent, pets_allowed, primary_tenant_id, property_built_before_1978, property_rules, rent_amount, rent_currency, security_deposit, sent_for_signature_at, start_date, stripe_connected_account_id, stripe_subscription_id, stripe_subscription_status, subscription_failure_reason, subscription_last_attempt_at, subscription_retry_count, tenant_responsible_utilities, tenant_signature_ip, tenant_signature_method, tenant_signed_at, unit_id, updated_at, utilities_included').in('unit_id', unit_ids),
 				client
 					.from('maintenance_requests')
 					.select('estimated_cost, status')
-					.in('unit_id', unit_ids)
+					.in('unit_id', unit_ids),
+				this.expenseService.fetchExpenses(
+					property_ids,
+					new Date(targetYear, 0, 1),
+					new Date(targetYear + 1, 0, 1),
+					token
+				)
 			])
 
 			const leases = leasesData.data || []
@@ -106,12 +112,6 @@ export class FinancialService {
 				0
 			)
 
-			const expenses = await this.expenseService.fetchExpenses(
-				property_ids,
-				new Date(targetYear, 0, 1),
-				new Date(targetYear + 1, 0, 1),
-				token
-			)
 			const totalExpenses = expenses.reduce(
 				(sum, exp) => sum + (exp.amount || 0),
 				0
@@ -203,7 +203,7 @@ export class FinancialService {
 
 			const { data: leases, error } = await client
 				.from('leases')
-				.select('*')
+				.select('auto_pay_enabled, created_at, docuseal_submission_id, end_date, governing_state, grace_period_days, id, late_fee_amount, late_fee_days, lead_paint_disclosure_acknowledged, lease_status, max_occupants, owner_signature_ip, owner_signature_method, owner_signed_at, owner_user_id, payment_day, pet_deposit, pet_rent, pets_allowed, primary_tenant_id, property_built_before_1978, property_rules, rent_amount, rent_currency, security_deposit, sent_for_signature_at, start_date, stripe_connected_account_id, stripe_subscription_id, stripe_subscription_status, subscription_failure_reason, subscription_last_attempt_at, subscription_retry_count, tenant_responsible_utilities, tenant_signature_ip, tenant_signature_method, tenant_signed_at, unit_id, updated_at, utilities_included')
 				.in('unit_id', unit_ids)
 
 			if (error) {

@@ -10,7 +10,6 @@
  */
 
 import {
-	BadRequestException,
 	Body,
 	Controller,
 	DefaultValuePipe,
@@ -38,6 +37,7 @@ import { Throttle } from '@nestjs/throttler'
 import { PropertyOwnershipGuard } from '../../shared/guards/property-ownership.guard'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { InviteWithLeaseDto } from './dto/invite-with-lease.dto'
+import { ActivateTenantDto } from './dto/activate-tenant.dto'
 import { TenantQueryService } from './tenant-query.service'
 import { TenantPlatformInvitationService } from './tenant-platform-invitation.service'
 import { TenantInvitationTokenService } from './tenant-invitation-token.service'
@@ -211,11 +211,8 @@ export class TenantInvitationController {
 	@SetMetadata('isPublic', true)
 	async acceptInvitation(
 		@Param('token') token: string,
-		@Body() body: { authuser_id: string }
+		@Body() body: ActivateTenantDto
 	) {
-		if (!body.authuser_id) {
-			throw new BadRequestException('authuser_id is required')
-		}
 		return this.invitationTokenService.acceptToken(token, body.authuser_id)
 	}
 
@@ -231,10 +228,7 @@ export class TenantInvitationController {
 	@ApiResponse({ status: 400, description: 'authuser_id required' })
 	@Post('activate')
 	@SetMetadata('isPublic', true)
-	async activateTenant(@Body() body: { authuser_id: string }) {
-		if (!body.authuser_id) {
-			throw new BadRequestException('authuser_id is required')
-		}
+	async activateTenant(@Body() body: ActivateTenantDto) {
 		return this.invitationTokenService.activateTenantFromAuthUser(
 			body.authuser_id
 		)

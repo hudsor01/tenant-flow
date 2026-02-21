@@ -40,7 +40,7 @@ export class UnitQueryService {
 			sortBy?: string | undefined
 			sortOrder?: string | undefined
 		}
-	): Promise<Unit[]> {
+	): Promise<{ data: Unit[]; count: number }> {
 		try {
 			if (!token) {
 				this.logger.warn('Find all units requested without token')
@@ -53,7 +53,8 @@ export class UnitQueryService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual user_id/property_id filtering needed)
-			let queryBuilder = client.from('units').select('*')
+			// Use { count: 'exact' } for accurate pagination totals
+			let queryBuilder = client.from('units').select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at', { count: 'exact' })
 
 			// Apply filters if provided
 			if (query.property_id) {
@@ -91,7 +92,7 @@ export class UnitQueryService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
+			const { data, error, count } = await queryBuilder
 
 			if (error) {
 				this.logger.error('Failed to fetch units from Supabase', {
@@ -101,7 +102,7 @@ export class UnitQueryService {
 				throw new BadRequestException('Failed to fetch units')
 			}
 
-			return data as Unit[]
+			return { data: data as Unit[], count: count ?? 0 }
 		} catch (error) {
 			this.logger.error('Unit query service failed to find all units', {
 				error: error instanceof Error ? error.message : String(error),
@@ -136,7 +137,7 @@ export class UnitQueryService {
 			// RLS automatically verifies unit belongs to user's property
 			const { data, error } = await client
 				.from('units')
-				.select('*')
+				.select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 				.eq('id', unit_id)
 				.single()
 
@@ -188,7 +189,7 @@ export class UnitQueryService {
 
 			const { data, error } = await client
 				.from('units')
-				.select('*')
+				.select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 				.eq('property_id', property_id)
 				.order('unit_number', { ascending: true })
 
@@ -235,7 +236,7 @@ export class UnitQueryService {
 			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('units')
-				.select('*')
+				.select('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at')
 				.eq('property_id', property_id)
 				.eq('status', 'available')
 

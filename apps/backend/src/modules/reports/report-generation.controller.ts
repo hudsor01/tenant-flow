@@ -2,7 +2,9 @@ import {
 	Body,
 	Controller,
 	Post,
-	Res
+	Req,
+	Res,
+	UnauthorizedException
 } from '@nestjs/common'
 import {
 	ApiBearerAuth,
@@ -19,7 +21,9 @@ import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
 import { MaintenanceOperationsTemplate } from './templates/maintenance-operations.template'
 import { PropertyPortfolioTemplate } from './templates/property-portfolio.template'
 import { TaxReportService } from './tax-report.service'
+import { YearEndReportService } from './year-end-report.service'
 import { AppLogger } from '../../logger/app-logger.service'
+import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 
 /**
  * Report Generation Controller
@@ -35,6 +39,7 @@ export class ReportGenerationController {
 		private readonly exportService: ExportService,
 		private readonly executiveReportService: ExecutiveReportService,
 		private readonly taxReportService: TaxReportService,
+		private readonly yearEndReportService: YearEndReportService,
 		private readonly financialPerformanceTemplate: FinancialPerformanceTemplate,
 		private readonly propertyPortfolioTemplate: PropertyPortfolioTemplate,
 		private readonly leasePortfolioTemplate: LeasePortfolioTemplate,
@@ -43,21 +48,23 @@ export class ReportGenerationController {
 	) {}
 
 	@ApiOperation({ summary: 'Generate executive monthly report', description: 'Generate comprehensive monthly executive summary report' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/executive-monthly')
 	async generateExecutiveMonthly(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 			format?: 'pdf' | 'excel'
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date, format = 'pdf' } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date, format = 'pdf' } = body
 
 		const { buffer, contentType, filename } =
 			await this.executiveReportService.generateMonthlyReport(
@@ -75,20 +82,22 @@ export class ReportGenerationController {
 	}
 
 	@ApiOperation({ summary: 'Generate financial performance report', description: 'Generate detailed financial performance analysis report' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/financial-performance')
 	async generateFinancialPerformance(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date } = body
 
 		this.logger.log('Generating financial performance report', { user_id })
 
@@ -120,21 +129,23 @@ export class ReportGenerationController {
 	}
 
 	@ApiOperation({ summary: 'Generate property portfolio report', description: 'Generate property portfolio overview and metrics report' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/property-portfolio')
 	async generatePropertyPortfolio(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 			format?: 'pdf' | 'excel'
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date, format = 'pdf' } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date, format = 'pdf' } = body
 
 		this.logger.log('Generating property portfolio report', { user_id, format })
 
@@ -184,20 +195,22 @@ export class ReportGenerationController {
 	}
 
 	@ApiOperation({ summary: 'Generate lease portfolio report', description: 'Generate lease portfolio analysis report' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/lease-portfolio')
 	async generateLeasePortfolio(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date } = body
 
 		this.logger.log('Generating lease portfolio report', { user_id })
 
@@ -227,21 +240,23 @@ export class ReportGenerationController {
 	}
 
 	@ApiOperation({ summary: 'Generate maintenance operations report', description: 'Generate maintenance operations and costs analysis report' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' }, format: { type: 'string', enum: ['pdf', 'excel'] } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/maintenance-operations')
 	async generateMaintenanceOperations(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 			format?: 'pdf' | 'excel'
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date, format = 'pdf' } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date, format = 'pdf' } = body
 
 		this.logger.log('Generating maintenance operations report', {
 			user_id,
@@ -296,20 +311,22 @@ export class ReportGenerationController {
 	}
 
 	@ApiOperation({ summary: 'Generate tax preparation report', description: 'Generate tax preparation documents and summaries' })
-	@ApiBody({ schema: { type: 'object', required: ['user_id', 'start_date', 'end_date'], properties: { user_id: { type: 'string', format: 'uuid' }, start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
+	@ApiBody({ schema: { type: 'object', required: ['start_date', 'end_date'], properties: { start_date: { type: 'string', format: 'date' }, end_date: { type: 'string', format: 'date' } } } })
 	@ApiResponse({ status: 200, description: 'Report generated successfully' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('generate/tax-preparation')
 	async generateTaxPreparation(
 		@Body()
 		body: {
-			user_id: string
 			start_date: string
 			end_date: string
 		},
+		@Req() req: AuthenticatedRequest,
 		@Res({ passthrough: true }) res: Response
 	) {
-		const { user_id, start_date, end_date } = body
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+		const { start_date, end_date } = body
 
 		const { buffer, contentType, filename } =
 			await this.taxReportService.generateTaxPreparation(
@@ -323,5 +340,55 @@ export class ReportGenerationController {
 		res.setHeader('Content-Type', contentType)
 		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
 		res.send(buffer)
+	}
+
+	@ApiOperation({ summary: 'Download year-end summary as CSV', description: 'Download year-end income and expense summary as CSV' })
+	@ApiBody({ schema: { type: 'object', properties: { year: { type: 'number' } } } })
+	@ApiResponse({ status: 200, description: 'CSV downloaded successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('generate/year-end-csv')
+	async generateYearEndCsv(
+		@Body() body: { year?: number },
+		@Req() req: AuthenticatedRequest,
+		@Res({ passthrough: true }) res: Response
+	) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+
+		const year = body.year ?? new Date().getFullYear()
+		this.logger.log('Generating year-end CSV', { user_id, year })
+
+		const summary = await this.yearEndReportService.getYearEndSummary(user_id, year)
+		const rows = this.yearEndReportService.formatYearEndForCsv(summary)
+		const csv = await this.exportService.generateCSV(rows)
+
+		res.setHeader('Content-Type', 'text/csv')
+		res.setHeader('Content-Disposition', `attachment; filename="year-end-${year}.csv"`)
+		res.send(csv)
+	}
+
+	@ApiOperation({ summary: 'Download 1099-NEC vendor data as CSV', description: 'Download vendors paid over $600 for 1099-NEC reporting as CSV' })
+	@ApiBody({ schema: { type: 'object', properties: { year: { type: 'number' } } } })
+	@ApiResponse({ status: 200, description: 'CSV downloaded successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('generate/1099-csv')
+	async generate1099Csv(
+		@Body() body: { year?: number },
+		@Req() req: AuthenticatedRequest,
+		@Res({ passthrough: true }) res: Response
+	) {
+		const user_id = req.user?.id
+		if (!user_id) throw new UnauthorizedException('User not authenticated')
+
+		const year = body.year ?? new Date().getFullYear()
+		this.logger.log('Generating 1099 CSV', { user_id, year })
+
+		const summary = await this.yearEndReportService.get1099Vendors(user_id, year)
+		const rows = this.yearEndReportService.format1099ForCsv(summary)
+		const csv = await this.exportService.generateCSV(rows)
+
+		res.setHeader('Content-Type', 'text/csv')
+		res.setHeader('Content-Disposition', `attachment; filename="1099-vendors-${year}.csv"`)
+		res.send(csv)
 	}
 }

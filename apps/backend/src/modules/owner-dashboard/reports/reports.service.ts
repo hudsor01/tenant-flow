@@ -30,14 +30,14 @@ export class ReportsService {
 		try {
 			switch (metric) {
 				case 'occupancy_rate':
-					return this.getOccupancyTrend(user_id, period)
+					return await this.getOccupancyTrend(user_id, period)
 				case 'active_tenants':
-					return this.getActiveTenantsTrend(user_id, period)
+					return await this.getActiveTenantsTrend(user_id, period)
 				case 'monthly_revenue':
-					return this.getRevenueTrend(user_id, period)
+					return await this.getRevenueTrend(user_id, period)
 				case 'open_maintenance':
 				case 'total_maintenance':
-					return this.getMaintenanceTrend(user_id, period)
+					return await this.getMaintenanceTrend(user_id, period)
 				default:
 					this.logger.warn('Unknown metric requested', { metric })
 					return this.emptyTrend()
@@ -68,14 +68,14 @@ export class ReportsService {
 
 			switch (metric) {
 				case 'occupancy_rate':
-					return this.getOccupancyTimeSeries(user_id, months)
+					return await this.getOccupancyTimeSeries(user_id, months)
 				case 'monthly_revenue':
-					return this.getRevenueTimeSeries(user_id, months)
+					return await this.getRevenueTimeSeries(user_id, months)
 				case 'active_tenants':
-					return this.getTenantTimeSeries(user_id, months)
+					return await this.getTenantTimeSeries(user_id, months)
 				case 'open_maintenance':
 				case 'total_maintenance':
-					return this.getMaintenanceTimeSeries(user_id, months)
+					return await this.getMaintenanceTimeSeries(user_id, months)
 				default:
 					this.logger.warn('Unknown metric for time series', { metric })
 					return []

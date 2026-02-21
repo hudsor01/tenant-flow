@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common'
 import { SupabaseModule } from '../../database/supabase.module'
 import { AnalyticsModule } from '../analytics/analytics.module'
+import { FinancialModule } from '../financial/financial.module'
+import { PDFModule } from '../pdf/pdf.module'
 import { ExecutiveReportService } from './executive-report.service'
 import { ExportService } from './export.service'
 import { FinancialReportService } from './financial-report.service'
@@ -12,6 +14,7 @@ import { ReportGenerationController } from './report-generation.controller'
 import { ReportsController } from './reports.controller'
 import { TaxReportService } from './tax-report.service'
 import { TenantReportService } from './tenant-report.service'
+import { YearEndReportService } from './year-end-report.service'
 import { ExecutiveMonthlyTemplate } from './templates/executive-monthly.template'
 import { FinancialPerformanceTemplate } from './templates/financial-performance.template'
 import { LeasePortfolioTemplate } from './templates/lease-portfolio.template'
@@ -20,7 +23,7 @@ import { PropertyPortfolioTemplate } from './templates/property-portfolio.templa
 import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 
 @Module({
-	imports: [AnalyticsModule, SupabaseModule],
+	imports: [AnalyticsModule, SupabaseModule, PDFModule, FinancialModule],
 	controllers: [
 		ReportsController,
 		ReportExportController,
@@ -35,6 +38,7 @@ import { TaxPreparationTemplate } from './templates/tax-preparation.template'
 		MaintenanceReportService,
 		ExecutiveReportService,
 		TaxReportService,
+		YearEndReportService,
 		ExecutiveMonthlyTemplate,
 		FinancialPerformanceTemplate,
 		PropertyPortfolioTemplate,

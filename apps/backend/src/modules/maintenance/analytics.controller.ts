@@ -337,7 +337,7 @@ export class MaintenanceAnalyticsController {
 		try {
 			const { data: maintenanceRows, error: maintenanceError } = await client
 				.from('maintenance_requests')
-				.select('*')
+				.select('id, owner_user_id, unit_id, tenant_id, title, description, status, priority, assigned_to, requested_by, scheduled_date, completed_at, estimated_cost, actual_cost, inspection_date, inspection_findings, inspector_id, created_at, updated_at')
 				.in('unit_id', unit_ids)
 
 			if (maintenanceError) {

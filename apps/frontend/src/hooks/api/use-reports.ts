@@ -31,7 +31,9 @@ import type {
 	FinancialReport,
 	PropertyReport,
 	TenantReport,
-	MaintenanceReport
+	MaintenanceReport,
+	YearEndSummary,
+	Year1099Summary
 } from '@repo/shared/types/reports'
 
 // ============================================================================
@@ -91,7 +93,11 @@ export const reportsKeys = {
 	tenants: (start_date?: string, end_date?: string) =>
 		[...reportsKeys.all, 'tenants', start_date, end_date] as const,
 	maintenance: (start_date?: string, end_date?: string) =>
-		[...reportsKeys.all, 'maintenance', start_date, end_date] as const
+		[...reportsKeys.all, 'maintenance', start_date, end_date] as const,
+	yearEnd: (year: number) =>
+		[...reportsKeys.all, 'year-end', year] as const,
+	report1099: (year: number) =>
+		[...reportsKeys.all, '1099', year] as const
 }
 
 // ============================================================================
@@ -471,3 +477,140 @@ export function useMaintenanceReport(start_date?: string, end_date?: string) {
 	return useQuery(reportsQueries.maintenance(start_date, end_date))
 }
 
+/**
+ * Hook for fetching year-end tax summary
+ */
+export function useYearEndSummary(year: number) {
+	return useQuery(
+		queryOptions({
+			queryKey: reportsKeys.yearEnd(year),
+			queryFn: async () => {
+				const response = await apiRequest<YearEndSummary | { data: YearEndSummary }>(
+					`/api/v1/reports/year-end?year=${year}`
+				)
+				return 'data' in response ? response.data : response
+			}
+		})
+	)
+}
+
+/**
+ * Hook for fetching 1099-NEC vendor data
+ */
+export function use1099Summary(year: number) {
+	return useQuery(
+		queryOptions({
+			queryKey: reportsKeys.report1099(year),
+			queryFn: async () => {
+				const response = await apiRequest<Year1099Summary | { data: Year1099Summary }>(
+					`/api/v1/reports/year-end/1099?year=${year}`
+				)
+				return 'data' in response ? response.data : response
+			}
+		})
+	)
+}
+
+/**
+ * Mutation hook to download year-end summary as CSV
+ */
+export function useDownloadYearEndCsv() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.downloadYearEndCsv,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw('/api/v1/reports/generate/year-end-csv', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ year })
+			})
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `year-end-${year}.csv`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => handleMutationSuccess('Download year-end CSV'),
+		onError: (err: unknown) => handleMutationError(err, 'Download year-end CSV')
+	})
+}
+
+/**
+ * Mutation hook to download 1099-NEC vendor data as CSV
+ */
+export function useDownload1099Csv() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.download1099Csv,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw('/api/v1/reports/generate/1099-csv', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ year })
+			})
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `1099-vendors-${year}.csv`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => handleMutationSuccess('Download 1099 CSV'),
+		onError: (err: unknown) => handleMutationError(err, 'Download 1099 CSV')
+	})
+}
+
+/**
+ * Mutation hook to download year-end summary as a PDF file
+ */
+export function useDownloadYearEndPdf() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.downloadYearEndPdf,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw(
+				`/api/v1/reports/year-end/pdf?year=${year}`
+			)
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `year-end-${year}.pdf`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => toast.success('Year-end report downloaded'),
+		onError: (err: unknown) => handleMutationError(err, 'Download year-end PDF')
+	})
+}
+
+/**
+ * Mutation hook to download tax documents as a PDF file
+ */
+export function useDownloadTaxDocumentPdf() {
+	return useMutation({
+		mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
+		mutationFn: async (year: number): Promise<void> => {
+			const res = await apiRequestRaw(
+				`/api/v1/reports/tax-documents/pdf?year=${year}`
+			)
+			const blob = await res.blob()
+			const url = window.URL.createObjectURL(blob)
+			const link = document.createElement('a')
+			link.href = url
+			link.download = `tax-documents-${year}.pdf`
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
+			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+		},
+		onSuccess: () => toast.success('Tax documents downloaded'),
+		onError: (err: unknown) => handleMutationError(err, 'Download tax documents PDF')
+	})
+}

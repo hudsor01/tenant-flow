@@ -25,6 +25,7 @@ import { apiRequest } from '#lib/api-request'
 import { useUser } from '#hooks/api/use-auth'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 import { toast } from 'sonner'
 
 /**
@@ -158,6 +159,7 @@ export function useMaintenanceRequestCreateMutation() {
 		onSuccess: _newRequest => {
 			// Invalidate and refetch maintenance lists
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Maintenance request created successfully')
 		},
 		onError: error => {
@@ -178,6 +180,7 @@ export function useDeleteMaintenanceRequest() {
 			apiRequest<void>(`/api/v1/maintenance/${id}`, { method: 'DELETE' }),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		},
 		onError: error => {
 			handleMutationError(error, 'Delete maintenance request')
@@ -208,6 +211,7 @@ export function useMaintenanceRequestUpdateMutation() {
 			)
 			// Invalidate lists to ensure consistency
 			queryClient.invalidateQueries({ queryKey: maintenanceQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Maintenance request updated successfully')
 		},
 		onError: error => {

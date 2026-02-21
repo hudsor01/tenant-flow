@@ -19,22 +19,10 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-
-interface PropertyPL {
-	propertyId: string
-	propertyName: string
-	revenue: number
-	expenses: number
-	netIncome: number
-	occupancyRate: number
-}
-
-interface MonthlyData {
-	month: string
-	revenue: number
-	expenses: number
-	netIncome: number
-}
+import type {
+	PropertyPL,
+	MonthlyData
+} from '@repo/shared/types/financial-statements'
 
 interface ProfitLossProps {
 	totalRevenue: number
