@@ -17,13 +17,33 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
+import { createZodDto } from 'nestjs-zod'
+import { z } from 'zod'
 import type { AuthenticatedRequest } from '../../../shared/types/express-request.types'
 import type { Database } from '@repo/shared/types/supabase'
 import { SupabaseService } from '../../../database/supabase.service'
 import { TenantAuthGuard } from '../guards/tenant-auth.guard'
 import { TenantContextInterceptor } from '../interceptors/tenant-context.interceptor'
 import { AppLogger } from '../../../logger/app-logger.service'
-import { UpdateNotificationPreferencesDto } from '../../tenants/dto/notification-preferences.dto'
+
+/**
+ * Notification preferences DTO (inlined from deleted tenants module)
+ * Previously at: modules/tenants/dto/notification-preferences.dto.ts
+ * Inlined in Phase 51 when the tenants NestJS module was deleted.
+ */
+const UpdateNotificationPreferencesSchema = z
+	.object({
+		email: z.boolean(),
+		sms: z.boolean(),
+		push: z.boolean(),
+		in_app: z.boolean(),
+		general: z.boolean(),
+		maintenance: z.boolean(),
+		leases: z.boolean()
+	})
+	.partial()
+
+class UpdateNotificationPreferencesDto extends createZodDto(UpdateNotificationPreferencesSchema) {}
 
 type TenantRow = Pick<
 	Database['public']['Tables']['tenants']['Row'],
