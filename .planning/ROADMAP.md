@@ -173,7 +173,7 @@ Plans:
 4. RLS enforcement verified: an owner cannot read another owner's properties, units, tenants, or leases via direct PostgREST calls.
 
 Plans:
-- [ ] 51-01-PLAN.md — Shared handlePostgrestError utility + migrate properties (query keys + mutations)
+- [x] 51-01-PLAN.md — Shared handlePostgrestError utility + migrate properties (query keys + mutations)
 - [ ] 51-02-PLAN.md — Migrate units (query keys + mutations) + delete NestJS properties/units modules
 - [ ] 51-03-PLAN.md — Migrate tenants (query keys + mutations)
 - [ ] 51-04-PLAN.md — Migrate leases (query keys + mutations) + delete NestJS tenants/leases modules
