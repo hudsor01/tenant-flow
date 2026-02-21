@@ -101,8 +101,14 @@ export const AuthStoreProvider = ({ children }: { children: ReactNode }) => {
 				id: user.id,
 				...(user.email && { email: user.email })
 			})
+			// Set role tag for filtering errors by user type (owner vs tenant)
+			const role = user.app_metadata?.role as string | undefined
+			if (role) {
+				Sentry.setTag('user.role', role)
+			}
 		} else {
 			Sentry.setUser(null)
+			Sentry.setTag('user.role', undefined)
 		}
 	}, [user])
 

@@ -31,7 +31,19 @@ Sentry.init({
 			enableInp: true // Interaction to Next Paint
 		}),
 		// HTTP client instrumentation
-		Sentry.browserApiErrorsIntegration()
+		Sentry.browserApiErrorsIntegration(),
+		// User Feedback widget - lets users report UX issues directly
+		Sentry.feedbackIntegration({
+			colorScheme: 'system',
+			isNameRequired: false,
+			isEmailRequired: false,
+			showBranding: false,
+			buttonLabel: 'Report a Bug',
+			submitButtonLabel: 'Send Report',
+			formTitle: 'Report a Problem',
+			messagePlaceholder: 'Describe what happened and what you expected to happen...',
+			successMessageText: 'Thank you for your report!'
+		})
 	],
 
 	// Filter noisy errors
