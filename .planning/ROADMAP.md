@@ -164,11 +164,20 @@ Plans:
 
 **Requirements**: CRUD-01, CRUD-02
 
+**Plans:** 5 plans
+
 **Success criteria**:
 1. `use-properties.ts` and `use-unit.ts` use `supabase.from('properties')` / `supabase.from('units')` for all queries and mutations; `apiRequest` removed from both files.
 2. `use-tenant.ts` and `use-lease.ts` use PostgREST for all operations including the tenant invitation flow (invite email remains routed through an Edge Function or stays on NestJS until Phase 55).
 3. Full CRUD (create, read, update, soft-delete) works end-to-end for all four domains in the running frontend with NestJS not involved.
 4. RLS enforcement verified: an owner cannot read another owner's properties, units, tenants, or leases via direct PostgREST calls.
+
+Plans:
+- [ ] 51-01-PLAN.md — Shared handlePostgrestError utility + migrate properties (query keys + mutations)
+- [ ] 51-02-PLAN.md — Migrate units (query keys + mutations) + delete NestJS properties/units modules
+- [ ] 51-03-PLAN.md — Migrate tenants (query keys + mutations)
+- [ ] 51-04-PLAN.md — Migrate leases (query keys + mutations) + delete NestJS tenants/leases modules
+- [ ] 51-05-PLAN.md — Bootstrap apps/integration-tests/ + RLS isolation tests for all four domains
 
 ---
 
