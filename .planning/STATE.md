@@ -2,10 +2,10 @@
 
 ## Current Position
 
-Phase: 51-core-crud-migration-properties-units-tenants-leases
-Plan: 05 (complete) — Phase 51 COMPLETE
-Status: Complete — next phase: 52
-Last activity: 2026-02-21 — Phase 51-05 complete: apps/integration-tests/ bootstrapped + 4 RLS isolation tests (properties, units, tenants, leases)
+Phase: 52-operations-crud-migration-maintenance-vendors-inspections
+Plan: 02 (complete) — inspection hooks PostgREST migration complete
+Status: In progress — 52-01 complete (maintenance/vendor hooks), 52-02 complete (inspection hooks), 52-03 pending
+Last activity: 2026-02-21 — Phase 52-02 complete: inspection-keys.ts and use-inspections.ts migrated to PostgREST + Storage
 
 Progress: ▓▓▓▓░░░░░░ ~25% (Phase 51 complete, Phase 52 next)
 
@@ -76,6 +76,22 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `leases.rls.test.ts` filters by `lease_status` (not `status`) — consistent with Phase 51-04 DB column discovery
 - `getTestCredentials()` throws loudly if env vars missing — no silent test skipping
 
+**Phase 52-01 decisions:**
+- `useDeleteMaintenanceRequest` hard-deletes (not soft) — maintenance requests are not financial records requiring 7-year retention
+- `useDeleteVendorMutation` hard-deletes — vendor records have no financial retention requirement
+- `useAssignVendorMutation` uses single PostgREST update: sets both `vendor_id` and `status='assigned'` atomically
+- `useUnassignVendorMutation` sets `status='needs_reassignment'` (NOT 'open') — preserves audit trail that request previously had a vendor
+- `version` field stripped from DB payload in `useMaintenanceRequestUpdateMutation` — not a DB column (optimistic locking not implemented yet)
+- `maintenanceQueries.tenantPortal()` deferred to Phase 53 — requires RLS filtering by tenant auth.uid() not owner_user_id
+- `VENDOR_SELECT_COLUMNS` explicit list follows established pattern (no `select('*')`)
+
+**Phase 52-02 decisions:**
+- `useTenantReview` migrated to PostgREST (not deferred): DocuSeal is for lease e-signatures only — inspection tenant review is a pure DB update (tenant_notes, tenant_signature_data, status='finalized')
+- `inspection-photos` Storage bucket chosen for inspection photo CRUD (dedicated bucket per domain, matches `property-images` pattern)
+- `useCompleteInspection` pre-validates all `inspection_rooms.condition_rating` are set before updating status to 'completed' — throws descriptive Error with count if unassessed rooms remain
+- PostgREST join inference fix: cast `row.properties as unknown as { name; address_line1 } | null` (not direct cast) to avoid TS2352 array-to-object overlap error
+- Photo storage cleanup in `useDeleteInspectionRoom` and `useDeleteInspectionPhoto` is non-blocking try/catch — DB delete is authoritative
+
 - RLS: `owner_user_id = (SELECT auth.uid())` with index on `owner_user_id` (ADR-0005)
 - Soft-delete: properties set to `status: 'inactive'`, filter with `.neq('status', 'inactive')`
 - Stripe: Platform billing via Stripe Subscriptions; rent collection via Stripe Connect Express
@@ -113,5 +129,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-21
-Completed: Phase 51-05 — apps/integration-tests/ bootstrapped + 4 RLS cross-tenant isolation test suites. Phase 51 fully complete.
+Completed: Phase 52-01 — DB migration for new maintenance statuses + maintenance-keys.ts + use-maintenance.ts + use-vendor.ts all migrated to PostgREST. All must-haves verified (zero apiRequest calls, typecheck passes).
 Resume file: None

@@ -196,8 +196,8 @@ Plans:
 4. Maintenance and inspection list pages load correctly; vendor dropdown populates from PostgREST in under 300 ms on cold start.
 
 Plans:
-- [ ] 52-01-PLAN.md — DB migration (new maintenance statuses) + migrate maintenance-keys.ts, use-maintenance.ts, use-vendor.ts to PostgREST
-- [ ] 52-02-PLAN.md — Migrate inspection-keys.ts and use-inspections.ts to PostgREST + Storage
+- [x] 52-01-PLAN.md — DB migration (new maintenance statuses) + migrate maintenance-keys.ts, use-maintenance.ts, use-vendor.ts to PostgREST
+- [x] 52-02-PLAN.md — Migrate inspection-keys.ts and use-inspections.ts to PostgREST + Storage
 - [ ] 52-03-PLAN.md — Delete NestJS maintenance and inspections modules + RLS integration tests for 3 domains
 
 ---
