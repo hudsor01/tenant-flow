@@ -2,11 +2,17 @@
  * Payments Hooks
  * TanStack Query hooks for all payment-related functionality
  *
+ * All operations use Supabase PostgREST directly — no apiRequest calls.
+ * rent_payments table: id, amount, currency, status, tenant_id, lease_id,
+ *   stripe_payment_intent_id, application_fee_amount, late_fee_amount,
+ *   payment_method_type, period_start, period_end, due_date, paid_date,
+ *   notes, created_at, updated_at
+ *
  * Includes:
  * - Rent collection (analytics, upcoming/overdue, manual payments, CSV export)
- * - Rent payments (creation, status, history)
- * - Payment methods (list, set default, delete)
- * - Payment verification (Stripe session verification)
+ * - Rent payments (creation stub, status, history)
+ * - Payment methods (list, set default, delete) — PostgREST direct
+ * - Payment verification (Stripe session stubs — Phase 54-04)
  *
  * React 19 + TanStack Query v5 patterns
  */
@@ -19,7 +25,8 @@ import {
 	usePrefetchQuery,
 	type QueryKey
 } from '@tanstack/react-query'
-import { apiRequest, apiRequestRaw } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
@@ -127,11 +134,26 @@ export const rentCollectionQueries = {
 		queryOptions({
 			queryKey: rentCollectionKeys.analytics(),
 			queryFn: async (): Promise<PaymentCollectionAnalytics> => {
-				const response = await apiRequest<{
-					success: boolean
-					analytics: PaymentCollectionAnalytics
-				}>('/api/v1/rent-payments/analytics')
-				return response.analytics
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				// Use get_dashboard_stats RPC which includes payment analytics
+				const { data, error } = await supabase.rpc('get_dashboard_stats', {
+					user_id: user.id
+				})
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return {
+					totalCollected: (data as unknown as Record<string, unknown>)?.totalRevenue as number ?? 0,
+					totalPending: 0,
+					totalOverdue: 0,
+					collectionRate: 0,
+					averagePaymentTime: 0,
+					onTimePaymentRate: 0,
+					monthlyTrend: [],
+					// TODO(phase-56): wire to dedicated analytics RPC when available
+				} as PaymentCollectionAnalytics
 			},
 			staleTime: 60 * 1000
 		}),
@@ -140,11 +162,23 @@ export const rentCollectionQueries = {
 		queryOptions({
 			queryKey: rentCollectionKeys.upcoming(),
 			queryFn: async (): Promise<UpcomingPayment[]> => {
-				const response = await apiRequest<{
-					success: boolean
-					payments: UpcomingPayment[]
-				}>('/api/v1/rent-payments/upcoming')
-				return response.payments
+				const supabase = createClient()
+				const today = new Date().toISOString().split('T')[0] as string
+				const thirtyDaysOut = new Date(Date.now() + 30 * 86400000)
+					.toISOString()
+					.split('T')[0] as string
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select(
+						'id, amount, currency, status, due_date, tenant_id, lease_id, period_start, period_end'
+					)
+					.gte('due_date', today)
+					.lte('due_date', thirtyDaysOut)
+					.eq('status', 'pending')
+					.order('due_date')
+					.limit(50)
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return (data ?? []) as unknown as UpcomingPayment[]
 			},
 			staleTime: 60 * 1000
 		}),
@@ -153,11 +187,19 @@ export const rentCollectionQueries = {
 		queryOptions({
 			queryKey: rentCollectionKeys.overdue(),
 			queryFn: async (): Promise<OverduePayment[]> => {
-				const response = await apiRequest<{
-					success: boolean
-					payments: OverduePayment[]
-				}>('/api/v1/rent-payments/overdue')
-				return response.payments
+				const supabase = createClient()
+				const today = new Date().toISOString().split('T')[0] as string
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select(
+						'id, amount, currency, status, due_date, tenant_id, lease_id, period_start, period_end'
+					)
+					.lt('due_date', today)
+					.in('status', ['pending', 'failed'])
+					.order('due_date')
+					.limit(50)
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return (data ?? []) as unknown as OverduePayment[]
 			},
 			staleTime: 30 * 1000
 		})
@@ -170,20 +212,63 @@ export const tenantPaymentQueries = {
 	ownerPayments: (tenant_id: string, options?: PaymentQueryOptions) =>
 		queryOptions({
 			queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
-			queryFn: () =>
-				apiRequest<TenantPaymentHistoryResponse>(
-					`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
-				),
+			queryFn: async (): Promise<TenantPaymentHistoryResponse> => {
+				const supabase = createClient()
+				const limit = options?.limit ?? 20
+				const { data, error, count } = await supabase
+					.from('rent_payments')
+					.select('*', { count: 'exact' })
+					.eq('tenant_id', tenant_id)
+					.order('due_date', { ascending: false })
+					.limit(limit)
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return {
+					payments: (data ?? []) as unknown as TenantPaymentHistoryResponse['payments'],
+					pagination: {
+						page: 1,
+						limit,
+						total: count ?? 0
+					}
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: options?.enabled ?? Boolean(tenant_id)
 		}),
 	selfPayments: (options?: PaymentQueryOptions) =>
 		queryOptions({
 			queryKey: rentPaymentKeys.selfView(options?.limit),
-			queryFn: () =>
-				apiRequest<TenantPaymentHistoryResponse>(
-					`/api/v1/tenants/me/payments?limit=${options?.limit ?? 20}`
-				),
+			queryFn: async (): Promise<TenantPaymentHistoryResponse> => {
+				const supabase = createClient()
+				const limit = options?.limit ?? 20
+				// Resolve tenant record for the logged-in user
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data: tenant, error: tenantError } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+				if (tenantError) handlePostgrestError(tenantError, 'tenants')
+				if (!tenant) throw new Error('Tenant record not found')
+
+				const { data, error, count } = await supabase
+					.from('rent_payments')
+					.select('*', { count: 'exact' })
+					.eq('tenant_id', tenant.id)
+					.order('due_date', { ascending: false })
+					.limit(limit)
+				if (error) handlePostgrestError(error, 'rent_payments')
+				return {
+					payments: (data ?? []) as unknown as TenantPaymentHistoryResponse['payments'],
+					pagination: {
+						page: 1,
+						limit,
+						total: count ?? 0
+					}
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: options?.enabled ?? true
 		})
@@ -191,16 +276,18 @@ export const tenantPaymentQueries = {
 
 /**
  * Payment verification query factory
+ * NOTE: Session verification requires stripe-checkout Edge Function — see Phase 54-04
  */
 export const paymentVerificationQueries = {
 	sessionStatus: (sessionId: string) =>
 		queryOptions({
 			queryKey: paymentVerificationKeys.sessionStatus(sessionId),
-			queryFn: ({ signal }) =>
-				apiRequest<StripeSessionStatusResponse>(
-					`/stripe/session-status?session_id=${sessionId}`,
-					{ signal }
-				),
+			queryFn: (): Promise<StripeSessionStatusResponse> => {
+				// TODO(phase-54-04): wire to stripe-checkout Edge Function
+				throw new Error(
+					'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
+				)
+			},
 			...QUERY_CACHE_TIMES.STATS,
 			enabled: !!sessionId
 		})
@@ -211,36 +298,84 @@ export const paymentVerificationQueries = {
 // ============================================================================
 
 /**
- * Export payments as CSV
+ * Convert rent_payments rows to CSV string
+ */
+function rowsToCsv(rows: Record<string, unknown>[]): string {
+	if (rows.length === 0) return ''
+	const headers = Object.keys(rows[0] as Record<string, unknown>)
+	const headerRow = headers.join(',')
+	const dataRows = rows.map(row =>
+		headers
+			.map(h => {
+				const val = (row as Record<string, unknown>)[h]
+				const str = val === null || val === undefined ? '' : String(val)
+				// Escape double-quotes and wrap in quotes if value contains comma/newline/quote
+				return str.includes(',') || str.includes('"') || str.includes('\n')
+					? `"${str.replace(/"/g, '""')}"`
+					: str
+			})
+			.join(',')
+	)
+	return [headerRow, ...dataRows].join('\n')
+}
+
+/**
+ * Export payments as CSV — client-side generation from PostgREST
  */
 export async function exportPaymentsCSV(
 	filters?: PaymentFilters
 ): Promise<Blob> {
-	const params = new URLSearchParams()
-	if (filters?.status) params.append('status', filters.status)
-	if (filters?.startDate) params.append('startDate', filters.startDate)
-	if (filters?.endDate) params.append('endDate', filters.endDate)
+	const supabase = createClient()
+	let query = supabase
+		.from('rent_payments')
+		.select(
+			'id, amount, currency, status, due_date, paid_date, period_start, period_end, payment_method_type, late_fee_amount, notes, created_at'
+		)
+		.order('due_date', { ascending: false })
 
-	const queryString = params.toString()
-	const url = `/api/v1/rent-payments/export${queryString ? `?${queryString}` : ''}`
+	if (filters?.status) {
+		query = query.eq('status', filters.status)
+	}
+	if (filters?.startDate) {
+		query = query.gte('due_date', filters.startDate)
+	}
+	if (filters?.endDate) {
+		query = query.lte('due_date', filters.endDate)
+	}
 
-	const response = await apiRequestRaw(url)
-	return response.blob()
+	const { data, error } = await query
+	if (error) handlePostgrestError(error, 'rent_payments')
+	const csv = rowsToCsv((data ?? []) as unknown as Record<string, unknown>[])
+	return new Blob([csv], { type: 'text/csv' })
 }
 
 /**
- * Record a manual payment
+ * Record a manual payment — PostgREST insert into rent_payments
  */
 export async function recordManualPayment(
-	data: ManualPaymentInput
+	input: ManualPaymentInput
 ): Promise<{ success: boolean; payment: unknown }> {
-	return apiRequest<{ success: boolean; payment: unknown }>(
-		'/api/v1/rent-payments/manual',
-		{
-			method: 'POST',
-			body: JSON.stringify(data)
-		}
-	)
+	const supabase = createClient()
+	const { data, error } = await supabase
+		.from('rent_payments')
+		.insert({
+			tenant_id: input.tenant_id,
+			lease_id: input.lease_id,
+			amount: input.amount,
+			currency: 'USD',
+			status: 'paid',
+			payment_method_type: input.payment_method ?? 'manual',
+			period_start: new Date().toISOString().split('T')[0] as string,
+			period_end: new Date().toISOString().split('T')[0] as string,
+			due_date: input.paid_date,
+			paid_date: input.paid_date,
+			application_fee_amount: 0,
+			notes: input.notes ?? null
+		})
+		.select('id')
+		.single()
+	if (error) handlePostgrestError(error, 'rent_payments')
+	return { success: true, payment: data }
 }
 
 // ============================================================================
@@ -287,7 +422,7 @@ export function useRecordManualPaymentMutation() {
 }
 
 /**
- * Export payments as CSV
+ * Export payments as CSV — client-side from PostgREST
  */
 export function useExportPaymentsMutation() {
 	return useMutation({
@@ -318,44 +453,36 @@ export function useExportPaymentsMutation() {
 
 /**
  * Create a one-time rent payment
- * Uses saved payment method to charge tenant immediately
+ * NOTE: Stripe payment processing requires Edge Function setup — coming in Phase 54-02
  */
 export function useCreateRentPaymentMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.rentPayments.process,
-		mutationFn: async (params: {
+		mutationFn: async (_params: {
 			tenant_id: string
 			lease_id: string
 			amount: number
 			paymentMethodId: string
-		}) => {
-			const response = await apiRequest<{
-				success: boolean
-				payment: {
-					id: string
-					amount: number
-					status: string
-					stripePaymentIntentId: string
-				}
-				paymentIntent: {
-					id: string
-					status: string
-					receiptUrl?: string
-				}
-			}>('/api/v1/rent-payments', {
-				method: 'POST',
-				body: JSON.stringify(params)
-			})
-
-			return {
-				...response,
-				paymentIntent: {
-					...response.paymentIntent,
-					receiptUrl: response.paymentIntent.receiptUrl
-				}
+		}): Promise<{
+			success: boolean
+			payment: {
+				id: string
+				amount: number
+				status: string
+				stripePaymentIntentId: string
 			}
+			paymentIntent: {
+				id: string
+				status: string
+				receiptUrl?: string
+			}
+		}> => {
+			// TODO(phase-54-02): this will call the stripe-connect Edge Function once implemented
+			throw new Error(
+				'Stripe payment processing requires Edge Function setup — coming in Phase 54 plan 02'
+			)
 		},
 		onMutate: async newPayment => {
 			await queryClient.cancelQueries({ queryKey: rentPaymentKeys.list() })
@@ -405,51 +532,63 @@ export function useCreateRentPaymentMutation() {
 }
 
 /**
- * Get current payment status for a tenant
+ * Get current payment status for a tenant — PostgREST
  */
 export function usePaymentStatus(tenant_id: string) {
 	return useQuery({
 		queryKey: rentPaymentKeys.status(tenant_id),
-		queryFn: () =>
-			apiRequest<TenantPaymentStatusResponse>(
-				`/api/v1/rent-payments/status/${tenant_id}`
-			),
+		queryFn: async (): Promise<TenantPaymentStatusResponse> => {
+			const supabase = createClient()
+			const today = new Date().toISOString().split('T')[0] as string
+			const { data, error } = await supabase
+				.from('rent_payments')
+				.select('id, amount, status, due_date, paid_date, stripe_payment_intent_id')
+				.eq('tenant_id', tenant_id)
+				.order('due_date', { ascending: false })
+				.limit(1)
+				.maybeSingle()
+			if (error) handlePostgrestError(error, 'rent_payments')
+			if (!data) {
+				return {
+					status: 'DUE',
+					rent_amount: 0,
+					nextDueDate: null,
+					lastPaymentDate: null,
+					outstandingBalance: 0,
+					isOverdue: false
+				}
+			}
+			const isOverdue =
+				data.status !== 'paid' && data.due_date < today
+			return {
+				status: data.status as TenantPaymentStatusResponse['status'],
+				rent_amount: data.amount,
+				nextDueDate: data.due_date,
+				lastPaymentDate: data.paid_date,
+				outstandingBalance: data.status === 'paid' ? 0 : data.amount,
+				isOverdue
+			}
+		},
 		enabled: !!tenant_id,
 		...QUERY_CACHE_TIMES.STATS
 	})
 }
 
 /**
- * Get tenant payment history from owner perspective
+ * Get tenant payment history from owner perspective — PostgREST
  */
 export function useOwnerTenantPayments(
 	tenant_id: string,
 	options?: PaymentQueryOptions
 ) {
-	return useQuery({
-		queryKey: rentPaymentKeys.ownerView(tenant_id, options?.limit),
-		queryFn: () =>
-			apiRequest<TenantPaymentHistoryResponse>(
-				`/api/v1/tenants/${tenant_id}/payments?limit=${options?.limit ?? 20}`
-			),
-		...QUERY_CACHE_TIMES.DETAIL,
-		enabled: options?.enabled ?? Boolean(tenant_id)
-	})
+	return useQuery(tenantPaymentQueries.ownerPayments(tenant_id, options))
 }
 
 /**
- * Get tenant's own payment history
+ * Get tenant's own payment history — PostgREST
  */
 export function useTenantPaymentsHistory(options?: PaymentQueryOptions) {
-	return useQuery({
-		queryKey: rentPaymentKeys.selfView(options?.limit),
-		queryFn: () =>
-			apiRequest<TenantPaymentHistoryResponse>(
-				`/api/v1/tenants/me/payments?limit=${options?.limit ?? 20}`
-			),
-		...QUERY_CACHE_TIMES.DETAIL,
-		enabled: options?.enabled ?? true
-	})
+	return useQuery(tenantPaymentQueries.selfPayments(options))
 }
 
 type SendReminderVariables = {
@@ -459,20 +598,16 @@ type SendReminderVariables = {
 
 /**
  * Send payment reminder to tenant
+ * NOTE: Payment reminders require email Edge Function — see Phase 55
  */
 export function useSendTenantPaymentReminderMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.rentPayments.sendReminder,
-		mutationFn: async ({ request }: SendReminderVariables) => {
-			return apiRequest<SendPaymentReminderResponse>(
-				'/api/v1/tenants/payments/reminders',
-				{
-					method: 'POST',
-					body: JSON.stringify(request)
-				}
-			)
+		mutationFn: async (_variables: SendReminderVariables): Promise<SendPaymentReminderResponse> => {
+			// TODO Phase 55: payment reminder requires email Edge Function
+			throw new Error('TODO Phase 55: payment reminder requires email Edge Function')
 		},
 		onSuccess: (_data, variables) => {
 			if (variables?.ownerQueryKey) {
@@ -492,27 +627,43 @@ export function useSendTenantPaymentReminderMutation() {
 }
 
 // ============================================================================
-// PAYMENT METHOD HOOKS
+// PAYMENT METHOD HOOKS — PostgREST direct (payment_methods table)
 // ============================================================================
 
 /**
- * Fetch tenant payment methods
+ * Fetch tenant payment methods — PostgREST
  */
 export function usePaymentMethods() {
 	return useQuery({
 		queryKey: paymentMethodKeys.list(),
 		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const response = await apiRequest<{
-				payment_methods: PaymentMethodResponse[]
-			}>('/api/v1/stripe/tenant-payment-methods')
-			return response.payment_methods
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('payment_methods')
+				.select(
+					'id, stripe_payment_method_id, type, brand, last_four, exp_month, exp_year, bank_name, is_default, created_at'
+				)
+				.order('created_at', { ascending: false })
+			if (error) handlePostgrestError(error, 'payment_methods')
+			// Map DB columns to PaymentMethodResponse shape
+			return (data ?? []).map(row => ({
+				id: row.id,
+				tenantId: '',
+				stripePaymentMethodId: row.stripe_payment_method_id,
+				type: row.type as PaymentMethodResponse['type'],
+				last4: row.last_four,
+				brand: row.brand,
+				bankName: row.bank_name,
+				isDefault: row.is_default ?? false,
+				createdAt: row.created_at ?? ''
+			}))
 		},
 		...QUERY_CACHE_TIMES.DETAIL
 	})
 }
 
 /**
- * Set default payment method
+ * Set default payment method — PostgREST two-step update
  */
 export function useSetDefaultPaymentMethodMutation() {
 	const queryClient = useQueryClient()
@@ -526,12 +677,36 @@ export function useSetDefaultPaymentMethodMutation() {
 		mutationFn: async (
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
-			return apiRequest<{ success: boolean }>(
-				`/api/v1/payment-methods/${paymentMethodId}/default`,
-				{
-					method: 'PATCH'
-				}
-			)
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			// Resolve tenant_id from user
+			const { data: tenant, error: tenantError } = await supabase
+				.from('tenants')
+				.select('id')
+				.eq('user_id', user.id)
+				.single()
+			if (tenantError) handlePostgrestError(tenantError, 'tenants')
+			if (!tenant) throw new Error('Tenant record not found')
+
+			// Clear all defaults for this tenant
+			const { error: clearError } = await supabase
+				.from('payment_methods')
+				.update({ is_default: false })
+				.eq('tenant_id', tenant.id)
+			if (clearError) handlePostgrestError(clearError, 'payment_methods')
+
+			// Set new default
+			const { error } = await supabase
+				.from('payment_methods')
+				.update({ is_default: true })
+				.eq('id', paymentMethodId)
+			if (error) handlePostgrestError(error, 'payment_methods')
+
+			return { success: true }
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -570,7 +745,7 @@ export function useSetDefaultPaymentMethodMutation() {
 }
 
 /**
- * Delete tenant payment method
+ * Delete tenant payment method — PostgREST
  */
 export function useDeletePaymentMethodMutation() {
 	const queryClient = useQueryClient()
@@ -587,12 +762,13 @@ export function useDeletePaymentMethodMutation() {
 			success: boolean
 			message?: string
 		}> => {
-			return apiRequest<{
-				success: boolean
-				message?: string
-			}>(`/api/v1/stripe/tenant-payment-methods/${paymentMethodId}`, {
-				method: 'DELETE'
-			})
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('payment_methods')
+				.delete()
+				.eq('id', paymentMethodId)
+			if (error) handlePostgrestError(error, 'payment_methods')
+			return { success: true }
 		},
 		onMutate: async (
 			paymentMethodId: string
@@ -632,82 +808,22 @@ export function useDeletePaymentMethodMutation() {
 
 /**
  * Verify payment session with TanStack Query
+ * NOTE: Stripe checkout session verification requires Edge Function — see Phase 54-04
  */
 export function usePaymentVerification(
 	sessionId: string | null,
 	options: { throwOnError?: boolean } = {}
 ) {
 	return useQuery({
-		queryKey: paymentVerificationKeys.verifySession(sessionId || ''),
+		queryKey: paymentVerificationKeys.verifySession(sessionId ?? ''),
 		queryFn: async (): Promise<{ subscription: SubscriptionData }> => {
 			if (!sessionId) {
 				throw new Error('No session ID provided')
 			}
-
-			let data
-			try {
-				const response = await apiRequest<{
-					session: unknown
-					subscription: {
-						id: string
-						status: string
-						current_period_start: number | null
-						current_period_end: number | null
-						cancelAt_period_end: boolean
-						items: Array<{
-							price: {
-								nickname: string | null
-								product: {
-									name: string
-								}
-							}
-						}>
-					} | null
-				}>('/stripe/verify-checkout-session', {
-					method: 'POST',
-					body: JSON.stringify({ sessionId })
-				})
-
-				if (!response.subscription) {
-					throw new Error('No subscription found in response')
-				}
-
-				const sub = response.subscription
-				const planName =
-					sub.items[0]?.price?.nickname ||
-					sub.items[0]?.price?.product?.name ||
-					'Unknown Plan'
-
-				data = {
-					subscription: {
-						status: sub.status as SubscriptionData['status'],
-						planName,
-						currentPeriodEnd: sub.current_period_end
-							? new Date(sub.current_period_end * 1000).toISOString()
-							: '',
-						cancelAtPeriodEnd: sub.cancelAt_period_end
-					}
-				}
-			} catch (error) {
-				logger.error('Payment verification failed', {
-					action: 'payment_verification_failed',
-					metadata: {
-						sessionId,
-						error: error instanceof Error ? error.message : String(error)
-					}
-				})
-				throw error
-			}
-
-			logger.info('Payment verification successful', {
-				action: 'payment_verification_success',
-				metadata: {
-					sessionId,
-					planName: data.subscription?.planName
-				}
-			})
-
-			return data
+			// TODO(phase-54-04): wire to stripe-checkout Edge Function once implemented
+			throw new Error(
+				'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
+			)
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.SECURITY,
@@ -720,32 +836,22 @@ export function usePaymentVerification(
 
 /**
  * Get session status with TanStack Query
+ * NOTE: Session status requires stripe-checkout Edge Function — see Phase 54-04
  */
 export function useSessionStatus(
 	sessionId: string | null,
 	options: { throwOnError?: boolean } = {}
 ) {
 	return useQuery({
-		queryKey: paymentVerificationKeys.sessionStatus(sessionId || ''),
+		queryKey: paymentVerificationKeys.sessionStatus(sessionId ?? ''),
 		queryFn: async (): Promise<StripeSessionStatusResponse> => {
 			if (!sessionId) {
 				throw new Error('No session ID provided')
 			}
-
-			const data = await apiRequest<StripeSessionStatusResponse>(
-				`/stripe/session-status?session_id=${sessionId}`
+			// TODO(phase-54-04): wire to stripe-checkout Edge Function once implemented
+			throw new Error(
+				'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
 			)
-
-			logger.info('Session status retrieved', {
-				action: 'session_status_retrieved',
-				metadata: {
-					sessionId,
-					status: data.status,
-					paymentStatus: data.payment_status
-				}
-			})
-
-			return data
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.STATS,
@@ -765,3 +871,6 @@ export function usePrefetchSessionStatus(sessionId: string) {
 
 // Legacy key exports for backwards compatibility
 export const paymentQueryKeys = paymentVerificationKeys
+
+// Suppress unused logger warning — kept for future debugging
+void logger
