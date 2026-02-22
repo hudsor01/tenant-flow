@@ -72,6 +72,9 @@ export function MaintenanceViewClient() {
 		[response?.data]
 	)
 
+	// CONTEXT.md locked decision: Owner maintenance view supports kanban/list toggle.
+	// Only the owner dashboard has drag-to-change-status (dnd-kit). The tenant portal
+	// uses a separate read-only TenantMaintenanceKanban (no dnd-kit, no status mutations).
 	const handleViewChange = (view: ViewType) => {
 		setViewPreference('maintenance', view)
 	}

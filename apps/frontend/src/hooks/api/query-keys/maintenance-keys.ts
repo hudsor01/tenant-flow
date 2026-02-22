@@ -281,17 +281,42 @@ export const maintenanceQueries = {
 				inProgress: number
 				completed: number
 			}> => {
-				// TODO(phase-53): tenant portal maintenance queries require RPC with tenant context
-				// The tenant portal needs to filter by the authenticated tenant's user_id,
-				// not the owner_user_id. This requires an RPC function or a different
-				// RLS policy configuration for the tenant role. Deferred to Phase 53.
-				return {
-					requests: [],
-					total: 0,
-					open: 0,
-					inProgress: 0,
-					completed: 0
+				const supabase = createClient()
+
+				// Step 1: Get authenticated user
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				// Step 2: Resolve tenant record — maintenance_requests.tenant_id
+				// references tenants.id (not auth.uid())
+				const { data: tenantRecord, error: tenantError } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (tenantError || !tenantRecord) {
+					return { requests: [], total: 0, open: 0, inProgress: 0, completed: 0 }
 				}
+
+				// Step 3: Fetch maintenance requests for this tenant
+				const { data, error, count } = await supabase
+					.from('maintenance_requests')
+					.select(MAINTENANCE_SELECT_COLUMNS, { count: 'exact' })
+					.eq('tenant_id', tenantRecord.id)
+					.order('created_at', { ascending: false })
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+
+				const requests = (data as MaintenanceRequest[]) ?? []
+				const total = count ?? 0
+				const open = requests.filter(r => r.status === 'open').length
+				const inProgress = requests.filter(r => r.status === 'in_progress').length
+				const completed = requests.filter(r => r.status === 'completed').length
+
+				return { requests, total, open, inProgress, completed }
 			},
 			...QUERY_CACHE_TIMES.LIST
 		})
