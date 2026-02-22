@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 54-payments-billing-postgrest-stripe-edge-functions
-Plan: 05 (complete)
-Status: COMPLETE — Phase 54 all 5 plans done; all PAY requirements fulfilled
-Last activity: 2026-02-21 — Phase 54-05 complete: verification checkpoint pre-approved (yolo mode); all 4 Stripe Edge Functions exist on disk (stripe-webhooks, stripe-connect, stripe-checkout, stripe-billing-portal); zero apiRequest calls in all 4 payment hooks confirmed; Phase 54 marked complete
+Phase: 55-external-services-edge-functions-stirlingpdf-docuseal
+Plan: 02 (complete)
+Status: IN PROGRESS — Phase 55-02 complete; docuseal Edge Function (5 actions) created; all 5 signature mutations migrated from apiRequest to callDocuSealEdgeFunction(); Phase 55-03 (docuseal-webhook) pending
+Last activity: 2026-02-22 — Phase 55-02 complete: supabase/functions/docuseal/index.ts created with 5 action handlers (send-for-signature, sign-owner, sign-tenant, cancel, resend); all 5 signature mutations in use-lease.ts migrated to callDocuSealEdgeFunction(); useSignedDocumentUrl migrated to PostgREST; zero apiRequest calls remain; 965 tests pass; typecheck passes
 
-Progress: ▓▓▓▓▓▓▓░░░ ~53% (Phases 51–53 complete, Phase 54 complete)
+Progress: ▓▓▓▓▓▓▓░░░ ~56% (Phases 51–54 complete, Phase 55-01 and 55-02 complete)
 
 ## Active Milestone
 
@@ -125,6 +125,29 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Return-journey toast: `useSearchParams` in `DashboardContent` (already inside Suspense boundary) — no extra Suspense wrapper needed; cleans URL via `window.history.replaceState`
 - Banner is session-dismissible via `useState` (not persisted) — only shows when account exists but `charges_enabled=false`
 
+**Phase 55-01 decisions:**
+- StirlingPDF API endpoint: `/api/v1/misc/html-to-pdf` with multipart `htmlContent` field — cleanest HTML-to-PDF endpoint
+- PDF delivery: stream `arrayBuffer()` directly from generate-pdf response — no Supabase Storage intermediary
+- Fail-fast error strategy (no retry) matching stripe-webhooks pattern — 502 on StirlingPDF non-2xx
+- 30-second `AbortSignal.timeout(30_000)` per locked decision in CONTEXT.md
+- export-report fetches RPC data BEFORE pdf branch — rows available for HTML without double-fetch
+- Internal Edge Function delegation: export-report passes Authorization header as-is to generate-pdf fetch
+- `callGeneratePdfEdgeFunction` and `reportDataToHtml` helpers added to use-reports.ts (frontend side)
+- `useDownloadYearEndPdf` and `useDownloadTaxDocumentPdf` call generate-pdf directly, not via export-report
+- `buildReportHtml` helper added to export-report Edge Function for HTML generation from RPC rows
+- HTTP semantics: 504 timeout, 502 StirlingPDF error, 500 internal error
+- STIRLING_PDF_URL must be set as a Supabase Edge Function secret before use
+
+**Phase 55-02 decisions:**
+- DocuSeal submission uses embedded base64 PDF (`data:application/pdf;base64,...`) — self-hosted k3s DocuSeal cannot pull from Supabase Storage URLs; no template_id dependency
+- Service role client for ALL DB operations in docuseal Edge Function — elevated privileges to update lease records regardless of caller
+- `sign-owner` / `sign-tenant` update DB directly (no DocuSeal API call) — simpler, fewer network calls, trust JWT-authenticated caller
+- `cancel` action archives DocuSeal submission first (fail-fast 502), then resets lease to draft — order ensures DocuSeal consistency before DB update
+- `callDocuSealEdgeFunction` reads `access_token` from `supabase.auth.getSession()` — consistent with `callStripeConnectFunction` and `callExportEdgeFunction` patterns
+- Server-to-server generate-pdf call uses `SUPABASE_SERVICE_ROLE_KEY` as Bearer token — bypasses user JWT auth check in generate-pdf Edge Function
+- `useSignedDocumentUrl` returns `pending:{submissionId}` when both parties have signed — full URL stored by Phase 55-03 docuseal-webhook handler
+- Test suite: replaced apiRequest mock assertions with `vi.stubGlobal('fetch', fetchMock)` + `expect.objectContaining({ body: expect.stringContaining(...) })` assertions
+
 **Phase 54-01 decisions:**
 - `usePaymentMethods()` in use-payments.ts maps DB `last_four` → `last4` to preserve `PaymentMethodResponse` type compatibility (consumers import from `@repo/shared/types/core` which uses camelCase `last4`)
 - `usePaymentStatus()` uses `.maybeSingle()` not `.single()` to avoid 406 errors when tenant has no payment records; returns safe empty stub
@@ -177,6 +200,6 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Completed: Phase 54-04 — stripe-checkout + stripe-billing-portal Edge Functions; use-billing.ts fully migrated (zero apiRequest); useBillingPortalMutation added; dashboard billing=updated toast wired.
+Last session: 2026-02-22
+Completed: Phase 55-01 — generate-pdf Edge Function (StirlingPDF, 30s timeout); export-report PDF delegation (no more 501); useDownloadYearEndPdf + useDownloadTaxDocumentPdf call generate-pdf directly; frontend typechecks pass.
 Resume file: None

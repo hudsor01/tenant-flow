@@ -266,8 +266,8 @@ Plans:
 5. Both Edge Functions are deployed and accessible; NestJS StirlingPDF and DocuSeal modules are no longer reachable from the frontend.
 
 Plans:
-- [ ] 55-01-PLAN.md — generate-pdf Edge Function + wire frontend PDF download mutations (EXT-01)
-- [ ] 55-02-PLAN.md — docuseal outbound Edge Function + migrate use-lease.ts signature mutations (EXT-02 partial)
+- [x] 55-01-PLAN.md — generate-pdf Edge Function + wire frontend PDF download mutations (EXT-01)
+- [x] 55-02-PLAN.md — docuseal outbound Edge Function + migrate use-lease.ts signature mutations (EXT-02 partial)
 - [ ] 55-03-PLAN.md — docuseal-webhook Edge Function + human verification checkpoint (EXT-02 completion)
 
 ---
