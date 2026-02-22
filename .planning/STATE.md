@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 56-scheduled-jobs-db-webhooks-pg-cron-n8n
-Plan: 01 (complete)
-Status: PHASE 56 PLAN 01 COMPLETE — pg_cron enabled; leases.lease_status_check expanded ('expired'); rent_payments.status_check expanded ('late', 'severely_delinquent'); late_fees + lease_reminders tables created with RLS; all pre-commit checks pass; next: Phase 56 Plan 02 (pg_cron SECURITY DEFINER functions)
-Last activity: 2026-02-22 — Phase 56-01 complete: migration 20260222110100_phase56_schema_foundations.sql created and deployed
+Plan: 02 (complete)
+Status: PHASE 56 PLAN 02 COMPLETE — calculate_late_fees() + queue_lease_reminders() SECURITY DEFINER functions created; three cron.schedule() registrations (calculate-late-fees 00:01, queue-lease-reminders 06:00, expire-leases 23:00 UTC); all pre-commit checks pass; SCHED-01, SCHED-02, SCHED-03 complete; next: Phase 56 Plan 03 (DB Webhooks — n8n triggers)
+Last activity: 2026-02-22 — Phase 56-02 complete: migration 20260222120000_phase56_pg_cron_jobs.sql created
 
-Progress: ▓▓▓▓▓▓▓▓░░ ~65% (Phases 51–55 complete; Phase 56 plan 01 complete)
+Progress: ▓▓▓▓▓▓▓▓░░ ~67% (Phases 51–55 complete; Phase 56 plans 01–02 complete)
 
 ## Active Milestone
 
@@ -182,6 +182,13 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `buildLeasePreviewHtml` uses service role client already in handler — auth check before ensures caller is authenticated; elevated access is safe
 - Blob URL for lease-template-builder iframe not revoked immediately — iframe needs URL while displayed; acceptable for in-page preview
 
+**Phase 56-02 decisions:**
+- `expire-leases` cron uses direct SQL command in cron.schedule() — no function wrapper needed for simple UPDATE
+- Separate `if` checks per threshold in `queue_lease_reminders()` (not CASE/ELSIF) — ensures all matching thresholds queue in same run
+- `status IN ('pending', 'late', 'severely_delinquent')` in calculate_late_fees — fees accumulate daily even on severely_delinquent payments until resolved (CONTEXT.md locked decision)
+- `v_payment.status != v_new_status` guard before UPDATE — avoids unnecessary writes when status unchanged
+- All SECURITY DEFINER functions use `set search_path = public` — required to prevent search_path injection attacks
+
 **Phase 56-01 decisions:**
 - `rent_payments_status_check` actual existing values are `pending, processing, succeeded, failed, cancelled, requires_action` (double-l canceled; has `requires_action`) — plan spec listed wrong values; corrected to preserve all 8 values
 - `gen_random_uuid()` used (not `extensions.uuid_generate_v4()`) — project convention from Phase 52+ migrations
@@ -252,5 +259,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 56-01 — Migration 20260222110100_phase56_schema_foundations.sql: pg_cron enabled; leases/rent_payments CHECK constraints expanded; late_fees + lease_reminders tables created with RLS policies; all pre-commit checks pass.
+Completed: Phase 56-02 — Migration 20260222120000_phase56_pg_cron_jobs.sql: calculate_late_fees() + queue_lease_reminders() SECURITY DEFINER functions created; three pg_cron jobs registered (calculate-late-fees 00:01 UTC, queue-lease-reminders 06:00 UTC, expire-leases 23:00 UTC); SCHED-01/02/03 complete; all pre-commit checks pass.
 Resume file: None
