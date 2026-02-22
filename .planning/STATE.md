@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 55-external-services-edge-functions-stirlingpdf-docuseal
-Plan: 03 (complete)
-Status: PHASE COMPLETE — Phase 55 fully complete; all 3 Edge Functions in place (generate-pdf, docuseal, docuseal-webhook); EXT-01 and EXT-02 done; human verification checkpoint pending user approval; next: Phase 56 (pg_cron + DB Webhooks)
-Last activity: 2026-02-22 — Phase 55-03 complete: supabase/functions/docuseal-webhook/index.ts created with form.completed and submission.completed handlers, idempotency guards, atomic lease activation + notification insert, optional DOCUSEAL_WEBHOOK_SECRET verification; 965 tests pass; typecheck passes
+Plan: 04 (complete)
+Status: PHASE FULLY COMPLETE — Phase 55 gap closure done; all 4 NestJS PDF callsites migrated to generate-pdf EF; EXT-01 success criterion 5 satisfied; zero NestJS PDF callsites remain in frontend; next: Phase 56 (pg_cron + DB Webhooks)
+Last activity: 2026-02-22 — Phase 55-04 complete: callGeneratePdfFromHtml helper exported from use-reports.ts; reports/page.tsx, dashboard-filters.tsx, lease-template-builder.client.tsx, send-for-signature-button.tsx all migrated; generate-pdf EF extended with leaseId mode (buildLeasePreviewHtml); all pre-commit checks pass
 
 Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete)
 
@@ -147,6 +147,13 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Server-to-server generate-pdf call uses `SUPABASE_SERVICE_ROLE_KEY` as Bearer token — bypasses user JWT auth check in generate-pdf Edge Function
 - `useSignedDocumentUrl` returns `pending:{submissionId}` when both parties have signed — full URL stored by Phase 55-03 docuseal-webhook handler
 - Test suite: replaced apiRequest mock assertions with `vi.stubGlobal('fetch', fetchMock)` + `expect.objectContaining({ body: expect.stringContaining(...) })` assertions
+
+**Phase 55-04 decisions:**
+- HTML for PDF documents built client-side from TanStack Query cache data — avoids redundant DB fetches in the Edge Function
+- Module-level helper functions (`buildReportPdfHtml`, `buildDashboardPdfHtml`) extract PDF HTML template strings to use `eslint-disable color-tokens/no-hex-colors` at block scope (PDF inline styles must use hex colors for StirlingPDF rendering)
+- generate-pdf EF three-mode dispatch: `'html' in body` → mode 2, `'leaseId' in body` → mode 3, else → mode 1 (reportType+year)
+- `buildLeasePreviewHtml` uses service role client already in handler — auth check before ensures caller is authenticated; elevated access is safe
+- Blob URL for lease-template-builder iframe not revoked immediately — iframe needs URL while displayed; acceptable for in-page preview
 
 **Phase 55-03 decisions:**
 - `notification_type` must be `'lease'` (not `'lease_signed'`) — `notifications_notification_type_check` constraint allows only `('maintenance', 'lease', 'payment', 'system')`
