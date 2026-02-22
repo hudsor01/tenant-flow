@@ -288,11 +288,12 @@ Plans:
 4. A DB Webhook fires on `rent_payments` INSERT and POSTs the payment payload to the n8n webhook URL on k3s; n8n workflow sends owner notification and generates receipt.
 5. A DB Webhook fires on `maintenance_requests` INSERT and UPDATE and POSTs to n8n; n8n workflow sends assignment notifications and status-update emails.
 
-Plans: 1 of 4 complete (In Progress)
+Plans: 4/4 plans complete
+
 - [x] 56-01-PLAN.md — Schema foundations: pg_cron extension, constraint expansions, late_fees + lease_reminders tables
-- [ ] 56-02-PLAN.md — pg_cron SQL functions + schedule registrations for all 3 jobs (SCHED-01, SCHED-02, SCHED-03)
-- [ ] 56-03-PLAN.md — DB webhook trigger functions + triggers for rent_payments, maintenance_requests, lease_reminders (WF-01, WF-02)
-- [ ] 56-04-PLAN.md — n8n workflow JSON files + human verification checkpoint
+- [x] 56-02-PLAN.md — pg_cron SQL functions + schedule registrations for all 3 jobs (SCHED-01, SCHED-02, SCHED-03)
+- [x] 56-03-PLAN.md — DB webhook trigger functions + triggers for rent_payments, maintenance_requests, lease_reminders (WF-01, WF-02)
+- [x] 56-04-PLAN.md — n8n workflow JSON files + human verification checkpoint
 
 ---
 
@@ -336,5 +337,5 @@ Plans: 1 of 4 complete (In Progress)
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Complete    | 2026-02-22 |
 | 55. External Services — StirlingPDF & DocuSeal | v7.0 | Complete    | 2026-02-22 |
-| 56. Scheduled Jobs & DB Webhooks | v7.0 | Pending | — |
+| 56. Scheduled Jobs & DB Webhooks | v7.0 | Complete    | 2026-02-22 |
 | 57. Cleanup & Deletion | v7.0 | Pending | — |
