@@ -218,11 +218,11 @@ Plans:
 5. All financial and analytics pages render with real data and no console errors; report CSV downloads successfully in the browser.
 
 Plans:
-- [ ] 53-01-PLAN.md — Migrate use-owner-dashboard.ts + use-analytics.ts to supabase.rpc()
-- [ ] 53-02-PLAN.md — Migrate use-reports.ts + use-financials.ts to supabase.rpc() + PostgREST
-- [ ] 53-03-PLAN.md — Migrate use-tenant-portal.ts to PostgREST + 4-section tenant portal dashboard + read-only kanban
-- [ ] 53-04-PLAN.md — Enable pg_graphql portfolio overview query (GRAPH-01, GRAPH-02)
-- [ ] 53-05-PLAN.md — Create export-report Supabase Edge Function + wire download mutations
+- [x] 53-01-PLAN.md — Migrate use-owner-dashboard.ts + use-analytics.ts to supabase.rpc()
+- [x] 53-02-PLAN.md — Migrate use-reports.ts + use-financials.ts to supabase.rpc() + PostgREST
+- [x] 53-03-PLAN.md — Migrate use-tenant-portal.ts to PostgREST + 4-section tenant portal dashboard + read-only kanban
+- [x] 53-04-PLAN.md — Enable pg_graphql portfolio overview query (GRAPH-01, GRAPH-02)
+- [x] 53-05-PLAN.md — Create export-report Supabase Edge Function + wire download mutations
 
 ---
 
