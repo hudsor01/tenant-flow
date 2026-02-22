@@ -18,6 +18,7 @@ import { toast } from 'sonner'
 
 import { createClient } from '#lib/supabase/client'
 import { apiRequest } from '#lib/api-request'
+import { isPostgrestEnabled } from '#lib/postgrest-flag'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
@@ -88,7 +89,15 @@ export const authQueries = {
 	session: () =>
 		queryOptions({
 			queryKey: authKeys.session(),
-			queryFn: () => apiRequest<AuthSession>('/api/v1/auth/session'),
+			queryFn: async (): Promise<AuthSession | null> => {
+				if (isPostgrestEnabled()) {
+					const supabase = createClient()
+					const { data, error } = await supabase.auth.getSession()
+					if (error) throw error
+					return data.session as AuthSession | null
+				}
+				return apiRequest<AuthSession>('/api/v1/auth/session')
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			retry: false // Auth failures shouldn't retry
 		}),
@@ -99,7 +108,28 @@ export const authQueries = {
 	user: () =>
 		queryOptions({
 			queryKey: authKeys.me,
-			queryFn: () => apiRequest<UserWithStripe>('/api/v1/users/me'),
+			queryFn: async (): Promise<UserWithStripe> => {
+				if (isPostgrestEnabled()) {
+					const supabase = createClient()
+					const {
+						data: { user },
+						error: authError
+					} = await supabase.auth.getUser()
+					if (authError || !user) throw authError ?? new Error('Not authenticated')
+					const { data, error } = await supabase
+						.from('users')
+						.select('id, email, stripe_customer_id')
+						.eq('id', user.id)
+						.single()
+					if (error) throw error
+					return {
+						id: data.id,
+						email: data.email,
+						stripe_customer_id: data.stripe_customer_id
+					}
+				}
+				return apiRequest<UserWithStripe>('/api/v1/users/me')
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
