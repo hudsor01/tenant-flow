@@ -150,7 +150,7 @@ Multi-step onboarding wizard for new landlords — property setup, Stripe Connec
 **Plans:** 5 plans
 
 Plans:
-- [ ] 50-01-PLAN.md — Fix Supabase clients (anon key) + feature flag helper
+- [x] 50-01-PLAN.md — Fix Supabase clients (anon key) + feature flag helper
 - [ ] 50-02-PLAN.md — Migrate use-profile.ts + use-auth.ts
 - [ ] 50-03-PLAN.md — Migrate use-sessions.ts + use-emergency-contact.ts
 - [ ] 50-04-PLAN.md — Migrate use-notifications.ts + use-owner-notification-settings.ts

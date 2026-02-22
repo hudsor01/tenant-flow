@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 55-external-services-edge-functions-stirlingpdf-docuseal
-Plan: 04 (complete)
-Status: PHASE FULLY COMPLETE — Phase 55 gap closure done; all 4 NestJS PDF callsites migrated to generate-pdf EF; EXT-01 success criterion 5 satisfied; zero NestJS PDF callsites remain in frontend; next: Phase 56 (pg_cron + DB Webhooks)
-Last activity: 2026-02-22 — Phase 55-04 complete: callGeneratePdfFromHtml helper exported from use-reports.ts; reports/page.tsx, dashboard-filters.tsx, lease-template-builder.client.tsx, send-for-signature-button.tsx all migrated; generate-pdf EF extended with leaseId mode (buildLeasePreviewHtml); all pre-commit checks pass
+Phase: 50-infrastructure-auth-foundation-user-profile-crud
+Plan: 01 (complete)
+Status: PLAN 50-01 COMPLETE — Supabase clients confirmed using NEXT_PUBLIC_SUPABASE_ANON_KEY; isPostgrestEnabled() feature flag helper created at apps/frontend/src/lib/postgrest-flag.ts; all pre-commit checks pass; next: Phase 50-02 (migrate use-profile.ts + use-auth.ts)
+Last activity: 2026-02-22 — Phase 50-01 complete: client.ts + server.ts + env.ts verified correct (already used anon key); postgrest-flag.ts created with isPostgrestEnabled() returning boolean from NEXT_PUBLIC_USE_POSTGREST; TypeScript typecheck passes
 
-Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete)
+Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete; Phase 50 plan 01 complete)
 
 ## Active Milestone
 
@@ -148,6 +148,12 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `useSignedDocumentUrl` returns `pending:{submissionId}` when both parties have signed — full URL stored by Phase 55-03 docuseal-webhook handler
 - Test suite: replaced apiRequest mock assertions with `vi.stubGlobal('fetch', fetchMock)` + `expect.objectContaining({ body: expect.stringContaining(...) })` assertions
 
+**Phase 50-01 decisions:**
+- Supabase browser client (client.ts) and server client (server.ts) were already using NEXT_PUBLIC_SUPABASE_ANON_KEY (JWT) — no changes needed; prior migration work had already fixed this
+- env.ts already validated both NEXT_PUBLIC_SUPABASE_ANON_KEY and NEXT_PUBLIC_USE_POSTGREST — no changes needed
+- isPostgrestEnabled() uses process.env direct access (not #env import) — env module validates at build time; direct access works at runtime in SKIP_ENV_VALIDATION environments
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY retained in env.ts — still powers NestJS path for non-migrated hooks during transition
+
 **Phase 55-04 decisions:**
 - HTML for PDF documents built client-side from TanStack Query cache data — avoids redundant DB fetches in the Edge Function
 - Module-level helper functions (`buildReportPdfHtml`, `buildDashboardPdfHtml`) extract PDF HTML template strings to use `eslint-disable color-tokens/no-hex-colors` at block scope (PDF inline styles must use hex colors for StirlingPDF rendering)
@@ -216,5 +222,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 55-01 — generate-pdf Edge Function (StirlingPDF, 30s timeout); export-report PDF delegation (no more 501); useDownloadYearEndPdf + useDownloadTaxDocumentPdf call generate-pdf directly; frontend typechecks pass.
+Completed: Phase 50-01 — Supabase client infrastructure verified (anon key in client.ts + server.ts + env.ts already correct from prior work); isPostgrestEnabled() helper created at apps/frontend/src/lib/postgrest-flag.ts; TypeScript typecheck passes; ROADMAP updated (50-01 marked complete).
 Resume file: None
