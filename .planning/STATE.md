@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 56-scheduled-jobs-db-webhooks-pg-cron-n8n
-Plan: 03 (complete)
-Status: PHASE 56 PLAN 03 COMPLETE — Three pg_net DB webhook trigger functions created (notify_n8n_rent_payment, notify_n8n_maintenance with status-change guard, notify_n8n_lease_reminder); all triggers fire after INSERT/UPDATE and POST to n8n with Authorization Bearer shared-secret; graceful null-check pattern skips silently if not configured; SCHED-02, WF-01, WF-02 complete; next: Phase 56 Plan 04 (n8n workflow JSON definitions)
-Last activity: 2026-02-22 — Phase 56-03 complete: migration 20260222130000_phase56_db_webhooks.sql created
+Phase: 57-cleanup-deletion-remove-nestjs
+Plan: 00 (not started)
+Status: PHASE 56 COMPLETE — All 4 plans complete: schema migrations (pg_cron, late_fees, lease_reminders, constraint expansions) + pg_cron SECURITY DEFINER functions (calculate_late_fees, queue_lease_reminders, expire-leases) + DB webhook triggers (notify_n8n_rent_payment, notify_n8n_maintenance, notify_n8n_lease_reminder) + n8n workflow JSONs (rent-payment-notification.json, maintenance-notification.json, lease-reminder-notification.json); all 5 requirements satisfied (SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02); human verification checkpoint approved; next: Phase 57 Cleanup & Deletion — Remove NestJS Entirely
+Last activity: 2026-02-22 — Phase 56-04 complete: three n8n workflow JSON files created in supabase/n8n-workflows/; human verification checkpoint approved
 
-Progress: ▓▓▓▓▓▓▓▓░░ ~70% (Phases 51–55 complete; Phase 56 plans 01–03 complete)
+Progress: ▓▓▓▓▓▓▓▓▓░ ~85% (Phases 51–56 complete; Phase 57 pending)
 
 ## Active Milestone
 
@@ -182,6 +182,12 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `buildLeasePreviewHtml` uses service role client already in handler — auth check before ensures caller is authenticated; elevated access is safe
 - Blob URL for lease-template-builder iframe not revoked immediately — iframe needs URL while displayed; acceptable for in-page preview
 
+**Phase 56-04 decisions:**
+- NoOp nodes with inline notes serve as TODO placeholders for real email nodes (Resend/SMTP) — makes workflow JSONs importable and testable for webhook delivery without requiring email config upfront
+- `"active": false` on all three workflows — prevents auto-activation on import; user manually activates after wiring email nodes in n8n Dashboard
+- Webhook path names (rent-payment, maintenance, lease-reminder) match trigger function URL naming convention from Plan 03
+- n8n Switch node used for lease-reminder reminder_type branching (30_days/7_days/1_day) vs IF node for binary INSERT/UPDATE branching — Switch scales cleanly for 3+ branches
+
 **Phase 56-03 decisions:**
 - `current_setting('app.settings.N8N_WEBHOOK_*', true)` with `true` arg returns null if not set — enables graceful skip pattern without crashing insert transactions
 - `perform net.http_post(...)` discards return bigint — fire-and-forget; pg_net queues async HTTP delivery with its own retry mechanism
@@ -267,5 +273,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 56-03 — Migration 20260222130000_phase56_db_webhooks.sql: three SECURITY DEFINER trigger functions created (notify_n8n_rent_payment on rent_payments INSERT, notify_n8n_maintenance on maintenance_requests INSERT/UPDATE with status-change guard, notify_n8n_lease_reminder on lease_reminders INSERT); all use net.http_post() fire-and-forget with Authorization Bearer shared-secret; graceful null-check skips if URL not configured; WF-01/WF-02 complete; all pre-commit checks pass.
+Completed: Phase 56-04 — Three n8n workflow JSON files created in supabase/n8n-workflows/ (rent-payment-notification.json, maintenance-notification.json, lease-reminder-notification.json); each has Webhook Trigger node, Authorization header verification IF node, event-type branching logic, and NoOp placeholder nodes with TODO notes for email configuration; all active:false; human verification checkpoint approved; Phase 56 fully complete (SCHED-01/02/03, WF-01/WF-02 all satisfied).
 Resume file: None
