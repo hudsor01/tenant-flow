@@ -89,6 +89,12 @@ export const env = createEnv({
 			.string()
 			.min(1, 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required'),
 
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: z
+			.string()
+			.min(1, 'NEXT_PUBLIC_SUPABASE_ANON_KEY is required'),
+
+		NEXT_PUBLIC_USE_POSTGREST: z.string().optional(),
+
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
 			.string()
 			.startsWith('pk_', 'Stripe publishable key must start with pk_'),
@@ -128,6 +134,8 @@ export const env = createEnv({
 		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
 		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+		NEXT_PUBLIC_USE_POSTGREST: process.env.NEXT_PUBLIC_USE_POSTGREST,
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM,
