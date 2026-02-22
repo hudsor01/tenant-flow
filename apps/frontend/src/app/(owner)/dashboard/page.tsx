@@ -154,6 +154,16 @@ function DashboardContent() {
 		}
 	}, [searchParams])
 
+	// Return-journey toast: detect ?billing=updated after Stripe Customer Portal return
+	useEffect(() => {
+		if (searchParams.get('billing') === 'updated') {
+			toast.success('Subscription updated')
+			const url = new URL(window.location.href)
+			url.searchParams.delete('billing')
+			window.history.replaceState({}, '', url.toString())
+		}
+	}, [searchParams])
+
 	// API Hooks
 	const { data: statsData, isLoading: statsLoading, isError: statsError } = useDashboardStats()
 	const { data: chartsData, isLoading: chartsLoading, isError: chartsError } = useDashboardCharts()
