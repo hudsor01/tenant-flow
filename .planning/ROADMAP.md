@@ -242,7 +242,7 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 54-01-PLAN.md — Migrate use-payments.ts + use-payment-methods.ts to PostgREST (PAY-01)
+- [x] 54-01-PLAN.md — Migrate use-payments.ts + use-payment-methods.ts to PostgREST (PAY-01)
 - [ ] 54-02-PLAN.md — Create stripe-connect Edge Function + migrate use-stripe-connect.ts (PAY-02)
 - [ ] 54-03-PLAN.md — DB migration (stripe_webhook_events) + create stripe-webhooks Edge Function (PAY-03)
 - [ ] 54-04-PLAN.md — Create stripe-checkout + stripe-billing-portal Edge Functions + migrate use-billing.ts (PAY-04)
