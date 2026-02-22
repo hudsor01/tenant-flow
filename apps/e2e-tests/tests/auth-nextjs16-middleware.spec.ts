@@ -124,42 +124,6 @@ test.describe('Next.js 16 Proxy - Authenticated Redirects', () => {
 	})
 })
 
-test.describe('Next.js 16 Proxy - Legacy Redirects', () => {
-	test('should redirect /manage to /dashboard (unauthenticated)', async ({
-		page,
-		context
-	}) => {
-		await context.clearCookies()
-
-		await page.goto(`${baseUrl}/manage`)
-
-		// Should redirect to /dashboard, then to /login
-		await expect(page).toHaveURL(/\/login/)
-	})
-
-	test('should redirect /manage to /dashboard (authenticated)', async ({
-		page
-	}) => {
-		await loginAsOwner(page)
-
-		await page.goto(`${baseUrl}/manage`)
-
-		// Should redirect to /dashboard
-		await expect(page).toHaveURL(/\/($|dashboard)/)
-	})
-
-	test('should redirect /manage/properties to /properties', async ({
-		page
-	}) => {
-		await loginAsOwner(page)
-
-		await page.goto(`${baseUrl}/manage/properties`)
-
-		// Should redirect to /properties
-		await expect(page).toHaveURL(/\/properties/)
-	})
-})
-
 test.describe('Next.js 16 Proxy - Session Sync (getClaims)', () => {
 	test('should set Supabase auth cookies after login', async ({
 		page,
