@@ -8,13 +8,10 @@ import {
 	useConnectedAccount,
 	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { BillingLoadingSkeleton } from './_components/billing-loading-skeleton'
 import { BillingEmptyState } from './_components/billing-empty-state'
 import { BillingStatCards } from './_components/billing-stat-cards'
 import { BillingAccountDetails } from './_components/billing-account-details'
-
-const stripeLogger = createLogger({ component: 'StripeConnectOnboarding' })
 
 export default function BillingPage() {
 	const { data: account, isLoading, error } = useConnectedAccount()
@@ -23,27 +20,8 @@ export default function BillingPage() {
 
 	const handleRefreshOnboarding = async () => {
 		try {
-			const result = await refreshOnboarding.mutateAsync()
-			if (result.success && result.data.onboardingUrl) {
-				try {
-					const url = new URL(result.data.onboardingUrl)
-					if (
-						url.protocol !== 'https:' ||
-						!url.hostname.includes('stripe.com')
-					) {
-						stripeLogger.error('Invalid or untrusted URL', {
-							metadata: { url: url.href }
-						})
-						return
-					}
-					window.open(url.href, '_blank', 'noopener,noreferrer')
-					toast.success('Opening Stripe onboarding in new window')
-				} catch {
-					stripeLogger.error('Invalid URL format', {
-						metadata: { url: result.data.onboardingUrl }
-					})
-				}
-			}
+			// Hook performs full-page redirect to Stripe onboarding URL automatically
+			await refreshOnboarding.mutateAsync()
 		} catch {
 			toast.error('Failed to refresh onboarding link')
 		}

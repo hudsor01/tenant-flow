@@ -21,14 +21,8 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import {
-	useCreateConnectedAccountMutation,
-	useRefreshOnboardingMutation
-} from '#hooks/api/use-stripe-connect'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { useCreateConnectedAccountMutation } from '#hooks/api/use-stripe-connect'
 import { Spinner } from '#components/ui/loading-spinner'
-
-const stripeLogger = createLogger({ component: 'StripeConnectOnboarding' })
 
 interface ConnectOnboardingDialogProps {
 	open: boolean
@@ -47,7 +41,6 @@ export function ConnectOnboardingDialog({
 	const [country, setCountry] = useState('US')
 
 	const createAccount = useCreateConnectedAccountMutation()
-	const refreshOnboarding = useRefreshOnboardingMutation()
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault()
@@ -71,33 +64,9 @@ export function ConnectOnboardingDialog({
 			if (businessName.trim()) {
 				payload.businessName = businessName.trim()
 			}
-			const result = await createAccount.mutateAsync(payload)
-
-			if (result.success && result.data) {
-				toast.success('Stripe Connect account created successfully')
-				onOpenChange(false)
-
-				const onboardingResult = await refreshOnboarding.mutateAsync()
-				if (onboardingResult.success && onboardingResult.data.onboardingUrl) {
-					try {
-						const url = new URL(onboardingResult.data.onboardingUrl)
-						if (
-							url.protocol !== 'https:' ||
-							!url.hostname.includes('stripe.com')
-						) {
-							stripeLogger.error('Invalid or untrusted URL', {
-								metadata: { url: url.href }
-							})
-							return
-						}
-						window.open(url.href, '_blank', 'noopener,noreferrer')
-					} catch {
-						stripeLogger.error('Invalid URL format', {
-							metadata: { url: onboardingResult.data.onboardingUrl }
-						})
-					}
-				}
-			}
+			// Hook performs full-page redirect to Stripe onboarding URL automatically
+			await createAccount.mutateAsync(payload)
+			onOpenChange(false)
 		} catch {
 			toast.error('Failed to create Stripe account')
 		}
