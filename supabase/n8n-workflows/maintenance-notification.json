@@ -1,0 +1,127 @@
+{
+  "name": "TenantFlow — Maintenance Request Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "maintenance",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-maintenance",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $headers['authorization'] }}",
+              "operation": "equals",
+              "value2": "=Bearer {{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "id": "check-auth",
+      "name": "Verify Auth Header",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 460]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.body.type }}",
+              "operation": "equals",
+              "value2": "INSERT"
+            }
+          ]
+        }
+      },
+      "id": "branch-on-event-type",
+      "name": "Branch on Event Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {},
+      "id": "notify-owner",
+      "name": "Notify Owner",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 120],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). New maintenance request submitted. Send email to owner. Record: {{ $json.body.record }}. Request title: {{ $json.body.record.title }}. Priority: {{ $json.body.record.priority }}."
+    },
+    {
+      "parameters": {},
+      "id": "notify-tenant",
+      "name": "Notify Tenant",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). Maintenance request status changed to {{ $json.body.record.status }}. Send email to tenant. Record: {{ $json.body.record }}."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"ok\" }",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Verify Auth Header", "type": "main", "index": 0 }]
+      ]
+    },
+    "Verify Auth Header": {
+      "main": [
+        [{ "node": "Branch on Event Type", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Branch on Event Type": {
+      "main": [
+        [{ "node": "Notify Owner", "type": "main", "index": 0 }],
+        [{ "node": "Notify Tenant", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notify Owner": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notify Tenant": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}

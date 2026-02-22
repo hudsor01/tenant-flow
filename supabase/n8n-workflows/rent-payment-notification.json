@@ -1,0 +1,103 @@
+{
+  "name": "TenantFlow — Rent Payment Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rent-payment",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-rent-payment",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $headers['authorization'] }}",
+              "operation": "equals",
+              "value2": "=Bearer {{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "id": "check-auth",
+      "name": "Verify Auth Header",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 440]
+    },
+    {
+      "parameters": {},
+      "id": "send-owner-notification",
+      "name": "Send Owner Notification",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [680, 200],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). Payment record is in {{ $json.body.record }}. Owner email from {{ $json.body.record.lease_id }} -> leases -> owner."
+    },
+    {
+      "parameters": {},
+      "id": "generate-receipt",
+      "name": "Generate Receipt",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "notes": "TODO: Call generate-pdf Edge Function with payment data to generate PDF receipt. Store in Supabase Storage."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"ok\" }",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 200]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Verify Auth Header", "type": "main", "index": 0 }]
+      ]
+    },
+    "Verify Auth Header": {
+      "main": [
+        [{ "node": "Send Owner Notification", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Owner Notification": {
+      "main": [
+        [{ "node": "Generate Receipt", "type": "main", "index": 0 }]
+      ]
+    },
+    "Generate Receipt": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
