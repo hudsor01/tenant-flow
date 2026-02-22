@@ -15,7 +15,7 @@ import {
 } from '#components/ui/dialog'
 import { Textarea } from '#components/ui/textarea'
 import { Label } from '#components/ui/label'
-import { apiRequestRaw } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import {
 	useSendLeaseForSignatureMutation,
 	useResendSignatureRequestMutation
@@ -120,8 +120,26 @@ export function SendForSignatureButton({
 	const handlePreview = async () => {
 		try {
 			setIsPreviewing(true)
-			const res = await apiRequestRaw(`/api/v1/leases/${leaseId}/pdf/preview`)
-			const blob = await res.blob()
+			const supabase = createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			if (!session?.access_token) throw new Error('Not authenticated')
+
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ leaseId, filename: `lease-preview-${leaseId}.pdf` }),
+			})
+
+			if (!response.ok) {
+				const errText = await response.text().catch(() => response.statusText)
+				throw new Error(errText)
+			}
+
+			const blob = await response.blob()
 			const url = URL.createObjectURL(blob)
 			window.open(url, '_blank', 'noopener,noreferrer')
 			setTimeout(() => URL.revokeObjectURL(url), 60_000)
