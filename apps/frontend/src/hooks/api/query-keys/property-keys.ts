@@ -234,19 +234,38 @@ export const propertyQueries = {
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
 				queryFn: async (): Promise<unknown> => {
-					// TODO: No direct occupancy RPC without user_id — return empty until wired
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_occupancy_trends_optimized',
+						{ p_user_id: user.id, p_months: 12 }
+					)
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
 				},
-				...QUERY_CACHE_TIMES.ANALYTICS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		financial: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
 				queryFn: async (): Promise<unknown> => {
-					// TODO: No direct financial analytics RPC without user_id — return empty until wired
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc('get_financial_overview', {
+						p_user_id: user.id
+					})
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
 				},
-				...QUERY_CACHE_TIMES.ANALYTICS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		maintenance: () =>
 			queryOptions({
@@ -256,10 +275,20 @@ export const propertyQueries = {
 					'maintenance'
 				] as const,
 				queryFn: async (): Promise<unknown> => {
-					// TODO: get_maintenance_analytics requires user_id — return empty until wired
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_maintenance_analytics',
+						{ user_id: user.id }
+					)
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
 				},
-				...QUERY_CACHE_TIMES.ANALYTICS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			})
 	},
 

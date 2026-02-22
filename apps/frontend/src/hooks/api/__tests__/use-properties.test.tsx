@@ -72,6 +72,7 @@ const {
 	mockDelete,
 	mockHead,
 	mockGetUser,
+	mockRpc,
 	mockStorageFrom,
 	mockGetPublicUrl
 } = vi.hoisted(() => ({
@@ -88,6 +89,7 @@ const {
 	mockDelete: vi.fn(),
 	mockHead: vi.fn(),
 	mockGetUser: vi.fn(),
+	mockRpc: vi.fn(),
 	mockStorageFrom: vi.fn(),
 	mockGetPublicUrl: vi.fn()
 }))
@@ -95,6 +97,7 @@ const {
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: mockFrom,
+		rpc: mockRpc,
 		auth: {
 			getUser: mockGetUser
 		},
@@ -177,6 +180,7 @@ describe('Query Hooks', () => {
 		vi.clearAllMocks()
 
 		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		mockRpc.mockResolvedValue({ data: null, error: null })
 	})
 
 	describe('useProperty', () => {

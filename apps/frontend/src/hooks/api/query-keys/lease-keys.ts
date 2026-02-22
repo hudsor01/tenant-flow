@@ -320,37 +320,77 @@ export const leaseQueries = {
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'performance'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
-					// TODO(phase-53): migrate analytics to RPC in Phase 53
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_property_performance_analytics',
+						{ p_user_id: user.id }
+					)
+					if (error) handlePostgrestError(error, 'leases')
+					return (data ?? {}) as Record<string, unknown>
 				},
-				...QUERY_CACHE_TIMES.STATS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		duration: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'duration'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
-					// TODO(phase-53): migrate analytics to RPC in Phase 53
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_revenue_trends_optimized',
+						{ p_user_id: user.id, p_months: 12 }
+					)
+					if (error) handlePostgrestError(error, 'leases')
+					return (data ?? {}) as Record<string, unknown>
 				},
-				...QUERY_CACHE_TIMES.STATS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		turnover: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'turnover'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
-					// TODO(phase-53): migrate analytics to RPC in Phase 53
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_revenue_trends_optimized',
+						{ p_user_id: user.id, p_months: 12 }
+					)
+					if (error) handlePostgrestError(error, 'leases')
+					return (data ?? {}) as Record<string, unknown>
 				},
-				...QUERY_CACHE_TIMES.STATS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		revenue: () =>
 			queryOptions({
 				queryKey: [...leaseQueries.all(), 'analytics', 'revenue'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
-					// TODO(phase-53): migrate analytics to RPC in Phase 53
-					return {}
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_revenue_trends_optimized',
+						{ p_user_id: user.id, p_months: 12 }
+					)
+					if (error) handlePostgrestError(error, 'leases')
+					return (data ?? {}) as Record<string, unknown>
 				},
-				...QUERY_CACHE_TIMES.STATS
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			})
 	}
 }
