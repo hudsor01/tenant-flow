@@ -256,7 +256,7 @@ Plans:
 
 **Requirements**: EXT-01, EXT-02
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 **Success criteria**:
 1. A new `supabase/functions/generate-pdf` Edge Function accepts a report payload, calls the StirlingPDF HTTP API on k3s, and returns a PDF blob; the frontend calls this function directly (replacing the NestJS PDF module).
@@ -327,6 +327,6 @@ Plans:
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Complete    | 2026-02-22 |
-| 55. External Services — StirlingPDF & DocuSeal | v7.0 | ✅ Complete | 2026-02-22 |
+| 55. External Services — StirlingPDF & DocuSeal | v7.0 | Complete    | 2026-02-22 |
 | 56. Scheduled Jobs & DB Webhooks | v7.0 | Pending | — |
 | 57. Cleanup & Deletion | v7.0 | Pending | — |
