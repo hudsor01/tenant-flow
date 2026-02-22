@@ -236,7 +236,7 @@ Plans:
 1. `use-payments.ts` and `use-payment-methods.ts` use PostgREST for payment record queries and mutations; `apiRequest` removed from both files.
 2. A new `supabase/functions/stripe-connect` Edge Function handles Stripe Connect onboarding URL generation and account status retrieval; `use-stripe-connect.ts` calls this function.
 3. A new `supabase/functions/stripe-webhooks` Edge Function processes all Stripe webhook events (`subscription.*`, `account.updated`, `payment_intent.*`) using `Stripe.constructEventAsync()` with the webhook secret from Edge Function environment variables; webhook delivery verified in Stripe dashboard.
-4. `use-billing.ts` calls a new `supabase/functions/billing` Edge Function for subscription management (plan upgrades, portal session creation); `apiRequest` removed.
+4. `use-billing.ts` calls two new Edge Functions — `supabase/functions/stripe-checkout` (new subscriptions via Stripe Checkout) and `supabase/functions/stripe-billing-portal` (existing subscriber management via Stripe Customer Portal) — `apiRequest` removed.
 5. A test Stripe webhook event (`customer.subscription.updated`) delivered to the Edge Function endpoint updates the correct subscription record in Supabase within 5 seconds.
 
 **Plans:** 5 plans
