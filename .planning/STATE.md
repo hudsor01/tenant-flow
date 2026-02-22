@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 54-payments-billing-postgrest-stripe-edge-functions
-Plan: 02 (complete)
-Status: IN PROGRESS — Phase 54-02 complete; 54-03 is next
-Last activity: 2026-02-21 — Phase 54-02 complete: stripe-connect Edge Function verified (account/onboard/refresh-link/balance/payouts/transfers); use-stripe-connect.ts verified migrated (no apiRequest); dashboard Connect banner + return-journey toast added; settings/payouts page created with always-visible account status
+Plan: 04 (complete)
+Status: IN PROGRESS — Phase 54-04 complete; Phase 54 complete if no further plans exist
+Last activity: 2026-02-21 — Phase 54-04 complete: stripe-checkout + stripe-billing-portal Edge Functions created (authenticated JWT, Stripe Checkout/Portal session creation, returns { url }); use-billing.ts fully migrated (zero apiRequest; useCreateSubscriptionMutation → stripe-checkout redirect; useBillingPortalMutation new → stripe-billing-portal redirect; subscription status/history via PostgREST); dashboard ?billing=updated toast wired
 
-Progress: ▓▓▓▓▓▓░░░░ ~47% (Phases 51–53 complete, Phase 54 in progress)
+Progress: ▓▓▓▓▓▓▓░░░ ~53% (Phases 51–53 complete, Phase 54 complete)
 
 ## Active Milestone
 
@@ -108,6 +108,14 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `callExportEdgeFunction()` gets `access_token` from `supabase.auth.getSession()` and passes as Bearer token to Edge Function
 - All 966 tests pass after Phase 53; `pnpm --filter @repo/frontend typecheck` passes
 
+**Phase 54-04 decisions:**
+- `stripe-checkout` and `stripe-billing-portal` exist as separate Edge Functions for independent deployment and failure isolation (per locked CONTEXT.md decision; supersedes ROADMAP wording "billing" function)
+- `useUpdateSubscriptionMutation`, `usePauseSubscriptionMutation`, `useResumeSubscriptionMutation`, `useCancelSubscriptionMutation` all redirect to Stripe Customer Portal — Stripe manages subscription lifecycle
+- `useInvoices()` returns empty array with TODO: Stripe invoices not stored in DB, requires dedicated Edge Function
+- `useSubscriptionStatus()` reads `stripe_customer_id` from `users` table via PostgREST — presence indicates subscription history; full status tracking via Stripe webhooks updating `leases.stripe_subscription_status`
+- `callBillingEdgeFunction` helper pattern matches `callStripeConnectFunction` from 54-02 for consistency
+- ESLint caught unused `formatInvoice` — removed formatting utilities since invoice fetching is stubbed; can be re-added when invoice Edge Function is built
+
 **Phase 54-02 decisions:**
 - `stripe-connect` Edge Function was already complete at start of phase — verified all 6 actions (account, onboard, refresh-link, balance, payouts, transfers); uses `npm:stripe@14`; authenticates via JWT Bearer; reads/writes `stripe_connected_accounts` table
 - `use-stripe-connect.ts` was already fully migrated — zero `apiRequest` imports; `callStripeConnectFunction()` posts to `/functions/v1/stripe-connect` with action payload
@@ -170,5 +178,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-21
-Completed: Phase 53 (all 5 plans) — analytics/reports/tenant-portal migrated to PostgREST + RPCs; pg_graphql portfolio overview (useOwnerPortfolioOverview); export-report Deno Edge Function for CSV/XLSX/PDF (PDF 501 stub pending Phase 55). 966 tests pass.
+Completed: Phase 54-04 — stripe-checkout + stripe-billing-portal Edge Functions; use-billing.ts fully migrated (zero apiRequest); useBillingPortalMutation added; dashboard billing=updated toast wired.
 Resume file: None

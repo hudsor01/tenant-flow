@@ -27,7 +27,7 @@ Eliminate the NestJS/Railway backend entirely. Migrate all 26 frontend hook file
 - [ ] **PAY-01**: Dev can migrate rent payment hooks (`use-payments.ts`, `use-payment-methods.ts`) to PostgREST
 - [ ] **PAY-02**: Dev can migrate Stripe Connect status and onboarding hooks (`use-stripe-connect.ts`) to a Supabase Edge Function
 - [ ] **PAY-03**: Stripe webhook events (subscription changes, Connect account updates, payment events) are handled by a Supabase Edge Function using `constructEventAsync()`
-- [ ] **PAY-04**: Dev can migrate billing/subscription hooks (`use-billing.ts`) to an Edge Function that wraps Stripe API
+- [x] **PAY-04**: Dev can migrate billing/subscription hooks (`use-billing.ts`) to an Edge Function that wraps Stripe API
 
 ### EXT — External Service Edge Functions
 
