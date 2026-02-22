@@ -1,0 +1,152 @@
+{
+  "name": "TenantFlow — Lease Expiry Reminder Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lease-reminder",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-lease-reminder",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $headers['authorization'] }}",
+              "operation": "equals",
+              "value2": "=Bearer {{ $env.N8N_WEBHOOK_SECRET }}"
+            }
+          ]
+        }
+      },
+      "id": "check-auth",
+      "name": "Verify Auth Header",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"error\": \"Unauthorized\" }",
+        "options": { "responseCode": 401 }
+      },
+      "id": "respond-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 460]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.body.record.reminder_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "30_days",
+              "outputKey": "0"
+            },
+            {
+              "value2": "7_days",
+              "outputKey": "1"
+            },
+            {
+              "value2": "1_day",
+              "outputKey": "2"
+            }
+          ]
+        },
+        "fallbackOutput": "extra"
+      },
+      "id": "branch-on-reminder-type",
+      "name": "Branch on Reminder Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {},
+      "id": "notify-30-days",
+      "name": "Notify — 30 Days",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 80],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). Lease expires in 30 days. Send renewal reminder to tenant and owner. Lease ID: {{ $json.body.record.lease_id }}. Expiry date: {{ $json.body.record.expiry_date }}."
+    },
+    {
+      "parameters": {},
+      "id": "notify-7-days",
+      "name": "Notify — 7 Days",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 220],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). Lease expires in 7 days — urgent. Send urgent renewal notice to tenant and owner. Lease ID: {{ $json.body.record.lease_id }}. Expiry date: {{ $json.body.record.expiry_date }}."
+    },
+    {
+      "parameters": {},
+      "id": "notify-1-day",
+      "name": "Notify — 1 Day",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 360],
+      "notes": "TODO: Replace with Email node (Resend/SMTP). Lease expires tomorrow — critical. Send final expiry notice to tenant and owner. Lease ID: {{ $json.body.record.lease_id }}. Expiry date: {{ $json.body.record.expiry_date }}."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"ok\" }",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-200",
+      "name": "Respond 200",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 220]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [{ "node": "Verify Auth Header", "type": "main", "index": 0 }]
+      ]
+    },
+    "Verify Auth Header": {
+      "main": [
+        [{ "node": "Branch on Reminder Type", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Branch on Reminder Type": {
+      "main": [
+        [{ "node": "Notify — 30 Days", "type": "main", "index": 0 }],
+        [{ "node": "Notify — 7 Days", "type": "main", "index": 0 }],
+        [{ "node": "Notify — 1 Day", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notify — 30 Days": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notify — 7 Days": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notify — 1 Day": {
+      "main": [
+        [{ "node": "Respond 200", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" }
+}
