@@ -246,7 +246,7 @@ Plans:
 - [x] 54-02-PLAN.md — Create stripe-connect Edge Function + migrate use-stripe-connect.ts (PAY-02)
 - [x] 54-03-PLAN.md — DB migration (stripe_webhook_events) + create stripe-webhooks Edge Function (PAY-03)
 - [x] 54-04-PLAN.md — Create stripe-checkout + stripe-billing-portal Edge Functions + migrate use-billing.ts (PAY-04)
-- [ ] 54-05-PLAN.md — Deploy + human verification checkpoint (all PAY requirements)
+- [x] 54-05-PLAN.md — Deploy + human verification checkpoint (all PAY requirements)
 
 ---
 
@@ -318,7 +318,7 @@ Plans:
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
-| 54. Payments & Billing — Stripe Edge Functions | v7.0 | Pending | — |
+| 54. Payments & Billing — Stripe Edge Functions | v7.0 | ✅ Complete | 2026-02-21 |
 | 55. External Services — StirlingPDF & DocuSeal | v7.0 | Pending | — |
 | 56. Scheduled Jobs & DB Webhooks | v7.0 | Pending | — |
 | 57. Cleanup & Deletion | v7.0 | Pending | — |
