@@ -268,7 +268,7 @@ Plans:
 Plans:
 - [x] 55-01-PLAN.md — generate-pdf Edge Function + wire frontend PDF download mutations (EXT-01)
 - [x] 55-02-PLAN.md — docuseal outbound Edge Function + migrate use-lease.ts signature mutations (EXT-02 partial)
-- [ ] 55-03-PLAN.md — docuseal-webhook Edge Function + human verification checkpoint (EXT-02 completion)
+- [x] 55-03-PLAN.md — docuseal-webhook Edge Function + human verification checkpoint (EXT-02 completion)
 
 ---
 
@@ -326,6 +326,6 @@ Plans:
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
 | 54. Payments & Billing — Stripe Edge Functions | v7.0 | Complete    | 2026-02-22 |
-| 55. External Services — StirlingPDF & DocuSeal | v7.0 | Pending | — |
+| 55. External Services — StirlingPDF & DocuSeal | v7.0 | ✅ Complete | 2026-02-22 |
 | 56. Scheduled Jobs & DB Webhooks | v7.0 | Pending | — |
 | 57. Cleanup & Deletion | v7.0 | Pending | — |

@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 55-external-services-edge-functions-stirlingpdf-docuseal
-Plan: 02 (complete)
-Status: IN PROGRESS — Phase 55-02 complete; docuseal Edge Function (5 actions) created; all 5 signature mutations migrated from apiRequest to callDocuSealEdgeFunction(); Phase 55-03 (docuseal-webhook) pending
-Last activity: 2026-02-22 — Phase 55-02 complete: supabase/functions/docuseal/index.ts created with 5 action handlers (send-for-signature, sign-owner, sign-tenant, cancel, resend); all 5 signature mutations in use-lease.ts migrated to callDocuSealEdgeFunction(); useSignedDocumentUrl migrated to PostgREST; zero apiRequest calls remain; 965 tests pass; typecheck passes
+Plan: 03 (complete)
+Status: PHASE COMPLETE — Phase 55 fully complete; all 3 Edge Functions in place (generate-pdf, docuseal, docuseal-webhook); EXT-01 and EXT-02 done; human verification checkpoint pending user approval; next: Phase 56 (pg_cron + DB Webhooks)
+Last activity: 2026-02-22 — Phase 55-03 complete: supabase/functions/docuseal-webhook/index.ts created with form.completed and submission.completed handlers, idempotency guards, atomic lease activation + notification insert, optional DOCUSEAL_WEBHOOK_SECRET verification; 965 tests pass; typecheck passes
 
-Progress: ▓▓▓▓▓▓▓░░░ ~56% (Phases 51–54 complete, Phase 55-01 and 55-02 complete)
+Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete)
 
 ## Active Milestone
 
@@ -147,6 +147,14 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Server-to-server generate-pdf call uses `SUPABASE_SERVICE_ROLE_KEY` as Bearer token — bypasses user JWT auth check in generate-pdf Edge Function
 - `useSignedDocumentUrl` returns `pending:{submissionId}` when both parties have signed — full URL stored by Phase 55-03 docuseal-webhook handler
 - Test suite: replaced apiRequest mock assertions with `vi.stubGlobal('fetch', fetchMock)` + `expect.objectContaining({ body: expect.stringContaining(...) })` assertions
+
+**Phase 55-03 decisions:**
+- `notification_type` must be `'lease'` (not `'lease_signed'`) — `notifications_notification_type_check` constraint allows only `('maintenance', 'lease', 'payment', 'system')`
+- `docuseal_document_url` column does not exist in `leases` table — signed document URL from `submission.completed.documents[0].url` is logged to console but not stored in DB
+- Webhook secret verification checks `x-docuseal-signature` first, then falls back to `authorization` header — supports both DocuSeal native header and Bearer token formats
+- Idempotency for `form.completed`: check `owner_signed_at`/`tenant_signed_at` before writing — return early (200) if already set
+- Idempotency for `submission.completed`: check `lease_status === 'active'` before processing — return early (200) if already active
+- Unrecognised roles return early with no error — graceful ignore (200 response, no retry triggered)
 
 **Phase 54-01 decisions:**
 - `usePaymentMethods()` in use-payments.ts maps DB `last_four` → `last4` to preserve `PaymentMethodResponse` type compatibility (consumers import from `@repo/shared/types/core` which uses camelCase `last4`)
