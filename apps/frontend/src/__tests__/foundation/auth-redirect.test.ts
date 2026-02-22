@@ -45,10 +45,9 @@ describe('authentication redirects', () => {
 
 	it('should define public auth paths', () => {
 		// Auth paths that don't require authentication
-		const authPaths = ['/login', '/signup', '/auth']
+		const authPaths = ['/login', '/auth']
 
 		expect(authPaths).toContain('/login')
-		expect(authPaths).toContain('/signup')
 		expect(authPaths).toContain('/auth')
 	})
 

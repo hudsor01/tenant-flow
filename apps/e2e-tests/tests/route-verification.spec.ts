@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test'
  * Route Structure (per Next.js 15 documentation):
  * - (owner) group → `/` (root) - Owner dashboard and features
  * - (tenant) group → `/tenant` - Tenant portal
- * - (auth) group → `/login`, `/signup` - Authentication
+ * - (auth) group → `/login` - Authentication
  *
  * @see https://nextjs.org/docs/app/building-your-application/routing/route-groups
  */
