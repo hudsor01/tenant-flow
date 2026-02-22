@@ -847,3 +847,17 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		structuralSharing: true
 	})
 }
+
+import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
+
+/**
+ * Owner portfolio overview using pg_graphql
+ * Single request fetches all properties with per-property unit counts and revenue.
+ * Replaces N+1 PostgREST calls (one per property) with one pg_graphql request.
+ *
+ * GRAPH-01 + GRAPH-02 compliance: uses supabase.rpc('graphql.resolve') as specified.
+ * RLS is enforced server-side — pg_graphql respects auth.uid() automatically.
+ */
+export function useOwnerPortfolioOverview() {
+	return useQuery(dashboardGraphQLQueries.portfolioOverview())
+}
