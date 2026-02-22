@@ -1,7 +1,7 @@
 // Supabase Edge Function: export-report
-// Generates CSV, XLSX (CSV-compatible), and PDF (stub) report exports.
+// Generates CSV, XLSX (CSV-compatible), and PDF report exports.
 // Authenticates via JWT bearer token — no anon access.
-// PDF generation is stubbed; StirlingPDF integration is Phase 55.
+// PDF format: delegates to generate-pdf Edge Function (StirlingPDF via k3s).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -38,14 +38,6 @@ Deno.serve(async (req: Request) => {
     const format = url.searchParams.get('format') ?? 'csv'
     const year = parseInt(url.searchParams.get('year') ?? String(new Date().getFullYear()))
 
-    // PDF generation requires StirlingPDF (Phase 55) — return stub response
-    if (format === 'pdf') {
-      return new Response(
-        JSON.stringify({ error: 'PDF export requires Phase 55 Edge Function (StirlingPDF)' }),
-        { status: 501, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
     // Fetch data based on report type
     let rows: Record<string, unknown>[] = []
     let filename = `report-${reportType}-${year}`
@@ -69,6 +61,39 @@ Deno.serve(async (req: Request) => {
       })
       rows = Array.isArray(data) ? (data as Record<string, unknown>[]) : []
       filename = `revenue-report-${year}`
+    }
+
+    // PDF format: delegate to generate-pdf Edge Function (StirlingPDF on k3s)
+    if (format === 'pdf') {
+      const htmlContent = buildReportHtml(rows, reportType, year)
+      const generatePdfUrl = `${supabaseUrl}/functions/v1/generate-pdf`
+
+      const pdfResponse = await fetch(generatePdfUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: authHeader,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ html: htmlContent, filename: `${filename}.pdf` }),
+      })
+
+      if (!pdfResponse.ok) {
+        const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
+        return new Response(
+          JSON.stringify({ error: `PDF generation failed: ${errText}` }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      const pdfBlob = await pdfResponse.arrayBuffer()
+      return new Response(pdfBlob, {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${filename}.pdf"`,
+        },
+      })
     }
 
     const csv = rowsToCsv(rows)
@@ -100,6 +125,38 @@ Deno.serve(async (req: Request) => {
     )
   }
 })
+
+function buildReportHtml(rows: Record<string, unknown>[], reportType: string, year: number): string {
+  const title = `${reportType.replace(/-/g, ' ').toUpperCase()} REPORT — ${year}`
+  const headers = rows.length > 0 ? Object.keys(rows[0]) : []
+
+  const tableRows = rows.map(row =>
+    `<tr>${headers.map(h => {
+      const val = row[h]
+      return `<td style="border:1px solid #ccc;padding:6px 10px;">${val === null || val === undefined ? '' : String(val)}</td>`
+    }).join('')}</tr>`
+  ).join('')
+
+  const headerCells = headers.map(h =>
+    `<th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left;">${h}</th>`
+  ).join('')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>${title}</title></head>
+<body style="font-family:Arial,sans-serif;margin:32px;color:#222;">
+  <h1 style="font-size:20px;margin-bottom:4px;">${title}</h1>
+  <p style="color:#666;margin-bottom:16px;">Generated: ${new Date().toLocaleDateString()}</p>
+  ${rows.length === 0
+    ? '<p>No data available for this report.</p>'
+    : `<table style="border-collapse:collapse;width:100%;font-size:13px;">
+        <thead><tr>${headerCells}</tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>`
+  }
+</body>
+</html>`
+}
 
 function flattenToRows(data: unknown): Record<string, unknown>[] {
   if (!data || typeof data !== 'object') return []

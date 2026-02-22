@@ -502,8 +502,7 @@ export function useReports({
 	const downloadMutation = useMutation({
 		mutationKey: mutationKeys.reports.download,
 		mutationFn: async (reportId: string): Promise<void> => {
-			// TODO(phase-05): wire to Edge Function for actual report download
-			// reports table doesn't exist yet — show info toast
+			// reports table does not exist yet — show info toast until reports CRUD is implemented
 			toast.info(`Report ${reportId} download will be available soon`)
 		},
 		onSuccess: () => handleMutationSuccess('Download report'),
@@ -753,7 +752,6 @@ export function use1099Summary(year: number) {
 
 /**
  * Helper: call the export-report Edge Function and trigger browser download.
- * Returns false if PDF (501 stub not ready yet).
  */
 async function callExportEdgeFunction(
 	reportType: string,
@@ -771,12 +769,6 @@ async function callExportEdgeFunction(
 	const response = await fetch(url, {
 		headers: { Authorization: `Bearer ${token}` }
 	})
-
-	if (response.status === 501) {
-		// PDF stub — graceful fallback
-		toast.info('PDF export coming soon — use CSV export for now')
-		return false
-	}
 
 	if (!response.ok) {
 		throw new Error(`Export failed: ${response.statusText}`)
@@ -797,6 +789,42 @@ async function callExportEdgeFunction(
 	document.body.removeChild(link)
 	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
 	return true
+}
+
+/**
+ * Call the generate-pdf Edge Function with structured report data.
+ * HTML rendering is handled server-side in the Edge Function — no HTML in the frontend.
+ */
+async function callGeneratePdfEdgeFunction(reportType: string, year: number): Promise<void> {
+	const supabase = createClient()
+	const { data: { session } } = await supabase.auth.getSession()
+	if (!session?.access_token) throw new Error('Not authenticated')
+
+	const filename = `${reportType}-${year}.pdf`
+	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${session.access_token}`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ reportType, year, filename }),
+	})
+
+	if (!response.ok) {
+		const errText = await response.text().catch(() => response.statusText)
+		throw new Error(`PDF generation failed: ${errText}`)
+	}
+
+	const blob = await response.blob()
+	const blobUrl = window.URL.createObjectURL(blob)
+	const link = document.createElement('a')
+	link.href = blobUrl
+	link.download = filename
+	document.body.appendChild(link)
+	link.click()
+	document.body.removeChild(link)
+	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
 }
 
 /**
@@ -829,13 +857,13 @@ export function useDownload1099Csv() {
 
 /**
  * Mutation hook to download year-end summary as a PDF file.
- * Shows informative toast if PDF not yet available (Phase 55 dependency).
+ * Calls generate-pdf Edge Function directly (StirlingPDF on k3s).
  */
 export function useDownloadYearEndPdf() {
 	return useMutation({
 		mutationKey: mutationKeys.reports.downloadYearEndPdf,
 		mutationFn: async (year: number): Promise<void> => {
-			await callExportEdgeFunction('year-end', 'pdf', year)
+			await callGeneratePdfEdgeFunction('year-end', year)
 		},
 		onSuccess: () => toast.success('Year-end report downloaded'),
 		onError: (err: unknown) => handleMutationError(err, 'Download year-end PDF')
@@ -844,13 +872,13 @@ export function useDownloadYearEndPdf() {
 
 /**
  * Mutation hook to download tax documents as a PDF file.
- * Shows informative toast if PDF not yet available (Phase 55 dependency).
+ * Calls generate-pdf Edge Function directly (StirlingPDF on k3s).
  */
 export function useDownloadTaxDocumentPdf() {
 	return useMutation({
 		mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
 		mutationFn: async (year: number): Promise<void> => {
-			await callExportEdgeFunction('financial', 'pdf', year)
+			await callGeneratePdfEdgeFunction('financial', year)
 		},
 		onSuccess: () => toast.success('Tax documents downloaded'),
 		onError: (err: unknown) => handleMutationError(err, 'Download tax documents PDF')
