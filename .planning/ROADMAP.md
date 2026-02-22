@@ -279,7 +279,7 @@ Plans:
 
 **Requirements**: SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02
 
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 **Success criteria**:
 1. A pg_cron job runs daily and calculates late fees on overdue `rent_payments` records past the configurable grace period, inserting a fee record and updating payment status.
