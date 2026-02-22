@@ -8,6 +8,8 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiRequest } from '#lib/api-request'
+import { isPostgrestEnabled } from '#lib/postgrest-flag'
+import { createClient } from '#lib/supabase/client'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
@@ -71,10 +73,48 @@ export const emergencyContactQueries = {
 	contact: () =>
 		queryOptions({
 			queryKey: emergencyContactKeys.detail(),
-			queryFn: () =>
-				apiRequest<EmergencyContact | null>(
+			queryFn: async (): Promise<EmergencyContact | null> => {
+				if (isPostgrestEnabled()) {
+					const supabase = createClient()
+
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+
+					if (!user) throw new Error('Not authenticated')
+
+					const { data, error } = await supabase
+						.from('tenants')
+						.select(
+							'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+						)
+						.eq('user_id', user.id)
+						.maybeSingle()
+
+					if (error) throw error
+
+					if (data === null) return null
+
+					// Return null if all three fields are null (no emergency contact set)
+					if (
+						data.emergency_contact_name === null &&
+						data.emergency_contact_phone === null &&
+						data.emergency_contact_relationship === null
+					) {
+						return null
+					}
+
+					return {
+						name: data.emergency_contact_name,
+						phone: data.emergency_contact_phone,
+						relationship: data.emergency_contact_relationship
+					}
+				}
+
+				return apiRequest<EmergencyContact | null>(
 					'/api/v1/tenant-portal/settings/emergency-contact'
-				),
+				)
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
@@ -105,14 +145,46 @@ export function useUpdateEmergencyContact() {
 
 	return useMutation({
 		mutationKey: mutationKeys.emergencyContact.update,
-		mutationFn: (input: UpdateEmergencyContactInput) =>
-			apiRequest<EmergencyContact>(
+		mutationFn: async (input: UpdateEmergencyContactInput): Promise<EmergencyContact> => {
+			if (isPostgrestEnabled()) {
+				const supabase = createClient()
+
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+
+				if (!user) throw new Error('Not authenticated')
+
+				const { data, error } = await supabase
+					.from('tenants')
+					.update({
+						emergency_contact_name: input.name ?? null,
+						emergency_contact_phone: input.phone ?? null,
+						emergency_contact_relationship: input.relationship ?? null
+					})
+					.eq('user_id', user.id)
+					.select(
+						'emergency_contact_name, emergency_contact_phone, emergency_contact_relationship'
+					)
+					.single()
+
+				if (error) throw error
+
+				return {
+					name: data.emergency_contact_name,
+					phone: data.emergency_contact_phone,
+					relationship: data.emergency_contact_relationship
+				}
+			}
+
+			return apiRequest<EmergencyContact>(
 				'/api/v1/tenant-portal/settings/emergency-contact',
 				{
 					method: 'PUT',
 					body: JSON.stringify(input)
 				}
-			),
+			)
+		},
 
 		onMutate: async newData => {
 			// Cancel outgoing refetches
@@ -171,10 +243,37 @@ export function useDeleteEmergencyContact() {
 
 	return useMutation({
 		mutationKey: mutationKeys.emergencyContact.delete,
-		mutationFn: () =>
-			apiRequest<{ success: boolean }>('/api/v1/tenant-portal/settings/emergency-contact', {
-				method: 'DELETE'
-			}),
+		mutationFn: async (): Promise<{ success: boolean }> => {
+			if (isPostgrestEnabled()) {
+				const supabase = createClient()
+
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+
+				if (!user) throw new Error('Not authenticated')
+
+				const { error } = await supabase
+					.from('tenants')
+					.update({
+						emergency_contact_name: null,
+						emergency_contact_phone: null,
+						emergency_contact_relationship: null
+					})
+					.eq('user_id', user.id)
+
+				if (error) throw error
+
+				return { success: true }
+			}
+
+			return apiRequest<{ success: boolean }>(
+				'/api/v1/tenant-portal/settings/emergency-contact',
+				{
+					method: 'DELETE'
+				}
+			)
+		},
 
 		onMutate: async () => {
 			// Cancel outgoing refetches
