@@ -47,8 +47,8 @@ Eliminate the NestJS/Railway backend entirely. Migrate all 26 frontend hook file
 
 ### WF — Background Workflows (DB Webhooks → n8n)
 
-- [ ] **WF-01**: DB Webhook fires on `rent_payments` INSERT → POST to n8n with payment context (owner notified, receipt generated)
-- [ ] **WF-02**: DB Webhook fires on `maintenance_requests` INSERT/UPDATE → POST to n8n for assignment notifications and status updates
+- [x] **WF-01**: DB Webhook fires on `rent_payments` INSERT → POST to n8n with payment context (owner notified, receipt generated)
+- [x] **WF-02**: DB Webhook fires on `maintenance_requests` INSERT/UPDATE → POST to n8n for assignment notifications and status updates
 
 ### CLEAN — Cleanup & Deletion
 

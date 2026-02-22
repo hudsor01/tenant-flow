@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 56-scheduled-jobs-db-webhooks-pg-cron-n8n
-Plan: 02 (complete)
-Status: PHASE 56 PLAN 02 COMPLETE — calculate_late_fees() + queue_lease_reminders() SECURITY DEFINER functions created; three cron.schedule() registrations (calculate-late-fees 00:01, queue-lease-reminders 06:00, expire-leases 23:00 UTC); all pre-commit checks pass; SCHED-01, SCHED-02, SCHED-03 complete; next: Phase 56 Plan 03 (DB Webhooks — n8n triggers)
-Last activity: 2026-02-22 — Phase 56-02 complete: migration 20260222120000_phase56_pg_cron_jobs.sql created
+Plan: 03 (complete)
+Status: PHASE 56 PLAN 03 COMPLETE — Three pg_net DB webhook trigger functions created (notify_n8n_rent_payment, notify_n8n_maintenance with status-change guard, notify_n8n_lease_reminder); all triggers fire after INSERT/UPDATE and POST to n8n with Authorization Bearer shared-secret; graceful null-check pattern skips silently if not configured; SCHED-02, WF-01, WF-02 complete; next: Phase 56 Plan 04 (n8n workflow JSON definitions)
+Last activity: 2026-02-22 — Phase 56-03 complete: migration 20260222130000_phase56_db_webhooks.sql created
 
-Progress: ▓▓▓▓▓▓▓▓░░ ~67% (Phases 51–55 complete; Phase 56 plans 01–02 complete)
+Progress: ▓▓▓▓▓▓▓▓░░ ~70% (Phases 51–55 complete; Phase 56 plans 01–03 complete)
 
 ## Active Milestone
 
@@ -182,6 +182,14 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `buildLeasePreviewHtml` uses service role client already in handler — auth check before ensures caller is authenticated; elevated access is safe
 - Blob URL for lease-template-builder iframe not revoked immediately — iframe needs URL while displayed; acceptable for in-page preview
 
+**Phase 56-03 decisions:**
+- `current_setting('app.settings.N8N_WEBHOOK_*', true)` with `true` arg returns null if not set — enables graceful skip pattern without crashing insert transactions
+- `perform net.http_post(...)` discards return bigint — fire-and-forget; pg_net queues async HTTP delivery with its own retry mechanism
+- `TG_OP = 'UPDATE'` check before accessing `old.status` — OLD is only valid on UPDATE; gates status-change guard without runtime error
+- `set search_path = public, extensions` on SECURITY DEFINER triggers — `extensions` schema required for net.http_post(); prevents search_path injection
+- `drop trigger if exists` before `create trigger` — idempotent migration pattern
+- DB-level secrets via `ALTER DATABASE postgres SET` statements (not Edge Function env vars) — read via current_setting() in trigger context
+
 **Phase 56-02 decisions:**
 - `expire-leases` cron uses direct SQL command in cron.schedule() — no function wrapper needed for simple UPDATE
 - Separate `if` checks per threshold in `queue_lease_reminders()` (not CASE/ELSIF) — ensures all matching thresholds queue in same run
@@ -259,5 +267,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 56-02 — Migration 20260222120000_phase56_pg_cron_jobs.sql: calculate_late_fees() + queue_lease_reminders() SECURITY DEFINER functions created; three pg_cron jobs registered (calculate-late-fees 00:01 UTC, queue-lease-reminders 06:00 UTC, expire-leases 23:00 UTC); SCHED-01/02/03 complete; all pre-commit checks pass.
+Completed: Phase 56-03 — Migration 20260222130000_phase56_db_webhooks.sql: three SECURITY DEFINER trigger functions created (notify_n8n_rent_payment on rent_payments INSERT, notify_n8n_maintenance on maintenance_requests INSERT/UPDATE with status-change guard, notify_n8n_lease_reminder on lease_reminders INSERT); all use net.http_post() fire-and-forget with Authorization Bearer shared-secret; graceful null-check skips if URL not configured; WF-01/WF-02 complete; all pre-commit checks pass.
 Resume file: None
