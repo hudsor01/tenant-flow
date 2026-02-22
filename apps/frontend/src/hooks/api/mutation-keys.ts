@@ -188,6 +188,11 @@ export const mutationKeys = {
 		update: ['mutations', 'tenantNotificationPreferences', 'update'] as const
 	},
 
+	// Payment Methods
+	paymentMethods: {
+		add: ['mutations', 'paymentMethods', 'add'] as const
+	},
+
 	// Tenant Autopay
 	tenantAutopay: {
 		setup: ['mutations', 'tenantAutopay', 'setup'] as const,
