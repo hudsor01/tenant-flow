@@ -310,6 +310,15 @@ Plans: 4/4 plans complete
 4. No `RAILWAY_*` environment variables remain in any `.env.example`, `turbo.json`, or GitHub Actions secrets documentation; `railway.json` and `Procfile` (if any) are deleted.
 5. Frontend codebase contains no `apiRequest`, `apiRequestFormData`, `apiRequestRaw`, or `API_BASE_URL` references; `apps/frontend/src/lib/api-client.ts` is deleted; all `apps/backend` references in `pnpm-workspace.yaml` and `turbo.json` are removed.
 
+**Plans:** 5 plans
+
+Plans:
+- [ ] 57-01-PLAN.md — BullMQ queue audit + CI/CD cleanup (delete deploy-backend.yml, update ci-cd.yml)
+- [ ] 57-02-PLAN.md — Monorepo config cleanup (pnpm-workspace.yaml, package.json, env.ts, postgrest-flag.ts)
+- [ ] 57-03-PLAN.md — Frontend apiRequest migration (all remaining callsites → Supabase/Edge Functions)
+- [ ] 57-04-PLAN.md — Delete apps/backend/ + post-deletion verification (build/typecheck/lint/tests)
+- [ ] 57-05-PLAN.md — Deploy PR + Sentry health check + Railway offboarding (human checkpoint)
+
 ---
 
 ## Progress
