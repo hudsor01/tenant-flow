@@ -4,7 +4,7 @@
  * React 19 + TanStack Query v5 patterns with Suspense support
  *
  * CRUD mutations use PostgREST direct via supabase-js.
- * DocuSeal/signature mutations retain apiRequest with TODO(phase-55) comments.
+ * Signature mutations call the docuseal Edge Function via callDocuSealEdgeFunction().
  *
  * Query keys are in a separate file to avoid circular dependencies.
  */
@@ -16,7 +16,6 @@ import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createClient } from '#lib/supabase/client'
-import { apiRequest } from '#lib/api-request'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
@@ -427,8 +426,39 @@ export function usePrefetchLeaseDetail(id: string) {
 
 // ============================================================================
 // LEASE SIGNATURE WORKFLOW HOOKS
-// DocuSeal signature operations stay on NestJS until Phase 55 (Edge Functions)
+// DocuSeal signature operations call the docuseal Supabase Edge Function.
 // ============================================================================
+
+/**
+ * Calls the docuseal Edge Function with an action payload.
+ * Reads the caller's JWT from the current Supabase session.
+ */
+async function callDocuSealEdgeFunction(
+	action: string,
+	payload: Record<string, unknown>
+): Promise<{ success: boolean }> {
+	const supabase = createClient()
+	const { data: sessionData } = await supabase.auth.getSession()
+	const token = sessionData.session?.access_token
+	if (!token) throw new Error('Not authenticated')
+
+	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const response = await fetch(`${baseUrl}/functions/v1/docuseal`, {
+		method: 'POST',
+		headers: {
+			Authorization: `Bearer ${token}`,
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ action, ...payload }),
+	})
+
+	if (!response.ok) {
+		const error = await response.json().catch(() => ({ error: response.statusText }))
+		throw new Error((error as { error?: string }).error ?? 'DocuSeal request failed')
+	}
+
+	return response.json()
+}
 
 /**
  * Hook to fetch signature status for a lease
@@ -439,14 +469,13 @@ export function useLeaseSignatureStatus(leaseId: string) {
 
 /**
  * Hook to send a lease for signature (owner action)
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Calls the docuseal Edge Function with action=send-for-signature.
  */
 export function useSendLeaseForSignatureMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sendForSignature,
-		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: ({
 			leaseId,
 			message,
@@ -459,13 +488,7 @@ export function useSendLeaseForSignatureMutation() {
 				landlord_notice_address: string
 			}
 		}) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/leases/${leaseId}/send-for-signature`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ message, missingFields })
-				}
-			),
+			callDocuSealEdgeFunction('send-for-signature', { leaseId, message, missingFields }),
 		onSuccess: (_result, { leaseId }) => {
 			// Invalidate lease detail and signature status
 			queryClient.invalidateQueries({
@@ -485,18 +508,15 @@ export function useSendLeaseForSignatureMutation() {
 
 /**
  * Hook for owner to sign a lease
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Calls the docuseal Edge Function with action=sign-owner.
  */
 export function useSignLeaseAsOwnerMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sign,
-		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
-			apiRequest<{ success: boolean }>(`/api/v1/leases/${leaseId}/sign/owner`, {
-				method: 'POST'
-			}),
+			callDocuSealEdgeFunction('sign-owner', { leaseId }),
 		onSuccess: (_result, leaseId) => {
 			// Invalidate lease detail and signature status
 			queryClient.invalidateQueries({
@@ -516,21 +536,15 @@ export function useSignLeaseAsOwnerMutation() {
 
 /**
  * Hook for tenant to sign a lease
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Calls the docuseal Edge Function with action=sign-tenant.
  */
 export function useSignLeaseAsTenantMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.sign,
-		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/leases/${leaseId}/sign/tenant`,
-				{
-					method: 'POST'
-				}
-			),
+			callDocuSealEdgeFunction('sign-tenant', { leaseId }),
 		onSuccess: (_result, leaseId) => {
 			// Invalidate lease detail, signature status, and tenant portal data
 			queryClient.invalidateQueries({
@@ -552,22 +566,16 @@ export function useSignLeaseAsTenantMutation() {
 }
 
 /**
- * Cancel a pending signature request - reverts lease to draft status
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Cancel a pending signature request - archives DocuSeal submission, reverts lease to draft.
+ * Calls the docuseal Edge Function with action=cancel.
  */
 export function useCancelSignatureRequestMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.cancelSignature,
-		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: (leaseId: string) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/leases/${leaseId}/cancel-signature`,
-				{
-					method: 'POST'
-				}
-			),
+			callDocuSealEdgeFunction('cancel', { leaseId }),
 		onSuccess: (_result, leaseId) => {
 			// Invalidate lease detail and signature status
 			queryClient.invalidateQueries({
@@ -586,23 +594,16 @@ export function useCancelSignatureRequestMutation() {
 }
 
 /**
- * Resend signature request - cancels existing and creates fresh submission
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Resend signature request - resends emails to pending DocuSeal submitters.
+ * Calls the docuseal Edge Function with action=resend.
  */
 export function useResendSignatureRequestMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.leases.resendSignature,
-		// TODO(phase-55): migrate to DocuSeal Edge Function
 		mutationFn: ({ leaseId, message }: { leaseId: string; message?: string }) =>
-			apiRequest<{ success: boolean }>(
-				`/api/v1/leases/${leaseId}/resend-signature`,
-				{
-					method: 'POST',
-					body: JSON.stringify({ message })
-				}
-			),
+			callDocuSealEdgeFunction('resend', { leaseId, message }),
 		onSuccess: (_result, { leaseId }) => {
 			// Invalidate lease detail and signature status
 			queryClient.invalidateQueries({
@@ -621,17 +622,36 @@ export function useResendSignatureRequestMutation() {
 }
 
 /**
- * Hook to get signed document URL for download
- * TODO(phase-55): migrate to DocuSeal Edge Function
+ * Hook to get signed document URL for download.
+ * Reads docuseal_submission_id, owner_signed_at, tenant_signed_at from leases table.
+ * Returns a pending: prefix URL when submission exists and both parties signed.
+ * Full signed document URL is wired up in Phase 55-03 (docuseal-webhook plan).
  */
 export function useSignedDocumentUrl(leaseId: string, enabled = true) {
 	return useQuery({
 		queryKey: ['lease', leaseId, 'signed-document'],
-		// TODO(phase-55): migrate to DocuSeal Edge Function
-		queryFn: () =>
-			apiRequest<{ document_url: string | null }>(
-				`/api/v1/leases/${leaseId}/signed-document`
-			),
+		queryFn: async (): Promise<{ document_url: string | null }> => {
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('leases')
+				.select('docuseal_submission_id, owner_signed_at, tenant_signed_at')
+				.eq('id', leaseId)
+				.single()
+			if (error) handlePostgrestError(error, 'leases')
+			const row = data as {
+				docuseal_submission_id: string | null
+				owner_signed_at: string | null
+				tenant_signed_at: string | null
+			}
+			// Document URL available only when submission exists and both parties have signed.
+			// Full URL returned by docuseal-webhook plan when it wires up the signed doc URL.
+			return {
+				document_url:
+					row?.docuseal_submission_id && row.owner_signed_at && row.tenant_signed_at
+						? `pending:${row.docuseal_submission_id}`
+						: null,
+			}
+		},
 		enabled: enabled && !!leaseId,
 		staleTime: 5 * 60 * 1000 // 5 minutes
 	})
