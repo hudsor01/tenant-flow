@@ -147,7 +147,7 @@ Multi-step onboarding wizard for new landlords — property setup, Stripe Connec
 3. A feature flag (`NEXT_PUBLIC_USE_POSTGREST=true`) allows any hook to be toggled back to NestJS without a deploy if a regression is found.
 4. All existing frontend unit tests pass; NestJS is still running and handling non-migrated hooks.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 50-01-PLAN.md — Fix Supabase clients (anon key) + feature flag helper
@@ -322,7 +322,7 @@ Plans:
 | 47. Component Refactoring | v6.0 | ✅ Complete | 2026-02-20 |
 | 48. Move-In/Move-Out Inspection | v6.0 | ✅ Complete | 2026-02-20 |
 | 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |
-| 50. Infrastructure + User/Profile CRUD | v7.0 | Pending | — |
+| 50. Infrastructure + User/Profile CRUD | v7.0 | Complete    | 2026-02-22 |
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
