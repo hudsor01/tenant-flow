@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 50-infrastructure-auth-foundation-user-profile-crud
-Plan: 01 (complete)
-Status: PLAN 50-01 COMPLETE — Supabase clients confirmed using NEXT_PUBLIC_SUPABASE_ANON_KEY; isPostgrestEnabled() feature flag helper created at apps/frontend/src/lib/postgrest-flag.ts; all pre-commit checks pass; next: Phase 50-02 (migrate use-profile.ts + use-auth.ts)
-Last activity: 2026-02-22 — Phase 50-01 complete: client.ts + server.ts + env.ts verified correct (already used anon key); postgrest-flag.ts created with isPostgrestEnabled() returning boolean from NEXT_PUBLIC_USE_POSTGREST; TypeScript typecheck passes
+Plan: 04 (complete)
+Status: PLAN 50-04 COMPLETE — use-notifications.ts and use-owner-notification-settings.ts migrated to dual-path PostgREST/NestJS; mapDbRowToPreferences() helper added for DB-to-type column mapping; all 965 tests pass; next: Phase 50-05 (migrate use-identity-verification.ts + use-tour-progress.ts)
+Last activity: 2026-02-22 — Phase 50-04 complete: both hooks import isPostgrestEnabled + createClient; all queryFn/mutationFn have dual paths; DB in_app → type inApp mapping verified by typecheck
 
 Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete; Phase 50 plan 01 complete)
 
@@ -153,6 +153,20 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - env.ts already validated both NEXT_PUBLIC_SUPABASE_ANON_KEY and NEXT_PUBLIC_USE_POSTGREST — no changes needed
 - isPostgrestEnabled() uses process.env direct access (not #env import) — env module validates at build time; direct access works at runtime in SKIP_ENV_VALIDATION environments
 - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY retained in env.ts — still powers NestJS path for non-migrated hooks during transition
+
+**Phase 50-03 decisions:**
+- `useUserSessions()` PostgREST path: `supabase.auth.admin.listUserSessions()` requires service_role key — not available in browser client; PostgREST path returns current session only via `supabase.auth.getSession()`; session id set to `access_token`; all device/IP fields set to null
+- `useRevokeSessionMutation()` partial PostgREST path: current session revoked via `supabase.auth.signOut()`; non-current sessions always fall back to apiRequest (Admin API required); check compares `session.access_token === sessionId` or `sessionId === 'current'`
+- Emergency contact PostgREST read: `.maybeSingle()` on `tenants` table filtered by `user_id`; returns null if record missing or all three fields null; mapped from snake_case columns to camelCase EmergencyContact shape
+- Emergency contact delete implemented as update-to-null: sets `emergency_contact_name`, `emergency_contact_phone`, `emergency_contact_relationship` all to null — tenant record preserved for 7-year financial retention
+- `userId` obtained from `supabase.auth.getUser()` inside each mutationFn — not stored at module scope (consistent with Phase 51+ pattern)
+
+**Phase 50-04 decisions:**
+- `useMarkAllNotificationsReadMutation()` PostgREST path returns `{ updated: 0 }` — PostgREST does not expose row count for UPDATE operations; query invalidation refreshes the UI
+- `useOwnerNotificationSettings()` uses `.maybeSingle()` — avoids 406 error for users with no notification_settings row yet; returns `defaultPreferences` when `data === null`
+- `mapDbRowToPreferences()` module-level helper — maps DB `in_app` (snake_case) to type field `inApp` (camelCase); fully TypeScript-verified with no `any`
+- `dbUpdate.updated_at` always set on upsert — ensures `updated_at` stays current regardless of which fields changed
+- Both hooks call `supabase.auth.getUser()` explicitly in PostgREST paths needing `user_id` — consistent with Phase 51+ established patterns
 
 **Phase 55-04 decisions:**
 - HTML for PDF documents built client-side from TanStack Query cache data — avoids redundant DB fetches in the Edge Function
