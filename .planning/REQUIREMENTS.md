@@ -41,9 +41,9 @@ Eliminate the NestJS/Railway backend entirely. Migrate all 26 frontend hook file
 
 ### SCHED — Scheduled Jobs (pg_cron)
 
-- [ ] **SCHED-01**: pg_cron job calculates and applies late fees on overdue rent payments (daily, configurable grace period)
-- [ ] **SCHED-02**: pg_cron job triggers lease expiry reminders (emails via Supabase → n8n 30/7/1 days before end date)
-- [ ] **SCHED-03**: pg_cron job updates lease status from `active` to `expired` when end date passes
+- [x] **SCHED-01**: pg_cron job calculates and applies late fees on overdue rent payments (daily, configurable grace period)
+- [x] **SCHED-02**: pg_cron job triggers lease expiry reminders (emails via Supabase → n8n 30/7/1 days before end date)
+- [x] **SCHED-03**: pg_cron job updates lease status from `active` to `expired` when end date passes
 
 ### WF — Background Workflows (DB Webhooks → n8n)
 
