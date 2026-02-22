@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 50-infrastructure-auth-foundation-user-profile-crud
-Plan: 04 (complete)
-Status: PLAN 50-04 COMPLETE — use-notifications.ts and use-owner-notification-settings.ts migrated to dual-path PostgREST/NestJS; mapDbRowToPreferences() helper added for DB-to-type column mapping; all 965 tests pass; next: Phase 50-05 (migrate use-identity-verification.ts + use-tour-progress.ts)
-Last activity: 2026-02-22 — Phase 50-04 complete: both hooks import isPostgrestEnabled + createClient; all queryFn/mutationFn have dual paths; DB in_app → type inApp mapping verified by typecheck
+Plan: 05 (complete)
+Status: PHASE 50 COMPLETE — all 5 plans executed; 8 hooks migrated to dual-path PostgREST/NestJS; isPostgrestEnabled() feature flag controls path selection; all 965 tests pass; next: Phase 53 (Properties + Units hooks migration)
+Last activity: 2026-02-22 — Phase 50-05 complete: use-identity-verification.ts (status read from users table; session creation stays NestJS) + use-tour-progress.ts (upsert with localStorage fallback) migrated
 
 Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete; Phase 50 plan 01 complete)
 
@@ -167,6 +167,13 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `mapDbRowToPreferences()` module-level helper — maps DB `in_app` (snake_case) to type field `inApp` (camelCase); fully TypeScript-verified with no `any`
 - `dbUpdate.updated_at` always set on upsert — ensures `updated_at` stays current regardless of which fields changed
 - Both hooks call `supabase.auth.getUser()` explicitly in PostgREST paths needing `user_id` — consistent with Phase 51+ established patterns
+
+**Phase 50-05 decisions:**
+- `useCreateIdentityVerificationSessionMutation` stays NestJS — Stripe Identity SDK is server-side only; documented with comment referencing future Phase 55 Edge Function
+- `useIdentityVerificationStatus` PostgREST path reads `users` table identity_verification_* columns directly via `.eq('id', user.id).single()` — no separate table
+- Tour progress upsert: `onConflict: 'user_id,tour_key'` composite key — idempotent, no read-before-write needed
+- Tour progress localStorage fallback retained — prevents broken API from blocking onboarding tour UI in both PostgREST and NestJS error paths
+- Phase 50 COMPLETE: all 8 hooks migrated (use-profile, use-auth, use-sessions, use-emergency-contact, use-notifications, use-owner-notification-settings, use-identity-verification, use-tour-progress)
 
 **Phase 55-04 decisions:**
 - HTML for PDF documents built client-side from TanStack Query cache data — avoids redundant DB fetches in the Edge Function
