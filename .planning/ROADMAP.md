@@ -239,7 +239,7 @@ Plans:
 4. `use-billing.ts` calls two new Edge Functions — `supabase/functions/stripe-checkout` (new subscriptions via Stripe Checkout) and `supabase/functions/stripe-billing-portal` (existing subscriber management via Stripe Customer Portal) — `apiRequest` removed.
 5. A test Stripe webhook event (`customer.subscription.updated`) delivered to the Edge Function endpoint updates the correct subscription record in Supabase within 5 seconds.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 54-01-PLAN.md — Migrate use-payments.ts + use-payment-methods.ts to PostgREST (PAY-01)
@@ -318,7 +318,7 @@ Plans:
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
 | 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
 | 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
-| 54. Payments & Billing — Stripe Edge Functions | v7.0 | ✅ Complete | 2026-02-21 |
+| 54. Payments & Billing — Stripe Edge Functions | v7.0 | Complete    | 2026-02-22 |
 | 55. External Services — StirlingPDF & DocuSeal | v7.0 | Pending | — |
 | 56. Scheduled Jobs & DB Webhooks | v7.0 | Pending | — |
 | 57. Cleanup & Deletion | v7.0 | Pending | — |
