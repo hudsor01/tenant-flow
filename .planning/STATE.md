@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 54-payments-billing-postgrest-stripe-edge-functions (next)
-Plan: — (not started)
-Status: READY — Phase 53 complete; Phase 54 is next
-Last activity: 2026-02-21 — Phase 53 complete: all 5 plans done; analytics/reports/tenant-portal migrated to PostgREST + RPCs; pg_graphql portfolio overview added; export-report Edge Function created
+Phase: 54-payments-billing-postgrest-stripe-edge-functions
+Plan: 02 (complete)
+Status: IN PROGRESS — Phase 54-02 complete; 54-03 is next
+Last activity: 2026-02-21 — Phase 54-02 complete: stripe-connect Edge Function verified (account/onboard/refresh-link/balance/payouts/transfers); use-stripe-connect.ts verified migrated (no apiRequest); dashboard Connect banner + return-journey toast added; settings/payouts page created with always-visible account status
 
-Progress: ▓▓▓▓▓▓░░░░ ~45% (Phases 51–53 complete, Phase 54 next)
+Progress: ▓▓▓▓▓▓░░░░ ~47% (Phases 51–53 complete, Phase 54 in progress)
 
 ## Active Milestone
 
@@ -107,6 +107,25 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `export-report` Edge Function: XLSX returns CSV content with .xlsx extension (Excel opens natively); PDF returns 501 stub pending Phase 55
 - `callExportEdgeFunction()` gets `access_token` from `supabase.auth.getSession()` and passes as Bearer token to Edge Function
 - All 966 tests pass after Phase 53; `pnpm --filter @repo/frontend typecheck` passes
+
+**Phase 54-02 decisions:**
+- `stripe-connect` Edge Function was already complete at start of phase — verified all 6 actions (account, onboard, refresh-link, balance, payouts, transfers); uses `npm:stripe@14`; authenticates via JWT Bearer; reads/writes `stripe_connected_accounts` table
+- `use-stripe-connect.ts` was already fully migrated — zero `apiRequest` imports; `callStripeConnectFunction()` posts to `/functions/v1/stripe-connect` with action payload
+- Dashboard banner placement: inside `DashboardContent` (not `DashboardPage`) — needs `useConnectedAccount` hook and `useState`; wrapped Dashboard in a `<div>` to inject banner above it
+- Alert component has no `variant="warning"` — used `className="border-warning/20 bg-warning/10"` directly, consistent with `stripe-connect-status.tsx` and `tenant-portal-page.tsx` patterns
+- `settings/payouts/page.tsx` created at `/settings/payouts` — links to `/financials/payouts` for payout history (full history table already built in Phase 53)
+- Return-journey toast: `useSearchParams` in `DashboardContent` (already inside Suspense boundary) — no extra Suspense wrapper needed; cleans URL via `window.history.replaceState`
+- Banner is session-dismissible via `useState` (not persisted) — only shows when account exists but `charges_enabled=false`
+
+**Phase 54-01 decisions:**
+- `usePaymentMethods()` in use-payments.ts maps DB `last_four` → `last4` to preserve `PaymentMethodResponse` type compatibility (consumers import from `@repo/shared/types/core` which uses camelCase `last4`)
+- `usePaymentStatus()` uses `.maybeSingle()` not `.single()` to avoid 406 errors when tenant has no payment records; returns safe empty stub
+- `recordManualPayment()` defaults `period_start`/`period_end` to today's date; `currency` defaults to 'USD'
+- `exportPaymentsCSV()` is client-side generation using `rowsToCsv()` helper from PostgREST rows — no apiRequestRaw
+- `useSendTenantPaymentReminderMutation()` throws `'TODO Phase 55: payment reminder requires email Edge Function'` — no apiRequest call
+- `useCreateRentPaymentMutation()` throws stub error for Stripe connect — wired in Phase 54-02
+- `usePaymentVerification()` and `useSessionStatus()` throw stub errors — wired in Phase 54-04
+- use-payment-methods.ts was already fully migrated at start of phase — no changes needed
 
 **Phase 52-03 decisions:**
 - No `.neq('status', 'inactive')` filter in maintenance RLS tests — maintenance_requests are hard-deleted, not soft-deleted (confirmed from Phase 52-01)
