@@ -2,12 +2,12 @@
 
 ## Current Position
 
-Phase: 50-infrastructure-auth-foundation-user-profile-crud
-Plan: 05 (complete)
-Status: PHASE 50 COMPLETE — all 5 plans executed; 8 hooks migrated to dual-path PostgREST/NestJS; isPostgrestEnabled() feature flag controls path selection; all 965 tests pass; next: Phase 53 (Properties + Units hooks migration)
-Last activity: 2026-02-22 — Phase 50-05 complete: use-identity-verification.ts (status read from users table; session creation stays NestJS) + use-tour-progress.ts (upsert with localStorage fallback) migrated
+Phase: 56-scheduled-jobs-db-webhooks-pg-cron-n8n
+Plan: 01 (complete)
+Status: PHASE 56 PLAN 01 COMPLETE — pg_cron enabled; leases.lease_status_check expanded ('expired'); rent_payments.status_check expanded ('late', 'severely_delinquent'); late_fees + lease_reminders tables created with RLS; all pre-commit checks pass; next: Phase 56 Plan 02 (pg_cron SECURITY DEFINER functions)
+Last activity: 2026-02-22 — Phase 56-01 complete: migration 20260222110100_phase56_schema_foundations.sql created and deployed
 
-Progress: ▓▓▓▓▓▓▓▓░░ ~62% (Phases 51–55 complete; Phase 50 plan 01 complete)
+Progress: ▓▓▓▓▓▓▓▓░░ ~65% (Phases 51–55 complete; Phase 56 plan 01 complete)
 
 ## Active Milestone
 
@@ -182,6 +182,15 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - `buildLeasePreviewHtml` uses service role client already in handler — auth check before ensures caller is authenticated; elevated access is safe
 - Blob URL for lease-template-builder iframe not revoked immediately — iframe needs URL while displayed; acceptable for in-page preview
 
+**Phase 56-01 decisions:**
+- `rent_payments_status_check` actual existing values are `pending, processing, succeeded, failed, cancelled, requires_action` (double-l canceled; has `requires_action`) — plan spec listed wrong values; corrected to preserve all 8 values
+- `gen_random_uuid()` used (not `extensions.uuid_generate_v4()`) — project convention from Phase 52+ migrations
+- `late_fees` has two SELECT RLS policies: owners (via leases.property_owner_id) + tenants (via lease_tenants → tenants.user_id join)
+- `lease_reminders` has one SELECT RLS policy: owners only (internal queue; tenants don't need reminder history)
+- Added `idx_late_fees_lease_id` index (not in plan spec) — owner RLS policy uses lease_id; without index causes table scan
+- pg_cron SECURITY DEFINER functions (Plan 02) bypass RLS — no INSERT/UPDATE/DELETE policies on late_fees or lease_reminders for authenticated users
+- `late` status: >3 days past due (day 4+); `severely_delinquent`: >14 days past due (day 15+)
+
 **Phase 55-03 decisions:**
 - `notification_type` must be `'lease'` (not `'lease_signed'`) — `notifications_notification_type_check` constraint allows only `('maintenance', 'lease', 'payment', 'system')`
 - `docuseal_document_url` column does not exist in `leases` table — signed document URL from `submission.completed.documents[0].url` is logged to console but not stored in DB
@@ -243,5 +252,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 50-01 — Supabase client infrastructure verified (anon key in client.ts + server.ts + env.ts already correct from prior work); isPostgrestEnabled() helper created at apps/frontend/src/lib/postgrest-flag.ts; TypeScript typecheck passes; ROADMAP updated (50-01 marked complete).
+Completed: Phase 56-01 — Migration 20260222110100_phase56_schema_foundations.sql: pg_cron enabled; leases/rent_payments CHECK constraints expanded; late_fees + lease_reminders tables created with RLS policies; all pre-commit checks pass.
 Resume file: None
