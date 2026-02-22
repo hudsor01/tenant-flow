@@ -313,10 +313,10 @@ Plans: 4/4 plans complete
 **Plans:** 5 plans
 
 Plans:
-- [ ] 57-01-PLAN.md — BullMQ queue audit + CI/CD cleanup (delete deploy-backend.yml, update ci-cd.yml)
-- [ ] 57-02-PLAN.md — Monorepo config cleanup (pnpm-workspace.yaml, package.json, env.ts, postgrest-flag.ts)
-- [ ] 57-03-PLAN.md — Frontend apiRequest migration (all remaining callsites → Supabase/Edge Functions)
-- [ ] 57-04-PLAN.md — Delete apps/backend/ + post-deletion verification (build/typecheck/lint/tests)
+- [ ] 57-01-PLAN.md — CI/CD cleanup: delete deploy-backend.yml, update ci-cd.yml and rls-security-tests.yml
+- [ ] 57-02-PLAN.md — Monorepo config cleanup: pnpm-workspace.yaml catalog, root package.json scripts, delete Dockerfile/railway.toml/docker-compose.yml
+- [ ] 57-03-PLAN.md — Frontend apiRequest migration: delete 4 infrastructure files, migrate all callsites to PostgREST/Edge Functions, stub SSE, migrate auth to ANON_KEY, clean env.ts
+- [ ] 57-04-PLAN.md — Delete apps/backend/ and verify monorepo integrity (build/typecheck/lint/tests)
 - [ ] 57-05-PLAN.md — Deploy PR + Sentry health check + Railway offboarding (human checkpoint)
 
 ---
