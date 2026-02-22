@@ -269,7 +269,7 @@ Plans:
 - [x] 55-01-PLAN.md — generate-pdf Edge Function + wire frontend PDF download mutations (EXT-01)
 - [x] 55-02-PLAN.md — docuseal outbound Edge Function + migrate use-lease.ts signature mutations (EXT-02 partial)
 - [x] 55-03-PLAN.md — docuseal-webhook Edge Function + human verification checkpoint (EXT-02 completion)
-- [ ] 55-04-PLAN.md — Gap closure: migrate 4 remaining NestJS PDF callsites to generate-pdf Edge Function (EXT-01)
+- [x] 55-04-PLAN.md — Gap closure: migrate 4 remaining NestJS PDF callsites to generate-pdf Edge Function (EXT-01)
 
 ---
 
