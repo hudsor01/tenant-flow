@@ -256,12 +256,19 @@ Plans:
 
 **Requirements**: EXT-01, EXT-02
 
+**Plans:** 3 plans
+
 **Success criteria**:
 1. A new `supabase/functions/generate-pdf` Edge Function accepts a report payload, calls the StirlingPDF HTTP API on k3s, and returns a PDF blob; the frontend calls this function directly (replacing the NestJS PDF module).
 2. A new `supabase/functions/docuseal` Edge Function handles template creation, signing-request initiation, and DocuSeal webhook completion events; all DocuSeal HTTP calls are made from the Edge Function to the k3s DocuSeal instance.
 3. A lease document can be sent for e-signature end-to-end: frontend triggers → Edge Function → DocuSeal on k3s → webhook back to Edge Function → Supabase DB updated with signing status.
 4. A year-end financial PDF can be generated end-to-end: frontend triggers → Edge Function → StirlingPDF on k3s → PDF blob returned to browser.
 5. Both Edge Functions are deployed and accessible; NestJS StirlingPDF and DocuSeal modules are no longer reachable from the frontend.
+
+Plans:
+- [ ] 55-01-PLAN.md — generate-pdf Edge Function + wire frontend PDF download mutations (EXT-01)
+- [ ] 55-02-PLAN.md — docuseal outbound Edge Function + migrate use-lease.ts signature mutations (EXT-02 partial)
+- [ ] 55-03-PLAN.md — docuseal-webhook Edge Function + human verification checkpoint (EXT-02 completion)
 
 ---
 
