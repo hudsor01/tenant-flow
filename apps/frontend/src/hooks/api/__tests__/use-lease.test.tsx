@@ -7,8 +7,10 @@
  * - Error handling
  * - Disabled state when ID is empty
  *
- * Updated for PostgREST migration: queries use supabase-js directly (no apiRequest for CRUD).
- * DocuSeal/signature mutations retain apiRequest with TODO(phase-55) comments.
+ * Updated for DocuSeal Edge Function migration (Phase 55):
+ * - CRUD mutations use supabase-js PostgREST directly
+ * - Signature mutations call callDocuSealEdgeFunction() via fetch to /functions/v1/docuseal
+ * - useSignedDocumentUrl reads from supabase.from('leases') PostgREST
  *
  * @vitest-environment jsdom
  */
@@ -66,16 +68,6 @@ vi.mock('@sentry/nextjs', () => ({
 	captureException: vi.fn()
 }))
 
-// Mock api-request (only used by DocuSeal/signature mutations and useSignedDocumentUrl)
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn().mockResolvedValue({ success: true, document_url: 'https://example.com/doc.pdf' })
-}))
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
-
 // Mock useUser hook
 vi.mock('#hooks/api/use-auth', () => ({
 	useUser: () => ({
@@ -117,15 +109,20 @@ function makeQueryChain(result: { data?: unknown; error?: unknown; count?: numbe
 // Supabase mock with configurable from() responses
 const supabaseFromMock = vi.fn()
 const supabaseAuthGetUserMock = vi.fn()
+const supabaseAuthGetSessionMock = vi.fn()
 
 vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		from: supabaseFromMock,
 		auth: {
-			getUser: supabaseAuthGetUserMock
+			getUser: supabaseAuthGetUserMock,
+			getSession: supabaseAuthGetSessionMock
 		}
 	})
 }))
+
+// Mock global fetch for Edge Function calls
+const fetchMock = vi.fn()
 
 // Wrapper for hooks
 function createWrapper() {
@@ -142,6 +139,9 @@ function createWrapper() {
 		)
 	}
 }
+
+// Set up global fetch mock before tests
+vi.stubGlobal('fetch', fetchMock)
 
 // Sample lease data matching DB schema
 const mockLease = {
@@ -176,6 +176,15 @@ describe('Query Hooks', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
 		})
 
 		// Default: from('leases') returns a query chain with mock lease data
@@ -363,11 +372,19 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useSignedDocumentUrl', () => {
-		it('should call apiRequest for signed document URL (DocuSeal integration)', async () => {
-			// useSignedDocumentUrl retains apiRequest (TODO phase-55)
-			const { apiRequest } = await import('#lib/api-request')
-			const apiRequestMock = vi.mocked(apiRequest)
-			apiRequestMock.mockResolvedValue({ document_url: 'https://example.com/doc.pdf' })
+		it('should query docuseal_submission_id from leases table via PostgREST', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({
+						data: {
+							docuseal_submission_id: 'sub-999',
+							owner_signed_at: '2024-01-15T10:00:00Z',
+							tenant_signed_at: '2024-01-16T10:00:00Z'
+						}
+					})
+				}
+				return makeQueryChain({ data: null })
+			})
 
 			const { result } = renderHook(() => useSignedDocumentUrl('lease-123'), {
 				wrapper: createWrapper()
@@ -377,9 +394,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(apiRequestMock).toHaveBeenCalledWith(
-				expect.stringContaining('lease-123/signed-document')
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
 		it('should not fetch when disabled', () => {
@@ -399,6 +414,16 @@ describe('Mutation Hooks', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		// Default fetch mock for Edge Function calls
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
 		})
 
 		supabaseFromMock.mockImplementation((table: string) => {
@@ -534,12 +559,7 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useSendLeaseForSignatureMutation', () => {
-		it('should call apiRequest for DocuSeal send-for-signature (retained NestJS path)', async () => {
-			// TODO(phase-55): this mutation retains apiRequest until DocuSeal Edge Function
-			const { apiRequest } = await import('#lib/api-request')
-			const apiRequestMock = vi.mocked(apiRequest)
-			apiRequestMock.mockResolvedValue({ success: true })
-
+		it('should call docuseal Edge Function with send-for-signature action', async () => {
 			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
 				wrapper: createWrapper()
 			})
@@ -553,69 +573,72 @@ describe('Mutation Hooks', () => {
 				}
 			})
 
-			expect(apiRequestMock).toHaveBeenCalledWith(
-				expect.stringContaining('lease-123/send-for-signature'),
-				expect.objectContaining({ method: 'POST' })
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
+				expect.objectContaining({
+					method: 'POST',
+					body: expect.stringContaining('"action":"send-for-signature"')
+				})
+			)
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({
+					body: expect.stringContaining('"leaseId":"lease-123"')
+				})
 			)
 		})
 	})
 
 	describe('useSignLeaseAsOwnerMutation', () => {
-		it('should call apiRequest for DocuSeal owner sign (retained NestJS path)', async () => {
-			// TODO(phase-55): this mutation retains apiRequest until DocuSeal Edge Function
-			const { apiRequest } = await import('#lib/api-request')
-			const apiRequestMock = vi.mocked(apiRequest)
-			apiRequestMock.mockResolvedValue({ success: true })
-
+		it('should call docuseal Edge Function with sign-owner action', async () => {
 			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(apiRequestMock).toHaveBeenCalledWith(
-				expect.stringContaining('lease-123/sign/owner'),
-				expect.objectContaining({ method: 'POST' })
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
+				expect.objectContaining({
+					method: 'POST',
+					body: expect.stringContaining('"action":"sign-owner"')
+				})
 			)
 		})
 	})
 
 	describe('useSignLeaseAsTenantMutation', () => {
-		it('should call apiRequest for DocuSeal tenant sign (retained NestJS path)', async () => {
-			// TODO(phase-55): this mutation retains apiRequest until DocuSeal Edge Function
-			const { apiRequest } = await import('#lib/api-request')
-			const apiRequestMock = vi.mocked(apiRequest)
-			apiRequestMock.mockResolvedValue({ success: true })
-
+		it('should call docuseal Edge Function with sign-tenant action', async () => {
 			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(apiRequestMock).toHaveBeenCalledWith(
-				expect.stringContaining('lease-123/sign/tenant'),
-				expect.objectContaining({ method: 'POST' })
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
+				expect.objectContaining({
+					method: 'POST',
+					body: expect.stringContaining('"action":"sign-tenant"')
+				})
 			)
 		})
 	})
 
 	describe('useCancelSignatureRequestMutation', () => {
-		it('should call apiRequest for DocuSeal cancel signature (retained NestJS path)', async () => {
-			// TODO(phase-55): this mutation retains apiRequest until DocuSeal Edge Function
-			const { apiRequest } = await import('#lib/api-request')
-			const apiRequestMock = vi.mocked(apiRequest)
-			apiRequestMock.mockResolvedValue({ success: true })
-
+		it('should call docuseal Edge Function with cancel action', async () => {
 			const { result } = renderHook(() => useCancelSignatureRequestMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(apiRequestMock).toHaveBeenCalledWith(
-				expect.stringContaining('lease-123/cancel-signature'),
-				expect.objectContaining({ method: 'POST' })
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
+				expect.objectContaining({
+					method: 'POST',
+					body: expect.stringContaining('"action":"cancel"')
+				})
 			)
 		})
 	})
@@ -627,6 +650,15 @@ describe('Utility Hooks', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
 		})
 
 		supabaseFromMock.mockImplementation((table: string) => {
@@ -654,6 +686,15 @@ describe('Error Handling', () => {
 
 		supabaseAuthGetUserMock.mockResolvedValue({
 			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
 		})
 	})
 
