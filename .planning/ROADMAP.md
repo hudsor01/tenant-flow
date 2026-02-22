@@ -243,9 +243,9 @@ Plans:
 
 Plans:
 - [x] 54-01-PLAN.md — Migrate use-payments.ts + use-payment-methods.ts to PostgREST (PAY-01)
-- [ ] 54-02-PLAN.md — Create stripe-connect Edge Function + migrate use-stripe-connect.ts (PAY-02)
-- [ ] 54-03-PLAN.md — DB migration (stripe_webhook_events) + create stripe-webhooks Edge Function (PAY-03)
-- [ ] 54-04-PLAN.md — Create stripe-checkout + stripe-billing-portal Edge Functions + migrate use-billing.ts (PAY-04)
+- [x] 54-02-PLAN.md — Create stripe-connect Edge Function + migrate use-stripe-connect.ts (PAY-02)
+- [x] 54-03-PLAN.md — DB migration (stripe_webhook_events) + create stripe-webhooks Edge Function (PAY-03)
+- [x] 54-04-PLAN.md — Create stripe-checkout + stripe-billing-portal Edge Functions + migrate use-billing.ts (PAY-04)
 - [ ] 54-05-PLAN.md — Deploy + human verification checkpoint (all PAY requirements)
 
 ---
