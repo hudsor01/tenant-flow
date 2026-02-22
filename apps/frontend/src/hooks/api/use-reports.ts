@@ -752,42 +752,61 @@ export function use1099Summary(year: number) {
 }
 
 /**
+ * Helper: call the export-report Edge Function and trigger browser download.
+ * Returns false if PDF (501 stub not ready yet).
+ */
+async function callExportEdgeFunction(
+	reportType: string,
+	format: 'csv' | 'xlsx' | 'pdf',
+	year: number
+): Promise<boolean> {
+	const supabase = createClient()
+	const { data: sessionData } = await supabase.auth.getSession()
+	const token = sessionData.session?.access_token
+	if (!token) throw new Error('Not authenticated')
+
+	const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const url = `${baseUrl}/functions/v1/export-report?type=${reportType}&format=${format}&year=${year}`
+
+	const response = await fetch(url, {
+		headers: { Authorization: `Bearer ${token}` }
+	})
+
+	if (response.status === 501) {
+		// PDF stub — graceful fallback
+		toast.info('PDF export coming soon — use CSV export for now')
+		return false
+	}
+
+	if (!response.ok) {
+		throw new Error(`Export failed: ${response.statusText}`)
+	}
+
+	const blob = await response.blob()
+	const blobUrl = window.URL.createObjectURL(blob)
+	const link = document.createElement('a')
+	link.href = blobUrl
+
+	// Derive filename from Content-Disposition header or fallback
+	const disposition = response.headers.get('Content-Disposition') ?? ''
+	const filenameMatch = disposition.match(/filename="([^"]+)"/)
+	link.download = filenameMatch?.[1] ?? `${reportType}-${year}.${format}`
+
+	document.body.appendChild(link)
+	link.click()
+	document.body.removeChild(link)
+	setTimeout(() => window.URL.revokeObjectURL(blobUrl), 100)
+	return true
+}
+
+/**
  * Mutation hook to download year-end summary as CSV
  */
 export function useDownloadYearEndCsv() {
-	const queryClient = useQueryClient()
-
 	return useMutation({
 		mutationKey: mutationKeys.reports.downloadYearEndCsv,
 		mutationFn: async (year: number): Promise<void> => {
-			// TODO(phase-05): replace with Edge Function call for server-generated CSV
-			// Generate client-side CSV from cached year-end data
-			const cached = queryClient.getQueryData<YearEndSummary>(reportsKeys.yearEnd(year))
-
-			const rows: string[] = [
-				'Category,Amount',
-				`Gross Rental Income,${cached?.grossRentalIncome ?? 0}`,
-				`Operating Expenses,${cached?.operatingExpenses ?? 0}`,
-				`Net Income,${cached?.netIncome ?? 0}`
-			]
-
-			if (cached?.byProperty && cached.byProperty.length > 0) {
-				rows.push('', 'Property,Income,Expenses,Net Income')
-				for (const p of cached.byProperty) {
-					rows.push(`${p.propertyName},${p.income},${p.expenses},${p.netIncome}`)
-				}
-			}
-
-			const csv = rows.join('\n')
-			const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-			const url = window.URL.createObjectURL(blob)
-			const link = document.createElement('a')
-			link.href = url
-			link.download = `year-end-${year}.csv`
-			document.body.appendChild(link)
-			link.click()
-			document.body.removeChild(link)
-			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+			await callExportEdgeFunction('year-end', 'csv', year)
 		},
 		onSuccess: () => handleMutationSuccess('Download year-end CSV'),
 		onError: (err: unknown) => handleMutationError(err, 'Download year-end CSV')
@@ -798,33 +817,10 @@ export function useDownloadYearEndCsv() {
  * Mutation hook to download 1099-NEC vendor data as CSV
  */
 export function useDownload1099Csv() {
-	const queryClient = useQueryClient()
-
 	return useMutation({
 		mutationKey: mutationKeys.reports.download1099Csv,
 		mutationFn: async (year: number): Promise<void> => {
-			// TODO(phase-05): replace with Edge Function call for server-generated CSV
-			// Generate client-side CSV from cached 1099 data
-			const cached = queryClient.getQueryData<Year1099Summary>(reportsKeys.report1099(year))
-
-			const rows: string[] = ['Vendor Name,Total Paid,Job Count']
-
-			if (cached?.recipients && cached.recipients.length > 0) {
-				for (const r of cached.recipients) {
-					rows.push(`${r.vendorName},${r.totalPaid},${r.jobCount}`)
-				}
-			}
-
-			const csv = rows.join('\n')
-			const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-			const url = window.URL.createObjectURL(blob)
-			const link = document.createElement('a')
-			link.href = url
-			link.download = `1099-vendors-${year}.csv`
-			document.body.appendChild(link)
-			link.click()
-			document.body.removeChild(link)
-			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+			await callExportEdgeFunction('1099', 'csv', year)
 		},
 		onSuccess: () => handleMutationSuccess('Download 1099 CSV'),
 		onError: (err: unknown) => handleMutationError(err, 'Download 1099 CSV')
@@ -832,15 +828,14 @@ export function useDownload1099Csv() {
 }
 
 /**
- * Mutation hook to download year-end summary as a PDF file
+ * Mutation hook to download year-end summary as a PDF file.
+ * Shows informative toast if PDF not yet available (Phase 55 dependency).
  */
 export function useDownloadYearEndPdf() {
 	return useMutation({
 		mutationKey: mutationKeys.reports.downloadYearEndPdf,
 		mutationFn: async (year: number): Promise<void> => {
-			// TODO(phase-05): wire to Edge Function export-report for PDF generation
-			// Edge Function does not exist yet — show info toast as graceful fallback
-			toast.info(`Year-end ${year} PDF export will be available soon`)
+			await callExportEdgeFunction('year-end', 'pdf', year)
 		},
 		onSuccess: () => toast.success('Year-end report downloaded'),
 		onError: (err: unknown) => handleMutationError(err, 'Download year-end PDF')
@@ -848,15 +843,14 @@ export function useDownloadYearEndPdf() {
 }
 
 /**
- * Mutation hook to download tax documents as a PDF file
+ * Mutation hook to download tax documents as a PDF file.
+ * Shows informative toast if PDF not yet available (Phase 55 dependency).
  */
 export function useDownloadTaxDocumentPdf() {
 	return useMutation({
 		mutationKey: mutationKeys.reports.downloadTaxDocumentPdf,
 		mutationFn: async (year: number): Promise<void> => {
-			// TODO(phase-05): wire to Edge Function export-report for PDF generation
-			// Edge Function does not exist yet — show info toast as graceful fallback
-			toast.info(`Tax documents ${year} PDF export will be available soon`)
+			await callExportEdgeFunction('financial', 'pdf', year)
 		},
 		onSuccess: () => toast.success('Tax documents downloaded'),
 		onError: (err: unknown) => handleMutationError(err, 'Download tax documents PDF')
