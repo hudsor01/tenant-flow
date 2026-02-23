@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 57-cleanup-deletion-remove-nestjs
-Plan: 01 (complete)
-Status: PHASE 57 IN PROGRESS — Plan 01 complete: CI/CD cleanup done (deploy-backend.yml deleted, ci-cd.yml frontend-only, rls-security-tests.yml targets apps/integration-tests/); CLEAN-03 and CLEAN-04 satisfied; next: Plan 02 (delete NestJS modules/configs)
-Last activity: 2026-02-22 — Phase 57-01 complete: CI/CD cleanup — deleted deploy-backend.yml, updated ci-cd.yml to frontend-only tests, updated rls-security-tests.yml to target apps/integration-tests/ and run pnpm --filter @repo/integration-tests test:rls
+Plan: 02 (complete)
+Status: PHASE 57 IN PROGRESS — Plan 02 complete: monorepo config cleanup done (NestJS catalog entries removed from pnpm-workspace.yaml, backend scripts removed from root package.json, Dockerfile/railway.toml/docker-compose.yml/.dockerignore deleted); next: Plan 03 (delete NestJS modules from apps/backend/)
+Last activity: 2026-02-22 — Phase 57-02 complete: monorepo config cleanup — removed @nestjs/* catalog entries from pnpm-workspace.yaml (inlined @nestjs/swagger version in apps/backend/package.json), deleted Dockerfile/railway.toml/docker-compose.yml/.dockerignore, removed 11 backend-specific scripts from root package.json, updated test/validate scripts to remove integration test references
 
-Progress: ▓▓▓▓▓▓▓▓▓░ ~86% (Phases 51–56 complete; Phase 57-01 done)
+Progress: ▓▓▓▓▓▓▓▓▓░ ~87% (Phases 51–56 complete; Phase 57-01, 57-02 done)
 
 ## Active Milestone
 
@@ -31,7 +31,8 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Phase 55: External Services Edge Functions — StirlingPDF & DocuSeal (EXT-01, EXT-02)
 - Phase 56: Scheduled Jobs & DB Webhooks — pg_cron + n8n (SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02)
 - Phase 57-01: CI/CD Cleanup — delete deploy-backend.yml, frontend-only tests, rls-security-tests targets integration-tests (CLEAN-03, CLEAN-04) ✓ DONE
-- Phase 57-02 through 57-05: NestJS module deletion, config cleanup, backend deletion, final verification — PENDING
+- Phase 57-02: Monorepo config cleanup — ✓ DONE
+- Phase 57-03 through 57-05: NestJS module deletion, backend deletion, final verification — PENDING
 
 ## Accumulated Context
 
@@ -274,5 +275,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 57-01 — CI/CD cleanup: deleted .github/workflows/deploy-backend.yml (Railway NestJS deploy pipeline, 129 lines), updated ci-cd.yml test-script to pnpm --filter @repo/frontend test:unit only, updated rls-security-tests.yml path trigger to apps/integration-tests/** and run command to pnpm --filter @repo/integration-tests test:rls; CLEAN-03 and CLEAN-04 satisfied; no @repo/backend or RAILWAY_TOKEN references remain in any workflow file.
+Completed: Phase 57-02 — Monorepo config cleanup: removed @nestjs/* catalog entries from pnpm-workspace.yaml (inlined @nestjs/swagger version in apps/backend/package.json to avoid breaking pnpm install before backend deletion), deleted Dockerfile/railway.toml/docker-compose.yml/.dockerignore from repo root, removed 11 backend-specific scripts (dev:backend, build:backend, test:unit:backend, test:unit:watch, test:unit:coverage, test:integration, test:integration:watch, stripe:migrate, docker:test, docker:up, docker:down) from root package.json, updated test/test:all/test:ci/validate/validate:clean scripts to remove NestJS and integration test references.
 Resume file: None
