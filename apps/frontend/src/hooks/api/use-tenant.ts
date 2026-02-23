@@ -12,8 +12,7 @@
  * - All CRUD mutations use supabase-js directly
  * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
  * - Invite flow: creates tenant_invitations record; actual tenant created when user accepts
- * - useResendInvitationMutation / useCancelInvitationMutation: remain on apiRequest (email sending)
- *   TODO(phase-55): migrate these to Edge Functions
+ * - useResendInvitationMutation / useCancelInvitationMutation: stubbed — TODO(phase-57) Edge Function needed
  */
 
 import {
@@ -23,7 +22,6 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
@@ -699,14 +697,12 @@ export function useResendInvitationMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.resendInvite,
-		// TODO(phase-55): migrate to Edge Function for email sending
-		mutationFn: (tenant_id: string) =>
-			apiRequest<{ message: string }>(
-				`/api/v1/tenants/${tenant_id}/resend-invitation`,
-				{
-					method: 'POST'
-				}
-			),
+		// TODO(phase-57): implement via Edge Function for email sending
+		mutationFn: (_tenant_id: string): Promise<{ message: string }> => {
+			throw new Error(
+				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
+			)
+		},
 		onSuccess: (_, tenant_id) => {
 			toast.success('Invitation resent', {
 				description: 'A new invitation email has been sent'
@@ -737,14 +733,12 @@ export function useCancelInvitationMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.cancelInvite,
-		// TODO(phase-55): migrate to Edge Function for invitation management
-		mutationFn: (invitationId: string) =>
-			apiRequest<{ message: string }>(
-				`/api/v1/tenants/invitations/${invitationId}/cancel`,
-				{
-					method: 'POST'
-				}
-			),
+		// TODO(phase-57): implement via Edge Function for invitation management
+		mutationFn: (_invitationId: string): Promise<{ message: string }> => {
+			throw new Error(
+				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
+			)
+		},
 		onSuccess: () => {
 			toast.success('Invitation cancelled')
 
