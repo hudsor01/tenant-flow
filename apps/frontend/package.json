@@ -30,8 +30,7 @@
 		"lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --ignore-pattern \"**/*.d.ts\" --no-error-on-unmatched-pattern --no-warn-ignored",
 		"typecheck": "tsc --noEmit",
 		"test": "vitest",
-		"test:unit": "vitest --run",
-		"generate:backend-schemas": "node --import tsx scripts/convert-schemas.ts"
+		"test:unit": "vitest --run"
 	},
 	"dependencies": {
 		"@diceui/combobox": "1.2.2",
