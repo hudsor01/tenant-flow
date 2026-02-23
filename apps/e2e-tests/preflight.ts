@@ -56,8 +56,8 @@ function checkEnvironmentVariables(): void {
 			description: 'Supabase project URL'
 		},
 		{
-			name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-			alt: 'TEST_SUPABASE_PUBLISHABLE_KEY',
+			name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+			alt: 'TEST_SUPABASE_ANON_KEY',
 			description: 'Supabase anon/public key'
 		}
 	]
@@ -125,7 +125,7 @@ async function checkServer(url: string, name: string): Promise<void> {
 			name: `Server: ${name}`,
 			passed: false,
 			error: `Cannot reach ${name}: ${message}`,
-			suggestion: `Start the server with: pnpm --filter @repo/${name === 'Backend' ? 'backend' : 'frontend'} dev`
+			suggestion: `Start the server with: pnpm --filter @repo/frontend dev`
 		})
 	}
 }
@@ -135,12 +135,8 @@ async function checkServer(url: string, name: string): Promise<void> {
  */
 async function checkServers(): Promise<void> {
 	const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const backendUrl = 'http://localhost:4650/api/v1/security/health'
 
-	await Promise.all([
-		checkServer(baseUrl, 'Frontend'),
-		checkServer(backendUrl, 'Backend')
-	])
+	await checkServer(baseUrl, 'Frontend')
 }
 
 /**
