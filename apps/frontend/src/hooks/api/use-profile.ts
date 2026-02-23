@@ -13,7 +13,6 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -21,7 +20,6 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { isPostgrestEnabled } from '#lib/postgrest-flag'
 import { createClient } from '#lib/supabase/client'
 import type {
 	AvatarUploadResponse,
@@ -62,18 +60,15 @@ export const profileQueries = {
 		queryOptions({
 			queryKey: profileKeys.detail(),
 			queryFn: async (): Promise<UserProfile> => {
-				if (isPostgrestEnabled()) {
-					const supabase = createClient()
-					const { data, error } = await supabase
-						.from('users')
-						.select(
-							'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
-						)
-						.single()
-					if (error) throw error
-					return data as unknown as UserProfile
-				}
-				return apiRequest<UserProfile>('/api/v1/users/profile')
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('users')
+					.select(
+						'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+					)
+					.single()
+				if (error) throw error
+				return data as unknown as UserProfile
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
@@ -108,34 +103,28 @@ export function useUpdateProfileMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.profile.update,
 		mutationFn: async (input: UpdateProfileInput): Promise<UserProfile> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
-				const { data, error } = await supabase
-					.from('users')
-					.update({
-						first_name: input.first_name,
-						last_name: input.last_name,
-						full_name: `${input.first_name} ${input.last_name}`,
-						phone: input.phone ?? null,
-						updated_at: new Date().toISOString()
-					})
-					.eq('id', user.id)
-					.select(
-						'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
-					)
-					.single()
-				if (error) throw error
-				return data as unknown as UserProfile
-			}
-			return apiRequest<UserProfile>('/api/v1/users/profile', {
-				method: 'PATCH',
-				body: JSON.stringify(input)
-			})
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { data, error } = await supabase
+				.from('users')
+				.update({
+					first_name: input.first_name,
+					last_name: input.last_name,
+					full_name: `${input.first_name} ${input.last_name}`,
+					phone: input.phone ?? null,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', user.id)
+				.select(
+					'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+				)
+				.single()
+			if (error) throw error
+			return data as unknown as UserProfile
 		},
 
 		onMutate: async newData => {
@@ -194,51 +183,32 @@ export function useUploadAvatarMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.profile.uploadAvatar,
 		mutationFn: async (file: File): Promise<AvatarUploadResponse> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
 
-				const ext = file.name.split('.').pop() ?? 'jpg'
-				const path = `${user.id}/avatar.${ext}`
+			const ext = file.name.split('.').pop() ?? 'jpg'
+			const path = `${user.id}/avatar.${ext}`
 
-				const { error: uploadError } = await supabase.storage
-					.from('avatars')
-					.upload(path, file, { upsert: true, contentType: file.type })
-				if (uploadError) throw uploadError
+			const { error: uploadError } = await supabase.storage
+				.from('avatars')
+				.upload(path, file, { upsert: true, contentType: file.type })
+			if (uploadError) throw uploadError
 
-				const {
-					data: { publicUrl }
-				} = supabase.storage.from('avatars').getPublicUrl(path)
+			const {
+				data: { publicUrl }
+			} = supabase.storage.from('avatars').getPublicUrl(path)
 
-				const { error: updateError } = await supabase
-					.from('users')
-					.update({ avatar_url: publicUrl })
-					.eq('id', user.id)
-				if (updateError) throw updateError
+			const { error: updateError } = await supabase
+				.from('users')
+				.update({ avatar_url: publicUrl })
+				.eq('id', user.id)
+			if (updateError) throw updateError
 
-				return { avatar_url: publicUrl }
-			}
-
-			const formData = new FormData()
-			formData.append('avatar', file)
-
-			// Use fetch directly for FormData
-			const response = await fetch('/api/v1/users/avatar', {
-				method: 'POST',
-				body: formData,
-				credentials: 'include'
-			})
-
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to upload avatar')
-			}
-
-			return response.json() as Promise<AvatarUploadResponse>
+			return { avatar_url: publicUrl }
 		},
 
 		onMutate: async () => {
@@ -293,43 +263,37 @@ export function useRemoveAvatarMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.profile.deleteAvatar,
 		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
 
-				const { error } = await supabase
-					.from('users')
-					.update({ avatar_url: null })
-					.eq('id', user.id)
-				if (error) throw error
+			const { error } = await supabase
+				.from('users')
+				.update({ avatar_url: null })
+				.eq('id', user.id)
+			if (error) throw error
 
-				// Best-effort storage cleanup — don't throw if listing/removing fails
-				try {
-					const { data: files } = await supabase.storage
-						.from('avatars')
-						.list(user.id)
-					if (files && files.length > 0) {
-						const paths = files
-							.filter(f => f.name.startsWith('avatar.'))
-							.map(f => `${user.id}/${f.name}`)
-						if (paths.length > 0) {
-							await supabase.storage.from('avatars').remove(paths)
-						}
+			// Best-effort storage cleanup — don't throw if listing/removing fails
+			try {
+				const { data: files } = await supabase.storage
+					.from('avatars')
+					.list(user.id)
+				if (files && files.length > 0) {
+					const paths = files
+						.filter(f => f.name.startsWith('avatar.'))
+						.map(f => `${user.id}/${f.name}`)
+					if (paths.length > 0) {
+						await supabase.storage.from('avatars').remove(paths)
 					}
-				} catch {
-					// Storage cleanup is best-effort
 				}
-
-				return { success: true, message: 'Avatar removed' }
+			} catch {
+				// Storage cleanup is best-effort
 			}
-			return apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/avatar',
-				{ method: 'DELETE' }
-			)
+
+			return { success: true, message: 'Avatar removed' }
 		},
 
 		onMutate: async () => {
@@ -383,26 +347,20 @@ export function useUpdatePhoneMutation() {
 		mutationFn: async (
 			input: UpdatePhoneInput
 		): Promise<{ phone: string | null }> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
-				const { data, error } = await supabase
-					.from('users')
-					.update({ phone: input.phone })
-					.eq('id', user.id)
-					.select('phone')
-					.single()
-				if (error) throw error
-				return data as { phone: string | null }
-			}
-			return apiRequest<{ phone: string | null }>('/api/v1/users/phone', {
-				method: 'PATCH',
-				body: JSON.stringify(input)
-			})
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { data, error } = await supabase
+				.from('users')
+				.update({ phone: input.phone })
+				.eq('id', user.id)
+				.select('phone')
+				.single()
+			if (error) throw error
+			return data as { phone: string | null }
 		},
 
 		onMutate: async newData => {
@@ -459,31 +417,22 @@ export function useUpdateProfileEmergencyContactMutation() {
 		mutationFn: async (
 			input: SetEmergencyContactInput
 		): Promise<{ success: boolean; message: string }> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
-				const { error } = await supabase
-					.from('tenants')
-					.update({
-						emergency_contact_name: input.name,
-						emergency_contact_phone: input.phone,
-						emergency_contact_relationship: input.relationship ?? null
-					})
-					.eq('user_id', user.id)
-				if (error) throw error
-				return { success: true, message: 'Emergency contact updated' }
-			}
-			return apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/emergency-contact',
-				{
-					method: 'PATCH',
-					body: JSON.stringify(input)
-				}
-			)
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { error } = await supabase
+				.from('tenants')
+				.update({
+					emergency_contact_name: input.name,
+					emergency_contact_phone: input.phone,
+					emergency_contact_relationship: input.relationship ?? null
+				})
+				.eq('user_id', user.id)
+			if (error) throw error
+			return { success: true, message: 'Emergency contact updated' }
 		},
 
 		onMutate: async newData => {
@@ -543,28 +492,22 @@ export function useRemoveProfileEmergencyContactMutation() {
 	return useMutation({
 		mutationKey: mutationKeys.profile.deleteEmergencyContact,
 		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
-				const { error } = await supabase
-					.from('tenants')
-					.update({
-						emergency_contact_name: null,
-						emergency_contact_phone: null,
-						emergency_contact_relationship: null
-					})
-					.eq('user_id', user.id)
-				if (error) throw error
-				return { success: true, message: 'Emergency contact removed' }
-			}
-			return apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/emergency-contact',
-				{ method: 'DELETE' }
-			)
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { error } = await supabase
+				.from('tenants')
+				.update({
+					emergency_contact_name: null,
+					emergency_contact_phone: null,
+					emergency_contact_relationship: null
+				})
+				.eq('user_id', user.id)
+			if (error) throw error
+			return { success: true, message: 'Emergency contact removed' }
 		},
 
 		onMutate: async () => {

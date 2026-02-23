@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import type { Database } from '@repo/shared/types/supabase'
 
-import { apiRequest } from '#lib/api-request'
-import { isPostgrestEnabled } from '#lib/postgrest-flag'
 import { createClient } from '#lib/supabase/client'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -60,30 +58,24 @@ export function useOwnerNotificationSettings() {
 	return useQuery({
 		queryKey: notificationSettingsKey,
 		queryFn: async (): Promise<OwnerNotificationSettings> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
 
-				if (!user) throw new Error('Not authenticated')
+			if (!user) throw new Error('Not authenticated')
 
-				const { data, error } = await supabase
-					.from('notification_settings')
-					.select('*')
-					.eq('user_id', user.id)
-					.maybeSingle()
+			const { data, error } = await supabase
+				.from('notification_settings')
+				.select('*')
+				.eq('user_id', user.id)
+				.maybeSingle()
 
-				if (error) throw error
+			if (error) throw error
 
-				if (data === null) return defaultPreferences
+			if (data === null) return defaultPreferences
 
-				return mapDbRowToPreferences(data)
-			}
-
-			return apiRequest<OwnerNotificationSettings>(
-				'/api/v1/notification-settings'
-			)
+			return mapDbRowToPreferences(data)
 		},
 		...QUERY_CACHE_TIMES.DETAIL
 	})
@@ -97,46 +89,36 @@ export function useUpdateOwnerNotificationSettingsMutation() {
 		mutationFn: async (
 			updates: OwnerNotificationSettingsUpdate
 		): Promise<OwnerNotificationSettings> => {
-			if (isPostgrestEnabled()) {
-				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
 
-				if (!user) throw new Error('Not authenticated')
+			if (!user) throw new Error('Not authenticated')
 
-				const dbUpdate: Partial<NotificationSettingsRow> = {}
+			const dbUpdate: Partial<NotificationSettingsRow> = {}
 
-				if (updates.email !== undefined) dbUpdate.email = updates.email
-				if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp
-				if (updates.push !== undefined) dbUpdate.push = updates.push
-				if (updates.sms !== undefined) dbUpdate.sms = updates.sms
-				if (updates.categories?.maintenance !== undefined)
-					dbUpdate.maintenance = updates.categories.maintenance
-				if (updates.categories?.leases !== undefined)
-					dbUpdate.leases = updates.categories.leases
-				if (updates.categories?.general !== undefined)
-					dbUpdate.general = updates.categories.general
-				dbUpdate.updated_at = new Date().toISOString()
+			if (updates.email !== undefined) dbUpdate.email = updates.email
+			if (updates.inApp !== undefined) dbUpdate.in_app = updates.inApp
+			if (updates.push !== undefined) dbUpdate.push = updates.push
+			if (updates.sms !== undefined) dbUpdate.sms = updates.sms
+			if (updates.categories?.maintenance !== undefined)
+				dbUpdate.maintenance = updates.categories.maintenance
+			if (updates.categories?.leases !== undefined)
+				dbUpdate.leases = updates.categories.leases
+			if (updates.categories?.general !== undefined)
+				dbUpdate.general = updates.categories.general
+			dbUpdate.updated_at = new Date().toISOString()
 
-				const { data, error } = await supabase
-					.from('notification_settings')
-					.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: 'user_id' })
-					.select()
-					.single()
+			const { data, error } = await supabase
+				.from('notification_settings')
+				.upsert({ user_id: user.id, ...dbUpdate }, { onConflict: 'user_id' })
+				.select()
+				.single()
 
-				if (error) throw error
+			if (error) throw error
 
-				return mapDbRowToPreferences(data)
-			}
-
-			return apiRequest<OwnerNotificationSettings>(
-				'/api/v1/notification-settings',
-				{
-					method: 'PUT',
-					body: JSON.stringify(updates)
-				}
-			)
+			return mapDbRowToPreferences(data)
 		},
 		onMutate: async updates => {
 			await queryClient.cancelQueries({ queryKey: notificationSettingsKey })

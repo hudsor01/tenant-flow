@@ -62,15 +62,7 @@ vi.mock('@sentry/nextjs', () => ({
 	captureException: vi.fn()
 }))
 
-// Mock api-request (only used by resend/cancel invitation mutations)
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn().mockResolvedValue({ message: 'ok' })
-}))
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
+// Note: useResendInvitationMutation and useCancelInvitationMutation now throw stubs
 
 // Build a chainable Supabase query mock
 function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
@@ -518,39 +510,25 @@ describe('Mutation Hooks', () => {
 	})
 
 	describe('useResendInvitationMutation', () => {
-		it('should call apiRequest for resend (deferred to phase-55)', async () => {
-			const { apiRequest } = await import('#lib/api-request')
-			const mockApiRequest = vi.mocked(apiRequest)
-			mockApiRequest.mockResolvedValue({ message: 'Invitation sent' })
-
+		it('should throw stub error (Edge Function not yet implemented)', async () => {
 			const { result } = renderHook(() => useResendInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync('tenant-123')
-
-			expect(mockApiRequest).toHaveBeenCalledWith(
-				expect.stringContaining('resend-invitation'),
-				expect.objectContaining({ method: 'POST' })
+			await expect(result.current.mutateAsync('tenant-123')).rejects.toThrow(
+				'Tenant invitation email requires Edge Function implementation'
 			)
 		})
 	})
 
 	describe('useCancelInvitationMutation', () => {
-		it('should call apiRequest for cancel (deferred to phase-55)', async () => {
-			const { apiRequest } = await import('#lib/api-request')
-			const mockApiRequest = vi.mocked(apiRequest)
-			mockApiRequest.mockResolvedValue({ message: 'Invitation cancelled' })
-
+		it('should throw stub error (Edge Function not yet implemented)', async () => {
 			const { result } = renderHook(() => useCancelInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync('invitation-123')
-
-			expect(mockApiRequest).toHaveBeenCalledWith(
-				expect.stringContaining('cancel'),
-				expect.objectContaining({ method: 'POST' })
+			await expect(result.current.mutateAsync('invitation-123')).rejects.toThrow(
+				'Tenant invitation email requires Edge Function implementation'
 			)
 		})
 	})
