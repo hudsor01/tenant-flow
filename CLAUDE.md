@@ -3,7 +3,7 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Code Standards (Non-Negotiable)
-
+### No Barrel Files / No Re-Exports (CRITICAL)
 ### Zero Tolerance Rules
 
 1. **No `any` types** - Use `unknown` with type guards, never `any`
@@ -15,10 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 7. **No barrel files or re-exports** - See rules below
 8. **No PostgreSQL ENUMs** - Use `text` columns with `CHECK` constraints (see Database section)
 
-### No Barrel Files / No Re-Exports (CRITICAL)
-
 **NEVER create `index.ts` or `index.tsx` files that re-export from other modules.**
-
 **NEVER re-export anything from another file.** Each file exports only what it defines.
 
 ```typescript
@@ -46,7 +43,6 @@ import type { SomeType } from './types'
 - Each file is responsible only for its own exports
 
 ### DRY (Don't Repeat Yourself)
-
 Before creating anything new, search first:
 ```bash
 rg "TypeName" packages/shared/src/types/     # Types
@@ -60,7 +56,6 @@ Consolidate code reused ≥2 places into:
 - Utilities → `apps/frontend/src/lib/` or `apps/backend/src/shared/`
 
 ### KISS (Keep It Simple)
-
 - Prefer simple, readable solutions over clever abstractions
 - Solve the current problem first, no premature optimization
 - Use Server Components by default; only add `'use client'` when necessary
@@ -68,7 +63,6 @@ Consolidate code reused ≥2 places into:
 - Maximum function size: 50 lines (extract helper functions)
 
 ### YAGNI (You Aren't Gonna Need It)
-
 - Do NOT implement features not immediately required
 - No speculative coding, no "just in case" implementations
 - Remove dead code immediately—don't comment it out "for later"
@@ -106,7 +100,6 @@ Type file purposes:
 - `sections/<domain>.ts` - Display types for complex joined shapes (e.g. `MaintenanceDisplayRequest`)
 
 ### Type Lookup Protocol (MANDATORY)
-
 Before defining any new type, check in this exact order:
 
 1. Search `packages/shared/src/types/TYPES.md` — master lookup table for all shared types
@@ -173,25 +166,18 @@ const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600';
 
 All backend routes use `/api/v1/` prefix (configured in `apps/backend/src/main.ts`).
 
----
-
 ## Project Overview
-
 TenantFlow is a multi-tenant property management SaaS platform. Property managers and owners can manage properties, tenants, leases, maintenance requests, payments, and financial reporting.
 
 **Tech Stack:**
-- Frontend: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand (Vercel)
-- Backend: NestJS 11 + PostgreSQL via Supabase + Stripe (Railway)
+- Frontend: Next.js 16 + React 19 + TailwindCSS 4 + TanStack Query/Form + Zustand
+- Backend: Supabase + Stripe
 - Shared: TypeScript 5.9 strict mode + Zod 4 validation
 - Package Manager: pnpm 10 with workspaces
 - Secrets: Environment variables (`SUPABASE_*` prefix for Supabase, see turbo.json)
 
----
-
 ## Architecture
-
 ### Monorepo Structure
-
 ```
 apps/
 ├── frontend/          # Next.js app (Vercel, localhost:3050)
@@ -206,7 +192,6 @@ supabase/
 ```
 
 ### Backend Structure (NestJS)
-
 ```
 apps/backend/src/
 ├── modules/           # Domain modules (flat, no sub-modules)
@@ -227,7 +212,6 @@ apps/backend/src/
 ```
 
 ### Frontend Structure (Next.js)
-
 ```
 apps/frontend/src/
 ├── app/               # Next.js App Router
@@ -245,12 +229,8 @@ apps/frontend/src/
 └── lib/               # Utilities
 ```
 
----
-
 ## Essential Commands
-
 ### Development
-
 ```bash
 pnpm dev                              # Start all services
 pnpm --filter @repo/frontend dev      # Frontend only (localhost:3050)
@@ -258,7 +238,6 @@ pnpm --filter @repo/backend dev       # Backend only (localhost:4650)
 ```
 
 ### Quality Checks
-
 ```bash
 pnpm typecheck                        # Type check all packages
 pnpm lint                             # Lint all packages
@@ -266,7 +245,6 @@ pnpm lint:fix                         # Auto-fix lint issues
 ```
 
 ### Testing
-
 ```bash
 # Unit Tests
 pnpm test:unit                        # All unit tests
@@ -287,14 +265,12 @@ pnpm test:e2e:debug                   # Debug mode
 ```
 
 ### Building
-
 ```bash
 pnpm build:shared                     # Build shared package (run first if types change)
 pnpm build                            # Build all packages
 ```
 
 ### Database
-
 ```bash
 pnpm db:types                         # Regenerate TypeScript types + Zod schemas from live DB
 pnpm db:push                          # Push migrations to remote
@@ -317,12 +293,8 @@ pnpm validate:quick                   # DB types + Typecheck + Lint + Unit tests
 pnpm validate                         # DB types + Full validation suite
 ```
 
----
-
 ## Backend Patterns
-
 ### Ultra-Native NestJS Philosophy
-
 Use official @nestjs/* packages directly. **Never create custom abstractions**.
 
 **ALLOWED:**
@@ -338,7 +310,6 @@ Use official @nestjs/* packages directly. **Never create custom abstractions**.
 - Wrappers, helpers, factories, builders
 
 ### Zod DTO Pattern
-
 All DTOs use `nestjs-zod` wrapping shared Zod schemas (single source of truth):
 
 ```typescript
@@ -431,10 +402,7 @@ export class PropertiesService {
 }
 ```
 
----
-
 ## Frontend Patterns
-
 ### TanStack Query Hooks
 
 Use the `queryOptions()` factory pattern for type-safe, reusable queries:
@@ -628,42 +596,6 @@ comment on constraint maintenance_requests_status_check on maintenance_requests 
 - Use `SilentLogger` for clean test output
 - Test happy paths AND error scenarios
 
----
-
-## Architectural Decision Records (ADRs)
-
-ADRs document significant architectural decisions with context and rationale.
-
-**Location**: `.planning/adr/`
-**Format**: `NNNN-title-in-kebab-case.md`
-
-**Template**:
-```markdown
-# ADR-NNNN: Title
-
-## Status
-Proposed | Accepted | Deprecated | Superseded by ADR-XXXX
-
-## Context
-What is the issue that we're seeing that is motivating this decision?
-
-## Decision
-What is the change that we're proposing and/or doing?
-
-## Consequences
-What becomes easier or harder as a result of this change?
-```
-
-**When to create an ADR**:
-- Choosing between technologies (e.g., Supabase vs Firebase)
-- Architectural patterns (e.g., CQRS-like separation, RLS approach)
-- Breaking changes to conventions
-- Performance trade-offs
-
-**Existing ADRs**: See `.planning/adr/` directory for current decisions (ADR-0001 through ADR-0008).
-
----
-
 ## UI/UX Standards
 
 See `.claude/rules/ui-ux-standards.md` for complete guide. Key rules: touch targets ≥44px (`min-h-11`), max 5 typography levels, semantic color tokens, 200-300ms animations, all inputs labeled, icon buttons have `aria-label`.
@@ -736,8 +668,6 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 - Resend MCP: https://resend.com/docs/knowledge-base/mcp-server
 - DocuSeal MCP: https://github.com/rocketify-fr/docuseal-mcp-server
 
----
-
 ## Best Practices Reference
 
 For v3.0 architectural patterns, see inline comments in source files and ADRs:
@@ -752,8 +682,6 @@ For v3.0 architectural patterns, see inline comments in source files and ADRs:
 | Performance baselines | `app.module.ts` header | ADR-0008 |
 
 **ADRs location:** `.planning/adr/`
-
----
 
 ## Common Gotchas
 
