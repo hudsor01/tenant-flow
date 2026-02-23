@@ -1,8 +1,7 @@
 /**
  * Notifications hooks
  *
- * Provides TanStack Query hooks for notifications list + mutations.
- * Dual-path: PostgREST direct (NEXT_PUBLIC_USE_POSTGREST=true) or NestJS fallback.
+ * Provides TanStack Query hooks for notifications list + mutations via Supabase PostgREST.
  */
 
 import {

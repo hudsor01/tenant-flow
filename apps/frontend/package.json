@@ -18,7 +18,7 @@
 		"#utils/*": "./src/utils/*"
 	},
 	"scripts": {
-		"dev": "rm -f .next/dev/lock && bash -c 'NEXT_PUBLIC_API_BASE_URL=http://localhost:4650 next dev --turbo --port 3050'",
+		"dev": "rm -f .next/dev/lock && next dev --turbo --port 3050",
 		"dev:clean": "pnpm clean && pnpm dev",
 		"clean": "rm -rf .next",
 		"build": "next build",
