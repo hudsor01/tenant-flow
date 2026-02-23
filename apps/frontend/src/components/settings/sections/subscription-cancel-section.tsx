@@ -3,16 +3,27 @@
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { useMutation } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { toast } from 'sonner'
 
 export function SubscriptionCancelSection() {
 	const createPortalSession = useMutation({
 		mutationFn: async () => {
-			return apiRequest<{ url: string }>(
-				'/api/v1/stripe/create-billing-portal-session',
-				{ method: 'POST' }
-			)
+			const supabase = createClient()
+			const { data: sessionData } = await supabase.auth.getSession()
+			const token = sessionData.session?.access_token
+			if (!token) throw new Error('Not authenticated')
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(`${baseUrl}/functions/v1/stripe-billing-portal`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+				body: JSON.stringify({})
+			})
+			if (!response.ok) {
+				const err = await response.json().catch(() => ({ error: response.statusText }))
+				throw new Error((err as { error?: string }).error ?? 'Failed to open billing portal')
+			}
+			return response.json() as Promise<{ url: string }>
 		},
 		onSuccess: data => {
 			window.location.href = data.url

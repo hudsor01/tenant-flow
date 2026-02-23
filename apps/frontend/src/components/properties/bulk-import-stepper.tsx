@@ -24,7 +24,6 @@ import {
 import { useState, useCallback, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { apiRequestFormData } from '#lib/api-request'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
 	BulkImportResult,
@@ -58,28 +57,10 @@ export function BulkImportStepper({
 	const queryClient = useQueryClient()
 
 	const bulkImportMutation = useMutation({
-		mutationFn: async (uploadFile: File) => {
-			const formData = new FormData()
-			formData.append('file', uploadFile)
-
-			// Simulate progress for better UX
-			setUploadProgress(0)
-			const progressInterval = setInterval(() => {
-				setUploadProgress(prev => Math.min(prev + 10, 90))
-			}, 200)
-
-			try {
-				const result = await apiRequestFormData<BulkImportResult>(
-					'/api/v1/properties/bulk-import',
-					formData
-				)
-				clearInterval(progressInterval)
-				setUploadProgress(100)
-				return result
-			} catch (error) {
-				clearInterval(progressInterval)
-				throw error
-			}
+		mutationFn: async (_uploadFile: File): Promise<BulkImportResult> => {
+			// TODO: Bulk import requires a server-side Edge Function implementation
+			// NestJS backend removed; CSV parsing Edge Function not yet built
+			throw new Error('Bulk import is temporarily unavailable — TODO(phase-57): requires Edge Function')
 		},
 		onSuccess: async data => {
 			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })

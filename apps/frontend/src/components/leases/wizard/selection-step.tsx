@@ -5,8 +5,7 @@
  * Property, Unit, and Tenant selection with cascading filters
  */
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '#providers/auth-provider'
-import { getApiBaseUrl } from '#lib/api-config'
+import { createClient } from '#lib/supabase/client'
 import { Label } from '#components/ui/label'
 import {
 	Combobox,
@@ -54,77 +53,66 @@ interface Tenant {
 }
 
 export function SelectionStep({ data, onChange }: SelectionStepProps) {
-	const { session } = useAuth()
-
-	// Fetch properties
+	// Fetch properties via Supabase PostgREST
 	const {
 		data: properties,
 		isLoading: propertiesLoading,
 		error: propertiesError
 	} = useQuery({
-		queryKey: ['properties', 'list', session?.access_token],
+		queryKey: ['properties', 'list'],
 		queryFn: async () => {
-			const res = await fetch(`${getApiBaseUrl()}/api/v1/properties`, {
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session?.access_token}`
-				}
-			})
-			if (!res.ok) throw new Error('Failed to fetch properties')
-			const json = await res.json()
-			return json.data as Property[]
-		},
-		enabled: !!session
+			const supabase = createClient()
+			const { data: rows, error } = await supabase
+				.from('properties')
+				.select('id, name, address_line1, city, state')
+				.neq('status', 'inactive')
+				.order('name')
+			if (error) throw error
+			return (rows ?? []) as Property[]
+		}
 	})
 
-	// Fetch units filtered by selected property
+	// Fetch units filtered by selected property via Supabase PostgREST
 	const {
 		data: units,
 		isLoading: unitsLoading,
 		error: unitsError
 	} = useQuery({
-		queryKey: ['units', 'by-property', data.property_id, session?.access_token],
+		queryKey: ['units', 'by-property', data.property_id],
 		queryFn: async () => {
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/units?property_id=${data.property_id}`,
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session?.access_token}`
-					}
-				}
-			)
-			if (!res.ok) throw new Error('Failed to fetch units')
-			const json = await res.json()
-			return json.data as Unit[]
+			const supabase = createClient()
+			const { data: rows, error } = await supabase
+				.from('units')
+				.select('id, unit_number, property_id')
+				.eq('property_id', data.property_id ?? '')
+				.order('unit_number')
+			if (error) throw error
+			return (rows ?? []) as Unit[]
 		},
-		enabled: !!session && !!data.property_id
+		enabled: !!data.property_id
 	})
 
-	// Fetch tenants (filtered by selected property)
+	// Fetch tenants (filtered by selected property) via Supabase PostgREST
 	const {
 		data: tenants,
 		isLoading: tenantsLoading,
 		error: tenantsError
 	} = useQuery({
-		queryKey: ['tenants', 'list', data.property_id, session?.access_token],
+		queryKey: ['tenants', 'list', data.property_id],
 		queryFn: async () => {
-			const url = new URL(`${getApiBaseUrl()}/api/v1/tenants`)
+			const supabase = createClient()
+			let query = supabase
+				.from('tenants')
+				.select('id, first_name, last_name, email')
+				.neq('status', 'inactive')
+				.order('last_name')
 			if (data.property_id) {
-				url.searchParams.set('property_id', data.property_id)
+				query = query.eq('property_id', data.property_id)
 			}
-
-			const res = await fetch(url.toString(), {
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session?.access_token}`
-				}
-			})
-			if (!res.ok) throw new Error('Failed to fetch tenants')
-			const json = await res.json()
-			return json.data as Tenant[]
-		},
-		enabled: !!session
+			const { data: rows, error } = await query
+			if (error) throw error
+			return (rows ?? []) as Tenant[]
+		}
 	})
 
 	const handlePropertyChange = (propertyId: string) => {

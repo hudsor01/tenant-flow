@@ -9,7 +9,6 @@
  */
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { createClient } from '#lib/supabase/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
@@ -89,14 +88,17 @@ export function useOnboarding() {
 		(onboardingStatus === null || onboardingStatus === 'not_started')
 
 	const updateMutation = useMutation({
-		mutationFn: (status: 'started' | 'completed' | 'skipped') =>
-			apiRequest<{ success: boolean; status: string }>(
-				'/api/v1/users/me/onboarding',
-				{
-					method: 'PATCH',
-					body: JSON.stringify({ status })
-				}
-			),
+		mutationFn: async (status: 'started' | 'completed' | 'skipped') => {
+			const supabase = createClient()
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+			const { error } = await supabase
+				.from('users')
+				.update({ onboarding_status: status })
+				.eq('id', user.id)
+			if (error) throw error
+			return { success: true, status }
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: onboardingKeys.all })
 		}

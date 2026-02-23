@@ -7,7 +7,7 @@ import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useDeleteMaintenanceRequest } from '#hooks/api/use-maintenance'
@@ -42,8 +42,15 @@ export function MaintenanceDetails({ id }: MaintenanceDetailsProps) {
 
 	const { data: expensesData } = useQuery({
 		queryKey: ['maintenance', id, 'expenses'],
-		queryFn: () =>
-			apiRequest<ExpenseRecord[]>(`/api/v1/maintenance/${id}/expenses`),
+		queryFn: async () => {
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('expenses')
+				.select('id, amount, expense_date, vendor_name, maintenance_request_id')
+				.eq('maintenance_request_id', id)
+			if (error) throw error
+			return (data ?? []) as ExpenseRecord[]
+		},
 		enabled: !!id
 	})
 
