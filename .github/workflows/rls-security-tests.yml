@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'apps/backend/**'
+      - 'apps/integration-tests/**'
       - 'supabase/migrations/**'
       - 'packages/shared/**'
   workflow_dispatch: # Allow manual trigger
@@ -59,4 +59,4 @@ jobs:
           E2E_TENANT_A_PASSWORD: ${{ secrets.E2E_TENANT_A_PASSWORD }}
           E2E_TENANT_B_EMAIL: ${{ secrets.E2E_TENANT_B_EMAIL }}
           E2E_TENANT_B_PASSWORD: ${{ secrets.E2E_TENANT_B_PASSWORD }}
-        run: pnpm --filter @repo/backend test:security
+        run: pnpm --filter @repo/integration-tests test:rls
