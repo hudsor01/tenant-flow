@@ -1,13 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { apiRequest } from '#lib/api-request'
 import { toast } from 'sonner'
 import type { DynamicField } from './dynamic-form'
-
-interface TemplateDefinitionResponse {
-	fields?: DynamicField[]
-}
 
 /**
  * Generic form interface that works with TanStack Form's strict typing.
@@ -19,7 +14,7 @@ interface FormLike {
 }
 
 export function useTemplateDefinition(
-	templateKey: string,
+	_templateKey: string,
 	baseFields: DynamicField[],
 	form?: FormLike
 ) {
@@ -32,13 +27,9 @@ export function useTemplateDefinition(
 
 		async function load() {
 			try {
-				const response = await apiRequest<TemplateDefinitionResponse>(
-					`/documents/templates/${templateKey}/definition`
-				)
-				if (!isActive) return
-				const fields = Array.isArray(response.fields) ? response.fields : []
-				setCustomFields(fields)
-			} catch {
+				// TODO(phase-57): Template definition loading requires Edge Function implementation
+				// The NestJS backend /documents/templates/:key/definition has been removed.
+				// For now, return empty custom fields.
 				if (isActive) {
 					setCustomFields([])
 				}
@@ -53,7 +44,7 @@ export function useTemplateDefinition(
 		return () => {
 			isActive = false
 		}
-	}, [templateKey])
+	}, [_templateKey])
 
 	useEffect(() => {
 		if (!form) return
@@ -78,11 +69,8 @@ export function useTemplateDefinition(
 	const save = useCallback(async () => {
 		setIsSaving(true)
 		try {
-			await apiRequest(`/documents/templates/${templateKey}/definition`, {
-				method: 'POST',
-				body: JSON.stringify({ fields: customFields })
-			})
-			toast.success('Template fields saved')
+			// TODO(phase-57): Template definition saving requires Edge Function implementation
+			throw new Error('Template definition saving requires Edge Function implementation')
 		} catch (error) {
 			toast.error(
 				error instanceof Error ? error.message : 'Failed to save template fields'
@@ -90,7 +78,7 @@ export function useTemplateDefinition(
 		} finally {
 			setIsSaving(false)
 		}
-	}, [customFields, templateKey])
+	}, [])
 
 	return {
 		customFields,

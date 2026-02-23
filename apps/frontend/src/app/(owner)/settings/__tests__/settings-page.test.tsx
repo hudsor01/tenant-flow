@@ -218,11 +218,10 @@ vi.mock('#hooks/api/use-stripe-connect', () => ({
 	})
 }))
 
-// Mock api-request
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi
-		.fn()
-		.mockResolvedValue({ url: 'https://billing.stripe.com/session' })
+// Mock fetch for stripe-billing-portal Edge Function calls
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+	ok: true,
+	json: () => Promise.resolve({ url: 'https://billing.stripe.com/session' })
 }))
 
 // Mock formatCurrency

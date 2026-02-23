@@ -10,7 +10,7 @@ import {
 	useCancelInvitationMutation,
 	useResendInvitationMutation
 } from '#hooks/api/use-tenant'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
 import {
@@ -230,10 +230,16 @@ export default function TenantsPage() {
 		selectedTenantPaymentHistory
 	])
 
-	// Delete mutation
+	// Delete mutation — soft-delete: set status to 'inactive'
 	const { mutate: deleteTenant } = useMutation({
-		mutationFn: async (tenantId: string) =>
-			apiRequest<void>(`/api/v1/tenants/${tenantId}`, { method: 'DELETE' }),
+		mutationFn: async (tenantId: string) => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('tenants')
+				.update({ status: 'inactive' })
+				.eq('id', tenantId)
+			if (error) throw error
+		},
 		onSuccess: () => {
 			toast.success('Tenant deleted')
 			queryClient.invalidateQueries({ queryKey: ['tenants'] })
