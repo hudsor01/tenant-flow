@@ -23,30 +23,26 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-
-interface BalanceItem {
-	name: string
-	amount: number
-}
+import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
 
 interface Assets {
-	current: BalanceItem[]
+	current: FinancialLineItem[]
 	totalCurrent: number
-	fixed: BalanceItem[]
+	fixed: FinancialLineItem[]
 	totalFixed: number
 	totalAssets: number
 }
 
 interface Liabilities {
-	current: BalanceItem[]
+	current: FinancialLineItem[]
 	totalCurrent: number
-	longTerm: BalanceItem[]
+	longTerm: FinancialLineItem[]
 	totalLongTerm: number
 	totalLiabilities: number
 }
 
 interface Equity {
-	items: BalanceItem[]
+	items: FinancialLineItem[]
 	totalEquity: number
 }
 
@@ -85,7 +81,7 @@ function BalanceSection({
 }: {
 	title: string
 	icon: ElementType
-	items: { label: string; items: BalanceItem[]; subtotal: number }[]
+	items: { label: string; items: FinancialLineItem[]; subtotal: number }[]
 	total: number
 	totalLabel: string
 	colorClass: string

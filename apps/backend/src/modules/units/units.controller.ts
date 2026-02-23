@@ -49,7 +49,7 @@ export class UnitsController {
 
 	@ApiOperation({ summary: 'List all units', description: 'Get all units for the authenticated user with filtering and pagination' })
 	@ApiQuery({ name: 'property_id', required: false, description: 'Filter by property UUID' })
-	@ApiQuery({ name: 'status', required: false, enum: ['vacant', 'occupied', 'maintenance'], description: 'Filter by unit status' })
+	@ApiQuery({ name: 'status', required: false, enum: ['available', 'occupied', 'maintenance', 'reserved'], description: 'Filter by unit status' })
 	@ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of results (1-50)', example: 10 })
 	@ApiQuery({ name: 'offset', required: false, type: Number, description: 'Pagination offset', example: 0 })
 	@ApiResponse({ status: 200, description: 'List of units with pagination info' })
@@ -68,15 +68,16 @@ export class UnitsController {
 			status: query.status?.toLowerCase() as typeof query.status
 		}
 
-		const data = await this.unitQueryService.findAll(token, normalizedQuery)
+		const { data, count } = await this.unitQueryService.findAll(token, normalizedQuery)
 
 		// Return PaginatedResponse format expected by frontend
+		// Use count from Supabase { count: 'exact' } for accurate total
 		return {
 			data,
-			total: data.length,
+			total: count,
 			limit: query.limit,
 			offset: query.offset,
-			hasMore: data.length >= query.limit
+			hasMore: query.offset + data.length < count
 		}
 	}
 

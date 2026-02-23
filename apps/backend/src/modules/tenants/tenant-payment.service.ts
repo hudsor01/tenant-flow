@@ -57,7 +57,7 @@ export class TenantPaymentService {
 			const client = this.supabase.getAdminClient()
 			const { data, error } = await client
 				.from('rent_payments')
-				.select('*')
+				.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 				.eq('tenant_id', tenantId)
 				.order('created_at', { ascending: false })
 				.limit(1)
@@ -424,7 +424,7 @@ export class TenantPaymentService {
 			await stripeClient
 				.schema('stripe')
 				.from('payment_intents')
-				.select('*')
+				.select('id, amount, currency, status, description, metadata, created, receipt_email, customer, payment_method, last_payment_error, last_synced_at')
 				.contains('metadata', { tenant_id: tenantId })
 				.order('created', { ascending: false })
 				.limit(limit)

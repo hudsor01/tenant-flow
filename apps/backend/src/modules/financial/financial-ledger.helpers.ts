@@ -38,7 +38,10 @@ export type MaintenanceRequestPartial = Pick<
 	| 'estimated_cost'
 >
 export type UnitPartial = Pick<UnitRow, 'id' | 'property_id'>
-export type PropertyPartial = Pick<PropertyRow, 'id' | 'name' | 'created_at'>
+export type PropertyPartial = Pick<
+	PropertyRow,
+	'id' | 'name' | 'created_at' | 'acquisition_cost' | 'acquisition_date'
+>
 
 export interface LedgerData {
 	rentPayments: RentPaymentPartial[]
@@ -87,7 +90,7 @@ export async function loadLedgerData(
 				'id, unit_id, status, completed_at, created_at, actual_cost, estimated_cost'
 			),
 		client.from('units').select('id, property_id'),
-		client.from('properties').select('id, name, created_at')
+		client.from('properties').select('id, name, created_at, acquisition_cost, acquisition_date')
 	])
 
 	const errors = [

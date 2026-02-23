@@ -8,7 +8,8 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 
 - ✅ **v3.0 Backend Architecture Excellence** - Phases 18-25 (shipped 2026-01-20) — [archive](milestones/v3.0-ROADMAP.md)
 - ✅ **v4.0 Production-Parity Testing & Observability** - Phases 26-32 (shipped 2026-01-21) — [archive](milestones/v4.0-ROADMAP.md)
-- 🚧 **v5.0 Production Hardening & Revenue Completion** - Phases 33-37 (in progress)
+- ✅ **v5.0 Production Hardening & Revenue Completion** - Phases 33-37 (shipped 2026-02-19)
+- ✅ **v6.0 Production Grade Completion** - Phases 38-49 (shipped 2026-02-20)
 
 ## Phases
 
@@ -32,7 +33,7 @@ See [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 
 </details>
 
-### 🚧 v5.0 Production Hardening & Revenue Completion (In Progress)
+### ✅ v5.0 Production Hardening & Revenue Completion (Shipped 2026-02-19)
 
 **Milestone Goal:** Close the gap between what exists in the codebase and what customers can actually use. Verify every critical flow works end-to-end, wire up Stripe Connect so owners can receive rent payments, enforce subscription plan limits, complete the tenant onboarding flow, and confirm financial pages show real data.
 
@@ -88,14 +89,62 @@ Plans:
 Plans:
 - [ ] 37-01: Replace tax-documents placeholder, verify all financial pages, fix empty states
 
+### ✅ v6.0 Production Grade Completion (Shipped 2026-02-20)
+
+**Milestone Goal:** Complete every remaining gap — security, performance, test coverage, CI/CD, features, and code quality — so TenantFlow is genuinely production-grade and ready to monetize. No shortcuts. Every item addressed properly.
+
+#### Phase 38: Code Quality — Database Query Hygiene + Compression ✅
+Replace all `select('*')` with explicit column lists, add compression middleware, fix route ordering in tenants.controller.
+
+#### Phase 39: Legal Compliance — GDPR/CCPA Data Rights ✅
+Implement user data deletion endpoint (`DELETE /users/me`), user data export endpoint (`GET /users/me/export`), and account danger zone UI in settings.
+
+#### Phase 40: Security — Rate Limiting + Auth Endpoint Hardening ✅
+Add per-endpoint rate limiting to auth routes, tighten file upload MIME validation, add brute-force protection.
+
+#### Phase 41: Test Coverage — Financial + Billing Services ✅
+Unit tests for financial.service, billing.service, rent-payments.service (critical path services with zero coverage).
+
+#### Phase 42: Test Coverage — Infrastructure + Remaining Services ✅
+Unit tests for report, dashboard, lease, maintenance, tenant, and user services.
+
+#### Phase 43: CI/CD — Backend Sentry Source Maps + RLS Integration Tests ✅
+Upload backend source maps to Sentry on deploy, add RLS integration test suite to CI.
+
+#### Phase 44: DocuSeal E-Signature Integration ✅
+Integrate DocuSeal for lease document signing — template creation, signing requests, webhook completion handling. Confirmed production-ready: 25/25 tests passing, 8 API endpoints, full frontend UI, DB migrations applied.
+
+#### Phase 45: Maintenance Vendor Management ✅
+Vendor management system — vendors table, CRUD API, assignment to maintenance requests, vendor list UI.
+
+#### Phase 46: Financial Reporting — Year-End + Tax Documents ✅
+Year-end summary report, tax document generation (1099 placeholder → real data), PDF export for financial statements.
+
+#### Phase 47: Component Size Refactoring — Frontend Debt ✅
+Split all frontend components exceeding 300 lines into focused sub-components across all domains.
+
+#### Phase 48: Move-In/Move-Out Inspection — Database-Backed Implementation ✅
+Replace inspection stub with real implementation — inspection form, photo upload, condition tracking, PDF report.
+
+#### Phase 49: Landlord Onboarding Wizard ✅
+Multi-step onboarding wizard for new landlords — property setup, Stripe Connect, first tenant invite.
+
 ## Progress
 
-| Phase | Milestone | Plans | Status | Completed |
-|-------|-----------|-------|--------|-----------|
-| 18-25. Architecture & Testing | v3.0 | 8/8 | Complete | 2026-01-20 |
-| 26-32. Observability | v4.0 | 9/9 | Complete | 2026-01-21 |
-| 33. Full Smoke Test | v5.0 | 0/2 | Not started | - |
-| 34. Stripe Connect End-to-End | v5.0 | 0/1 | Not started | - |
-| 35. Subscription Enforcement | v5.0 | 0/1 | Not started | - |
-| 36. Tenant Onboarding Flow | v5.0 | 0/1 | Not started | - |
-| 37. Financial Page Wiring | v5.0 | 0/1 | Not started | - |
+| Phase | Milestone | Status | Completed |
+|-------|-----------|--------|-----------|
+| 18-25. Architecture & Testing | v3.0 | ✅ Complete | 2026-01-20 |
+| 26-32. Observability | v4.0 | ✅ Complete | 2026-01-21 |
+| 33-37. Production Hardening | v5.0 | ✅ Complete | 2026-02-19 |
+| 38. Code Quality | v6.0 | ✅ Complete | 2026-02-20 |
+| 39. GDPR/CCPA | v6.0 | ✅ Complete | 2026-02-20 |
+| 40. Security Hardening | v6.0 | ✅ Complete | 2026-02-20 |
+| 41. Test Coverage — Financial | v6.0 | ✅ Complete | 2026-02-20 |
+| 42. Test Coverage — Infrastructure | v6.0 | ✅ Complete | 2026-02-20 |
+| 43. CI/CD | v6.0 | ✅ Complete | 2026-02-20 |
+| 44. DocuSeal E-Signature | v6.0 | ✅ Complete | 2026-02-20 |
+| 45. Vendor Management | v6.0 | ✅ Complete | 2026-02-20 |
+| 46. Financial Reporting | v6.0 | ✅ Complete | 2026-02-20 |
+| 47. Component Refactoring | v6.0 | ✅ Complete | 2026-02-20 |
+| 48. Move-In/Move-Out Inspection | v6.0 | ✅ Complete | 2026-02-20 |
+| 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |

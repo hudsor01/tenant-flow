@@ -88,12 +88,12 @@ describe('MaintenanceController', () => {
 
 	it('returns maintenance requests (findAll)', async () => {
 		const requests = [createMockMaintenanceRequest()]
-		service.findAll.mockResolvedValue(requests)
+		service.findAll.mockResolvedValue({ data: requests, count: 1 })
 		const result = await controller.findAll(mockAuthRequest)
 		// Controller wraps service response in PaginatedResponse format
 		expect(result).toEqual({
 			data: requests,
-			total: requests.length,
+			total: 1,
 			limit: 10,
 			offset: 0,
 			hasMore: false

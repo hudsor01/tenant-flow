@@ -1,17 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { ElementType } from 'react'
-import {
-	Building2,
-	Wallet,
-	CreditCard,
-	Download,
-	ChevronDown,
-	ChevronRight,
-	Check,
-	X
-} from 'lucide-react'
+import { Building2, Wallet, CreditCard, Download } from 'lucide-react'
 import {
 	Select,
 	SelectContent,
@@ -19,7 +9,6 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import { Skeleton } from '#components/ui/skeleton'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import {
@@ -30,107 +19,28 @@ import {
 	StatDescription
 } from '#components/ui/stat'
 import { useBalanceSheet } from '#hooks/api/use-financials'
-import { formatCents } from '#lib/formatters/currency'
+import { BalanceSection } from './balance-section'
+import { EquitySection } from './equity-section'
+import { BalanceEquationCheck } from './balance-equation-check'
+import { BalanceSheetSkeleton } from './balance-sheet-skeleton'
+import { BalanceSheetError } from './balance-sheet-error'
 
-interface BalanceItem {
-	name: string
-	amount: number
-}
-
-interface BalanceSectionProps {
-	title: string
-	icon: ElementType
-	items: { label: string; items: BalanceItem[]; subtotal: number }[]
-	total: number
-	totalLabel: string
-	colorClass: string
-}
-
-function BalanceSection({
-	title,
-	icon: Icon,
-	items,
-	total,
-	totalLabel,
-	colorClass
-}: BalanceSectionProps) {
-	const [expanded, setExpanded] = useState<Record<string, boolean>>({})
-
-	const toggleExpanded = (label: string) => {
-		setExpanded(prev => ({ ...prev, [label]: !prev[label] }))
-	}
-
-	return (
-		<div className="bg-card border border-border rounded-lg overflow-hidden">
-			<div
-				className={`p-4 border-b border-border flex items-center gap-3 ${colorClass}`}
-			>
-				<Icon className="w-5 h-5" />
-				<h3 className="font-medium text-foreground">{title}</h3>
-			</div>
-			<div className="divide-y divide-border">
-				{items.map(section => (
-					<div key={section.label}>
-						<button
-							onClick={() => toggleExpanded(section.label)}
-							className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
-						>
-							<div className="flex items-center gap-2">
-								{expanded[section.label] ? (
-									<ChevronDown className="w-4 h-4 text-muted-foreground" />
-								) : (
-									<ChevronRight className="w-4 h-4 text-muted-foreground" />
-								)}
-								<span className="text-sm font-medium">{section.label}</span>
-							</div>
-							<span className="text-sm font-medium tabular-nums">
-								{formatCents(section.subtotal * 100)}
-							</span>
-						</button>
-						{expanded[section.label] && (
-							<div className="bg-muted/20 px-4 pb-4">
-								{section.items.map((item, idx) => (
-									<div
-										key={idx}
-										className="flex items-center justify-between py-2 pl-6"
-									>
-										<span className="text-sm text-muted-foreground">
-											{item.name}
-										</span>
-										<span
-											className={`text-sm tabular-nums ${item.amount < 0 ? 'text-red-600' : ''}`}
-										>
-											{formatCents(item.amount * 100)}
-										</span>
-									</div>
-								))}
-							</div>
-						)}
-					</div>
-				))}
-			</div>
-			<div className="p-4 bg-muted/30 border-t border-border">
-				<div className="flex items-center justify-between">
-					<span className="text-sm font-semibold">{totalLabel}</span>
-					<span className={`text-lg font-bold tabular-nums ${colorClass}`}>
-						{formatCents(total * 100)}
-					</span>
-				</div>
-			</div>
-		</div>
-	)
+function formatDate(dateStr: string) {
+	return new Date(dateStr).toLocaleDateString('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric'
+	})
 }
 
 export default function BalanceSheetPage() {
 	const [year, setYear] = useState('2024')
 	const [month, setMonth] = useState('12')
 
-	// Calculate as-of date
 	const asOfDate = `${year}-${month}-${new Date(parseInt(year), parseInt(month), 0).getDate()}`
 	const { data, isLoading, error, refetch } = useBalanceSheet(asOfDate)
 	const balanceData = data?.data
 
-	// Transform API data to section format
 	const assetsItems = useMemo(() => {
 		if (!balanceData) return []
 		return [
@@ -232,66 +142,13 @@ export default function BalanceSheetPage() {
 	const totalEquity = balanceData?.equity.totalEquity || 0
 	const isBalanced = balanceData?.balanceCheck !== false
 
-	const formatDate = (dateStr: string) => {
-		return new Date(dateStr).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		})
-	}
-
 	if (isLoading) {
-		return (
-			<div className="p-6 lg:p-8 bg-background min-h-full">
-				{/* Header skeleton */}
-				<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-					<div>
-						<Skeleton className="h-8 w-40 mb-2" />
-						<Skeleton className="h-4 w-64" />
-					</div>
-					<div className="flex gap-2">
-						<Skeleton className="h-10 w-24" />
-						<Skeleton className="h-10 w-32" />
-						<Skeleton className="h-10 w-24" />
-					</div>
-				</div>
-				{/* Stats skeleton */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-					{[1, 2, 3].map(i => (
-						<Skeleton key={i} className="h-28 rounded-lg" />
-					))}
-				</div>
-				{/* Content skeleton */}
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{[1, 2].map(i => (
-						<Skeleton key={i} className="h-80 rounded-lg" />
-					))}
-				</div>
-			</div>
-		)
+		return <BalanceSheetSkeleton />
 	}
 
 	if (error) {
 		return (
-			<div className="p-6 lg:p-8 bg-background min-h-full">
-				<div className="max-w-md mx-auto text-center py-16">
-					<div className="w-16 h-16 rounded-lg bg-destructive/10 flex items-center justify-center mx-auto mb-6">
-						<CreditCard className="w-8 h-8 text-destructive" />
-					</div>
-					<h2 className="text-xl font-semibold text-foreground mb-3">
-						Failed to Load Balance Sheet
-					</h2>
-					<p className="text-muted-foreground mb-6">
-						{error instanceof Error ? error.message : 'An error occurred'}
-					</p>
-					<button
-						onClick={() => void refetch()}
-						className="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-md transition-colors"
-					>
-						Try Again
-					</button>
-				</div>
-			</div>
+			<BalanceSheetError error={error} onRetry={() => void refetch()} />
 		)
 	}
 
@@ -344,7 +201,7 @@ export default function BalanceSheetPage() {
 				</div>
 			</BlurFade>
 
-			{/* Summary Stats - Premium Stat Components */}
+			{/* Summary Stats */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
 				<BlurFade delay={0.15} inView>
 					<Stat className="relative overflow-hidden">
@@ -402,40 +259,17 @@ export default function BalanceSheetPage() {
 
 			{/* Balance Equation Check */}
 			<BlurFade delay={0.3} inView>
-				<div
-					className={`p-4 rounded-lg border mb-6 ${isBalanced ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'}`}
-				>
-					<div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-						<span className="font-medium">
-							Assets ({formatCents(totalAssets * 100)})
-						</span>
-						<span className="text-muted-foreground">=</span>
-						<span className="font-medium">
-							Liabilities ({formatCents(totalLiabilities * 100)})
-						</span>
-						<span className="text-muted-foreground">+</span>
-						<span className="font-medium">
-							Equity ({formatCents(totalEquity * 100)})
-						</span>
-						{isBalanced ? (
-							<span className="text-emerald-600 font-medium inline-flex items-center gap-1">
-								<Check className="size-4" aria-hidden="true" />
-								Balanced
-							</span>
-						) : (
-							<span className="text-red-600 font-medium inline-flex items-center gap-1">
-								<X className="size-4" aria-hidden="true" />
-								Unbalanced
-							</span>
-						)}
-					</div>
-				</div>
+				<BalanceEquationCheck
+					totalAssets={totalAssets}
+					totalLiabilities={totalLiabilities}
+					totalEquity={totalEquity}
+					isBalanced={isBalanced}
+				/>
 			</BlurFade>
 
 			{/* Balance Sheet Details */}
 			<BlurFade delay={0.35} inView>
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{/* Assets */}
 					<BalanceSection
 						title="Assets"
 						icon={Building2}
@@ -445,7 +279,6 @@ export default function BalanceSheetPage() {
 						colorClass="text-emerald-600"
 					/>
 
-					{/* Liabilities & Equity */}
 					<div className="space-y-6">
 						<BalanceSection
 							title="Liabilities"
@@ -455,35 +288,7 @@ export default function BalanceSheetPage() {
 							totalLabel="Total Liabilities"
 							colorClass="text-red-600"
 						/>
-
-						{/* Equity (simpler section) */}
-						<div className="bg-card border border-border rounded-lg overflow-hidden">
-							<div className="p-4 border-b border-border flex items-center gap-3 text-primary">
-								<Wallet className="w-5 h-5" />
-								<h3 className="font-medium text-foreground">Equity</h3>
-							</div>
-							<div className="divide-y divide-border">
-								{equityItems.map((item, idx) => (
-									<div
-										key={idx}
-										className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
-									>
-										<span className="text-sm">{item.name}</span>
-										<span className="text-sm font-medium tabular-nums">
-											{formatCents(item.amount * 100)}
-										</span>
-									</div>
-								))}
-							</div>
-							<div className="p-4 bg-muted/30 border-t border-border">
-								<div className="flex items-center justify-between">
-									<span className="text-sm font-semibold">Total Equity</span>
-									<span className="text-lg font-bold text-primary tabular-nums">
-										{formatCents(totalEquity * 100)}
-									</span>
-								</div>
-							</div>
-						</div>
+						<EquitySection items={equityItems} totalEquity={totalEquity} />
 					</div>
 				</div>
 			</BlurFade>

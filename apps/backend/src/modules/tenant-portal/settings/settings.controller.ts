@@ -119,7 +119,7 @@ export class TenantSettingsController {
 		const { data, error } = await this.supabase
 			.getUserClient(token)
 			.from('notification_settings')
-			.select('*')
+			.select('id, user_id, email, sms, push, in_app, maintenance, leases, general, version, created_at, updated_at')
 			.eq('user_id', req.user.id)
 			.maybeSingle()
 

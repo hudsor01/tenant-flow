@@ -150,8 +150,9 @@ describe('TenantQueryService', () => {
 
 		it('findAllWithLeaseInfo delegates to TenantListService', async () => {
 			const mockTenantsWithLease = [{ ...mockTenant, lease: null }]
+			const mockResponse = { data: mockTenantsWithLease, count: 1 }
 			mockListService.findAllWithLeaseInfo.mockResolvedValue(
-				mockTenantsWithLease as TenantLeaseListResponse
+				mockResponse as TenantLeaseListResponse
 			)
 
 			const result = await service.findAllWithLeaseInfo(mockUserId)
@@ -160,7 +161,7 @@ describe('TenantQueryService', () => {
 				mockUserId,
 				{}
 			)
-			expect(result).toEqual(mockTenantsWithLease)
+			expect(result).toEqual(mockResponse)
 		})
 	})
 

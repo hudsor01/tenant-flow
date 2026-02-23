@@ -39,7 +39,8 @@ import {
 	ApiTags
 } from '@nestjs/swagger'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
-import type { ListFilters, LeaseHistoryItem } from './tenant-query.service'
+import type { ListFilters } from './tenant-list.service'
+import type { LeaseHistoryItem } from './tenant-relation.service'
 import { TenantQueryService } from './tenant-query.service'
 import { TenantCrudService } from './tenant-crud.service'
 import { TenantBulkOperationsService } from './tenant-bulk-operations.service'
@@ -47,6 +48,8 @@ import { TenantNotificationPreferencesService } from './tenant-notification-pref
 import { CreateTenantDto } from './dto/create-tenant.dto'
 import { UpdateTenantDto } from './dto/update-tenant.dto'
 import { UpdateNotificationPreferencesDto } from './dto/notification-preferences.dto'
+import { BulkDeleteTenantsDto } from './dto/bulk-delete-tenants.dto'
+import { BulkUpdateTenantsDto } from './dto/bulk-update-tenants.dto'
 
 @ApiTags('Tenants')
 @ApiBearerAuth('supabase-auth')
@@ -103,7 +106,7 @@ export class TenantsController {
 		if (limit !== undefined) filters.limit = limit
 		if (offset !== undefined) filters.offset = offset
 
-		const data = propertyId
+		const result = propertyId
 			? await this.queryService.findByProperty(
 					user_id,
 					propertyId,
@@ -114,9 +117,10 @@ export class TenantsController {
 					filters as Omit<ListFilters, 'status'>
 				)
 
+		// Use count from service for accurate pagination totals
 		return {
-			data,
-			total: data.length
+			data: result.data,
+			total: result.count
 		}
 	}
 
@@ -250,6 +254,46 @@ export class TenantsController {
 		return tenant
 	}
 
+	// ========================================
+	// Bulk Operations (MUST come before :id routes to prevent shadowing)
+	// ========================================
+
+	@ApiOperation({ summary: 'Bulk update tenants', description: 'Update multiple tenants at once (max 100)' })
+	@ApiBody({ description: 'Array of tenant updates', schema: { type: 'object', properties: { updates: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, data: { type: 'object' } } } } } } })
+	@ApiResponse({ status: 200, description: 'Tenants updated successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Post('bulk-update')
+	async bulkUpdate(
+		@Body() body: BulkUpdateTenantsDto,
+		@Req() req: AuthenticatedRequest
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user_id = req.user.id
+		return this.bulkOperationsService.bulkUpdate(user_id, body.updates, token)
+	}
+
+	@ApiOperation({ summary: 'Bulk delete tenants', description: 'Delete multiple tenants at once (max 100)' })
+	@ApiBody({ description: 'Array of tenant IDs to delete', schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } } } })
+	@ApiResponse({ status: 200, description: 'Tenants deleted successfully' })
+	@ApiResponse({ status: 400, description: 'Validation error' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Delete('bulk-delete')
+	async bulkDelete(
+		@Body() body: BulkDeleteTenantsDto,
+		@Req() req: AuthenticatedRequest
+	) {
+		const token = req.headers.authorization?.replace('Bearer ', '')
+		if (!token) {
+			throw new UnauthorizedException('Authorization token required')
+		}
+		const user_id = req.user.id
+		return this.bulkOperationsService.bulkDelete(user_id, body.ids, token)
+	}
+
 	@ApiOperation({ summary: 'Hard delete tenant', description: 'Permanently delete a tenant and all associated data' })
 	@ApiParam({ name: 'id', type: String, description: 'Tenant UUID' })
 	@ApiResponse({ status: 200, description: 'Tenant permanently deleted' })
@@ -285,74 +329,6 @@ export class TenantsController {
 		}
 		const user_id = req.user.id
 		await this.crudService.softDelete(user_id, id, token)
-	}
-
-	// ========================================
-	// Bulk Operations
-	// ========================================
-
-	@ApiOperation({ summary: 'Bulk update tenants', description: 'Update multiple tenants at once (max 100)' })
-	@ApiBody({ description: 'Array of tenant updates', schema: { type: 'object', properties: { updates: { type: 'array', items: { type: 'object', properties: { id: { type: 'string' }, data: { type: 'object' } } } } } } })
-	@ApiResponse({ status: 200, description: 'Tenants updated successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
-	@ApiResponse({ status: 401, description: 'Unauthorized' })
-	@Post('bulk-update')
-	async bulkUpdate(
-		@Body() body: { updates: Array<{ id: string; data: UpdateTenantDto }> },
-		@Req() req: AuthenticatedRequest
-	) {
-		const token = req.headers.authorization?.replace('Bearer ', '')
-		if (!token) {
-			throw new UnauthorizedException('Authorization token required')
-		}
-		if (!body.updates || !Array.isArray(body.updates)) {
-			throw new BadRequestException('updates array is required')
-		}
-
-		if (body.updates.length === 0) {
-			throw new BadRequestException('updates array cannot be empty')
-		}
-
-		if (body.updates.length > 100) {
-			throw new BadRequestException(
-				'Cannot update more than 100 tenants at once'
-			)
-		}
-
-		const user_id = req.user.id
-		return this.bulkOperationsService.bulkUpdate(user_id, body.updates, token)
-	}
-
-	@ApiOperation({ summary: 'Bulk delete tenants', description: 'Delete multiple tenants at once (max 100)' })
-	@ApiBody({ description: 'Array of tenant IDs to delete', schema: { type: 'object', properties: { ids: { type: 'array', items: { type: 'string' } } } } })
-	@ApiResponse({ status: 200, description: 'Tenants deleted successfully' })
-	@ApiResponse({ status: 400, description: 'Validation error' })
-	@ApiResponse({ status: 401, description: 'Unauthorized' })
-	@Delete('bulk-delete')
-	async bulkDelete(
-		@Body() body: { ids: string[] },
-		@Req() req: AuthenticatedRequest
-	) {
-		const token = req.headers.authorization?.replace('Bearer ', '')
-		if (!token) {
-			throw new UnauthorizedException('Authorization token required')
-		}
-		if (!body.ids || !Array.isArray(body.ids)) {
-			throw new BadRequestException('ids array is required')
-		}
-
-		if (body.ids.length === 0) {
-			throw new BadRequestException('ids array cannot be empty')
-		}
-
-		if (body.ids.length > 100) {
-			throw new BadRequestException(
-				'Cannot delete more than 100 tenants at once'
-			)
-		}
-
-		const user_id = req.user.id
-		return this.bulkOperationsService.bulkDelete(user_id, body.ids, token)
 	}
 
 	// ========================================

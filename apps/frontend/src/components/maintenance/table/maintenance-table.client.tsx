@@ -26,23 +26,16 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useOptimistic, useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { apiRequest } from '#lib/api-request'
 import { useDataTable } from '#hooks/use-data-table'
 
 const logger = createLogger({ component: 'MaintenanceTableClient' })
 
-// Extended type with optional relations for display
-type MaintenanceRequestWithRelations = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-}
-
 interface MaintenanceTableClientProps {
-	columns: ColumnDef<MaintenanceRequestWithRelations>[]
-	initialRequests: MaintenanceRequestWithRelations[]
+	columns: ColumnDef<MaintenanceDisplayRequest>[]
+	initialRequests: MaintenanceDisplayRequest[]
 }
 
 export function MaintenanceTableClient({
@@ -79,7 +72,7 @@ export function MaintenanceTableClient({
 	}
 
 	// Add delete action column
-	const columnsWithActions: ColumnDef<MaintenanceRequestWithRelations>[] = [
+	const columnsWithActions: ColumnDef<MaintenanceDisplayRequest>[] = [
 		...columns,
 		{
 			id: 'actions',

@@ -176,7 +176,7 @@ export class NotificationService {
 			const { count, error } = await this.supabaseService
 				.getAdminClient()
 				.from('notifications')
-				.select('*', { count: 'exact', head: true })
+				.select('id', { count: 'exact', head: true })
 				.eq('user_id', user_id)
 				.eq('is_read', false)
 

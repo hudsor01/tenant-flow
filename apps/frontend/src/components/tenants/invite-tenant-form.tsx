@@ -1,34 +1,19 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { Field, FieldError, FieldLabel } from '#components/ui/field'
-import {
-	InputGroup,
-	InputGroupAddon,
-	InputGroupInput
-} from '#components/ui/input-group'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, Unit } from '@repo/shared/types/core'
-import {
-	inviteTenantSchema,
-	type InviteTenantRequest
-} from '@repo/shared/validation/tenants'
+import type { InviteTenantRequest } from '@repo/shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { Building2, Home, Mail, Phone, User } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import type { ChangeEvent } from 'react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { apiRequest } from '#lib/api-request'
+import { InviteTenantInfoFields } from './invite-tenant-info-fields'
+import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
 const logger = createLogger({ component: 'InviteTenantForm' })
 
@@ -90,7 +75,6 @@ export function InviteTenantForm({
 		},
 		onSubmit: async ({ value }) => {
 			try {
-				// Build payload - only include leaseData if property is selected
 				const payload: InviteTenantRequest = {
 					tenantData: {
 						email: value.email,
@@ -100,7 +84,6 @@ export function InviteTenantForm({
 					}
 				}
 
-				// Only add leaseData if property is selected
 				if (value.property_id) {
 					payload.leaseData = {
 						property_id: value.property_id,
@@ -118,9 +101,7 @@ export function InviteTenantForm({
 					description: `${value.first_name} ${value.last_name} will receive an email to access their tenant portal.`
 				})
 
-				// Call onSuccess callback if provided
 				onSuccess?.()
-
 				router.push('/tenants')
 				router.refresh()
 			} catch (error) {
@@ -154,228 +135,21 @@ export function InviteTenantForm({
 		}
 	}, [availableUnits, form])
 
-	const handleCancel = () => {
-		router.back()
-	}
-
 	return (
 		<div className="space-y-6">
-			{/* Tenant Information */}
-			<div className="space-y-4">
-				<div className="flex items-center gap-2 typography-large">
-					<User className="size-5" />
-					Tenant Information
-				</div>
+			<InviteTenantInfoFields form={form} />
 
-				<div className="grid grid-cols-2 gap-4">
-					<form.Field
-						name="first_name"
-						validators={{
-							onChange: inviteTenantSchema.shape.first_name
-						}}
-					>
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="first_name">First Name</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<User className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="first_name"
-										value={field.state.value}
-										onChange={(e: ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-										placeholder="John"
-									/>
-								</InputGroup>
-								<FieldError errors={field.state.meta.errors} />
-							</Field>
-						)}
-					</form.Field>
-
-					<form.Field
-						name="last_name"
-						validators={{
-							onChange: inviteTenantSchema.shape.last_name
-						}}
-					>
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="last_name">Last Name</FieldLabel>
-								<InputGroup>
-									<InputGroupAddon align="inline-start">
-										<User className="size-4" />
-									</InputGroupAddon>
-									<InputGroupInput
-										id="last_name"
-										value={field.state.value}
-										onChange={(e: ChangeEvent<HTMLInputElement>) =>
-											field.handleChange(e.target.value)
-										}
-										onBlur={field.handleBlur}
-										placeholder="Smith"
-									/>
-								</InputGroup>
-								<FieldError errors={field.state.meta.errors} />
-							</Field>
-						)}
-					</form.Field>
-				</div>
-
-				<form.Field
-					name="email"
-					validators={{
-						onChange: inviteTenantSchema.shape.email
-					}}
-				>
-					{field => (
-						<Field>
-							<FieldLabel htmlFor="email">Email Address</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<Mail className="size-4" />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="email"
-									type="email"
-									value={field.state.value}
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-									placeholder="john.smith@example.com"
-								/>
-							</InputGroup>
-							<p className="text-muted">
-								Tenant will receive an invitation to access their portal
-							</p>
-							<FieldError errors={field.state.meta.errors} />
-						</Field>
-					)}
-				</form.Field>
-
-				<form.Field name="phone">
-					{field => (
-						<Field>
-							<FieldLabel htmlFor="phone">Phone Number (Optional)</FieldLabel>
-							<InputGroup>
-								<InputGroupAddon align="inline-start">
-									<Phone className="size-4" />
-								</InputGroupAddon>
-								<InputGroupInput
-									id="phone"
-									type="tel"
-									value={field.state.value}
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										field.handleChange(e.target.value)
-									}
-									onBlur={field.handleBlur}
-									placeholder="(555) 123-4567"
-								/>
-							</InputGroup>
-							<FieldError errors={field.state.meta.errors} />
-						</Field>
-					)}
-				</form.Field>
-			</div>
-
-			{/* Property Assignment - Optional */}
-			{properties.length > 0 && (
-				<div className="space-y-4">
-					<div className="flex items-center gap-2 typography-large">
-						<Building2 className="size-5" />
-						Property Assignment (Optional)
-					</div>
-					<p className="text-muted text-sm">
-						Assign tenant to a property now, or skip and assign later when creating a lease.
-					</p>
-
-					<form.Field name="property_id">
-						{field => (
-							<Field>
-								<FieldLabel htmlFor="property_id">Property</FieldLabel>
-								<Select
-									value={field.state.value}
-									onValueChange={value => {
-										field.handleChange(value)
-										setSelectedPropertyId(value)
-										// Reset unit selection when property changes
-										form.setFieldValue('unit_id', '')
-									}}
-								>
-									<SelectTrigger id="property_id">
-										<SelectValue placeholder="Select a property (optional)" />
-									</SelectTrigger>
-									<SelectContent>
-										{properties.map(property => (
-											<SelectItem key={property.id} value={property.id}>
-												<div className="flex items-center gap-2">
-													<Home className="size-4" />
-													{property.name}
-												</div>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-								<FieldError errors={field.state.meta.errors} />
-							</Field>
-						)}
-					</form.Field>
-
-					{/* Only show unit field if property has multiple units */}
-					{selectedPropertyId && availableUnits.length > 1 && (
-						<form.Field name="unit_id">
-							{field => (
-								<Field>
-									<FieldLabel htmlFor="unit_id">Unit (Optional)</FieldLabel>
-									<Select
-										value={field.state.value}
-										onValueChange={field.handleChange}
-									>
-										<SelectTrigger id="unit_id">
-											<SelectValue placeholder="Select a unit" />
-										</SelectTrigger>
-										<SelectContent>
-											{availableUnits.map(unit => (
-												<SelectItem key={unit.id} value={unit.id}>
-													{unit.unit_number}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FieldError errors={field.state.meta.errors} />
-								</Field>
-							)}
-						</form.Field>
-					)}
-
-					{/* Show message for single-family homes */}
-					{selectedPropertyId && availableUnits.length <= 1 && (
-						<p className="text-muted text-sm">
-							{availableUnits.length === 0
-								? 'This property has no units configured.'
-								: 'Single-unit property - unit will be assigned automatically.'}
-						</p>
-					)}
-				</div>
-			)}
-
-			{/* No properties message */}
-			{properties.length === 0 && (
-				<div className="rounded-lg border border-dashed p-4 text-center text-muted">
-					<Building2 className="size-8 mx-auto mb-2 opacity-50" />
-					<p className="text-sm">
-						No properties configured yet. You can still invite tenants and assign them to properties later.
-					</p>
-				</div>
-			)}
+			<InviteTenantPropertyFields
+				form={form}
+				properties={properties}
+				availableUnits={availableUnits}
+				selectedPropertyId={selectedPropertyId}
+				onPropertyChange={setSelectedPropertyId}
+			/>
 
 			{/* Form Actions */}
 			<div className="flex justify-end gap-4 pt-4 border-t">
-				<Button type="button" variant="outline" onClick={handleCancel}>
+				<Button type="button" variant="outline" onClick={() => router.back()}>
 					Cancel
 				</Button>
 				<form.Subscribe

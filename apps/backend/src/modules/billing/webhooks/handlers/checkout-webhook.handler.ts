@@ -40,7 +40,7 @@ export class CheckoutWebhookHandler {
 			const { data: checkoutSession, error: sessionError } = (await stripeClient
 				.schema('stripe')
 				.from('checkout_sessions')
-				.select('*')
+				.select('id, customer, subscription, payment_intent, payment_status, status, metadata, customer_email, client_reference_id, mode, created, updated_at, last_synced_at')
 				.eq('id', session.id)
 				.maybeSingle()) as {
 				data: StripeCheckoutSession | null

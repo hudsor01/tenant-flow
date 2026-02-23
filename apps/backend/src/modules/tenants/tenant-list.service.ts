@@ -190,23 +190,25 @@ export class TenantListService {
 	/**
 	 * Get all tenants with active lease details
 	 * Delegates to TenantLeaseQueryService for the complex nested queries
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findAllWithLeaseInfo(
 		userId: string,
 		filters: Omit<ListFilters, 'status'> = {}
-	): Promise<TenantWithLeaseInfo[]> {
+	): Promise<{ data: TenantWithLeaseInfo[]; count: number }> {
 		return this.leaseQueryService.findAllWithLeaseInfo(userId, filters)
 	}
 
 	/**
 	 * Get all tenants invited to a specific property
 	 * Delegates to TenantLeaseQueryService
+	 * Returns { data, count } for accurate pagination totals
 	 */
 	async findByProperty(
 		userId: string,
 		propertyId: string,
 		filters: ListFilters = {}
-	): Promise<Tenant[]> {
+	): Promise<{ data: Tenant[]; count: number }> {
 		return this.leaseQueryService.findByProperty(userId, propertyId, filters)
 	}
 }

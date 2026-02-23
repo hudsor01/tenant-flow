@@ -133,12 +133,56 @@ begin
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_owner_a_user_id;
 
+  -- Create auth.users record for Owner A (allows signInWithPassword in RLS tests)
+  -- Password: TestPassword123! (matches E2E_OWNER_B_PASSWORD)
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password,
+    email_confirmed_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    v_owner_a_user_id,
+    'authenticated', 'authenticated',
+    'owner-a@test.com',
+    crypt('TestPassword123!', gen_salt('bf')),
+    now(), now(),
+    '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
+    '{"full_name":"Alice Anderson"}'::jsonb,
+    now(), now(), '', '', '', ''
+  )
+  on conflict (id) do update
+  set encrypted_password = crypt('TestPassword123!', gen_salt('bf')),
+      email = excluded.email,
+      updated_at = now();
+
   -- Create Tenant A user
   insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
   values ('tenant-a@test.com', 'John Doe', 'John', 'Doe', 'TENANT', '+15552001001', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_tenant_a_user_id;
+
+  -- Create auth.users record for Tenant A (allows signInWithPassword in RLS tests)
+  -- Password: TestPassword123! (matches E2E_TENANT_A_PASSWORD)
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password,
+    email_confirmed_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    v_tenant_a_user_id,
+    'authenticated', 'authenticated',
+    'tenant-a@test.com',
+    crypt('TestPassword123!', gen_salt('bf')),
+    now(), now(),
+    '{"provider":"email","providers":["email"],"user_type":"TENANT"}'::jsonb,
+    '{"full_name":"John Doe"}'::jsonb,
+    now(), now(), '', '', '', ''
+  )
+  on conflict (id) do update
+  set encrypted_password = crypt('TestPassword123!', gen_salt('bf')),
+      email = excluded.email,
+      updated_at = now();
 
   -- Create Tenant A profile
   insert into public.tenants (user_id, identity_verified, emergency_contact_name, emergency_contact_phone)
@@ -257,12 +301,56 @@ begin
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_owner_b_user_id;
 
+  -- Create auth.users record for Owner B (allows signInWithPassword in RLS tests)
+  -- Password: TestPassword123! (matches E2E_OWNER_B_PASSWORD)
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password,
+    email_confirmed_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    v_owner_b_user_id,
+    'authenticated', 'authenticated',
+    'owner-b@test.com',
+    crypt('TestPassword123!', gen_salt('bf')),
+    now(), now(),
+    '{"provider":"email","providers":["email"],"user_type":"OWNER"}'::jsonb,
+    '{"full_name":"Bob Baker"}'::jsonb,
+    now(), now(), '', '', '', ''
+  )
+  on conflict (id) do update
+  set encrypted_password = crypt('TestPassword123!', gen_salt('bf')),
+      email = excluded.email,
+      updated_at = now();
+
   -- Create Tenant B user
   insert into public.users (email, full_name, first_name, last_name, user_type, phone, status)
   values ('tenant-b@test.com', 'Sarah Smith', 'Sarah', 'Smith', 'TENANT', '+15552002002', 'active')
   on conflict (email) do update
   set full_name = excluded.full_name, updated_at = now()
   returning id into v_tenant_b_user_id;
+
+  -- Create auth.users record for Tenant B (allows signInWithPassword in RLS tests)
+  -- Password: TestPassword123! (matches E2E_TENANT_B_PASSWORD)
+  insert into auth.users (
+    instance_id, id, aud, role, email, encrypted_password,
+    email_confirmed_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data,
+    created_at, updated_at, confirmation_token, email_change, email_change_token_new, recovery_token
+  ) values (
+    '00000000-0000-0000-0000-000000000000',
+    v_tenant_b_user_id,
+    'authenticated', 'authenticated',
+    'tenant-b@test.com',
+    crypt('TestPassword123!', gen_salt('bf')),
+    now(), now(),
+    '{"provider":"email","providers":["email"],"user_type":"TENANT"}'::jsonb,
+    '{"full_name":"Sarah Smith"}'::jsonb,
+    now(), now(), '', '', '', ''
+  )
+  on conflict (id) do update
+  set encrypted_password = crypt('TestPassword123!', gen_salt('bf')),
+      email = excluded.email,
+      updated_at = now();
 
   -- Create Tenant B profile
   insert into public.tenants (user_id, identity_verified, emergency_contact_name, emergency_contact_phone)

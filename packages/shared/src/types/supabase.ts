@@ -204,6 +204,194 @@ export type Database = {
           },
         ]
       }
+      inspection_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          id: string
+          inspection_id: string
+          inspection_room_id: string
+          mime_type: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          id?: string
+          inspection_id: string
+          inspection_room_id: string
+          mime_type?: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          id?: string
+          inspection_id?: string
+          inspection_room_id?: string
+          mime_type?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_photos_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_photos_inspection_room_id_fkey"
+            columns: ["inspection_room_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_photos_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_rooms: {
+        Row: {
+          condition_rating: string
+          created_at: string
+          id: string
+          inspection_id: string
+          notes: string | null
+          room_name: string
+          room_type: string
+          updated_at: string
+        }
+        Insert: {
+          condition_rating?: string
+          created_at?: string
+          id?: string
+          inspection_id: string
+          notes?: string | null
+          room_name: string
+          room_type?: string
+          updated_at?: string
+        }
+        Update: {
+          condition_rating?: string
+          created_at?: string
+          id?: string
+          inspection_id?: string
+          notes?: string | null
+          room_name?: string
+          room_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_rooms_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: false
+            referencedRelation: "inspections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspections: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          inspection_type: string
+          lease_id: string
+          overall_condition: string | null
+          owner_notes: string | null
+          owner_user_id: string
+          property_id: string
+          scheduled_date: string | null
+          status: string
+          tenant_notes: string | null
+          tenant_reviewed_at: string | null
+          tenant_signature_data: string | null
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          inspection_type?: string
+          lease_id: string
+          overall_condition?: string | null
+          owner_notes?: string | null
+          owner_user_id: string
+          property_id: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_notes?: string | null
+          tenant_reviewed_at?: string | null
+          tenant_signature_data?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          inspection_type?: string
+          lease_id?: string
+          overall_condition?: string | null
+          owner_notes?: string | null
+          owner_user_id?: string
+          property_id?: string
+          scheduled_date?: string | null
+          status?: string
+          tenant_notes?: string | null
+          tenant_reviewed_at?: string | null
+          tenant_signature_data?: string | null
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspections_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspections_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lease_tenants: {
         Row: {
           created_at: string | null
@@ -839,6 +1027,8 @@ export type Database = {
       }
       properties: {
         Row: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
           address_line1: string
           address_line2: string | null
           city: string
@@ -858,6 +1048,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
           address_line1: string
           address_line2?: string | null
           city: string
@@ -877,6 +1069,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          acquisition_cost?: number | null
+          acquisition_date?: string | null
           address_line1?: string
           address_line2?: string | null
           city?: string

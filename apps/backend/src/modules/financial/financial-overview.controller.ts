@@ -34,13 +34,7 @@ import { JwtAuthGuard } from '../../shared/auth/jwt-auth.guard'
 import { SupabaseService } from '../../database/supabase.service'
 import { FinancialService } from './financial.service'
 import { AppLogger } from '../../logger/app-logger.service'
-
-interface CreateExpenseDto {
-	amount: number
-	expense_date: string
-	maintenance_request_id: string
-	vendor_name?: string
-}
+import { CreateExpenseDto } from './dto/create-expense.dto'
 
 /**
  * Financial Overview endpoints at /financials/*

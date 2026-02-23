@@ -51,8 +51,9 @@ export const tenantInputSchema = z.object({
 
 	stripe_customer_id: z
 		.string()
-		.min(1, 'Stripe customer ID is required')
 		.max(255, 'Stripe customer ID is too long')
+		.nullable()
+		.optional()
 })
 
 // Full tenant schema (includes server-generated fields)
@@ -86,17 +87,8 @@ export const tenantQuerySchema = z.object({
 })
 
 // Tenant creation schema
-// Note: Only omit fields that exist in tenantInputSchema (Zod 4 throws for non-existent keys)
+// stripe_customer_id is optional/nullable to match DB (set by Stripe integration, not user)
 export const tenantCreateSchema = tenantInputSchema
-	.omit({
-		stripe_customer_id: true
-	})
-	.extend({
-		stripe_customer_id: z
-			.string()
-			.min(1, 'Stripe customer ID is required')
-			.max(255, 'Stripe customer ID is too long')
-	})
 
 // Aliases for request schemas (used in DTOs)
 export const createTenantRequestSchema = tenantCreateSchema
@@ -247,7 +239,7 @@ export const inviteToSignLeaseSchema = z.object({
 export const tenantInvitationSchema = z.object({
 	id: uuidSchema,
 	email: z.email(),
-	property_owner_id: uuidSchema,
+	owner_user_id: uuidSchema,
 	unit_id: uuidSchema.nullable().optional(),
 	property_id: uuidSchema.nullable().optional(),
 	lease_id: uuidSchema.nullable().optional(),
@@ -268,3 +260,26 @@ export type InviteTenant = z.infer<typeof inviteTenantSchema>
 export type InviteTenantRequest = z.infer<typeof inviteTenantRequestSchema>
 export type InviteToSignLease = z.infer<typeof inviteToSignLeaseSchema>
 export type TenantInvitation = z.infer<typeof tenantInvitationSchema>
+
+// Bulk operation schemas
+export const bulkDeleteTenantsSchema = z.object({
+	ids: z.array(uuidSchema).min(1, 'At least one tenant ID is required').max(100, 'Cannot delete more than 100 tenants at once')
+})
+
+export const bulkUpdateTenantsSchema = z.object({
+	updates: z.array(
+		z.object({
+			id: uuidSchema,
+			data: tenantUpdateSchema
+		})
+	).min(1, 'At least one update is required').max(100, 'Cannot update more than 100 tenants at once')
+})
+
+// Tenant activation schema (used by public invitation acceptance endpoints)
+export const activateTenantSchema = z.object({
+	authuser_id: uuidSchema
+})
+
+export type BulkDeleteTenants = z.infer<typeof bulkDeleteTenantsSchema>
+export type BulkUpdateTenants = z.infer<typeof bulkUpdateTenantsSchema>
+export type ActivateTenant = z.infer<typeof activateTenantSchema>

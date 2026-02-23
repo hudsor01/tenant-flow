@@ -70,7 +70,7 @@ export class LeaseQueryService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build single query with both data and count (NO manual user_id/unit_id filtering needed)
-			let queryBuilder = client.from('leases').select('*', { count: 'exact' })
+			let queryBuilder = client.from('leases').select('id, unit_id, owner_user_id, primary_tenant_id, start_date, end_date, rent_amount, rent_currency, security_deposit, payment_day, lease_status, stripe_subscription_id, stripe_connected_account_id, stripe_subscription_status, auto_pay_enabled, grace_period_days, late_fee_amount, late_fee_days, pets_allowed, pet_deposit, pet_rent, max_occupants, utilities_included, tenant_responsible_utilities, property_rules, governing_state, property_built_before_1978, lead_paint_disclosure_acknowledged, owner_signed_at, owner_signature_ip, owner_signature_method, tenant_signed_at, tenant_signature_ip, tenant_signature_method, sent_for_signature_at, docuseal_submission_id, subscription_failure_reason, subscription_last_attempt_at, subscription_retry_count, created_at, updated_at', { count: 'exact' })
 
 			// Apply filters
 			if (query.property_id) {
@@ -173,7 +173,7 @@ export class LeaseQueryService {
 
 		const { data, error } = await client
 			.from('leases')
-			.select('*')
+			.select('id, unit_id, owner_user_id, primary_tenant_id, start_date, end_date, rent_amount, rent_currency, security_deposit, payment_day, lease_status, stripe_subscription_id, stripe_connected_account_id, stripe_subscription_status, auto_pay_enabled, grace_period_days, late_fee_amount, late_fee_days, pets_allowed, pet_deposit, pet_rent, max_occupants, utilities_included, tenant_responsible_utilities, property_rules, governing_state, property_built_before_1978, lead_paint_disclosure_acknowledged, owner_signed_at, owner_signature_ip, owner_signature_method, tenant_signed_at, tenant_signature_ip, tenant_signature_method, sent_for_signature_at, docuseal_submission_id, subscription_failure_reason, subscription_last_attempt_at, subscription_retry_count, created_at, updated_at')
 			.eq('id', lease_id)
 			.single()
 
@@ -236,7 +236,7 @@ export class LeaseQueryService {
 		// Get landlord user (owner_user_id references auth.users.id)
 		const { data: landlord, error: landlordError } = await client
 			.from('users')
-			.select('*')
+			.select('id, email, full_name, first_name, last_name, phone, avatar_url, status, user_type, stripe_customer_id, onboarding_status, onboarding_completed_at, identity_verification_status, identity_verification_session_id, identity_verified_at, identity_verification_data, identity_verification_error, created_at, updated_at')
 			.eq('id', lease.owner_user_id)
 			.single()
 
