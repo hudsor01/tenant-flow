@@ -9,7 +9,6 @@ import {
 	useDataDensity
 } from '#providers/preferences-provider'
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import type { ThemeMode } from '@repo/shared/types/domain'
@@ -80,10 +79,13 @@ export function GeneralSettings() {
 	// Update profile mutation
 	const updateProfile = useMutation({
 		mutationFn: async (updates: { phone?: string; email?: string }) => {
-			return apiRequest('/api/v1/users/profile', {
-				method: 'PATCH',
-				body: JSON.stringify(updates)
-			})
+			const { data: { user } } = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+			const { error } = await supabase
+				.from('users')
+				.update(updates)
+				.eq('id', user.id)
+			if (error) throw error
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['user-profile'] })

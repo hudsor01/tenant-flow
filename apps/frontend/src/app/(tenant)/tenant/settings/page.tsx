@@ -21,7 +21,7 @@ import {
 import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-method.client'
 import { usePaymentMethods } from '#hooks/api/use-payments'
 import { useTenantSettings } from '#hooks/api/use-tenant-portal'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -61,10 +61,14 @@ export default function SettingsPage() {
 
 		startTransition(async () => {
 			try {
-				await apiRequest<void>('/api/v1/users/profile', {
-					method: 'PATCH',
-					body: JSON.stringify(profileData)
-				})
+				const supabase = createClient()
+				const { data: { user } } = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { error } = await supabase
+					.from('users')
+					.update(profileData)
+					.eq('id', user.id)
+				if (error) throw error
 
 				handleMutationSuccess('Update profile')
 				refetchTenantSettings()

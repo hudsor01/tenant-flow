@@ -25,7 +25,7 @@ import { Skeleton } from '#components/ui/skeleton'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { formatCents } from '@repo/shared/lib/format'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import {
 	tenantPortalQueries,
 	type PayRentRequest
@@ -56,21 +56,36 @@ export default function PayRentPage() {
 	} = useQuery(tenantPortalQueries.amountDue())
 
 	// Fetch payment methods
+	// TODO(phase-57): Tenant payment methods require Edge Function implementation
 	const { data: methodsData, isLoading: isLoadingMethods } = useQuery({
 		queryKey: ['payment-methods'],
-		queryFn: async () =>
-			apiRequest<{ methods: PaymentMethod[] }>(
-				'/api/v1/stripe/tenant-payment-methods'
+		queryFn: async (): Promise<{ methods: PaymentMethod[] }> => {
+			const supabase = createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			if (!session?.access_token) return { methods: [] }
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(
+				`${supabaseUrl}/functions/v1/stripe-connect`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${session.access_token}`,
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify({ action: 'list-payment-methods' })
+				}
 			)
+			if (!response.ok) return { methods: [] }
+			return response.json() as Promise<{ methods: PaymentMethod[] }>
+		}
 	})
 
 	// Pay rent mutation
+	// TODO(phase-57): Rent payment requires Edge Function implementation
 	const payMutation = useMutation({
-		mutationFn: async (data: PayRentRequest) =>
-			apiRequest<{ success: boolean }>('/api/v1/tenant-portal/payments/pay-rent', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
+		mutationFn: async (_data: PayRentRequest) => {
+			throw new Error('Rent payment requires Edge Function implementation')
+		},
 		onSuccess: () => {
 			toast.success('Payment submitted successfully!')
 			queryClient.invalidateQueries({ queryKey: tenantPortalQueries.all() })
