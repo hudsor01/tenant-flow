@@ -3,11 +3,11 @@
 ## Current Position
 
 Phase: 57-cleanup-deletion-remove-nestjs
-Plan: 02 (complete)
-Status: PHASE 57 IN PROGRESS — Plan 02 complete: monorepo config cleanup done (NestJS catalog entries removed from pnpm-workspace.yaml, backend scripts removed from root package.json, Dockerfile/railway.toml/docker-compose.yml/.dockerignore deleted); next: Plan 03 (delete NestJS modules from apps/backend/)
-Last activity: 2026-02-22 — Phase 57-02 complete: monorepo config cleanup — removed @nestjs/* catalog entries from pnpm-workspace.yaml (inlined @nestjs/swagger version in apps/backend/package.json), deleted Dockerfile/railway.toml/docker-compose.yml/.dockerignore, removed 11 backend-specific scripts from root package.json, updated test/validate scripts to remove integration test references
+Plan: 03 (complete)
+Status: PHASE 57 IN PROGRESS — Plan 03 complete: all frontend NestJS adapter code deleted (api-request.ts, api-config.ts, postgrest-flag.ts, reports-client.ts, sse-connection.ts, sse-provider.tsx); zero apiRequest/API_BASE_URL references in any frontend file; all hooks use PostgREST directly; auth files migrated to ANON_KEY; env.ts cleaned; all tests pass; next: Plan 04 (delete apps/backend/ directory entirely)
+Last activity: 2026-02-22 — Phase 57-03 complete: deleted 6 frontend infrastructure/SSE files, removed all isPostgrestEnabled dual-path branches from 9 hook files, migrated maintenance/settings/billing/stripe/page-level callsites to Supabase PostgREST or Edge Functions, fixed all test files to use Supabase client mocks instead of NestJS fetch mocks
 
-Progress: ▓▓▓▓▓▓▓▓▓░ ~87% (Phases 51–56 complete; Phase 57-01, 57-02 done)
+Progress: ▓▓▓▓▓▓▓▓▓░ ~90% (Phases 51–56 complete; Phase 57-01, 57-02, 57-03 done)
 
 ## Active Milestone
 
@@ -32,7 +32,9 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Phase 56: Scheduled Jobs & DB Webhooks — pg_cron + n8n (SCHED-01, SCHED-02, SCHED-03, WF-01, WF-02)
 - Phase 57-01: CI/CD Cleanup — delete deploy-backend.yml, frontend-only tests, rls-security-tests targets integration-tests (CLEAN-03, CLEAN-04) ✓ DONE
 - Phase 57-02: Monorepo config cleanup — ✓ DONE
-- Phase 57-03 through 57-05: NestJS module deletion, backend deletion, final verification — PENDING
+- Phase 57-03: Delete frontend NestJS adapter code (api-request.ts, api-config.ts, postgrest-flag.ts, SSE providers; migrate all callsites) — ✓ DONE
+- Phase 57-04: Delete apps/backend/ directory entirely — PENDING
+- Phase 57-05: Final verification and cleanup — PENDING
 
 ## Accumulated Context
 
@@ -275,5 +277,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 57-02 — Monorepo config cleanup: removed @nestjs/* catalog entries from pnpm-workspace.yaml (inlined @nestjs/swagger version in apps/backend/package.json to avoid breaking pnpm install before backend deletion), deleted Dockerfile/railway.toml/docker-compose.yml/.dockerignore from repo root, removed 11 backend-specific scripts (dev:backend, build:backend, test:unit:backend, test:unit:watch, test:unit:coverage, test:integration, test:integration:watch, stripe:migrate, docker:test, docker:up, docker:down) from root package.json, updated test/test:all/test:ci/validate/validate:clean scripts to remove NestJS and integration test references.
+Completed: Phase 57-03 — Frontend NestJS adapter code deletion: deleted api-request.ts, api-config.ts, postgrest-flag.ts, reports-client.ts, sse-connection.ts, sse-provider.tsx; removed all isPostgrestEnabled dual-path branches from 9 hook files; migrated maintenance/settings/billing/stripe/onboarding/documents callsites to Supabase PostgREST and Edge Functions; migrated auth files from PUBLISHABLE_KEY to ANON_KEY; cleaned env.ts; rewrote 10+ test files to use Supabase client mocks instead of NestJS fetch mocks; typecheck passes (zero errors); all 78 test files pass (961 tests).
 Resume file: None

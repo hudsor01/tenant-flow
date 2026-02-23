@@ -12,7 +12,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
 import { createClient } from '#lib/supabase/client'
-import { getApiBaseUrl } from '#lib/api-config'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 
 import { LoadingState } from '#components/auth/accept-invite/loading-state'
@@ -46,10 +45,14 @@ function AcceptInviteContent() {
 			}
 
 			try {
-				const apiUrl = getApiBaseUrl()
+				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 				const response = await fetch(
-					`${apiUrl}/api/v1/tenants/invitation/${code}/validate`,
-					{ method: 'GET' }
+					`${supabaseUrl}/functions/v1/tenant-invitation-validate`,
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ code })
+					}
 				)
 
 				if (!response.ok) {
@@ -84,14 +87,14 @@ function AcceptInviteContent() {
 	}, [code])
 
 	async function acceptInvitation(authUserId: string) {
-		const apiUrl = getApiBaseUrl()
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 		const supabase = createClient()
 		const response = await fetch(
-			`${apiUrl}/api/v1/tenants/invitation/${code}/accept`,
+			`${supabaseUrl}/functions/v1/tenant-invitation-accept`,
 			{
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ authuser_id: authUserId })
+				body: JSON.stringify({ code, authuser_id: authUserId })
 			}
 		)
 
