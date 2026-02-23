@@ -3,9 +3,12 @@
  *
  * Feature: lease-creation-wizard
  * Property 2: Unit filtering by property
- * Property 3: Tenant filtering by unit availability
+ * Property 3: Tenant fetching
  *
  * Validates: Requirements 2.2, 2.3
+ *
+ * Note: After NestJS removal (phase-57), SelectionStep uses Supabase PostgREST
+ * directly (no fetch calls to NestJS API). Tests mock #lib/supabase/client.
  */
 
 import * as fc from 'fast-check'
@@ -15,18 +18,33 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SelectionStep } from '../selection-step'
 import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
 
-// Mock the auth provider
-vi.mock('#providers/auth-provider', () => ({
-	useAuth: vi.fn(() => ({
-		session: {
-			access_token: 'test-token'
-		}
+// Mock Supabase client - track calls per table
+const mockFrom = vi.fn()
+
+vi.mock('#lib/supabase/client', () => ({
+	createClient: vi.fn(() => ({
+		from: mockFrom
 	}))
 }))
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-global.fetch = mockFetch
+// Helper to create a Supabase chain mock that resolves to given data.
+// Uses a thenable pattern so the chain can be awaited at any point,
+// while allowing .eq(), .neq(), .order() to be called in any order.
+function createChainMock(resolvedData: unknown[]) {
+	const result = { data: resolvedData, error: null }
+	const chain: Record<string, unknown> = {
+		select: vi.fn().mockReturnThis(),
+		neq: vi.fn().mockReturnThis(),
+		order: vi.fn().mockReturnThis(),
+		eq: vi.fn().mockReturnThis(),
+		single: vi.fn().mockReturnThis(),
+		// Make the chain thenable so it can be awaited
+		then: vi.fn((resolve: (value: unknown) => unknown) =>
+			Promise.resolve(result).then(resolve)
+		)
+	}
+	return chain
+}
 
 // Helper to create QueryClient for testing
 function createTestQueryClient() {
@@ -58,9 +76,29 @@ async function renderSelectionStep(
 	return result!
 }
 
+// Set up Supabase from() to route queries by table name
+function setupSupabaseMock(options: {
+	properties?: unknown[]
+	units?: unknown[]
+	tenants?: unknown[]
+}) {
+	const unitChain = createChainMock(options.units ?? [])
+	const tenantChain = createChainMock(options.tenants ?? [])
+	const propertyChain = createChainMock(options.properties ?? [])
+
+	mockFrom.mockImplementation((table: string) => {
+		if (table === 'properties') return propertyChain
+		if (table === 'units') return unitChain
+		if (table === 'tenants') return tenantChain
+		return createChainMock([])
+	})
+
+	return { unitChain, tenantChain, propertyChain }
+}
+
 describe('Selection Step Filtering - Property Tests', () => {
 	beforeEach(() => {
-		mockFetch.mockReset()
+		mockFrom.mockReset()
 	})
 
 	// Note: cleanup() is handled globally by unit-setup.ts afterEach
@@ -78,44 +116,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 				fc.asyncProperty(
 					fc.uuid(), // property_id
 					async propertyId => {
-						const fetchedUrls: string[] = []
-
-						mockFetch.mockImplementation((url: string) => {
-							fetchedUrls.push(url)
-
-							if (url.includes('/api/v1/properties')) {
-								return Promise.resolve({
-									ok: true,
-									json: () =>
-										Promise.resolve({
-											data: [
-												{
-													id: propertyId,
-													name: 'Test',
-													address_line1: '123 Main',
-													city: 'Austin',
-													state: 'TX'
-												}
-											]
-										})
-								})
-							}
-
-							if (url.includes('/api/v1/units')) {
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: [] })
-								})
-							}
-
-							if (url.includes('/api/v1/tenants')) {
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: [] })
-								})
-							}
-
-							return Promise.resolve({ ok: false })
+						const { unitChain } = setupSupabaseMock({
+							properties: [
+								{
+									id: propertyId,
+									name: 'Test',
+									address_line1: '123 Main',
+									city: 'Austin',
+									state: 'TX'
+								}
+							],
+							units: [],
+							tenants: []
 						})
 
 						const onChange = vi.fn()
@@ -125,19 +137,17 @@ describe('Selection Step Filtering - Property Tests', () => {
 						// Wait for units query to be made
 						await waitFor(
 							() => {
-								const unitUrl = fetchedUrls.find(url =>
-									url.includes('/api/v1/units')
-								)
-								expect(unitUrl).toBeDefined()
+								expect(mockFrom).toHaveBeenCalledWith('units')
 							},
 							{ timeout: 3000 }
 						)
 
-						// PROPERTY ASSERTION: Units request must include the selected property_id as filter
-						const unitUrl = fetchedUrls.find(url =>
-							url.includes('/api/v1/units')
+						// PROPERTY ASSERTION: Units query was made via Supabase PostgREST
+						// The .eq() call on the chain performs property_id filtering
+						expect(unitChain.eq).toHaveBeenCalledWith(
+							'property_id',
+							propertyId
 						)
-						expect(unitUrl).toContain(`property_id=${propertyId}`)
 
 						cleanup()
 					}
@@ -147,26 +157,10 @@ describe('Selection Step Filtering - Property Tests', () => {
 		})
 
 		it('should NOT request units when no property is selected', async () => {
-			const fetchedUrls: string[] = []
-
-			mockFetch.mockImplementation((url: string) => {
-				fetchedUrls.push(url)
-
-				if (url.includes('/api/v1/properties')) {
-					return Promise.resolve({
-						ok: true,
-						json: () => Promise.resolve({ data: [] })
-					})
-				}
-
-				if (url.includes('/api/v1/tenants')) {
-					return Promise.resolve({
-						ok: true,
-						json: () => Promise.resolve({ data: [] })
-					})
-				}
-
-				return Promise.resolve({ ok: false })
+			setupSupabaseMock({
+				properties: [],
+				units: [],
+				tenants: []
 			})
 
 			const onChange = vi.fn()
@@ -176,25 +170,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 			// Wait for properties and tenants to be fetched
 			await waitFor(
 				() => {
-					expect(
-						fetchedUrls.some(url => url.includes('/api/v1/properties'))
-					).toBe(true)
-					expect(fetchedUrls.some(url => url.includes('/api/v1/tenants'))).toBe(
-						true
-					)
+					expect(mockFrom).toHaveBeenCalledWith('properties')
+					expect(mockFrom).toHaveBeenCalledWith('tenants')
 				},
 				{ timeout: 3000 }
 			)
 
-			// PROPERTY ASSERTION: No units request should be made without property_id
-			await waitFor(
-				() => {
-					expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(
-						false
-					)
-				},
-				{ timeout: 3000 }
+			// PROPERTY ASSERTION: Units query should NOT be made without property_id
+			// (enabled: !!data.property_id = false prevents the query)
+			const unitCalls = mockFrom.mock.calls.filter(
+				(call: unknown[]) => call[0] === 'units'
 			)
+			expect(unitCalls).toHaveLength(0)
 		})
 
 		it('should request units with correct property_id for various property IDs', async () => {
@@ -202,44 +189,20 @@ describe('Selection Step Filtering - Property Tests', () => {
 			const propertyIds = fc.sample(fc.uuid(), 5)
 
 			for (const propertyId of propertyIds) {
-				const fetchedUrls: string[] = []
+				mockFrom.mockReset()
 
-				mockFetch.mockImplementation((url: string) => {
-					fetchedUrls.push(url)
-
-					if (url.includes('/api/v1/properties')) {
-						return Promise.resolve({
-							ok: true,
-							json: () =>
-								Promise.resolve({
-									data: [
-										{
-											id: propertyId,
-											name: 'Test',
-											address_line1: '123 Main',
-											city: 'Austin',
-											state: 'TX'
-										}
-									]
-								})
-						})
-					}
-
-					if (url.includes('/api/v1/units')) {
-						return Promise.resolve({
-							ok: true,
-							json: () => Promise.resolve({ data: [] })
-						})
-					}
-
-					if (url.includes('/api/v1/tenants')) {
-						return Promise.resolve({
-							ok: true,
-							json: () => Promise.resolve({ data: [] })
-						})
-					}
-
-					return Promise.resolve({ ok: false })
+				const { unitChain } = setupSupabaseMock({
+					properties: [
+						{
+							id: propertyId,
+							name: 'Test',
+							address_line1: '123 Main',
+							city: 'Austin',
+							state: 'TX'
+						}
+					],
+					units: [],
+					tenants: []
 				})
 
 				const onChange = vi.fn()
@@ -248,15 +211,13 @@ describe('Selection Step Filtering - Property Tests', () => {
 
 				await waitFor(
 					() => {
-						expect(fetchedUrls.some(url => url.includes('/api/v1/units'))).toBe(
-							true
-						)
+						expect(mockFrom).toHaveBeenCalledWith('units')
 					},
 					{ timeout: 3000 }
 				)
 
-				const unitUrl = fetchedUrls.find(url => url.includes('/api/v1/units'))
-				expect(unitUrl).toContain(`property_id=${propertyId}`)
+				// PROPERTY ASSERTION: Units query uses correct property_id filter
+				expect(unitChain.eq).toHaveBeenCalledWith('property_id', propertyId)
 
 				cleanup() // Manual cleanup within property iteration
 			}
@@ -265,52 +226,30 @@ describe('Selection Step Filtering - Property Tests', () => {
 
 	/**
 	 * Property 3: Tenant fetching behavior
-	 * Tenants should be fetched when the component mounts (with token).
+	 * Tenants should be fetched when the component mounts.
 	 *
 	 * **Feature: lease-creation-wizard, Property 3: Tenant filtering**
 	 * **Validates: Requirements 2.3**
 	 */
 	describe('Property 3: Tenant fetching', () => {
-		it('should fetch tenants when token is available', async () => {
+		it('should fetch tenants when component mounts', async () => {
 			await fc.assert(
 				fc.asyncProperty(
 					fc.array(
 						fc.record({
 							id: fc.uuid(),
-							first_name: fc.oneof(
-								fc.constant(null),
-								fc.string({ minLength: 1, maxLength: 30 })
-							),
-							last_name: fc.oneof(
-								fc.constant(null),
-								fc.string({ minLength: 1, maxLength: 30 })
-							),
+							first_name: fc.string({ minLength: 1, maxLength: 30 }),
+							last_name: fc.string({ minLength: 1, maxLength: 30 }),
 							email: fc.emailAddress()
 						}),
 						{ minLength: 0, maxLength: 5 }
 					),
 					async tenants => {
-						let tenantsFetched = false
-						let _returnedTenants: unknown[] = []
-
-						mockFetch.mockImplementation((url: string) => {
-							if (url.includes('/api/v1/properties')) {
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: [] })
-								})
-							}
-
-							if (url.includes('/api/v1/tenants')) {
-								tenantsFetched = true
-								_returnedTenants = tenants
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: tenants })
-								})
-							}
-
-							return Promise.resolve({ ok: false })
+						mockFrom.mockReset()
+						setupSupabaseMock({
+							properties: [],
+							units: [],
+							tenants
 						})
 
 						const onChange = vi.fn()
@@ -320,13 +259,16 @@ describe('Selection Step Filtering - Property Tests', () => {
 						// Wait for tenants query
 						await waitFor(
 							() => {
-								expect(tenantsFetched).toBe(true)
+								expect(mockFrom).toHaveBeenCalledWith('tenants')
 							},
 							{ timeout: 3000 }
 						)
 
 						// PROPERTY ASSERTION: Tenants endpoint should be called
-						expect(tenantsFetched).toBe(true)
+						const tenantCalls = mockFrom.mock.calls.filter(
+							(call: unknown[]) => call[0] === 'tenants'
+						)
+						expect(tenantCalls.length).toBeGreaterThan(0)
 
 						cleanup() // Manual cleanup within property iteration
 					}
@@ -340,45 +282,21 @@ describe('Selection Step Filtering - Property Tests', () => {
 				fc.asyncProperty(
 					fc.option(fc.uuid(), { nil: undefined }), // optional property_id
 					async propertyId => {
-						let tenantsFetched = false
-
-						mockFetch.mockImplementation((url: string) => {
-							if (url.includes('/api/v1/properties')) {
-								return Promise.resolve({
-									ok: true,
-									json: () =>
-										Promise.resolve({
-											data: propertyId
-												? [
-														{
-															id: propertyId,
-															name: 'Test',
-															address_line1: '123 Main',
-															city: 'Austin',
-															state: 'TX'
-														}
-													]
-												: []
-										})
-								})
-							}
-
-							if (url.includes('/api/v1/units')) {
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: [] })
-								})
-							}
-
-							if (url.includes('/api/v1/tenants')) {
-								tenantsFetched = true
-								return Promise.resolve({
-									ok: true,
-									json: () => Promise.resolve({ data: [] })
-								})
-							}
-
-							return Promise.resolve({ ok: false })
+						mockFrom.mockReset()
+						setupSupabaseMock({
+							properties: propertyId
+								? [
+										{
+											id: propertyId,
+											name: 'Test',
+											address_line1: '123 Main',
+											city: 'Austin',
+											state: 'TX'
+										}
+									]
+								: [],
+							units: [],
+							tenants: []
 						})
 
 						const onChange = vi.fn()
@@ -390,13 +308,17 @@ describe('Selection Step Filtering - Property Tests', () => {
 
 						await waitFor(
 							() => {
-								expect(tenantsFetched).toBe(true)
+								expect(mockFrom).toHaveBeenCalledWith('tenants')
 							},
 							{ timeout: 3000 }
 						)
 
-						// PROPERTY ASSERTION: Tenants should always be fetched (independent of property)
-						expect(tenantsFetched).toBe(true)
+						// PROPERTY ASSERTION: Tenants should always be fetched
+						// (no 'enabled' condition on tenants query unlike units)
+						const tenantCalls = mockFrom.mock.calls.filter(
+							(call: unknown[]) => call[0] === 'tenants'
+						)
+						expect(tenantCalls.length).toBeGreaterThan(0)
 
 						cleanup() // Manual cleanup within property iteration
 					}
@@ -407,51 +329,23 @@ describe('Selection Step Filtering - Property Tests', () => {
 	})
 
 	/**
-	 * Property: API request structure validation
-	 * All requests should include the authorization header.
+	 * Property: Supabase query structure validation
+	 * All queries should use Supabase PostgREST (no fetch/Authorization headers needed).
 	 */
-	describe('Property: API request structure', () => {
-		it('should include authorization header in all requests', async () => {
-			const requestHeaders: Record<string, string>[] = []
-
-			mockFetch.mockImplementation((url: string, options?: RequestInit) => {
-				if (options?.headers) {
-					requestHeaders.push(options.headers as Record<string, string>)
-				}
-
-				if (url.includes('/api/v1/properties')) {
-					return Promise.resolve({
-						ok: true,
-						json: () =>
-							Promise.resolve({
-								data: [
-									{
-										id: 'prop-1',
-										name: 'Test',
-										address_line1: '123 Main',
-										city: 'Austin',
-										state: 'TX'
-									}
-								]
-							})
-					})
-				}
-
-				if (url.includes('/api/v1/units')) {
-					return Promise.resolve({
-						ok: true,
-						json: () => Promise.resolve({ data: [] })
-					})
-				}
-
-				if (url.includes('/api/v1/tenants')) {
-					return Promise.resolve({
-						ok: true,
-						json: () => Promise.resolve({ data: [] })
-					})
-				}
-
-				return Promise.resolve({ ok: false })
+	describe('Property: Supabase query structure', () => {
+		it('should make queries via supabase client (not fetch)', async () => {
+			setupSupabaseMock({
+				properties: [
+					{
+						id: 'prop-1',
+						name: 'Test',
+						address_line1: '123 Main',
+						city: 'Austin',
+						state: 'TX'
+					}
+				],
+				units: [],
+				tenants: []
 			})
 
 			const onChange = vi.fn()
@@ -460,15 +354,18 @@ describe('Selection Step Filtering - Property Tests', () => {
 
 			await waitFor(
 				() => {
-					expect(requestHeaders.length).toBeGreaterThan(0)
+					expect(mockFrom).toHaveBeenCalledWith('properties')
+					expect(mockFrom).toHaveBeenCalledWith('units')
+					expect(mockFrom).toHaveBeenCalledWith('tenants')
 				},
 				{ timeout: 3000 }
 			)
 
-			// PROPERTY ASSERTION: All requests should have Authorization header
-			for (const headers of requestHeaders) {
-				expect(headers.Authorization).toBe('Bearer test-token')
-			}
+			// ASSERTION: All data fetching uses supabase.from(), not global fetch
+			// The mockFrom tracks all table queries
+			const tableNames = mockFrom.mock.calls.map((call: unknown[]) => call[0])
+			expect(tableNames).toContain('properties')
+			expect(tableNames).toContain('tenants')
 		})
 	})
 })

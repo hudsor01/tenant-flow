@@ -23,11 +23,17 @@ vi.mock('next/navigation', () => ({
 	})
 }))
 
-// Mock the API request - must reject to avoid "Query data cannot be undefined" warning
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn().mockRejectedValue(
-		new Error('Not found')
-	)
+// Mock Supabase client used by maintenance details
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		from: vi.fn(() => ({
+			select: vi.fn().mockReturnThis(),
+			insert: vi.fn().mockReturnThis(),
+			update: vi.fn().mockReturnThis(),
+			delete: vi.fn().mockReturnThis(),
+			eq: vi.fn().mockResolvedValue({ data: [], error: null })
+		}))
+	})
 }))
 
 // Mock toast

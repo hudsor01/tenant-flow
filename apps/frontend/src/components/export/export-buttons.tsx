@@ -8,7 +8,6 @@ import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
 import { createClient } from '#lib/supabase/client'
-import { API_BASE_URL } from '#lib/api-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 type ExportFormat = 'excel' | 'pdf' | 'csv'
@@ -58,13 +57,15 @@ async function requestExport(
 		throw new Error('You need to be signed in to export analytics data.')
 	}
 
-	const response = await fetch(`${API_BASE_URL}/reports/export/${format}`, {
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+	const response = await fetch(`${supabaseUrl}/functions/v1/export-report`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			Authorization: `Bearer ${token}`
 		},
 		body: JSON.stringify({
+			format,
 			filename,
 			payload,
 			sheetName: 'Financial Analytics',

@@ -23,7 +23,7 @@ import { MaintenanceSortableCard } from '../cards/maintenance-sortable-card'
 import type { MaintenanceStatus } from '@repo/shared/types/core'
 import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })
 
@@ -211,14 +211,16 @@ export function MaintenanceKanban({ initialRequests }: MaintenanceKanbanProps) {
 		// API update
 		startTransition(async () => {
 			try {
-				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, {
-					method: 'PUT',
-					body: JSON.stringify({
-						status: newStatus,
-						completed_at:
-							newStatus === 'completed' ? new Date().toISOString() : undefined
-					})
-				})
+				const supabase = createClient()
+				const updatePayload: Record<string, unknown> = { status: newStatus }
+				if (newStatus === 'completed') {
+					updatePayload.completed_at = new Date().toISOString()
+				}
+				const { error } = await supabase
+					.from('maintenance_requests')
+					.update(updatePayload)
+					.eq('id', requestId)
+				if (error) throw error
 
 				toast.success(
 					`Request moved to ${COLUMNS.find(c => c.id === newStatus)?.title}`

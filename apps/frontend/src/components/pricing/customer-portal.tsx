@@ -4,7 +4,6 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { useUser } from '#hooks/api/use-auth'
-import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#lib/supabase/client'
 import { cn } from '#lib/utils'
 import { useMutation } from '@tanstack/react-query'
@@ -69,14 +68,16 @@ export function CustomerPortalButton({
 
 			toast.loading('Opening customer portal...', { id: 'portal' })
 
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const response = await fetch(
-				`${API_BASE_URL}/stripe/create-billing-portal-session`,
+				`${baseUrl}/functions/v1/stripe-billing-portal`,
 				{
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 						Authorization: `Bearer ${session.access_token}`
-					}
+					},
+					body: JSON.stringify({})
 				}
 			)
 

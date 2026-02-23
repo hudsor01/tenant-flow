@@ -21,7 +21,7 @@ import {
 	CollapsibleContent,
 	CollapsibleTrigger
 } from '#components/ui/collapsible'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { cn } from '#lib/utils'
 
 interface ConnectRequirementsProps {
@@ -126,12 +126,20 @@ export function ConnectRequirements({
 	const handleOpenDashboard = async () => {
 		setIsOpeningDashboard(true)
 		try {
-			const response = await apiRequest<{
-				success: boolean
-				data: { url: string }
-			}>('/api/v1/stripe/connect/dashboard-link', { method: 'POST' })
-			if (response.data?.url) {
-				window.open(response.data.url, '_blank')
+			const supabase = createClient()
+			const { data: sessionData } = await supabase.auth.getSession()
+			const token = sessionData.session?.access_token
+			if (!token) throw new Error('Not authenticated')
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(`${baseUrl}/functions/v1/stripe-connect`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+				body: JSON.stringify({ action: 'dashboard-link' })
+			})
+			if (!response.ok) throw new Error('Failed to get dashboard link')
+			const data = await response.json() as { url?: string }
+			if (data.url) {
+				window.open(data.url, '_blank')
 			}
 		} catch {
 			toast.error('Failed to open Stripe Dashboard. Please try again.')

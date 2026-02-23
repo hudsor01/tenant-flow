@@ -6,19 +6,12 @@ import { Button } from '#components/ui/button'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { toast } from 'sonner'
 
 interface OnboardingStepTenantProps {
 	onNext: () => void
 	onSkip: () => void
-}
-
-interface InviteTenantResponse {
-	success: boolean
-	tenant_id: string
-	message: string
 }
 
 /**
@@ -35,13 +28,13 @@ export function OnboardingStepTenant({
 	const [lastName, setLastName] = useState('')
 
 	const inviteTenant = useMutation({
-		mutationFn: (data: {
+		mutationFn: async (_data: {
 			tenantData: { email: string; first_name: string; last_name: string }
-		}) =>
-			apiRequest<InviteTenantResponse>('/api/v1/tenants/invite', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
+		}) => {
+			// TODO(phase-57): Tenant invitation requires Edge Function implementation
+			// The NestJS backend /api/v1/tenants/invite has been removed.
+			throw new Error('Tenant invitation email requires Edge Function implementation')
+		},
 		onSuccess: () => {
 			toast.success('Invitation sent', {
 				description: `${firstName.trim()} ${lastName.trim()} will receive an email invitation`

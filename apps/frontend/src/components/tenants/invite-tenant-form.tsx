@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
-import { apiRequest } from '#lib/api-request'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
@@ -21,12 +20,6 @@ interface InviteTenantFormProps {
 	properties: Property[]
 	units: Unit[]
 	onSuccess?: () => void
-}
-
-interface InviteTenantResponse {
-	success: boolean
-	tenant_id: string
-	message: string
 }
 
 /**
@@ -54,11 +47,11 @@ export function InviteTenantForm({
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
 
 	const inviteTenantMutation = useMutation({
-		mutationFn: async (payload: InviteTenantRequest) =>
-			apiRequest<InviteTenantResponse>('/api/v1/tenants/invite', {
-				method: 'POST',
-				body: JSON.stringify(payload)
-			}),
+		mutationFn: async (_payload: InviteTenantRequest) => {
+			// TODO(phase-57): Tenant invitation email requires Edge Function implementation
+			// The NestJS backend /api/v1/tenants/invite has been removed.
+			throw new Error('Tenant invitation email requires Edge Function implementation')
+		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
 		}
@@ -91,10 +84,10 @@ export function InviteTenantForm({
 					}
 				}
 
-				const response = await inviteTenantMutation.mutateAsync(payload)
+				await inviteTenantMutation.mutateAsync(payload)
 
 				logger.info('Tenant invitation sent', {
-					tenant_id: response.tenant_id
+					email: value.email
 				})
 
 				toast.success('Invitation Sent', {

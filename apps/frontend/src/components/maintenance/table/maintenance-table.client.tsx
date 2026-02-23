@@ -28,7 +28,7 @@ import { toast } from 'sonner'
 import type { ColumnDef } from '@tanstack/react-table'
 import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { useDataTable } from '#hooks/use-data-table'
 
 const logger = createLogger({ component: 'MaintenanceTableClient' })
@@ -54,9 +54,12 @@ export function MaintenanceTableClient({
 		startTransition(async () => {
 			removeOptimistic(requestId)
 			try {
-				await apiRequest<void>(`/api/v1/maintenance/${requestId}`, {
-					method: 'DELETE'
-				})
+				const supabase = createClient()
+				const { error } = await supabase
+					.from('maintenance_requests')
+					.delete()
+					.eq('id', requestId)
+				if (error) throw error
 				toast.success(`Request "${requestTitle}" deleted`)
 			} catch (error) {
 				logger.error('Delete failed', {
