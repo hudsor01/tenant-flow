@@ -9,10 +9,10 @@
 	"devDependencies": {
 		"@types/jest": "catalog:default",
 		"@types/node": "catalog:default",
-		"dotenv": "17.2.3",
+		"dotenv": "17.3.1",
 		"jest": "catalog:default",
 		"ts-jest": "29.4.6",
-		"typescript": "catalog:default"
+		"typescript": "^5.9.3"
 	},
 	"dependencies": {
 		"@supabase/supabase-js": "catalog:default"
