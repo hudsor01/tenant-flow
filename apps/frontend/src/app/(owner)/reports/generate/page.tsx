@@ -16,13 +16,35 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import {
-	reportsClient,
-	type ReportFormat,
-	type ReportType
-} from '#lib/api/reports-client'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { useAuth } from '#providers/auth-provider'
+
+// Report types (previously from #lib/api/reports-client, deleted in phase-57)
+type ReportFormat = 'pdf' | 'excel'
+type ReportType =
+	| 'executive-monthly'
+	| 'financial-performance'
+	| 'property-portfolio'
+	| 'lease-portfolio'
+	| 'maintenance-operations'
+	| 'tax-preparation'
+
+// TODO(phase-57): Report generation requires StirlingPDF Edge Function implementation
+const reportsClient = {
+	generateReport: async (
+		_reportType: ReportType,
+		_params: {
+			user_id: string
+			start_date: string
+			end_date: string
+			format: ReportFormat
+		}
+	): Promise<void> => {
+		throw new Error(
+			'Report generation requires StirlingPDF Edge Function implementation'
+		)
+	}
+}
 import { format, subMonths } from 'date-fns'
 import {
 	Building2,
