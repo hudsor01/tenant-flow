@@ -45,7 +45,7 @@ interface CreateCheckoutSessionResponse {
 }
 
 /**
- * Create a Stripe checkout session via NestJS backend
+ * Create a Stripe checkout session via Supabase Edge Function
  */
 export async function createCheckoutSession(
 	request: CreateCheckoutSessionRequest

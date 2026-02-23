@@ -5,8 +5,6 @@
 	"globalEnv": [
 		"CI",
 		"NODE_ENV",
-		"DATABASE_URL",
-		"JWT_SECRET",
 		"NEXT_PUBLIC_*",
 		"SENTRY_*",
 		"SKIP_ENV_VALIDATION",
