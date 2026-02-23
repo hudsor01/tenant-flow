@@ -2,18 +2,18 @@
 
 ## Current Position
 
-Phase: 57-cleanup-deletion-remove-nestjs
-Plan: 04 (complete)
-Status: PHASE 57 IN PROGRESS — Plan 04 complete: apps/backend/ deleted (567 files, 121,427 lines); git ls-files apps/backend/ returns 0; pnpm install, build:shared, typecheck, lint, and 961 frontend unit tests all pass; pre-commit hook passed without --no-verify; next: Plan 05 (final verification and cleanup)
-Last activity: 2026-02-22 — Phase 57-04 complete: deleted apps/backend/ (567 tracked files, 121,427 lines via git rm -r); pnpm install clean; typecheck/lint/tests all pass; pre-commit hook passed
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v8.0 Post-Migration Hardening
+Last activity: 2026-02-23 — Milestone v8.0 started; v7.0 Backend Elimination complete (Phase 57 done); full-review produced 108 findings across security, code quality, testing, documentation, CI/CD, performance
 
-Progress: ▓▓▓▓▓▓▓▓▓░ ~90% (Phases 51–56 complete; Phase 57-01, 57-02, 57-03 done)
+Progress: ░░░░░░░░░░ 0% (Phases 58+ pending)
 
 ## Active Milestone
 
-**v7.0 Backend Elimination: NestJS → Supabase Direct — IN PROGRESS**
+**v8.0 Post-Migration Hardening — IN PROGRESS (defining requirements)**
 
-Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase PostgREST direct. Move Stripe webhooks, PDF, DocuSeal to Edge Functions. Add pg_cron for scheduled jobs. Wire n8n via DB Webhooks. Delete apps/backend/.
+Systematically resolve all 108 findings from the v7.0 post-merge code review. Phases 58+. Starting phase: 58.
 
 ### Completed This Milestone
 

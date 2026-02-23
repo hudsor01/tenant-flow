@@ -370,3 +370,6 @@ tenants-page
 
 # Example env file (not needed in repo)
 .env.example
+
+# GSD planning docs (commit_docs: false)
+.planning/

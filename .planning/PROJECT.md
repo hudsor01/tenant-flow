@@ -29,16 +29,42 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ Per-endpoint rate limiting + auth hardening — v6.0
 - ✓ 2229+ unit tests across financial, billing, maintenance, tenant services — v6.0
 
-### Active (v7.0 — Backend Elimination)
+### Validated (v7.0 — Backend Elimination — Shipped 2026-02-22)
 
-- [ ] Frontend API calls use Supabase PostgREST directly (no NestJS proxy)
-- [ ] Stripe webhooks handled by Supabase Edge Functions
-- [ ] PDF generation via StirlingPDF Edge Function bridge
-- [ ] DocuSeal API calls via Edge Functions
-- [ ] Scheduled jobs (late fees, reminders) via pg_cron
-- [ ] Background workflows triggered via Supabase DB Webhooks → n8n
-- [ ] apps/backend/ directory deleted
-- [ ] Railway subscription cancelled (infra cost eliminated)
+- ✓ Frontend API calls use Supabase PostgREST directly (no NestJS proxy) — v7.0
+- ✓ Stripe webhooks handled by Supabase Edge Functions — v7.0
+- ✓ PDF generation via StirlingPDF Edge Function bridge — v7.0
+- ✓ DocuSeal API calls via Edge Functions — v7.0
+- ✓ Scheduled jobs (late fees, reminders) via pg_cron — v7.0
+- ✓ Background workflows triggered via Supabase DB Webhooks → n8n — v7.0
+- ✓ apps/backend/ directory deleted — v7.0
+- ✓ Railway subscription cancelled (infra cost eliminated) — v7.0
+
+### Active (v8.0 — Post-Migration Hardening)
+
+- [ ] DocuSeal webhook fail-closed (fail-open = unauthenticated lease manipulation)
+- [ ] DocuSeal Edge Function IDOR — ownership check before lease actions
+- [ ] generate-pdf Edge Function IDOR — ownership check before PDF generation
+- [ ] Stripe webhook notification_type CHECK constraint mismatch fixed
+- [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)
+- [ ] undefined owner_user_id guard in all 6 insert mutations
+- [ ] PostgREST filter injection sanitized in all 4 search inputs
+- [ ] RLS write-path isolation tests (INSERT/UPDATE/DELETE) for all 7 domains
+- [ ] CLAUDE.md stripped of NestJS content + RLS-only security model documented
+- [ ] PostgREST/Edge Function patterns added to CLAUDE.md
+- [ ] All 31 TODO stubs tracked; 4 runtime-throw stubs fixed
+- [ ] Double-toast error handling fixed across 20+ hooks
+- [ ] Duplicate payment method hooks consolidated
+- [ ] Edge Function dependencies pinned (deno.json import map)
+- [ ] CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
+- [ ] 86 getUser() calls replaced with cached auth pattern
+- [ ] Batch tenant operations refactored to single queries/RPCs
+- [ ] 3-step serial tenant portal lookup eliminated
+- [ ] CSV export unbounded query protected with limit
+- [ ] E2E stale test intercepts rewritten for PostgREST architecture
+- [ ] RLS tests run on dedicated integration project, gate PRs
+- [ ] Performance metrics (maintenance stats, missing indexes) addressed
+- [ ] CI/CD pipeline gaps closed (E2E smoke, coverage gates)
 
 ### Out of Scope
 
@@ -103,5 +129,17 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 | DB Webhooks + n8n for workflows | n8n already self-hosted, flexible workflow authoring | — Pending |
 | Delete NestJS entirely | No partial migration — clean break prevents split-brain bugs | — Pending |
 
+## Current Milestone: v8.0 Post-Migration Hardening
+
+**Goal:** Systematically resolve all 108 findings from the v7.0 post-merge code review — closing security vulnerabilities, code quality gaps, test coverage holes, documentation staleness, and CI/CD weaknesses introduced during the NestJS→Supabase architectural migration.
+
+**Target features:**
+- Critical security fixes (DocuSeal fail-open, IDOR, Stripe webhook constraint)
+- RLS write-path isolation test coverage
+- CLAUDE.md NestJS cleanup + new PostgREST/Edge Function patterns
+- Code quality consolidation (duplicate hooks, error handling, auth guards)
+- Performance improvements (auth fan-out, batch N+1, serial lookups)
+- CI/CD hardening (E2E in pipeline, RLS tests on PR, dedicated integration project)
+
 ---
-*Last updated: 2026-02-21 after v6.0 completion — initializing v7.0 Backend Elimination milestone*
+*Last updated: 2026-02-23 after v7.0 completion — initializing v8.0 Post-Migration Hardening milestone*
