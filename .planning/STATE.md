@@ -3,9 +3,9 @@
 ## Current Position
 
 Phase: 57-cleanup-deletion-remove-nestjs
-Plan: 03 (complete)
-Status: PHASE 57 IN PROGRESS — Plan 03 complete: all frontend NestJS adapter code deleted (api-request.ts, api-config.ts, postgrest-flag.ts, reports-client.ts, sse-connection.ts, sse-provider.tsx); zero apiRequest/API_BASE_URL references in any frontend file; all hooks use PostgREST directly; auth files migrated to ANON_KEY; env.ts cleaned; all tests pass; next: Plan 04 (delete apps/backend/ directory entirely)
-Last activity: 2026-02-22 — Phase 57-03 complete: deleted 6 frontend infrastructure/SSE files, removed all isPostgrestEnabled dual-path branches from 9 hook files, migrated maintenance/settings/billing/stripe/page-level callsites to Supabase PostgREST or Edge Functions, fixed all test files to use Supabase client mocks instead of NestJS fetch mocks
+Plan: 04 (complete)
+Status: PHASE 57 IN PROGRESS — Plan 04 complete: apps/backend/ deleted (567 files, 121,427 lines); git ls-files apps/backend/ returns 0; pnpm install, build:shared, typecheck, lint, and 961 frontend unit tests all pass; pre-commit hook passed without --no-verify; next: Plan 05 (final verification and cleanup)
+Last activity: 2026-02-22 — Phase 57-04 complete: deleted apps/backend/ (567 tracked files, 121,427 lines via git rm -r); pnpm install clean; typecheck/lint/tests all pass; pre-commit hook passed
 
 Progress: ▓▓▓▓▓▓▓▓▓░ ~90% (Phases 51–56 complete; Phase 57-01, 57-02, 57-03 done)
 
@@ -33,7 +33,7 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 - Phase 57-01: CI/CD Cleanup — delete deploy-backend.yml, frontend-only tests, rls-security-tests targets integration-tests (CLEAN-03, CLEAN-04) ✓ DONE
 - Phase 57-02: Monorepo config cleanup — ✓ DONE
 - Phase 57-03: Delete frontend NestJS adapter code (api-request.ts, api-config.ts, postgrest-flag.ts, SSE providers; migrate all callsites) — ✓ DONE
-- Phase 57-04: Delete apps/backend/ directory entirely — PENDING
+- Phase 57-04: Delete apps/backend/ directory entirely — DONE
 - Phase 57-05: Final verification and cleanup — PENDING
 
 ## Accumulated Context
@@ -277,5 +277,5 @@ Eliminate NestJS/Railway entirely. Migrate all frontend API calls to Supabase Po
 ## Session Continuity
 
 Last session: 2026-02-22
-Completed: Phase 57-03 — Frontend NestJS adapter code deletion: deleted api-request.ts, api-config.ts, postgrest-flag.ts, reports-client.ts, sse-connection.ts, sse-provider.tsx; removed all isPostgrestEnabled dual-path branches from 9 hook files; migrated maintenance/settings/billing/stripe/onboarding/documents callsites to Supabase PostgREST and Edge Functions; migrated auth files from PUBLISHABLE_KEY to ANON_KEY; cleaned env.ts; rewrote 10+ test files to use Supabase client mocks instead of NestJS fetch mocks; typecheck passes (zero errors); all 78 test files pass (961 tests).
+Completed: Phase 57-04 — Deleted apps/backend/ entirely via git rm -r; 567 tracked files removed, 121,427 lines deleted; pnpm install clean; pnpm build:shared, typecheck, lint all pass; pnpm --filter @repo/frontend test:unit: 78 test files, 961 tests all pass; pre-commit hook passed without --no-verify.
 Resume file: None
