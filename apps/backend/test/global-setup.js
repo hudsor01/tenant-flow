@@ -10,6 +10,15 @@
  */
 
 module.exports = async () => {
+	// Load .env.test.local FIRST so all env vars (including RLS test accounts)
+	// are available before any module-level code in test files evaluates them.
+	// This must happen in globalSetup (not just setupFilesAfterEnv) because
+	// module-level code in imported modules runs during test file loading.
+	const dotenv = require('dotenv')
+	const path = require('path')
+	dotenv.config({ path: path.resolve(__dirname, '../../.env.test.local') })
+	dotenv.config({ path: path.resolve(__dirname, '../.env.test.local') })
+
 	// CRITICAL FIX: Ensure SUPABASE_URL is set for config validation
 	// The config schema expects SUPABASE_URL
 	// Set SUPABASE_URL = NEXT_PUBLIC_SUPABASE_URL if not already set
@@ -44,6 +53,26 @@ module.exports = async () => {
 			console.log(
 				`✓ Global setup: Using fallback secret key for SUPABASE_SERVICE_ROLE_KEY`
 			)
+		}
+	}
+
+	// Set defaults for RLS integration test accounts (local dev only).
+	// These match the accounts created by supabase/seed.sql.
+	// In CI, real credentials should be provided via environment variables.
+	const rlsTestDefaults = {
+		E2E_OWNER_EMAIL: 'test-admin@tenantflow.app',
+		E2E_OWNER_PASSWORD: 'TestPassword123!',
+		E2E_OWNER_B_EMAIL: 'owner-b@test.com',
+		E2E_OWNER_B_PASSWORD: 'TestPassword123!',
+		E2E_TENANT_A_EMAIL: 'tenant-a@test.com',
+		E2E_TENANT_A_PASSWORD: 'TestPassword123!',
+		E2E_TENANT_B_EMAIL: 'tenant-b@test.com',
+		E2E_TENANT_B_PASSWORD: 'TestPassword123!',
+		RUN_RLS_TESTS: 'true'
+	}
+	for (const [key, value] of Object.entries(rlsTestDefaults)) {
+		if (!process.env[key]) {
+			process.env[key] = value
 		}
 	}
 

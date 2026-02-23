@@ -8,7 +8,7 @@ import {
 	useTenantReport
 } from '#hooks/api/use-reports'
 import { apiRequestRaw } from '#lib/api-request'
-import { BarChart3, FileText } from 'lucide-react'
+import { BarChart3, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -102,6 +102,12 @@ export default function ReportsPage() {
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
+					<Link href="/reports/year-end">
+						<Button variant="outline" size="sm">
+							<Calendar className="size-4 mr-2" />
+							Year-End
+						</Button>
+					</Link>
 					<Link href="/reports/analytics">
 						<Button variant="outline" size="sm">
 							<BarChart3 className="size-4 mr-2" />

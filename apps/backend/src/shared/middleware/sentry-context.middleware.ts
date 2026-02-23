@@ -19,23 +19,10 @@
  */
 import type { NestMiddleware } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
-import type { NextFunction, Request, Response } from 'express'
+import type { NextFunction, Response } from 'express'
 import * as Sentry from '@sentry/nestjs'
 import { ClsService } from 'nestjs-cls'
-
-interface AuthenticatedRequest extends Request {
-	user?: {
-		sub?: string
-		user_id?: string
-		email?: string
-		user_metadata?: {
-			tenant_id?: string
-		}
-		app_metadata?: {
-			role?: string
-		}
-	}
-}
+import type { AuthenticatedRequest } from '../types/express-request.types'
 
 @Injectable()
 export class SentryContextMiddleware implements NestMiddleware {
@@ -66,7 +53,7 @@ export class SentryContextMiddleware implements NestMiddleware {
 
 		// Set user context if authenticated
 		if (req.user) {
-			const userId = req.user.sub || req.user.user_id
+			const userId = req.user.id
 			const tenantId = req.user.user_metadata?.tenant_id
 
 			if (userId) {

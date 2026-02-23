@@ -16,10 +16,12 @@ import {
 	Patch,
 	Post,
 	Req,
+	Res,
 	Param,
 	UseInterceptors,
 	UploadedFile
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { FileInterceptor } from '@nestjs/platform-express'
 import {
 	ApiBearerAuth,
@@ -30,16 +32,43 @@ import {
 	ApiResponse,
 	ApiTags
 } from '@nestjs/swagger'
+import { Throttle } from '@nestjs/throttler'
 import { decode, JwtPayload } from 'jsonwebtoken'
 import { SupabaseService } from '../../database/supabase.service'
 import type { AuthenticatedRequest } from '../../shared/types/express-request.types'
 import { SkipSubscriptionCheck } from '../../shared/guards/subscription.guard'
+import { createThrottleDefaults } from '../../config/throttle.config'
+
+// GDPR data export: 1 per hour — prevents bulk data harvesting
+const GDPR_EXPORT_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'GDPR_EXPORT_THROTTLE_TTL',
+	envLimitKey: 'GDPR_EXPORT_THROTTLE_LIMIT',
+	defaultTtl: 3600000,
+	defaultLimit: 1
+})
+
+// Account deletion: 3 per hour — prevent accidental/malicious cascade
+const GDPR_DELETE_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'GDPR_DELETE_THROTTLE_TTL',
+	envLimitKey: 'GDPR_DELETE_THROTTLE_LIMIT',
+	defaultTtl: 3600000,
+	defaultLimit: 3
+})
+
+// Avatar upload: 10 per hour — prevent storage abuse
+const AVATAR_UPLOAD_THROTTLE = createThrottleDefaults({
+	envTtlKey: 'AVATAR_UPLOAD_THROTTLE_TTL',
+	envLimitKey: 'AVATAR_UPLOAD_THROTTLE_LIMIT',
+	defaultTtl: 3600000,
+	defaultLimit: 10
+})
 import { UsersService } from './users.service'
 import { ProfileService } from './profile.service'
 import { UpdateProfileDto } from './dto/update-profile.dto'
 import { UpdateTourProgressDto } from './dto/update-tour-progress.dto'
 import { UpdatePhoneDto } from './dto/update-phone.dto'
 import { UpdateEmergencyContactDto } from './dto/update-emergency-contact.dto'
+import { UpdateOnboardingDto } from './dto/update-onboarding.dto'
 import { AppLogger } from '../../logger/app-logger.service'
 import { UserToursService } from './user-tours.service'
 import { UserSessionsService } from './user-sessions.service'
@@ -56,6 +85,102 @@ export class UsersController {
 		private readonly userSessionsService: UserSessionsService,
 		private readonly logger: AppLogger
 	) {}
+
+	/**
+	 * Export all user data (GDPR/CCPA data portability right)
+	 *
+	 * Returns a JSON file containing all data associated with the authenticated user.
+	 * Rate limited to 1 request per hour per user.
+	 */
+	@ApiOperation({ summary: 'Export user data', description: 'GDPR/CCPA: Download all personal data as JSON' })
+	@ApiResponse({ status: 200, description: 'User data exported successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Get('me/export')
+	@Throttle({ default: GDPR_EXPORT_THROTTLE })
+	@SkipSubscriptionCheck()
+	async exportMyData(
+		@Req() req: AuthenticatedRequest,
+		@Res() res: Response
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.log('User data export requested', { user_id: req.user.id })
+
+		const exportData = await this.usersService.exportUserData(req.user.id)
+		const jsonString = JSON.stringify(exportData, null, 2)
+		const filename = `tenantflow-data-export-${new Date().toISOString().split('T')[0]}.json`
+
+		res.setHeader('Content-Type', 'application/json')
+		res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+		res.send(jsonString)
+	}
+
+	/**
+	 * Update onboarding status for current user
+	 *
+	 * Marks onboarding as started, completed, or skipped.
+	 * Sets onboarding_completed_at when status is 'completed'.
+	 */
+	@ApiOperation({ summary: 'Update onboarding status', description: 'Update onboarding wizard progress for the current user' })
+	@ApiBody({ schema: { type: 'object', properties: { status: { type: 'string', enum: ['started', 'completed', 'skipped'] } }, required: ['status'] } })
+	@ApiResponse({ status: 200, description: 'Onboarding status updated successfully' })
+	@ApiResponse({ status: 400, description: 'Authentication required' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Patch('me/onboarding')
+	@SkipSubscriptionCheck()
+	async updateOnboarding(
+		@Req() req: AuthenticatedRequest,
+		@Body() dto: UpdateOnboardingDto
+	) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.debug('Updating onboarding status', {
+			user_id: req.user.id,
+			status: dto.status
+		})
+
+		await this.usersService.updateOnboarding(req.user.id, dto.status)
+
+		this.logger.log('Onboarding status updated', {
+			user_id: req.user.id,
+			status: dto.status
+		})
+
+		return { success: true, status: dto.status }
+	}
+
+	/**
+	 * Delete user account (GDPR/CCPA right to erasure)
+	 *
+	 * Soft-deletes the user account, deactivates all properties and leases.
+	 * Auth session is immediately revoked.
+	 */
+	@ApiOperation({ summary: 'Delete account', description: 'GDPR/CCPA: Permanently delete account and all associated data' })
+	@ApiResponse({ status: 200, description: 'Account deletion initiated successfully' })
+	@ApiResponse({ status: 401, description: 'Unauthorized' })
+	@Delete('me')
+	@Throttle({ default: GDPR_DELETE_THROTTLE })
+	@SkipSubscriptionCheck()
+	async deleteMyAccount(@Req() req: AuthenticatedRequest) {
+		if (!req.user?.id) {
+			throw new BadRequestException('Authentication required')
+		}
+
+		this.logger.log('Account deletion requested', { user_id: req.user.id })
+
+		await this.usersService.deleteAccount(req.user.id)
+
+		this.logger.log('Account deleted successfully', { user_id: req.user.id })
+
+		return {
+			success: true,
+			message: 'Your account has been deleted. All sessions have been revoked.'
+		}
+	}
 
 	/**
 	 * Get current user with Stripe customer ID
@@ -220,6 +345,7 @@ export class UsersController {
 	@ApiResponse({ status: 400, description: 'Authentication required or invalid file' })
 	@ApiResponse({ status: 401, description: 'Unauthorized' })
 	@Post('avatar')
+	@Throttle({ default: AVATAR_UPLOAD_THROTTLE })
 	@SkipSubscriptionCheck()
 	@UseInterceptors(FileInterceptor('avatar'))
 	async uploadAvatar(

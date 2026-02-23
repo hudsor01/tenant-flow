@@ -2,6 +2,31 @@ import type { PipeTransform } from '@nestjs/common'
 import { Injectable, BadRequestException } from '@nestjs/common'
 
 /**
+ * Explicit MIME type whitelist for image/document uploads.
+ * SVG is intentionally excluded — it can contain XSS payloads.
+ * GIF is excluded from image uploads to avoid animated content abuse.
+ */
+export const ALLOWED_IMAGE_MIME_TYPES = new Set([
+	'image/jpeg',
+	'image/png',
+	'image/webp'
+])
+
+export const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
+	'application/pdf',
+	'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	'application/msword',
+	'text/csv',
+	'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	'application/vnd.ms-excel'
+])
+
+export const ALLOWED_UPLOAD_MIME_TYPES = new Set([
+	...ALLOWED_IMAGE_MIME_TYPES,
+	...ALLOWED_DOCUMENT_MIME_TYPES
+])
+
+/**
  * FileSizeValidationPipe
  *
  * Validates file upload sizes to prevent abuse and ensure reasonable limits.
@@ -31,11 +56,19 @@ export class FileSizeValidationPipe implements PipeTransform {
 	private readonly VIDEO_MAX_SIZE = 50 * 1024 * 1024 // 50MB
 	private readonly DEFAULT_MAX_SIZE = 2 * 1024 * 1024 // 2MB
 
-	constructor(private readonly options?: { maxSize?: number }) {}
+	constructor(private readonly options?: { maxSize?: number; allowedMimeTypes?: Set<string> }) {}
 
 	transform(value: Express.Multer.File): Express.Multer.File {
 		if (!value) {
 			throw new BadRequestException('No file uploaded')
+		}
+
+		// Validate MIME type against whitelist
+		const allowedTypes = this.options?.allowedMimeTypes ?? ALLOWED_UPLOAD_MIME_TYPES
+		if (!allowedTypes.has(value.mimetype)) {
+			throw new BadRequestException(
+				`File type "${value.mimetype}" is not allowed. Accepted types: ${Array.from(allowedTypes).join(', ')}`
+			)
 		}
 
 		// Use custom max size if provided
@@ -65,8 +98,8 @@ export class FileSizeValidationPipe implements PipeTransform {
 	}
 
 	private getMaxSizeForType(mimetype: string): number {
-		// Images
-		if (mimetype.startsWith('image/')) {
+		// Images (uses explicit whitelist, not glob)
+		if (ALLOWED_IMAGE_MIME_TYPES.has(mimetype)) {
 			return this.IMAGE_MAX_SIZE
 		}
 
@@ -100,7 +133,7 @@ export class FileSizeValidationPipe implements PipeTransform {
 	}
 
 	private getFileTypeLabel(mimetype: string): string {
-		if (mimetype.startsWith('image/')) return 'image'
+		if (ALLOWED_IMAGE_MIME_TYPES.has(mimetype)) return 'image'
 		if (mimetype === 'application/pdf') return 'PDF'
 		if (
 			mimetype ===

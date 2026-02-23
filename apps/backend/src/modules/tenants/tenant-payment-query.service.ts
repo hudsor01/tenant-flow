@@ -226,7 +226,7 @@ export class TenantPaymentQueryService {
 			const client = this.supabase.getAdminClient()
 			let queryBuilder = client
 				.from('rent_payments')
-				.select('*')
+				.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 				.eq('tenant_id', tenantId)
 
 			if (filters?.status) {

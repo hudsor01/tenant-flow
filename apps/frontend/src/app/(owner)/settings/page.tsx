@@ -3,14 +3,15 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Bell, Building2, CreditCard, Shield, ChevronRight } from 'lucide-react'
+import { Bell, Building2, CreditCard, Shield, ChevronRight, Database } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { GeneralSettings } from '#components/settings/general-settings'
 import { NotificationSettings } from '#components/settings/notification-settings'
 import { SecuritySettings } from '#components/settings/security-settings'
 import { BillingSettings } from '#components/settings/billing-settings'
+import { AccountDataSection } from '#components/settings/account-data-section'
 
-type SettingsTab = 'general' | 'notifications' | 'security' | 'billing'
+type SettingsTab = 'general' | 'notifications' | 'security' | 'billing' | 'data'
 
 interface SettingsSection {
 	id: SettingsTab
@@ -43,6 +44,12 @@ const sections: SettingsSection[] = [
 		label: 'Billing',
 		icon: <CreditCard className="h-4 w-4" />,
 		description: 'Subscription and payment info'
+	},
+	{
+		id: 'data',
+		label: 'My Data',
+		icon: <Database className="h-4 w-4" />,
+		description: 'Export or delete your data'
 	}
 ]
 
@@ -52,7 +59,7 @@ export default function SettingsPage() {
 	const tabParam = searchParams.get('tab') as SettingsTab | null
 	const [activeTab, setActiveTab] = useState<SettingsTab>(
 		tabParam &&
-			['general', 'notifications', 'security', 'billing'].includes(tabParam)
+			['general', 'notifications', 'security', 'billing', 'data'].includes(tabParam)
 			? tabParam
 			: 'general'
 	)
@@ -61,7 +68,7 @@ export default function SettingsPage() {
 	useEffect(() => {
 		if (
 			tabParam &&
-			['general', 'notifications', 'security', 'billing'].includes(tabParam)
+			['general', 'notifications', 'security', 'billing', 'data'].includes(tabParam)
 		) {
 			setActiveTab(tabParam)
 		}
@@ -83,6 +90,8 @@ export default function SettingsPage() {
 				return <SecuritySettings />
 			case 'billing':
 				return <BillingSettings />
+			case 'data':
+				return <AccountDataSection />
 			default:
 				return <GeneralSettings />
 		}

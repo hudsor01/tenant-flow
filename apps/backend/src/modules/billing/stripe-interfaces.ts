@@ -4,14 +4,6 @@
  */
 
 import type Stripe from 'stripe'
-import type {
-	CreateCheckoutSessionRequest as CreateCheckoutSessionRequestType,
-	CreateConnectedPaymentRequest as CreateConnectedPaymentRequestType
-} from '@repo/shared/types/core'
-import type {
-	UpdateSubscriptionRequest as UpdateSubscriptionRequestType,
-	CreateSubscriptionRequest as CreateSubscriptionRequestType
-} from '@repo/shared/types/api-contracts'
 
 // Type helper for Invoice with subscription field
 // The subscription field exists but may be null for one-off invoices
@@ -54,11 +46,6 @@ export interface AttachPaymentMethodRequest {
 	payment_method_id: string
 	set_as_default?: boolean
 }
-
-export type CreateCheckoutSessionRequest = CreateCheckoutSessionRequestType
-export type CreateConnectedPaymentRequest = CreateConnectedPaymentRequestType
-export type UpdateSubscriptionRequest = UpdateSubscriptionRequestType
-export type CreateSubscriptionRequest = CreateSubscriptionRequestType
 
 // Keep smaller local interfaces that are backend-specific
 export interface EmbeddedCheckoutRequest {

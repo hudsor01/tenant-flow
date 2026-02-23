@@ -76,7 +76,7 @@ export class NotificationsController {
 		const client = this.getUserClientFromRequest(req)
 		let query = client
 			.from('notifications')
-			.select('*', { count: 'exact' })
+			.select('id, user_id, notification_type, title, message, is_read, read_at, action_url, entity_type, entity_id, created_at', { count: 'exact' })
 			.eq('user_id', user_id)
 			.order('created_at', { ascending: false })
 

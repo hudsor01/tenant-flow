@@ -87,7 +87,7 @@ export function PropertyImageDropzone({
 		maxFileSize,
 		maxFiles,
 		cacheControl: 31536000, // 1 year cache (images rarely change)
-		upsert: false, // Don't overwrite existing files
+		upsert: true, // Allow overwriting if same filename (UUID names make this rare)
 		autoUpload: true // Upload immediately after file selection
 	})
 

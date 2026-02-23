@@ -31,11 +31,63 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: production
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.23.0'
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build shared package
+        run: pnpm --filter @repo/shared build
+
+      - name: Build backend (generates source maps)
+        run: pnpm --filter @repo/backend build
+        env:
+          NODE_ENV: production
+
+      - name: Upload source maps to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+            echo "Sentry not configured (missing SENTRY_AUTH_TOKEN/SENTRY_ORG/SENTRY_PROJECT), skipping"
+            exit 0
+          fi
+
+          # Create Sentry release tied to this git commit
+          npx --yes @sentry/cli@latest releases new \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            "${{ github.sha }}"
+
+          # Upload source maps
+          # TypeScript compilation is deterministic: Railway builds the same JS
+          # from the same git commit, so these source maps match production files
+          npx --yes @sentry/cli@latest sourcemaps upload \
+            --org "$SENTRY_ORG" \
+            --project "$SENTRY_PROJECT" \
+            --release "${{ github.sha }}" \
+            apps/backend/dist
+
+          echo "Source maps uploaded for release ${{ github.sha }}"
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
@@ -46,16 +98,32 @@ jobs:
         run: |
           railway up --service tenantflow-backend --environment production
 
-      - name: Notify Sentry of Release
+      - name: Finalize Sentry release
         if: success()
         env:
-          SENTRY_WEBHOOK: ${{ secrets.SENTRY_RELEASE_WEBHOOK }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
-          if [ -n "$SENTRY_WEBHOOK" ]; then
-            curl -sS "$SENTRY_WEBHOOK" \
-              -X POST \
-              -H 'Content-Type: application/json' \
-              -d "{\"version\": \"${{ github.sha }}\"}"
-          else
-            echo "Sentry webhook not configured, skipping notification"
+          if [ -z "$SENTRY_AUTH_TOKEN" ] || [ -z "$SENTRY_ORG" ] || [ -z "$SENTRY_PROJECT" ]; then
+            echo "Sentry not configured, skipping release finalization"
+            exit 0
           fi
+
+          # Associate commits with this release
+          npx --yes @sentry/cli@latest releases set-commits \
+            --org "$SENTRY_ORG" \
+            --auto \
+            "${{ github.sha }}" || true
+
+          # Record the deployment
+          npx --yes @sentry/cli@latest releases deploys "${{ github.sha }}" new \
+            --org "$SENTRY_ORG" \
+            --env production
+
+          # Mark release as deployed
+          npx --yes @sentry/cli@latest releases finalize \
+            --org "$SENTRY_ORG" \
+            "${{ github.sha }}"
+
+          echo "Sentry release ${{ github.sha }} finalized"

@@ -19,20 +19,12 @@ import {
 import { Clock, MapPin, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import type {
-	MaintenanceRequest,
 	MaintenanceStatus,
 	MaintenancePriority
 } from '@repo/shared/types/core'
+import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { apiRequest } from '#lib/api-request'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
-
-// Extended type with optional relations for display
-type MaintenanceRequestWithRelations = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-	tenant?: { name: string } | null
-}
 
 // Status badge styling aligned with design-os
 function getStatusBadge(status: MaintenanceStatus | string) {
@@ -154,7 +146,7 @@ function getAgingBadge(timestamp: string | null | undefined) {
 	)
 }
 
-export const columns: ColumnDef<MaintenanceRequestWithRelations>[] = [
+export const columns: ColumnDef<MaintenanceDisplayRequest>[] = [
 	{
 		accessorKey: 'title',
 		header: 'Request',
@@ -214,7 +206,7 @@ export const columns: ColumnDef<MaintenanceRequestWithRelations>[] = [
 function MaintenanceActionsCell({
 	request
 }: {
-	request: MaintenanceRequestWithRelations
+	request: MaintenanceDisplayRequest
 }) {
 	const queryClient = useQueryClient()
 	const [isDeleting, setIsDeleting] = useState(false)

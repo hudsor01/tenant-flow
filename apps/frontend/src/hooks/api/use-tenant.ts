@@ -39,6 +39,7 @@ import type {
 import { tenantQueries } from './query-keys/tenant-keys'
 import { leaseQueries } from './query-keys/lease-keys'
 import { mutationKeys } from './mutation-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 
 // ============================================================================
 // TYPES
@@ -267,6 +268,7 @@ export function useCreateTenantMutation() {
 			}),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Tenant created successfully')
 		},
 		onError: error => {
@@ -294,6 +296,7 @@ export function useUpdateTenantMutation() {
 				updatedTenant
 			)
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Tenant updated successfully')
 		},
 		onError: error => {
@@ -318,6 +321,7 @@ export function useDeleteTenantMutation() {
 			})
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Tenant deleted successfully')
 		},
 		onError: error => {

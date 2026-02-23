@@ -96,7 +96,7 @@ export class UserToursService {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('user_tour_progress')
-			.select('*')
+			.select('id, user_id, tour_key, status, current_step, completed_at, skipped_at, last_seen_at, created_at, updated_at')
 			.eq('user_id', user_id)
 			.eq('tour_key', tourKey)
 			.maybeSingle()
@@ -168,7 +168,7 @@ export class UserToursService {
 		const { data, error } = await client
 			.from('user_tour_progress')
 			.upsert(payload, { onConflict: 'user_id,tour_key' })
-			.select('*')
+			.select('id, user_id, tour_key, status, current_step, completed_at, skipped_at, last_seen_at, created_at, updated_at')
 			.single()
 
 		if (error || !data) {
@@ -206,7 +206,7 @@ export class UserToursService {
 		const { data, error } = await client
 			.from('user_tour_progress')
 			.upsert(payload, { onConflict: 'user_id,tour_key' })
-			.select('*')
+			.select('id, user_id, tour_key, status, current_step, completed_at, skipped_at, last_seen_at, created_at, updated_at')
 			.single()
 
 		if (error || !data) {

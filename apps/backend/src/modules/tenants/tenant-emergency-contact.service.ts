@@ -72,7 +72,7 @@ export class TenantEmergencyContactService {
 			const client = this.supabase.getUserClient(token)
 			const { data, error } = await client
 				.from('tenants')
-				.select('*')
+				.select('id, user_id, stripe_customer_id, date_of_birth, ssn_last_four, identity_verified, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship, created_at, updated_at')
 				.eq('id', tenant_id)
 				.single()
 

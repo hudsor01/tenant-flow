@@ -34,7 +34,7 @@ export class BillingService {
 			await stripeClient
 				.schema('stripe')
 				.from('customers')
-				.select('*')
+				.select('id, object, address, description, email, metadata, name, phone, shipping, balance, created, currency, default_source, delinquent, discount, invoice_prefix, invoice_settings, livemode, next_invoice_sequence, preferred_locales, tax_exempt, updated_at, deleted, last_synced_at')
 				.eq('id', stripeCustomerId)
 				.single()
 
@@ -150,7 +150,7 @@ export class BillingService {
 			await stripeClient
 				.schema('stripe')
 				.from('subscriptions')
-				.select('*')
+				.select('id, object, cancel_at_period_end, current_period_end, current_period_start, default_payment_method, items, metadata, pending_setup_intent, pending_update, status, application_fee_percent, billing_cycle_anchor, billing_thresholds, cancel_at, canceled_at, collection_method, created, days_until_due, default_source, default_tax_rates, discount, ended_at, livemode, next_pending_invoice_item_invoice, pause_collection, pending_invoice_item_interval, start_date, transfer_data, trial_end, trial_start, schedule, customer, latest_invoice, plan, updated_at, last_synced_at')
 				.eq('id', stripeSubscriptionId)
 				.single()
 
@@ -176,7 +176,7 @@ export class BillingService {
 			await stripeClient
 				.schema('stripe')
 				.from('subscriptions')
-				.select('*')
+				.select('id, object, cancel_at_period_end, current_period_end, current_period_start, default_payment_method, items, metadata, pending_setup_intent, pending_update, status, application_fee_percent, billing_cycle_anchor, billing_thresholds, cancel_at, canceled_at, collection_method, created, days_until_due, default_source, default_tax_rates, discount, ended_at, livemode, next_pending_invoice_item_invoice, pause_collection, pending_invoice_item_interval, start_date, transfer_data, trial_end, trial_start, schedule, customer, latest_invoice, plan, updated_at, last_synced_at')
 				.eq('customer', stripeCustomerId)
 
 		if (result.error) {
@@ -258,7 +258,7 @@ export class BillingService {
 			await stripeClient
 				.schema('stripe')
 				.from('payment_intents')
-				.select('*')
+				.select('id, object, amount, amount_capturable, amount_details, amount_received, application, application_fee_amount, automatic_payment_methods, canceled_at, cancellation_reason, capture_method, client_secret, confirmation_method, created, currency, customer, description, invoice, last_payment_error, livemode, metadata, next_action, on_behalf_of, payment_method, payment_method_options, payment_method_types, processing, receipt_email, review, setup_future_usage, shipping, statement_descriptor, statement_descriptor_suffix, status, transfer_data, transfer_group, last_synced_at')
 				.eq('id', stripePaymentIntentId)
 				.single()
 

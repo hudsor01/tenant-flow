@@ -31,10 +31,13 @@ Sentry.init({
 	// Suppress verbose instrumentation logs
 	debug: false,
 
-	// Expected errors that don't need tracking
+	// Expected errors that don't need tracking (4xx HTTP errors are user/input errors, not bugs)
 	ignoreErrors: [
 		'NotFoundException',
 		'UnauthorizedException',
+		'ForbiddenException',
+		'BadRequestException',
+		'ConflictException',
 		'ECONNRESET',
 		'ETIMEDOUT',
 	],

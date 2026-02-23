@@ -4,19 +4,9 @@ import type { MouseEvent } from 'react'
 
 import { Clock, MapPin, MoreHorizontal, User } from 'lucide-react'
 import Link from 'next/link'
-import type {
-	MaintenanceRequest,
-	MaintenancePriority
-} from '@repo/shared/types/core'
+import type { MaintenancePriority } from '@repo/shared/types/core'
+import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
 import { BorderBeam } from '#components/ui/border-beam'
-
-// Extended type with optional relations for display
-type MaintenanceRequestWithRelations = MaintenanceRequest & {
-	property?: { name: string } | null
-	unit?: { name: string } | null
-	assignedTo?: { name: string } | null
-	tenant?: { name: string } | null
-}
 
 function getDaysOpen(timestamp: string | null | undefined): number {
 	if (!timestamp) return 0
@@ -73,7 +63,7 @@ function getPriorityBadge(priority: MaintenancePriority | string) {
 }
 
 interface MaintenanceCardProps {
-	request: MaintenanceRequestWithRelations
+	request: MaintenanceDisplayRequest
 	isDragging?: boolean
 	onView?: ((id: string) => void) | undefined
 }

@@ -136,7 +136,7 @@ describe('AcceptInvitePage', () => {
 			})
 
 			expect(screen.getByLabelText(/create password/i)).toBeInTheDocument()
-			expect(screen.getByLabelText(/confirm password/i)).toBeInTheDocument()
+			expect(screen.getByPlaceholderText(/confirm your password/i)).toBeInTheDocument()
 			expect(
 				screen.getByRole('button', { name: /create account/i })
 			).toBeInTheDocument()

@@ -123,7 +123,7 @@ export class MaintenanceReportingService {
 
 		const { data, error } = await client
 			.from('maintenance_requests')
-			.select('*')
+			.select('id, unit_id, owner_user_id, tenant_id, title, description, status, priority, assigned_to, scheduled_date, completed_at, estimated_cost, actual_cost, requested_by, inspection_date, inspection_findings, inspector_id, created_at, updated_at')
 			.in('priority', ['high', 'urgent'])
 			.neq('status', 'completed')
 			.order('priority', { ascending: false })
@@ -160,7 +160,7 @@ export class MaintenanceReportingService {
 
 		const { data, error } = await client
 			.from('maintenance_requests')
-			.select('*')
+			.select('id, unit_id, owner_user_id, tenant_id, title, description, status, priority, assigned_to, scheduled_date, completed_at, estimated_cost, actual_cost, requested_by, inspection_date, inspection_findings, inspector_id, created_at, updated_at')
 			.neq('status', 'completed')
 			.lt('scheduled_date', new Date().toISOString())
 			.order('scheduled_date', { ascending: true })

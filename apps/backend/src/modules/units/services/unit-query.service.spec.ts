@@ -81,16 +81,16 @@ describe('UnitQueryService', () => {
 				eq: jest.fn().mockReturnThis(),
 				ilike: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
-				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null })
+				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null, count: 2 })
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
 
 			const result = await service.findAll('mock-token', {})
 
-			expect(result).toEqual(mockUnits)
+			expect(result).toEqual({ data: mockUnits, count: 2 })
 			expect(mockUserClient.from).toHaveBeenCalledWith('units')
-			expect(mockQueryBuilder.select).toHaveBeenCalledWith('*')
+			expect(mockQueryBuilder.select).toHaveBeenCalledWith('id, owner_user_id, property_id, unit_number, status, rent_amount, rent_currency, rent_period, bedrooms, bathrooms, square_feet, created_at, updated_at', { count: 'exact' })
 			expect(mockQueryBuilder.range).toHaveBeenCalledWith(0, 49) // default limit 50
 			expect(mockQueryBuilder.order).toHaveBeenCalledWith('created_at', {
 				ascending: false
@@ -104,7 +104,7 @@ describe('UnitQueryService', () => {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
-				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null })
+				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null, count: 1 })
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
@@ -113,7 +113,7 @@ describe('UnitQueryService', () => {
 				property_id: 'property-456'
 			})
 
-			expect(result).toEqual(mockUnits)
+			expect(result).toEqual({ data: mockUnits, count: 1 })
 			expect(mockQueryBuilder.eq).toHaveBeenCalledWith(
 				'property_id',
 				'property-456'
@@ -127,7 +127,7 @@ describe('UnitQueryService', () => {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
-				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null })
+				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null, count: 1 })
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
@@ -136,7 +136,7 @@ describe('UnitQueryService', () => {
 				status: 'occupied'
 			})
 
-			expect(result).toEqual(mockUnits)
+			expect(result).toEqual({ data: mockUnits, count: 1 })
 			expect(mockQueryBuilder.eq).toHaveBeenCalledWith('status', 'occupied')
 		})
 
@@ -147,7 +147,7 @@ describe('UnitQueryService', () => {
 				select: jest.fn().mockReturnThis(),
 				eq: jest.fn().mockReturnThis(),
 				range: jest.fn().mockReturnThis(),
-				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null })
+				order: jest.fn().mockResolvedValue({ data: mockUnits, error: null, count: 1 })
 			}
 
 			mockUserClient.from.mockReturnValue(mockQueryBuilder)
@@ -156,7 +156,7 @@ describe('UnitQueryService', () => {
 				status: 'invalid-status'
 			})
 
-			expect(result).toEqual(mockUnits)
+			expect(result).toEqual({ data: mockUnits, count: 1 })
 			// Should not call eq for status since it's invalid
 			expect(mockQueryBuilder.eq).not.toHaveBeenCalledWith(
 				'status',

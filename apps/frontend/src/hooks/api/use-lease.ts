@@ -21,6 +21,7 @@ import { toast } from 'sonner'
 // Import query keys from separate file to avoid circular dependency
 import { leaseQueries } from './query-keys/lease-keys'
 import { mutationKeys } from './mutation-keys'
+import { ownerDashboardKeys } from './use-owner-dashboard'
 
 // ============================================================================
 // QUERY HOOKS
@@ -200,6 +201,7 @@ export function useDeleteLeaseOptimisticMutation(options?: {
 			// Refetch to ensure consistency
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.stats().queryKey })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		}
 	})
 }
@@ -226,6 +228,7 @@ export function useCreateLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Lease created successfully')
 		},
 		onError: error => {
@@ -265,6 +268,7 @@ export function useUpdateLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Lease updated successfully')
 		},
 		onError: error => {
@@ -289,6 +293,7 @@ export function useTerminateLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Lease terminated successfully')
 		},
 		onError: error => {
@@ -316,6 +321,7 @@ export function useRenewLeaseMutation() {
 				renewedLease
 			)
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Lease renewed successfully')
 		},
 		onError: error => {
@@ -345,6 +351,7 @@ export function useDeleteLeaseMutation() {
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Lease deleted successfully')
 		},
 		onError: error => {

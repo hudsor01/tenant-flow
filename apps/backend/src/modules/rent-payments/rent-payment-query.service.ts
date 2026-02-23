@@ -31,7 +31,7 @@ export class RentPaymentQueryService {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('rent_payments')
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.order('created_at', { ascending: false })
 
 		if (error) {
@@ -56,7 +56,7 @@ export class RentPaymentQueryService {
 
 		const { data, error } = await client
 			.from('rent_payments')
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.eq('lease_id', lease.id)
 			.order('created_at', { ascending: false })
 
@@ -84,7 +84,7 @@ export class RentPaymentQueryService {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('rent_payments')
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.eq('status', 'failed')
 			.order('created_at', { ascending: false })
 
@@ -110,7 +110,7 @@ export class RentPaymentQueryService {
 
 		const { data, error } = await client
 			.from('rent_payments')
-			.select('*')
+			.select('id, lease_id, tenant_id, amount, currency, status, due_date, paid_date, payment_method_type, stripe_payment_intent_id, period_start, period_end, late_fee_amount, application_fee_amount, notes, created_at, updated_at')
 			.eq('lease_id', lease.id)
 			.eq('status', 'failed')
 			.order('created_at', { ascending: false })
@@ -142,7 +142,7 @@ export class RentPaymentQueryService {
 		const client = this.supabase.getUserClient(token)
 		const { data, error } = await client
 			.from('leases')
-			.select('*')
+			.select('id, unit_id, owner_user_id, primary_tenant_id, start_date, end_date, rent_amount, rent_currency, security_deposit, payment_day, lease_status, stripe_subscription_id, stripe_connected_account_id, stripe_subscription_status, auto_pay_enabled, grace_period_days, late_fee_amount, late_fee_days, pets_allowed, pet_deposit, pet_rent, max_occupants, utilities_included, tenant_responsible_utilities, property_rules, governing_state, property_built_before_1978, lead_paint_disclosure_acknowledged, owner_signed_at, owner_signature_ip, owner_signature_method, tenant_signed_at, tenant_signature_ip, tenant_signature_method, sent_for_signature_at, docuseal_submission_id, subscription_failure_reason, subscription_last_attempt_at, subscription_retry_count, created_at, updated_at')
 			.eq('stripe_subscription_id', subscriptionId)
 			.single()
 

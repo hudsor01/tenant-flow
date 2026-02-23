@@ -195,12 +195,30 @@ export class TaxDocumentsService {
 			])
 		)
 
+		// Build a lookup map for property acquisition data (cost and date)
+		const propertyAcquisitionMap = new Map(
+			ledger.properties.map(property => [property.id, property])
+		)
+
 		return Array.from(financials.revenue.entries()).map(
 			([property_id, revenue]) => {
 				const expense = financials.expenses.get(property_id) ?? 0
 				const noi = revenue - expense
-				const propertyValue = noi > 0 ? noi / 0.06 : 100000
+
+				const propertyData = propertyAcquisitionMap.get(property_id)
+
+				// Use actual acquisition cost if available; fall back to NOI cap-rate estimate
+				const propertyValue =
+					propertyData?.acquisition_cost !== null &&
+					propertyData?.acquisition_cost !== undefined
+						? Number(propertyData.acquisition_cost)
+						: noi > 0
+							? noi / 0.06
+							: 100000
+
 				const annualDepreciation = propertyValue / 27.5
+
+				// Use actual acquisition date if available; fall back to created_at
 				const acquisitionYear = this.deriveAcquisitionYear(
 					ledger,
 					property_id,
@@ -231,6 +249,16 @@ export class TaxDocumentsService {
 		if (!property) {
 			return fallbackYear
 		}
+
+		// Prefer actual acquisition_date if provided
+		if (property.acquisition_date) {
+			const acquisitionDate = parseDate(property.acquisition_date)
+			if (acquisitionDate) {
+				return acquisitionDate.getUTCFullYear()
+			}
+		}
+
+		// Fall back to created_at
 		const created = parseDate(property.created_at)
 		return created ? created.getUTCFullYear() : fallbackYear
 	}

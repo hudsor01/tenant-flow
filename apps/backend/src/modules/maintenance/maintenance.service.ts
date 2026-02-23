@@ -51,7 +51,7 @@ export class MaintenanceService {
 	async findAll(
 		token: string,
 		query: Record<string, unknown>
-	): Promise<MaintenanceRequest[]> {
+	): Promise<{ data: MaintenanceRequest[]; count: number }> {
 		try {
 			if (!token) {
 				this.logger.warn(
@@ -71,7 +71,8 @@ export class MaintenanceService {
 			const client = this.supabase.getUserClient(token)
 
 			// Build query with filters (NO manual user_id filtering needed)
-			let queryBuilder = client.from('maintenance_requests').select('*')
+			// Use { count: 'exact' } for accurate pagination totals
+			let queryBuilder = client.from('maintenance_requests').select('id, unit_id, owner_user_id, tenant_id, title, description, status, priority, assigned_to, scheduled_date, completed_at, estimated_cost, actual_cost, requested_by, inspection_date, inspection_findings, inspector_id, created_at, updated_at', { count: 'exact' })
 
 			// Apply filters
 			if (query.property_id) {
@@ -154,7 +155,7 @@ export class MaintenanceService {
 				ascending: sortOrder === 'asc'
 			})
 
-			const { data, error } = await queryBuilder
+			const { data, error, count } = await queryBuilder
 
 			if (error) {
 				this.logger.error(
@@ -167,7 +168,7 @@ export class MaintenanceService {
 				throw new BadRequestException('Failed to fetch maintenance requests')
 			}
 
-			return data as MaintenanceRequest[]
+			return { data: data as MaintenanceRequest[], count: count ?? 0 }
 		} catch (error) {
 			this.logger.error(
 				'Maintenance service failed to find all maintenance requests',
@@ -213,7 +214,7 @@ export class MaintenanceService {
 
 			const { data, error } = await client
 				.from('maintenance_requests')
-				.select('*')
+				.select('id, owner_user_id, unit_id, tenant_id, title, description, status, priority, assigned_to, requested_by, scheduled_date, completed_at, estimated_cost, actual_cost, inspection_date, inspection_findings, inspector_id, created_at, updated_at')
 				.eq('id', maintenanceId)
 				.single()
 

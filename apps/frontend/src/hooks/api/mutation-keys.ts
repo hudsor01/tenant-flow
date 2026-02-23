@@ -162,7 +162,11 @@ export const mutationKeys = {
 	// Reports
 	reports: {
 		delete: ['mutations', 'reports', 'delete'] as const,
-		download: ['mutations', 'reports', 'download'] as const
+		download: ['mutations', 'reports', 'download'] as const,
+		downloadYearEndCsv: ['mutations', 'reports', 'download-year-end-csv'] as const,
+		download1099Csv: ['mutations', 'reports', 'download-1099-csv'] as const,
+		downloadYearEndPdf: ['mutations', 'reports', 'download-year-end-pdf'] as const,
+		downloadTaxDocumentPdf: ['mutations', 'reports', 'download-tax-document-pdf'] as const
 	},
 
 	// Subscriptions

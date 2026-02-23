@@ -8,7 +8,9 @@ import {
 	TrendingUp,
 	Calendar,
 	AlertCircle,
-	RefreshCw
+	RefreshCw,
+	Download,
+	Loader2
 } from 'lucide-react'
 import { Skeleton } from '#components/ui/skeleton'
 import { Button } from '#components/ui/button'
@@ -21,6 +23,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useTaxDocuments } from '#hooks/api/use-financials'
+import { useDownloadTaxDocumentPdf } from '#hooks/api/use-reports'
 import { formatCents } from '@repo/shared/lib/format'
 
 const logger = createLogger({ component: 'TaxDocumentsPage' })
@@ -33,6 +36,7 @@ const TAX_YEARS = Array.from(
 export default function TaxDocumentsPage() {
 	const [taxYear, setTaxYear] = useState(new Date().getFullYear())
 	const { data, isLoading, error, refetch } = useTaxDocuments(taxYear)
+	const downloadPdfMutation = useDownloadTaxDocumentPdf()
 
 	if (isLoading) {
 		return (
@@ -99,21 +103,39 @@ export default function TaxDocumentsPage() {
 							Tax summary and deductions for your rental properties.
 						</p>
 					</div>
-					<Select
-						value={taxYear.toString()}
-						onValueChange={v => setTaxYear(parseInt(v, 10))}
-					>
-						<SelectTrigger className="w-[130px]">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{TAX_YEARS.map(y => (
-								<SelectItem key={y} value={y.toString()}>
-									{y}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<div className="flex items-center gap-2">
+						<Select
+							value={taxYear.toString()}
+							onValueChange={v => setTaxYear(parseInt(v, 10))}
+						>
+							<SelectTrigger className="w-[130px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								{TAX_YEARS.map(y => (
+									<SelectItem key={y} value={y.toString()}>
+										{y}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+
+						<Button
+							variant="outline"
+							size="sm"
+							className="gap-1.5 min-h-11"
+							onClick={() => downloadPdfMutation.mutate(taxYear)}
+							disabled={downloadPdfMutation.isPending || isLoading || !hasData}
+							aria-label="Download tax documents as PDF"
+						>
+							{downloadPdfMutation.isPending ? (
+								<Loader2 className="size-4 animate-spin" />
+							) : (
+								<Download className="size-4" />
+							)}
+							{downloadPdfMutation.isPending ? 'Generating...' : 'Download PDF'}
+						</Button>
+					</div>
 				</div>
 			</BlurFade>
 
