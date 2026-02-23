@@ -33,7 +33,7 @@
 		"@nestjs/event-emitter": "^3.0.1",
 		"@nestjs/platform-express": "^11.1.13",
 		"@nestjs/schedule": "6.1.1",
-		"@nestjs/swagger": "catalog:",
+		"@nestjs/swagger": "^11.2.3",
 		"@nestjs/terminus": "11.0.0",
 		"@nestjs/throttler": "6.5.0",
 		"@react-email/components": "1.0.7",
