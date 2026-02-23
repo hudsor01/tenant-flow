@@ -101,22 +101,3 @@ export function getCORSOriginsForEnv(): string[] | boolean {
 	return getCORSOrigins(env)
 }
 
-/**
- * CORS configuration object for Express
- */
-export function getCORSConfig() {
-	return {
-		origin: getCORSOriginsForEnv(),
-		credentials: true,
-		methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-		allowedHeaders: [
-			'Origin',
-			'X-Requested-With',
-			'Content-Type',
-			'Accept',
-			'Authorization',
-			'X-CSRF-Token',
-			'X-XSRF-Token'
-		]
-	}
-}

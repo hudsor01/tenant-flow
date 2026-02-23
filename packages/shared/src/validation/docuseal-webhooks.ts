@@ -2,7 +2,7 @@
  * DocuSeal Webhook Validation Schemas
  *
  * Validates webhook payloads from self-hosted DocuSeal instance.
- * Used by NestJS backend to validate incoming webhook data.
+ * Used by Supabase Edge Functions to validate incoming webhook data.
  */
 
 import { z } from 'zod'
