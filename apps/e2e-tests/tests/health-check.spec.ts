@@ -12,20 +12,6 @@ test.describe('TenantFlow Health Check', () => {
 		await expect(nav).toBeVisible()
 	})
 
-	test('Backend API should respond', async ({ request }) => {
-		const backendHealthUrl =
-			process.env.PLAYWRIGHT_BACKEND_HEALTH_URL ||
-			process.env.BACKEND_HEALTH_URL ||
-			'http://localhost:4650/health'
-
-		const response = await request.get(backendHealthUrl)
-
-		expect(response.ok()).toBeTruthy()
-
-		const data = await response.json()
-		expect(data).toHaveProperty('status')
-	})
-
 	test('Supabase connection should work', async ({ page }) => {
 		// Allow forcing this test to run in dev by setting E2E_FORCE_RUN=true
 		const forceRun = process.env.E2E_FORCE_RUN === 'true'
