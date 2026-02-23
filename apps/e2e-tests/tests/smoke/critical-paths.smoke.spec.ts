@@ -124,13 +124,15 @@ test.describe('🚨 CRITICAL PATH SMOKE TESTS 🚨', () => {
 						`1. Check Supabase Dashboard → Users\n` +
 						`2. Verify account exists with correct password\n` +
 						`3. Check Custom Access Token Hook is enabled\n` +
-						`4. Verify app_metadata.user_type is set to "owner"`
+						`4. Verify app_metadata.user_type is set to "owner"`,
+					{ cause: e }
 				)
 			}
 			throw new Error(
 				`🚨 LOGIN TIMEOUT: No redirect after 15s\n` +
 					`Current URL: ${page.url()}\n` +
-					`Check: Supabase env vars, backend health, frontend build`
+					`Check: Supabase env vars, backend health, frontend build`,
+				{ cause: e }
 			)
 		}
 

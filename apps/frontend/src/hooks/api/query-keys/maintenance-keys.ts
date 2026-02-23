@@ -56,9 +56,9 @@ export const maintenanceQueries = {
 				const limit = filters?.limit ?? 50
 				const offset = filters?.offset ?? 0
 
-				let data: MaintenanceRequest[] | null = null
-				let error: { message: string; code: string; details: string; hint: string } | null = null
-				let count: number | null = null
+				let data: MaintenanceRequest[] | null
+				let error: { message: string; code: string; details: string; hint: string } | null
+				let count: number | null
 
 				if (filters?.property_id) {
 					// Join through units when filtering by property_id

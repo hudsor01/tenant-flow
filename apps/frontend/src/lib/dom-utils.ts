@@ -331,7 +331,6 @@ export const safeScript = {
 			'cdnjs.cloudflare.com'
 		]
 
-		let isAllowed = false
 		try {
 			const url = new URL(src)
 
@@ -344,7 +343,7 @@ export const safeScript = {
 			}
 
 			// Check against allowed domains
-			isAllowed = allowedDomains.some(domain => url.hostname === domain)
+			const isAllowed = allowedDomains.some(domain => url.hostname === domain)
 
 			if (!isAllowed) {
 				domLogger.warn('Blocked script from disallowed domain', {

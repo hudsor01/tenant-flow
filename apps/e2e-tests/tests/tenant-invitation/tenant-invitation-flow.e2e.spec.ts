@@ -29,7 +29,7 @@ test.describe('Tenant Invitation Flow', () => {
 		phone: '5555551234'
 	}
 
-	let invitationToken!: string
+	const invitationToken = ''
 	let tenant_id: string
 
 	async function getSupabaseAccessToken(page: Page): Promise<string | null> {
