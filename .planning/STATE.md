@@ -5,7 +5,7 @@
 Phase: Not started (defining requirements)
 Plan: —
 Status: Defining requirements for v8.0 Post-Migration Hardening
-Last activity: 2026-02-23 — Milestone v8.0 started; v7.0 Backend Elimination complete (Phase 57 done); full-review produced 108 findings across security, code quality, testing, documentation, CI/CD, performance
+Last activity: 2026-02-24 — Phase 57-05 complete: 57-05-SUMMARY.md written; rls-security-tests.yml fixed (PUBLISHABLE_KEY rename); roadmap.md moved to docs/. v7.0 Backend Elimination milestone fully documented and closed.
 
 Progress: ░░░░░░░░░░ 0% (Phases 58+ pending)
 
@@ -34,7 +34,7 @@ Systematically resolve all 108 findings from the v7.0 post-merge code review. Ph
 - Phase 57-02: Monorepo config cleanup — ✓ DONE
 - Phase 57-03: Delete frontend NestJS adapter code (api-request.ts, api-config.ts, postgrest-flag.ts, SSE providers; migrate all callsites) — ✓ DONE
 - Phase 57-04: Delete apps/backend/ directory entirely — DONE
-- Phase 57-05: Final verification and cleanup — PENDING
+- Phase 57-05: Final verification and cleanup — ✓ DONE
 
 ## Accumulated Context
 
@@ -276,6 +276,6 @@ Systematically resolve all 108 findings from the v7.0 post-merge code review. Ph
 
 ## Session Continuity
 
-Last session: 2026-02-22
-Completed: Phase 57-04 — Deleted apps/backend/ entirely via git rm -r; 567 tracked files removed, 121,427 lines deleted; pnpm install clean; pnpm build:shared, typecheck, lint all pass; pnpm --filter @repo/frontend test:unit: 78 test files, 961 tests all pass; pre-commit hook passed without --no-verify.
+Last session: 2026-02-24
+Completed: Phase 57-05 — Fixed rls-security-tests.yml (PUBLISHABLE_KEY rename missed by c86063176); wrote 57-05-SUMMARY.md; moved roadmap.md → docs/roadmap.md. v7.0 milestone fully closed. All of Phase 57 (01-05) complete. v8.0 defining requirements.
 Resume file: None
