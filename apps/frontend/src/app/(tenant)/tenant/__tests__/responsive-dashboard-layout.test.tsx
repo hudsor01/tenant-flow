@@ -82,10 +82,7 @@ function mockMobileViewport() {
 	})
 }
 
-// SKIPPED: TDD tests for future implementation (Tasks 4.2, 4.3)
-// These tests define expected behavior for responsive mobile layouts
-// that need to be implemented in the TenantDashboardPage component
-describe.skip('Responsive Tenant Dashboard Layout (mobile-first)', () => {
+describe('Responsive Tenant Dashboard Layout (mobile-first)', () => {
 	beforeEach(() => {
 		mockMobileViewport()
 	})

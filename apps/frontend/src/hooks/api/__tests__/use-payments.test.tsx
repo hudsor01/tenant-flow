@@ -224,7 +224,7 @@ describe('Payment Hooks (PostgREST)', () => {
 					tenant_id: 't1',
 					lease_id: 'l1',
 					amount: 1500,
-					status: 'paid',
+					status: 'succeeded',
 					payment_method_type: 'cash',
 					paid_date: '2024-01-15'
 				})

@@ -89,10 +89,13 @@ export function TenantStatsCards({
 	documentsCount
 }: TenantStatsCardsProps) {
 	return (
-		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+		<div
+			className="dashboard-cards-container grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+			data-mobile-stacked="true"
+		>
 			{/* Next Payment Card */}
 			<BlurFade delay={0.2} inView>
-				<Stat className="relative overflow-hidden">
+				<Stat data-testid="stat-card" className="relative overflow-hidden">
 					{rentStatus !== 'paid' && (
 						<BorderBeam
 							size={80}
@@ -117,7 +120,7 @@ export function TenantStatsCards({
 
 			{/* Payment Status Card */}
 			<BlurFade delay={0.25} inView>
-				<Stat className="relative overflow-hidden">
+				<Stat data-testid="stat-card" className="relative overflow-hidden">
 					{rentStatus === 'overdue' && (
 						<BorderBeam
 							size={80}
@@ -182,7 +185,7 @@ export function TenantStatsCards({
 
 			{/* Open Requests Card */}
 			<BlurFade delay={0.3} inView>
-				<Stat className="relative overflow-hidden">
+				<Stat data-testid="stat-card" className="relative overflow-hidden">
 					{openRequestsCount > 0 && (
 						<BorderBeam
 							size={80}
@@ -209,7 +212,7 @@ export function TenantStatsCards({
 
 			{/* Documents Card */}
 			<BlurFade delay={0.35} inView>
-				<Stat>
+				<Stat data-testid="stat-card">
 					<StatLabel>Documents</StatLabel>
 					<StatValue className="flex items-baseline">
 						<NumberTicker value={documentsCount} duration={800} />
