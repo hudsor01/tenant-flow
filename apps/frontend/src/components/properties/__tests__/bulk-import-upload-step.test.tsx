@@ -99,12 +99,10 @@ describe('BulkImportUploadStep Component', () => {
 	})
 
 	describe('Drag and Drop', () => {
-		it.skip('shows drag active state when dragging over', () => {
+		it('shows drag active state when dragging over', () => {
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen
-				.getByText(/click to upload or drag and drop/i)
-				.closest('div')!
+			const dropzone = screen.getByRole('region')
 
 			fireEvent.dragOver(dropzone)
 
@@ -112,12 +110,10 @@ describe('BulkImportUploadStep Component', () => {
 			expect(dropzone).toHaveAttribute('data-dragging', '')
 		})
 
-		it.skip('removes drag active state when dragging leaves', () => {
+		it('removes drag active state when dragging leaves', () => {
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen
-				.getByText(/click to upload or drag and drop/i)
-				.closest('div')!
+			const dropzone = screen.getByRole('region')
 
 			fireEvent.dragOver(dropzone)
 			expect(dropzone).toHaveAttribute('data-dragging', '')
@@ -128,12 +124,12 @@ describe('BulkImportUploadStep Component', () => {
 			).toBeInTheDocument()
 		})
 
+		// jsdom cannot set input.files via assignment (read-only FileList), so the full
+		// drop-to-callback flow cannot be exercised here. Use Playwright E2E tests instead.
 		it.skip('calls onFileSelect when valid file is dropped', () => {
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen
-				.getByText(/click to upload or drag and drop/i)
-				.closest('div')!
+			const dropzone = screen.getByRole('region')
 			const file = new File(['name,address\nTest,123 Main'], 'test.csv', {
 				type: 'text/csv'
 			})
@@ -147,14 +143,13 @@ describe('BulkImportUploadStep Component', () => {
 			expect(mockOnFileSelect).toHaveBeenCalledWith(file)
 		})
 
+		// Same jsdom FileList limitation as above.
 		it.skip('does not call onFileSelect when invalid file is dropped', () => {
 			const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
 
 			render(<BulkImportUploadStep onFileSelect={mockOnFileSelect} />)
 
-			const dropzone = screen
-				.getByText(/click to upload or drag and drop/i)
-				.closest('div')!
+			const dropzone = screen.getByRole('region')
 			const file = new File(['content'], 'test.txt', { type: 'text/plain' })
 
 			fireEvent.drop(dropzone, {

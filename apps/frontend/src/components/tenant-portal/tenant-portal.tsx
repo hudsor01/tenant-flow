@@ -95,18 +95,29 @@ export function TenantPortal({
 				</BlurFade>
 
 				{/* Stats Cards */}
-				<TenantStatsCards
-					nextPaymentAmount={rentAmount}
-					nextPaymentDueDate={rentDueDate}
-					rentStatus={rentStatus}
-					daysUntilDue={daysUntilDue}
-					openRequestsCount={openRequestsCount}
-					documentsCount={documents.length}
-				/>
+				<div
+					data-testid="tenant-dashboard-stats"
+					data-spacing-section="comfortable"
+					style={{ gap: 'var(--layout-gap-group)' }}
+				>
+					<TenantStatsCards
+						nextPaymentAmount={rentAmount}
+						nextPaymentDueDate={rentDueDate}
+						rentStatus={rentStatus}
+						daysUntilDue={daysUntilDue}
+						openRequestsCount={openRequestsCount}
+						documentsCount={documents.length}
+					/>
+				</div>
 
-				{/* Rent Payment Card */}
+				{/* Rent Payment Card / Quick Actions */}
 				<BlurFade delay={0.4} inView>
-					<div className="bg-card border border-border rounded-lg p-6 mb-6 relative overflow-hidden">
+					<div
+						className="bg-card border border-border rounded-lg p-6 mb-6 relative overflow-hidden"
+						data-testid="tenant-dashboard-quick-actions"
+						data-spacing-section="comfortable"
+						style={{ gap: 'var(--layout-gap-group)' }}
+					>
 						{rentStatus !== 'paid' && (
 							<BorderBeam
 								size={120}
@@ -133,6 +144,13 @@ export function TenantPortal({
 								<Button asChild size="lg" className="gap-2">
 									<Link
 										href="/tenant/payments/new"
+										className="dashboard-quick-action"
+										data-touch-target="true"
+										data-spacing="comfortable"
+										style={{
+											minHeight: '2.75rem',
+											padding: 'var(--touch-target-padding)'
+										}}
 										{...(onPayRent ? { onClick: onPayRent } : {})}
 									>
 										<CreditCard className="w-5 h-5" aria-hidden="true" />
@@ -145,7 +163,12 @@ export function TenantPortal({
 				</BlurFade>
 
 				{/* Two Column Layout */}
-				<div className="grid gap-6 lg:grid-cols-2">
+				<div
+					className="grid gap-6 lg:grid-cols-2"
+					data-testid="tenant-dashboard-activity"
+					data-spacing-section="comfortable"
+					style={{ gap: 'var(--layout-gap-group)' }}
+				>
 					{/* Payment History */}
 					<PaymentHistoryCard
 						payments={payments}

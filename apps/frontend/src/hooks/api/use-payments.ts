@@ -363,7 +363,7 @@ export async function recordManualPayment(
 			lease_id: input.lease_id,
 			amount: input.amount,
 			currency: 'USD',
-			status: 'paid',
+			status: 'succeeded',
 			payment_method_type: input.payment_method ?? 'manual',
 			period_start: new Date().toISOString().split('T')[0] as string,
 			period_end: new Date().toISOString().split('T')[0] as string,
@@ -550,7 +550,7 @@ export function usePaymentStatus(tenant_id: string) {
 			if (error) handlePostgrestError(error, 'rent_payments')
 			if (!data) {
 				return {
-					status: 'DUE',
+					status: 'pending',
 					rent_amount: 0,
 					nextDueDate: null,
 					lastPaymentDate: null,
@@ -559,13 +559,13 @@ export function usePaymentStatus(tenant_id: string) {
 				}
 			}
 			const isOverdue =
-				data.status !== 'paid' && data.due_date < today
+				data.status !== 'succeeded' && data.due_date < today
 			return {
 				status: data.status as TenantPaymentStatusResponse['status'],
 				rent_amount: data.amount,
 				nextDueDate: data.due_date,
 				lastPaymentDate: data.paid_date,
-				outstandingBalance: data.status === 'paid' ? 0 : data.amount,
+				outstandingBalance: data.status === 'succeeded' ? 0 : data.amount,
 				isOverdue
 			}
 		},

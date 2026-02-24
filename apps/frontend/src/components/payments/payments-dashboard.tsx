@@ -21,8 +21,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-
-type PaymentStatus = 'paid' | 'pending' | 'overdue' | 'failed'
+import type { PaymentStatus } from '@repo/shared/types/core'
 
 interface Payment {
 	id: string
@@ -61,8 +60,8 @@ function formatDate(dateString: string): string {
 }
 
 function getStatusConfig(status: PaymentStatus) {
-	const config = {
-		paid: {
+	const config: Record<PaymentStatus, { className: string; icon: typeof CheckCircle; label: string }> = {
+		succeeded: {
 			className:
 				'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400',
 			icon: CheckCircle,
@@ -74,16 +73,35 @@ function getStatusConfig(status: PaymentStatus) {
 			icon: Clock,
 			label: 'Pending'
 		},
-		overdue: {
-			className: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400',
-			icon: AlertCircle,
-			label: 'Overdue'
+		processing: {
+			className:
+				'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400',
+			icon: Clock,
+			label: 'Processing'
 		},
 		failed: {
 			className:
 				'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
 			icon: AlertCircle,
 			label: 'Failed'
+		},
+		canceled: {
+			className:
+				'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+			icon: AlertCircle,
+			label: 'Canceled'
+		},
+		cancelled: {
+			className:
+				'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+			icon: AlertCircle,
+			label: 'Cancelled'
+		},
+		requires_action: {
+			className:
+				'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400',
+			icon: AlertCircle,
+			label: 'Requires Action'
 		}
 	}
 	return config[status]
@@ -111,13 +129,13 @@ export function PaymentsDashboard({
 
 	// Stats
 	const totalCollected = payments
-		.filter(p => p.status === 'paid')
+		.filter(p => p.status === 'succeeded')
 		.reduce((sum, p) => sum + p.amount, 0)
 	const pendingAmount = payments
 		.filter(p => p.status === 'pending')
 		.reduce((sum, p) => sum + p.amount, 0)
 	const overdueAmount = payments
-		.filter(p => p.status === 'overdue')
+		.filter(p => p.status === 'failed')
 		.reduce((sum, p) => sum + p.amount + (p.lateFee || 0), 0)
 	const totalLateFees = payments.reduce((sum, p) => sum + (p.lateFee || 0), 0)
 
@@ -270,10 +288,11 @@ export function PaymentsDashboard({
 						className="px-4 py-2.5 text-sm bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 					>
 						<option value="all">All Status</option>
-						<option value="paid">Paid</option>
+						<option value="succeeded">Paid</option>
 						<option value="pending">Pending</option>
-						<option value="overdue">Overdue</option>
+						<option value="processing">Processing</option>
 						<option value="failed">Failed</option>
+						<option value="canceled">Canceled</option>
 					</select>
 					<select
 						value={dateRange}
@@ -324,7 +343,7 @@ export function PaymentsDashboard({
 									<BlurFade key={payment.id} delay={0.02 * idx} inView>
 										<tr
 											onClick={() => onView?.(payment.id)}
-											className={`hover:bg-muted/50 cursor-pointer ${payment.status === 'overdue' ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}
+											className={`hover:bg-muted/50 cursor-pointer ${payment.status === 'failed' ? 'bg-red-50/50 dark:bg-red-950/20' : ''}`}
 										>
 											<td className="px-6 py-4">
 												<div className="flex items-center gap-3">

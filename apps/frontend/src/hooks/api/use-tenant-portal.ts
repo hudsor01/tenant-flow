@@ -382,7 +382,7 @@ export const tenantPortalQueries = {
 						due_date: nextPayment.due_date,
 						days_late: daysLate,
 						grace_period_days: 5,
-						already_paid: nextPayment.status === 'paid',
+						already_paid: nextPayment.status === 'succeeded',
 						breakdown: [
 							{ description: 'Base rent', amount_cents: nextPayment.amount_cents }
 						]
@@ -981,7 +981,7 @@ export function useTenantPortalDashboard() {
 			lease: lease.data,
 			payments: {
 				recent: payments.data?.payments.slice(0, 5) || [],
-				upcoming: payments.data?.payments.find(p => p.status === 'DUE') || null
+				upcoming: payments.data?.payments.find(p => p.status === 'pending') || null
 			},
 			maintenance: {
 				...maintenance.data?.summary,

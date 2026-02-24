@@ -187,7 +187,7 @@ async function processEvent(
       if (existingPayment) {
         const { error } = await supabase
           .from('rent_payments')
-          .update({ status: 'paid', paid_date: new Date().toISOString().split('T')[0] })
+          .update({ status: 'succeeded', paid_date: new Date().toISOString().split('T')[0] })
           .eq('stripe_payment_intent_id', pi.id)
         if (error) throw error
       } else {
@@ -198,7 +198,7 @@ async function processEvent(
             stripe_payment_intent_id: pi.id,
             amount: pi.amount / 100, // Stripe stores in cents
             currency: pi.currency.toUpperCase(),
-            status: 'paid',
+            status: 'succeeded',
             tenant_id: pi.metadata?.['tenant_id'] ?? '',
             lease_id: pi.metadata?.['lease_id'] ?? '',
             application_fee_amount: (pi.application_fee_amount ?? 0) / 100,
