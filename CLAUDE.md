@@ -47,13 +47,13 @@ Before creating anything new, search first:
 ```bash
 rg "TypeName" packages/shared/src/types/     # Types
 rg "ComponentName" apps/frontend/src/        # Components
-rg "functionName" apps/backend/src/          # Backend functions
+rg "functionName" supabase/functions/        # Edge Functions
 ```
 
 Consolidate code reused ≥2 places into:
 - Types → `packages/shared/src/types/`
 - Hooks → `apps/frontend/src/hooks/`
-- Utilities → `apps/frontend/src/lib/` or `apps/backend/src/shared/`
+- Utilities → `apps/frontend/src/lib/` or `supabase/functions/_shared/`
 
 ### KISS (Keep It Simple)
 - Prefer simple, readable solutions over clever abstractions
@@ -154,18 +154,6 @@ if (error) {
 }
 ```
 
-### API Base URL (Single Source of Truth)
-
-```typescript
-// ✅ CORRECT - Import from centralized constant
-import { API_BASE_URL } from '@/lib/api-client';
-
-// ❌ WRONG - Duplicate inline fallback
-const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600';
-```
-
-All backend routes use `/api/v1/` prefix (configured in `apps/backend/src/main.ts`).
-
 ## Project Overview
 TenantFlow is a multi-tenant property management SaaS platform. Property managers and owners can manage properties, tenants, leases, maintenance requests, payments, and financial reporting.
 
@@ -181,34 +169,15 @@ TenantFlow is a multi-tenant property management SaaS platform. Property manager
 ```
 apps/
 ├── frontend/          # Next.js app (Vercel, localhost:3050)
-├── backend/           # NestJS API (Railway, localhost:4650)
+├── integration-tests/ # Supabase RLS tests (Jest)
 └── e2e-tests/         # Playwright tests
 packages/
 ├── shared/            # Types, utilities, validation schemas
 └── typescript-config/ # Shared TSConfig
 supabase/
+├── functions/         # Edge Functions (Stripe, PDF, DocuSeal, invitations)
 ├── migrations/        # SQL migrations (timestamp-prefixed)
 └── seed.sql          # Seed data
-```
-
-### Backend Structure (NestJS)
-```
-apps/backend/src/
-├── modules/           # Domain modules (flat, no sub-modules)
-│   ├── properties/
-│   │   ├── properties.controller.ts
-│   │   ├── properties.service.ts
-│   │   └── properties.module.ts
-│   ├── tenants/
-│   ├── leases/
-│   ├── maintenance/
-│   └── billing/
-├── shared/            # Global shared code (@Global() module)
-│   ├── auth/          # Guards, strategies
-│   ├── middleware/    # Security headers, rate limiting
-│   └── shared.module.ts
-├── database/          # Supabase client and services
-└── app.module.ts
 ```
 
 ### Frontend Structure (Next.js)
@@ -234,7 +203,6 @@ apps/frontend/src/
 ```bash
 pnpm dev                              # Start all services
 pnpm --filter @repo/frontend dev      # Frontend only (localhost:3050)
-pnpm --filter @repo/backend dev       # Backend only (localhost:4650)
 ```
 
 ### Quality Checks
@@ -248,15 +216,13 @@ pnpm lint:fix                         # Auto-fix lint issues
 ```bash
 # Unit Tests
 pnpm test:unit                        # All unit tests
-pnpm test:unit:backend                # Backend only (Jest)
 pnpm test:unit:frontend               # Frontend only (Vitest)
 
 # Single test file
-pnpm --filter @repo/backend test:unit -- --testPathPattern="properties.service"
 pnpm --filter @repo/frontend test:unit src/hooks/__tests__/use-tenant.test.ts
 
-# Integration Tests
-pnpm test:integration                 # Backend integration tests
+# Integration Tests (Supabase RLS)
+pnpm test:integration                 # RLS isolation tests (apps/integration-tests/)
 
 # E2E Tests
 pnpm test:e2e                         # All E2E tests (Playwright)
@@ -291,115 +257,6 @@ pnpm db:reset                         # Reset local database
 ```bash
 pnpm validate:quick                   # DB types + Typecheck + Lint + Unit tests
 pnpm validate                         # DB types + Full validation suite
-```
-
-## Backend Patterns
-### Ultra-Native NestJS Philosophy
-Use official @nestjs/* packages directly. **Never create custom abstractions**.
-
-**ALLOWED:**
-- Official @nestjs/* packages
-- Built-in pipes: `ParseUUIDPipe`, `ParseIntPipe`, `ValidationPipe`
-- Built-in guards and interceptors
-- Built-in exceptions
-
-**FORBIDDEN:**
-- Custom service layers, repositories, custom DTOs
-- Custom decorators (`@CurrentUserId`, `@CurrentContext`)
-- Custom validation pipes, interceptors
-- Wrappers, helpers, factories, builders
-
-### Zod DTO Pattern
-All DTOs use `nestjs-zod` wrapping shared Zod schemas (single source of truth):
-
-```typescript
-// packages/shared/src/validation/properties.ts
-export const propertyCreateSchema = z.object({
-  name: z.string().min(1),
-  address: z.string().min(1),
-  type: propertyTypeSchema,
-});
-
-// apps/backend/src/modules/properties/dto/create-property.dto.ts
-import { createZodDto } from 'nestjs-zod';
-import { propertyCreateSchema } from '@repo/shared/validation/properties';
-
-export class CreatePropertyDto extends createZodDto(propertyCreateSchema) {}
-```
-
-**Benefits:**
-- Single source of truth for validation (shared between frontend/backend)
-- Automatic type inference from schema
-- Automatic OpenAPI/Swagger documentation
-- Consistent error messages
-
-### Route Ordering (CRITICAL)
-
-NestJS matches routes top-to-bottom (first match wins). **Static routes MUST come before dynamic routes**:
-
-```typescript
-@Controller('properties')
-export class PropertiesController {
-  // ✅ CORRECT ORDER: Static routes first
-
-  @Get('stats')      // /properties/stats - FIRST
-  getStats() {}
-
-  @Get('summary')    // /properties/summary - SECOND
-  getSummary() {}
-
-  @Get(':id')        // /properties/:id - LAST (catches all)
-  findOne(@Param('id') id: string) {}
-}
-```
-
-**Why this matters**: If `:id` comes first, requests to `/properties/stats` would match `:id` with `id = "stats"`, causing 404 or wrong data.
-
-**Common mistakes**:
-- ❌ Putting `@Get(':id')` before `@Get('export')` - export requests fail
-- ❌ Alphabetizing methods - breaks route matching
-- ✅ Order by specificity: most specific (static) → least specific (dynamic)
-
-### Controller Pattern
-
-```typescript
-@Controller('properties')
-export class PropertiesController {
-  constructor(private readonly propertiesService: PropertiesService) {}
-
-  @Get()
-  @UseGuards(JwtAuthGuard)
-  async findAll(@Request() req: AuthenticatedRequest) {
-    return this.propertiesService.findAll(req.user.id);
-  }
-
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  async create(
-    @Body(new ValidationPipe()) dto: CreatePropertyDto,
-    @Request() req: AuthenticatedRequest
-  ) {
-    return this.propertiesService.create(dto, req.user.id);
-  }
-}
-```
-
-### Service Pattern
-
-```typescript
-@Injectable()
-export class PropertiesService {
-  constructor(private readonly supabase: SupabaseService) {}
-
-  async findAll(userId: string) {
-    const { data, error } = await this.supabase
-      .getClient()
-      .rpc('get_user_properties', { user_id: userId });
-
-    if (error) throw new NotFoundException('Properties not found');
-    return data;
-  }
-}
 ```
 
 ## Frontend Patterns
@@ -589,9 +446,8 @@ comment on constraint maintenance_requests_status_check on maintenance_requests 
 
 ## Testing
 
-- **Backend unit tests** (`*.spec.ts`): Co-located with source, use Jest, mock Supabase/Stripe/Email
 - **Frontend unit tests** (`__tests__/*.test.ts`): Use Vitest, test hooks and utilities
-- **Integration tests** (`test/integration/*.integration.spec.ts`): Test with real database
+- **Integration tests** (`apps/integration-tests/`): Supabase RLS cross-tenant isolation tests (Jest)
 - **E2E tests** (`apps/e2e-tests/`): Playwright tests for full user flows
 - Use `SilentLogger` for clean test output
 - Test happy paths AND error scenarios
@@ -610,9 +466,7 @@ See `.claude/rules/ui-ux-standards.md` for complete guide. Key rules: touch targ
 | `apps/frontend/src/components/ui/` | ShadCN UI components |
 | `apps/frontend/src/hooks/api/` | TanStack Query hooks |
 | `apps/frontend/src/stores/` | Zustand stores |
-| `apps/frontend/src/lib/api-client.ts` | API base URL constant |
-| `apps/backend/src/modules/` | NestJS domain modules |
-| `apps/backend/src/shared/` | Global shared module |
+| `supabase/functions/` | Edge Functions (Stripe, PDF, DocuSeal, invitations) |
 | `packages/shared/src/types/` | All TypeScript types |
 | `supabase/migrations/` | Database migrations |
 | `.claude/rules/` | Additional coding rules |
@@ -668,25 +522,8 @@ claude mcp add --transport http vercel https://mcp.vercel.com
 - Resend MCP: https://resend.com/docs/knowledge-base/mcp-server
 - DocuSeal MCP: https://github.com/rocketify-fr/docuseal-mcp-server
 
-## Best Practices Reference
-
-For v3.0 architectural patterns, see inline comments in source files and ADRs:
-
-| Pattern | Source File | ADR |
-|---------|-------------|-----|
-| Supabase three-tier clients | `database/supabase.module.ts` | ADR-0004 |
-| User client pool | `database/supabase-user-client-pool.ts` | ADR-0004 |
-| RPC guidelines | `database/supabase-rpc.service.ts` | ADR-0005 |
-| API response standards | `app.module.ts` header | ADR-0006 |
-| Module architecture | `app.module.ts` header | ADR-0007 |
-| Performance baselines | `app.module.ts` header | ADR-0008 |
-
-**ADRs location:** `.planning/adr/`
-
 ## Common Gotchas
 
-- **Route order**: Static routes before dynamic (backend)
-- **Guards before pipes**: Auth runs before validation (backend)
 - **`'use client'`**: Only add when needed (hooks, events, browser APIs)
 - **Query keys**: Must be deterministic and unique
 - **Shared types**: Run `pnpm build:shared` before frontend if types change

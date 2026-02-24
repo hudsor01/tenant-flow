@@ -82,9 +82,9 @@ async function main(): Promise<void> {
 	)
 
 	check(
-		'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-		!!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-		'Missing NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY - required for auth'
+		'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+		!!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+		'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY - required for auth'
 	)
 
 	// Optional but useful
@@ -99,7 +99,7 @@ async function main(): Promise<void> {
 	console.log('\n🔐 Supabase Authentication\n')
 
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+	const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 	const email = process.env.E2E_OWNER_EMAIL
 	const password = process.env.E2E_OWNER_PASSWORD
 
@@ -141,11 +141,8 @@ async function main(): Promise<void> {
 	console.log('\n🌐 Server Connectivity (optional - Playwright auto-starts)\n')
 
 	const frontendUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'
-	const backendUrl =
-		process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4650'
 
 	await checkUrl('Frontend', frontendUrl, true)
-	await checkUrl('Backend Health', `${backendUrl}/health/ping`, true)
 
 	// === Print Results ===
 	console.log('\n' + '='.repeat(60))
