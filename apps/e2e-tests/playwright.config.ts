@@ -29,7 +29,7 @@ const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
 
 // Local Supabase configuration (from .env.test)
 const LOCAL_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
-const LOCAL_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+const LOCAL_SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
 const LOCAL_SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 // Auth state file paths (official Playwright pattern)
@@ -261,7 +261,7 @@ export default defineConfig({
 		{
 			// Frontend: rm -rf .next ensures fresh build with correct env vars
 			// rm .env.local prevents production config from overriding test config
-			command: `cd apps/frontend && rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_ANON_KEY='${LOCAL_SUPABASE_ANON_KEY}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
+			command: `cd apps/frontend && rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_PUBLISHABLE_KEY}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
@@ -270,7 +270,7 @@ export default defineConfig({
 			cwd: path.resolve(__dirname, '../..'),
 			env: {
 				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
-				NEXT_PUBLIC_SUPABASE_ANON_KEY: LOCAL_SUPABASE_ANON_KEY
+				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_PUBLISHABLE_KEY
 			}
 		}
 	],

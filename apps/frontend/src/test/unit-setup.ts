@@ -25,8 +25,8 @@ process.env.NEXT_PUBLIC_APP_URL =
 	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 process.env.NEXT_PUBLIC_SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY =
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-anon-key'
+process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-anon-key'
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
 	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
 process.env.NEXT_PUBLIC_JWT_ALGORITHM =
