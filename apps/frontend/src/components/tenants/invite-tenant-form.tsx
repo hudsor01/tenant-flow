@@ -49,7 +49,6 @@ export function InviteTenantForm({
 	const inviteTenantMutation = useMutation({
 		mutationFn: async (_payload: InviteTenantRequest) => {
 			// TODO(phase-57): Tenant invitation email requires Edge Function implementation
-			// The NestJS backend /api/v1/tenants/invite has been removed.
 			throw new Error('Tenant invitation email requires Edge Function implementation')
 		},
 		onSuccess: async () => {
