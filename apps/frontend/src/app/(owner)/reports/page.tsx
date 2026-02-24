@@ -5,9 +5,9 @@ import {
 	useFinancialReport,
 	useMaintenanceReport,
 	usePropertyReport,
-	useTenantReport
+	useTenantReport,
+	callGeneratePdfFromHtml
 } from '#hooks/api/use-reports'
-import { apiRequestRaw } from '#lib/api-request'
 import { BarChart3, FileText, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
@@ -26,6 +26,47 @@ import {
 } from '#components/ui/empty'
 import { Download } from 'lucide-react'
 import { getDefaultDateRange } from '#components/reports/reports-utils'
+
+/* eslint-disable color-tokens/no-hex-colors -- PDF HTML content uses inline styles intentionally; not rendered by the browser */
+function buildReportPdfHtml(
+	title: string,
+	startDate: string,
+	endDate: string,
+	payload: unknown
+): string {
+	const rows = payload !== null && typeof payload === 'object'
+		? Object.entries(payload as Record<string, unknown>)
+		: []
+	const tableRows = rows
+		.map(([key, value]) => {
+			const displayValue = value === null || value === undefined
+				? ''
+				: typeof value === 'object'
+					? JSON.stringify(value)
+					: String(value)
+			return `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500">${key}</td><td style="border:1px solid #ccc;padding:6px 10px">${displayValue}</td></tr>`
+		})
+		.join('')
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+</head>
+<body style="font-family:Arial,sans-serif;margin:32px;color:#222">
+  <h1 style="font-size:20px;margin-bottom:4px">${title}</h1>
+  <p style="color:#666;font-size:13px;margin-bottom:16px">Period: ${startDate} to ${endDate} &mdash; Generated: ${new Date().toLocaleDateString()}</p>
+  <table style="border-collapse:collapse;width:100%;font-size:13px">
+    <thead><tr>
+      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Metric</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Value</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+</body>
+</html>`
+}
+/* eslint-enable color-tokens/no-hex-colors */
 
 export default function ReportsPage() {
 	const defaultRange = useMemo(() => getDefaultDateRange(), [])
@@ -54,27 +95,9 @@ export default function ReportsPage() {
 	) => {
 		setIsExporting(reportKey)
 		try {
-			const response = await apiRequestRaw('/api/v1/reports/export/pdf', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({
-					title,
-					filename: `${reportKey}-${startDate}-${endDate}`,
-					payload
-				})
-			})
-
-			const blob = await response.blob()
-			const url = window.URL.createObjectURL(blob)
-			const link = document.createElement('a')
-			link.href = url
-			link.download = `${reportKey}-${startDate}-${endDate}.pdf`
-			document.body.appendChild(link)
-			link.click()
-			document.body.removeChild(link)
-			setTimeout(() => window.URL.revokeObjectURL(url), 100)
+			const filename = `${reportKey}-${startDate}-${endDate}.pdf`
+			const html = buildReportPdfHtml(title, startDate, endDate, payload)
+			await callGeneratePdfFromHtml(html, filename)
 			toast.success('Report exported')
 		} catch {
 			toast.error('Failed to export report')

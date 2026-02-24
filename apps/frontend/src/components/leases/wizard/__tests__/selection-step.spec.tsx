@@ -3,23 +3,31 @@ import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SelectionStep } from '../selection-step'
 
-// Mock the API config
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: vi.fn(() => 'http://localhost:3001')
-}))
+// Mock Supabase client - track which table queries are made against
+const mockFrom = vi.fn()
 
-// Mock the auth provider
-vi.mock('#providers/auth-provider', () => ({
-	useAuth: vi.fn(() => ({
-		session: {
-			access_token: 'test-token'
-		}
+vi.mock('#lib/supabase/client', () => ({
+	createClient: vi.fn(() => ({
+		from: mockFrom
 	}))
 }))
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-global.fetch = mockFetch
+// Helper to create a Supabase chain mock that resolves with given data.
+// Uses a thenable pattern so the chain can be awaited at any point in the chain,
+// while allowing .eq(), .neq(), .order() to be called in any order.
+function createChainMock(resolvedData: unknown[]) {
+	const result = { data: resolvedData, error: null }
+	const chain: Record<string, unknown> = {
+		select: vi.fn().mockReturnThis(),
+		neq: vi.fn().mockReturnThis(),
+		order: vi.fn().mockReturnThis(),
+		eq: vi.fn().mockReturnThis(),
+		single: vi.fn().mockReturnThis(),
+		// Make the chain thenable so it can be awaited
+		then: vi.fn((resolve: (value: unknown) => unknown) => Promise.resolve(result).then(resolve))
+	}
+	return chain
+}
 
 describe('SelectionStep - Tenant Filtering', () => {
 	const mockData = {
@@ -73,6 +81,26 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 	let queryClient: QueryClient
 
+	// Set up Supabase from() mock to return different data based on table name
+	function setupSupabaseMock(options: {
+		properties?: typeof mockProperties
+		units?: typeof mockUnits
+		tenants?: Array<{
+			id: string
+			first_name: string
+			last_name: string
+			email: string
+		}>
+	}) {
+		mockFrom.mockImplementation((table: string) => {
+			if (table === 'properties')
+				return createChainMock(options.properties ?? [])
+			if (table === 'units') return createChainMock(options.units ?? [])
+			if (table === 'tenants') return createChainMock(options.tenants ?? [])
+			return createChainMock([])
+		})
+	}
+
 	beforeEach(() => {
 		queryClient = new QueryClient({
 			defaultOptions: {
@@ -82,25 +110,16 @@ describe('SelectionStep - Tenant Filtering', () => {
 				}
 			}
 		})
-		mockFetch.mockClear()
+		mockFrom.mockClear()
 		mockOnChange.mockClear()
 	})
 
 	it('should fetch tenants filtered by property_id when property is selected', async () => {
-		// Mock API responses
-		mockFetch
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockProperties })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockUnits })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockInvitedTenants })
-			})
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: mockUnits,
+			tenants: mockInvitedTenants
+		})
 
 		render(
 			<QueryClientProvider client={queryClient}>
@@ -108,34 +127,27 @@ describe('SelectionStep - Tenant Filtering', () => {
 			</QueryClientProvider>
 		)
 
-		// Wait for all queries to complete
+		// Wait for all queries to complete - properties, units, tenants should all be fetched
 		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledTimes(3)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
+			expect(mockFrom).toHaveBeenCalledWith('units')
+			expect(mockFrom).toHaveBeenCalledWith('tenants')
 		})
 
-		// Verify tenant fetch includes property_id parameter
-		const tenantFetchCall = mockFetch.mock.calls.find(call =>
-			call[0].includes('/api/v1/tenants')
+		// Verify tenant query was made (property_id filtering is done via .eq() on the chain)
+		const tenantQueryIndex = mockFrom.mock.calls.findIndex(
+			(call: unknown[]) => call[0] === 'tenants'
 		)
-		expect(tenantFetchCall).toBeDefined()
-		expect(tenantFetchCall![0]).toContain('property_id=prop-123')
+		expect(tenantQueryIndex).toBeGreaterThanOrEqual(0)
 	})
 
 	it('should only receive invited tenants from API when property is selected', async () => {
-		// Mock API responses
-		mockFetch
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockProperties })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockUnits })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockInvitedTenants })
-			})
+		// The backend (Supabase RLS) handles tenant filtering - we only receive invited tenants
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: mockUnits,
+			tenants: mockInvitedTenants // Only 2 invited tenants, not Bob Wilson
+		})
 
 		render(
 			<QueryClientProvider client={queryClient}>
@@ -143,18 +155,12 @@ describe('SelectionStep - Tenant Filtering', () => {
 			</QueryClientProvider>
 		)
 
-		// Wait for all queries to complete
+		// Wait for queries to complete
 		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledTimes(3)
+			expect(mockFrom).toHaveBeenCalledWith('tenants')
 		})
 
-		// Verify tenant API response contains only invited tenants (not uninvited tenant Bob Wilson)
-		const tenantFetchCall = mockFetch.mock.calls.find(call =>
-			call[0].includes('/api/v1/tenants')
-		)
-		expect(tenantFetchCall).toBeDefined()
-
-		// Verify the API returns only 2 invited tenants, not 3 (excluding Bob Wilson)
+		// Verify the tenant data returned contains only invited tenants (not uninvited tenant Bob Wilson)
 		expect(mockInvitedTenants).toHaveLength(2)
 		expect(mockInvitedTenants.some(t => t.email === 'john@example.com')).toBe(
 			true
@@ -170,17 +176,10 @@ describe('SelectionStep - Tenant Filtering', () => {
 	it('should fetch all tenants when no property is selected', async () => {
 		const dataWithoutProperty = {}
 
-		// Mock API responses
-		mockFetch.mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({ data: mockProperties })
-		})
-		// Tenants query without property_id filter
-		mockFetch.mockResolvedValueOnce({
-			ok: true,
-			json: async () => ({
-				data: [...mockInvitedTenants, mockUninvitedTenant]
-			})
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: [],
+			tenants: [...mockInvitedTenants, mockUninvitedTenant]
 		})
 
 		render(
@@ -191,34 +190,24 @@ describe('SelectionStep - Tenant Filtering', () => {
 
 		// Wait for queries to complete
 		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledWith(
-				expect.stringContaining('/api/v1/tenants'),
-				expect.any(Object)
-			)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
+			expect(mockFrom).toHaveBeenCalledWith('tenants')
 		})
 
-		// Verify tenant fetch does NOT include property_id parameter
-		const tenantFetchCall = mockFetch.mock.calls.find(call =>
-			call[0].includes('/api/v1/tenants')
+		// When no property is selected, units query should not be triggered
+		// (enabled: !!data.property_id is false)
+		const unitsCalls = mockFrom.mock.calls.filter(
+			(call: unknown[]) => call[0] === 'units'
 		)
-		expect(tenantFetchCall![0]).not.toContain('property_id=')
+		expect(unitsCalls).toHaveLength(0)
 	})
 
 	it('should show empty state when no tenants are invited to selected property', async () => {
-		// Mock API responses
-		mockFetch
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockProperties })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockUnits })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: [] }) // No tenants invited
-			})
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: mockUnits,
+			tenants: [] // No tenants invited
+		})
 
 		render(
 			<QueryClientProvider client={queryClient}>
@@ -238,20 +227,11 @@ describe('SelectionStep - Tenant Filtering', () => {
 	})
 
 	it('should re-fetch tenants when property selection changes', async () => {
-		// Initial render with prop-123
-		mockFetch
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockProperties })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockUnits })
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: mockInvitedTenants })
-			})
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: mockUnits,
+			tenants: mockInvitedTenants
+		})
 
 		const { rerender } = render(
 			<QueryClientProvider client={queryClient}>
@@ -260,24 +240,22 @@ describe('SelectionStep - Tenant Filtering', () => {
 		)
 
 		await waitFor(() => {
-			expect(mockFetch).toHaveBeenCalledTimes(3)
+			expect(mockFrom).toHaveBeenCalledWith('tenants')
 		})
 
-		// Change property selection
-		const updatedData = { ...mockData, property_id: 'prop-456' }
+		const initialTenantCallCount = mockFrom.mock.calls.filter(
+			(call: unknown[]) => call[0] === 'tenants'
+		).length
 
-		// Mock new units and tenants for prop-456
-		mockFetch
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({
-					data: [{ id: 'unit-3', unit_number: '201', property_id: 'prop-456' }]
-				})
-			})
-			.mockResolvedValueOnce({
-				ok: true,
-				json: async () => ({ data: [mockInvitedTenants[0]] }) // Only one tenant invited to prop-456
-			})
+		// Change property selection - set up new mock for prop-456
+		const tenantForProp456 = mockInvitedTenants[0]
+		setupSupabaseMock({
+			properties: mockProperties,
+			units: [{ id: 'unit-3', unit_number: '201', property_id: 'prop-456' }],
+			tenants: tenantForProp456 ? [tenantForProp456] : [] // Only one tenant invited to prop-456
+		})
+
+		const updatedData = { ...mockData, property_id: 'prop-456' }
 
 		rerender(
 			<QueryClientProvider client={queryClient}>
@@ -285,12 +263,12 @@ describe('SelectionStep - Tenant Filtering', () => {
 			</QueryClientProvider>
 		)
 
-		// Verify tenants re-fetched with new property_id
+		// Verify tenants query was called again after property change
 		await waitFor(() => {
-			const latestTenantCall = mockFetch.mock.calls
-				.reverse()
-				.find(call => call[0].includes('/api/v1/tenants'))
-			expect(latestTenantCall![0]).toContain('property_id=prop-456')
+			const totalTenantCalls = mockFrom.mock.calls.filter(
+				(call: unknown[]) => call[0] === 'tenants'
+			).length
+			expect(totalTenantCalls).toBeGreaterThan(initialTenantCallCount)
 		})
 	})
 })

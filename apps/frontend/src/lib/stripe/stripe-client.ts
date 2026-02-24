@@ -3,7 +3,6 @@
  * CLAUDE.md compliant - Native platform integration
  */
 import { loadStripe, type Stripe } from '@stripe/stripe-js'
-import { API_BASE_URL } from '#lib/api-config'
 import { createClient } from '#lib/supabase/client'
 import { ERROR_MESSAGES } from '#lib/constants/error-messages'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -46,7 +45,7 @@ interface CreateCheckoutSessionResponse {
 }
 
 /**
- * Create a Stripe checkout session via NestJS backend
+ * Create a Stripe checkout session via Supabase Edge Function
  */
 export async function createCheckoutSession(
 	request: CreateCheckoutSessionRequest
@@ -73,11 +72,11 @@ export async function createCheckoutSession(
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
 
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(
-		`${API_BASE_URL}/api/v1/stripe/create-checkout-session`,
+		`${supabaseUrl}/functions/v1/stripe-checkout`,
 		{
 			method: 'POST',
-			credentials: 'include',
 			headers,
 			body: JSON.stringify({
 				priceId: request.priceId,
@@ -173,13 +172,14 @@ export async function createPaymentIntent({
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
 
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(
-		`${API_BASE_URL}/api/v1/stripe/create-payment-intent`,
+		`${supabaseUrl}/functions/v1/stripe-connect`,
 		{
 			method: 'POST',
-			credentials: 'include',
 			headers,
 			body: JSON.stringify({
+				action: 'create-payment-intent',
 				amount,
 				currency,
 				metadata,
@@ -226,13 +226,12 @@ export async function createCustomerPortalSession(
 		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)
 	}
 
-	// Call backend API - it will fetch stripe_customer_id server-side
-	// This avoids client-side database queries and 403 errors
+	// Call stripe-billing-portal Edge Function
+	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(
-		`${API_BASE_URL}/api/v1/stripe/create-billing-portal`,
+		`${supabaseUrl}/functions/v1/stripe-billing-portal`,
 		{
 			method: 'POST',
-			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
 				Authorization: `Bearer ${session.access_token}`

@@ -1,5 +1,5 @@
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 
 const logger = createLogger({ component: 'TourProgress' })
 
@@ -70,22 +70,60 @@ export async function getTourProgress(tourKey: TourKey): Promise<TourProgress> {
 	}
 
 	try {
-		const progress = await apiRequest<TourProgress>(
-			`/api/v1/users/tours/${tourKey}`
-		)
-		// Sync completion status to localStorage
+		const supabase = createClient()
+		const {
+			data: { user }
+		} = await supabase.auth.getUser()
+		if (!user) throw new Error('Not authenticated')
+
+		const { data, error } = await supabase
+			.from('user_tour_progress')
+			.select(
+				'tour_key, status, current_step, completed_at, skipped_at, last_seen_at'
+			)
+			.eq('user_id', user.id)
+			.eq('tour_key', tourKey)
+			.maybeSingle()
+
+		if (error) throw error
+
+		if (!data) {
+			// No record yet — return default not_started
+			return {
+				tour_key: tourKey,
+				status: 'not_started',
+				current_step: 0,
+				completed_at: null,
+				skipped_at: null,
+				last_seen_at: null
+			}
+		}
+
+		const progress: TourProgress = {
+			tour_key: data.tour_key as TourKey,
+			status: data.status as TourStatus,
+			current_step: data.current_step ?? 0,
+			completed_at: data.completed_at,
+			skipped_at: data.skipped_at,
+			last_seen_at: data.last_seen_at
+		}
+
 		if (progress.status === 'completed' || progress.status === 'skipped') {
 			setLocalTourStatus(tourKey, progress.status)
 		}
+
 		return progress
 	} catch (error) {
-		logger.error('Failed to fetch tour progress', { tourKey, error })
-		// Return localStorage status as fallback, or default to completed
-		// to prevent broken tour from blocking UI
-		if (localStatus) {
+		logger.error('Failed to fetch tour progress', {
+			tourKey,
+			error
+		})
+		// Fall through to localStorage fallback
+		const localStatusFallback = getLocalTourStatus(tourKey)
+		if (localStatusFallback) {
 			return {
 				tour_key: tourKey,
-				status: localStatus,
+				status: localStatusFallback,
 				current_step: 0,
 				completed_at: null,
 				skipped_at: null,
@@ -106,12 +144,48 @@ export async function updateTourProgress(
 	}
 
 	try {
-		return await apiRequest<TourProgress>(`/api/v1/users/tours/${tourKey}`, {
-			method: 'PATCH',
-			body: JSON.stringify(update)
-		})
+		const supabase = createClient()
+		const {
+			data: { user }
+		} = await supabase.auth.getUser()
+		if (!user) throw new Error('Not authenticated')
+
+		const now = new Date().toISOString()
+		const { data, error } = await supabase
+			.from('user_tour_progress')
+			.upsert(
+				{
+					user_id: user.id,
+					tour_key: tourKey,
+					status: update.status ?? 'in_progress',
+					current_step: update.current_step ?? 0,
+					...(update.status === 'completed' ? { completed_at: now } : {}),
+					...(update.status === 'skipped' ? { skipped_at: now } : {}),
+					last_seen_at: now,
+					updated_at: now
+				},
+				{ onConflict: 'user_id,tour_key' }
+			)
+			.select(
+				'tour_key, status, current_step, completed_at, skipped_at, last_seen_at'
+			)
+			.single()
+
+		if (error) throw error
+
+		return {
+			tour_key: data.tour_key as TourKey,
+			status: data.status as TourStatus,
+			current_step: data.current_step ?? 0,
+			completed_at: data.completed_at,
+			skipped_at: data.skipped_at,
+			last_seen_at: data.last_seen_at
+		}
 	} catch (error) {
-		logger.error('Failed to update tour progress', { tourKey, error })
+		logger.error('Failed to update tour progress', {
+			tourKey,
+			error
+		})
 		// Return success from localStorage even if API fails
 		if (update.status === 'completed' || update.status === 'skipped') {
 			return {
@@ -136,15 +210,49 @@ export async function resetTourProgress(
 	setLocalTourStatus(tourKey, 'not_started')
 
 	try {
-		return await apiRequest<TourProgress>(
-			`/api/v1/users/tours/${tourKey}/reset`,
-			{
-				method: 'POST'
-			}
-		)
+		const supabase = createClient()
+		const {
+			data: { user }
+		} = await supabase.auth.getUser()
+		if (!user) throw new Error('Not authenticated')
+
+		const now = new Date().toISOString()
+		const { data, error } = await supabase
+			.from('user_tour_progress')
+			.upsert(
+				{
+					user_id: user.id,
+					tour_key: tourKey,
+					status: 'not_started',
+					current_step: 0,
+					completed_at: null,
+					skipped_at: null,
+					last_seen_at: now,
+					updated_at: now
+				},
+				{ onConflict: 'user_id,tour_key' }
+			)
+			.select(
+				'tour_key, status, current_step, completed_at, skipped_at, last_seen_at'
+			)
+			.single()
+
+		if (error) throw error
+
+		return {
+			tour_key: data.tour_key as TourKey,
+			status: data.status as TourStatus,
+			current_step: data.current_step ?? 0,
+			completed_at: data.completed_at,
+			skipped_at: data.skipped_at,
+			last_seen_at: data.last_seen_at
+		}
 	} catch (error) {
-		logger.error('Failed to reset tour progress', { tourKey, error })
-		// Return reset status from localStorage if API fails
+		logger.error('Failed to reset tour progress', {
+			tourKey,
+			error
+		})
+		// Return reset status if API fails
 		return {
 			tour_key: tourKey,
 			status: 'not_started',

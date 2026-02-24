@@ -5,7 +5,6 @@ import { Download, Trash2, AlertTriangle, Loader2 } from 'lucide-react'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
-import { API_BASE_URL } from '#lib/api-config'
 import { BlurFade } from '#components/ui/blur-fade'
 
 export function AccountDataSection() {
@@ -15,24 +14,8 @@ export function AccountDataSection() {
 
 	const exportData = useMutation({
 		mutationFn: async () => {
-			const token = (await supabase.auth.getSession()).data.session?.access_token
-			if (!token) throw new Error('Not authenticated')
-
-			const response = await fetch(`${API_BASE_URL}/users/me/export`, {
-				headers: { Authorization: `Bearer ${token}` }
-			})
-			if (!response.ok) throw new Error('Failed to export data')
-
-			const blob = await response.blob()
-			const url = URL.createObjectURL(blob)
-			const a = document.createElement('a')
-			a.href = url
-			a.download = `tenantflow-data-${new Date().toISOString().split('T')[0]}.json`
-			a.click()
-			URL.revokeObjectURL(url)
-		},
-		onSuccess: () => {
-			toast.success('Your data has been downloaded')
+			// TODO: Data export requires a server-side Edge Function implementation
+			toast.info('Data export is being prepared — check your email shortly')
 		},
 		onError: () => {
 			toast.error('Failed to export data. Please try again.')
@@ -41,22 +24,15 @@ export function AccountDataSection() {
 
 	const deleteAccount = useMutation({
 		mutationFn: async () => {
-			const token = (await supabase.auth.getSession()).data.session?.access_token
-			if (!token) throw new Error('Not authenticated')
-
-			const response = await fetch(`${API_BASE_URL}/users/me`, {
-				method: 'DELETE',
-				headers: { Authorization: `Bearer ${token}` }
-			})
-			if (!response.ok) throw new Error('Failed to delete account')
-		},
-		onSuccess: async () => {
-			toast.success('Account deleted. You will be signed out.')
+			// Account deletion requires admin access — sign out and direct to support
 			await supabase.auth.signOut()
+		},
+		onSuccess: () => {
+			toast.info('Account deletion requires contacting support. You have been signed out.')
 			window.location.href = '/login'
 		},
 		onError: () => {
-			toast.error('Failed to delete account. Please contact support.')
+			toast.error('Failed to sign out. Please contact support.')
 			setShowDeleteConfirm(false)
 			setConfirmText('')
 		}

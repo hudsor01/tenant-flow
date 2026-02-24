@@ -25,11 +25,12 @@ vi.mock('next/navigation', () => ({
 }))
 
 // Mock Supabase client
-vi.mock('#utils/supabase/client', () => ({
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
 		auth: {
 			signUp: vi.fn(),
-			signInWithPassword: vi.fn()
+			signInWithPassword: vi.fn(),
+			refreshSession: vi.fn()
 		}
 	})
 }))
@@ -202,10 +203,12 @@ describe('AcceptInvitePage', () => {
 
 			render(<AcceptInvitePage />)
 
+			// After NestJS removal (phase-57), the page calls the Supabase Edge Function
+			// instead of NestJS API: /functions/v1/tenant-invitation-validate
 			await waitFor(() => {
 				expect(mockFetch).toHaveBeenCalledWith(
-					expect.stringContaining('/api/v1/tenants/invitation/my-test-token'),
-					expect.objectContaining({ method: 'GET' })
+					expect.stringContaining('/functions/v1/tenant-invitation-validate'),
+					expect.objectContaining({ method: 'POST' })
 				)
 			})
 		})

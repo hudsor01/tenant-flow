@@ -18,9 +18,9 @@ import type { Unit } from '@repo/shared/types/core'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { useUser } from '#hooks/api/use-auth'
 import { toast } from 'sonner'
 
 // Import query keys from separate file to avoid circular dependency
@@ -150,18 +150,24 @@ export function usePrefetchUnitDetail(id: string) {
  */
 export function useCreateUnitMutation() {
 	const queryClient = useQueryClient()
-	const { data: user } = useUser()
 
 	return useMutation({
 		mutationKey: mutationKeys.units.create,
-		mutationFn: (data: UnitInput) =>
-			apiRequest<Unit>('/api/v1/units', {
-				method: 'POST',
-				body: JSON.stringify({
-					...data,
-					owner_user_id: user?.id
-				})
-			}),
+		mutationFn: async (data: UnitInput): Promise<Unit> => {
+			const supabase = createClient()
+			const { data: authData } = await supabase.auth.getUser()
+			const userId = authData.user?.id
+
+			const { data: created, error } = await supabase
+				.from('units')
+				.insert({ ...data, owner_user_id: userId })
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'units')
+
+			return created as Unit
+		},
 		onSuccess: _newUnit => {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
@@ -182,7 +188,7 @@ export function useUpdateUnitMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.units.update,
-		mutationFn: ({
+		mutationFn: async ({
 			id,
 			data,
 			version
@@ -190,11 +196,20 @@ export function useUpdateUnitMutation() {
 			id: string
 			data: UnitUpdate
 			version?: number
-		}) =>
-			apiRequest<Unit>(`/api/v1/units/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(version ? { ...data, version } : data)
-			}),
+		}): Promise<Unit> => {
+			const supabase = createClient()
+			const updatePayload = version ? { ...data, version } : { ...data }
+			const { data: updated, error } = await supabase
+				.from('units')
+				.update(updatePayload)
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'units')
+
+			return updated as Unit
+		},
 		onSuccess: updatedUnit => {
 			queryClient.setQueryData(
 				unitQueries.detail(updatedUnit.id).queryKey,
@@ -220,10 +235,15 @@ export function useDeleteUnitMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.units.delete,
-		mutationFn: (id: string) =>
-			apiRequest(`/api/v1/units/${id}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('units')
+				.update({ status: 'inactive' })
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'units')
+		},
 		onSuccess: (_result, deletedId) => {
 			queryClient.removeQueries({
 				queryKey: unitQueries.detail(deletedId).queryKey

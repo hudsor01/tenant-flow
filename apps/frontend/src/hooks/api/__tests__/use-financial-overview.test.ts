@@ -1,5 +1,8 @@
 /**
  * Financial Overview Hooks Tests
+ *
+ * Validates useFinancialOverview, useMonthlyMetrics, useExpenseSummary
+ * using Supabase RPC mocks (migrated from NestJS apiRequest in Phase 53).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -13,14 +16,20 @@ import {
 	useExpenseSummary
 } from '../use-financials'
 
-// Mock the api-request module
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn()
+// Mock Supabase client using vi.hoisted() to avoid initialization errors
+const { mockRpc, mockGetUser } = vi.hoisted(() => ({
+	mockRpc: vi.fn(),
+	mockGetUser: vi.fn()
 }))
 
-import { apiRequest } from '#lib/api-request'
-
-const mockApiRequest = vi.mocked(apiRequest)
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		rpc: mockRpc,
+		auth: {
+			getUser: mockGetUser
+		}
+	})
+}))
 
 function createWrapper() {
 	const queryClient = new QueryClient({
@@ -39,6 +48,7 @@ function createWrapper() {
 describe('useFinancialOverview', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 	})
 
 	afterEach(() => {
@@ -46,25 +56,15 @@ describe('useFinancialOverview', () => {
 	})
 
 	it('fetches financial overview data successfully', async () => {
-		const mockData = {
-			success: true,
-			data: {
-				overview: {
-					total_revenue: 500000,
-					total_expenses: 125000,
-					net_income: 375000,
-					accounts_receivable: 25000,
-					accounts_payable: 5000
-				},
-				highlights: [
-					{ label: 'Monthly Revenue', value: 41667, trend: 5.2 },
-					{ label: 'Operating Margin', value: 75, trend: 2.1 },
-					{ label: 'Occupancy Rate', value: 94, trend: 0.5 }
-				]
-			}
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockData)
+		mockRpc.mockResolvedValueOnce({
+			data: [
+				{
+					revenue: { yearly: 500000, monthly: 41667 },
+					units: { occupancy_rate: 94 }
+				}
+			],
+			error: null
+		})
 
 		const { result } = renderHook(() => useFinancialOverview(), {
 			wrapper: createWrapper()
@@ -74,12 +74,14 @@ describe('useFinancialOverview', () => {
 			expect(result.current.isSuccess).toBe(true)
 		})
 
-		expect(result.current.data).toEqual(mockData.data)
-		expect(mockApiRequest).toHaveBeenCalledWith('/api/v1/financials/overview')
+		expect(result.current.data?.overview?.total_revenue).toBe(500000)
+		expect(result.current.data?.overview?.accounts_receivable).toBe(41667)
+		expect(result.current.data?.highlights?.length).toBe(3)
+		expect(mockRpc).toHaveBeenCalledWith('get_dashboard_stats', { p_user_id: 'user-1' })
 	})
 
 	it('handles error state', async () => {
-		mockApiRequest.mockRejectedValueOnce(new Error('Network error'))
+		mockRpc.mockRejectedValueOnce(new Error('Network error'))
 
 		const { result } = renderHook(() => useFinancialOverview(), {
 			wrapper: createWrapper()
@@ -96,37 +98,18 @@ describe('useFinancialOverview', () => {
 describe('useMonthlyMetrics', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 	})
 
 	it('fetches monthly metrics data successfully', async () => {
-		const mockData = {
-			success: true,
+		mockRpc.mockResolvedValueOnce({
 			data: [
-				{
-					month: '2024-01',
-					revenue: 40000,
-					expenses: 10000,
-					net_income: 30000,
-					cash_flow: 30000
-				},
-				{
-					month: '2024-02',
-					revenue: 42000,
-					expenses: 11000,
-					net_income: 31000,
-					cash_flow: 31000
-				},
-				{
-					month: '2024-03',
-					revenue: 43000,
-					expenses: 10500,
-					net_income: 32500,
-					cash_flow: 32500
-				}
-			]
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockData)
+				{ timeframe: '2024-01', total_revenue: 40000, total_expenses: 10000, net_income: 30000 },
+				{ timeframe: '2024-02', total_revenue: 42000, total_expenses: 11000, net_income: 31000 },
+				{ timeframe: '2024-03', total_revenue: 43000, total_expenses: 10500, net_income: 32500 }
+			],
+			error: null
+		})
 
 		const { result } = renderHook(() => useMonthlyMetrics(), {
 			wrapper: createWrapper()
@@ -136,12 +119,14 @@ describe('useMonthlyMetrics', () => {
 			expect(result.current.isSuccess).toBe(true)
 		})
 
-		expect(result.current.data).toEqual(mockData.data)
 		expect(result.current.data?.length).toBe(3)
+		expect(result.current.data?.[0]?.month).toBe('2024-01')
+		expect(result.current.data?.[0]?.revenue).toBe(40000)
+		expect(result.current.data?.[0]?.cash_flow).toBe(30000)
 	})
 
 	it('returns empty array when no data', async () => {
-		mockApiRequest.mockResolvedValueOnce({ success: true, data: [] })
+		mockRpc.mockResolvedValueOnce({ data: [], error: null })
 
 		const { result } = renderHook(() => useMonthlyMetrics(), {
 			wrapper: createWrapper()
@@ -158,11 +143,11 @@ describe('useMonthlyMetrics', () => {
 describe('useExpenseSummary', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 	})
 
 	it('fetches expense summary with category breakdown', async () => {
-		const mockData = {
-			success: true,
+		mockRpc.mockResolvedValueOnce({
 			data: {
 				categories: [
 					{ category: 'maintenance', amount: 50000, percentage: 40 },
@@ -178,10 +163,9 @@ describe('useExpenseSummary', () => {
 				total_amount: 125000,
 				monthly_average: 10416,
 				year_over_year_change: -5.2
-			}
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockData)
+			},
+			error: null
+		})
 
 		const { result } = renderHook(() => useExpenseSummary(), {
 			wrapper: createWrapper()

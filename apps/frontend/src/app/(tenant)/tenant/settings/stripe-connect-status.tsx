@@ -12,11 +12,8 @@ import {
 	useConnectedAccount,
 	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { IdentityVerificationCard } from '#components/identity/identity-verification-card'
 import { ConnectOnboardingDialog } from './stripe-connect-onboarding'
-
-const stripeLogger = createLogger({ component: 'StripeConnectStatus' })
 
 export function StripeConnectStatus() {
 	const { data: account, isLoading, error } = useConnectedAccount()
@@ -92,31 +89,8 @@ export function StripeConnectStatus() {
 
 	const handleRefreshOnboarding = async () => {
 		try {
-			const result = await refreshOnboarding.mutateAsync()
-			if (result.success && result.data.onboardingUrl) {
-				// Validate URL scheme for security
-				try {
-					const url = new URL(result.data.onboardingUrl)
-					// Only allow HTTPS protocol for security
-					if (
-						url.protocol !== 'https:' ||
-						!url.hostname.includes('stripe.com')
-					) {
-						stripeLogger.error('Invalid or untrusted URL', {
-							metadata: { url: url.href }
-						})
-						return
-					}
-					// Open with security features
-					window.open(url.href, '_blank', 'noopener,noreferrer')
-					toast.success('Opening Stripe onboarding in new window')
-				} catch {
-					// Invalid URL, do nothing
-					stripeLogger.error('Invalid URL format', {
-						metadata: { url: result.data.onboardingUrl }
-					})
-				}
-			}
+			// Hook performs full-page redirect to Stripe onboarding URL automatically
+			await refreshOnboarding.mutateAsync()
 		} catch {
 			toast.error('Failed to refresh onboarding link')
 		}

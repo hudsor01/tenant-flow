@@ -1,3 +1,13 @@
+/**
+ * Tests for useTemplatePdf hook
+ *
+ * Note: After NestJS removal (phase-57), PDF preview and export are stubs.
+ * These tests validate the stub behavior pattern:
+ * - handlePreview debounces, then shows a stub error toast
+ * - handleExport sets isExporting, then shows a stub error toast
+ * - Cleanup revokes blob URLs and clears debounce timers
+ */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTemplatePdf } from './use-template-pdf'
@@ -77,23 +87,16 @@ describe('useTemplatePdf', () => {
 
 	describe('handlePreview', () => {
 		it('should debounce preview calls', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			// Call preview - should not immediately trigger fetch
+			// Call preview - should not immediately trigger error toast (debounced)
 			await act(async () => {
 				result.current.handlePreview()
 			})
 
-			expect(globalThis.fetch).not.toHaveBeenCalled()
+			expect(toast.error).not.toHaveBeenCalled()
 
 			// Advance timer past debounce delay
 			await act(async () => {
@@ -101,17 +104,11 @@ describe('useTemplatePdf', () => {
 				await Promise.resolve() // flush microtasks
 			})
 
-			expect(globalThis.fetch).toHaveBeenCalled()
+			// After debounce fires, the stub error should appear
+			expect(toast.error).toHaveBeenCalled()
 		})
 
 		it('should cancel previous debounced call when called again', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -131,31 +128,43 @@ describe('useTemplatePdf', () => {
 				result.current.handlePreview()
 			})
 
-			// Advance another half - still shouldn't trigger
+			// Advance another half - still shouldn't trigger (timer was reset)
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
 			})
 
-			expect(globalThis.fetch).not.toHaveBeenCalled()
+			expect(toast.error).not.toHaveBeenCalled()
 
-			// Advance remaining time
+			// Advance remaining time - now the second call fires
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
 				await Promise.resolve()
 			})
 
-			// Only one fetch call should have been made
-			expect(globalThis.fetch).toHaveBeenCalledTimes(1)
+			// Only one toast call should have been made (deduplicated)
+			expect(vi.mocked(toast.error).mock.calls.length).toBe(1)
 		})
 
-		it('should set isGeneratingPreview to true during preview', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
+		it('should show stub error toast on preview attempt', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
 
+			await act(async () => {
+				result.current.handlePreview()
+				vi.advanceTimersByTime(DEBOUNCE_DELAY)
+				await Promise.resolve()
+			})
+
+			// Stub shows error toast with the stub message
+			expect(toast.error).toHaveBeenCalledWith(
+				'PDF preview requires StirlingPDF Edge Function implementation'
+			)
+			// previewUrl remains null since stub throws
+			expect(result.current.previewUrl).toBeNull()
+		})
+
+		it('should reset isGeneratingPreview after preview attempt', async () => {
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -164,7 +173,7 @@ describe('useTemplatePdf', () => {
 				result.current.handlePreview()
 			})
 
-			// Before debounce, isGeneratingPreview should be false
+			// Before debounce fires, isGeneratingPreview is false
 			expect(result.current.isGeneratingPreview).toBe(false)
 
 			// After debounce timer fires
@@ -173,228 +182,59 @@ describe('useTemplatePdf', () => {
 				await Promise.resolve()
 			})
 
-			// After completion, isGeneratingPreview should be false
+			// After stub throws, isGeneratingPreview should be false again
 			expect(result.current.isGeneratingPreview).toBe(false)
-		})
-
-		it('should create blob URL and show success toast on success', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob)
-			expect(result.current.previewUrl).toBe('blob:mock-url')
-			expect(toast.success).toHaveBeenCalledWith('PDF preview generated')
-		})
-
-		it('should show error toast on failure', async () => {
-			const mockError = new Error('Network error')
-			vi.spyOn(globalThis, 'fetch').mockRejectedValue(mockError)
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			expect(result.current.previewUrl).toBeNull()
-			expect(toast.error).toHaveBeenCalledWith('Network error')
-		})
-
-		it('should revoke previous URL when creating new preview', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			mockCreateObjectURL
-				.mockReturnValueOnce('blob:first-url')
-				.mockReturnValueOnce('blob:second-url')
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			// First preview
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			expect(result.current.previewUrl).toBe('blob:first-url')
-
-			// Second preview should revoke first
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:first-url')
-			expect(result.current.previewUrl).toBe('blob:second-url')
-		})
-
-		it('should call getPayload to get current form data', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			expect(mockGetPayload).toHaveBeenCalled()
 		})
 	})
 
 	describe('handleExport', () => {
-		it('should set isExporting to true during export', async () => {
-			const mockResponse = {
-				ok: true,
-				text: vi.fn().mockResolvedValue(JSON.stringify({
-					downloadUrl: 'https://storage.example.com/file.pdf'
-				}))
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
+		it('should set isExporting to false after export completes', async () => {
+			// Note: Since the stub throws synchronously, React may batch the
+			// setIsExporting(true) and setIsExporting(false) updates together,
+			// making it impossible to observe the intermediate 'true' state.
+			// We verify the final state (false) after completion.
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			let exportPromise: Promise<void>
-			act(() => {
-				exportPromise = result.current.handleExport()
+			await act(async () => {
+				await result.current.handleExport()
 			})
 
-			expect(result.current.isExporting).toBe(true)
+			// After the stub throws and finally runs, isExporting should be false
+			expect(result.current.isExporting).toBe(false)
+		})
+
+		it('should show stub error toast on export attempt', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
 
 			await act(async () => {
-				await exportPromise
+				await result.current.handleExport()
+			})
+
+			// Stub shows error toast with the stub message
+			expect(toast.error).toHaveBeenCalledWith(
+				'PDF export requires StirlingPDF Edge Function implementation'
+			)
+		})
+
+		it('should reset isExporting to false after export attempt', async () => {
+			const { result } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			await act(async () => {
+				await result.current.handleExport()
 			})
 
 			expect(result.current.isExporting).toBe(false)
 		})
-
-		it('should open download URL in new window on success', async () => {
-			const downloadUrl = 'https://storage.example.com/file.pdf'
-			const mockResponse = {
-				ok: true,
-				text: vi.fn().mockResolvedValue(JSON.stringify({ downloadUrl }))
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				await result.current.handleExport()
-			})
-
-			expect(mockWindowOpen).toHaveBeenCalledWith(
-				downloadUrl,
-				'_blank',
-				'noopener,noreferrer'
-			)
-			expect(toast.success).toHaveBeenCalledWith('Document PDF exported')
-		})
-
-		it('should show error toast when no download URL returned', async () => {
-			const mockResponse = {
-				ok: true,
-				text: vi.fn().mockResolvedValue(JSON.stringify({}))
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				await result.current.handleExport()
-			})
-
-			expect(toast.error).toHaveBeenCalledWith(
-				'Export failed to return a download URL'
-			)
-		})
-
-		it('should show error toast on network failure', async () => {
-			vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('Network error'))
-
-			const { result } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				await result.current.handleExport()
-			})
-
-			expect(toast.error).toHaveBeenCalledWith('Network error')
-		})
 	})
 
 	describe('cleanup', () => {
-		it('should revoke blob URL on unmount', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
-			const { result, unmount } = renderHook(() =>
-				useTemplatePdf(mockTemplate, mockGetPayload)
-			)
-
-			await act(async () => {
-				result.current.handlePreview()
-				vi.advanceTimersByTime(DEBOUNCE_DELAY)
-				await Promise.resolve()
-			})
-
-			unmount()
-
-			expect(mockRevokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
-		})
-
-		it('should clear debounce timer on unmount', async () => {
-			const mockBlob = new Blob(['mock-pdf'], { type: 'application/pdf' })
-			const mockResponse = {
-				ok: true,
-				blob: vi.fn().mockResolvedValue(mockBlob)
-			}
-			vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse as unknown as Response)
-
+		it('should clear debounce timer on unmount before it fires', async () => {
 			const { result, unmount } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -406,13 +246,22 @@ describe('useTemplatePdf', () => {
 			// Unmount before debounce fires
 			unmount()
 
-			// Advance timer - fetch should NOT be called because timer was cleared
+			// Advance timer - toast.error should NOT be called because timer was cleared
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY)
 				await Promise.resolve()
 			})
 
-			expect(globalThis.fetch).not.toHaveBeenCalled()
+			expect(toast.error).not.toHaveBeenCalled()
+		})
+
+		it('should not throw on unmount without preview', () => {
+			const { unmount } = renderHook(() =>
+				useTemplatePdf(mockTemplate, mockGetPayload)
+			)
+
+			// Should not throw
+			expect(() => unmount()).not.toThrow()
 		})
 	})
 })

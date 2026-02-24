@@ -28,7 +28,6 @@ import {
 	useConnectedAccountBalance,
 	useRefreshOnboardingMutation
 } from '#hooks/api/use-stripe-connect'
-import { apiRequest } from '#lib/api-request'
 import { cn } from '#lib/utils'
 
 interface ConnectAccountStatusProps {
@@ -45,10 +44,8 @@ export function ConnectAccountStatus({
 
 	const handleContinueSetup = async () => {
 		try {
-			const result = await refreshOnboarding.mutateAsync()
-			if (result.data?.onboardingUrl) {
-				window.open(result.data.onboardingUrl, '_blank')
-			}
+			// Hook performs full-page redirect to Stripe onboarding URL automatically
+			await refreshOnboarding.mutateAsync()
 		} catch {
 			toast.error('Failed to get onboarding link. Please try again.')
 		}
@@ -57,15 +54,9 @@ export function ConnectAccountStatus({
 	const handleOpenDashboard = async () => {
 		setIsOpeningDashboard(true)
 		try {
-			const response = await apiRequest<{
-				success: boolean
-				data: { url: string }
-			}>('/api/v1/stripe/connect/dashboard-link', { method: 'POST' })
-			if (response.data?.url) {
-				window.open(response.data.url, '_blank')
-			}
-		} catch {
-			toast.error('Failed to open Stripe Dashboard. Please try again.')
+			// TODO(phase-55): Replace with stripe-connect Edge Function dashboard-link action
+			// Stripe dashboard login link requires an Edge Function — pending Phase 55
+			toast.info('Stripe Dashboard access is coming soon.')
 		} finally {
 			setIsOpeningDashboard(false)
 		}

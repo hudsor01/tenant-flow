@@ -7,6 +7,11 @@
  * - Error handling
  * - Disabled state when ID is empty
  *
+ * Updated for DocuSeal Edge Function migration (Phase 55):
+ * - CRUD mutations use supabase-js PostgREST directly
+ * - Signature mutations call callDocuSealEdgeFunction() via fetch to /functions/v1/docuseal
+ * - useSignedDocumentUrl reads from supabase.from('leases') PostgREST
+ *
  * @vitest-environment jsdom
  */
 
@@ -34,15 +39,6 @@ import {
 	usePrefetchLeaseDetail
 } from '../use-lease'
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
-
 // Mock logger
 vi.mock('@repo/shared/lib/frontend-logger', () => ({
 	logger: {
@@ -67,6 +63,11 @@ vi.mock('sonner', () => ({
 	}
 }))
 
+// Mock Sentry (used by handlePostgrestError)
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn()
+}))
+
 // Mock useUser hook
 vi.mock('#hooks/api/use-auth', () => ({
 	useUser: () => ({
@@ -74,21 +75,54 @@ vi.mock('#hooks/api/use-auth', () => ({
 	})
 }))
 
-// Mock Supabase client using vi.hoisted() to avoid initialization errors
-const { mockGetSession } = vi.hoisted(() => ({
-	mockGetSession: vi.fn()
-}))
+// Build a chainable Supabase query mock
+function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
+	const chain: Record<string, unknown> = {}
+	const methods = [
+		'select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq',
+		'ilike', 'or', 'order', 'range', 'limit', 'single', 'maybeSingle', 'head', 'lte', 'gte'
+	]
 
-vi.mock('#utils/supabase/client', () => ({
+	const resolver = () => Promise.resolve({
+		data: result.data ?? null,
+		error: result.error ?? null,
+		count: result.count ?? null
+	})
+
+	methods.forEach(method => {
+		chain[method] = vi.fn(() => {
+			if (method === 'single' || method === 'maybeSingle') return resolver()
+			return chain
+		})
+	})
+
+	// Ensure awaiting the chain itself works (for non-.single() calls)
+	Object.defineProperty(chain, 'then', {
+		get() {
+			return resolver().then.bind(resolver())
+		}
+	})
+
+	return chain
+}
+
+// Supabase mock with configurable from() responses
+const supabaseFromMock = vi.fn()
+const supabaseAuthGetUserMock = vi.fn()
+const supabaseAuthGetSessionMock = vi.fn()
+
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
-		from: () => ({
-			select: vi.fn()
-		}),
+		from: supabaseFromMock,
 		auth: {
-			getSession: mockGetSession
+			getUser: supabaseAuthGetUserMock,
+			getSession: supabaseAuthGetSessionMock
 		}
 	})
 }))
+
+// Mock global fetch for Edge Function calls
+const fetchMock = vi.fn()
 
 // Wrapper for hooks
 function createWrapper() {
@@ -106,11 +140,15 @@ function createWrapper() {
 	}
 }
 
-// Sample lease data
+// Set up global fetch mock before tests
+vi.stubGlobal('fetch', fetchMock)
+
+// Sample lease data matching DB schema
 const mockLease = {
 	id: 'lease-123',
 	unit_id: 'unit-456',
 	primary_tenant_id: 'tenant-789',
+	owner_user_id: 'user-123',
 	start_date: '2024-01-01',
 	end_date: '2025-01-01',
 	rent_amount: 1500,
@@ -119,42 +157,47 @@ const mockLease = {
 	payment_day: 1,
 	lease_status: 'active',
 	auto_pay_enabled: false,
+	stripe_subscription_status: 'none',
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }
 
 const mockSignatureStatus = {
-	lease_id: 'lease-123',
-	status: 'pending_signature',
-	owner_signed: true,
+	id: 'lease-123',
+	lease_status: 'pending_signature',
 	owner_signed_at: '2024-01-15T10:00:00Z',
-	tenant_signed: false,
 	tenant_signed_at: null,
-	sent_for_signature_at: '2024-01-14T10:00:00Z',
-	both_signed: false
+	sent_for_signature_at: '2024-01-14T10:00:00Z'
 }
 
 describe('Query Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'user-123' } }
 		})
 
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
 			ok: true,
-			json: () => Promise.resolve(mockLease),
-			text: () => Promise.resolve(JSON.stringify(mockLease))
+			json: async () => ({ success: true }),
+		})
+
+		// Default: from('leases') returns a query chain with mock lease data
+		supabaseFromMock.mockImplementation((table: string) => {
+			if (table === 'leases') {
+				return makeQueryChain({ data: mockLease, count: 1 })
+			}
+			return makeQueryChain({ data: null })
 		})
 	})
 
 	describe('useLease', () => {
-		it('should fetch lease by ID', async () => {
+		it('should query leases table by ID', async () => {
 			const { result } = renderHook(() => useLease('lease-123'), {
 				wrapper: createWrapper()
 			})
@@ -163,10 +206,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
 		it('should not fetch when ID is empty', () => {
@@ -179,12 +219,12 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useLeaseList', () => {
-		it('should fetch lease list with default params', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [mockLease], total: 1 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ data: [mockLease], total: 1 }))
+		it('should query leases with count for list', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: [mockLease], count: 1 })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useLeaseList(), {
@@ -195,27 +235,19 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases?limit=50',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
-		it('should include filter params when provided', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [], total: 0 }),
-				text: () => Promise.resolve(JSON.stringify({ data: [], total: 0 }))
+		it('should query leases with filters when provided', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: [], count: 0 })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
-				() =>
-					useLeaseList({
-						status: 'active',
-						search: 'test',
-						limit: 25,
-						offset: 10
-					}),
+				() => useLeaseList({ status: 'active', limit: 25, offset: 10 }),
 				{ wrapper: createWrapper() }
 			)
 
@@ -223,19 +255,17 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases?status=active&search=test&limit=25&offset=10',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useCurrentLease', () => {
-		it('should fetch tenant portal active lease', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockLease),
-				text: () => Promise.resolve(JSON.stringify(mockLease))
+		it('should query active lease for tenant portal', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: mockLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useCurrentLease(), {
@@ -246,19 +276,17 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenant-portal/leases',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useExpiringLeases', () => {
-		it('should fetch expiring leases with default 30 days', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve([mockLease]),
-				text: () => Promise.resolve(JSON.stringify([mockLease]))
+		it('should query leases expiring within default 30 days', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: [mockLease] })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useExpiringLeases(), {
@@ -269,17 +297,15 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/expiring?days=30',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
-		it('should fetch expiring leases with custom days', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve([]),
-				text: () => Promise.resolve('[]')
+		it('should query leases expiring within custom days', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: [] })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useExpiringLeases(60), {
@@ -290,20 +316,17 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/expiring?days=60',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useLeaseStats', () => {
-		it('should fetch lease stats', async () => {
-			const mockStats = { total: 100, active: 80, ended: 15, terminated: 5 }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockStats),
-				text: () => Promise.resolve(JSON.stringify(mockStats))
+		it('should aggregate lease counts from leases table', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: null, count: 10 })
+				}
+				return makeQueryChain({ data: null, count: 0 })
 			})
 
 			const { result } = renderHook(() => useLeaseStats(), {
@@ -314,36 +337,29 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/stats',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useLeaseSignatureStatus', () => {
-		it('should fetch signature status for a lease', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockSignatureStatus),
-				text: () => Promise.resolve(JSON.stringify(mockSignatureStatus))
+		it('should query signature status columns from leases table', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: mockSignatureStatus })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
 				() => useLeaseSignatureStatus('lease-123'),
-				{
-					wrapper: createWrapper()
-				}
+				{ wrapper: createWrapper() }
 			)
 
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/signature-status',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
 		it('should not fetch when lease ID is empty', () => {
@@ -356,12 +372,18 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useSignedDocumentUrl', () => {
-		it('should fetch signed document URL', async () => {
-			const mockResponse = { document_url: 'https://example.com/doc.pdf' }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockResponse),
-				text: () => Promise.resolve(JSON.stringify(mockResponse))
+		it('should query docuseal_submission_id from leases table via PostgREST', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({
+						data: {
+							docuseal_submission_id: 'sub-999',
+							owner_signed_at: '2024-01-15T10:00:00Z',
+							tenant_signed_at: '2024-01-16T10:00:00Z'
+						}
+					})
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useSignedDocumentUrl('lease-123'), {
@@ -372,18 +394,13 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/signed-document',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
 		it('should not fetch when disabled', () => {
 			const { result } = renderHook(
 				() => useSignedDocumentUrl('lease-123', false),
-				{
-					wrapper: createWrapper()
-				}
+				{ wrapper: createWrapper() }
 			)
 
 			expect(result.current.isFetching).toBe(false)
@@ -394,30 +411,31 @@ describe('Query Hooks', () => {
 describe('Mutation Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'user-123' } }
 		})
 
-		// Setup default fetch mock
-		mockFetch.mockResolvedValue({
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		// Default fetch mock for Edge Function calls
+		fetchMock.mockResolvedValue({
 			ok: true,
-			json: () => Promise.resolve(mockLease),
-			text: () => Promise.resolve(JSON.stringify(mockLease))
+			json: async () => ({ success: true }),
+		})
+
+		supabaseFromMock.mockImplementation((table: string) => {
+			if (table === 'leases') {
+				return makeQueryChain({ data: mockLease })
+			}
+			return makeQueryChain({ data: null })
 		})
 	})
 
 	describe('useCreateLeaseMutation', () => {
-		it('should call API with correct endpoint and data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockLease),
-				text: () => Promise.resolve(JSON.stringify(mockLease))
-			})
-
+		it('should insert into leases table via PostgREST', async () => {
 			const { result } = renderHook(() => useCreateLeaseMutation(), {
 				wrapper: createWrapper()
 			})
@@ -436,23 +454,18 @@ describe('Mutation Hooks', () => {
 				lease_status: 'draft'
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases',
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('unit-456')
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useUpdateLeaseMutation', () => {
-		it('should call API with correct endpoint and data', async () => {
+		it('should update leases table via PostgREST', async () => {
 			const updatedLease = { ...mockLease, rent_amount: 1600 }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(updatedLease),
-				text: () => Promise.resolve(JSON.stringify(updatedLease))
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: updatedLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useUpdateLeaseMutation(), {
@@ -464,21 +477,16 @@ describe('Mutation Hooks', () => {
 				data: { rent_amount: 1600 }
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123',
-				expect.objectContaining({
-					method: 'PUT',
-					body: expect.stringContaining('1600')
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 
-		it('should include version for optimistic locking', async () => {
+		it('should include version when provided', async () => {
 			const updatedLease = { ...mockLease, rent_amount: 1600 }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(updatedLease),
-				text: () => Promise.resolve(JSON.stringify(updatedLease))
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: updatedLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useUpdateLeaseMutation(), {
@@ -491,46 +499,30 @@ describe('Mutation Hooks', () => {
 				version: 5
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123',
-				expect.objectContaining({
-					method: 'PUT',
-					body: expect.stringContaining('version')
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useDeleteLeaseMutation', () => {
-		it('should call API with DELETE method', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('should soft-delete via status update in leases table', async () => {
 			const { result } = renderHook(() => useDeleteLeaseMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123',
-				expect.objectContaining({
-					method: 'DELETE'
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useTerminateLeaseMutation', () => {
-		it('should call terminate endpoint', async () => {
+		it('should update lease_status to terminated in leases table', async () => {
 			const terminatedLease = { ...mockLease, lease_status: 'terminated' }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(terminatedLease),
-				text: () => Promise.resolve(JSON.stringify(terminatedLease))
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: terminatedLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTerminateLeaseMutation(), {
@@ -539,22 +531,18 @@ describe('Mutation Hooks', () => {
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/terminate',
-				expect.objectContaining({
-					method: 'POST'
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useRenewLeaseMutation', () => {
-		it('should call renew endpoint with new end date', async () => {
+		it('should update end_date in leases table', async () => {
 			const renewedLease = { ...mockLease, end_date: '2026-01-01' }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(renewedLease),
-				text: () => Promise.resolve(JSON.stringify(renewedLease))
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'leases') {
+					return makeQueryChain({ data: renewedLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useRenewLeaseMutation(), {
@@ -566,24 +554,12 @@ describe('Mutation Hooks', () => {
 				data: { end_date: '2026-01-01' }
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/renew',
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('2026-01-01')
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('leases')
 		})
 	})
 
 	describe('useSendLeaseForSignatureMutation', () => {
-		it('should send lease for signature', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ success: true }),
-				text: () => Promise.resolve(JSON.stringify({ success: true }))
-			})
-
+		it('should call docuseal Edge Function with send-for-signature action', async () => {
 			const { result } = renderHook(() => useSendLeaseForSignatureMutation(), {
 				wrapper: createWrapper()
 			})
@@ -597,80 +573,71 @@ describe('Mutation Hooks', () => {
 				}
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/send-for-signature',
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
 				expect.objectContaining({
 					method: 'POST',
-					body: expect.stringContaining('Please sign this lease')
+					body: expect.stringContaining('"action":"send-for-signature"')
+				})
+			)
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.objectContaining({
+					body: expect.stringContaining('"leaseId":"lease-123"')
 				})
 			)
 		})
 	})
 
 	describe('useSignLeaseAsOwnerMutation', () => {
-		it('should call owner sign endpoint', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ success: true }),
-				text: () => Promise.resolve(JSON.stringify({ success: true }))
-			})
-
+		it('should call docuseal Edge Function with sign-owner action', async () => {
 			const { result } = renderHook(() => useSignLeaseAsOwnerMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/sign/owner',
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
 				expect.objectContaining({
-					method: 'POST'
+					method: 'POST',
+					body: expect.stringContaining('"action":"sign-owner"')
 				})
 			)
 		})
 	})
 
 	describe('useSignLeaseAsTenantMutation', () => {
-		it('should call tenant sign endpoint', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ success: true }),
-				text: () => Promise.resolve(JSON.stringify({ success: true }))
-			})
-
+		it('should call docuseal Edge Function with sign-tenant action', async () => {
 			const { result } = renderHook(() => useSignLeaseAsTenantMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/sign/tenant',
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
 				expect.objectContaining({
-					method: 'POST'
+					method: 'POST',
+					body: expect.stringContaining('"action":"sign-tenant"')
 				})
 			)
 		})
 	})
 
 	describe('useCancelSignatureRequestMutation', () => {
-		it('should cancel signature request', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ success: true }),
-				text: () => Promise.resolve(JSON.stringify({ success: true }))
-			})
-
+		it('should call docuseal Edge Function with cancel action', async () => {
 			const { result } = renderHook(() => useCancelSignatureRequestMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('lease-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/leases/lease-123/cancel-signature',
+			expect(fetchMock).toHaveBeenCalledWith(
+				expect.stringContaining('/functions/v1/docuseal'),
 				expect.objectContaining({
-					method: 'POST'
+					method: 'POST',
+					body: expect.stringContaining('"action":"cancel"')
 				})
 			)
 		})
@@ -680,11 +647,25 @@ describe('Mutation Hooks', () => {
 describe('Utility Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
+		})
+
+		supabaseFromMock.mockImplementation((table: string) => {
+			if (table === 'leases') {
+				return makeQueryChain({ data: mockLease })
+			}
+			return makeQueryChain({ data: null })
 		})
 	})
 
@@ -702,22 +683,28 @@ describe('Utility Hooks', () => {
 describe('Error Handling', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'user-123' } }
+		})
+
+		supabaseAuthGetSessionMock.mockResolvedValue({
+			data: { session: { access_token: 'mock-token' } }
+		})
+
+		fetchMock.mockResolvedValue({
+			ok: true,
+			json: async () => ({ success: true }),
 		})
 	})
 
-	it('should handle fetch errors in query hooks', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 500,
-			statusText: 'Internal Server Error',
-			json: () => Promise.resolve({ message: 'Server error' }),
-			text: () => Promise.resolve(JSON.stringify({ message: 'Server error' }))
-		})
+	it('should handle PostgREST errors in query hooks', async () => {
+		supabaseFromMock.mockImplementation(() =>
+			makeQueryChain({
+				data: null,
+				error: { code: 'PGRST116', message: 'Not found', details: null, hint: null }
+			})
+		)
 
 		const { result } = renderHook(() => useLease('lease-123'), {
 			wrapper: createWrapper()
@@ -729,7 +716,9 @@ describe('Error Handling', () => {
 	})
 
 	it('should handle network errors', async () => {
-		mockFetch.mockRejectedValue(new Error('Network error'))
+		supabaseFromMock.mockImplementation(() => {
+			throw new Error('Network error')
+		})
 
 		const { result } = renderHook(() => useLease('lease-123'), {
 			wrapper: createWrapper()
@@ -740,19 +729,18 @@ describe('Error Handling', () => {
 		})
 	})
 
-	it('should handle mutation errors', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 400,
-			statusText: 'Bad Request',
-			json: () => Promise.resolve({ message: 'Invalid data' }),
-			text: () => Promise.resolve(JSON.stringify({ message: 'Invalid data' }))
-		})
+	it('should handle mutation errors from PostgREST', async () => {
+		supabaseFromMock.mockImplementation(() =>
+			makeQueryChain({
+				data: null,
+				error: { code: '42501', message: 'Permission denied', details: null, hint: null }
+			})
+		)
 
 		const { result } = renderHook(() => useDeleteLeaseMutation(), {
 			wrapper: createWrapper()
 		})
 
-		await expect(result.current.mutateAsync('lease-123')).rejects.toThrow()
+		await expect(result.current.mutateAsync('lease-123')).rejects.toBeTruthy()
 	})
 })

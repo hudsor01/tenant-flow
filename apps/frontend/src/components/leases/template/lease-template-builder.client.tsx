@@ -37,7 +37,7 @@ import {
 import { TooltipProvider } from '#components/ui/tooltip'
 import { toast } from 'sonner'
 import { BookOpen, FileText, RefreshCw } from 'lucide-react'
-import { API_BASE_URL } from '#lib/api-config'
+import { createClient } from '#lib/supabase/client'
 
 // Import extracted components
 import { PreviewPanel } from './preview-panel'
@@ -153,25 +153,28 @@ export function LeaseTemplateBuilder() {
 	const handlePreviewPdf = useCallback(async () => {
 		setIsGeneratingPdf(true)
 		try {
-			const response = await fetch(
-				`${API_BASE_URL}/api/v1/pdf/lease/template/preview`,
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ selections, context })
-				}
-			)
+			const supabase = createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			if (!session?.access_token) throw new Error('Not authenticated')
+
+			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(`${baseUrl}/functions/v1/generate-pdf`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ html: previewHtml, filename: 'lease-preview.pdf' }),
+			})
 
 			if (!response.ok) {
-				throw new Error('Failed to generate PDF preview')
+				const errText = await response.text().catch(() => response.statusText)
+				throw new Error(`Failed to generate PDF preview: ${errText}`)
 			}
 
-			const payload = await response.json()
-			if (!payload.pdf) {
-				throw new Error('Invalid PDF response')
-			}
-
-			setPdfPreview(`data:application/pdf;base64,${payload.pdf}`)
+			const blob = await response.blob()
+			const blobUrl = URL.createObjectURL(blob)
+			setPdfPreview(blobUrl)
 			toast.success('PDF preview generated')
 		} catch (error) {
 			const message =
@@ -182,7 +185,7 @@ export function LeaseTemplateBuilder() {
 		} finally {
 			setIsGeneratingPdf(false)
 		}
-	}, [context, selections])
+	}, [previewHtml])
 
 	return (
 		<TooltipProvider>

@@ -16,7 +16,7 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { DollarSign, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -49,16 +49,14 @@ export function AddExpenseDialog({
 
 		setIsSubmitting(true)
 		try {
-			await apiRequest('/api/v1/maintenance/expenses', {
-				method: 'POST',
-				body: JSON.stringify({
-					maintenance_request_id: maintenanceId,
-					vendor_name: vendorName || null,
-					amount: parseFloat(amount),
-					expense_date: expenseDate,
-					description: description || null
-				})
+			const supabase = createClient()
+			const { error } = await supabase.from('expenses').insert({
+				maintenance_request_id: maintenanceId,
+				vendor_name: vendorName || null,
+				amount: parseFloat(amount),
+				expense_date: expenseDate
 			})
+			if (error) throw error
 			toast.success('Expense added successfully')
 			setOpen(false)
 			setVendorName('')

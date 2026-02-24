@@ -415,7 +415,7 @@ function LoginPageContent() {
 								</button>
 								<button
 									type="button"
-									onClick={() => router.push('/signup')}
+									onClick={() => router.push('/pricing')}
 									className="hover:text-foreground transition-colors"
 									data-testid="signup-link"
 								>

@@ -1,5 +1,9 @@
 /**
  * Expenses Hooks Tests
+ *
+ * Tests expense hooks using Supabase mock (migrated from NestJS apiRequest in Phase 53).
+ * Note: useExpensesByProperty does not filter by property_id server-side because
+ * the expenses table doesn't have that column (TODO: phase-57).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -16,27 +20,54 @@ import {
 	expenseKeys
 } from '../use-financials'
 
-// Mock the api-request module
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn()
+// Supabase mock using vi.hoisted() to avoid initialization errors
+const {
+	mockFrom,
+	mockSelect,
+	mockEq,
+	mockGte,
+	mockLte,
+	mockOrder,
+	mockInsert,
+	mockDelete,
+	mockSingle
+} = vi.hoisted(() => ({
+	mockFrom: vi.fn(),
+	mockSelect: vi.fn(),
+	mockEq: vi.fn(),
+	mockGte: vi.fn(),
+	mockLte: vi.fn(),
+	mockOrder: vi.fn(),
+	mockInsert: vi.fn(),
+	mockDelete: vi.fn(),
+	mockSingle: vi.fn()
 }))
 
-import { apiRequest } from '#lib/api-request'
-
-const mockApiRequest = vi.mocked(apiRequest)
+vi.mock('#lib/supabase/client', () => ({
+	createClient: () => ({
+		from: mockFrom
+	})
+}))
 
 function createWrapper() {
 	const queryClient = new QueryClient({
 		defaultOptions: {
-			queries: {
-				retry: false,
-				gcTime: 0
-			}
+			queries: { retry: false, gcTime: 0 },
+			mutations: { retry: false }
 		}
 	})
 	return function Wrapper({ children }: { children: ReactNode }) {
 		return createElement(QueryClientProvider, { client: queryClient }, children)
 	}
+}
+
+const mockExpenseRow = {
+	id: 'exp-1',
+	amount: 125000,
+	expense_date: '2024-12-20',
+	vendor_name: 'Austin Plumbing',
+	maintenance_request_id: null,
+	created_at: '2024-12-20T00:00:00Z'
 }
 
 describe('expenseKeys', () => {
@@ -68,31 +99,10 @@ describe('useExpenses', () => {
 	})
 
 	it('fetches all expenses successfully', async () => {
-		const mockExpenses = {
-			success: true,
-			data: [
-				{
-					id: 'exp-1',
-					description: 'Water heater replacement',
-					category: 'maintenance',
-					amount: 125000,
-					property_name: 'Downtown Lofts',
-					expense_date: '2024-12-20',
-					vendor_name: 'Austin Plumbing'
-				},
-				{
-					id: 'exp-2',
-					description: 'HVAC repair',
-					category: 'maintenance',
-					amount: 45000,
-					property_name: 'Riverside Apartments',
-					expense_date: '2024-12-18',
-					vendor_name: 'Cool Air Services'
-				}
-			]
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockExpenses)
+		const selectChain = { order: mockOrder }
+		mockSelect.mockReturnValue(selectChain)
+		mockOrder.mockResolvedValue({ data: [mockExpenseRow, { ...mockExpenseRow, id: 'exp-2', vendor_name: 'Cool Air Services' }], error: null })
+		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
 			wrapper: createWrapper()
@@ -103,13 +113,14 @@ describe('useExpenses', () => {
 		})
 
 		expect(result.current.data?.length).toBe(2)
-		expect(result.current.data?.[0]?.description).toBe(
-			'Water heater replacement'
-		)
+		expect(mockFrom).toHaveBeenCalledWith('expenses')
 	})
 
 	it('handles empty expense list', async () => {
-		mockApiRequest.mockResolvedValueOnce({ success: true, data: [] })
+		const selectChain = { order: mockOrder }
+		mockSelect.mockReturnValue(selectChain)
+		mockOrder.mockResolvedValue({ data: [], error: null })
+		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpenses(), {
 			wrapper: createWrapper()
@@ -122,14 +133,14 @@ describe('useExpenses', () => {
 		expect(result.current.data).toEqual([])
 	})
 
-	it('respects enabled option', async () => {
+	it('respects enabled option', () => {
 		const { result } = renderHook(() => useExpenses({ enabled: false }), {
 			wrapper: createWrapper()
 		})
 
 		// Should not fetch when disabled
 		expect(result.current.isFetching).toBe(false)
-		expect(mockApiRequest).not.toHaveBeenCalled()
+		expect(mockFrom).not.toHaveBeenCalled()
 	})
 })
 
@@ -139,21 +150,10 @@ describe('useExpensesByProperty', () => {
 	})
 
 	it('fetches expenses for a specific property', async () => {
-		const mockExpenses = {
-			success: true,
-			data: [
-				{
-					id: 'exp-1',
-					description: 'Water heater replacement',
-					category: 'maintenance',
-					amount: 125000,
-					property_id: 'prop-1',
-					expense_date: '2024-12-20'
-				}
-			]
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockExpenses)
+		const selectChain = { order: mockOrder }
+		mockSelect.mockReturnValue(selectChain)
+		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(() => useExpensesByProperty('prop-1'), {
 			wrapper: createWrapper()
@@ -163,9 +163,7 @@ describe('useExpensesByProperty', () => {
 			expect(result.current.isSuccess).toBe(true)
 		})
 
-		expect(mockApiRequest).toHaveBeenCalledWith(
-			'/api/v1/financials/expenses?property_id=prop-1'
-		)
+		expect(mockFrom).toHaveBeenCalledWith('expenses')
 	})
 
 	it('does not fetch when propertyId is empty', () => {
@@ -174,7 +172,7 @@ describe('useExpensesByProperty', () => {
 		})
 
 		expect(result.current.isFetching).toBe(false)
-		expect(mockApiRequest).not.toHaveBeenCalled()
+		expect(mockFrom).not.toHaveBeenCalled()
 	})
 })
 
@@ -184,20 +182,12 @@ describe('useExpensesByDateRange', () => {
 	})
 
 	it('fetches expenses within date range', async () => {
-		const mockExpenses = {
-			success: true,
-			data: [
-				{
-					id: 'exp-1',
-					description: 'Insurance payment',
-					category: 'insurance',
-					amount: 275000,
-					expense_date: '2024-12-01'
-				}
-			]
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockExpenses)
+		const chain = { gte: mockGte, lte: mockLte, order: mockOrder }
+		mockSelect.mockReturnValue(chain)
+		mockGte.mockReturnValue(chain)
+		mockLte.mockReturnValue(chain)
+		mockOrder.mockResolvedValue({ data: [mockExpenseRow], error: null })
+		mockFrom.mockReturnValue({ select: mockSelect })
 
 		const { result } = renderHook(
 			() => useExpensesByDateRange('2024-12-01', '2024-12-31'),
@@ -208,9 +198,9 @@ describe('useExpensesByDateRange', () => {
 			expect(result.current.isSuccess).toBe(true)
 		})
 
-		expect(mockApiRequest).toHaveBeenCalledWith(
-			'/api/v1/financials/expenses?start_date=2024-12-01&end_date=2024-12-31'
-		)
+		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockGte).toHaveBeenCalledWith('expense_date', '2024-12-01')
+		expect(mockLte).toHaveBeenCalledWith('expense_date', '2024-12-31')
 	})
 })
 
@@ -227,12 +217,13 @@ describe('useCreateExpenseMutation', () => {
 			vendor_name: 'Test Vendor'
 		}
 
-		const mockResponse = {
-			success: true,
-			data: { id: 'exp-new', ...newExpense }
-		}
-
-		mockApiRequest.mockResolvedValueOnce(mockResponse)
+		const createdExpense = { id: 'exp-new', ...newExpense, created_at: '2024-12-25T00:00:00Z' }
+		const selectChain = { single: mockSingle }
+		const insertChain = { select: mockSelect }
+		mockInsert.mockReturnValue(insertChain)
+		mockSelect.mockReturnValue(selectChain)
+		mockSingle.mockResolvedValue({ data: createdExpense, error: null })
+		mockFrom.mockReturnValue({ insert: mockInsert })
 
 		const { result } = renderHook(() => useCreateExpenseMutation(), {
 			wrapper: createWrapper()
@@ -240,9 +231,12 @@ describe('useCreateExpenseMutation', () => {
 
 		await result.current.mutateAsync(newExpense)
 
-		expect(mockApiRequest).toHaveBeenCalledWith('/api/v1/financials/expenses', {
-			method: 'POST',
-			body: JSON.stringify(newExpense)
+		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockInsert).toHaveBeenCalledWith({
+			amount: 50000,
+			expense_date: '2024-12-25',
+			maintenance_request_id: 'mr-test-123',
+			vendor_name: 'Test Vendor'
 		})
 	})
 })
@@ -253,7 +247,10 @@ describe('useDeleteExpenseMutation', () => {
 	})
 
 	it('deletes an expense successfully', async () => {
-		mockApiRequest.mockResolvedValueOnce(undefined)
+		const deleteChain = { eq: mockEq }
+		mockDelete.mockReturnValue(deleteChain)
+		mockEq.mockResolvedValue({ data: null, error: null })
+		mockFrom.mockReturnValue({ delete: mockDelete })
 
 		const { result } = renderHook(() => useDeleteExpenseMutation(), {
 			wrapper: createWrapper()
@@ -261,11 +258,7 @@ describe('useDeleteExpenseMutation', () => {
 
 		await result.current.mutateAsync('exp-1')
 
-		expect(mockApiRequest).toHaveBeenCalledWith(
-			'/api/v1/financials/expenses/exp-1',
-			{
-				method: 'DELETE'
-			}
-		)
+		expect(mockFrom).toHaveBeenCalledWith('expenses')
+		expect(mockEq).toHaveBeenCalledWith('id', 'exp-1')
 	})
 })

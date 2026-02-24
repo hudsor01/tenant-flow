@@ -5,11 +5,11 @@
  * Property 6: Frontend Error Display
  * Validates: Requirements 4.3, 6.2
  *
- * Property: For any API error response, the frontend should display a
+ * Property: For any error thrown by a mutation, the frontend should display a
  * user-friendly error toast notification with a clear message.
  *
- * This test file focuses on testing the error handling logic of the form
- * by directly testing the mutation error callback rather than full form interaction.
+ * Note: After NestJS removal (phase-57), the invite mutation throws a stub error.
+ * These tests validate the error display logic pattern independently.
  */
 
 import type { ReactNode } from 'react'
@@ -31,10 +31,6 @@ vi.mock('sonner', () => ({
 		success: vi.fn(),
 		error: vi.fn()
 	}
-}))
-
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn()
 }))
 
 // Helper to create a query client for each test
@@ -63,17 +59,17 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 	/**
 	 * Property 6: Frontend Error Display
 	 *
-	 * For any API error response, the frontend should display a user-friendly
-	 * error toast notification with a clear message.
+	 * For any error thrown by the mutation, the frontend should display a
+	 * user-friendly error toast notification with a clear message.
 	 *
 	 * This property test verifies that:
-	 * 1. Any error thrown by the API results in toast.error being called
+	 * 1. Any error thrown by the mutation results in toast.error being called
 	 * 2. The error message is user-friendly (not raw error objects)
 	 * 3. The error toast includes a description
 	 *
 	 * We test this by simulating the mutation's error handling directly.
 	 */
-	it('should display error toast for any API error', async () => {
+	it('should display error toast for any mutation error', async () => {
 		await fc.assert(
 			fc.asyncProperty(
 				// Generate various error types
@@ -93,20 +89,12 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					// Setup: Mock API to throw the generated error
-					const { apiRequest } = await import('#lib/api-request')
-					vi.mocked(apiRequest).mockRejectedValueOnce(error)
-
-					// Create a mutation that mimics the form's behavior
+					// Create a mutation that mimics the form's error handling behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (payload: InviteTenantRequest) => {
-									const { apiRequest: api } = await import('#lib/api-request')
-									return api('/api/v1/tenants/invite', {
-										method: 'POST',
-										body: JSON.stringify(payload)
-									})
+								mutationFn: async (_payload: InviteTenantRequest) => {
+									throw error
 								},
 								onError: (err: unknown) => {
 									// This is the same error handling logic as in the form
@@ -172,7 +160,7 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 	/**
 	 * Property 6 (Edge Case): Non-Error Objects
 	 *
-	 * Verify that even when the API throws non-Error objects (strings, objects, etc.),
+	 * Verify that even when the mutation throws non-Error objects (strings, objects, etc.),
 	 * the frontend still displays a user-friendly error toast.
 	 */
 	it('should display error toast for non-Error thrown values', async () => {
@@ -187,20 +175,12 @@ describe('InviteTenantForm - Property-Based Tests', () => {
 					fc.constant(undefined)
 				),
 				async thrownValue => {
-					// Setup: Mock API to throw the generated value
-					const { apiRequest } = await import('#lib/api-request')
-					vi.mocked(apiRequest).mockRejectedValueOnce(thrownValue)
-
 					// Create a mutation that mimics the form's behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (payload: InviteTenantRequest) => {
-									const { apiRequest: api } = await import('#lib/api-request')
-									return api('/api/v1/tenants/invite', {
-										method: 'POST',
-										body: JSON.stringify(payload)
-									})
+								mutationFn: async (_payload: InviteTenantRequest) => {
+									throw thrownValue
 								},
 								onError: (err: unknown) => {
 									// This is the same error handling logic as in the form
@@ -269,16 +249,11 @@ describe('InviteTenantForm - Property-Based Tests', () => {
  * Feature: fix-tenant-invitation-issues, Property 7: Error Type Distinction
  * Validates: Requirements 4.4
  *
- * For any 403 error, the system should distinguish between authentication
- * failures (no user) and authorization failures (insufficient permissions).
- *
+ * For any error, the system should display the error message from the error object.
  * This property test verifies that:
- * 1. 401 errors (authentication failures) are handled with appropriate messaging
- * 2. 403 errors (authorization failures) are handled with appropriate messaging
+ * 1. Authentication-type errors are displayed correctly
+ * 2. Authorization-type errors are displayed correctly
  * 3. The error messages clearly distinguish between the two types
- *
- * Note: The current implementation treats both as generic errors, but this test
- * validates that the error messages from the backend are properly displayed.
  */
 it('should distinguish between authentication and authorization errors', async () => {
 	await fc.assert(
@@ -314,20 +289,12 @@ it('should distinguish between authentication and authorization errors', async (
 				// Clear all mocks before each property test iteration
 				vi.clearAllMocks()
 
-				// Setup: Mock API to throw the generated error
-				const { apiRequest } = await import('#lib/api-request')
-				vi.mocked(apiRequest).mockRejectedValueOnce(error)
-
 				// Create a mutation that mimics the form's behavior
 				const { result } = renderHook(
 					() =>
 						useMutation({
-							mutationFn: async (payload: InviteTenantRequest) => {
-								const { apiRequest: api } = await import('#lib/api-request')
-								return api('/api/v1/tenants/invite', {
-									method: 'POST',
-									body: JSON.stringify(payload)
-								})
+							mutationFn: async (_payload: InviteTenantRequest) => {
+								throw error
 							},
 							onError: (err: unknown) => {
 								// This is the same error handling logic as in the form

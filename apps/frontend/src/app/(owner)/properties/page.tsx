@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import type { Property as ApiProperty, Unit } from '@repo/shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
@@ -261,12 +261,16 @@ export default function PropertiesPage() {
 		[properties, propertiesResponse?.total]
 	)
 
-	// Delete mutation
+	// Delete mutation — soft-delete: set status to 'inactive'
 	const { mutate: deleteProperty } = useMutation({
-		mutationFn: async (propertyId: string) =>
-			apiRequest<void>(`/api/v1/properties/${propertyId}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (propertyId: string) => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('properties')
+				.update({ status: 'inactive' })
+				.eq('id', propertyId)
+			if (error) throw error
+		},
 		onSuccess: () => {
 			toast.success('Property deleted')
 			queryClient.invalidateQueries({ queryKey: ['properties'] })

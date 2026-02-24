@@ -23,12 +23,10 @@ process.env.SKIP_ENV_VALIDATION = 'true'
 // Set up required environment variables for tests
 process.env.NEXT_PUBLIC_APP_URL =
 	process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-process.env.NEXT_PUBLIC_API_BASE_URL =
-	process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4600'
 process.env.NEXT_PUBLIC_SUPABASE_URL =
 	process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:54321'
-process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY =
-	process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'mock-key'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY =
+	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock-anon-key'
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
 	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_mock'
 process.env.NEXT_PUBLIC_JWT_ALGORITHM =
@@ -169,7 +167,6 @@ vi.mock('nuqs', async () => {
 
 /**
  * Create a mock fetch Response with proper text() and json() methods
- * Required because apiRequest uses res.text() not res.json()
  */
 export function createMockResponse<T>(
 	data: T,

@@ -1,7 +1,7 @@
 /**
  * Query Error Handlers
  *
- * Smart retry logic using ApiError class for error discrimination.
+ * Smart retry logic using PostgrestError for error discrimination.
  * TanStack Query v5 patterns with intelligent retry decisions.
  *
  * Retry Strategy:
@@ -10,8 +10,8 @@
  * - MAX 3 attempts with exponential backoff (capped at 4s)
  */
 
+import type { PostgrestError } from '@supabase/supabase-js'
 import type { createLogger } from '@repo/shared/lib/frontend-logger'
-import { isApiError, isAbortError } from '#lib/api-request'
 
 type Logger = ReturnType<typeof createLogger>
 
@@ -34,6 +34,30 @@ type QueryErrorHandlers = {
 }
 
 // ============================================================================
+// ERROR TYPE GUARDS
+// ============================================================================
+
+/**
+ * Type guard for PostgrestError from @supabase/supabase-js
+ */
+function isPostgrestError(error: unknown): error is PostgrestError {
+	return (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		'message' in error &&
+		'details' in error
+	)
+}
+
+/**
+ * Type guard for AbortError (user cancelled or component unmounted)
+ */
+function isAbortError(error: unknown): boolean {
+	return error instanceof DOMException && error.name === 'AbortError'
+}
+
+// ============================================================================
 // STANDALONE RETRY FUNCTIONS (for direct use in QueryClient config)
 // ============================================================================
 
@@ -45,10 +69,9 @@ type QueryErrorHandlers = {
  * Decision tree:
  * 1. Max 3 attempts (failureCount >= 3 → stop)
  * 2. Aborted requests → never retry
- * 3. Client errors (4xx) → never retry (won't succeed)
- * 4. Server errors (5xx) → retry (transient)
- * 5. Network errors → retry (transient)
- * 6. Unknown errors → retry (assume transient)
+ * 3. PostgrestError: 4xx client codes → never retry; 5xx server codes → retry
+ * 4. Network errors → retry (transient)
+ * 5. Unknown errors → retry (assume transient)
  */
 export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
 	// Never retry more than 3 times
@@ -57,13 +80,20 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
 	// Never retry aborted requests (user cancelled or component unmounted)
 	if (isAbortError(error)) return false
 
-	// ApiError with classification
-	if (isApiError(error)) {
-		// Never retry client errors - they won't succeed
-		if (error.isClientError) return false
-
-		// Retry server errors and network errors
-		return error.isRetryable
+	// PostgrestError classification:
+	// Postgres error codes starting with '2' = successful completion (shouldn't retry)
+	// Postgres error codes starting with '4' = client error (e.g. 42P01 = undefined table)
+	// Postgres error codes starting with 'P' = Postgres server error (transient, retry)
+	// HTTP error codes like '400', '401', '403', '404', '409' = client errors (don't retry)
+	// HTTP error codes like '500', '502', '503' = server errors (retry)
+	if (isPostgrestError(error)) {
+		const code = error.code ?? ''
+		// HTTP-style 4xx codes → client error, don't retry
+		if (/^4\d{2}$/.test(code)) return false
+		// Postgres client-error class codes (class 0–4) → don't retry
+		if (/^[0-4]/.test(code)) return false
+		// Server-side codes → retry
+		return true
 	}
 
 	// Unknown error type - assume transient, allow retry
@@ -93,8 +123,8 @@ const formatVariables = (variables: MutationVariables) => {
 }
 
 const formatError = (error: unknown): string => {
-	if (isApiError(error)) {
-		return `[${error.status}] ${error.message}`
+	if (isPostgrestError(error)) {
+		return `[${error.code}] ${error.message}`
 	}
 	if (error instanceof Error) {
 		return error.message
@@ -122,18 +152,16 @@ export const createQueryErrorHandlers = (
 			})
 		},
 		onMutationError: (error, variables, context) => {
-			const errorInfo = isApiError(error)
+			const errorInfo = isPostgrestError(error)
 				? {
 						message: error.message,
-						status: error.status,
-						isRetryable: error.isRetryable,
-						isClientError: error.isClientError,
-						isServerError: error.isServerError
+						code: error.code,
+						isClientError: /^4/.test(error.code ?? ''),
+						isServerError: /^[5P]/.test(error.code ?? '')
 					}
 				: {
 						message: formatError(error),
-						status: null,
-						isRetryable: true,
+						code: null,
 						isClientError: false,
 						isServerError: false
 					}

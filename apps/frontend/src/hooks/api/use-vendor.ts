@@ -4,10 +4,14 @@
  * Vendor Hooks
  * TanStack Query hooks for vendor/contractor data fetching and mutations
  * React 19 + TanStack Query v5 patterns
+ *
+ * All queryFns use supabase.from('vendors') — no apiRequest calls.
+ * RLS enforces owner_user_id = auth.uid() on every query.
  */
 
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
@@ -68,6 +72,10 @@ interface VendorListResponse {
 	offset: number
 }
 
+// Explicit column list for vendor queries — no select('*')
+const VENDOR_SELECT_COLUMNS =
+	'id, owner_user_id, name, email, phone, trade, hourly_rate, status, notes, created_at, updated_at'
+
 // ============================================================================
 // QUERY KEYS & OPTIONS
 // ============================================================================
@@ -78,30 +86,58 @@ export const vendorKeys = {
 	list: (filters?: VendorFilters) =>
 		queryOptions({
 			queryKey: [...vendorKeys.lists(), filters ?? {}],
-			queryFn: ({ signal }) => {
-				const params = new URLSearchParams()
-				if (filters?.trade) params.set('trade', filters.trade)
-				if (filters?.status) params.set('status', filters.status)
-				if (filters?.search) params.set('search', filters.search)
-				if (filters?.limit) params.set('limit', String(filters.limit))
-				if (filters?.offset) params.set('offset', String(filters.offset))
-				const qs = params.toString()
-				return apiRequest<VendorListResponse>(
-					`/api/v1/vendors${qs ? `?${qs}` : ''}`,
-					{ signal },
-				)
+			queryFn: async (): Promise<VendorListResponse> => {
+				const supabase = createClient()
+				const limit = filters?.limit ?? 50
+				const offset = filters?.offset ?? 0
+
+				let q = supabase
+					.from('vendors')
+					.select(VENDOR_SELECT_COLUMNS, { count: 'exact' })
+					.eq('status', filters?.status ?? 'active')
+					.order('name', { ascending: true })
+
+				if (filters?.trade) {
+					q = q.eq('trade', filters.trade)
+				}
+				if (filters?.search) {
+					q = q.ilike('name', `%${filters.search}%`)
+				}
+
+				q = q.range(offset, offset + limit - 1)
+
+				const { data, error, count } = await q
+
+				if (error) handlePostgrestError(error, 'vendors')
+
+				return {
+					data: (data as Vendor[]) ?? [],
+					total: count ?? 0,
+					limit,
+					offset
+				}
 			},
-			staleTime: 5 * 60 * 1000,
+			staleTime: 5 * 60 * 1000
 		}),
 	details: () => [...vendorKeys.all, 'detail'] as const,
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...vendorKeys.details(), id],
-			queryFn: ({ signal }) =>
-				apiRequest<Vendor>(`/api/v1/vendors/${id}`, { signal }),
+			queryFn: async (): Promise<Vendor> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('vendors')
+					.select(VENDOR_SELECT_COLUMNS)
+					.eq('id', id)
+					.single()
+
+				if (error) handlePostgrestError(error, 'vendors')
+
+				return data as Vendor
+			},
 			staleTime: 5 * 60 * 1000,
-			enabled: !!id,
-		}),
+			enabled: !!id
+		})
 }
 
 // ============================================================================
@@ -123,90 +159,133 @@ export function useVendor(id: string) {
 export function useCreateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (data: VendorCreateInput) =>
-			apiRequest<Vendor>('/api/v1/vendors', {
-				method: 'POST',
-				body: JSON.stringify(data),
-			}),
+		mutationFn: async (data: VendorCreateInput): Promise<Vendor> => {
+			const supabase = createClient()
+			const { data: { user } } = await supabase.auth.getUser()
+			const userId = user?.id
+
+			const { data: created, error } = await supabase
+				.from('vendors')
+				.insert({ ...data, owner_user_id: userId })
+				.select(VENDOR_SELECT_COLUMNS)
+				.single()
+
+			if (error) handlePostgrestError(error, 'vendors')
+
+			return created as Vendor
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor added successfully')
 		},
-		onError: (error) => handleMutationError(error, 'Add vendor'),
+		onError: (error) => handleMutationError(error, 'Add vendor')
 	})
 }
 
 export function useUpdateVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({ id, data }: { id: string; data: VendorUpdateInput }) =>
-			apiRequest<Vendor>(`/api/v1/vendors/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(data),
-			}),
+		mutationFn: async ({ id, data }: { id: string; data: VendorUpdateInput }): Promise<Vendor> => {
+			const supabase = createClient()
+			const { data: updated, error } = await supabase
+				.from('vendors')
+				.update(data)
+				.eq('id', id)
+				.select(VENDOR_SELECT_COLUMNS)
+				.single()
+
+			if (error) handlePostgrestError(error, 'vendors')
+
+			return updated as Vendor
+		},
 		onSuccess: (vendor) => {
 			queryClient.setQueryData(vendorKeys.detail(vendor.id).queryKey, vendor)
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor updated successfully')
 		},
-		onError: (error) => handleMutationError(error, 'Update vendor'),
+		onError: (error) => handleMutationError(error, 'Update vendor')
 	})
 }
 
 export function useDeleteVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (id: string) =>
-			apiRequest<void>(`/api/v1/vendors/${id}`, { method: 'DELETE' }),
+		// Hard delete — no financial retention requirement for vendor records
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('vendors')
+				.delete()
+				.eq('id', id)
+
+			if (error) handlePostgrestError(error, 'vendors')
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: vendorKeys.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Vendor removed')
 		},
-		onError: (error) => handleMutationError(error, 'Remove vendor'),
+		onError: (error) => handleMutationError(error, 'Remove vendor')
 	})
 }
 
+/**
+ * Assign a vendor to a maintenance request.
+ * Sets vendor_id and transitions status to 'assigned' in a single PostgREST update.
+ */
 export function useAssignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: ({
+		mutationFn: async ({
 			vendorId,
-			maintenanceId,
+			maintenanceId
 		}: {
 			vendorId: string
 			maintenanceId: string
-		}) =>
-			apiRequest<{ id: string; vendor_id: string }>(
-				`/api/v1/vendors/${vendorId}/assign/${maintenanceId}`,
-				{ method: 'POST' },
-			),
+		}): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('maintenance_requests')
+				.update({ vendor_id: vendorId, status: 'assigned' })
+				.eq('id', maintenanceId)
+
+			if (error) handlePostgrestError(error, 'maintenance_requests')
+		},
 		onSuccess: (_data, { maintenanceId }) => {
 			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey,
+				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
 			})
 			toast.success('Vendor assigned to request')
 		},
-		onError: (error) => handleMutationError(error, 'Assign vendor'),
+		onError: (error) => handleMutationError(error, 'Assign vendor')
 	})
 }
 
+/**
+ * Unassign a vendor from a maintenance request.
+ * Sets vendor_id to null and transitions status to 'needs_reassignment'
+ * to preserve audit trail — does NOT revert to 'open'.
+ */
 export function useUnassignVendorMutation() {
 	const queryClient = useQueryClient()
 	return useMutation({
-		mutationFn: (maintenanceId: string) =>
-			apiRequest<{ id: string; vendor_id: null }>(
-				`/api/v1/vendors/unassign/${maintenanceId}`,
-				{ method: 'DELETE' },
-			),
+		mutationFn: async (maintenanceId: string): Promise<void> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('maintenance_requests')
+				.update({ vendor_id: null, status: 'needs_reassignment' })
+				.eq('id', maintenanceId)
+
+			if (error) handlePostgrestError(error, 'maintenance_requests')
+		},
 		onSuccess: (_data, maintenanceId) => {
 			queryClient.invalidateQueries({
-				queryKey: maintenanceQueries.detail(maintenanceId).queryKey,
+				queryKey: maintenanceQueries.detail(maintenanceId).queryKey
 			})
 			toast.success('Vendor unassigned')
 		},
-		onError: (error) => handleMutationError(error, 'Unassign vendor'),
+		onError: (error) => handleMutationError(error, 'Unassign vendor')
 	})
 }

@@ -175,7 +175,7 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
 }
 
 /**
- * Common mock setup pattern for API config and logger.
+ * Common mock setup pattern for logger and toast.
  * Call at the top of test files after imports.
  *
  * NOTE: You still need to call these mocks manually since vi.mock
@@ -184,10 +184,6 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  * @example
  * ```typescript
  * // In your test file:
- * vi.mock('#lib/api-config', () => ({
- *   getApiBaseUrl: () => 'http://localhost:4600'
- * }));
- *
  * vi.mock('@repo/shared/lib/frontend-logger', () => ({
  *   logger: {
  *     info: vi.fn(),
@@ -212,11 +208,6 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  * ```
  */
 export const STANDARD_MOCKS_PATTERN = `
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-  getApiBaseUrl: () => 'http://localhost:4600'
-}));
-
 // Mock logger
 vi.mock('@repo/shared/lib/frontend-logger', () => ({
   logger: {
@@ -243,7 +234,6 @@ vi.mock('sonner', () => ({
 ` as const
 
 /**
- * Test API base URL constant.
- * Use this in expect assertions for consistent URL checking.
+ * Test Supabase URL constant for use in fetch URL assertions.
  */
-export const TEST_API_BASE_URL = 'http://localhost:4600'
+export const TEST_SUPABASE_URL = 'http://localhost:54321'

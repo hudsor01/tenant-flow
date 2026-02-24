@@ -69,10 +69,6 @@ export const env = createEnv({
 			.string()
 			.url('NEXT_PUBLIC_APP_URL must be a valid URL'),
 
-		NEXT_PUBLIC_API_BASE_URL: z
-			.string()
-			.url('NEXT_PUBLIC_API_BASE_URL must be a valid URL'),
-
 		NEXT_PUBLIC_SUPABASE_URL: z
 			.string()
 			.url('NEXT_PUBLIC_SUPABASE_URL must be a valid URL')
@@ -85,9 +81,9 @@ export const env = createEnv({
 				'Must be a Supabase URL or localhost'
 			),
 
-		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: z
 			.string()
-			.min(1, 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required'),
+			.min(1, 'NEXT_PUBLIC_SUPABASE_ANON_KEY is required'),
 
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
 			.string()
@@ -124,10 +120,8 @@ export const env = createEnv({
 
 		// Client
 		NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-		NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
 		NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-		NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
-			process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+		NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 		NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
 			process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
 		NEXT_PUBLIC_JWT_ALGORITHM: process.env.NEXT_PUBLIC_JWT_ALGORITHM,

@@ -31,12 +31,10 @@ fi
 
 # Set defaults
 export PLAYWRIGHT_BASE_URL="${PLAYWRIGHT_BASE_URL:-http://localhost:3050}"
-export NEXT_PUBLIC_API_BASE_URL="${NEXT_PUBLIC_API_BASE_URL:-http://localhost:4650}"
 export E2E_TENANT_PASSWORD="${E2E_TENANT_PASSWORD:-TenantPass123!}"
 
 echo -e "${YELLOW}Configuration:${NC}"
 echo "  Frontend URL: $PLAYWRIGHT_BASE_URL"
-echo "  Backend URL:  $NEXT_PUBLIC_API_BASE_URL"
 echo "  Owner Email:  $E2E_OWNER_EMAIL"
 echo ""
 
@@ -49,13 +47,7 @@ if ! curl -s "$PLAYWRIGHT_BASE_URL" > /dev/null; then
     exit 1
 fi
 
-if ! curl -s "$NEXT_PUBLIC_API_BASE_URL/health" > /dev/null; then
-    echo -e "${RED}ERROR: Backend not running at $NEXT_PUBLIC_API_BASE_URL${NC}"
-    echo "Start with: pnpm --filter @repo/backend dev"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ Servers are running${NC}"
+echo -e "${GREEN}✓ Frontend is running${NC}"
 echo ""
 
 # Run tests

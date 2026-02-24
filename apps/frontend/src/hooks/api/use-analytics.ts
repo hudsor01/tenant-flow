@@ -6,7 +6,8 @@
  */
 
 import { queryOptions, useQuery } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type {
 	FinancialAnalyticsPageData,
 	LeaseAnalyticsPageData,
@@ -39,58 +40,102 @@ export const analyticsQueries = {
 	financialPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.financial(),
-			queryFn: () =>
-				apiRequest<FinancialAnalyticsPageData>(
-					'/api/v1/analytics/financial/page-data'
-				),
-			staleTime: 60_000 // 1 minute
+			queryFn: async (): Promise<FinancialAnalyticsPageData> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc('get_financial_overview', {
+					p_user_id: user.id
+				})
+				if (error) handlePostgrestError(error, 'analytics')
+				return data as FinancialAnalyticsPageData
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	leasePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.lease(),
-			queryFn: () =>
-				apiRequest<LeaseAnalyticsPageData>('/api/v1/analytics/lease/page-data'),
-			staleTime: 60_000
+			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc(
+					'get_occupancy_trends_optimized',
+					{
+						p_user_id: user.id,
+						p_months: 12
+					}
+				)
+				if (error) handlePostgrestError(error, 'analytics')
+				return (data ?? {}) as unknown as LeaseAnalyticsPageData
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	maintenancePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.maintenance(),
-			queryFn: () =>
-				apiRequest<MaintenanceInsightsPageData>(
-					'/api/v1/analytics/maintenance/page-data'
-				),
-			staleTime: 60_000
+			queryFn: async (): Promise<MaintenanceInsightsPageData> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc(
+					'get_maintenance_analytics',
+					{
+						user_id: user.id
+					}
+				)
+				if (error) handlePostgrestError(error, 'analytics')
+				return data as MaintenanceInsightsPageData
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	occupancyPageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
-				const rawData = await apiRequest<
-					OccupancyAnalyticsPageData | { data: OccupancyAnalyticsPageData }
-				>('/api/v1/owner/tenants/occupancy-trends')
-				const data =
-					'data' in rawData && rawData.data
-						? rawData.data
-						: (rawData as OccupancyAnalyticsPageData)
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc(
+					'get_occupancy_trends_optimized',
+					{
+						p_user_id: user.id,
+						p_months: 12
+					}
+				)
+				if (error) handlePostgrestError(error, 'analytics')
+				const raw = (data ?? {}) as Partial<OccupancyAnalyticsPageData>
 
 				// Ensure all required fields have defaults
 				return {
-					metrics: data.metrics ?? {
+					metrics: raw.metrics ?? {
 						currentOccupancy: 0,
 						averageVacancyDays: 0,
 						seasonalPeakOccupancy: 0,
 						trend: 0
 					},
-					trends: data.trends ?? [],
-					propertyPerformance: data.propertyPerformance ?? [],
-					seasonalPatterns: data.seasonalPatterns ?? [],
-					vacancyAnalysis: data.vacancyAnalysis ?? []
+					trends: raw.trends ?? [],
+					propertyPerformance: raw.propertyPerformance ?? [],
+					seasonalPatterns: raw.seasonalPatterns ?? [],
+					vacancyAnalysis: raw.vacancyAnalysis ?? []
 				}
 			},
-			staleTime: 60_000
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	overviewPageData: () =>
@@ -101,55 +146,90 @@ export const analyticsQueries = {
 				maintenance: MaintenanceInsightsPageData
 				lease: LeaseAnalyticsPageData
 			}> => {
-				// Fetch in parallel using apiRequest
-				const [financialRaw, maintenanceRaw, leaseRaw] = await Promise.all([
-					apiRequest<
-						FinancialAnalyticsPageData | { data: FinancialAnalyticsPageData }
-					>('/api/v1/analytics/financial/page-data'),
-					apiRequest<
-						MaintenanceInsightsPageData | { data: MaintenanceInsightsPageData }
-					>('/api/v1/analytics/maintenance/page-data'),
-					apiRequest<LeaseAnalyticsPageData | { data: LeaseAnalyticsPageData }>(
-						'/api/v1/analytics/lease/page-data'
-					)
-				])
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const userId = user.id
+
+				const [financialResult, maintenanceResult, occupancyResult] =
+					await Promise.all([
+						supabase.rpc('get_financial_overview', { p_user_id: userId }),
+						supabase.rpc('get_maintenance_analytics', { user_id: userId }),
+						supabase.rpc('get_occupancy_trends_optimized', {
+							p_user_id: userId,
+							p_months: 12
+						})
+					])
+
+				if (financialResult.error)
+					handlePostgrestError(financialResult.error, 'analytics')
+				if (maintenanceResult.error)
+					handlePostgrestError(maintenanceResult.error, 'analytics')
+				if (occupancyResult.error)
+					handlePostgrestError(occupancyResult.error, 'analytics')
 
 				return {
-					financial:
-						'data' in financialRaw && financialRaw.data
-							? financialRaw.data
-							: (financialRaw as FinancialAnalyticsPageData),
+					financial: financialResult.data as FinancialAnalyticsPageData,
 					maintenance:
-						'data' in maintenanceRaw && maintenanceRaw.data
-							? maintenanceRaw.data
-							: (maintenanceRaw as MaintenanceInsightsPageData),
-					lease:
-						'data' in leaseRaw && leaseRaw.data
-							? leaseRaw.data
-							: (leaseRaw as LeaseAnalyticsPageData)
+						maintenanceResult.data as MaintenanceInsightsPageData,
+					lease: (occupancyResult.data ?? {}) as unknown as LeaseAnalyticsPageData
 				}
 			},
-			staleTime: 60_000
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	propertyPerformancePageData: () =>
 		queryOptions({
 			queryKey: analyticsQueries.propertyPerformance(),
-			queryFn: () =>
-				apiRequest<PropertyPerformancePageData>(
-					'/api/v1/analytics/property-performance/page-data'
-				),
-			staleTime: 60_000
+			queryFn: async (): Promise<PropertyPerformancePageData> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc(
+					'get_property_performance_analytics',
+					{
+						p_user_id: user.id
+					}
+				)
+				if (error) handlePostgrestError(error, 'analytics')
+				return data as PropertyPerformancePageData
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		}),
 
 	ownerPaymentSummary: () =>
 		queryOptions({
 			queryKey: analyticsQueries.paymentSummary(),
-			queryFn: () =>
-				apiRequest<OwnerPaymentSummaryResponse>(
-					'/api/v1/tenants/payments/summary'
-				),
-			staleTime: 30_000 // 30 seconds for payment data
+			queryFn: async (): Promise<OwnerPaymentSummaryResponse> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+				const { data, error } = await supabase.rpc('get_billing_insights', {
+					owner_id_param: user.id
+				})
+				if (error) handlePostgrestError(error, 'analytics')
+				const raw = data as Record<string, unknown> | null
+				return {
+					lateFeeTotal:
+						typeof raw?.lateFeeTotal === 'number' ? raw.lateFeeTotal : 0,
+					unpaidTotal:
+						typeof raw?.unpaidTotal === 'number' ? raw.unpaidTotal : 0,
+					unpaidCount:
+						typeof raw?.unpaidCount === 'number' ? raw.unpaidCount : 0,
+					tenantCount:
+						typeof raw?.tenantCount === 'number' ? raw.tenantCount : 0
+				} as OwnerPaymentSummaryResponse
+			},
+			staleTime: 2 * 60 * 1000,
+			gcTime: 10 * 60 * 1000
 		})
 }
 

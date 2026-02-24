@@ -22,8 +22,6 @@ import type { ContactFormRequest } from '@repo/shared/types/domain'
 import { Check, Mail, MapPin, Phone } from 'lucide-react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { useState } from 'react'
-import { API_BASE_URL } from '#lib/api-config'
-
 const logger = createLogger({ component: 'ContactForm' })
 
 interface ContactFormProps {
@@ -92,25 +90,10 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				throw new Error('Please check your input')
 			}
 
-			// Call backend directly instead of Next.js proxy
-			const response = await fetch(`${API_BASE_URL}/api/v1/contact`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(data)
-			})
-
-			const result = await response.json()
-
-			if (!response.ok) {
-				throw new Error(result.error || 'Failed to submit form')
-			}
-
-			setSubmitMessage(
-				result.message ||
-					'Thank you for reaching out! Our team will review your message and get back to you within 4 hours.'
-			)
+			// TODO: Wire to Edge Function or external contact service (Resend MCP)
+			// Contact form submissions are temporarily unavailable — NestJS backend removed.
+			logger.info('Contact form submitted (stub — not sent)', { action: 'contact_form_submit', metadata: { email: data.email } })
+			throw new Error('Contact form is temporarily unavailable. Please email us directly at support@tenantflow.app.')
 		},
 		{
 			name: '',

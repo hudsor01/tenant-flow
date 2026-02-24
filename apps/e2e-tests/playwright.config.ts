@@ -23,15 +23,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Use override: true to ensure local Supabase URLs
 dotenv.config({ path: path.join(__dirname, '.env.test'), override: true })
 
-// Dedicated test ports to avoid conflicts with development servers
+// Dedicated test port to avoid conflicts with development servers
 const TEST_FRONTEND_PORT = 3050
-const TEST_BACKEND_PORT = 4650
 const TEST_FRONTEND_URL = `http://localhost:${TEST_FRONTEND_PORT}`
-const TEST_BACKEND_URL = `http://localhost:${TEST_BACKEND_PORT}`
 
 // Local Supabase configuration (from .env.test)
 const LOCAL_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321'
-const LOCAL_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+const LOCAL_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
 const LOCAL_SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
 
 // Auth state file paths (official Playwright pattern)
@@ -258,42 +256,21 @@ export default defineConfig({
 	// ===================
 	// Web Server
 	// @see https://playwright.dev/docs/test-webserver
-	//
-	// Uses dedicated ports (3050, 4650) to avoid conflicts
-	// with development servers (3001, 4600)
-	//
 	// ===================
 	webServer: [
 		{
-			// Backend: Override Supabase URLs after injection
-			command: `bash -c "export SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export SUPABASE_SERVICE_ROLE_KEY='${LOCAL_SUPABASE_SERVICE_KEY}' && export SUPABASE_JWT_SECRET='super-secret-jwt-token-with-at-least-32-characters-long' && exec pnpm --filter @repo/backend dev --port ${TEST_BACKEND_PORT}"`,
-			url: `${TEST_BACKEND_URL}/health/ping`,
-			timeout: 120_000,
-			reuseExistingServer: !process.env.CI,
-			stdout: 'pipe',
-			stderr: 'pipe',
-			env: {
-				PORT: String(TEST_BACKEND_PORT),
-				SUPABASE_URL: LOCAL_SUPABASE_URL,
-				SUPABASE_SERVICE_ROLE_KEY: LOCAL_SUPABASE_SERVICE_KEY,
-				SUPABASE_JWT_SECRET: 'super-secret-jwt-token-with-at-least-32-characters-long'
-			}
-		},
-		{
-			// rm -rf .next ensures fresh build with correct env vars
+			// Frontend: rm -rf .next ensures fresh build with correct env vars
 			// rm .env.local prevents production config from overriding test config
-			// Note: Using pnpm --filter instead of direct next call to ensure proper PATH
-			command: `cd apps/frontend && rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='${LOCAL_SUPABASE_ANON_KEY}' && export NEXT_PUBLIC_API_BASE_URL='${TEST_BACKEND_URL}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
+			command: `cd apps/frontend && rm -rf .next && rm -f .env.local && bash -c "export NODE_ENV='test' && export NEXT_PUBLIC_SUPABASE_URL='${LOCAL_SUPABASE_URL}' && export NEXT_PUBLIC_SUPABASE_ANON_KEY='${LOCAL_SUPABASE_ANON_KEY}' && exec npx next dev --turbopack --port ${TEST_FRONTEND_PORT}"`,
 			url: TEST_FRONTEND_URL,
 			timeout: 120_000,
 			reuseExistingServer: !process.env.CI,
 			stdout: 'pipe',
 			stderr: 'pipe',
-			cwd: '/Users/richard/Developer/tenant-flow',
+			cwd: path.resolve(__dirname, '../..'),
 			env: {
 				NEXT_PUBLIC_SUPABASE_URL: LOCAL_SUPABASE_URL,
-				NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: LOCAL_SUPABASE_ANON_KEY,
-				NEXT_PUBLIC_API_BASE_URL: TEST_BACKEND_URL
+				NEXT_PUBLIC_SUPABASE_ANON_KEY: LOCAL_SUPABASE_ANON_KEY
 			}
 		}
 	],

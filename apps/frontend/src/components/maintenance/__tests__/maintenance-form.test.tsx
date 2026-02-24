@@ -122,6 +122,7 @@ const mockMaintenanceRequest: MaintenanceRequest = {
 	inspector_id: null,
 	scheduled_date: null,
 	tenant_id: 'tenant-1',
+	vendor_id: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
 }

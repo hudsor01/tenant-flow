@@ -58,8 +58,7 @@ function getApplicationDomains() {
 	// Always add localhost in non-production environments
 	developmentOrigins.push(
 		'http://localhost:3000',
-		'http://localhost:3050', // Next.js alternate port
-		'http://localhost:4600'
+		'http://localhost:3050' // Next.js alternate port
 	)
 
 	return {
@@ -102,22 +101,3 @@ export function getCORSOriginsForEnv(): string[] | boolean {
 	return getCORSOrigins(env)
 }
 
-/**
- * CORS configuration object for Express
- */
-export function getCORSConfig() {
-	return {
-		origin: getCORSOriginsForEnv(),
-		credentials: true,
-		methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-		allowedHeaders: [
-			'Origin',
-			'X-Requested-With',
-			'Content-Type',
-			'Accept',
-			'Authorization',
-			'X-CSRF-Token',
-			'X-XSRF-Token'
-		]
-	}
-}

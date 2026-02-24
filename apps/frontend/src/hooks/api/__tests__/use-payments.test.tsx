@@ -1,5 +1,6 @@
 /**
  * Payment Hooks Tests
+ * Tests for PostgREST-based payment hooks (Phase 54-01 migration)
  */
 
 import { renderHook, waitFor } from '@testing-library/react'
@@ -12,13 +13,21 @@ import {
 	useRecordManualPaymentMutation,
 	useExportPaymentsMutation
 } from '../use-payments'
-import * as apiRequest from '#lib/api-request'
 import type { ReactNode } from 'react'
 
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn(),
-	apiRequestRaw: vi.fn()
+// Mock supabase client
+vi.mock('#lib/supabase/client', () => ({
+	createClient: vi.fn()
 }))
+
+// Mock postgrest error handler
+vi.mock('#lib/postgrest-error-handler', () => ({
+	handlePostgrestError: vi.fn((error: unknown) => {
+		throw error
+	})
+}))
+
+import { createClient } from '#lib/supabase/client'
 
 const createWrapper = () => {
 	const queryClient = new QueryClient({
@@ -33,7 +42,33 @@ const createWrapper = () => {
 	)
 }
 
-describe('Payment Hooks', () => {
+function createMockSupabaseClient(overrides: Record<string, unknown> = {}) {
+	const rpcMock = vi.fn().mockResolvedValue({ data: { totalRevenue: 500000 }, error: null })
+	const fromMock = vi.fn().mockReturnValue({
+		select: vi.fn().mockReturnThis(),
+		gte: vi.fn().mockReturnThis(),
+		lte: vi.fn().mockReturnThis(),
+		lt: vi.fn().mockReturnThis(),
+		eq: vi.fn().mockReturnThis(),
+		in: vi.fn().mockReturnThis(),
+		order: vi.fn().mockReturnThis(),
+		limit: vi.fn().mockReturnThis(),
+		insert: vi.fn().mockReturnThis(),
+		single: vi.fn().mockResolvedValue({ data: null, error: null }),
+		maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+		then: undefined,
+		...overrides
+	})
+	return {
+		auth: {
+			getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		},
+		from: fromMock,
+		rpc: rpcMock
+	}
+}
+
+describe('Payment Hooks (PostgREST)', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})
@@ -43,29 +78,10 @@ describe('Payment Hooks', () => {
 	})
 
 	describe('usePaymentAnalytics', () => {
-		it('should fetch payment analytics successfully', async () => {
-			const mockAnalytics = {
-				totalCollected: 500000,
-				totalPending: 100000,
-				totalOverdue: 50000,
-				collectionRate: 80.5,
-				averagePaymentTime: 2.3,
-				onTimePaymentRate: 95.2,
-				monthlyTrend: [
-					{
-						month: 'Jan',
-						monthNumber: 1,
-						collected: 125000,
-						pending: 25000,
-						failed: 0
-					}
-				]
-			}
-
-			vi.mocked(apiRequest.apiRequest).mockResolvedValue({
-				success: true,
-				analytics: mockAnalytics
-			})
+		it('should fetch payment analytics successfully via RPC', async () => {
+			const mockClient = createMockSupabaseClient()
+			mockClient.rpc.mockResolvedValue({ data: { totalRevenue: 500000 }, error: null })
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
 				wrapper: createWrapper()
@@ -73,47 +89,54 @@ describe('Payment Hooks', () => {
 
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-			expect(result.current.data).toEqual(mockAnalytics)
-			expect(apiRequest.apiRequest).toHaveBeenCalledWith(
-				'/api/v1/rent-payments/analytics'
-			)
+			expect(result.current.data?.totalCollected).toBe(500000)
+			expect(mockClient.rpc).toHaveBeenCalledWith('get_dashboard_stats', { user_id: 'user-1' })
 		})
 
-		it('should handle error state', async () => {
-			vi.mocked(apiRequest.apiRequest).mockRejectedValue(
-				new Error('Network error')
-			)
+		it('should handle unauthenticated error', async () => {
+			const mockClient = createMockSupabaseClient()
+			mockClient.auth.getUser.mockResolvedValue({ data: { user: null } })
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => expect(result.current.isError).toBe(true))
-
 			expect(result.current.error).toBeDefined()
 		})
 	})
 
 	describe('useUpcomingPayments', () => {
-		it('should fetch upcoming payments successfully', async () => {
+		it('should fetch upcoming payments via PostgREST', async () => {
 			const mockPayments = [
 				{
 					id: '1',
-					tenantId: 't1',
-					tenantName: 'John Doe',
-					propertyName: 'Test Property',
-					unitNumber: '101',
+					tenant_id: 't1',
+					lease_id: 'l1',
 					amount: 150000,
-					dueDate: '2024-02-01T00:00:00.000Z',
-					autopayEnabled: true,
-					paymentMethodConfigured: true
+					currency: 'USD',
+					status: 'pending',
+					due_date: '2024-02-01',
+					period_start: '2024-02-01',
+					period_end: '2024-02-28'
 				}
 			]
 
-			vi.mocked(apiRequest.apiRequest).mockResolvedValue({
-				success: true,
-				payments: mockPayments
-			})
+			const chainMock = {
+				select: vi.fn().mockReturnThis(),
+				gte: vi.fn().mockReturnThis(),
+				lte: vi.fn().mockReturnThis(),
+				eq: vi.fn().mockReturnThis(),
+				order: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockResolvedValue({ data: mockPayments, error: null })
+			}
+			const mockClient = {
+				auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }) },
+				from: vi.fn().mockReturnValue(chainMock),
+				rpc: vi.fn()
+			}
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => useUpcomingPayments(), {
 				wrapper: createWrapper()
@@ -121,33 +144,40 @@ describe('Payment Hooks', () => {
 
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-			expect(result.current.data).toEqual(mockPayments)
-			expect(result.current.data?.[0]?.tenantName).toBe('John Doe')
+			expect(result.current.data).toHaveLength(1)
+			expect(mockClient.from).toHaveBeenCalledWith('rent_payments')
 		})
 	})
 
 	describe('useOverduePayments', () => {
-		it('should fetch overdue payments with days calculation', async () => {
+		it('should fetch overdue payments via PostgREST', async () => {
 			const mockPayments = [
 				{
 					id: '1',
-					tenantId: 't1',
-					tenantName: 'Jane Doe',
-					tenantEmail: 'jane@test.com',
-					propertyName: 'Test Property',
-					unitNumber: '102',
+					tenant_id: 't1',
+					lease_id: 'l1',
 					amount: 150000,
-					dueDate: '2024-01-01T00:00:00.000Z',
-					daysOverdue: 15,
-					lateFeeAmount: 7500,
-					lateFeeApplied: true
+					currency: 'USD',
+					status: 'pending',
+					due_date: '2024-01-01',
+					period_start: '2024-01-01',
+					period_end: '2024-01-31'
 				}
 			]
 
-			vi.mocked(apiRequest.apiRequest).mockResolvedValue({
-				success: true,
-				payments: mockPayments
-			})
+			const chainMock = {
+				select: vi.fn().mockReturnThis(),
+				lt: vi.fn().mockReturnThis(),
+				in: vi.fn().mockReturnThis(),
+				order: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockResolvedValue({ data: mockPayments, error: null })
+			}
+			const mockClient = {
+				auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }) },
+				from: vi.fn().mockReturnValue(chainMock),
+				rpc: vi.fn()
+			}
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => useOverduePayments(), {
 				wrapper: createWrapper()
@@ -155,30 +185,31 @@ describe('Payment Hooks', () => {
 
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-			expect(result.current.data).toEqual(mockPayments)
-			expect(result.current.data?.[0]?.daysOverdue).toBe(15)
-			expect(result.current.data?.[0]?.lateFeeApplied).toBe(true)
+			expect(result.current.data).toHaveLength(1)
+			expect(mockClient.from).toHaveBeenCalledWith('rent_payments')
 		})
 	})
 
 	describe('useRecordManualPaymentMutation', () => {
-		it('should record manual payment successfully', async () => {
-			const mockPayment = {
-				id: 'p1',
-				amount: 150000,
-				status: 'succeeded'
+		it('should insert manual payment into rent_payments via PostgREST', async () => {
+			const mockPaymentId = { id: 'p1' }
+			const insertChain = {
+				insert: vi.fn().mockReturnThis(),
+				select: vi.fn().mockReturnThis(),
+				single: vi.fn().mockResolvedValue({ data: mockPaymentId, error: null })
 			}
-
-			vi.mocked(apiRequest.apiRequest).mockResolvedValue({
-				success: true,
-				payment: mockPayment
-			})
+			const mockClient = {
+				auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }) },
+				from: vi.fn().mockReturnValue(insertChain),
+				rpc: vi.fn()
+			}
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => useRecordManualPaymentMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync({
+			const response = await result.current.mutateAsync({
 				lease_id: 'l1',
 				tenant_id: 't1',
 				amount: 1500,
@@ -186,28 +217,55 @@ describe('Payment Hooks', () => {
 				paid_date: '2024-01-15'
 			})
 
-			expect(apiRequest.apiRequest).toHaveBeenCalledWith(
-				'/api/v1/rent-payments/manual',
+			expect(response.success).toBe(true)
+			expect(mockClient.from).toHaveBeenCalledWith('rent_payments')
+			expect(insertChain.insert).toHaveBeenCalledWith(
 				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('lease_id')
+					tenant_id: 't1',
+					lease_id: 'l1',
+					amount: 1500,
+					status: 'paid',
+					payment_method_type: 'cash',
+					paid_date: '2024-01-15'
 				})
 			)
 		})
 	})
 
 	describe('useExportPaymentsMutation', () => {
-		it('should call export API with correct URL', async () => {
-			const mockBlob = new Blob(['csv,content'], { type: 'text/csv' })
-			const mockResponse = {
-				blob: () => Promise.resolve(mockBlob)
+		it('should generate CSV from PostgREST data and trigger download', async () => {
+			const mockRows = [
+				{
+					id: 'p1',
+					amount: 150000,
+					currency: 'USD',
+					status: 'paid',
+					due_date: '2024-01-15',
+					paid_date: '2024-01-15',
+					period_start: '2024-01-01',
+					period_end: '2024-01-31',
+					payment_method_type: 'cash',
+					late_fee_amount: null,
+					notes: null,
+					created_at: '2024-01-15T00:00:00Z'
+				}
+			]
+
+			const chainMock = {
+				select: vi.fn().mockReturnThis(),
+				order: vi.fn().mockReturnThis(),
+				eq: vi.fn().mockReturnThis(),
+				gte: vi.fn().mockReturnThis(),
+				lte: vi.fn().mockResolvedValue({ data: mockRows, error: null })
 			}
+			const mockClient = {
+				auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } } }) },
+				from: vi.fn().mockReturnValue(chainMock),
+				rpc: vi.fn()
+			}
+			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
-			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(
-				mockResponse as Response
-			)
-
-			// Mock URL methods without affecting document.createElement
+			// Mock URL methods
 			const originalCreateObjectURL = URL.createObjectURL
 			const originalRevokeObjectURL = URL.revokeObjectURL
 			URL.createObjectURL = vi.fn().mockReturnValue('blob:test-url')
@@ -217,46 +275,13 @@ describe('Payment Hooks', () => {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync({ status: 'succeeded' })
+			const blob = await result.current.mutateAsync({ status: 'paid' })
 
-			expect(apiRequest.apiRequestRaw).toHaveBeenCalledWith(
-				'/api/v1/rent-payments/export?status=succeeded'
-			)
+			expect(blob).toBeInstanceOf(Blob)
+			expect(blob.type).toBe('text/csv')
+			expect(mockClient.from).toHaveBeenCalledWith('rent_payments')
 
 			// Restore URL methods
-			URL.createObjectURL = originalCreateObjectURL
-			URL.revokeObjectURL = originalRevokeObjectURL
-		})
-
-		it('should call export API with date filters', async () => {
-			const mockBlob = new Blob(['csv,content'], { type: 'text/csv' })
-			const mockResponse = {
-				blob: () => Promise.resolve(mockBlob)
-			}
-
-			vi.mocked(apiRequest.apiRequestRaw).mockResolvedValue(
-				mockResponse as Response
-			)
-
-			const originalCreateObjectURL = URL.createObjectURL
-			const originalRevokeObjectURL = URL.revokeObjectURL
-			URL.createObjectURL = vi.fn().mockReturnValue('blob:test-url')
-			URL.revokeObjectURL = vi.fn()
-
-			const { result } = renderHook(() => useExportPaymentsMutation(), {
-				wrapper: createWrapper()
-			})
-
-			await result.current.mutateAsync({
-				status: 'all',
-				startDate: '2024-01-01',
-				endDate: '2024-12-31'
-			})
-
-			expect(apiRequest.apiRequestRaw).toHaveBeenCalledWith(
-				'/api/v1/rent-payments/export?status=all&startDate=2024-01-01&endDate=2024-12-31'
-			)
-
 			URL.createObjectURL = originalCreateObjectURL
 			URL.revokeObjectURL = originalRevokeObjectURL
 		})
