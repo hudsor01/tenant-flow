@@ -26,15 +26,15 @@ setup('authenticate as tenant via API', async ({ request }) => {
 	const supabaseUrl =
 		process.env.TEST_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 	const supabaseKey =
-		process.env.TEST_SUPABASE_ANON_KEY ||
-		process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+		process.env.TEST_SUPABASE_PUBLISHABLE_KEY ||
+		process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 	const email = process.env.E2E_TENANT_EMAIL
 	const password = process.env.E2E_TENANT_PASSWORD
 
 	// Validation
 	if (!supabaseUrl || !supabaseKey) {
 		throw new Error(
-			'Missing Supabase configuration: TEST_SUPABASE_URL and TEST_SUPABASE_ANON_KEY required'
+			'Missing Supabase configuration: TEST_SUPABASE_URL and TEST_SUPABASE_PUBLISHABLE_KEY required'
 		)
 	}
 	if (!email || !password) {
