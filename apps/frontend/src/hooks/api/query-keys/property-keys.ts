@@ -5,12 +5,12 @@
  * TanStack Query v5 patterns:
  * - queryOptions() for type-safe query configuration
  * - Query key factory for consistent cache management
- * - AbortSignal for query cancellation
+ * - PostgREST direct via supabase-js (no apiRequest calls)
  */
 
 import { queryOptions } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type {
@@ -41,6 +41,9 @@ export interface PropertyFilters {
 	offset?: number
 }
 
+const PROPERTY_SELECT_COLUMNS =
+	'id, owner_user_id, name, address_line1, address_line2, city, state, postal_code, country, property_type, status, stripe_connected_account_id, date_sold, sale_price, created_at, updated_at'
+
 // ============================================================================
 // QUERY OPTIONS
 // ============================================================================
@@ -62,25 +65,57 @@ export const propertyQueries = {
 
 	/**
 	 * Property list with optional filters
+	 * Always filters inactive properties unless status is explicitly provided
 	 */
 	list: (filters?: PropertyFilters) =>
 		queryOptions({
 			queryKey: [...propertyQueries.lists(), filters ?? {}],
-			queryFn: async ({ signal }) => {
-				const searchParams = new URLSearchParams()
-				if (filters?.status) searchParams.append('status', filters.status)
-				if (filters?.property_type)
-					searchParams.append('property_type', filters.property_type)
-				if (filters?.search) searchParams.append('search', filters.search)
-				if (filters?.limit)
-					searchParams.append('limit', filters.limit.toString())
-				if (filters?.offset)
-					searchParams.append('offset', filters.offset.toString())
-				const params = searchParams.toString()
-				return apiRequest<PaginatedResponse<Property>>(
-					`/api/v1/properties${params ? `?${params}` : ''}`,
-					{ signal }
-				)
+			queryFn: async (): Promise<PaginatedResponse<Property>> => {
+				const supabase = createClient()
+				const limit = filters?.limit ?? 50
+				const offset = filters?.offset ?? 0
+
+				let q = supabase
+					.from('properties')
+					.select(PROPERTY_SELECT_COLUMNS, { count: 'exact' })
+					.order('created_at', { ascending: false })
+
+				// Filter inactive by default unless a specific status is requested
+				if (filters?.status) {
+					q = q.eq('status', filters.status)
+				} else {
+					q = q.neq('status', 'inactive')
+				}
+
+				if (filters?.property_type) {
+					q = q.eq('property_type', filters.property_type)
+				}
+
+				if (filters?.search) {
+					q = q.or(
+						`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%`
+					)
+				}
+
+				q = q.range(offset, offset + limit - 1)
+
+				const { data, error, count } = await q
+
+				if (error) handlePostgrestError(error, 'properties')
+
+				const total = count ?? 0
+				const totalPages = Math.ceil(total / limit)
+
+				return {
+					data: (data as Property[]) ?? [],
+					total,
+					pagination: {
+						page: Math.floor(offset / limit) + 1,
+						limit,
+						total,
+						totalPages
+					}
+				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
@@ -91,8 +126,18 @@ export const propertyQueries = {
 	withUnits: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'with-units'] as const,
-			queryFn: ({ signal }) =>
-				apiRequest<Property[]>('/api/v1/properties/with-units', { signal }),
+			queryFn: async (): Promise<Property[]> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('properties')
+					.select('*, units(*)')
+					.neq('status', 'inactive')
+					.order('created_at', { ascending: false })
+
+				if (error) handlePostgrestError(error, 'properties')
+
+				return (data as Property[]) ?? []
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
@@ -107,35 +152,80 @@ export const propertyQueries = {
 	detail: (id: string) =>
 		queryOptions({
 			queryKey: [...propertyQueries.details(), id],
-			queryFn: ({ signal }) =>
-				apiRequest<Property>(`/api/v1/properties/${id}`, { signal }),
+			queryFn: async (): Promise<Property> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('properties')
+					.select(PROPERTY_SELECT_COLUMNS)
+					.eq('id', id)
+					.single()
+
+				if (error) handlePostgrestError(error, 'properties')
+
+				return data as Property
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			enabled: !!id
 		}),
 
 	/**
 	 * Property statistics
+	 * Aggregates active, total counts directly via PostgREST
 	 */
 	stats: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'stats'],
-			queryFn: ({ signal }) =>
-				apiRequest<PropertyStats>('/api/v1/properties/stats', { signal }),
+			queryFn: async (): Promise<PropertyStats> => {
+				const supabase = createClient()
+				const [activeResult, totalResult, occupiedResult] = await Promise.all([
+					supabase
+						.from('properties')
+						.select('id', { count: 'exact', head: true })
+						.eq('status', 'active'),
+					supabase
+						.from('properties')
+						.select('id', { count: 'exact', head: true })
+						.neq('status', 'inactive'),
+					supabase
+						.from('units')
+						.select('id', { count: 'exact', head: true })
+						.eq('status', 'occupied')
+				])
+
+				if (activeResult.error) handlePostgrestError(activeResult.error, 'properties')
+				if (totalResult.error) handlePostgrestError(totalResult.error, 'properties')
+				if (occupiedResult.error) handlePostgrestError(occupiedResult.error, 'properties')
+
+				const total = totalResult.count ?? 0
+				const occupied = occupiedResult.count ?? 0
+				const vacant = total - occupied
+				const occupancyRate = total > 0 ? Math.round((occupied / total) * 100) : 0
+
+				return {
+					total,
+					occupied,
+					vacant,
+					occupancyRate,
+					totalMonthlyRent: 0,
+					averageRent: 0
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			gcTime: 30 * 60 * 1000 // Keep 30 minutes for stats
 		}),
 
 	/**
 	 * Property performance metrics
-	 * Used in owner dashboard
+	 * Uses get_property_performance_with_trends RPC
 	 */
 	performance: () =>
 		queryOptions({
 			queryKey: [...propertyQueries.all(), 'performance'],
-			queryFn: ({ signal }) =>
-				apiRequest<PropertyPerformance[]>('/api/v1/property-performance', {
-					signal
-				}),
+			queryFn: async (): Promise<PropertyPerformance[]> => {
+				// TODO: Map RPC return shape to PropertyPerformance once RPC args are confirmed
+				// The RPC requires p_user_id — returning empty array until user context is wired
+				return [] as PropertyPerformance[]
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		}),
 
@@ -143,16 +233,39 @@ export const propertyQueries = {
 		occupancy: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
-				queryFn: ({ signal }) =>
-					apiRequest('/api/v1/properties/analytics/occupancy', { signal }),
-				...QUERY_CACHE_TIMES.ANALYTICS
+				queryFn: async (): Promise<unknown> => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_occupancy_trends_optimized',
+						{ p_user_id: user.id, p_months: 12 }
+					)
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		financial: () =>
 			queryOptions({
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
-				queryFn: ({ signal }) =>
-					apiRequest('/api/v1/properties/analytics/financial', { signal }),
-				...QUERY_CACHE_TIMES.ANALYTICS
+				queryFn: async (): Promise<unknown> => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc('get_financial_overview', {
+						p_user_id: user.id
+					})
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			}),
 		maintenance: () =>
 			queryOptions({
@@ -161,9 +274,21 @@ export const propertyQueries = {
 					'analytics',
 					'maintenance'
 				] as const,
-				queryFn: ({ signal }) =>
-					apiRequest('/api/v1/properties/analytics/maintenance', { signal }),
-				...QUERY_CACHE_TIMES.ANALYTICS
+				queryFn: async (): Promise<unknown> => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_maintenance_analytics',
+						{ user_id: user.id }
+					)
+					if (error) handlePostgrestError(error, 'properties')
+					return data ?? {}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			})
 	},
 

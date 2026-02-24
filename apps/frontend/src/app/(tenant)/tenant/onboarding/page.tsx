@@ -7,20 +7,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '#lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
-import { API_BASE_URL } from '#lib/api-config'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 
 type Status = 'loading' | 'activating' | 'success' | 'error'
 
 /**
- * Tenant Onboarding Page (Phase 3.1)
+ * Tenant Onboarding Page
  * Called after Supabase Auth email confirmation
- * Activates tenant record and redirects to dashboard
+ * Activates tenant record by setting status to 'active' via PostgREST.
+ * The tenants.status column is updated directly; no NestJS activation endpoint needed.
  */
 export default function TenantOnboardingPage() {
 	const [status, setStatus] = useState<Status>('loading')
@@ -33,14 +33,9 @@ export default function TenantOnboardingPage() {
 
 		const activateTenant = async () => {
 			try {
-				// Use process.env directly for NEXT_PUBLIC_* vars in client components
-				const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-				const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+				const supabase = createClient()
 
-				// 1. Create Supabase browser client with validated config
-				const supabase = createBrowserClient(supabaseUrl, supabaseKey)
-
-				// 3. Get current auth user (validates JWT securely)
+				// Verify authentication
 				const {
 					data: { user },
 					error: authError
@@ -58,69 +53,24 @@ export default function TenantOnboardingPage() {
 					return
 				}
 
-				// 4. Get session to extract access token for backend API call
-				const {
-					data: { session },
-					error: sessionError
-				} = await supabase.auth.getSession()
-
-				if (sessionError || !session?.access_token) {
-					logger.error('Session error during tenant onboarding', {
-						error: sessionError
-					})
-					setErrorMessage(
-						'Authentication session expired. Please sign in again.'
-					)
-					setStatus('error')
-					redirectTimer = setTimeout(() => router.push('/login'), 3000)
-					return
-				}
-
 				setStatus('activating')
 
-				// 5. Call backend activation endpoint with authentication
-				const response = await fetch(`${API_BASE_URL}/api/v1/tenants/activate`, {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session.access_token}`
-					},
-					body: JSON.stringify({ authuser_id: user.id })
-				})
+				// Activate tenant record via PostgREST
+				// The tenants table has a status column; set to 'active' for the current user
+				const { error: updateError } = await supabase
+					.from('tenants')
+					.update({ status: 'active' })
+					.eq('user_id', user.id)
 
-				if (!response.ok) {
-					let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-					let jsonError: unknown
-					let textError: unknown
-
-					// FIX: Clone BEFORE consuming the response body
-					const responseClone = response.clone()
-
-					try {
-						const errorData = await response.json()
-						errorMessage = errorData.message || errorMessage
-					} catch (error) {
-						jsonError = error
-						try {
-							// Use the cloned response for text fallback
-							const textContent = await responseClone.text()
-							errorMessage = textContent.substring(0, 200) || errorMessage
-						} catch (error) {
-							textError = error
-						}
-					}
-
-					if (jsonError || textError) {
-						logger.warn('Failed to parse error response', {
-							jsonError,
-							textError
-						})
-					}
-
-					throw new Error(errorMessage)
+				if (updateError) {
+					logger.error('Failed to activate tenant record', {
+						error: updateError
+					})
+					throw new Error(
+						updateError.message || 'Failed to activate tenant account'
+					)
 				}
 
-				// Since response.ok is already true, treat as success
 				setStatus('success')
 				// Redirect to tenant dashboard after 2 seconds
 				dashboardTimer = setTimeout(() => router.push('/tenant'), 2000)

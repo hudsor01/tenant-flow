@@ -76,24 +76,24 @@ function PaymentMethodCard({
 	const isProcessing = isDeleting || isSettingDefault
 
 	const getMethodDisplay = () => {
-		if (method.type === 'card' && method.card) {
+		if (method.type === 'card') {
 			return {
 				icon: <CreditCard className="size-5 text-muted-foreground" />,
-				title: getCardBrandIcon(method.card.brand),
-				subtitle: `•••• ${method.card.last4}`,
-				detail: `Expires ${method.card.exp_month.toString().padStart(2, '0')}/${method.card.exp_year.toString().slice(-2)}`,
+				title: getCardBrandIcon(method.brand ?? ''),
+				subtitle: method.last_four ? `•••• ${method.last_four}` : '',
+				detail:
+					method.exp_month !== null && method.exp_year !== null
+						? `Expires ${method.exp_month?.toString().padStart(2, '0')}/${method.exp_year?.toString().slice(-2)}`
+						: '',
 				isLowerFees: false
 			}
 		}
-		if (method.type === 'us_bank_account' && method.us_bank_account) {
+		if (method.type === 'us_bank_account') {
 			return {
 				icon: <Building2 className="size-5 text-success" />,
-				title: method.us_bank_account.bank_name,
-				subtitle: `•••• ${method.us_bank_account.last4}`,
-				detail:
-					method.us_bank_account.account_type === 'checking'
-						? 'Checking'
-						: 'Savings',
+				title: method.bank_name ?? 'Bank Account',
+				subtitle: method.last_four ? `•••• ${method.last_four}` : '',
+				detail: 'Bank Account',
 				isLowerFees: true
 			}
 		}

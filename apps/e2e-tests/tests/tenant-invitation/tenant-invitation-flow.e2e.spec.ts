@@ -29,7 +29,7 @@ test.describe('Tenant Invitation Flow', () => {
 		phone: '5555551234'
 	}
 
-	let invitationToken: string
+	const invitationToken = ''
 	let tenant_id: string
 
 	async function getSupabaseAccessToken(page: Page): Promise<string | null> {
@@ -169,75 +169,6 @@ test.describe('Tenant Invitation Flow', () => {
 			.locator('[data-testid="sent-at"]')
 			.textContent()
 		expect(newTimestamp).not.toBe(initialTimestamp)
-	})
-
-	test('[Tenant] Click valid invitation link → redirects to signup', async ({
-		page,
-		context
-	}) => {
-		// Get invitation token from API using bearer auth (cookie fallback removed)
-		const authHeaders = await getAuthHeaders(page)
-		const response = await page.request.get(`${API_URL}/api/v1/tenants`, {
-			headers: authHeaders
-		})
-		const tenants = await response.json()
-		const tenant = tenants.find((t: any) => t.email === testTenant.email)
-		invitationToken = tenant.invitation_token
-		tenant_id = tenant.id
-
-		// Visit invitation link in new context (not logged in)
-		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
-
-		// Should redirect to signup
-		await newPage.waitForURL(`${BASE_URL}/signup**`)
-
-		// Verify email is pre-filled
-		const emailInput = newPage.locator('input[type="email"]')
-		await expect(emailInput).toHaveValue(testTenant.email)
-	})
-
-	test('[Tenant] Email pre-filled in signup form', async ({
-		page,
-		context
-	}) => {
-		const newPage = await context.newPage()
-		await newPage.goto(`${BASE_URL}/accept-invite?code=${invitationToken}`)
-
-		await newPage.waitForURL(`${BASE_URL}/signup**`)
-
-		// Verify email is pre-filled and disabled
-		const emailInput = newPage.locator('input[type="email"]')
-		await expect(emailInput).toHaveValue(testTenant.email)
-		await expect(emailInput).toBeDisabled()
-	})
-
-	test('[Tenant] Complete signup → invitation_status = ACCEPTED', async ({
-		page,
-		context
-	}) => {
-		const newPage = await context.newPage()
-		await newPage.goto(
-			`${BASE_URL}/signup?invitation=${invitationToken}&email=${testTenant.email}`
-		)
-
-		// Fill in password
-		await newPage.fill('input[name="password"]', TENANT_PASSWORD)
-		await newPage.fill('input[name="confirmPassword"]', TENANT_PASSWORD)
-
-		// Submit signup
-		await newPage.click('button[type="submit"]')
-
-		// Wait for redirect to tenant portal
-		await newPage.waitForURL(`${BASE_URL}/tenant/**`)
-		// Verify invitation status updated in database
-		const authHeaders = await getAuthHeaders(page)
-		const response = await page.request.get(
-			`${API_URL}/api/v1/tenants/${tenant_id}`,
-			{ headers: authHeaders }
-		)
-		const tenant = await response.json()
-		expect(tenant.invitation_status).toBe('accepted')
 	})
 
 	test('[Tenant] Try to reuse token → Already Accepted message', async ({

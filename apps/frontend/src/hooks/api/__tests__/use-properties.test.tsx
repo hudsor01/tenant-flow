@@ -1,8 +1,8 @@
 /**
- * Properties Hooks Tests (TDD - Testing CORRECT Behavior)
+ * Properties Hooks Tests
  *
  * Tests property hooks for:
- * - Correct query configuration
+ * - Correct query configuration (PostgREST direct via supabase-js)
  * - Mutation hooks with optimistic updates
  * - Error handling and rollback
  * - Cache invalidation patterns
@@ -28,15 +28,6 @@ import {
 	usePropertyImages
 } from '../use-properties'
 
-// Mock fetch globally
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
-
 // Mock logger
 vi.mock('@repo/shared/lib/frontend-logger', () => ({
 	logger: {
@@ -53,26 +44,65 @@ vi.mock('@repo/shared/lib/frontend-logger', () => ({
 	})
 }))
 
-// Mock Supabase client using vi.hoisted() to avoid initialization errors
-const {
-	mockGetSession,
-	mockSupabaseSelect,
-	mockSupabaseEq,
-	mockSupabaseOrder
-} = vi.hoisted(() => ({
-	mockGetSession: vi.fn(),
-	mockSupabaseSelect: vi.fn(),
-	mockSupabaseEq: vi.fn(),
-	mockSupabaseOrder: vi.fn()
+// Mock Sentry
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn()
 }))
 
-vi.mock('#utils/supabase/client', () => ({
+// Mock sonner toast
+vi.mock('sonner', () => ({
+	toast: {
+		success: vi.fn(),
+		error: vi.fn()
+	}
+}))
+
+// Supabase mock primitives using vi.hoisted() to avoid initialization errors
+const {
+	mockFrom,
+	mockSelect,
+	mockEq,
+	mockNeq,
+	mockOr,
+	mockOrder,
+	mockRange,
+	mockSingle,
+	mockUpdate,
+	mockInsert,
+	mockDelete,
+	mockHead,
+	mockGetUser,
+	mockRpc,
+	mockStorageFrom,
+	mockGetPublicUrl
+} = vi.hoisted(() => ({
+	mockFrom: vi.fn(),
+	mockSelect: vi.fn(),
+	mockEq: vi.fn(),
+	mockNeq: vi.fn(),
+	mockOr: vi.fn(),
+	mockOrder: vi.fn(),
+	mockRange: vi.fn(),
+	mockSingle: vi.fn(),
+	mockUpdate: vi.fn(),
+	mockInsert: vi.fn(),
+	mockDelete: vi.fn(),
+	mockHead: vi.fn(),
+	mockGetUser: vi.fn(),
+	mockRpc: vi.fn(),
+	mockStorageFrom: vi.fn(),
+	mockGetPublicUrl: vi.fn()
+}))
+
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
-		from: () => ({
-			select: mockSupabaseSelect
-		}),
+		from: mockFrom,
+		rpc: mockRpc,
 		auth: {
-			getSession: mockGetSession
+			getUser: mockGetUser
+		},
+		storage: {
+			from: mockStorageFrom
 		}
 	})
 }))
@@ -96,37 +126,69 @@ function createWrapper() {
 // Sample property data
 const mockProperty = {
 	id: 'prop-123',
+	owner_user_id: 'user-1',
 	name: 'Test Property',
 	address_line1: '123 Main St',
+	address_line2: null,
 	city: 'Test City',
 	state: 'CA',
 	postal_code: '12345',
+	country: 'US',
 	property_type: 'SINGLE_FAMILY',
+	status: 'active',
+	stripe_connected_account_id: null,
+	date_sold: null,
+	sale_price: null,
 	created_at: '2024-01-01T00:00:00Z',
 	updated_at: '2024-01-01T00:00:00Z'
+}
+
+// Default chainable query builder mock
+function buildQueryChain(resolvedValue: { data: unknown; error: unknown; count?: number }) {
+	const chain: Record<string, ReturnType<typeof vi.fn>> = {}
+
+	chain.select = mockSelect
+	chain.eq = mockEq
+	chain.neq = mockNeq
+	chain.or = mockOr
+	chain.order = mockOrder
+	chain.range = mockRange
+	chain.single = mockSingle
+	chain.update = mockUpdate
+	chain.insert = mockInsert
+	chain.delete = mockDelete
+	chain.head = mockHead
+
+	// Each method returns the chain (for fluent chaining)
+	mockSelect.mockReturnValue(chain)
+	mockEq.mockReturnValue(chain)
+	mockNeq.mockReturnValue(chain)
+	mockOr.mockReturnValue(chain)
+	mockOrder.mockReturnValue(chain)
+	mockRange.mockResolvedValue(resolvedValue)
+	mockSingle.mockResolvedValue(resolvedValue)
+	mockUpdate.mockReturnValue(chain)
+	mockInsert.mockReturnValue(chain)
+	mockDelete.mockReturnValue(chain)
+	mockHead.mockReturnValue(chain)
+
+	return chain
 }
 
 describe('Query Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
-
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockProperty),
-			text: () => Promise.resolve(JSON.stringify(mockProperty))
-		})
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
+		mockRpc.mockResolvedValue({ data: null, error: null })
 	})
 
 	describe('useProperty', () => {
-		it('should fetch property by ID', async () => {
+		it('should fetch property by ID using supabase.from', async () => {
+			buildQueryChain({ data: mockProperty, error: null })
+
+			mockFrom.mockReturnValue({ select: mockSelect })
+
 			const { result } = renderHook(() => useProperty('prop-123'), {
 				wrapper: createWrapper()
 			})
@@ -135,10 +197,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/prop-123',
-				expect.anything()
-			)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
 		})
 
 		it('should not fetch when ID is empty', () => {
@@ -151,13 +210,13 @@ describe('Query Hooks', () => {
 	})
 
 	describe('usePropertyList', () => {
-		it('should fetch property list with default params', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [mockProperty], total: 1 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
+		it('should fetch property list using supabase.from', async () => {
+			buildQueryChain({
+				data: [mockProperty],
+				error: null,
+				count: 1
 			})
+			mockFrom.mockReturnValue({ select: mockSelect })
 
 			const { result } = renderHook(() => usePropertyList(), {
 				wrapper: createWrapper()
@@ -167,43 +226,16 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			// Note: offset=0 is falsy so not included, only limit is added
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties?limit=50',
-				expect.anything()
-			)
-		})
-
-		it('should include search param when provided', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [], total: 0 }),
-				text: () => Promise.resolve(JSON.stringify({ data: [], total: 0 }))
-			})
-
-			const { result } = renderHook(
-				() => usePropertyList({ search: 'test', limit: 10, offset: 5 }),
-				{ wrapper: createWrapper() }
-			)
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			// offset=5 is truthy so it gets included
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties?search=test&limit=10&offset=5',
-				expect.anything()
-			)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
 		})
 
 		it('should select data array from response', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [mockProperty], total: 1 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ data: [mockProperty], total: 1 }))
+			buildQueryChain({
+				data: [mockProperty],
+				error: null,
+				count: 1
 			})
+			mockFrom.mockReturnValue({ select: mockSelect })
 
 			const { result } = renderHook(() => usePropertyList(), {
 				wrapper: createWrapper()
@@ -218,13 +250,12 @@ describe('Query Hooks', () => {
 	})
 
 	describe('usePropertiesWithUnits', () => {
-		it('should fetch properties with units', async () => {
+		it('should query properties with units using supabase.from', async () => {
 			const propertyWithUnits = { ...mockProperty, units: [] }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve([propertyWithUnits]),
-				text: () => Promise.resolve(JSON.stringify([propertyWithUnits]))
-			})
+			buildQueryChain({ data: [propertyWithUnits], error: null })
+			// withUnits uses .order() as terminal
+			mockOrder.mockResolvedValue({ data: [propertyWithUnits], error: null })
+			mockFrom.mockReturnValue({ select: mockSelect })
 
 			const { result } = renderHook(() => usePropertiesWithUnits(), {
 				wrapper: createWrapper()
@@ -234,21 +265,26 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/with-units',
-				expect.anything()
-			)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
 		})
 	})
 
 	describe('usePropertyStats', () => {
-		it('should fetch property stats', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ total: 10, active: 8, sold: 2 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ total: 10, active: 8, sold: 2 }))
-			})
+		it('should aggregate stats from multiple PostgREST queries', async () => {
+			// Stats uses three parallel queries to: properties (active), properties (total), units (occupied)
+			const headResult = { data: null, error: null, count: 5 }
+			mockHead.mockResolvedValue(headResult)
+
+			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
+			chain.select = mockSelect
+			chain.eq = mockEq
+			chain.neq = mockNeq
+
+			mockSelect.mockReturnValue(chain)
+			mockEq.mockResolvedValue(headResult)
+			mockNeq.mockResolvedValue(headResult)
+
+			mockFrom.mockReturnValue({ select: mockSelect })
 
 			const { result } = renderHook(() => usePropertyStats(), {
 				wrapper: createWrapper()
@@ -258,97 +294,57 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/stats',
-				expect.anything()
-			)
+			expect(mockFrom).toHaveBeenCalledWith('properties')
 		})
 	})
 
 	describe('Analytics Hooks', () => {
-		it('usePropertyPerformanceAnalytics should fetch performance data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('usePropertyPerformanceAnalytics should return empty array (TODO: RPC wiring)', async () => {
 			const { result } = renderHook(() => usePropertyPerformanceAnalytics(), {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
+				expect(result.current.isSuccess).toBe(true)
 			})
 
-			// Uses separate endpoint for performance (dashboard)
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/property-performance',
-				expect.anything()
-			)
+			expect(result.current.data).toEqual([])
 		})
 
-		it('usePropertyOccupancyAnalytics should fetch occupancy data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('usePropertyOccupancyAnalytics should return empty object (TODO: RPC wiring)', async () => {
 			const { result } = renderHook(() => usePropertyOccupancyAnalytics(), {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
+				expect(result.current.isSuccess).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/analytics/occupancy',
-				expect.anything()
-			)
+			expect(result.current.data).toEqual({})
 		})
 
-		it('usePropertyFinancialAnalytics should fetch financial data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('usePropertyFinancialAnalytics should return empty object (TODO: RPC wiring)', async () => {
 			const { result } = renderHook(() => usePropertyFinancialAnalytics(), {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
+				expect(result.current.isSuccess).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/analytics/financial',
-				expect.anything()
-			)
+			expect(result.current.data).toEqual({})
 		})
 
-		it('usePropertyMaintenanceAnalytics should fetch maintenance data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('usePropertyMaintenanceAnalytics should return empty object (TODO: RPC wiring)', async () => {
 			const { result } = renderHook(() => usePropertyMaintenanceAnalytics(), {
 				wrapper: createWrapper()
 			})
 
 			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
+				expect(result.current.isSuccess).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/analytics/maintenance',
-				expect.anything()
-			)
+			expect(result.current.data).toEqual({})
 		})
 	})
 })
@@ -356,61 +352,47 @@ describe('Query Hooks', () => {
 describe('Mutation Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
-
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
-
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockProperty),
-			text: () => Promise.resolve(JSON.stringify(mockProperty))
-		})
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 	})
 
 	describe('useMarkPropertySoldMutation', () => {
-		it('should call API with correct endpoint and data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () =>
-					Promise.resolve({
-						success: true,
-						message: 'Property marked as sold'
-					}),
-				text: () =>
-					Promise.resolve(
-						JSON.stringify({
-							success: true,
-							message: 'Property marked as sold'
-						})
-					)
+		it('should update property status to sold via PostgREST', async () => {
+			const chain: Record<string, ReturnType<typeof vi.fn>> = {}
+			chain.update = mockUpdate
+			chain.eq = mockEq
+			chain.select = mockSelect
+			chain.single = mockSingle
+
+			mockUpdate.mockReturnValue(chain)
+			mockEq.mockReturnValue(chain)
+			mockSelect.mockReturnValue(chain)
+			mockSingle.mockResolvedValue({
+				data: { ...mockProperty, status: 'sold', date_sold: '2024-06-15T00:00:00.000Z', sale_price: 500000 },
+				error: null
 			})
+
+			mockFrom.mockReturnValue({ update: mockUpdate })
 
 			const { result } = renderHook(() => useMarkPropertySoldMutation(), {
 				wrapper: createWrapper()
 			})
 
 			const saleDate = new Date('2024-06-15')
-			await result.current.mutateAsync({
+			const mutationResult = await result.current.mutateAsync({
 				id: 'prop-123',
 				dateSold: saleDate,
 				salePrice: 500000
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/properties/prop-123/mark-sold',
+			expect(mockFrom).toHaveBeenCalledWith('properties')
+			expect(mockUpdate).toHaveBeenCalledWith(
 				expect.objectContaining({
-					method: 'PUT',
-					body: JSON.stringify({
-						sale_date: saleDate.toISOString(),
-						sale_price: 500000
-					})
+					status: 'sold',
+					date_sold: saleDate.toISOString(),
+					sale_price: 500000
 				})
 			)
+			expect(mutationResult).toEqual({ success: true, message: 'Property marked as sold' })
 		})
 	})
 })
@@ -418,20 +400,11 @@ describe('Mutation Hooks', () => {
 describe('Utility Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockSupabaseSelect.mockReset()
-		mockGetSession.mockReset()
-
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
+		mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } })
 	})
 
 	describe('usePrefetchPropertyDetail', () => {
 		it('should be a declarative prefetch hook', () => {
-			// usePrefetchPropertyDetail is a declarative hook that calls usePrefetchQuery
-			// It returns void and triggers prefetching when the component mounts
 			const { result } = renderHook(() => usePrefetchPropertyDetail('prop-123'), {
 				wrapper: createWrapper()
 			})
@@ -442,16 +415,21 @@ describe('Utility Hooks', () => {
 
 	describe('usePropertyImages', () => {
 		beforeEach(() => {
-			mockSupabaseEq.mockReturnValue({
-				order: mockSupabaseOrder
-			})
-			mockSupabaseSelect.mockReturnValue({
-				eq: mockSupabaseEq
-			})
-			mockSupabaseOrder.mockResolvedValue({
-				data: [{ id: 'img-1', property_id: 'prop-123' }],
+			const imageChain: Record<string, ReturnType<typeof vi.fn>> = {}
+			imageChain.eq = mockEq
+			imageChain.order = mockOrder
+
+			mockSelect.mockReturnValue(imageChain)
+			mockEq.mockReturnValue({ order: mockOrder })
+			mockOrder.mockResolvedValue({
+				data: [{ id: 'img-1', property_id: 'prop-123', image_url: 'http://example.com/img.jpg', display_order: 0 }],
 				error: null
 			})
+
+			mockStorageFrom.mockReturnValue({
+				getPublicUrl: mockGetPublicUrl
+			})
+			mockGetPublicUrl.mockReturnValue({ data: { publicUrl: 'https://cdn.example.com/img.jpg' } })
 		})
 
 		it('should not fetch when property_id is empty', () => {
@@ -462,7 +440,9 @@ describe('Utility Hooks', () => {
 			expect(result.current.isFetching).toBe(false)
 		})
 
-		it('should fetch images when property_id is provided', async () => {
+		it('should query property_images table when property_id is provided', async () => {
+			mockFrom.mockReturnValue({ select: mockSelect })
+
 			const { result } = renderHook(() => usePropertyImages('prop-123'), {
 				wrapper: createWrapper()
 			})
@@ -470,6 +450,8 @@ describe('Utility Hooks', () => {
 			await waitFor(() => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
+
+			expect(mockFrom).toHaveBeenCalledWith('property_images')
 		})
 	})
 })

@@ -5,17 +5,9 @@
  * TanStack Query hooks for tenant-facing operations with colocated query options
  *
  * Architecture:
- * - user_type-based access control (TenantAuthGuard)
- * - Three-layer security (JWT + user_type + RLS)
- * - Request context with tenant metadata
- * - Modular route structure
- *
- * Endpoints:
- * - /tenant-portal/payments/* - Payment history and methods
- * - /tenant-portal/autopay/* - Subscription status and configuration
- * - /tenant-portal/maintenance/* - Submit and track maintenance requests
- * - /tenant-portal/leases/* - Active lease and documents
- * - /tenant-portal/settings/* - Profile and preferences
+ * - PostgREST direct via supabase-js (no apiRequest calls)
+ * - Two-step tenant resolution: auth.uid() → tenants.id before any tenant-scoped query
+ * - RLS enforces access: authenticated tenant only sees their own data
  *
  * React 19 + TanStack Query v5 patterns
  */
@@ -26,7 +18,8 @@ import {
 	useMutation,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -35,6 +28,7 @@ import {
 } from '#lib/mutation-error-handler'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
 import { logger } from '@repo/shared/lib/frontend-logger'
+import { toast } from 'sonner'
 import type {
 	MaintenanceCategory,
 	MaintenancePriority
@@ -264,12 +258,41 @@ export const tenantPortalQueries = {
 	all: () => ['tenant-portal'] as const,
 
 	/**
-	 * Dashboard data
+	 * Dashboard data — fetches active lease for tenant
 	 */
 	dashboard: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.dashboard(),
-			queryFn: () => apiRequest('/api/v1/tenant-portal/dashboard'),
+			queryFn: async () => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) return { lease: null, stats: {} }
+
+				const { data, error } = await supabase
+					.from('leases')
+					.select(
+						'id, start_date, end_date, rent_amount, lease_status, units!inner(unit_number, property_id, properties!inner(name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id)'
+					)
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				// PGRST116 = no rows returned (tenant has no active lease)
+				if (error && error.code !== 'PGRST116')
+					handlePostgrestError(error, 'leases')
+
+				return { lease: data, stats: {} }
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false
 		}),
@@ -282,8 +305,102 @@ export const tenantPortalQueries = {
 	amountDue: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.amountDue(),
-			queryFn: () =>
-				apiRequest<AmountDueResponse>('/api/v1/tenant-portal/payments/amount-due'),
+			queryFn: async (): Promise<AmountDueResponse> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				// Step 1: Get tenant record
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) {
+					return {
+						base_rent_cents: 0,
+						late_fee_cents: 0,
+						total_due_cents: 0,
+						due_date: new Date().toISOString().split('T')[0]!,
+						days_late: 0,
+						grace_period_days: 5,
+						already_paid: false,
+						breakdown: []
+					}
+				}
+
+				// Step 2: Get active lease to resolve leaseId and rent_amount
+				const { data: lease } = await supabase
+					.from('leases')
+					.select('id, rent_amount, lease_tenants!inner(tenant_id)')
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				const baseRentCents = lease ? (lease.rent_amount ?? 0) * 100 : 0
+
+				if (!lease) {
+					return {
+						base_rent_cents: baseRentCents,
+						late_fee_cents: 0,
+						total_due_cents: baseRentCents,
+						due_date: new Date().toISOString().split('T')[0]!,
+						days_late: 0,
+						grace_period_days: 5,
+						already_paid: false,
+						breakdown: [{ description: 'Base rent', amount_cents: baseRentCents }]
+					}
+				}
+
+				// Step 3: Get next upcoming payment
+				const today = new Date().toISOString().split('T')[0]!
+				const { data: nextPayment } = await supabase
+					.from('rent_payments')
+					.select('id, amount_cents, due_date, status, paid_at')
+					.eq('lease_id', lease.id)
+					.gte('due_date', today)
+					.order('due_date')
+					.limit(1)
+					.maybeSingle()
+
+				if (nextPayment) {
+					const dueDate = new Date(nextPayment.due_date)
+					const todayDate = new Date()
+					const daysLate = Math.max(
+						0,
+						Math.floor(
+							(todayDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)
+						)
+					)
+					return {
+						base_rent_cents: nextPayment.amount_cents,
+						late_fee_cents: 0,
+						total_due_cents: nextPayment.amount_cents,
+						due_date: nextPayment.due_date,
+						days_late: daysLate,
+						grace_period_days: 5,
+						already_paid: nextPayment.status === 'paid',
+						breakdown: [
+							{ description: 'Base rent', amount_cents: nextPayment.amount_cents }
+						]
+					}
+				}
+
+				// No upcoming payment found — construct from lease rent_amount
+				return {
+					base_rent_cents: baseRentCents,
+					late_fee_cents: 0,
+					total_due_cents: baseRentCents,
+					due_date: today,
+					days_late: 0,
+					grace_period_days: 5,
+					already_paid: false,
+					breakdown: [{ description: 'Base rent', amount_cents: baseRentCents }]
+				}
+			},
 			...QUERY_CACHE_TIMES.STATS,
 			refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
 			refetchIntervalInBackground: false,
@@ -292,18 +409,63 @@ export const tenantPortalQueries = {
 
 	/**
 	 * Payment history and upcoming payments
-	 * Primary: SSE push via 'payment.status_updated' event
 	 */
 	payments: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.payments.all(),
-			queryFn: () =>
-				apiRequest<{
-					payments: TenantPayment[]
-					methodsEndpoint: string
-				}>('/api/v1/tenant-portal/payments'),
+			queryFn: async (): Promise<{ payments: TenantPayment[] }> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				// Step 1: Get tenant record
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) return { payments: [] }
+
+				// Step 2: Get active lease
+				const { data: lease } = await supabase
+					.from('leases')
+					.select('id, lease_tenants!inner(tenant_id)')
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				if (!lease) return { payments: [] }
+
+				// Step 3: Get payments for this lease
+				const { data, error } = await supabase
+					.from('rent_payments')
+					.select('id, amount_cents, status, paid_at, due_date, created_at, lease_id')
+					.eq('lease_id', lease.id)
+					.order('due_date', { ascending: false })
+					.limit(50)
+
+				if (error) handlePostgrestError(error, 'rent_payments')
+
+				const payments: TenantPayment[] = (data ?? []).map(row => ({
+					id: row.id,
+					amount: row.amount_cents / 100,
+					status: row.status,
+					paidAt: row.paid_at,
+					dueDate: row.due_date,
+					created_at: row.created_at,
+					lease_id: row.lease_id,
+					tenant_id: tenantRecord.id,
+					stripePaymentIntentId: null,
+					ownerReceives: row.amount_cents / 100,
+					receiptUrl: null
+				}))
+
+				return { payments }
+			},
 			...QUERY_CACHE_TIMES.LIST,
-			// No interval - SSE handles updates, tab focus catches missed events
 			refetchOnWindowFocus: true,
 			retry: DEFAULT_RETRY_ATTEMPTS
 		}),
@@ -314,7 +476,43 @@ export const tenantPortalQueries = {
 	autopay: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.autopay.all(),
-			queryFn: () => apiRequest<TenantAutopayStatus>('/api/v1/tenant-portal/autopay'),
+			queryFn: async (): Promise<TenantAutopayStatus> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) {
+					return { autopayEnabled: false, subscriptionId: null }
+				}
+
+				const { data: lease } = await supabase
+					.from('leases')
+					.select('id, stripe_subscription_id, rent_amount, lease_tenants!inner(tenant_id)')
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				if (!lease) {
+					return { autopayEnabled: false, subscriptionId: null }
+				}
+
+				return {
+					autopayEnabled: !!lease.stripe_subscription_id,
+					subscriptionId: lease.stripe_subscription_id,
+					subscriptionStatus: lease.stripe_subscription_id ? 'active' : null,
+					lease_id: lease.id,
+					tenant_id: tenantRecord.id,
+					rent_amount: lease.rent_amount
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -322,15 +520,79 @@ export const tenantPortalQueries = {
 
 	/**
 	 * Maintenance request history with summary stats
+	 * Two-step resolution: auth.uid() → tenants.id → maintenance_requests.tenant_id
 	 */
 	maintenance: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.maintenance.all(),
-			queryFn: () =>
-				apiRequest<{
-					requests: TenantMaintenanceRequest[]
-					summary: TenantMaintenanceStats
-				}>('/api/v1/tenant-portal/maintenance'),
+			queryFn: async (): Promise<{
+				requests: TenantMaintenanceRequest[]
+				summary: TenantMaintenanceStats
+			}> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user)
+					return {
+						requests: [],
+						summary: { total: 0, open: 0, inProgress: 0, completed: 0 }
+					}
+
+				// Step 1: Resolve tenants.id from auth.uid()
+				// maintenance_requests.tenant_id references tenants.id, not auth.uid()
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) {
+					return {
+						requests: [],
+						summary: { total: 0, open: 0, inProgress: 0, completed: 0 }
+					}
+				}
+
+				// Step 2: Filter maintenance_requests by tenants.id
+				const { data, error, count } = await supabase
+					.from('maintenance_requests')
+					.select(
+						'id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by',
+						{ count: 'exact' }
+					)
+					.eq('tenant_id', tenantRecord.id)
+					.order('created_at', { ascending: false })
+
+				if (error) handlePostgrestError(error, 'maintenance_requests')
+
+				const rows = data ?? []
+				const requests: TenantMaintenanceRequest[] = rows.map(row => ({
+					id: row.id,
+					title: row.title,
+					description: row.description,
+					priority: row.priority as MaintenancePriority,
+					status: row.status,
+					category: null,
+					created_at: row.created_at,
+					updated_at: row.updated_at,
+					completed_at: row.completed_at,
+					requestedBy: row.requested_by ?? '',
+					unit_id: row.unit_id
+				}))
+
+				const total = count ?? 0
+				const open = requests.filter(
+					r => r.status === 'open' || r.status === 'assigned'
+				).length
+				const inProgress = requests.filter(
+					r =>
+						r.status === 'in_progress' || r.status === 'needs_reassignment'
+				).length
+				const completed = requests.filter(r => r.status === 'completed').length
+
+				return { requests, summary: { total, open, inProgress, completed } }
+			},
 			...QUERY_CACHE_TIMES.LIST,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -342,7 +604,108 @@ export const tenantPortalQueries = {
 	lease: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.leases.all(),
-			queryFn: () => apiRequest<TenantLease | null>('/api/v1/tenant-portal/leases'),
+			queryFn: async (): Promise<TenantLease | null> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) return null
+
+				const { data, error } = await supabase
+					.from('leases')
+					.select(
+						'id, start_date, end_date, rent_amount, security_deposit, lease_status, stripe_subscription_id, lease_document_url, created_at, owner_signed_at, tenant_signed_at, sent_for_signature_at, units!inner(id, unit_number, bedrooms, bathrooms, properties!inner(id, name, address_line1, city, state, postal_code)), lease_tenants!inner(tenant_id)'
+					)
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				if (error) {
+					// PGRST116 = no rows (tenant has no active lease)
+					if (error.code === 'PGRST116') return null
+					handlePostgrestError(error, 'leases')
+				}
+
+				if (!data) return null
+
+				// Supabase join returns relations as arrays even with !inner
+				const raw = data as unknown as {
+					id: string
+					start_date: string
+					end_date: string
+					rent_amount: number
+					security_deposit: number | null
+					lease_status: string
+					stripe_subscription_id: string | null
+					lease_document_url: string | null
+					created_at: string
+					owner_signed_at: string | null
+					tenant_signed_at: string | null
+					sent_for_signature_at: string | null
+					units: Array<{
+						id: string
+						unit_number: string
+						bedrooms: number
+						bathrooms: number
+						properties: Array<{
+							id: string
+							name: string
+							address_line1: string
+							city: string
+							state: string
+							postal_code: string
+						}>
+					}>
+					lease_tenants: Array<{ tenant_id: string }>
+				}
+
+				const rawUnit = raw.units?.[0]
+				const rawProperty = rawUnit?.properties?.[0]
+
+				return {
+					id: raw.id,
+					start_date: raw.start_date,
+					end_date: raw.end_date,
+					rent_amount: raw.rent_amount,
+					security_deposit: raw.security_deposit,
+					status: raw.lease_status,
+					lease_status: raw.lease_status,
+					stripe_subscription_id: raw.stripe_subscription_id,
+					lease_document_url: raw.lease_document_url,
+					created_at: raw.created_at,
+					owner_signed_at: raw.owner_signed_at,
+					tenant_signed_at: raw.tenant_signed_at,
+					sent_for_signature_at: raw.sent_for_signature_at,
+					unit:
+						rawUnit && rawProperty
+							? {
+									id: rawUnit.id,
+									unit_number: rawUnit.unit_number,
+									bedrooms: rawUnit.bedrooms,
+									bathrooms: rawUnit.bathrooms,
+									property: {
+										id: rawProperty.id,
+										name: rawProperty.name,
+										address: rawProperty.address_line1,
+										city: rawProperty.city,
+										state: rawProperty.state,
+										postal_code: rawProperty.postal_code
+									}
+								}
+							: null,
+					metadata: {
+						documentUrl: raw.lease_document_url
+					}
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -354,10 +717,47 @@ export const tenantPortalQueries = {
 	documents: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.documents.all(),
-			queryFn: () =>
-				apiRequest<{ documents: TenantDocument[] }>(
-					'/api/v1/tenant-portal/leases/documents'
-				),
+			queryFn: async (): Promise<{ documents: TenantDocument[] }> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data: tenantRecord } = await supabase
+					.from('tenants')
+					.select('id')
+					.eq('user_id', user.id)
+					.single()
+
+				if (!tenantRecord) return { documents: [] }
+
+				const { data, error } = await supabase
+					.from('leases')
+					.select('id, lease_document_url, created_at, lease_tenants!inner(tenant_id)')
+					.eq('lease_tenants.tenant_id', tenantRecord.id)
+					.eq('lease_status', 'active')
+					.single()
+
+				if (error) {
+					if (error.code === 'PGRST116') return { documents: [] }
+					handlePostgrestError(error, 'leases')
+				}
+
+				if (!data) return { documents: [] }
+
+				const documents: TenantDocument[] = [
+					{
+						id: (data as Record<string, unknown>).id as string,
+						type: 'LEASE',
+						name: 'Lease Agreement',
+						url: (data as Record<string, unknown>).lease_document_url as string | null,
+						created_at: (data as Record<string, unknown>).created_at as string
+					}
+				]
+
+				return { documents }
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -369,7 +769,30 @@ export const tenantPortalQueries = {
 	settings: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.settings.all(),
-			queryFn: () => apiRequest<TenantSettings>('/api/v1/tenant-portal/settings'),
+			queryFn: async (): Promise<TenantSettings> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				// Get tenant profile from tenants table
+				const { data: tenantData } = await supabase
+					.from('tenants')
+					.select('id, first_name, last_name, email, phone')
+					.eq('user_id', user.id)
+					.single()
+
+				return {
+					profile: {
+						id: user.id,
+						first_name: (tenantData as Record<string, unknown> | null)?.first_name as string | null ?? null,
+						last_name: (tenantData as Record<string, unknown> | null)?.last_name as string | null ?? null,
+						email: user.email ?? null,
+						phone: (tenantData as Record<string, unknown> | null)?.phone as string | null ?? null
+					}
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL,
 			refetchOnWindowFocus: false,
 			retry: DEFAULT_RETRY_ATTEMPTS
@@ -382,10 +805,30 @@ export const tenantPortalQueries = {
 	notificationPreferences: () =>
 		queryOptions({
 			queryKey: tenantPortalKeys.notificationPreferences.detail(),
-			queryFn: () =>
-				apiRequest<TenantNotificationPreferences>(
-					'/api/v1/tenant-portal/settings/notification-preferences'
-				),
+			queryFn: async (): Promise<TenantNotificationPreferences> => {
+				const supabase = createClient()
+				const {
+					data: { user }
+				} = await supabase.auth.getUser()
+				if (!user) throw new Error('Not authenticated')
+
+				const { data } = await supabase
+					.from('notification_settings')
+					.select(
+						'rent_reminders, maintenance_updates, property_notices, email_notifications, sms_notifications'
+					)
+					.eq('user_id', user.id)
+					.single()
+
+				// Return defaults if no row found
+				return {
+					rentReminders: (data as Record<string, unknown> | null)?.rent_reminders as boolean ?? true,
+					maintenanceUpdates: (data as Record<string, unknown> | null)?.maintenance_updates as boolean ?? true,
+					propertyNotices: (data as Record<string, unknown> | null)?.property_notices as boolean ?? true,
+					emailNotifications: (data as Record<string, unknown> | null)?.email_notifications as boolean ?? true,
+					smsNotifications: (data as Record<string, unknown> | null)?.sms_notifications as boolean ?? false
+				}
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
@@ -435,11 +878,69 @@ export function useMaintenanceRequestCreateMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantPortal.createMaintenanceRequest,
-		mutationFn: (request: MaintenanceRequestCreate) =>
-			apiRequest<TenantMaintenanceRequest>('/api/v1/tenant-portal/maintenance', {
-				method: 'POST',
-				body: JSON.stringify(request)
-			}),
+		mutationFn: async (request: MaintenanceRequestCreate) => {
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			// Step 1: Resolve tenant record
+			const { data: tenantRecord, error: tenantError } = await supabase
+				.from('tenants')
+				.select('id')
+				.eq('user_id', user.id)
+				.single()
+
+			if (tenantError || !tenantRecord)
+				throw new Error('Tenant record not found')
+
+			// Step 2: Get active lease to resolve unit_id and owner_user_id
+			const { data: lease, error: leaseError } = await supabase
+				.from('leases')
+				.select(
+					'id, unit_id, owner_user_id, lease_tenants!inner(tenant_id)'
+				)
+				.eq('lease_tenants.tenant_id', tenantRecord.id)
+				.eq('lease_status', 'active')
+				.single()
+
+			if (leaseError || !lease) throw new Error('No active lease found')
+
+			const leaseData = lease as Record<string, unknown>
+
+			// Step 3: Insert maintenance request
+			const { data, error } = await supabase
+				.from('maintenance_requests')
+				.insert({
+					title: request.title,
+					description: request.description,
+					priority: request.priority,
+					status: 'open',
+					tenant_id: tenantRecord.id,
+					unit_id: leaseData.unit_id as string,
+					owner_user_id: leaseData.owner_user_id as string
+				})
+				.select('id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by')
+				.single()
+
+			if (error) throw new Error(error.message)
+
+			const row = data as Record<string, unknown>
+			return {
+				id: row.id as string,
+				title: row.title as string,
+				description: row.description as string | null,
+				priority: row.priority as MaintenancePriority,
+				status: row.status as string,
+				category: null,
+				created_at: row.created_at as string,
+				updated_at: row.updated_at as string | null,
+				completed_at: row.completed_at as string | null,
+				requestedBy: row.requested_by as string ?? '',
+				unit_id: row.unit_id as string
+			} satisfies TenantMaintenanceRequest
+		},
 		onSuccess: () => {
 			handleMutationSuccess('Maintenance request created successfully')
 			// Invalidate maintenance list to refetch with new request
@@ -540,14 +1041,40 @@ export function useUpdateTenantNotificationPreferences() {
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantNotificationPreferences.update,
-		mutationFn: (preferences: Partial<TenantNotificationPreferences>) =>
-			apiRequest<TenantNotificationPreferences>(
-				'/api/v1/tenant-portal/settings/notification-preferences',
-				{
-					method: 'PUT',
-					body: JSON.stringify(preferences)
-				}
-			),
+		mutationFn: async (preferences: Partial<TenantNotificationPreferences>) => {
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const { data, error } = await supabase
+				.from('notification_settings')
+				.upsert(
+					{
+						user_id: user.id,
+						rent_reminders: preferences.rentReminders,
+						maintenance_updates: preferences.maintenanceUpdates,
+						property_notices: preferences.propertyNotices,
+						email_notifications: preferences.emailNotifications,
+						sms_notifications: preferences.smsNotifications
+					},
+					{ onConflict: 'user_id' }
+				)
+				.select('rent_reminders, maintenance_updates, property_notices, email_notifications, sms_notifications')
+				.single()
+
+			if (error) throw new Error(error.message)
+
+			const row = data as Record<string, unknown>
+			return {
+				rentReminders: row.rent_reminders as boolean ?? true,
+				maintenanceUpdates: row.maintenance_updates as boolean ?? true,
+				propertyNotices: row.property_notices as boolean ?? true,
+				emailNotifications: row.email_notifications as boolean ?? true,
+				smsNotifications: row.sms_notifications as boolean ?? false
+			} satisfies TenantNotificationPreferences
+		},
 		onMutate: async (newPreferences: Partial<TenantNotificationPreferences>) => {
 			// Cancel outgoing queries
 			await queryClient.cancelQueries({
@@ -614,21 +1141,21 @@ export function useUpdateTenantNotificationPreferences() {
 
 /**
  * Setup autopay for tenant's lease
+ * NOTE: Full Stripe autopay implementation is Phase 54. Shows info toast for now.
  */
 export function useTenantPortalSetupAutopayMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantAutopay.setup,
-		mutationFn: async (params: {
+		mutationFn: async (_params: {
 			tenant_id: string
 			lease_id: string
 			paymentMethodId?: string
 		}) => {
-			return apiRequest('/api/v1/rent-payments/autopay/setup', {
-				method: 'POST',
-				body: JSON.stringify(params)
-			})
+			// Autopay setup requires Stripe Connect (Phase 54)
+			toast.info('Autopay setup coming soon')
+			return { success: false, message: 'Autopay coming soon' }
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
@@ -640,21 +1167,21 @@ export function useTenantPortalSetupAutopayMutation() {
 
 /**
  * Cancel autopay for tenant's lease
+ * NOTE: Full Stripe autopay implementation is Phase 54. Shows info toast for now.
  */
 export function useTenantPortalCancelAutopayMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantAutopay.cancel,
-		mutationFn: async (params: {
+		mutationFn: async (_params: {
 			tenant_id: string
 			lease_id: string
 			paymentMethodId?: string
 		}) => {
-			return apiRequest('/api/v1/rent-payments/autopay/cancel', {
-				method: 'POST',
-				body: JSON.stringify(params)
-			})
+			// Autopay cancel requires Stripe Connect (Phase 54)
+			toast.info('Autopay cancellation coming soon')
+			return { success: false, message: 'Autopay cancellation coming soon' }
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({

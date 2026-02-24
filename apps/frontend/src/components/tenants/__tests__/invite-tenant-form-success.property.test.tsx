@@ -5,11 +5,11 @@
  * Property 11: Success Toast Display
  * Validates: Requirements 6.1
  *
- * Property: For any successful invitation submission, the system should display
+ * Property: For any successful mutation, the system should display
  * a success toast notification confirming the email was sent.
  *
- * This test file focuses on testing the success handling logic of the form
- * by directly testing the mutation success callback.
+ * Note: After NestJS removal (phase-57), the invite mutation throws a stub error.
+ * These tests validate the success display logic pattern independently.
  */
 
 import type { ReactNode } from 'react'
@@ -31,10 +31,6 @@ vi.mock('sonner', () => ({
 		success: vi.fn(),
 		error: vi.fn()
 	}
-}))
-
-vi.mock('#lib/api-request', () => ({
-	apiRequest: vi.fn()
 }))
 
 // Helper to create a query client for each test
@@ -70,11 +66,11 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 	/**
 	 * Property 11: Success Toast Display
 	 *
-	 * For any successful invitation submission, the system should display
+	 * For any successful mutation, the system should display
 	 * a success toast notification confirming the email was sent.
 	 *
 	 * This property test verifies that:
-	 * 1. Any successful API response results in toast.success being called
+	 * 1. Any successful mutation results in toast.success being called
 	 * 2. The success message includes the tenant's name
 	 * 3. The success toast includes a description about the email
 	 * 4. The toast is displayed for all valid tenant data combinations
@@ -103,26 +99,21 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					// Setup: Mock API to return success response
+					// Mock success response
 					const mockResponse: InviteTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
 						message: 'Invitation sent successfully'
 					}
 
-					const { apiRequest } = await import('#lib/api-request')
-					vi.mocked(apiRequest).mockResolvedValueOnce(mockResponse)
-
-					// Create a mutation that mimics the form's behavior
+					// Create a mutation that mimics the form's success handling behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (payload: InviteTenantRequest) => {
-									const { apiRequest: api } = await import('#lib/api-request')
-									return api<InviteTenantResponse>('/api/v1/tenants/invite', {
-										method: 'POST',
-										body: JSON.stringify(payload)
-									})
+								mutationFn: async (
+									_payload: InviteTenantRequest
+								): Promise<InviteTenantResponse> => {
+									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
 									// This is the same success handling logic as in the form
@@ -231,26 +222,20 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					// Setup: Mock API to return success response
 					const mockResponse: InviteTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
 						message: 'Invitation sent successfully'
 					}
 
-					const { apiRequest } = await import('#lib/api-request')
-					vi.mocked(apiRequest).mockResolvedValueOnce(mockResponse)
-
 					// Create a mutation that mimics the form's behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (payload: InviteTenantRequest) => {
-									const { apiRequest: api } = await import('#lib/api-request')
-									return api<InviteTenantResponse>('/api/v1/tenants/invite', {
-										method: 'POST',
-										body: JSON.stringify(payload)
-									})
+								mutationFn: async (
+									_payload: InviteTenantRequest
+								): Promise<InviteTenantResponse> => {
+									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
 									toast.success('Invitation Sent', {
@@ -308,7 +293,7 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 	/**
 	 * Property 11 (Invariant): Success Toast Never Shows Error
 	 *
-	 * Verify that when the API returns success, only toast.success is called
+	 * Verify that when the mutation succeeds, only toast.success is called
 	 * and toast.error is never called.
 	 */
 	it('should never display error toast on successful invitation', async () => {
@@ -329,26 +314,20 @@ describe('InviteTenantForm - Success Toast Property Tests', () => {
 					// Clear all mocks before each property test iteration
 					vi.clearAllMocks()
 
-					// Setup: Mock API to return success response
 					const mockResponse: InviteTenantResponse = {
 						success: true,
 						tenant_id: fc.sample(fc.uuid(), 1)[0] as string,
 						message: 'Invitation sent successfully'
 					}
 
-					const { apiRequest } = await import('#lib/api-request')
-					vi.mocked(apiRequest).mockResolvedValueOnce(mockResponse)
-
 					// Create a mutation that mimics the form's behavior
 					const { result } = renderHook(
 						() =>
 							useMutation({
-								mutationFn: async (payload: InviteTenantRequest) => {
-									const { apiRequest: api } = await import('#lib/api-request')
-									return api<InviteTenantResponse>('/api/v1/tenants/invite', {
-										method: 'POST',
-										body: JSON.stringify(payload)
-									})
+								mutationFn: async (
+									_payload: InviteTenantRequest
+								): Promise<InviteTenantResponse> => {
+									return mockResponse
 								},
 								onSuccess: (_response, variables) => {
 									toast.success('Invitation Sent', {

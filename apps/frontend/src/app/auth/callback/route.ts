@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
 		const supabase = createServerClient<Database>(
 			env.NEXT_PUBLIC_SUPABASE_URL,
-			env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+			env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
 			{
 				cookies: {
 					getAll() {

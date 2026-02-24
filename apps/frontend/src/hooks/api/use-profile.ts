@@ -13,7 +13,6 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
@@ -21,6 +20,7 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
+import { createClient } from '#lib/supabase/client'
 import type {
 	AvatarUploadResponse,
 	SetEmergencyContactInput,
@@ -28,7 +28,6 @@ import type {
 	UpdateProfileInput,
 	UserProfile
 } from '@repo/shared/types/api-contracts'
-
 // ============================================================================
 // QUERY KEYS
 // ============================================================================
@@ -60,7 +59,17 @@ export const profileQueries = {
 	detail: () =>
 		queryOptions({
 			queryKey: profileKeys.detail(),
-			queryFn: () => apiRequest<UserProfile>('/api/v1/users/profile'),
+			queryFn: async (): Promise<UserProfile> => {
+				const supabase = createClient()
+				const { data, error } = await supabase
+					.from('users')
+					.select(
+						'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+					)
+					.single()
+				if (error) throw error
+				return data as unknown as UserProfile
+			},
 			...QUERY_CACHE_TIMES.DETAIL
 		})
 }
@@ -93,11 +102,30 @@ export function useUpdateProfileMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.update,
-		mutationFn: (input: UpdateProfileInput) =>
-			apiRequest<UserProfile>('/api/v1/users/profile', {
-				method: 'PATCH',
-				body: JSON.stringify(input)
-			}),
+		mutationFn: async (input: UpdateProfileInput): Promise<UserProfile> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { data, error } = await supabase
+				.from('users')
+				.update({
+					first_name: input.first_name,
+					last_name: input.last_name,
+					full_name: `${input.first_name} ${input.last_name}`,
+					phone: input.phone ?? null,
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', user.id)
+				.select(
+					'id, email, first_name, last_name, full_name, phone, avatar_url, user_type, status, created_at, updated_at, stripe_customer_id'
+				)
+				.single()
+			if (error) throw error
+			return data as unknown as UserProfile
+		},
 
 		onMutate: async newData => {
 			// Cancel outgoing refetches
@@ -154,23 +182,33 @@ export function useUploadAvatarMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.uploadAvatar,
-		mutationFn: async (file: File) => {
-			const formData = new FormData()
-			formData.append('avatar', file)
+		mutationFn: async (file: File): Promise<AvatarUploadResponse> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
 
-			// Use fetch directly for FormData
-			const response = await fetch('/api/v1/users/avatar', {
-				method: 'POST',
-				body: formData,
-				credentials: 'include'
-			})
+			const ext = file.name.split('.').pop() ?? 'jpg'
+			const path = `${user.id}/avatar.${ext}`
 
-			if (!response.ok) {
-				const error = await response.json()
-				throw new Error(error.message || 'Failed to upload avatar')
-			}
+			const { error: uploadError } = await supabase.storage
+				.from('avatars')
+				.upload(path, file, { upsert: true, contentType: file.type })
+			if (uploadError) throw uploadError
 
-			return response.json() as Promise<AvatarUploadResponse>
+			const {
+				data: { publicUrl }
+			} = supabase.storage.from('avatars').getPublicUrl(path)
+
+			const { error: updateError } = await supabase
+				.from('users')
+				.update({ avatar_url: publicUrl })
+				.eq('id', user.id)
+			if (updateError) throw updateError
+
+			return { avatar_url: publicUrl }
 		},
 
 		onMutate: async () => {
@@ -224,11 +262,39 @@ export function useRemoveAvatarMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.deleteAvatar,
-		mutationFn: () =>
-			apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/avatar',
-				{ method: 'DELETE' }
-			),
+		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+
+			const { error } = await supabase
+				.from('users')
+				.update({ avatar_url: null })
+				.eq('id', user.id)
+			if (error) throw error
+
+			// Best-effort storage cleanup — don't throw if listing/removing fails
+			try {
+				const { data: files } = await supabase.storage
+					.from('avatars')
+					.list(user.id)
+				if (files && files.length > 0) {
+					const paths = files
+						.filter(f => f.name.startsWith('avatar.'))
+						.map(f => `${user.id}/${f.name}`)
+					if (paths.length > 0) {
+						await supabase.storage.from('avatars').remove(paths)
+					}
+				}
+			} catch {
+				// Storage cleanup is best-effort
+			}
+
+			return { success: true, message: 'Avatar removed' }
+		},
 
 		onMutate: async () => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
@@ -278,11 +344,24 @@ export function useUpdatePhoneMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.updatePhone,
-		mutationFn: (input: UpdatePhoneInput) =>
-			apiRequest<{ phone: string | null }>('/api/v1/users/phone', {
-				method: 'PATCH',
-				body: JSON.stringify(input)
-			}),
+		mutationFn: async (
+			input: UpdatePhoneInput
+		): Promise<{ phone: string | null }> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { data, error } = await supabase
+				.from('users')
+				.update({ phone: input.phone })
+				.eq('id', user.id)
+				.select('phone')
+				.single()
+			if (error) throw error
+			return data as { phone: string | null }
+		},
 
 		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
@@ -328,20 +407,33 @@ export function useUpdatePhoneMutation() {
 
 /**
  * Update emergency contact (for tenants)
+ * Emergency contact data lives on the tenants table (not users table)
  */
 export function useUpdateProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.updateEmergencyContact,
-		mutationFn: (input: SetEmergencyContactInput) =>
-			apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/emergency-contact',
-				{
-					method: 'PATCH',
-					body: JSON.stringify(input)
-				}
-			),
+		mutationFn: async (
+			input: SetEmergencyContactInput
+		): Promise<{ success: boolean; message: string }> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { error } = await supabase
+				.from('tenants')
+				.update({
+					emergency_contact_name: input.name,
+					emergency_contact_phone: input.phone,
+					emergency_contact_relationship: input.relationship ?? null
+				})
+				.eq('user_id', user.id)
+			if (error) throw error
+			return { success: true, message: 'Emergency contact updated' }
+		},
 
 		onMutate: async newData => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })
@@ -392,17 +484,31 @@ export function useUpdateProfileEmergencyContactMutation() {
 
 /**
  * Remove emergency contact (for tenants)
+ * Emergency contact data lives on the tenants table (not users table)
  */
 export function useRemoveProfileEmergencyContactMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.profile.deleteEmergencyContact,
-		mutationFn: () =>
-			apiRequest<{ success: boolean; message: string }>(
-				'/api/v1/users/emergency-contact',
-				{ method: 'DELETE' }
-			),
+		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
+			const supabase = createClient()
+			const {
+				data: { user },
+				error: authError
+			} = await supabase.auth.getUser()
+			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const { error } = await supabase
+				.from('tenants')
+				.update({
+					emergency_contact_name: null,
+					emergency_contact_phone: null,
+					emergency_contact_relationship: null
+				})
+				.eq('user_id', user.id)
+			if (error) throw error
+			return { success: true, message: 'Emergency contact removed' }
+		},
 
 		onMutate: async () => {
 			await queryClient.cancelQueries({ queryKey: profileKeys.detail() })

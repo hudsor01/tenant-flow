@@ -1,8 +1,7 @@
 /**
  * Notifications hooks
  *
- * Provides TanStack Query hooks for notifications list + mutations.
- * Uses existing apiRequest helper for Supabase auth token injection.
+ * Provides TanStack Query hooks for notifications list + mutations via Supabase PostgREST.
  */
 
 import {
@@ -12,7 +11,7 @@ import {
 	keepPreviousData
 } from '@tanstack/react-query'
 
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -57,10 +56,24 @@ export function useNotifications(params?: {
 
 	return useQuery({
 		queryKey: notificationKeys.list(page, limit, unreadOnly, queryString),
-		queryFn: () =>
-			apiRequest<PaginatedNotifications>(
-				`/api/v1/notifications?${queryString}`
-			),
+		queryFn: async (): Promise<PaginatedNotifications> => {
+			const supabase = createClient()
+			let query = supabase
+				.from('notifications')
+				.select('*', { count: 'exact' })
+
+			if (unreadOnly) {
+				query = query.eq('is_read', false)
+			}
+
+			const { data, count, error } = await query
+				.order('created_at', { ascending: false })
+				.range((page - 1) * limit, page * limit - 1)
+
+			if (error) throw error
+
+			return { data: data ?? [], total: count ?? 0, page, limit }
+		},
 		...QUERY_CACHE_TIMES.LIST,
 		placeholderData: keepPreviousData
 	})
@@ -69,10 +82,17 @@ export function useNotifications(params?: {
 export function useUnreadNotificationsCount() {
 	return useQuery({
 		queryKey: notificationKeys.unreadCount,
-		queryFn: () =>
-			apiRequest<PaginatedNotifications>(
-				`/api/v1/notifications?page=1&limit=1&unreadOnly=true`
-			),
+		queryFn: async (): Promise<PaginatedNotifications> => {
+			const supabase = createClient()
+			const { count, error } = await supabase
+				.from('notifications')
+				.select('id', { count: 'exact', head: true })
+				.eq('is_read', false)
+
+			if (error) throw error
+
+			return { data: [], total: count ?? 0, page: 1, limit: 1 }
+		},
 		staleTime: 30_000,
 		gcTime: 60_000
 	})
@@ -83,10 +103,17 @@ export function useMarkNotificationReadMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.notifications.markRead,
-		mutationFn: (id: string) =>
-			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}/read`, {
-				method: 'PUT'
-			}),
+		mutationFn: async (id: string): Promise<{ success: boolean }> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('notifications')
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.eq('id', id)
+
+			if (error) throw error
+
+			return { success: true }
+		},
 		onSuccess: (_result, id) => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
@@ -104,10 +131,17 @@ export function useDeleteNotificationMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.notifications.delete,
-		mutationFn: (id: string) =>
-			apiRequest<{ success: boolean }>(`/api/v1/notifications/${id}`, {
-				method: 'DELETE'
-			}),
+		mutationFn: async (id: string): Promise<{ success: boolean }> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('notifications')
+				.delete()
+				.eq('id', id)
+
+			if (error) throw error
+
+			return { success: true }
+		},
 		onSuccess: (_result, id) => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
@@ -122,10 +156,18 @@ export function useMarkAllNotificationsReadMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.notifications.markAllRead,
-		mutationFn: () =>
-			apiRequest<{ updated: number }>('/api/v1/notifications/read-all', {
-				method: 'PUT'
-			}),
+		mutationFn: async (): Promise<{ updated: number }> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('notifications')
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.eq('is_read', false)
+
+			if (error) throw error
+
+			// PostgREST does not return count of updated rows easily
+			return { updated: 0 }
+		},
 		onSuccess: result => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
@@ -145,11 +187,17 @@ export function useBulkMarkNotificationsReadMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.notifications.markBulkRead,
-		mutationFn: (ids: string[]) =>
-			apiRequest<{ updated: number }>('/api/v1/notifications/bulk-read', {
-				method: 'PUT',
-				body: JSON.stringify({ ids })
-			}),
+		mutationFn: async (ids: string[]): Promise<{ updated: number }> => {
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('notifications')
+				.update({ is_read: true, read_at: new Date().toISOString() })
+				.in('id', ids)
+
+			if (error) throw error
+
+			return { updated: ids.length }
+		},
 		onSuccess: result => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount })
@@ -170,19 +218,31 @@ export function useCreateMaintenanceNotificationMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.notifications.createMaintenance,
-		mutationFn: (payload: {
+		mutationFn: async (payload: {
 			user_id: string
 			maintenanceId: string
 			propertyName: string
 			unit_number: string
-		}) =>
-			apiRequest<{ notification: NotificationItem }>(
-				'/api/v1/notifications/maintenance',
-				{
-					method: 'POST',
-					body: JSON.stringify(payload)
-				}
-			),
+		}): Promise<{ notification: NotificationItem }> => {
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('notifications')
+				.insert({
+					user_id: payload.user_id,
+					notification_type: 'maintenance',
+					title: 'New maintenance request',
+					message: `Maintenance request for ${payload.propertyName} unit ${payload.unit_number}`,
+					entity_id: payload.maintenanceId,
+					entity_type: 'maintenance_requests',
+					is_read: false
+				})
+				.select()
+				.single()
+
+			if (error) throw error
+
+			return { notification: data }
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: notificationKeys.all })
 			handleMutationSuccess(

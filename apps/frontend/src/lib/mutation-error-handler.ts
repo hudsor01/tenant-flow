@@ -72,8 +72,7 @@ export function handleMutationError(
 	const displayMessage = customMessage || message
 
 	// Extract error code from body for structured errors (e.g. PLAN_LIMIT_EXCEEDED).
-	// NestJS serializes new ForbiddenException({ code, ... }) as { message: { code, ... } }
-	// so the code lives at body.message.code, not body.code.
+	// The code may be at body.code or body.message.code depending on the error shape.
 	const bodyObj = (error as Record<string, unknown>)?.body as Record<string, unknown> | undefined
 	const errorCode =
 		bodyObj?.code ??

@@ -16,8 +16,22 @@ import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client
 import dynamic from 'next/dynamic'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { isApiError } from '#lib/api-request'
+import type { PostgrestError } from '@supabase/supabase-js'
 import { createQueryErrorHandlers } from './query-error-handler'
+
+function isClientError(error: unknown): boolean {
+	if (
+		typeof error === 'object' &&
+		error !== null &&
+		'code' in error &&
+		'message' in error &&
+		'details' in error
+	) {
+		const postgrestError = error as PostgrestError
+		return /^4/.test(postgrestError.code ?? '')
+	}
+	return false
+}
 import { buildPersistOptions, createIdbPersister } from './query-persistence'
 
 const logger = createLogger({ component: 'QueryProvider' })
@@ -189,7 +203,7 @@ export function QueryProvider({
 			if (event.type === 'updated' && event.query.state.status === 'error') {
 				const error = event.query.state.error
 				// 4xx errors are expected (auth errors, validation, not found) - not bugs
-				if (isApiError(error) && error.isClientError) return
+				if (isClientError(error)) return
 				Sentry.captureException(error, {
 					tags: { source: 'react-query' },
 					contexts: {
@@ -212,7 +226,7 @@ export function QueryProvider({
 				) {
 					const error = event.mutation.state.error
 					// 4xx errors are expected (validation, conflicts) - not bugs
-					if (isApiError(error) && error.isClientError) return
+					if (isClientError(error)) return
 					Sentry.captureException(error, {
 						tags: { source: 'react-query-mutation' },
 						contexts: {

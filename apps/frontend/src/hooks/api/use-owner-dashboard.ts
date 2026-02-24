@@ -9,12 +9,6 @@
  * - Enables progressive loading with Activity + Suspense
  * - Each section fetches only when needed (viewport-aware)
  *
- * Endpoints:
- * - /owner/analytics/stats - Critical stats (above-fold, loads first)
- * - /owner/analytics/activity - Activity feed (deferred)
- * - /owner/properties/performance - Property table (deferred)
- * - /owner/analytics/trends - Charts data (deferred)
- *
  * React 19 + TanStack Query v5 patterns
  */
 
@@ -24,8 +18,8 @@ import {
 	useSuspenseQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
-import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { Activity, ActivityItem } from '@repo/shared/types/activity'
 import type {
 	PropertyPerformance,
@@ -46,7 +40,7 @@ import type { DashboardTimeSeriesOptions } from '@repo/shared/types/stats'
 export const ownerDashboardKeys = {
 	all: ['owner-dashboard'] as const,
 
-	// Analytics endpoints (/owner/analytics/*)
+	// Analytics section
 	analytics: {
 		all: () => [...ownerDashboardKeys.all, 'analytics'] as const,
 		stats: () => [...ownerDashboardKeys.analytics.all(), 'stats'] as const,
@@ -56,7 +50,7 @@ export const ownerDashboardKeys = {
 			[...ownerDashboardKeys.analytics.all(), 'page-data'] as const
 	},
 
-	// Reports endpoints (/owner/reports/*)
+	// Reports section
 	reports: {
 		all: () => [...ownerDashboardKeys.all, 'reports'] as const,
 		timeSeries: (metric: string, days: number) =>
@@ -75,14 +69,14 @@ export const ownerDashboardKeys = {
 			] as const
 	},
 
-	// Properties endpoints (/owner/properties/*)
+	// Properties section
 	properties: {
 		all: () => [...ownerDashboardKeys.all, 'properties'] as const,
 		performance: () =>
 			[...ownerDashboardKeys.properties.all(), 'performance'] as const
 	},
 
-	// Financial endpoints (/owner/financial/*)
+	// Financial section
 	financial: {
 		all: () => [...ownerDashboardKeys.all, 'financial'] as const,
 		billingInsights: () =>
@@ -91,14 +85,14 @@ export const ownerDashboardKeys = {
 			[...ownerDashboardKeys.financial.all(), 'revenue-trends', year] as const
 	},
 
-	// Maintenance endpoints (/owner/maintenance/*)
+	// Maintenance section
 	maintenance: {
 		all: () => [...ownerDashboardKeys.all, 'maintenance'] as const,
 		analytics: () =>
 			[...ownerDashboardKeys.maintenance.all(), 'analytics'] as const
 	},
 
-	// Tenants endpoints (/owner/tenants/*)
+	// Tenants section
 	tenants: {
 		all: () => [...ownerDashboardKeys.all, 'tenants'] as const,
 		occupancyTrends: () =>
@@ -115,65 +109,107 @@ export const ownerDashboardKeys = {
  */
 export const ownerDashboardQueries = {
 	/**
-	 * Analytics queries (/owner/analytics/*)
+	 * Analytics queries
 	 */
 	analytics: {
 		/**
 		 * Dashboard statistics
-		 * Primary: SSE push via 'dashboard.stats_updated' event
-		 * Fallback: 2 min polling to catch missed events
 		 */
 		stats: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.stats(),
-				queryFn: () =>
-					apiRequest<DashboardStats>('/api/v1/owner/analytics/stats'),
-				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true // Catch missed events on tab focus
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc('get_dashboard_stats', {
+						p_user_id: user.id
+					})
+					if (error) handlePostgrestError(error, 'analytics')
+					return (Array.isArray(data) ? data[0] : data) as DashboardStats
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
+				refetchOnWindowFocus: true
 			}),
 
 		/**
 		 * Dashboard activity feed
-		 * Primary: SSE push via 'dashboard.stats_updated' event
-		 * Fallback: 2 min polling to catch missed events
 		 */
 		activity: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.activity(),
-				queryFn: () =>
-					apiRequest<{ activities: Activity[] }>(
-						'/api/v1/owner/analytics/activity'
-					),
-				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true // Catch missed events on tab focus
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_user_dashboard_activities',
+						{
+							p_user_id: user.id,
+							p_limit: 10,
+							p_offset: 0
+						}
+					)
+					if (error) handlePostgrestError(error, 'analytics')
+					return { activities: (data ?? []) as Activity[] }
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
+				refetchOnWindowFocus: true
 			}),
 
 		/**
-		 * Unified dashboard page data
-		 * Primary: SSE push via 'dashboard.stats_updated' event
-		 * Fallback: 2 min polling to catch missed events
+		 * Unified dashboard page data (stats + activity in parallel)
 		 */
 		pageData: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.pageData(),
-				queryFn: () =>
-					apiRequest<{
-						stats: DashboardStats
-						activity: ActivityItem[]
-					}>('/api/v1/owner/analytics/page-data'),
-				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // Fallback: 2 min polling (SSE is primary)
-				refetchIntervalInBackground: false,
-				refetchOnWindowFocus: true // Catch missed events on tab focus
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const userId = user.id
+
+					const [statsResult, activityResult] = await Promise.all([
+						supabase.rpc('get_dashboard_stats', { p_user_id: userId }),
+						supabase.rpc('get_user_dashboard_activities', {
+							p_user_id: userId,
+							p_limit: 10,
+							p_offset: 0
+						})
+					])
+
+					if (statsResult.error)
+						handlePostgrestError(statsResult.error, 'analytics')
+					if (activityResult.error)
+						handlePostgrestError(activityResult.error, 'analytics')
+
+					const stats = (
+						Array.isArray(statsResult.data)
+							? statsResult.data[0]
+							: statsResult.data
+					) as DashboardStats
+
+					return {
+						stats,
+						activity: (activityResult.data ?? []) as ActivityItem[]
+					}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
+				refetchOnWindowFocus: true
 			})
 	},
 
 	/**
-	 * Reports queries (/owner/reports/*)
+	 * Reports queries
 	 */
 	reports: {
 		/**
@@ -185,13 +221,24 @@ export const ownerDashboardQueries = {
 			return queryOptions({
 				queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
 				queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-					const data = await apiRequest<TimeSeriesDataPoint[]>(
-						`/api/v1/owner/reports/time-series?metric=${metric}&days=${days}`
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_dashboard_time_series',
+						{
+							p_user_id: user.id,
+							p_metric_name: metric,
+							p_days: days
+						}
 					)
-					return data ?? []
+					if (error) handlePostgrestError(error, 'analytics')
+					return (data ?? []) as TimeSeriesDataPoint[]
 				},
-				...QUERY_CACHE_TIMES.DETAIL,
-				gcTime: 10 * 60 * 1000 // 10 minutes
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			})
 		},
 
@@ -204,122 +251,189 @@ export const ownerDashboardQueries = {
 		) =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
-				queryFn: () =>
-					apiRequest<MetricTrend>(
-						`/api/v1/owner/reports/metric-trend?metric=${metric}&period=${period}`
-					),
-				...QUERY_CACHE_TIMES.DETAIL,
-				gcTime: 10 * 60 * 1000 // 10 minutes
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc('get_metric_trend', {
+						p_user_id: user.id,
+						p_metric_name: metric,
+						p_period: period
+					})
+					if (error) handlePostgrestError(error, 'analytics')
+					return data as MetricTrend
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000
 			})
 	},
 
 	/**
-	 * Properties queries (/owner/properties/*)
+	 * Properties queries
 	 */
 	properties: {
 		/**
 		 * Property performance metrics
-		 * Uses DETAIL cache (5 min staleTime) - no interval needed for detail views
 		 */
 		performance: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.properties.performance(),
-				queryFn: () =>
-					apiRequest<PropertyPerformance[]>(
-						'/api/v1/owner/properties/performance'
-					),
-				...QUERY_CACHE_TIMES.DETAIL,
-				// No refetchInterval - data doesn't change frequently
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_property_performance_cached',
+						{
+							p_user_id: user.id
+						}
+					)
+					if (error) handlePostgrestError(error, 'analytics')
+					return (data ?? []) as PropertyPerformance[]
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
 			})
 	},
 
 	/**
-	 * Financial queries (/owner/financial/*)
+	 * Financial queries
 	 */
 	financial: {
 		/**
 		 * Billing insights and revenue analytics
-		 * Uses ANALYTICS cache (15 min staleTime) - financial data changes infrequently
 		 */
 		billingInsights: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.financial.billingInsights(),
-				queryFn: () =>
-					apiRequest<{
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc('get_billing_insights', {
+						owner_id_param: user.id
+					})
+					if (error) handlePostgrestError(error, 'analytics')
+					return data as {
 						totalRevenue: number
 						monthlyRevenue: number
 						outstandingBalance: number
 						paidInvoices: number
 						unpaidInvoices: number
-					}>('/api/v1/owner/financial/billing/insights'),
-				...QUERY_CACHE_TIMES.ANALYTICS,
+					}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
 			}),
 
 		/**
 		 * Revenue trends over time
-		 * Uses ANALYTICS cache (15 min staleTime) - historical data rarely changes
 		 */
 		revenueTrends: (year: number = new Date().getFullYear()) =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.financial.revenueTrends(year),
-				queryFn: () =>
-					apiRequest<FinancialMetrics[]>(
-						`/api/v1/owner/financial/revenue-trends?year=${year}`
-					),
-				...QUERY_CACHE_TIMES.ANALYTICS,
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_revenue_trends_optimized',
+						{
+							p_user_id: user.id,
+							p_months: 12
+						}
+					)
+					if (error) handlePostgrestError(error, 'analytics')
+					return (data ?? []) as FinancialMetrics[]
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
 			})
 	},
 
 	/**
-	 * Maintenance queries (/owner/maintenance/*)
+	 * Maintenance queries
 	 */
 	maintenance: {
 		/**
 		 * Maintenance analytics
-		 * Uses STATS cache (1 min staleTime) with 5 min interval - maintenance changes more frequently
 		 */
 		analytics: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.maintenance.analytics(),
-				queryFn: () =>
-					apiRequest<{
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_maintenance_analytics',
+						{
+							user_id: user.id
+						}
+					)
+					if (error) handlePostgrestError(error, 'analytics')
+					return data as {
 						totalRequests: number
 						openRequests: number
 						inProgressRequests: number
 						completedRequests: number
 						averageResolutionTime: number
 						urgentRequests: number
-					}>('/api/v1/owner/maintenance/analytics'),
-				...QUERY_CACHE_TIMES.STATS,
-				refetchInterval: 2 * 60 * 1000, // 2 min refresh for maintenance updates
-				refetchIntervalInBackground: false,
+					}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
 			})
 	},
 
 	/**
-	 * Tenants queries (/owner/tenants/*)
+	 * Tenants queries
 	 */
 	tenants: {
 		/**
 		 * Occupancy trends and tenant statistics
-		 * Uses LIST cache (10 min staleTime) - tenant data changes infrequently
 		 */
 		occupancyTrends: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
-				queryFn: () =>
-					apiRequest<{
+				queryFn: async () => {
+					const supabase = createClient()
+					const {
+						data: { user }
+					} = await supabase.auth.getUser()
+					if (!user) throw new Error('Not authenticated')
+					const { data, error } = await supabase.rpc(
+						'get_occupancy_trends_optimized',
+						{
+							p_user_id: user.id,
+							p_months: 12
+						}
+					)
+					if (error) handlePostgrestError(error, 'analytics')
+					return data as {
 						totalTenants: number
 						activeTenants: number
 						occupancyRate: number
 						averageLeaseLength: number
 						expiringLeases: number
-					}>('/api/v1/owner/tenants/occupancy-trends'),
-				...QUERY_CACHE_TIMES.LIST,
+					}
+				},
+				staleTime: 2 * 60 * 1000,
+				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
 			})
 	}
@@ -369,38 +483,104 @@ type OwnerDashboardData = {
 // Unified dashboard query key (single source of truth)
 const DASHBOARD_QUERY_KEY = ownerDashboardKeys.analytics.pageData()
 
-// Fetcher for unified dashboard payload
+// Fetcher for unified dashboard payload — 9 RPCs in parallel
 const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
-	const response = await apiRequest<{
-		stats: DashboardStats
-		activity: ActivityItem[]
-		metricTrends?: {
-			occupancyRate: MetricTrend | null
-			activeTenants: MetricTrend | null
-			monthlyRevenue: MetricTrend | null
-			openMaintenance: MetricTrend | null
-		}
-		timeSeries?: {
-			occupancyRate: TimeSeriesDataPoint[]
-			monthlyRevenue: TimeSeriesDataPoint[]
-		}
-		propertyPerformance?: PropertyPerformance[]
-	}>('/api/v1/owner/analytics/dashboard')
+	const supabase = createClient()
+	const {
+		data: { user }
+	} = await supabase.auth.getUser()
+	if (!user) throw new Error('Not authenticated')
+	const userId = user.id
+
+	const [
+		statsResult,
+		activityResult,
+		occTrendResult,
+		revTrendResult,
+		activeTenantsTrendResult,
+		maintTrendResult,
+		tsOccResult,
+		tsRevResult,
+		propertyPerfResult
+	] = await Promise.all([
+		supabase.rpc('get_dashboard_stats', { p_user_id: userId }),
+		supabase.rpc('get_user_dashboard_activities', {
+			p_user_id: userId,
+			p_limit: 10,
+			p_offset: 0
+		}),
+		supabase.rpc('get_metric_trend', {
+			p_user_id: userId,
+			p_metric_name: 'occupancy_rate',
+			p_period: 'month'
+		}),
+		supabase.rpc('get_metric_trend', {
+			p_user_id: userId,
+			p_metric_name: 'monthly_revenue',
+			p_period: 'month'
+		}),
+		supabase.rpc('get_metric_trend', {
+			p_user_id: userId,
+			p_metric_name: 'active_tenants',
+			p_period: 'month'
+		}),
+		supabase.rpc('get_metric_trend', {
+			p_user_id: userId,
+			p_metric_name: 'open_maintenance',
+			p_period: 'month'
+		}),
+		supabase.rpc('get_dashboard_time_series', {
+			p_user_id: userId,
+			p_metric_name: 'occupancy_rate',
+			p_days: 30
+		}),
+		supabase.rpc('get_dashboard_time_series', {
+			p_user_id: userId,
+			p_metric_name: 'monthly_revenue',
+			p_days: 30
+		}),
+		supabase.rpc('get_property_performance_cached', { p_user_id: userId })
+	])
+
+	// Critical — throw on stats/activity errors
+	if (statsResult.error) handlePostgrestError(statsResult.error, 'analytics')
+	if (activityResult.error)
+		handlePostgrestError(activityResult.error, 'analytics')
+
+	const stats = (
+		Array.isArray(statsResult.data)
+			? statsResult.data[0]
+			: statsResult.data
+	) as DashboardStats
 
 	return {
-		stats: response.stats,
-		activity: response.activity ?? [],
-		metricTrends: response.metricTrends ?? {
-			occupancyRate: null,
-			activeTenants: null,
-			monthlyRevenue: null,
-			openMaintenance: null
+		stats,
+		activity: (activityResult.data ?? []) as ActivityItem[],
+		metricTrends: {
+			occupancyRate: occTrendResult.error
+				? null
+				: ((occTrendResult.data as MetricTrend) ?? null),
+			activeTenants: activeTenantsTrendResult.error
+				? null
+				: ((activeTenantsTrendResult.data as MetricTrend) ?? null),
+			monthlyRevenue: revTrendResult.error
+				? null
+				: ((revTrendResult.data as MetricTrend) ?? null),
+			openMaintenance: maintTrendResult.error
+				? null
+				: ((maintTrendResult.data as MetricTrend) ?? null)
 		},
-		timeSeries: response.timeSeries ?? {
-			occupancyRate: [],
-			monthlyRevenue: []
+		timeSeries: {
+			occupancyRate: tsOccResult.error
+				? []
+				: ((tsOccResult.data ?? []) as TimeSeriesDataPoint[]),
+			monthlyRevenue: tsRevResult.error
+				? []
+				: ((tsRevResult.data ?? []) as TimeSeriesDataPoint[])
 		},
-		propertyPerformance: response.propertyPerformance ?? []
+		propertyPerformance: propertyPerfResult.error
+			? []
+			: ((propertyPerfResult.data ?? []) as PropertyPerformance[])
 	}
 }
 
@@ -408,7 +588,8 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 const DASHBOARD_BASE_QUERY_OPTIONS = {
 	queryKey: DASHBOARD_QUERY_KEY,
 	queryFn: fetchOwnerDashboardData,
-	...QUERY_CACHE_TIMES.STATS,
+	staleTime: 2 * 60 * 1000,
+	gcTime: 10 * 60 * 1000,
 	refetchIntervalInBackground: false,
 	refetchOnWindowFocus: false,
 	structuralSharing: true
@@ -437,8 +618,8 @@ export function useDashboardStatsSuspense() {
 			const data = await ensureDashboardData(queryClient)
 			return { stats: data.stats, metricTrends: data.metricTrends }
 		},
-		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
-		gcTime: QUERY_CACHE_TIMES.STATS.gcTime
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000
 	})
 }
 
@@ -451,8 +632,8 @@ export function useDashboardStats() {
 			const data = await ensureDashboardData(queryClient)
 			return { stats: data.stats, metricTrends: data.metricTrends }
 		},
-		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
-		gcTime: QUERY_CACHE_TIMES.STATS.gcTime,
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 }
@@ -467,8 +648,8 @@ export function useDashboardChartsSuspense() {
 			const data = await ensureDashboardData(queryClient)
 			return { timeSeries: data.timeSeries }
 		},
-		staleTime: QUERY_CACHE_TIMES.DETAIL.staleTime,
-		gcTime: QUERY_CACHE_TIMES.DETAIL.gcTime
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000
 	})
 }
 
@@ -481,8 +662,8 @@ export function useDashboardCharts() {
 			const data = await ensureDashboardData(queryClient)
 			return { timeSeries: data.timeSeries }
 		},
-		staleTime: QUERY_CACHE_TIMES.DETAIL.staleTime,
-		gcTime: QUERY_CACHE_TIMES.DETAIL.gcTime,
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 }
@@ -497,8 +678,8 @@ export function useDashboardActivitySuspense() {
 			const data = await ensureDashboardData(queryClient)
 			return { activities: data.activity }
 		},
-		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
-		gcTime: QUERY_CACHE_TIMES.STATS.gcTime
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000
 	})
 }
 
@@ -511,8 +692,8 @@ export function useDashboardActivity() {
 			const data = await ensureDashboardData(queryClient)
 			return { activities: data.activity }
 		},
-		staleTime: QUERY_CACHE_TIMES.STATS.staleTime,
-		gcTime: QUERY_CACHE_TIMES.STATS.gcTime,
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 }
@@ -529,13 +710,21 @@ export function usePropertyPerformanceSuspense() {
 	return useSuspenseQuery({
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
-			const response = await apiRequest<{
-				success: boolean
-				data: PropertyPerformance[]
-			}>('/api/v1/owner/properties/performance')
-			return response.data ?? []
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+			const { data, error } = await supabase.rpc(
+				'get_property_performance_cached',
+				{
+					p_user_id: user.id
+				}
+			)
+			if (error) handlePostgrestError(error, 'analytics')
+			return (data ?? []) as PropertyPerformance[]
 		},
-		staleTime: 5 * 60 * 1000,
+		staleTime: 2 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
 	})
 }
@@ -547,13 +736,22 @@ export function usePropertyPerformance() {
 	return useQuery({
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
-			const response = await apiRequest<{
-				success: boolean
-				data: PropertyPerformance[]
-			}>('/api/v1/owner/properties/performance')
-			return response.data ?? []
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+			const { data, error } = await supabase.rpc(
+				'get_property_performance_cached',
+				{
+					p_user_id: user.id
+				}
+			)
+			if (error) handlePostgrestError(error, 'analytics')
+			return (data ?? []) as PropertyPerformance[]
 		},
-		...QUERY_CACHE_TIMES.DETAIL,
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
 }
@@ -600,7 +798,7 @@ const timeRangeToMonths: Record<FinancialTimeRange, number> = {
 }
 
 /**
- * Revenue/expense chart data fetched from the financial analytics endpoint.
+ * Revenue/expense chart data fetched from the financial analytics RPC.
  * Uses server-calculated revenue/expense/netIncome so the chart reflects
  * actual expenses instead of placeholders.
  */
@@ -615,16 +813,24 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 			months
 		] as const,
 		queryFn: async () => {
-			const data = await apiRequest<FinancialMetrics[]>(
-				`/api/v1/financial/analytics/revenue-trends?year=${currentYear}`
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const { data, error } = await supabase.rpc(
+				'get_revenue_trends_optimized',
+				{
+					p_user_id: user.id,
+					p_months: 12
+				}
 			)
+			if (error) handlePostgrestError(error, 'analytics')
 
 			if (!Array.isArray(data) || data.length === 0) return []
 
-			// Keep UX consistent with the previous time-range selector by
-			// trimming to the most recent N months when the caller requests
-			// shorter ranges (7d/30d map to 1 month of aggregated data).
-			const trimmed = data
+			const trimmed = (data as FinancialMetrics[])
 				.sort((a, b) => a.period.localeCompare(b.period))
 				.slice(-months)
 
@@ -635,9 +841,23 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 				profit: item.netIncome ?? (item.revenue ?? 0) - (item.expenses ?? 0)
 			}))
 		},
-		// Financial/analytics data changes infrequently - no interval needed
-		...QUERY_CACHE_TIMES.ANALYTICS,
+		staleTime: 2 * 60 * 1000,
+		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false,
 		structuralSharing: true
 	})
+}
+
+import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
+
+/**
+ * Owner portfolio overview using pg_graphql
+ * Single request fetches all properties with per-property unit counts and revenue.
+ * Replaces N+1 PostgREST calls (one per property) with one pg_graphql request.
+ *
+ * GRAPH-01 + GRAPH-02 compliance: uses supabase.rpc('graphql.resolve') as specified.
+ * RLS is enforced server-side — pg_graphql respects auth.uid() automatically.
+ */
+export function useOwnerPortfolioOverview() {
+	return useQuery(dashboardGraphQLQueries.portfolioOverview())
 }

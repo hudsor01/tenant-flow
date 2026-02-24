@@ -7,6 +7,8 @@
  * - Error handling
  * - Disabled state when ID is empty
  *
+ * Updated for PostgREST migration: queries use supabase-js directly (no apiRequest).
+ *
  * @vitest-environment jsdom
  */
 
@@ -30,15 +32,6 @@ import {
 	useCancelInvitationMutation,
 	usePrefetchTenantDetail
 } from '../use-tenant'
-
-// Mock fetch globally
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
-
-// Mock api-config (used by api-request internally)
-vi.mock('#lib/api-config', () => ({
-	getApiBaseUrl: () => 'http://localhost:4600'
-}))
 
 // Mock logger
 vi.mock('@repo/shared/lib/frontend-logger', () => ({
@@ -64,18 +57,55 @@ vi.mock('sonner', () => ({
 	}
 }))
 
-// Mock Supabase client using vi.hoisted() to avoid initialization errors
-const { mockGetSession } = vi.hoisted(() => ({
-	mockGetSession: vi.fn()
+// Mock Sentry (used by handlePostgrestError)
+vi.mock('@sentry/nextjs', () => ({
+	captureException: vi.fn()
 }))
 
-vi.mock('#utils/supabase/client', () => ({
+// Note: useResendInvitationMutation and useCancelInvitationMutation now throw stubs
+
+// Build a chainable Supabase query mock
+function makeQueryChain(result: { data?: unknown; error?: unknown; count?: number | null }) {
+	const chain: Record<string, unknown> = {}
+	const methods = [
+		'select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq',
+		'ilike', 'or', 'order', 'range', 'limit', 'single', 'head'
+	]
+
+	const resolver = () => Promise.resolve({
+		data: result.data ?? null,
+		error: result.error ?? null,
+		count: result.count ?? null
+	})
+
+	methods.forEach(method => {
+		chain[method] = vi.fn(() => {
+			if (method === 'single') return resolver()
+			return chain
+		})
+	})
+
+	// Ensure awaiting the chain itself works (for non-.single() calls)
+	Object.defineProperty(chain, 'then', {
+		get() {
+			return resolver().then.bind(resolver())
+		}
+	})
+
+	return chain
+}
+
+// Supabase mock with configurable from() responses
+const supabaseFromMock = vi.fn()
+let supabaseInsertMock = vi.fn()
+let supabaseUpdateMock = vi.fn()
+const supabaseAuthGetUserMock = vi.fn()
+
+vi.mock('#lib/supabase/client', () => ({
 	createClient: () => ({
-		from: () => ({
-			select: vi.fn()
-		}),
+		from: supabaseFromMock,
 		auth: {
-			getSession: mockGetSession
+			getUser: supabaseAuthGetUserMock
 		}
 	})
 }))
@@ -96,47 +126,68 @@ function createWrapper() {
 	}
 }
 
-// Sample tenant data
+// Sample tenant data matching DB schema
 const mockTenant = {
 	id: 'tenant-123',
-	name: 'John Doe',
-	email: 'john@example.com',
-	phone: '555-1234',
+	user_id: 'user-123',
 	created_at: '2024-01-01T00:00:00Z',
-	updated_at: '2024-01-01T00:00:00Z'
+	updated_at: '2024-01-01T00:00:00Z',
+	date_of_birth: null,
+	emergency_contact_name: null,
+	emergency_contact_phone: null,
+	emergency_contact_relationship: null,
+	identity_verified: null,
+	ssn_last_four: null,
+	stripe_customer_id: null
 }
 
 const mockTenantWithLease = {
 	...mockTenant,
-	lease: {
-		id: 'lease-123',
-		property_name: 'Test Property',
-		unit_number: '101',
-		rent_amount: 1500
-	}
+	users: {
+		id: 'user-123',
+		email: 'john@example.com',
+		first_name: 'John',
+		last_name: 'Doe',
+		full_name: 'John Doe',
+		phone: '555-1234',
+		status: 'active'
+	},
+	lease_tenants: []
 }
 
 describe('Query Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'owner-user-123' } }
 		})
 
-		// Setup default fetch mock (apiRequest uses .text() then JSON.parse)
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockTenant),
-			text: () => Promise.resolve(JSON.stringify(mockTenant))
+		// Default: from() returns a query chain with mock tenant data
+		supabaseFromMock.mockImplementation((table: string) => {
+			if (table === 'tenants') {
+				return makeQueryChain({ data: mockTenant, count: 1 })
+			}
+			if (table === 'notification_settings') {
+				return makeQueryChain({
+					data: { email: true, sms: false, maintenance: true, general: true }
+				})
+			}
+			if (table === 'tenant_invitations') {
+				return makeQueryChain({ data: [], count: 0 })
+			}
+			if (table === 'rent_payments') {
+				return makeQueryChain({ data: [], count: 0 })
+			}
+			if (table === 'lease_tenants') {
+				return makeQueryChain({ data: [] })
+			}
+			return makeQueryChain({ data: null })
 		})
 	})
 
 	describe('useTenant', () => {
-		it('should fetch tenant by ID', async () => {
+		it('should query tenants table by ID', async () => {
 			const { result } = renderHook(() => useTenant('tenant-123'), {
 				wrapper: createWrapper()
 			})
@@ -145,10 +196,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
 		})
 
 		it('should not fetch when ID is empty', () => {
@@ -161,11 +209,12 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useTenantWithLease', () => {
-		it('should fetch tenant with lease info', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockTenantWithLease),
-				text: () => Promise.resolve(JSON.stringify(mockTenantWithLease))
+		it('should query tenants table with user and lease join', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'tenants') {
+					return makeQueryChain({ data: mockTenantWithLease })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTenantWithLease('tenant-123'), {
@@ -176,10 +225,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123/with-lease',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
 		})
 
 		it('should not fetch when ID is empty', () => {
@@ -192,12 +238,12 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useTenantList', () => {
-		it('should fetch tenant list with default pagination', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [mockTenant], total: 1 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ data: [mockTenant], total: 1 }))
+		it('should query tenants with count', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'tenants') {
+					return makeQueryChain({ data: [mockTenantWithLease], count: 1 })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useTenantList(), {
@@ -208,65 +254,17 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants?limit=50',
-				expect.anything()
-			)
-		})
-
-		it('should include pagination params when provided', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [], total: 0 }),
-				text: () => Promise.resolve(JSON.stringify({ data: [], total: 0 }))
-			})
-
-			const { result } = renderHook(() => useTenantList(2, 25), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess || result.current.isError).toBe(true)
-			})
-
-			// page 2 with limit 25 means offset=25
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants?limit=25&offset=25',
-				expect.anything()
-			)
-		})
-
-		it('should select data array with pagination info', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ data: [mockTenant], total: 100 }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ data: [mockTenant], total: 100 }))
-			})
-
-			const { result } = renderHook(() => useTenantList(1, 50), {
-				wrapper: createWrapper()
-			})
-
-			await waitFor(() => {
-				expect(result.current.isSuccess).toBe(true)
-			})
-
-			expect(result.current.data).toEqual({
-				data: [mockTenant],
-				total: 100,
-				page: 1,
-				limit: 50
-			})
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
 		})
 	})
 
 	describe('useAllTenants', () => {
-		it('should fetch all tenants', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve([mockTenant]),
-				text: () => Promise.resolve(JSON.stringify([mockTenant]))
+		it('should query all tenants with user and lease join', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'tenants') {
+					return makeQueryChain({ data: [mockTenantWithLease] })
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(() => useAllTenants(), {
@@ -277,20 +275,17 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
 		})
 	})
 
 	describe('useTenantStats', () => {
-		it('should fetch tenant stats', async () => {
-			const mockStats = { total: 50, active: 40, moved_out: 10 }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockStats),
-				text: () => Promise.resolve(JSON.stringify(mockStats))
+		it('should aggregate tenant counts from tenants table', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'tenants') {
+					return makeQueryChain({ data: null, count: 10 })
+				}
+				return makeQueryChain({ data: null, count: 0 })
 			})
 
 			const { result } = renderHook(() => useTenantStats(), {
@@ -301,25 +296,22 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/stats',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
 		})
 	})
 
 	describe('useNotificationPreferences', () => {
-		it('should fetch notification preferences for a tenant', async () => {
-			const mockPrefs = {
-				emailNotifications: true,
-				smsNotifications: false,
-				maintenanceUpdates: true,
-				paymentReminders: true
-			}
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockPrefs),
-				text: () => Promise.resolve(JSON.stringify(mockPrefs))
+		it('should query notification_settings via user_id', async () => {
+			supabaseFromMock.mockImplementation((table: string) => {
+				if (table === 'tenants') {
+					return makeQueryChain({ data: { user_id: 'user-123' } })
+				}
+				if (table === 'notification_settings') {
+					return makeQueryChain({
+						data: { email: true, sms: false, maintenance: true, general: true }
+					})
+				}
+				return makeQueryChain({ data: null })
 			})
 
 			const { result } = renderHook(
@@ -333,10 +325,8 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123/notification-preferences',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
+			expect(supabaseFromMock).toHaveBeenCalledWith('notification_settings')
 		})
 
 		it('should not fetch when tenant_id is empty', () => {
@@ -349,17 +339,7 @@ describe('Query Hooks', () => {
 	})
 
 	describe('useInvitations', () => {
-		it('should fetch invitations list', async () => {
-			const mockInvitations = {
-				data: [{ id: 'inv-1', email: 'test@example.com', status: 'sent' }],
-				total: 1
-			}
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockInvitations),
-				text: () => Promise.resolve(JSON.stringify(mockInvitations))
-			})
-
+		it('should query tenant_invitations table', async () => {
 			const { result } = renderHook(() => useInvitations(), {
 				wrapper: createWrapper()
 			})
@@ -368,10 +348,7 @@ describe('Query Hooks', () => {
 				expect(result.current.isSuccess || result.current.isError).toBe(true)
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/invitations',
-				expect.anything()
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
 		})
 	})
 })
@@ -379,58 +356,112 @@ describe('Query Hooks', () => {
 describe('Mutation Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		// Setup default session mock
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
+		supabaseAuthGetUserMock.mockResolvedValue({
+			data: { user: { id: 'owner-user-123' } }
 		})
 
-		// Setup default fetch mock
-		mockFetch.mockResolvedValue({
-			ok: true,
-			json: () => Promise.resolve(mockTenant),
-			text: () => Promise.resolve(JSON.stringify(mockTenant))
+		supabaseInsertMock = vi.fn().mockReturnValue({
+			select: vi.fn().mockReturnValue({
+				single: vi.fn().mockResolvedValue({ data: mockTenant, error: null })
+			})
+		})
+
+		supabaseUpdateMock = vi.fn().mockReturnValue({
+			eq: vi.fn().mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					single: vi.fn().mockResolvedValue({ data: mockTenant, error: null })
+				})
+			})
+		})
+
+		supabaseFromMock.mockImplementation((table: string) => {
+			if (table === 'tenants') {
+				return {
+					insert: supabaseInsertMock,
+					update: supabaseUpdateMock,
+					select: vi.fn().mockReturnThis(),
+					eq: vi.fn().mockReturnThis(),
+					single: vi.fn().mockResolvedValue({ data: mockTenant, error: null })
+				}
+			}
+			if (table === 'leases') {
+				return {
+					select: vi.fn().mockReturnValue({
+						eq: vi.fn().mockReturnValue({
+							single: vi.fn().mockResolvedValue({
+								data: {
+									id: 'lease-456',
+									unit_id: 'unit-123',
+									owner_user_id: 'owner-user-123',
+									units: { property_id: 'property-123' }
+								},
+								error: null
+							})
+						})
+					}),
+					update: vi.fn().mockReturnValue({
+						eq: vi.fn().mockResolvedValue({ data: null, error: null })
+					})
+				}
+			}
+			if (table === 'tenant_invitations') {
+				return {
+					insert: vi.fn().mockReturnValue({
+						select: vi.fn().mockReturnValue({
+							single: vi.fn().mockResolvedValue({
+								data: {
+									id: 'invite-123',
+									email: 'newuser@example.com',
+									owner_user_id: 'owner-user-123',
+									lease_id: 'lease-456',
+									unit_id: 'unit-123',
+									property_id: 'property-123',
+									invitation_code: 'code-123',
+									invitation_url: 'http://localhost:3050/auth/accept-invitation?code=code-123',
+									expires_at: '2024-02-01T00:00:00Z',
+									status: 'sent',
+									type: 'lease_signing'
+								},
+								error: null
+							})
+						})
+					}),
+					select: vi.fn().mockReturnValue({
+						order: vi.fn().mockResolvedValue({ data: [], error: null, count: 0 })
+					})
+				}
+			}
+			if (table === 'lease_tenants') {
+				return {
+					delete: vi.fn().mockReturnValue({
+						eq: vi.fn().mockResolvedValue({ data: null, error: null })
+					})
+				}
+			}
+			return makeQueryChain({ data: null })
 		})
 	})
 
 	describe('useCreateTenantMutation', () => {
-		it('should call API with correct endpoint and data', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(mockTenant),
-				text: () => Promise.resolve(JSON.stringify(mockTenant))
-			})
-
+		it('should insert into tenants table via PostgREST', async () => {
 			const { result } = renderHook(() => useCreateTenantMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync({
-				user_id: 'user-123',
-				stripe_customer_id: 'cus_test123'
+				user_id: 'user-123'
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants',
-				expect.objectContaining({
-					method: 'POST',
-					body: expect.stringContaining('user-123')
-				})
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
+			expect(supabaseInsertMock).toHaveBeenCalledWith(
+				expect.objectContaining({ user_id: 'user-123' })
 			)
 		})
 	})
 
 	describe('useUpdateTenantMutation', () => {
-		it('should call API with correct endpoint and data', async () => {
-			const updatedTenant = { ...mockTenant, identity_verified: true }
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve(updatedTenant),
-				text: () => Promise.resolve(JSON.stringify(updatedTenant))
-			})
-
+		it('should update tenants table via PostgREST', async () => {
 			const { result } = renderHook(() => useUpdateTenantMutation(), {
 				wrapper: createWrapper()
 			})
@@ -440,54 +471,27 @@ describe('Mutation Hooks', () => {
 				data: { identity_verified: true }
 			})
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123',
-				expect.objectContaining({
-					method: 'PUT',
-					body: expect.stringContaining('identity_verified')
-				})
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenants')
+			expect(supabaseUpdateMock).toHaveBeenCalledWith(
+				expect.objectContaining({ identity_verified: true })
 			)
 		})
 	})
 
 	describe('useDeleteTenantMutation', () => {
-		it('should call API with DELETE method', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({}),
-				text: () => Promise.resolve('{}')
-			})
-
+		it('should soft-delete by removing lease associations via PostgREST', async () => {
 			const { result } = renderHook(() => useDeleteTenantMutation(), {
 				wrapper: createWrapper()
 			})
 
 			await result.current.mutateAsync('tenant-123')
 
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123',
-				expect.objectContaining({
-					method: 'DELETE'
-				})
-			)
+			expect(supabaseFromMock).toHaveBeenCalledWith('lease_tenants')
 		})
 	})
 
 	describe('useInviteTenantMutation', () => {
-		it('should create tenant and associate with lease', async () => {
-			const createdTenant = { ...mockTenant, id: 'new-tenant-123' }
-			mockFetch
-				.mockResolvedValueOnce({
-					ok: true,
-					json: () => Promise.resolve(createdTenant),
-					text: () => Promise.resolve(JSON.stringify(createdTenant))
-				})
-				.mockResolvedValueOnce({
-					ok: true,
-					json: () => Promise.resolve({}),
-					text: () => Promise.resolve('{}')
-				})
-
+		it('should create tenant via PostgREST and link to lease', async () => {
 			const { result } = renderHook(() => useInviteTenantMutation(), {
 				wrapper: createWrapper()
 			})
@@ -500,69 +504,31 @@ describe('Mutation Hooks', () => {
 				lease_id: 'lease-456'
 			})
 
-			// First call: create tenant
-			expect(mockFetch).toHaveBeenNthCalledWith(
-				1,
-				'http://localhost:4600/api/v1/tenants',
-				expect.objectContaining({
-					method: 'POST'
-				})
-			)
-
-			// Second call: associate with lease
-			expect(mockFetch).toHaveBeenNthCalledWith(
-				2,
-				'http://localhost:4600/api/v1/leases/lease-456',
-				expect.objectContaining({
-					method: 'PUT'
-				})
-			)
+			// Should have inserted a tenant_invitation record
+			expect(supabaseFromMock).toHaveBeenCalledWith('tenant_invitations')
 		})
 	})
 
 	describe('useResendInvitationMutation', () => {
-		it('should call resend endpoint', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ message: 'Invitation sent' }),
-				text: () => Promise.resolve(JSON.stringify({ message: 'Invitation sent' }))
-			})
-
+		it('should throw stub error (Edge Function not yet implemented)', async () => {
 			const { result } = renderHook(() => useResendInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync('tenant-123')
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/tenant-123/resend-invitation',
-				expect.objectContaining({
-					method: 'POST'
-				})
+			await expect(result.current.mutateAsync('tenant-123')).rejects.toThrow(
+				'Tenant invitation email requires Edge Function implementation'
 			)
 		})
 	})
 
 	describe('useCancelInvitationMutation', () => {
-		it('should call cancel endpoint', async () => {
-			mockFetch.mockResolvedValue({
-				ok: true,
-				json: () => Promise.resolve({ message: 'Invitation cancelled' }),
-				text: () =>
-					Promise.resolve(JSON.stringify({ message: 'Invitation cancelled' }))
-			})
-
+		it('should throw stub error (Edge Function not yet implemented)', async () => {
 			const { result } = renderHook(() => useCancelInvitationMutation(), {
 				wrapper: createWrapper()
 			})
 
-			await result.current.mutateAsync('invitation-123')
-
-			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:4600/api/v1/tenants/invitations/invitation-123/cancel',
-				expect.objectContaining({
-					method: 'POST'
-				})
+			await expect(result.current.mutateAsync('invitation-123')).rejects.toThrow(
+				'Tenant invitation email requires Edge Function implementation'
 			)
 		})
 	})
@@ -571,12 +537,8 @@ describe('Mutation Hooks', () => {
 describe('Utility Hooks', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
 
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
+		supabaseFromMock.mockImplementation(() => makeQueryChain({ data: null }))
 	})
 
 	describe('usePrefetchTenantDetail', () => {
@@ -593,22 +555,20 @@ describe('Utility Hooks', () => {
 describe('Error Handling', () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-		mockFetch.mockReset()
-		mockGetSession.mockReset()
-
-		mockGetSession.mockResolvedValue({
-			data: { session: { access_token: 'test-token' } }
-		})
 	})
 
-	it('should handle fetch errors in query hooks', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 500,
-			statusText: 'Internal Server Error',
-			json: () => Promise.resolve({ message: 'Server error' }),
-			text: () => Promise.resolve(JSON.stringify({ message: 'Server error' }))
-		})
+	it('should handle PostgREST errors in query hooks', async () => {
+		supabaseFromMock.mockImplementation(() =>
+			makeQueryChain({
+				data: null,
+				error: {
+					message: 'Row not found',
+					code: 'PGRST116',
+					details: null,
+					hint: null
+				}
+			})
+		)
 
 		const { result } = renderHook(() => useTenant('tenant-123'), {
 			wrapper: createWrapper()
@@ -619,36 +579,34 @@ describe('Error Handling', () => {
 		})
 	})
 
-	it('should handle network errors', async () => {
-		mockFetch.mockRejectedValue(new Error('Network error'))
-
-		const { result } = renderHook(() => useTenant('tenant-123'), {
-			wrapper: createWrapper()
-		})
-
-		await waitFor(() => {
-			expect(result.current.isError).toBe(true)
-		})
-	})
-
-	it('should handle mutation errors', async () => {
-		mockFetch.mockResolvedValue({
-			ok: false,
-			status: 400,
-			statusText: 'Bad Request',
-			json: () => Promise.resolve({ message: 'Invalid data' }),
-			text: () => Promise.resolve(JSON.stringify({ message: 'Invalid data' }))
-		})
+	it('should handle mutation errors via PostgREST', async () => {
+		supabaseFromMock.mockImplementation(() => ({
+			insert: vi.fn().mockReturnValue({
+				select: vi.fn().mockReturnValue({
+					single: vi.fn().mockResolvedValue({
+						data: null,
+						error: { message: 'Unique violation', code: '23505', details: null, hint: null }
+					})
+				})
+			}),
+			update: vi.fn().mockReturnValue({
+				eq: vi.fn().mockReturnValue({
+					select: vi.fn().mockReturnValue({
+						single: vi.fn().mockResolvedValue({
+							data: null,
+							error: { message: 'Unique violation', code: '23505', details: null, hint: null }
+						})
+					})
+				})
+			})
+		}))
 
 		const { result } = renderHook(() => useCreateTenantMutation(), {
 			wrapper: createWrapper()
 		})
 
 		await expect(
-			result.current.mutateAsync({
-				user_id: '',
-				stripe_customer_id: ''
-			})
+			result.current.mutateAsync({ user_id: 'user-123' })
 		).rejects.toThrow()
 	})
 })

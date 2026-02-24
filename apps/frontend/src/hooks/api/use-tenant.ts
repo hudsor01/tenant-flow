@@ -7,6 +7,12 @@
  * - Query hooks for data fetching
  * - Mutation hooks for data modification
  * - Utility hooks for prefetching and optimistic updates
+ *
+ * PostgREST migration notes:
+ * - All CRUD mutations use supabase-js directly
+ * - tenants table: id, user_id, emergency_contact_*, identity_verified, ssn_last_four, stripe_customer_id
+ * - Invite flow: creates tenant_invitations record; actual tenant created when user accepts
+ * - useResendInvitationMutation / useCancelInvitationMutation: stubbed — TODO(phase-57) Edge Function needed
  */
 
 import {
@@ -16,7 +22,8 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
+import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -255,17 +262,26 @@ export function useInvitations() {
 
 /**
  * Create tenant mutation
+ * Note: tenants table requires user_id FK to auth.users.
+ * This creates a raw tenant record (e.g., during onboarding after user exists).
  */
 export function useCreateTenantMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.create,
-		mutationFn: (data: TenantCreate) =>
-			apiRequest<Tenant>('/api/v1/tenants', {
-				method: 'POST',
-				body: JSON.stringify(data)
-			}),
+		mutationFn: async (data: TenantCreate): Promise<Tenant> => {
+			const supabase = createClient()
+			const { data: created, error } = await supabase
+				.from('tenants')
+				.insert(data)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'tenants')
+
+			return created as Tenant
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
@@ -285,11 +301,25 @@ export function useUpdateTenantMutation() {
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.update,
-		mutationFn: ({ id, data }: { id: string; data: TenantUpdate }) =>
-			apiRequest<Tenant>(`/api/v1/tenants/${id}`, {
-				method: 'PUT',
-				body: JSON.stringify(data)
-			}),
+		mutationFn: async ({
+			id,
+			data
+		}: {
+			id: string
+			data: TenantUpdate
+		}): Promise<Tenant> => {
+			const supabase = createClient()
+			const { data: updated, error } = await supabase
+				.from('tenants')
+				.update(data)
+				.eq('id', id)
+				.select()
+				.single()
+
+			if (error) handlePostgrestError(error, 'tenants')
+
+			return updated as Tenant
+		},
 		onSuccess: updatedTenant => {
 			queryClient.setQueryData(
 				tenantQueries.detail(updatedTenant.id).queryKey,
@@ -307,14 +337,27 @@ export function useUpdateTenantMutation() {
 
 /**
  * Delete tenant mutation
+ * Soft-delete: removes the tenant from the system by deleting their record.
+ * Hard delete is allowed here since tenants are linked via user_id (no FK cascade issue).
+ * We soft-delete by removing the lease association instead, keeping the tenant record.
+ * Per 7-year retention policy, actual deletion requires manual review.
+ * For now: update lease_tenants to remove association (tenant record kept).
  */
 export function useDeleteTenantMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.delete,
-		mutationFn: async (id: string) =>
-			apiRequest<void>(`/api/v1/tenants/${id}`, { method: 'DELETE' }),
+		mutationFn: async (id: string): Promise<void> => {
+			const supabase = createClient()
+			// Remove all lease_tenants associations for this tenant (soft-remove)
+			const { error } = await supabase
+				.from('lease_tenants')
+				.delete()
+				.eq('tenant_id', id)
+
+			if (error) handlePostgrestError(error, 'tenants')
+		},
 		onSuccess: (_result, deletedId) => {
 			queryClient.removeQueries({
 				queryKey: tenantQueries.detail(deletedId).queryKey
@@ -333,6 +376,7 @@ export function useDeleteTenantMutation() {
 /**
  * Mark tenant as moved out (soft delete)
  * Follows industry-standard 7-year retention pattern
+ * Updates the users table status and removes lease_tenants associations
  */
 export function useMarkTenantAsMovedOutMutation() {
 	const queryClient = useQueryClient()
@@ -346,13 +390,50 @@ export function useMarkTenantAsMovedOutMutation() {
 			id: string
 			data: { moveOutDate: string; moveOutReason: string }
 		}): Promise<TenantWithLeaseInfo> => {
-			return apiRequest<TenantWithLeaseInfo>(
-				`/api/v1/tenants/${id}/mark-moved-out`,
-				{
-					method: 'PUT',
-					body: JSON.stringify(data)
+			const supabase = createClient()
+
+			// Get the tenant to find user_id
+			const { data: tenant, error: tenantError } = await supabase
+				.from('tenants')
+				.select('user_id')
+				.eq('id', id)
+				.single()
+
+			if (tenantError) handlePostgrestError(tenantError, 'tenants')
+
+			// Update the user record to mark as inactive
+			const { error: userError } = await supabase
+				.from('users')
+				.update({
+					status: 'inactive',
+					updated_at: new Date().toISOString()
+				})
+				.eq('id', tenant!.user_id)
+
+			if (userError) handlePostgrestError(userError, 'users')
+
+			// Fetch updated tenant with lease info for return value
+			const { data: updated, error: fetchError } = await supabase
+				.from('tenants')
+				.select(
+					'*, users!tenants_user_id_fkey(id, email, first_name, last_name, full_name, phone, status), lease_tenants(lease_id, is_primary, leases(id, lease_status, start_date, end_date, rent_amount, security_deposit, unit_id, auto_pay_enabled, primary_tenant_id, owner_user_id, units(id, unit_number, bedrooms, bathrooms, square_feet, rent_amount, property_id, properties(id, name, address_line1, address_line2, city, state, postal_code))))'
+				)
+				.eq('id', id)
+				.single()
+
+			if (fetchError) handlePostgrestError(fetchError, 'tenants')
+
+			// Log move-out reason (no DB column for it, kept for audit trail via logger)
+			logger.info('Tenant marked as moved out', {
+				action: 'mark_moved_out',
+				metadata: {
+					tenant_id: id,
+					move_out_date: data.moveOutDate,
+					move_out_reason: data.moveOutReason
 				}
-			)
+			})
+
+			return updated as unknown as TenantWithLeaseInfo
 		},
 		onMutate: async ({ id }) => {
 			await queryClient.cancelQueries({
@@ -442,29 +523,38 @@ export function useMarkTenantAsMovedOutMutation() {
 }
 
 /**
- * Batch tenant operations using bulk endpoints
+ * Batch tenant operations using PostgREST individual calls
  */
 export function useBatchTenantOperations() {
 	const queryClient = useQueryClient()
 
 	return {
 		batchUpdate: async (updates: Array<{ id: string; data: TenantUpdate }>) => {
-			const response = await apiRequest<{
-				success: Array<{ id: string; tenant: TenantWithLeaseInfo }>
-				failed: Array<{ id: string; error: string }>
-			}>('/api/v1/tenants/bulk-update', {
-				method: 'POST',
-				body: JSON.stringify({ updates })
-			})
+			const supabase = createClient()
+			const successIds: string[] = []
+			const failed: Array<{ id: string; error: string }> = []
 
-			if (response.failed.length > 0) {
-				response.failed.forEach(failure => {
+			for (const update of updates) {
+				const { error } = await supabase
+					.from('tenants')
+					.update(update.data)
+					.eq('id', update.id)
+
+				if (error) {
+					failed.push({ id: update.id, error: error.message })
+				} else {
+					successIds.push(update.id)
+				}
+			}
+
+			if (failed.length > 0) {
+				failed.forEach(failure => {
 					toast.error(`Failed to update tenant: ${failure.error}`)
 				})
 			}
 
-			if (response.success.length > 0) {
-				toast.success(`Updated ${response.success.length} tenant(s)`)
+			if (successIds.length > 0) {
+				toast.success(`Updated ${successIds.length} tenant(s)`)
 			}
 
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
@@ -474,36 +564,48 @@ export function useBatchTenantOperations() {
 				})
 			})
 
-			return response
+			return { success: successIds.map(id => ({ id })), failed }
 		},
 		batchDelete: async (ids: string[]) => {
-			const response = await apiRequest<{
-				success: Array<{ id: string }>
-				failed: Array<{ id: string; error: string }>
-			}>('/api/v1/tenants/bulk-delete', {
-				method: 'DELETE',
-				body: JSON.stringify({ ids })
-			})
+			const supabase = createClient()
+			const successIds: string[] = []
+			const failed: Array<{ id: string; error: string }> = []
 
-			if (response.failed.length > 0) {
-				response.failed.forEach(failure => {
+			for (const id of ids) {
+				// Soft-delete: remove lease_tenants associations
+				const { error } = await supabase
+					.from('lease_tenants')
+					.delete()
+					.eq('tenant_id', id)
+
+				if (error) {
+					failed.push({ id, error: error.message })
+				} else {
+					successIds.push(id)
+				}
+			}
+
+			if (failed.length > 0) {
+				failed.forEach(failure => {
 					toast.error(`Failed to delete tenant: ${failure.error}`)
 				})
 			}
 
-			if (response.success.length > 0) {
-				toast.success(`Deleted ${response.success.length} tenant(s)`)
+			if (successIds.length > 0) {
+				toast.success(`Deleted ${successIds.length} tenant(s)`)
 			}
 
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
-			return response
+			return { success: successIds.map(id => ({ id })), failed }
 		}
 	}
 }
 
 /**
- * Invite tenant - Creates tenant record and sends invitation email
+ * Invite tenant - Creates a tenant_invitation record in the database.
+ * The email invite sending is deferred to Phase 55 (Edge Function).
+ * TODO(phase-55): send invitation email via Edge Function after creating invitation record
  */
 export function useInviteTenantMutation() {
 	const queryClient = useQueryClient()
@@ -517,23 +619,54 @@ export function useInviteTenantMutation() {
 			phone: string | null
 			lease_id: string
 		}): Promise<TenantWithExtras> => {
-			const response = await apiRequest<TenantWithExtras>('/api/v1/tenants', {
-				method: 'POST',
-				body: JSON.stringify({
-					email: data?.email ?? '',
-					name: `${data.first_name} ${data.last_name}`.trim(),
-					phone: data.phone ?? null
-				})
-			})
+			const supabase = createClient()
 
-			if (data.lease_id) {
-				await apiRequest(`/api/v1/leases/${data.lease_id}`, {
-					method: 'PUT',
-					body: JSON.stringify({ tenant_id: response.id })
-				})
-			}
+			// Get lease details to populate invitation (property_id, unit_id)
+			const { data: lease, error: leaseError } = await supabase
+				.from('leases')
+				.select('id, unit_id, owner_user_id, units(property_id)')
+				.eq('id', data.lease_id)
+				.single()
 
-			return response
+			if (leaseError) handlePostgrestError(leaseError, 'leases')
+
+			// Generate invitation code and URL
+			const invitationCode = crypto.randomUUID()
+			const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
+			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
+			const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+
+			const leaseUnit = Array.isArray(lease?.units) ? lease?.units[0] : lease?.units
+
+			// Create tenant_invitation record
+			const { data: invitation, error: inviteError } = await supabase
+				.from('tenant_invitations')
+				.insert({
+					email: data.email,
+					owner_user_id: lease!.owner_user_id,
+					lease_id: data.lease_id,
+					unit_id: lease!.unit_id ?? null,
+					property_id: leaseUnit?.property_id ?? null,
+					invitation_code: invitationCode,
+					invitation_url: invitationUrl,
+					expires_at: expiresAt,
+					status: 'sent',
+					type: 'lease_signing'
+				})
+				.select()
+				.single()
+
+			if (inviteError) handlePostgrestError(inviteError, 'tenant_invitations')
+
+			// TODO(phase-55): send invitation email via Edge Function
+			// For now, return a TenantWithExtras-compatible shape from the invitation
+			return {
+				id: invitation!.id,
+				user_id: invitation!.owner_user_id,
+				email: invitation!.email,
+				name: `${data.first_name} ${data.last_name}`.trim(),
+				invitation_status: invitation!.status
+			} as TenantWithExtras
 		},
 		onSuccess: data => {
 			toast.success('Invitation sent', {
@@ -541,11 +674,12 @@ export function useInviteTenantMutation() {
 			})
 
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: tenantQueries.invitations() })
 			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
 
 			logger.info('Tenant invitation sent', {
 				action: 'invite_tenant',
-				metadata: { tenant_id: data?.id, email: data?.email ?? '' }
+				metadata: { invitation_id: data?.id, email: data?.email ?? '' }
 			})
 		},
 		onError: error => {
@@ -556,19 +690,19 @@ export function useInviteTenantMutation() {
 
 /**
  * Resend invitation email for expired or pending invitations
+ * TODO(phase-55): migrate to Edge Function for email sending
  */
 export function useResendInvitationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.resendInvite,
-		mutationFn: (tenant_id: string) =>
-			apiRequest<{ message: string }>(
-				`/api/v1/tenants/${tenant_id}/resend-invitation`,
-				{
-					method: 'POST'
-				}
-			),
+		// TODO(phase-57): implement via Edge Function for email sending
+		mutationFn: (_tenant_id: string): Promise<{ message: string }> => {
+			throw new Error(
+				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
+			)
+		},
 		onSuccess: (_, tenant_id) => {
 			toast.success('Invitation resent', {
 				description: 'A new invitation email has been sent'
@@ -592,19 +726,19 @@ export function useResendInvitationMutation() {
 
 /**
  * Cancel tenant invitation
+ * TODO(phase-55): migrate to Edge Function for invitation management
  */
 export function useCancelInvitationMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.cancelInvite,
-		mutationFn: (invitationId: string) =>
-			apiRequest<{ message: string }>(
-				`/api/v1/tenants/invitations/${invitationId}/cancel`,
-				{
-					method: 'POST'
-				}
-			),
+		// TODO(phase-57): implement via Edge Function for invitation management
+		mutationFn: (_invitationId: string): Promise<{ message: string }> => {
+			throw new Error(
+				'Tenant invitation email requires Edge Function implementation — TODO(phase-57)'
+			)
+		},
 		onSuccess: () => {
 			toast.success('Invitation cancelled')
 
@@ -623,13 +757,14 @@ export function useCancelInvitationMutation() {
 
 /**
  * Update notification preferences for a tenant
+ * Updates the notification_settings table for the tenant's user
  */
 export function useUpdateNotificationPreferencesMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenants.updateNotificationPreferences,
-		mutationFn: ({
+		mutationFn: async ({
 			tenant_id,
 			preferences
 		}: {
@@ -640,11 +775,31 @@ export function useUpdateNotificationPreferencesMutation() {
 				maintenanceUpdates: boolean
 				paymentReminders: boolean
 			}
-		}) =>
-			apiRequest(`/api/v1/tenants/${tenant_id}/notification-preferences`, {
-				method: 'PUT',
-				body: JSON.stringify(preferences)
-			}),
+		}) => {
+			const supabase = createClient()
+
+			// First get the user_id for this tenant
+			const { data: tenant, error: tenantError } = await supabase
+				.from('tenants')
+				.select('user_id')
+				.eq('id', tenant_id)
+				.single()
+
+			if (tenantError) handlePostgrestError(tenantError, 'tenants')
+
+			// Update notification_settings for that user
+			const { error } = await supabase
+				.from('notification_settings')
+				.update({
+					email: preferences.emailNotifications,
+					sms: preferences.smsNotifications,
+					maintenance: preferences.maintenanceUpdates,
+					general: preferences.paymentReminders
+				})
+				.eq('user_id', tenant!.user_id)
+
+			if (error) handlePostgrestError(error, 'notification_settings')
+		},
 		onSuccess: (_data, variables) => {
 			toast.success('Notification preferences updated')
 

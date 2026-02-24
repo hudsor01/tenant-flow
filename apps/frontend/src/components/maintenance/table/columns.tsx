@@ -23,7 +23,7 @@ import type {
 	MaintenancePriority
 } from '@repo/shared/types/core'
 import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
-import { apiRequest } from '#lib/api-request'
+import { createClient } from '#lib/supabase/client'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 
 // Status badge styling aligned with design-os
@@ -214,9 +214,12 @@ function MaintenanceActionsCell({
 	const handleDelete = async () => {
 		setIsDeleting(true)
 		try {
-			await apiRequest<void>(`/api/v1/maintenance/${request.id}`, {
-				method: 'DELETE'
-			})
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('maintenance_requests')
+				.delete()
+				.eq('id', request.id)
+			if (error) throw error
 			toast.success('Request deleted')
 
 			await Promise.all([

@@ -21,7 +21,7 @@ import {
 } from '#components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '#components/ui/popover'
 import { toast } from 'sonner'
-import { apiRequestRaw } from '#lib/api-request'
+import { callGeneratePdfFromHtml } from '#hooks/api/use-reports'
 import type { DateRangePreset, DashboardFiltersProps } from './dashboard-filters-utils'
 import {
 	getDateRangeFromPreset,
@@ -29,6 +29,42 @@ import {
 	downloadFile
 } from './dashboard-filters-utils'
 import { DashboardFiltersCompact } from './dashboard-filters-compact'
+
+/* eslint-disable color-tokens/no-hex-colors -- PDF HTML content uses inline styles intentionally; not rendered by the browser */
+function buildDashboardPdfHtml(
+	stats: Record<string, unknown>,
+	propCount: number
+): string {
+	const tableRows = Object.entries(stats)
+		.map(([key, value]) => {
+			const displayValue = value === null || value === undefined
+				? ''
+				: typeof value === 'object'
+					? JSON.stringify(value)
+					: String(value)
+			return `<tr><td style="border:1px solid #ccc;padding:6px 10px;font-weight:500">${key}</td><td style="border:1px solid #ccc;padding:6px 10px">${displayValue}</td></tr>`
+		})
+		.join('')
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Report</title>
+</head>
+<body style="font-family:Arial,sans-serif;margin:32px;color:#222">
+  <h1 style="font-size:20px;margin-bottom:4px">Dashboard Report</h1>
+  <p style="color:#666;font-size:13px;margin-bottom:16px">Generated: ${new Date().toLocaleDateString()} &mdash; ${propCount} propert${propCount === 1 ? 'y' : 'ies'}</p>
+  <table style="border-collapse:collapse;width:100%;font-size:13px">
+    <thead><tr>
+      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Metric</th>
+      <th style="border:1px solid #ccc;padding:6px 10px;background:#f0f0f0;text-align:left">Value</th>
+    </tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+</body>
+</html>`
+}
+/* eslint-enable color-tokens/no-hex-colors */
 
 /**
  * Dashboard Filters - Date range picker and export controls
@@ -105,30 +141,12 @@ export function DashboardFilters({
 
 		setIsExporting('pdf')
 		try {
-			const response = await apiRequestRaw('/api/v1/reports/export/pdf', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					title: 'Dashboard Report',
-					filename: `dashboard-report-${format(new Date(), 'yyyy-MM-dd')}`,
-					payload: {
-						...exportData.stats,
-						propertyPerformance: exportData.propertyPerformance,
-						generatedAt: new Date().toISOString()
-					}
-				})
-			})
-
-			const blob = await response.blob()
-			const url = window.URL.createObjectURL(blob)
-			const link = document.createElement('a')
-			link.href = url
-			link.download = `dashboard-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`
-			document.body.appendChild(link)
-			link.click()
-			document.body.removeChild(link)
-			window.URL.revokeObjectURL(url)
-
+			const timestamp = format(new Date(), 'yyyy-MM-dd')
+			const filename = `dashboard-report-${timestamp}.pdf`
+			const stats = exportData.stats as Record<string, unknown>
+			const propCount = exportData.propertyPerformance?.length ?? 0
+			const html = buildDashboardPdfHtml(stats, propCount)
+			await callGeneratePdfFromHtml(html, filename)
 			toast.success('Dashboard report exported as PDF')
 		} catch {
 			toast.error('Failed to export PDF')

@@ -7,7 +7,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '#providers/auth-provider'
 import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { Card, CardContent } from '#components/ui/card'
@@ -23,7 +22,7 @@ import {
 } from '#components/ui/stepper'
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react'
 import { cn } from '#lib/utils'
-import { getApiBaseUrl } from '#lib/api-config'
+import { createClient } from '#lib/supabase/client'
 
 import { SelectionStep } from './selection-step'
 import { TermsStep } from './terms-step'
@@ -60,7 +59,6 @@ interface LeaseCreationWizardProps {
 export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
-	const { session } = useAuth()
 	const [currentStep, setCurrentStep] = useState<WizardStep>('selection')
 
 	// Form state for each step
@@ -82,91 +80,69 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		}
 	)
 
-	// Fetch property/unit/tenant names for review step
+	// Fetch property/unit/tenant names for review step via Supabase PostgREST
 	const { data: propertyData } = useQuery({
-		queryKey: ['properties', selectionData.property_id, session?.access_token],
+		queryKey: ['properties', selectionData.property_id],
 		queryFn: async () => {
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/properties/${selectionData.property_id}`,
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session?.access_token}`
-					}
-				}
-			)
-			if (!res.ok) return null
-			return res.json()
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('properties')
+				.select('id, name')
+				.eq('id', selectionData.property_id ?? '')
+				.single()
+			if (error) return null
+			return data
 		},
-		enabled: !!session && !!selectionData.property_id
+		enabled: !!selectionData.property_id
 	})
 
 	const { data: unitData } = useQuery({
-		queryKey: ['units', selectionData.unit_id, session?.access_token],
+		queryKey: ['units', selectionData.unit_id],
 		queryFn: async () => {
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/units/${selectionData.unit_id}`,
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session?.access_token}`
-					}
-				}
-			)
-			if (!res.ok) return null
-			return res.json()
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('units')
+				.select('id, unit_number')
+				.eq('id', selectionData.unit_id ?? '')
+				.single()
+			if (error) return null
+			return data
 		},
-		enabled: !!session && !!selectionData.unit_id
+		enabled: !!selectionData.unit_id
 	})
 
 	const { data: tenantData } = useQuery({
-		queryKey: [
-			'tenants',
-			selectionData.primary_tenant_id,
-			session?.access_token
-		],
+		queryKey: ['tenants', selectionData.primary_tenant_id],
 		queryFn: async () => {
-			const res = await fetch(
-				`${getApiBaseUrl()}/api/v1/tenants/${selectionData.primary_tenant_id}`,
-				{
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session?.access_token}`
-					}
-				}
-			)
-			if (!res.ok) return null
-			return res.json()
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('tenants')
+				.select('id, first_name, last_name')
+				.eq('id', selectionData.primary_tenant_id ?? '')
+				.single()
+			if (error) return null
+			return data
 		},
-		enabled: !!session && !!selectionData.primary_tenant_id
+		enabled: !!selectionData.primary_tenant_id
 	})
 
-	// Create lease mutation
+	// Create lease mutation via Supabase PostgREST
 	const createLeaseMutation = useMutation({
 		mutationFn: async () => {
-			const payload = {
-				...selectionData,
-				...termsData,
-				...detailsData,
-				lease_status: 'draft',
-				rent_currency: 'USD'
-			}
-
-			const res = await fetch(`${getApiBaseUrl()}/api/v1/leases`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${session?.access_token}`
-				},
-				body: JSON.stringify(payload)
-			})
-
-			if (!res.ok) {
-				const error = await res.json()
-				throw new Error(error.message || 'Failed to create lease')
-			}
-
-			return res.json()
+			const supabase = createClient()
+			const { data, error } = await supabase
+				.from('leases')
+				.insert({
+					...selectionData,
+					...termsData,
+					...detailsData,
+					lease_status: 'draft',
+					rent_currency: 'USD'
+				})
+				.select('id')
+				.single()
+			if (error) throw new Error(error.message || 'Failed to create lease')
+			return data
 		},
 		onSuccess: data => {
 			toast.success('Lease draft created successfully')

@@ -1,7 +1,6 @@
 'use client'
 
 import { Spinner } from '#components/ui/loading-spinner'
-import { API_BASE_URL } from '#lib/api-config'
 import { useMutation } from '@tanstack/react-query'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -33,12 +32,14 @@ export default function PostCheckoutPage() {
 	// TanStack Query mutation for sending magic link
 	const sendMagicLinkMutation = useMutation({
 		mutationFn: async (sessionId: string) => {
-			// Call backend to get customer email from Stripe session
+			// Call stripe-checkout Edge Function to retrieve session customer email
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 			const response = await fetch(
-				`${API_BASE_URL}/billing/checkout-session/${sessionId}`,
+				`${supabaseUrl}/functions/v1/stripe-checkout-session`,
 				{
-					method: 'GET',
-					headers: { 'Content-Type': 'application/json' }
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ sessionId })
 				}
 			)
 
