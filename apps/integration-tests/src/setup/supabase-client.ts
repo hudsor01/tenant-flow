@@ -1,11 +1,11 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? process.env['SUPABASE_URL']
-const SUPABASE_ANON_KEY =
-  process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? process.env['SUPABASE_ANON_KEY']
+const SUPABASE_PUBLISHABLE_KEY =
+  process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] ?? process.env['SUPABASE_PUBLISHABLE_KEY']
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('SUPABASE_URL and SUPABASE_ANON_KEY must be set for integration tests')
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error('SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY must be set for integration tests')
 }
 
 /**
@@ -13,7 +13,7 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
  * The session JWT is used for all PostgREST calls, so RLS (auth.uid()) resolves correctly.
  */
 export async function createTestClient(email: string, password: string): Promise<SupabaseClient> {
-  const client = createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!)
+  const client = createClient(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!)
   const { error } = await client.auth.signInWithPassword({ email, password })
   if (error) throw new Error(`Failed to sign in as ${email}: ${error.message}`)
   return client
