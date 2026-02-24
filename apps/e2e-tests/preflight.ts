@@ -56,9 +56,9 @@ function checkEnvironmentVariables(): void {
 			description: 'Supabase project URL'
 		},
 		{
-			name: 'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-			alt: 'TEST_SUPABASE_ANON_KEY',
-			description: 'Supabase anon/public key'
+			name: 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+			alt: 'TEST_SUPABASE_PUBLISHABLE_KEY',
+			description: 'Supabase publishable key'
 		}
 	]
 

@@ -392,6 +392,83 @@ export type Database = {
           },
         ]
       }
+      late_fees: {
+        Row: {
+          assessed_date: string
+          created_at: string
+          days_overdue: number
+          fee_amount: number
+          id: string
+          lease_id: string
+          rent_payment_id: string
+        }
+        Insert: {
+          assessed_date?: string
+          created_at?: string
+          days_overdue: number
+          fee_amount: number
+          id?: string
+          lease_id: string
+          rent_payment_id: string
+        }
+        Update: {
+          assessed_date?: string
+          created_at?: string
+          days_overdue?: number
+          fee_amount?: number
+          id?: string
+          lease_id?: string
+          rent_payment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "late_fees_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "late_fees_rent_payment_id_fkey"
+            columns: ["rent_payment_id"]
+            isOneToOne: false
+            referencedRelation: "rent_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lease_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          lease_id: string
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lease_id: string
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lease_id?: string
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lease_reminders_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lease_tenants: {
         Row: {
           created_at: string | null
@@ -903,6 +980,48 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          lease_id: string
+          reminder_type: string
+          rent_payment_id: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lease_id: string
+          reminder_type: string
+          rent_payment_id: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lease_id?: string
+          reminder_type?: string
+          rent_payment_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_reminders_lease_id_fkey"
+            columns: ["lease_id"]
+            isOneToOne: false
+            referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_reminders_rent_payment_id_fkey"
+            columns: ["rent_payment_id"]
+            isOneToOne: false
+            referencedRelation: "rent_payments"
             referencedColumns: ["id"]
           },
         ]
@@ -1517,6 +1636,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      stripe_webhook_events: {
+        Row: {
+          data: Json | null
+          event_type: string
+          id: string
+          livemode: boolean | null
+          processed_at: string
+        }
+        Insert: {
+          data?: Json | null
+          event_type: string
+          id: string
+          livemode?: boolean | null
+          processed_at?: string
+        }
+        Update: {
+          data?: Json | null
+          event_type?: string
+          id?: string
+          livemode?: boolean | null
+          processed_at?: string
+        }
+        Relationships: []
       }
       tenant_invitations: {
         Row: {
@@ -2177,6 +2320,7 @@ export type Database = {
         Args: { p_primary_tenant_id: string; p_unit_id: string }
         Returns: boolean
       }
+      calculate_late_fees: { Args: never; Returns: undefined }
       calculate_maintenance_metrics: {
         Args: {
           p_user_id?: string
@@ -2404,6 +2548,8 @@ export type Database = {
         }
         Returns: undefined
       }
+      queue_lease_reminders: { Args: never; Returns: undefined }
+      queue_payment_reminders: { Args: never; Returns: undefined }
       require_stripe_schema: { Args: never; Returns: boolean }
       revoke_user_session: {
         Args: { p_session_id: string; p_user_id: string }
