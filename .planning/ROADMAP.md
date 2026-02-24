@@ -45,8 +45,8 @@ See [milestones/v3.0-ROADMAP.md](milestones/v3.0-ROADMAP.md)
 **Plans**: TBD
 
 Plans:
-- [ ] 33-01: Run automated E2E test suite + write SMOKE-TEST-RESULTS.md
-- [ ] 33-02: Manual flow verification (owner + tenant) + create ISSUES.md
+- [x] 33-01: Run automated E2E test suite + write SMOKE-TEST-RESULTS.md
+- [x] 33-02: Manual flow verification (owner + tenant) + create ISSUES.md
 
 #### Phase 34: Stripe Connect End-to-End
 
@@ -57,7 +57,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 34-01: Verify and fix Stripe Connect onboarding CTA, dialog, backend, and webhook
+- [x] 34-01: Verify and fix Stripe Connect onboarding CTA, dialog, backend, and webhook
 
 #### Phase 35: Subscription Enforcement
 
@@ -67,7 +67,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 35-01: Audit plan limits, implement property/tenant count enforcement, add upgrade prompts
+- [x] 35-01: Audit plan limits, implement property/tenant count enforcement, add upgrade prompts
 
 #### Phase 36: Tenant Onboarding Flow
 
@@ -77,7 +77,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 36-01: Verify invitation → accept → activate → tenant portal → pay rent flow
+- [x] 36-01: Verify invitation → accept → activate → tenant portal → pay rent flow
 
 #### Phase 37: Financial Page Wiring
 
@@ -87,7 +87,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 37-01: Replace tax-documents placeholder, verify all financial pages, fix empty states
+- [x] 37-01: Replace tax-documents placeholder, verify all financial pages, fix empty states
 
 ### ✅ v6.0 Production Grade Completion (Shipped 2026-02-20)
 
@@ -164,7 +164,7 @@ Plans:
 
 **Requirements**: CRUD-01, CRUD-02
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 **Success criteria**:
 1. `use-properties.ts` and `use-unit.ts` use `supabase.from('properties')` / `supabase.from('units')` for all queries and mutations; `apiRequest` removed from both files.
@@ -202,13 +202,13 @@ Plans:
 
 ---
 
-#### Phase 53: Analytics, Reports & Tenant Portal — RPCs + pg_graphql
+#### Phase 53: Analytics, Reports & Tenant Portal — RPCs + pg_graphql ✅
 
 **Goal**: Migrate analytics, financial reports, and the tenant portal dashboard to call Supabase RPCs directly (`supabase.rpc()`). Enable pg_graphql for complex multi-join aggregations on the owner dashboard, reducing N+1 PostgREST calls to single requests. Deliver CSV/PDF downloads via an Edge Function.
 
 **Requirements**: REPT-01, REPT-02, REPT-03, GRAPH-01, GRAPH-02
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 **Success criteria**:
 1. `use-owner-dashboard.ts` and `use-analytics.ts` call `supabase.rpc('get_dashboard_stats', ...)` and related RPCs directly; zero `apiRequest()` calls remain.
@@ -297,7 +297,7 @@ Plans: 4/4 plans complete
 
 ---
 
-#### Phase 57: Cleanup & Deletion — Remove NestJS Entirely
+#### Phase 57: Cleanup & Deletion — Remove NestJS Entirely ✅
 
 **Goal**: Delete the entire `apps/backend/` directory, remove all NestJS dependencies, CI/CD stages, Railway configuration, and frontend adapter code. Cancel the Railway subscription. This is the final irreversible step — executed only after all prior phases are verified working in production.
 
@@ -310,14 +310,14 @@ Plans: 4/4 plans complete
 4. No `RAILWAY_*` environment variables remain in any `.env.example`, `turbo.json`, or GitHub Actions secrets documentation; `railway.json` and `Procfile` (if any) are deleted.
 5. Frontend codebase contains no `apiRequest`, `apiRequestFormData`, `apiRequestRaw`, or `API_BASE_URL` references; `apps/frontend/src/lib/api-client.ts` is deleted; all `apps/backend` references in `pnpm-workspace.yaml` and `turbo.json` are removed.
 
-**Plans:** 5 plans
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 57-01-PLAN.md — CI/CD cleanup: delete deploy-backend.yml, update ci-cd.yml and rls-security-tests.yml
-- [ ] 57-02-PLAN.md — Monorepo config cleanup: pnpm-workspace.yaml catalog, root package.json scripts, delete Dockerfile/railway.toml/docker-compose.yml
-- [ ] 57-03-PLAN.md — Frontend apiRequest migration: delete 4 infrastructure files, migrate all callsites to PostgREST/Edge Functions, stub SSE, migrate auth to ANON_KEY, clean env.ts
-- [ ] 57-04-PLAN.md — Delete apps/backend/ and verify monorepo integrity (build/typecheck/lint/tests)
-- [ ] 57-05-PLAN.md — Deploy PR + Sentry health check + Railway offboarding (human checkpoint)
+- [x] 57-01-PLAN.md — CI/CD cleanup: delete deploy-backend.yml, update ci-cd.yml and rls-security-tests.yml
+- [x] 57-02-PLAN.md — Monorepo config cleanup: pnpm-workspace.yaml catalog, root package.json scripts, delete Dockerfile/railway.toml/docker-compose.yml
+- [x] 57-03-PLAN.md — Frontend apiRequest migration: delete 4 infrastructure files, migrate all callsites to PostgREST/Edge Functions, stub SSE, migrate auth to ANON_KEY, clean env.ts
+- [x] 57-04-PLAN.md — Delete apps/backend/ and verify monorepo integrity (build/typecheck/lint/tests)
+- [x] 57-05-PLAN.md — Deploy PR + Sentry health check + Railway offboarding (human checkpoint)
 
 ---
 
@@ -340,11 +340,11 @@ Plans:
 | 47. Component Refactoring | v6.0 | ✅ Complete | 2026-02-20 |
 | 48. Move-In/Move-Out Inspection | v6.0 | ✅ Complete | 2026-02-20 |
 | 49. Landlord Onboarding Wizard | v6.0 | ✅ Complete | 2026-02-20 |
-| 50. Infrastructure + User/Profile CRUD | v7.0 | Complete    | 2026-02-22 |
+| 50. Infrastructure + User/Profile CRUD | v7.0 | ✅ Complete | 2026-02-22 |
 | 51. Core CRUD — Properties, Units, Tenants, Leases | v7.0 | ✅ Complete | 2026-02-21 |
-| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | Complete    | 2026-02-21 |
-| 53. Analytics, Reports & Tenant Portal | v7.0 | Pending | — |
-| 54. Payments & Billing — Stripe Edge Functions | v7.0 | Complete    | 2026-02-22 |
-| 55. External Services — StirlingPDF & DocuSeal | v7.0 | Complete    | 2026-02-22 |
-| 56. Scheduled Jobs & DB Webhooks | v7.0 | Complete    | 2026-02-22 |
-| 57. Cleanup & Deletion | v7.0 | Pending | — |
+| 52. Ops CRUD — Maintenance, Vendors, Inspections | v7.0 | ✅ Complete | 2026-02-21 |
+| 53. Analytics, Reports & Tenant Portal | v7.0 | ✅ Complete | 2026-02-22 |
+| 54. Payments & Billing — Stripe Edge Functions | v7.0 | ✅ Complete | 2026-02-22 |
+| 55. External Services — StirlingPDF & DocuSeal | v7.0 | ✅ Complete | 2026-02-22 |
+| 56. Scheduled Jobs & DB Webhooks | v7.0 | ✅ Complete | 2026-02-22 |
+| 57. Cleanup & Deletion | v7.0 | ✅ Complete | 2026-02-24 |

@@ -27,6 +27,7 @@
 		"test": "turbo run test:unit",
 		"test:all": "pnpm test:unit && pnpm test:e2e",
 		"test:unit": "turbo run test:unit",
+		"test:rls": "pnpm --filter @repo/integration-tests test:rls",
 		"test:unit:frontend": "pnpm --filter @repo/frontend test:unit",
 		"test:e2e": "pnpm --filter @repo/e2e-tests test",
 		"test:e2e:tenant": "pnpm --filter @repo/e2e-tests test:chromium -- tenant-management/",
