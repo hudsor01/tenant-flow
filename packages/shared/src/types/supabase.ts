@@ -2416,6 +2416,7 @@ export type Database = {
         }[]
       }
       get_expense_summary: { Args: { p_user_id: string }; Returns: Json }
+      get_financial_overview: { Args: { p_user_id: string }; Returns: Json }
       get_invoice_statistics: { Args: { p_user_id: string }; Returns: Json }
       get_lead_paint_compliance_report: {
         Args: never
@@ -2429,6 +2430,10 @@ export type Database = {
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
       get_metric_trend: {
         Args: { p_metric_name: string; p_period?: string; p_user_id: string }
+        Returns: Json
+      }
+      get_occupancy_trends_optimized: {
+        Args: { p_months?: number; p_user_id: string }
         Returns: Json
       }
       get_owner_lease_tenant_ids: { Args: never; Returns: string[] }
@@ -2468,6 +2473,10 @@ export type Database = {
           total_revenue: number
           trend_percentage: number
         }[]
+      }
+      get_revenue_trends_optimized: {
+        Args: { p_months?: number; p_user_id: string }
+        Returns: Json
       }
       get_slow_rls_queries: {
         Args: { min_avg_time_ms?: number }
