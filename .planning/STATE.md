@@ -5,7 +5,7 @@
 Phase: Not started (defining requirements)
 Plan: —
 Status: Defining requirements for v8.0 Post-Migration Hardening
-Last activity: 2026-02-24 — Phase 57-05 complete: 57-05-SUMMARY.md written; rls-security-tests.yml fixed (PUBLISHABLE_KEY rename); roadmap.md moved to docs/. v7.0 Backend Elimination milestone fully documented and closed.
+Last activity: 2026-02-24 — RLS hardening migration written and applied: get_current_owner_user_id() converted from plpgsql+EXECUTE to sql+static query; get_current_property_owner_id() gets (select auth.uid()) wrapper; 3 bulk-imports storage policies fixed. 0 bare auth.uid() remain in live DB. 7/7 RLS suites pass. Committed to fix/ci-publishable-key-rls-workflow.
 
 Progress: ░░░░░░░░░░ 0% (Phases 58+ pending)
 
@@ -277,5 +277,5 @@ Systematically resolve all 108 findings from the v7.0 post-merge code review. Ph
 ## Session Continuity
 
 Last session: 2026-02-24
-Completed: Phase 57-05 — Fixed rls-security-tests.yml (PUBLISHABLE_KEY rename missed by c86063176); wrote 57-05-SUMMARY.md; moved roadmap.md → docs/roadmap.md. v7.0 milestone fully closed. All of Phase 57 (01-05) complete. v8.0 defining requirements.
+Completed: RLS hardening migration — converted get_current_owner_user_id() to static sql, added SELECT wrapper to get_current_property_owner_id(), fixed 3 bulk-imports storage.objects policies. 0 bare auth.uid() remain in live DB. Checkpoint file deleted.
 Resume file: None

@@ -248,9 +248,6 @@ jest-results/
 test-results.json
 *.test-report.*
 
-# Test setup files (may contain sensitive test data)
-apps/backend/test/setup.ts
-
 # Test cache only (keep test files tracked)
 playwright/.cache/
 playwright/.auth/
@@ -266,15 +263,12 @@ playwright/.auth/
 .vscode-test
 .history/
 .vercel/
-.railway/
 
 # Docker
-.dockerignore.local
 /documents/
 temp/
 
 # Development files
-backend_logs.json
 .claude/
 
 # DOCUMENTATION & EXAMPLES
@@ -370,8 +364,3 @@ tenants-page
 
 # Example env file (not needed in repo)
 .env.example
-
-# GSD planning docs (commit_docs: false)
-.planning/
-# no railway
-
