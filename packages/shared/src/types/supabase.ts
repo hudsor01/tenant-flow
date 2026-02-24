@@ -2358,6 +2358,14 @@ export type Database = {
         Returns: undefined
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      get_billing_insights: {
+        Args: {
+          end_date_param?: string
+          owner_id_param: string
+          start_date_param?: string
+        }
+        Returns: Json
+      }
       get_common_errors: {
         Args: { hours_back?: number; limit_count?: number }
         Returns: {
@@ -2381,6 +2389,13 @@ export type Database = {
           revenue: Database["public"]["CompositeTypes"]["revenue_stats_type"]
           tenants: Database["public"]["CompositeTypes"]["tenant_stats_type"]
           units: Database["public"]["CompositeTypes"]["unit_stats_type"]
+        }[]
+      }
+      get_dashboard_time_series: {
+        Args: { p_days?: number; p_metric_name: string; p_user_id: string }
+        Returns: {
+          date: string
+          value: number
         }[]
       }
       get_error_prone_users: {
@@ -2412,6 +2427,10 @@ export type Database = {
         }[]
       }
       get_maintenance_analytics: { Args: { user_id: string }; Returns: Json }
+      get_metric_trend: {
+        Args: { p_metric_name: string; p_period?: string; p_user_id: string }
+        Returns: Json
+      }
       get_owner_lease_tenant_ids: { Args: never; Returns: string[] }
       get_property_performance_analytics: {
         Args: {
