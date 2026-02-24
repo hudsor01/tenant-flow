@@ -140,7 +140,7 @@ create policy "Property owners can view late fees for their leases"
   using (
     lease_id in (
       select id from public.leases
-      where property_owner_id = (select auth.uid())
+      where owner_user_id = (select auth.uid())
     )
   );
 
@@ -222,6 +222,6 @@ create policy "Property owners can view lease reminder history"
   using (
     lease_id in (
       select id from public.leases
-      where property_owner_id = (select auth.uid())
+      where owner_user_id = (select auth.uid())
     )
   );

@@ -45,4 +45,13 @@ CI=true npx turbo run lint typecheck test:unit \
     exit 1
 }
 
+# Step 5: RLS integration tests against live Supabase (catches cross-tenant isolation regressions)
+# Credentials loaded from root .env.local by apps/integration-tests/src/setup/env.ts
+echo "🔐 Running RLS integration tests against Supabase..."
+if ! pnpm --filter @repo/integration-tests test:rls; then
+  echo "❌ RLS integration tests failed!"
+  echo "Fix cross-tenant isolation issues before committing."
+  exit 1
+fi
+
 echo "✅ All pre-commit checks passed!"
