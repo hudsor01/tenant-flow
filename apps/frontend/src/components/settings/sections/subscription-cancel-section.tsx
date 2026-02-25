@@ -2,40 +2,10 @@
 
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
-import { useMutation } from '@tanstack/react-query'
-import { createClient } from '#lib/supabase/client'
-import { toast } from 'sonner'
+import { useBillingPortalMutation } from '#hooks/api/use-billing'
 
 export function SubscriptionCancelSection() {
-	const createPortalSession = useMutation({
-		mutationFn: async () => {
-			const supabase = createClient()
-			const { data: sessionData } = await supabase.auth.getSession()
-			const token = sessionData.session?.access_token
-			if (!token) throw new Error('Not authenticated')
-			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const response = await fetch(`${baseUrl}/functions/v1/stripe-billing-portal`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-				body: JSON.stringify({})
-			})
-			if (!response.ok) {
-				const err = await response.json().catch(() => ({ error: response.statusText }))
-				throw new Error((err as { error?: string }).error ?? 'Failed to open billing portal')
-			}
-			return response.json() as Promise<{ url: string }>
-		},
-		onSuccess: data => {
-			window.location.href = data.url
-		},
-		onError: error => {
-			const message =
-				error instanceof Error && error.message.includes('No Stripe customer')
-					? 'Your billing account is not set up yet. Please contact support.'
-					: 'Failed to open billing portal. Please try again.'
-			toast.error(message)
-		}
-	})
+	const createPortalSession = useBillingPortalMutation()
 
 	return (
 		<BlurFade delay={0.55} inView>

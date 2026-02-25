@@ -52,25 +52,19 @@ export async function createCheckoutSession(
 ): Promise<CreateCheckoutSessionResponse> {
 	const supabase = createClient()
 
-	// SECURITY FIX: Validate user with getUser() before extracting data
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
+	// getSession() reads from local cache (no network call).
+	// The Edge Function validates the JWT server-side — no need for getUser() here.
+	const { data: { session } } = await supabase.auth.getSession()
 
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	}
 
-	// Add auth header if user is authenticated
-	if (!userError && user && session?.access_token) {
+	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
+
+	const user = session?.user
 
 	const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 	const response = await fetch(
@@ -152,23 +146,15 @@ export async function createPaymentIntent({
 }) {
 	const supabase = createClient()
 
-	// Validate user with getUser() before extracting token
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
+	// getSession() reads from local cache (no network call).
+	// The Edge Function validates the JWT server-side.
+	const { data: { session } } = await supabase.auth.getSession()
 
 	const headers: Record<string, string> = {
 		'Content-Type': 'application/json'
 	}
 
-	// Add auth header if user is authenticated
-	if (!userError && user && session?.access_token) {
+	if (session?.access_token) {
 		headers['Authorization'] = `Bearer ${session.access_token}`
 	}
 
@@ -207,20 +193,9 @@ export async function createCustomerPortalSession(
 ): Promise<{ url: string }> {
 	const supabase = createClient()
 
-	// SECURITY FIX: Validate user with getUser() before extracting data
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
-
-	if (userError || !user) {
-		throw new Error('User not authenticated')
-	}
-
-	// Get session for access token (only after user validation)
-	const {
-		data: { session }
-	} = await supabase.auth.getSession()
+	// getSession() reads from local cache (no network call).
+	// The Edge Function validates the JWT server-side.
+	const { data: { session } } = await supabase.auth.getSession()
 
 	if (!session?.access_token) {
 		throw new Error(ERROR_MESSAGES.SESSION_EXPIRED)

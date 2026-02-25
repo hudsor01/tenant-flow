@@ -38,9 +38,12 @@ export async function POST(request: Request) {
 
 		await stripe.paymentMethods.attach(paymentMethodId, { customer: stripeCustomerId })
 
-		await stripe.customers.update(stripeCustomerId, {
-			invoice_settings: { default_payment_method: paymentMethodId }
-		})
+		const setAsDefault = body.set_as_default !== false
+		if (setAsDefault) {
+			await stripe.customers.update(stripeCustomerId, {
+				invoice_settings: { default_payment_method: paymentMethodId }
+			})
+		}
 
 		return NextResponse.json({ success: true })
 	} catch (error) {
