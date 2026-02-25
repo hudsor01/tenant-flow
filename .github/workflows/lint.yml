@@ -2,17 +2,6 @@ name: lint
 
 on:
   workflow_call:
-    inputs:
-      node-version:
-        description: Node.js version to use
-        required: false
-        default: '24'
-        type: string
-      pnpm-version:
-        description: pnpm version to use
-        required: false
-        default: '10.20.0'
-        type: string
 
 permissions:
   contents: read
@@ -29,16 +18,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - uses: pnpm/action-setup@v4
         with:
-          version: ${{ inputs.pnpm-version }}
+          version: '10.29.3'
           run_install: false
 
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs['node-version'] }}
+          node-version: '24'
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
@@ -53,5 +42,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Run lint
+      - name: Lint
         run: pnpm lint
