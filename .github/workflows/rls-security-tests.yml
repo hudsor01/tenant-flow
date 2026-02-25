@@ -7,6 +7,12 @@ on:
       - 'apps/integration-tests/**'
       - 'supabase/migrations/**'
       - 'packages/shared/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/integration-tests/**'
+      - 'supabase/migrations/**'
+      - 'packages/shared/**'
   workflow_dispatch: # Allow manual trigger
 
 concurrency:
@@ -24,6 +30,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        # Fail fast with a clear message before spending time installing deps
+        run: |
+          missing=()
+          [ -z "$SUPABASE_URL" ]      && missing+=(NEXT_PUBLIC_SUPABASE_URL)
+          [ -z "$SUPABASE_ANON_KEY" ] && missing+=(NEXT_PUBLIC_SUPABASE_ANON_KEY)
+          [ -z "$OWNER_A_EMAIL" ]     && missing+=(E2E_OWNER_EMAIL)
+          [ -z "$OWNER_A_PASS" ]      && missing+=(E2E_OWNER_PASSWORD)
+          [ -z "$OWNER_B_EMAIL" ]     && missing+=(E2E_OWNER_B_EMAIL)
+          [ -z "$OWNER_B_PASS" ]      && missing+=(E2E_OWNER_B_PASSWORD)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "❌ Missing GitHub secrets (Settings → Secrets → Actions):"
+            printf '   %s\n' "${missing[@]}"
+            exit 1
+          fi
+          echo "✅ All required secrets present"
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          OWNER_A_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          OWNER_A_PASS: ${{ secrets.E2E_OWNER_PASSWORD }}
+          OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
+          OWNER_B_PASS: ${{ secrets.E2E_OWNER_B_PASSWORD }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -47,7 +77,8 @@ jobs:
       - name: Run RLS security tests
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          # Repo secret is NEXT_PUBLIC_SUPABASE_ANON_KEY — mapped to the name the code reads
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
