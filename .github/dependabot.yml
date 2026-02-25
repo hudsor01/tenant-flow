@@ -1,0 +1,147 @@
+version: 2
+
+updates:
+  # ─────────────────────────────────────────
+  # npm / pnpm monorepo
+  # Single entry at root covers all workspaces
+  # ─────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: America/Chicago
+    open-pull-requests-limit: 10
+    assignees:
+      - hudsor01
+    labels:
+      - dependencies
+    commit-message:
+      prefix: 'fix(deps)'
+      prefix-development: 'chore(deps)'
+      include: scope
+
+    # ── Grouped PRs ──────────────────────────
+    # Each group = one PR for all matched packages.
+    # A package matches the first group it fits.
+    groups:
+      supabase:
+        patterns:
+          - '@supabase/*'
+
+      tanstack:
+        patterns:
+          - '@tanstack/*'
+
+      stripe:
+        patterns:
+          - 'stripe'
+          - '@stripe/*'
+
+      radix-ui:
+        patterns:
+          - '@radix-ui/*'
+
+      nextjs:
+        patterns:
+          - 'next'
+          - '@next/*'
+        update-types:
+          - minor
+          - patch
+
+      react-ecosystem:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - 'react-*'
+          - '@types/react'
+          - '@types/react-dom'
+        update-types:
+          - minor
+          - patch
+
+      eslint:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'eslint-plugin-*'
+          - 'eslint-config-*'
+
+      typescript:
+        patterns:
+          - 'typescript'
+          - '@typescript-eslint/*'
+          - '@types/*'
+          - 'tsx'
+          - 'ts-node'
+
+      testing:
+        patterns:
+          - 'jest'
+          - 'jest-*'
+          - '@jest/*'
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - 'playwright'
+          - '@playwright/*'
+
+      build-tooling:
+        patterns:
+          - 'turbo'
+          - '@turbo/*'
+          - 'esbuild'
+          - 'lightningcss'
+
+      # Catch-all: bundles remaining minor/patch into one PR
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+    # ── Ignore rules ─────────────────────────
+    # Major version bumps for framework deps require manual migration
+    ignore:
+      - dependency-name: 'next'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'react-dom'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@types/react-dom'
+        update-types: ['version-update:semver-major']
+      # TanStack major bumps break APIs — review manually
+      - dependency-name: '@tanstack/*'
+        update-types: ['version-update:semver-major']
+      # Supabase major bumps require auth/RLS review
+      - dependency-name: '@supabase/*'
+        update-types: ['version-update:semver-major']
+
+  # ─────────────────────────────────────────
+  # GitHub Actions
+  # ─────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '08:00'
+      timezone: America/Chicago
+    open-pull-requests-limit: 5
+    assignees:
+      - hudsor01
+    labels:
+      - dependencies
+      - ci
+    commit-message:
+      prefix: 'chore(ci)'
+    groups:
+      github-actions:
+        patterns:
+          - '*'
