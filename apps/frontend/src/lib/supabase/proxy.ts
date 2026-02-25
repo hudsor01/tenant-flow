@@ -59,6 +59,34 @@ export async function updateSession(request: NextRequest) {
 		return supabaseResponse
 	}
 
+	const pathname = request.nextUrl.pathname
+
+	// Fast path: if no Supabase session cookie exists, there is no authenticated
+	// user. Skip the getUser() network round-trip (~400ms) entirely.
+	// Security: an attacker cannot forge a server-side session without the cookie.
+	// getUser() is still called whenever a session cookie is present (below).
+	const hasSessionCookie = request.cookies.getAll().some(({ name }) =>
+		name.startsWith('sb-') && name.endsWith('-auth-token')
+	)
+
+	if (!hasSessionCookie) {
+		// No cookie → definitely not authenticated
+		if (
+			!isStaticAsset(pathname) &&
+			!isMarketingRoute(pathname) &&
+			!pathname.startsWith('/login') &&
+			!pathname.startsWith('/auth') &&
+			!pathname.startsWith('/accept-invite')
+		) {
+			const url = request.nextUrl.clone()
+			url.pathname = '/login'
+			return NextResponse.redirect(url)
+		}
+		// Marketing/auth routes — pass through with zero network calls
+		return supabaseResponse
+	}
+
+	// Cookie present — validate the session with Supabase Auth server.
 	// With Fluid compute, don't put this client in a global environment
 	// variable. Always create a new one on each request.
 	const supabase = createServerClient(
@@ -92,8 +120,6 @@ export async function updateSession(request: NextRequest) {
 	// getClaims() only reads JWT locally without server validation
 	const { data: { user } } = await supabase.auth.getUser()
 
-	const pathname = request.nextUrl.pathname
-
 	// Redirect authenticated users from marketing pages and login to their dashboard
 	if (user && (isMarketingRoute(pathname) || pathname.startsWith('/login'))) {
 		const url = request.nextUrl.clone()
@@ -103,7 +129,7 @@ export async function updateSession(request: NextRequest) {
 	}
 
 	// Redirect unauthenticated users from protected routes to login
-	// Skip static assets, marketing pages, and auth-related routes
+	// (session cookie was present but getUser() returned no user — expired/invalid)
 	if (
 		!user &&
 		!isStaticAsset(pathname) &&

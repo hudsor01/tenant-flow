@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
 
 	// External images
 	images: {
+		// Cache optimized images for 7 days before re-fetching from origin
+		minimumCacheTTL: 60 * 60 * 24 * 7,
 		remotePatterns: [
 			{ protocol: 'https', hostname: '*.supabase.co' },
 			{ protocol: 'https', hostname: 'images.unsplash.com' },

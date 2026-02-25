@@ -23,6 +23,12 @@ export const env = createEnv({
 			.enum(['development', 'test', 'production'])
 			.default('development'),
 
+		// Stripe secret key (server-only — never expose to browser)
+		STRIPE_SECRET_KEY: z
+			.string()
+			.min(1, 'STRIPE_SECRET_KEY is required')
+			.startsWith('sk_', 'Must be a Stripe secret key'),
+
 		// Stripe price IDs (server-only for checkout sessions)
 		STRIPE_STARTER_MONTHLY: z
 			.string()
@@ -106,6 +112,7 @@ export const env = createEnv({
 	runtimeEnv: {
 		// Server
 		NODE_ENV: process.env.NODE_ENV,
+		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		STRIPE_STARTER_MONTHLY: process.env.STRIPE_STARTER_MONTHLY,
 		STRIPE_STARTER_ANNUAL: process.env.STRIPE_STARTER_ANNUAL,
 		STRIPE_GROWTH_MONTHLY: process.env.STRIPE_GROWTH_MONTHLY,
