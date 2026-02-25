@@ -6,12 +6,17 @@
 echo "🔍 Running pre-commit validation (db types + duplicate check + lockfile + lint + typecheck + tests)..."
 
 # Step 1: Regenerate DB types from live schema (ensures types are always current)
+# Write to a temp file first — never overwrite supabase.ts if generation fails
 echo "🗄️ Regenerating DB types from Supabase..."
-if ! pnpm db:types > /dev/null 2>&1; then
+SUPABASE_TMP=$(mktemp)
+if supabase gen types typescript --project-id bshjmbshupiibfiewpxb > "$SUPABASE_TMP" 2>/dev/null && [ -s "$SUPABASE_TMP" ]; then
+  cp "$SUPABASE_TMP" packages/shared/src/types/supabase.ts
+  pnpm --filter @repo/shared generate:schemas > /dev/null 2>&1 || true
+  git add packages/shared/src/types/supabase.ts 2>/dev/null || true
+else
   echo "⚠️ DB type regeneration failed - continuing with existing types"
 fi
-# Stage any type changes
-git add packages/shared/src/types/supabase.ts 2>/dev/null || true
+rm -f "$SUPABASE_TMP"
 
 # Step 2: Check for new duplicate type definitions
 echo "🔎 Checking for new duplicate type definitions..."
