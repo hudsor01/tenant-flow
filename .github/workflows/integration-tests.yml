@@ -1,0 +1,75 @@
+name: Integration Tests
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * 1' # Every Monday 09:00 UTC (same cadence as RLS tests)
+
+concurrency:
+  group: integration-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Validate required secrets
+        run: |
+          missing=()
+          [ -z "$SUPABASE_URL" ]            && missing+=(NEXT_PUBLIC_SUPABASE_URL)
+          [ -z "$SUPABASE_KEY" ]             && missing+=(NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
+          [ -z "$SECRET_KEY" ]               && missing+=(SUPABASE_SECRET_KEY)
+          [ -z "$OWNER_A_EMAIL" ]            && missing+=(E2E_OWNER_EMAIL)
+          [ -z "$OWNER_A_PASS" ]             && missing+=(E2E_OWNER_PASSWORD)
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing GitHub secrets (Settings → Secrets → Actions):"
+            printf '   %s\n' "${missing[@]}"
+            exit 1
+          fi
+          echo "All required secrets present"
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OWNER_A_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          OWNER_A_PASS: ${{ secrets.E2E_OWNER_PASSWORD }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: '10.29.3'
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Build shared package
+        run: pnpm --filter @repo/shared build
+
+      - name: Run API integration tests
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          E2E_OWNER_EMAIL: ${{ secrets.E2E_OWNER_EMAIL }}
+          E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
+          E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
+          E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: pnpm --filter @repo/integration-tests test:api

@@ -1,20 +1,19 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
-const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL']
-const SUPABASE_PUBLISHABLE_KEY = process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY']
-
-if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-  throw new Error(
-    'Missing required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  )
-}
+const SUPABASE_URL = process.env['NEXT_PUBLIC_SUPABASE_URL'] ?? ''
+const SUPABASE_PUBLISHABLE_KEY = process.env['NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'] ?? ''
 
 /**
  * Create a Supabase client authenticated as a specific test user.
  * The session JWT is used for all PostgREST calls, so RLS (auth.uid()) resolves correctly.
  */
 export async function createTestClient(email: string, password: string): Promise<SupabaseClient> {
-  const client = createClient(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!)
+  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+    throw new Error(
+      'Missing required env vars: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    )
+  }
+  const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
   const { error } = await client.auth.signInWithPassword({ email, password })
   if (error) throw new Error(`Failed to sign in as ${email}: ${error.message}`)
   return client

@@ -361,6 +361,3 @@ after-signin-click.png
 tenants-page
 *-page
 *-page.png
-
-# Example env file (not needed in repo)
-.env.example
