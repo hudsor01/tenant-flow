@@ -3,6 +3,9 @@ import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { MetadataRoute } from 'next'
 import { env } from '#env'
 
+// Cache sitemap for 24h via ISR — crawlers never hit a live DB call
+export const revalidate = 86400
+
 const logger = createLogger({ component: 'Sitemap' })
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -106,11 +109,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	let blogPages: MetadataRoute.Sitemap = []
 	try {
 		const supabase = await createClient()
-		const { data: blogPosts, error } = await supabase
+
+		// Race against 5s timeout so background ISR regeneration fails fast
+		// and serves the previous cached version rather than hanging
+		const timeout = new Promise<never>((_, reject) =>
+			setTimeout(() => reject(new Error('Sitemap DB query timed out after 5s')), 5000)
+		)
+		const query = supabase
 			.from('blogs')
 			.select('slug, published_at')
 			.eq('status', 'published')
 			.order('published_at', { ascending: false })
+
+		const { data: blogPosts, error } = await Promise.race([query, timeout])
 
 		if (error) {
 			throw new Error(`Failed to fetch blog posts: ${error.message}`)

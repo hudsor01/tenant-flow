@@ -6,7 +6,7 @@ export async function attachPaymentMethod(
 	paymentMethodId: string,
 	signal: AbortSignal
 ): Promise<{ success: boolean; error?: string }> {
-	const response = await fetch('/api/v1/stripe/attach-tenant-payment-method', {
+	const response = await fetch('/api/stripe/attach-payment-method', {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({

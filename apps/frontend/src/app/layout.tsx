@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 
+import * as Sentry from '@sentry/nextjs'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { GeistMono } from 'geist/font/mono'
@@ -23,7 +24,18 @@ const inter = Inter({
 })
 
 export async function generateMetadata(): Promise<Metadata> {
-	return await generateSiteMetadata()
+	const metadata = await generateSiteMetadata()
+	return {
+		...metadata,
+		other: {
+			...metadata.other,
+			// Inject Sentry trace headers as meta tags for distributed tracing
+			// Allows the browser SDK to continue the SSR trace on the client
+			...(Object.fromEntries(
+				Object.entries(Sentry.getTraceData()).filter(([, v]) => v !== undefined)
+			) as Record<string, string>)
+		}
+	}
 }
 
 export default async function RootLayout({

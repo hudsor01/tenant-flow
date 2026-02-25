@@ -2380,17 +2380,7 @@ export type Database = {
       get_current_property_owner_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
-      get_dashboard_stats: {
-        Args: { p_user_id: string }
-        Returns: {
-          leases: Database["public"]["CompositeTypes"]["lease_stats_type"]
-          maintenance: Database["public"]["CompositeTypes"]["maintenance_stats_type"]
-          properties: Database["public"]["CompositeTypes"]["property_stats_type"]
-          revenue: Database["public"]["CompositeTypes"]["revenue_stats_type"]
-          tenants: Database["public"]["CompositeTypes"]["tenant_stats_type"]
-          units: Database["public"]["CompositeTypes"]["unit_stats_type"]
-        }[]
-      }
+      get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_time_series: {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
         Returns: {
@@ -2433,7 +2423,7 @@ export type Database = {
         Returns: Json
       }
       get_occupancy_trends_optimized: {
-        Args: { p_months?: number; p_user_id: string }
+        Args: { p_months?: number; p_owner_id: string }
         Returns: Json
       }
       get_owner_lease_tenant_ids: { Args: never; Returns: string[] }
