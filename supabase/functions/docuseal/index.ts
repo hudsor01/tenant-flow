@@ -95,34 +95,24 @@ Deno.serve(async (req: Request) => {
         )
       }
 
-      // 2. Fetch owner profile
-      const { data: ownerProfile } = await supabase
-        .from('profiles')
-        .select('full_name, email')
-        .eq('id', lease.owner_user_id)
-        .single()
+      // 2-4. Fetch owner, tenant, and unit+property in parallel (all depend on lease, not each other)
+      const [
+        { data: ownerProfile },
+        { data: tenantRow },
+        { data: unitRow },
+      ] = await Promise.all([
+        supabase.from('profiles').select('full_name, email').eq('id', lease.owner_user_id).single(),
+        supabase.from('tenants').select('user_id, first_name, last_name, email').eq('id', lease.primary_tenant_id).single(),
+        supabase.from('units').select('unit_number, properties(name, address_line1, city, state, zip_code)').eq('id', lease.unit_id).single(),
+      ])
 
       const ownerName = (ownerProfile?.full_name as string | null) ?? 'Property Owner'
       const ownerEmail = (ownerProfile?.email as string | null) ?? ''
-
-      // 3. Fetch tenant email via tenants → user_id → profiles
-      const { data: tenantRow } = await supabase
-        .from('tenants')
-        .select('user_id, first_name, last_name, email')
-        .eq('id', lease.primary_tenant_id)
-        .single()
 
       const tenantName = tenantRow
         ? `${(tenantRow.first_name as string | null) ?? ''} ${(tenantRow.last_name as string | null) ?? ''}`.trim()
         : 'Tenant'
       const tenantEmail = (tenantRow?.email as string | null) ?? ''
-
-      // 4. Fetch unit + property for address
-      const { data: unitRow } = await supabase
-        .from('units')
-        .select('unit_number, properties(name, address_line1, city, state, zip_code)')
-        .eq('id', lease.unit_id)
-        .single()
 
       const property = unitRow
         ? (unitRow.properties as unknown as {
@@ -226,12 +216,13 @@ Deno.serve(async (req: Request) => {
         )
       }
 
-      // 7. Base64-encode the PDF
+      // 7. Base64-encode the PDF (chunked to avoid call stack limits on large files)
       const pdfBuffer = await pdfResponse.arrayBuffer()
       const uint8 = new Uint8Array(pdfBuffer)
+      const CHUNK = 8192
       let binary = ''
-      for (let i = 0; i < uint8.length; i++) {
-        binary += String.fromCharCode(uint8[i])
+      for (let i = 0; i < uint8.length; i += CHUNK) {
+        binary += String.fromCharCode(...uint8.subarray(i, i + CHUNK))
       }
       const base64Pdf = btoa(binary)
 
@@ -555,30 +546,37 @@ Deno.serve(async (req: Request) => {
         (s: { id: number; status: string }) => s.status !== 'completed'
       )
 
-      // Resend to each pending submitter
-      for (const submitter of pendingSubmitters) {
-        const resendPayload: Record<string, unknown> = { send_email: true }
-        if (message) resendPayload.message = message
+      // Resend to all pending submitters in parallel
+      const resendPayload: Record<string, unknown> = { send_email: true }
+      if (message) resendPayload.message = message
 
-        const resendResponse = await fetch(
-          `${docusealUrl}/api/submitters/${submitter.id}`,
-          {
-            method: 'PUT',
-            headers: {
-              'X-Auth-Token': docusealApiKey,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(resendPayload),
-          }
-        )
-
-        if (!resendResponse.ok) {
-          const errBody = await resendResponse.text().catch(() => resendResponse.statusText)
-          return new Response(
-            JSON.stringify({ error: `Failed to resend to submitter ${submitter.id}: ${errBody}` }),
-            { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      const resendResults = await Promise.all(
+        pendingSubmitters.map(async (submitter: { id: number; status: string }) => {
+          const response = await fetch(
+            `${docusealUrl}/api/submitters/${submitter.id}`,
+            {
+              method: 'PUT',
+              headers: {
+                'X-Auth-Token': docusealApiKey,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(resendPayload),
+            }
           )
-        }
+          if (!response.ok) {
+            const errBody = await response.text().catch(() => response.statusText)
+            return { ok: false, id: submitter.id, error: errBody }
+          }
+          return { ok: true, id: submitter.id }
+        })
+      )
+
+      const failed = resendResults.find(r => !r.ok)
+      if (failed && 'error' in failed) {
+        return new Response(
+          JSON.stringify({ error: `Failed to resend to submitter ${failed.id}: ${failed.error}` }),
+          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
       }
 
       return new Response(

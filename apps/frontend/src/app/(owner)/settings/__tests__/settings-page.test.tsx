@@ -96,6 +96,10 @@ vi.mock('#hooks/api/use-billing', () => ({
 			}
 		],
 		isLoading: false
+	}),
+	useBillingPortalMutation: () => ({
+		mutate: vi.fn(),
+		isPending: false
 	})
 }))
 

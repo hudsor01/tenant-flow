@@ -4,10 +4,9 @@ import { Loader2 } from 'lucide-react'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 import { Skeleton } from '#components/ui/skeleton'
-import { useSubscriptionStatus } from '#hooks/api/use-billing'
+import { useSubscriptionStatus, useBillingPortalMutation } from '#hooks/api/use-billing'
 import { useConnectedAccount } from '#hooks/api/use-stripe-connect'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { ConnectAccountSection } from '#components/settings/sections/connect-account-section'
 import { SubscriptionCancelSection } from '#components/settings/sections/subscription-cancel-section'
@@ -67,34 +66,7 @@ export function BillingSettings() {
 		staleTime: 2 * 60 * 1000
 	})
 
-	const createPortalSession = useMutation({
-		mutationFn: async () => {
-			const { data: sessionData } = await supabase.auth.getSession()
-			const token = sessionData.session?.access_token
-			if (!token) throw new Error('Not authenticated')
-			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const response = await fetch(`${baseUrl}/functions/v1/stripe-billing-portal`, {
-				method: 'POST',
-				headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-				body: JSON.stringify({})
-			})
-			if (!response.ok) {
-				const err = await response.json().catch(() => ({ error: response.statusText }))
-				throw new Error((err as { error?: string }).error ?? 'Failed to open billing portal')
-			}
-			return response.json() as Promise<{ url: string }>
-		},
-		onSuccess: data => {
-			window.location.href = data.url
-		},
-		onError: error => {
-			const message =
-				error instanceof Error && error.message.includes('No Stripe customer')
-					? 'Your billing account is not set up yet. Please contact support.'
-					: 'Failed to open billing portal. Please try again.'
-			toast.error(message)
-		}
-	})
+	const createPortalSession = useBillingPortalMutation()
 
 	const isLoading = statusLoading || methodsLoading || connectLoading
 

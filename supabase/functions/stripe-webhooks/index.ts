@@ -228,14 +228,14 @@ async function processEvent(
 
       // Notify the property owner about the failed payment
       if (failedPayment) {
-        // Find the property owner via lease → unit → property → user_id
+        // leases.owner_user_id is the direct FK — no need to join through units/properties
         const { data: leaseData } = await supabase
           .from('leases')
-          .select('unit_id, units!inner(property_id, properties!inner(user_id))')
+          .select('owner_user_id')
           .eq('id', failedPayment.lease_id)
           .single()
 
-        const ownerId = (leaseData?.units as unknown as { properties: { user_id: string } })?.properties?.user_id
+        const ownerId = leaseData?.owner_user_id as string | null
         if (ownerId) {
           await supabase.from('notifications').insert({
             user_id: ownerId,

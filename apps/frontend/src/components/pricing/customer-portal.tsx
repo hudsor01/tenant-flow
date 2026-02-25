@@ -4,9 +4,8 @@ import { Badge } from '#components/ui/badge'
 import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { useUser } from '#hooks/api/use-auth'
-import { createClient } from '#lib/supabase/client'
+import { useBillingPortalMutation } from '#hooks/api/use-billing'
 import { cn } from '#lib/utils'
-import { useMutation } from '@tanstack/react-query'
 import { cardVariants } from '#components/ui/card'
 import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
 import {
@@ -17,8 +16,6 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import type { ComponentProps } from 'react'
-import { toast } from 'sonner'
-import { handleMutationError } from '#lib/mutation-error-handler'
 import {
 	PortalUsageStats,
 	type UsageStatsData
@@ -52,50 +49,15 @@ export function CustomerPortalButton({
 	const router = useRouter()
 	const { data: user, isLoading: isLoadingUser } = useUser()
 
-	const portalMutation = useMutation({
-		mutationFn: async () => {
-			if (!user?.stripe_customer_id) {
-				router.push('/pricing')
-				throw new Error('No active subscription found')
-			}
+	const portalMutation = useBillingPortalMutation()
 
-			const supabase = createClient()
-			const { data: { session } } = await supabase.auth.getSession()
-			if (!session?.access_token) {
-				window.location.href = '/login'
-				throw new Error('Please sign in to access your account')
-			}
-
-			toast.loading('Opening customer portal...', { id: 'portal' })
-
-			const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const response = await fetch(
-				`${baseUrl}/functions/v1/stripe-billing-portal`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session.access_token}`
-					},
-					body: JSON.stringify({})
-				}
-			)
-
-			if (!response.ok) {
-				const errorData = await response.json()
-				throw new Error(errorData.message || 'Failed to create portal session')
-			}
-
-			const { url } = await response.json()
-			toast.success('Redirecting to customer portal...', { id: 'portal' })
-			window.location.href = url
-			return { success: true }
-		},
-		onError: error => {
-			handleMutationError(error, 'Access customer portal')
-			toast.dismiss('portal')
+	const handlePortalClick = () => {
+		if (!user?.stripe_customer_id) {
+			router.push('/pricing')
+			return
 		}
-	})
+		portalMutation.mutate()
+	}
 
 	if (!isLoadingUser && !user?.stripe_customer_id) {
 		return (
@@ -117,7 +79,7 @@ export function CustomerPortalButton({
 			variant={variant}
 			size={size}
 			className={cn('hover:scale-105 font-semibold', className)}
-			onClick={() => portalMutation.mutate()}
+			onClick={() => handlePortalClick()}
 			disabled={portalMutation.isPending}
 			{...props}
 		>
