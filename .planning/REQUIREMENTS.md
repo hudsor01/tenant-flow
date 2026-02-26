@@ -92,44 +92,44 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAY-01 | TBD | Pending |
-| PAY-02 | TBD | Pending |
-| PAY-03 | TBD | Pending |
-| PAY-04 | TBD | Pending |
-| PAY-05 | TBD | Pending |
-| PAY-06 | TBD | Pending |
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| SEC-01 | TBD | Pending |
-| SEC-02 | TBD | Pending |
-| SEC-03 | TBD | Pending |
-| SEC-04 | TBD | Pending |
-| SEC-05 | TBD | Pending |
-| SEC-06 | TBD | Pending |
-| SEC-07 | TBD | Pending |
-| SEC-08 | TBD | Pending |
-| QUAL-01 | TBD | Pending |
-| QUAL-02 | TBD | Pending |
-| QUAL-03 | TBD | Pending |
-| QUAL-04 | TBD | Pending |
-| PERF-01 | TBD | Pending |
-| PERF-02 | TBD | Pending |
-| PERF-03 | TBD | Pending |
-| PERF-04 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| DOCS-01 | TBD | Pending |
-| DOCS-02 | TBD | Pending |
-| CICD-01 | TBD | Pending |
-| CICD-02 | TBD | Pending |
+| PAY-01 | Phase 59 | Pending |
+| PAY-02 | Phase 59 | Pending |
+| PAY-03 | Phase 60 | Pending |
+| PAY-04 | Phase 60 | Pending |
+| PAY-05 | Phase 60 | Pending |
+| PAY-06 | Phase 64 | Pending |
+| AUTH-01 | Phase 61 | Pending |
+| AUTH-02 | Phase 61 | Pending |
+| AUTH-03 | Phase 61 | Pending |
+| SEC-01 | Phase 58 | Pending |
+| SEC-02 | Phase 58 | Pending |
+| SEC-03 | Phase 58 | Pending |
+| SEC-04 | Phase 58 | Pending |
+| SEC-05 | Phase 58 | Pending |
+| SEC-06 | Phase 58 | Pending |
+| SEC-07 | Phase 58 | Pending |
+| SEC-08 | Phase 58 | Pending |
+| QUAL-01 | Phase 62 | Pending |
+| QUAL-02 | Phase 62 | Pending |
+| QUAL-03 | Phase 62 | Pending |
+| QUAL-04 | Phase 62 | Pending |
+| PERF-01 | Phase 62 | Pending |
+| PERF-02 | Phase 62 | Pending |
+| PERF-03 | Phase 62 | Pending |
+| PERF-04 | Phase 62 | Pending |
+| TEST-01 | Phase 63 | Pending |
+| TEST-02 | Phase 63 | Pending |
+| TEST-03 | Phase 63 | Pending |
+| DOCS-01 | Phase 63 | Pending |
+| DOCS-02 | Phase 63 | Pending |
+| CICD-01 | Phase 63 | Pending |
+| CICD-02 | Phase 63 | Pending |
 
 **Coverage:**
 - v8.0 requirements: 32 total
-- Mapped to phases: 0
-- Unmapped: 32
+- Mapped to phases: 32
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-25*
-*Last updated: 2026-02-25 after initial definition*
+*Last updated: 2026-02-25 after roadmap creation*
