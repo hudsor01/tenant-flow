@@ -27,11 +27,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **SEC-01**: DocuSeal webhook handler rejects unverified requests (fail-closed)
 - [ ] **SEC-02**: DocuSeal Edge Function validates ownership before lease actions
 - [ ] **SEC-03**: generate-pdf Edge Function validates ownership before PDF generation
-- [ ] **SEC-04**: Stripe webhook notification_type CHECK constraint matches actual values
+- [x] **SEC-04**: Stripe webhook notification_type CHECK constraint matches actual values
 - [ ] **SEC-05**: undefined owner_user_id guarded in all 6 insert mutations
 - [ ] **SEC-06**: PostgREST filter injection sanitized in all 4 search inputs
-- [ ] **SEC-07**: CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
-- [ ] **SEC-08**: Edge Function dependencies pinned via deno.json import map
+- [x] **SEC-07**: CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
+- [x] **SEC-08**: Edge Function dependencies pinned via deno.json import map
 
 ### Code Quality (QUAL)
 
@@ -104,11 +104,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 | SEC-01 | Phase 58 | Pending |
 | SEC-02 | Phase 58 | Pending |
 | SEC-03 | Phase 58 | Pending |
-| SEC-04 | Phase 58 | Pending |
+| SEC-04 | Phase 58 | Complete |
 | SEC-05 | Phase 58 | Pending |
 | SEC-06 | Phase 58 | Pending |
-| SEC-07 | Phase 58 | Pending |
-| SEC-08 | Phase 58 | Pending |
+| SEC-07 | Phase 58 | Complete |
+| SEC-08 | Phase 58 | Complete |
 | QUAL-01 | Phase 62 | Pending |
 | QUAL-02 | Phase 62 | Pending |
 | QUAL-03 | Phase 62 | Pending |

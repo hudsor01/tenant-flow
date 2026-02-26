@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 58 of 64 (Security Hardening)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-02-25 — Roadmap created for v8.0 Post-Migration Hardening + Payment Infrastructure (7 phases, 32 requirements)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-02-26 — Completed 58-01 Edge Function Security Hardening (CORS, import map, notification fix)
 
-Progress: ░░░░░░░░░░ 0%
+Progress: #░░░░░░░░░ 5%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v8.0)
-- Average duration: -
-- Total execution time: -
+- Total plans completed: 1 (v8.0)
+- Average duration: 18min
+- Total execution time: 18min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 58-security-hardening | 1 | 18min | 18min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 18min
+- Trend: starting
 
 *Updated after each plan completion*
 
@@ -46,6 +46,8 @@ Recent decisions affecting current work:
 - v7.0: pg_cron for scheduled jobs; DB Webhooks to n8n for background workflows
 - v8.0: Security fixes ship before new payment features (Phase 58 before 59)
 - v8.0: Autopay (PAY-06) depends on rent checkout (PAY-01/02) being complete
+- v8.0: Edge Functions use shared CORS helper (_shared/cors.ts) with FRONTEND_URL origin matching; webhook functions have zero CORS
+- v8.0: All Edge Function imports pinned via deno.json import map (@supabase/supabase-js@2.49.4, stripe@14.25.0)
 
 ### Pending Todos
 
@@ -59,6 +61,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Roadmap created for v8.0 milestone (Phases 58-64)
+Last session: 2026-02-26
+Stopped at: Completed 58-01-PLAN.md (Edge Function Security Hardening)
 Resume file: None
