@@ -167,7 +167,7 @@ async function processEvent(
           user_id: existing.user_id,
           title: 'Stripe account verified',
           message: 'Your Stripe account has been fully verified — you can now receive rent payments.',
-          notification_type: 'stripe_connect_verified',
+          notification_type: 'system',
         }).then(({ error: notifError }) => {
           if (notifError) console.error('Failed to create notification:', notifError.message)
         })
@@ -241,7 +241,7 @@ async function processEvent(
             user_id: ownerId,
             title: 'Rent payment failed',
             message: `A rent payment of $${failedPayment.amount.toFixed(2)} failed. Check your Stripe dashboard for details.`,
-            notification_type: 'payment_failed',
+            notification_type: 'payment',
           }).then(({ error: notifError }) => {
             if (notifError) console.error('Failed to create payment failure notification:', notifError.message)
           })
