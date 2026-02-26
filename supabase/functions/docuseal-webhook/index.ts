@@ -1,6 +1,6 @@
 // DocuSeal Inbound Webhook Edge Function
 // Processes DocuSeal signature events and updates lease status atomically.
-// PUBLIC endpoint — no JWT required. Optionally validates DOCUSEAL_WEBHOOK_SECRET header.
+// Server-to-server only — HMAC-SHA256 signature verification required.
 // On failure: return 500 so DocuSeal retries.
 // On duplicate: return 200 immediately (idempotent via existing timestamp checks).
 //
@@ -215,24 +215,75 @@ async function handleSubmissionCompleted(
 // -----------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
-  // Verify shared secret if configured
+  // Fail-closed: reject immediately if webhook secret is not configured
   const webhookSecret = Deno.env.get('DOCUSEAL_WEBHOOK_SECRET')
-  if (webhookSecret) {
-    const signature = req.headers.get('x-docuseal-signature') ?? req.headers.get('authorization')
-    if (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
-      return new Response('Invalid signature', { status: 400 })
-    }
-  } else {
-    console.warn('DOCUSEAL_WEBHOOK_SECRET is not set — endpoint is unauthenticated')
+  if (!webhookSecret) {
+    console.error('DOCUSEAL_WEBHOOK_SECRET not configured')
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Require X-DocuSeal-Signature header
+  const signature = req.headers.get('x-docuseal-signature')
+  if (!signature) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Read raw body for HMAC verification (must read as text before JSON parse)
+  let rawBody: string
+  try {
+    rawBody = await req.text()
+  } catch {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // HMAC-SHA256 verification using Web Crypto API
+  const encoder = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(webhookSecret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(rawBody))
+  const expectedSignature = Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  // Constant-time comparison to prevent timing attacks
+  const sigBytes = encoder.encode(signature)
+  const expectedBytes = encoder.encode(expectedSignature)
+  if (sigBytes.byteLength !== expectedBytes.byteLength) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
+  }
+  const match = crypto.subtle.timingSafeEqual(sigBytes, expectedBytes)
+  if (!match) {
+    return new Response(
+      JSON.stringify({ error: 'Unauthorized' }),
+      { status: 401, headers: { 'Content-Type': 'application/json' } }
+    )
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
+  // Parse the verified body (already consumed by req.text())
   let body: Record<string, unknown>
   try {
-    body = await req.json() as Record<string, unknown>
+    body = JSON.parse(rawBody) as Record<string, unknown>
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid JSON body' }),
