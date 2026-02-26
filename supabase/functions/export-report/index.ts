@@ -3,23 +3,18 @@
 // Authenticates via JWT bearer token — no anon access.
 // PDF format: delegates to generate-pdf Edge Function (StirlingPDF via k3s).
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   try {
     // Authenticate
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -30,7 +25,7 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
     const url = new URL(req.url)
@@ -81,7 +76,7 @@ Deno.serve(async (req: Request) => {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
         return new Response(
           JSON.stringify({ error: `PDF generation failed: ${errText}` }),
-          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -89,7 +84,7 @@ Deno.serve(async (req: Request) => {
       return new Response(pdfBlob, {
         status: 200,
         headers: {
-          ...corsHeaders,
+          ...getCorsHeaders(req),
           'Content-Type': 'application/pdf',
           'Content-Disposition': `attachment; filename="${filename}.pdf"`,
         },
@@ -103,7 +98,7 @@ Deno.serve(async (req: Request) => {
       // Excel opens CSV files natively
       return new Response(csv, {
         headers: {
-          ...corsHeaders,
+          ...getCorsHeaders(req),
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
           'Content-Disposition': `attachment; filename="${filename}.xlsx"`,
         }
@@ -113,7 +108,7 @@ Deno.serve(async (req: Request) => {
     // Default: CSV
     return new Response(csv, {
       headers: {
-        ...corsHeaders,
+        ...getCorsHeaders(req),
         'Content-Type': 'text/csv',
         'Content-Disposition': `attachment; filename="${filename}.csv"`,
       }
@@ -121,7 +116,7 @@ Deno.serve(async (req: Request) => {
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

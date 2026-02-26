@@ -7,12 +7,8 @@
 // JWT-authenticated — requires a valid Bearer token.
 // Fail-fast: no retry on StirlingPDF errors (matches stripe-webhooks pattern).
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 type ReportRow = Record<string, string | number | null | undefined>
 
@@ -140,16 +136,15 @@ async function buildLeasePreviewHtml(
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   try {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Missing Authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       )
     }
 
@@ -160,7 +155,7 @@ Deno.serve(async (req: Request) => {
     if (!stirlingPdfUrl) {
       return new Response(
         JSON.stringify({ error: 'STIRLING_PDF_URL environment variable is not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       )
     }
 
@@ -170,7 +165,7 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Invalid or expired token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       )
     }
 
@@ -184,7 +179,7 @@ Deno.serve(async (req: Request) => {
       if (!body.html || typeof body.html !== 'string') {
         return new Response(
           JSON.stringify({ error: 'html field must be a non-empty string' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
         )
       }
       html = body.html
@@ -193,7 +188,7 @@ Deno.serve(async (req: Request) => {
       if (!body.leaseId || typeof body.leaseId !== 'string') {
         return new Response(
           JSON.stringify({ error: 'leaseId must be a non-empty string' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
         )
       }
       html = await buildLeasePreviewHtml(supabase, body.leaseId)
@@ -202,7 +197,7 @@ Deno.serve(async (req: Request) => {
       if (!body.reportType || typeof body.year !== 'number') {
         return new Response(
           JSON.stringify({ error: 'reportType (string) and year (number) are required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
         )
       }
       const rows = await fetchReportRows(supabase, user.id)
@@ -222,7 +217,7 @@ Deno.serve(async (req: Request) => {
       const errorText = await pdfResponse.text().catch(() => pdfResponse.statusText)
       return new Response(
         JSON.stringify({ error: `StirlingPDF returned ${pdfResponse.status}: ${errorText}` }),
-        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
       )
     }
 
@@ -230,7 +225,7 @@ Deno.serve(async (req: Request) => {
     return new Response(pdfBlob, {
       status: 200,
       headers: {
-        ...corsHeaders,
+        ...getCorsHeaders(req),
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
       },
@@ -242,7 +237,7 @@ Deno.serve(async (req: Request) => {
       JSON.stringify({ error: isTimeout ? 'StirlingPDF request timed out (30s)' : message }),
       {
         status: isTimeout ? 504 : 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       },
     )
   }

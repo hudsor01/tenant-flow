@@ -8,12 +8,7 @@
 //   form.completed       — individual party has signed (updates owner_signed_at or tenant_signed_at)
 //   submission.completed — all parties signed (flips lease_status to active + inserts notification)
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-docuseal-signature',
-}
+import { createClient } from '@supabase/supabase-js'
 
 // -----------------------------------------------------------------------
 // Types
@@ -220,16 +215,12 @@ async function handleSubmissionCompleted(
 // -----------------------------------------------------------------------
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
   // Verify shared secret if configured
   const webhookSecret = Deno.env.get('DOCUSEAL_WEBHOOK_SECRET')
   if (webhookSecret) {
     const signature = req.headers.get('x-docuseal-signature') ?? req.headers.get('authorization')
     if (signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
-      return new Response('Invalid signature', { status: 400, headers: corsHeaders })
+      return new Response('Invalid signature', { status: 400 })
     }
   } else {
     console.warn('DOCUSEAL_WEBHOOK_SECRET is not set — endpoint is unauthenticated')
@@ -245,7 +236,7 @@ Deno.serve(async (req: Request) => {
   } catch {
     return new Response(
       JSON.stringify({ error: 'Invalid JSON body' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
     )
   }
 
@@ -262,13 +253,13 @@ Deno.serve(async (req: Request) => {
 
     return new Response(
       JSON.stringify({ received: true }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     )
   } catch (err) {
     // Return 500 so DocuSeal retries the webhook delivery
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Processing failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 })
