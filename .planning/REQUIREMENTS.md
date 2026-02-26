@@ -24,9 +24,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Security (SEC)
 
-- [ ] **SEC-01**: DocuSeal webhook handler rejects unverified requests (fail-closed)
-- [ ] **SEC-02**: DocuSeal Edge Function validates ownership before lease actions
-- [ ] **SEC-03**: generate-pdf Edge Function validates ownership before PDF generation
+- [x] **SEC-01**: DocuSeal webhook handler rejects unverified requests (fail-closed)
+- [x] **SEC-02**: DocuSeal Edge Function validates ownership before lease actions
+- [x] **SEC-03**: generate-pdf Edge Function validates ownership before PDF generation
 - [x] **SEC-04**: Stripe webhook notification_type CHECK constraint matches actual values
 - [x] **SEC-05**: undefined owner_user_id guarded in all 6 insert mutations
 - [x] **SEC-06**: PostgREST filter injection sanitized in all 4 search inputs
@@ -101,9 +101,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 | AUTH-01 | Phase 61 | Pending |
 | AUTH-02 | Phase 61 | Pending |
 | AUTH-03 | Phase 61 | Pending |
-| SEC-01 | Phase 58 | Pending |
-| SEC-02 | Phase 58 | Pending |
-| SEC-03 | Phase 58 | Pending |
+| SEC-01 | Phase 58 | Complete |
+| SEC-02 | Phase 58 | Complete |
+| SEC-03 | Phase 58 | Complete |
 | SEC-04 | Phase 58 | Complete |
 | SEC-05 | Phase 58 | Complete |
 | SEC-06 | Phase 58 | Complete |

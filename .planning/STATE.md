@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 58 of 64 (Security Hardening)
-Plan: 3 of 3 in current phase
-Status: Executing
-Last activity: 2026-02-26 — Completed 58-03 Frontend Security Utilities (requireOwnerUserId, sanitizeSearchInput, auth-loading shimmer)
+Plan: 3 of 3 in current phase (all complete)
+Status: Phase Complete
+Last activity: 2026-02-26 — Completed 58-02 Edge Function Auth Hardening (HMAC webhook verification, ownership authorization)
 
-Progress: ##░░░░░░░░ 15%
+Progress: ###░░░░░░░ 20%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (v8.0)
-- Average duration: 27min
-- Total execution time: 81min
+- Total plans completed: 4 (v8.0)
+- Average duration: 26min
+- Total execution time: 103min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 58-security-hardening | 3 | 81min | 27min |
+| 58-security-hardening | 4 | 103min | 26min |
 
 **Recent Trend:**
-- Last 5 plans: 18min, 18min, 45min
+- Last 5 plans: 18min, 18min, 45min, 22min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -51,6 +51,9 @@ Recent decisions affecting current work:
 - v8.0: requireOwnerUserId guard pattern for all frontend create mutations -- fail-fast with Sentry warning before Supabase call
 - v8.0: sanitizeSearchInput strips PostgREST-dangerous chars before all .ilike()/.textSearch() calls, preserves % for ILIKE
 - v8.0: All form submit buttons use useCurrentUser isAuthLoading + animate-pulse shimmer pattern
+- v8.0: DocuSeal webhook uses fail-closed HMAC-SHA256 via Web Crypto API with timingSafeEqual
+- v8.0: All Edge Function lease actions verify owner_user_id === user.id; return generic 403 (never 404) for access-denied
+- v8.0: sign-tenant action allows both owner and primary tenant via tenants table lookup
 
 ### Pending Todos
 
@@ -65,5 +68,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 58-03-PLAN.md (Frontend Security Utilities)
+Stopped at: Completed 58-02-PLAN.md (Edge Function Auth Hardening) -- Phase 58 fully complete
 Resume file: None
