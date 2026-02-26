@@ -40,23 +40,26 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ apps/backend/ directory deleted — v7.0
 - ✓ Railway subscription cancelled (infra cost eliminated) — v7.0
 
+### Validated (v8.0 Phase 58 — Security Hardening — Shipped 2026-02-26)
+
+- ✓ DocuSeal webhook fail-closed HMAC-SHA256 verification — Phase 58
+- ✓ DocuSeal Edge Function IDOR — ownership check before all 5 lease actions — Phase 58
+- ✓ generate-pdf Edge Function IDOR — ownership check before PDF generation — Phase 58
+- ✓ Stripe webhook notification_type CHECK constraint mismatch fixed — Phase 58
+- ✓ undefined owner_user_id guard in all 7 insert mutations (requireOwnerUserId) — Phase 58
+- ✓ PostgREST filter injection sanitized in all 4 search inputs (sanitizeSearchInput) — Phase 58
+- ✓ Edge Function dependencies pinned via deno.json import map — Phase 58
+- ✓ CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions — Phase 58
+
 ### Active (v8.0 — Post-Migration Hardening)
 
-- [ ] DocuSeal webhook fail-closed (fail-open = unauthenticated lease manipulation)
-- [ ] DocuSeal Edge Function IDOR — ownership check before lease actions
-- [ ] generate-pdf Edge Function IDOR — ownership check before PDF generation
-- [ ] Stripe webhook notification_type CHECK constraint mismatch fixed
 - [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)
-- [ ] undefined owner_user_id guard in all 6 insert mutations
-- [ ] PostgREST filter injection sanitized in all 4 search inputs
 - [ ] RLS write-path isolation tests (INSERT/UPDATE/DELETE) for all 7 domains
 - [ ] CLAUDE.md stripped of NestJS content + RLS-only security model documented
 - [ ] PostgREST/Edge Function patterns added to CLAUDE.md
 - [ ] All 31 TODO stubs tracked; 4 runtime-throw stubs fixed
 - [ ] Double-toast error handling fixed across 20+ hooks
 - [ ] Duplicate payment method hooks consolidated
-- [ ] Edge Function dependencies pinned (deno.json import map)
-- [ ] CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
 - [ ] 86 getUser() calls replaced with cached auth pattern
 - [ ] Batch tenant operations refactored to single queries/RPCs
 - [ ] 3-step serial tenant portal lookup eliminated
@@ -145,4 +148,4 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 - CI/CD hardening (E2E in pipeline, RLS tests on PR, dedicated integration project)
 
 ---
-*Last updated: 2026-02-23 after v7.0 completion — initializing v8.0 Post-Migration Hardening milestone*
+*Last updated: 2026-02-26 after Phase 58 Security Hardening — 8 security vulnerabilities closed*
