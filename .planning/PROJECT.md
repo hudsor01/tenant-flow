@@ -129,11 +129,14 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 | DB Webhooks + n8n for workflows | n8n already self-hosted, flexible workflow authoring | — Pending |
 | Delete NestJS entirely | No partial migration — clean break prevents split-brain bugs | — Pending |
 
-## Current Milestone: v8.0 Post-Migration Hardening
+## Current Milestone: v8.0 Post-Migration Hardening + Payment Infrastructure
 
-**Goal:** Systematically resolve all 108 findings from the v7.0 post-merge code review — closing security vulnerabilities, code quality gaps, test coverage holes, documentation staleness, and CI/CD weaknesses introduced during the NestJS→Supabase architectural migration.
+**Goal:** Complete the payment revenue engine (Stripe Connect fee split, receipt emails) and auth flow gaps, while resolving critical security and code quality findings from the v7.0 post-merge review.
 
 **Target features:**
+- Stripe rent payment checkout with destination charge fee split (new `stripe-rent-checkout` Edge Function)
+- Automated receipt emails via Resend (fire-and-forget on payment success)
+- Auth flow completion (password reset page, email confirmation page, Google OAuth polish)
 - Critical security fixes (DocuSeal fail-open, IDOR, Stripe webhook constraint)
 - RLS write-path isolation test coverage
 - CLAUDE.md NestJS cleanup + new PostgREST/Edge Function patterns

@@ -4,16 +4,16 @@
 
 Phase: Not started (defining requirements)
 Plan: —
-Status: Defining requirements for v8.0 Post-Migration Hardening
-Last activity: 2026-02-24 — RLS hardening migration written and applied: get_current_owner_user_id() converted from plpgsql+EXECUTE to sql+static query; get_current_property_owner_id() gets (select auth.uid()) wrapper; 3 bulk-imports storage policies fixed. 0 bare auth.uid() remain in live DB. 7/7 RLS suites pass. Committed to fix/ci-publishable-key-rls-workflow.
+Status: Defining requirements for v8.0 Post-Migration Hardening + Payment Infrastructure
+Last activity: 2026-02-25 — Milestone v8.0 expanded to include payment infrastructure (fee split, receipt emails, auth completion)
 
 Progress: ░░░░░░░░░░ 0% (Phases 58+ pending)
 
 ## Active Milestone
 
-**v8.0 Post-Migration Hardening — IN PROGRESS (defining requirements)**
+**v8.0 Post-Migration Hardening + Payment Infrastructure — IN PROGRESS (defining requirements)**
 
-Systematically resolve all 108 findings from the v7.0 post-merge code review. Phases 58+. Starting phase: 58.
+Complete payment revenue engine (Stripe Connect fee split, receipt emails, auth flow gaps) + resolve critical v7.0 post-merge findings. Phases 58+. Starting phase: 58.
 
 ### Completed This Milestone
 
