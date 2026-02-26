@@ -85,8 +85,16 @@ Deno.serve(async (req: Request) => {
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can send for signature
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -313,14 +321,22 @@ Deno.serve(async (req: Request) => {
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id, tenant_signed_at')
+        .select('id, owner_user_id, docuseal_submission_id, tenant_signed_at')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can sign as owner
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -369,14 +385,31 @@ Deno.serve(async (req: Request) => {
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id, owner_signed_at')
+        .select('id, owner_user_id, primary_tenant_id, docuseal_submission_id, owner_signed_at')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Authorization: allow owner or the lease's primary tenant
+      const { data: tenantRecord } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const isTenant = tenantRecord?.id === lease.primary_tenant_id
+      const isOwner = lease.owner_user_id === user.id
+
+      if (!isOwner && !isTenant) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -424,14 +457,22 @@ Deno.serve(async (req: Request) => {
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id')
+        .select('id, owner_user_id, docuseal_submission_id')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can cancel
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -499,14 +540,22 @@ Deno.serve(async (req: Request) => {
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id')
+        .select('id, owner_user_id, docuseal_submission_id')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease || !lease.docuseal_submission_id) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found or no active submission' }),
-          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can resend
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 

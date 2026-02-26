@@ -191,6 +191,21 @@ Deno.serve(async (req: Request) => {
           { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
         )
       }
+
+      // Verify ownership before generating PDF
+      const { data: leaseOwnership, error: ownershipError } = await supabase
+        .from('leases')
+        .select('owner_user_id')
+        .eq('id', body.leaseId)
+        .maybeSingle()
+
+      if (ownershipError || !leaseOwnership || leaseOwnership.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } },
+        )
+      }
+
       html = await buildLeasePreviewHtml(supabase, body.leaseId)
     } else {
       // Mode 1: structured report data — fetch DB data and build HTML
