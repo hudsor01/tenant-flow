@@ -18,6 +18,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { sanitizeSearchInput } from '#lib/sanitize-search'
 import type {
 	Tenant,
 	TenantWithLeaseInfo
@@ -62,9 +63,12 @@ export const tenantQueries = {
 				if (filters?.search) {
 					// Search on users table full_name/email — filter via ilike on joined columns
 					// PostgREST supports filtering on embedded resources with dot notation
-					q = q.or(
-						`users.full_name.ilike.%${filters.search}%,users.email.ilike.%${filters.search}%`
-					)
+					const safe = sanitizeSearchInput(filters.search)
+					if (safe) {
+						q = q.or(
+							`users.full_name.ilike.%${safe}%,users.email.ilike.%${safe}%`
+						)
+					}
 				}
 
 				// property_id filter: must join via lease_tenants → leases → units

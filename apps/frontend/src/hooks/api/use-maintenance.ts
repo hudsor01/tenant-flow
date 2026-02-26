@@ -23,6 +23,7 @@ import type {
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
@@ -150,11 +151,11 @@ export function useMaintenanceRequestCreateMutation() {
 		mutationFn: async (data: MaintenanceRequestCreate): Promise<MaintenanceRequest> => {
 			const supabase = createClient()
 			const { data: { user } } = await supabase.auth.getUser()
-			const userId = user?.id
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('maintenance_requests')
-				.insert({ ...data, owner_user_id: userId })
+				.insert({ ...data, owner_user_id: ownerId })
 				.select()
 				.single()
 

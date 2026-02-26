@@ -20,6 +20,7 @@ import {
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -919,7 +920,7 @@ export function useMaintenanceRequestCreateMutation() {
 					status: 'open',
 					tenant_id: tenantRecord.id,
 					unit_id: leaseData.unit_id as string,
-					owner_user_id: leaseData.owner_user_id as string
+					owner_user_id: requireOwnerUserId(leaseData.owner_user_id as string | undefined)
 				})
 				.select('id, title, description, priority, status, created_at, updated_at, completed_at, unit_id, requested_by')
 				.single()

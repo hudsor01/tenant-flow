@@ -14,6 +14,7 @@ import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner'
 
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
@@ -277,11 +278,11 @@ export function useCreatePropertyMutation() {
 		mutationFn: async (data: PropertyCreate): Promise<Property> => {
 			const supabase = createClient()
 			const { data: user } = await supabase.auth.getUser()
-			const userId = user.user?.id
+			const ownerId = requireOwnerUserId(user.user?.id)
 
 			const { data: created, error } = await supabase
 				.from('properties')
-				.insert({ ...data, owner_user_id: userId })
+				.insert({ ...data, owner_user_id: ownerId })
 				.select()
 				.single()
 

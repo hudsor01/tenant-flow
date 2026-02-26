@@ -11,6 +11,7 @@
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type {
@@ -92,9 +93,12 @@ export const propertyQueries = {
 				}
 
 				if (filters?.search) {
-					q = q.or(
-						`name.ilike.%${filters.search}%,city.ilike.%${filters.search}%`
-					)
+					const safe = sanitizeSearchInput(filters.search)
+					if (safe) {
+						q = q.or(
+							`name.ilike.%${safe}%,city.ilike.%${safe}%`
+						)
+					}
 				}
 
 				q = q.range(offset, offset + limit - 1)

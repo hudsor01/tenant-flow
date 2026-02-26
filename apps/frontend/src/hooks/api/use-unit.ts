@@ -20,6 +20,7 @@ import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
@@ -156,11 +157,11 @@ export function useCreateUnitMutation() {
 		mutationFn: async (data: UnitInput): Promise<Unit> => {
 			const supabase = createClient()
 			const { data: authData } = await supabase.auth.getUser()
-			const userId = authData.user?.id
+			const ownerId = requireOwnerUserId(authData.user?.id)
 
 			const { data: created, error } = await supabase
 				.from('units')
-				.insert({ ...data, owner_user_id: userId })
+				.insert({ ...data, owner_user_id: ownerId })
 				.select()
 				.single()
 
