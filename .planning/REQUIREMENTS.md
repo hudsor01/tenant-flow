@@ -28,8 +28,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **SEC-02**: DocuSeal Edge Function validates ownership before lease actions
 - [ ] **SEC-03**: generate-pdf Edge Function validates ownership before PDF generation
 - [x] **SEC-04**: Stripe webhook notification_type CHECK constraint matches actual values
-- [ ] **SEC-05**: undefined owner_user_id guarded in all 6 insert mutations
-- [ ] **SEC-06**: PostgREST filter injection sanitized in all 4 search inputs
+- [x] **SEC-05**: undefined owner_user_id guarded in all 6 insert mutations
+- [x] **SEC-06**: PostgREST filter injection sanitized in all 4 search inputs
 - [x] **SEC-07**: CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
 - [x] **SEC-08**: Edge Function dependencies pinned via deno.json import map
 
@@ -105,8 +105,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 | SEC-02 | Phase 58 | Pending |
 | SEC-03 | Phase 58 | Pending |
 | SEC-04 | Phase 58 | Complete |
-| SEC-05 | Phase 58 | Pending |
-| SEC-06 | Phase 58 | Pending |
+| SEC-05 | Phase 58 | Complete |
+| SEC-06 | Phase 58 | Complete |
 | SEC-07 | Phase 58 | Complete |
 | SEC-08 | Phase 58 | Complete |
 | QUAL-01 | Phase 62 | Pending |

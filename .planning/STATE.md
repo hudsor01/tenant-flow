@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 ## Current Position
 
 Phase: 58 of 64 (Security Hardening)
-Plan: 1 of 3 in current phase
+Plan: 3 of 3 in current phase
 Status: Executing
-Last activity: 2026-02-26 — Completed 58-01 Edge Function Security Hardening (CORS, import map, notification fix)
+Last activity: 2026-02-26 — Completed 58-03 Frontend Security Utilities (requireOwnerUserId, sanitizeSearchInput, auth-loading shimmer)
 
-Progress: #░░░░░░░░░ 5%
+Progress: ##░░░░░░░░ 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1 (v8.0)
-- Average duration: 18min
-- Total execution time: 18min
+- Total plans completed: 3 (v8.0)
+- Average duration: 27min
+- Total execution time: 81min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 58-security-hardening | 1 | 18min | 18min |
+| 58-security-hardening | 3 | 81min | 27min |
 
 **Recent Trend:**
-- Last 5 plans: 18min
-- Trend: starting
+- Last 5 plans: 18min, 18min, 45min
+- Trend: stable
 
 *Updated after each plan completion*
 
@@ -48,6 +48,9 @@ Recent decisions affecting current work:
 - v8.0: Autopay (PAY-06) depends on rent checkout (PAY-01/02) being complete
 - v8.0: Edge Functions use shared CORS helper (_shared/cors.ts) with FRONTEND_URL origin matching; webhook functions have zero CORS
 - v8.0: All Edge Function imports pinned via deno.json import map (@supabase/supabase-js@2.49.4, stripe@14.25.0)
+- v8.0: requireOwnerUserId guard pattern for all frontend create mutations -- fail-fast with Sentry warning before Supabase call
+- v8.0: sanitizeSearchInput strips PostgREST-dangerous chars before all .ilike()/.textSearch() calls, preserves % for ILIKE
+- v8.0: All form submit buttons use useCurrentUser isAuthLoading + animate-pulse shimmer pattern
 
 ### Pending Todos
 
@@ -62,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 58-01-PLAN.md (Edge Function Security Hardening)
+Stopped at: Completed 58-03-PLAN.md (Frontend Security Utilities)
 Resume file: None
