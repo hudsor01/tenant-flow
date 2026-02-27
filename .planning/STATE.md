@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Post-Migration Hardening + Payment Infrastructure
 status: executing
-last_updated: "2026-02-27T15:00:00.000Z"
+last_updated: "2026-02-27T17:00:00.000Z"
 progress:
   total_phases: 50
-  completed_phases: 38
-  total_plans: 91
-  completed_plans: 89
+  completed_phases: 39
+  total_plans: 94
+  completed_plans: 94
 ---
 
 # Project State: TenantFlow
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 64 next
+**Current focus:** v8.0 milestone complete -- all 7 phases shipped
 
 ## Current Position
 
-Phase: 63 of 64 (Testing, CI/CD + Documentation) -- COMPLETE
-Plan: 3 of 3 in current phase (63-03 complete)
-Status: Phase 63 Complete
-Last activity: 2026-02-27 -- Completed Phase 63 Testing, CI/CD + Documentation (RLS write-path tests, CI pipeline gate, CLAUDE.md modernization)
+Phase: 64 of 64 (Autopay) -- COMPLETE
+Plan: 2 of 2 in current phase (64-02 complete)
+Status: Phase 64 Complete -- v8.0 Milestone Complete
+Last activity: 2026-02-27 -- Completed Phase 64 Autopay (pg_cron + Edge Function, frontend toggle, failure emails)
 
-Progress: [████████████████████] 92/92 plans (100%)
+Progress: [████████████████████] 94/94 plans (100%)
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Progress: [████████████████████] 92/92 p
 | 61-auth-flow-completion | 3 | ~80min | ~27min |
 | 62-code-quality-performance | 3 | ~60min | ~20min |
 | 63-testing-ci-cd-documentation | 3 | ~45min | ~15min |
+| 64-autopay | 2 | ~40min | ~20min |
 
 **Recent Trend:**
 - Last 5 plans: 8min, 6min, 20min, 15min, 10min
@@ -97,6 +98,10 @@ Recent decisions affecting current work:
 - v8.0: CI pipeline gates PRs with rls-security job; E2E runs pre-commit (not CI)
 - v8.0: CLAUDE.md fully modernized -- zero NestJS, new Data Access + Edge Functions + Security Model sections
 - v8.0: 12 E2E files rewritten from NestJS /api/v1/ routes to Supabase PostgREST/Edge Function endpoints
+- v8.0: Autopay uses pg_cron + Edge Function (NOT Stripe Subscriptions) — Subscriptions can't do per-landlord destination charges
+- v8.0: pg_cron fires daily at 07:00 UTC; stripe-autopay-charge creates off-session PaymentIntent with same fee split as manual checkout
+- v8.0: Stripe built-in retry/dunning handles failed autopay charges; failure notification email sent via Resend
+- v8.0: Checkout sessions use setup_future_usage: 'off_session' to save card for autopay; Stripe Customer created if absent
 
 ### Pending Todos
 
@@ -111,5 +116,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 63 complete, all 3 plans committed on feat/61-auth-flow-completion branch
+Stopped at: Phase 64 complete, all plans committed on feat/61-auth-flow-completion branch. v8.0 milestone fully shipped.
 Resume file: None

@@ -97,23 +97,25 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ 12 E2E test files rewritten from NestJS routes to PostgREST/Edge Function/auth endpoints — Phase 63
 - ✓ CLAUDE.md stripped of all NestJS references; PostgREST, Edge Function, and RLS patterns documented — Phase 63
 
-### Active (v8.0 — Post-Migration Hardening)
+### Validated (v8.0 Phase 64 — Autopay — Shipped 2026-02-27)
 
-- [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)
-- [ ] RLS write-path isolation tests (INSERT/UPDATE/DELETE) for all 7 domains
-- [ ] CLAUDE.md stripped of NestJS content + RLS-only security model documented
-- [ ] PostgREST/Edge Function patterns added to CLAUDE.md
-- [ ] All 31 TODO stubs tracked; 4 runtime-throw stubs fixed
-- [ ] Double-toast error handling fixed across 20+ hooks
-- [ ] Duplicate payment method hooks consolidated
-- [ ] 86 getUser() calls replaced with cached auth pattern
-- [ ] Batch tenant operations refactored to single queries/RPCs
-- [ ] 3-step serial tenant portal lookup eliminated
-- [ ] CSV export unbounded query protected with limit
-- [ ] E2E stale test intercepts rewritten for PostgREST architecture
-- [ ] RLS tests run on dedicated integration project, gate PRs
-- [ ] Performance metrics (maintenance stats, missing indexes) addressed
-- [ ] CI/CD pipeline gaps closed (E2E smoke, coverage gates)
+- ✓ Tenant autopay toggle in Payment Settings section of tenant portal — Phase 64
+- ✓ pg_cron job fires daily at 07:00 UTC, calls stripe-autopay-charge Edge Function — Phase 64
+- ✓ Off-session PaymentIntent with same destination charge fee split as manual checkout — Phase 64
+- ✓ Stripe Checkout uses setup_future_usage: 'off_session' to save card automatically — Phase 64
+- ✓ Failed autopay charge triggers Resend notification email with manual payment CTA — Phase 64
+- ✓ Stripe built-in retry/dunning handles failed charge retries — Phase 64
+
+### v8.0 Milestone Complete (Phases 58-64 — Shipped 2026-02-27)
+
+All v8.0 requirements delivered:
+- ✓ Security hardening (8 vulnerabilities closed)
+- ✓ Stripe rent checkout with destination charge fee split
+- ✓ Receipt emails via Resend + React Email
+- ✓ Auth flow completion (password reset, email confirmation, Google OAuth)
+- ✓ Code quality (double-toast fix, hook consolidation, 13 TODO stubs, cached auth)
+- ✓ Testing & CI/CD (60 RLS write-path tests, PR gating, CLAUDE.md modernization)
+- ✓ Autopay (pg_cron + Edge Function, off-session charges, failure emails)
 
 ### Out of Scope
 
