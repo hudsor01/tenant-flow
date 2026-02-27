@@ -104,7 +104,7 @@ Plans:
 
 - [x] **Phase 58: Security Hardening** - Close 8 active vulnerabilities in Edge Functions and frontend mutations (completed 2026-02-26)
 - [x] **Phase 59: Stripe Rent Checkout** - End-to-end rent payment with destination charge fee split (completed 2026-02-27)
-- [ ] **Phase 60: Receipt Emails** - Automated tenant receipt and owner notification on payment success
+- [x] **Phase 60: Receipt Emails** - Automated tenant receipt and owner notification on payment success (completed 2026-02-27)
 - [ ] **Phase 61: Auth Flow Completion** - Password reset, email confirmation, and Google OAuth routing
 - [ ] **Phase 62: Code Quality + Performance** - Fix error handling, consolidate hooks, cache auth, batch queries
 - [ ] **Phase 63: Testing, CI/CD + Documentation** - RLS write-path tests, pipeline gates, CLAUDE.md modernization
@@ -151,7 +151,9 @@ Plans:
   2. Owner receives a notification email within 60 seconds of tenant payment success, showing tenant name, amount, and property
   3. If a tenant or owner email is on the Resend suppression list, no email is sent and no error is thrown
   4. Stripe webhook handler always returns 200 regardless of email delivery outcome; a Resend failure does not cause webhook retries
-**Plans**: TBD
+**Plans**:
+- [x] 60-01: Email infrastructure (Resend helper + React Email templates)
+- [x] 60-02: Wire email sending into stripe-webhooks handler
 
 ---
 
@@ -225,7 +227,7 @@ Note: Phases 61 and 63 can be parallelized with phases 59/60 as they share no de
 | 50-57. Backend Elimination | v7.0 | - | ✅ Complete | 2026-02-24 |
 | 58. Security Hardening | 3/3 | Complete    | 2026-02-26 | - |
 | 59. Stripe Rent Checkout | 2/2 | Complete    | 2026-02-27 | - |
-| 60. Receipt Emails | v8.0 | 0/? | Not started | - |
+| 60. Receipt Emails | 2/2 | Complete   | 2026-02-27 | - |
 | 61. Auth Flow Completion | v8.0 | 0/? | Not started | - |
 | 62. Code Quality + Performance | v8.0 | 0/? | Not started | - |
 | 63. Testing, CI/CD + Documentation | v8.0 | 0/? | Not started | - |

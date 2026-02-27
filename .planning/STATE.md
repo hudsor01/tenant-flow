@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Post-Migration Hardening + Payment Infrastructure
 status: unknown
-last_updated: "2026-02-27T07:45:17.707Z"
+last_updated: "2026-02-27T10:00:00.000Z"
 progress:
   total_phases: 50
-  completed_phases: 35
-  total_plans: 83
-  completed_plans: 81
+  completed_phases: 36
+  total_plans: 85
+  completed_plans: 83
 ---
 
 # Project State: TenantFlow
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 60 — Receipt Emails
+**Current focus:** Phase 61 — Auth Flow Completion
 
 ## Current Position
 
-Phase: 59 of 64 (Stripe Rent Checkout) -- COMPLETE
-Plan: 2 of 2 in current phase (59-02 complete)
-Status: Phase 59 Complete
-Last activity: 2026-02-27 -- Completed 59-02 Stripe Rent Checkout Frontend + Webhook (UI rewrite + fee breakdown)
+Phase: 60 of 64 (Receipt Emails) -- COMPLETE
+Plan: 2 of 2 in current phase (60-02 complete)
+Status: Phase 60 Complete
+Last activity: 2026-02-27 -- Completed 60-02 Webhook Email Integration (Resend + React Email in stripe-webhooks)
 
-Progress: [████████████████████] 81/81 plans (100%)
+Progress: [████████████████████] 83/83 plans (100%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (v8.0)
-- Average duration: 22min
-- Total execution time: 133min
+- Total plans completed: 8 (v8.0)
+- Average duration: 19min
+- Total execution time: 147min
 
 **By Phase:**
 
@@ -42,10 +42,11 @@ Progress: [████████████████████] 81/81 p
 |-------|-------|-------|----------|
 | 58-security-hardening | 4 | 103min | 26min |
 | 59-stripe-rent-checkout | 2 | 30min | 15min |
+| 60-receipt-emails | 2 | 14min | 7min |
 
 **Recent Trend:**
-- Last 5 plans: 45min, 22min, 18min, 12min, 18min
-- Trend: stable
+- Last 5 plans: 18min, 12min, 18min, 8min, 6min
+- Trend: accelerating
 
 *Updated after each plan completion*
 
@@ -74,6 +75,11 @@ Recent decisions affecting current work:
 - v8.0: No pre-checkout confirmation dialog -- tenant Pay Rent goes directly to Edge Function -> Stripe Checkout redirect
 - v8.0: Webhook fee breakdown via balance_transaction expansion is best-effort -- non-fatal failure defaults fees to 0
 - v8.0: Checkout return URL handling uses useSearchParams + useRef(toastShown) + replaceState for one-time toast
+- v8.0: Receipt emails via Resend REST API fetch() from stripe-webhooks Edge Function -- fire-and-forget, never affects webhook response
+- v8.0: React Email templates in Deno via npm:react@18.3.1 + npm:@react-email/components@0.0.22
+- v8.0: Resend auto-checks suppression list on every send -- no manual pre-check needed
+- v8.0: notification_settings.email preference checked before sending; absence = opt-in (default send)
+- v8.0: Shared _shared/resend.ts helper never throws -- returns { success, id?, error? } result object
 
 ### Pending Todos
 
@@ -81,12 +87,12 @@ None yet.
 
 ### Blockers/Concerns
 
-- Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets before Phase 60
-- Verify Stripe Dashboard webhook endpoint receives `payment_intent.succeeded` events before Phase 60
+- Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets before deploying Phase 60
+- Verify tenantflow.com domain is verified in Resend dashboard before deploying Phase 60
 - Verify `handle_new_user` Postgres trigger fires for Google OAuth users before Phase 61
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 59 complete, ready to discuss Phase 60
+Stopped at: Phase 60 complete, ready for verification
 Resume file: None
