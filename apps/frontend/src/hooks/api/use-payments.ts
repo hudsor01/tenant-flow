@@ -510,7 +510,13 @@ export function useCreateRentPaymentMutation() {
 				currency: 'USD',
 				notes: null,
 				created_at: new Date().toISOString(),
-				updated_at: null
+				updated_at: null,
+				gross_amount: null,
+				platform_fee_amount: null,
+				stripe_fee_amount: null,
+				net_amount: null,
+				rent_due_id: null,
+				checkout_session_id: null
 			}
 
 			queryClient.setQueryData<RentPayment[] | undefined>(
