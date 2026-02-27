@@ -90,6 +90,13 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ Batch tenant operations use .in() grouped queries instead of N+1 — Phase 62
 - ✓ CSV export capped at 10,000 rows — Phase 62
 
+### Validated (v8.0 Phase 63 — Testing, CI/CD + Documentation — Shipped 2026-02-27)
+
+- ✓ RLS write-path isolation tests for INSERT/UPDATE/DELETE across all 7 domains (60 tests) — Phase 63
+- ✓ CI pipeline gates PRs with RLS security tests; failing RLS test blocks merge — Phase 63
+- ✓ 12 E2E test files rewritten from NestJS routes to PostgREST/Edge Function/auth endpoints — Phase 63
+- ✓ CLAUDE.md stripped of all NestJS references; PostgREST, Edge Function, and RLS patterns documented — Phase 63
+
 ### Active (v8.0 — Post-Migration Hardening)
 
 - [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)

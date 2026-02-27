@@ -93,6 +93,10 @@ Recent decisions affecting current work:
 - v8.0: getCachedUser() reads TanStack Query ['auth','session'] cache first, falls back to getUser() on miss
 - v8.0: All 13 runtime-throw TODO stubs replaced with real implementations -- zero remaining in codebase
 - v8.0: CSV export capped at 10,000 rows; batch tenant operations use .in() grouped queries
+- v8.0: 60 RLS write-path tests (INSERT/UPDATE/DELETE x 7 domains) run against existing Supabase project
+- v8.0: CI pipeline gates PRs with rls-security job; E2E runs pre-commit (not CI)
+- v8.0: CLAUDE.md fully modernized -- zero NestJS, new Data Access + Edge Functions + Security Model sections
+- v8.0: 12 E2E files rewritten from NestJS /api/v1/ routes to Supabase PostgREST/Edge Function endpoints
 
 ### Pending Todos
 
