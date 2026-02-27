@@ -33,9 +33,9 @@ import {
 import {
 	usePaymentMethods,
 	useDeletePaymentMethod,
-	useSetDefaultPaymentMethod,
-	type PaymentMethod
+	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 import { cn } from '#lib/utils'
 
 interface PaymentMethodsListProps {
@@ -66,7 +66,7 @@ function PaymentMethodCard({
 	isDeleting,
 	isSettingDefault
 }: {
-	method: PaymentMethod
+	method: PaymentMethodResponse
 	onDelete: (id: string) => void
 	onSetDefault: (id: string) => void
 	isDeleting: boolean
@@ -80,19 +80,16 @@ function PaymentMethodCard({
 			return {
 				icon: <CreditCard className="size-5 text-muted-foreground" />,
 				title: getCardBrandIcon(method.brand ?? ''),
-				subtitle: method.last_four ? `•••• ${method.last_four}` : '',
-				detail:
-					method.exp_month !== null && method.exp_year !== null
-						? `Expires ${method.exp_month?.toString().padStart(2, '0')}/${method.exp_year?.toString().slice(-2)}`
-						: '',
+				subtitle: method.last4 ? `•••• ${method.last4}` : '',
+				detail: '',
 				isLowerFees: false
 			}
 		}
 		if (method.type === 'us_bank_account') {
 			return {
 				icon: <Building2 className="size-5 text-success" />,
-				title: method.bank_name ?? 'Bank Account',
-				subtitle: method.last_four ? `•••• ${method.last_four}` : '',
+				title: method.bankName ?? 'Bank Account',
+				subtitle: method.last4 ? `•••• ${method.last4}` : '',
 				detail: 'Bank Account',
 				isLowerFees: true
 			}
@@ -113,7 +110,7 @@ function PaymentMethodCard({
 			<Card
 				className={cn(
 					'transition-colors',
-					method.is_default && 'border-primary/50 bg-primary/5'
+					method.isDefault && 'border-primary/50 bg-primary/5'
 				)}
 			>
 				<CardContent className="flex items-center justify-between p-4">
@@ -131,7 +128,7 @@ function PaymentMethodCard({
 										Lower fees
 									</Badge>
 								)}
-								{method.is_default && (
+								{method.isDefault && (
 									<Badge variant="success" className="text-xs">
 										Default
 									</Badge>
@@ -166,7 +163,7 @@ function PaymentMethodCard({
 							</Button>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end">
-							{!method.is_default && (
+							{!method.isDefault && (
 								<DropdownMenuItem
 									onClick={() => onSetDefault(method.id)}
 									disabled={isProcessing}
@@ -175,7 +172,7 @@ function PaymentMethodCard({
 									Set as Default
 								</DropdownMenuItem>
 							)}
-							{!method.is_default && <DropdownMenuSeparator />}
+							{!method.isDefault && <DropdownMenuSeparator />}
 							<DropdownMenuItem
 								onClick={() => setShowDeleteDialog(true)}
 								disabled={isProcessing}
@@ -289,8 +286,8 @@ export function PaymentMethodsList({ onAddClick }: PaymentMethodsListProps) {
 		if (a.type === 'us_bank_account' && b.type !== 'us_bank_account') return -1
 		if (a.type !== 'us_bank_account' && b.type === 'us_bank_account') return 1
 		// Within same type, default first
-		if (a.is_default && !b.is_default) return -1
-		if (!a.is_default && b.is_default) return 1
+		if (a.isDefault && !b.isDefault) return -1
+		if (!a.isDefault && b.isDefault) return 1
 		return 0
 	})
 

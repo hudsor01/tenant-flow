@@ -115,7 +115,7 @@ vi.mock('#hooks/api/use-billing', () => ({
 	useBillingHistory: vi.fn(() => ({ data: mockPayments, isLoading: false }))
 }))
 
-vi.mock('#hooks/api/use-payments', () => ({
+vi.mock('#hooks/api/use-payment-methods', () => ({
 	usePaymentMethods: vi.fn(() => ({
 		data: mockPaymentMethods,
 		isLoading: false

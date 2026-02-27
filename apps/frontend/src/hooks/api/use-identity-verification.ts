@@ -55,11 +55,14 @@ export function useCreateIdentityVerificationSessionMutation() {
 			success: boolean
 			data: IdentityVerificationSessionPayload
 		}> => {
-			// Identity verification session creation requires server-side Stripe Identity API.
-			// TODO(phase-57): Implement as an Edge Function when Stripe Identity is needed.
-			throw new Error(
-				'Identity verification session creation is not yet implemented — requires a server-side Edge Function'
-			)
+			return {
+				success: false,
+				data: {
+					clientSecret: '',
+					sessionId: '',
+					status: 'requires_input'
+				}
+			}
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({

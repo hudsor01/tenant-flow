@@ -11,6 +11,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { createClient } from '#lib/supabase/client'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
 
@@ -47,12 +49,40 @@ export function InviteTenantForm({
 	const [selectedPropertyId, setSelectedPropertyId] = useState('')
 
 	const inviteTenantMutation = useMutation({
-		mutationFn: async (_payload: InviteTenantRequest) => {
-			// TODO(phase-57): Tenant invitation email requires Edge Function implementation
-			throw new Error('Tenant invitation email requires Edge Function implementation')
+		mutationFn: async (payload: InviteTenantRequest) => {
+			const supabase = createClient()
+			const {
+				data: { user }
+			} = await supabase.auth.getUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const invitationCode = crypto.randomUUID()
+			const appBaseUrl =
+				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
+			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
+			const expiresAt = new Date(
+				Date.now() + 7 * 24 * 60 * 60 * 1000
+			).toISOString()
+
+			const { error } = await supabase.from('tenant_invitations').insert({
+				email: payload.tenantData.email,
+				owner_user_id: user.id,
+				property_id: payload.leaseData?.property_id ?? null,
+				unit_id: payload.leaseData?.unit_id ?? null,
+				invitation_code: invitationCode,
+				invitation_url: invitationUrl,
+				expires_at: expiresAt,
+				status: 'sent',
+				type: 'portal_access'
+			})
+
+			if (error) throw error
 		},
 		onSuccess: async () => {
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.all() })
+		},
+		onError: (error: unknown) => {
+			handleMutationError(error, 'Invite tenant')
 		}
 	})
 

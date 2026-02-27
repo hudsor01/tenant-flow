@@ -12,7 +12,7 @@ import {
 	useFailedPaymentAttempts,
 	useBillingHistory
 } from '#hooks/api/use-billing'
-import { usePaymentMethods } from '#hooks/api/use-payments'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import {
 	useCancelSubscriptionMutation,
 	usePauseSubscriptionMutation,

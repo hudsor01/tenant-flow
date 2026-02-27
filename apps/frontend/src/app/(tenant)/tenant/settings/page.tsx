@@ -19,7 +19,7 @@ import {
 	DialogTitle
 } from '#components/ui/dialog'
 import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-method.client'
-import { usePaymentMethods } from '#hooks/api/use-payments'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useTenantSettings } from '#hooks/api/use-tenant-portal'
 import { createClient } from '#lib/supabase/client'
 import {

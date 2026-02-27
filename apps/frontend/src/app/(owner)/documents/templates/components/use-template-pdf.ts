@@ -36,15 +36,7 @@ export function useTemplatePdf(
 		debounceTimerRef.current = setTimeout(async () => {
 			setIsGeneratingPreview(true)
 			try {
-				// TODO(phase-57): PDF preview requires StirlingPDF Edge Function integration
-				// The NestJS backend /documents/templates/:template/preview has been removed.
-				throw new Error('PDF preview requires StirlingPDF Edge Function implementation')
-			} catch (error) {
-				const message =
-					error instanceof Error
-						? error.message
-						: 'Failed to generate PDF preview'
-				toast.error(message)
+				toast.info('PDF preview is not yet available')
 			} finally {
 				setIsGeneratingPreview(false)
 			}
@@ -54,13 +46,7 @@ export function useTemplatePdf(
 	const handleExport = useCallback(async () => {
 		setIsExporting(true)
 		try {
-			// TODO(phase-57): PDF export requires StirlingPDF Edge Function integration
-			// The NestJS backend /documents/templates/:template/export has been removed.
-			throw new Error('PDF export requires StirlingPDF Edge Function implementation')
-		} catch (error) {
-			const message =
-				error instanceof Error ? error.message : 'Failed to export PDF'
-			toast.error(message)
+			toast.info('PDF export is not yet available')
 		} finally {
 			setIsExporting(false)
 		}
