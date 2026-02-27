@@ -22,7 +22,7 @@ Key architectural insight: Resend automatically checks its suppression list on e
 - If late fee was included, receipt shows itemized breakdown: base rent, late fee, total paid
 - Owner notification includes: tenant name, amount received, property/unit, payment date
 - Same "Payment successful" messaging for all receipts regardless of overdue status
-- From: TenantFlow <noreply@tenantflow.com> (or configured Resend domain)
+- From: TenantFlow <noreply@tenantflow.app> (or configured Resend domain)
 - No reply-to address; support link in footer instead
 - Use Resend + React Email (@react-email/components) for type-safe, composable templates
 - Templates should be reusable for future email types (Phase 64 autopay notifications, etc.)
@@ -118,7 +118,7 @@ async function sendReceiptEmail(params: ReceiptParams): Promise<void> {
         'Authorization': `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
       },
       body: JSON.stringify({
-        from: 'TenantFlow <noreply@tenantflow.com>',
+        from: 'TenantFlow <noreply@tenantflow.app>',
         to: [params.tenantEmail],
         subject: 'Payment Receipt - TenantFlow',
         html,
@@ -261,7 +261,7 @@ async function sendEmail(params: {
       'Authorization': `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: 'TenantFlow <noreply@tenantflow.com>',
+      from: 'TenantFlow <noreply@tenantflow.app>',
       to: params.to,
       subject: params.subject,
       html: params.html,
@@ -359,7 +359,7 @@ const [tenantUserResult, ownerUserResult] = await Promise.all([
    - Recommendation: Use `console.error` with structured log format (e.g., `[RESEND_ERROR] {json}`) for now. Sentry SDK in Deno Edge Functions adds complexity; log monitoring via Supabase dashboard is sufficient for receipt emails. Can add Sentry SDK in a future phase.
 
 3. **Resend domain verification**
-   - What we know: Sending from `noreply@tenantflow.com` requires domain verification in Resend dashboard.
+   - What we know: Sending from `noreply@tenantflow.app` requires domain verification in Resend dashboard.
    - What's unclear: Whether the domain is already verified or needs setup.
    - Recommendation: Document as a prerequisite; check Resend dashboard before deployment.
 

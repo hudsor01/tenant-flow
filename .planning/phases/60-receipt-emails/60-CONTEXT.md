@@ -22,7 +22,7 @@ Automated receipt and notification emails fire on every successful rent payment.
 - Same "Payment successful" messaging for all receipts regardless of overdue status — no shaming
 
 ### Email sender identity
-- From: TenantFlow <noreply@tenantflow.com> (or configured Resend domain)
+- From: TenantFlow <noreply@tenantflow.app> (or configured Resend domain)
 - No reply-to address — transactional emails don't need replies; support link in footer instead
 
 ### Email template approach

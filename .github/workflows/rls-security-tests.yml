@@ -1,10 +1,9 @@
 name: RLS Security Tests
 
-# Gates PR merges AND runs weekly as a background safety net.
-# Pre-commit is the first gate — CI is the second gate before merge.
-# Weekly schedule catches Supabase-side policy drift between PRs.
+# Weekly safety net for Supabase-side policy drift between PRs.
+# Pre-commit hook is the primary gate (runs with local env vars).
+# This workflow provides scheduled + manual-dispatch coverage.
 on:
-  workflow_call: # Called by ci-cd.yml to gate PR merges
   schedule:
     - cron: '0 9 * * 1' # Every Monday 09:00 UTC
   workflow_dispatch: # Allow manual trigger

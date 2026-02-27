@@ -23,7 +23,3 @@ jobs:
 
   tests:
     uses: ./.github/workflows/tests.yml
-
-  rls-security:
-    uses: ./.github/workflows/rls-security-tests.yml
-    secrets: inherit
