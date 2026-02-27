@@ -3,6 +3,7 @@ import type { NotificationPreferences } from '@repo/shared/types/notifications'
 import type { Database } from '@repo/shared/types/supabase'
 
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import {
@@ -59,9 +60,7 @@ export function useOwnerNotificationSettings() {
 		queryKey: notificationSettingsKey,
 		queryFn: async (): Promise<OwnerNotificationSettings> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 
 			if (!user) throw new Error('Not authenticated')
 
@@ -90,9 +89,7 @@ export function useUpdateOwnerNotificationSettingsMutation() {
 			updates: OwnerNotificationSettingsUpdate
 		): Promise<OwnerNotificationSettings> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 
 			if (!user) throw new Error('Not authenticated')
 

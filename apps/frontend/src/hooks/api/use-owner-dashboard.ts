@@ -19,6 +19,7 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { Activity, ActivityItem } from '@repo/shared/types/activity'
 import type {
@@ -120,9 +121,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.analytics.stats(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc('get_dashboard_stats', {
 						p_user_id: user.id
@@ -143,9 +142,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.analytics.activity(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_user_dashboard_activities',
@@ -171,9 +168,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.analytics.pageData(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const userId = user.id
 
@@ -222,9 +217,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
 				queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_dashboard_time_series',
@@ -253,9 +246,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc('get_metric_trend', {
 						p_user_id: user.id,
@@ -282,9 +273,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.properties.performance(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_property_performance_cached',
@@ -313,9 +302,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.financial.billingInsights(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc('get_billing_insights', {
 						owner_id_param: user.id
@@ -342,9 +329,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.financial.revenueTrends(year),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_revenue_trends_optimized',
@@ -374,9 +359,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.maintenance.analytics(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_maintenance_analytics',
@@ -412,9 +395,7 @@ export const ownerDashboardQueries = {
 				queryKey: ownerDashboardKeys.tenants.occupancyTrends(),
 				queryFn: async () => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_occupancy_trends_optimized',
@@ -486,9 +467,7 @@ const DASHBOARD_QUERY_KEY = ownerDashboardKeys.analytics.pageData()
 // Fetcher for unified dashboard payload — 9 RPCs in parallel
 const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 	const supabase = createClient()
-	const {
-		data: { user }
-	} = await supabase.auth.getUser()
+	const user = await getCachedUser()
 	if (!user) throw new Error('Not authenticated')
 	const userId = user.id
 
@@ -711,9 +690,7 @@ export function usePropertyPerformanceSuspense() {
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 			const { data, error } = await supabase.rpc(
 				'get_property_performance_cached',
@@ -737,9 +714,7 @@ export function usePropertyPerformance() {
 		queryKey: ownerDashboardKeys.properties.performance(),
 		queryFn: async () => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 			const { data, error } = await supabase.rpc(
 				'get_property_performance_cached',
@@ -814,9 +789,7 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		] as const,
 		queryFn: async () => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase.rpc(

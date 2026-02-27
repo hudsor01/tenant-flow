@@ -19,6 +19,7 @@ import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
 import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -156,8 +157,8 @@ export function useCreateUnitMutation() {
 		mutationKey: mutationKeys.units.create,
 		mutationFn: async (data: UnitInput): Promise<Unit> => {
 			const supabase = createClient()
-			const { data: authData } = await supabase.auth.getUser()
-			const ownerId = requireOwnerUserId(authData.user?.id)
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('units')

@@ -19,6 +19,7 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { mutationKeys } from './mutation-keys'
@@ -272,9 +273,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.dashboard(),
 			queryFn: async () => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const { data: tenantRecord } = await supabase
@@ -314,9 +313,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.amountDue(),
 			queryFn: async (): Promise<AmountDueResponse> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const defaultResponse: AmountDueResponse = {
@@ -449,9 +446,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.payments.all(),
 			queryFn: async (): Promise<{ payments: TenantPayment[] }> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				// Step 1: Get tenant record
@@ -512,9 +507,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.autopay.all(),
 			queryFn: async (): Promise<TenantAutopayStatus> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const { data: tenantRecord } = await supabase
@@ -564,9 +557,7 @@ export const tenantPortalQueries = {
 				summary: TenantMaintenanceStats
 			}> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user)
 					return {
 						requests: [],
@@ -640,9 +631,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.leases.all(),
 			queryFn: async (): Promise<TenantLease | null> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const { data: tenantRecord } = await supabase
@@ -753,9 +742,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.documents.all(),
 			queryFn: async (): Promise<{ documents: TenantDocument[] }> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const { data: tenantRecord } = await supabase
@@ -805,9 +792,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.settings.all(),
 			queryFn: async (): Promise<TenantSettings> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				// Get tenant profile from tenants table
@@ -841,9 +826,7 @@ export const tenantPortalQueries = {
 			queryKey: tenantPortalKeys.notificationPreferences.detail(),
 			queryFn: async (): Promise<TenantNotificationPreferences> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				const { data } = await supabase
@@ -914,9 +897,7 @@ export function useMaintenanceRequestCreateMutation() {
 		mutationKey: mutationKeys.tenantPortal.createMaintenanceRequest,
 		mutationFn: async (request: MaintenanceRequestCreate) => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			// Step 1: Resolve tenant record
@@ -1118,9 +1099,7 @@ export function useUpdateTenantNotificationPreferences() {
 		mutationKey: mutationKeys.tenantNotificationPreferences.update,
 		mutationFn: async (preferences: Partial<TenantNotificationPreferences>) => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase

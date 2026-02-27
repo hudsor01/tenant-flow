@@ -22,6 +22,7 @@ import type {
 // Import query keys from separate file to avoid circular dependency
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError } from '#lib/mutation-error-handler'
@@ -150,7 +151,7 @@ export function useMaintenanceRequestCreateMutation() {
 		mutationKey: mutationKeys.maintenance.create,
 		mutationFn: async (data: MaintenanceRequestCreate): Promise<MaintenanceRequest> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase

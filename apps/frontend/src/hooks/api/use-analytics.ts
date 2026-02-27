@@ -7,6 +7,7 @@
 
 import { queryOptions, useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type {
 	FinancialAnalyticsPageData,
@@ -42,9 +43,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.financial(),
 			queryFn: async (): Promise<FinancialAnalyticsPageData> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc('get_financial_overview', {
 					p_user_id: user.id
@@ -61,9 +60,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.lease(),
 			queryFn: async (): Promise<LeaseAnalyticsPageData> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc(
 					'get_occupancy_trends_optimized',
@@ -84,9 +81,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.maintenance(),
 			queryFn: async (): Promise<MaintenanceInsightsPageData> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc(
 					'get_maintenance_analytics',
@@ -106,9 +101,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.occupancy(),
 			queryFn: async (): Promise<OccupancyAnalyticsPageData> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc(
 					'get_occupancy_trends_optimized',
@@ -147,9 +140,7 @@ export const analyticsQueries = {
 				lease: LeaseAnalyticsPageData
 			}> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const userId = user.id
 
@@ -186,9 +177,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.propertyPerformance(),
 			queryFn: async (): Promise<PropertyPerformancePageData> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc(
 					'get_property_performance_analytics',
@@ -208,9 +197,7 @@ export const analyticsQueries = {
 			queryKey: analyticsQueries.paymentSummary(),
 			queryFn: async (): Promise<OwnerPaymentSummaryResponse> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase.rpc('get_billing_insights', {
 					owner_id_param: user.id

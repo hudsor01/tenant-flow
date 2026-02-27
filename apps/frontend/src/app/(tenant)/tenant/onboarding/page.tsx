@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
@@ -36,14 +37,11 @@ export default function TenantOnboardingPage() {
 				const supabase = createClient()
 
 				// Verify authentication
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 
-				if (authError || !user) {
+				if (!user) {
 					logger.error('Auth error during tenant onboarding', {
-						error: authError
+						error: 'Not authenticated'
 					})
 					setErrorMessage(
 						'Not authenticated. Please check your invitation email.'

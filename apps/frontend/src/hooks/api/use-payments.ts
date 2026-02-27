@@ -26,6 +26,7 @@ import {
 	type QueryKey
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -122,9 +123,7 @@ export const rentCollectionQueries = {
 			queryKey: rentCollectionKeys.analytics(),
 			queryFn: async (): Promise<PaymentCollectionAnalytics> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				// Use get_dashboard_stats RPC which includes payment analytics
 				const { data, error } = await supabase.rpc('get_dashboard_stats', {
@@ -228,9 +227,7 @@ export const tenantPaymentQueries = {
 				const supabase = createClient()
 				const limit = options?.limit ?? 20
 				// Resolve tenant record for the logged-in user
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data: tenant, error: tenantError } = await supabase
 					.from('tenants')
@@ -319,6 +316,7 @@ export async function exportPaymentsCSV(
 			'id, amount, currency, status, due_date, paid_date, period_start, period_end, payment_method_type, late_fee_amount, notes, created_at'
 		)
 		.order('due_date', { ascending: false })
+		.limit(10000)
 
 	if (filters?.status) {
 		query = query.eq('status', filters.status)

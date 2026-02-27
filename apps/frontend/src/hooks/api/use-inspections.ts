@@ -19,6 +19,7 @@ import type { Inspection } from '@repo/shared/types/sections/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { handleMutationError, handleMutationSuccess } from '#lib/mutation-error-handler'
@@ -61,8 +62,8 @@ export function useCreateInspection() {
 	return useMutation({
 		mutationFn: async (dto: CreateInspectionInput): Promise<Inspection> => {
 			const supabase = createClient()
-			const { data: user } = await supabase.auth.getUser()
-			const ownerId = requireOwnerUserId(user.user?.id)
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('inspections')

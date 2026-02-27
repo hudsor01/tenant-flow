@@ -11,6 +11,7 @@ import {
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import type { ThemeMode } from '@repo/shared/types/domain'
 import type { DataDensity } from '#stores/preferences-store'
 
@@ -24,9 +25,7 @@ export function GeneralSettings() {
 	const { data: profile, isLoading: profileLoading } = useQuery({
 		queryKey: ['user-profile'],
 		queryFn: async () => {
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase
@@ -45,9 +44,7 @@ export function GeneralSettings() {
 	const { data: companyProfile, isLoading: companyLoading } = useQuery({
 		queryKey: ['company-profile'],
 		queryFn: async () => {
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase
@@ -79,7 +76,7 @@ export function GeneralSettings() {
 	// Update profile mutation
 	const updateProfile = useMutation({
 		mutationFn: async (updates: { phone?: string; email?: string }) => {
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 			const { error } = await supabase
 				.from('users')

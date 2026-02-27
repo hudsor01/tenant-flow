@@ -10,6 +10,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
@@ -239,9 +240,7 @@ export const propertyQueries = {
 				queryKey: [...propertyQueries.all(), 'analytics', 'occupancy'] as const,
 				queryFn: async (): Promise<unknown> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_occupancy_trends_optimized',
@@ -258,9 +257,7 @@ export const propertyQueries = {
 				queryKey: [...propertyQueries.all(), 'analytics', 'financial'] as const,
 				queryFn: async (): Promise<unknown> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc('get_financial_overview', {
 						p_user_id: user.id
@@ -280,9 +277,7 @@ export const propertyQueries = {
 				] as const,
 				queryFn: async (): Promise<unknown> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_maintenance_analytics',

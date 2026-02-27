@@ -8,6 +8,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { toast } from 'sonner'
@@ -74,9 +75,7 @@ export const emergencyContactQueries = {
 			queryFn: async (): Promise<EmergencyContact | null> => {
 				const supabase = createClient()
 
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 
 				if (!user) throw new Error('Not authenticated')
 
@@ -140,9 +139,7 @@ export function useUpdateEmergencyContact() {
 		mutationFn: async (input: UpdateEmergencyContactInput): Promise<EmergencyContact> => {
 			const supabase = createClient()
 
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 
 			if (!user) throw new Error('Not authenticated')
 
@@ -228,9 +225,7 @@ export function useDeleteEmergencyContact() {
 		mutationFn: async (): Promise<{ success: boolean }> => {
 			const supabase = createClient()
 
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 
 			if (!user) throw new Error('Not authenticated')
 

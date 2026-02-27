@@ -17,6 +17,7 @@ import { handleMutationError } from '#lib/mutation-error-handler'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
 import { tenantQueries } from './query-keys/tenant-keys'
 import { unitQueries } from './query-keys/unit-keys'
@@ -225,8 +226,8 @@ export function useCreateLeaseMutation() {
 		mutationKey: mutationKeys.leases.create,
 		mutationFn: async (data: LeaseCreate): Promise<Lease> => {
 			const supabase = createClient()
-			const { data: authData } = await supabase.auth.getUser()
-			const ownerId = requireOwnerUserId(authData.user?.id)
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			// Omit tenant_ids (form-only field) before inserting into DB
 			const { tenant_ids: _tenant_ids, ...leaseData } = data

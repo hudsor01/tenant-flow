@@ -18,6 +18,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type {
@@ -214,7 +215,7 @@ export function useSubscriptionStatus(options: { enabled?: boolean } = {}) {
 		queryKey: billingKeys.subscriptionStatus(),
 		queryFn: async () => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) {
 				logger.warn('Subscription status check: no user')
 				throw new Error('Not authenticated')

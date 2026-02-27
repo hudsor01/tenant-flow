@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { InviteTenantInfoFields } from './invite-tenant-info-fields'
 import { InviteTenantPropertyFields } from './invite-tenant-property-fields'
@@ -51,9 +52,7 @@ export function InviteTenantForm({
 	const inviteTenantMutation = useMutation({
 		mutationFn: async (payload: InviteTenantRequest) => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const invitationCode = crypto.randomUUID()

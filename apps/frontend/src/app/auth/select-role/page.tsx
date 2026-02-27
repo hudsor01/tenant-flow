@@ -11,6 +11,7 @@
 
 import { GridPattern } from '#components/ui/grid-pattern'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { useAuth } from '#providers/auth-provider'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { Building2, Home, Key, Loader2 } from 'lucide-react'
@@ -127,12 +128,9 @@ export default function SelectRolePage() {
 			const supabase = createClient()
 
 			// Get the current user
-			const {
-				data: { user: currentUser },
-				error: userError
-			} = await supabase.auth.getUser()
+			const currentUser = await getCachedUser()
 
-			if (userError || !currentUser) {
+			if (!currentUser) {
 				throw new Error('Not authenticated. Please sign in again.')
 			}
 

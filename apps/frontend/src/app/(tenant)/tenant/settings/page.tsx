@@ -22,6 +22,7 @@ import { AddPaymentMethod } from '#app/(owner)/payments/methods/add-payment-meth
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { useTenantSettings } from '#hooks/api/use-tenant-portal'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -62,7 +63,7 @@ export default function SettingsPage() {
 		startTransition(async () => {
 			try {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { error } = await supabase
 					.from('users')

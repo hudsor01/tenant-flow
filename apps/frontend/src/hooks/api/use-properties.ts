@@ -17,6 +17,7 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 import { createLogger, logger } from '@repo/shared/lib/frontend-logger'
@@ -275,8 +276,8 @@ export function useCreatePropertyMutation() {
 		mutationKey: mutationKeys.properties.create,
 		mutationFn: async (data: PropertyCreate): Promise<Property> => {
 			const supabase = createClient()
-			const { data: user } = await supabase.auth.getUser()
-			const ownerId = requireOwnerUserId(user.user?.id)
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('properties')

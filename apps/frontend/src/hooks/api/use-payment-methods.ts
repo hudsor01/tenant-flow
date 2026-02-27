@@ -17,6 +17,7 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	handleMutationError,
@@ -139,9 +140,7 @@ export function useSetDefaultPaymentMethod() {
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data: tenant, error: tenantError } = await supabase
@@ -200,9 +199,7 @@ export function useAddPaymentMethodMutation() {
 			input: AddPaymentMethodInput
 		): Promise<PaymentMethodResponse> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data: tenant, error: tenantError } = await supabase
