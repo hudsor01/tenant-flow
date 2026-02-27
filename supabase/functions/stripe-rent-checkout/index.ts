@@ -246,11 +246,15 @@ Deno.serve(async (req: Request) => {
     const propertyId = unit?.property_id ?? ''
 
     // -------------------------------------------------------------------------
-    // 10. Derive period month/year from rent_due.due_date
+    // 10. Derive period dates from rent_due.due_date
     // -------------------------------------------------------------------------
     const dueDate = new Date(rentDue.due_date)
     const periodMonth = String(dueDate.getMonth() + 1)
     const periodYear = String(dueDate.getFullYear())
+    // Period start/end = first and last day of the due_date month
+    const periodStart = `${periodYear}-${periodMonth.padStart(2, '0')}-01`
+    const lastDay = new Date(dueDate.getFullYear(), dueDate.getMonth() + 1, 0).getDate()
+    const periodEnd = `${periodYear}-${periodMonth.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
     // -------------------------------------------------------------------------
     // 11. Create Stripe Checkout Session with destination charge
@@ -285,11 +289,26 @@ Deno.serve(async (req: Request) => {
           amount: String(rentDue.amount),
           period_month: periodMonth,
           period_year: periodYear,
+          due_date: rentDue.due_date,
+          period_start: periodStart,
+          period_end: periodEnd,
         },
       },
       success_url: `${frontendUrl}/tenant?checkout=success`,
       cancel_url: `${frontendUrl}/tenant?checkout=cancelled`,
+      expires_at: Math.floor(Date.now() / 1000) + 1800, // 30-minute expiry
     })
+
+    // Back-fill checkout_session_id onto PaymentIntent metadata
+    // (cannot be set during session.create because session.id doesn't exist yet)
+    if (session.payment_intent) {
+      const piId = typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent.id
+      await stripe.paymentIntents.update(piId, {
+        metadata: { checkout_session_id: session.id },
+      })
+    }
 
     return new Response(
       JSON.stringify({ url: session.url, session_id: session.id }),
