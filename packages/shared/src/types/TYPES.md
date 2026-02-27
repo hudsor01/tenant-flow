@@ -186,6 +186,9 @@ For API request/response shapes. Check here before defining any API shape.
 | `UpdateSubscriptionRequest` | `@repo/shared/types/api-contracts` |
 | `SubscriptionActionResponse` | `@repo/shared/types/api-contracts` |
 | `SendPaymentReminderRequest` | `@repo/shared/types/api-contracts` |
+| `CreateRentCheckoutRequest` | `@repo/shared/types/api-contracts` |
+| `CreateRentCheckoutResponse` | `@repo/shared/types/api-contracts` |
+| `RentCheckoutError` | `@repo/shared/types/api-contracts` |
 
 ### Generic API Wrappers
 | Type | Import Path |

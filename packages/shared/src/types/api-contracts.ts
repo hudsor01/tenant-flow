@@ -249,6 +249,33 @@ export type RentPaymentDetail = Tables<'rent_payments'> & {
 }
 
 // =============================================================================
+// RENT CHECKOUT TYPES
+// =============================================================================
+
+/**
+ * Request to create a Stripe Checkout Session for rent payment
+ * Sent to the stripe-rent-checkout Edge Function
+ */
+export interface CreateRentCheckoutRequest {
+	rent_due_id: string
+}
+
+/**
+ * Response from the stripe-rent-checkout Edge Function
+ */
+export interface CreateRentCheckoutResponse {
+	url: string
+	session_id: string
+}
+
+/**
+ * Error response from the stripe-rent-checkout Edge Function
+ */
+export interface RentCheckoutError {
+	error: string
+}
+
+// =============================================================================
 // INSERT/UPDATE TYPES (for type-safe mutations)
 // =============================================================================
 
