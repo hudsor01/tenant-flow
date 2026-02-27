@@ -3,9 +3,15 @@
 // PUBLIC endpoint — authentication is Stripe webhook signature (not JWT).
 // On failure: return 500 so Stripe retries (retries for 72 hours).
 // On duplicate: return 200 immediately (idempotent via stripe_webhook_events PK).
+// After successful payment: sends receipt emails via Resend (fire-and-forget, never affects response).
 
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import React from 'npm:react@18.3.1'
+import { renderAsync } from 'npm:@react-email/components@0.0.22'
+import { sendEmail } from '../_shared/resend.ts'
+import { PaymentReceipt } from './_templates/payment-receipt.tsx'
+import { OwnerNotification } from './_templates/owner-notification.tsx'
 
 Deno.serve(async (req: Request) => {
 
@@ -239,6 +245,15 @@ async function processEvent(
           })
         if (error) throw error
       }
+
+      // Fire-and-forget receipt emails — errors logged, never thrown
+      // This MUST NOT affect the webhook response (always 200 after DB write succeeds)
+      try {
+        await sendReceiptEmails(supabase, stripe, pi, grossAmount)
+      } catch (emailErr) {
+        console.error('[RESEND_ERROR] sendReceiptEmails unexpected error:', emailErr)
+      }
+
       break
     }
 
@@ -300,5 +315,192 @@ async function processEvent(
       // No error for common non-critical events — Stripe should not retry
       console.log(`Unhandled event type: ${event.type}`)
       break
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Receipt email sending — fire-and-forget after successful payment
+// NEVER throws — all errors are caught and logged. Webhook response is not affected.
+// Resend automatically checks its suppression list; suppressed recipients are skipped silently.
+// ---------------------------------------------------------------------------
+async function sendReceiptEmails(
+  supabase: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  pi: Stripe.PaymentIntent,
+  grossAmount: number
+): Promise<void> {
+  const metadata = pi.metadata ?? {}
+  const tenantId = metadata['tenant_id']
+  const leaseId = metadata['lease_id']
+  const propertyId = metadata['property_id']
+  const unitId = metadata['unit_id']
+  const periodMonth = metadata['period_month'] ?? ''
+  const periodYear = metadata['period_year'] ?? ''
+
+  // Bail if missing critical metadata (e.g., non-rent payment_intent)
+  if (!tenantId || !leaseId || !propertyId) {
+    console.log('[EMAIL_SKIP] Missing metadata for receipt emails — likely a non-rent PaymentIntent')
+    return
+  }
+
+  // 1. Resolve tenant, lease, property, unit data in parallel
+  const [tenantResult, leaseResult, propertyResult, unitResult] = await Promise.all([
+    supabase.from('tenants').select('user_id').eq('id', tenantId).single(),
+    supabase.from('leases').select('owner_user_id').eq('id', leaseId).single(),
+    supabase.from('properties').select('address_line1, city, state, postal_code').eq('id', propertyId).single(),
+    unitId
+      ? supabase.from('units').select('unit_number').eq('id', unitId).single()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+
+  if (!tenantResult.data || !leaseResult.data || !propertyResult.data) {
+    console.error('[RESEND_ERROR] Missing critical data for receipt emails:', {
+      tenant: !!tenantResult.data,
+      lease: !!leaseResult.data,
+      property: !!propertyResult.data,
+    })
+    return
+  }
+
+  const tenantUserId = tenantResult.data.user_id as string
+  const ownerUserId = leaseResult.data.owner_user_id as string
+  const prop = propertyResult.data
+  const unitNumber = (unitResult.data as { unit_number: string | null } | null)?.unit_number ?? null
+
+  // 2. Resolve user emails, names, and notification_settings in parallel
+  const [tenantUserResult, ownerUserResult, tenantSettingsResult, ownerSettingsResult] = await Promise.all([
+    supabase.from('users').select('email, full_name').eq('id', tenantUserId).single(),
+    supabase.from('users').select('email, full_name').eq('id', ownerUserId).single(),
+    supabase.from('notification_settings').select('email').eq('user_id', tenantUserId).maybeSingle(),
+    supabase.from('notification_settings').select('email').eq('user_id', ownerUserId).maybeSingle(),
+  ])
+
+  // notification_settings: default to sending if no row exists (absence = opt-in)
+  const tenantEmailEnabled = tenantSettingsResult.data?.email !== false
+  const ownerEmailEnabled = ownerSettingsResult.data?.email !== false
+
+  // 3. Resolve payment method last4 from the charge (best-effort)
+  let paymentMethodLast4: string | null = null
+  try {
+    const chargeId = typeof pi.latest_charge === 'string'
+      ? pi.latest_charge
+      : (pi.latest_charge as Stripe.Charge | null)?.id
+    if (chargeId) {
+      const charge = await stripe.charges.retrieve(chargeId)
+      paymentMethodLast4 = (charge.payment_method_details?.card?.last4) ?? null
+    }
+  } catch (cardErr) {
+    // Non-critical — receipt will omit payment method info
+    console.error('[RESEND_ERROR] Failed to retrieve card last4:', cardErr)
+  }
+
+  // 4. Format data for templates
+  const propertyAddress = `${prop.address_line1}, ${prop.city}, ${prop.state} ${prop.postal_code}`
+  const formattedAmount = grossAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+  const paymentDate = new Date().toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  // Check for late fee from the rent_payments record
+  // late_fee_amount may be set by future phases; for now it defaults to null
+  let lateFeeAmount: string | null = null
+  let baseRentAmount: string | null = null
+  const { data: paymentRecord } = await supabase
+    .from('rent_payments')
+    .select('late_fee_amount')
+    .eq('stripe_payment_intent_id', pi.id)
+    .single()
+  if (paymentRecord?.late_fee_amount && paymentRecord.late_fee_amount > 0) {
+    const lateFee = paymentRecord.late_fee_amount
+    lateFeeAmount = lateFee.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    baseRentAmount = (grossAmount - lateFee).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+  }
+
+  // 5. Render and send emails in parallel
+  const emailPromises: Promise<void>[] = []
+
+  // Tenant receipt email
+  if (tenantUserResult.data?.email && tenantEmailEnabled) {
+    const tenantEmail = tenantUserResult.data.email as string
+    const tenantName = (tenantUserResult.data.full_name as string) || 'Tenant'
+
+    emailPromises.push((async () => {
+      const html = await renderAsync(
+        React.createElement(PaymentReceipt, {
+          tenantName,
+          amount: formattedAmount,
+          propertyAddress,
+          unitNumber,
+          paymentDate,
+          periodMonth,
+          periodYear,
+          paymentMethodLast4,
+          lateFeeAmount,
+          baseRentAmount,
+        })
+      )
+      const result = await sendEmail({
+        to: [tenantEmail],
+        subject: `Payment Receipt - ${periodMonth} ${periodYear}`,
+        html,
+        tags: [
+          { name: 'type', value: 'payment_receipt' },
+          { name: 'tenant_id', value: tenantId },
+        ],
+      })
+      if (!result.success) {
+        console.error('[RESEND_ERROR] Tenant receipt email failed:', result.error)
+      }
+    })())
+  } else if (!tenantUserResult.data?.email) {
+    console.warn('[EMAIL_SKIP] Tenant has no email address:', tenantUserId)
+  } else {
+    console.log('[EMAIL_SKIP] Tenant email notifications disabled:', tenantUserId)
+  }
+
+  // Owner notification email
+  if (ownerUserResult.data?.email && ownerEmailEnabled) {
+    const ownerEmail = ownerUserResult.data.email as string
+    const ownerName = (ownerUserResult.data.full_name as string) || 'Property Owner'
+    const tenantName = (tenantUserResult.data?.full_name as string) || 'Tenant'
+
+    emailPromises.push((async () => {
+      const html = await renderAsync(
+        React.createElement(OwnerNotification, {
+          ownerName,
+          tenantName,
+          amount: formattedAmount,
+          propertyAddress,
+          unitNumber,
+          paymentDate,
+        })
+      )
+      const result = await sendEmail({
+        to: [ownerEmail],
+        subject: `Payment Received - ${tenantName}`,
+        html,
+        tags: [
+          { name: 'type', value: 'owner_payment_notification' },
+          { name: 'lease_id', value: leaseId },
+        ],
+      })
+      if (!result.success) {
+        console.error('[RESEND_ERROR] Owner notification email failed:', result.error)
+      }
+    })())
+  } else if (!ownerUserResult.data?.email) {
+    console.warn('[EMAIL_SKIP] Owner has no email address:', ownerUserId)
+  } else {
+    console.log('[EMAIL_SKIP] Owner email notifications disabled:', ownerUserId)
+  }
+
+  // Wait for all emails — allSettled ensures one failure doesn't block the other
+  const results = await Promise.allSettled(emailPromises)
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      console.error('[RESEND_ERROR] Email promise rejected:', result.reason)
+    }
   }
 }
