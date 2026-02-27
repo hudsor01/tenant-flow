@@ -40,6 +40,11 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 		data: { documents: [] },
 		isLoading: false
 	})),
+	tenantPortalKeys: {
+		all: ['tenant-portal'],
+		amountDue: () => ['tenant-portal', 'amount-due'],
+		payments: { all: () => ['tenant-portal', 'payments'] }
+	},
 	tenantPortalQueries: {
 		amountDue: vi.fn(() => ({
 			queryKey: ['tenant-amount-due'],
@@ -53,12 +58,18 @@ vi.mock('#hooks/api/use-tenant-portal', () => ({
 }))
 
 vi.mock('@tanstack/react-query', () => ({
-	useQuery: vi.fn(() => ({ data: null, isLoading: false }))
+	useQuery: vi.fn(() => ({ data: null, isLoading: false })),
+	useQueryClient: vi.fn(() => ({
+		invalidateQueries: vi.fn()
+	}))
 }))
 
 vi.mock('next/navigation', () => ({
 	useRouter: vi.fn(() => ({ push: vi.fn() })),
-	usePathname: vi.fn(() => '/tenant')
+	usePathname: vi.fn(() => '/tenant'),
+	useSearchParams: vi.fn(() => ({
+		get: vi.fn(() => null)
+	}))
 }))
 
 vi.mock('#components/tours/tenant-onboarding-tour', () => ({
