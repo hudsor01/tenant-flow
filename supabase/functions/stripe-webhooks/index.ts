@@ -169,6 +169,30 @@ async function processEvent(
 
     case 'payment_intent.succeeded': {
       const pi = event.data.object as Stripe.PaymentIntent
+      const metadata = pi.metadata ?? {}
+      const rentDueId = metadata['rent_due_id'] || null
+      const grossAmount = pi.amount / 100 // Stripe stores in cents
+      const platformFeeAmount = (pi.application_fee_amount ?? 0) / 100
+
+      // Get the charge to access balance_transaction for Stripe processing fee
+      let stripeFeeAmount = 0
+      const chargeId = typeof pi.latest_charge === 'string' ? pi.latest_charge : (pi.latest_charge as Stripe.Charge | null)?.id
+      if (chargeId) {
+        try {
+          const charge = await stripe.charges.retrieve(chargeId, { expand: ['balance_transaction'] })
+          const bt = charge.balance_transaction
+          if (bt && typeof bt !== 'string') {
+            // balance_transaction.fee is in cents and includes Stripe processing fee
+            stripeFeeAmount = bt.fee / 100
+          }
+        } catch (feeErr) {
+          // Non-fatal — log and continue with stripeFeeAmount = 0
+          console.error('Failed to retrieve balance transaction for fee calculation:', feeErr)
+        }
+      }
+
+      const netAmount = grossAmount - platformFeeAmount - stripeFeeAmount
+
       // Upsert rent_payment record — update status if exists, create if not
       const { data: existingPayment } = await supabase
         .from('rent_payments')
@@ -179,7 +203,14 @@ async function processEvent(
       if (existingPayment) {
         const { error } = await supabase
           .from('rent_payments')
-          .update({ status: 'succeeded', paid_date: new Date().toISOString().split('T')[0] })
+          .update({
+            status: 'succeeded',
+            paid_date: new Date().toISOString().split('T')[0],
+            gross_amount: grossAmount,
+            platform_fee_amount: platformFeeAmount,
+            stripe_fee_amount: stripeFeeAmount,
+            net_amount: netAmount,
+          })
           .eq('stripe_payment_intent_id', pi.id)
         if (error) throw error
       } else {
@@ -188,17 +219,23 @@ async function processEvent(
           .from('rent_payments')
           .insert({
             stripe_payment_intent_id: pi.id,
-            amount: pi.amount / 100, // Stripe stores in cents
+            amount: grossAmount,
+            gross_amount: grossAmount,
+            platform_fee_amount: platformFeeAmount,
+            stripe_fee_amount: stripeFeeAmount,
+            net_amount: netAmount,
             currency: pi.currency.toUpperCase(),
             status: 'succeeded',
-            tenant_id: pi.metadata?.['tenant_id'] ?? '',
-            lease_id: pi.metadata?.['lease_id'] ?? '',
-            application_fee_amount: (pi.application_fee_amount ?? 0) / 100,
+            tenant_id: metadata['tenant_id'] ?? '',
+            lease_id: metadata['lease_id'] ?? '',
+            application_fee_amount: platformFeeAmount,
             payment_method_type: 'stripe',
-            period_start: pi.metadata?.['period_start'] ?? new Date().toISOString().split('T')[0],
-            period_end: pi.metadata?.['period_end'] ?? new Date().toISOString().split('T')[0],
-            due_date: pi.metadata?.['due_date'] ?? new Date().toISOString().split('T')[0],
+            period_start: metadata['period_start'] ?? new Date().toISOString().split('T')[0],
+            period_end: metadata['period_end'] ?? new Date().toISOString().split('T')[0],
+            due_date: metadata['due_date'] ?? new Date().toISOString().split('T')[0],
             paid_date: new Date().toISOString().split('T')[0],
+            rent_due_id: rentDueId,
+            checkout_session_id: metadata['checkout_session_id'] ?? null,
           })
         if (error) throw error
       }
