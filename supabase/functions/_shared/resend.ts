@@ -15,7 +15,7 @@ export type SendEmailResult =
   | { success: false; error: string }
 
 const RESEND_API_URL = 'https://api.resend.com/emails'
-const FROM_ADDRESS = 'TenantFlow <noreply@tenantflow.com>'
+const FROM_ADDRESS = 'TenantFlow <noreply@tenantflow.app>'
 
 /**
  * Sends an email via the Resend REST API.

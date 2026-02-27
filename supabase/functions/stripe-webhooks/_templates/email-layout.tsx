@@ -35,7 +35,7 @@ export const EmailLayout = ({ children, previewText }: EmailLayoutProps) => (
         </Text>
         <Text style={footer}>
           Need help?{' '}
-          <Link href="https://tenantflow.com/support" style={footerLink}>
+          <Link href="https://tenantflow.app/support" style={footerLink}>
             Visit our support center
           </Link>
         </Text>

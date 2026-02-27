@@ -24,7 +24,7 @@ export const emailSchema = z
 	.email({ message: 'Please enter a valid email address' })
 	.meta({
 		description: 'Valid email address',
-		examples: ['user@example.com', 'admin@tenantflow.com']
+		examples: ['user@example.com', 'admin@tenantflow.app']
 	})
 
 /**
@@ -51,7 +51,7 @@ export const urlSchema = z
 	})
 	.meta({
 		description: 'Valid HTTP/HTTPS URL',
-		examples: ['https://example.com', 'https://tenantflow.com/properties'],
+		examples: ['https://example.com', 'https://tenantflow.app/properties'],
 		format: 'uri'
 	})
 

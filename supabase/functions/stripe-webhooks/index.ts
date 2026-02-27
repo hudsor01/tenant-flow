@@ -659,7 +659,7 @@ async function sendAutopayFailureEmail(
   if (!data) return
 
   const metadata = pi.metadata ?? {}
-  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'https://tenantflow.com'
+  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'https://tenantflow.app'
   const formattedAmount = amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
   const html = await renderAsync(

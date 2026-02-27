@@ -110,7 +110,7 @@ None yet.
 ### Blockers/Concerns
 
 - Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets before deploying Phase 60
-- Verify tenantflow.com domain is verified in Resend dashboard before deploying Phase 60
+- Verify tenantflow.app domain is verified in Resend dashboard before deploying Phase 60
 - Phase 61 replaced handle_new_user with ensure_public_user_for_auth trigger — sets PENDING for Google OAuth, OWNER for email
 
 ## Session Continuity
