@@ -34,6 +34,10 @@ import type {
 	MaintenanceCategory,
 	MaintenancePriority
 } from '@repo/shared/types/core'
+import type {
+	CreateRentCheckoutResponse,
+	RentCheckoutError
+} from '@repo/shared/types/api-contracts'
 
 // ============================================================================
 // TYPES
@@ -174,6 +178,8 @@ export interface AmountDueResponse {
 	days_late: number
 	grace_period_days: number
 	already_paid: boolean
+	charges_enabled: boolean
+	rent_due_id: string | null
 	breakdown: Array<{
 		description: string
 		amount_cents: number
@@ -313,6 +319,19 @@ export const tenantPortalQueries = {
 				} = await supabase.auth.getUser()
 				if (!user) throw new Error('Not authenticated')
 
+				const defaultResponse: AmountDueResponse = {
+					base_rent_cents: 0,
+					late_fee_cents: 0,
+					total_due_cents: 0,
+					due_date: new Date().toISOString().split('T')[0]!,
+					days_late: 0,
+					grace_period_days: 5,
+					already_paid: false,
+					charges_enabled: false,
+					rent_due_id: null,
+					breakdown: []
+				}
+
 				// Step 1: Get tenant record
 				const { data: tenantRecord } = await supabase
 					.from('tenants')
@@ -320,23 +339,12 @@ export const tenantPortalQueries = {
 					.eq('user_id', user.id)
 					.single()
 
-				if (!tenantRecord) {
-					return {
-						base_rent_cents: 0,
-						late_fee_cents: 0,
-						total_due_cents: 0,
-						due_date: new Date().toISOString().split('T')[0]!,
-						days_late: 0,
-						grace_period_days: 5,
-						already_paid: false,
-						breakdown: []
-					}
-				}
+				if (!tenantRecord) return defaultResponse
 
-				// Step 2: Get active lease to resolve leaseId and rent_amount
+				// Step 2: Get active lease to resolve leaseId, rent_amount, and owner_user_id
 				const { data: lease } = await supabase
 					.from('leases')
-					.select('id, rent_amount, lease_tenants!inner(tenant_id)')
+					.select('id, rent_amount, owner_user_id, lease_tenants!inner(tenant_id)')
 					.eq('lease_tenants.tenant_id', tenantRecord.id)
 					.eq('lease_status', 'active')
 					.single()
@@ -345,30 +353,51 @@ export const tenantPortalQueries = {
 
 				if (!lease) {
 					return {
+						...defaultResponse,
 						base_rent_cents: baseRentCents,
-						late_fee_cents: 0,
 						total_due_cents: baseRentCents,
-						due_date: new Date().toISOString().split('T')[0]!,
-						days_late: 0,
-						grace_period_days: 5,
-						already_paid: false,
-						breakdown: [{ description: 'Base rent', amount_cents: baseRentCents }]
+						breakdown: baseRentCents > 0
+							? [{ description: 'Base rent', amount_cents: baseRentCents }]
+							: []
 					}
 				}
 
-				// Step 3: Get next upcoming payment
+				// Step 3: Resolve owner's connected account charges_enabled status
+				const leaseOwnerUserId = (lease as unknown as Record<string, unknown>).owner_user_id as string
+				const { data: connectedAccount } = await supabase
+					.from('stripe_connected_accounts')
+					.select('charges_enabled')
+					.eq('user_id', leaseOwnerUserId)
+					.maybeSingle()
+
+				const chargesEnabled = connectedAccount?.charges_enabled ?? false
+
+				// Step 4: Query rent_due for the current/next period
 				const today = new Date().toISOString().split('T')[0]!
-				const { data: nextPayment } = await supabase
-					.from('rent_payments')
-					.select('id, amount_cents, due_date, status, paid_at')
+				const { data: rentDueRecord } = await supabase
+					.from('rent_due')
+					.select('id, amount, due_date, status')
 					.eq('lease_id', lease.id)
 					.gte('due_date', today)
 					.order('due_date')
 					.limit(1)
 					.maybeSingle()
 
-				if (nextPayment) {
-					const dueDate = new Date(nextPayment.due_date)
+				// Step 5: Check if already paid for this rent_due period
+				let alreadyPaid = false
+				if (rentDueRecord) {
+					const { data: existingPayment } = await supabase
+						.from('rent_payments')
+						.select('id')
+						.eq('rent_due_id', rentDueRecord.id)
+						.eq('status', 'succeeded')
+						.maybeSingle()
+					alreadyPaid = !!existingPayment
+				}
+
+				if (rentDueRecord) {
+					const rentDueCents = Math.round(rentDueRecord.amount * 100)
+					const dueDate = new Date(rentDueRecord.due_date)
 					const todayDate = new Date()
 					const daysLate = Math.max(
 						0,
@@ -377,20 +406,22 @@ export const tenantPortalQueries = {
 						)
 					)
 					return {
-						base_rent_cents: nextPayment.amount_cents,
+						base_rent_cents: rentDueCents,
 						late_fee_cents: 0,
-						total_due_cents: nextPayment.amount_cents,
-						due_date: nextPayment.due_date,
+						total_due_cents: rentDueCents,
+						due_date: rentDueRecord.due_date,
 						days_late: daysLate,
 						grace_period_days: 5,
-						already_paid: nextPayment.status === 'succeeded',
+						already_paid: alreadyPaid,
+						charges_enabled: chargesEnabled,
+						rent_due_id: rentDueRecord.id,
 						breakdown: [
-							{ description: 'Base rent', amount_cents: nextPayment.amount_cents }
+							{ description: 'Base rent', amount_cents: rentDueCents }
 						]
 					}
 				}
 
-				// No upcoming payment found — construct from lease rent_amount
+				// No rent_due record — fall back to lease rent_amount
 				return {
 					base_rent_cents: baseRentCents,
 					late_fee_cents: 0,
@@ -399,6 +430,8 @@ export const tenantPortalQueries = {
 					days_late: 0,
 					grace_period_days: 5,
 					already_paid: false,
+					charges_enabled: chargesEnabled,
+					rent_due_id: null,
 					breakdown: [{ description: 'Base rent', amount_cents: baseRentCents }]
 				}
 			},
@@ -952,6 +985,47 @@ export function useMaintenanceRequestCreateMutation() {
 		onError: (error) => {
 			handleMutationError(error, 'Create maintenance request')
 		}
+	})
+}
+
+/**
+ * Initiate Stripe Checkout for rent payment
+ * Calls stripe-rent-checkout Edge Function and redirects to Stripe
+ */
+export function useRentCheckoutMutation() {
+	return useMutation({
+		mutationKey: mutationKeys.tenantPortal.payRent,
+		mutationFn: async (rentDueId: string): Promise<CreateRentCheckoutResponse> => {
+			const supabase = createClient()
+			const { data: { session } } = await supabase.auth.getSession()
+			if (!session?.access_token) throw new Error('Not authenticated')
+
+			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+			const response = await fetch(`${supabaseUrl}/functions/v1/stripe-rent-checkout`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${session.access_token}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ rent_due_id: rentDueId }),
+			})
+
+			if (!response.ok) {
+				const errorData = await response.json().catch(() => ({ error: 'Payment service unavailable' }))
+				throw new Error((errorData as RentCheckoutError).error ?? 'Failed to start checkout')
+			}
+
+			return response.json() as Promise<CreateRentCheckoutResponse>
+		},
+		onSuccess: (data) => {
+			// Redirect to Stripe Checkout
+			if (data.url) {
+				window.location.href = data.url
+			}
+		},
+		onError: (error) => {
+			handleMutationError(error, 'Start rent payment')
+		},
 	})
 }
 

@@ -205,7 +205,8 @@ export const mutationKeys = {
 			'mutations',
 			'tenantPortal',
 			'createMaintenanceRequest'
-		] as const
+		] as const,
+		payRent: ['mutations', 'tenantPortal', 'payRent'] as const
 	},
 
 	// Emergency Contact
