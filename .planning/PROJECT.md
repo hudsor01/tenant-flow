@@ -51,6 +51,16 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ Edge Function dependencies pinned via deno.json import map — Phase 58
 - ✓ CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions — Phase 58
 
+### Validated (v8.0 Phase 59 — Stripe Rent Checkout — Shipped 2026-02-27)
+
+- ✓ Stripe Checkout with destination charges routing funds to owner Express account — Phase 59
+- ✓ Platform application fee (default 5%, configurable per owner) — Phase 59
+- ✓ Duplicate payment prevention via unique partial index + pre-checkout check — Phase 59
+- ✓ Fee breakdown columns on rent_payments (gross, platform fee, Stripe fee, net) — Phase 59
+- ✓ Webhook populates fee breakdown via balance_transaction expansion — Phase 59
+- ✓ charges_enabled guard prevents checkout when owner Stripe onboarding incomplete — Phase 59
+- ✓ Tenant portal Pay Rent → Stripe Checkout redirect with success/cancel toast — Phase 59
+
 ### Active (v8.0 — Post-Migration Hardening)
 
 - [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)
@@ -127,7 +137,9 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 |----------|-----------|---------|
 | Supabase PostgREST over tRPC | Zero additional infra, RLS automatic, supabase-js already in frontend | ✓ Good |
 | Supabase PostgREST over Hono | No new server needed, Supabase already has REST | ✓ Good |
-| Edge Functions for Stripe | Official Stripe Deno SDK, `constructEventAsync()` for webhooks | — Pending |
+| Edge Functions for Stripe | Official Stripe Deno SDK, `constructEventAsync()` for webhooks | ✓ Good |
+| Destination charges (not direct charges) | Simplest Stripe Connect model; platform creates charge, Stripe splits funds automatically | ✓ Good |
+| Owner absorbs all fees | Industry standard for PM platforms; tenant pays exact rent amount | ✓ Good |
 | pg_cron for scheduled jobs | Runs inside Postgres, no external scheduler needed | — Pending |
 | DB Webhooks + n8n for workflows | n8n already self-hosted, flexible workflow authoring | — Pending |
 | Delete NestJS entirely | No partial migration — clean break prevents split-brain bugs | — Pending |
@@ -148,4 +160,4 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 - CI/CD hardening (E2E in pipeline, RLS tests on PR, dedicated integration project)
 
 ---
-*Last updated: 2026-02-26 after Phase 58 Security Hardening — 8 security vulnerabilities closed*
+*Last updated: 2026-02-27 after Phase 59 Stripe Rent Checkout — end-to-end rent payment with destination charges*

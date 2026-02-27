@@ -15,10 +15,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-26)
+See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 59 — Stripe Rent Checkout
+**Current focus:** Phase 60 — Receipt Emails
 
 ## Current Position
 
@@ -88,5 +88,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 59-02-PLAN.md (Stripe Rent Checkout Frontend + Webhook)
+Stopped at: Phase 59 complete, ready to discuss Phase 60
 Resume file: None
