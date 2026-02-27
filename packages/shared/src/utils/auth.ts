@@ -12,7 +12,8 @@ export const getUserLabel = (user_type: UserType): string => {
 		OWNER: 'Property Owner',
 		MANAGER: 'Property Manager',
 		TENANT: 'Tenant',
-		ADMIN: 'Administrator'
+		ADMIN: 'Administrator',
+		PENDING: 'Pending Role Selection'
 	}
 	return labels[user_type] || user_type
 }
@@ -22,7 +23,8 @@ export const getUserColor = (user_type: UserType): string => {
 		OWNER: 'bg-primary/10 text-primary-foreground border-primary/20',
 		MANAGER: 'bg-info/10 text-info-foreground border-info/20',
 		TENANT: 'bg-success/10 text-success-foreground border-success/20',
-		ADMIN: 'bg-destructive/10 text-destructive-foreground border-destructive/20'
+		ADMIN: 'bg-destructive/10 text-destructive-foreground border-destructive/20',
+		PENDING: 'bg-muted text-muted-foreground border-border'
 	}
 	return colors[user_type] || 'bg-muted text-muted-foreground border-border'
 }
