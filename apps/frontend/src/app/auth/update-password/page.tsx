@@ -3,14 +3,109 @@
  *
  * This page is shown when a user clicks the password reset link from their email.
  * Supabase automatically handles the token exchange when the user lands on this page.
+ *
+ * If the token is expired or invalid, Supabase appends error info to the URL hash.
+ * We detect this and show an error state with a recovery option.
  */
 
+'use client'
+
 import { UpdatePasswordForm } from '#components/auth/update-password-form'
+import { ForgotPasswordModal } from '#components/auth/forgot-password-modal'
 import { GridPattern } from '#components/ui/grid-pattern'
+import { Button } from '#components/ui/button'
+import { AlertTriangle, ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+
+type PageState = 'loading' | 'valid' | 'error'
+
+function useResetTokenStatus(): { state: PageState; errorMessage: string } {
+	const [state, setState] = useState<PageState>('loading')
+	const [errorMessage, setErrorMessage] = useState('')
+
+	useEffect(() => {
+		// Supabase appends error info to the URL hash when a reset link is invalid/expired
+		// e.g. #error=access_denied&error_description=...
+		const hash = window.location.hash.substring(1)
+		const params = new URLSearchParams(hash)
+		const error = params.get('error')
+		const errorDescription = params.get('error_description')
+
+		if (error) {
+			const message =
+				errorDescription?.replace(/\+/g, ' ') ||
+				'This link has expired or is invalid.'
+			setErrorMessage(message)
+			setState('error')
+		} else {
+			setState('valid')
+		}
+	}, [])
+
+	return { state, errorMessage }
+}
+
+function ExpiredLinkContent({
+	errorMessage
+}: {
+	errorMessage: string
+}) {
+	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+
+	return (
+		<>
+			<div className="text-center space-y-6">
+				<div className="mx-auto flex-center size-20 rounded-full bg-destructive/10 border border-destructive/20">
+					<AlertTriangle className="size-10 text-destructive" />
+				</div>
+
+				<div className="space-y-2">
+					<h1 className="typography-h3 text-foreground">
+						Link Expired or Invalid
+					</h1>
+					<p className="text-muted-foreground leading-relaxed">
+						{errorMessage}
+					</p>
+				</div>
+
+				<div className="bg-muted/30 border border-border rounded-xl p-4 text-sm text-muted-foreground">
+					<p>
+						Password reset links expire after 1 hour for security. You can
+						request a new one below.
+					</p>
+				</div>
+
+				<div className="flex flex-col sm:flex-row gap-3">
+					<Button
+						variant="default"
+						size="lg"
+						className="flex-1"
+						onClick={() => setForgotPasswordOpen(true)}
+					>
+						Request New Reset Link
+					</Button>
+					<Button variant="outline" size="lg" className="flex-1" asChild>
+						<Link href="/login">
+							Back to Sign In
+							<ArrowRight className="ml-2 size-4" />
+						</Link>
+					</Button>
+				</div>
+			</div>
+
+			<ForgotPasswordModal
+				open={forgotPasswordOpen}
+				onOpenChange={setForgotPasswordOpen}
+			/>
+		</>
+	)
+}
 
 export default function UpdatePasswordPage() {
+	const { state, errorMessage } = useResetTokenStatus()
+
 	return (
 		<div className="relative min-h-screen flex flex-col lg:flex-row">
 			{/* Full page grid background */}
@@ -65,27 +160,39 @@ export default function UpdatePasswordPage() {
 								</div>
 							</div>
 
-							<h2 className="text-foreground font-bold text-3xl">
-								Secure Your Account
-							</h2>
-
-							<p className="text-muted-foreground text-lg leading-relaxed">
-								Create a strong password to keep your property management data
-								safe and secure.
-							</p>
-
-							{/* Security Tips */}
-							<div className="text-left bg-background/50 rounded-xl p-4 space-y-2">
-								<p className="text-sm font-medium text-foreground">
-									Password tips:
-								</p>
-								<ul className="text-sm text-muted-foreground space-y-1">
-									<li>Use at least 8 characters</li>
-									<li>Mix uppercase and lowercase letters</li>
-									<li>Include numbers and special characters</li>
-									<li>Avoid common words or patterns</li>
-								</ul>
-							</div>
+							{state === 'error' ? (
+								<>
+									<h2 className="text-foreground font-bold text-3xl">
+										Reset Link Issue
+									</h2>
+									<p className="text-muted-foreground text-lg leading-relaxed">
+										No worries - you can request a new password reset link in
+										just a few seconds.
+									</p>
+								</>
+							) : (
+								<>
+									<h2 className="text-foreground font-bold text-3xl">
+										Secure Your Account
+									</h2>
+									<p className="text-muted-foreground text-lg leading-relaxed">
+										Create a strong password to keep your property management
+										data safe and secure.
+									</p>
+									{/* Security Tips */}
+									<div className="text-left bg-background/50 rounded-xl p-4 space-y-2">
+										<p className="text-sm font-medium text-foreground">
+											Password tips:
+										</p>
+										<ul className="text-sm text-muted-foreground space-y-1">
+											<li>Use at least 6 characters</li>
+											<li>Mix uppercase and lowercase letters</li>
+											<li>Include numbers and special characters</li>
+											<li>Avoid common words or patterns</li>
+										</ul>
+									</div>
+								</>
+							)}
 						</div>
 					</div>
 				</div>
@@ -119,8 +226,17 @@ export default function UpdatePasswordPage() {
 						</Link>
 					</div>
 
-					{/* Update Password Form */}
-					<UpdatePasswordForm />
+					{state === 'loading' && (
+						<div className="flex-center py-20">
+							<div className="size-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+						</div>
+					)}
+
+					{state === 'valid' && <UpdatePasswordForm />}
+
+					{state === 'error' && (
+						<ExpiredLinkContent errorMessage={errorMessage} />
+					)}
 
 					{/* Footer */}
 					<div className="text-center pt-4">

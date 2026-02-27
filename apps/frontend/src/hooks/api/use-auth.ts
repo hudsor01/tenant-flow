@@ -412,7 +412,7 @@ export function useSupabasePasswordResetMutation() {
 		mutationKey: mutationKeys.auth.resetPassword,
 		mutationFn: async (email: string) => {
 			const { error } = await supabase.auth.resetPasswordForEmail(email, {
-				redirectTo: `${window.location.origin}/auth/reset-password`
+				redirectTo: `${window.location.origin}/auth/update-password`
 			})
 			if (error) throw error
 		},
