@@ -4,21 +4,64 @@ import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { createClient } from '#lib/supabase/client'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { ArrowRight, CheckCircle2, Loader2, Mail } from 'lucide-react'
+import {
+	AlertTriangle,
+	ArrowRight,
+	CheckCircle2,
+	Loader2,
+	Mail
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 
-const supabase = createClient()
+const RESEND_COOLDOWN_SECONDS = 60
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
 	const [isResending, setIsResending] = useState(false)
+	const [cooldownSeconds, setCooldownSeconds] = useState(0)
+	const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+	const searchParams = useSearchParams()
+	const errorParam = searchParams.get('error')
+
+	// Cleanup interval on unmount
+	useEffect(() => {
+		return () => {
+			if (intervalRef.current) {
+				clearInterval(intervalRef.current)
+			}
+		}
+	}, [])
+
+	const startCooldown = useCallback(() => {
+		setCooldownSeconds(RESEND_COOLDOWN_SECONDS)
+
+		if (intervalRef.current) {
+			clearInterval(intervalRef.current)
+		}
+
+		intervalRef.current = setInterval(() => {
+			setCooldownSeconds(prev => {
+				if (prev <= 1) {
+					if (intervalRef.current) {
+						clearInterval(intervalRef.current)
+						intervalRef.current = null
+					}
+					return 0
+				}
+				return prev - 1
+			})
+		}, 1000)
+	}, [])
 
 	const handleResendEmail = async () => {
+		if (cooldownSeconds > 0) return
 		setIsResending(true)
 
 		try {
+			const supabase = createClient()
 			// Get the current session to extract the email
 			const {
 				data: { session }
@@ -42,6 +85,7 @@ export default function ConfirmEmailPage() {
 			toast.success('Email sent!', {
 				description: 'Check your inbox for the confirmation link.'
 			})
+			startCooldown()
 		} catch (error) {
 			logger.error('Failed to resend confirmation email', {
 				action: 'resend_confirmation_email_failed',
@@ -58,6 +102,14 @@ export default function ConfirmEmailPage() {
 		} finally {
 			setIsResending(false)
 		}
+	}
+
+	const isDisabled = isResending || cooldownSeconds > 0
+
+	function getResendButtonText(): string {
+		if (isResending) return 'Sending...'
+		if (cooldownSeconds > 0) return `Resend Email (${cooldownSeconds}s)`
+		return 'Resend Email'
 	}
 
 	return (
@@ -189,6 +241,22 @@ export default function ConfirmEmailPage() {
 						</div>
 					</div>
 
+					{/* Error Banner for invalid confirmation tokens */}
+					{errorParam === 'invalid_token' && (
+						<div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 flex items-start gap-3">
+							<AlertTriangle className="size-5 text-destructive shrink-0 mt-0.5" />
+							<div className="text-sm">
+								<p className="font-medium text-destructive">
+									Confirmation link expired or invalid
+								</p>
+								<p className="text-destructive/80 mt-1">
+									The confirmation link you clicked is no longer valid. Please
+									request a new one using the button below.
+								</p>
+							</div>
+						</div>
+					)}
+
 					{/* Header */}
 					<div className="space-y-4">
 						{/* Icon */}
@@ -265,7 +333,7 @@ export default function ConfirmEmailPage() {
 								size="lg"
 								className="flex-1"
 								onClick={handleResendEmail}
-								disabled={isResending}
+								disabled={isDisabled}
 							>
 								{isResending ? (
 									<>
@@ -273,7 +341,7 @@ export default function ConfirmEmailPage() {
 										Sending...
 									</>
 								) : (
-									'Resend Email'
+									getResendButtonText()
 								)}
 							</Button>
 
@@ -313,5 +381,22 @@ export default function ConfirmEmailPage() {
 				</div>
 			</div>
 		</div>
+	)
+}
+
+export default function ConfirmEmailPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="min-h-screen flex-center bg-background">
+					<div className="text-center space-y-4">
+						<div className="size-16 mx-auto rounded-full border-4 border-primary border-t-transparent animate-spin" />
+						<p className="text-muted-foreground">Loading...</p>
+					</div>
+				</div>
+			}
+		>
+			<ConfirmEmailContent />
+		</Suspense>
 	)
 }
