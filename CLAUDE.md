@@ -46,6 +46,48 @@ pnpm validate:quick               # types + lint + unit tests
 - `supabase.ts` is generated — never edit manually
 - Valid `rent_payments.status`: `pending | processing | succeeded | failed | canceled`
 
+## Data Access Patterns
+All data access goes through Supabase PostgREST and RPC. There is no custom backend API server.
+
+```typescript
+// PostgREST queries via supabase-js
+const { data, error, count } = await supabase
+  .from('properties')
+  .select('*', { count: 'exact' })
+  .neq('status', 'inactive')      // soft-delete filter — required on properties
+  .order('created_at', { ascending: false })
+  .range(from, to)
+
+// RPC for complex operations (dashboard stats, reports, etc.)
+const { data } = await supabase.rpc('get_dashboard_stats', {
+  p_owner_user_id: userId
+})
+```
+
+- Always use `{ count: 'exact' }` for pagination — never `data.length`
+- Soft-deleted tables (properties): always filter `.neq('status', 'inactive')`
+- Use `.single()` for exactly-one results, `.limit(1)` + `[0]` when zero-or-one
+
+## Edge Functions
+Server-side logic runs as Supabase Edge Functions (Deno runtime).
+
+- Location: `supabase/functions/<function-name>/index.ts`
+- Shared utilities: `supabase/functions/_shared/` (cors.ts, resend.ts)
+- Import map: `supabase/functions/deno.json`
+- Auth pattern: extract Bearer token, then `supabase.auth.getUser(token)` to verify
+- CORS: use `getCorsHeaders(req)` and early-return `handleCorsOptions(req)` for preflight
+- Deploy: `supabase functions deploy <function-name>`
+
+## Security Model
+RLS (Row Level Security) is the only access-control layer. No middleware auth, no backend guards.
+
+- RLS enforced on every table — frontend never uses service role key
+- Wrap `auth.uid()` in subselect for performance: `(select auth.uid())`
+- Helper functions: `get_current_owner_user_id()`, `get_current_tenant_id()`, `get_tenant_unit_ids()`
+- Policy rules: see `.claude/rules/rls-policies.md`
+- One policy per operation per role — never `FOR ALL` on authenticated tables
+- Integration tests: `apps/integration-tests/src/rls/` — 60 tests across 7 domains
+
 ## Naming
 | Thing | Convention |
 |-------|------------|
