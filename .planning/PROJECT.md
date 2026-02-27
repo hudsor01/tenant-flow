@@ -61,6 +61,26 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ charges_enabled guard prevents checkout when owner Stripe onboarding incomplete — Phase 59
 - ✓ Tenant portal Pay Rent → Stripe Checkout redirect with success/cancel toast — Phase 59
 
+### Validated (v8.0 Phase 60 — Receipt Emails — Shipped 2026-02-27)
+
+- ✓ Tenant receives branded HTML receipt email on successful rent payment via Resend — Phase 60
+- ✓ Owner receives payment notification email on tenant payment success — Phase 60
+- ✓ Shared _shared/resend.ts helper with fire-and-forget pattern (never throws) — Phase 60
+- ✓ React Email templates in Deno Edge Functions via npm: protocol — Phase 60
+- ✓ notification_settings.email preference checked before sending (default opt-in) — Phase 60
+- ✓ Webhook always returns 200 regardless of email outcome; failures logged for Sentry — Phase 60
+
+### Validated (v8.0 Phase 61 — Auth Flow Completion — Shipped 2026-02-27)
+
+- ✓ Password reset page with new password + confirm fields, redirect to /login with success toast — Phase 61
+- ✓ Expired/invalid reset link detection via URL hash params with recovery UI — Phase 61
+- ✓ Email confirmation page with 60-second rate-limited resend button — Phase 61
+- ✓ Auth callback handles email confirmation via verifyOtp for signup/email/recovery types — Phase 61
+- ✓ Google OAuth users get PENDING user_type via ensure_public_user_for_auth trigger — Phase 61
+- ✓ Role selection page (/auth/select-role) for first-time Google OAuth users — Phase 61
+- ✓ Middleware redirects PENDING users to role selection, blocks dashboard access — Phase 61
+- ✓ Auto-link pending tenant invitations for Google OAuth users by email match — Phase 61
+
 ### Active (v8.0 — Post-Migration Hardening)
 
 - [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)

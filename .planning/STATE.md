@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 61 — Auth Flow Completion
+**Current focus:** Phase 62 — Code Quality + Performance
 
 ## Current Position
 
-Phase: 60 of 64 (Receipt Emails) -- COMPLETE
-Plan: 2 of 2 in current phase (60-02 complete)
-Status: Phase 60 Complete
-Last activity: 2026-02-27 -- Completed 60-02 Webhook Email Integration (Resend + React Email in stripe-webhooks)
+Phase: 61 of 64 (Auth Flow Completion) -- COMPLETE
+Plan: 3 of 3 in current phase (61-03 complete)
+Status: Phase 61 Complete
+Last activity: 2026-02-27 -- Completed Phase 61 Auth Flow Completion (password reset, email confirmation, Google OAuth)
 
-Progress: [████████████████████] 83/83 plans (100%)
+Progress: [████████████████████] 86/86 plans (100%)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [████████████████████] 83/83 p
 | 58-security-hardening | 4 | 103min | 26min |
 | 59-stripe-rent-checkout | 2 | 30min | 15min |
 | 60-receipt-emails | 2 | 14min | 7min |
+| 61-auth-flow-completion | 3 | ~80min | ~27min |
 
 **Recent Trend:**
 - Last 5 plans: 18min, 12min, 18min, 8min, 6min
@@ -80,6 +81,11 @@ Recent decisions affecting current work:
 - v8.0: Resend auto-checks suppression list on every send -- no manual pre-check needed
 - v8.0: notification_settings.email preference checked before sending; absence = opt-in (default send)
 - v8.0: Shared _shared/resend.ts helper never throws -- returns { success, id?, error? } result object
+- v8.0: Google OAuth users get PENDING user_type via ensure_public_user_for_auth trigger; email signups default to OWNER
+- v8.0: Middleware redirects PENDING users to /auth/select-role; blocks access to /dashboard and /tenant
+- v8.0: Auth callback auto-links pending tenant invitations for Google OAuth users by email match
+- v8.0: Password reset expired link detection via Supabase URL hash params (error=access_denied)
+- v8.0: Email confirmation resend has 60-second cooldown with countdown display
 
 ### Pending Todos
 
@@ -89,10 +95,10 @@ None yet.
 
 - Verify `RESEND_API_KEY` is set in Supabase Edge Function secrets before deploying Phase 60
 - Verify tenantflow.com domain is verified in Resend dashboard before deploying Phase 60
-- Verify `handle_new_user` Postgres trigger fires for Google OAuth users before Phase 61
+- Phase 61 replaced handle_new_user with ensure_public_user_for_auth trigger — sets PENDING for Google OAuth, OWNER for email
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 60 complete, ready for verification
+Stopped at: Phase 61 complete, PR #534 open for review
 Resume file: None
