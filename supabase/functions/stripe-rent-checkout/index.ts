@@ -63,7 +63,7 @@ Deno.serve(async (req: Request) => {
     // -------------------------------------------------------------------------
     const { data: tenant, error: tenantError } = await supabase
       .from('tenants')
-      .select('id')
+      .select('id, stripe_customer_id')
       .eq('user_id', user.id)
       .maybeSingle()
 
@@ -257,12 +257,42 @@ Deno.serve(async (req: Request) => {
     const periodEnd = `${periodYear}-${periodMonth.padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
 
     // -------------------------------------------------------------------------
-    // 11. Create Stripe Checkout Session with destination charge
+    // 11. Resolve or create Stripe Customer for the tenant
+    //     Required for setup_future_usage to save the payment method for autopay.
     // -------------------------------------------------------------------------
     const stripe = new Stripe(stripeKey, { apiVersion: '2024-06-20' })
 
+    let stripeCustomerId = (tenant as Record<string, unknown>).stripe_customer_id as string | null
+
+    if (!stripeCustomerId) {
+      // Resolve tenant's email for Stripe Customer creation
+      const { data: tenantUser } = await supabase
+        .from('users')
+        .select('email, full_name')
+        .eq('id', user.id)
+        .single()
+
+      const customer = await stripe.customers.create({
+        email: tenantUser?.email ?? user.email ?? undefined,
+        name: (tenantUser?.full_name as string | null) ?? undefined,
+        metadata: { tenant_id: tenant.id, user_id: user.id },
+      })
+      stripeCustomerId = customer.id
+
+      // Save customer ID to tenant record for future autopay charges
+      await supabase
+        .from('tenants')
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq('id', tenant.id)
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. Create Stripe Checkout Session with destination charge
+    //     setup_future_usage: 'off_session' saves the card for autopay.
+    // -------------------------------------------------------------------------
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
+      customer: stripeCustomerId,
       payment_method_types: ['card'],
       line_items: [{
         price_data: {
@@ -280,6 +310,7 @@ Deno.serve(async (req: Request) => {
         transfer_data: {
           destination: connectedAccount.stripe_account_id,
         },
+        setup_future_usage: 'off_session',
         metadata: {
           tenant_id: tenant.id,
           lease_id: lease.id,

@@ -12,6 +12,7 @@ import { renderAsync } from 'npm:@react-email/components@0.0.22'
 import { sendEmail } from '../_shared/resend.ts'
 import { PaymentReceipt } from './_templates/payment-receipt.tsx'
 import { OwnerNotification } from './_templates/owner-notification.tsx'
+import { AutopayFailed } from './_templates/autopay-failed.tsx'
 
 Deno.serve(async (req: Request) => {
 
@@ -259,6 +260,7 @@ async function processEvent(
 
     case 'payment_intent.payment_failed': {
       const pi = event.data.object as Stripe.PaymentIntent
+      const metadata = pi.metadata ?? {}
 
       // Update rent_payment status to failed and retrieve record for owner notification
       const { data: failedPayment, error } = await supabase
@@ -291,6 +293,16 @@ async function processEvent(
           })
         }
       }
+
+      // Send autopay failure notification email to tenant (fire-and-forget)
+      if (metadata['autopay'] === 'true' && failedPayment) {
+        try {
+          await sendAutopayFailureEmail(supabase, stripe, pi, failedPayment.amount)
+        } catch (emailErr) {
+          console.error('[RESEND_ERROR] sendAutopayFailureEmail unexpected error:', emailErr)
+        }
+      }
+
       break
     }
 
@@ -307,6 +319,18 @@ async function processEvent(
           .eq('id', session.metadata['lease_id'])
         if (error) throw error
       }
+
+      // Save payment method from checkout with setup_future_usage for autopay.
+      // When setup_future_usage: 'off_session' is set, the PaymentIntent has a
+      // payment_method attached to the customer that can be reused off-session.
+      if (session.payment_intent && session.customer) {
+        try {
+          await saveCheckoutPaymentMethod(supabase, stripe, session)
+        } catch (saveErr) {
+          // Non-fatal — log and continue. Tenant can still add payment methods manually.
+          console.error('[AUTOPAY] Failed to save checkout payment method:', saveErr)
+        }
+      }
       break
     }
 
@@ -315,6 +339,73 @@ async function processEvent(
       // No error for common non-critical events — Stripe should not retry
       console.log(`Unhandled event type: ${event.type}`)
       break
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Save payment method from Stripe Checkout session for autopay use.
+// When setup_future_usage: 'off_session' is set, the PaymentIntent has a payment_method
+// attached to the customer. We save this to the payment_methods table so the tenant
+// can see it in their payment settings and select it for autopay.
+// ---------------------------------------------------------------------------
+async function saveCheckoutPaymentMethod(
+  supabase: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  session: Stripe.Checkout.Session
+): Promise<void> {
+  const piId = typeof session.payment_intent === 'string'
+    ? session.payment_intent
+    : (session.payment_intent as Stripe.PaymentIntent | null)?.id
+
+  if (!piId) return
+
+  const pi = await stripe.paymentIntents.retrieve(piId)
+  const pmId = typeof pi.payment_method === 'string'
+    ? pi.payment_method
+    : (pi.payment_method as Stripe.PaymentMethod | null)?.id
+
+  if (!pmId) return
+
+  const tenantId = pi.metadata?.['tenant_id']
+  if (!tenantId) return
+
+  // Check if this payment method already exists in our DB
+  const { data: existing } = await supabase
+    .from('payment_methods')
+    .select('id')
+    .eq('stripe_payment_method_id', pmId)
+    .maybeSingle()
+
+  if (existing) return // Already saved
+
+  // Retrieve the full payment method details from Stripe
+  const pm = await stripe.paymentMethods.retrieve(pmId)
+
+  // Check if tenant has any existing payment methods (to set is_default)
+  const { count } = await supabase
+    .from('payment_methods')
+    .select('id', { count: 'exact', head: true })
+    .eq('tenant_id', tenantId)
+
+  const isFirst = (count ?? 0) === 0
+
+  const { error: insertError } = await supabase
+    .from('payment_methods')
+    .insert({
+      tenant_id: tenantId,
+      stripe_payment_method_id: pmId,
+      type: pm.type ?? 'card',
+      brand: pm.card?.brand ?? null,
+      last_four: pm.card?.last4 ?? null,
+      exp_month: pm.card?.exp_month ?? null,
+      exp_year: pm.card?.exp_year ?? null,
+      is_default: isFirst,
+    })
+
+  if (insertError) {
+    console.error('[AUTOPAY] Failed to insert payment method:', insertError.message)
+  } else {
+    console.log(`[AUTOPAY] Saved payment method ${pmId} for tenant ${tenantId}`)
   }
 }
 
@@ -502,5 +593,99 @@ async function sendReceiptEmails(
     if (result.status === 'rejected') {
       console.error('[RESEND_ERROR] Email promise rejected:', result.reason)
     }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Autopay failure email — fire-and-forget after failed autopay payment
+// NEVER throws — all errors are caught and logged. Webhook response is not affected.
+// ---------------------------------------------------------------------------
+async function resolveAutopayFailureData(
+  supabase: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  pi: Stripe.PaymentIntent
+): Promise<{
+  tenantEmail: string; tenantName: string; propertyAddress: string
+  unitNumber: string | null; paymentMethodLast4: string | null; failureReason: string | null
+} | null> {
+  const metadata = pi.metadata ?? {}
+  const tenantId = metadata['tenant_id']
+  if (!tenantId) return null
+
+  const [tenantResult, propertyResult, unitResult] = await Promise.all([
+    supabase.from('tenants').select('user_id').eq('id', tenantId).single(),
+    metadata['property_id']
+      ? supabase.from('properties').select('address_line1, city, state, postal_code').eq('id', metadata['property_id']).single()
+      : Promise.resolve({ data: null, error: null }),
+    metadata['unit_id']
+      ? supabase.from('units').select('unit_number').eq('id', metadata['unit_id']).single()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+  if (!tenantResult.data) return null
+
+  const tenantUserId = tenantResult.data.user_id as string
+  const [userResult, settingsResult] = await Promise.all([
+    supabase.from('users').select('email, full_name').eq('id', tenantUserId).single(),
+    supabase.from('notification_settings').select('email').eq('user_id', tenantUserId).maybeSingle(),
+  ])
+  if (!userResult.data?.email || settingsResult.data?.email === false) return null
+
+  let paymentMethodLast4: string | null = null
+  const pmId = typeof pi.payment_method === 'string' ? pi.payment_method : null
+  if (pmId) {
+    try { paymentMethodLast4 = (await stripe.paymentMethods.retrieve(pmId)).card?.last4 ?? null }
+    catch { /* non-critical */ }
+  }
+
+  const lastError = pi.last_payment_error
+  const prop = propertyResult?.data
+  return {
+    tenantEmail: userResult.data.email as string,
+    tenantName: (userResult.data.full_name as string) || 'Tenant',
+    propertyAddress: prop ? `${prop.address_line1}, ${prop.city}, ${prop.state} ${prop.postal_code}` : 'Your property',
+    unitNumber: (unitResult?.data as { unit_number: string | null } | null)?.unit_number ?? null,
+    paymentMethodLast4,
+    failureReason: lastError?.message ?? lastError?.decline_code ?? lastError?.code ?? null,
+  }
+}
+
+async function sendAutopayFailureEmail(
+  supabase: ReturnType<typeof createClient>,
+  stripe: Stripe,
+  pi: Stripe.PaymentIntent,
+  amount: number
+): Promise<void> {
+  const data = await resolveAutopayFailureData(supabase, stripe, pi)
+  if (!data) return
+
+  const metadata = pi.metadata ?? {}
+  const frontendUrl = Deno.env.get('FRONTEND_URL') ?? 'https://tenantflow.com'
+  const formattedAmount = amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
+  const html = await renderAsync(
+    React.createElement(AutopayFailed, {
+      tenantName: data.tenantName,
+      amount: formattedAmount,
+      propertyAddress: data.propertyAddress,
+      unitNumber: data.unitNumber,
+      periodMonth: metadata['period_month'] ?? '',
+      periodYear: metadata['period_year'] ?? '',
+      paymentMethodLast4: data.paymentMethodLast4,
+      failureReason: data.failureReason,
+      manualPaymentUrl: `${frontendUrl}/tenant/payments`,
+    })
+  )
+
+  const result = await sendEmail({
+    to: [data.tenantEmail],
+    subject: `Autopay Failed - Action Required`,
+    html,
+    tags: [
+      { name: 'type', value: 'autopay_failed' },
+      { name: 'tenant_id', value: metadata['tenant_id'] },
+    ],
+  })
+  if (!result.success) {
+    console.error('[RESEND_ERROR] Autopay failure email failed:', result.error)
   }
 }
