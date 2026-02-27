@@ -30,7 +30,6 @@ import {
 } from '#lib/mutation-error-handler'
 import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
 import { logger } from '@repo/shared/lib/frontend-logger'
-import { toast } from 'sonner'
 import type {
 	MaintenanceCategory,
 	MaintenancePriority
@@ -69,6 +68,9 @@ export interface TenantAutopayStatus {
 	tenant_id?: string
 	rent_amount?: number
 	nextPaymentDate?: string | null
+	paymentMethodId?: string | null
+	paymentMethodLast4?: string | null
+	paymentMethodBrand?: string | null
 	message?: string
 }
 
@@ -522,7 +524,7 @@ export const tenantPortalQueries = {
 
 				const { data: lease } = await supabase
 					.from('leases')
-					.select('id, stripe_subscription_id, rent_amount, lease_tenants!inner(tenant_id)')
+					.select('id, auto_pay_enabled, autopay_payment_method_id, stripe_subscription_id, rent_amount, payment_day, lease_tenants!inner(tenant_id)')
 					.eq('lease_tenants.tenant_id', tenantRecord.id)
 					.eq('lease_status', 'active')
 					.single()
@@ -531,13 +533,41 @@ export const tenantPortalQueries = {
 					return { autopayEnabled: false, subscriptionId: null }
 				}
 
+				// Calculate next payment date from payment_day
+				const pmId = lease.autopay_payment_method_id as string | null
+				let paymentMethodLast4: string | null = null
+				let paymentMethodBrand: string | null = null
+
+				if (pmId) {
+					const { data: pm } = await supabase
+						.from('payment_methods')
+						.select('last_four, brand')
+						.eq('stripe_payment_method_id', pmId)
+						.maybeSingle()
+					paymentMethodLast4 = pm?.last_four ?? null
+					paymentMethodBrand = pm?.brand ?? null
+				}
+
+				// Next payment date: the payment_day of next month (or this month if not yet past)
+				const now = new Date()
+				const paymentDay = (lease.payment_day as number) || 1
+				let nextDate = new Date(now.getFullYear(), now.getMonth(), paymentDay)
+				if (nextDate <= now) {
+					nextDate = new Date(now.getFullYear(), now.getMonth() + 1, paymentDay)
+				}
+
+				const nextPaymentDate = nextDate.toISOString().slice(0, 10)
+
 				return {
-					autopayEnabled: !!lease.stripe_subscription_id,
+					autopayEnabled: !!lease.auto_pay_enabled,
 					subscriptionId: lease.stripe_subscription_id,
-					subscriptionStatus: lease.stripe_subscription_id ? 'active' : null,
 					lease_id: lease.id,
 					tenant_id: tenantRecord.id,
-					rent_amount: lease.rent_amount
+					rent_amount: lease.rent_amount,
+					nextPaymentDate,
+					paymentMethodId: pmId,
+					paymentMethodLast4,
+					paymentMethodBrand,
 				}
 			},
 			...QUERY_CACHE_TIMES.DETAIL,
@@ -1194,54 +1224,89 @@ export function useUpdateTenantNotificationPreferences() {
 // ============================================================================
 
 /**
- * Setup autopay for tenant's lease
- * NOTE: Full Stripe autopay implementation is Phase 54. Shows info toast for now.
+ * Enable autopay for tenant's lease.
+ * Sets auto_pay_enabled=true and autopay_payment_method_id on the lease.
  */
 export function useTenantPortalSetupAutopayMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantAutopay.setup,
-		mutationFn: async (_params: {
+		mutationFn: async (params: {
 			tenant_id: string
 			lease_id: string
 			paymentMethodId?: string
 		}) => {
-			// Autopay setup requires Stripe Connect (Phase 54)
-			toast.info('Autopay setup coming soon')
-			return { success: false, message: 'Autopay coming soon' }
+			const supabase = createClient()
+
+			// Resolve the Stripe payment method ID from the selected payment_methods record
+			let stripePmId: string | null = null
+			if (params.paymentMethodId) {
+				const { data: pm } = await supabase
+					.from('payment_methods')
+					.select('stripe_payment_method_id')
+					.eq('id', params.paymentMethodId)
+					.single()
+				stripePmId = pm?.stripe_payment_method_id ?? null
+			}
+
+			if (!stripePmId) {
+				throw new Error('Please select a valid payment method')
+			}
+
+			const { error } = await supabase
+				.from('leases')
+				.update({
+					auto_pay_enabled: true,
+					autopay_payment_method_id: stripePmId,
+				})
+				.eq('id', params.lease_id)
+
+			if (error) handlePostgrestError(error, 'leases')
+			return { success: true }
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: tenantPortalKeys.autopay.status()
 			})
-		}
+			handleMutationSuccess('Enable autopay', 'Autopay has been enabled')
+		},
+		onError: (error) => handleMutationError(error, 'Enable autopay')
 	})
 }
 
 /**
- * Cancel autopay for tenant's lease
- * NOTE: Full Stripe autopay implementation is Phase 54. Shows info toast for now.
+ * Disable autopay for tenant's lease.
+ * Sets auto_pay_enabled=false and clears autopay_payment_method_id.
  */
 export function useTenantPortalCancelAutopayMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.tenantAutopay.cancel,
-		mutationFn: async (_params: {
+		mutationFn: async (params: {
 			tenant_id: string
 			lease_id: string
-			paymentMethodId?: string
 		}) => {
-			// Autopay cancel requires Stripe Connect (Phase 54)
-			toast.info('Autopay cancellation coming soon')
-			return { success: false, message: 'Autopay cancellation coming soon' }
+			const supabase = createClient()
+			const { error } = await supabase
+				.from('leases')
+				.update({
+					auto_pay_enabled: false,
+					autopay_payment_method_id: null,
+				})
+				.eq('id', params.lease_id)
+
+			if (error) handlePostgrestError(error, 'leases')
+			return { success: true }
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: tenantPortalKeys.autopay.status()
 			})
-		}
+			handleMutationSuccess('Disable autopay', 'Autopay has been disabled')
+		},
+		onError: (error) => handleMutationError(error, 'Disable autopay')
 	})
 }
 

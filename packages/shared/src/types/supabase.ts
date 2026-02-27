@@ -514,6 +514,7 @@ export type Database = {
       leases: {
         Row: {
           auto_pay_enabled: boolean | null
+          autopay_payment_method_id: string | null
           created_at: string | null
           docuseal_submission_id: string | null
           end_date: string
@@ -557,6 +558,7 @@ export type Database = {
         }
         Insert: {
           auto_pay_enabled?: boolean | null
+          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date: string
@@ -600,6 +602,7 @@ export type Database = {
         }
         Update: {
           auto_pay_enabled?: boolean | null
+          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
@@ -2574,6 +2577,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_autopay_charges: { Args: never; Returns: undefined }
       process_payment_intent_failed: {
         Args: {
           p_amount: number

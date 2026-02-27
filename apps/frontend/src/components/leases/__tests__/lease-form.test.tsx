@@ -155,6 +155,7 @@ const mockLease: LeaseWithExtras = {
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
 	auto_pay_enabled: null,
+	autopay_payment_method_id: null,
 	payment_day: 1,
 	rent_currency: 'USD',
 	created_at: '2024-01-01T00:00:00Z',
