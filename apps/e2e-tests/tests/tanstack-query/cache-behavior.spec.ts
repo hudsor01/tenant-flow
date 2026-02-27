@@ -187,7 +187,7 @@ test.describe('TanStack Query Cache Behavior', () => {
 			// Create property (should trigger invalidation)
 			const createPromise = page.waitForResponse(
 				response =>
-					response.url().includes('/api/v1/properties') &&
+					response.url().includes('/rest/v1/properties') &&
 					response.request().method() === 'POST' &&
 					response.status() === 201
 			)
