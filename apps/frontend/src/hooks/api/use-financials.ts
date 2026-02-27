@@ -16,6 +16,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import type {
 	IncomeStatementData,
@@ -477,7 +478,8 @@ export function useCreateExpenseMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Create expense')
 	})
 }
 
@@ -496,7 +498,8 @@ export function useDeleteExpenseMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Delete expense')
 	})
 }
 
