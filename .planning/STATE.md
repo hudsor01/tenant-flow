@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Post-Migration Hardening + Payment Infrastructure
-status: unknown
-last_updated: "2026-02-26T17:15:58.659Z"
+status: in-progress
+last_updated: "2026-02-27T00:22:24Z"
 progress:
   total_phases: 49
   completed_phases: 34
   total_plans: 81
-  completed_plans: 79
+  completed_plans: 80
 ---
 
 # Project State: TenantFlow
@@ -22,29 +22,30 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-Phase: 58 of 64 (Security Hardening)
-Plan: 3 of 3 in current phase (all complete)
-Status: Phase Complete
-Last activity: 2026-02-26 — Completed 58-02 Edge Function Auth Hardening (HMAC webhook verification, ownership authorization)
+Phase: 59 of 64 (Stripe Rent Checkout)
+Plan: 1 of 2 in current phase (59-01 complete)
+Status: In Progress
+Last activity: 2026-02-27 — Completed 59-01 Stripe Rent Checkout Backend (Edge Function + migration + types)
 
-Progress: [████████████████████] 79/81 plans (98%)
+Progress: [████████████████████] 80/81 plans (99%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v8.0)
-- Average duration: 26min
-- Total execution time: 103min
+- Total plans completed: 5 (v8.0)
+- Average duration: 23min
+- Total execution time: 115min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 58-security-hardening | 4 | 103min | 26min |
+| 59-stripe-rent-checkout | 1 | 12min | 12min |
 
 **Recent Trend:**
-- Last 5 plans: 18min, 18min, 45min, 22min
-- Trend: stable
+- Last 5 plans: 18min, 45min, 22min, 12min
+- Trend: improving
 
 *Updated after each plan completion*
 
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - v8.0: DocuSeal webhook uses fail-closed HMAC-SHA256 via Web Crypto API with timingSafeEqual
 - v8.0: All Edge Function lease actions verify owner_user_id === user.id; return generic 403 (never 404) for access-denied
 - v8.0: sign-tenant action allows both owner and primary tenant via tenants table lookup
+- v8.0: Owner absorbs all fees (Stripe + platform) -- tenant pays exact rent amount; platform fee from owner's default_platform_fee_percent (default 5%)
+- v8.0: Duplicate payment prevention at DB level (unique partial index) and application level (pre-checkout query)
+- v8.0: PaymentIntent metadata carries 8 fields for downstream webhook processing without extra DB queries
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Phase 58 complete, ready to discuss Phase 59
+Last session: 2026-02-27
+Stopped at: Completed 59-01-PLAN.md (Stripe Rent Checkout Backend)
 Resume file: None

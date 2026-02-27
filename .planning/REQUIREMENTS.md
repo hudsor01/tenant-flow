@@ -9,8 +9,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Payments (PAY)
 
-- [ ] **PAY-01**: Tenant can pay rent via Stripe Checkout with destination charge fee split to owner's Express account
-- [ ] **PAY-02**: Platform receives configurable application fee on each rent payment
+- [x] **PAY-01**: Tenant can pay rent via Stripe Checkout with destination charge fee split to owner's Express account
+- [x] **PAY-02**: Platform receives configurable application fee on each rent payment
 - [ ] **PAY-03**: Tenant receives branded HTML receipt email after successful payment
 - [ ] **PAY-04**: Owner receives notification email after tenant payment succeeds
 - [ ] **PAY-05**: Email suppression list checked before every Resend email send
@@ -92,8 +92,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAY-01 | Phase 59 | Pending |
-| PAY-02 | Phase 59 | Pending |
+| PAY-01 | Phase 59 | Complete |
+| PAY-02 | Phase 59 | Complete |
 | PAY-03 | Phase 60 | Pending |
 | PAY-04 | Phase 60 | Pending |
 | PAY-05 | Phase 60 | Pending |
