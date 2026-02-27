@@ -81,6 +81,15 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ Middleware redirects PENDING users to role selection, blocks dashboard access — Phase 61
 - ✓ Auto-link pending tenant invitations for Google OAuth users by email match — Phase 61
 
+### Validated (v8.0 Phase 62 — Code Quality + Performance — Shipped 2026-02-27)
+
+- ✓ Double-toast eliminated: handlePostgrestError is throw-only + Sentry, single error wrapper for mutations — Phase 62
+- ✓ Payment method hooks consolidated: canonical use-payment-methods.ts, ~170 LOC duplicates deleted — Phase 62
+- ✓ All 13 runtime-throw TODO stubs replaced with real implementations globally — Phase 62
+- ✓ getCachedUser() reads TanStack Query cache first, 95 raw getUser() calls replaced — Phase 62
+- ✓ Batch tenant operations use .in() grouped queries instead of N+1 — Phase 62
+- ✓ CSV export capped at 10,000 rows — Phase 62
+
 ### Active (v8.0 — Post-Migration Hardening)
 
 - [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)

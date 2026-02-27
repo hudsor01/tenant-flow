@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Post-Migration Hardening + Payment Infrastructure
-status: unknown
-last_updated: "2026-02-27T10:00:00.000Z"
+status: executing
+last_updated: "2026-02-27T12:15:00.000Z"
 progress:
   total_phases: 50
-  completed_phases: 36
-  total_plans: 85
-  completed_plans: 83
+  completed_phases: 37
+  total_plans: 88
+  completed_plans: 86
 ---
 
 # Project State: TenantFlow
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
-**Current focus:** Phase 62 — Code Quality + Performance
+**Current focus:** Phase 63 next
 
 ## Current Position
 
-Phase: 61 of 64 (Auth Flow Completion) -- COMPLETE
-Plan: 3 of 3 in current phase (61-03 complete)
-Status: Phase 61 Complete
-Last activity: 2026-02-27 -- Completed Phase 61 Auth Flow Completion (password reset, email confirmation, Google OAuth)
+Phase: 62 of 64 (Code Quality + Performance) -- COMPLETE
+Plan: 3 of 3 in current phase (62-03 complete)
+Status: Phase 62 Complete
+Last activity: 2026-02-27 -- Completed Phase 62 Code Quality + Performance (double-toast fix, hook consolidation, auth caching)
 
-Progress: [████████████████████] 86/86 plans (100%)
+Progress: [████████████████████] 89/89 plans (100%)
 
 ## Performance Metrics
 
@@ -44,10 +44,11 @@ Progress: [████████████████████] 86/86 p
 | 59-stripe-rent-checkout | 2 | 30min | 15min |
 | 60-receipt-emails | 2 | 14min | 7min |
 | 61-auth-flow-completion | 3 | ~80min | ~27min |
+| 62-code-quality-performance | 3 | ~60min | ~20min |
 
 **Recent Trend:**
-- Last 5 plans: 18min, 12min, 18min, 8min, 6min
-- Trend: accelerating
+- Last 5 plans: 12min, 18min, 8min, 6min, 20min
+- Trend: steady
 
 *Updated after each plan completion*
 
@@ -86,6 +87,11 @@ Recent decisions affecting current work:
 - v8.0: Auth callback auto-links pending tenant invitations for Google OAuth users by email match
 - v8.0: Password reset expired link detection via Supabase URL hash params (error=access_denied)
 - v8.0: Email confirmation resend has 60-second cooldown with countdown display
+- v8.0: handlePostgrestError is throw-only + Sentry capture; no toast inside -- prevents double-toast structurally
+- v8.0: Canonical payment method hook is use-payment-methods.ts; duplicate hooks in use-payments.ts deleted
+- v8.0: getCachedUser() reads TanStack Query ['auth','session'] cache first, falls back to getUser() on miss
+- v8.0: All 13 runtime-throw TODO stubs replaced with real implementations -- zero remaining in codebase
+- v8.0: CSV export capped at 10,000 rows; batch tenant operations use .in() grouped queries
 
 ### Pending Todos
 
@@ -100,5 +106,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 61 complete, PR #534 open for review
+Stopped at: Phase 62 complete, all 3 plans committed on feat/61-auth-flow-completion branch
 Resume file: None
