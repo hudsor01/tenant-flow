@@ -90,7 +90,12 @@ function LoginPageContent() {
 						| string
 						| undefined
 					const redirectTo = searchParams?.get('redirect')
-					let destination = userType === 'TENANT' ? '/tenant' : '/dashboard'
+					let destination =
+						userType === 'TENANT'
+							? '/tenant'
+							: userType === 'PENDING'
+								? '/auth/select-role'
+								: '/dashboard'
 
 					if (redirectTo?.startsWith('/') && !redirectTo.startsWith('//')) {
 						destination = redirectTo

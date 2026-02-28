@@ -24,6 +24,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 
+// Mock useCurrentUser hook
+vi.mock('#hooks/use-current-user', () => ({
+	useCurrentUser: () => ({
+		user: { id: 'user-1', email: 'test@example.com' },
+		user_id: 'user-1',
+		isAuthenticated: true,
+		isLoading: false,
+		session: {}
+	})
+}))
+
 // Mock hooks
 const mockCreateLeaseMutation = vi.fn().mockResolvedValue({ id: 'new-lease-id' })
 const mockUpdateLeaseMutation = vi.fn().mockResolvedValue({ id: 'lease-1' })
@@ -144,6 +155,7 @@ const mockLease: LeaseWithExtras = {
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
 	auto_pay_enabled: null,
+	autopay_payment_method_id: null,
 	payment_day: 1,
 	rent_currency: 'USD',
 	created_at: '2024-01-01T00:00:00Z',

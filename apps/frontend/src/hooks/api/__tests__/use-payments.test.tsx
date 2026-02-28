@@ -254,6 +254,7 @@ describe('Payment Hooks (PostgREST)', () => {
 			const chainMock = {
 				select: vi.fn().mockReturnThis(),
 				order: vi.fn().mockReturnThis(),
+				limit: vi.fn().mockReturnThis(),
 				eq: vi.fn().mockReturnThis(),
 				gte: vi.fn().mockReturnThis(),
 				lte: vi.fn().mockResolvedValue({ data: mockRows, error: null })

@@ -15,7 +15,9 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 import type {
 	IncomeStatementData,
@@ -151,7 +153,7 @@ export function useFinancialOverview() {
 		queryKey: financialKeys.overview(),
 		queryFn: async (): Promise<FinancialOverviewData> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 			if (!userId) {
 				return {
@@ -194,7 +196,7 @@ export function useMonthlyMetrics() {
 		queryKey: financialKeys.monthly(),
 		queryFn: async (): Promise<MonthlyMetric[]> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 			if (!userId) return []
 
@@ -229,7 +231,7 @@ export function useExpenseSummary() {
 		queryKey: financialKeys.expenseSummary(),
 		queryFn: async (): Promise<ExpenseSummaryData> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 			if (!userId) {
 				return { categories: [], monthly_totals: [], total_amount: 0, monthly_average: 0, year_over_year_change: null }
@@ -271,7 +273,7 @@ export function useIncomeStatement(params: {
 		queryKey: financialKeys.incomeStatement(params),
 		queryFn: async (): Promise<ApiResponse<IncomeStatementData>> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 
 			// supabase.rpc('get_financial_overview', { p_user_id: userId }) —
@@ -307,7 +309,7 @@ export function useCashFlow(params: { start_date: string; end_date: string }) {
 		queryKey: financialKeys.cashFlow(params),
 		queryFn: async (): Promise<ApiResponse<CashFlowData>> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 
 			// TODO(phase-57): replace with supabase.rpc('get_revenue_trends_optimized', { p_user_id: userId, p_months: 12 })
@@ -343,7 +345,7 @@ export function useBalanceSheet(asOfDate: string) {
 		queryKey: financialKeys.balanceSheet(asOfDate),
 		queryFn: async (): Promise<ApiResponse<BalanceSheetData>> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 
 			// supabase.rpc('get_financial_overview', { p_user_id: userId }) —
@@ -477,7 +479,8 @@ export function useCreateExpenseMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Create expense')
 	})
 }
 
@@ -496,7 +499,8 @@ export function useDeleteExpenseMutation() {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: expenseKeys.all })
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Delete expense')
 	})
 }
 
@@ -516,7 +520,7 @@ export function useTaxDocuments(taxYear?: number) {
 		queryKey: taxDocumentKeys.byYear(year),
 		queryFn: async (): Promise<TaxDocumentsData> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			const userId = user?.id
 			if (!userId) {
 				return {

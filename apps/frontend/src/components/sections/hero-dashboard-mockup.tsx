@@ -33,7 +33,7 @@ export function HeroDashboardMockup({ className }: { className?: string }) {
 					</div>
 					<div className="flex-1 flex justify-center">
 						<div className="px-4 py-1 rounded-md bg-background/50 text-xs text-muted-foreground font-mono">
-							app.tenantflow.com/dashboard
+							app.tenantflow.app/dashboard
 						</div>
 					</div>
 					<div className="w-12" />

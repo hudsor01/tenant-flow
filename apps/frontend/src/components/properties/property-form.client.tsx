@@ -11,6 +11,7 @@ import {
 } from '#hooks/api/use-properties'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { useSupabaseUser } from '#hooks/api/use-auth'
+import { useCurrentUser } from '#hooks/use-current-user'
 
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { Property, PropertyType } from '@repo/shared/types/core'
@@ -73,6 +74,7 @@ export function PropertyForm({
 	}, [])
 
 	const { data: user } = useSupabaseUser()
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const router = useRouter()
 	const queryClient = useQueryClient()
 	const logger = createLogger({ component: 'PropertyForm' })
@@ -354,6 +356,7 @@ export function PropertyForm({
 					mode={mode}
 					isPending={mutation.isPending}
 					uploadingImages={uploadingImages}
+					isAuthLoading={isAuthLoading}
 				/>
 			</form>
 		</div>

@@ -28,6 +28,8 @@ import {
 	useMaintenanceRequestCreateMutation,
 	useMaintenanceRequestUpdateMutation
 } from '#hooks/api/use-maintenance'
+import { useCurrentUser } from '#hooks/use-current-user'
+import { cn } from '#lib/utils'
 import { usePropertyList } from '#hooks/api/use-properties'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useMaintenanceForm } from '#hooks/use-maintenance-form'
@@ -46,6 +48,7 @@ interface MaintenanceFormProps {
 
 export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 	const router = useRouter()
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const createRequest = useMaintenanceRequestCreateMutation()
 	const updateRequest = useMaintenanceRequestUpdateMutation()
 
@@ -351,7 +354,8 @@ export function MaintenanceForm({ mode, request }: MaintenanceFormProps) {
 							</Button>
 							<Button
 								type="submit"
-								disabled={createRequest.isPending || updateRequest.isPending}
+								disabled={createRequest.isPending || updateRequest.isPending || isAuthLoading}
+								className={cn(isAuthLoading && 'animate-pulse')}
 							>
 								{createRequest.isPending
 									? 'Creating...'

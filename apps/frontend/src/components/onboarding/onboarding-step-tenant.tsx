@@ -7,6 +7,9 @@ import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
+import { handleMutationError } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
 
 interface OnboardingStepTenantProps {
@@ -28,12 +31,32 @@ export function OnboardingStepTenant({
 	const [lastName, setLastName] = useState('')
 
 	const inviteTenant = useMutation({
-		mutationFn: async (_data: {
+		mutationFn: async (data: {
 			tenantData: { email: string; first_name: string; last_name: string }
 		}) => {
-			// TODO(phase-57): Tenant invitation requires Edge Function implementation
-			// The NestJS backend /api/v1/tenants/invite has been removed.
-			throw new Error('Tenant invitation email requires Edge Function implementation')
+			const supabase = createClient()
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
+
+			const invitationCode = crypto.randomUUID()
+			const appBaseUrl =
+				process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3050'
+			const invitationUrl = `${appBaseUrl}/auth/accept-invitation?code=${invitationCode}`
+			const expiresAt = new Date(
+				Date.now() + 7 * 24 * 60 * 60 * 1000
+			).toISOString()
+
+			const { error } = await supabase.from('tenant_invitations').insert({
+				email: data.tenantData.email,
+				owner_user_id: user.id,
+				invitation_code: invitationCode,
+				invitation_url: invitationUrl,
+				expires_at: expiresAt,
+				status: 'sent',
+				type: 'portal_access'
+			})
+
+			if (error) throw error
 		},
 		onSuccess: () => {
 			toast.success('Invitation sent', {
@@ -42,8 +65,8 @@ export function OnboardingStepTenant({
 			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 			onNext()
 		},
-		onError: () => {
-			toast.error('Failed to send invitation. Please try again.')
+		onError: (error: unknown) => {
+			handleMutationError(error, 'Invite tenant')
 		}
 	})
 

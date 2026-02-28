@@ -514,6 +514,7 @@ export type Database = {
       leases: {
         Row: {
           auto_pay_enabled: boolean | null
+          autopay_payment_method_id: string | null
           created_at: string | null
           docuseal_submission_id: string | null
           end_date: string
@@ -557,6 +558,7 @@ export type Database = {
         }
         Insert: {
           auto_pay_enabled?: boolean | null
+          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date: string
@@ -600,6 +602,7 @@ export type Database = {
         }
         Update: {
           auto_pay_enabled?: boolean | null
+          autopay_payment_method_id?: string | null
           created_at?: string | null
           docuseal_submission_id?: string | null
           end_date?: string
@@ -1312,18 +1315,24 @@ export type Database = {
         Row: {
           amount: number
           application_fee_amount: number
+          checkout_session_id: string | null
           created_at: string | null
           currency: string
           due_date: string
+          gross_amount: number | null
           id: string
           late_fee_amount: number | null
           lease_id: string
+          net_amount: number | null
           notes: string | null
           paid_date: string | null
           payment_method_type: string
           period_end: string
           period_start: string
+          platform_fee_amount: number | null
+          rent_due_id: string | null
           status: string
+          stripe_fee_amount: number | null
           stripe_payment_intent_id: string | null
           tenant_id: string
           updated_at: string | null
@@ -1331,18 +1340,24 @@ export type Database = {
         Insert: {
           amount: number
           application_fee_amount: number
+          checkout_session_id?: string | null
           created_at?: string | null
           currency?: string
           due_date: string
+          gross_amount?: number | null
           id?: string
           late_fee_amount?: number | null
           lease_id: string
+          net_amount?: number | null
           notes?: string | null
           paid_date?: string | null
           payment_method_type: string
           period_end: string
           period_start: string
+          platform_fee_amount?: number | null
+          rent_due_id?: string | null
           status: string
+          stripe_fee_amount?: number | null
           stripe_payment_intent_id?: string | null
           tenant_id: string
           updated_at?: string | null
@@ -1350,18 +1365,24 @@ export type Database = {
         Update: {
           amount?: number
           application_fee_amount?: number
+          checkout_session_id?: string | null
           created_at?: string | null
           currency?: string
           due_date?: string
+          gross_amount?: number | null
           id?: string
           late_fee_amount?: number | null
           lease_id?: string
+          net_amount?: number | null
           notes?: string | null
           paid_date?: string | null
           payment_method_type?: string
           period_end?: string
           period_start?: string
+          platform_fee_amount?: number | null
+          rent_due_id?: string | null
           status?: string
+          stripe_fee_amount?: number | null
           stripe_payment_intent_id?: string | null
           tenant_id?: string
           updated_at?: string | null
@@ -1372,6 +1393,13 @@ export type Database = {
             columns: ["lease_id"]
             isOneToOne: false
             referencedRelation: "leases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rent_payments_rent_due_id_fkey"
+            columns: ["rent_due_id"]
+            isOneToOne: false
+            referencedRelation: "rent_due"
             referencedColumns: ["id"]
           },
           {
@@ -2549,6 +2577,7 @@ export type Database = {
         }
         Returns: string
       }
+      process_autopay_charges: { Args: never; Returns: undefined }
       process_payment_intent_failed: {
         Args: {
           p_amount: number

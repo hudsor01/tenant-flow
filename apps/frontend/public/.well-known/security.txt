@@ -1,5 +1,5 @@
 Contact: security@tenantflow.app
-Expires: 2025-12-31T23:59:59.000Z
+Expires: 2027-12-31T23:59:59.000Z
 Encryption: https://tenantflow.app/.well-known/pgp-key.txt
 Preferred-Languages: en
 Canonical: https://tenantflow.app/.well-known/security.txt

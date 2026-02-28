@@ -523,7 +523,7 @@ export function useMarkTenantAsMovedOutMutation() {
 }
 
 /**
- * Batch tenant operations using PostgREST individual calls
+ * Batch tenant operations using PostgREST .in() queries (single round-trip per group)
  */
 export function useBatchTenantOperations() {
 	const queryClient = useQueryClient()
@@ -534,23 +534,36 @@ export function useBatchTenantOperations() {
 			const successIds: string[] = []
 			const failed: Array<{ id: string; error: string }> = []
 
+			// Group updates by identical payload for batch processing
+			const groups = new Map<string, { ids: string[]; data: TenantUpdate }>()
 			for (const update of updates) {
+				const key = JSON.stringify(update.data)
+				const existing = groups.get(key)
+				if (existing) {
+					existing.ids.push(update.id)
+				} else {
+					groups.set(key, { ids: [update.id], data: update.data })
+				}
+			}
+
+			// Execute one query per unique payload
+			for (const group of groups.values()) {
 				const { error } = await supabase
 					.from('tenants')
-					.update(update.data)
-					.eq('id', update.id)
+					.update(group.data)
+					.in('id', group.ids)
 
 				if (error) {
-					failed.push({ id: update.id, error: error.message })
+					group.ids.forEach(id =>
+						failed.push({ id, error: error.message })
+					)
 				} else {
-					successIds.push(update.id)
+					successIds.push(...group.ids)
 				}
 			}
 
 			if (failed.length > 0) {
-				failed.forEach(failure => {
-					toast.error(`Failed to update tenant: ${failure.error}`)
-				})
+				toast.error(`Failed to update ${failed.length} tenant(s)`)
 			}
 
 			if (successIds.length > 0) {
@@ -568,35 +581,28 @@ export function useBatchTenantOperations() {
 		},
 		batchDelete: async (ids: string[]) => {
 			const supabase = createClient()
-			const successIds: string[] = []
 			const failed: Array<{ id: string; error: string }> = []
 
-			for (const id of ids) {
-				// Soft-delete: remove lease_tenants associations
-				const { error } = await supabase
-					.from('lease_tenants')
-					.delete()
-					.eq('tenant_id', id)
+			// Single query to remove all lease_tenants associations
+			const { error } = await supabase
+				.from('lease_tenants')
+				.delete()
+				.in('tenant_id', ids)
 
-				if (error) {
+			if (error) {
+				ids.forEach(id =>
 					failed.push({ id, error: error.message })
-				} else {
-					successIds.push(id)
-				}
-			}
-
-			if (failed.length > 0) {
-				failed.forEach(failure => {
-					toast.error(`Failed to delete tenant: ${failure.error}`)
-				})
-			}
-
-			if (successIds.length > 0) {
-				toast.success(`Deleted ${successIds.length} tenant(s)`)
+				)
+				toast.error(`Failed to delete tenants: ${error.message}`)
+			} else {
+				toast.success(`Deleted ${ids.length} tenant(s)`)
 			}
 
 			await queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
 
+			const successIds = ids.filter(
+				id => !failed.some(f => f.id === id)
+			)
 			return { success: successIds.map(id => ({ id })), failed }
 		}
 	}

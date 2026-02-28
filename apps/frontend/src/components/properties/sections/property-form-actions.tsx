@@ -2,17 +2,20 @@
 
 import { CheckCircle } from 'lucide-react'
 import { Button } from '#components/ui/button'
+import { cn } from '#lib/utils'
 
 interface PropertyFormActionsProps {
 	mode: 'create' | 'edit'
 	isPending: boolean
 	uploadingImages: boolean
+	isAuthLoading?: boolean
 }
 
 export function PropertyFormActions({
 	mode,
 	isPending,
-	uploadingImages
+	uploadingImages,
+	isAuthLoading
 }: PropertyFormActionsProps) {
 	const submitLabel = uploadingImages
 		? 'Uploading images...'
@@ -36,8 +39,11 @@ export function PropertyFormActions({
 
 			<Button
 				type="submit"
-				disabled={isPending || uploadingImages}
-				className="flex items-center gap-2"
+				disabled={isPending || uploadingImages || isAuthLoading}
+				className={cn(
+					'flex items-center gap-2',
+					isAuthLoading && 'animate-pulse'
+				)}
 			>
 				<CheckCircle className="size-4" />
 				{submitLabel}

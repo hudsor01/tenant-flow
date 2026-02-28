@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { logger } from '@repo/shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
@@ -105,11 +106,8 @@ export const authQueries = {
 			queryKey: authKeys.me,
 			queryFn: async (): Promise<UserWithStripe> => {
 				const supabase = createClient()
-				const {
-					data: { user },
-					error: authError
-				} = await supabase.auth.getUser()
-				if (authError || !user) throw authError ?? new Error('Not authenticated')
+				const user = await getCachedUser()
+				if (!user) throw new Error('Not authenticated')
 				const { data, error } = await supabase
 					.from('users')
 					.select('id, email, stripe_customer_id')
@@ -132,12 +130,7 @@ export const authQueries = {
 		queryOptions({
 			queryKey: authKeys.supabase.user(),
 			queryFn: async () => {
-				const supabase = createClient()
-				const {
-					data: { user },
-					error
-				} = await supabase.auth.getUser()
-				if (error) throw error
+				const user = await getCachedUser()
 				return user
 			},
 			...QUERY_CACHE_TIMES.DETAIL
@@ -412,7 +405,7 @@ export function useSupabasePasswordResetMutation() {
 		mutationKey: mutationKeys.auth.resetPassword,
 		mutationFn: async (email: string) => {
 			const { error } = await supabase.auth.resetPasswordForEmail(email, {
-				redirectTo: `${window.location.origin}/auth/reset-password`
+				redirectTo: `${window.location.origin}/auth/update-password`
 			})
 			if (error) throw error
 		},
@@ -467,11 +460,8 @@ export function useChangePasswordMutation() {
 			newPassword: string
 		}) => {
 			// First verify current password by attempting to sign in
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser()
-			if (userError || !user?.email) {
+			const user = await getCachedUser()
+			if (!user?.email) {
 				throw new Error('User not authenticated')
 			}
 

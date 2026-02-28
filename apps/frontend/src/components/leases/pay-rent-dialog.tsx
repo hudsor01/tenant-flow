@@ -19,7 +19,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useCreateRentPaymentMutation } from '#hooks/api/use-payments'
-import { usePaymentMethods } from '#hooks/api/use-payments'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '#lib/formatters/currency'
 import type { LeaseWithExtras } from '@repo/shared/types/core'
 import { CreditCard } from 'lucide-react'

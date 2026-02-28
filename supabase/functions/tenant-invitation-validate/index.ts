@@ -7,20 +7,15 @@
 // → 404 { error: 'Invalid or already used invitation' }
 // → 410 { error: 'Invitation has expired' }
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405, headers: corsHeaders })
+    return new Response('Method Not Allowed', { status: 405, headers: getCorsHeaders(req) })
   }
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -34,7 +29,7 @@ Deno.serve(async (req: Request) => {
     if (!code) {
       return new Response(
         JSON.stringify({ error: 'code is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -56,7 +51,7 @@ Deno.serve(async (req: Request) => {
     if (error || !invitation) {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -64,7 +59,7 @@ Deno.serve(async (req: Request) => {
     if (invitation.status === 'accepted') {
       return new Response(
         JSON.stringify({ error: 'Invalid or already used invitation' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -72,7 +67,7 @@ Deno.serve(async (req: Request) => {
     if (new Date(invitation.expires_at) < new Date()) {
       return new Response(
         JSON.stringify({ error: 'Invitation has expired' }),
-        { status: 410, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 410, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -96,12 +91,12 @@ Deno.serve(async (req: Request) => {
         property_name: (property as { name?: string } | null)?.name ?? undefined,
         unit_number: (unit as { unit_number?: string } | null)?.unit_number ?? undefined,
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

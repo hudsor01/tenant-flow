@@ -7,6 +7,7 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 
 export function PasswordSection() {
 	const supabase = createClient()
@@ -24,11 +25,8 @@ export function PasswordSection() {
 				throw new Error('Password must be at least 8 characters')
 			}
 
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser()
-			if (userError || !user?.email) throw new Error('Unable to verify user')
+			const user = await getCachedUser()
+			if (!user?.email) throw new Error('Unable to verify user')
 
 			const { error: signInError } = await supabase.auth.signInWithPassword({
 				email: user.email,

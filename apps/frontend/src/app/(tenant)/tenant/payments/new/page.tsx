@@ -1,8 +1,7 @@
 'use client'
 
-import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '#components/ui/button'
 import {
 	Card,
@@ -12,100 +11,25 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { Badge } from '#components/ui/badge'
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue
-} from '#components/ui/select'
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
 import { formatCents } from '@repo/shared/lib/format'
-import { createClient } from '#lib/supabase/client'
 import {
 	tenantPortalQueries,
-	type PayRentRequest
+	useRentCheckoutMutation
 } from '#hooks/api/use-tenant-portal'
-
-interface PaymentMethod {
-	id: string
-	type: string
-	card?: {
-		brand: string
-		last4: string
-		exp_month: number
-		exp_year: number
-	}
-	is_default: boolean
-}
 
 export default function PayRentPage() {
 	const router = useRouter()
-	const queryClient = useQueryClient()
-	const [selectedMethod, setSelectedMethod] = useState<string>('')
+	const checkoutMutation = useRentCheckoutMutation()
 
-	// Fetch amount due
+	// Fetch amount due (includes charges_enabled and rent_due_id)
 	const {
 		data: amountDue,
 		isLoading: isLoadingAmount,
 		error: amountError
 	} = useQuery(tenantPortalQueries.amountDue())
-
-	// Fetch payment methods
-	// TODO(phase-57): Tenant payment methods require Edge Function implementation
-	const { data: methodsData, isLoading: isLoadingMethods } = useQuery({
-		queryKey: ['payment-methods'],
-		queryFn: async (): Promise<{ methods: PaymentMethod[] }> => {
-			const supabase = createClient()
-			const { data: { session } } = await supabase.auth.getSession()
-			if (!session?.access_token) return { methods: [] }
-			const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-			const response = await fetch(
-				`${supabaseUrl}/functions/v1/stripe-connect`,
-				{
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${session.access_token}`,
-						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify({ action: 'list-payment-methods' })
-				}
-			)
-			if (!response.ok) return { methods: [] }
-			return response.json() as Promise<{ methods: PaymentMethod[] }>
-		}
-	})
-
-	// Pay rent mutation
-	// TODO(phase-57): Rent payment requires Edge Function implementation
-	const payMutation = useMutation({
-		mutationFn: async (_data: PayRentRequest) => {
-			throw new Error('Rent payment requires Edge Function implementation')
-		},
-		onSuccess: () => {
-			toast.success('Payment submitted successfully!')
-			queryClient.invalidateQueries({ queryKey: tenantPortalQueries.all() })
-			router.push('/tenant/payments/history')
-		},
-		onError: error => {
-			toast.error(error instanceof Error ? error.message : 'Payment failed')
-		}
-	})
-
-	const handleSubmitPayment = () => {
-		if (!selectedMethod || !amountDue) return
-
-		payMutation.mutate({
-			payment_method_id: selectedMethod,
-			amount_cents: amountDue.total_due_cents
-		})
-	}
-
-	const paymentMethods = methodsData?.methods ?? []
 
 	// Loading state
 	if (isLoadingAmount) {
@@ -184,6 +108,55 @@ export default function PayRentPage() {
 		)
 	}
 
+	// Charges not enabled — owner hasn't completed Stripe onboarding
+	if (amountDue && !amountDue.charges_enabled) {
+		return (
+			<div className="container mx-auto max-w-2xl py-12">
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center gap-2">
+							<AlertTriangle className="size-5" />
+							Payments Not Available
+						</CardTitle>
+						<CardDescription>
+							Your property owner has not completed their payment setup. Please
+							contact your landlord.
+						</CardDescription>
+					</CardHeader>
+				</Card>
+			</div>
+		)
+	}
+
+	// No rent_due record — nothing currently due
+	if (!amountDue?.rent_due_id) {
+		return (
+			<div className="container mx-auto max-w-2xl py-12">
+				<Card>
+					<CardHeader className="text-center">
+						<CardTitle>No Rent Currently Due</CardTitle>
+						<CardDescription>
+							No rent currently due. Check back on your payment date.
+						</CardDescription>
+					</CardHeader>
+					<CardFooter className="justify-center">
+						<Button
+							variant="outline"
+							onClick={() => router.push('/tenant')}
+						>
+							Back to Dashboard
+						</Button>
+					</CardFooter>
+				</Card>
+			</div>
+		)
+	}
+
+	const handlePayWithStripe = () => {
+		if (!amountDue.rent_due_id) return
+		checkoutMutation.mutate(amountDue.rent_due_id)
+	}
+
 	return (
 		<div className="container mx-auto max-w-2xl py-12">
 			<Card>
@@ -197,7 +170,7 @@ export default function PayRentPage() {
 					{/* Payment Breakdown */}
 					<div className="rounded-lg border p-4 space-y-3">
 						<h3 className="font-semibold">Payment Breakdown</h3>
-						{amountDue?.breakdown.map(item => (
+						{amountDue.breakdown.map(item => (
 							<div
 								key={item.description}
 								className="flex justify-between text-sm"
@@ -212,13 +185,13 @@ export default function PayRentPage() {
 						<div className="flex justify-between font-semibold">
 							<span>Total Due</span>
 							<span className="text-lg">
-								{formatCents(amountDue?.total_due_cents ?? 0)}
+								{formatCents(amountDue.total_due_cents)}
 							</span>
 						</div>
 					</div>
 
 					{/* Late Fee Warning */}
-					{amountDue && amountDue.days_late > 0 && (
+					{amountDue.days_late > 0 && (
 						<div className="rounded-lg border border-warning/30 bg-warning/10 p-4">
 							<div className="flex items-center gap-2 text-warning">
 								<AlertTriangle className="size-4" />
@@ -232,70 +205,28 @@ export default function PayRentPage() {
 							</p>
 						</div>
 					)}
-
-					{/* Payment Method Selection */}
-					<div className="space-y-2">
-						<label className="typography-small">Payment Method</label>
-						{isLoadingMethods ? (
-							<Skeleton className="h-10 w-full" />
-						) : paymentMethods.length === 0 ? (
-							<div className="rounded-lg border border-dashed p-4 text-center">
-								<CreditCard className="mx-auto size-8 text-muted-foreground" />
-								<p className="mt-2 text-muted">No payment methods on file</p>
-								<Button
-									variant="link"
-									size="sm"
-									onClick={() =>
-										router.push('/tenant/payments/methods')
-									}
-								>
-									Add a payment method
-								</Button>
-							</div>
-						) : (
-							<Select value={selectedMethod} onValueChange={setSelectedMethod}>
-								<SelectTrigger>
-									<SelectValue placeholder="Select a payment method" />
-								</SelectTrigger>
-								<SelectContent>
-									{paymentMethods.map(method => (
-										<SelectItem key={method.id} value={method.id}>
-											<div className="flex items-center gap-2">
-												<CreditCard className="size-4" />
-												<span className="capitalize">{method.card?.brand}</span>
-												<span>ending in {method.card?.last4}</span>
-												{method.is_default && (
-													<Badge variant="secondary" className="ml-2">
-														Default
-													</Badge>
-												)}
-											</div>
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						)}
-					</div>
 				</CardContent>
 				<CardFooter className="flex-col gap-4">
 					<Button
-						className="w-full"
+						className="w-full gap-2"
 						size="lg"
-						onClick={handleSubmitPayment}
-						disabled={!selectedMethod || payMutation.isPending}
+						onClick={handlePayWithStripe}
+						disabled={checkoutMutation.isPending}
 					>
-						{payMutation.isPending ? (
+						{checkoutMutation.isPending ? (
 							<>
-								<Loader2 className="mr-2 size-4 animate-spin" />
-								Processing...
+								<Loader2 className="size-4 animate-spin" />
+								Redirecting to Stripe...
 							</>
 						) : (
-							`Pay ${formatCents(amountDue?.total_due_cents ?? 0)}`
+							<>
+								<CreditCard className="size-5" />
+								Pay {formatCents(amountDue.total_due_cents)} with Stripe
+							</>
 						)}
 					</Button>
 					<p className="text-xs text-center text-muted-foreground">
-						By clicking Pay, you authorize this payment to your property
-						manager.
+						You will be redirected to Stripe to complete your payment securely.
 					</p>
 				</CardFooter>
 			</Card>

@@ -26,18 +26,14 @@ import {
 	type QueryKey
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
-import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { RentPayment } from '@repo/shared/types/core'
-import type {
-	PaymentMethodResponse,
-	PaymentMethodResponseWithVersion,
-	StripeSessionStatusResponse
-} from '@repo/shared/types/core'
+import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import type {
 	TenantPaymentStatusResponse,
 	SendPaymentReminderRequest,
@@ -103,14 +99,6 @@ export const rentPaymentKeys = {
 }
 
 /**
- * Payment method query keys
- */
-export const paymentMethodKeys = {
-	all: ['paymentMethods'] as const,
-	list: () => [...paymentMethodKeys.all, 'list'] as const
-}
-
-/**
  * Payment verification query keys
  */
 export const paymentVerificationKeys = {
@@ -135,9 +123,7 @@ export const rentCollectionQueries = {
 			queryKey: rentCollectionKeys.analytics(),
 			queryFn: async (): Promise<PaymentCollectionAnalytics> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				// Use get_dashboard_stats RPC which includes payment analytics
 				const { data, error } = await supabase.rpc('get_dashboard_stats', {
@@ -241,9 +227,7 @@ export const tenantPaymentQueries = {
 				const supabase = createClient()
 				const limit = options?.limit ?? 20
 				// Resolve tenant record for the logged-in user
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 				const { data: tenant, error: tenantError } = await supabase
 					.from('tenants')
@@ -332,6 +316,7 @@ export async function exportPaymentsCSV(
 			'id, amount, currency, status, due_date, paid_date, period_start, period_end, payment_method_type, late_fee_amount, notes, created_at'
 		)
 		.order('due_date', { ascending: false })
+		.limit(10000)
 
 	if (filters?.status) {
 		query = query.eq('status', filters.status)
@@ -510,7 +495,13 @@ export function useCreateRentPaymentMutation() {
 				currency: 'USD',
 				notes: null,
 				created_at: new Date().toISOString(),
-				updated_at: null
+				updated_at: null,
+				gross_amount: null,
+				platform_fee_amount: null,
+				stripe_fee_amount: null,
+				net_amount: null,
+				rent_due_id: null,
+				checkout_session_id: null
 			}
 
 			queryClient.setQueryData<RentPayment[] | undefined>(
@@ -597,17 +588,25 @@ type SendReminderVariables = {
 }
 
 /**
- * Send payment reminder to tenant
- * NOTE: Payment reminders require email Edge Function — see Phase 55
+ * Send payment reminder to tenant via Resend email Edge Function.
+ * Invokes the send-payment-reminder Edge Function which uses the
+ * shared _shared/resend.ts helper to deliver the reminder email.
  */
 export function useSendTenantPaymentReminderMutation() {
 	const queryClient = useQueryClient()
 
 	return useMutation({
 		mutationKey: mutationKeys.rentPayments.sendReminder,
-		mutationFn: async (_variables: SendReminderVariables): Promise<SendPaymentReminderResponse> => {
-			// TODO Phase 55: payment reminder requires email Edge Function
-			throw new Error('TODO Phase 55: payment reminder requires email Edge Function')
+		mutationFn: async (variables: SendReminderVariables): Promise<SendPaymentReminderResponse> => {
+			const supabase = createClient()
+			const { data, error } = await supabase.functions.invoke(
+				'send-payment-reminder',
+				{
+					body: variables.request
+				}
+			)
+			if (error) throw new Error(error.message ?? 'Failed to send payment reminder')
+			return (data as SendPaymentReminderResponse) ?? { success: true }
 		},
 		onSuccess: (_data, variables) => {
 			if (variables?.ownerQueryKey) {
@@ -627,188 +626,13 @@ export function useSendTenantPaymentReminderMutation() {
 }
 
 // ============================================================================
-// PAYMENT METHOD HOOKS — PostgREST direct (payment_methods table)
-// ============================================================================
-
-/**
- * Fetch tenant payment methods — PostgREST
- */
-export function usePaymentMethods() {
-	return useQuery({
-		queryKey: paymentMethodKeys.list(),
-		queryFn: async (): Promise<PaymentMethodResponse[]> => {
-			const supabase = createClient()
-			const { data, error } = await supabase
-				.from('payment_methods')
-				.select(
-					'id, stripe_payment_method_id, type, brand, last_four, exp_month, exp_year, bank_name, is_default, created_at'
-				)
-				.order('created_at', { ascending: false })
-			if (error) handlePostgrestError(error, 'payment_methods')
-			// Map DB columns to PaymentMethodResponse shape
-			return (data ?? []).map(row => ({
-				id: row.id,
-				tenantId: '',
-				stripePaymentMethodId: row.stripe_payment_method_id,
-				type: row.type as PaymentMethodResponse['type'],
-				last4: row.last_four,
-				brand: row.brand,
-				bankName: row.bank_name,
-				isDefault: row.is_default ?? false,
-				createdAt: row.created_at ?? ''
-			}))
-		},
-		...QUERY_CACHE_TIMES.DETAIL
-	})
-}
-
-/**
- * Set default payment method — PostgREST two-step update
- */
-export function useSetDefaultPaymentMethodMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation<
-		{ success: boolean },
-		unknown,
-		string,
-		{ previous?: PaymentMethodResponse[] }
-	>({
-		mutationFn: async (
-			paymentMethodId: string
-		): Promise<{ success: boolean }> => {
-			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
-			if (!user) throw new Error('Not authenticated')
-
-			// Resolve tenant_id from user
-			const { data: tenant, error: tenantError } = await supabase
-				.from('tenants')
-				.select('id')
-				.eq('user_id', user.id)
-				.single()
-			if (tenantError) handlePostgrestError(tenantError, 'tenants')
-			if (!tenant) throw new Error('Tenant record not found')
-
-			// Clear all defaults for this tenant
-			const { error: clearError } = await supabase
-				.from('payment_methods')
-				.update({ is_default: false })
-				.eq('tenant_id', tenant.id)
-			if (clearError) handlePostgrestError(clearError, 'payment_methods')
-
-			// Set new default
-			const { error } = await supabase
-				.from('payment_methods')
-				.update({ is_default: true })
-				.eq('id', paymentMethodId)
-			if (error) handlePostgrestError(error, 'payment_methods')
-
-			return { success: true }
-		},
-		onMutate: async (
-			paymentMethodId: string
-		): Promise<{
-			previous?: PaymentMethodResponse[]
-		}> => {
-			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
-			const previous = queryClient.getQueryData<PaymentMethodResponse[]>(
-				paymentMethodKeys.list()
-			)
-			queryClient.setQueryData<PaymentMethodResponseWithVersion[]>(
-				paymentMethodKeys.list(),
-				(old: PaymentMethodResponseWithVersion[] | undefined) =>
-					old
-						? old.map((m: PaymentMethodResponseWithVersion) =>
-								incrementVersion(m, {
-									isDefault: m.id === paymentMethodId
-								})
-							)
-						: old
-			)
-			return previous ? { previous } : {}
-		},
-		onError: (
-			_err: unknown,
-			_paymentMethodId: string,
-			context?: {
-				previous?: PaymentMethodResponse[]
-			}
-		) => {
-			if (context?.previous) {
-				queryClient.setQueryData(paymentMethodKeys.list(), context.previous)
-			}
-		}
-	})
-}
-
-/**
- * Delete tenant payment method — PostgREST
- */
-export function useDeletePaymentMethodMutation() {
-	const queryClient = useQueryClient()
-
-	return useMutation<
-		{ success: boolean; message?: string },
-		unknown,
-		string,
-		{ previous?: PaymentMethodResponse[] }
-	>({
-		mutationFn: async (
-			paymentMethodId: string
-		): Promise<{
-			success: boolean
-			message?: string
-		}> => {
-			const supabase = createClient()
-			const { error } = await supabase
-				.from('payment_methods')
-				.delete()
-				.eq('id', paymentMethodId)
-			if (error) handlePostgrestError(error, 'payment_methods')
-			return { success: true }
-		},
-		onMutate: async (
-			paymentMethodId: string
-		): Promise<{
-			previous?: PaymentMethodResponse[]
-		}> => {
-			await queryClient.cancelQueries({ queryKey: paymentMethodKeys.list() })
-			const previous = queryClient.getQueryData<PaymentMethodResponse[]>(
-				paymentMethodKeys.list()
-			)
-			queryClient.setQueryData<PaymentMethodResponse[]>(
-				paymentMethodKeys.list(),
-				(old: PaymentMethodResponse[] | undefined) =>
-					old
-						? old.filter((m: PaymentMethodResponse) => m.id !== paymentMethodId)
-						: old
-			)
-			return previous ? { previous } : {}
-		},
-		onError: (
-			_err: unknown,
-			_paymentMethodId: string,
-			context?: {
-				previous?: PaymentMethodResponse[]
-			}
-		) => {
-			if (context?.previous) {
-				queryClient.setQueryData(paymentMethodKeys.list(), context.previous)
-			}
-		}
-	})
-}
-
-// ============================================================================
 // PAYMENT VERIFICATION HOOKS
 // ============================================================================
 
 /**
- * Verify payment session with TanStack Query
- * NOTE: Stripe checkout session verification requires Edge Function — see Phase 54-04
+ * Verify payment session — retrieves Stripe Checkout session status.
+ * Used by the /pricing/success page for subscription checkout verification.
+ * Returns null subscription when session ID is missing (graceful degradation).
  */
 export function usePaymentVerification(
 	sessionId: string | null,
@@ -816,14 +640,15 @@ export function usePaymentVerification(
 ) {
 	return useQuery({
 		queryKey: paymentVerificationKeys.verifySession(sessionId ?? ''),
-		queryFn: async (): Promise<{ subscription: SubscriptionData }> => {
-			if (!sessionId) {
-				throw new Error('No session ID provided')
-			}
-			// TODO(phase-54-04): wire to stripe-checkout Edge Function once implemented
-			throw new Error(
-				'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
+		queryFn: async (): Promise<{ subscription: SubscriptionData | null }> => {
+			if (!sessionId) return { subscription: null }
+			const supabase = createClient()
+			const { data, error } = await supabase.functions.invoke(
+				'stripe-checkout-status',
+				{ body: { session_id: sessionId } }
 			)
+			if (error) throw new Error(error.message ?? 'Session verification failed')
+			return { subscription: (data as { subscription: SubscriptionData | null })?.subscription ?? null }
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.SECURITY,
@@ -835,8 +660,9 @@ export function usePaymentVerification(
 }
 
 /**
- * Get session status with TanStack Query
- * NOTE: Session status requires stripe-checkout Edge Function — see Phase 54-04
+ * Get Stripe Checkout session status.
+ * Used by the /pricing/complete page for subscription checkout completion.
+ * Returns null data when session ID is missing.
  */
 export function useSessionStatus(
 	sessionId: string | null,
@@ -846,12 +672,15 @@ export function useSessionStatus(
 		queryKey: paymentVerificationKeys.sessionStatus(sessionId ?? ''),
 		queryFn: async (): Promise<StripeSessionStatusResponse> => {
 			if (!sessionId) {
-				throw new Error('No session ID provided')
+				return { status: 'expired', payment_intent_id: null, payment_status: null, payment_intent_status: null } as StripeSessionStatusResponse
 			}
-			// TODO(phase-54-04): wire to stripe-checkout Edge Function once implemented
-			throw new Error(
-				'Session verification requires stripe-checkout Edge Function — see Phase 54-04'
+			const supabase = createClient()
+			const { data, error } = await supabase.functions.invoke(
+				'stripe-checkout-status',
+				{ body: { session_id: sessionId } }
 			)
+			if (error) throw new Error(error.message ?? 'Session status check failed')
+			return data as StripeSessionStatusResponse
 		},
 		enabled: !!sessionId,
 		...QUERY_CACHE_TIMES.STATS,

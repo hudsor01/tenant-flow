@@ -1,10 +1,10 @@
 /**
  * Tests for useTemplatePdf hook
  *
- * Note: After NestJS removal (phase-57), PDF preview and export are stubs.
- * These tests validate the stub behavior pattern:
- * - handlePreview debounces, then shows a stub error toast
- * - handleExport sets isExporting, then shows a stub error toast
+ * PDF preview and export are not yet implemented (Edge Function pending).
+ * These tests validate the graceful "not available" behavior:
+ * - handlePreview debounces, then shows an info toast
+ * - handleExport sets isExporting, then shows an info toast
  * - Cleanup revokes blob URLs and clears debounce timers
  */
 
@@ -17,7 +17,8 @@ import { toast } from 'sonner'
 vi.mock('sonner', () => ({
 	toast: {
 		success: vi.fn(),
-		error: vi.fn()
+		error: vi.fn(),
+		info: vi.fn()
 	}
 }))
 
@@ -91,12 +92,12 @@ describe('useTemplatePdf', () => {
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
 
-			// Call preview - should not immediately trigger error toast (debounced)
+			// Call preview - should not immediately trigger info toast (debounced)
 			await act(async () => {
 				result.current.handlePreview()
 			})
 
-			expect(toast.error).not.toHaveBeenCalled()
+			expect(toast.info).not.toHaveBeenCalled()
 
 			// Advance timer past debounce delay
 			await act(async () => {
@@ -104,8 +105,8 @@ describe('useTemplatePdf', () => {
 				await Promise.resolve() // flush microtasks
 			})
 
-			// After debounce fires, the stub error should appear
-			expect(toast.error).toHaveBeenCalled()
+			// After debounce fires, the info toast should appear
+			expect(toast.info).toHaveBeenCalled()
 		})
 
 		it('should cancel previous debounced call when called again', async () => {
@@ -133,7 +134,7 @@ describe('useTemplatePdf', () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY / 2)
 			})
 
-			expect(toast.error).not.toHaveBeenCalled()
+			expect(toast.info).not.toHaveBeenCalled()
 
 			// Advance remaining time - now the second call fires
 			await act(async () => {
@@ -142,10 +143,10 @@ describe('useTemplatePdf', () => {
 			})
 
 			// Only one toast call should have been made (deduplicated)
-			expect(vi.mocked(toast.error).mock.calls.length).toBe(1)
+			expect(vi.mocked(toast.info).mock.calls.length).toBe(1)
 		})
 
-		it('should show stub error toast on preview attempt', async () => {
+		it('should show info toast on preview attempt', async () => {
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -156,11 +157,11 @@ describe('useTemplatePdf', () => {
 				await Promise.resolve()
 			})
 
-			// Stub shows error toast with the stub message
-			expect(toast.error).toHaveBeenCalledWith(
-				'PDF preview requires StirlingPDF Edge Function implementation'
+			// Shows info toast indicating feature is not yet available
+			expect(toast.info).toHaveBeenCalledWith(
+				'PDF preview is not yet available'
 			)
-			// previewUrl remains null since stub throws
+			// previewUrl remains null since feature is not implemented
 			expect(result.current.previewUrl).toBeNull()
 		})
 
@@ -182,17 +183,13 @@ describe('useTemplatePdf', () => {
 				await Promise.resolve()
 			})
 
-			// After stub throws, isGeneratingPreview should be false again
+			// After info toast, isGeneratingPreview should be false again
 			expect(result.current.isGeneratingPreview).toBe(false)
 		})
 	})
 
 	describe('handleExport', () => {
 		it('should set isExporting to false after export completes', async () => {
-			// Note: Since the stub throws synchronously, React may batch the
-			// setIsExporting(true) and setIsExporting(false) updates together,
-			// making it impossible to observe the intermediate 'true' state.
-			// We verify the final state (false) after completion.
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -201,11 +198,11 @@ describe('useTemplatePdf', () => {
 				await result.current.handleExport()
 			})
 
-			// After the stub throws and finally runs, isExporting should be false
+			// After the info toast and finally runs, isExporting should be false
 			expect(result.current.isExporting).toBe(false)
 		})
 
-		it('should show stub error toast on export attempt', async () => {
+		it('should show info toast on export attempt', async () => {
 			const { result } = renderHook(() =>
 				useTemplatePdf(mockTemplate, mockGetPayload)
 			)
@@ -214,9 +211,9 @@ describe('useTemplatePdf', () => {
 				await result.current.handleExport()
 			})
 
-			// Stub shows error toast with the stub message
-			expect(toast.error).toHaveBeenCalledWith(
-				'PDF export requires StirlingPDF Edge Function implementation'
+			// Shows info toast indicating feature is not yet available
+			expect(toast.info).toHaveBeenCalledWith(
+				'PDF export is not yet available'
 			)
 		})
 
@@ -246,13 +243,13 @@ describe('useTemplatePdf', () => {
 			// Unmount before debounce fires
 			unmount()
 
-			// Advance timer - toast.error should NOT be called because timer was cleared
+			// Advance timer - toast.info should NOT be called because timer was cleared
 			await act(async () => {
 				vi.advanceTimersByTime(DEBOUNCE_DELAY)
 				await Promise.resolve()
 			})
 
-			expect(toast.error).not.toHaveBeenCalled()
+			expect(toast.info).not.toHaveBeenCalled()
 		})
 
 		it('should not throw on unmount without preview', () => {

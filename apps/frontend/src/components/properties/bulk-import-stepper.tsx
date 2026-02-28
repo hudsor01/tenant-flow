@@ -58,9 +58,12 @@ export function BulkImportStepper({
 
 	const bulkImportMutation = useMutation({
 		mutationFn: async (_uploadFile: File): Promise<BulkImportResult> => {
-			// TODO: Bulk import requires a server-side Edge Function implementation
-			// NestJS backend removed; CSV parsing Edge Function not yet built
-			throw new Error('Bulk import is temporarily unavailable — TODO(phase-57): requires Edge Function')
+			return {
+				success: false,
+				imported: 0,
+				failed: 0,
+				errors: [{ row: 0, error: 'Bulk import is not yet available. Please add properties individually.' }]
+			}
 		},
 		onSuccess: async data => {
 			await queryClient.invalidateQueries({ queryKey: propertyQueries.all() })

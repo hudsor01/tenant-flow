@@ -1,6 +1,6 @@
 import { createLogger } from '@repo/shared/lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
-
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 const logger = createLogger({ component: 'TourProgress' })
 
 export type TourKey = 'owner-onboarding' | 'tenant-onboarding'
@@ -71,9 +71,7 @@ export async function getTourProgress(tourKey: TourKey): Promise<TourProgress> {
 
 	try {
 		const supabase = createClient()
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
+		const user = await getCachedUser()
 		if (!user) throw new Error('Not authenticated')
 
 		const { data, error } = await supabase
@@ -145,9 +143,7 @@ export async function updateTourProgress(
 
 	try {
 		const supabase = createClient()
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
+		const user = await getCachedUser()
 		if (!user) throw new Error('Not authenticated')
 
 		const now = new Date().toISOString()
@@ -211,9 +207,7 @@ export async function resetTourProgress(
 
 	try {
 		const supabase = createClient()
-		const {
-			data: { user }
-		} = await supabase.auth.getUser()
+		const user = await getCachedUser()
 		if (!user) throw new Error('Not authenticated')
 
 		const now = new Date().toISOString()

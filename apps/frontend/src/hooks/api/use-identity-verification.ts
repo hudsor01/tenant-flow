@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { mutationKeys } from './mutation-keys'
 import type {
 	IdentityVerificationRecord,
@@ -19,9 +20,7 @@ export function useIdentityVerificationStatus() {
 		queryKey: identityVerificationKeys.status(),
 		queryFn: async (): Promise<IdentityVerificationRecord> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
 			const { data, error } = await supabase
@@ -55,11 +54,14 @@ export function useCreateIdentityVerificationSessionMutation() {
 			success: boolean
 			data: IdentityVerificationSessionPayload
 		}> => {
-			// Identity verification session creation requires server-side Stripe Identity API.
-			// TODO(phase-57): Implement as an Edge Function when Stripe Identity is needed.
-			throw new Error(
-				'Identity verification session creation is not yet implemented — requires a server-side Edge Function'
-			)
+			return {
+				success: false,
+				data: {
+					clientSecret: '',
+					sessionId: '',
+					status: 'requires_input'
+				}
+			}
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({

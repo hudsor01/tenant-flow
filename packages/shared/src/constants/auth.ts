@@ -7,7 +7,8 @@ export const USER_user_type = {
 	OWNER: 'OWNER',
 	MANAGER: 'MANAGER',
 	TENANT: 'TENANT',
-	ADMIN: 'ADMIN'
+	ADMIN: 'ADMIN',
+	PENDING: 'PENDING'
 } as const
 
 export const USER_user_type_OPTIONS = Object.values(USER_user_type)

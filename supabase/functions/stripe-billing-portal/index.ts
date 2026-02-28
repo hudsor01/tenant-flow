@@ -3,18 +3,13 @@
 // Returns { url } — frontend redirects to this URL.
 // Authenticated: requires JWT Bearer token.
 
-import Stripe from 'npm:stripe@14'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import Stripe from 'stripe'
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') ?? ''
   const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -24,14 +19,14 @@ Deno.serve(async (req: Request) => {
   // Authenticate
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+    return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   const token = authHeader.replace('Bearer ', '')
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)
   if (authError || !user) {
-    return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+    return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
   }
 
   try {
@@ -47,7 +42,7 @@ Deno.serve(async (req: Request) => {
     if (!userData?.stripe_customer_id) {
       return new Response(
         JSON.stringify({ error: 'No Stripe customer found. Subscribe to a plan first.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -60,12 +55,12 @@ Deno.serve(async (req: Request) => {
 
     return new Response(JSON.stringify({ url: session.url }), {
       status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     })
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Portal session failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

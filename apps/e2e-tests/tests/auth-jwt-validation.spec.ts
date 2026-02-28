@@ -234,10 +234,10 @@ test.describe('Authentication & JWT Validation', () => {
 	}) => {
 		const apiCalls: { url: string; status: number }[] = []
 
-		// Track API calls to backend
+		// Track API calls to Supabase PostgREST
 		page.on('response', response => {
 			const url = response.url()
-			if (url.includes('/api/v1/')) {
+			if (url.includes('/rest/v1/')) {
 				apiCalls.push({ url, status: response.status() })
 			}
 		})

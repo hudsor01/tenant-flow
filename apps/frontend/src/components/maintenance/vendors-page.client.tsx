@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useDebouncedCallback } from '#hooks/use-debounced-callback'
 import { Building2, Phone, Mail, DollarSign, Search, Trash2 } from 'lucide-react'
 import { useVendors, useDeleteVendorMutation } from '#hooks/api/use-vendor'
 import type { Vendor, VendorFilters } from '#hooks/api/use-vendor'
@@ -138,10 +139,14 @@ function VendorsSkeleton() {
 
 export function VendorsPageClient() {
 	const [search, setSearch] = useState('')
+	const [debouncedSearch, setDebouncedSearch] = useState('')
+	const debouncedSetSearch = useDebouncedCallback((value: string) => {
+		setDebouncedSearch(value)
+	}, 300)
 	const [tradeFilter, setTradeFilter] = useState<string>('all')
 
 	const filters: VendorFilters = {
-		...(search ? { search } : {}),
+		...(debouncedSearch ? { search: debouncedSearch } : {}),
 		...(tradeFilter !== 'all' ? { trade: tradeFilter } : {}),
 	}
 
@@ -170,7 +175,10 @@ export function VendorsPageClient() {
 					<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
 					<Input
 						value={search}
-						onChange={e => setSearch(e.target.value)}
+						onChange={e => {
+							setSearch(e.target.value)
+							debouncedSetSearch(e.target.value)
+						}}
 						placeholder="Search vendors..."
 						className="pl-9 h-11"
 					/>

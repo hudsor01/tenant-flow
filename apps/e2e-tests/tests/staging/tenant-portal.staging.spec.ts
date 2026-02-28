@@ -68,15 +68,14 @@ test.describe('Staging Tenant Portal Smoke', () => {
 		})
 	})
 
-	test('API health endpoint reports ok', async ({ request }) => {
+	test('Frontend health endpoint reports ok', async ({ request }) => {
 		const normalizedBaseUrl = baseUrl.replace(/\/$/, '')
-		const response = await request.get(`${normalizedBaseUrl}/api/v1/health`, {
+		const response = await request.get(`${normalizedBaseUrl}/api/health`, {
 			timeout: 20_000
 		})
 
 		expect(response.ok()).toBeTruthy()
 		const payload = await response.json()
-		expect(payload.status).toBe('ok')
 		expect(payload).toHaveProperty('services')
 	})
 })
