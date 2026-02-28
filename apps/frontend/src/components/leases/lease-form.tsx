@@ -17,6 +17,8 @@ import type { LeaseStatus, LeaseWithExtras } from '@repo/shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { useCurrentUser } from '#hooks/use-current-user'
+import { cn } from '#lib/utils'
 import { ErrorBoundary } from '#components/error-boundary/error-boundary'
 import { z } from 'zod'
 import { LeaseFormPropertyUnitFields } from './lease-form-property-unit-fields'
@@ -48,6 +50,7 @@ const validationSchema = z.object({
 export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const logger = createLogger({ component: 'LeaseForm' })
 
 	const createLeaseMutation = useCreateLeaseMutation()
@@ -195,7 +198,11 @@ export function LeaseForm({ mode, lease, onSuccess }: LeaseFormProps) {
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting}>
+						<Button
+							type="submit"
+							disabled={isSubmitting || isAuthLoading}
+							className={cn(isAuthLoading && 'animate-pulse')}
+						>
 							{isSubmitting
 								? mode === 'create'
 									? 'Creating...'

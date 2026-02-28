@@ -105,7 +105,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API to return 404 (no account)
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -138,7 +138,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API to return 404 (no account)
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -171,7 +171,7 @@ test.describe('Stripe Connect Onboarding', () => {
 
 		test('should validate display name is required', async ({ page }) => {
 			// Mock API to return 404 (no account)
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -198,7 +198,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API to return 404 (no account)
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -234,7 +234,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			let refreshLinkCalled = false
 
 			// Mock API - no account initially
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				if (!onboardCalled) {
 					route.fulfill({
 						status: 404,
@@ -251,7 +251,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock onboard endpoint
-			await page.route('**/api/v1/stripe/connect/onboard', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				onboardCalled = true
 				route.fulfill({
 					status: 200,
@@ -261,7 +261,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock refresh-link endpoint
-			await page.route('**/api/v1/stripe/connect/refresh-link', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				refreshLinkCalled = true
 				route.fulfill({
 					status: 200,
@@ -309,7 +309,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API - no account initially
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -318,7 +318,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock onboard endpoint with delay
-			await page.route('**/api/v1/stripe/connect/onboard', async route => {
+			await page.route('**/functions/v1/stripe-connect', async route => {
 				await new Promise(r => setTimeout(r, 500))
 				route.fulfill({
 					status: 200,
@@ -347,7 +347,7 @@ test.describe('Stripe Connect Onboarding', () => {
 	test.describe('3. Connected Account Status Display', () => {
 		test('should display active account status', async ({ page }) => {
 			// Mock API to return active account
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -379,7 +379,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API to return pending account
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -411,7 +411,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			let refreshCalled = false
 
 			// Mock API to return pending account
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -420,7 +420,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock refresh-link endpoint
-			await page.route('**/api/v1/stripe/connect/refresh-link', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				refreshCalled = true
 				route.fulfill({
 					status: 200,
@@ -461,7 +461,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock API - no account initially
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 404,
 					contentType: 'application/json',
@@ -470,7 +470,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock onboard endpoint to fail
-			await page.route('**/api/v1/stripe/connect/onboard', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 500,
 					contentType: 'application/json',
@@ -500,7 +500,7 @@ test.describe('Stripe Connect Onboarding', () => {
 
 		test('should handle refresh link errors gracefully', async ({ page }) => {
 			// Mock API to return pending account
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -509,7 +509,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock refresh-link to fail
-			await page.route('**/api/v1/stripe/connect/refresh-link', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 500,
 					contentType: 'application/json',
@@ -536,7 +536,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			page
 		}) => {
 			// Mock account endpoint
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -545,7 +545,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock balance endpoint
-			await page.route('**/api/v1/stripe/connect/balance', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -563,7 +563,7 @@ test.describe('Stripe Connect Onboarding', () => {
 
 		test('should display payout history', async ({ page }) => {
 			// Mock account endpoint
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -572,7 +572,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock payouts endpoint
-			await page.route('**/api/v1/stripe/connect/payouts*', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -590,7 +590,7 @@ test.describe('Stripe Connect Onboarding', () => {
 
 		test('should display transfer history', async ({ page }) => {
 			// Mock account endpoint
-			await page.route('**/api/v1/stripe/connect/account', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',
@@ -599,7 +599,7 @@ test.describe('Stripe Connect Onboarding', () => {
 			})
 
 			// Mock transfers endpoint
-			await page.route('**/api/v1/stripe/connect/transfers*', route => {
+			await page.route('**/functions/v1/stripe-connect', route => {
 				route.fulfill({
 					status: 200,
 					contentType: 'application/json',

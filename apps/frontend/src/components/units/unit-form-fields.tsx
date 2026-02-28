@@ -15,6 +15,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { Button } from '#components/ui/button'
+import { cn } from '#lib/utils'
 import type { UnitFormApi } from './unit-form-types'
 import { DollarSign } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -29,13 +30,15 @@ interface UnitFormFieldsProps {
 	properties: Property[] | undefined
 	mode: 'create' | 'edit'
 	isSubmitting: boolean
+	isAuthLoading?: boolean
 }
 
 export function UnitFormFields({
 	form,
 	properties,
 	mode,
-	isSubmitting
+	isSubmitting,
+	isAuthLoading
 }: UnitFormFieldsProps) {
 	const router = useRouter()
 
@@ -198,7 +201,11 @@ export function UnitFormFields({
 				>
 					Cancel
 				</Button>
-				<Button type="submit" disabled={isSubmitting}>
+				<Button
+					type="submit"
+					disabled={isSubmitting || isAuthLoading}
+					className={cn(isAuthLoading && 'animate-pulse')}
+				>
 					{isSubmitting
 						? mode === 'create'
 							? 'Creating...'

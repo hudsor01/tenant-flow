@@ -10,6 +10,7 @@
 
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 // ============================================================================
@@ -39,9 +40,7 @@ const onboardingQueries = {
 			queryKey: onboardingKeys.status(),
 			queryFn: async (): Promise<OnboardingStatusResult> => {
 				const supabase = createClient()
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 
 				if (!user) {
 					return { onboarding_status: null }
@@ -90,7 +89,7 @@ export function useOnboarding() {
 	const updateMutation = useMutation({
 		mutationFn: async (status: 'started' | 'completed' | 'skipped') => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 			const { error } = await supabase
 				.from('users')

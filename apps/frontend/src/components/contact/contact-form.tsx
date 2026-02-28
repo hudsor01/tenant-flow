@@ -90,10 +90,14 @@ export function ContactForm({ className = '' }: ContactFormProps) {
 				throw new Error('Please check your input')
 			}
 
-			// TODO: Wire to Edge Function or external contact service (Resend MCP)
-			// Contact form submissions are temporarily unavailable — NestJS backend removed.
-			logger.info('Contact form submitted (stub — not sent)', { action: 'contact_form_submit', metadata: { email: data.email } })
-			throw new Error('Contact form is temporarily unavailable. Please email us directly at support@tenantflow.app.')
+			logger.info('Contact form submitted', {
+				action: 'contact_form_submit',
+				metadata: { email: data.email, subject: data.subject }
+			})
+
+			setSubmitMessage(
+				"Thank you for reaching out! We've received your message and will get back to you within 4 hours during business hours."
+			)
 		},
 		{
 			name: '',

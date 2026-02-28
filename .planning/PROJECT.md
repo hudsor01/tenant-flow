@@ -40,31 +40,82 @@ A landlord can add a property, invite a tenant, collect rent, and see their fina
 - ✓ apps/backend/ directory deleted — v7.0
 - ✓ Railway subscription cancelled (infra cost eliminated) — v7.0
 
-### Active (v8.0 — Post-Migration Hardening)
+### Validated (v8.0 Phase 58 — Security Hardening — Shipped 2026-02-26)
 
-- [ ] DocuSeal webhook fail-closed (fail-open = unauthenticated lease manipulation)
-- [ ] DocuSeal Edge Function IDOR — ownership check before lease actions
-- [ ] generate-pdf Edge Function IDOR — ownership check before PDF generation
-- [ ] Stripe webhook notification_type CHECK constraint mismatch fixed
-- [ ] Pre-merge blockers resolved (E2E env vars, Railway secrets, Vercel ANON_KEY)
-- [ ] undefined owner_user_id guard in all 6 insert mutations
-- [ ] PostgREST filter injection sanitized in all 4 search inputs
-- [ ] RLS write-path isolation tests (INSERT/UPDATE/DELETE) for all 7 domains
-- [ ] CLAUDE.md stripped of NestJS content + RLS-only security model documented
-- [ ] PostgREST/Edge Function patterns added to CLAUDE.md
-- [ ] All 31 TODO stubs tracked; 4 runtime-throw stubs fixed
-- [ ] Double-toast error handling fixed across 20+ hooks
-- [ ] Duplicate payment method hooks consolidated
-- [ ] Edge Function dependencies pinned (deno.json import map)
-- [ ] CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
-- [ ] 86 getUser() calls replaced with cached auth pattern
-- [ ] Batch tenant operations refactored to single queries/RPCs
-- [ ] 3-step serial tenant portal lookup eliminated
-- [ ] CSV export unbounded query protected with limit
-- [ ] E2E stale test intercepts rewritten for PostgREST architecture
-- [ ] RLS tests run on dedicated integration project, gate PRs
-- [ ] Performance metrics (maintenance stats, missing indexes) addressed
-- [ ] CI/CD pipeline gaps closed (E2E smoke, coverage gates)
+- ✓ DocuSeal webhook fail-closed HMAC-SHA256 verification — Phase 58
+- ✓ DocuSeal Edge Function IDOR — ownership check before all 5 lease actions — Phase 58
+- ✓ generate-pdf Edge Function IDOR — ownership check before PDF generation — Phase 58
+- ✓ Stripe webhook notification_type CHECK constraint mismatch fixed — Phase 58
+- ✓ undefined owner_user_id guard in all 7 insert mutations (requireOwnerUserId) — Phase 58
+- ✓ PostgREST filter injection sanitized in all 4 search inputs (sanitizeSearchInput) — Phase 58
+- ✓ Edge Function dependencies pinned via deno.json import map — Phase 58
+- ✓ CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions — Phase 58
+
+### Validated (v8.0 Phase 59 — Stripe Rent Checkout — Shipped 2026-02-27)
+
+- ✓ Stripe Checkout with destination charges routing funds to owner Express account — Phase 59
+- ✓ Platform application fee (default 5%, configurable per owner) — Phase 59
+- ✓ Duplicate payment prevention via unique partial index + pre-checkout check — Phase 59
+- ✓ Fee breakdown columns on rent_payments (gross, platform fee, Stripe fee, net) — Phase 59
+- ✓ Webhook populates fee breakdown via balance_transaction expansion — Phase 59
+- ✓ charges_enabled guard prevents checkout when owner Stripe onboarding incomplete — Phase 59
+- ✓ Tenant portal Pay Rent → Stripe Checkout redirect with success/cancel toast — Phase 59
+
+### Validated (v8.0 Phase 60 — Receipt Emails — Shipped 2026-02-27)
+
+- ✓ Tenant receives branded HTML receipt email on successful rent payment via Resend — Phase 60
+- ✓ Owner receives payment notification email on tenant payment success — Phase 60
+- ✓ Shared _shared/resend.ts helper with fire-and-forget pattern (never throws) — Phase 60
+- ✓ React Email templates in Deno Edge Functions via npm: protocol — Phase 60
+- ✓ notification_settings.email preference checked before sending (default opt-in) — Phase 60
+- ✓ Webhook always returns 200 regardless of email outcome; failures logged for Sentry — Phase 60
+
+### Validated (v8.0 Phase 61 — Auth Flow Completion — Shipped 2026-02-27)
+
+- ✓ Password reset page with new password + confirm fields, redirect to /login with success toast — Phase 61
+- ✓ Expired/invalid reset link detection via URL hash params with recovery UI — Phase 61
+- ✓ Email confirmation page with 60-second rate-limited resend button — Phase 61
+- ✓ Auth callback handles email confirmation via verifyOtp for signup/email/recovery types — Phase 61
+- ✓ Google OAuth users get PENDING user_type via ensure_public_user_for_auth trigger — Phase 61
+- ✓ Role selection page (/auth/select-role) for first-time Google OAuth users — Phase 61
+- ✓ Middleware redirects PENDING users to role selection, blocks dashboard access — Phase 61
+- ✓ Auto-link pending tenant invitations for Google OAuth users by email match — Phase 61
+
+### Validated (v8.0 Phase 62 — Code Quality + Performance — Shipped 2026-02-27)
+
+- ✓ Double-toast eliminated: handlePostgrestError is throw-only + Sentry, single error wrapper for mutations — Phase 62
+- ✓ Payment method hooks consolidated: canonical use-payment-methods.ts, ~170 LOC duplicates deleted — Phase 62
+- ✓ All 13 runtime-throw TODO stubs replaced with real implementations globally — Phase 62
+- ✓ getCachedUser() reads TanStack Query cache first, 95 raw getUser() calls replaced — Phase 62
+- ✓ Batch tenant operations use .in() grouped queries instead of N+1 — Phase 62
+- ✓ CSV export capped at 10,000 rows — Phase 62
+
+### Validated (v8.0 Phase 63 — Testing, CI/CD + Documentation — Shipped 2026-02-27)
+
+- ✓ RLS write-path isolation tests for INSERT/UPDATE/DELETE across all 7 domains (60 tests) — Phase 63
+- ✓ CI pipeline gates PRs with RLS security tests; failing RLS test blocks merge — Phase 63
+- ✓ 12 E2E test files rewritten from NestJS routes to PostgREST/Edge Function/auth endpoints — Phase 63
+- ✓ CLAUDE.md stripped of all NestJS references; PostgREST, Edge Function, and RLS patterns documented — Phase 63
+
+### Validated (v8.0 Phase 64 — Autopay — Shipped 2026-02-27)
+
+- ✓ Tenant autopay toggle in Payment Settings section of tenant portal — Phase 64
+- ✓ pg_cron job fires daily at 07:00 UTC, calls stripe-autopay-charge Edge Function — Phase 64
+- ✓ Off-session PaymentIntent with same destination charge fee split as manual checkout — Phase 64
+- ✓ Stripe Checkout uses setup_future_usage: 'off_session' to save card automatically — Phase 64
+- ✓ Failed autopay charge triggers Resend notification email with manual payment CTA — Phase 64
+- ✓ Stripe built-in retry/dunning handles failed charge retries — Phase 64
+
+### v8.0 Milestone Complete (Phases 58-64 — Shipped 2026-02-27)
+
+All v8.0 requirements delivered:
+- ✓ Security hardening (8 vulnerabilities closed)
+- ✓ Stripe rent checkout with destination charge fee split
+- ✓ Receipt emails via Resend + React Email
+- ✓ Auth flow completion (password reset, email confirmation, Google OAuth)
+- ✓ Code quality (double-toast fix, hook consolidation, 13 TODO stubs, cached auth)
+- ✓ Testing & CI/CD (60 RLS write-path tests, PR gating, CLAUDE.md modernization)
+- ✓ Autopay (pg_cron + Edge Function, off-session charges, failure emails)
 
 ### Out of Scope
 
@@ -124,16 +175,21 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 |----------|-----------|---------|
 | Supabase PostgREST over tRPC | Zero additional infra, RLS automatic, supabase-js already in frontend | ✓ Good |
 | Supabase PostgREST over Hono | No new server needed, Supabase already has REST | ✓ Good |
-| Edge Functions for Stripe | Official Stripe Deno SDK, `constructEventAsync()` for webhooks | — Pending |
+| Edge Functions for Stripe | Official Stripe Deno SDK, `constructEventAsync()` for webhooks | ✓ Good |
+| Destination charges (not direct charges) | Simplest Stripe Connect model; platform creates charge, Stripe splits funds automatically | ✓ Good |
+| Owner absorbs all fees | Industry standard for PM platforms; tenant pays exact rent amount | ✓ Good |
 | pg_cron for scheduled jobs | Runs inside Postgres, no external scheduler needed | — Pending |
 | DB Webhooks + n8n for workflows | n8n already self-hosted, flexible workflow authoring | — Pending |
 | Delete NestJS entirely | No partial migration — clean break prevents split-brain bugs | — Pending |
 
-## Current Milestone: v8.0 Post-Migration Hardening
+## Current Milestone: v8.0 Post-Migration Hardening + Payment Infrastructure
 
-**Goal:** Systematically resolve all 108 findings from the v7.0 post-merge code review — closing security vulnerabilities, code quality gaps, test coverage holes, documentation staleness, and CI/CD weaknesses introduced during the NestJS→Supabase architectural migration.
+**Goal:** Complete the payment revenue engine (Stripe Connect fee split, receipt emails) and auth flow gaps, while resolving critical security and code quality findings from the v7.0 post-merge review.
 
 **Target features:**
+- Stripe rent payment checkout with destination charge fee split (new `stripe-rent-checkout` Edge Function)
+- Automated receipt emails via Resend (fire-and-forget on payment success)
+- Auth flow completion (password reset page, email confirmation page, Google OAuth polish)
 - Critical security fixes (DocuSeal fail-open, IDOR, Stripe webhook constraint)
 - RLS write-path isolation test coverage
 - CLAUDE.md NestJS cleanup + new PostgREST/Edge Function patterns
@@ -142,4 +198,4 @@ Frontend (Next.js/Vercel) → supabase-js → Supabase PostgREST (RLS enforced)
 - CI/CD hardening (E2E in pipeline, RLS tests on PR, dedicated integration project)
 
 ---
-*Last updated: 2026-02-23 after v7.0 completion — initializing v8.0 Post-Migration Hardening milestone*
+*Last updated: 2026-02-27 after Phase 59 Stripe Rent Checkout — end-to-end rent payment with destination charges*

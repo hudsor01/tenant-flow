@@ -14,7 +14,10 @@ import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from '@tansta
 import { toast } from 'sonner'
 
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { handleMutationError } from '#lib/mutation-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 import { createLogger, logger } from '@repo/shared/lib/frontend-logger'
@@ -223,10 +226,7 @@ export function useMarkPropertySoldMutation() {
 				})
 			}
 
-			logger.error('Failed to mark property as sold', {
-				property_id: id,
-				error: err instanceof Error ? err.message : String(err)
-			})
+			handleMutationError(err, 'Mark property as sold')
 		},
 		onSuccess: data => {
 			logger.info('Property marked as sold', { message: data.message })
@@ -276,12 +276,12 @@ export function useCreatePropertyMutation() {
 		mutationKey: mutationKeys.properties.create,
 		mutationFn: async (data: PropertyCreate): Promise<Property> => {
 			const supabase = createClient()
-			const { data: user } = await supabase.auth.getUser()
-			const userId = user.user?.id
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('properties')
-				.insert({ ...data, owner_user_id: userId })
+				.insert({ ...data, owner_user_id: ownerId })
 				.select()
 				.single()
 
@@ -293,7 +293,8 @@ export function useCreatePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property created successfully')
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Create property')
 	})
 }
 
@@ -336,7 +337,8 @@ export function useUpdatePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.analytics.stats() })
 			toast.success('Property updated successfully')
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Update property')
 	})
 }
 
@@ -367,7 +369,8 @@ export function useDeletePropertyMutation() {
 			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
 			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 			toast.success('Property deleted successfully')
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Delete property')
 	})
 }
 
@@ -422,6 +425,7 @@ export function useDeletePropertyImageMutation() {
 			// Invalidate property list (primary image may have been deleted)
 			queryClient.invalidateQueries({ queryKey: propertyQueries.lists() })
 			toast.success('Image deleted successfully')
-		}
+		},
+		onError: (error: unknown) => handleMutationError(error, 'Delete image')
 	})
 }

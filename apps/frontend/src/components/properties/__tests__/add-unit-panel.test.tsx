@@ -5,6 +5,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { AddUnitPanel } from '../add-unit-panel'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+// Mock useCurrentUser hook
+vi.mock('#hooks/use-current-user', () => ({
+	useCurrentUser: () => ({
+		user: { id: 'user-1', email: 'test@example.com' },
+		user_id: 'user-1',
+		isAuthenticated: true,
+		isLoading: false,
+		session: {}
+	})
+}))
+
 // Mock the mutation hook
 const mockMutateAsync = vi.fn()
 vi.mock('#hooks/api/use-unit', () => ({

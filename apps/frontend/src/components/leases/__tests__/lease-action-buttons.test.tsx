@@ -114,6 +114,7 @@ const createMockLease = (overrides: Partial<Lease> = {}): Lease => ({
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
 	auto_pay_enabled: null,
+	autopay_payment_method_id: null,
 	grace_period_days: null,
 	late_fee_amount: null,
 	late_fee_days: null,

@@ -1,1212 +1,350 @@
-# Post-Migration Hardening Pitfalls: Supabase PostgREST + Deno Edge Functions
+# Pitfalls Research
 
-**Context:** TenantFlow migrated from NestJS → Supabase PostgREST direct + Deno Edge Functions (v7.0). Now hardening 108 security and quality findings (v8.0).
-
-**Scope:** Common failure modes when adding security fixes to an existing PostgREST/Edge Function system, with prevention strategies and test patterns.
-
----
-
-## 1. IDOR in Edge Functions — Ownership Check Timing
-
-### The Problem
-
-Edge Functions using `SUPABASE_SERVICE_ROLE_KEY` bypass RLS entirely. Adding ownership checks *after* the fact is error-prone because:
-
-- **Silent failures:** Service role operations don't hit RLS policies, so tests pass but production fails
-- **Authorization leakage:** Missing ownership checks in one code path leaves a gap
-- **Race conditions:** Checking ownership in a separate query, then operating on old data
-- **Inconsistent patterns:** Different functions implement ownership checks differently
-
-### Warning Signs
-
-```typescript
-// ❌ PATTERN: Service role read + hardcoded ownership assumption
-const supabase = createClient(url, SUPABASE_SERVICE_ROLE_KEY)
-const { data: lease } = await supabase
-  .from('leases')
-  .select('id, owner_user_id')
-  .eq('id', leaseId)
-  .single()
-
-// Assumes owner_user_id exists. If not present in SELECT, crashes silently
-if (lease.owner_user_id !== userId) {
-  throw new Error('Unauthorized')  // Occurs AFTER mutation is queued
-}
-
-// Mutation happens AFTER check — data race if owner_user_id is tampered
-await supabase.from('leases').update({ lease_status: 'active' }).eq('id', leaseId)
-```
-
-### Prevention Strategy
-
-**Pattern 1: Ownership Check + Atomic Update**
-```typescript
-// ✅ CORRECT: Combined check + update in single RPC
-const { data, error } = await supabase.rpc('activate_lease_if_owner', {
-  p_lease_id: leaseId,
-  p_owner_user_id: userId
-})
-
-if (error) {
-  if (error.message.includes('ownership')) {
-    throw new ForbiddenException('Not your lease')
-  }
-  throw error
-}
-```
-
-**Pattern 2: Service Role Read + RLS Update**
-```typescript
-// ✅ CORRECT: Service role read, RLS-enforced update
-const adminClient = createClient(url, SUPABASE_SERVICE_ROLE_KEY)
-const userClient = createClient(url, token)  // Has RLS enforced
-
-const { data: lease } = await adminClient.from('leases').select('id').single()
-if (!lease) throw new NotFoundError()
-
-// Update via user client — RLS enforces ownership
-const { error } = await userClient.from('leases').update({ status: 'active' }).eq('id', leaseId)
-if (error) throw new ForbiddenException('Not authorized')
-```
-
-**Pattern 3: Explicit Ownership Field in SELECT**
-```typescript
-// ✅ CORRECT: Always include owner field, assert before mutations
-const { data: lease } = await serviceRoleClient
-  .from('leases')
-  .select('id, owner_user_id, lease_status')
-  .eq('id', leaseId)
-  .single()
-
-if (!lease) throw new NotFoundError()
-if (lease.owner_user_id !== userId) throw new ForbiddenException()
-// Now safe to mutate — ownership verified
-```
-
-### Test Pattern for RLS Write Isolation
-
-Run on **dedicated integration project** (separate Supabase instance) with fresh test data:
-
-```typescript
-describe('DocuSeal Edge Function IDOR', () => {
-  it('should reject signature update from non-owner', async () => {
-    // Setup: Create 2 owners, 1 lease for owner A
-    const ownerA = await createTestUser()
-    const ownerB = await createTestUser()
-    const leaseForA = await createTestLease(ownerA.id)
-
-    // Attack: Try to sign lease as owner B via Edge Function
-    const response = await fetch(DOCUSEAL_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'x-docuseal-signature': WEBHOOK_SECRET },
-      body: JSON.stringify({
-        event_type: 'form.completed',
-        submission_id: leaseForA.docuseal_submission_id,
-        role: 'owner',
-        completed_at: new Date().toISOString()
-      })
-    })
-
-    expect(response.status).toBe(200)  // Webhook always returns 200 (idempotent)
-
-    // Verify: Check lease was NOT modified
-    const { data: lease } = await supabaseAdmin
-      .from('leases')
-      .select('owner_signed_at')
-      .eq('id', leaseForA.id)
-      .single()
-
-    // Ownership check should have silently rejected — no signature recorded
-    expect(lease.owner_signed_at).toBeNull()
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 01 (Critical Security):** Add ownership checks to Edge Functions *before* moving any feature to production. Defer full RLS test coverage to Phase 02 if needed, but ownership checks are mandatory.
-
-### Files to Update (v8.0)
-
-1. `supabase/functions/docuseal-webhook/index.ts` — Check `lease.owner_user_id` before updating signature fields
-2. `supabase/functions/generate-pdf/index.ts` — Verify user owns the lease/report before PDF generation
-3. `supabase/functions/stripe-connect/index.ts` — Verify user owns the Stripe account before mutations
+**Domain:** Payment infrastructure additions — Stripe Connect destination charges, Resend transactional email, Supabase Auth completion pages on existing SaaS
+**Researched:** 2026-02-25
+**Confidence:** HIGH (verified against official Stripe docs, Supabase docs, and codebase reality)
 
 ---
 
-## 2. PostgREST `.or()` Filter Injection
+## Critical Pitfalls
 
-### The Problem
+### Pitfall 1: application_fee_amount Does Not Account For Stripe's Processing Cut
 
-PostgREST's `.or(string)` method parses operators inline. Unsanitized user input can inject PostgreSQL operators:
+**What goes wrong:**
 
-```typescript
-const search = req.query.search  // User input: "name,city.like.%admin%"
+The platform calculates `application_fee_amount` as a percentage of the full charge (e.g., 3% of $1,200 = $36). The full $1,200 is sent to the connected account, then $36 is pulled back to the platform. However, Stripe's 2.9% + $0.30 processing fee is subtracted from the platform's $36, not from the connected account's share. The platform nets $36 - $35.10 = $0.90 instead of the expected $36.
 
-// ❌ VULNERABLE: Direct interpolation
-q = q.or(`name.ilike.%${search}%,city.ilike.%${search}%`)
-// Becomes: or=name.ilike.%name,city.like.%admin%,city.ilike.%...%
-// Attacker controls the operators — could bypass filters
-```
+This is the opposite of what most people assume. The connected account receives the full transfer amount minus the application fee. Stripe deducts its processing fee from the platform's application fee.
 
-### Warning Signs
+**Why it happens:**
 
-- User input used directly in `.or()` argument without encoding
-- Multiple `.or()` calls without validation
-- Search filters accepting special characters `.,*,`
-- No unit tests for filter edge cases
+Developers treat `application_fee_amount` as gross platform revenue. The Stripe docs say "your platform pays the Stripe fee after the application_fee_amount is transferred." This is easy to misread. The code in `payment_intent.succeeded` already stores `pi.application_fee_amount / 100` — this number is correct (what Stripe took back), but `pi.application_fee_amount` is the gross platform fee before Stripe's cut, not the net.
 
-### Prevention Strategy
+**How to avoid:**
 
-**Pattern 1: Supabase-Recommended Encoding**
-```typescript
-// ✅ CORRECT: Escape all special characters in user input
-const sanitizeSearchInput = (input: string): string => {
-  // PostgREST uses these as operators: . , * % ~
-  // Escaping ensures user input is treated as literal strings
-  return input
-    .replace(/\./g, '\\.')   // Period → literal dot
-    .replace(/,/g, '\\,')    // Comma → literal comma
-    .replace(/\*/g, '\\*')   // Asterisk → literal asterisk
-}
+Calculate platform net revenue as: `application_fee_amount - stripe_fee`. Display this correctly in owner dashboards and financial reports. When deciding what `application_fee_amount` to charge, work backwards from desired net: `desired_net / (1 - 0.029) + 0.30` approximates the required gross fee. The existing `rent_payments.application_fee_amount` column stores the gross fee value from Stripe — add a separate display calculation for net, do not alter the stored value.
 
-const search = req.query.search
-const safe = sanitizeSearchInput(search)
-q = q.or(`name.ilike.%${safe}%,city.ilike.%${safe}%`)
-```
+**Warning signs:**
 
-**Pattern 2: Array-Based Construction (Safest)**
-```typescript
-// ✅ CORRECT: Build filter array, PostgREST handles escaping
-const search = req.query.search
+- Financial reports show inflated platform revenue
+- `application_fee_amount` equals exactly N% of rent amount without the Stripe surcharge baked in
+- No calculation for `stripe_processing_fee` anywhere in codebase
+- Owners complain the payout is lower than expected given the stated fee percentage
 
-let q = supabase.from('properties').select('*')
-
-// OR by building separate conditions
-if (search) {
-  q = q.or(`name.ilike.%${encodeURIComponent(search)}%,city.ilike.%${encodeURIComponent(search)}%`)
-}
-```
-
-**Pattern 3: RPC Instead of PostgREST Filter**
-```typescript
-// ✅ CORRECT: Push filtering to RPC, SQL parameterization handles escaping
-const { data } = await supabase.rpc('search_properties', {
-  p_search_term: search,  // SQL parameter — impossible to inject
-  p_user_id: userId
-})
-```
-
-### Test Pattern
-
-```typescript
-describe('Property search injection', () => {
-  const injectionPayloads = [
-    "name.like.%",          // PostgREST operator
-    "name,city",            // Comma separator
-    "name.ilike.test,city.eq.true",  // Multiple operators
-    "name.ov.{1,2,3}",      // Array overlap
-    "name.cs.%27",          // SQL comment (URL-encoded)
-  ]
-
-  injectionPayloads.forEach(payload => {
-    it(`should treat "${payload}" as literal search text`, async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .or(`name.ilike.%${encodeFilterValue(payload)}%`)
-
-      // Should not parse operators, just literal search
-      expect(error).toBeNull()
-      expect(data?.length).toBe(0)  // No matches because payload is literal
-    })
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 02 (Database Stability):** Audit all 4 `.or()` calls in frontend (property-keys.ts, tenant-keys.ts). Implement sanitization function and add injection tests.
-
-### Files to Audit (v8.0)
-
-1. `apps/frontend/src/hooks/api/query-keys/property-keys.ts` (line 95-96)
-2. `apps/frontend/src/hooks/api/query-keys/tenant-keys.ts` — Check for similar pattern
-3. Any custom API hooks using `.or()` directly
+**Phase to address:** Phase implementing the `stripe-rent-checkout` Edge Function (fee split) — define fee calculation in that function and document the net vs. gross distinction.
 
 ---
 
-## 3. RLS Write-Path Isolation Tests — Silent Failures
+### Pitfall 2: Destination Charge Requires Connected Account to Have charges_enabled = true
 
-### The Problem
+**What goes wrong:**
 
-INSERT/UPDATE/DELETE policies have two parts: `USING` (row visibility) and `WITH CHECK` (mutation allowability). Tests can pass while policies are broken because:
+The `stripe-rent-checkout` Edge Function calls `stripe.paymentIntents.create()` with `transfer_data: { destination: connected_account_id }`. If the connected account has not completed Stripe onboarding (`charges_enabled = false`), the API returns error `account_invalid: The provided key 'acct_...' does not have access to this API call.` The tenant sees a payment failure with no actionable error message.
 
-- **Duplicate key constraint mask RLS failures:** INSERT with duplicate key returns 409, not 403 (authorization)
-- **Cached query plans:** PostgreSQL caches policy checks; repeated tests see stale plans
-- **Mock interception:** Tests with API mocking don't hit RLS at all
-- **No negative tests:** Only testing happy path (authorized access) misses denial cases
+**Why it happens:**
 
-### Warning Signs
+The existing `stripe-connect` Edge Function already tracks `charges_enabled` in the `stripe_connected_accounts` table via `account.updated` webhooks. The new checkout Edge Function must read this flag before creating the PaymentIntent. It is tempting to skip this check because onboarding should have already happened — but the flag could be revoked, expired, or never set if the webhook was missed.
 
-- Unit tests mock PostgREST responses (never actually test RLS)
-- E2E tests don't verify 403 Forbidden for cross-user mutations
-- RLS tests run against shared Supabase project (policies cached across tests)
-- `WITH CHECK` clauses not separately tested from `USING`
-- Tests that INSERT duplicates pass even if RLS is broken
+**How to avoid:**
 
-### Prevention Strategy
+In the new `stripe-rent-checkout` Edge Function, before creating the PaymentIntent:
+1. Look up the lease's owner via `leases.owner_user_id`
+2. Query `stripe_connected_accounts` for that owner
+3. Assert `charges_enabled = true` — return HTTP 422 with a tenant-facing error if not
+4. Guard against missing row (owner never onboarded)
 
-**Pattern 1: Dedicated Integration Project**
+Do not rely solely on the Stripe API error as the user-facing signal — catch the Stripe error and translate it to an actionable message ("The property owner's payment account is not yet verified").
 
-Create separate Supabase project for RLS testing. Start fresh for each test suite:
+**Warning signs:**
 
-```bash
-# Create test project (one-time)
-supabase projects create --name "tenant-flow-rls-testing"
+- No `charges_enabled` check before PaymentIntent creation
+- Stripe error code `account_invalid` appearing in production logs
+- Tenants can initiate payment flow for properties whose owners haven't onboarded
 
-# Environment variable for test
-export SUPABASE_RLS_TEST_PROJECT_ID="test-xyz123"
-```
-
-**Pattern 2: Explicit Negative Tests (Test Denial, Not Just Access)**
-
-```typescript
-describe('Leases RLS Isolation', () => {
-  let ownerA: AuthUser
-  let ownerB: AuthUser
-  let leaseForA: Lease
-
-  beforeEach(async () => {
-    // Create fresh test data
-    ownerA = await createTestUser()
-    ownerB = await createTestUser()
-    leaseForA = await createLeaseAs(ownerA)
-  })
-
-  describe('SELECT isolation', () => {
-    it('should allow owner to read own lease', async () => {
-      const client = createClientAs(ownerA)
-      const { data, error } = await client
-        .from('leases')
-        .select('*')
-        .eq('id', leaseForA.id)
-
-      expect(error).toBeNull()
-      expect(data).toHaveLength(1)
-    })
-
-    it('should deny other owner from reading lease', async () => {
-      const client = createClientAs(ownerB)
-      const { data, error } = await client
-        .from('leases')
-        .select('*')
-        .eq('id', leaseForA.id)
-
-      expect(error).toBeNull()  // Query succeeds (no error)
-      expect(data).toHaveLength(0)  // But returns 0 rows (RLS hid it)
-    })
-  })
-
-  describe('UPDATE isolation — USING clause', () => {
-    it('should prevent other owner from updating lease status', async () => {
-      const client = createClientAs(ownerB)
-      const { error } = await client
-        .from('leases')
-        .update({ lease_status: 'active' })
-        .eq('id', leaseForA.id)
-
-      // RLS USING clause blocks the row — update returns 0 affected
-      expect(error).toBeNull()
-      // Verify lease not actually updated
-      const { data: lease } = await createAdminClient()
-        .from('leases')
-        .select('lease_status')
-        .eq('id', leaseForA.id)
-        .single()
-      expect(lease.lease_status).toBe('pending')  // Unchanged
-    })
-  })
-
-  describe('UPDATE isolation — WITH CHECK clause', () => {
-    it('should prevent owner from changing owner_user_id on update', async () => {
-      const client = createClientAs(ownerA)
-      const { error } = await client
-        .from('leases')
-        .update({ owner_user_id: ownerB.id })  // Try to steal lease
-        .eq('id', leaseForA.id)
-
-      // WITH CHECK blocks because new owner_user_id !== auth.uid()
-      expect(error).toBeNull()  // Query completes
-      // Verify lease owner unchanged
-      const { data: lease } = await createAdminClient()
-        .from('leases')
-        .select('owner_user_id')
-        .eq('id', leaseForA.id)
-        .single()
-      expect(lease.owner_user_id).toBe(ownerA.id)
-    })
-  })
-
-  describe('INSERT isolation', () => {
-    it('should allow owner to create lease for self', async () => {
-      const client = createClientAs(ownerA)
-      const { data, error } = await client
-        .from('leases')
-        .insert({
-          id: randomUUID(),
-          owner_user_id: ownerA.id,
-          primary_unit_id: leaseForA.primary_unit_id,
-          primary_tenant_id: leaseForA.primary_tenant_id,
-          lease_status: 'pending'
-        })
-
-      expect(error).toBeNull()
-      expect(data).toHaveLength(1)
-    })
-
-    it('should prevent owner from creating lease with other owner as owner_user_id', async () => {
-      const client = createClientAs(ownerA)
-      const { error } = await client
-        .from('leases')
-        .insert({
-          id: randomUUID(),
-          owner_user_id: ownerB.id,  // Try to create as ownerB
-          primary_unit_id: leaseForA.primary_unit_id,
-          primary_tenant_id: leaseForA.primary_tenant_id,
-          lease_status: 'pending'
-        })
-
-      // WITH CHECK blocks because owner_user_id !== auth.uid()
-      expect(error).not.toBeNull()
-      expect(error?.code).toBe('PGRST301')  // Permission denied
-    })
-  })
-
-  describe('DELETE isolation', () => {
-    it('should allow owner to delete own lease', async () => {
-      const client = createClientAs(ownerA)
-      const { error } = await client
-        .from('leases')
-        .delete()
-        .eq('id', leaseForA.id)
-
-      expect(error).toBeNull()
-    })
-
-    it('should prevent other owner from deleting lease', async () => {
-      const client = createClientAs(ownerB)
-      const { error } = await client
-        .from('leases')
-        .delete()
-        .eq('id', leaseForA.id)
-
-      expect(error).toBeNull()  // Query completes (no error)
-      // Verify lease still exists
-      const { data } = await createAdminClient()
-        .from('leases')
-        .select('id')
-        .eq('id', leaseForA.id)
-      expect(data).toHaveLength(1)  // Lease was NOT deleted
-    })
-  })
-})
-```
-
-**Pattern 3: Clear Test Error Messages**
-
-```typescript
-// ❌ BAD: Assertion message doesn't explain RLS expectation
-expect(data.length).toBe(0)
-
-// ✅ GOOD: Clear why zero rows is correct
-expect(data.length).toBe(0) // RLS USING clause hides rows from unauthorized users
-```
-
-### Phase Recommendation
-
-**Phase 02 (Database Stability):** Set up dedicated RLS integration project. Write isolation tests for 7 domains (properties, units, leases, tenants, maintenance, payments, inspections). Gate PR merges on RLS test results.
-
-### Files to Create (v8.0)
-
-1. `apps/backend/test/integration/rls/[domain].rls-isolation.spec.ts` for each domain
-2. `apps/backend/test/fixtures/rls-test-helpers.ts` — Auth helpers, data builders
-3. `apps/backend/.env.test.rls-project` — Separate Supabase project credentials
+**Phase to address:** Phase implementing `stripe-rent-checkout` Edge Function.
 
 ---
 
-## 4. Caching Auth After Migration — Race Conditions
+### Pitfall 3: Webhook Receipt Email Never Fires Because RESEND_API_KEY Call Is Missing
 
-### The Problem
+**What goes wrong:**
 
-Moving from `getUser()` per-query to cached auth introduces subtle races:
+`RESEND_API_KEY` is configured in Supabase Edge Function secrets. The `email_suppressions` table exists. The `payment_intent.succeeded` handler in `stripe-webhooks/index.ts` updates the `rent_payments` record but never calls Resend. The receipt email is effectively a stub that will silently not fire when the milestone is "complete."
 
+**Why it happens:**
+
+The milestone scope says "automated receipt emails (Resend) fire-and-forget on payment success." The most natural implementation is adding the Resend call inside `stripe-webhooks/index.ts` at the `payment_intent.succeeded` case. But the `stripe-webhooks` function already has substantial logic. Developers might add the Resend call but forget to check `email_suppressions` first, or add it in the wrong function, or leave it as a TODO after wiring the payment flow.
+
+**How to avoid:**
+
+In the `payment_intent.succeeded` handler, after updating `rent_payments`, add a fire-and-forget email block:
 ```typescript
-// ❌ WRONG: Cache across multiple independent operations
-const { data: { user } } = await supabase.auth.getUser()
-const client = createClient(url, token)  // Reuse across mutations
-
-// If user logs out/token expires mid-operation, mutation succeeds with stale auth
-await client.from('properties').insert({ owner_user_id: user.id })
-await client.from('properties').insert({ owner_user_id: user.id })  // Auth could be invalid
-```
-
-### Warning Signs
-
-- Auth cached at function level, reused across multiple queries
-- No expiration on cached auth (relies on manual invalidation)
-- Same client used for sequential operations
-- No error handling for auth state changes between operations
-
-### Prevention Strategy
-
-**Pattern 1: Fresh Auth Per Mutation**
-```typescript
-// ✅ CORRECT: Get fresh auth before each mutation
-async function createProperty(data: PropertyInput) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) throw new UnauthorizedException()
-
-  const { data: property, error } = await supabase
-    .from('properties')
-    .insert({ ...data, owner_user_id: user.id })
-
-  return property
-}
-```
-
-**Pattern 2: Auth with TTL Cache**
-```typescript
-// ✅ CORRECT: Cache with expiration
-class AuthCache {
-  private cache: { user: AuthUser, exp: number } | null = null
-  private ttl = 5 * 60 * 1000  // 5 minutes
-
-  async getUser(): Promise<AuthUser> {
-    const now = Date.now()
-    if (this.cache && this.cache.exp > now) {
-      return this.cache.user
-    }
-
-    const { data: { user }, error } = await supabase.auth.getUser()
-    if (error || !user) throw new UnauthorizedException()
-
-    this.cache = { user, exp: now + this.ttl }
-    return user
-  }
-
-  clear() {
-    this.cache = null
-  }
-}
-```
-
-**Pattern 3: Error Recovery in Edge Functions**
-```typescript
-// ✅ CORRECT: Catch stale auth errors and retry
-async function callDatabaseWithFreshAuth() {
-  try {
-    return await supabase.from('leases').insert(data)
-  } catch (error) {
-    if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-      // Auth is stale, get fresh token and retry once
-      const newToken = await refreshAuthToken()
-      const freshClient = createClient(url, newToken)
-      return await freshClient.from('leases').insert(data)
-    }
-    throw error
-  }
-}
-```
-
-### Test Pattern
-
-```typescript
-describe('Cached Auth Race Condition', () => {
-  it('should use fresh auth for each mutation in series', async () => {
-    const userId = testUser.id
-
-    // Mock auth expiry after 1st query
-    let callCount = 0
-    mockSupabaseAuth({
-      getUser: async () => {
-        callCount++
-        if (callCount > 1) {
-          return { error: new Error('Token expired') }
-        }
-        return { data: { user: { id: userId } } }
-      }
-    })
-
-    // First mutation succeeds
-    const prop1 = await createProperty({ name: 'Prop 1', owner_user_id: userId })
-    expect(prop1).toBeDefined()
-
-    // Second mutation should get fresh auth (not use cached token)
-    // If cached, would fail with PGRST301
-    const prop2 = await createProperty({ name: 'Prop 2', owner_user_id: userId })
-    expect(prop2).toBeDefined()  // Succeeds because fresh auth obtained
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 04 (Code Quality):** Profile getUser() calls. Cache strategically in request lifecycle, not globally. Add auth expiration handling to Edge Functions.
-
----
-
-## 5. Pinning Deno Edge Function Dependencies
-
-### The Problem
-
-Unpinned imports in Deno Edge Functions can break when upstream modules update:
-
-```typescript
-// ❌ WRONG: Unpinned imports drift versions
-import { createClient } from 'https://esm.sh/@supabase/supabase-js'
-// Today: v2.39.1
-// Tomorrow: v2.40.0 with breaking API change
-// Function cold-starts randomly get different versions
-```
-
-**Cold start behavior:**
-- Function not called for hours → cache expires
-- Next call pulls latest from esm.sh
-- Might be a breaking version upgrade
-- Function crashes in production, only on cold starts
-
-### Warning Signs
-
-- Import URLs without version pinning (`@supabase/supabase-js` instead of `@supabase/supabase-js@2.39.1`)
-- esm.sh used without commit hash pinning
-- Different Edge Functions using different versions of same library
-- Inconsistent npm version specs (one uses `^`, another unpinned)
-
-### Prevention Strategy
-
-**Pattern 1: Version-Pinned Imports**
-```typescript
-// ✅ CORRECT: Explicit versions in import URL
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.1'
-import Stripe from 'https://esm.sh/stripe@14.0.0'
-
-// All imports pinned — reproducible cold starts
-```
-
-**Pattern 2: Import Map (deno.json)**
-```json
-{
-  "imports": {
-    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.1",
-    "stripe": "npm:stripe@14.0.0",
-    "#types/": "https://esm.sh/@supabase/supabase-js@2.39.1/dist/module"
-  }
-}
-```
-
-```typescript
-// ✅ CORRECT: Uses pinned version from import map
-import { createClient } from '@supabase/supabase-js'
-```
-
-**Pattern 3: npm: Scheme with Lockfile**
-```typescript
-// ✅ CORRECT: npm: scheme with deno.lock for reproducibility
-import Stripe from 'npm:stripe@14'
-```
-
-Deno.lock captures exact versions:
-```json
-{
-  "npm": {
-    "stripe@14": "stripe@14.0.0"
-  }
-}
-```
-
-### Test Pattern
-
-```bash
-# Verify all imports are pinned
-grep -r "https://esm.sh" supabase/functions/ | grep -v "@.*@" | \
-  grep -v "// pinned"
-
-# Should return 0 matches
-```
-
-### Phase Recommendation
-
-**Phase 05 (DevOps):** Create deno.json with pinned import map. Add pre-commit check: `grep -r "esm.sh.*[^@]\"" supabase/functions/` must return 0. Update CLAUDE.md with dependency pinning guidelines.
-
----
-
-## 6. Stripe SDK Major Version Upgrade — Event Payload Shape Changes
-
-### The Problem
-
-Stripe SDK v14 → v15 changes webhook event payload shapes:
-
-```typescript
-// v14: event.data.object is flat
-const charge = event.data.object as Stripe.Charge
-console.log(charge.customer)  // String ID
-
-// v15: Some fields become nested objects
-// charge.customer might be Customer object instead of string
-if (typeof event.data.object.customer === 'string') {
-  const customerId = event.data.object.customer
-} else {
-  const customerId = event.data.object.customer?.id  // v15 shape
-}
-```
-
-**Silent failures:**
-- Code assumes flat structure, gets object
-- Crashes when accessing properties on undefined
-- Logs don't surface the shape change
-- Only fails on specific event types
-
-### Warning Signs
-
-- Stripe SDK version bump with no code changes
-- Webhook processing crashes on random event types
-- Type assertions (`as Stripe.Charge`) without shape validation
-- No version compatibility matrix in code
-
-### Prevention Strategy
-
-**Pattern 1: Shape Validation Before Processing**
-```typescript
-// ✅ CORRECT: Validate shape before assuming structure
-async function processStripeEvent(event: Stripe.Event) {
-  const charge = event.data.object
-  
-  // Type guard validates shape
-  if (!isValidCharge(charge)) {
-    console.error(`Unexpected charge shape for SDK version`, charge)
-    throw new Error('Invalid event payload shape')
-  }
-
-  const customerId = charge.customer  // Safe now
-}
-
-function isValidCharge(obj: unknown): obj is Stripe.Charge {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'id' in obj &&
-    'customer' in obj &&
-    (typeof obj.customer === 'string' || obj.customer === null)
-  )
-}
-```
-
-**Pattern 2: SDK Version Pinning + CHANGELOG Review**
-```typescript
-// stripe@14.0.0 pinned in deno.json
-// CHANGELOG review required before upgrade
-// Breaking changes documented in commit message
-```
-
-**Pattern 3: Event-Type-Specific Handlers**
-```typescript
-// ✅ CORRECT: Each event type has explicit schema
-const eventHandlers: Record<string, (data: any) => Promise<void>> = {
-  'charge.created': async (charge) => {
-    if (typeof charge.customer !== 'string') {
-      throw new Error(`Unexpected customer shape in v${STRIPE_SDK_VERSION}`)
-    }
-    // Process charge
-  },
-  'customer.created': async (customer) => {
-    // Different shape validation
-  }
-}
-```
-
-### Test Pattern
-
-```typescript
-describe('Stripe webhook payload compatibility', () => {
-  it('should handle charge with string customer ID (v14 shape)', async () => {
-    const event = {
-      type: 'charge.created',
-      data: {
-        object: {
-          id: 'ch_123',
-          customer: 'cus_456'  // String, not object
-        }
-      }
-    }
-
-    const result = await processEvent(event)
-    expect(result.customerId).toBe('cus_456')
-  })
-
-  it('should handle charge with customer object (v15 shape)', async () => {
-    const event = {
-      type: 'charge.created',
-      data: {
-        object: {
-          id: 'ch_123',
-          customer: { id: 'cus_456' }  // Object, not string
-        }
-      }
-    }
-
-    const result = await processEvent(event)
-    expect(result.customerId).toBe('cus_456')
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 06 (Stripe Controller Split):** Document Stripe SDK version compatibility in code. Add event payload shape validation. Create CHANGELOG review checklist for version upgrades.
-
----
-
-## 7. E2E Tests After NestJS Removal — Mock Interception Patterns
-
-### The Problem
-
-NestJS backend was a proxy. Tests mocked API responses. After removing NestJS, tests now hit PostgREST directly, but old mock patterns remain:
-
-```typescript
-// ❌ OLD PATTERN: Mock NestJS endpoint
-server.use(
-  http.get('/api/v1/properties', () => {
-    return HttpResponse.json([{ id: '1', name: 'Prop' }])
-  })
-)
-
-// Test passes, thinks it's testing real behavior
-const { data } = await fetch('/api/v1/properties')
-expect(data).toHaveLength(1)
-
-// But in production: PostgREST returns RLS-filtered rows
-// Test never actually called PostgREST — mock hid bugs
-```
-
-### Warning Signs
-
-- E2E tests mock `/api/v1/*` endpoints (old NestJS routes)
-- Mock responses don't include RLS filtering logic
-- Tests pass locally but fail in production
-- No actual database seeding for E2E — all mocked
-- Different mocks in different test files (inconsistent shapes)
-
-### Prevention Strategy
-
-**Pattern 1: Mock PostgREST Directly (if mocking needed)**
-```typescript
-// ✅ CORRECT: Mock PostgREST shape, not old NestJS proxy
-server.use(
-  http.get('*/rest/v1/properties*', ({ request }) => {
-    // Validate RLS filters present in URL
-    const url = new URL(request.url)
-    const rlsFilter = url.searchParams.get('owner_user_id')
-    if (!rlsFilter) {
-      // RLS not enforced — test is wrong
-      throw new Error('Test must include RLS filter in query')
-    }
-
-    return HttpResponse.json([
-      { id: '1', name: 'Prop', owner_user_id: 'user-123' }
-    ])
-  })
+// Fire-and-forget — do not await, do not throw
+sendReceiptEmail(supabase, pi).catch(err =>
+  console.error('Receipt email failed (non-fatal):', err.message)
 )
 ```
 
-**Pattern 2: Skip Mocking — Use Real Database**
-```typescript
-// ✅ CORRECT: Seed real test data, query real PostgREST
-beforeEach(async () => {
-  const adminClient = createAdminSupabase()
-  await adminClient.from('properties').insert({
-    id: 'test-prop-1',
-    owner_user_id: testUser.id,
-    name: 'Test Property'
-  })
-})
+The `sendReceiptEmail` function must: (1) check `email_suppressions` table before calling Resend, (2) build the Resend `fetch` call inline (not an npm import — Deno `fetch` is sufficient), (3) use the tenant's email from the lease/tenant record.
 
-test('should load properties with RLS filter', async () => {
-  const userClient = createSupabaseClientAs(testUser)
-  const { data } = await userClient.from('properties').select('*')
-  expect(data).toHaveLength(1)
-  expect(data[0].owner_user_id).toBe(testUser.id)
-})
-```
+Verify the Resend call is actually wired by checking the Edge Function logs after a test payment — a `console.log('Receipt email sent for payment:', pi.id)` marker is sufficient.
 
-**Pattern 3: Stale Test Detection**
-```typescript
-// ✅ CORRECT: Test verifies it's not using old NestJS routes
-it('should NOT mock /api/v1 endpoints', () => {
-  const handlers = server.getHandlers()
-  const nestJsRoutes = handlers.filter(h => h.info.path.includes('/api/v1'))
-  
-  expect(nestJsRoutes).toHaveLength(0, 'E2E tests should not mock old NestJS routes')
-})
-```
+**Warning signs:**
 
-### Test Pattern for Real PostgREST
+- No Resend API call anywhere in `stripe-webhooks/index.ts` after the `payment_intent.succeeded` case
+- `RESEND_API_KEY` referenced in documentation but not in any `.ts` file under `supabase/functions/`
+- No log line "Receipt email sent" appearing in Edge Function logs after test payments
 
-```typescript
-describe('Property CRUD (real PostgREST)', () => {
-  let ownerToken: string
-
-  beforeAll(async () => {
-    const { user, session } = await createTestUserWithSession()
-    ownerToken = session.access_token
-  })
-
-  beforeEach(async () => {
-    // Seed test data as admin
-    const adminClient = createAdminSupabase()
-    await adminClient.from('properties').insert({
-      id: 'test-prop-1',
-      owner_user_id: testUser.id,
-      name: 'Test Property',
-      address_line1: '123 Main St'
-    })
-  })
-
-  it('should list properties with RLS filtering', async () => {
-    // Use real supabase-js client, not mocked
-    const client = createSupabaseClient(ownerToken)
-    const { data, error } = await client
-      .from('properties')
-      .select('*')
-      .neq('status', 'inactive')
-
-    expect(error).toBeNull()
-    expect(data).toHaveLength(1)
-    expect(data[0].owner_user_id).toBe(testUser.id)  // RLS enforced
-  })
-
-  it('should not list other owner properties', async () => {
-    const otherOwner = await createTestUser()
-    const otherClient = createSupabaseClient(otherOwner.token)
-
-    const { data } = await otherClient
-      .from('properties')
-      .select('*')
-
-    // Should return 0 — RLS hidden our test property
-    expect(data).toHaveLength(0)
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 33 (Smoke Test) + Phase 32 (Frontend Test Restoration):** Audit all E2E test mocks. Remove `/api/v1/*` mocks (old NestJS). Switch to real PostgREST queries where possible. Add RLS filter validation to remaining mocks.
-
-### Files to Update (v8.0)
-
-1. `apps/frontend/tests/**/*.spec.ts` — Remove old NestJS endpoint mocks
-2. `apps/e2e-tests/**/*.spec.ts` — Seed real data, query real PostgREST
-3. Create `apps/e2e-tests/helpers/test-database.ts` — Centralized seeding
+**Phase to address:** Phase implementing receipt emails (after the stripe-rent-checkout function works end-to-end).
 
 ---
 
-## 8. Stripe Webhook Idempotency — Race Condition on First Delivery
+### Pitfall 4: email_suppressions Check Skipped Before Every Email Send
 
-### The Problem
+**What goes wrong:**
 
-Webhook processing inserts event ID to database for idempotency. But on first delivery, insertion can race:
+A tenant has a bounced or complained email in `email_suppressions`. An email is sent anyway because the suppression check was either forgotten or added to the wrong code path. Resend blocks the send (good), but the Edge Function receives an error response and potentially throws, failing the entire payment webhook and triggering Stripe retries.
 
+**Why it happens:**
+
+The `email_suppressions` table comment says "read by email sending services before dispatching." But it is easy to add a Resend call and assume Resend handles deduplication. Resend has its own suppression list, but the project maintains its own table for audit purposes and to pre-check before making the API call.
+
+**How to avoid:**
+
+Create a shared helper at the top of any email-sending Edge Function:
 ```typescript
-// Edge Function: stripe-webhooks/index.ts
-
-// ❌ RACE CONDITION:
-// 1. Two identical webhook requests arrive simultaneously
-// 2. Both reach INSERT before either completes
-// 3. Both INSERTs succeed (not actually checking for dupes yet)
-// 4. Both process event, causing double-charging
-
-const { error: idempotencyError } = await supabase
-  .from('stripe_webhook_events')
-  .insert({
-    id: event.id,
-    event_type: event.type,
-    data: event.data
-  })
-
-// By the time we check error, it's too late — both processed
-if (idempotencyError?.code === '23505') {
-  return { received: true, duplicate: true }
+async function isEmailSuppressed(supabase: SupabaseClient, email: string): Promise<boolean> {
+  const { data } = await supabase
+    .from('email_suppressions')
+    .select('email')
+    .eq('email', email.toLowerCase())
+    .maybeSingle()
+  return data !== null
 }
 ```
 
-### Warning Signs
+Call this before every `fetch('https://api.resend.com/emails', ...)`. Return early (not throw) if suppressed — a suppressed email is not an error, it is expected behavior.
 
-- Race condition in webhook handling (reread Stripe docs)
-- Payment doubled on Stripe retries
-- No transaction wrapping idempotency check + event processing
-- Idempotency record inserted after processing (wrong order)
+**Warning signs:**
 
-### Prevention Strategy
+- `fetch('https://api.resend.com/emails', ...)` in Edge Function code not preceded by `email_suppressions` query
+- Email sends inside `try/catch` that propagate errors when suppressed
+- Test coverage does not include a case where the tenant's email is in suppressions
 
-**Pattern 1: INSERT First, Then Process (Database Atomicity)**
-```typescript
-// ✅ CORRECT: Insert idempotency record BEFORE processing
-const { error: idempotencyError } = await supabase
-  .from('stripe_webhook_events')
-  .insert({
-    id: event.id,
-    event_type: event.type,
-    livemode: event.livemode,
-    data: event.data
-  })
-
-// ON CONFLICT (PK): If duplicate, return immediately
-// This is atomic — either we insert (our first delivery)
-// or PK violation (duplicate delivery)
-if (idempotencyError?.code === '23505') {
-  return new Response(JSON.stringify({ received: true, duplicate: true }), {
-    status: 200
-  })
-}
-
-// Only process if INSERT succeeded (first delivery guaranteed)
-try {
-  await processEvent(event)
-} catch (error) {
-  // Delete idempotency record so retry can re-process
-  await supabase.from('stripe_webhook_events').delete().eq('id', event.id)
-  throw error
-}
-```
-
-**Pattern 2: Upsert with Check Flag**
-```typescript
-// ✅ CORRECT: Use UPSERT to handle race atomically
-const { data, error } = await supabase
-  .from('stripe_webhook_events')
-  .upsert(
-    { id: event.id, event_type: event.type, processed: false },
-    { onConflict: 'id' }
-  )
-  .select()
-
-if (error) throw error
-
-// If this record already existed, skip processing
-if (data[0].processed === true) {
-  return { received: true, duplicate: true }
-}
-
-try {
-  await processEvent(event)
-  // Mark as processed
-  await supabase
-    .from('stripe_webhook_events')
-    .update({ processed: true })
-    .eq('id', event.id)
-} catch (error) {
-  // Leave processed=false so retry can retry
-  throw error
-}
-```
-
-### Test Pattern
-
-```typescript
-describe('Stripe webhook idempotency', () => {
-  it('should handle simultaneous duplicate deliveries', async () => {
-    const event = { id: 'evt_123', type: 'charge.created', data: {...} }
-
-    // Simulate Stripe delivering same event twice simultaneously
-    const [result1, result2] = await Promise.all([
-      fetch(STRIPE_WEBHOOK_URL, {
-        method: 'POST',
-        body: JSON.stringify(event),
-        headers: { 'stripe-signature': signature }
-      }),
-      fetch(STRIPE_WEBHOOK_URL, {
-        method: 'POST',
-        body: JSON.stringify(event),
-        headers: { 'stripe-signature': signature }
-      })
-    ])
-
-    expect(result1.status).toBe(200)
-    expect(result2.status).toBe(200)
-
-    // Verify event processed only once
-    const { data: records } = await supabaseAdmin
-      .from('stripe_webhook_events')
-      .select('*')
-      .eq('id', event.id)
-
-    expect(records).toHaveLength(1)  // Only one record inserted
-
-    // Verify payment/charge recorded only once
-    const { data: charges } = await supabaseAdmin
-      .from('charges')  // Assuming charges table
-      .select('*')
-      .eq('stripe_event_id', event.id)
-
-    expect(charges).toHaveLength(1)  // Payment not doubled
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 06 (Stripe Controller Split):** Review stripe-webhooks Edge Function. Ensure idempotency record inserted before processing. Add race condition test.
+**Phase to address:** Phase implementing receipt emails and any subsequent email-sending feature.
 
 ---
 
-## 9. undefined owner_user_id in Insert Mutations
+### Pitfall 5: Stripe SDK Version Mismatch Between Edge Functions (stripe@14) and Frontend (stripe@20)
 
-### The Problem
+**What goes wrong:**
 
-RLS policies check `owner_user_id = (SELECT auth.uid())`. If code doesn't explicitly set `owner_user_id`, it defaults to NULL, bypassing RLS:
+The five Edge Functions all use `npm:stripe@14`. The frontend's `package.json` has `stripe@20.3.1`. When building the new `stripe-rent-checkout` Edge Function, a developer copies patterns from the frontend Stripe code and inadvertently imports types or response shapes from stripe@20. The Edge Function uses `npm:stripe@14` at runtime but TypeScript types are from stripe@20 — subtle type errors or missing fields at runtime.
 
-```typescript
-// ❌ WRONG: Forget to set owner_user_id
-const { data } = await supabase
-  .from('properties')
-  .insert({
-    name: 'My Property',
-    address: '123 Main'
-    // owner_user_id missing!
-  })
+More importantly, the `apiVersion: '2024-06-20'` used in all five existing Edge Functions may not match stripe@20 API behavior. If any code in the new Edge Function assumes stripe@20 response shapes (e.g., new fields added after 2024-06-20), those fields will be absent at runtime.
 
-// WITH CHECK policy: owner_user_id = (SELECT auth.uid())
-// NULL = auth.uid() → FALSE → INSERT blocked ✓ (actually safe by accident)
+**Why it happens:**
 
-// But if policy is buggy:
-// CREATE POLICY allows INSERT WHERE true  // ✗ Opens IDOR
-```
+The mismatch was noted in project memory as a known P2 issue but never resolved. When adding the new Edge Function, the easiest path is to match the existing pattern (`npm:stripe@14`, `apiVersion: '2024-06-20'`). The pitfall occurs when reaching for the frontend's stripe utilities or TypeScript types as reference.
 
-### Warning Signs
+**How to avoid:**
 
-- INSERT statements missing owner_user_id field
-- Comments like "TODO: Add owner_user_id"
-- RLS tests don't verify WITH CHECK rejects NULL owner_user_id
-- Multiple INSERT locations with inconsistent field inclusion
+The new `stripe-rent-checkout` Edge Function must use `npm:stripe@14` and `apiVersion: '2024-06-20'` to match all existing Edge Functions. Do not import any types from the frontend's `stripe@20.3.1` package. The strategic fix (aligning all Edge Functions to stripe@20) is a separate decision that requires reviewing all 5 existing functions for breaking changes — defer this to a dedicated phase, not a side-effect of adding a new function.
 
-### Prevention Strategy
+If the v14→v20 upgrade is done in the same phase: review the stripe-node CHANGELOG for every major version bump between 14 and 20. The `2024-09-30.acacia` release introduced breaking changes. Update `apiVersion` to match the new SDK's expected API version.
 
-**Pattern 1: Type-Safe Insert via Zod**
-```typescript
-// ✅ CORRECT: Zod ensures owner_user_id included
-const propertyInsertSchema = z.object({
-  name: z.string(),
-  address: z.string(),
-  owner_user_id: z.string().uuid()  // Required!
-})
+**Warning signs:**
 
-const { data: { user } } = await supabase.auth.getUser()
-const { data } = await supabase
-  .from('properties')
-  .insert(
-    propertyInsertSchema.parse({
-      name, address,
-      owner_user_id: user.id  // Zod validates present
-    })
-  )
-```
+- New Edge Function imports from `npm:stripe@20` while existing ones use `npm:stripe@14`
+- TypeScript type errors about missing or changed properties on Stripe objects in Edge Functions
+- `apiVersion` inconsistent across Edge Functions
+- Runtime errors only on payment flows (not subscription flows) suggesting different Stripe response shapes
 
-**Pattern 2: Helper Function**
-```typescript
-// ✅ CORRECT: Centralized insert function ensures owner_user_id always present
-async function insertPropertyForCurrentUser(
-  data: Omit<Property, 'id' | 'owner_user_id' | 'created_at' | 'updated_at'>
-) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) throw new UnauthorizedException()
-
-  return supabase
-    .from('properties')
-    .insert({
-      ...data,
-      owner_user_id: user.id  // Always set
-    })
-}
-
-// Usage: can't forget owner_user_id
-const property = await insertPropertyForCurrentUser({ name, address })
-```
-
-**Pattern 3: Audit for Missing Fields**
-```bash
-# Find all INSERT statements, flag those without owner_user_id
-grep -n "\.insert(" apps/frontend/src --include="*.ts" -A 5 | \
-  grep -B 5 "}" | \
-  grep -v "owner_user_id" > potential_missing_owner_user_id.txt
-```
-
-### Test Pattern
-
-```typescript
-describe('Property insert RLS enforcement', () => {
-  it('should reject INSERT with missing owner_user_id', async () => {
-    const client = createSupabaseClient(testUser.token)
-    const { error } = await client
-      .from('properties')
-      .insert({
-        name: 'Test',
-        address: '123 Main'
-        // owner_user_id missing — should fail WITH CHECK
-      })
-
-    expect(error).not.toBeNull()
-    expect(error?.code).toBe('PGRST301')  // Permission denied
-  })
-
-  it('should reject INSERT with different owner_user_id', async () => {
-    const client = createSupabaseClient(testUser.token)
-    const otherUser = await createTestUser()
-
-    const { error } = await client
-      .from('properties')
-      .insert({
-        name: 'Test',
-        address: '123 Main',
-        owner_user_id: otherUser.id  // Not current user — should fail WITH CHECK
-      })
-
-    expect(error).not.toBeNull()
-    expect(error?.code).toBe('PGRST301')
-  })
-})
-```
-
-### Phase Recommendation
-
-**Phase 01 (Critical Security):** Audit all 6 insert mutations in frontend (properties, units, leases, tenants, maintenance, inspections). Add guard: `if (!owner_user_id) throw new Error('owner_user_id required')`.
+**Phase to address:** Phase implementing the stripe-rent-checkout Edge Function — align on stripe@14, add a TODO comment about the upgrade path. The SDK consolidation is a separate hardening task.
 
 ---
 
-## Summary Table: Pitfalls by Phase
+### Pitfall 6: UpdatePasswordForm Calls updateUser Without a Valid PASSWORD_RECOVERY Session
 
-| Pitfall | Phase | Risk | Prevention |
-|---------|-------|------|-----------|
-| IDOR in Edge Functions | 01 | Critical | Ownership checks before mutations, RLS write tests |
-| PostgREST filter injection | 02 | High | Sanitize user input, encode special chars, test injection |
-| RLS write isolation silent fails | 02 | High | Dedicated integration project, negative tests, explicit denial tests |
-| Cached auth race conditions | 04 | Medium | Fresh auth per mutation, TTL cache, error recovery |
-| Unpinned Deno dependencies | 05 | Medium | Import map, version pinning, lock file |
-| Stripe SDK version changes | 06 | Medium | Shape validation, version pinning, CHANGELOG review |
-| E2E mock interception | 32-33 | Medium | Real database seeding, remove old mocks, RLS filter validation |
-| Webhook idempotency races | 06 | High | Insert before process, atomic transactions, race testing |
-| Missing owner_user_id | 01 | Critical | Zod validation, helper functions, field audit |
+**What goes wrong:**
+
+The existing `UpdatePasswordForm` at `/auth/update-password` calls `supabase.auth.updateUser({ password })`. This requires an active session. When a user clicks the password reset link in their email, Supabase's PKCE flow redirects to `/auth/update-password?code=...` with an auth code in the URL. If the page does not call `supabase.auth.exchangeCodeForSession(code)` before `updateUser`, the call fails with `AuthSessionMissingError`.
+
+Looking at the current implementation: `UpdatePasswordForm` calls `updateUser` directly without any code exchange step. The page at `/auth/update-password/page.tsx` renders the form without extracting the `code` param from the URL.
+
+**Why it happens:**
+
+In the implicit flow (older Supabase), the reset link embedded a token directly in the URL fragment, and Supabase JS would pick it up automatically. In the PKCE flow (default with `@supabase/ssr`), the URL contains a `code` parameter that must be explicitly exchanged for a session before any auth operation. The auth callback route at `/auth/callback/route.ts` handles this for OAuth but not for password reset — password reset goes directly to `/auth/update-password`, not through the callback route.
+
+**How to avoid:**
+
+The `/auth/update-password` page (or a dedicated route handler) must detect the `code` param and call `exchangeCodeForSession(code)` before the form renders. Two options:
+1. Add a Server Component wrapper that calls `exchangeCodeForSession` on the server, then renders the form once a session is established.
+2. In the client component, call `supabase.auth.exchangeCodeForSession(code)` on mount using `useSearchParams().get('code')` before enabling the form.
+
+The current `update-password/page.tsx` renders `<UpdatePasswordForm />` unconditionally. The form will fail for users arriving from the email link until this exchange is added.
+
+Note: The `TOKEN_HASH` + `type=recovery` pattern used in older Supabase guides is deprecated. Current approach uses `code` + PKCE.
+
+**Warning signs:**
+
+- Password reset emails send successfully but users get an error when trying to set a new password
+- `AuthSessionMissingError` in browser console on the update-password page
+- No `searchParams.get('code')` or `exchangeCodeForSession` call in the password reset flow
+- The `/auth/callback/route.ts` only handles OAuth, not password recovery
+
+**Phase to address:** Phase adding the password reset page (auth flow completion).
 
 ---
 
-## Key Prevention Principles
+### Pitfall 7: Google OAuth Redirect URI Not Registered in Google Cloud Console
 
-1. **Explicit RLS tests:** Don't assume policies work — test ownership enforcement explicitly
-2. **Dedicated test infrastructure:** RLS tests need fresh database (not shared project)
-3. **Service role is risky:** Always pair with explicit ownership checks
-4. **PostgREST filtering needs sanitization:** Special characters are operators
-5. **Webhook idempotency is atomic:** Insert BEFORE process, handle race atomically
-6. **Dependencies matter:** Pin versions, review changes before upgrades
-7. **Caching has costs:** Fresh auth per mutation, TTL for cached values
-8. **Tests must reflect architecture:** Real PostgREST queries, not old mocks
+**What goes wrong:**
 
+The Google OAuth button exists. The `signInWithOAuth` call is wired. The `/auth/callback/route.ts` handles code exchange. But when a user clicks "Sign in with Google" in production, Google refuses the redirect with `redirect_uri_mismatch` because the Vercel production URL (`https://app.tenantflow.app`) was not added to "Authorized redirect URIs" in Google Cloud Console.
+
+The development URL (`http://localhost:3050`) works because it was added during initial dev setup. Production breaks because the production `redirect_uri` is `https://app.tenantflow.app/auth/callback`, not `http://localhost:3050/auth/callback`.
+
+**Why it happens:**
+
+Google Cloud Console requires explicit registration of every redirect URI. No wildcards. Supabase's OAuth flow generates a `redirect_to` parameter pointing to the production URL, which Google rejects if not pre-registered. The Supabase dashboard's URL configuration and the Google Cloud Console are two separate systems that both must be updated.
+
+**How to avoid:**
+
+Before deploying Google OAuth to production:
+1. In Google Cloud Console → OAuth 2.0 credentials → Authorized redirect URIs, add: `https://[production-domain]/auth/callback`
+2. In Supabase Dashboard → Auth → URL Configuration → Allowed Redirect URLs, add: `https://[production-domain]/**`
+3. The `NEXT_PUBLIC_SUPABASE_URL` environment variable must match what Supabase uses as the callback base
+
+For Vercel preview deployments: Google does not support wildcard redirect URIs. Either skip OAuth on preview URLs or use a custom domain for previews.
+
+**Warning signs:**
+
+- Google OAuth works in development but fails in production
+- Browser console shows `redirect_uri_mismatch` error from Google
+- New deployment environments not in the Google Cloud Console allow-list
+- Supabase "Site URL" is set to localhost in the dashboard
+
+**Phase to address:** Phase polishing Google OAuth (auth flow completion).
+
+---
+
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Hardcode Stripe fee as 3% flat in application_fee_amount | Fast implementation | Wrong platform revenue if Stripe changes pricing, no net revenue tracking | Never — calculate dynamically |
+| Skip email_suppressions check, let Resend handle suppression | One less DB query | Suppressed emails treated as errors, webhook retries, deliverability damage | Never on transactional emails |
+| Use stripe@20 in new Edge Function while others use stripe@14 | Newer types and features | Inconsistent API versions across payment flow, hard to debug | Never — match existing functions |
+| Send Resend email synchronously inside webhook handler | Simple code | Resend latency delays webhook response, Stripe may retry thinking webhook failed | Never — always fire-and-forget |
+| Store `application_fee_amount` and display it as platform profit | Single field to track | Displays incorrect profit (Stripe cut not subtracted) | Acceptable temporarily if labeled "gross fee" not "net revenue" |
+
+---
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Stripe destination charges | Calculate `application_fee_amount` as a flat % of rent with no Stripe fee adjustment | Calculate desired net, add Stripe's 2.9%+$0.30 to get required gross fee; or document the shortfall explicitly |
+| Stripe destination charges | Create PaymentIntent without checking `charges_enabled` on the destination account | Query `stripe_connected_accounts.charges_enabled` before creating PaymentIntent, return 422 if not enabled |
+| Stripe Connect webhooks | Register only platform webhooks, miss connected account events | For destination charges, the platform webhook receives `payment_intent.succeeded` — no separate connected account webhook needed for fee receipt; verify with Stripe docs for the specific events needed |
+| Resend in Deno Edge Functions | Import `npm:resend` package | Use `fetch('https://api.resend.com/emails', ...)` directly — fewer cold-start concerns, no Deno compatibility issues with the npm package |
+| Resend bounce handling | Treat Resend 4xx error as payment failure | Separate email send errors (non-fatal, log only) from payment processing errors (fatal, return 500) |
+| Supabase Auth password reset | Call `updateUser` directly on page load | Exchange the `code` param for a session via `exchangeCodeForSession` first, then enable the form |
+| Supabase Auth PKCE | Use `token_hash` from old guides | Modern PKCE flow uses `code` URL param + `exchangeCodeForSession` — the old `token_hash` approach is deprecated |
+| Google OAuth in production | Only configure Google Cloud Console for localhost | Register every production URL explicitly: `https://domain.com/auth/callback` in Authorized Redirect URIs |
+| Google OAuth with Vercel previews | Add wildcard for preview URLs to Google | Google does not accept wildcards — use a dedicated preview domain or disable OAuth on preview URLs |
+| Stripe metadata on destination charges | Expect metadata on the Charge object matching the PaymentIntent | With destination charges, metadata on the PaymentIntent may not propagate to the connected account's Charge — set metadata on the PaymentIntent and read it from the PaymentIntent in webhooks |
+
+---
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Resend call inside synchronous webhook handler path | Stripe webhook takes 3-8 seconds, retries flood Edge Function | Fire-and-forget with `catch()` — never `await` transactional email from webhook | Immediately if Resend API is slow (timeouts) |
+| Fetching connected account Stripe object to check `charges_enabled` in checkout | 200-400ms Stripe API call on every payment initiation | Cache `charges_enabled` from `stripe_connected_accounts` table (updated via `account.updated` webhook) — no live Stripe call needed | At 100+ concurrent payment initiations |
+| Verifying `email_suppressions` with unbounded query | Slow suppression check if table grows large | `email_suppressions` PK is `email` — direct lookup is O(1), no performance concern | Never — PK lookup is always fast |
+| Token exchange on every password reset page render | Calling `exchangeCodeForSession` on each React re-render | Run code exchange once in `useEffect` with empty deps or in a Server Component/route handler | On pages with many re-renders during form interaction |
+
+---
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Exposing `application_fee_amount` calculation to the tenant | Tenant could reverse-engineer the platform margin and negotiate around it | Keep fee calculation server-side in Edge Function; return only total amount to tenant checkout UI |
+| Not validating lease ownership before creating destination charge | Tenant could initiate payment to a different owner's connected account | In `stripe-rent-checkout` Edge Function, verify the `lease_id` in the request belongs to a lease the authenticated tenant is party to |
+| Resend receipt email exposes other tenant data | If email template is built from wrong query, might leak cross-tenant data | Build email data from the specific PaymentIntent metadata + verified lease/tenant IDs; never query "all payments" to build receipt |
+| Password reset link reuse | Once a reset link is clicked and `exchangeCodeForSession` called, the code is invalidated (5-min window, single-use) — but client might cache and reuse it | After successful code exchange, remove the `code` from URL via `window.history.replaceState` to prevent accidental reuse |
+| CORS wildcard on `stripe-rent-checkout` Edge Function | Browser can call from any origin | Set `Access-Control-Allow-Origin` to `process.env.FRONTEND_URL` (already done in other functions — follow same pattern) |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Tenant sees generic "payment failed" when owner is not Stripe-verified | Tenant cannot self-serve; calls owner instead | Return specific error "Owner payment account not ready" with link to contact property owner |
+| No success page after payment — just toast dismisses | Tenant unsure if payment succeeded; double-pays | Show dedicated success screen with amount, date, and link to download receipt |
+| Password reset page shows form before session exchange completes | User submits form, gets AuthSessionMissingError | Disable form / show spinner until `exchangeCodeForSession` resolves |
+| Email confirmation page tries to resend to session user but session may not exist | `getSession()` returns null, resend fails silently | Pre-fill email from URL param `?email=...` set by Supabase's OTP email, not from session |
+| After Google OAuth, user lands on /dashboard but user_type is undefined | Owner sees tenant dashboard, or vice versa | The `/auth/callback/route.ts` already handles this — verify `app_metadata.user_type` is set at signup and not overwritten by Google OAuth |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Stripe rent checkout:** `charges_enabled` guard added — verify by testing with a not-yet-onboarded owner account
+- [ ] **Fee split:** `application_fee_amount` is the gross fee including Stripe's cut — verify financial reports show net revenue correctly, not gross
+- [ ] **Receipt email:** Resend `fetch` call is inside `stripe-webhooks/index.ts` `payment_intent.succeeded` case — verify by checking Edge Function logs after a test payment
+- [ ] **Email suppression:** `email_suppressions` table queried before every Resend call — verify by inserting a test suppression and confirming no email sent
+- [ ] **Password reset:** `exchangeCodeForSession(code)` called before `updateUser` — verify by clicking an actual reset email link in a fresh browser session
+- [ ] **Google OAuth production:** Google Cloud Console has production domain's redirect URI — verify by attempting OAuth on the production URL, not just localhost
+- [ ] **Stripe SDK version:** New `stripe-rent-checkout` uses `npm:stripe@14` matching existing functions — verify by grepping all Edge Functions for consistent import
+- [ ] **Webhook events:** `stripe-rent-checkout` PaymentIntents are captured by the existing `payment_intent.succeeded` handler — verify that the existing webhook endpoint URL is registered for `payment_intent.succeeded` in Stripe Dashboard
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| application_fee_amount calculated wrong | MEDIUM | Deploy corrected fee calculation, update existing `rent_payments` records with a one-time SQL migration; financial reports show corrected values from that date |
+| Resend emails never sent | LOW | Add the Resend call to `stripe-webhooks`, deploy; cannot retroactively send receipts for past payments, but future ones work |
+| Password reset broken in production | HIGH | Hotfix deploy with `exchangeCodeForSession` call; users who attempted reset during outage must request a new reset link |
+| Google OAuth production URI missing | MEDIUM | Add URI to Google Cloud Console (takes effect immediately); no code deploy needed |
+| Stripe SDK version mismatch causes runtime errors | HIGH | Pin all Edge Functions to same version, deploy together; test each Edge Function endpoint after deploy |
+
+---
+
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| application_fee_amount net vs gross | stripe-rent-checkout implementation phase | Run test payment, verify `rent_payments.application_fee_amount` and financial dashboard show correct net |
+| charges_enabled guard missing | stripe-rent-checkout implementation phase | Test with `charges_enabled=false` owner; expect 422 |
+| Receipt email not wired | Receipt email implementation phase | Check Edge Function logs for "Receipt email sent" after test payment |
+| email_suppressions not checked | Receipt email implementation phase | Insert test suppression, trigger payment, verify no Resend call made |
+| Stripe SDK version mismatch | stripe-rent-checkout implementation phase | Grep `import.*stripe` in all Edge Functions — must all be `npm:stripe@14` |
+| UpdatePasswordForm missing code exchange | Password reset page phase | Click real reset email link in fresh browser; verify no AuthSessionMissingError |
+| Google OAuth redirect URI missing | Google OAuth polish phase | Test OAuth flow on deployed production URL before marking phase complete |
+
+---
+
+## Sources
+
+- [Stripe Connect Destination Charges — Official Docs](https://docs.stripe.com/connect/destination-charges)
+- [Stripe Connect Webhooks — Platform vs Connected Account Events](https://docs.stripe.com/connect/webhooks)
+- [Resend Webhooks — Bounce Handling](https://resend.com/docs/webhooks/introduction)
+- [Supabase Auth — Password-based Auth PKCE Flow](https://supabase.com/docs/guides/auth/passwords)
+- [Supabase Auth — PKCE Flow Details](https://supabase.com/docs/guides/auth/sessions/pkce-flow)
+- [Supabase Auth — Redirect URLs Configuration](https://supabase.com/docs/guides/auth/redirect-urls)
+- [Supabase Auth — Google OAuth Login](https://supabase.com/docs/guides/auth/social-login/auth-google)
+- [Supabase GitHub Discussion — PKCE Password Reset in Next.js](https://github.com/orgs/supabase/discussions/28655)
+- [Stripe SDK Versioning Policy](https://docs.stripe.com/sdks/versioning)
+- Existing codebase: `supabase/functions/stripe-webhooks/index.ts`, `supabase/migrations/20260219100002_create_email_suppressions.sql`, `apps/frontend/src/app/auth/callback/route.ts`, `apps/frontend/src/components/auth/update-password-form.tsx`
+
+---
+*Pitfalls research for: TenantFlow payment infrastructure milestone (Stripe Connect destination charges, Resend receipt emails, Supabase Auth completion)*
+*Researched: 2026-02-25*

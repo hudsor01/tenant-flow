@@ -25,7 +25,9 @@ import {
 	SheetTitle
 } from '#components/ui/sheet'
 import { useCreateUnitMutation } from '#hooks/api/use-unit'
+import { useCurrentUser } from '#hooks/use-current-user'
 import { useForm } from '@tanstack/react-form'
+import { cn } from '#lib/utils'
 import { DollarSign, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -51,6 +53,7 @@ export function AddUnitPanel({
 	onSuccess
 }: AddUnitPanelProps) {
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const createUnitMutation = useCreateUnitMutation()
 
 	const form = useForm({
@@ -274,7 +277,11 @@ export function AddUnitPanel({
 						>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting}>
+						<Button
+							type="submit"
+							disabled={isSubmitting || isAuthLoading}
+							className={cn(isAuthLoading && 'animate-pulse')}
+						>
 							{isSubmitting ? (
 								<>
 									<Loader2 className="size-4 mr-2 animate-spin" />

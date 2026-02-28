@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'
@@ -28,13 +29,11 @@ import { Switch } from '#components/ui/switch'
 
 import {
 	useTenantAutopayStatus,
-	useTenantLease
-} from '#hooks/api/use-tenant-portal'
-import {
+	useTenantLease,
 	useTenantPortalSetupAutopayMutation,
 	useTenantPortalCancelAutopayMutation
 } from '#hooks/api/use-tenant-portal'
-import { usePaymentMethods } from '#hooks/api/use-payments'
+import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCents } from '@repo/shared/lib/format'
 
 export default function TenantAutopayPage() {
@@ -43,10 +42,8 @@ export default function TenantAutopayPage() {
 	const { data: lease, isLoading: isLoadingLease } = useTenantLease()
 	const { data: paymentMethods, isLoading: isLoadingPaymentMethods } =
 		usePaymentMethods()
-
 	const setupAutopay = useTenantPortalSetupAutopayMutation()
 	const cancelAutopay = useTenantPortalCancelAutopayMutation()
-
 	const [selectedPaymentMethodId, setSelectedPaymentMethodId] =
 		useState<string>('')
 
@@ -54,55 +51,37 @@ export default function TenantAutopayPage() {
 		isLoadingAutopay || isLoadingLease || isLoadingPaymentMethods
 	const isAutopayEnabled = autopayStatus?.autopayEnabled ?? false
 	const hasPaymentMethods = (paymentMethods?.length ?? 0) > 0
+	const isMutating = setupAutopay.isPending || cancelAutopay.isPending
 
-	const handleToggleAutopay = async () => {
-		if (!lease) {
-			toast.error('No active lease found')
+	const handleEnableAutopay = async () => {
+		if (!lease || !autopayStatus?.tenant_id) return
+		if (!selectedPaymentMethodId && hasPaymentMethods) {
+			toast.error('Please select a payment method')
 			return
 		}
-
-		// Get tenant_id from autopayStatus or we need to fetch it
-		const tenant_id = autopayStatus?.tenant_id
-		if (!tenant_id) {
-			toast.error('Unable to identify tenant')
-			return
+		const params: { tenant_id: string; lease_id: string; paymentMethodId?: string } = {
+			tenant_id: autopayStatus.tenant_id,
+			lease_id: lease.id,
 		}
+		if (selectedPaymentMethodId) {
+			params.paymentMethodId = selectedPaymentMethodId
+		}
+		await setupAutopay.mutateAsync(params)
+	}
 
+	const handleDisableAutopay = async () => {
+		if (!lease || !autopayStatus?.tenant_id) return
+		await cancelAutopay.mutateAsync({
+			tenant_id: autopayStatus.tenant_id,
+			lease_id: lease.id
+		})
+	}
+
+	const handleToggle = () => {
 		if (isAutopayEnabled) {
-			// Cancel autopay
-			try {
-				await cancelAutopay.mutateAsync({
-					tenant_id,
-					lease_id: lease.id
-				})
-				toast.success('Autopay has been disabled')
-			} catch {
-				toast.error('Failed to disable autopay')
-			}
+			handleDisableAutopay()
 		} else {
-			// Enable autopay
-			if (!selectedPaymentMethodId && hasPaymentMethods) {
-				toast.error('Please select a payment method')
-				return
-			}
-
-			try {
-				const params: {
-					tenant_id: string
-					lease_id: string
-					paymentMethodId?: string
-				} = {
-					tenant_id,
-					lease_id: lease.id
-				}
-				if (selectedPaymentMethodId) {
-					params.paymentMethodId = selectedPaymentMethodId
-				}
-				await setupAutopay.mutateAsync(params)
-				toast.success('Autopay has been enabled')
-			} catch {
-				toast.error('Failed to enable autopay')
-			}
+			handleEnableAutopay()
 		}
 	}
 
@@ -138,195 +117,185 @@ export default function TenantAutopayPage() {
 				</p>
 			</div>
 
-			{/* Status Card */}
-			<Card>
-				<CardHeader>
-					<div className="flex-between">
-						<div>
-							<CardTitle className="flex items-center gap-2">
-								Autopay Status
-								{isAutopayEnabled ? (
-									<Badge variant="default" className="ml-2">
-										<CheckCircle2 className="mr-1 size-3" />
-										Active
-									</Badge>
-								) : (
-									<Badge variant="outline" className="ml-2">
-										Inactive
-									</Badge>
-								)}
-							</CardTitle>
-							<CardDescription>
-								{isAutopayEnabled
-									? 'Your rent will be automatically charged on the due date.'
-									: 'Enable autopay to never miss a rent payment.'}
-							</CardDescription>
-						</div>
-						<Switch
-							checked={isAutopayEnabled}
-							onCheckedChange={handleToggleAutopay}
-							disabled={setupAutopay.isPending || cancelAutopay.isPending}
-						/>
-					</div>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{/* Lease Info */}
-					<div className="rounded-lg border p-4 space-y-3">
-						<div className="flex justify-between">
-							<span className="text-muted">Monthly Rent</span>
-							<span className="font-semibold">
-								{formatCents(lease.rent_amount)}
-							</span>
-						</div>
-						{autopayStatus?.nextPaymentDate && (
-							<div className="flex justify-between">
-								<span className="text-muted">Next Payment</span>
-								<span className="font-semibold">
-									{new Date(autopayStatus.nextPaymentDate).toLocaleDateString(
-										'en-US',
-										{
-											month: 'long',
-											day: 'numeric',
-											year: 'numeric'
-										}
-									)}
-								</span>
-							</div>
-						)}
-						<div className="flex justify-between">
-							<span className="text-muted">Property</span>
-							<span className="font-semibold">
-								{lease.unit?.property?.name ?? 'N/A'}
-							</span>
-						</div>
-						<div className="flex justify-between">
-							<span className="text-muted">Unit</span>
-							<span className="font-semibold">
-								{lease.unit?.unit_number ?? 'N/A'}
-							</span>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+			<AutopayStatusCard
+				isEnabled={isAutopayEnabled}
+				isMutating={isMutating}
+				lease={lease}
+				autopayStatus={autopayStatus}
+				onToggle={handleToggle}
+			/>
 
-			{/* Payment Method Selection */}
 			{!isAutopayEnabled && (
-				<Card>
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2">
-							<CreditCard className="size-5" />
-							Payment Method
-						</CardTitle>
-						<CardDescription>
-							Select which payment method to use for autopay.
-						</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						{!hasPaymentMethods ? (
-							<Alert>
-								<AlertCircle className="size-4" />
-								<AlertTitle>No Payment Methods</AlertTitle>
-								<AlertDescription>
-									You need to add a payment method before enabling autopay.{' '}
-									<a
-										href="/tenant/payments/methods"
-										className="font-medium underline underline-offset-4"
-									>
-										Add a payment method
-									</a>
-								</AlertDescription>
-							</Alert>
-						) : (
-							<div className="space-y-2">
-								<Label htmlFor="payment-method">Select Payment Method</Label>
-								<Select
-									value={selectedPaymentMethodId}
-									onValueChange={setSelectedPaymentMethodId}
-								>
-									<SelectTrigger id="payment-method">
-										<SelectValue placeholder="Choose a payment method" />
-									</SelectTrigger>
-									<SelectContent>
-										{paymentMethods?.map(method => (
-											<SelectItem key={method.id} value={method.id}>
-												<div className="flex items-center gap-2">
-													<CreditCard className="size-4" />
-													<span>
-														{method.type === 'card'
-															? method.brand
-															: 'Bank Account'}{' '}
-														****
-														{method.last4}
-													</span>
-													{method.isDefault && (
-														<Badge variant="secondary" className="ml-2">
-															Default
-														</Badge>
-													)}
-												</div>
-											</SelectItem>
-										))}
-									</SelectContent>
-								</Select>
-							</div>
-						)}
-					</CardContent>
-					<CardFooter>
-						<Button
-							onClick={handleToggleAutopay}
-							disabled={!hasPaymentMethods || setupAutopay.isPending}
-							className="w-full"
-						>
-							{setupAutopay.isPending ? 'Enabling...' : 'Enable Autopay'}
-						</Button>
-					</CardFooter>
-				</Card>
+				<PaymentMethodSelectionCard
+					paymentMethods={paymentMethods ?? []}
+					hasPaymentMethods={hasPaymentMethods}
+					selectedId={selectedPaymentMethodId}
+					onSelect={setSelectedPaymentMethodId}
+					onEnable={handleEnableAutopay}
+					isPending={setupAutopay.isPending}
+				/>
 			)}
 
-			{/* Info Section */}
-			<Card>
-				<CardHeader>
-					<CardTitle>How Autopay Works</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-3">
-					<div className="flex gap-3">
-						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-							1
-						</div>
-						<div>
-							<p className="font-medium">Automatic Charging</p>
-							<p className="text-muted">
-								Your payment method will be charged automatically on the rent
-								due date each month.
-							</p>
-						</div>
-					</div>
-					<div className="flex gap-3">
-						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-							2
-						</div>
-						<div>
-							<p className="font-medium">Email Notifications</p>
-							<p className="text-muted">
-								You will receive email confirmations when payments are processed
-								successfully.
-							</p>
-						</div>
-					</div>
-					<div className="flex gap-3">
-						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-							3
-						</div>
-						<div>
-							<p className="font-medium">Cancel Anytime</p>
-							<p className="text-muted">
-								You can disable autopay at any time from this page. Changes take
-								effect immediately.
-							</p>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
+			<HowItWorksCard />
 		</div>
+	)
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components (extracted to stay under 50-line function limit)
+// ---------------------------------------------------------------------------
+
+interface StatusCardProps {
+	isEnabled: boolean
+	isMutating: boolean
+	lease: { rent_amount: number; unit?: { unit_number?: string; property?: { name?: string } } | null }
+	autopayStatus: { nextPaymentDate?: string | null; paymentMethodBrand?: string | null; paymentMethodLast4?: string | null } | undefined
+	onToggle: () => void
+}
+
+function AutopayStatusCard({ isEnabled, isMutating, lease, autopayStatus, onToggle }: StatusCardProps) {
+	return (
+		<Card>
+			<CardHeader>
+				<div className="flex-between">
+					<div>
+						<CardTitle className="flex items-center gap-2">
+							Autopay Status
+							<Badge variant={isEnabled ? 'default' : 'outline'} className="ml-2">
+								{isEnabled && <CheckCircle2 className="mr-1 size-3" />}
+								{isEnabled ? 'Active' : 'Inactive'}
+							</Badge>
+						</CardTitle>
+						<CardDescription>
+							{isEnabled
+								? 'Your rent will be automatically charged on the due date.'
+								: 'Enable autopay to never miss a rent payment.'}
+						</CardDescription>
+					</div>
+					<Switch checked={isEnabled} onCheckedChange={onToggle} disabled={isMutating} />
+				</div>
+			</CardHeader>
+			<CardContent>
+				<div className="rounded-lg border p-4 space-y-3">
+					<InfoRow label="Monthly Rent" value={formatCents(lease.rent_amount)} />
+					{isEnabled && autopayStatus?.nextPaymentDate && (
+						<InfoRow
+							label="Next Payment"
+							value={new Date(autopayStatus.nextPaymentDate).toLocaleDateString('en-US', {
+								month: 'long', day: 'numeric', year: 'numeric'
+							})}
+						/>
+					)}
+					{isEnabled && autopayStatus?.paymentMethodLast4 && (
+						<InfoRow
+							label="Payment Method"
+							value={`${autopayStatus.paymentMethodBrand ?? 'Card'} ending in ${autopayStatus.paymentMethodLast4}`}
+						/>
+					)}
+					<InfoRow label="Property" value={lease.unit?.property?.name ?? 'N/A'} />
+					<InfoRow label="Unit" value={lease.unit?.unit_number ?? 'N/A'} />
+				</div>
+			</CardContent>
+		</Card>
+	)
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+	return (
+		<div className="flex justify-between">
+			<span className="text-muted">{label}</span>
+			<span className="font-semibold">{value}</span>
+		</div>
+	)
+}
+
+interface PaymentMethodCardProps {
+	paymentMethods: Array<{ id: string; type: string; brand: string | null; last4: string | null; isDefault: boolean }>
+	hasPaymentMethods: boolean
+	selectedId: string
+	onSelect: (id: string) => void
+	onEnable: () => void
+	isPending: boolean
+}
+
+function PaymentMethodSelectionCard({ paymentMethods, hasPaymentMethods, selectedId, onSelect, onEnable, isPending }: PaymentMethodCardProps) {
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle className="flex items-center gap-2">
+					<CreditCard className="size-5" />
+					Payment Method
+				</CardTitle>
+				<CardDescription>Select which payment method to use for autopay.</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				{!hasPaymentMethods ? (
+					<Alert>
+						<AlertCircle className="size-4" />
+						<AlertTitle>No Payment Methods</AlertTitle>
+						<AlertDescription>
+							You need to add a payment method before enabling autopay.{' '}
+							<Link href="/tenant/payments/methods" className="font-medium underline underline-offset-4">
+								Add a payment method
+							</Link>
+						</AlertDescription>
+					</Alert>
+				) : (
+					<div className="space-y-2">
+						<Label htmlFor="payment-method">Select Payment Method</Label>
+						<Select value={selectedId} onValueChange={onSelect}>
+							<SelectTrigger id="payment-method">
+								<SelectValue placeholder="Choose a payment method" />
+							</SelectTrigger>
+							<SelectContent>
+								{paymentMethods.map(method => (
+									<SelectItem key={method.id} value={method.id}>
+										<div className="flex items-center gap-2">
+											<CreditCard className="size-4" />
+											<span>
+												{method.type === 'card' ? method.brand : 'Bank Account'} ****{method.last4}
+											</span>
+											{method.isDefault && <Badge variant="secondary" className="ml-2">Default</Badge>}
+										</div>
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				)}
+			</CardContent>
+			<CardFooter>
+				<Button onClick={onEnable} disabled={!hasPaymentMethods || isPending} className="w-full">
+					{isPending ? 'Enabling...' : 'Enable Autopay'}
+				</Button>
+			</CardFooter>
+		</Card>
+	)
+}
+
+function HowItWorksCard() {
+	const steps = [
+		{ title: 'Automatic Charging', desc: 'Your payment method will be charged automatically on the rent due date each month.' },
+		{ title: 'Email Notifications', desc: 'You will receive email confirmations when payments are processed successfully.' },
+		{ title: 'Cancel Anytime', desc: 'You can disable autopay at any time from this page. Changes take effect immediately.' },
+	]
+
+	return (
+		<Card>
+			<CardHeader><CardTitle>How Autopay Works</CardTitle></CardHeader>
+			<CardContent className="space-y-3">
+				{steps.map((step, i) => (
+					<div key={step.title} className="flex gap-3">
+						<div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+							{i + 1}
+						</div>
+						<div>
+							<p className="font-medium">{step.title}</p>
+							<p className="text-muted">{step.desc}</p>
+						</div>
+					</div>
+				))}
+			</CardContent>
+		</Card>
 	)
 }

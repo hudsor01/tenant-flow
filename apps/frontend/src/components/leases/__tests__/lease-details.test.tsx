@@ -39,6 +39,7 @@ const mockLease: Lease = {
 	subscription_retry_count: 0,
 	subscription_last_attempt_at: null,
 	auto_pay_enabled: true,
+	autopay_payment_method_id: null,
 	created_at: '2023-12-15T00:00:00Z',
 	updated_at: '2024-06-01T00:00:00Z',
 	docuseal_submission_id: null,

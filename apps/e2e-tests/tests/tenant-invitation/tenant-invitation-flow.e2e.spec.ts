@@ -261,7 +261,7 @@ test.describe('Email Template Tests', () => {
 		// Mock the email API to capture the email payload
 		let emailPayload: any = null
 
-		await page.route('**/api/v1/emails/send', route => {
+		await page.route('**/functions/v1/tenant-invitation*', route => {
 			emailPayload = route.request().postDataJSON()
 			route.fulfill({
 				status: 200,
@@ -299,7 +299,7 @@ test.describe('Email Template Tests', () => {
 	test('[Email] Invitation link format is valid', async ({ page }) => {
 		let emailPayload: any = null
 
-		await page.route('**/api/v1/emails/send', route => {
+		await page.route('**/functions/v1/tenant-invitation*', route => {
 			emailPayload = route.request().postDataJSON()
 			route.fulfill({
 				status: 200,
@@ -339,7 +339,7 @@ test.describe('Email Template Tests', () => {
 	test('[Email] Plain text version includes working link', async ({ page }) => {
 		let emailPayload: any = null
 
-		await page.route('**/api/v1/emails/send', route => {
+		await page.route('**/functions/v1/tenant-invitation*', route => {
 			emailPayload = route.request().postDataJSON()
 			route.fulfill({
 				status: 200,

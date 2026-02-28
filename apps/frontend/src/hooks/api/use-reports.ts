@@ -10,6 +10,7 @@
  */
 
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	queryOptions,
@@ -155,7 +156,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.revenue(months),
 			queryFn: async (): Promise<RevenueData[]> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) return []
 
@@ -190,7 +191,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.paymentAnalytics(start_date, end_date),
 			queryFn: async (): Promise<ReportPaymentAnalytics> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return {
@@ -222,7 +223,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.occupancyMetrics(),
 			queryFn: async (): Promise<OccupancyMetrics> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return { totalUnits: 0, occupiedUnits: 0, vacantUnits: 0, occupancyRate: 0, byProperty: [] }
@@ -263,7 +264,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.financial(start_date, end_date),
 			queryFn: async (): Promise<FinancialReport> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return {
@@ -297,7 +298,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.properties(start_date, end_date),
 			queryFn: async (): Promise<PropertyReport> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return {
@@ -341,7 +342,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.tenants(start_date, end_date),
 			queryFn: async (): Promise<TenantReport> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return {
@@ -373,7 +374,7 @@ export const reportsQueries = {
 			queryKey: reportsKeys.maintenance(start_date, end_date),
 			queryFn: async (): Promise<MaintenanceReport> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return {
@@ -681,7 +682,7 @@ export function useYearEndSummary(year: number) {
 			queryKey: reportsKeys.yearEnd(year),
 			queryFn: async (): Promise<YearEndSummary> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return { year, grossRentalIncome: 0, operatingExpenses: 0, netIncome: 0, byProperty: [], expenseByCategory: [] }
@@ -716,7 +717,7 @@ export function use1099Summary(year: number) {
 			queryKey: reportsKeys.report1099(year),
 			queryFn: async (): Promise<Year1099Summary> => {
 				const supabase = createClient()
-				const { data: { user } } = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				const userId = user?.id
 				if (!userId) {
 					return { year, threshold: 600, recipients: [], totalReported: 0 }

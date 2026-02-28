@@ -1,6 +1,6 @@
 'use client'
 
-import { CreditCard } from 'lucide-react'
+import { AlertTriangle, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
@@ -26,6 +26,7 @@ interface TenantPortalProps {
 	rentDueDate: string
 	rentStatus: RentStatus
 	daysUntilDue: number
+	chargesEnabled?: boolean
 
 	// Payments
 	payments: Array<{
@@ -66,6 +67,7 @@ export function TenantPortal({
 	rentDueDate,
 	rentStatus,
 	daysUntilDue,
+	chargesEnabled,
 	payments,
 	maintenanceRequests,
 	documents,
@@ -141,22 +143,29 @@ export function TenantPortal({
 								</div>
 							</div>
 							{rentStatus !== 'paid' && (
-								<Button asChild size="lg" className="gap-2">
-									<Link
-										href="/tenant/payments/new"
-										className="dashboard-quick-action"
-										data-touch-target="true"
-										data-spacing="comfortable"
-										style={{
-											minHeight: '2.75rem',
-											padding: 'var(--touch-target-padding)'
-										}}
-										{...(onPayRent ? { onClick: onPayRent } : {})}
-									>
-										<CreditCard className="w-5 h-5" aria-hidden="true" />
-										Pay Now
-									</Link>
-								</Button>
+								chargesEnabled === false ? (
+									<div className="flex items-center gap-2 text-sm text-muted-foreground">
+										<AlertTriangle className="size-4" />
+										<span>Payment setup pending - contact your landlord</span>
+									</div>
+								) : (
+									<Button asChild size="lg" className="gap-2">
+										<Link
+											href="/tenant/payments/new"
+											className="dashboard-quick-action"
+											data-touch-target="true"
+											data-spacing="comfortable"
+											style={{
+												minHeight: '2.75rem',
+												padding: 'var(--touch-target-padding)'
+											}}
+											{...(onPayRent ? { onClick: onPayRent } : {})}
+										>
+											<CreditCard className="w-5 h-5" aria-hidden="true" />
+											Pay Now
+										</Link>
+									</Button>
+								)
 							)}
 						</div>
 					</div>

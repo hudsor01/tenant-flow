@@ -1,10 +1,13 @@
 /**
- * Payment Methods Hooks
+ * Payment Methods Hooks — Canonical Module
  * TanStack Query hooks for tenant payment method management
  *
  * All operations use Supabase PostgREST directly — no apiRequest calls.
  * payment_methods table: id, stripe_payment_method_id, tenant_id, type,
  *   brand, last_four, exp_month, exp_year, bank_name, is_default, created_at
+ *
+ * Returns PaymentMethodResponse (camelCase) from shared types to match
+ * all consumer expectations.
  */
 
 import {
@@ -14,33 +17,18 @@ import {
 	useQueryClient
 } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
+import type { PaymentMethodResponse } from '@repo/shared/types/core'
 
 // ============================================================================
 // TYPES
 // ============================================================================
-
-/**
- * PaymentMethod shape matching the payment_methods DB table.
- * Uses last_four (DB column name) — not the Stripe API's last4.
- */
-export interface PaymentMethod {
-	id: string
-	stripe_payment_method_id: string
-	type: string
-	brand: string | null
-	last_four: string | null
-	exp_month: number | null
-	exp_year: number | null
-	bank_name: string | null
-	is_default: boolean | null
-	created_at: string | null
-}
 
 export interface AddPaymentMethodInput {
 	stripe_payment_method_id: string
@@ -62,6 +50,27 @@ export const paymentMethodsKeys = {
 }
 
 // ============================================================================
+// HELPERS
+// ============================================================================
+
+/**
+ * Map DB row (snake_case) to PaymentMethodResponse (camelCase).
+ */
+function mapToResponse(row: Record<string, unknown>): PaymentMethodResponse {
+	return {
+		id: row.id as string,
+		tenantId: '',
+		stripePaymentMethodId: row.stripe_payment_method_id as string,
+		type: row.type as PaymentMethodResponse['type'],
+		last4: row.last_four as string | null,
+		brand: row.brand as string | null,
+		bankName: row.bank_name as string | null,
+		isDefault: (row.is_default as boolean | null) ?? false,
+		createdAt: (row.created_at as string | null) ?? ''
+	}
+}
+
+// ============================================================================
 // QUERY OPTIONS
 // ============================================================================
 
@@ -69,7 +78,7 @@ export const paymentMethodsQueries = {
 	list: () =>
 		queryOptions({
 			queryKey: paymentMethodsKeys.list(),
-			queryFn: async (): Promise<PaymentMethod[]> => {
+			queryFn: async (): Promise<PaymentMethodResponse[]> => {
 				const supabase = createClient()
 				const { data, error } = await supabase
 					.from('payment_methods')
@@ -78,7 +87,7 @@ export const paymentMethodsQueries = {
 					)
 					.order('created_at', { ascending: false })
 				if (error) handlePostgrestError(error, 'payment_methods')
-				return (data ?? []) as PaymentMethod[]
+				return (data ?? []).map(row => mapToResponse(row as Record<string, unknown>))
 			},
 			staleTime: 60 * 1000
 		})
@@ -109,7 +118,7 @@ export function useDeletePaymentMethod() {
 			return { success: true }
 		},
 		onSuccess: (_data, paymentMethodId) => {
-			queryClient.setQueryData<PaymentMethod[] | undefined>(
+			queryClient.setQueryData<PaymentMethodResponse[] | undefined>(
 				paymentMethodsKeys.list(),
 				old => (old ? old.filter(pm => pm.id !== paymentMethodId) : old)
 			)
@@ -131,13 +140,9 @@ export function useSetDefaultPaymentMethod() {
 			paymentMethodId: string
 		): Promise<{ success: boolean }> => {
 			const supabase = createClient()
-			// Get current user
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
-			// Get tenant record to resolve tenant_id
 			const { data: tenant, error: tenantError } = await supabase
 				.from('tenants')
 				.select('id')
@@ -146,14 +151,12 @@ export function useSetDefaultPaymentMethod() {
 			if (tenantError) handlePostgrestError(tenantError, 'tenants')
 			if (!tenant) throw new Error('Tenant record not found')
 
-			// Clear all defaults for this tenant
 			const { error: clearError } = await supabase
 				.from('payment_methods')
 				.update({ is_default: false })
 				.eq('tenant_id', tenant.id)
 			if (clearError) handlePostgrestError(clearError, 'payment_methods')
 
-			// Set new default
 			const { error } = await supabase
 				.from('payment_methods')
 				.update({ is_default: true })
@@ -163,13 +166,13 @@ export function useSetDefaultPaymentMethod() {
 			return { success: true }
 		},
 		onSuccess: (_data, paymentMethodId) => {
-			queryClient.setQueryData<PaymentMethod[] | undefined>(
+			queryClient.setQueryData<PaymentMethodResponse[] | undefined>(
 				paymentMethodsKeys.list(),
 				old =>
 					old
 						? old.map(pm => ({
 								...pm,
-								is_default: pm.id === paymentMethodId
+								isDefault: pm.id === paymentMethodId
 							}))
 						: old
 			)
@@ -194,14 +197,11 @@ export function useAddPaymentMethodMutation() {
 		mutationKey: mutationKeys.paymentMethods.add,
 		mutationFn: async (
 			input: AddPaymentMethodInput
-		): Promise<PaymentMethod> => {
+		): Promise<PaymentMethodResponse> => {
 			const supabase = createClient()
-			const {
-				data: { user }
-			} = await supabase.auth.getUser()
+			const user = await getCachedUser()
 			if (!user) throw new Error('Not authenticated')
 
-			// Resolve tenant_id from user
 			const { data: tenant, error: tenantError } = await supabase
 				.from('tenants')
 				.select('id')
@@ -210,7 +210,6 @@ export function useAddPaymentMethodMutation() {
 			if (tenantError) handlePostgrestError(tenantError, 'tenants')
 			if (!tenant) throw new Error('Tenant record not found')
 
-			// Check if this is the first card — if so, set as default
 			const { count, error: countError } = await supabase
 				.from('payment_methods')
 				.select('id', { count: 'exact', head: true })
@@ -236,7 +235,7 @@ export function useAddPaymentMethodMutation() {
 				)
 				.single()
 			if (error) handlePostgrestError(error, 'payment_methods')
-			return data as PaymentMethod
+			return mapToResponse(data as Record<string, unknown>)
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: paymentMethodsKeys.all })

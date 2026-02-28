@@ -10,6 +10,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import type { Lease } from '@repo/shared/types/core'
 import type { LeaseStatsResponse } from '@repo/shared/types/core'
@@ -321,9 +322,7 @@ export const leaseQueries = {
 				queryKey: [...leaseQueries.all(), 'analytics', 'performance'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_property_performance_analytics',
@@ -340,9 +339,7 @@ export const leaseQueries = {
 				queryKey: [...leaseQueries.all(), 'analytics', 'duration'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_revenue_trends_optimized',
@@ -359,9 +356,7 @@ export const leaseQueries = {
 				queryKey: [...leaseQueries.all(), 'analytics', 'turnover'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_revenue_trends_optimized',
@@ -378,9 +373,7 @@ export const leaseQueries = {
 				queryKey: [...leaseQueries.all(), 'analytics', 'revenue'],
 				queryFn: async (): Promise<Record<string, unknown>> => {
 					const supabase = createClient()
-					const {
-						data: { user }
-					} = await supabase.auth.getUser()
+					const user = await getCachedUser()
 					if (!user) throw new Error('Not authenticated')
 					const { data, error } = await supabase.rpc(
 						'get_revenue_trends_optimized',

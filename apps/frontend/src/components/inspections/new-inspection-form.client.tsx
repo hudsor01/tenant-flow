@@ -13,12 +13,15 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useCreateInspection } from '#hooks/api/use-inspections'
+import { useCurrentUser } from '#hooks/use-current-user'
+import { cn } from '#lib/utils'
 import { useLeaseList } from '#hooks/api/use-lease'
 import type { CreateInspectionInput } from '@repo/shared/validation/inspections'
 import type { LeaseWithRelations } from '@repo/shared/types/relations'
 
 export function NewInspectionForm() {
 	const router = useRouter()
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const createInspection = useCreateInspection()
 	const { data: leasesResponse, isLoading: loadingLeases } = useLeaseList({
 		status: 'active',
@@ -129,8 +132,8 @@ export function NewInspectionForm() {
 			<div className="flex items-center gap-3 pt-2">
 				<Button
 					type="submit"
-					disabled={!leaseId || createInspection.isPending}
-					className="min-h-11"
+					disabled={!leaseId || createInspection.isPending || isAuthLoading}
+					className={cn('min-h-11', isAuthLoading && 'animate-pulse')}
 				>
 					{createInspection.isPending ? 'Creating...' : 'Create Inspection'}
 				</Button>

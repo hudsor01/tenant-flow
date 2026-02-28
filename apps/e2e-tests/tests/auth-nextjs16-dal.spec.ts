@@ -126,7 +126,7 @@ test.describe('DAL - Authorization Enforcement', () => {
 
 		page.on('response', async response => {
 			const url = response.url()
-			if (url.includes('/api/v1/') && response.status() === 200) {
+			if (url.includes('/rest/v1/') && response.status() === 200) {
 				try {
 					const data = await response.json()
 					apiResponses.push({ url, data })

@@ -3,24 +3,19 @@
 // Authenticates via JWT bearer token — no anon access.
 // Stripe API calls are made server-side using the secret key stored in Edge Function secrets.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'npm:stripe@14'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from '@supabase/supabase-js'
+import Stripe from 'stripe'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   try {
     // Authenticate via Bearer token
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -36,7 +31,7 @@ Deno.serve(async (req: Request) => {
     const token = authHeader.replace('Bearer ', '')
     const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     if (authError || !user) {
-      return new Response('Unauthorized', { status: 401, headers: corsHeaders })
+      return new Response('Unauthorized', { status: 401, headers: getCorsHeaders(req) })
     }
 
     // Parse action from request body
@@ -56,14 +51,14 @@ Deno.serve(async (req: Request) => {
       if (dbError) {
         return new Response(
           JSON.stringify({ error: dbError.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       if (!row) {
         return new Response(
           JSON.stringify({ account: null, hasAccount: false }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -79,13 +74,13 @@ Deno.serve(async (req: Request) => {
         }
         return new Response(
           JSON.stringify({ account, hasAccount: true }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       } catch (_stripeErr) {
         // Return DB data only if Stripe is unreachable
         return new Response(
           JSON.stringify({ account: row, hasAccount: true }),
-          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
     }
@@ -144,7 +139,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ onboardingUrl: accountLink.url, accountId: stripeAccountId }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -161,7 +156,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -174,7 +169,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ onboardingUrl: accountLink.url }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -191,7 +186,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -201,7 +196,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ balance: { available: balance.available, pending: balance.pending } }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -221,7 +216,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -234,7 +229,7 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ payouts: payouts.data, hasMore: payouts.has_more }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -254,7 +249,7 @@ Deno.serve(async (req: Request) => {
       if (dbError || !row) {
         return new Response(
           JSON.stringify({ error: 'No connected account found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 404, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -268,19 +263,19 @@ Deno.serve(async (req: Request) => {
 
       return new Response(
         JSON.stringify({ transfers: transfers.data, hasMore: transfers.has_more }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
     // Unknown action
     return new Response(
       JSON.stringify({ error: `Unknown action: ${action}` }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

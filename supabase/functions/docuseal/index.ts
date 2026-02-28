@@ -10,17 +10,12 @@
 //   cancel             — archive DocuSeal submission and reset lease to draft
 //   resend             — resend pending signature request emails
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from '@supabase/supabase-js'
+import { getCorsHeaders, handleCorsOptions } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  const optionsResponse = handleCorsOptions(req)
+  if (optionsResponse) return optionsResponse
 
   try {
     // Authenticate via Bearer token
@@ -28,7 +23,7 @@ Deno.serve(async (req: Request) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -40,7 +35,7 @@ Deno.serve(async (req: Request) => {
     if (!docusealUrl || !docusealApiKey) {
       return new Response(
         JSON.stringify({ error: 'DOCUSEAL_URL or DOCUSEAL_API_KEY environment variable is not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -53,7 +48,7 @@ Deno.serve(async (req: Request) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -77,7 +72,7 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -90,8 +85,16 @@ Deno.serve(async (req: Request) => {
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can send for signature
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -212,7 +215,7 @@ Deno.serve(async (req: Request) => {
         const errText = await pdfResponse.text().catch(() => pdfResponse.statusText)
         return new Response(
           JSON.stringify({ error: `PDF generation failed: ${errText}` }),
-          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -274,7 +277,7 @@ Deno.serve(async (req: Request) => {
         const errBody = await submissionResponse.text().catch(() => submissionResponse.statusText)
         return new Response(
           JSON.stringify({ error: `DocuSeal submission failed: ${errBody}` }),
-          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -292,13 +295,13 @@ Deno.serve(async (req: Request) => {
       if (updateError) {
         return new Response(
           JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       return new Response(
         JSON.stringify({ success: true, submission_id: submission.id }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -312,20 +315,28 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id, tenant_signed_at')
+        .select('id, owner_user_id, docuseal_submission_id, tenant_signed_at')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can sign as owner
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -347,13 +358,13 @@ Deno.serve(async (req: Request) => {
       if (updateError) {
         return new Response(
           JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -368,20 +379,37 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id, owner_signed_at')
+        .select('id, owner_user_id, primary_tenant_id, docuseal_submission_id, owner_signed_at')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Authorization: allow owner or the lease's primary tenant
+      const { data: tenantRecord } = await supabase
+        .from('tenants')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const isTenant = tenantRecord?.id === lease.primary_tenant_id
+      const isOwner = lease.owner_user_id === user.id
+
+      if (!isOwner && !isTenant) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -403,13 +431,13 @@ Deno.serve(async (req: Request) => {
       if (updateError) {
         return new Response(
           JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -423,20 +451,28 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id')
+        .select('id, owner_user_id, docuseal_submission_id')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can cancel
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -459,7 +495,7 @@ Deno.serve(async (req: Request) => {
           const errBody = await archiveResponse.text().catch(() => archiveResponse.statusText)
           return new Response(
             JSON.stringify({ error: `DocuSeal archive failed: ${errBody}` }),
-            { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
           )
         }
       }
@@ -477,13 +513,13 @@ Deno.serve(async (req: Request) => {
       if (updateError) {
         return new Response(
           JSON.stringify({ error: `Failed to update lease: ${updateError.message}` }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
@@ -498,20 +534,28 @@ Deno.serve(async (req: Request) => {
       if (!leaseId) {
         return new Response(
           JSON.stringify({ error: 'leaseId is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       const { data: lease, error: leaseError } = await supabase
         .from('leases')
-        .select('id, docuseal_submission_id')
+        .select('id, owner_user_id, docuseal_submission_id')
         .eq('id', leaseId)
         .single()
 
       if (leaseError || !lease || !lease.docuseal_submission_id) {
         return new Response(
-          JSON.stringify({ error: 'Lease not found or no active submission' }),
-          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Ownership check: only the lease owner can resend
+      if (lease.owner_user_id !== user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden' }),
+          { status: 403, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -533,7 +577,7 @@ Deno.serve(async (req: Request) => {
         const errBody = await submittersResponse.text().catch(() => submittersResponse.statusText)
         return new Response(
           JSON.stringify({ error: `Failed to fetch submitters: ${errBody}` }),
-          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
@@ -575,25 +619,25 @@ Deno.serve(async (req: Request) => {
       if (failed && 'error' in failed) {
         return new Response(
           JSON.stringify({ error: `Failed to resend to submitter ${failed.id}: ${failed.error}` }),
-          { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 502, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
         )
       }
 
       return new Response(
         JSON.stringify({ success: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 200, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
       )
     }
 
     // Unknown action
     return new Response(
       JSON.stringify({ error: `Unknown action: ${action}` }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 400, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'Internal error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' } }
     )
   }
 })

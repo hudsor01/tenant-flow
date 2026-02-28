@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Button } from '#components/ui/button'
 import { safeDom } from '#lib/dom-utils'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handleMutationError } from '#lib/mutation-error-handler'
 
 type ExportFormat = 'excel' | 'pdf' | 'csv'
@@ -30,12 +31,9 @@ async function fetchAccessToken(): Promise<string | null> {
 	const supabase = createClient()
 
 	// SECURITY FIX: Validate user with getUser() before extracting token
-	const {
-		data: { user },
-		error: userError
-	} = await supabase.auth.getUser()
+	const user = await getCachedUser()
 
-	if (userError || !user) {
+	if (!user) {
 		return null
 	}
 

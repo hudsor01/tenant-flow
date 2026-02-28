@@ -10,6 +10,7 @@
 
 import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
@@ -284,9 +285,7 @@ export const maintenanceQueries = {
 				const supabase = createClient()
 
 				// Step 1: Get authenticated user
-				const {
-					data: { user }
-				} = await supabase.auth.getUser()
+				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
 
 				// Step 2: Resolve tenant record — maintenance_requests.tenant_id

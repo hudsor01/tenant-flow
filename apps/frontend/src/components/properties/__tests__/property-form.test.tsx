@@ -16,6 +16,17 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 
+// Mock useCurrentUser hook
+vi.mock('#hooks/use-current-user', () => ({
+	useCurrentUser: () => ({
+		user: { id: 'user-1', email: 'test@example.com' },
+		user_id: 'user-1',
+		isAuthenticated: true,
+		isLoading: false,
+		session: {}
+	})
+}))
+
 // Mock hooks
 vi.mock('#hooks/api/use-properties', () => ({
 	useCreatePropertyMutation: () => ({

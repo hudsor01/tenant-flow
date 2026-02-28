@@ -11,7 +11,10 @@
 
 import { useMutation, useQuery, useQueryClient, queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
+import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { maintenanceQueries } from './query-keys/maintenance-keys'
 import { ownerDashboardKeys } from './use-owner-dashboard'
@@ -101,7 +104,10 @@ export const vendorKeys = {
 					q = q.eq('trade', filters.trade)
 				}
 				if (filters?.search) {
-					q = q.ilike('name', `%${filters.search}%`)
+					const safe = sanitizeSearchInput(filters.search)
+					if (safe) {
+						q = q.ilike('name', `%${safe}%`)
+					}
 				}
 
 				q = q.range(offset, offset + limit - 1)
@@ -161,12 +167,12 @@ export function useCreateVendorMutation() {
 	return useMutation({
 		mutationFn: async (data: VendorCreateInput): Promise<Vendor> => {
 			const supabase = createClient()
-			const { data: { user } } = await supabase.auth.getUser()
-			const userId = user?.id
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
 
 			const { data: created, error } = await supabase
 				.from('vendors')
-				.insert({ ...data, owner_user_id: userId })
+				.insert({ ...data, owner_user_id: ownerId })
 				.select(VENDOR_SELECT_COLUMNS)
 				.single()
 

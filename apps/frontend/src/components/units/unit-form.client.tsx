@@ -18,6 +18,7 @@ import {
 	handleConflictError
 } from '@repo/shared/utils/optimistic-locking'
 import { handleMutationError } from '#lib/mutation-error-handler'
+import { useCurrentUser } from '#hooks/use-current-user'
 import { UnitFormFields } from './unit-form-fields'
 
 interface UnitFormProps {
@@ -41,6 +42,7 @@ export function UnitForm({
 }: UnitFormProps) {
 	const router = useRouter()
 	const queryClient = useQueryClient()
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const { data: propertiesResponse } = useQuery(
 		propertyQueries.list({ limit: 100 })
 	)
@@ -214,6 +216,7 @@ export function UnitForm({
 				properties={properties}
 				mode={mode}
 				isSubmitting={isSubmitting}
+				isAuthLoading={isAuthLoading}
 			/>
 		</form>
 	)

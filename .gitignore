@@ -141,6 +141,8 @@ secrets.*
 **/*[Ss]ecret*.yaml
 **/*[Ss]ecret*.config
 **/*[Kk]ey*.txt
+# PGP public key is safe to commit (not a secret)
+!**/public/.well-known/pgp-key.txt
 **/*[Kk]ey*.env
 **/*[Kk]ey*.json
 **/*[Kk]ey*.yml

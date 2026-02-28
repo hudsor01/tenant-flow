@@ -1,9 +1,8 @@
 name: RLS Security Tests
 
-# Runs weekly as a background safety net.
-# Pre-commit is the real gate — by the time code reaches main it has
-# already passed RLS tests locally. This workflow catches any drift
-# between scheduled runs (e.g. a Supabase-side policy change).
+# Weekly safety net for Supabase-side policy drift between PRs.
+# Pre-commit hook is the primary gate (runs with local env vars).
+# This workflow provides scheduled + manual-dispatch coverage.
 on:
   schedule:
     - cron: '0 9 * * 1' # Every Monday 09:00 UTC
@@ -25,7 +24,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate required secrets
+      - name: Check required secrets
+        id: check-secrets
         run: |
           missing=()
           [ -z "$SUPABASE_URL" ]           && missing+=(NEXT_PUBLIC_SUPABASE_URL)
@@ -35,11 +35,12 @@ jobs:
           [ -z "$OWNER_B_EMAIL" ]           && missing+=(E2E_OWNER_B_EMAIL)
           [ -z "$OWNER_B_PASS" ]            && missing+=(E2E_OWNER_B_PASSWORD)
           if [ ${#missing[@]} -gt 0 ]; then
-            echo "Missing GitHub secrets (Settings → Secrets → Actions):"
-            printf '   %s\n' "${missing[@]}"
-            exit 1
+            echo "::warning::Skipping RLS tests — missing secrets: ${missing[*]}"
+            echo "has_secrets=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "All required secrets present"
+            echo "has_secrets=true" >> "$GITHUB_OUTPUT"
           fi
-          echo "All required secrets present"
         env:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
@@ -49,12 +50,14 @@ jobs:
           OWNER_B_PASS: ${{ secrets.E2E_OWNER_B_PASSWORD }}
 
       - name: Setup pnpm
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: '10.29.3'
           run_install: false
 
       - name: Setup Node.js
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -62,12 +65,15 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Build shared package
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         run: pnpm --filter @repo/shared build
 
       - name: Run RLS security tests
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}

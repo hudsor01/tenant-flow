@@ -120,12 +120,28 @@ export async function updateSession(request: NextRequest) {
 	// getClaims() only reads JWT locally without server validation
 	const { data: { user } } = await supabase.auth.getUser()
 
-	// Redirect authenticated users from marketing pages and login to their dashboard
-	if (user && (isMarketingRoute(pathname) || pathname.startsWith('/login'))) {
-		const url = request.nextUrl.clone()
-		const userType = user.app_metadata?.user_type
-		url.pathname = userType === 'TENANT' ? '/tenant' : '/dashboard'
-		return NextResponse.redirect(url)
+	// Redirect authenticated users based on their role
+	if (user) {
+		const userType = user.app_metadata?.user_type as string | undefined
+
+		// PENDING users must complete role selection before accessing any dashboard
+		// Allow them to stay on /auth/select-role and other /auth/ pages
+		if (userType === 'PENDING' && !pathname.startsWith('/auth')) {
+			const url = request.nextUrl.clone()
+			url.pathname = '/auth/select-role'
+			return NextResponse.redirect(url)
+		}
+
+		// Redirect authenticated users from marketing pages and login to their dashboard
+		if (isMarketingRoute(pathname) || pathname.startsWith('/login')) {
+			const url = request.nextUrl.clone()
+			if (userType === 'PENDING') {
+				url.pathname = '/auth/select-role'
+			} else {
+				url.pathname = userType === 'TENANT' ? '/tenant' : '/dashboard'
+			}
+			return NextResponse.redirect(url)
+		}
 	}
 
 	// Redirect unauthenticated users from protected routes to login

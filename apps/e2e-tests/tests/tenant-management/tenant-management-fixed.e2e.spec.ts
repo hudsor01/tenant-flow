@@ -251,8 +251,8 @@ test.describe('Tenant Management Error Scenarios', () => {
 		await page.goto('/tenants')
 		await page.waitForLoadState('domcontentloaded')
 
-		// Intercept API calls and return errors
-		await page.route('**/api/v1/tenants**', route => {
+		// Intercept PostgREST calls and return errors
+		await page.route('**/rest/v1/tenants**', route => {
 			route.fulfill({
 				status: 500,
 				body: JSON.stringify({ error: 'Internal Server Error' })

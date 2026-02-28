@@ -51,8 +51,8 @@ export function UpdatePasswordForm({
 			if (password !== confirmPassword) {
 				throw new Error('Passwords do not match')
 			}
-			if (password.length < 8) {
-				throw new Error('Password must be at least 8 characters')
+			if (password.length < 6) {
+				throw new Error('Password must be at least 6 characters')
 			}
 			const supabaseClient = createClient()
 			const { error } = await supabaseClient.auth.updateUser({ password })
@@ -60,8 +60,8 @@ export function UpdatePasswordForm({
 			return { success: true }
 		},
 		onSuccess: () => {
-			toast.success('Password updated successfully!')
-			setTimeout(() => router.push('/'), 1500)
+			toast.success('Password reset successful. Please log in.')
+			setTimeout(() => router.push('/login'), 1500)
 		},
 		onError: error => {
 			handleMutationError(error, 'Update password')
@@ -116,7 +116,7 @@ export function UpdatePasswordForm({
 									onChange={e => setPassword(e.target.value)}
 									disabled={updatePasswordMutation.isPending}
 									showStrengthIndicator={true}
-									minLength={8}
+									minLength={6}
 								/>
 								<FieldError />
 							</Field>
@@ -202,7 +202,7 @@ export function UpdatePasswordForm({
 								!password ||
 								!confirmPassword ||
 								password !== confirmPassword ||
-								password.length < 8
+								password.length < 6
 							}
 						>
 							{updatePasswordMutation.isPending ? (

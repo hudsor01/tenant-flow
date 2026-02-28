@@ -21,6 +21,7 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import type {
 	AvatarUploadResponse,
 	SetEmergencyContactInput,
@@ -104,11 +105,8 @@ export function useUpdateProfileMutation() {
 		mutationKey: mutationKeys.profile.update,
 		mutationFn: async (input: UpdateProfileInput): Promise<UserProfile> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 			const { data, error } = await supabase
 				.from('users')
 				.update({
@@ -184,11 +182,8 @@ export function useUploadAvatarMutation() {
 		mutationKey: mutationKeys.profile.uploadAvatar,
 		mutationFn: async (file: File): Promise<AvatarUploadResponse> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 
 			const ext = file.name.split('.').pop() ?? 'jpg'
 			const path = `${user.id}/avatar.${ext}`
@@ -264,11 +259,8 @@ export function useRemoveAvatarMutation() {
 		mutationKey: mutationKeys.profile.deleteAvatar,
 		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 
 			const { error } = await supabase
 				.from('users')
@@ -348,11 +340,8 @@ export function useUpdatePhoneMutation() {
 			input: UpdatePhoneInput
 		): Promise<{ phone: string | null }> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 			const { data, error } = await supabase
 				.from('users')
 				.update({ phone: input.phone })
@@ -418,11 +407,8 @@ export function useUpdateProfileEmergencyContactMutation() {
 			input: SetEmergencyContactInput
 		): Promise<{ success: boolean; message: string }> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 			const { error } = await supabase
 				.from('tenants')
 				.update({
@@ -493,11 +479,8 @@ export function useRemoveProfileEmergencyContactMutation() {
 		mutationKey: mutationKeys.profile.deleteEmergencyContact,
 		mutationFn: async (): Promise<{ success: boolean; message: string }> => {
 			const supabase = createClient()
-			const {
-				data: { user },
-				error: authError
-			} = await supabase.auth.getUser()
-			if (authError || !user) throw authError ?? new Error('Not authenticated')
+			const user = await getCachedUser()
+			if (!user) throw new Error('Not authenticated')
 			const { error } = await supabase
 				.from('tenants')
 				.update({

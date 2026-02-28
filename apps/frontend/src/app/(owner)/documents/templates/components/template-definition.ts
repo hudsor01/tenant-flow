@@ -69,12 +69,7 @@ export function useTemplateDefinition(
 	const save = useCallback(async () => {
 		setIsSaving(true)
 		try {
-			// TODO(phase-57): Template definition saving requires Edge Function implementation
-			throw new Error('Template definition saving requires Edge Function implementation')
-		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : 'Failed to save template fields'
-			)
+			toast.info('Template saving is not yet available')
 		} finally {
 			setIsSaving(false)
 		}

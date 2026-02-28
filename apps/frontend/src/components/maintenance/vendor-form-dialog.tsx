@@ -23,6 +23,8 @@ import {
 	SelectValue,
 } from '#components/ui/select'
 import { useCreateVendorMutation, useUpdateVendorMutation } from '#hooks/api/use-vendor'
+import { useCurrentUser } from '#hooks/use-current-user'
+import { cn } from '#lib/utils'
 import type { Vendor, VendorCreateInput } from '#hooks/api/use-vendor'
 import { Plus, Pencil } from 'lucide-react'
 
@@ -47,6 +49,7 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 	const [open, setOpen] = useState(false)
 	const isEditing = !!vendor
 
+	const { isLoading: isAuthLoading } = useCurrentUser()
 	const createMutation = useCreateVendorMutation()
 	const updateMutation = useUpdateVendorMutation()
 
@@ -205,7 +208,11 @@ export function VendorFormDialog({ vendor, onSuccess }: VendorFormDialogProps) {
 						<Button type="button" variant="outline" onClick={() => setOpen(false)}>
 							Cancel
 						</Button>
-						<Button type="submit" disabled={isSubmitting || !name.trim()}>
+						<Button
+							type="submit"
+							disabled={isSubmitting || !name.trim() || isAuthLoading}
+							className={cn(isAuthLoading && 'animate-pulse')}
+						>
 							{isSubmitting
 								? isEditing
 									? 'Saving...'

@@ -55,6 +55,10 @@ export const env = createEnv({
 			.min(1, 'STRIPE_MAX_ANNUAL is required')
 			.startsWith('price_', 'Must be a Stripe price ID'),
 
+		// Supabase service role key (server-only — bypasses RLS, never expose to browser)
+		// Used in auth callback for invitation auto-linking
+		SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
+
 		// Vercel auto-injected
 		VERCEL_URL: z.string().optional(),
 		VERCEL_ENV: z.enum(['development', 'preview', 'production']).optional(),
@@ -112,6 +116,7 @@ export const env = createEnv({
 	runtimeEnv: {
 		// Server
 		NODE_ENV: process.env.NODE_ENV,
+		SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
 		STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
 		STRIPE_STARTER_MONTHLY: process.env.STRIPE_STARTER_MONTHLY,
 		STRIPE_STARTER_ANNUAL: process.env.STRIPE_STARTER_ANNUAL,

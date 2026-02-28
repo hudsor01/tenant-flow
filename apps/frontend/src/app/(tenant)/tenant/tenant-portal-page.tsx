@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { TenantPortal } from '#components/tenant-portal/tenant-portal'
 import type { RentStatus } from '#components/tenant-portal/tenant-stats-cards'
 import {
@@ -11,10 +13,12 @@ import { Button } from '#components/ui/button'
 import { BlurFade } from '#components/ui/blur-fade'
 import {
 	useTenantPortalDashboard,
-	useTenantLeaseDocuments
+	useTenantLeaseDocuments,
+	tenantPortalKeys
 } from '#hooks/api/use-tenant-portal'
 import { tenantPortalQueries } from '#hooks/api/use-tenant-portal'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { PenLine } from 'lucide-react'
 import Link from 'next/link'
 
@@ -35,6 +39,10 @@ import Link from 'next/link'
  * - NumberTicker for animated values
  */
 export default function TenantDashboardPage() {
+	const queryClient = useQueryClient()
+	const searchParams = useSearchParams()
+	const toastShown = useRef(false)
+
 	const { data, isLoading } = useTenantPortalDashboard()
 	const { data: documentsData, isLoading: isLoadingDocuments } =
 		useTenantLeaseDocuments()
@@ -43,6 +51,25 @@ export default function TenantDashboardPage() {
 	)
 	// Autopay status query - data available for future use if needed
 	const _autopayQuery = useQuery(tenantPortalQueries.autopay())
+
+	// Handle checkout success/cancel return from Stripe
+	useEffect(() => {
+		if (toastShown.current) return
+		const checkoutStatus = searchParams.get('checkout')
+		if (checkoutStatus === 'success') {
+			toast.success('Payment successful!')
+			toastShown.current = true
+			// Invalidate payment-related queries to refresh state
+			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.amountDue() })
+			queryClient.invalidateQueries({ queryKey: tenantPortalKeys.payments.all() })
+			// Clean URL without triggering navigation
+			window.history.replaceState({}, '', '/tenant')
+		} else if (checkoutStatus === 'cancelled') {
+			toast.info('Checkout cancelled. Your rent is still due.')
+			toastShown.current = true
+			window.history.replaceState({}, '', '/tenant')
+		}
+	}, [searchParams, queryClient])
 
 	const activeLease = data?.lease
 	const recentPayments = data?.payments?.recent ?? []
@@ -204,6 +231,7 @@ export default function TenantDashboardPage() {
 				rentDueDate={rentDueDate}
 				rentStatus={getRentStatus()}
 				daysUntilDue={getDaysUntilDue()}
+				chargesEnabled={amountDue?.charges_enabled ?? false}
 				payments={formattedPayments}
 				maintenanceRequests={formattedRequests}
 				documents={formattedDocuments}

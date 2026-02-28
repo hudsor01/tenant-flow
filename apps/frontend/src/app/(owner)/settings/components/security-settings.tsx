@@ -18,6 +18,7 @@ import { Skeleton } from '#components/ui/skeleton'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { useUserSessions, useRevokeSessionMutation } from '#hooks/api/use-sessions'
 import { useMfaStatus, useMfaFactors } from '#hooks/api/use-mfa'
 import {
@@ -57,11 +58,8 @@ export function SecuritySettings() {
 				throw new Error('Password must be at least 8 characters')
 			}
 
-			const {
-				data: { user },
-				error: userError
-			} = await supabase.auth.getUser()
-			if (userError || !user?.email) throw new Error('Unable to verify user')
+			const user = await getCachedUser()
+			if (!user?.email) throw new Error('Unable to verify user')
 
 			// Verify current password
 			const { error: signInError } = await supabase.auth.signInWithPassword({
