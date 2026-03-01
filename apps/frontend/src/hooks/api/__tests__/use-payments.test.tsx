@@ -80,7 +80,7 @@ describe('Payment Hooks (PostgREST)', () => {
 	describe('usePaymentAnalytics', () => {
 		it('should fetch payment analytics successfully via RPC', async () => {
 			const mockClient = createMockSupabaseClient()
-			mockClient.rpc.mockResolvedValue({ data: { totalRevenue: 500000 }, error: null })
+			mockClient.rpc.mockResolvedValue({ data: { revenue: { monthly: 500000 } }, error: null })
 			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
@@ -90,7 +90,7 @@ describe('Payment Hooks (PostgREST)', () => {
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
 			expect(result.current.data?.totalCollected).toBe(500000)
-			expect(mockClient.rpc).toHaveBeenCalledWith('get_dashboard_stats', { user_id: 'user-1' })
+			expect(mockClient.rpc).toHaveBeenCalledWith('get_dashboard_stats', { p_user_id: 'user-1' })
 		})
 
 		it('should handle unauthenticated error', async () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSignOutMutation } from '#hooks/api/use-auth'
 import { Loader2 } from 'lucide-react'
@@ -13,18 +13,20 @@ import { Loader2 } from 'lucide-react'
 export default function SignOutPage() {
 	const router = useRouter()
 	const signOut = useSignOutMutation()
+	const hasSignedOut = useRef(false)
 
 	useEffect(() => {
+		if (hasSignedOut.current) return
+		hasSignedOut.current = true
 		signOut.mutate(undefined, {
 			onSuccess: () => {
 				router.push('/login')
 			},
 			onError: () => {
-				// Even on error, redirect to login
 				router.push('/login')
 			}
 		})
-	}, []) // eslint-disable-line react-hooks/exhaustive-deps
+	}, [signOut, router])
 
 	return (
 		<div className="flex min-h-screen items-center justify-center">
