@@ -2408,6 +2408,7 @@ export type Database = {
       get_current_property_owner_id: { Args: never; Returns: string }
       get_current_tenant_id: { Args: never; Returns: string }
       get_current_user_type: { Args: never; Returns: string }
+      get_dashboard_data_v2: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_stats: { Args: { p_user_id: string }; Returns: Json }
       get_dashboard_time_series: {
         Args: { p_days?: number; p_metric_name: string; p_user_id: string }
