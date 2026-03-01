@@ -16,11 +16,8 @@ import { BlurFade } from '#components/ui/blur-fade'
 
 export function Tenants({
 	tenants,
-	invitations, // eslint-disable-line @typescript-eslint/no-unused-vars
 	selectedTenant,
 	onInviteTenant,
-	onResendInvitation, // eslint-disable-line @typescript-eslint/no-unused-vars
-	onCancelInvitation, // eslint-disable-line @typescript-eslint/no-unused-vars
 	onViewTenant,
 	onEditTenant,
 	onContactTenant,

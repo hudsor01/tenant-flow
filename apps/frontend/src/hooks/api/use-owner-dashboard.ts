@@ -21,14 +21,13 @@ import {
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { Activity, ActivityItem } from '@repo/shared/types/activity'
+import type { ActivityItem } from '@repo/shared/types/activity'
 import type {
 	PropertyPerformance,
 	FinancialMetrics
 } from '@repo/shared/types/core'
 import type { DashboardStats } from '@repo/shared/types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
-import type { DashboardTimeSeriesOptions } from '@repo/shared/types/stats'
 
 // ============================================================================
 // QUERY KEYS
@@ -49,25 +48,6 @@ export const ownerDashboardKeys = {
 			[...ownerDashboardKeys.analytics.all(), 'activity'] as const,
 		pageData: () =>
 			[...ownerDashboardKeys.analytics.all(), 'page-data'] as const
-	},
-
-	// Reports section
-	reports: {
-		all: () => [...ownerDashboardKeys.all, 'reports'] as const,
-		timeSeries: (metric: string, days: number) =>
-			[
-				...ownerDashboardKeys.reports.all(),
-				'time-series',
-				metric,
-				days
-			] as const,
-		metricTrend: (metric: string, period: string) =>
-			[
-				...ownerDashboardKeys.reports.all(),
-				'metric-trend',
-				metric,
-				period
-			] as const
 	},
 
 	// Properties section
@@ -110,180 +90,13 @@ export const ownerDashboardKeys = {
  */
 export const ownerDashboardQueries = {
 	/**
-	 * Analytics queries
+	 * Analytics — all dashboard data via unified get_dashboard_data_v2
 	 */
 	analytics: {
-		/**
-		 * Dashboard statistics
-		 */
-		stats: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.analytics.stats(),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc('get_dashboard_stats', {
-						p_user_id: user.id
-					})
-					if (error) handlePostgrestError(error, 'analytics')
-					return (Array.isArray(data) ? data[0] : data) as DashboardStats
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: true
-			}),
-
-		/**
-		 * Dashboard activity feed
-		 */
-		activity: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.analytics.activity(),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_user_dashboard_activities',
-						{
-							p_user_id: user.id,
-							p_limit: 10,
-							p_offset: 0
-						}
-					)
-					if (error) handlePostgrestError(error, 'analytics')
-					return { activities: (data ?? []) as Activity[] }
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: true
-			}),
-
-		/**
-		 * Unified dashboard page data (stats + activity in parallel)
-		 */
 		pageData: () =>
 			queryOptions({
 				queryKey: ownerDashboardKeys.analytics.pageData(),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const userId = user.id
-
-					const [statsResult, activityResult] = await Promise.all([
-						supabase.rpc('get_dashboard_stats', { p_user_id: userId }),
-						supabase.rpc('get_user_dashboard_activities', {
-							p_user_id: userId,
-							p_limit: 10,
-							p_offset: 0
-						})
-					])
-
-					if (statsResult.error)
-						handlePostgrestError(statsResult.error, 'analytics')
-					if (activityResult.error)
-						handlePostgrestError(activityResult.error, 'analytics')
-
-					const stats = (
-						Array.isArray(statsResult.data)
-							? statsResult.data[0]
-							: statsResult.data
-					) as DashboardStats
-
-					return {
-						stats,
-						activity: (activityResult.data ?? []) as ActivityItem[]
-					}
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000,
-				refetchOnWindowFocus: true
-			})
-	},
-
-	/**
-	 * Reports queries
-	 */
-	reports: {
-		/**
-		 * Time series data for charts
-		 */
-		timeSeries: (options: DashboardTimeSeriesOptions) => {
-			const { metric, days = 30 } = options
-
-			return queryOptions({
-				queryKey: ownerDashboardKeys.reports.timeSeries(metric, days),
-				queryFn: async (): Promise<TimeSeriesDataPoint[]> => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_dashboard_time_series',
-						{
-							p_user_id: user.id,
-							p_metric_name: metric,
-							p_days: days
-						}
-					)
-					if (error) handlePostgrestError(error, 'analytics')
-					return (data ?? []) as TimeSeriesDataPoint[]
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
-		},
-
-		/**
-		 * Trend data for a specific metric
-		 */
-		metricTrend: (
-			metric: string,
-			period: 'day' | 'week' | 'month' | 'year' = 'month'
-		) =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.reports.metricTrend(metric, period),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc('get_metric_trend', {
-						p_user_id: user.id,
-						p_metric_name: metric,
-						p_period: period
-					})
-					if (error) handlePostgrestError(error, 'analytics')
-					return data as MetricTrend
-				},
-				staleTime: 2 * 60 * 1000,
-				gcTime: 10 * 60 * 1000
-			})
-	},
-
-	/**
-	 * Properties queries
-	 */
-	properties: {
-		/**
-		 * Property performance metrics
-		 */
-		performance: () =>
-			queryOptions({
-				queryKey: ownerDashboardKeys.properties.performance(),
-				queryFn: async () => {
-					const supabase = createClient()
-					const user = await getCachedUser()
-					if (!user) throw new Error('Not authenticated')
-					const { data, error } = await supabase.rpc(
-						'get_property_performance_cached',
-						{
-							p_user_id: user.id
-						}
-					)
-					if (error) handlePostgrestError(error, 'analytics')
-					return (data ?? []) as PropertyPerformance[]
-				},
+				queryFn: fetchOwnerDashboardData,
 				staleTime: 2 * 60 * 1000,
 				gcTime: 10 * 60 * 1000,
 				refetchOnWindowFocus: false
@@ -291,7 +104,7 @@ export const ownerDashboardQueries = {
 	},
 
 	/**
-	 * Financial queries
+	 * Financial queries (separate RPCs — not consolidated into v2)
 	 */
 	financial: {
 		/**
@@ -620,24 +433,16 @@ export function useDashboardActivity() {
 // ============================================================================
 
 /**
- * Property performance - DEFERRED
- * Table of property metrics
+ * Property performance — derives from unified dashboard cache
  */
 export function usePropertyPerformanceSuspense() {
+	const queryClient = useQueryClient()
 	return useSuspenseQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
 		queryKey: ownerDashboardKeys.properties.performance(),
-		queryFn: async () => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { data, error } = await supabase.rpc(
-				'get_property_performance_cached',
-				{
-					p_user_id: user.id
-				}
-			)
-			if (error) handlePostgrestError(error, 'analytics')
-			return (data ?? []) as PropertyPerformance[]
+		queryFn: async (): Promise<PropertyPerformance[]> => {
+			const data = await ensureDashboardData(queryClient)
+			return data.propertyPerformance
 		},
 		staleTime: 2 * 60 * 1000,
 		gcTime: 10 * 60 * 1000
@@ -645,49 +450,21 @@ export function usePropertyPerformanceSuspense() {
 }
 
 /**
- * Property performance - Non-suspense version
+ * Property performance — derives from unified dashboard cache
  */
 export function usePropertyPerformance() {
+	const queryClient = useQueryClient()
 	return useQuery({
+		// eslint-disable-next-line @tanstack/query/exhaustive-deps -- queryClient is stable
 		queryKey: ownerDashboardKeys.properties.performance(),
-		queryFn: async () => {
-			const supabase = createClient()
-			const user = await getCachedUser()
-			if (!user) throw new Error('Not authenticated')
-			const { data, error } = await supabase.rpc(
-				'get_property_performance_cached',
-				{
-					p_user_id: user.id
-				}
-			)
-			if (error) handlePostgrestError(error, 'analytics')
-			return (data ?? []) as PropertyPerformance[]
+		queryFn: async (): Promise<PropertyPerformance[]> => {
+			const data = await ensureDashboardData(queryClient)
+			return data.propertyPerformance
 		},
 		staleTime: 2 * 60 * 1000,
 		gcTime: 10 * 60 * 1000,
 		refetchOnWindowFocus: false
 	})
-}
-
-// ============================================================================
-// REPORTS HOOKS
-// ============================================================================
-
-/**
- * Get time series data for charts
- */
-export function useOwnerTimeSeries(options: DashboardTimeSeriesOptions) {
-	return useQuery(ownerDashboardQueries.reports.timeSeries(options))
-}
-
-/**
- * Get trend data for a specific metric
- */
-export function useOwnerMetricTrend(
-	metric: string,
-	period: 'day' | 'week' | 'month' | 'year' = 'month'
-) {
-	return useQuery(ownerDashboardQueries.reports.metricTrend(metric, period))
 }
 
 // ============================================================================
