@@ -150,7 +150,18 @@ begin
       coalesce(
         round(count(*) filter (where status = 'occupied')::numeric /
               nullif(count(*)::numeric, 0) * 100, 2), 0
-      ) as current_val
+      ) as current_val,
+      -- previous occupancy: count units that had active leases 30 days ago
+      coalesce(
+        round(
+          (select count(distinct l.unit_id)::numeric
+           from all_leases l
+           where l.lease_status = 'active'
+             and l.start_date <= current_date - interval '30 days'
+             and (l.end_date is null or l.end_date >= current_date - interval '30 days')
+          ) / nullif(count(*)::numeric, 0) * 100, 2
+        ), 0
+      ) as previous_val
     from all_units
   ),
 
@@ -388,17 +399,25 @@ begin
     -- Metric trends section (4 metrics with real previous-period comparison)
     'trends', jsonb_build_object(
       'occupancy_rate', jsonb_build_object(
-        'current_value', tocc.current_val,
-        'previous_value', tocc.current_val,
-        'change', 0,
-        'change_percentage', 0,
-        'trend', 'stable'
+        'current', tocc.current_val,
+        'previous', tocc.previous_val,
+        'change', tocc.current_val - tocc.previous_val,
+        'percentChange', case
+          when tocc.previous_val > 0
+          then round(((tocc.current_val - tocc.previous_val) / tocc.previous_val) * 100, 2)
+          else 0
+        end,
+        'trend', case
+          when tocc.current_val > tocc.previous_val then 'up'
+          when tocc.current_val < tocc.previous_val then 'down'
+          else 'stable'
+        end
       ),
       'monthly_revenue', jsonb_build_object(
-        'current_value', trev.current_val,
-        'previous_value', trev.previous_val,
+        'current', trev.current_val,
+        'previous', trev.previous_val,
         'change', trev.current_val - trev.previous_val,
-        'change_percentage', case
+        'percentChange', case
           when trev.previous_val > 0
           then round(((trev.current_val - trev.previous_val) / trev.previous_val) * 100, 2)
           else 0
@@ -410,10 +429,10 @@ begin
         end
       ),
       'active_tenants', jsonb_build_object(
-        'current_value', tten.current_val,
-        'previous_value', tten.previous_val,
+        'current', tten.current_val,
+        'previous', tten.previous_val,
         'change', tten.current_val - tten.previous_val,
-        'change_percentage', case
+        'percentChange', case
           when tten.previous_val > 0
           then round(((tten.current_val - tten.previous_val) / tten.previous_val) * 100, 2)
           else 0
@@ -425,10 +444,10 @@ begin
         end
       ),
       'open_maintenance', jsonb_build_object(
-        'current_value', tmnt.current_val,
-        'previous_value', tmnt.previous_val,
+        'current', tmnt.current_val,
+        'previous', tmnt.previous_val,
         'change', tmnt.current_val - tmnt.previous_val,
-        'change_percentage', case
+        'percentChange', case
           when tmnt.previous_val > 0
           then round(((tmnt.current_val - tmnt.previous_val) / tmnt.previous_val) * 100, 2)
           else 0
