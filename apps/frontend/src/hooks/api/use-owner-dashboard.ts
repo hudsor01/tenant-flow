@@ -464,102 +464,40 @@ type OwnerDashboardData = {
 // Unified dashboard query key (single source of truth)
 const DASHBOARD_QUERY_KEY = ownerDashboardKeys.analytics.pageData()
 
-// Fetcher for unified dashboard payload — 9 RPCs in parallel
+// Fetcher for unified dashboard payload — single RPC call
 const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 	const supabase = createClient()
 	const user = await getCachedUser()
 	if (!user) throw new Error('Not authenticated')
-	const userId = user.id
 
-	const [
-		statsResult,
-		activityResult,
-		occTrendResult,
-		revTrendResult,
-		activeTenantsTrendResult,
-		maintTrendResult,
-		tsOccResult,
-		tsRevResult,
-		propertyPerfResult
-	] = await Promise.all([
-		supabase.rpc('get_dashboard_stats', { p_user_id: userId }),
-		supabase.rpc('get_user_dashboard_activities', {
-			p_user_id: userId,
-			p_limit: 10,
-			p_offset: 0
-		}),
-		supabase.rpc('get_metric_trend', {
-			p_user_id: userId,
-			p_metric_name: 'occupancy_rate',
-			p_period: 'month'
-		}),
-		supabase.rpc('get_metric_trend', {
-			p_user_id: userId,
-			p_metric_name: 'monthly_revenue',
-			p_period: 'month'
-		}),
-		supabase.rpc('get_metric_trend', {
-			p_user_id: userId,
-			p_metric_name: 'active_tenants',
-			p_period: 'month'
-		}),
-		supabase.rpc('get_metric_trend', {
-			p_user_id: userId,
-			p_metric_name: 'open_maintenance',
-			p_period: 'month'
-		}),
-		supabase.rpc('get_dashboard_time_series', {
-			p_user_id: userId,
-			p_metric_name: 'occupancy_rate',
-			p_days: 30
-		}),
-		supabase.rpc('get_dashboard_time_series', {
-			p_user_id: userId,
-			p_metric_name: 'monthly_revenue',
-			p_days: 30
-		}),
-		supabase.rpc('get_property_performance_cached', { p_user_id: userId })
-	])
+	const { data, error } = await supabase.rpc('get_dashboard_data_v2', {
+		p_user_id: user.id
+	})
 
-	// Critical — throw on stats/activity errors
-	if (statsResult.error) handlePostgrestError(statsResult.error, 'analytics')
-	if (activityResult.error)
-		handlePostgrestError(activityResult.error, 'analytics')
+	if (error) handlePostgrestError(error, 'analytics')
 
-	const stats = (
-		Array.isArray(statsResult.data)
-			? statsResult.data[0]
-			: statsResult.data
-	) as DashboardStats
+	const result = data as {
+		stats: DashboardStats
+		trends: Record<string, MetricTrend>
+		time_series: Record<string, TimeSeriesDataPoint[]>
+		property_performance: PropertyPerformance[]
+		activities: ActivityItem[]
+	}
 
 	return {
-		stats,
-		activity: (activityResult.data ?? []) as ActivityItem[],
+		stats: result.stats,
+		activity: result.activities ?? [],
 		metricTrends: {
-			occupancyRate: occTrendResult.error
-				? null
-				: ((occTrendResult.data as MetricTrend) ?? null),
-			activeTenants: activeTenantsTrendResult.error
-				? null
-				: ((activeTenantsTrendResult.data as MetricTrend) ?? null),
-			monthlyRevenue: revTrendResult.error
-				? null
-				: ((revTrendResult.data as MetricTrend) ?? null),
-			openMaintenance: maintTrendResult.error
-				? null
-				: ((maintTrendResult.data as MetricTrend) ?? null)
+			occupancyRate: result.trends?.occupancy_rate ?? null,
+			activeTenants: result.trends?.active_tenants ?? null,
+			monthlyRevenue: result.trends?.monthly_revenue ?? null,
+			openMaintenance: result.trends?.open_maintenance ?? null
 		},
 		timeSeries: {
-			occupancyRate: tsOccResult.error
-				? []
-				: ((tsOccResult.data ?? []) as TimeSeriesDataPoint[]),
-			monthlyRevenue: tsRevResult.error
-				? []
-				: ((tsRevResult.data ?? []) as TimeSeriesDataPoint[])
+			occupancyRate: result.time_series?.occupancy_rate ?? [],
+			monthlyRevenue: result.time_series?.monthly_revenue ?? []
 		},
-		propertyPerformance: propertyPerfResult.error
-			? []
-			: ((propertyPerfResult.data ?? []) as PropertyPerformance[])
+		propertyPerformance: result.property_performance ?? []
 	}
 }
 
