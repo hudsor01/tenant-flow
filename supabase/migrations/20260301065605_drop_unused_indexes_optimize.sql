@@ -1,9 +1,15 @@
--- migration: drop unused indexes and optimize database performance
--- purpose: remove 35 indexes with 0 scans since database creation, reducing write overhead
+-- migration: drop unused indexes and update planner statistics
+-- purpose: remove 42 indexes with 0 scans since database creation, reducing write overhead
 -- affected tables: maintenance_requests, properties, users, webhook/audit tables, and more
 -- safety: excludes all primary keys, unique constraints, exclusion constraints,
 --         and payment-related tables (rent_payments, payment_*, leases, late_fees, tenants)
 --         which will see increased traffic with v1.1 payment infrastructure
+--
+-- note on VACUUM: dead tuple cleanup (VACUUM ANALYZE) was run as a separate operational
+-- command against production. VACUUM cannot execute inside a transaction block, and
+-- supabase migrations are transactional. VACUUM is environment-specific maintenance
+-- (dead tuple counts differ per environment), not a reproducible schema change.
+-- plain ANALYZE is included below to update planner statistics after index drops.
 
 -- ============================================================================
 -- category 1: redundant indexes (subsumed by existing composite indexes)
@@ -118,6 +124,20 @@ drop index if exists idx_activity_created_at;
 
 -- notification_logs: log table, status filter never used
 drop index if exists idx_notification_logs_status;
+
+-- ============================================================================
+-- update planner statistics for tables that lost indexes
+-- ANALYZE can run inside a transaction (unlike VACUUM)
+-- ============================================================================
+
+analyze maintenance_requests;
+analyze properties;
+analyze users;
+analyze units;
+analyze blogs;
+analyze notifications;
+analyze activity;
+analyze notification_logs;
 
 -- ============================================================================
 -- note: indexes intentionally KEPT (despite 0 scans)
