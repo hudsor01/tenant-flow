@@ -108,9 +108,9 @@
 		"@next/eslint-plugin-next": "~16.1.6",
 		"@playwright/test": "1.58.2",
 		"eslint": "catalog:default",
-		"globals": "17.3.0",
+		"globals": "17.4.0",
 		"playwright": "1.58.2",
 		"turbo": "2.8.10",
-		"vercel": "50.22.1"
+		"vercel": "50.25.4"
 	}
 }

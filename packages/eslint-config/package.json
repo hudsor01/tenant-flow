@@ -23,10 +23,10 @@
 	"dependencies": {
 		"@eslint/js": "10.0.1",
 		"eslint-config-prettier": "10.1.8",
-		"eslint-config-turbo": "^2.8.10",
+		"eslint-config-turbo": "^2.8.12",
 		"eslint-plugin-no-barrel-files": "1.2.2",
-		"eslint-plugin-turbo": "^2.8.10",
-		"globals": "17.3.0",
+		"eslint-plugin-turbo": "^2.8.12",
+		"globals": "17.4.0",
 		"typescript-eslint": "^8.56.0"
 	},
 	"peerDependencies": {
