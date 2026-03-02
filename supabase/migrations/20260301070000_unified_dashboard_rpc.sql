@@ -148,11 +148,18 @@ begin
 
   trend_occupancy as (
     select
+      -- current: units with active lease covering today
       coalesce(
-        round(count(*) filter (where status = 'occupied')::numeric /
-              nullif(count(*)::numeric, 0) * 100, 2), 0
+        round(
+          (select count(distinct l.unit_id)::numeric
+           from all_leases l
+           where l.lease_status = 'active'
+             and l.start_date <= current_date
+             and (l.end_date is null or l.end_date >= current_date)
+          ) / nullif(count(*)::numeric, 0) * 100, 2
+        ), 0
       ) as current_val,
-      -- previous occupancy: count units that had active leases 30 days ago
+      -- previous: units with active lease covering 30 days ago
       coalesce(
         round(
           (select count(distinct l.unit_id)::numeric
