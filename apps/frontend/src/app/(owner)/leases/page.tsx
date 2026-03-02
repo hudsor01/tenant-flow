@@ -73,14 +73,10 @@ export default function LeasesPage() {
 		closeDeleteDialog
 	} = useLeasesStore()
 
-	// Sync URL tab with store on mount
+	// Sync URL tab with store when URL changes
 	useEffect(() => {
-		if (tabFromUrl !== activeTab) {
-			setActiveTab(tabFromUrl)
-		}
-		// Only run on mount and when URL changes
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [tabFromUrl])
+		setActiveTab(tabFromUrl)
+	}, [tabFromUrl, setActiveTab])
 
 	const handleTabChange = (value: string) => {
 		setActiveTab(value)

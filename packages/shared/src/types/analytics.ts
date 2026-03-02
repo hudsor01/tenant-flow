@@ -24,6 +24,7 @@ export interface MetricTrend {
 	previous: number | null
 	change: number // Absolute change
 	percentChange: number // Percentage change
+	trend: 'up' | 'down' | 'stable' // Direction derived from change sign
 }
 
 // Common analytics metric summary
