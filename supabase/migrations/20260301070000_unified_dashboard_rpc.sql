@@ -7,6 +7,10 @@
 -- performance: 9 HTTP round trips → 1. tables scanned once via shared CTEs.
 --              time series uses set-based generate_series instead of PL/pgSQL FOR LOOP (30 queries → 1).
 --              metric trends now compute real previous-period values instead of always returning "stable".
+-- known limitation: historical occupancy and revenue use lease_status = 'active' at the queried date.
+--   leases that were active 30 days ago but have since ended (status='ended') won't be counted as
+--   occupying a unit historically. this understates past occupancy for properties with recent turnover.
+--   accurate historical tracking would require a lease_status_changes audit table (not yet implemented).
 
 create or replace function public.get_dashboard_data_v2(p_user_id uuid)
 returns jsonb
@@ -118,7 +122,6 @@ begin
     left join tenant_active_ids tai on tai.tenant_id = t.id
     where exists (
       select 1 from all_leases l2
-      join all_units u2 on u2.id = l2.unit_id
       where l2.primary_tenant_id = t.id
     )
   ),
