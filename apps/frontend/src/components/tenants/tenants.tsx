@@ -14,20 +14,18 @@ import { TenantQuickActions } from './tenant-quick-actions'
 import { TenantToolbar } from './tenant-toolbar'
 import { BlurFade } from '#components/ui/blur-fade'
 
+const logger = createLogger({ component: 'Tenants' })
+
 export function Tenants({
 	tenants,
-	invitations, // eslint-disable-line @typescript-eslint/no-unused-vars
 	selectedTenant,
 	onInviteTenant,
-	onResendInvitation, // eslint-disable-line @typescript-eslint/no-unused-vars
-	onCancelInvitation, // eslint-disable-line @typescript-eslint/no-unused-vars
 	onViewTenant,
 	onEditTenant,
 	onContactTenant,
 	onViewLease,
 	onViewPaymentHistory
 }: TenantsProps) {
-	const logger = createLogger({ component: 'Tenants' })
 
 	const {
 		viewMode,

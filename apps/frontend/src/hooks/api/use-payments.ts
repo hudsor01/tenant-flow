@@ -31,7 +31,6 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { RentPayment } from '@repo/shared/types/core'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import type {
@@ -48,8 +47,6 @@ import type {
 	ManualPaymentInput
 } from '@repo/shared/types/sections/payments'
 import type { SubscriptionData } from '#types/stripe'
-
-const logger = createLogger({ component: 'Payments' })
 
 // ============================================================================
 // TYPES
@@ -125,21 +122,21 @@ export const rentCollectionQueries = {
 				const supabase = createClient()
 				const user = await getCachedUser()
 				if (!user) throw new Error('Not authenticated')
-				// Use get_dashboard_stats RPC which includes payment analytics
 				const { data, error } = await supabase.rpc('get_dashboard_stats', {
-					user_id: user.id
+					p_user_id: user.id
 				})
 				if (error) handlePostgrestError(error, 'rent_payments')
+				const stats = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | null
+				const revenue = stats?.revenue as { monthly?: number } | undefined
 				return {
-					totalCollected: (data as unknown as Record<string, unknown>)?.totalRevenue as number ?? 0,
+					totalCollected: revenue?.monthly ?? 0,
 					totalPending: 0,
 					totalOverdue: 0,
 					collectionRate: 0,
 					averagePaymentTime: 0,
 					onTimePaymentRate: 0,
 					monthlyTrend: [],
-					// TODO(phase-56): wire to dedicated analytics RPC when available
-				} as PaymentCollectionAnalytics
+				} satisfies PaymentCollectionAnalytics
 			},
 			staleTime: 60 * 1000
 		}),
@@ -700,6 +697,3 @@ export function usePrefetchSessionStatus(sessionId: string) {
 
 // Legacy key exports for backwards compatibility
 export const paymentQueryKeys = paymentVerificationKeys
-
-// Suppress unused logger warning — kept for future debugging
-void logger

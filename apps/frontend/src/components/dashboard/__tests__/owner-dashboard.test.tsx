@@ -155,15 +155,16 @@ const mockStats = {
 }
 
 const mockMetricTrends = {
-	occupancyRate: { current: 92, previous: 89, change: 3, percentChange: 3.4 },
-	activeTenants: { current: 45, previous: 40, change: 5, percentChange: 12.5 },
+	occupancyRate: { current: 92, previous: 89, change: 3, percentChange: 3.4, trend: 'up' as const },
+	activeTenants: { current: 45, previous: 40, change: 5, percentChange: 12.5, trend: 'up' as const },
 	monthlyRevenue: {
 		current: 4725000,
 		previous: 4200000,
 		change: 525000,
-		percentChange: 12.5
+		percentChange: 12.5,
+		trend: 'up' as const
 	},
-	openMaintenance: { current: 4, previous: 6, change: -2, percentChange: -33.3 }
+	openMaintenance: { current: 4, previous: 6, change: -2, percentChange: -33.3, trend: 'down' as const }
 }
 
 const mockTimeSeries = {

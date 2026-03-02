@@ -20,6 +20,11 @@ vi.mock('#lib/supabase/client', () => ({
 	createClient: vi.fn()
 }))
 
+// Mock cached user accessor (used by analytics hook instead of auth.getUser directly)
+vi.mock('#lib/supabase/get-cached-user', () => ({
+	getCachedUser: vi.fn()
+}))
+
 // Mock postgrest error handler
 vi.mock('#lib/postgrest-error-handler', () => ({
 	handlePostgrestError: vi.fn((error: unknown) => {
@@ -28,6 +33,7 @@ vi.mock('#lib/postgrest-error-handler', () => ({
 }))
 
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 
 const createWrapper = () => {
 	const queryClient = new QueryClient({
@@ -80,8 +86,9 @@ describe('Payment Hooks (PostgREST)', () => {
 	describe('usePaymentAnalytics', () => {
 		it('should fetch payment analytics successfully via RPC', async () => {
 			const mockClient = createMockSupabaseClient()
-			mockClient.rpc.mockResolvedValue({ data: { totalRevenue: 500000 }, error: null })
+			mockClient.rpc.mockResolvedValue({ data: { revenue: { monthly: 500000 } }, error: null })
 			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
+			vi.mocked(getCachedUser).mockResolvedValue({ id: 'user-1' } as Awaited<ReturnType<typeof getCachedUser>>)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
 				wrapper: createWrapper()
@@ -90,13 +97,13 @@ describe('Payment Hooks (PostgREST)', () => {
 			await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
 			expect(result.current.data?.totalCollected).toBe(500000)
-			expect(mockClient.rpc).toHaveBeenCalledWith('get_dashboard_stats', { user_id: 'user-1' })
+			expect(mockClient.rpc).toHaveBeenCalledWith('get_dashboard_stats', { p_user_id: 'user-1' })
 		})
 
 		it('should handle unauthenticated error', async () => {
 			const mockClient = createMockSupabaseClient()
-			mockClient.auth.getUser.mockResolvedValue({ data: { user: null } })
 			vi.mocked(createClient).mockReturnValue(mockClient as unknown as ReturnType<typeof createClient>)
+			vi.mocked(getCachedUser).mockResolvedValue(null)
 
 			const { result } = renderHook(() => usePaymentAnalytics(), {
 				wrapper: createWrapper()
