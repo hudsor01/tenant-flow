@@ -205,6 +205,7 @@ begin
         select count(*)::numeric
         from all_maintenance
         where created_at <= current_date - interval '30 days'
+          and status != 'cancelled'
           and (status != 'completed' or completed_at > current_date - interval '30 days')
       ), 0) as previous_val
     from all_maintenance
@@ -382,14 +383,14 @@ begin
       'units', jsonb_build_object(
         'total',              ua.total_units,
         'occupied',           ua.occupied_units,
-        'vacant',             ua.vacant_units,
+        'vacant',             ua.total_units - ua.occupied_units,
         'maintenance',        ua.maintenance_units,
         'available',          ua.vacant_units,
         'averageRent',        ua.avg_rent,
         'occupancyRate',      case when ua.total_units > 0
                                 then round((ua.occupied_units::decimal / ua.total_units::decimal) * 100, 2)
                                 else 0 end,
-        'occupancyChange',    0,
+        'occupancyChange',    tocc.current_val - tocc.previous_val,
         'totalPotentialRent', ua.total_potential_rent,
         'totalActualRent',    ua.total_actual_rent
       ),
@@ -416,7 +417,11 @@ begin
       'revenue', jsonb_build_object(
         'monthly', la.monthly_revenue,
         'yearly',  la.monthly_revenue * 12,
-        'growth',  0
+        'growth',  case
+          when trev.previous_val > 0
+          then round(((trev.current_val - trev.previous_val) / trev.previous_val) * 100, 2)
+          else 0
+        end
       )
     ),
 

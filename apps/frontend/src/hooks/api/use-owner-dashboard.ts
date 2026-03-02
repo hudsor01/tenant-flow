@@ -28,6 +28,7 @@ import type {
 } from '@repo/shared/types/core'
 import type { DashboardStats } from '@repo/shared/types/stats'
 import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
+import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
 
 // ============================================================================
 // QUERY KEYS
@@ -289,6 +290,18 @@ const fetchOwnerDashboardData = async (): Promise<OwnerDashboardData> => {
 
 	if (error) handlePostgrestError(error, 'analytics')
 
+	if (
+		!data ||
+		typeof data !== 'object' ||
+		!('stats' in data) ||
+		!('trends' in data) ||
+		!('time_series' in data)
+	) {
+		throw new Error(
+			'Dashboard RPC returned unexpected shape — verify get_dashboard_data_v2 is deployed'
+		)
+	}
+
 	const result = data as {
 		stats: DashboardStats
 		trends: Record<string, MetricTrend>
@@ -535,8 +548,6 @@ export function useFinancialChartData(timeRange: FinancialTimeRange = '6m') {
 		structuralSharing: true
 	})
 }
-
-import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
 
 /**
  * Owner portfolio overview using pg_graphql
