@@ -31,7 +31,6 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
 import type { RentPayment } from '@repo/shared/types/core'
 import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
 import type {
@@ -48,8 +47,6 @@ import type {
 	ManualPaymentInput
 } from '@repo/shared/types/sections/payments'
 import type { SubscriptionData } from '#types/stripe'
-
-const logger = createLogger({ component: 'Payments' })
 
 // ============================================================================
 // TYPES
@@ -700,6 +697,3 @@ export function usePrefetchSessionStatus(sessionId: string) {
 
 // Legacy key exports for backwards compatibility
 export const paymentQueryKeys = paymentVerificationKeys
-
-// Suppress unused logger warning — kept for future debugging
-void logger

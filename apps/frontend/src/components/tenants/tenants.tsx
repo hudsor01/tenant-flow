@@ -14,6 +14,8 @@ import { TenantQuickActions } from './tenant-quick-actions'
 import { TenantToolbar } from './tenant-toolbar'
 import { BlurFade } from '#components/ui/blur-fade'
 
+const logger = createLogger({ component: 'Tenants' })
+
 export function Tenants({
 	tenants,
 	selectedTenant,
@@ -24,7 +26,6 @@ export function Tenants({
 	onViewLease,
 	onViewPaymentHistory
 }: TenantsProps) {
-	const logger = createLogger({ component: 'Tenants' })
 
 	const {
 		viewMode,

@@ -39,6 +39,7 @@ begin
     select l.id, l.unit_id, l.primary_tenant_id, l.rent_amount,
            l.start_date, l.end_date, l.lease_status
     from leases l
+    join all_units au on au.id = l.unit_id  -- excludes leases on inactive properties
     where l.owner_user_id = p_user_id
   ),
 
@@ -212,22 +213,39 @@ begin
     from generate_series(current_date - 29, current_date, '1 day'::interval) d
   ),
 
-  -- occupancy rate: no historical unit status tracking exists
-  -- returns current occupancy for every day (matches original behavior)
+  -- occupancy rate: per-day historical derived from lease date ranges
+  -- a unit is "occupied" on a given day if it has an active lease covering that date
+  -- denominator uses current total unit count (no historical unit tracking)
+  total_unit_count as (
+    select count(*)::numeric as cnt from all_units
+  ),
+
   ts_occupancy as (
     select jsonb_agg(
-      jsonb_build_object(
-        'date', to_char(ds.series_date, 'YYYY-MM-DD'),
-        'value', (select coalesce(
-          round(count(*) filter (where status = 'occupied')::numeric /
-                nullif(count(*)::numeric, 0) * 100, 2), 0
-        ) from all_units)
-      ) order by ds.series_date
+      jsonb_build_object('date', occ.date, 'value', occ.rate)
+      order by occ.date
     ) as data
-    from date_series ds
+    from (
+      select
+        to_char(ds.series_date, 'YYYY-MM-DD') as date,
+        case when tuc.cnt > 0
+          then coalesce(
+            round(count(distinct l.unit_id)::numeric / tuc.cnt * 100, 2), 0
+          )
+          else 0
+        end as rate
+      from date_series ds
+      cross join total_unit_count tuc
+      left join all_leases l
+        on l.lease_status = 'active'
+        and l.start_date <= ds.series_date
+        and (l.end_date is null or l.end_date >= ds.series_date)
+      group by ds.series_date, tuc.cnt
+    ) occ
   ),
 
   -- monthly revenue: historical via lease start_date/end_date
+  -- single left join + group by instead of 30 correlated subqueries
   ts_revenue as (
     select jsonb_agg(
       jsonb_build_object('date', rev.date, 'value', rev.value)
@@ -236,14 +254,13 @@ begin
     from (
       select
         to_char(ds.series_date, 'YYYY-MM-DD') as date,
-        coalesce((
-          select sum(l.rent_amount)
-          from all_leases l
-          where l.lease_status = 'active'
-            and l.start_date <= ds.series_date
-            and (l.end_date is null or l.end_date >= ds.series_date)
-        ), 0)::numeric as value
+        coalesce(sum(l.rent_amount), 0)::numeric as value
       from date_series ds
+      left join all_leases l
+        on l.lease_status = 'active'
+        and l.start_date <= ds.series_date
+        and (l.end_date is null or l.end_date >= ds.series_date)
+      group by ds.series_date
     ) rev
   ),
 
