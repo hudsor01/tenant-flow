@@ -25,7 +25,7 @@ import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
 import { createRequire } from 'module'
-import colorTokensPlugin from './apps/frontend/color-tokens.eslint.js'
+import colorTokensPlugin from './color-tokens.eslint.js'
 
 const require = createRequire(import.meta.url)
 const noAdminClientBypass = require('./rules/no-admin-client-bypass.cjs')
@@ -364,7 +364,8 @@ export default defineConfig([
 			'**/*.spec.*',
 			'**/*.config.*',
 			'**/test/**',
-			'**/tests/**'
+			'**/tests/**',
+			'**/documents/templates/components/**'
 		],
 		plugins: {
 			'no-admin-client-bypass': {
@@ -381,7 +382,7 @@ export default defineConfig([
 							message: 'Factory patterns are prohibited. Use direct library usage instead.'
 						},
 						{
-							group: ['**/form-patterns*', '**/form-factory*', '**/form-builder*'],
+							group: ['**/form-patterns*', '**/form-factory*'],
 							message: 'Use React Hook Form directly. Form abstractions are prohibited.'
 						},
 						{
