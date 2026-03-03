@@ -18,7 +18,7 @@ import {
 	useDeleteInspectionRoom
 } from '#hooks/api/use-inspections'
 import { InspectionPhotoUpload } from './inspection-photo-upload'
-import type { InspectionRoom } from '@repo/shared/types/sections/inspections'
+import type { InspectionRoom } from '#shared/types/sections/inspections'
 
 interface InspectionRoomCardProps {
 	room: InspectionRoom

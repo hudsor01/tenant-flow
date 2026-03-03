@@ -12,8 +12,8 @@
 
 import * as fc from 'fast-check'
 import { describe, it, expect } from 'vitest'
-import { selectionStepSchema } from '@repo/shared/validation/lease-wizard.schemas'
-import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import { selectionStepSchema } from '#shared/validation/lease-wizard.schemas'
+import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
 
 // ============================================================================
 // SELECTION STEP VALIDATION LOGIC (extracted for testing)

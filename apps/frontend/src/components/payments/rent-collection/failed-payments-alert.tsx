@@ -17,7 +17,7 @@ import {
 	TableRow
 } from '#components/ui/table'
 import { formatCents } from '#lib/formatters/currency'
-import type { FailedPaymentAttempt } from '@repo/shared/types/api-contracts'
+import type { FailedPaymentAttempt } from '#shared/types/api-contracts'
 
 interface FailedPaymentsAlertProps {
 	attempts: FailedPaymentAttempt[]

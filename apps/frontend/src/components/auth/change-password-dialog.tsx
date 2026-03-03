@@ -14,7 +14,7 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useChangePasswordMutation } from '#hooks/api/use-auth'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { logger } from '#shared/lib/frontend-logger'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import { useState } from 'react'
 

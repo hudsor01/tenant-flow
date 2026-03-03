@@ -8,7 +8,7 @@ import {
 	Users,
 	Zap
 } from 'lucide-react'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 
 export interface UsageStatsData {
 	properties: number

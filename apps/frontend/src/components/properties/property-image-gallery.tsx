@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import Image from 'next/image'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import {
 	usePropertyImages,
 	useDeletePropertyImageMutation

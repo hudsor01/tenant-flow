@@ -1,7 +1,7 @@
 import { test as setup } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const authFile = path.join(__dirname, '../playwright/.auth/tenant.json')

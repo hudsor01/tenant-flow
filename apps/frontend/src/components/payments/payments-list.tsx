@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { DollarSign, Search, Download } from 'lucide-react'
-import type { PaymentsListProps } from '@repo/shared/types/sections/payments'
-import type { PaymentStatus } from '@repo/shared/types/core'
+import type { PaymentsListProps } from '#shared/types/sections/payments'
+import type { PaymentStatus } from '#shared/types/core'
 import { PaymentStats } from './payment-stats'
 import { PaymentsTable } from './payments-table'
 

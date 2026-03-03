@@ -2,7 +2,7 @@
 import type { ComponentType } from 'react'
 
 // Import database enums from shared types (single source of truth)
-import type { LeaseStatus, PaymentStatus } from '@repo/shared/types/core'
+import type { LeaseStatus, PaymentStatus } from '#shared/types/core'
 
 export interface LeasesProps {
 	// Lease list

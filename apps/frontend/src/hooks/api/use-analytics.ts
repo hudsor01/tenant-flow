@@ -15,8 +15,8 @@ import type {
 	MaintenanceInsightsPageData,
 	OccupancyAnalyticsPageData,
 	PropertyPerformancePageData
-} from '@repo/shared/types/analytics-page-data'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+} from '#shared/types/analytics-page-data'
+import type { OwnerPaymentSummaryResponse } from '#shared/types/api-contracts'
 
 // ============================================================================
 // QUERY OPTIONS (for direct use in pages with useQueries/prefetch)

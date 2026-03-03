@@ -1,7 +1,7 @@
 'use client'
 
 import { Card } from '#components/ui/card'
-import type { OccupancyMetrics } from '@repo/shared/types/reports'
+import type { OccupancyMetrics } from '#shared/types/reports'
 
 const formatPercent = (value: number) => `${value.toFixed(1)}%`
 

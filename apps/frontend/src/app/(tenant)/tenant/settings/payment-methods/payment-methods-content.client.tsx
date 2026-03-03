@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, CreditCard, Plus } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 
 import { Button } from '#components/ui/button'
 import {

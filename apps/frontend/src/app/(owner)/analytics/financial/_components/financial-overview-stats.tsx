@@ -12,7 +12,7 @@ import {
 } from '#components/ui/stat'
 import { NumberTicker } from '#components/ui/number-ticker'
 import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
-import type { FinancialMetricSummary } from '@repo/shared/types/analytics'
+import type { FinancialMetricSummary } from '#shared/types/analytics'
 
 interface FinancialOverviewStatsProps {
 	metrics: FinancialMetricSummary

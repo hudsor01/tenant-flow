@@ -18,7 +18,7 @@ import {
 	positiveNumberSchema,
 	nonNegativeNumberSchema
 } from './common.js'
-import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
+import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // Lease status enum validation
 // Workflow: draft -> pending_signature -> active -> ended/terminated

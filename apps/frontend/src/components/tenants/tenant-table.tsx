@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react'
 import { Checkbox } from '#components/ui/checkbox'
 import { Button } from '#components/ui/button'
-import type { TenantItem } from '@repo/shared/types/sections/tenants'
+import type { TenantItem } from '#shared/types/sections/tenants'
 import {
 	SortableHeader,
 	type SortDirection,

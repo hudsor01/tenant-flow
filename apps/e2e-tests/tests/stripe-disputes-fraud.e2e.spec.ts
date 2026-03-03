@@ -4,7 +4,7 @@ import {
 	STRIPE_TEST_CARDS,
 	STRIPE_TEST_CREDENTIALS,
 	STRIPE_PAYMENT_METHOD_IDS
-} from '@repo/testing/stripe-test-data'
+} from '../test-data/stripe-test-data'
 
 /**
  * Stripe Disputes & Fraud E2E Tests

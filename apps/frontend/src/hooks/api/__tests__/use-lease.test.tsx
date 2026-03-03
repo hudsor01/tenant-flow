@@ -40,7 +40,7 @@ import {
 } from '../use-lease'
 
 // Mock logger
-vi.mock('@repo/shared/lib/frontend-logger', () => ({
+vi.mock('#shared/lib/frontend-logger', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),

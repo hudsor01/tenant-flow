@@ -14,10 +14,9 @@
 			"./apps/frontend/node_modules"
 		],
 		"paths": {
-			"@repo/shared/*": ["./packages/shared/src/*"],
-			"@repo/testing/*": ["./packages/testing/src/*"],
 			"@repo/eslint-config/*": ["./packages/eslint-config/*"],
 			"@repo/typescript-config/*": ["./packages/typescript-config/*"],
+			"#shared/*": ["./apps/frontend/src/shared/*"],
 			"#app/*": ["./apps/frontend/src/app/*"],
 			"#components/*": ["./apps/frontend/src/components/*"],
 			"#contexts/*": ["./apps/frontend/src/contexts/*"],
@@ -36,8 +35,7 @@
 		"apps/**/*",
 		"packages/**/*",
 		"scripts/**/*.ts",
-		"scripts/**/*.tsx",
-		"turbo.d.ts"
+		"scripts/**/*.tsx"
 	],
 	"exclude": [
 		"node_modules",

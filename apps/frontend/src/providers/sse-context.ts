@@ -8,7 +8,7 @@
  */
 
 import { createContext } from 'react'
-import type { SseEvent, SseEventType } from '@repo/shared/events/sse-events'
+import type { SseEvent, SseEventType } from '#shared/events/sse-events'
 
 // ============================================================================
 // Types

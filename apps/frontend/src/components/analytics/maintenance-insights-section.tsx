@@ -10,7 +10,7 @@ import { useDataTable } from '#hooks/use-data-table'
 import type { ColumnDef } from '@tanstack/react-table'
 import { TrendingUp, DollarSign, Wrench } from 'lucide-react'
 import { useMemo } from 'react'
-import type { MaintenanceCategoryBreakdown } from '@repo/shared/types/analytics'
+import type { MaintenanceCategoryBreakdown } from '#shared/types/analytics'
 import { MaintenanceTrendChart, MaintenanceCostChart } from './maintenance-charts'
 
 export function MaintenanceInsightsSkeleton() {

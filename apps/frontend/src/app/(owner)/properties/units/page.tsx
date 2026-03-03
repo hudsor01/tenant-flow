@@ -25,7 +25,7 @@ import { useCreateUnitMutation } from '#hooks/api/use-unit'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
-import type { UnitInput } from '@repo/shared/validation/units'
+import type { UnitInput } from '#shared/validation/units'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	getCoreRowModel,

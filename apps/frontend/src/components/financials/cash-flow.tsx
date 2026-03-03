@@ -21,7 +21,7 @@ import {
 import type {
 	CashFlowCategory,
 	MonthlyCashFlow
-} from '@repo/shared/types/financial-statements'
+} from '#shared/types/financial-statements'
 
 interface CashFlowProps {
 	inflows: CashFlowCategory[]

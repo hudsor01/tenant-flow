@@ -9,7 +9,7 @@ import { DataTableColumnHeader } from '#components/data-table/data-table-column-
 import type {
 	UnitRowWithRelations,
 	UnitStatus
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 
 export type UnitRow = UnitRowWithRelations
 import type { ColumnDef } from '@tanstack/react-table'

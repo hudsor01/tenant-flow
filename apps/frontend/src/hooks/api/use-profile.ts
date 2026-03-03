@@ -15,7 +15,7 @@ import {
 } from '@tanstack/react-query'
 import { mutationKeys } from './mutation-keys'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { logger } from '#shared/lib/frontend-logger'
 import {
 	handleMutationError,
 	handleMutationSuccess
@@ -28,7 +28,7 @@ import type {
 	UpdatePhoneInput,
 	UpdateProfileInput,
 	UserProfile
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 // ============================================================================
 // QUERY KEYS
 // ============================================================================

@@ -5,7 +5,7 @@ import {
 	AlertCircle,
 	type LucideIcon
 } from 'lucide-react'
-import type { PaymentStatus } from '@repo/shared/types/core'
+import type { PaymentStatus } from '#shared/types/core'
 
 export function formatCurrency(amount: number): string {
 	return new Intl.NumberFormat('en-US', {

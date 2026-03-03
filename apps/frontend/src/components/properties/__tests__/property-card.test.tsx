@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { PropertyCard } from '../property-card'
-import type { Property } from '@repo/shared/types/core'
+import type { Property } from '#shared/types/core'
 
 // Mock the hooks
 vi.mock('#hooks/api/use-properties', () => ({

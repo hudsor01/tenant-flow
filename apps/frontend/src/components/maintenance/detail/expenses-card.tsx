@@ -9,7 +9,7 @@ import {
 } from '#components/ui/card'
 import { formatCurrency } from '#lib/formatters/currency'
 import { DollarSign } from 'lucide-react'
-import type { ExpenseRecord } from '@repo/shared/types/core'
+import type { ExpenseRecord } from '#shared/types/core'
 import { AddExpenseDialog } from './add-expense-dialog'
 
 interface ExpensesCardProps {

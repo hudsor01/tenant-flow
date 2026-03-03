@@ -2,7 +2,7 @@
 
 import type { ComponentType } from 'react'
 
-import type { UnitStatus } from '@repo/shared/types/core'
+import type { UnitStatus } from '#shared/types/core'
 import {
 	AlertTriangle,
 	Calendar,

@@ -12,7 +12,7 @@
  */
 
 import { Badge } from '#components/ui/badge'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '#shared/types/core'
 
 const TENANT_KANBAN_COLUMNS = [
 	{ id: 'open', label: 'Open', description: 'Awaiting review' },

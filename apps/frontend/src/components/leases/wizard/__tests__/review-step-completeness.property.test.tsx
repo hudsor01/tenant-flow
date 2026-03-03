@@ -11,7 +11,7 @@ import * as fc from 'fast-check'
 import { render, screen, cleanup, within } from '@testing-library/react'
 import { describe, it, expect } from 'vitest'
 import { ReviewStep } from '../review-step'
-import type { LeaseWizardData } from '@repo/shared/validation/lease-wizard.schemas'
+import type { LeaseWizardData } from '#shared/validation/lease-wizard.schemas'
 
 // Note: Global afterEach cleanup is handled by unit-setup.ts.
 // Manual cleanup() calls in loops are required for property-based iterations.

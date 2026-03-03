@@ -1,5 +1,5 @@
 import { test as setup, expect } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 import { ROUTES } from './constants/routes'
 import { fillTextInput } from './helpers/form-helpers'

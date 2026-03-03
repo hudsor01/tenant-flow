@@ -11,7 +11,7 @@ import {
 	useResendInvitationMutation
 } from '#hooks/api/use-tenant'
 import { createClient } from '#lib/supabase/client'
-import type { TenantWithLeaseInfo } from '@repo/shared/types/core'
+import type { TenantWithLeaseInfo } from '#shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
 import {
 	AlertDialog,
@@ -27,8 +27,8 @@ import { Tenants } from '#components/tenants/tenants'
 import type {
 	TenantItem,
 	TenantSectionDetail
-} from '@repo/shared/types/sections/tenants'
-import type { LeaseStatus } from '@repo/shared/types/core'
+} from '#shared/types/sections/tenants'
+import type { LeaseStatus } from '#shared/types/core'
 
 // ============================================================================
 // DATA TRANSFORMATION

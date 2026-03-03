@@ -9,7 +9,6 @@
 import { defineConfig } from 'eslint/config'
 import globals from 'globals'
 import baseConfig from './packages/eslint-config/base.js'
-import turboConfig from './packages/eslint-config/turbo.js'
 import nextPlugin from '@next/eslint-plugin-next'
 
 /**
@@ -32,8 +31,6 @@ export default defineConfig([
 			...nextPlugin.configs['core-web-vitals'].rules
 		}
 	},
-	// Turborepo environment variable validation
-	...turboConfig,
 	{
 		name: 'root/monorepo-files',
 		files: ['*.js', '*.mjs', '*.ts'],
@@ -76,10 +73,10 @@ export default defineConfig([
 			'apps/frontend/src/lib/__tests__/**/*' // Test files not in tsconfig
 		]
 	},
-	// SHARED PACKAGE LOGGING EXCEPTION - Allow console only in logger implementation
+	// LOGGING EXCEPTION - Allow console only in logger implementation
 	{
 		name: 'shared/logging-implementation-exception',
-		files: ['packages/shared/src/lib/frontend-logger.ts'],
+		files: ['apps/frontend/src/shared/lib/frontend-logger.ts', 'apps/e2e-tests/lib/frontend-logger.ts'],
 		rules: {
 			'no-console': 'off' // Allow console usage in the logger implementation itself
 		}
@@ -178,10 +175,10 @@ export default defineConfig([
 			radix: 'error'
 		}
 	},
-	// EXCEPTION: Allow TypeScript enums ONLY in security monitoring (packages/shared/src/types/security.ts)
+	// EXCEPTION: Allow TypeScript enums ONLY in security monitoring
 	{
 		name: 'shared/security-enum-exception',
-		files: ['packages/shared/src/types/security.ts'],
+		files: ['apps/frontend/src/shared/types/security.ts'],
 		rules: {
 			'no-restricted-syntax': 'off' // Allow SecurityEventType and SecurityEventSeverity enums
 		}

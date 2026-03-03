@@ -12,9 +12,9 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { Lease } from '@repo/shared/types/core'
-import type { LeaseStatsResponse } from '@repo/shared/types/core'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type { Lease } from '#shared/types/core'
+import type { LeaseStatsResponse } from '#shared/types/core'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 // ============================================================================

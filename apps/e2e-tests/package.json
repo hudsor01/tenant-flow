@@ -36,8 +36,5 @@
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	},
-	"dependencies": {
-		"@repo/shared": "workspace:*",
-		"@repo/testing": "workspace:*"
-	}
+	"dependencies": {}
 }

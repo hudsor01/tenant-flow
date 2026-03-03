@@ -1,4 +1,4 @@
-import type { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { createLogger } from '#shared/lib/frontend-logger'
 import type { Query } from '@tanstack/react-query'
 import type { Persister } from '@tanstack/react-query-persist-client'
 

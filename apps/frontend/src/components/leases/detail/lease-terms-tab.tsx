@@ -9,7 +9,7 @@ import {
 } from '#components/ui/card'
 import { Badge } from '#components/ui/badge'
 import { formatCurrency } from './lease-detail-utils'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 
 interface LeaseTermsTabProps {
 	lease: Lease

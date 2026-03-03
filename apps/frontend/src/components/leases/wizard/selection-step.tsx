@@ -28,11 +28,11 @@ import {
 import { Button } from '#components/ui/button'
 import { AlertCircle, UserPlus } from 'lucide-react'
 import Link from 'next/link'
-import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
 import type {
 	Property as SharedProperty,
 	Unit as SharedUnit
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 
 interface SelectionStepProps {
 	data: Partial<SelectionStepData>

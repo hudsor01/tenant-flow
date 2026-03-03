@@ -1,7 +1,7 @@
 import { Badge } from '#components/ui/badge'
 import { cardVariants } from '#components/ui/card'
 import { Calendar, CheckCircle2, CreditCard, Lock } from 'lucide-react'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 
 export interface BillingInfoData {
 	nextBillingDate: string

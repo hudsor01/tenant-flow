@@ -6,8 +6,8 @@
  */
 
 import { UserPlus, Users, Search } from 'lucide-react'
-import type { TenantItem } from '@repo/shared/types/sections/tenants'
-import type { LeaseStatus } from '@repo/shared/types/core'
+import type { TenantItem } from '#shared/types/sections/tenants'
+import type { LeaseStatus } from '#shared/types/core'
 import { useTenantListStore } from '#stores/tenant-list-store'
 import { TenantStatsRow } from './components/tenant-stats-row'
 import { TenantToolbar } from './components/tenant-toolbar'

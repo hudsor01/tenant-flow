@@ -18,12 +18,12 @@ import {
 	StatDescription
 } from '#components/ui/stat'
 import { AnimatedTrendIndicator } from '#components/ui/animated-trend-indicator'
-import { EMPTY_PAYMENT_SUMMARY } from '@repo/shared/types/api-contracts'
-import type { DashboardStats } from '@repo/shared/types/stats'
+import { EMPTY_PAYMENT_SUMMARY } from '#shared/types/api-contracts'
+import type { DashboardStats } from '#shared/types/stats'
 import type {
 	DashboardSummary,
 	PropertyPerformance
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 import {
 	Building2,
 	Calendar,

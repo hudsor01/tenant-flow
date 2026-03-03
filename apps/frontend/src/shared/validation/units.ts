@@ -18,7 +18,7 @@ import {
 	requiredString,
 	uuidSchema
 } from './common'
-import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
+import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // Unit status enum - matches PostgreSQL enum values exactly
 // Values: 'available', 'occupied', 'maintenance', 'reserved'

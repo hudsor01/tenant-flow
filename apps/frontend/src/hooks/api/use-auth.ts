@@ -19,9 +19,9 @@ import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { logger } from '#shared/lib/frontend-logger'
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js'
-import type { LoginCredentials, SignupFormData, AuthSession } from '@repo/shared/types/auth'
+import type { LoginCredentials, SignupFormData, AuthSession } from '#shared/types/auth'
 import {
 	handleMutationError,
 	handleMutationSuccess

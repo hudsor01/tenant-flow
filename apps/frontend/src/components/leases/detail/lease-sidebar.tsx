@@ -6,7 +6,7 @@ import { Button } from '#components/ui/button'
 import { DollarSign, Home, User, Building } from 'lucide-react'
 import Link from 'next/link'
 import { LeaseSignatureStatus } from '#components/leases/lease-signature-status'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 
 interface UnitInfo {
 	id: string

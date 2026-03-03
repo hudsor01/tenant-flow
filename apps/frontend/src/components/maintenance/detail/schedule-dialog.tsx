@@ -15,7 +15,7 @@ import {
 } from '#components/ui/dialog'
 import { Field, FieldLabel } from '#components/ui/field'
 import { useMaintenanceRequestUpdateMutation } from '#hooks/api/use-maintenance'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import { Calendar } from 'lucide-react'
 import { toast } from 'sonner'
 

@@ -24,7 +24,7 @@ import { render } from '#test/utils/test-render'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { LeaseActionButtons } from '../lease-action-buttons'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 import { toast } from 'sonner'
 
 vi.mock('sonner', () => ({

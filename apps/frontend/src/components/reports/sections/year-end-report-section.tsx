@@ -19,7 +19,7 @@ import {
 } from '#components/ui/table'
 import { Badge } from '#components/ui/badge'
 import { Download, FileText, AlertCircle } from 'lucide-react'
-import type { YearEndSummary, Year1099Summary } from '@repo/shared/types/reports'
+import type { YearEndSummary, Year1099Summary } from '#shared/types/reports'
 
 function formatMoney(amount: number): string {
 	return new Intl.NumberFormat('en-US', {

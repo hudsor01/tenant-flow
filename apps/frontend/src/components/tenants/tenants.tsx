@@ -1,8 +1,8 @@
 'use client'
 
 import { Users, UserPlus } from 'lucide-react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { TenantsProps } from '@repo/shared/types/sections/tenants'
+import { createLogger } from '#shared/lib/frontend-logger'
+import type { TenantsProps } from '#shared/types/sections/tenants'
 import { useTenantsStore } from '#stores/tenants-store'
 import { TenantTable } from './tenant-table'
 import { TenantGrid } from './tenant-grid'

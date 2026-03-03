@@ -1,9 +1,9 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { Property, Unit } from '@repo/shared/types/core'
-import type { InviteTenantRequest } from '@repo/shared/validation/tenants'
+import { createLogger } from '#shared/lib/frontend-logger'
+import type { Property, Unit } from '#shared/types/core'
+import type { InviteTenantRequest } from '#shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Mail } from 'lucide-react'

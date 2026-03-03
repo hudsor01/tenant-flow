@@ -1,4 +1,4 @@
-import type { LeaseStatus } from '@repo/shared/types/core'
+import type { LeaseStatus } from '#shared/types/core'
 
 export type SortField = 'name' | 'email' | 'property' | 'status'
 export type SortDirection = 'asc' | 'desc'

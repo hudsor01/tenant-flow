@@ -22,14 +22,14 @@ import { sanitizeSearchInput } from '#lib/sanitize-search'
 import type {
 	Tenant,
 	TenantWithLeaseInfo
-} from '@repo/shared/types/core'
-import type { TenantStats } from '@repo/shared/types/stats'
+} from '#shared/types/core'
+import type { TenantStats } from '#shared/types/stats'
 import type {
 	PaginatedResponse,
 	TenantFilters,
 	TenantInvitation,
 	TenantPaymentHistoryResponse
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
 /**

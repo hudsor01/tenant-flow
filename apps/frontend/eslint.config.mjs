@@ -173,7 +173,7 @@ export default defineConfig([
 	{
 		name: 'frontend/design-system-color-tokens',
 		files: ['**/*.ts', '**/*.tsx'],
-		ignores: ['**/design-system/**'],
+		ignores: ['**/design-system/**', '**/shared/**'],
 		plugins: {
 			'color-tokens': colorTokensConfig
 		},

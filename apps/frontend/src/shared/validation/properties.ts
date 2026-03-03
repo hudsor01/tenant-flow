@@ -19,7 +19,7 @@ import {
 	positiveNumberSchema,
 	nonNegativeNumberSchema
 } from './common.js'
-import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
+import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // Property status enum validation
 export const propertyStatusSchema = z.enum([

@@ -14,13 +14,13 @@ import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { sanitizeSearchInput } from '#lib/sanitize-search'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type {
 	Property,
 	PropertyPerformance
-} from '@repo/shared/types/core'
-import type { PropertyStats } from '@repo/shared/types/stats'
-import type { Tables } from '@repo/shared/types/supabase'
+} from '#shared/types/core'
+import type { PropertyStats } from '#shared/types/stats'
+import type { Tables } from '#shared/types/supabase'
 
 // ============================================================================
 // TYPES

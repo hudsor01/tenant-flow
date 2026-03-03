@@ -7,7 +7,7 @@ import { useUser } from '#hooks/api/use-auth'
 import { useBillingPortalMutation } from '#hooks/api/use-billing'
 import { cn } from '#lib/utils'
 import { cardVariants } from '#components/ui/card'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 import {
 	ArrowRight,
 	Award,

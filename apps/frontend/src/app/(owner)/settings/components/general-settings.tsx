@@ -12,7 +12,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
-import type { ThemeMode } from '@repo/shared/types/domain'
+import type { ThemeMode } from '#shared/types/domain'
 import type { DataDensity } from '#stores/preferences-store'
 
 export function GeneralSettings() {

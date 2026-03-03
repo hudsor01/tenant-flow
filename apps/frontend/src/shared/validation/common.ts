@@ -10,7 +10,7 @@
  */
 
 import { z } from 'zod'
-import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
+import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // ============================================================================
 // TOP-LEVEL STRING FORMAT VALIDATORS (Zod 4)

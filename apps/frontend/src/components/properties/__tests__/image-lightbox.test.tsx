@@ -15,7 +15,7 @@
 import { screen } from '@testing-library/react'
 import { render } from '#test/utils/test-render'
 import { ImageLightbox } from '../image-lightbox'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Tables } from '#shared/types/supabase'
 import { vi } from 'vitest'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'

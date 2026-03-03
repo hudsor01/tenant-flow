@@ -14,9 +14,9 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type { Unit } from '@repo/shared/types/core'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
-import type { UnitInput, UnitUpdate } from '@repo/shared/validation/units'
+import type { Unit } from '#shared/types/core'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
+import type { UnitInput, UnitUpdate } from '#shared/validation/units'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'

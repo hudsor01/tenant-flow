@@ -21,8 +21,8 @@ import { toast } from 'sonner'
 import type {
 	MaintenanceStatus,
 	MaintenancePriority
-} from '@repo/shared/types/core'
-import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
+} from '#shared/types/core'
+import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
 import { createClient } from '#lib/supabase/client'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 

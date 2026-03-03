@@ -10,7 +10,7 @@ import type { SignatureStatus } from '#hooks/api/query-keys/lease-keys'
 import {
 	LEASE_SIGNATURE_ERROR_MESSAGES,
 	LEASE_SIGNATURE_ERROR_CODES
-} from '@repo/shared/constants/lease-signature-errors'
+} from '#shared/constants/lease-signature-errors'
 
 interface LeaseSignatureStatusProps {
 	leaseId: string

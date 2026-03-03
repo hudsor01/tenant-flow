@@ -20,9 +20,9 @@ import { useRouter } from 'next/navigation'
 import { BlurFade } from '#components/ui/blur-fade'
 import { MaintenanceCard } from '../cards/maintenance-card'
 import { MaintenanceSortableCard } from '../cards/maintenance-sortable-card'
-import type { MaintenanceStatus } from '@repo/shared/types/core'
-import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { MaintenanceStatus } from '#shared/types/core'
+import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
+import { createLogger } from '#shared/lib/frontend-logger'
 import { createClient } from '#lib/supabase/client'
 
 const logger = createLogger({ component: 'MaintenanceKanban' })

@@ -15,7 +15,7 @@ import { render } from '#test/utils/test-render'
 import userEvent from '@testing-library/user-event'
 import { vi, describe, test, expect, beforeEach } from 'vitest'
 import { LeaseDetails } from '../detail/lease-details.client'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 
 // Mock the hooks
 const mockLease: Lease = {

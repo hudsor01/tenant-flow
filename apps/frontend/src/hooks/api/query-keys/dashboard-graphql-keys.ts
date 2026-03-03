@@ -13,7 +13,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import * as Sentry from '@sentry/nextjs'
-import type { GraphQLPropertyNode, PortfolioOverviewData } from '@repo/shared/types/analytics'
+import type { GraphQLPropertyNode, PortfolioOverviewData } from '#shared/types/analytics'
 
 // ============================================================================
 // GRAPHQL QUERY

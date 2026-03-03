@@ -20,7 +20,7 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import type {
 	BillingHistoryItem,
 	CreateRentSubscriptionRequest,
@@ -28,7 +28,7 @@ import type {
 	RentSubscriptionResponse,
 	SubscriptionStatusResponse,
 	UpdateSubscriptionRequest
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
 

@@ -8,7 +8,7 @@ import {
 	SelectTrigger,
 	SelectValue
 } from '#components/ui/select'
-import type { LeaseStatus } from '@repo/shared/types/core'
+import type { LeaseStatus } from '#shared/types/core'
 
 // ============================================================================
 // TYPES (shared between helper components)

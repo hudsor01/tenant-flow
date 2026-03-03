@@ -22,7 +22,7 @@ import {
 import type {
 	PropertyPL,
 	MonthlyData
-} from '@repo/shared/types/financial-statements'
+} from '#shared/types/financial-statements'
 
 interface ProfitLossProps {
 	totalRevenue: number

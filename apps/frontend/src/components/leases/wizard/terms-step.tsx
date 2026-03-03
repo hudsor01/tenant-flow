@@ -4,7 +4,7 @@
  * Lease Creation Wizard - Step 2: Terms
  * Dates and financial details
  *
- * Note: Validation is handled by Zod schemas in @repo/shared/validation/lease-wizard.schemas.ts
+ * Note: Validation is handled by Zod schemas in #shared/validation/lease-wizard.schemas.ts
  * This component only handles display/input - uses type="text" with inputMode for mobile keyboards
  */
 import {
@@ -14,7 +14,7 @@ import {
 	FieldGroup
 } from '#components/ui/field'
 import { Input } from '#components/ui/input'
-import type { TermsStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import type { TermsStepData } from '#shared/validation/lease-wizard.schemas'
 
 interface TermsStepProps {
 	data: Partial<TermsStepData>

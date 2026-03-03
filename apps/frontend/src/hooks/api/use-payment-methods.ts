@@ -24,7 +24,7 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { mutationKeys } from './mutation-keys'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
+import type { PaymentMethodResponse } from '#shared/types/core'
 
 // ============================================================================
 // TYPES

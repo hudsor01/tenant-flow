@@ -25,7 +25,7 @@ import {
 	SheetTitle
 } from '#components/ui/sheet'
 import { useUpdateUnitMutation } from '#hooks/api/use-unit'
-import type { Unit } from '@repo/shared/types/core'
+import type { Unit } from '#shared/types/core'
 import { useForm } from '@tanstack/react-form'
 import { DollarSign, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'

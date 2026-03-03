@@ -17,8 +17,8 @@ import {
 	type LeaseTemplateContext,
 	type CustomClause,
 	stateNames
-} from '@repo/shared/templates/lease-template'
-import type { USState } from '@repo/shared/types/lease-generator.types'
+} from '#shared/templates/lease-template'
+import type { USState } from '#shared/types/lease-generator.types'
 import {
 	Card,
 	CardContent,

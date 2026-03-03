@@ -11,7 +11,7 @@ import type { MutableRefObject } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { QueryClient } from '@tanstack/react-query'
 import type { useRouter } from 'next/navigation'
-import type { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { createLogger } from '#shared/lib/frontend-logger'
 import type { FileWithStatus } from './sections/property-images-create-section'
 import { uploadPropertyImages } from './property-form-upload'
 

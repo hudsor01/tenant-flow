@@ -10,7 +10,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe'
+import type { ConnectedAccountWithIdentity } from '#shared/types/stripe'
 
 interface BillingStatCardsProps {
 	account: ConnectedAccountWithIdentity

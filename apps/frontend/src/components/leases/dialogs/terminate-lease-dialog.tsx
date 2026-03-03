@@ -12,7 +12,7 @@ import {
 } from '#components/ui/dialog'
 import { useTerminateLeaseMutation } from '#hooks/api/use-lease'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 import { AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 

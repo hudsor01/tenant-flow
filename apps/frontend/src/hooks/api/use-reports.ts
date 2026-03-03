@@ -38,7 +38,7 @@ import type {
 	MaintenanceReport,
 	YearEndSummary,
 	Year1099Summary
-} from '@repo/shared/types/reports'
+} from '#shared/types/reports'
 
 // ============================================================================
 // TYPES

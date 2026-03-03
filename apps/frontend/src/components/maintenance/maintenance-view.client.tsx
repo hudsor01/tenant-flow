@@ -36,7 +36,7 @@ import { MaintenanceTableClient } from './table/maintenance-table.client'
 import { columns } from './table/columns'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
 import { useQuery } from '@tanstack/react-query'
-import type { MaintenanceDisplayRequest } from '@repo/shared/types/sections/maintenance'
+import type { MaintenanceDisplayRequest } from '#shared/types/sections/maintenance'
 
 type ViewType = 'kanban' | 'table'
 

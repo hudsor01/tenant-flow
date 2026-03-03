@@ -3,7 +3,7 @@
 import { Button } from '#components/ui/button'
 import { GridPattern } from '#components/ui/grid-pattern'
 import { createClient } from '#lib/supabase/client'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { logger } from '#shared/lib/frontend-logger'
 import {
 	AlertTriangle,
 	ArrowRight,

@@ -5,7 +5,7 @@ import type {
 	BillingInsightsTimeline,
 	MonthlyFinancialMetric,
 	NetOperatingIncomeByProperty
-} from '@repo/shared/types/analytics'
+} from '#shared/types/analytics'
 import {
 	Area,
 	AreaChart,

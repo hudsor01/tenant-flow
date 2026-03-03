@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 
 interface PageValidation {

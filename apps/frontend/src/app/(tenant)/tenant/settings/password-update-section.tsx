@@ -12,7 +12,7 @@ import {
 } from '#components/ui/input-group'
 import { LoadingSpinner } from '#components/ui/loading-spinner'
 import { cn } from '#lib/utils'
-import { TYPOGRAPHY_SCALE } from '@repo/shared/constants/design-system'
+import { TYPOGRAPHY_SCALE } from '#shared/constants/design-system'
 import { createClient } from '#lib/supabase/client'
 import { useMutation } from '@tanstack/react-query'
 import { AlertTriangle, CheckCircle2, Eye, EyeOff, Shield } from 'lucide-react'

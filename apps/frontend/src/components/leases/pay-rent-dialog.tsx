@@ -21,7 +21,7 @@ import {
 import { useCreateRentPaymentMutation } from '#hooks/api/use-payments'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
 import { formatCurrency } from '#lib/formatters/currency'
-import type { LeaseWithExtras } from '@repo/shared/types/core'
+import type { LeaseWithExtras } from '#shared/types/core'
 import { CreditCard } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'

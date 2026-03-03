@@ -3,7 +3,7 @@
 import * as Sentry from '@sentry/nextjs'
 import { createClient } from '#lib/supabase/client'
 import { setQueryClientRef } from '#lib/supabase/get-cached-user'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import type { AuthChangeEvent, Session, SupabaseClient } from '@supabase/supabase-js'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { ReactNode } from 'react'

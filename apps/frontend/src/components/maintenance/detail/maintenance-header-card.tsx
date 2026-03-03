@@ -13,7 +13,7 @@ import {
 	Wrench
 } from 'lucide-react'
 import Link from 'next/link'
-import type { MaintenanceStatus, MaintenancePriority } from '@repo/shared/types/core'
+import type { MaintenanceStatus, MaintenancePriority } from '#shared/types/core'
 import { STATUS_CONFIG, PRIORITY_CONFIG } from './maintenance-utils'
 import { StatusSelect } from './status-select'
 import { ScheduleDialog } from './schedule-dialog'

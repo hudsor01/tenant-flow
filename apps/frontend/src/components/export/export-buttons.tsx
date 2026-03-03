@@ -73,7 +73,7 @@ async function requestExport(
 
 	if (!response.ok) {
 		const { ApiErrorCode, createApiErrorFromResponse } =
-			await import('@repo/shared/utils/api-error')
+			await import('#shared/utils/api-error')
 		throw createApiErrorFromResponse(
 			response,
 			ApiErrorCode.FINANCIAL_EXPORT_FAILED

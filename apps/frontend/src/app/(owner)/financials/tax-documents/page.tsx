@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import {
 	FileText,
 	TrendingDown,
@@ -24,7 +24,7 @@ import {
 } from '#components/ui/select'
 import { useTaxDocuments } from '#hooks/api/use-financials'
 import { useDownloadTaxDocumentPdf } from '#hooks/api/use-reports'
-import { formatCents } from '@repo/shared/lib/format'
+import { formatCents } from '#shared/lib/format'
 
 const logger = createLogger({ component: 'TaxDocumentsPage' })
 

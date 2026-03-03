@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
 
-import { ANIMATION_DURATIONS } from '@repo/shared/constants/design-system'
+import { ANIMATION_DURATIONS } from '#shared/constants/design-system'
 
 import { Button } from '#components/ui/button'
 import { ButtonLoader } from '#components/ui/loading-spinner'

@@ -4,7 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { PropertyUnitsTable } from '../property-units-table'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import type { Unit } from '@repo/shared/types/core'
+import type { Unit } from '#shared/types/core'
 
 // Mock useCurrentUser hook
 vi.mock('#hooks/use-current-user', () => ({

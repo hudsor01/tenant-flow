@@ -7,7 +7,7 @@ import { useErrorBoundary } from '#hooks/use-error-boundary'
 import { useErrorBoundaryStore } from '#stores/error-boundary-store'
 import type { ErrorInfo, ReactNode } from 'react'
 import { Component } from 'react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import { useRouter } from 'next/navigation'
 
 const logger = createLogger({ component: 'ErrorBoundary' })

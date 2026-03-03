@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod'
-import { VALIDATION_LIMITS } from '@repo/shared/constants/billing'
+import { VALIDATION_LIMITS } from '#shared/constants/billing'
 
 // AUTH FORM VALIDATION SCHEMAS
 
@@ -98,4 +98,4 @@ export const userProfileResponseZodSchema = z.object({
 })
 
 // NOTE: Contact form validation is in contact.ts (contactFormSchema)
-// Do not duplicate here - import from '@repo/shared/validation/contact' instead
+// Do not duplicate here - import from '#shared/validation/contact' instead

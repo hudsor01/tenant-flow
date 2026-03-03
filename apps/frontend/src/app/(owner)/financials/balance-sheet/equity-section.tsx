@@ -2,7 +2,7 @@
 
 import { Wallet } from 'lucide-react'
 import { formatCents } from '#lib/formatters/currency'
-import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
+import type { FinancialLineItem } from '#shared/types/financial-statements'
 
 export function EquitySection({
 	items,

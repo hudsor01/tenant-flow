@@ -14,8 +14,8 @@ import type {
 	CreateInspectionRoomInput,
 	UpdateInspectionRoomInput,
 	TenantReviewInput
-} from '@repo/shared/validation/inspections'
-import type { Inspection } from '@repo/shared/types/sections/inspections'
+} from '#shared/validation/inspections'
+import type { Inspection } from '#shared/types/sections/inspections'
 
 import { inspectionQueries } from './query-keys/inspection-keys'
 import { createClient } from '#lib/supabase/client'

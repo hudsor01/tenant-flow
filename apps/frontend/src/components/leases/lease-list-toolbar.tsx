@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, ChevronDown } from 'lucide-react'
-import type { LeaseStatus } from '@repo/shared/types/core'
+import type { LeaseStatus } from '#shared/types/core'
 import type { StatusFilter } from '#stores/leases-store'
 
 interface LeaseListToolbarProps {

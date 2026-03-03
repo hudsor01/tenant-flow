@@ -5,7 +5,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
-import type { Database } from '@repo/shared/types/supabase'
+import type { Database } from '#shared/types/supabase'
 
 type Blog = Database['public']['Tables']['blogs']['Row']
 

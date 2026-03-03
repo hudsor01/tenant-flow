@@ -1,7 +1,7 @@
 'use client'
 
 import { BlurFade } from '#components/ui/blur-fade'
-import type { MonthlyData } from '@repo/shared/types/financial-statements'
+import type { MonthlyData } from '#shared/types/financial-statements'
 
 interface IncomeStatementMonthlyTrendProps {
 	byMonth: MonthlyData[]

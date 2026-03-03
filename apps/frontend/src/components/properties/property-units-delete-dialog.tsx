@@ -10,7 +10,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import type { Unit } from '@repo/shared/types/core'
+import type { Unit } from '#shared/types/core'
 
 interface UnitDeleteDialogProps {
 	deletingUnit: Unit | null

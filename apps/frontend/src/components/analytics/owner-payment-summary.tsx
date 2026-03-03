@@ -4,8 +4,8 @@ import {
 	CardHeader,
 	CardTitle
 } from '#components/ui/card'
-import { formatCents } from '@repo/shared/lib/format'
-import type { OwnerPaymentSummaryResponse } from '@repo/shared/types/api-contracts'
+import { formatCents } from '#shared/lib/format'
+import type { OwnerPaymentSummaryResponse } from '#shared/types/api-contracts'
 
 interface OwnerPaymentSummaryProps {
 	summary: OwnerPaymentSummaryResponse | null

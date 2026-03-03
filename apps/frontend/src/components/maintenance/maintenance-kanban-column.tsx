@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { Clock, MoreHorizontal, MapPin, User } from 'lucide-react'
-import type { MaintenanceRequestItem } from '@repo/shared/types/sections/maintenance'
-import type { MaintenancePriority, MaintenanceStatus } from '@repo/shared/types/core'
+import type { MaintenanceRequestItem } from '#shared/types/sections/maintenance'
+import type { MaintenancePriority, MaintenanceStatus } from '#shared/types/core'
 import { BlurFade } from '#components/ui/blur-fade'
 import { BorderBeam } from '#components/ui/border-beam'
 

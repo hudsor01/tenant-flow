@@ -8,8 +8,6 @@ permissions:
 
 env:
   CI: true
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
   lint:
@@ -31,16 +29,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Setup Turbo Cache
-        uses: actions/cache@v4
-        with:
-          path: .turbo
-          key: ${{ runner.os }}-turbo-${{ hashFiles('**/pnpm-lock.yaml', 'turbo.json', '**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-turbo-
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Lint
-        run: pnpm lint
+        run: pnpm -r --parallel lint

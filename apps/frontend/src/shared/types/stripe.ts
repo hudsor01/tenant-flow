@@ -103,7 +103,7 @@ export interface StripeWebhookProcessor {
  * [ERROR] DO NOT create custom type duplicates
  *
  * For database PaymentMethod table, use:
- * import type { PaymentMethod } from '@repo/shared/types/supabase'
+ * import type { PaymentMethod } from '#shared/types/supabase'
  */
 
 // Frontend Stripe Product Types

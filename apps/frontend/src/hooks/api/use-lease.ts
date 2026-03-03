@@ -10,9 +10,9 @@
  */
 
 import { useMutation, usePrefetchQuery, useQuery, useQueryClient } from '@tanstack/react-query'
-import { logger } from '@repo/shared/lib/frontend-logger'
-import type { Lease } from '@repo/shared/types/core'
-import type { LeaseCreate, LeaseUpdate } from '@repo/shared/validation/leases'
+import { logger } from '#shared/lib/frontend-logger'
+import type { Lease } from '#shared/types/core'
+import type { LeaseCreate, LeaseUpdate } from '#shared/validation/leases'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { requireOwnerUserId } from '#lib/require-owner-user-id'

@@ -17,7 +17,7 @@ import type {
 	TermsStepData,
 	LeaseDetailsStepData,
 	WizardStep
-} from '@repo/shared/validation/lease-wizard.schemas'
+} from '#shared/validation/lease-wizard.schemas'
 
 // ============================================================================
 // WIZARD STATE MANAGEMENT (extracted logic for testing)

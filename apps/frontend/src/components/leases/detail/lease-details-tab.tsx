@@ -4,7 +4,7 @@ import { Card, CardContent } from '#components/ui/card'
 import { Calendar, User, Building } from 'lucide-react'
 import { cn } from '#lib/utils'
 import { formatDate, getDaysUntilExpiry } from './lease-detail-utils'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 
 interface TenantInfo {
 	email?: string | null | undefined

@@ -15,7 +15,7 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger'
 import { loginAsOwner } from '../auth-helpers'
 
 const baseUrl = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3050'

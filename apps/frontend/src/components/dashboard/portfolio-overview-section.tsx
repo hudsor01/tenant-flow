@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Skeleton } from '#components/ui/skeleton'
 import Link from 'next/link'
-import type { PropertyPerformance } from '@repo/shared/types/core'
+import type { PropertyPerformance } from '#shared/types/core'
 import type { LeaseStatus, PortfolioRow } from './portfolio-types'
 import { PortfolioToolbar } from './portfolio-toolbar'
 import { PortfolioTableView } from './portfolio-table-view'
