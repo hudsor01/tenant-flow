@@ -10,8 +10,8 @@ import {
 	Pencil,
 	Trash2
 } from 'lucide-react'
-import type { TenantItem } from '@repo/shared/types/sections/tenants'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import type { TenantItem } from '#shared/types/sections/tenants'
+import { createLogger } from '#shared/lib/frontend-logger'
 import type { SortField, SortDirection } from '../tenant-list-types'
 import { getStatusBadge } from '../tenant-list-types'
 

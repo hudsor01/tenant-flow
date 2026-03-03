@@ -21,7 +21,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import type { PaymentStatus } from '@repo/shared/types/core'
+import type { PaymentStatus } from '#shared/types/core'
 
 interface Payment {
 	id: string

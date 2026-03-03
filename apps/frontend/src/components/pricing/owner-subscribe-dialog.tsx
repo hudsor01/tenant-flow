@@ -17,7 +17,7 @@ import {
 import { Button } from '#components/ui/button'
 import { createClient } from '#lib/supabase/client'
 import { useForm } from '@tanstack/react-form'
-import { signupFormSchema } from '@repo/shared/validation/auth'
+import { signupFormSchema } from '#shared/validation/auth'
 import { Mail, Building2, User, Lock } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'

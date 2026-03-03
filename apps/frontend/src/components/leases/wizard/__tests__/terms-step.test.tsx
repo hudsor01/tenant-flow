@@ -5,7 +5,7 @@
  * Tests: Basic input behavior and value display
  *
  * Note: Input validation (bounds, formats) is handled by Zod schemas in
- * @repo/shared/validation/lease-wizard.schemas.ts and tested there.
+ * #shared/validation/lease-wizard.schemas.ts and tested there.
  * This component test verifies UI behavior only.
  */
 
@@ -13,7 +13,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TermsStep } from '../terms-step'
-import type { TermsStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import type { TermsStepData } from '#shared/validation/lease-wizard.schemas'
 
 describe('TermsStep', () => {
 	const defaultData: Partial<TermsStepData> = {}

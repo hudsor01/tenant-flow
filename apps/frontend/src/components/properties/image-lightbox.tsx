@@ -2,7 +2,7 @@
 
 import { useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import type { Tables } from '@repo/shared/types/supabase'
+import type { Tables } from '#shared/types/supabase'
 import {
 	Dialog,
 	DialogContent,

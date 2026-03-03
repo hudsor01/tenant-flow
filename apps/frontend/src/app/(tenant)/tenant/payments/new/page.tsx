@@ -14,7 +14,7 @@ import {
 import { Separator } from '#components/ui/separator'
 import { Skeleton } from '#components/ui/skeleton'
 import { AlertTriangle, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
-import { formatCents } from '@repo/shared/lib/format'
+import { formatCents } from '#shared/lib/format'
 import {
 	tenantPortalQueries,
 	useRentCheckoutMutation

@@ -16,7 +16,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, cleanup, waitFor, act } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SelectionStep } from '../selection-step'
-import type { SelectionStepData } from '@repo/shared/validation/lease-wizard.schemas'
+import type { SelectionStepData } from '#shared/validation/lease-wizard.schemas'
 
 // Mock Supabase client - track calls per table
 const mockFrom = vi.fn()

@@ -6,7 +6,7 @@ import { BlurFade } from '#components/ui/blur-fade'
 import { Skeleton } from '#components/ui/skeleton'
 import { Button } from '#components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
+import type { PaymentMethodResponse } from '#shared/types/core'
 
 import {
 	useFailedPaymentAttempts,

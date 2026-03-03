@@ -13,7 +13,7 @@ import {
 	SelectValue
 } from '#components/ui/select'
 import { useCreatePropertyMutation } from '#hooks/api/use-properties'
-import type { PropertyCreate } from '@repo/shared/validation/properties'
+import type { PropertyCreate } from '#shared/validation/properties'
 
 interface OnboardingStepPropertyProps {
 	onNext: () => void

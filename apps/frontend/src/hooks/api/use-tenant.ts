@@ -29,18 +29,18 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 import { toast } from 'sonner'
-import { logger } from '@repo/shared/lib/frontend-logger'
-import { incrementVersion } from '@repo/shared/utils/optimistic-locking'
+import { logger } from '#shared/lib/frontend-logger'
+import { incrementVersion } from '#shared/utils/optimistic-locking'
 import type {
 	TenantCreate,
 	TenantUpdate
-} from '@repo/shared/validation/tenants'
+} from '#shared/validation/tenants'
 import type {
 	Tenant,
 	TenantWithLeaseInfo,
 	TenantWithExtras,
 	TenantWithLeaseInfoWithVersion
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 
 // Import query keys from separate file to avoid circular dependency
 import { tenantQueries } from './query-keys/tenant-keys'

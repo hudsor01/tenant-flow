@@ -8,24 +8,18 @@
 	"exports": {
 		".": "./index.js",
 		"./base.js": "./base.js",
-		"./nextjs.js": "./nextjs.js",
-		"./nestjs.js": "./nestjs.js",
-		"./turbo.js": "./turbo.js"
+		"./nextjs.js": "./nextjs.js"
 	},
 	"files": [
 		"nextjs.js",
-		"nestjs.js",
 		"base.js",
-		"turbo.js",
 		"index.js",
 		"rules"
 	],
 	"dependencies": {
 		"@eslint/js": "10.0.1",
 		"eslint-config-prettier": "10.1.8",
-		"eslint-config-turbo": "^2.8.10",
 		"eslint-plugin-no-barrel-files": "1.2.2",
-		"eslint-plugin-turbo": "^2.8.10",
 		"globals": "17.3.0",
 		"typescript-eslint": "^8.56.0"
 	},

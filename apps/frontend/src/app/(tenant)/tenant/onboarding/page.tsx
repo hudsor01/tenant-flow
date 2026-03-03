@@ -11,7 +11,7 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { useRouter } from 'next/navigation'
 import { Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'TenantOnboarding' })
 

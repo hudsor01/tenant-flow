@@ -12,7 +12,7 @@ import {
 	type CurrencyFormatOptions,
 	type PriceFormatOptions,
 	type CurrencyCode
-} from '@repo/shared/utils/currency'
+} from '#shared/utils/currency'
 
 export const formatCurrency = (
 	amount: number,

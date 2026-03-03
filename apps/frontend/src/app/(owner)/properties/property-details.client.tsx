@@ -15,7 +15,7 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle
 } from '#components/ui/dialog'
-import type { Property } from '@repo/shared/types/core'
+import type { Property } from '#shared/types/core'
 import { Building, Edit, MapPin, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'

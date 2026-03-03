@@ -1,7 +1,7 @@
 'use client'
 
 import { Zap, Eye, Send } from 'lucide-react'
-import type { PaymentItem } from '@repo/shared/types/sections/payments'
+import type { PaymentItem } from '#shared/types/sections/payments'
 import { formatCurrency, formatDate, getStatusConfig, getInitials } from './payment-utils'
 
 interface PaymentsTableProps {

@@ -11,7 +11,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { formatCurrency, formatNumber } from '#lib/formatters/currency'
 import { Calendar, DollarSign, BarChart3 } from 'lucide-react'
 import { useMemo } from 'react'
-import type { LeaseFinancialInsight } from '@repo/shared/types/analytics'
+import type { LeaseFinancialInsight } from '#shared/types/analytics'
 import { LeaseLifecycleChart, LeaseStatusChart } from './lease-charts'
 
 export function LeaseInsightsSkeleton() {

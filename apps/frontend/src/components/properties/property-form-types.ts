@@ -1,4 +1,4 @@
-import type { PropertyType } from '@repo/shared/types/core'
+import type { PropertyType } from '#shared/types/core'
 import type {
 	FormValidateOrFn,
 	FormAsyncValidateOrFn,

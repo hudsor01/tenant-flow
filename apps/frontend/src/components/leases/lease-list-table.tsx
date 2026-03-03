@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { Search, ChevronLeft, ChevronRight, Pencil, ArrowUpDown, Eye } from 'lucide-react'
-import type { LeaseItem } from '@repo/shared/types/sections/leases'
-import type { LeaseStatus } from '@repo/shared/types/core'
+import type { LeaseItem } from '#shared/types/sections/leases'
+import type { LeaseStatus } from '#shared/types/core'
 import type { SortField } from '#components/leases/table/lease-utils'
 
 function getStatusBadge(status: LeaseStatus) {

@@ -1,4 +1,4 @@
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import type { StripeError } from '@stripe/stripe-js'
 
 const logger = createLogger({ component: 'PaymentMethodSetupForm' })

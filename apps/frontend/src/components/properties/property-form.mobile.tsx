@@ -3,7 +3,7 @@
 import type { ComponentProps } from 'react'
 import { useEffect } from 'react'
 
-import type { Property } from '@repo/shared/types/core'
+import type { Property } from '#shared/types/core'
 import { Building2, WifiOff } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '#components/ui/alert'

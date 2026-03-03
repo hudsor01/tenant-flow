@@ -28,14 +28,14 @@ import {
 	DialogDescription,
 	DialogBody
 } from '#components/ui/dialog'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 import { Input } from '#components/ui/input'
 import { Label } from '#components/ui/label'
 import { RenewLeaseDialog } from '#components/leases/dialogs/renew-lease-dialog'
 import { TerminateLeaseDialog } from '#components/leases/dialogs/terminate-lease-dialog'
 import { PayRentDialog } from '#components/leases/pay-rent-dialog'
 import { SendForSignatureButton } from '#components/leases/send-for-signature-button'
-import type { LeaseWithExtras } from '@repo/shared/types/core'
+import type { LeaseWithExtras } from '#shared/types/core'
 import {
 	CreditCard,
 	Eye,

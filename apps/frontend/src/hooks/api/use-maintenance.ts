@@ -12,12 +12,12 @@ import {
 	useQuery,
 	useQueryClient
 } from '@tanstack/react-query'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
+import type { MaintenanceRequest } from '#shared/types/core'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
 import type {
 	MaintenanceRequestCreate,
 	MaintenanceRequestUpdate
-} from '@repo/shared/validation/maintenance'
+} from '#shared/validation/maintenance'
 
 // Import query keys from separate file to avoid circular dependency
 import { maintenanceQueries, type MaintenanceFilters } from './query-keys/maintenance-keys'

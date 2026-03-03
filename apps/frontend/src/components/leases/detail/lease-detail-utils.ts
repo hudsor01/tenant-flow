@@ -7,7 +7,7 @@ import {
 	XCircle,
 	Clock
 } from 'lucide-react'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 
 /** Timeline event for lease history display */
 export interface TimelineEvent {

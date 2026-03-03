@@ -17,7 +17,7 @@ import { Button } from '#components/ui/button'
 import type {
 	TenantSectionDetail,
 	TenantPaymentHistoryItem
-} from '@repo/shared/types/sections/tenants'
+} from '#shared/types/sections/tenants'
 
 // ============================================================================
 // TYPES

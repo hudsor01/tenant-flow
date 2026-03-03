@@ -27,7 +27,7 @@ import type {
 	PropertyUnitDetail,
 	UnitStatisticEntry,
 	VisitorAnalyticsResponse
-} from '@repo/shared/types/analytics'
+} from '#shared/types/analytics'
 import {
 	PropertyOccupancyChart,
 	VisitorAnalyticsChart

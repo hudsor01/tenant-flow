@@ -20,13 +20,13 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 
-import { createLogger, logger } from '@repo/shared/lib/frontend-logger'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
-import type { Property } from '@repo/shared/types/core'
+import { createLogger, logger } from '#shared/lib/frontend-logger'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
+import type { Property } from '#shared/types/core'
 import type {
 	PropertyCreate,
 	PropertyUpdate
-} from '@repo/shared/validation/properties'
+} from '#shared/validation/properties'
 
 // Import query keys from separate file to avoid circular dependency
 import { propertyQueries, type PropertyFilters } from './query-keys/property-keys'

@@ -184,7 +184,7 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  * @example
  * ```typescript
  * // In your test file:
- * vi.mock('@repo/shared/lib/frontend-logger', () => ({
+ * vi.mock('#shared/lib/frontend-logger', () => ({
  *   logger: {
  *     info: vi.fn(),
  *     error: vi.fn(),
@@ -209,7 +209,7 @@ export function createPaginatedResponse<T>(data: T[], total?: number) {
  */
 export const STANDARD_MOCKS_PATTERN = `
 // Mock logger
-vi.mock('@repo/shared/lib/frontend-logger', () => ({
+vi.mock('#shared/lib/frontend-logger', () => ({
   logger: {
     info: vi.fn(),
     error: vi.fn(),

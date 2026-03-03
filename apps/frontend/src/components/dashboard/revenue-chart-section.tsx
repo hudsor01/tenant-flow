@@ -15,7 +15,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
-import type { TimeSeriesDataPoint } from '@repo/shared/types/analytics'
+import type { TimeSeriesDataPoint } from '#shared/types/analytics'
 
 const chartConfig = {
 	revenue: {

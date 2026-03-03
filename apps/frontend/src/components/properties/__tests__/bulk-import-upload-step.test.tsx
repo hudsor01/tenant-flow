@@ -19,7 +19,7 @@ import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom/vitest'
 
 // Mock the logger
-vi.mock('@repo/shared/lib/frontend-logger', () => ({
+vi.mock('#shared/lib/frontend-logger', () => ({
 	createLogger: () => ({
 		info: vi.fn(),
 		warn: vi.fn(),

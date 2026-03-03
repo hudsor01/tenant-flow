@@ -10,7 +10,7 @@
  */
 
 import { useContext, useEffect, useRef } from 'react'
-import type { SseEvent, SseEventType } from '@repo/shared/events/sse-events'
+import type { SseEvent, SseEventType } from '#shared/events/sse-events'
 import type { EventCallback } from './sse-context'
 import { SseContext } from './sse-context'
 

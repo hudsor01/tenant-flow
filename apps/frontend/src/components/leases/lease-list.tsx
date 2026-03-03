@@ -6,7 +6,7 @@
  */
 
 import { Plus } from 'lucide-react'
-import type { LeaseListProps } from '@repo/shared/types/sections/leases'
+import type { LeaseListProps } from '#shared/types/sections/leases'
 import { useLeasesStore } from '#stores/leases-store'
 import type { SortField } from '#components/leases/table/lease-utils'
 import { BlurFade } from '#components/ui/blur-fade'

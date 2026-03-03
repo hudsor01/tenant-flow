@@ -7,7 +7,7 @@ import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { useUnitList } from '#hooks/api/use-unit'
 import { useCancelSignatureRequestMutation } from '#hooks/api/use-lease'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import {
 	AlertTriangle,
 	DollarSign,

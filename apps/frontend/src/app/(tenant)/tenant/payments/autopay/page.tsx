@@ -34,7 +34,7 @@ import {
 	useTenantPortalCancelAutopayMutation
 } from '#hooks/api/use-tenant-portal'
 import { usePaymentMethods } from '#hooks/api/use-payment-methods'
-import { formatCents } from '@repo/shared/lib/format'
+import { formatCents } from '#shared/lib/format'
 
 export default function TenantAutopayPage() {
 	const { data: autopayStatus, isLoading: isLoadingAutopay } =

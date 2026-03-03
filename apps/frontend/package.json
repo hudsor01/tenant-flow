@@ -15,7 +15,8 @@
 		"#types/*": "./src/types/*",
 		"#providers/*": "./src/providers/*",
 		"#test/*": "./src/test/*",
-		"#utils/*": "./src/utils/*"
+		"#utils/*": "./src/utils/*",
+		"#shared/*": "./src/shared/*"
 	},
 	"scripts": {
 		"dev": "rm -f .next/dev/lock && next dev --turbo --port 3050",
@@ -70,7 +71,6 @@
 		"@radix-ui/react-toggle-group": "1.1.11",
 		"@radix-ui/react-tooltip": "1.2.8",
 		"@radix-ui/react-visually-hidden": "1.2.4",
-		"@repo/shared": "workspace:*",
 		"@sentry/nextjs": "10.34.0",
 		"@stripe/react-stripe-js": "^5.4.1",
 		"@stripe/stripe-js": "^8.6.3",

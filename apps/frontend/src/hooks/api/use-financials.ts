@@ -24,16 +24,16 @@ import type {
 	CashFlowData,
 	BalanceSheetData,
 	TaxDocumentsData
-} from '@repo/shared/types/financial-statements'
-import type { ApiResponse } from '@repo/shared/types/api-contracts'
-import type { ExpenseCategorySummary } from '@repo/shared/types/analytics'
+} from '#shared/types/financial-statements'
+import type { ApiResponse } from '#shared/types/api-contracts'
+import type { ExpenseCategorySummary } from '#shared/types/analytics'
 
 // ============================================================================
 // API RESPONSE TYPES
 // These types represent the actual API response format (snake_case).
 // They differ from shared domain types which use camelCase convention.
 // See: FinancialOverviewSnapshot, MonthlyFinancialMetric, ExpenseSummaryResponse
-// in @repo/shared/types/analytics for the domain model equivalents.
+// in #shared/types/analytics for the domain model equivalents.
 // ============================================================================
 
 /**

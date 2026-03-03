@@ -18,7 +18,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { Skeleton } from '#components/ui/skeleton'
 import { Calendar, Download, Eye, FileText, FolderOpen } from 'lucide-react'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'TenantDocumentsPage' })
 

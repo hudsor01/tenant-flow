@@ -13,7 +13,7 @@ import { toast } from 'sonner'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
 import { unitQueries } from '#hooks/api/query-keys/unit-keys'
 import { createClient } from '#lib/supabase/client'
-import type { Property as ApiProperty, Unit } from '@repo/shared/types/core'
+import type { Property as ApiProperty, Unit } from '#shared/types/core'
 import { Skeleton } from '#components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#components/ui/tabs'
 import {

@@ -15,7 +15,7 @@ import {
 	useUnreadNotificationsCount
 } from '#hooks/api/use-notifications'
 import { CheckCircle2, ExternalLink, Loader2, Trash2 } from 'lucide-react'
-import type { Database } from '@repo/shared/types/supabase'
+import type { Database } from '#shared/types/supabase'
 
 type NotificationItem = Database['public']['Tables']['notifications']['Row']
 

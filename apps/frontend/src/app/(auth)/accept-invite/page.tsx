@@ -12,7 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
 import { createClient } from '#lib/supabase/client'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 
 import { LoadingState } from '#components/auth/accept-invite/loading-state'
 import { ErrorState } from '#components/auth/accept-invite/error-state'

@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '#components/ui/button'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 
 const logger = createLogger({ component: 'PortalError' })
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '#components/ui/button'
-import type { HeroSectionProps } from '@repo/shared/types/frontend'
+import type { HeroSectionProps } from '#shared/types/frontend'
 import { ArrowRight } from 'lucide-react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'

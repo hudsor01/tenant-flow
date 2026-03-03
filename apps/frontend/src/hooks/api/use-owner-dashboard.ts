@@ -21,13 +21,13 @@ import {
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
-import type { ActivityItem } from '@repo/shared/types/activity'
+import type { ActivityItem } from '#shared/types/activity'
 import type {
 	PropertyPerformance,
 	FinancialMetrics
-} from '@repo/shared/types/core'
-import type { DashboardStats } from '@repo/shared/types/stats'
-import type { MetricTrend, TimeSeriesDataPoint } from '@repo/shared/types/analytics'
+} from '#shared/types/core'
+import type { DashboardStats } from '#shared/types/stats'
+import type { MetricTrend, TimeSeriesDataPoint } from '#shared/types/analytics'
 import { dashboardGraphQLQueries } from './query-keys/dashboard-graphql-keys'
 
 // ============================================================================

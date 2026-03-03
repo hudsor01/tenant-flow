@@ -23,7 +23,7 @@ import {
 	StatIndicator,
 	StatDescription
 } from '#components/ui/stat'
-import type { FinancialLineItem } from '@repo/shared/types/financial-statements'
+import type { FinancialLineItem } from '#shared/types/financial-statements'
 
 interface Assets {
 	current: FinancialLineItem[]

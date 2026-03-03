@@ -19,7 +19,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 
-import type { Database } from '@repo/shared/types/supabase'
+import type { Database } from '#shared/types/supabase'
 import { env } from '#env'
 
 /**

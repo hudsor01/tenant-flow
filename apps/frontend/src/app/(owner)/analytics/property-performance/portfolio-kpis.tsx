@@ -2,7 +2,7 @@
 
 import { Badge } from '#components/ui/badge'
 import { formatNumber, formatPercentage } from '#lib/formatters/currency'
-import type { UnitStatisticEntry } from '@repo/shared/types/analytics'
+import type { UnitStatisticEntry } from '#shared/types/analytics'
 
 export function PortfolioKPIs({ unitStats }: { unitStats: UnitStatisticEntry[] }) {
 	return (

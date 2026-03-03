@@ -1,6 +1,6 @@
 'use client'
 
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import { useElements, useStripe } from '@stripe/react-stripe-js'
 import type { StripeExpressCheckoutElementConfirmEvent } from '@stripe/stripe-js'
 import type { FormEvent } from 'react'

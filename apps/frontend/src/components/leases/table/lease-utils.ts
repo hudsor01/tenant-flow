@@ -4,7 +4,7 @@ import type {
 	Unit,
 	Property,
 	User
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 
 /** Extended user type that may include computed fields from API response */
 export interface UserWithExtras extends User {

@@ -11,7 +11,7 @@ import { Textarea } from '#components/ui/textarea'
 import { Skeleton } from '#components/ui/skeleton'
 import { useInspection, useTenantReview } from '#hooks/api/use-inspections'
 import { formatDate } from '#lib/formatters/date'
-import type { InspectionRoom } from '@repo/shared/types/sections/inspections'
+import type { InspectionRoom } from '#shared/types/sections/inspections'
 
 const CONDITION_LABELS: Record<string, string> = {
 	excellent: 'Excellent',

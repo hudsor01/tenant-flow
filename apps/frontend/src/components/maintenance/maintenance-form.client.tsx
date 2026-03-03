@@ -38,8 +38,8 @@ import type {
 	MaintenanceRequestWithExtras,
 	Property,
 	Unit
-} from '@repo/shared/types/core'
-import { MAINTENANCE_PRIORITY_OPTIONS } from '@repo/shared/constants/status-types'
+} from '#shared/types/core'
+import { MAINTENANCE_PRIORITY_OPTIONS } from '#shared/constants/status-types'
 
 interface MaintenanceFormProps {
 	mode: 'create' | 'edit'

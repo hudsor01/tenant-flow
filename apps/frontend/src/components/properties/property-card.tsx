@@ -8,7 +8,7 @@ import {
 	CardTitle
 } from '#components/ui/card'
 import { Tooltip, TooltipContent, TooltipTrigger } from '#components/ui/tooltip'
-import type { Property } from '@repo/shared/types/core'
+import type { Property } from '#shared/types/core'
 import {
 	ArrowDownRight,
 	ArrowUpRight,

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import fs from 'fs'
 import path from 'path'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '../lib/frontend-logger'
 
 const logger = createLogger({ component: 'PropertyCsvTemplateE2E' })
 const logStep = (message: string, detail?: unknown) => {

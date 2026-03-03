@@ -5,7 +5,7 @@
  * See stores/dashboard-store.ts for state structure.
  */
 
-import type { DashboardProps } from '@repo/shared/types/sections/dashboard'
+import type { DashboardProps } from '#shared/types/sections/dashboard'
 import {
 	formatDashboardCurrency,
 	quickActions,

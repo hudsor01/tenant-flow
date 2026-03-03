@@ -13,8 +13,8 @@ import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { PaginatedResponse } from '@repo/shared/types/api-contracts'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { PaginatedResponse } from '#shared/types/api-contracts'
+import type { MaintenanceRequest } from '#shared/types/core'
 
 // ============================================================================
 // TYPES

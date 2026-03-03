@@ -12,7 +12,7 @@ import {
 	XAxis,
 	YAxis
 } from 'recharts'
-import type { RevenueData } from '@repo/shared/types/reports'
+import type { RevenueData } from '#shared/types/reports'
 import { formatCurrency } from '#lib/formatters/currency'
 
 const formatWholeAmount = (value: number) =>

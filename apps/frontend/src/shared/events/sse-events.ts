@@ -4,7 +4,7 @@
  * Shared types for real-time SSE communication between backend and frontend.
  * These replace polling patterns with push notifications.
  *
- * @module @repo/shared/events/sse-events
+ * @module #shared/events/sse-events
  */
 
 /**

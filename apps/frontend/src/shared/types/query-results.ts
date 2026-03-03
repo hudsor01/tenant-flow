@@ -9,7 +9,7 @@
  *
  * @example
  * ```typescript
- * import type { OverduePaymentResult } from '@repo/shared/types/query-results'
+ * import type { OverduePaymentResult } from '#shared/types/query-results'
  *
  * const { data } = await client.from('rent_payments').select(`...`)
  * const payments = data as OverduePaymentResult[]

@@ -28,16 +28,16 @@ import {
 	handleMutationError,
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
-import { DEFAULT_RETRY_ATTEMPTS } from '@repo/shared/types/api-contracts'
-import { logger } from '@repo/shared/lib/frontend-logger'
+import { DEFAULT_RETRY_ATTEMPTS } from '#shared/types/api-contracts'
+import { logger } from '#shared/lib/frontend-logger'
 import type {
 	MaintenanceCategory,
 	MaintenancePriority
-} from '@repo/shared/types/core'
+} from '#shared/types/core'
 import type {
 	CreateRentCheckoutResponse,
 	RentCheckoutError
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 
 // ============================================================================
 // TYPES

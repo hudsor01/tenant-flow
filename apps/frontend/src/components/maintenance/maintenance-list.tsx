@@ -5,7 +5,7 @@ import { Clock, AlertTriangle, CheckCircle, Plus, XCircle } from 'lucide-react'
 import type {
 	MaintenanceListProps,
 	MaintenanceRequestItem
-} from '@repo/shared/types/sections/maintenance'
+} from '#shared/types/sections/maintenance'
 import { BlurFade } from '#components/ui/blur-fade'
 import { MaintenanceListEmpty } from '#components/maintenance/maintenance-list-empty'
 import { MaintenanceListStats } from '#components/maintenance/maintenance-list-stats'

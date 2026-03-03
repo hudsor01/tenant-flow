@@ -12,7 +12,7 @@ import { queryOptions } from '@tanstack/react-query'
 import { createClient } from '#lib/supabase/client'
 import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
-import type { Inspection, InspectionListItem } from '@repo/shared/types/sections/inspections'
+import type { Inspection, InspectionListItem } from '#shared/types/sections/inspections'
 
 // ============================================================================
 // SELECT COLUMNS

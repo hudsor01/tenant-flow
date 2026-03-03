@@ -12,7 +12,7 @@
  * @see https://playwright.dev/docs/test-configuration
  */
 
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from './lib/frontend-logger'
 
 const logger = createLogger({ component: 'Preflight' })
 

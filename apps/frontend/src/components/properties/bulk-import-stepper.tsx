@@ -24,12 +24,12 @@ import {
 import { useState, useCallback, useRef } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { propertyQueries } from '#hooks/api/query-keys/property-keys'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from '#shared/lib/frontend-logger'
 import type {
 	BulkImportResult,
 	ParsedRow,
 	ImportStep
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 import { BulkImportUploadStep } from './bulk-import-upload-step'
 import { BulkImportValidateStep } from './bulk-import-validate-step'
 import { BulkImportConfirmStep } from './bulk-import-confirm-step'

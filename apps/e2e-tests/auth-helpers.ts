@@ -22,7 +22,7 @@
  */
 
 import { type Page, type BrowserContext } from '@playwright/test'
-import { createLogger } from '@repo/shared/lib/frontend-logger'
+import { createLogger } from './lib/frontend-logger'
 
 // Extract Supabase configuration from environment variables
 // No more hardcoded project refs!

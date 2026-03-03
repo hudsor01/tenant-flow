@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { NotificationPreferences } from '@repo/shared/types/notifications'
-import type { Database } from '@repo/shared/types/supabase'
+import type { NotificationPreferences } from '#shared/types/notifications'
+import type { Database } from '#shared/types/supabase'
 
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'

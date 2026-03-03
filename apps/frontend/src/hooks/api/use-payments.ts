@@ -31,21 +31,21 @@ import { handlePostgrestError } from '#lib/postgrest-error-handler'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { mutationKeys } from './mutation-keys'
-import type { RentPayment } from '@repo/shared/types/core'
-import type { StripeSessionStatusResponse } from '@repo/shared/types/core'
+import type { RentPayment } from '#shared/types/core'
+import type { StripeSessionStatusResponse } from '#shared/types/core'
 import type {
 	TenantPaymentStatusResponse,
 	SendPaymentReminderRequest,
 	SendPaymentReminderResponse,
 	TenantPaymentHistoryResponse
-} from '@repo/shared/types/api-contracts'
+} from '#shared/types/api-contracts'
 import type {
 	PaymentCollectionAnalytics,
 	UpcomingPayment,
 	OverduePayment,
 	PaymentFilters,
 	ManualPaymentInput
-} from '@repo/shared/types/sections/payments'
+} from '#shared/types/sections/payments'
 import type { SubscriptionData } from '#types/stripe'
 
 // ============================================================================

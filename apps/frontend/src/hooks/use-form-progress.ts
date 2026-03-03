@@ -6,8 +6,8 @@
 
 'use client'
 
-import { createLogger } from '@repo/shared/lib/frontend-logger'
-import type { FormProgressData } from '@repo/shared/types/core'
+import { createLogger } from '#shared/lib/frontend-logger'
+import type { FormProgressData } from '#shared/types/core'
 import {
 	startTransition,
 	useDeferredValue,

@@ -11,7 +11,7 @@ import {
 import { useUpdateTenantMutation } from '#hooks/api/use-tenant'
 import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
 import { handleMutationError } from '#lib/mutation-error-handler'
-import { tenantUpdateSchema } from '@repo/shared/validation/tenants'
+import { tenantUpdateSchema } from '#shared/validation/tenants'
 import { useForm } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 import { Phone, Save, User } from 'lucide-react'

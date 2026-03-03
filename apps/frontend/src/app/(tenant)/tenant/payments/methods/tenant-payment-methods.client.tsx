@@ -40,7 +40,7 @@ import {
 	usePaymentMethods,
 	useSetDefaultPaymentMethod
 } from '#hooks/api/use-payment-methods'
-import type { PaymentMethodResponse } from '@repo/shared/types/core'
+import type { PaymentMethodResponse } from '#shared/types/core'
 
 function formatMethodLabel(type: string) {
 	switch (type) {

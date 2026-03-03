@@ -3,7 +3,7 @@
 import type {
 	PropertyPerformanceEntry,
 	VisitorAnalyticsResponse
-} from '@repo/shared/types/analytics'
+} from '#shared/types/analytics'
 import {
 	Bar,
 	BarChart,

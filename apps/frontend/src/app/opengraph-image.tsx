@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og'
-import { BRAND_COLORS_HEX } from '@repo/shared/constants/design-system'
+import { BRAND_COLORS_HEX } from '#shared/constants/design-system'
 
 export const alt = 'TenantFlow - Simplify Property Management'
 export const size = {

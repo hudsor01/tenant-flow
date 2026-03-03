@@ -7,7 +7,7 @@ import { Button } from '#components/ui/button'
 import { Badge } from '#components/ui/badge'
 import { Skeleton } from '#components/ui/skeleton'
 import { formatDate } from '#lib/formatters/date'
-import type { InspectionListItem } from '@repo/shared/types/sections/inspections'
+import type { InspectionListItem } from '#shared/types/sections/inspections'
 
 function statusBadgeVariant(status: string): 'default' | 'secondary' | 'outline' | 'destructive' {
 	switch (status) {

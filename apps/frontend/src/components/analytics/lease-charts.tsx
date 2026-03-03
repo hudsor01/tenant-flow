@@ -3,7 +3,7 @@
 import type {
 	LeaseLifecyclePoint,
 	LeaseStatusBreakdown
-} from '@repo/shared/types/analytics'
+} from '#shared/types/analytics'
 import {
 	Area,
 	AreaChart,

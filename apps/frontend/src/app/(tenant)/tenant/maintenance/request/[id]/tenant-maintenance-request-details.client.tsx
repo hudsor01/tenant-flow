@@ -9,7 +9,7 @@ import { Button } from '#components/ui/button'
 import { CardLayout } from '#components/ui/card-layout'
 import { formatDate } from '#lib/formatters/date'
 import { maintenanceQueries } from '#hooks/api/query-keys/maintenance-keys'
-import type { MaintenanceRequest } from '@repo/shared/types/core'
+import type { MaintenanceRequest } from '#shared/types/core'
 
 function formatStatus(status: string) {
 	return status.replace('_', ' ')

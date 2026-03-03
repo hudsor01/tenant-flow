@@ -15,7 +15,7 @@
  */
 
 import { create } from 'zustand'
-import type { Lease } from '@repo/shared/types/core'
+import type { Lease } from '#shared/types/core'
 import type {
 	SortField,
 	SortDirection

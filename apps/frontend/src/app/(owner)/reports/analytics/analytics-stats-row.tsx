@@ -11,7 +11,7 @@ import {
 } from '#components/ui/card'
 import { Skeleton } from '#components/ui/skeleton'
 import { TrendingUp } from 'lucide-react'
-import type { ReportPaymentAnalytics, OccupancyMetrics } from '@repo/shared/types/reports'
+import type { ReportPaymentAnalytics, OccupancyMetrics } from '#shared/types/reports'
 import { formatCurrency } from '#lib/formatters/currency'
 
 const formatWholeAmount = (value: number) =>

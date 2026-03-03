@@ -7,7 +7,7 @@ import { QUERY_CACHE_TIMES } from '#lib/constants/query-config'
 import { handleMutationError } from '#lib/mutation-error-handler'
 import { createClient } from '#lib/supabase/client'
 import { mutationKeys } from './mutation-keys'
-import type { ConnectedAccountWithIdentity } from '@repo/shared/types/stripe'
+import type { ConnectedAccountWithIdentity } from '#shared/types/stripe'
 
 // ============================================================================
 // Types
