@@ -222,8 +222,8 @@ describe('SelectionStep - Tenant Filtering', () => {
 			).toBeInTheDocument()
 		})
 
-		// Verify "Invite Tenant" button is shown
-		expect(screen.getByText(/Invite Tenant/)).toBeInTheDocument()
+		// Verify "Invite New Tenant" toggle button is shown in the header
+		expect(screen.getByRole('button', { name: /Invite New Tenant/i })).toBeInTheDocument()
 	})
 
 	it('should re-fetch tenants when property selection changes', async () => {

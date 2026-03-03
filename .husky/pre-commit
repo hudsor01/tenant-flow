@@ -3,22 +3,9 @@
 # Husky v9.1.7 optimized pre-commit hook
 # Comprehensive validation before commit
 
-echo "🔍 Running pre-commit validation (db types + duplicate check + lockfile + lint + typecheck + tests)..."
+echo "🔍 Running pre-commit validation (duplicate check + lockfile + lint + typecheck + tests)..."
 
-# Step 1: Regenerate DB types from live schema (ensures types are always current)
-# Write to a temp file first — never overwrite supabase.ts if generation fails
-echo "🗄️ Regenerating DB types from Supabase..."
-SUPABASE_TMP=$(mktemp)
-if supabase gen types typescript --project-id bshjmbshupiibfiewpxb > "$SUPABASE_TMP" 2>/dev/null && [ -s "$SUPABASE_TMP" ]; then
-  cp "$SUPABASE_TMP" packages/shared/src/types/supabase.ts
-  pnpm --filter @repo/shared generate:schemas > /dev/null 2>&1 || true
-  git add packages/shared/src/types/supabase.ts 2>/dev/null || true
-else
-  echo "⚠️ DB type regeneration failed - continuing with existing types"
-fi
-rm -f "$SUPABASE_TMP"
-
-# Step 2: Check for new duplicate type definitions
+# Step 1: Check for new duplicate type definitions
 echo "🔎 Checking for new duplicate type definitions..."
 if ! ./scripts/check-duplicate-types.sh; then
   echo "❌ New duplicate types detected!"
@@ -26,7 +13,7 @@ if ! ./scripts/check-duplicate-types.sh; then
   exit 1
 fi
 
-# Step 3: Verify pnpm lockfile is in sync
+# Step 2: Verify pnpm lockfile is in sync
 echo "📦 Verifying pnpm lockfile is up to date..."
 if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
   echo "❌ pnpm-lock.yaml is out of sync!"
@@ -34,7 +21,7 @@ if ! pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1; then
   exit 1
 fi
 
-# Step 4: Turbo runs lint, typecheck, and unit tests
+# Step 3: Turbo runs lint, typecheck, and unit tests
 # Integration/e2e tests excluded (require running services)
 # Run tasks for all packages to ensure comprehensive validation
 # --continue: Show all errors across all packages
@@ -50,7 +37,7 @@ CI=true npx turbo run lint typecheck test:unit \
     exit 1
 }
 
-# Step 5: RLS integration tests against live Supabase (catches cross-tenant isolation regressions)
+# Step 4: RLS integration tests against live Supabase (catches cross-tenant isolation regressions)
 # Credentials loaded from root .env.local by apps/integration-tests/src/setup/env.ts
 echo "🔐 Running RLS integration tests against Supabase..."
 if ! pnpm --filter @repo/integration-tests test:rls; then
