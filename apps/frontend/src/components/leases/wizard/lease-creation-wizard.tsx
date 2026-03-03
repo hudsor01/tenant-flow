@@ -4,7 +4,7 @@
  * Lease Creation Wizard
  * Unified multi-step wizard for creating lease agreements
  */
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -26,8 +26,14 @@ import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
 import { getCachedUser } from '#lib/supabase/get-cached-user'
 
+import { mutationKeys } from '#hooks/api/mutation-keys'
+import { leaseQueries } from '#hooks/api/query-keys/lease-keys'
+import { tenantQueries } from '#hooks/api/query-keys/tenant-keys'
+import { unitQueries } from '#hooks/api/query-keys/unit-keys'
+import { ownerDashboardKeys } from '#hooks/api/use-owner-dashboard'
+
 import { SelectionStep } from './selection-step'
-import { TermsStep } from './terms-step'
+import { TermsStep, type DurationPreset } from './terms-step'
 import { DetailsStep } from './details-step'
 import { ReviewStep } from './review-step'
 
@@ -72,6 +78,21 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 		grace_period_days: 3,
 		late_fee_amount: 0
 	})
+	const [selectedDuration, setSelectedDuration] = useState<DurationPreset>(null)
+
+	// Track whether rent was auto-filled from unit (so we don't overwrite manual edits)
+	const rentAutoFilled = useRef(false)
+
+	const handleUnitSelected = useCallback((rentAmount: number | null) => {
+		if (rentAmount && rentAmount > 0) {
+			setTermsData(prev => ({
+				...prev,
+				rent_amount: rentAmount,
+				security_deposit: rentAmount
+			}))
+			rentAutoFilled.current = true
+		}
+	}, [])
 	const [detailsData, setDetailsData] = useState<Partial<LeaseDetailsStepData>>(
 		{
 			pets_allowed: false,
@@ -130,6 +151,7 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 
 	// Create lease mutation via Supabase PostgREST
 	const createLeaseMutation = useMutation({
+		mutationKey: mutationKeys.leases.create,
 		mutationFn: async () => {
 			const supabase = createClient()
 			const user = await getCachedUser()
@@ -163,27 +185,11 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				error instanceof Error ? error.message : 'Failed to create lease'
 			)
 		},
-		// Invalidate tenant cache after lease creation (settled = success or error)
-		// Evidence: https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations
-		onSettled: (_data, _error, _variables) => {
-			// Invalidate tenant list for the property (tenant now has active lease)
-			if (selectionData.property_id) {
-				queryClient.invalidateQueries({
-					queryKey: ['tenants', 'list', selectionData.property_id]
-				})
-			}
-			// Invalidate all tenant queries to ensure consistency
-			queryClient.invalidateQueries({
-				queryKey: ['tenants']
-			})
-			// Invalidate leases list
-			queryClient.invalidateQueries({
-				queryKey: ['leases']
-			})
-			// Invalidate dashboard stats
-			queryClient.invalidateQueries({
-				queryKey: ['owner-dashboard']
-			})
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: tenantQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: leaseQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: unitQueries.lists() })
+			queryClient.invalidateQueries({ queryKey: ownerDashboardKeys.all })
 		}
 	})
 
@@ -277,10 +283,19 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 				<CardContent className="pt-6">
 					<div className="min-h-[400px]">
 						{currentStep === 'selection' && (
-							<SelectionStep data={selectionData} onChange={setSelectionData} />
+							<SelectionStep
+								data={selectionData}
+								onChange={setSelectionData}
+								onUnitSelected={handleUnitSelected}
+							/>
 						)}
 						{currentStep === 'terms' && (
-							<TermsStep data={termsData} onChange={setTermsData} />
+							<TermsStep
+								data={termsData}
+								onChange={setTermsData}
+								selectedDuration={selectedDuration}
+								onDurationChange={setSelectedDuration}
+							/>
 						)}
 						{currentStep === 'details' && (
 							<DetailsStep data={detailsData} onChange={setDetailsData} />
