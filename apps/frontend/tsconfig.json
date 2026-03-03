@@ -1,9 +1,17 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"extends": "../../packages/typescript-config/next.json",
+	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"verbatimModuleSyntax": false,
+		"noEmit": true,
+		"jsx": "preserve",
+		"lib": ["DOM", "DOM.Iterable", "ES2022"],
+		"composite": false,
+		"declaration": false,
+		"incremental": true,
+		"plugins": [{ "name": "next" }],
+		"types": ["next/types/global", "node", "vitest/globals"],
 		"paths": {
 			"#env": ["./src/env.ts"],
 			"#app/*": ["./src/app/*"],
@@ -18,12 +26,7 @@
 			"#config/*": ["./src/config/*"],
 			"#utils/*": ["./src/utils/*"],
 			"#shared/*": ["./src/shared/*"]
-		},
-		"plugins": [{ "name": "next" }],
-		"types": ["next/types/global", "node", "vitest/globals"],
-		"composite": false,
-		"declaration": false,
-		"incremental": true
+		}
 	},
 	"include": [
 		"next-env.d.ts",

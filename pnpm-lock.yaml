@@ -64,9 +64,6 @@ importers:
       '@commitlint/config-conventional':
         specifier: 20.4.2
         version: 20.4.2
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:packages/eslint-config
       prettier:
         specifier: catalog:default
         version: 3.8.0
@@ -77,15 +74,30 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
     devDependencies:
+      '@eslint/js':
+        specifier: 10.0.1
+        version: 10.0.1(eslint@10.0.2(jiti@2.6.1))
       '@next/eslint-plugin-next':
         specifier: ~16.1.6
         version: 16.1.6
       '@playwright/test':
         specifier: 1.58.2
         version: 1.58.2
+      '@tanstack/eslint-plugin-query':
+        specifier: 5.91.3
+        version: 5.91.3(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
       eslint:
         specifier: catalog:default
         version: 10.0.2(jiti@2.6.1)
+      eslint-config-prettier:
+        specifier: 10.1.8
+        version: 10.1.8(eslint@10.0.2(jiti@2.6.1))
+      eslint-plugin-no-barrel-files:
+        specifier: 1.2.2
+        version: 1.2.2(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
+      eslint-plugin-react-hooks:
+        specifier: ^7.0.1
+        version: 7.0.1(eslint@10.0.2(jiti@2.6.1))
       globals:
         specifier: 17.3.0
         version: 17.3.0
@@ -95,6 +107,9 @@ importers:
       playwright:
         specifier: 1.58.2
         version: 1.58.2
+      typescript-eslint:
+        specifier: ^8.56.0
+        version: 8.56.0(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
       vercel:
         specifier: 50.22.1
         version: 50.22.1(rollup@4.59.0)(typescript@5.9.3)
@@ -113,9 +128,6 @@ importers:
       '@playwright/test':
         specifier: 1.58.2
         version: 1.58.2
-      '@repo/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/eslint-config
       '@types/node':
         specifier: catalog:default
         version: 25.0.9
@@ -550,29 +562,6 @@ importers:
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
-
-  packages/eslint-config:
-    dependencies:
-      '@eslint/js':
-        specifier: 10.0.1
-        version: 10.0.1(eslint@10.0.2(jiti@2.6.1))
-      eslint:
-        specifier: ^10.0.0
-        version: 10.0.2(jiti@2.6.1)
-      eslint-config-prettier:
-        specifier: 10.1.8
-        version: 10.1.8(eslint@10.0.2(jiti@2.6.1))
-      eslint-plugin-no-barrel-files:
-        specifier: 1.2.2
-        version: 1.2.2(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
-      globals:
-        specifier: 17.3.0
-        version: 17.3.0
-      typescript-eslint:
-        specifier: ^8.56.0
-        version: 8.56.0(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
-
-  packages/typescript-config: {}
 
 packages:
 

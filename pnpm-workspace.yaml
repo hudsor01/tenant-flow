@@ -1,6 +1,5 @@
 packages:
   - apps/*
-  - packages/*
 
 catalog:
   '@supabase/ssr': ^0.8.0

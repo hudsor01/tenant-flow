@@ -1,6 +1,6 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Base TypeScript Config - TypeScript 5.9 Best Practices (October 2025)",
+	"display": "TenantFlow Base TypeScript Config",
 	"compilerOptions": {
 		"target": "ES2022",
 		"lib": ["ES2022"],

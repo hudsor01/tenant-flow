@@ -1,14 +1,16 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
 	"display": "TenantFlow E2E Tests Config",
-	"extends": "../../packages/typescript-config/library.json",
+	"extends": "../../tsconfig.base.json",
 	"compilerOptions": {
 		"rootDir": "..",
 		"outDir": "./.cache",
 		"noEmit": true,
 		"types": ["@types/node", "@playwright/test"],
 		"lib": ["ES2022", "DOM"],
-		"composite": false
+		"composite": false,
+		"declaration": true,
+		"declarationMap": true
 	},
 	"include": [
 		"tests/**/*.ts",
