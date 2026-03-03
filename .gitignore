@@ -366,3 +366,6 @@ tenants-page
 
 # Example env file (not needed in repo)
 .env.example
+
+# Lefthook local overrides
+.lefthook-local.yml

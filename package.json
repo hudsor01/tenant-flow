@@ -48,7 +48,8 @@
 		"changelog": "git cliff --output CHANGELOG.md",
 		"scan:secrets": "gitleaks detect --source . --no-git -v",
 		"scan:vulns": "trivy fs --severity HIGH,CRITICAL --scanners vuln .",
-		"scan:typos": "typos --format brief"
+		"scan:typos": "typos --format brief",
+		"prepare": "lefthook install"
 	},
 	"commitlint": {
 		"extends": [
@@ -102,6 +103,7 @@
 		"@playwright/test": "1.58.2",
 		"eslint": "catalog:default",
 		"globals": "17.3.0",
+		"lefthook": "2.1.2",
 		"playwright": "1.58.2",
 		"vercel": "50.22.1"
 	}
