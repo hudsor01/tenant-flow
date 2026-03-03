@@ -62,7 +62,8 @@ export default function NewMaintenanceRequestPage() {
 		isFileDialogActive,
 		acceptedFiles,
 		fileRejections,
-		rootRef
+		rootRef,
+		isDragGlobal
 	} = useSupabaseUpload({
 		bucketName: 'maintenance-photos',
 		path: 'maintenance_requests',
@@ -282,6 +283,7 @@ export default function NewMaintenanceRequestPage() {
 							acceptedFiles={acceptedFiles}
 							fileRejections={fileRejections}
 							rootRef={rootRef}
+							isDragGlobal={isDragGlobal}
 						>
 							<DropzoneEmptyState />
 							<DropzoneContent />

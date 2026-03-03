@@ -110,18 +110,6 @@ export type NotificationChannelPreferencesWithVersion =
 		version?: number
 	}
 
-/**
- * @deprecated Use NotificationChannelPreferences instead
- * Kept for backwards compatibility during migration
- */
-export type NotificationPreferences = NotificationChannelPreferences
-
-/**
- * @deprecated Use NotificationChannelPreferencesWithVersion instead
- */
-export type NotificationPreferencesWithVersion =
-	NotificationChannelPreferencesWithVersion
-
 // Notification priority constants
 export const NOTIFICATION_PRIORITY = {
 	LOW: 'LOW',

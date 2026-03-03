@@ -332,12 +332,14 @@ describe('useDeletePropertyImageMutation', () => {
 			wrapper: createWrapper()
 		})
 
+		// Note: .rejects.toThrow('string') is broken in Vitest 4.x + chai 6.x
+		// (thrown.message undefined in compatibleMessage). Use toMatchObject instead.
 		await expect(
 			result.current.mutateAsync({
 				imageId: 'img-123',
 				property_id: 'prop-123'
 			})
-		).rejects.toThrow('DB delete failed')
+		).rejects.toMatchObject({ message: 'DB delete failed' })
 	})
 
 	it('should not fail when storage delete fails (non-blocking)', async () => {

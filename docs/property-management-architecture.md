@@ -113,7 +113,7 @@ Tier 3: RPC SERVICE
   - Use for: complex queries, >3 JOINs, reporting aggregations
 ```
 
-### The `accessToken` Callback Pattern (CRITICAL — NOT DEPRECATED)
+### The `accessToken` Callback Pattern (CRITICAL)
 
 ```typescript
 // supabase-user-client-pool.ts
@@ -128,12 +128,6 @@ const client = createClient<Database>(
     accessToken: async () => userToken  // THIS makes auth.uid() work in RLS
   }
 )
-```
-
-The deprecated approach (do not use):
-```typescript
-// DEPRECATED
-global: { headers: { Authorization: `Bearer ${userToken}` } }
 ```
 
 ### Monorepo Import Rules

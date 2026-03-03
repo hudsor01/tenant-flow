@@ -515,9 +515,11 @@ describe('Mutation Hooks', () => {
 				wrapper: createWrapper()
 			})
 
-			await expect(result.current.mutateAsync('tenant-123')).rejects.toThrow(
-				'Tenant invitation email requires Edge Function implementation'
-			)
+			// Note: .rejects.toThrow('string') is broken in Vitest 4.x + chai 6.x
+			// (thrown.message undefined in compatibleMessage). Use toMatchObject instead.
+			await expect(result.current.mutateAsync('tenant-123')).rejects.toMatchObject({
+				message: expect.stringContaining('Tenant invitation email requires Edge Function implementation')
+			})
 		})
 	})
 
@@ -527,9 +529,9 @@ describe('Mutation Hooks', () => {
 				wrapper: createWrapper()
 			})
 
-			await expect(result.current.mutateAsync('invitation-123')).rejects.toThrow(
-				'Tenant invitation email requires Edge Function implementation'
-			)
+			await expect(result.current.mutateAsync('invitation-123')).rejects.toMatchObject({
+				message: expect.stringContaining('Tenant invitation email requires Edge Function implementation')
+			})
 		})
 	})
 })

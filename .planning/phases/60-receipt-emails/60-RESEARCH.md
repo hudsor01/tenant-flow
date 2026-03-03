@@ -342,10 +342,6 @@ const [tenantUserResult, ownerUserResult] = await Promise.all([
 | Custom suppression tables | Resend built-in suppression | Always | Zero maintenance; automatic hard bounce + complaint tracking |
 | Node.js SDK for Resend | fetch() to REST API in Deno | Supabase Edge Functions pattern | Simpler, no extra dependency, works natively in Deno |
 
-**Deprecated/outdated:**
-- `renderAsync` from `@react-email/render` standalone package: Now bundled in `@react-email/components`
-- Resend Node.js SDK in Edge Functions: Use direct fetch(); SDK has Node.js-specific dependencies
-
 ## Open Questions
 
 1. **Payment method last4 retrieval strategy**

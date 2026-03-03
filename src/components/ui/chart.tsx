@@ -4,6 +4,7 @@ import { createContext, useContext, useId, useMemo } from 'react'
 import type { ComponentProps, ComponentType, CSSProperties, ReactNode } from 'react'
 import * as RechartsPrimitive from 'recharts'
 import type {
+	NameType,
 	Payload as RechartsPayload,
 	ValueType
 } from 'recharts/types/component/DefaultTooltipContent'
@@ -174,7 +175,7 @@ function ChartTooltipContent({
 						// Convert readonly/generic payload to a concrete mutable array for caller
 						(tooltipPayload as unknown as RechartsPayload<
 							ValueType,
-							string
+							NameType
 						>[]) || []
 					)}
 				</div>
@@ -249,12 +250,12 @@ function ChartTooltipContent({
 										item.value as ValueType,
 										item.name,
 										// cast payload item to the Recharts payload expected by formatter
-										item as unknown as RechartsPayload<ValueType, string>,
+										item as unknown as RechartsPayload<ValueType, NameType>,
 										index,
 										// payload may be readonly in Recharts; cast to mutable array for formatter
 										(payload as unknown as RechartsPayload<
 											ValueType,
-											string
+											NameType
 										>[]) || []
 									)
 								) : (

@@ -106,7 +106,7 @@ Created new directory `apps/backend/src/modules/billing/webhooks/` with:
 | StripeWebhookController | WebhookController |
 | StripeWebhookService | WebhookService |
 | StripeWebhookQueueProcessor | WebhookQueueProcessor |
-| StripeWebhookJob | WebhookJob (with deprecated alias) |
+| StripeWebhookJob | WebhookJob |
 
 ### Task 2: Update imports and integrate module
 
