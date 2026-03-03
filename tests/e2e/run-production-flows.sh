@@ -43,7 +43,7 @@ echo -e "${YELLOW}Checking servers...${NC}"
 
 if ! curl -s "$PLAYWRIGHT_BASE_URL" > /dev/null; then
     echo -e "${RED}ERROR: Frontend not running at $PLAYWRIGHT_BASE_URL${NC}"
-    echo "Start with: pnpm --filter @repo/frontend dev"
+    echo "Start with: pnpm dev"
     exit 1
 fi
 

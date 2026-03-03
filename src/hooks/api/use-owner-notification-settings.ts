@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { NotificationPreferences } from '#shared/types/notifications'
+import type { NotificationChannelPreferences } from '#shared/types/notifications'
 import type { Database } from '#shared/types/supabase'
 
 import { createClient } from '#lib/supabase/client'
@@ -11,7 +11,7 @@ import {
 	handleMutationSuccess
 } from '#lib/mutation-error-handler'
 
-export type OwnerNotificationSettings = NotificationPreferences
+export type OwnerNotificationSettings = NotificationChannelPreferences
 export type OwnerNotificationSettingsUpdate = Partial<
 	Omit<OwnerNotificationSettings, 'categories'>
 > & {
@@ -22,7 +22,7 @@ type NotificationSettingsRow =
 	Database['public']['Tables']['notification_settings']['Row']
 
 /**
- * Map a flat notification_settings DB row to the NotificationPreferences shape.
+ * Map a flat notification_settings DB row to the NotificationChannelPreferences shape.
  * DB column in_app maps to type field inApp.
  */
 function mapDbRowToPreferences(

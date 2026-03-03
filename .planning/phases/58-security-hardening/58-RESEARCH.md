@@ -494,9 +494,6 @@ export function handleCorsOptions(req: Request): Response | null {
 | Fail-open webhook auth | Fail-closed (return 401 if unconfigured) | Always best practice | Prevents unauthenticated access during config gaps |
 | Trust client `owner_user_id` | Guard + DB column default | Always best practice | Defense in depth against forged payloads |
 
-**Deprecated/outdated:**
-- `Deno.env.get('SECRET') ?? ''` pattern: Fail silently with empty string. Should fail-closed with explicit error.
-
 ## Validation Architecture
 
 ### Test Framework

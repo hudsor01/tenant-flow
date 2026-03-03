@@ -24,7 +24,6 @@ PR #520 was merged to main on 2026-02-24T01:11:55Z and PR #521 (CI fix) was merg
 - Merged to main: 2026-02-24T05:57:44Z
 
 ### Auth Key Rename — commit c86063176
-- Supabase deprecated the JWT anon key (eyJ...) in favour of the publishable key format (sb_publishable_*)
 - Renamed `NEXT_PUBLIC_SUPABASE_ANON_KEY` → `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` across:
   - apps/frontend/src/lib/supabase/client.ts, server.ts, proxy.ts
   - apps/frontend/src/app/actions/auth.ts, auth/callback/route.ts

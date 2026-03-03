@@ -53,7 +53,7 @@ Phase 50 covers CRUD-05 in full across 5 plan files:
 
 Phase 50 is complete. All 13 verification checks pass. The codebase satisfies the phase goal:
 
-1. **Supabase client infrastructure**: Browser and server clients use `NEXT_PUBLIC_SUPABASE_ANON_KEY` (a JWT), which means `auth.uid()` resolves correctly in RLS policies. The deprecated `sb_publishable_*` key is retained in `env.ts` for the NestJS path but is no longer used by the Supabase clients.
+1. **Supabase client infrastructure**: Browser and server clients use `NEXT_PUBLIC_SUPABASE_ANON_KEY` (a JWT), which means `auth.uid()` resolves correctly in RLS policies.
 
 2. **Feature flag mechanism**: `apps/frontend/src/lib/postgrest-flag.ts` exports `isPostgrestEnabled()`, which reads `NEXT_PUBLIC_USE_POSTGREST` at runtime. Setting this to `'true'` activates PostgREST direct calls across all 8 migrated hooks; any other value (including absent) falls back to NestJS `apiRequest`. This allows instant rollback without a redeploy.
 
