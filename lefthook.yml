@@ -6,7 +6,7 @@ pre-commit:
     lockfile-verify:
       run: pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
     lint:
-      run: pnpm -r --parallel lint
+      run: pnpm eslint "apps/frontend/src/**/*.{ts,tsx}" --cache --cache-location node_modules/.cache/eslint/ --no-error-on-unmatched-pattern --no-warn-ignored
     typecheck:
       run: pnpm -r typecheck
     unit-tests:

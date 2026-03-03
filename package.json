@@ -16,8 +16,8 @@
 	"scripts": {
 		"dev": "pnpm --filter @repo/frontend dev",
 		"build": "NODE_ENV=production pnpm --filter @repo/frontend build",
-		"lint": "pnpm -r --parallel lint",
-		"lint:fix": "pnpm -r --parallel lint:fix",
+		"lint": "eslint \"apps/frontend/src/**/*.{ts,tsx}\" --cache --cache-location node_modules/.cache/eslint/ --no-error-on-unmatched-pattern --no-warn-ignored",
+		"lint:fix": "eslint \"apps/frontend/src/**/*.{ts,tsx}\" --fix --no-error-on-unmatched-pattern --no-warn-ignored",
 		"typecheck": "pnpm -r typecheck",
 		"test": "pnpm --filter @repo/frontend test:unit",
 		"test:all": "pnpm test:unit && pnpm test:e2e",
@@ -93,18 +93,23 @@
 	"dependencies": {
 		"@commitlint/cli": "20.4.2",
 		"@commitlint/config-conventional": "20.4.2",
-		"@repo/eslint-config": "workspace:*",
 		"prettier": "catalog:default",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	},
 	"devDependencies": {
+		"@eslint/js": "10.0.1",
 		"@next/eslint-plugin-next": "~16.1.6",
 		"@playwright/test": "1.58.2",
+		"@tanstack/eslint-plugin-query": "5.91.3",
 		"eslint": "catalog:default",
+		"eslint-config-prettier": "10.1.8",
+		"eslint-plugin-no-barrel-files": "1.2.2",
+		"eslint-plugin-react-hooks": "^7.0.1",
 		"globals": "17.3.0",
 		"lefthook": "2.1.2",
 		"playwright": "1.58.2",
+		"typescript-eslint": "^8.56.0",
 		"vercel": "50.22.1"
 	}
 }

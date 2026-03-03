@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "TenantFlow Monorepo Root",
-	"extends": "./packages/typescript-config/base.json",
+	"display": "TenantFlow Root",
+	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"noEmit": true,
@@ -14,8 +14,7 @@
 			"./apps/frontend/node_modules"
 		],
 		"paths": {
-			"@repo/eslint-config/*": ["./packages/eslint-config/*"],
-			"@repo/typescript-config/*": ["./packages/typescript-config/*"],
+			"#env": ["./apps/frontend/src/env.ts"],
 			"#shared/*": ["./apps/frontend/src/shared/*"],
 			"#app/*": ["./apps/frontend/src/app/*"],
 			"#components/*": ["./apps/frontend/src/components/*"],
@@ -40,11 +39,9 @@
 	"exclude": [
 		"node_modules",
 		".next",
-		".turbo",
 		"dist",
 		"coverage",
 		"playwright-report",
-		"apps/**/dist",
-		"packages/**/dist"
+		"apps/**/dist"
 	]
 }
