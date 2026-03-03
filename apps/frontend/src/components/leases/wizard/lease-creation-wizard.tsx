@@ -22,7 +22,9 @@ import {
 } from '#components/ui/stepper'
 import { ChevronLeft, ChevronRight, FileText, Loader2 } from 'lucide-react'
 import { cn } from '#lib/utils'
+import { requireOwnerUserId } from '#lib/require-owner-user-id'
 import { createClient } from '#lib/supabase/client'
+import { getCachedUser } from '#lib/supabase/get-cached-user'
 
 import { SelectionStep } from './selection-step'
 import { TermsStep } from './terms-step'
@@ -130,12 +132,16 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 	const createLeaseMutation = useMutation({
 		mutationFn: async () => {
 			const supabase = createClient()
+			const user = await getCachedUser()
+			const ownerId = requireOwnerUserId(user?.id)
+
 			const { data, error } = await supabase
 				.from('leases')
 				.insert({
 					...selectionData,
 					...termsData,
 					...detailsData,
+					owner_user_id: ownerId,
 					lease_status: 'draft',
 					rent_currency: 'USD'
 				})
@@ -173,6 +179,10 @@ export function LeaseCreationWizard({ onSuccess }: LeaseCreationWizardProps) {
 			// Invalidate leases list
 			queryClient.invalidateQueries({
 				queryKey: ['leases']
+			})
+			// Invalidate dashboard stats
+			queryClient.invalidateQueries({
+				queryKey: ['owner-dashboard']
 			})
 		}
 	})
