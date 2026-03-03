@@ -1,0 +1,25 @@
+{
+  "cookies": [
+    {
+      "name": "sb-127-auth-token",
+      "value": "base64-eyJhY2Nlc3NfdG9rZW4iOiJleUpoYkdjaU9pSklVekkxTmlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKaFlXd2lPaUpoWVd3eElpd2lZVzF5SWpwYmV5SnRaWFJvYjJRaU9pSndZWE56ZDI5eVpDSXNJblJwYldWemRHRnRjQ0k2TVRjM01UUTNNVFF3TlgxZExDSmhjSEJmYldWMFlXUmhkR0VpT25zaWNISnZkbWxrWlhJaU9pSmxiV0ZwYkNJc0luQnliM1pwWkdWeWN5STZXeUpsYldGcGJDSmRMQ0oxYzJWeVgzUjVjR1VpT2lKUFYwNUZVaUo5TENKaGRXUWlPaUpoZFhSb1pXNTBhV05oZEdWa0lpd2laVzFoYVd3aU9pSjBaWE4wTFdGa2JXbHVRSFJsYm1GdWRHWnNiM2N1WVhCd0lpd2laWGh3SWpveE56Y3hORGMxTURBMUxDSnBZWFFpT2pFM056RTBOekUwTURVc0ltbHpYMkZ1YjI1NWJXOTFjeUk2Wm1Gc2MyVXNJbWx6Y3lJNkltaDBkSEE2THk4eE1qY3VNQzR3TGpFNk5UUXpNakV2WVhWMGFDOTJNU0lzSW5Cb2IyNWxJam9pSWl3aWNtOXNaU0k2SW1GMWRHaGxiblJwWTJGMFpXUWlMQ0p6WlhOemFXOXVYMmxrSWpvaVpUWXlabVZpTlRjdFpHVXpNeTAwTWpaa0xUbGlPV010TTJOaVpqUXhabVUwWkdFMklpd2ljM1ZpSWpvaU1URXhNVEV4TVRFdE1URXhNUzB4TVRFeExURXhNVEV0TVRFeE1URXhNVEV4TVRFeElpd2lkWE5sY2w5dFpYUmhaR0YwWVNJNmV5Sm1kV3hzWDI1aGJXVWlPaUpVWlhOMElFRmtiV2x1SWl3aWRYTmxjbDkwZVhCbElqb2lUMWRPUlZJaWZTd2lkWE5sY2w5MGVYQmxJam9pVDFkT1JWSWlmUS40VzNDdTRDdGNlVmNQWW4yWVJSbDc0MjZvZGVFeE1fNVZCMEpZamFfamhnIiwicmVmcmVzaF90b2tlbiI6Im5mZm5qbTZrNjN5NyIsImV4cGlyZXNfYXQiOjE3NzE0NzUwMDUsImV4cGlyZXNfaW4iOjM2MDAsInRva2VuX3R5cGUiOiJiZWFyZXIiLCJ1c2VyIjp7ImlkIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwiYXVkIjoiYXV0aGVudGljYXRlZCIsInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiZW1haWwiOiJ0ZXN0LWFkbWluQHRlbmFudGZsb3cuYXBwIiwiZW1haWxfY29uZmlybWVkX2F0IjoiMjAyNi0wMi0xOVQwMzoyMjowMS45OTc2NjhaIiwicGhvbmUiOiIiLCJjb25maXJtZWRfYXQiOiIyMDI2LTAyLTE5VDAzOjIyOjAxLjk5NzY2OFoiLCJsYXN0X3NpZ25faW5fYXQiOiIyMDI2LTAyLTE5VDAzOjIzOjI1LjEyMDY4ODU0OFoiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJ1c2VyX3R5cGUiOiJPV05FUiJ9LCJ1c2VyX21ldGFkYXRhIjp7ImZ1bGxfbmFtZSI6IlRlc3QgQWRtaW4iLCJ1c2VyX3R5cGUiOiJPV05FUiJ9LCJpZGVudGl0aWVzIjpbXSwiY3JlYXRlZF9hdCI6IjIwMjYtMDItMTlUMDM6MjI6MDEuOTk3NjY4WiIsInVwZGF0ZWRfYXQiOiIyMDI2LTAyLTE5VDAzOjIzOjI1LjEyMjk3N1oiLCJpc19hbm9ueW1vdXMiOmZhbHNlfX0",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1771475005,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "http://localhost:3050",
+      "localStorage": [
+        {
+          "name": "sb-127-auth-token",
+          "value": "{\"access_token\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc3MTQ3MTQwNX1dLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdLCJ1c2VyX3R5cGUiOiJPV05FUiJ9LCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZW1haWwiOiJ0ZXN0LWFkbWluQHRlbmFudGZsb3cuYXBwIiwiZXhwIjoxNzcxNDc1MDA1LCJpYXQiOjE3NzE0NzE0MDUsImlzX2Fub255bW91cyI6ZmFsc2UsImlzcyI6Imh0dHA6Ly8xMjcuMC4wLjE6NTQzMjEvYXV0aC92MSIsInBob25lIjoiIiwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJzZXNzaW9uX2lkIjoiZTYyZmViNTctZGUzMy00MjZkLTliOWMtM2NiZjQxZmU0ZGE2Iiwic3ViIjoiMTExMTExMTEtMTExMS0xMTExLTExMTEtMTExMTExMTExMTExIiwidXNlcl9tZXRhZGF0YSI6eyJmdWxsX25hbWUiOiJUZXN0IEFkbWluIiwidXNlcl90eXBlIjoiT1dORVIifSwidXNlcl90eXBlIjoiT1dORVIifQ.4W3Cu4CtceVcPYn2YRRl7426odeExM_5VB0JYja_jhg\",\"refresh_token\":\"nffnjm6k63y7\",\"expires_at\":1771475005,\"expires_in\":3600,\"token_type\":\"bearer\",\"user\":{\"id\":\"11111111-1111-1111-1111-111111111111\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"test-admin@tenantflow.app\",\"email_confirmed_at\":\"2026-02-19T03:22:01.997668Z\",\"phone\":\"\",\"confirmed_at\":\"2026-02-19T03:22:01.997668Z\",\"last_sign_in_at\":\"2026-02-19T03:23:25.120688548Z\",\"app_metadata\":{\"provider\":\"email\",\"providers\":[\"email\"],\"user_type\":\"OWNER\"},\"user_metadata\":{\"full_name\":\"Test Admin\",\"user_type\":\"OWNER\"},\"identities\":[],\"created_at\":\"2026-02-19T03:22:01.997668Z\",\"updated_at\":\"2026-02-19T03:23:25.122977Z\",\"is_anonymous\":false}}"
+        }
+      ]
+    }
+  ]
+}

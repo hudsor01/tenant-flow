@@ -11,7 +11,7 @@
 
 set -e
 
-TYPES_DIR="apps/frontend/src/shared/types"
+TYPES_DIR="src/shared/types"
 MODE="${1:-warn}"
 
 # Known duplicates baseline - all resolved as of this commit

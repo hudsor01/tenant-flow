@@ -6,13 +6,13 @@ pre-commit:
     lockfile-verify:
       run: pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
     lint:
-      run: pnpm eslint "apps/frontend/src/**/*.{ts,tsx}" --cache --cache-location node_modules/.cache/eslint/ --no-error-on-unmatched-pattern --no-warn-ignored
+      run: pnpm lint
     typecheck:
-      run: pnpm -r typecheck
+      run: pnpm typecheck
     unit-tests:
-      run: CI=true pnpm --filter @repo/frontend test:unit
+      run: CI=true pnpm test:unit
     rls-tests:
-      run: pnpm --filter @repo/integration-tests test:rls
+      run: pnpm test:rls
 
 pre-push:
   commands:
