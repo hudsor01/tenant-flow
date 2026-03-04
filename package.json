@@ -55,7 +55,7 @@
 		"scan:secrets": "gitleaks detect --source . --no-git -v",
 		"scan:vulns": "trivy fs --severity HIGH,CRITICAL --scanners vuln .",
 		"scan:typos": "typos --format brief",
-		"prepare": "lefthook install"
+		"prepare": "git rev-parse --is-inside-work-tree > /dev/null 2>&1 && lefthook install || true"
 	},
 	"commitlint": {
 		"extends": [
