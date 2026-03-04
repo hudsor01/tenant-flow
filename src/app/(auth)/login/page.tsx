@@ -30,7 +30,6 @@ function LoginPageContent() {
 	const [authError, setAuthError] = useState<string | null>(null)
 	const [isGoogleLoading, setIsGoogleLoading] = useState(false)
 	const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
-	// MFA state
 	const [showMfaDialog, setShowMfaDialog] = useState(false)
 	const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
 	const [pendingRedirect, setPendingRedirect] = useState<string | null>(null)

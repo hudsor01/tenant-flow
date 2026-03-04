@@ -2,11 +2,12 @@
 
 /**
  * Lease Creation Wizard - Step 2: Terms
- * Dates and financial details
+ * Dates and financial details with duration presets
  *
  * Note: Validation is handled by Zod schemas in #shared/validation/lease-wizard.schemas.ts
  * This component only handles display/input - uses type="text" with inputMode for mobile keyboards
  */
+import { Button } from '#components/ui/button'
 import {
 	Field,
 	FieldLabel,
@@ -14,14 +15,43 @@ import {
 	FieldGroup
 } from '#components/ui/field'
 import { Input } from '#components/ui/input'
+import { cn } from '#lib/utils'
 import type { TermsStepData } from '#shared/validation/lease-wizard.schemas'
+
+/** Duration preset in months. null = custom (no preset). */
+export type DurationPreset = 1 | 6 | 12 | 24 | null
+
+const DURATION_PRESETS: { label: string; months: Exclude<DurationPreset, null> }[] = [
+	{ label: 'Month-to-month', months: 1 },
+	{ label: '6 months', months: 6 },
+	{ label: '12 months', months: 12 },
+	{ label: '24 months', months: 24 }
+]
+
+/**
+ * Calculate lease end date from start date + N months.
+ * Advances by N months, then subtracts 1 day (e.g. Jan 1 + 12 months = Dec 31).
+ */
+export function calculateEndDate(startDate: string, months: number): string {
+	const date = new Date(startDate)
+	date.setMonth(date.getMonth() + months)
+	date.setDate(date.getDate() - 1)
+	return date.toISOString().slice(0, 10)
+}
 
 interface TermsStepProps {
 	data: Partial<TermsStepData>
 	onChange: (data: Partial<TermsStepData>) => void
+	selectedDuration: DurationPreset
+	onDurationChange: (duration: DurationPreset) => void
 }
 
-export function TermsStep({ data, onChange }: TermsStepProps) {
+export function TermsStep({
+	data,
+	onChange,
+	selectedDuration,
+	onDurationChange
+}: TermsStepProps) {
 	const handleChange = (field: keyof TermsStepData, value: string | number) => {
 		onChange({ ...data, [field]: value })
 	}
@@ -46,6 +76,29 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 		return isNaN(num) ? 0 : num
 	}
 
+	const handlePresetSelect = (months: Exclude<DurationPreset, null>) => {
+		onDurationChange(months)
+		if (data.start_date) {
+			onChange({
+				...data,
+				end_date: calculateEndDate(data.start_date, months)
+			})
+		}
+	}
+
+	const handleStartDateChange = (startDate: string) => {
+		const updates: Partial<TermsStepData> = { ...data, start_date: startDate }
+		if (selectedDuration && startDate) {
+			updates.end_date = calculateEndDate(startDate, selectedDuration)
+		}
+		onChange(updates)
+	}
+
+	const handleEndDateChange = (endDate: string) => {
+		onDurationChange(null)
+		onChange({ ...data, end_date: endDate })
+	}
+
 	return (
 		<div className="space-y-6">
 			<div>
@@ -55,9 +108,28 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 				</p>
 			</div>
 
-			{/* Dates */}
+			{/* Duration Presets */}
 			<FieldGroup>
 				<h4 className="font-medium">Lease Duration</h4>
+				<div className="flex flex-wrap gap-2">
+					{DURATION_PRESETS.map(preset => (
+						<Button
+							key={preset.months}
+							type="button"
+							variant={selectedDuration === preset.months ? 'default' : 'outline'}
+							size="sm"
+							className={cn(
+								'transition-colors',
+								selectedDuration === preset.months && 'ring-2 ring-ring ring-offset-1'
+							)}
+							onClick={() => handlePresetSelect(preset.months)}
+						>
+							{preset.label}
+						</Button>
+					))}
+				</div>
+
+				{/* Dates */}
 				<div className="grid grid-cols-2 gap-4">
 					<Field>
 						<FieldLabel htmlFor="start_date">Start Date *</FieldLabel>
@@ -65,7 +137,7 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							id="start_date"
 							type="date"
 							value={data.start_date}
-							onChange={e => handleChange('start_date', e.target.value)}
+							onChange={e => handleStartDateChange(e.target.value)}
 						/>
 					</Field>
 					<Field>
@@ -74,8 +146,13 @@ export function TermsStep({ data, onChange }: TermsStepProps) {
 							id="end_date"
 							type="date"
 							value={data.end_date}
-							onChange={e => handleChange('end_date', e.target.value)}
+							onChange={e => handleEndDateChange(e.target.value)}
 						/>
+						{selectedDuration && (
+							<FieldDescription>
+								Auto-calculated from preset
+							</FieldDescription>
+						)}
 					</Field>
 				</div>
 			</FieldGroup>
