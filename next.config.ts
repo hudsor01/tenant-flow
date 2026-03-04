@@ -1,7 +1,6 @@
 // Build trigger: Added NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY to Vercel (2025-01-16)
 import { withSentryConfig } from '@sentry/nextjs'
 import type { NextConfig } from 'next'
-import path from 'path'
 
 /**
  * Build-time environment validation
@@ -13,10 +12,7 @@ import path from 'path'
 import './src/env'
 
 const nextConfig: NextConfig = {
-	// Monorepo support
-	outputFileTracingRoot: path.join(__dirname, '../..'),
-
-	// External images
+// External images
 	images: {
 		// Cache optimized images for 7 days before re-fetching from origin
 		minimumCacheTTL: 60 * 60 * 24 * 7,
@@ -55,7 +51,9 @@ export default withSentryConfig(nextConfig, {
 		assets: ['.next/static/chunks/app/**', '.next/static/chunks/*.js']
 	},
 	tunnelRoute: '/monitoring',
-	disableLogger: true,
+	bundleSizeOptimizations: {
+		excludeDebugStatements: true
+	},
 	// Release tracking
 	release: {
 		setCommits: {
