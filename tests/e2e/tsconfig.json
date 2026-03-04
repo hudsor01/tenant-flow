@@ -1,0 +1,22 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "TenantFlow E2E Tests Config",
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDir": "..",
+		"outDir": "./.cache",
+		"noEmit": true,
+		"types": ["@types/node", "@playwright/test"],
+		"lib": ["ES2022", "DOM"],
+		"composite": false,
+		"declaration": true,
+		"declarationMap": true
+	},
+	"include": [
+		"tests/**/*.ts",
+		"auth-helpers.ts",
+		"../frontend/tests/fixtures/**/*.ts",
+		"global.d.ts"
+	],
+	"exclude": ["tests/**/__snapshots__/**", "tests/tanstack-query/**"]
+}

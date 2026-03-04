@@ -1,16 +1,23 @@
 # Build output
-dist
-!.github/actions/*/dist
-.next
+dist/
+.next/
 .tsc-output
-target
-packages/next/wasm/@next
-packages/**/*.tgz
-.errors/
+out/
+build/
+!.github/actions/*/dist
+.swc/
 
-# Development logs
-logs/
-*.log
+# TypeScript build artifacts
+*.tsbuildinfo
+**/dist/**/*.d.ts
+**/dist/**/*.d.ts.map
+**/dist/**/*.js
+**/dist/**/*.js.map
+
+# Dependencies
+node_modules/
+.pnpm-store/
+.github/**/node_modules
 
 # Environment files - NEVER commit ANY .env files
 .env
@@ -23,22 +30,17 @@ logs/
 **/.envrc
 doppler.env
 .env.test
-.serena/
-**/lease-documents/**/*.pdf
-apps/backend/assets/generated-*.pdf
-*.pdf
-!apps/backend/src/modules/pdf/templates/**/*.pdf
-!apps/backend/src/modules/reports/templates/**/*.pdf
-
-# Local environment files
 .env.local
 .env*.local
 *.local
-
-# Environment keys and credentials
+!.env.example
 .env.keys
 */.env.keys
 **/.env.keys
+.env.vault
+.doppler.yaml
+
+# Environment keys and credentials
 .api-keys
 api-keys.*
 *.api-key
@@ -56,8 +58,6 @@ tokens.*
 *.der
 *.cer
 certs/
-.serena/
-.supabase/
 id_rsa*
 id_dsa*
 id_ecdsa*
@@ -85,6 +85,8 @@ authorized_keys
 **/credentials*.txt
 **/credentials*.json
 **/*.credentials
+
+# Allow legitimate source files referencing tokens/secrets/keys
 !**/*[_-]token*.ts
 !**/*[_-]token*.js
 !**/*[_-]token*.jsx
@@ -176,59 +178,18 @@ secrets.*
 !**/*key*.jsx
 !**/*key*.js
 
-# dependencies
-node_modules/
-test/node_modules
-.pnpm-store/
-.github/**/node_modules
-
-# test output
-test/**/out/*
-test/**/next-env.d.ts
-test/**/.next*
-.DS_Store
-/e2e-tests
-test/tmp/**
-test/.trace
-test/traces
-test-timings.json
-
-# Vercel
-.vercel
-.now
-*.tsbuildinfo
-.swc/
-.turbo
-
-# logs & pids
-*.log
-pids
-*.cpuprofile
-*.heapsnapshot
-
-# coverage
-.nyc_output
-coverage
-dist/
-build/
-.next/
-out/
-.nuxt
-.turbo/
-*.tsbuildinfo
-**/*.tsbuildinfo
-
-# Package-specific builds
-packages/*/dist/
-packages/*/.turbo/
-apps/*/.next/
-apps/*/dist/
-apps/*/.turbo/
+# Logs & pids
 logs/
+*.log
 npm-debug.log*
 lerna-debug.log*
 pnpm-debug.log*
-report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+pids
+*.pid
+*.seed
+*.pid.lock
+*.cpuprofile
+*.heapsnapshot
 
 # Test results and coverage
 coverage/
@@ -249,22 +210,37 @@ test-videos/
 jest-results/
 test-results.json
 *.test-report.*
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-# Test cache only (keep test files tracked)
+# Test cache
 playwright/.cache/
 playwright/.auth/
+.last-run.json
+
+# Lint & style cache
 .eslintcache
+.eslint/
 .stylelintcache
 .cache
 .parcel-cache
 .fusebox/
-**/.DS_Store
 
-# IDE & EDITORS
+# Vercel
+.vercel
+.now
+
+# IDE & editors
 .vscode/*
 .vscode-test
 .history/
-.vercel/
+
+# OS files
+.DS_Store
+**/.DS_Store
+
+# PDF files (lease documents)
+**/lease-documents/**/*.pdf
+*.pdf
 
 # Docker
 /documents/
@@ -272,11 +248,16 @@ temp/
 
 # Development files
 .claude/
+.serena/
+.supabase/
+.playwright-mcp/
+.kiro/
+.kiro
 
-# DOCUMENTATION & EXAMPLES
+# Documentation & examples
 documentation/
 
-# BACKUP & TEMP FILES
+# Backup & temp files
 *.backup
 *.bak
 *.bak[0-9]
@@ -290,56 +271,15 @@ documentation/
 *-old.*
 *-copy.*
 *-backup.*
-
-# MONITORING & MISC
-monitoring/
-pids
-*.pid
-*.seed
-*.pid.lock
-.vercel
-
-# Turborepo
-.turbo
-.next
-.next/
-.vscode/
-.supabase/
-.playwright-mcp/
-.eslintcache
-.eslint/
-
-# TypeScript build artifacts
-**/dist/**/*.d.ts
-**/dist/**/*.d.ts.map
-**/dist/**/*.js
-**/dist/**/*.js.map
-dist/
-coverage/
-.cache/
-.swc/
-.env.vault
-.doppler.yaml
-.env.vault
-.doppler.yaml
-
-# Test artifacts
-test-results/
-.last-run.json
-playwright-report/
-
-# Vitest session files (contain auth tokens)
-.vitest-session.json
-**/.vitest-session.json
-
-# Temporary files
 .temp/
 .tmp/
 
-# Stripe webhook endpoints (local testing)
+# Monitoring
+monitoring/
+
+# Stripe webhook logs (local testing)
 stripe-webhooks.log
 **/stripe-events.log
-*.log
 
 # CRITICAL: Production user data and uploads
 **/uploads/
@@ -351,10 +291,12 @@ stripe-webhooks.log
 # Generated types that may contain sensitive info
 **/generated-types.secret.ts
 **/api-types.secret.ts
-.kiro/
-.kiro
 
-# Debug screenshots and temp files (accidentally committed)
+# Vitest session files (contain auth tokens)
+.vitest-session.json
+**/.vitest-session.json
+
+# Debug screenshots (accidentally committed)
 login-page
 login-page.png
 login-fresh
@@ -364,5 +306,5 @@ tenants-page
 *-page
 *-page.png
 
-# Example env file (not needed in repo)
-.env.example
+# Lefthook local overrides
+.lefthook-local.yml

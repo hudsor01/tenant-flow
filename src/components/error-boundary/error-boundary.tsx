@@ -1,0 +1,119 @@
+'use client'
+
+import { Button } from '#components/ui/button'
+import { CardLayout } from '#components/ui/card-layout'
+import { AlertTriangle, RefreshCw } from 'lucide-react'
+import { useErrorBoundary } from '#hooks/use-error-boundary'
+import { useErrorBoundaryStore } from '#stores/error-boundary-store'
+import type { ErrorInfo, ReactNode } from 'react'
+import { Component } from 'react'
+import { createLogger } from '#shared/lib/frontend-logger'
+import { useRouter } from 'next/navigation'
+
+const logger = createLogger({ component: 'ErrorBoundary' })
+
+interface Props {
+	children: ReactNode
+	fallback?: ReactNode
+}
+
+interface State {
+	hasError: boolean
+	error?: Error | undefined
+}
+
+export class ErrorBoundary extends Component<Props, State> {
+	constructor(props: Props) {
+		super(props)
+		this.state = { hasError: false }
+	}
+
+	private resetBoundary = () => {
+		this.setState({ hasError: false, error: undefined })
+	}
+
+	static getDerivedStateFromError(error: Error): State {
+		return { hasError: true, error }
+	}
+
+	override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+		// Log error locally for immediate debugging
+		logger.error('ErrorBoundary - Error caught by boundary', {
+			action: 'component_error_boundary',
+			metadata: {
+				error: error.message,
+				stack: error.stack,
+				componentStack: errorInfo.componentStack
+			}
+		})
+
+		// Persist error in global error boundary store for cross-page visibility
+		const { setError } = useErrorBoundaryStore.getState()
+		setError?.(error, 'ErrorBoundary')
+	}
+
+	override render() {
+		if (this.state.hasError) {
+			if (this.props.fallback) {
+				return this.props.fallback
+			}
+
+			return (
+				<ErrorBoundaryWithStore
+					error={this.state.error}
+					onReset={this.resetBoundary}
+				/>
+			)
+		}
+
+		return this.props.children
+	}
+}
+
+// Separate component to use hooks within the error boundary
+function ErrorBoundaryWithStore({
+	error,
+	onReset
+}: {
+	error: Error | undefined
+	onReset?: () => void
+}) {
+	const { clearError, errorState } = useErrorBoundary()
+	const router = useRouter()
+
+	const handleRetry = () => {
+		clearError()
+		onReset?.()
+		router.refresh()
+	}
+
+	return (
+		<div className="min-h-screen flex-center p-4">
+			<CardLayout title="Something went wrong" className="max-w-md w-full">
+				<div className="flex flex-col items-center space-y-4 text-center">
+					<AlertTriangle className="size-12 text-destructive" />
+					<div className="space-y-2">
+						<h2 className="typography-h4">Something went wrong</h2>
+						<p className="text-muted-foreground">
+							An unexpected error occurred. Our team has been notified.
+						</p>
+						{error?.message && (
+							<p className="text-muted font-mono bg-muted p-2 rounded">
+								{error.message}
+							</p>
+						)}
+						{errorState.errorId && (
+							<p className="text-caption">Error ID: {errorState.errorId}</p>
+						)}
+					</div>
+					<div className="flex gap-2">
+						<Button variant="outline" onClick={handleRetry}>
+							<RefreshCw className="size-4 mr-2" />
+							Try Again
+						</Button>
+					</div>
+				</div>
+			</CardLayout>
+		</div>
+	)
+}

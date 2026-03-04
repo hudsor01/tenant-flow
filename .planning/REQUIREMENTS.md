@@ -1,135 +1,104 @@
-# Requirements: TenantFlow v8.0 — Post-Migration Hardening + Payment Infrastructure
+# Requirements: TenantFlow
 
-**Defined:** 2026-02-25
+**Defined:** 2026-03-03
 **Core Value:** A landlord can add a property, invite a tenant, collect rent, and see their financials — without touching a spreadsheet or calling anyone.
 
-## v8.0 Requirements
+## v9.0 Requirements
 
-Requirements for this milestone. Each maps to roadmap phases.
+Requirements for Testing Strategy Consolidation milestone. Each maps to roadmap phases.
 
-### Payments (PAY)
+### Infrastructure Consolidation (INFRA)
 
-- [x] **PAY-01**: Tenant can pay rent via Stripe Checkout with destination charge fee split to owner's Express account
-- [x] **PAY-02**: Platform receives configurable application fee on each rent payment
-- [x] **PAY-03**: Tenant receives branded HTML receipt email after successful payment
-- [x] **PAY-04**: Owner receives notification email after tenant payment succeeds
-- [x] **PAY-05**: Email suppression list checked before every Resend email send
-- [ ] **PAY-06**: Tenant can enable autopay with saved payment method for recurring monthly rent
+- [ ] **INFRA-01**: Vitest config uses `projects` with three named projects: unit (jsdom), component (jsdom), integration (node)
+- [ ] **INFRA-02**: All 7 RLS integration tests run under Vitest node project instead of Jest
+- [ ] **INFRA-03**: Jest, ts-jest, and @types/jest are removed from dependencies
+- [ ] **INFRA-04**: Orphaned `tests/unit/` directory is deleted; `pricing-premium.spec.ts` relocated to `src/`
+- [ ] **INFRA-05**: Orphaned `src/__tests__/` files relocated to co-located `__tests__/` directories
+- [ ] **INFRA-06**: Package.json test scripts updated for Vitest projects (`test:unit`, `test:integration`, `test:component`)
 
-### Authentication (AUTH)
+### Test Data (DATA)
 
-- [ ] **AUTH-01**: User can complete password reset via email link with PKCE code exchange
-- [ ] **AUTH-02**: User sees email confirmation page after signup with resend option
-- [ ] **AUTH-03**: Google OAuth signup correctly sets user_type and routes to proper dashboard
+- [ ] **DATA-01**: Factory functions exist for all 6 core entities (property, tenant, lease, unit, maintenance, user) using `@faker-js/faker`
+- [ ] **DATA-02**: Factory functions live in `src/test/factories/` with one file per entity
+- [ ] **DATA-03**: Existing tests that use DEFAULT_* objects are migrated to factory functions
 
-### Security (SEC)
+### API Mocking (MOCK)
 
-- [x] **SEC-01**: DocuSeal webhook handler rejects unverified requests (fail-closed)
-- [x] **SEC-02**: DocuSeal Edge Function validates ownership before lease actions
-- [x] **SEC-03**: generate-pdf Edge Function validates ownership before PDF generation
-- [x] **SEC-04**: Stripe webhook notification_type CHECK constraint matches actual values
-- [x] **SEC-05**: undefined owner_user_id guarded in all 6 insert mutations
-- [x] **SEC-06**: PostgREST filter injection sanitized in all 4 search inputs
-- [x] **SEC-07**: CORS wildcard restricted to FRONTEND_URL on browser-facing Edge Functions
-- [x] **SEC-08**: Edge Function dependencies pinned via deno.json import map
+- [ ] **MOCK-01**: MSW 2.x is installed and configured with Vitest setup lifecycle (listen/reset/close)
+- [ ] **MOCK-02**: Default Supabase PostgREST mock handlers exist for properties, tenants, leases, dashboard RPC
+- [ ] **MOCK-03**: MSW handlers organized in `src/test/mocks/handlers/` with one file per domain
 
-### Code Quality (QUAL)
+### Component Tests (COMP)
 
-- [ ] **QUAL-01**: Double-toast error handling fixed across 20+ hooks
-- [ ] **QUAL-02**: Duplicate payment method hooks consolidated
-- [ ] **QUAL-03**: All 31 TODO stubs tracked; 4 runtime-throw stubs fixed
-- [ ] **QUAL-04**: 86 getUser() calls replaced with cached auth pattern
+- [ ] **COMP-01**: Component tests use `.component.test.tsx` naming convention and run as separate Vitest project
+- [ ] **COMP-02**: At least 3 example component tests demonstrate the pattern (render + MSW + TanStack Query)
+- [ ] **COMP-03**: RTL best practices enforced (getByRole priority, userEvent.setup(), screen.*, findBy for async)
 
-### Performance (PERF)
+### E2E Optimization (E2E)
 
-- [ ] **PERF-01**: Batch tenant operations refactored to single queries/RPCs
-- [ ] **PERF-02**: 3-step serial tenant portal lookup eliminated
-- [ ] **PERF-03**: CSV export unbounded query protected with limit
-- [ ] **PERF-04**: Performance metrics (maintenance stats, missing indexes) addressed
+- [ ] **E2E-01**: Playwright config fixed (no stale monorepo references)
+- [ ] **E2E-02**: Critical path tests identified and tagged (auth, property CRUD, rent payment, tenant portal)
+- [ ] **E2E-03**: Non-critical E2E tests documented as candidates for migration to component tests
 
-### Testing (TEST)
+### CI Pipeline (CI)
 
-- [ ] **TEST-01**: RLS write-path isolation tests (INSERT/UPDATE/DELETE) for all 7 domains
-- [ ] **TEST-02**: RLS tests gate PRs on dedicated integration project
-- [ ] **TEST-03**: E2E test intercepts rewritten for PostgREST architecture
+- [ ] **CI-01**: GitHub Actions workflows updated: single Vitest run replaces separate unit + Jest RLS workflows
+- [ ] **CI-02**: Vitest uses `--reporter=github-actions` for inline PR annotations
+- [ ] **CI-03**: E2E runs only on merge to main (not on every PR); Sentry covers runtime monitoring
 
-### Documentation (DOCS)
+## Future Requirements
 
-- [ ] **DOCS-01**: CLAUDE.md stripped of NestJS content
-- [ ] **DOCS-02**: PostgREST/Edge Function patterns added to CLAUDE.md
+### Test Coverage Expansion (v10.0+)
 
-### CI/CD (CICD)
-
-- [ ] **CICD-01**: Pre-merge blockers resolved (E2E env vars, Vercel ANON_KEY)
-- [ ] **CICD-02**: CI/CD pipeline gaps closed (E2E smoke, coverage gates)
-
-## Future Requirements (Deferred)
-
-### Payments
-
-- **PAY-F01**: Tenant payment receipt PDF attachment via StirlingPDF
-- **PAY-F02**: Branded email template editor in owner settings
-- **PAY-F03**: Stripe SDK version consolidation (stripe@14 → stripe@20 across all Edge Functions)
-
-### Features
-
-- **FEAT-F01**: In-app messaging between landlord and tenant (realtime)
-- **FEAT-F02**: Vendor/contractor portal with login and ticket visibility
-- **FEAT-F03**: Automated accounting export (QuickBooks/Xero)
+- **COV-01**: Component test coverage reaches 100+ tests across all major pages
+- **COV-02**: Visual regression testing with Playwright `toHaveScreenshot()`
+- **COV-03**: Property-based testing with fast-check for financial calculations
+- **COV-04**: Accessibility testing integrated into component test layer
+- **COV-05**: Contract tests validating Supabase schema against TypeScript types
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Mobile app | Web-first; not in any milestone |
-| SMS notifications (Twilio) | Removed in v6.0; email covers needs |
-| Magic link auth | Decided on email/password + Google OAuth |
-| tRPC/Hono backend | PostgREST + Edge Functions is the complete solution |
-| Stripe SDK upgrade to v20 in Edge Functions | Separate hardening task; Deno compatibility unverified |
-| GraphQL client library in frontend | pg_graphql accessed via supabase.rpc() only |
+| Storybook | Over-engineering for current stage; component tests provide sufficient UI coverage |
+| fishery library | Factory functions with faker are sufficient; no complex association wiring needed |
+| Playwright component tests | Experimental API; Vitest + RTL + MSW is more mature and documented |
+| Supabase local (Docker) for tests | RLS tests work against live Supabase; Docker adds complexity without clear benefit |
+| Test coverage enforcement in CI | 80% thresholds already in Vitest config; no additional enforcement needed |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAY-01 | Phase 59 | Complete |
-| PAY-02 | Phase 59 | Complete |
-| PAY-03 | Phase 60 | Complete |
-| PAY-04 | Phase 60 | Complete |
-| PAY-05 | Phase 60 | Complete |
-| PAY-06 | Phase 64 | Pending |
-| AUTH-01 | Phase 61 | Pending |
-| AUTH-02 | Phase 61 | Pending |
-| AUTH-03 | Phase 61 | Pending |
-| SEC-01 | Phase 58 | Complete |
-| SEC-02 | Phase 58 | Complete |
-| SEC-03 | Phase 58 | Complete |
-| SEC-04 | Phase 58 | Complete |
-| SEC-05 | Phase 58 | Complete |
-| SEC-06 | Phase 58 | Complete |
-| SEC-07 | Phase 58 | Complete |
-| SEC-08 | Phase 58 | Complete |
-| QUAL-01 | Phase 62 | Pending |
-| QUAL-02 | Phase 62 | Pending |
-| QUAL-03 | Phase 62 | Pending |
-| QUAL-04 | Phase 62 | Pending |
-| PERF-01 | Phase 62 | Pending |
-| PERF-02 | Phase 62 | Pending |
-| PERF-03 | Phase 62 | Pending |
-| PERF-04 | Phase 62 | Pending |
-| TEST-01 | Phase 63 | Pending |
-| TEST-02 | Phase 63 | Pending |
-| TEST-03 | Phase 63 | Pending |
-| DOCS-01 | Phase 63 | Pending |
-| DOCS-02 | Phase 63 | Pending |
-| CICD-01 | Phase 63 | Pending |
-| CICD-02 | Phase 63 | Pending |
+| INFRA-01 | Phase 05 | Pending |
+| INFRA-02 | Phase 05 | Pending |
+| INFRA-03 | Phase 05 | Pending |
+| INFRA-04 | Phase 05 | Pending |
+| INFRA-05 | Phase 05 | Pending |
+| INFRA-06 | Phase 05 | Pending |
+| DATA-01 | Phase 06 | Pending |
+| DATA-02 | Phase 06 | Pending |
+| DATA-03 | Phase 06 | Pending |
+| MOCK-01 | Phase 07 | Pending |
+| MOCK-02 | Phase 07 | Pending |
+| MOCK-03 | Phase 07 | Pending |
+| COMP-01 | Phase 07 | Pending |
+| COMP-02 | Phase 07 | Pending |
+| COMP-03 | Phase 07 | Pending |
+| E2E-01 | Phase 08 | Pending |
+| E2E-02 | Phase 08 | Pending |
+| E2E-03 | Phase 08 | Pending |
+| CI-01 | Phase 08 | Pending |
+| CI-02 | Phase 08 | Pending |
+| CI-03 | Phase 08 | Pending |
 
 **Coverage:**
-- v8.0 requirements: 32 total
-- Mapped to phases: 32
+- v9.0 requirements: 21 total
+- Mapped to phases: 21
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-02-25*
-*Last updated: 2026-02-25 after roadmap creation*
+*Requirements defined: 2026-03-03*
+*Last updated: 2026-03-03 after roadmap creation*

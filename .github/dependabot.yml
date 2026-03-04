@@ -2,8 +2,7 @@ version: 2
 
 updates:
   # ─────────────────────────────────────────
-  # npm / pnpm monorepo
-  # Single entry at root covers all workspaces
+  # npm / pnpm
   # ─────────────────────────────────────────
   - package-ecosystem: npm
     directory: /
@@ -92,8 +91,6 @@ updates:
 
       build-tooling:
         patterns:
-          - 'turbo'
-          - '@turbo/*'
           - 'esbuild'
           - 'lightningcss'
 
