@@ -1,0 +1,25 @@
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm commitlint --edit {1}
+
+pre-commit:
+  parallel: true
+  commands:
+    duplicate-types:
+      run: ./scripts/check-duplicate-types.sh
+    lockfile-verify:
+      run: pnpm install --frozen-lockfile --prefer-offline > /dev/null 2>&1
+    lint:
+      run: pnpm lint
+    typecheck:
+      run: pnpm typecheck
+    unit-tests:
+      run: CI=true pnpm test:unit
+    rls-tests:
+      run: pnpm test:rls
+
+pre-push:
+  commands:
+    lockfile-sync:
+      run: pnpm install --lockfile-only --ignore-scripts && git diff --quiet pnpm-lock.yaml

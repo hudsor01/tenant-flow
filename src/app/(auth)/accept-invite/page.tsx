@@ -1,0 +1,203 @@
+/**
+ * Accept Invite Page
+ *
+ * Allows tenants to accept invitations and create their accounts.
+ * Uses TanStack Query queryOptions for invitation validation.
+ */
+
+'use client'
+
+import { useQuery } from '@tanstack/react-query'
+import { Home } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState } from 'react'
+
+import { createClient } from '#lib/supabase/client'
+import { createLogger } from '#shared/lib/frontend-logger'
+
+import { ErrorState } from '#components/auth/accept-invite/error-state'
+import { InviteHeroSection } from '#components/auth/accept-invite/invite-hero-section'
+import { InviteSignupForm } from '#components/auth/accept-invite/invite-signup-form'
+import { LoadingState } from '#components/auth/accept-invite/loading-state'
+import { SuccessState } from '#components/auth/accept-invite/success-state'
+import type { AcceptInviteFormValues } from '#components/auth/accept-invite/accept-invite-form-types'
+import {
+	InvalidInviteError,
+	tenantQueries
+} from '#hooks/api/query-keys/tenant-keys'
+
+const logger = createLogger({ component: 'AcceptInvitePage' })
+
+function AcceptInviteContent() {
+	const [accepted, setAccepted] = useState(false)
+	const [submitError, setSubmitError] = useState('')
+
+	const router = useRouter()
+	const searchParams = useSearchParams()
+	const code = searchParams.get('code')
+
+	const {
+		data: invitation,
+		isLoading,
+		error
+	} = useQuery(tenantQueries.validateInvitation(code))
+
+	async function acceptInvitation(authUserId: string) {
+		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+		const supabase = createClient()
+		const response = await fetch(
+			`${supabaseUrl}/functions/v1/tenant-invitation-accept`,
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ code, authuser_id: authUserId })
+			}
+		)
+
+		if (!response.ok) {
+			const err = await response.json().catch(() => ({}))
+			throw new Error(
+				(err as { message?: string }).message ||
+					'Failed to accept invitation'
+			)
+		}
+
+		logger.info('Invitation accepted successfully')
+
+		// Refresh session so the JWT picks up updated app_metadata.user_type = 'TENANT'
+		await supabase.auth.refreshSession()
+
+		setAccepted(true)
+
+		setTimeout(() => {
+			router.push('/tenant')
+		}, 2000)
+	}
+
+	async function handleSignup(value: AcceptInviteFormValues) {
+		if (!code || !invitation) return
+
+		setSubmitError('')
+
+		try {
+			const supabase = createClient()
+
+			const { data: authData, error: signUpError } =
+				await supabase.auth.signUp({
+					email: value.email,
+					password: value.password,
+					options: {
+						data: {
+							user_type: 'TENANT'
+						}
+					}
+				})
+
+			if (signUpError) {
+				if (signUpError.message.includes('already registered')) {
+					const { data: signInData, error: signInError } =
+						await supabase.auth.signInWithPassword({
+							email: value.email,
+							password: value.password
+						})
+
+					if (signInError) {
+						throw new Error(
+							'Account exists. Please use the correct password or reset it.'
+						)
+					}
+
+					if (!signInData.user) {
+						throw new Error('Failed to sign in')
+					}
+
+					await acceptInvitation(signInData.user.id)
+					return
+				}
+
+				throw new Error(signUpError.message)
+			}
+
+			if (!authData.user) {
+				throw new Error('Failed to create account')
+			}
+
+			await acceptInvitation(authData.user.id)
+		} catch (error) {
+			const message =
+				error instanceof Error
+					? error.message
+					: 'Failed to accept invitation'
+			setSubmitError(message)
+			logger.error('Accept invitation failed', { error: message })
+		}
+	}
+
+	if (!code) {
+		return <ErrorState state="error" message="No invitation code provided" />
+	}
+
+	if (isLoading) {
+		return <LoadingState />
+	}
+
+	if (error) {
+		if (error instanceof InvalidInviteError) {
+			const customMessage =
+				error.message !== `Invitation ${error.state}`
+					? error.message
+					: ''
+			return <ErrorState state={error.state} message={customMessage} />
+		}
+		logger.error('Failed to validate invitation', { error })
+		return (
+			<ErrorState
+				state="error"
+				message="Failed to validate invitation. Please try again."
+			/>
+		)
+	}
+
+	if (accepted) {
+		return <SuccessState />
+	}
+
+	return (
+		<div className="min-h-screen flex bg-background">
+			<InviteHeroSection />
+
+			<div className="flex-1 lg:w-1/2 flex-center p-6 sm:p-8 lg:p-12 min-h-screen">
+				<div className="space-y-4 text-center mb-8">
+					<div className="size-14 mx-auto">
+						<div className="w-full h-full bg-primary rounded-xl flex-center shadow-sm">
+							<Home className="size-7 text-primary-foreground" />
+						</div>
+					</div>
+
+					<div className="space-y-2">
+						<h1 className="typography-h3 text-foreground">
+							Accept Your Invitation
+						</h1>
+						<p className="text-muted-foreground text-sm">
+							Create your tenant account to get started
+						</p>
+					</div>
+				</div>
+
+				<InviteSignupForm
+					invitation={invitation ?? null}
+					errorMessage={submitError}
+					onSubmit={handleSignup}
+				/>
+			</div>
+		</div>
+	)
+}
+
+export default function AcceptInvitePage() {
+	return (
+		<Suspense fallback={<LoadingState />}>
+			<AcceptInviteContent />
+		</Suspense>
+	)
+}

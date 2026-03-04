@@ -1,0 +1,341 @@
+'use client'
+
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle
+} from '#components/ui/dialog'
+import { Field, FieldError, FieldLabel } from '#components/ui/field'
+import {
+	InputGroup,
+	InputGroupAddon,
+	InputGroupInput
+} from '#components/ui/input-group'
+import { Button } from '#components/ui/button'
+import { createClient } from '#lib/supabase/client'
+import { useForm } from '@tanstack/react-form'
+import { signupFormSchema } from '#shared/validation/auth'
+import { Mail, Building2, User, Lock } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
+
+interface OwnerSubscribeDialogProps {
+	open: boolean
+	onOpenChange: (open: boolean) => void
+	onComplete: (payload: {
+		email: string
+		tenant_id?: string
+		requiresEmailConfirmation?: boolean
+	}) => Promise<void> | void
+	planName?: string
+	planCta?: string
+}
+
+export function OwnerSubscribeDialog({
+	open,
+	onOpenChange,
+	onComplete,
+	planName,
+	planCta
+}: OwnerSubscribeDialogProps) {
+	const [isSubmitting, setIsSubmitting] = useState(false)
+
+	const supabase = useMemo(() => createClient(), [])
+
+	const form = useForm({
+		defaultValues: {
+			first_name: '',
+			last_name: '',
+			company: '',
+			email: '',
+			password: '',
+			confirmPassword: ''
+		},
+		onSubmit: async ({ value }) => {
+			setIsSubmitting(true)
+			try {
+				const { first_name, last_name, company, email, password } = value
+
+				const { data, error } = await supabase.auth.signUp({
+					email,
+					password,
+					options: {
+						data: {
+							first_name,
+							last_name,
+							company,
+							planIntent: planName
+						},
+						emailRedirectTo: `${window.location.origin}/auth/confirm`
+					}
+				})
+
+				if (error) {
+					throw error
+				}
+
+				let requiresEmailConfirmation = !data.session
+				let supabaseuser_id = data.user?.id
+
+				// Attempt sign-in immediately if session not returned (some Supabase configs)
+				if (!data.session) {
+					const { data: signInData, error: signInError } =
+						await supabase.auth.signInWithPassword({
+							email,
+							password
+						})
+
+					if (!signInError) {
+						requiresEmailConfirmation = false
+						supabaseuser_id = signInData.user?.id ?? supabaseuser_id
+					} else {
+						// Detect if this is an email confirmation error using multiple indicators
+						const isConfirmationError =
+							signInError?.code === 'email_not_confirmed' ||
+							(signInError?.status &&
+								(signInError.status === 400 || signInError.status === 401)) ||
+							(signInError?.message &&
+								/confirm|email not confirmed/i.test(signInError.message))
+
+						if (!isConfirmationError) {
+							// If it's not a confirmation-related error, surface it
+							throw signInError
+						}
+						// Otherwise, treat as expected confirmation requirement
+					}
+				}
+
+				await onComplete({
+					email,
+					...(supabaseuser_id && { tenant_id: supabaseuser_id }),
+					requiresEmailConfirmation
+				})
+
+				toast.success('Account created', {
+					description: requiresEmailConfirmation
+						? 'Check your email to confirm your account before first sign in.'
+						: 'You are signed in and ready to continue.'
+				})
+
+				form.reset()
+				onOpenChange(false)
+			} catch (err) {
+				const message =
+					err instanceof Error ? err.message : 'Unable to complete sign up'
+				toast.error('Sign up failed', {
+					description: message
+				})
+			} finally {
+				setIsSubmitting(false)
+			}
+		},
+		validators: {
+			onSubmit: signupFormSchema
+		}
+	})
+
+	const handleCancel = () => {
+		if (!isSubmitting) {
+			form.reset()
+			onOpenChange(false)
+		}
+	}
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="max-w-lg" intent="create">
+				<DialogHeader>
+					<DialogTitle>
+						Join TenantFlow {planName ? `· ${planName}` : ''}
+					</DialogTitle>
+					<DialogDescription>
+						Create your account to kick off checkout. You&apos;ll be redirected
+						to Stripe to securely complete your subscription.
+					</DialogDescription>
+				</DialogHeader>
+				<form
+					onSubmit={event => {
+						event.preventDefault()
+						form.handleSubmit()
+					}}
+					className="space-y-4"
+				>
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<form.Field name="first_name">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="first_name">First name</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<User />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="first_name"
+											placeholder="Jamie"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+						<form.Field name="last_name">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="last_name">Last name</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<User />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="last_name"
+											placeholder="Rivera"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<form.Field name="company">
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="company">Company</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Building2 />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="company"
+										placeholder="Rivera Property Group"
+										value={field.state.value}
+										onChange={event => field.handleChange(event.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isSubmitting}
+									/>
+								</InputGroup>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<form.Field name="email">
+						{field => (
+							<Field>
+								<FieldLabel htmlFor="email">Work email</FieldLabel>
+								<InputGroup>
+									<InputGroupAddon align="inline-start">
+										<Mail />
+									</InputGroupAddon>
+									<InputGroupInput
+										id="email"
+										type="email"
+										placeholder="jamie@riverapm.com"
+										value={field.state.value}
+										onChange={event => field.handleChange(event.target.value)}
+										onBlur={field.handleBlur}
+										disabled={isSubmitting}
+									/>
+								</InputGroup>
+								<FieldError>
+									{String(field.state.meta.errors?.[0] ?? '')}
+								</FieldError>
+							</Field>
+						)}
+					</form.Field>
+
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<form.Field name="password">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="password">Password</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Lock />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="password"
+											type="password"
+											placeholder="Create a password"
+											autoComplete="new-password"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+						<form.Field name="confirmPassword">
+							{field => (
+								<Field>
+									<FieldLabel htmlFor="confirmPassword">
+										Confirm password
+									</FieldLabel>
+									<InputGroup>
+										<InputGroupAddon align="inline-start">
+											<Lock />
+										</InputGroupAddon>
+										<InputGroupInput
+											id="confirmPassword"
+											type="password"
+											placeholder="Repeat password"
+											autoComplete="new-password"
+											value={field.state.value}
+											onChange={event => field.handleChange(event.target.value)}
+											onBlur={field.handleBlur}
+											disabled={isSubmitting}
+										/>
+									</InputGroup>
+									<FieldError>
+										{String(field.state.meta.errors?.[0] ?? '')}
+									</FieldError>
+								</Field>
+							)}
+						</form.Field>
+					</div>
+
+					<DialogFooter>
+						<Button
+							type="button"
+							variant="ghost"
+							onClick={handleCancel}
+							disabled={isSubmitting}
+						>
+							Cancel
+						</Button>
+						<Button
+							type="submit"
+							disabled={isSubmitting || form.state.isSubmitting}
+						>
+							{isSubmitting ? 'Creating account…' : planCta || 'Continue'}
+						</Button>
+					</DialogFooter>
+				</form>
+			</DialogContent>
+		</Dialog>
+	)
+}
+
+export default OwnerSubscribeDialog

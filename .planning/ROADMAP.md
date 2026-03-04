@@ -11,6 +11,7 @@ TenantFlow is a multi-tenant property management SaaS platform for property owne
 - ✅ **v5.0 Production Hardening & Revenue Completion** - Phases 33-37 (shipped 2026-02-19)
 - ✅ **v6.0 Production Grade Completion** - Phases 38-49 (shipped 2026-02-20)
 - ✅ **v7.0 Backend Elimination** - Phases 50-57 (shipped 2026-02-24)
+- ✅ **v8.0 Post-Migration Hardening + Payment Infrastructure** - Phases 58-64 (shipped 2026-02-27)
 
 ## Phases
 
@@ -98,139 +99,93 @@ Plans:
 
 </details>
 
-### v8.0 Post-Migration Hardening + Payment Infrastructure (Phases 58-64)
+<details>
+<summary>✅ v8.0 Post-Migration Hardening + Payment Infrastructure (Phases 58-64) — SHIPPED 2026-02-27</summary>
 
 **Milestone Goal:** Complete the payment revenue engine (Stripe Connect destination charge fee split, receipt emails, autopay) and auth flow gaps, while resolving critical security vulnerabilities, code quality debt, and CI/CD gaps from the v7.0 post-merge review.
 
-- [x] **Phase 58: Security Hardening** - Close 8 active vulnerabilities in Edge Functions and frontend mutations (completed 2026-02-26)
-- [x] **Phase 59: Stripe Rent Checkout** - End-to-end rent payment with destination charge fee split (completed 2026-02-27)
-- [x] **Phase 60: Receipt Emails** - Automated tenant receipt and owner notification on payment success (completed 2026-02-27)
-- [x] **Phase 61: Auth Flow Completion** - Password reset, email confirmation, and Google OAuth routing (completed 2026-02-27)
-- [x] **Phase 62: Code Quality + Performance** - Fix error handling, consolidate hooks, cache auth, batch queries (completed 2026-02-27)
-- [x] **Phase 63: Testing, CI/CD + Documentation** - RLS write-path tests, pipeline gates, CLAUDE.md modernization (completed 2026-02-27)
-- [x] **Phase 64: Autopay** - Recurring monthly rent via saved payment method (completed 2026-02-27)
+- [x] Phase 58: Security Hardening (3/3 plans)
+- [x] Phase 59: Stripe Rent Checkout (2/2 plans)
+- [x] Phase 60: Receipt Emails (2/2 plans)
+- [x] Phase 61: Auth Flow Completion (3/3 plans)
+- [x] Phase 62: Code Quality + Performance (3/3 plans)
+- [x] Phase 63: Testing, CI/CD + Documentation (3/3 plans)
+- [x] Phase 64: Autopay (2/2 plans)
+
+</details>
+
+### v9.0 Testing Strategy Consolidation (Phases 05-08)
+
+**Milestone Goal:** Unify the fragmented test infrastructure (Vitest + Jest + scattered directories) into a single-runner Testing Trophy architecture with MSW for component tests, faker factories for test data, and a trimmed E2E suite. Design doc: `docs/plans/2026-03-03-testing-strategy-design.md`.
+
+- [ ] **Phase 05: Vitest Unification + File Consolidation** - Single Vitest runner with projects config, Jest removal, orphaned file cleanup
+- [ ] **Phase 06: Test Data Factories** - Faker-based factory functions for all core entities, replacing static DEFAULT_* objects
+- [ ] **Phase 07: MSW + Component Test Layer** - Network-level API mocking with MSW 2.x and component test pattern with RTL
+- [ ] **Phase 08: E2E Optimization + CI Pipeline** - Playwright cleanup, critical path tagging, unified CI workflow
 
 ## Phase Details
 
-### Phase 58: Security Hardening
-
-**Goal**: Close all known security vulnerabilities discovered during the v7.0 post-merge review — Edge Function auth bypass, IDOR, injection, constraint mismatch, and dependency pinning.
-**Depends on**: v7.0 complete (Phase 57)
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08
+### Phase 05: Vitest Unification + File Consolidation
+**Goal**: All tests run under a single Vitest runner with named projects (unit, component, integration), Jest is fully removed, and orphaned test files are relocated to their correct co-located directories.
+**Depends on**: v8.0 complete (Phase 04)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05, INFRA-06
 **Success Criteria** (what must be TRUE):
-  1. DocuSeal webhook handler returns 401 for requests without a valid signature or authorization header; no unauthenticated caller can manipulate lease status
-  2. DocuSeal and generate-pdf Edge Functions reject requests where the authenticated user does not own the target lease or report; a cross-tenant IDOR attempt returns 403
-  3. Stripe webhook notification_type INSERT succeeds for all actual Stripe event types without CHECK constraint violations
-  4. All 6 frontend insert mutations (properties, units, tenants, leases, maintenance_requests, inspections) guard against undefined owner_user_id before calling PostgREST
-  5. Search inputs on properties, units, tenants, and maintenance pages cannot inject PostgREST filter operators; all 4 inputs are sanitized
+  1. Running `pnpm test:unit` executes the Vitest "unit" project; running `pnpm test:integration` executes the Vitest "integration" project; running `pnpm test:component` executes the Vitest "component" project -- all from a single `vitest.config.ts`
+  2. All 7 RLS integration test files pass under the Vitest node project with the same assertions and Supabase connection as before; no Jest runner remains
+  3. `jest`, `ts-jest`, and `@types/jest` do not appear in `package.json` dependencies or devDependencies; no `jest.config.*` files exist in the repo
+  4. The `tests/unit/` directory no longer exists; `pricing-premium.spec.ts` lives next to its source code in `src/`; all orphaned `src/__tests__/` files are in co-located `__tests__/` directories adjacent to their source modules
 **Plans**: TBD
 
 ---
 
-### Phase 59: Stripe Rent Checkout
-
-**Goal**: Tenants can pay rent through the platform with Stripe Connect destination charges, routing funds to the owner's Express account with a platform application fee.
-**Depends on**: Phase 58 (security vulnerabilities closed before new payment surface)
-**Requirements**: PAY-01, PAY-02
+### Phase 06: Test Data Factories
+**Goal**: Every test that needs domain entity data can call a `build*()` factory function that returns a realistic, randomized object -- eliminating brittle static `DEFAULT_*` constants.
+**Depends on**: Phase 05 (Vitest projects config must exist so factories are importable from both unit and component test projects)
+**Requirements**: DATA-01, DATA-02, DATA-03
 **Success Criteria** (what must be TRUE):
-  1. Tenant clicks "Pay Rent" on the tenant portal, is redirected to Stripe Checkout, completes payment, and sees a confirmation page
-  2. Owner's Stripe Express account receives the rent amount minus the platform application fee; the platform receives the configured fee
-  3. A `rent_payments` record with `status = succeeded` is created in the database after Stripe webhook delivery
-  4. If the owner's connected account has `charges_enabled = false`, the tenant sees a clear error message instead of an opaque Stripe failure
+  1. Factory functions exist for property, tenant, lease, unit, maintenance request, and user entities in `src/test/factories/` with one file per entity
+  2. Calling `buildProperty()` returns a complete `Property` object with faker-generated data; calling `buildProperty({ name: 'Custom' })` returns an object with the override applied and all other fields randomized
+  3. No test file imports `DEFAULT_PROPERTY`, `DEFAULT_TENANT`, `DEFAULT_LEASE`, or any other `DEFAULT_*` constant from `test-data.ts`; all have been migrated to factory calls
 **Plans**: TBD
 
 ---
 
-### Phase 60: Receipt Emails
-
-**Goal**: Automated receipt and notification emails fire on every successful rent payment, with email suppression respected and webhook reliability preserved.
-**Depends on**: Phase 59 (rent checkout must populate PaymentIntent metadata used by receipt template)
-**Requirements**: PAY-03, PAY-04, PAY-05
+### Phase 07: MSW + Component Test Layer
+**Goal**: Developers can write component tests that render real React component trees with TanStack Query, hitting MSW-intercepted network requests that return realistic mock data -- exercising the full component stack without a running backend.
+**Depends on**: Phase 06 (factory functions provide the response data that MSW handlers return)
+**Requirements**: MOCK-01, MOCK-02, MOCK-03, COMP-01, COMP-02, COMP-03
 **Success Criteria** (what must be TRUE):
-  1. Tenant receives a branded HTML receipt email within 60 seconds of successful rent payment, showing amount, property, and date
-  2. Owner receives a notification email within 60 seconds of tenant payment success, showing tenant name, amount, and property
-  3. If a tenant or owner email is on the Resend suppression list, no email is sent and no error is thrown
-  4. Stripe webhook handler always returns 200 regardless of email delivery outcome; a Resend failure does not cause webhook retries
-**Plans**:
-- [x] 60-01: Email infrastructure (Resend helper + React Email templates)
-- [x] 60-02: Wire email sending into stripe-webhooks handler
-
----
-
-### Phase 61: Auth Flow Completion
-
-**Goal**: Users can complete all authentication flows end-to-end — password reset via email link, email confirmation after signup, and Google OAuth with correct dashboard routing.
-**Depends on**: v7.0 complete (Phase 57) — independent of Phases 58-60
-**Requirements**: AUTH-01, AUTH-02, AUTH-03
-**Success Criteria** (what must be TRUE):
-  1. User clicks "Forgot Password," receives email, clicks link, lands on reset page, enters new password, and can log in with the new password
-  2. After signup, user sees an email confirmation page with a "Resend" button; clicking the confirmation link in email activates the account
-  3. User signing up via Google OAuth is assigned the correct user_type (owner or tenant) and is routed to the matching dashboard on first login
+  1. MSW 2.x server starts before component tests and intercepts all `fetch` calls; unhandled requests produce a warning (not a silent pass or hard failure)
+  2. Default MSW handlers exist for Supabase PostgREST endpoints (properties, tenants, leases) and at least one RPC (dashboard stats), returning factory-built data
+  3. At least 3 `.component.test.tsx` files demonstrate the full pattern: render a component inside QueryClientProvider, trigger a user interaction with `userEvent`, assert on screen content populated by MSW-mocked API responses
+  4. Component tests run as a separate Vitest project (`pnpm test:component`) and do not execute when running `pnpm test:unit`
+  5. All component tests follow RTL best practices: `getByRole` query priority, `userEvent.setup()` before render, `screen.*` accessors, `findBy*` for async content
 **Plans**: TBD
 
 ---
 
-### Phase 62: Code Quality + Performance
-
-**Goal**: Eliminate accumulated code quality debt (duplicate hooks, error handling noise, dead stubs) and resolve performance bottlenecks (auth fan-out, N+1 queries, serial lookups, unbounded exports).
-**Depends on**: Phase 58 (security hardening resolves owner_user_id guards and sanitization that overlap with code quality)
-**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04, PERF-01, PERF-02, PERF-03, PERF-04
+### Phase 08: E2E Optimization + CI Pipeline
+**Goal**: Playwright tests target real critical user journeys without stale monorepo paths, and the CI pipeline runs the unified Vitest suite on PRs with E2E reserved for merge-to-main.
+**Depends on**: Phase 07 (CI workflow must reference the finalized Vitest project names)
+**Requirements**: E2E-01, E2E-02, E2E-03, CI-01, CI-02, CI-03
 **Success Criteria** (what must be TRUE):
-  1. Error toasts appear once per error, not twice; double-toast pattern eliminated across all 20+ mutation hooks
-  2. Payment method hooks use a single consolidated module; no duplicate hook definitions exist
-  3. All 4 runtime-throw TODO stubs are replaced with real implementations or explicit "not supported" UI; no `throw new Error('TODO')` remains in production code
-  4. Tenant portal loads in a single PostgREST query (not 3 serial requests); batch tenant operations use single RPCs
-  5. CSV export queries include a row limit; the 86 getUser() fan-out calls are replaced with a cached auth pattern
-**Plans**: TBD
-
----
-
-### Phase 63: Testing, CI/CD + Documentation
-
-**Goal**: Harden the testing and deployment pipeline — RLS write-path isolation tests gate PRs, E2E tests run in CI, and CLAUDE.md reflects the current Supabase-only architecture.
-**Depends on**: Phase 58 (security fixes may affect RLS policies tested here)
-**Requirements**: TEST-01, TEST-02, TEST-03, CICD-01, CICD-02, DOCS-01, DOCS-02
-**Success Criteria** (what must be TRUE):
-  1. RLS write-path isolation tests cover INSERT, UPDATE, and DELETE for all 7 domains (properties, units, tenants, leases, maintenance, vendors, inspections); a cross-tenant write attempt fails with RLS violation
-  2. RLS integration tests run on a dedicated Supabase project and gate PR merges; a failing RLS test blocks the PR
-  3. E2E test suite runs as a smoke check in CI with all required environment variables resolved; stale NestJS intercepts are removed
-  4. CLAUDE.md contains no NestJS references and documents PostgREST query patterns, Edge Function patterns, and the RLS-only security model
-**Plans**: TBD
-
----
-
-### Phase 64: Autopay
-
-**Goal**: Tenants can enable recurring monthly rent payments using a saved payment method, eliminating the need to manually pay each month.
-**Depends on**: Phase 59 (rent checkout must work end-to-end; autopay reuses the same destination charge pattern with `setup_future_usage`)
-**Requirements**: PAY-06
-**Success Criteria** (what must be TRUE):
-  1. Tenant can toggle autopay on from the tenant portal payment settings
-  2. On the rent due date, a payment is automatically charged to the tenant's saved payment method with the same destination charge fee split as manual checkout
-  3. If the automatic charge fails (card declined, insufficient funds), the tenant receives a notification and the payment status reflects the failure
-**Plans**:
-- [x] 64-01: Schema + Autopay Edge Function (migration, pg_cron, stripe-autopay-charge, webhook updates, failure email)
-- [x] 64-02: Frontend — Autopay Toggle + Payment Settings (real mutations, status query, payment method selection)
+  1. Playwright config contains no references to `apps/frontend`, `apps/e2e-tests`, or any stale monorepo paths; `pnpm test:e2e` runs successfully from the repo root
+  2. Critical-path E2E tests are tagged and cover: auth login/signup, property CRUD, rent payment checkout, and tenant portal access; non-critical tests are documented as candidates for migration to component tests
+  3. GitHub Actions PR workflow runs `vitest --project unit --project component` and `vitest --project integration` in parallel, replacing the previous separate unit + Jest RLS workflows
+  4. Vitest CI output uses `--reporter=github-actions` so test failures appear as inline PR annotations on the failing lines
+  5. E2E tests run only on merge to main (not on every PR push); the PR workflow completes without waiting for Playwright
 
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 58 → 59 → 60 → 61 → 62 → 63 → 64
-Note: Phases 61 and 63 can be parallelized with phases 59/60 as they share no dependencies.
+Phases execute in numeric order: 05 → 06 → 07 → 08
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 18-25. Architecture & Testing | v3.0 | - | ✅ Complete | 2026-01-20 |
-| 26-32. Observability | v4.0 | - | ✅ Complete | 2026-01-21 |
-| 33-37. Production Hardening | v5.0 | - | ✅ Complete | 2026-02-19 |
-| 38-49. Production Grade | v6.0 | - | ✅ Complete | 2026-02-20 |
-| 50-57. Backend Elimination | v7.0 | - | ✅ Complete | 2026-02-24 |
-| 58. Security Hardening | 3/3 | Complete    | 2026-02-26 | - |
-| 59. Stripe Rent Checkout | 2/2 | Complete    | 2026-02-27 | - |
-| 60. Receipt Emails | 2/2 | Complete   | 2026-02-27 | - |
-| 61. Auth Flow Completion | 3/3 | Complete | 2026-02-27 | - |
-| 62. Code Quality + Performance | 3/3 | Complete | 2026-02-27 | - |
-| 63. Testing, CI/CD + Documentation | 3/3 | Complete | 2026-02-27 | - |
-| 64. Autopay | v8.0 | 2/2 | Complete | 2026-02-27 |
+| 01-04. Hardening + Payments | v8.0 | - | Complete | 2026-02-27 |
+| 05. Vitest Unification + File Consolidation | v9.0 | 0/? | Not started | - |
+| 06. Test Data Factories | v9.0 | 0/? | Not started | - |
+| 07. MSW + Component Test Layer | v9.0 | 0/? | Not started | - |
+| 08. E2E Optimization + CI Pipeline | v9.0 | 0/? | Not started | - |

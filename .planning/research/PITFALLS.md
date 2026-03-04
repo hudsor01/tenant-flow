@@ -184,8 +184,6 @@ The `/auth/update-password` page (or a dedicated route handler) must detect the 
 
 The current `update-password/page.tsx` renders `<UpdatePasswordForm />` unconditionally. The form will fail for users arriving from the email link until this exchange is added.
 
-Note: The `TOKEN_HASH` + `type=recovery` pattern used in older Supabase guides is deprecated. Current approach uses `code` + PKCE.
-
 **Warning signs:**
 
 - Password reset emails send successfully but users get an error when trying to set a new password

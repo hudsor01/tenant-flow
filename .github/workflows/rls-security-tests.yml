@@ -68,10 +68,6 @@ jobs:
         if: steps.check-secrets.outputs.has_secrets == 'true'
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Build shared package
-        if: steps.check-secrets.outputs.has_secrets == 'true'
-        run: pnpm --filter @repo/shared build
-
       - name: Run RLS security tests
         if: steps.check-secrets.outputs.has_secrets == 'true'
         env:
@@ -81,4 +77,4 @@ jobs:
           E2E_OWNER_PASSWORD: ${{ secrets.E2E_OWNER_PASSWORD }}
           E2E_OWNER_B_EMAIL: ${{ secrets.E2E_OWNER_B_EMAIL }}
           E2E_OWNER_B_PASSWORD: ${{ secrets.E2E_OWNER_B_PASSWORD }}
-        run: pnpm --filter @repo/integration-tests test:rls
+        run: pnpm test:rls
